@@ -2,7 +2,7 @@ library(R.matlab)
 library(RSQLite)
 library(DBI)
 
-setwd('C:/Users/Melanie/Desktop/FishSET')
+setwd('C:/Users/Melanie/Documents/FistSET_RPackage/Data')
 
 #Load data
 #1) Create database
@@ -46,9 +46,17 @@ MainDataTableInfo <- data.frame(variable_name=colnames(MainDataTable),
                                                                                 ifelse(grepl('Lon|Lat|LON|LAT',colnames(MainDataTable)), 'decimal degrees',
                                                                                        ifelse(grepl('PERCENT',colnames(MainDataTable)), 'percent',
                                                                                               ifelse(grepl('MT',colnames(MainDataTable)), 'metric tons',
-                                                                                                     ifelse(grepl('WEEK',colnames(MainDataTable)), 'WK',''
-                                                                                                            ))))))))))),
-                               generalType=rep(NA, length(colnames(MainDataTable))),
+                                                                                                     ifelse(grepl('WEEK',colnames(MainDataTable)), 'WK',
+                                                                                                            ifelse(grepl('WEEK',colnames(MainDataTable)), 'Y/N',NA
+                                                                                                            )))))))))))),
+                               generalType=c(ifelse(grepl('DATE|MIN',colnames(MainDataTable)), 'Time',
+                                                    ifelse(grepl('IFQ',colnames(MainDataTable)), 'Flag',
+                                                           ifelse(grepl('ID',colnames(MainDataTable)), 'Code',
+                                                                  ifelse(grepl('Long|Lat',colnames(MainDataTable)), 'Latitude',
+                                                                         ifelse(grepl('TYPE|PROCESSOR|LOCATION|METHOD',colnames(MainDataTable)), 'Code String',
+                                                                                ifelse(grepl('CHINOOK|CHUM|FATHOMS|DOLLARS|LBS|PROPORTION|VALUE|PERCENT|MT',colnames(MainDataTable)), 'Other Numeric',
+                                                                                       ifelse(grepl('HAUL|AREA|PERFORMANCE|PERMIT',colnames(MainDataTable)), 'Code Numeric', NA)
+                                                                                       ))))))),
                                isXY=ifelse(grepl('HOURS|CHINOOK|CHUM|PROPORTION|SIZE', colnames(MainDataTable)), 1,0),
                                isID=ifelse(grepl('ID', colnames(MainDataTable)), 1,0),
                                variable_link=rep(NA, length(colnames(MainDataTable))),
