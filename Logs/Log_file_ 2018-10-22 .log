@@ -1,0 +1,2 @@
+INFO [2018-10-22 10:56:49] 2 NaNs identified in variable "height"
+INFO [2018-10-22 10:56:49] All NaNs in "height" have been replaced with 6

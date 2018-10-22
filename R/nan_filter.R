@@ -32,7 +32,7 @@ is.nan.data.frame <- function (dat) { do.call(cbind, lapply(dat, is.nan))
 # this function identifies whether a dataset contains NaNs and returns the column names containing the NaNs and the number of NaNs in each column
 nan.identify <- function (dat) {
      df.name <- deparse(substitute(dat))
-    flog_func(dat=df.name, x='all',fun.name='nan.identify')
+     write(layout.json.ed(trace, 'nan.identify',df.name, 'all'), paste('~/FistSET_RPackage/Logs/Log_file',Sys.Date(),'.json'), append=T)
     if (length(which(is.nan.data.frame(dat))!=0) > 0){
               flog.info('The %s columns contain %s NaNs. Consider using nan.filter to replace or remove NaNs',
                                names(which(colSums(is.nan.data.frame(dat))!=0)),
@@ -59,6 +59,10 @@ nan.filter <- function (dat, x, replace=F, remove=F, rep.value = mean(dat[, x], 
                    if(replace==T){
                         dat[is.nan(dat[, x]), x] = rep.value
                         flog.info('All NaNs in %s have been replaced with %s', x.name, rep.value, name='file_both')
+                        write(layout.json.ed(trace, 'nan.filter',df.name, x.name, 
+                                             msg=paste(df.name,"[is.nan(",df.name,"[,", x.name,"]),",x.name,"] = ",rep.value)), 
+                                             paste('~/FistSET_RPackage/Logs/Log_file',Sys.Date(),'.json'), append=T)
+                        
                         return(dat)
                      #If remove is true then row inwhich the NaN occurs for selected column will be removed.
                    } else if(remove==T) {

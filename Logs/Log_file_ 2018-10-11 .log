@@ -1,7 +1,0 @@
-TRACE [2018-10-11 13:20:42] Applied the outlier_table function to dist column of dataframe cars1
-TRACE [2018-10-11 13:20:47] Applied the outlier_table function to "dist" column of dataframe cars1
-TRACE [2018-10-11 13:23:46] Applied the outlier_table function to dist column of dataframe cars1
-TRACE [2018-10-11 13:23:54] Applied the outlier_table function to "dist" column of dataframe cars1
-TRACE [2018-10-11 13:30:06] Applied the outlier_table function to "dist" column of dataframe cars1
-TRACE [2018-10-11 13:40:04] Applied the outlier_table function to "dist" column of dataframe cars1
-TRACE [2018-10-11 13:42:44] Applied the outlier_table function to "dist" column of dataframe cars1

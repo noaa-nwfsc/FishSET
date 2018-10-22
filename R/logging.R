@@ -18,6 +18,7 @@
 #' @examples
 
 require('futile.logger')
+require('readr')
 
 #Save log to both the console and a file or just to the file with the date in the file name
 # Recommend using file_both for informational and warning messages.
@@ -35,6 +36,24 @@ flog.threshold(INFO, name='file_both')
 
 #Function to print trace messages to log file.
 flog_func <- function(dat, x, fun.name){
-     flog.trace('Applied the %s function to %s column of dataframe %s', fun.name, x, dat, name='file_save')
+     flog.trace('[ {function: %s
+                    dataframe: %s
+                    vector: %s }', fun.name, x, dat, name='file_save')
 }
 
+#Write log in json code
+layout.json.ed <- function(level, fun.name, dat, x, msg='') {
+     if (!requireNamespace("jsonlite", quietly=TRUE))
+          stop("layout.json requires jsonlite. Please install it.", call.=FALSE)
+     
+     where <- 1 # to avoid R CMD CHECK issue
+     output_list <- list(
+          Function=jsonlite::unbox(fun.name),
+          Dataframe=jsonlite::unbox(dat), 
+          Vector=jsonlite::unbox(x),
+          message=jsonlite::unbox(msg)#,
+         # additional=...
+     )
+     jsonlite::toJSON(output_list, simplifyVector=TRUE)
+}
+#write_lines(layout.json.ed(trace, 'dat: x', 'y'), paste('~/FistSET_RPackage/Logs/Log_file',Sys.Date(),'.json'), append=T )
