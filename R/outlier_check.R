@@ -5,7 +5,7 @@
 
 #' @requires futile.logger for logging messages
 #' @requires MASS
-#' @param dat dataframe or matrix
+#' @param dataset dataframe or matrix
 #' @param x column in dataframe
 #' @param outlier.mod defines method to ..
 #' Choices include:
@@ -49,46 +49,46 @@ skewness <- function(x) {
 }
 
 
-outlier_table <- function(dat, x){
+outlier_table <- function(dataset, x){
      #logging function information
-     df.name <- deparse(substitute(dat))
+     df.name <- deparse(substitute(dataset))
      x.name <- deparse(substitute(x))
-     flog_func(dat=df.name, x=x.name, fun.name='outlier_table')
+     flog_func(dataset=df.name, x=x.name, fun.name='outlier_table')
      #Check if data is numeric. Cannot check outliers if not.
-     if(is.numeric(dat[, x])==T){
+     if(is.numeric(dataset[, x])==T){
 # Output table of summary statistics
           #Row 1 No data removed
-          dat.table <- data.frame(Vector=x.name, outlier_check='None', N=length(dat[, x]), mean=mean(dat[, x], na.rm=T), median=median(dat[, x], na.rm=T),
-                                  SD=sd(dat[, x]), min=min(dat[, x], na.rm=T), max=max(dat[, x], na.rm=T),
-                                  NAs=sum(length(which(is.na(dat[, x])))), skew=skewness(dat[, x]))
+          dat.table <- data.frame(Vector=x.name, outlier_check='None', N=length(dataset[, x]), mean=mean(dataset[, x], na.rm=T), median=median(dataset[, x], na.rm=T),
+                                  SD=sd(dataset[, x]), min=min(dataset[, x], na.rm=T), max=max(dataset[, x], na.rm=T),
+                                  NAs=sum(length(which(is.na(dataset[, x])))), skew=skewness(dataset[, x]))
            #Row 2 5-95% quantile
-            temp <- dat[dat[,x] < quantile(dat[, x], 0.95) & dat[, x] > quantile(dat[, x], 0.05), ]
+            temp <- dataset[dataset[,x] < quantile(dataset[, x], 0.95) & dataset[, x] > quantile(dataset[, x], 0.05), ]
             dat.table <- rbind(dat.table, data.frame(Vector=x.name, outlier_check='5_95_quant', N=length(temp[, x]), mean=mean(temp[, x], na.rm=T),
                                                      median=median(temp[, x], na.rm=T),
                                                      SD=sd(temp[, x]), min=min(temp[, x], na.rm=T), max=max(temp[, x], na.rm=T),
                                                      NAs=sum(length(which(is.na(temp[, x])))),   skew=skewness(temp[, x])))
                #Row 3 25-75% quantile
-               temp <- dat[dat[, x] < quantile(dat[, x], 0.75) & dat[, x] > quantile(dat[, x], 0.25), ]
+               temp <- dataset[dataset[, x] < quantile(dataset[, x], 0.75) & dataset[, x] > quantile(dataset[, x], 0.25), ]
                dat.table <- rbind(dat.table, data.frame(Vector=x.name, outlier_check='25_75_quant', N=length(temp[, x]), mean=mean(temp[, x], na.rm=T),
                                                         median=median(temp[, x], na.rm=T), SD=sd(temp[, x]), min=min(temp[, x], na.rm=T), max=max(temp[, x], na.rm=T),
                                                         NAs=sum(length(which(is.na(temp[, x])))), skew=skewness(temp[, x])))
                # Row 4 Mean +/2SD
-               temp <- dat[dat[, x] < (mean(dat[, x],na.rm=T) + 2*sd(dat[, x], na.rm=T)) & dat[, x] > (mean(dat[, x],na.rm=T) - 2*sd(dat[, x], na.rm=T)), ]
+               temp <- dataset[dataset[, x] < (mean(dataset[, x],na.rm=T) + 2*sd(dataset[, x], na.rm=T)) & dataset[, x] > (mean(dataset[, x],na.rm=T) - 2*sd(dataset[, x], na.rm=T)), ]
                dat.table <- rbind(dat.table, data.frame(Vector=x.name, outlier_check='mean_2SD', N=length(temp[, x]), mean=mean(temp[, x], na.rm=T),
                                                         median=median(temp[, x], na.rm=T), SD=sd(temp[, x]), min=min(temp[, x], na.rm=T),
                                                         max=max(temp[, x], na.rm=T),  NAs=sum(length(which(is.na(temp[, x])))), skew=skewness(temp[, x])))
                # Row 5 Mean +/3SD
-                    temp <- dat[dat[, x] < (mean(dat[, x],na.rm=T) + 3*sd(dat[, x], na.rm=T)) & dat[, x] > (mean(dat[, x],na.rm=T) - 3*sd(dat[, x], na.rm=T)), ]
+                    temp <- dataset[dataset[, x] < (mean(dataset[, x],na.rm=T) + 3*sd(dataset[, x], na.rm=T)) & dataset[, x] > (mean(dataset[, x],na.rm=T) - 3*sd(dataset[, x], na.rm=T)), ]
                     dat.table <- rbind(dat.table, data.frame(Vector=x.name, outlier_check='mean_3SD', N=length(temp[, x]), mean=mean(temp[, x], na.rm=T),
                                                              median=median(temp[, x], na.rm=T), SD=sd(temp[, x]), min=min(temp[, x], na.rm=T),
                                                              max=max(temp[, x], na.rm=T),  NAs=sum(length(which(is.na(temp[, x])))), skew=skewness(temp[, x])))
                     #Row 6 Median +/-2SD
-                    temp <- dat[dat[, x] < (median(dat[, x],na.rm=T) + 2*sd(dat[, x], na.rm=T)) & dat[, x] > (median(dat[, x],na.rm=T) - 2*sd(dat[, x], na.rm=T)), ]
+                    temp <- dataset[dataset[, x] < (median(dataset[, x],na.rm=T) + 2*sd(dataset[, x], na.rm=T)) & dataset[, x] > (median(dataset[, x],na.rm=T) - 2*sd(dataset[, x], na.rm=T)), ]
                     dat.table <- rbind(dat.table, data.frame(Vector=x.name, outlier_check='median_2SD', N=length(temp[, x]), mean=mean(temp[, x], na.rm=T),
                                                              median=median(temp[, x], na.rm=T), SD=sd(temp[, x]), min=min(temp[, x], na.rm=T),
                                                              max=max(temp[, x], na.rm=T),  NAs=sum(length(which(is.na(temp[, x])))), skew=skewness(temp[, x])))
                     #Row 7 Median +/-3SD
-                         temp <- dat[dat[, x] < (median(dat[, x],na.rm=T) + 3*sd(dat[, x], na.rm=T)) & dat[, x] > (median(dat[, x],na.rm=T) - 3*sd(dat[, x], na.rm=T)), ]
+                         temp <- dataset[dataset[, x] < (median(dataset[, x],na.rm=T) + 3*sd(dataset[, x], na.rm=T)) & dataset[, x] > (median(dataset[, x],na.rm=T) - 3*sd(dataset[, x], na.rm=T)), ]
                          dat.table <- rbind(dat.table, data.frame(Vector=x.name, outlier_check='median_3SD', N=length(temp[, x]), mean=mean(temp[, x], na.rm=T),
                                                                   median=median(temp[, x], na.rm=T), SD=sd(temp[, x]), min=min(temp[, x], na.rm=T),
                                                                   max=max(temp[, x], na.rm=T),  NAs=sum(length(which(is.na(temp[, x])))), skew=skewness(temp[, x])))
@@ -99,31 +99,31 @@ outlier_table <- function(dat, x){
 }
 
 ##---------------------------##
-outlier_plot <- function(dat, x, outlier.mod='none', x.dist='normal', save.output=TRUE, remove=F){
+outlier_plot <- function(dataset, x, outlier.mod='none', x.dist='normal', save.output=TRUE, remove=F){
      #logging function information
-     df.name <- deparse(substitute(dat))
+     df.name <- deparse(substitute(dataset))
      x.name <- deparse(substitute(x))
-     flog_func(dat=df.name, x=x.name, fun.name='outlier_plot')
+     flog_func(dataset=df.name, x=x.name, fun.name='outlier_plot')
      #Check if data is numeric. Cannot check outliers if not.
-     if(is.numeric(dat[, x])==T){
+     if(is.numeric(dataset[, x])==T){
           # Begin outlier check
-          dat$y <- 1:length(dat[, x])
+          dataset$y <- 1:length(dataset[, x])
           if(outlier.mod=='none'){
-               dat <- dat
-               dat_sub <- dat
+               dataset <- dataset
+               dat_sub <- dataset
           } else {
                if (outlier.mod=='5_95_quant'){
-                    dat_sub <- dat[dat[, x] < quantile(dat[, x], 0.95) & dat[, x] > quantile(dat[, x], 0.05), ]
+                    dat_sub <- dataset[dataset[, x] < quantile(dataset[, x], 0.95) & dataset[, x] > quantile(dataset[, x], 0.05), ]
                } else if (outlier.mod=='25_75_quant') {
-                    dat_sub <- dat[dat[, x] < quantile(dat[, x], 0.75) & dat[, x] > quantile(dat[, x], 0.25), ]
+                    dat_sub <- dataset[dataset[, x] < quantile(dataset[, x], 0.75) & dataset[, x] > quantile(dataset[, x], 0.25), ]
                } else if (outlier.mod=='mean_2SD') {
-                    dat_sub <- dat[dat[, x] < (mean(dat[, x],na.rm=T) + 2*sd(dat[, x], na.rm=T)) & dat[, x] > (mean(dat[, x],na.rm=T) - 2*sd(dat[, x], na.rm=T)), ]
+                    dat_sub <- dataset[dataset[, x] < (mean(dataset[, x],na.rm=T) + 2*sd(dataset[, x], na.rm=T)) & dataset[, x] > (mean(dataset[, x],na.rm=T) - 2*sd(dataset[, x], na.rm=T)), ]
                } else if (outlier.mod=='median_2SD') {
-                    dat_sub <-  dat[dat[, x] < (median(dat[, x],na.rm=T) + 2*sd(dat[, x], na.rm=T)) & dat[, x] > (median(dat[, x],na.rm=T) - 2*sd(dat[, x], na.rm=T)), ]               
+                    dat_sub <-  dataset[dataset[, x] < (median(dataset[, x],na.rm=T) + 2*sd(dataset[, x], na.rm=T)) & dataset[, x] > (median(dataset[, x],na.rm=T) - 2*sd(dataset[, x], na.rm=T)), ]               
                } else if (outlier.mod=='mean_3SD') {
-                    dat_sub <- dat[dat[, x] < (mean(dat[, x],na.rm=T) + 3*sd(dat[, x], na.rm=T)) & dat[, x] > (mean(dat[, x],na.rm=T) - 3*sd(dat[, x], na.rm=T)), ]
+                    dat_sub <- dataset[dataset[, x] < (mean(dataset[, x],na.rm=T) + 3*sd(dataset[, x], na.rm=T)) & dataset[, x] > (mean(dataset[, x],na.rm=T) - 3*sd(dataset[, x], na.rm=T)), ]
                } else if (outlier.mod=='median_3SD') {
-                    dat_sub <-  dat[dat[, x] < (median(dat[, x],na.rm=T) + 3*sd(dat[, x], na.rm=T)) & dat[, x] > (median(dat[, x],na.rm=T) - 3*sd(dat[, x], na.rm=T)), ]               
+                    dat_sub <-  dataset[dataset[, x] < (median(dataset[, x],na.rm=T) + 3*sd(dataset[, x], na.rm=T)) & dataset[, x] > (median(dataset[, x],na.rm=T) - 3*sd(dataset[, x], na.rm=T)), ]               
                     }
           }  #End Outlier mod
           #open a pdf file
@@ -132,7 +132,7 @@ outlier_plot <- function(dat, x, outlier.mod='none', x.dist='normal', save.outpu
           }
           par(mfrow=c(2,2))
           #points
-          plot(dat$y, dat[, x], pch=19, col='red',ylab=x.name, xlab='Data row', main='')
+          plot(dataset$y, dataset[, x], pch=19, col='red',ylab=x.name, xlab='Data row', main='')
           points(dat_sub$y, dat_sub[, x], pch=19, col='blue')
           #Hist
           h<-hist(dat_sub[, x], breaks=length(dat_sub[, x]), col="red", ylab='', xlab=x.name, main='')
@@ -197,32 +197,32 @@ outlier_plot <- function(dat, x, outlier.mod='none', x.dist='normal', save.outpu
 }
 
 ##---------------------------##
-outlier_remove <- function(dat, x, outlier.mod='none', remove=T){
+outlier_remove <- function(dataset, x, outlier.mod='none', remove=T){
 #logging function information
-     df.name <- deparse(substitute(dat))
+     df.name <- deparse(substitute(dataset))
      x.name <- deparse(substitute(x))
-     flog_func(dat=df.name, x=x.name, fun.name='outlier_remove')
+     flog_func(dataset=df.name, x=x.name, fun.name='outlier_remove')
 #Check if data is numeric. Cannot check outliers if not.
-     if(is.numeric(dat[, x])==T){
+     if(is.numeric(dataset[, x])==T){
 # Begin outlier check
      if(remove==TRUE){
          flog.trace('Outliers checked. Outliers deemed present in %s of dataframe %s. Values outside %s removed.', x.name, df.name, outlier.mod)
            if(outlier.mod=='none'){
-               dat <- dat
+               dataset <- dataset
               } else if (outlier.mod=='5_95_quant'){
-               dat <- dat[dat[, x] < quantile(dat[, x], 0.95) & dat[, x] > quantile(dat[, x], 0.05), ]
+               dataset <- dataset[dataset[, x] < quantile(dataset[, x], 0.95) & dataset[, x] > quantile(dataset[, x], 0.05), ]
               } else if (outlier.mod=='25_75_quant') {
-                   dat <- dat[dat[, x] < quantile(dat[, x], 0.75) & dat[, x] > quantile(dat[, x], 0.25), ]
+                   dataset <- dataset[dataset[, x] < quantile(dataset[, x], 0.75) & dataset[, x] > quantile(dataset[, x], 0.25), ]
               } else if (outlier.mod=='mean_2SD') {
-                   dat <- dat[dat[, x] < (mean(dat[, x],na.rm=T) + 2*sd(dat[, x], na.rm=T)) & dat[, x] > (mean(dat[, x],na.rm=T) - 2*sd(dat[, x], na.rm=T)), ]
+                   dataset <- dataset[dataset[, x] < (mean(dataset[, x],na.rm=T) + 2*sd(dataset[, x], na.rm=T)) & dataset[, x] > (mean(dataset[, x],na.rm=T) - 2*sd(dataset[, x], na.rm=T)), ]
               } else if (outlier.mod=='median_2SD') {
-                   dat <- dat[dat[, x] < (median(dat[, x],na.rm=T) + 2*sd(dat[, x], na.rm=T)) & dat[, x] > (median(dat[, x],na.rm=T) - 2*sd(dat[, x], na.rm=T)), ] 
+                   dataset <- dataset[dataset[, x] < (median(dataset[, x],na.rm=T) + 2*sd(dataset[, x], na.rm=T)) & dataset[, x] > (median(dataset[, x],na.rm=T) - 2*sd(dataset[, x], na.rm=T)), ] 
               } else if (outlier.mod=='mean_3SD') {
-                   dat <- dat[dat[, x] < (mean(dat[, x],na.rm=T) + 3*sd(dat[, x], na.rm=T)) & dat[, x] > (mean(dat[, x],na.rm=T) - 3*sd(dat[, x], na.rm=T)), ]
+                   dataset <- dataset[dataset[, x] < (mean(dataset[, x],na.rm=T) + 3*sd(dataset[, x], na.rm=T)) & dataset[, x] > (mean(dataset[, x],na.rm=T) - 3*sd(dataset[, x], na.rm=T)), ]
               } else if (outlier.mod=='median_3SD') {
-                   dat <- dat[dat[, x] < (median(dat[, x],na.rm=T) + 3*sd(dat[, x], na.rm=T)) & dat[, x] > (median(dat[, x],na.rm=T) - 3*sd(dat[, x], na.rm=T)), ] 
+                   dataset <- dataset[dataset[, x] < (median(dataset[, x],na.rm=T) + 3*sd(dataset[, x], na.rm=T)) & dataset[, x] > (median(dataset[, x],na.rm=T) - 3*sd(dataset[, x], na.rm=T)), ] 
               }
-          return(dat)
+          return(dataset)
           }  #End Outlier check
      if(remove==FALSE){
           return(...)

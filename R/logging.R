@@ -4,7 +4,7 @@
 #'  Requires the futile.library package and functions built from the package
 
 #'
-#' @param dat dataframe or matrix
+#' @param dataset dataframe or matrix
 #' @param x column in dataframe
 #' @param fun.name name of the function being applied
 #' @keywords logging
@@ -35,25 +35,25 @@ flog.threshold(TRACE, name='file_save')
 flog.threshold(INFO, name='file_both')
 
 #Function to print trace messages to log file.
-flog_func <- function(dat, x, fun.name){
+flog_func <- function(dataset, x, fun.name){
      flog.trace('[ {function: %s
                     dataframe: %s
-                    vector: %s }', fun.name, x, dat, name='file_save')
+                    vector: %s }', fun.name, x, dataset, name='file_save')
 }
 
 #Write log in json code
-layout.json.ed <- function(level, fun.name, dat, x, msg='') {
+layout.json.ed <- function(level, fun.name, dataset, x, msg='') {
      if (!requireNamespace("jsonlite", quietly=TRUE))
           stop("layout.json requires jsonlite. Please install it.", call.=FALSE)
      
      where <- 1 # to avoid R CMD CHECK issue
      output_list <- list(
           Function=jsonlite::unbox(fun.name),
-          Dataframe=jsonlite::unbox(dat), 
+          Dataframe=jsonlite::unbox(dataset), 
           Vector=jsonlite::unbox(x),
           message=jsonlite::unbox(msg)#,
          # additional=...
      )
      jsonlite::toJSON(output_list, simplifyVector=TRUE)
 }
-#write_lines(layout.json.ed(trace, 'dat: x', 'y'), paste('~/FistSET_RPackage/Logs/Log_file',Sys.Date(),'.json'), append=T )
+#write_lines(layout.json.ed(trace, 'dataset: x', 'y'), paste('~/FistSET_RPackage/Logs/Log_file',Sys.Date(),'.json'), append=T )

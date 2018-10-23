@@ -4,7 +4,7 @@
 #'  have been replaced or removed.
 
 #'
-#' @param dat dataframe or matrix over which to check for NaNs
+#' @param dataset dataframe or matrix over which to check for NaNs
 #' @param x column in dataframe over which to remove or replace NaNs
 #' @param replace whether to (TRUE) or not to (FALSE) replace NaNs in a column. Defaults to FALSE.
 #' @param remove whether to (TRUE) or not to (FALSE) remove all remove the entire row of the dataframe where NaN is present in a specified column. Defaults to FALSE.
@@ -26,17 +26,17 @@
 #' mod.dat <- nan.filter(my.df, 'speed', remove=T)
 
 #modification to is.nan, which idenitifies NaNs in a list. This modification extends the search to dataframes and matrices.
-is.nan.data.frame <- function (dat) { do.call(cbind, lapply(dat, is.nan))
+is.nan.data.frame <- function (dataset) { do.call(cbind, lapply(dataset, is.nan))
      }
 
 # this function identifies whether a dataset contains NaNs and returns the column names containing the NaNs and the number of NaNs in each column
-nan.identify <- function (dat) {
-     df.name <- deparse(substitute(dat))
+nan.identify <- function (dataset) {
+     df.name <- deparse(substitute(dataset))
      write(layout.json.ed(trace, 'nan.identify',df.name, 'all'), paste('~/FistSET_RPackage/Logs/Log_file',Sys.Date(),'.json'), append=T)
-    if (length(which(is.nan.data.frame(dat))!=0) > 0){
+    if (length(which(is.nan.data.frame(dataset))!=0) > 0){
               flog.info('The %s columns contain %s NaNs. Consider using nan.filter to replace or remove NaNs',
-                               names(which(colSums(is.nan.data.frame(dat))!=0)),
-                     unname(which(colSums(is.nan.data.frame(dat))!=0)), name='file_both'
+                               names(which(colSums(is.nan.data.frame(dataset))!=0)),
+                     unname(which(colSums(is.nan.data.frame(dataset))!=0)), name='file_both'
                      )
          } else {
               flog.info('No columns in the dataframe contain NaNs', name='file_both')
@@ -44,32 +44,32 @@ nan.identify <- function (dat) {
     }
 
 # replaces nans in the dataColumn with the choosen value or removes rows containing NaNs
-nan.filter <- function (dat, x, replace=F, remove=F, rep.value = mean(dat[, x], na.rm=T)) {
+nan.filter <- function (dataset, x, replace=F, remove=F, rep.value = mean(dataset[, x], na.rm=T)) {
      #logging function information
-     df.name <- deparse(substitute(dat))
+     df.name <- deparse(substitute(dataset))
      x.name <- deparse(substitute(x))
-     flog_func(dat=df.name, x=x.name, fun.name='nan.filter')
+     flog_func(dataset=df.name, x=x.name, fun.name='nan.filter')
      #Checking for NaNs only occurs on Numeric Variables
-         if (is.numeric(dat[, x])==T){
+         if (is.numeric(dataset[, x])==T){
               #Further actions are only taken if NaNs exist in the selected variable
-              if (any(is.nan(dat[, x]))==T){
-                   cat(length(which(is.nan(dat[, x])==T)), 'NaNs identified in variable', x, '.\n')
-                   flog.info('%s NaNs identified in variable %s',length(which(is.nan(dat[, x])==T)), x.name, name='file_both')
+              if (any(is.nan(dataset[, x]))==T){
+                   cat(length(which(is.nan(dataset[, x])==T)), 'NaNs identified in variable', x, '.\n')
+                   flog.info('%s NaNs identified in variable %s',length(which(is.nan(dataset[, x])==T)), x.name, name='file_both')
                    #If replace is true then NaNs are replaced with the identified rep.value (defaults to mean value)
                    if(replace==T){
-                        dat[is.nan(dat[, x]), x] = rep.value
+                        dataset[is.nan(dataset[, x]), x] = rep.value
                         flog.info('All NaNs in %s have been replaced with %s', x.name, rep.value, name='file_both')
                         write(layout.json.ed(trace, 'nan.filter',df.name, x.name, 
                                              msg=paste(df.name,"[is.nan(",df.name,"[,", x.name,"]),",x.name,"] = ",rep.value)), 
                                              paste('~/FistSET_RPackage/Logs/Log_file',Sys.Date(),'.json'), append=T)
                         
-                        return(dat)
+                        return(dataset)
                      #If remove is true then row inwhich the NaN occurs for selected column will be removed.
                    } else if(remove==T) {
                         cat('The entire row will be removed from the dataframe.')
                         flog.trace('All rows in which NaNs exist in column %s have been removed from dataframe %s', x.name, df.name, name='file_save')
-                       dat <- dat[!is.nan(dat[, x]), ]
-                       return(dat)
+                       dataset <- dataset[!is.nan(dataset[, x]), ]
+                       return(dataset)
                    }
               } else {
                    flog.info('No NaNs present in variable %s', x.name, name='file_both')
