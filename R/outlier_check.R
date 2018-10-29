@@ -206,7 +206,10 @@ outlier_remove <- function(dataset, x, outlier.mod='none', remove=T){
      if(is.numeric(dataset[, x])==T){
 # Begin outlier check
      if(remove==TRUE){
+          #log actions
+         write_lines(layout.json.ed(trace, 'outlier_remove', dataset, x, msg=paste('outliers removed using', outlier.mod)), paste('~/FistSET_RPackage/Logs/Log_file',Sys.Date(),'.json'), append=T )
          flog.trace('Outliers checked. Outliers deemed present in %s of dataframe %s. Values outside %s removed.', x.name, df.name, outlier.mod)
+         #Remove outliters
            if(outlier.mod=='none'){
                dataset <- dataset
               } else if (outlier.mod=='5_95_quant'){

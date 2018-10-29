@@ -58,15 +58,16 @@ filter_dat <- function(dataset,  exp, use.filter.Table=F){
      #logging function information
      df.name <- deparse(substitute(dataset))
      flog_func(data=df.name, x='user-defined', fun.name='filter_dat')
-     write(layout.json.ed(trace, 'filter_dat',df.name, x='user-defined'), paste('~/FistSET_RPackage/Logs/Log_file',Sys.Date(),'.json'), append=T)
      #Checking for NaNs only occurs on Numeric Variables
      if (use.filter.Table==T){
-                    cat('The entire row will be removed from the dataframe.')
-#                    flog.trace('All rows in which %s is note true have been removed from dataframe %s', filterTable[exp,3], df.name, name='file_save')
-                    dataset <- subset(dataset, eval(parse(text=filterTable[exp,3])))
-                    return(dataset)
+           write(layout.json.ed(trace, 'filter_dat',df.name, x='user-defined',msg=paste('Rows have been removed based on',filterTable[exp,3])), paste('~/FistSET_RPackage/Logs/Log_file',Sys.Date(),'.json'), append=T)
+           cat('The entire row will be removed from the dataframe.')
+           flog.trace('All rows in which %s is note true have been removed from dataframe %s', filterTable[exp,3], df.name, name='file_save')
+           dataset <- subset(dataset, eval(parse(text=filterTable[exp,3])))
+           return(dataset)
      } else {
           dataset <- subset(dataset, eval(parse(text=exp)))
+          write(layout.json.ed(trace, 'filter_dat',df.name, x='user-defined',msg=paste('Rows have been removed based on', exp)), paste('~/FistSET_RPackage/Logs/Log_file',Sys.Date(),'.json'), append=T)
      }
 }
 

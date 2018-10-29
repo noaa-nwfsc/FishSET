@@ -14,8 +14,10 @@
 #' @details
 #' @details Messages can be saves as informational (flog.info), as a record of actions taken (flog.trace), as error or warning messages (flog.error, flog.warn), as debug message (flog.debug).
 #' @details The flog_func function is used within other functions to log actions taken. These trace messages are saved to an external file
+#' @details The layout.json.ed writes the logged messages in a json format.
 
 #' @examples
+#' write_lines(layout.json.ed(trace, 'dataset: x', 'y'), paste('~/FistSET_RPackage/Logs/Log_file',Sys.Date(),'.json'), append=T )
 
 require('futile.logger')
 require('readr')
@@ -49,11 +51,11 @@ layout.json.ed <- function(level, fun.name, dataset, x, msg='') {
      where <- 1 # to avoid R CMD CHECK issue
      output_list <- list(
           Function=jsonlite::unbox(fun.name),
-          Dataframe=jsonlite::unbox(dataset), 
+          Dataset=jsonlite::unbox(dataset), 
           Vector=jsonlite::unbox(x),
           message=jsonlite::unbox(msg)#,
          # additional=...
      )
      jsonlite::toJSON(output_list, simplifyVector=TRUE)
 }
-#write_lines(layout.json.ed(trace, 'dataset: x', 'y'), paste('~/FistSET_RPackage/Logs/Log_file',Sys.Date(),'.json'), append=T )
+#write_lines(layout.json.ed(trace, 'dataset', 'x', 'y'), paste('~/FistSET_RPackage/Logs/Log_file',Sys.Date(),'.json'), append=T )
