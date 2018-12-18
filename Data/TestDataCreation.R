@@ -2,7 +2,6 @@ library(R.matlab)
 library(RSQLite)
 library(DBI)
 
-setwd('C:/Users/Melanie/Documents/FistSET_RPackage/Data')
 
 #Load data
 #1) Create database
@@ -27,7 +26,7 @@ dbWriteTable(testdb,'PortTable', PortTable)
 
 
 # MainDataTable
-MainDataTable <- read.csv('C:/Users/Melanie/Desktop/FishSET/MainDataTable.csv')
+MainDataTable <- load('Data/MainDataTable.RData')
 names(MainDataTable)
 # convert .mat table into dataframe
 #save dataframe to database

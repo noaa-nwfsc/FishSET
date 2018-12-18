@@ -1,0 +1,17 @@
+Package: FishSET
+Type: Package
+Version: 0.1
+Date: Sys.Date()
+Title: Spatial Economics Toolbox for Fisheries (FishSET)
+Authors@R: c(person("Melanie Harsch", "Developer", role = c("aut", "cre"), email = "melanie.harsch@noaa.gov"), person("Alan", "Haynie", role = "ctb"), person("Allen", "Chen", role = "ctb", email = "A.User@whereever.net"))
+Maintainer: Melanie Harsch <melanie.harsch@noaa.gov>
+Depends: R (>= 3.1.0)
+Imports: geosphere, sf, rgeos, spatialEco
+Suggests: 
+Description: The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools for organizing data; developing, improving and disseminating modeling best practices.
+License: GPL (>= 2)
+URL: to provide
+BugReports: https://pkgname.bugtracker.url
+devtools: :use_data(MainDataTable)
+RoxygenNote: 6.1.1
+Encoding: UTF-8

@@ -34,6 +34,7 @@ expectations <- function(dataset, gridfile, catch, AltMatrixName, defineGroup=NU
      
      dataZoneTrue <- Alt[['dataZoneTrue']] # used for catch and other variables
      choice <- Alt[['choice']] # used for catch and other variables
+     zoneRow <- Alt[['zoneRow']]
      
      
 newGridVar <- c()
@@ -65,44 +66,49 @@ numData = as.integer(datasest[[defineGroup]]) # #lmV=cdv(get(listMain,'Value'));
 
 numData = numData[which(dataZoneTrue==1),] #(Alt.dataZoneTrue,:);
 spData = choice[which(dataZoneTrue==1),]; # mapping to to the map file
-spNAN = is.nan(spData);
-spData[spNAN] = inf; # better for grouping than nans because aggregated
-
-numNAN=is.nan(numData);
-numData[numNAN]=inf;
+spNAN = which(is.nan(spData)==T);
+if(!is.empty(spNAN)){
+     spData[spNAN] = Inf; # better for grouping than nans because aggregated
+}
+numNAN=which(is.nan(numData)==T)
+if(!is.empty(numNAN)){
+numData[numNAN] = INF
+}
 ###----Done----####
 
 #[B,I,C]=unique([numData,spData],'rows'); 
-temp <- cbind(numData, spData)
+temp <- cbind(numData, as.character(spData))
 B <- unique(temp) # B are actual unique items
 # I = something not so importat  
 C <-match(paste(temp[,1],temp[,2],sep="*"), paste(B[,1],B[,2],sep="*")) #C = row ID of those unique items
 
-catchData=dataset[[catch]][which(dataZoneTrue==1),] # values from pull downs
+catchData <- dataset[[catch]][which(dataZoneTrue==1)] # values from pull downs
 
 #Time variable not chosen
 if (!any(grepl('DATE|MIN', colnames(dataset)))) { #if isempty(ti)#NOTE currently doesn't allow dummy or other options if no time detected
 
-allCatch=accumarray(C,catchData)#accumarray(C,catchData,[],@nanmean);# currently no replacement for nans
+allCatch=aggregate(catchData, list(C), mean, na.rm=T) #accumarray(C,catchData)#accumarray(C,catchData,[],@nanmean);# currently no replacement for nans
 # Above line is grouping by the alternatives through the C above
 #[bi,~,ci]=unique([numData],'rows','Stable'); 
 bi <- unique(numData)
 ci <- match(numData, unique(numData))
-#-------> This line needs work. zoneRow now currently in Alt <----------#
-newCatch=as.data.frame(matrix(NA, nrow=length(C), ncol=length(Alt[['zoneRow']]))) #nan(length(C),length(Alt.zoneRow));# preallocating
+
+newCatch=as.data.frame(matrix(NA, nrow=length(C), ncol=length(zoneRow))) #nan(length(C),length(Alt.zoneRow));# preallocating
 # col are alt choices, rows are observations
 for (w in 1:length(C)){
-     if ~isinf(B(C(w),end));
-          col=find(Alt.zoneRow==B(C[w],end));
-     if( ~isempty(col)){ 
-          newCatch(ci==ci[w],col)=allCatch(C[w],1);# loop shouldnt be necessary but no loop results in out of memory issue
+     
+#     if (!is.inf(B[C[w],])){
+#          col=find(zoneRow==B[C[w],])
+#     if( !isempty(col)){ 
+#          newCatch(ci==ci[w],col)=allCatch(C[w],1);# loop shouldn't be necessary but no loop results in out of memory issue
 # note this assigns for all the cells of the matrix.
-     }
+#     }
+#          }
 } # end for loop
-}
-newDumV <- c()
 
-else {
+#newDumV <- c()
+# End No    
+} else {
      tiData=data(ti(get(mp3V1,'Value'))).dataColumn(Alt.dataZoneTrue,:); # this part involves time which is more complicated
 
 

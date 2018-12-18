@@ -7,6 +7,7 @@
 #' @param gridfile name of gridded dataset
 #' @param case Centroid='Centroid of Zonal Assignment', Port, Other
 #' @param contents Value of variable to subset dataset by. For instance, include only zones with at least 10 hauls.
+#' @param hull.polygon Using in assignmentColumn function. Creates polying using convex hull method.
 #' @param Haul.Trip Whether data is at trip or haul. Default to haul.
 #' @param alt_var # Identifies how to find lat/lon for starting point (must have a lat/lon associated with it) 
 #' @param occasion # Identifies how to find lat/lon for alternative choices such as 'Centroid of Zonal Assignment' 
@@ -17,6 +18,7 @@
 #' @param cat #Variable defining zones or areas. Must be defined for dataset or gridfile.
 #' @param use.grid #TRUE/FALSE. If TRUE, gridded data is used to create centroids
 #' @param weight.var #Variable for weighted centroids
+
 
 
 
@@ -40,18 +42,18 @@
 
  
 createAlternativeChoice <- function(dataset, gridfile, case=c('Centroid','Port','Other'), contents, Haul.Trip=C('Haul','Trip'), alt_var, occasion, 
-                                       lon.dat, lat.dat, lon.grid, lat.grid, cat, use.grid=FALSE, weight.var){
+                                       lon.dat, lat.dat, lon.grid, lat.grid, cat, use.grid=FALSE, weight.var,hull.polygon){
                      
                      int <- findCentroid(use.grid = use.grid, dataset = dataset, gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.grid, 
                                          lat.dat = lat.dat, lon.dat = lon.dat, cat = cat, weight.var = weight.var)   
                      
                      if(!is.empty(weight.var)) {
-                          int.data <- assignmentColumn(dataset = dataset, gridfile = gridfile, lon.grid =lon.grid, lat.grid = lat.grid, 
+                          int.data <- assignmentColumn(dataset = dataset, gridfile = gridfile, hull.polygon=hull.polygon, lon.grid =lon.grid, lat.grid = lat.grid, 
                                                      lon.dat = lon.dat, lat.dat = lat.dat, cat = cat)
                           choice <- data.frame(int.data$ZoneID)
                      } else if(use.grid==T) {
                           int.data <- assignmentColumn(dataset = dataset, gridfile = gridfile, lon.grid =lon.grid, lat.grid = lat.grid, 
-                                                     lon.dat = lon.dat, lat.dat = lat.dat, cat = cat)
+                                                     lon.dat = lon.dat, lat.dat = lat.dat, cat = cat, hull.polygon=hull.polygon)
                           choice <- data.frame(int.data$ZoneID)
                      } else {
                           choice <- dataset[[cat]]
@@ -71,24 +73,29 @@ if( case == 'Centroid' ){
                  a <- names(dataset[,which(grepl('zon|area', colnames(dataset), ignore.case=TRUE)==TRUE)])  #find(zp)   #find data that is zonal type                                                                                                                                                                                            
                          
  #                [B,I,C]=unique([gridInfo.assignmentColumn(~isnan(gridInfo.assignmentColumn)), data(a(v)).dataColumn(~isnan(gridInfo.assignmentColumn),:) ],'rows');%FIXME check that the order of output zones is consistent
-                    temp <- cbind(int$ZoneID, dataset[[a[1]]]) #cbind(unlist(gridInfo['assignmentColumn',,]), unlist(dataset[[a]]))
+                  temp <- cbind(as.character(int.data$ZoneID), dataset[[a[1]]]) #cbind(unlist(gridInfo['assignmentColumn',,]), unlist(dataset[[a]]))
                   B <- unique(temp) # Correct ->> Needs to be lat/long
                   C <- match(paste(temp[,1],temp[,2],sep="*"), paste(B[,1],B[,2],sep="*"))#    C <- data(a(v))[dataColumn,'rows'] #FIXME check that the order of output zones is consistent
              } 
                      
-         numH <-  accumarray(C,C)                                                                                                                                                                                            
-         binH <- 1:length(numH)                                                                                                                                                                                              
-         numH <-  numH/t(binH)                                                                                                                                                                                                
-         zoneHist <- data.frame(numH=as.vector(numH), binH=as.vector(binH), B=as.vector(B))                                                                                                                                                                                         
+                     numH <-  accumarray(C,C)                                                                                                                                                                                            
+                     binH <- 1:length(numH)                                                                                                                                                                                              
+                     numH <-  numH/t(binH)                                                                                                                                                                                                
+                     zoneHist <- data.frame(numH=as.vector(numH), binH=as.vector(binH), B=as.vector(B))                                                                                                                                                                                         
               
          ismember <- function(A,B){
               out <- match(A,B)
               out <- cbind(out,(A %in% B)*1)
          }
          zoneHist[ which(zoneHist[,1]<contents),3] <- NA
+         
+         if(any(is.empty(which(is.na(zoneHist[,3])==F)))){
+              stop('No zones meet criteria. Check the contents parameter or zone identification.')
+         }
+         
          dataZoneTrue <- ismember(int.data$ZoneID, zoneHist[, 3]) #unlist(gridInfo['assignmentColumn' ,,])
                                                                                                                                                                                     
-         greaterNZ <- ifelse(zoneHist[, 1] >= 0, 1, 0)                                                                                                                                                                        
+         greaterNZ <- ifelse(!is.na(zoneHist[,1])&zoneHist[, 1] >= 0, 1, 0)                                                                                                                                                                        
          numOfNecessary <- contents #Need to figure this out
                                                                                                                                                                                                                              
                                                                                                                                                                                                                              
@@ -102,7 +109,7 @@ if( case == 'Centroid' ){
          alt_var =  alt_var, #altToLocal1
          occasion = occasion,  #altToLocal2                                                                                                                                                                          
          zoneHist = zoneHist,                                                                                                                                                                              
- #        zoneRow <- zoneHist(greaterNZ, 3), # zones and choices array                                                                                                                                                  
+         zoneRow = zoneHist[greaterNZ, 3], # zones and choices array                                                                                                                                                  
         # assignChoice = gridInfo['dataColumnLink',,],                                                                                                                                                                            
          zoneType = ifelse(Haul.Trip == 'Haul', 'Hauls', 'Trips'),
          int = int # centroid data
