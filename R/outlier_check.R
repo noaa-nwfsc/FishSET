@@ -25,12 +25,12 @@
 #' @details outlier_check is a series of functions allowing users to evaluate the occurrence of outliers and their effect on the data
 #' using summary data and plots. Outliers can onlyl be assessed for numeric vectors.
 
-#' @examples 
-#' Generate data for example. Inject outliers into cars dataset.
-#' cars1 <- cbind(rbind(cars[1:30, ], data.frame(speed=c(19,19,20,20,20), dist=c(190, 186, 210, 220, 218))), ID=rep(c('a','b','c','d','e'), 7))
-#' outlier_table(cars1, 'dist')
-#' outlier_plot(cars1, 'dist', outlier.mod='mean_2SD', x.dist='normal', save.output=FALSE)
-#' cars1 <- outlier_remove(cars1, 'dist', outlier.mod='mean_2SD', save.output=TRUE)
+# @examples 
+# Generate data for example. Inject outliers into cars dataset.
+# cars1 <- cbind(rbind(cars[1:30, ], data.frame(speed=c(19,19,20,20,20), dist=c(190, 186, 210, 220, 218))), ID=rep(c('a','b','c','d','e'), 7))
+# outlier_table(cars1, 'dist')
+# outlier_plot(cars1, 'dist', outlier.mod='mean_2SD', x.dist='normal', save.output=FALSE)
+# cars1 <- outlier_remove(cars1, 'dist', outlier.mod='mean_2SD', save.output=TRUE)
 
 
 

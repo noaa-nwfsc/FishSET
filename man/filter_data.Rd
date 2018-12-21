@@ -31,14 +31,5 @@ Contains a function to to define and store filters
 \details{
 This function allows users to define and store data filters which can then be applied to the data. The filter dataframe can be saved and will be logged in the log file.
 }
-\examples{
-Generate data for example: outliers inejcted into cars dataset.
-cars1 <- cbind(rbind(cars[1:30, ], data.frame(speed=c(19,19,20,20,20), dist=c(190, 186, 210, 220, 218))), ID=rep(c('a','b','c','d','e'), 7))
-filter_data(cars1, 'dist','dist>100')
-filterTable
-
-newdat <- filter_dat(cars1, exp=1, use.filter.Table=T)
-newdat <- filter_dat(cars1, exp='dist>100', use.filter.Table=F)
-}
 \keyword{filter,}
 \keyword{subset}

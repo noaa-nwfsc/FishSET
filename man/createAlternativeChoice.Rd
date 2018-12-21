@@ -4,16 +4,17 @@
 \alias{createAlternativeChoice}
 \title{Create alternative choice matrix}
 \usage{
-createAlternativeChoice(dataset, gridfile, case, contents, Haul.Trip,
-  alt_var, occasion, lon.dat, lat.dat, lon.grid, lat.grid, cat, use.grid,
-  weight.var)
+createAlternativeChoice(dataset, gridfile, case = c("Centroid", "Port",
+  "Other"), contents, Haul.Trip = C("Haul", "Trip"), alt_var, occasion,
+  lon.dat, lat.dat, lon.grid, lat.grid, cat, use.grid = c(TRUE, FALSE),
+  weight.var = NULL, hull.polygon)
 }
 \arguments{
 \item{dataset}{dataframe or matrix}
 
 \item{gridfile}{name of gridded dataset}
 
-\item{case}{'Centroid of Zonal Assignment'}
+\item{case}{Centroid='Centroid of Zonal Assignment', Port, Other}
 
 \item{contents}{Value of variable to subset dataset by. For instance, include only zones with at least 10 hauls.}
 
@@ -36,6 +37,8 @@ createAlternativeChoice(dataset, gridfile, case, contents, Haul.Trip,
 \item{use.grid}{#TRUE/FALSE. If TRUE, gridded data is used to create centroids}
 
 \item{weight.var}{#Variable for weighted centroids}
+
+\item{hull.polygon}{Using in assignmentColumn function. Creates polying using convex hull method.}
 }
 \value{
 returns list containing information on alternative choice
@@ -56,8 +59,4 @@ Functions returns alternative choice matrix
         Alt.zoneRow                                                                                                                                                                                                       
         Alt.zoneType 
         Alt.int
-}
-\examples{
-
-
 }

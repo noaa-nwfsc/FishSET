@@ -16,8 +16,10 @@
 #' seoumat2 - ses \cr 
 #' MCM - Model Comparison metrics \cr 
 #' H1 - inverse hessian \cr 
-#' @examples
-#'
+#' mod.out - dataframe with model comparison metrics. These are saved to the fishset database
+#' Output also saved as a list. Use the following code to extract. some_object <- unserialize(RSQLite::dbGetQuery (mydb, 'SELECT name FROM data LIMIT 1')$name[[1]]);
+# @examples
+#
 
 zonal_subroutine <- function(catch, choice, distance, otherdat, initparams, optimOpt, func) {
     errorExplain <- NULL
@@ -82,7 +84,20 @@ zonal_subroutine <- function(catch, choice, distance, otherdat, initparams, opti
     
     PseudoR2 <- (LL_start - LL)/LL_start
     
-    MCM <- list(AIC = AIC, AICc = AICc, BIC = BIC, PseudoR2 = PseudoR2)
+    if(!exists(out.mod)){
+      out.mod <- c()
+      out.mod[,1] = c(AIC, AICc, BIC, PseudoR2)
+      rownames(out.mod) = c('AIC','AICc','BIC','PseudoR2')
+      colnames(out.mod) = func
+    } else {
+      temp <- data.frame(c(AIC, AICc, BIC, PseudoR2))
+      colnames(temp) = func
+      out.mod <- cbind(out.mod, temp)  
+    }
+
+      DBI::dbWriteTable(mydb, 'out.mod', out.mod, append=T)
+
+        MCM <- list(AIC = AIC, AICc = AICc, BIC = BIC, PseudoR2 = PseudoR2)
     
     if (is.null(H) == FALSE) {
         H1 <- solve(H)
@@ -96,6 +111,12 @@ zonal_subroutine <- function(catch, choice, distance, otherdat, initparams, opti
         OutLogit <- cbind(t(outmat2), as.matrix(se2), (tLogit))
     }
     
+    DBI::dbExecute(conn = mydb, "CREATE TABLE IF NOT EXISTS data (modelout 
+                    list(function=func, errorExplain = errorExplain, OutLogit = OutLogit, clogitoutput = clogitoutput, seoutmat2 = seoutmat2, MCM = MCM, H1 = H1))")
+    DBI::dbExecute(mydb, 'INSERT INTO data VALUES (:modelout)', 
+                            params = list(modelout = list(serialize(list(func=func, errorExplain = errorExplain, OutLogit = OutLogit, 
+                                                            clogitoutput = clogitoutput, seoutmat2 = seoutmat2, MCM = MCM, H1 = H1), NULL))))
+        
     ############################################################################# 
     
     return(list(errorExplain = errorExplain, OutLogit = OutLogit, clogitoutput = clogitoutput, seoutmat2 = seoutmat2, MCM = MCM, H1 = H1))

@@ -6,8 +6,8 @@
 Each row should be a unique trip. Reduces the number of rows.
 Unique trips are defined based on selected column(s). For example, landing permit number and disembared port. This id column is used to collapse the data to trip level.}
 \usage{
-HaulToTrip(dataset, dataindex, varnameindex, genTypeName, ...,
-  fun.time = min, fun.numeric = mean)
+HaulToTrip(dataset, dataindex, varnameindex, genTypeName, fun.time = min,
+  fun.numeric = mean, ...)
 }
 \arguments{
 \item{dataset}{dataframe or matrix over which to apply filter}
@@ -18,9 +18,11 @@ HaulToTrip(dataset, dataindex, varnameindex, genTypeName, ...,
 
 \item{genTypeName}{column in dataindex containing information on the general category of each column in dataset (time, numeric, etc)}
 
-\item{...}{Column(s) that define the individual trip.}
+\item{fun.time}{Time units for function. Defaults to minutes}
 
-\item{rowID}{created in the first half of the HaulToTrip function. It is based on the column(s) identified as defining individual trips}
+\item{fun.numeric}{Defaults to mean}
+
+\item{...}{Column(s) that define the individual trip.}
 }
 \value{
 Dataframe with each row representing a trip or haul
@@ -29,8 +31,4 @@ Dataframe with each row representing a trip or haul
 Collapse the dataframe from haul to trip.
 Each row should be a unique trip. Reduces the number of rows.
 Unique trips are defined based on selected column(s). For example, landing permit number and disembared port. This id column is used to collapse the data to trip level.
-}
-\examples{
-MainDataTable and MainDataTableInfo
-dat <- HaulToTrip(MainDataTable, MainDataTableInfo,'variable_name','generalType','PERMIT','DISEMBARKED_PORT')
 }

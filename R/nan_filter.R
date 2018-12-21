@@ -15,13 +15,13 @@
 #' is.nan only works on lists. na.identify is used to identify if NaNs exist in a dataframe and which dataframes they occur in.
 #' It is intended to aid in deciding how to handle NaNs. nan.filter is the function use to replace or remove NaNs.
 
-#' @examples
-#' my.df <- data.frame(length=c(1, 2, 3,4), height=c(NaN, 2, NaN,10), age=c(1,2,4,6),ID=c('a',Inf,'c','d'),speed=c(NaN,NA,44,40))
-#' nan.identify(my.df)
-#' nan.filter(my.df, 'speed')
-#' mod.dat <- nan.filter(my.df, 'speed', replace=T)
-#' mod.dat <- nan.filter(my.df, 'speed', replace=T, rep.value=0)
-#' mod.dat <- nan.filter(my.df, 'speed', remove=T)
+# @examples
+# my.df <- data.frame(length=c(1, 2, 3,4), height=c(NaN, 2, NaN,10), age=c(1,2,4,6),ID=c('a',Inf,'c','d'),speed=c(NaN,NA,44,40))
+# nan.identify(my.df)
+# nan.filter(my.df, 'speed')
+# mod.dat <- nan.filter(my.df, 'speed', replace=T)
+# mod.dat <- nan.filter(my.df, 'speed', replace=T, rep.value=0)
+# mod.dat <- nan.filter(my.df, 'speed', remove=T)
 
 # modification to is.nan, which idenitifies NaNs in a list. This modification extends the search to dataframes and matrices.
 is.nan.data.frame <- function(dataset) {

@@ -5,8 +5,8 @@
 #' @param choice A (number of observations) x 1 vector of chosen locations
 #' @return dataCompile - a data matrix
 #' @details Called in zonalSubroutine
-#' @examples
-#'
+# @examples
+#
 
 create_logit_input <- function(choice) {
     choice <- as.data.frame(choice)

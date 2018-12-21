@@ -10,8 +10,8 @@
 #' @param ab Number of cost parameters + number of alts
 #' @return d - matrix of choice possibilites and distance
 #' @details Called in zonalSubroutine n 
-#' @examples 
-#'
+# @examples 
+#
 
 shiftSortX <- function(x, ch, y, distance, alts, ab) {
     ch0 <- ch - 1

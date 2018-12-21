@@ -36,13 +36,13 @@
 #'         Alt.zoneType 
 #'         Alt.int 
                                                                                                                                                                                                      
-#' @examples 
-#' 
-#' 
+# @examples 
+# 
+# 
 
  
 createAlternativeChoice <- function(dataset, gridfile, case=c('Centroid','Port','Other'), contents, Haul.Trip=C('Haul','Trip'), alt_var, occasion, 
-                                       lon.dat, lat.dat, lon.grid, lat.grid, cat, use.grid=FALSE, weight.var,hull.polygon){
+                                       lon.dat, lat.dat, lon.grid, lat.grid, cat, use.grid=c(TRUE,FALSE), weight.var=NULL,hull.polygon){
                      
                      int <- findCentroid(use.grid = use.grid, dataset = dataset, gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.grid, 
                                          lat.dat = lat.dat, lon.dat = lon.dat, cat = cat, weight.var = weight.var)   
@@ -83,17 +83,14 @@ if( case == 'Centroid' ){
                      numH <-  numH/t(binH)                                                                                                                                                                                                
                      zoneHist <- data.frame(numH=as.vector(numH), binH=as.vector(binH), B=as.vector(B))                                                                                                                                                                                         
               
-         ismember <- function(A,B){
-              out <- match(A,B)
-              out <- cbind(out,(A %in% B)*1)
-         }
+        
          zoneHist[ which(zoneHist[,1]<contents),3] <- NA
          
          if(any(is.empty(which(is.na(zoneHist[,3])==F)))){
               stop('No zones meet criteria. Check the contents parameter or zone identification.')
          }
          
-         dataZoneTrue <- ismember(int.data$ZoneID, zoneHist[, 3]) #unlist(gridInfo['assignmentColumn' ,,])
+         dataZoneTrue <- cbind(int.data$ZoneID %in% zoneHist[, 3], match(int.data$ZoneID, zoneHist[, 3], nomatch = 0))#ismember(int.data$ZoneID, zoneHist[, 3]) #unlist(gridInfo['assignmentColumn' ,,])
                                                                                                                                                                                     
          greaterNZ <- ifelse(!is.na(zoneHist[,1])&zoneHist[, 1] >= 0, 1, 0)                                                                                                                                                                        
          numOfNecessary <- contents #Need to figure this out

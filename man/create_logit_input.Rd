@@ -18,6 +18,3 @@ Creates a data matrix that is consistent with the built in model forms
 \details{
 Called in zonalSubroutine
 }
-\examples{
-
-}

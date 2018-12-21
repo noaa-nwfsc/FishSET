@@ -11,9 +11,9 @@
 #' @details Checks data to be used for modelling. Checks for presence of NaNs and Inf. The verified data will not saves unless no NaNs or infinite values in the dataset.
 #' Verified data can then be saves as sql table or csv file.
 
-#' @examples 
-#' checkModelData(MainDataTable, uniqueID='uniqueID_Code', db.name=testdb, save.name='modelData')
-#' 
+# @examples 
+# checkModelData(MainDataTable, uniqueID='uniqueID_Code', db.name=testdb, save.name='modelData')
+# 
 # 
 
 # modification to is.nan, which idenitifies NaNs in a list. This modification extends the search to dataframes and matrices.

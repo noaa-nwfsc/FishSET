@@ -1,15 +1,13 @@
 #' Create ID variable from another variable.
 #'
-#' 
-
 #' @param dataset dataframe or matrix
 #' @param ... Column(s) that define the variable(s) over which to make new ID
 #' @param newID name of new ID column
 #' @return Returns the dataframe with new ID variable included
 #' @details Creates an variable to indicate distinct hauls or trips
 #' 
-#' @examples 
-#' dat <- IDvar(MainDataTable, newID='PermiteID','GEAR_TYPE')
+# @examples 
+# dat <- IDvar(MainDataTable, newID='PermitID','GEAR_TYPE')
 
 
 IDvar <- function(dataset, newID, ...) {
@@ -24,7 +22,7 @@ IDvar <- function(dataset, newID, ...) {
     
     # logging function information
     df.name <- deparse(substitute(dataset))
-    write(layout.json.ed(trace, "IDvar", df.name, newID, msg = paste(newID, "created based on", agrList)), paste(getwd(), "/Logs/", Sys.Date(), ".json", 
+    write(layout.json.ed(trace, "IDvar", df.name, newID, msg = paste(newID, "created based on", argList)), paste(getwd(), "/Logs/", Sys.Date(), ".json", 
         sep = ""), append = T)
     
     return(int)

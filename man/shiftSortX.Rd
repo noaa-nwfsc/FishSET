@@ -28,6 +28,3 @@ Shifts choices so that the chosen zone will be automatically the first one
 \details{
 Called in zonalSubroutine n
 }
-\examples{
-
-}

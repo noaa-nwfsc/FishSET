@@ -10,6 +10,10 @@ TempMod(dataset, x, fun.mod = "", define.format)
 \item{dataset}{dataframe or matrix}
 
 \item{x}{Time variable to modify}
+
+\item{fun.mod}{Defines temporal time frame such as year, month, day}
+
+\item{define.format}{Format of temporal data}
 }
 \value{
 Returns variable with modified time unites
@@ -20,10 +24,6 @@ Transform units of a temporal variables
 \details{
 define.format defines the format that the variable should take on. Examples include '%Y%m%d', '%Y-%m-%d %H:%M:%S'.
 The function also has options to extract year, month, minute, or month/day. These are defined through fun.mod
-}
-\examples{
-Date_Landed_YMD <- TempMod(MainDataTable, 'DATE_LANDED', fun.mod='',define.format = '\%Y\%m\%d')
-Date_Landed_year <- TempMod(MainDataTable, 'DATE_LANDED', fun.mod='year',define.format = '')
 }
 \keyword{Date,}
 \keyword{as.Date}

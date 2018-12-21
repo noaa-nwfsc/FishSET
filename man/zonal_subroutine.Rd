@@ -27,14 +27,13 @@ OutLogit - [outmat1 se1 tEPM2] (coefs, ses, tstats) \cr
 clogitoutput - optimization information \cr 
 seoumat2 - ses \cr 
 MCM - Model Comparison metrics \cr 
-H1 - inverse hessian \cr
+H1 - inverse hessian \cr 
+mod.out - dataframe with model comparison metrics. These are saved to the fishset database
+Output also saved as a list. Use the following code to extract. some_object <- unserialize(RSQLite::dbGetQuery (mydb, 'SELECT name FROM data LIMIT 1')$name[[1]]);
 }
 \description{
 Subroutine to run chosen discrete choice model
 }
 \details{
 Called the ShiftSortX, CreateLogitInput and likekihood functions. Inputs from ModelInputData generated in make_model_design
-}
-\examples{
-
 }

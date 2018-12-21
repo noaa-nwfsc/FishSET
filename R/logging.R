@@ -13,11 +13,9 @@
 #' @details The flog_func function is used within other functions to log actions taken. These trace messages are saved to an external file
 #' @details The layout.json.ed writes the logged messages in a json format.
 
-#' @examples
-#' write_lines(layout.json.ed(trace, 'dataset: x', 'y'), paste(getwd(),'/Logs/',Sys.Date(),'.json'), append=T )
+# @examples
+# write_lines(layout.json.ed(trace, 'dataset: x', 'y'), paste(getwd(),'/Logs/',Sys.Date(),'.json'), append=T )
 
-#require('futile.logger')
-#require('readr')
 
 #Save log to both the console and a file or just to the file with the date in the file name
 # Recommend using file_both for informational and warning messages.
@@ -55,4 +53,4 @@ layout.json.ed <- function(level, fun.name, dataset, x, msg='') {
      )
      jsonlite::toJSON(output_list, simplifyVector=TRUE)
 }
-#write_lines(layout.json.ed(trace, 'dataset', 'x', 'y'), paste('~/FishSET_RPackage/Logs/Log_file',Sys.Date(),'.json', sep=F), append=T )
+#write_lines(layout.json.ed(trace, 'dataset', 'x', 'y'), paste(getwd(),'/Logs/',Sys.Date(),'.json', sep=''), append=T )

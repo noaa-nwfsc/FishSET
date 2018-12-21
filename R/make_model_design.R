@@ -35,11 +35,10 @@
 #'     created <- Sys.time()                                                                                                                                                                        
 #'     )
 #'    Depends on geospheres
-
-#' @examples 
-#' 
+# @examples 
+ 
       
-require(geosphere) #for distance calculations
+#require(geosphere) #for distance calculations
 
 
 makeModelDesign  <- function(dataset, catchID='HAUL', indeVarsForModel, gridVariablesInclude='', alternativeMatrix=c('loaded data','gridded data'), 
@@ -230,8 +229,8 @@ makeModelDesign  <- function(dataset, catchID='HAUL', indeVarsForModel, gridVari
 ### ---- add special terms: ----###                                                                                                                                                                                                               
 #add only for EPM model                                                                                                                                                                                                             
      catch <- dataset[which(dataZoneTrue==1), catchID]                                                                                                                                                                                                                           
-#      r <- regexp(num2str(max(modelInputData.catch)),'\\.','split')                                                                                                                                                                       
-      yscale <- 1  #10^(length(r{1})-1)                                                                                                                                                                                                       
+      r <- nchar(sub('\\.[0-9]+', '', max(catch,na.rm=T),na.rm=T)) #regexp(num2str(max(modelInputData.catch)),'\\.','split')                                                                                                                                                                       
+      yscale <- 10^(r-1)                                                                                                                                                                                                       
                                                                                                                                                                                                                                           
                                                                                                                                                                                                                                           
 # some models need vessel ID                                                                                                                                                                                                        
@@ -253,8 +252,8 @@ makeModelDesign  <- function(dataset, catchID='HAUL', indeVarsForModel, gridVari
       }      
       
       #scales zonal
-      #r <- regexp(num2str(max(max(modelInputData.zonalChoices))),'\\.','split')                                                                                                                                                           
-      mscale <- 1# 10^(length(r{1})-1)                                                                                                                                                                                                       
+      r <- nchar(sub('\\.[0-9]+', '', max(max(zonalChoices,na.rm=T),na.rm=T))) #regexp(num2str(max(max(modelInputData.zonalChoices))),'\\.','split')                                                                                                                                                           
+      mscale <- 10^(r-1)                                                                                                                                                                                                       
 
       #scales data
       #r in regexp(arrayfun(@num2str,nanmax(dataPerZone),'UniformOutput',false),'\\.','split')){){

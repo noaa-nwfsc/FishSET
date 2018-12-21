@@ -7,9 +7,15 @@
 accumarray(subs, val, sz = NULL, func = sum, fillval = 0)
 }
 \arguments{
-\item{subs}{}
+\item{subs}{Vector or array}
 
-\item{val}{}
+\item{val}{Value}
+
+\item{sz}{Size}
+
+\item{func}{How to summarize the data}
+
+\item{fillval}{Fill value}
 }
 \value{
 an array
@@ -19,7 +25,4 @@ Construct array with accumulation
 }
 \details{
 Based on the accumarray function in Matlab. Modified from the pracma package. Called in the createAlternativeChoice function.
-}
-\examples{
-accumarray(C, C)
 }

@@ -11,8 +11,8 @@
 #' dataset, whether any columns in the dataset are empty, if units are defined and recognized, whether each row is a unique choice occurrence at the haul
 #' or trip level, and that data for either lat/long or fishing area are included.
 
-#' @examples 
-#' dataVerification(MainDataTable, MainDataTableInfo)
+# @examples 
+# dataVerification(MainDataTable, MainDataTableInfo)
 
 ####----> NOTE CHECK ON WHAT CORRECT LAT/LON FORMAT IS <-----#####
 dataVerification <- function(dataset, dataindex) {

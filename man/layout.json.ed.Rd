@@ -29,7 +29,4 @@ The flog_func function is used within other functions to log actions taken. Thes
 
 The layout.json.ed writes the logged messages in a json format.
 }
-\examples{
-write_lines(layout.json.ed(trace, 'dataset: x', 'y'), paste(getwd(),'/Logs/',Sys.Date(),'.json'), append=T )
-}
 \keyword{logging}

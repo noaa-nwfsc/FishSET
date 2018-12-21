@@ -1,12 +1,15 @@
 #' Construct array with accumulation
 #'
-#' @param subs 
-#' @param val 
+#' @param subs Vector or array
+#' @param val Value
+#' @param sz Size
+#' @param func How to summarize the data
+#' @param fillval Fill value
 #' @return an array
 #' @details Based on the accumarray function in Matlab. Modified from the pracma package. Called in the createAlternativeChoice function. 
 
-#' @examples 
-#' accumarray(C, C)
+# @examples 
+# accumarray(C, C)
 
 accumarray <- function(subs, val, sz = NULL, func = sum, fillval = 0) {
     stopifnot(is.numeric(subs), is.numeric(val))

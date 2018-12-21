@@ -4,14 +4,16 @@
 
 #' @param dataset dataframe or matrix
 #' @param x Time variable to modify 
+#' @param fun.mod Defines temporal time frame such as year, month, day
+#' @param define.format Format of temporal data 
 #' @keywords Date, as.Date
 #' @return Returns variable with modified time unites
 #' @details define.format defines the format that the variable should take on. Examples include '%Y%m%d', '%Y-%m-%d %H:%M:%S'.
 #' The function also has options to extract year, month, minute, or month/day. These are defined through fun.mod
 #' 
-#' @examples 
-#' Date_Landed_YMD <- TempMod(MainDataTable, 'DATE_LANDED', fun.mod='',define.format = '%Y%m%d')
-#' Date_Landed_year <- TempMod(MainDataTable, 'DATE_LANDED', fun.mod='year',define.format = '')
+# @examples 
+# Date_Landed_YMD <- TempMod(MainDataTable, 'DATE_LANDED', fun.mod = '',define.format = '%Y%m%d')
+# Date_Landed_year <- TempMod(MainDataTable, 'DATE_LANDED', fun.mod = 'year', define.format = '')
 
 
 # Change to Year, Month, day,

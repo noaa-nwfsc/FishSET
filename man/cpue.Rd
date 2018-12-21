@@ -26,7 +26,3 @@ Create variable or matrix
 \details{
 Function for generating specialized variables.
 }
-\examples{
-DumVar <- DummyVar(MainDataTable)
-DumMat <- DummyMatrix(MainDataTable, 'DISEMBARKED_PORT')
-}

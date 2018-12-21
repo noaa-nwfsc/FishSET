@@ -5,9 +5,9 @@
 #' @keywords summary statistics
 #' @details This function print summary statistics. It prints the number of unique observations for each column along with standard summary statistics
 
-#' @examples
-#' Generate data for example: outliers inejcted into cars dataset.
-#' summary_stats(MainDataTable[,'HAUL'])
+# @examples
+# Generate data for example: outliers inejcted into cars dataset.
+# summary_stats(MainDataTable[,'HAUL'])
 
 
 

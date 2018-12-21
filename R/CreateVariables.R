@@ -1,8 +1,5 @@
 #'  Create variable or matrix
 #'
-#' 
-#' 
-
 #' @param dataset dataframe or matrix
 #' @param dataindex dataframe that contains information on each column of the dataset
 #' @param ... Column(s) that define the variable(s) over which to make new ID
@@ -12,9 +9,9 @@
 #' @return Returns the dataframe with new Dummy variable included
 #' @details Function for generating specialized variables.
 #' 
-#' @examples 
-#' DumVar <- DummyVar(MainDataTable)
-#' DumMat <- DummyMatrix(MainDataTable, 'DISEMBARKED_PORT')
+# @examples 
+# DumVar <- DummyVar(MainDataTable)
+# DumMat <- DummyMatrix(MainDataTable, 'DISEMBARKED_PORT')
 
 ##--- CPUE ----##
 cpue <- function(dataset, xWeight, xTime) {
