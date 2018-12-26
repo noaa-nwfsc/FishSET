@@ -21,8 +21,8 @@
 #require(sf)  # for shape file
 #require(rgeos)  # create polygones from points
 #require(sp)
-#adfg <- read.csv("Data/adfgstat6_map.csv", header = F)
-# require(rjson) map <- fromJSON('C:/Users/Melanie/Documents/FishSET_RPackage/Data/NMFS_RA.json', flatten=TRUE) map <- map$features
+#c
+# require(rjson) map2 <- fromJSON('C:/Users/Melanie/Documents/FishSET_RPackage/Data/NMFS_RA.json', flatten=TRUE) map <- map$features
 
 
 findCentroid <- function(use.grid, dataset, gridfile, lon.grid, lat.grid, lat.dat, lon.dat, cat, weight.var) {

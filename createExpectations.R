@@ -24,7 +24,7 @@
 #' @returns newGridVar,  newDumV
 #
 
-library(lubridate) # to get floor of temporal variales
+library(lubridate) # to get floor of temporal variables
 
 
 expectations <- function(name='Expected catch',dataset, gridfile, catch, AltMatrixName, defineGroup=NULL, temporal=c('daily','sequential'), temp.var, temp.window=1,
@@ -109,9 +109,7 @@ for (w in 1:length(C)){
 #     }
 #          }
 
-
-#newDumV <- c()
-# End No
+# End No temp.var
 }
 else { #temp.var
 tiData <- dataset[[temp.var]][which(dataZoneTrue==1)] #(ti(get(mp3V1,'Value'))).dataColumn(Alt.dataZoneTrue,:); # this part involves time which is more complicated
@@ -131,9 +129,9 @@ allCatch <- vector(mode='list',length(tLine)) #cell(nrow(B),length(tLine))# what
 for (q in 1:nrow(B)){
 Bt <- unique(tiDataFloor[which(C==q)])  #[Bt,It,Ct]=unique(tiDataFloor(C==q),'stable')
 Ct <- match(tiDataFloor[which(C==q)], Bt)
-groupedCatch <- accumarray(Ct,catchData[which(C==q)],[],@(x) {x});  #groupedCatch=accumarray(Ct,catchData(C==q),[],@(x) {x});
+groupedCatch <- accumarray(Ct,catchData[which(C==q)])#accumarray(Ct,catchData[which(C==q)],[],@(x) {x});  #groupedCatch=accumarray(Ct,catchData(C==q),[],@(x) {x});
 ai <- is.element(tLine,tiDataFloor[which(C==q)]) #[ai,~]=ismember(tLine,tiDataFloor(C==q));# for everytime.. yes/no
-allCatch[q,which(ai==TRUE)] <- groupedCatch' #'
+allCatch[q,which(ai==TRUE)] <- data.frame(groupedCatch)
 }
 
 #replace emptys with something -- from second tab

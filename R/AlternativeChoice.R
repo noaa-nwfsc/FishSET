@@ -43,7 +43,7 @@
  
 createAlternativeChoice <- function(dataset, gridfile, case=c('Centroid','Port','Other'), contents, Haul.Trip=C('Haul','Trip'), alt_var, occasion, 
                                        lon.dat, lat.dat, lon.grid, lat.grid, cat, use.grid=c(TRUE,FALSE), weight.var=NULL,hull.polygon){
-                     
+                     gridfile <- as.data.frame(gridfile)
                      int <- findCentroid(use.grid = use.grid, dataset = dataset, gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.grid, 
                                          lat.dat = lat.dat, lon.dat = lon.dat, cat = cat, weight.var = weight.var)   
                      
