@@ -1,0 +1,190 @@
+# Create variables or matrix.
+
+# @examples 
+# DumVar <- DummyVar(MainDataTable) 
+# DummyMatrix(MainDataTable, 'DISEMBARKED_PORT')
+
+##--- CPUE ----##
+#' Create catch per unit effort variable
+cpue <- function(dataset, xWeight, xTime) {
+  #' @param dataset dataframe or matrix
+  #' @param xWeight Weight variable
+  #' @param xTime Time varibles. Must be weeks, days, hours, or minutes
+  #' @export cpue 
+  #' @details Function for generating new or specialized variables. cpue function create catch per unit effort variable. 
+  # @example MainDataTable$cpue <- cpue(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', 'DURATION_IN_MIN')   
+
+  write(layout.json.ed(trace, "cpue", deparse(substitute(dataset)), x = '', 
+                       msg=paste('xWeight;', deparse(substitute(xWeight)), 'xTime:', deparse(substitute(xTime)))), 
+        paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+  
+  # Check that Weight variable is indeed a weight variable
+  if (grepl("LB|Pounds|MT", xWeight, ignore.case = TRUE)) {
+    if (grepl("Min|Hour|Duration", xTime, ignore.case = TRUE)) {
+      if (!grepl("Duration", xTime, ignore.case = TRUE)) {
+        warning("xTime should be a length of time such as duration in minutes")
+      }
+      dataset[[xWeight]]/dataset[[xTime]]
+    } else {
+      stop("xTime must be a time measurement")
+    }
+  } else {
+    stop("xWeight must be in units of pounds or metric tons.")
+  }
+}
+
+
+##---- Dummy  Variables ----##
+#' Create a new dummy variable
+dummy_var <- function(dataset, DumFill = TRUE) {
+  #' @param dataset dataframe or matrix
+  #' @param DumFill Fill the dummy variable with TRUE or FALSE
+  #' @export dummy_var
+  #' @details Function for generating new or specialized variables. dummy_var creates a dummy variable and dummy_matrix creates a dummy matrix. 
+  # @example MainDataTable$dummyvar <- dummy_var(MainDataTable, DumFill=TRUE)
+  
+  dummyvar <- as.vector(rep(DumFill, nrow(dataset)))
+  # logging function information
+  df.name <- deparse(substitute(dataset))
+  write(layout.json.ed(trace, "DummyVar", deparse(substitute(dataset)), x = ""), 
+        paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+  
+  return(dummyvar)
+}
+
+
+#' Create dummy matrix from a coded ID variable
+dummy_matrix <- function(dataset, x) {
+  #' @param dataset dataframe or matrix
+  #' @param x Variable to create 
+  #' @export dummy_matrix
+  #' @details Function for generating new or specialized variables. dummy_matrix creates a dummy matrix. setQuants creates a coded variable based on the quantiles of x. 
+  # @example PortMatrix <- dummy_matrix(MainDataTable, 'PORT_CODE')
+  
+  write(layout.json.ed(trace, "DummyMatrix", deparse(substitute(dataset)), x = deparse(substitute(x))), 
+        paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+
+    # create the matrix
+  factor.levels <- levels(as.factor(dataset[[x]]))
+  int <- data.frame(matrix(rep(dataset[[x]], length(factor.levels)), ncol = length(factor.levels)))
+  colnames(int) = factor.levels
+  # change matrix to TRUE/FALSE
+  int <- data.frame(lapply(1:length(factor.levels), function(x) ifelse(int[, x] == colnames(int)[x], TRUE, FALSE)))
+  colnames(int) = paste(x, "_", levels(as.factor(dataset[[x]])))
+  return(int)
+}
+
+
+##---- Coded variables ----##
+#' Create quantile variable
+# Quantile are set as: .2 (0, 20%, 40%, 60%, 80%, 100%), 
+# .25 (0%, 25%, 50%, 75%, 100%),
+# .4 (0%, 10%, 40%, 90%, 100%)
+set_quants <- function(dataset, x, quant.cat = c(0.2, 0.25, 0.4)) {
+  #' @param dataset dataframe or matrix
+  #' @param x Variable to create 
+  #' @param quant.cat Quantile categories. Includes 0.2, 0.25, 0.4.
+  #' @export set_quants
+  #' @details Function for generating new or specialized variables. setQuants creates a coded variable based on the quantiles of x. 
+  # #Quantile are set as: .2 (0, 20%, 40%, 60%, 80%, 100%), .25 (0%, 25%, 50%, 75%, 100%), .4 (0%, 10%, 40%, 90%, 100%).
+  # @example MainDataTable <- set_quants(MainDataTable, 'HAUL', quant.cat=.2)
+  
+
+  write(layout.json.ed(trace, "setQuants", deparse(substitute(dataset)), x = deparse(substitute(x)), 
+                       msg = paste("quant.cat:", quant.cat, sep = "")),  
+        paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+  
+  if (quant.cat == 0.2) {
+    prob.def = c(0, 0.2, 0.4, 0.6, 0.8, 1)
+  } else if (quant.cat == 0.25) {
+    prob.def = c(0, 0.25, 0.5, 0.75, 1)
+  } else if (quant.cat == 0.4) {
+    prob.def = c(0, 0.1, 0.5, 0.9, 1)
+  }
+  var.name <- paste("TRIP_OTC_MT", "quantile", sep = ".")
+  var.name <- as.integer(cut(dataset[[x]], quantile(dataset[[x]], probs = prob.def), 
+                             include.lowest = TRUE))
+  dataset$var.name = var.name
+  return(dataset)
+}
+
+
+##---- Numeric  Variables ----##
+#' Create numeric variables
+create_var_num <- function(dataset, x, y, method, name) {
+  #' @param dataset dataframe or matrix
+  #' @param x Variable to create 
+  #' @param y Second variable Note that in division  x is divided by y.
+  #' @param method Addition, substraction, multiplication, division
+  #' @param name Name of new variable
+  #' @export create_var_num
+  #' @details Function for generating new or specialized variables. create_var_num create a new numeric variable based on defined arithmetic function. New variable is added to the dataset.
+  # example MainDataTable <- create_var_num(MainDataTable, 'TRIP_NUMBER_CHINOOK','TRIP_NUMBER_CHUM', 'sum','TimeChange')
+  #'
+   if (is.numeric(dataset[[x]]) == FALSE | is.numeric(dataset[[y]]) == FALSE) {
+    stop("Variables must be numeric")
+   }
+  
+   write(layout.json.ed(trace, "create_var_num", deparse(substitute(dataset)), x = x, 
+                       msg = paste("y:", y, ", method:", method, ", name:", name, sep = "")), 
+        paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+  
+  if (grepl("add|sum", method, ignore.case = TRUE)) {
+    dataset[[name]] <- dataset[[x]] + dataset[[y]]
+  } else if (grepl("sub", method, ignore.case = TRUE)) {
+    dataset[[name]] <- dataset[[x]] - dataset[[y]]
+  } else if (grepl("mult", method, ignore.case = TRUE)) {
+    dataset[[name]] <- dataset[[x]] * dataset[[y]]
+  } else if (grepl("div", method, ignore.case = TRUE)) {
+    dataset[[name]] <- dataset[[x]]/dataset[[y]]
+  }
+
+  
+  
+  return(dataset)
+}
+
+
+##---- Spatial  Variables ----##
+
+
+
+##---- Temporal  Variables ----##
+#' Create temporal variables
+create_var_temp <- function(dataset, start, end, name, units = c("week", "day", "hour", "minute")) {
+  #' @param dataset dataframe or matrix
+  #' @param name Name of new variable
+  #' @param start Variable indicating start of time period
+  #' @param end Variable indicating end of time period
+  #' @param units Units of time varibles. Must be weeks, days, hours, or minutes
+  #' @importFrom lubridate interval as.duration dweeks ddays dhours dminutes
+  #' @export create_var_temp 
+  #' @details Function for generating new or specialized variables. create_var_temp adds a new variable to the dataset based on defined temporal function. 
+  # @example MainDataTable <- create_var_temp(MainDataTable, 'TRIP_START', 'TRIP_END', 'TripDur', units='minute')
+  
+  
+  if (any(grepl("dat|min|hour|week|month|TRIP_START|TRIP_END", start, ignore.case = TRUE)) == FALSE) {
+    warning("Function is designed for temporal variables")
+  }
+  if (any(grepl("dat|min|hour|week|month|TRIP_START|TRIP_END", end, ignore.case = TRUE)) == FALSE) {
+    warning("Function is designed for temporal variables")
+  }
+  
+ write(layout.json.ed(trace, "create_var_temp", deparse(substitute(dataset)), x = "", 
+                       msg = paste("start:",   start, ", end:", end, 
+                                   ", name:",  name, ", units:", units, sep = "")), 
+        paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+   
+  elapsed.time <- lubridate::interval(dataset[[start]],dataset[[end]])
+  if (units == "week") {
+    dataset[[name]] <- lubridate::as.duration(elapsed.time)/lubridate::dweeks(1)
+  } else if (units == "day") {
+    dataset[[name]] <- lubridate::as.duration(elapsed.time)/lubridate::ddays(1)
+  } else if (units == "hour") {
+    dataset[[name]] <- lubridate::as.duration(elapsed.time)/lubridate::dhours(1)
+  } else if (units == "minute") {
+    dataset[[name]] <- lubridate::as.duration(elapsed.time)/lubridate::dminutes(1)
+  }
+  
+  return(dataset)
+}
