@@ -18,7 +18,6 @@ Log file
 }
 \description{
 Exterior file is dated to the date the code is run
- Requires the futile.library package and functions built from the package
 }
 \details{
 Calls the futile.logger package. Calls to log messages are saved in the specified dated file.

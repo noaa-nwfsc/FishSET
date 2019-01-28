@@ -2,9 +2,9 @@
 % Please edit documentation in R/filter_dat.R
 \name{filter_data}
 \alias{filter_data}
-\title{Create dataframe containining customized filters}
+\title{Define and store filters}
 \usage{
-filter_data(dataset, x, exp, save.filter = FALSE, log.dat = TRUE)
+filter_data(dataset, x, exp, save.filter = FALSE, flog.dat = TRUE)
 }
 \arguments{
 \item{dataset}{dataframe or matrix over which to apply filter}
@@ -16,17 +16,12 @@ filter_data(dataset, x, exp, save.filter = FALSE, log.dat = TRUE)
 \item{save.filter}{Whether to save the filterTable as a csv file}
 
 \item{log.dat}{Whether to print filterTable to the log file}
-
-\item{use.filter.Table}{TRUE or FALSE. If true then data is subsetted based on a filter in filterTable and exp is the row containing the filter.}
 }
 \value{
-filter_data returns filterTable into the global environment. The data table will grow with each run of the function.
-
-filter_dat applies user-definted filters. Output must be saved
+filterTable saved into the global environment. The data table will grow with each run of the function.
 }
 \description{
-Contains a function to to define and store filters
- Also contains a function to apply defined filters to dataframe
+Define and store filters
 }
 \details{
 This function allows users to define and store data filters which can then be applied to the data. The filter dataframe can be saved and will be logged in the log file.
