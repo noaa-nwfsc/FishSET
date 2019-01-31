@@ -10,7 +10,7 @@ logit_avgcat(starts3, dat, otherdat, alts)
 \item{starts3}{Starting values with dimensions equal to (number of alternatives - 1)*(number of grid-varying variables) + (number of interactions).
 Recall the user must drop one alternative for identification. e.g. c([grid-varying variables -1], [interaction variables]).}
 
-\item{dat}{Data matrix, see output from shiftSortX, alternatives with distance by column bind}
+\item{dat}{Data matrix, see output from shift_sort_x, alternatives with distance by column bind}
 
 \item{otherdat}{Other data used in model (as list). Any number of grid-varying variables (e.g. variables that affect catches across locations) or 
 interaction variables (e.g. vessel characteristics that affect how much disutility is suffered by traveling a greater distance) are allowed. \cr \cr

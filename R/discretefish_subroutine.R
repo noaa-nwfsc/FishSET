@@ -45,7 +45,7 @@ discretefish_subroutine <- function(catch, choice, distance, otherdat, initparam
   ab <- max(choice) + 1  #no interactions in create_logit_input - interact distances in likelihood function instead
   dataCompile <- create_logit_input(choice)
   
-  d <- shiftSortX(dataCompile, choice, catch, distance, max(choice), ab)
+  d <- shift_sort_x(dataCompile, choice, catch, distance, max(choice), ab)
   
   starts2 <- initparams
   

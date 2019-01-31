@@ -5,7 +5,7 @@ logit_avgcat <- function(starts3, dat, otherdat, alts) {
     #'
     #' @param starts3 Starting values with dimensions equal to (number of alternatives - 1)*(number of grid-varying variables) + (number of interactions).
     #' Recall the user must drop one alternative for identification. e.g. c([grid-varying variables -1], [interaction variables]).
-    #' @param dat Data matrix, see output from shiftSortX, alternatives with distance by column bind
+    #' @param dat Data matrix, see output from shift_sort_x, alternatives with distance by column bind
     #' @param otherdat Other data used in model (as list). Any number of grid-varying variables (e.g. variables that affect catches across locations) or 
     #' interaction variables (e.g. vessel characteristics that affect how much disutility is suffered by traveling a greater distance) are allowed. \cr \cr
     #' However, the user must place these in `otherdat` as list objects named `griddat` and `intdat` respectively. Note the variables

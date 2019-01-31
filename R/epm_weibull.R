@@ -4,7 +4,7 @@ epm_weibull <- function(starts3, dat, otherdat, alts) {
     #' Expected profit model weibull catch function
     #'
     #' @param starts3 Starting values. e.g. c([grid-varying variables], [interaction variables], [catch variance], [scale parameter]).
-    #' @param dat Data matrix, see output from shiftSortX, alternatives with distance by column bind
+    #' @param dat Data matrix, see output from shift_sort_x, alternatives with distance by column bind
     #' @param otherdat Other data used in model (as list). Any number of grid-varying variables (e.g. expected catch that varies by location) or 
     #' interaction variables (e.g. vessel characteristics that affect how much disutility is suffered by traveling a greater distance) are allowed. \cr \cr
     #' However, the user must place these in `otherdat` as list objects named `griddat` and `intdat` respectively. Note the variables #' within `griddat` 
