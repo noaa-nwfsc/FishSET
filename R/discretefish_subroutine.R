@@ -8,6 +8,7 @@
 #' @param initparams Initial parameter estimates for revenue/location-specific covariates then cost/distance
 #' @param optimOpt Optimization options [max function evaluations, max iterations, (reltol) tolerance of x]
 #' @param func Name of likelihood function
+#' @param methodname Optimization method (see optim options)
 #' @param func.name Name of likelihood function for model result output table
 #' @param return.table Return an interactive data table of model output
 #' @importFrom DBI dbExecute dbWriteTable dbExistsTable dbReadTable
@@ -31,7 +32,7 @@
 
 
 
-discretefish_subroutine <- function(catch, choice, distance, otherdat, initparams, optimOpt, func, func.name, return.table=FALSE) {
+discretefish_subroutine <- function(catch, choice, distance, otherdat, initparams, optimOpt, func, methodname, func.name, return.table=FALSE) {
   
   errorExplain <- NULL
   OutLogit <- NULL
@@ -46,7 +47,6 @@ discretefish_subroutine <- function(catch, choice, distance, otherdat, initparam
   
   d <- shiftSortX(dataCompile, choice, catch, distance, max(choice), ab)
   
-  MCR <- 1
   starts2 <- initparams
   
   LL_start <- fr(starts2, d, otherdat, max(choice))
@@ -58,19 +58,17 @@ discretefish_subroutine <- function(catch, choice, distance, otherdat, initparam
   }
   
   ############################################################################# 
-  mIter <- optimOpt[2]
-  MaxFunEvals <- optimOpt[1]
-  TolX <- optimOpt[3]
+  mIter <- optimOpt[1] #should add something to default options here if not specified
+  relTolX <- optimOpt[2]
+  reportfreq <- optimOpt[3]
+  detailreport <- optimOpt[4]
   
-  controlin <- list(maxit = mIter, reltol = TolX)
+  controlin <- list(trace=detailreport,maxit=mIter,reltol=relTolX,REPORT=reportfreq)
   
   res <- tryCatch({
     
-    optim(starts2, fr, dat = d, otherdat = otherdat, alts = max(choice), control = controlin, 
-          hessian = TRUE)
-    
-    # nlm(fr, starts2, dat=d, otherdat=otherdat, alts=max(choice), hessian=TRUE,
-    # iterlim = mIter)
+    optim(starts2, fr, dat = d, otherdat = otherdat, alts = max(choice), method = methodname, 
+			control = controlin, hessian = TRUE)
     
   }, error = function(e) {
     
@@ -88,7 +86,7 @@ discretefish_subroutine <- function(catch, choice, distance, otherdat, initparam
   q2 <- res[["par"]]
   LL <- res[["value"]]
   output <- list(counts = res[["counts"]], convergence = res[["convergence"]], 
-                 mesage = res[["message"]])
+                 optim_message = res[["message"]])
   H <- res[["hessian"]]
   
   # Model comparison metrics (MCM)
@@ -143,8 +141,7 @@ discretefish_subroutine <- function(catch, choice, distance, otherdat, initparam
     H1 <- tryCatch({
       solve(H)
     }, error = function(e) {
-      return("Error, singular, check 'ldglobalcheck'")
-      
+      return("Error, singular, check 'ldglobalcheck'")      
     })
     
     diag2 <- tryCatch({
@@ -178,7 +175,7 @@ discretefish_subroutine <- function(catch, choice, distance, otherdat, initparam
                        msg = paste("catch:", deparse(substitute(catch)), ", choice:", deparse(substitute(choice)), 
                                    ", distance:", deparse(substitute(distance)), ", otherdat:", deparse(substitute(otherdat)), 
                                    ", initparams:", deparse(substitute(initparams)), ", optimOpt:", deparse(substitute(optimOpt)), 
-                                   ", func:", deparse(substitute(func)))), 
+                                   ", func:", deparse(substitute(func)), ", methodname:", deparse(substitute(methodname)))), 
         paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
   
   ############################################################################# 
