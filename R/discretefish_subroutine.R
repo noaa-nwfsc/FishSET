@@ -27,7 +27,7 @@
 #intdatfin <- list(modelInputData$bCHeader[[-1]])
 #results <- discretefish_subroutine(catch=as.data.frame(modelInputData$catch), alt.choice, distance=modelInputData$zonalChoices,
 #                                   otherdat=list(griddat=griddatfin,intdat=intdatfin), initparams= c(0.5, -2.8), optimOpt=c(100000,1000000,1.00000000000000e-06),
-#                                   func=logit_c, 'newlogit4', return.table=TRUE)
+#                                   func=logit_c, methodname="BFGS", 'newlogit4', return.table=TRUE)
 
 
 
