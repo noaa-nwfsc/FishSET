@@ -3,6 +3,7 @@
 #' @param dataset dataframe or matrix
 #' @param gridfile name of gridded dataset
 #' @param case Centroid='Centroid of Zonal Assignment', Port, Other
+#' @param griddedDat dataframe or matrix containing a variable that varies by the map grid. First column should match a column in the dataset. The remaining columns should match the zone IDs in the gridfile.
 #' @param contents Value of variable to subset dataset by. For instance, include only zones with at least 10 hauls.
 #' @param hull.polygon Using in assignmentColumn function. Creates polying using convex hull method.
 #' @param Haul.Trip Whether data is at trip or haul. Default to haul.
@@ -33,7 +34,7 @@
 #'         Alt.zoneType 
 #'         Alt.int 
  
-create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "Port", "Other"), contents, 
+create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "Port", "Other"), griddedDat=NULL, contents, 
                                       Haul.Trip = c("Haul", "Trip"), alt_var, occasion, lon.dat, lat.dat, 
                                       lon.grid, lat.grid, cat, use.grid = c(TRUE, FALSE), weight.var = NULL,  
                                       hull.polygon = c(TRUE, FALSE), remove.na = FALSE, closest.pt = FALSE) {
@@ -70,39 +71,37 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
   }
   
   if (case == "Centroid") {
-    B <- unique(int.data$ZoneID)  #unique(unlist(gridInfo['assignmentColumn',,]))
+    B <- as.data.frame(unique(int.data$ZoneID))  #unique(unlist(gridInfo['assignmentColumn',,]))
     C <- match(int.data$ZoneID, unique(int.data$ZoneID))  #  match(unlist(gridInfo['assignmentColumn',,]), unique(unlist(gridInfo['assignmentColumn',,])))
-  } else {
-    a <- names(dataset[, which(grepl("zon|area", colnames(dataset), 
-                                     ignore.case = TRUE) == TRUE)])  #find(zp)   #find data that is zonal type                                                                                                                                                                                            
+  
+    } else {
+    a <- names(dataset[, which(grepl("zon|area", colnames(dataset), ignore.case = TRUE) == TRUE)])  #find(zp)   #find data that is zonal type                                                                                                                                                                                            
     
     # [B,I,C]=unique([gridInfo.assignmentColumn(~isnan(gridInfo.assignmentColumn)),
-    # data(a(v)).dataColumn(~isnan(gridInfo.assignmentColumn),:)
-    # ],'rows');%FIXME check that the order of output zones is consistent
+    # data(a(v)).dataColumn(~isnan(gridInfo.assignmentColumn),:) ],'rows');%FIXME check that the order of output zones is consistent
     temp <- cbind(as.character(int.data$ZoneID), dataset[[a[1]]])  #cbind(unlist(gridInfo['assignmentColumn',,]), unlist(dataset[[a]]))
     B <- unique(temp)  # Correct ->> Needs to be lat/long
-    C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], 
-                                                             B[, 2], sep = "*"))  #    C <- data(a(v))[dataColumn,'rows'] 
+    C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*"))  #    C <- data(a(v))[dataColumn,'rows'] 
   }
   
   numH <- accumarray(C, C)
   binH <- 1:length(numH)
   numH <- numH/t(binH)
-  zoneHist <- data.frame(numH = as.vector(numH), binH = as.vector(binH), 
-                         B[, 1])
+  zoneHist <- data.frame(numH = as.vector(numH), binH = as.vector(binH), B[, 1])
   
   zoneHist[which(zoneHist[, 1] < contents), 3] <- NA
   
   if (any(is.empty(which(is.na(zoneHist[, 3]) == F)))) {
     stop("No zones meet criteria. Check the contents parameter or zone identification.")
   }
-  
-  dataZoneTrue <- cbind(int.data$ZoneID %in% zoneHist[, 3], match(int.data$ZoneID, 
-                                                                  zoneHist[, 3], nomatch = 0))  #ismember(int.data$ZoneID, zoneHist[, 3]) #unlist(gridInfo['assignmentColumn' ,,])
-  greaterNZ <- ifelse(!is.na(zoneHist[, 1]) & zoneHist[, 1] >= 0, 1, 0)
+  #dataZoneTrue=ismember(gridInfo.assignmentColumn,zoneHist(greaterNZ,3));
+  dataZoneTrue <- cbind(int.data$ZoneID %in% zoneHist[, 3], match(int.data$ZoneID, zoneHist[, 3], nomatch = 0))  
+        #dataZoneTrue=ismember(gridInfo.assignmentColumn,zoneHist(greaterNZ,3));
+  greaterNZ <-  which(zoneHist[,1] >= contents) # ifelse(!is.na(zoneHist[, 1]) & zoneHist[, 1] >= 0, 1, 0)
   numOfNecessary <- contents
   
-                                                                                                                                                                                                                             
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  
         Alt <- list(
          dataZoneTrue = dataZoneTrue[,1], # array of logical values to identify which are to be used in model                                                                                              
          greaterNZ = greaterNZ,                                                                                                                                                                       
@@ -118,12 +117,65 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
          zoneType = ifelse(Haul.Trip == 'Haul', 'Hauls', 'Trips'),
          int = int # centroid data
         )  
+   
+        ### Add gridded data ###
+      if(!is.null(griddedDat)){
+        gridVar <- griddedDat
+        
+        if (DBI::dbExistsTable(fishset_db, griddedDat) == FALSE) {
+          DBI::dbWriteTable(fishset_db, griddedDat, out)
+        } 
+        
+        int <- noquote(gsub("[^0-9]", "", colnames(gridVar)))
+        
+        if(any(noquote(gsub("[^0-9]", "", colnames(temp))) %in% int.data$ZoneID)==FALSE){
+          stop('Cannot use griddedDat. Column names of griddedDat do not match zone ids in gridfile.')
+        }
+        
+        #If gridded data is not an array, need to create matrix
+        if (dim(gridVar)[1]==1) { #(is.empty(gridVar.row.array)){ #1d
+          biG <- match(Alt[['zoneRow']], int) #[aiG,biG] = ismember(Alt.zoneRow, gridVar.col.array) #FIXME FOR STRING CONNECTIONS
+          # --->>> HERE <<---
+          numRows <- nrow(dataset) #size(data(1).dataColumn,1)  #
+          if (!any(biG)){
+            stop('The map associated to the data and the grid information in the gridded variable do not overlap.')
+          }
+          allMat <- matrix(1, numRows, 1) %x% as.matrix(gridVar[1,biG]) # repmat(gridVar.matrix(1,biG), numRows, 1)
+          
+        } else {
+          #[aiG,biG] = ismember(Alt.zoneRow, gridVar.col.array)#FIXME FOR STRING CONNECTIONS
+          biG <- match(Alt[['zoneRow']], int[-1]) #gridVar.col.array
+          if (!any(biG)) {
+            stop('The map associated to the data and the grid information in the gridded variable do not overlap.')
+          }
+          
+          if (names(gridVar)[1] %in% colnames(dataset)==FALSE){
+            #wrong occourance variable to connect data
+            stop('The data in the workspace and the loaded grid file do not have a matching variable for connecting.')
+          }
+          
+          biD <- match(dataset[,names(gridVar)[1]], gridVar[,1]) #[aiD,biD]=ismember(data(occasVar).dataColumn,gridVar.row.array)
+          
+          if (!any(biD)){
+            print('The data in the workspace and the loaded grid file do not have a matching variable for connecting.')
+          }
+          
+          allMat <- gridVar[,-1][biD,biG]
+        }
+         if (any(is.na(allMat[Alt[['dataZoneTrue']],]))) {
+          stop('Problem with loaded matrix, NaN found.')
+         }
+        
+        Alt <- list.append(Alt, matrix = allMat[Alt[['dataZoneTrue']],])  #allMat[Alt[[dataZoneTrue]],]
+      }
         
         #write Alt to datafile
         DBI::dbExecute (fishset_db, "CREATE TABLE IF NOT EXISTS altmatrix (AlternativeMatrix ALT)")
         DBI::dbExecute (fishset_db, "INSERT INTO altmatrix VALUES (:AlternativeMatrix)", params = list(AlternativeMatrix = list(serialize(Alt, NULL))))
  
-        write(layout.json.ed(trace, 'create_alternative_choice', dataset=deparse(substitute(dataset)), x='', 
+       Alt <<- Alt        
+       
+       write(layout.json.ed(trace, 'create_alternative_choice', dataset=deparse(substitute(dataset)), x='', 
                              msg=paste('gridfile:', deparse(substitute(gridfile)),  ', case:', case, ', contents:', contents, 
                                        ', Haul.Trip:', Haul.Trip, ', alt_var:',deparse(substitute(alt_var)),
                                        ', occasion:', deparse(substitute(occasion)), 'lon.dat:', lon.dat, ', lat.dat:', lat.dat, 
@@ -131,7 +183,7 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
                                        ', weight.var:', weight.var)), 
               paste(getwd(),'/Logs/',Sys.Date(),'.json', sep=''), append=T )
         
-        Alt <<- Alt
+ 
 }                                                                                                                                                                                                                           
    
     

@@ -89,7 +89,7 @@ make_model_design <- function(dataset, catchID = "HAUL", indeVarsForModel = "", 
   ################### Steps if alternative matrix come from grid file use loaded alternatives matrix
   if (alternativeMatrix == "grid matrix") {
     
-    X <- Alt$matrix
+    X <- Alt[['matrix']]
     
     altChoiceUnits <- Alt[["altChoiceUnits"]]
     allZP <- dataset[, grepl("AREA", colnames(dataset))]  # get zonal type variables                                                                                                                                                                     
@@ -104,7 +104,7 @@ make_model_design <- function(dataset, catchID = "HAUL", indeVarsForModel = "", 
       
     } else {
       altToLocal1 <- ""
-      altToLocal2 <- ""  # ---> HERE dataset(v2).name                                                                                                                                                                                                
+      altToLocal2 <- alt_var                                                                                                                                                                                                
       
     }
     altChoiceType <- "loaded grid data matrix"
@@ -299,6 +299,7 @@ make_model_design <- function(dataset, catchID = "HAUL", indeVarsForModel = "", 
                           bInterAct = bInterAct, 
                           gridVaryingVariables = ExpectedCatch)
   
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   DBI::dbExecute(fishset_db, "CREATE TABLE IF NOT EXISTS modelinputdata (ModelInputData MODELINPUTDATA)")
   DBI::dbExecute(fishset_db, "INSERT INTO modelinputdata VALUES (:ModelInputData)", 
                  params = list(ModelInputData = list(serialize(modelInputData, NULL))))
