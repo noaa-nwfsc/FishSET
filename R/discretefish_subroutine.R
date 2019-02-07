@@ -133,7 +133,8 @@ discretefish_subroutine <- function(catch, choice, distance, otherdat, initparam
     out.mod <<- out.mod
 
  if(return.table==TRUE){
-    print(DT::datatable(out.mod)) 
+   rownames(out.mod)=c("AIC", "AICc", "BIC", "PseudoR2")
+    print(DT::datatable(t(round(out.mod, 5)), filter='top')) 
   }
   
   MCM <- list(AIC = AIC, AICc = AICc, BIC = BIC, PseudoR2 = PseudoR2)
@@ -171,8 +172,7 @@ discretefish_subroutine <- function(catch, choice, distance, otherdat, initparam
                    seoutmat2 = seoutmat2, MCM = MCM, H1 = H1)
   
   DBI::dbExecute(fishset_db, "CREATE TABLE IF NOT EXISTS data (modelout modelOut)")
-  DBI::dbExecute(fishset_db, "INSERT INTO data VALUES (:modelout)", params = list(modelout = list(serialize(modelOut, 
-                                                                                                            NULL))))
+  DBI::dbExecute(fishset_db, "INSERT INTO data VALUES (:modelout)", params = list(modelout = list(serialize(modelOut, NULL))))
   
   write(layout.json.ed(trace, "discretefish_subroutine", dataset = "", x = "", 
                        msg = paste("catch:", deparse(substitute(catch)), ", choice:", deparse(substitute(choice)), 
