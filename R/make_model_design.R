@@ -46,7 +46,7 @@ make_model_design <- function(dataset, catchID = "HAUL", indeVarsForModel = "", 
                               vesselID = NULL) {
   
   if (!exists("Alt")) {
-    if (!exists(AltMatrixName)) {
+    if (!exists('AltMatrixName')) {
       Alt <- unserialize(DBI::dbGetQuery(fishset_db, "SELECT AlternativeMatrix FROM altmatrix LIMIT 1")$AlternativeMatrix[[1]])
       if (!exists("Alt")) {
         stop("Alternative Choice Matrix does not exist. Please run the createAlternativeChoice() function.")
