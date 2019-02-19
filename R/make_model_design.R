@@ -303,7 +303,7 @@ make_model_design <- function(dataset, catchID = "HAUL", indeVarsForModel = "", 
   DBI::dbExecute(fishset_db, "CREATE TABLE IF NOT EXISTS modelinputdata (ModelInputData MODELINPUTDATA)")
   DBI::dbExecute(fishset_db, "INSERT INTO modelinputdata VALUES (:ModelInputData)", 
                  params = list(ModelInputData = list(serialize(modelInputData, NULL))))
-  
+  DBI::dbDisconnect(fishset_db)
   
   write(layout.json.ed(trace, "make_model_design", dataset = deparse(substitute(dataset)), x = "",
                         msg = paste("catchID:", catchID, ", indeVarsForModel:", indeVarsForModel,  ", gridVariablesInclude:",

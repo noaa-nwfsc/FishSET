@@ -22,8 +22,8 @@
 #' @details Used during model creation to create an expectations of catch for alternative choices that are added to the model design file.
 #' The expectations created have several options and are created based on the group and time averaging choices of the user.
 #' The spatial alternatives are built in to the function and come from the structure Alt.
-#' NOTE: currently empty values and values ==nan are considered to be times of no fishing activitiy whereas values in the catch variable choosen ==0
-#' are considered fishing activity with no catch and so those are included in the averaging and dummy creation as a point in time when fishing occoured.
+#' NOTE: currently empty values and values ==nan are considered to be times of no fishing activity whereas values in the catch variable choosen ==0
+#' are considered fishing activity with no catch and so those are included in the averaging and dummy creation as a point in time when fishing occurred.
 
 #' @return newGridVar,  newDumV
 # 
@@ -38,7 +38,9 @@ create_expectations <- function(dataset, gridfile, catch, AltMatrixName = NULL, 
   
   if (!exists("Alt")) {
     if (!exists('AltMatrixName')) {
+      fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
       Alt <- unserialize(DBI::dbGetQuery(fishset_db, "SELECT AlternativeMatrix FROM data LIMIT 1")$AlternativeMatrix[[1]])
+      DBI::dbDisconnect(fishset_db)
       if (!exists("Alt")) {
         stop("Alternative Choice Matrix does not exist. Please run the createAlternativeChoice() function.")
       }

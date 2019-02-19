@@ -135,7 +135,6 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
         #If gridded data is not an array, need to create matrix
         if (dim(gridVar)[1]==1) { #(is.empty(gridVar.row.array)){ #1d
           biG <- match(Alt[['zoneRow']], int) #[aiG,biG] = ismember(Alt.zoneRow, gridVar.col.array) #FIXME FOR STRING CONNECTIONS
-          # --->>> HERE <<---
           numRows <- nrow(dataset) #size(data(1).dataColumn,1)  #
           if (!any(biG)){
             stop('The map associated to the data and the grid information in the gridded variable do not overlap.')
@@ -172,11 +171,12 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
         #write Alt to datafile
         DBI::dbExecute (fishset_db, "CREATE TABLE IF NOT EXISTS altmatrix (AlternativeMatrix ALT)")
         DBI::dbExecute (fishset_db, "INSERT INTO altmatrix VALUES (:AlternativeMatrix)", params = list(AlternativeMatrix = list(serialize(Alt, NULL))))
- 
+        DBI::dbDisconnect(fishset_db)
+        
        Alt <<- Alt        
        
        write(layout.json.ed(trace, 'create_alternative_choice', dataset=deparse(substitute(dataset)), x='', 
-                             msg=paste('gridfile:', deparse(substitute(gridfile)),  ', case:', case, ', contents:', contents, 
+                             msg=paste('gridfile:', deparse(substitute(gridfile)),  ', case:', case, ', contents:', contents, ', griddedDat:' , griddedDat,
                                        ', Haul.Trip:', Haul.Trip, ', alt_var:',deparse(substitute(alt_var)),
                                        ', occasion:', deparse(substitute(occasion)), 'lon.dat:', lon.dat, ', lat.dat:', lat.dat, 
                                        ', lon.grid:', lon.grid, ', lat.grid:', lat.grid, ', cat:', cat, ', use.grid:', use.grid,
