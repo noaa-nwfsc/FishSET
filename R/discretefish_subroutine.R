@@ -33,11 +33,8 @@
 
 
 
-<<<<<<< R/discretefish_subroutine.R
-discretefish_subroutine <- function(catch, choice, distance, otherdat, initparams, optimOpt, func, methodname, func.name, return.table=FALSE) {
-=======
-discretefish_subroutine <- function(catch, choice, distance, otherdat, initparams, optimOpt, func, func.name, select.model=FALSE) {
->>>>>>> R/discretefish_subroutine.R
+
+discretefish_subroutine <- function(catch, choice, distance, otherdat, initparams, optimOpt, func, methodname, func.name, select.model=FALSE) {
   
   errorExplain <- NULL
   OutLogit <- NULL
