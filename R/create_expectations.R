@@ -22,8 +22,8 @@
 #' @details Used during model creation to create an expectations of catch for alternative choices that are added to the model design file.
 #' The expectations created have several options and are created based on the group and time averaging choices of the user.
 #' The spatial alternatives are built in to the function and come from the structure Alt.
-#' NOTE: currently empty values and values ==nan are considered to be times of no fishing activitiy whereas values in the catch variable choosen ==0
-#' are considered fishing activity with no catch and so those are included in the averaging and dummy creation as a point in time when fishing occoured.
+#' NOTE: currently empty values and values ==nan are considered to be times of no fishing activity whereas values in the catch variable choosen ==0
+#' are considered fishing activity with no catch and so those are included in the averaging and dummy creation as a point in time when fishing occurred.
 
 #' @return newGridVar,  newDumV
 # 
@@ -37,8 +37,10 @@ create_expectations <- function(dataset, gridfile, catch, AltMatrixName = NULL, 
                                 empty.catch = c(NULL, 0, "all catch", "grouped catch"), empty.expectation = c(NULL, 1e-04, 0), dummy.exp = FALSE) {
   
   if (!exists("Alt")) {
-    if (!exists(AltMatrixName)) {
+    if (!exists('AltMatrixName')) {
+      fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
       Alt <- unserialize(DBI::dbGetQuery(fishset_db, "SELECT AlternativeMatrix FROM data LIMIT 1")$AlternativeMatrix[[1]])
+      DBI::dbDisconnect(fishset_db)
       if (!exists("Alt")) {
         stop("Alternative Choice Matrix does not exist. Please run the createAlternativeChoice() function.")
       }
@@ -64,7 +66,7 @@ create_expectations <- function(dataset, gridfile, catch, AltMatrixName = NULL, 
   }
   
   
-  # check whether defining a group or using all fleet averaging All fleet averaging
+  # check whether defining a group or using all fleet averaging 
   if (is.null(defineGroup)) {
     # just use an id=ones to get all info as one group
     numData <- data.frame(rep(1, dim(dataset)[1]))  #ones(size(data(1).dataColumn,1),1)
@@ -92,8 +94,7 @@ create_expectations <- function(dataset, gridfile, catch, AltMatrixName = NULL, 
   
   catchData <- as.numeric(dataset[[catch]][which(dataZoneTrue == 1)])
   
-  # Time variable not chosen if isempty(ti)#NOTE currently doesn't allow dummy or
-  # other options if no time detected
+  # Time variable not chosen if isempty(ti #NOTE currently doesn't allow dummy or other options if no time detected
   if (is.empty(temp.var)) {
     
     allCatch = aggregate(catchData, list(C), mean, na.rm = T)  #accumarray(C,catchData,[],@nanmean)# currently no replacement for nans
@@ -102,8 +103,7 @@ create_expectations <- function(dataset, gridfile, catch, AltMatrixName = NULL, 
     bi <- unique(numData)
     ci <- match(numData, unique(numData))
     
-    newCatch = as.data.frame(matrix(NA, nrow = length(C), ncol = length(unique(B[, 
-                                                                                 2]))))  #nan(length(C),length(Alt.zoneRow))# preallocating
+    newCatch = as.data.frame(matrix(NA, nrow = length(C), ncol = length(unique(B[,2])))) #nan(length(C),length(Alt.zoneRow))# preallocating
     colnames(newCatch) = names(table(B[, 2]))
     # col are alt choices, rows are observations
     for (w in 1:length(C)) {
@@ -131,9 +131,8 @@ create_expectations <- function(dataset, gridfile, catch, AltMatrixName = NULL, 
     lagTime <- temp.lag
     yearRange <- 1  #Not used?  get(jhSpinnerYear,'Value')
     
-    # NOTE, currently this is replaced midstream.. if we want to have different ways
-    # of handling emptys versus edges of catch then would change that here FIXME need
-    # to add ability to change NANs as well as emptys as these are actually different
+    # NOTE, currently this is replaced midstream. 
+    #If we want to have different ways of handling emptys versus edges of catch then would change that here 
     if (empty.catch == "NULL") {
       replaceValue <- NA
     } else if (empty.catch == "0") {
@@ -144,8 +143,8 @@ create_expectations <- function(dataset, gridfile, catch, AltMatrixName = NULL, 
       replaceValue <- aggregate(catchData, list(C), mean, na.rm = T)
     }
     
-    # Use R's rollapply and lag function to calculate moving average Exmpty values
-    # are replaced as defined above
+    # Use R's rollapply and lag function to calculate moving average 
+    # Empty values are replaced as defined above
     df <- as.data.frame(cbind(numData, spData = as.character(spData), catchData = as.numeric(catchData), 
                               tiData = as.Date(tiData)))
     df$tiData <- as.Date(tiData)
@@ -181,14 +180,14 @@ create_expectations <- function(dataset, gridfile, catch, AltMatrixName = NULL, 
       if (lag.method == "simple") {
         polys <- data.frame(matrix(NA, nrow = nrow(meanCatchSimple), ncol = 2))  #nan(size(meanCatchSimple,1),2)
         for (q in 1:nrow(meanCatchSimple)) {
-          meanCatch[q, ] <- polyval(coef(lm(as.numeric(meanCatchSimple[q, 
-                                                                       4:ncol(meanCatchSimple)]) ~ as.numeric(meanCatchSimple[q, 3:(ncol(meanCatchSimple) - 
-                                                                                                                                      1)]))), as.numeric(meanCatchSimple[q, 3:ncol(meanCatchSimple)]))  #polyval(polys[q,],meanCatchSimple[q,])
+          meanCatch[q, ] <- polyval(coef(lm(as.numeric(meanCatchSimple[q,4:ncol(meanCatchSimple)]) ~  
+                                            as.numeric(meanCatchSimple[q, 3:(ncol(meanCatchSimple) - 1)]))), 
+                                    as.numeric(meanCatchSimple[q, 3:ncol(meanCatchSimple)]))  #polyval(polys[q,],meanCatchSimple[q,])
         }
       } else {
         # case 2
-        polys <- as.data.frame(meanCatchSimple[, 4:ncol(meanCatchSimple)])/as.data.frame(meanCatchSimple[, 
-                                                                                                         3:(ncol(meanCatchSimple) - 1)])
+        polys <- as.data.frame(meanCatchSimple[, 4:ncol(meanCatchSimple)]) / 
+                                    as.data.frame(meanCatchSimple[, 3:(ncol(meanCatchSimple) - 1)])
         # pad last measurement?with same as end
         polys[, (ncol(polys) + 1)] <- polys[, ncol(polys)]
         meanCatch <- meanCatchSimple[, -c(1, 2)] * polys
@@ -219,14 +218,12 @@ create_expectations <- function(dataset, gridfile, catch, AltMatrixName = NULL, 
     # #[bit,~,cit]=unique([numData, tiDataFloor],'rows','Stable')
     temp <- cbind(numData, tiDataFloor)
     bit <- unique(cbind(numData, tiDataFloor))
-    cit <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(bit[, 1], bit[, 
-                                                                             2], sep = "*"))
+    cit <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(bit[, 1], bit[, 2], sep = "*"))
     
     
     # dummyChoiceOut=get(dp2V4,'String') no dummy variable
     if (dummy.exp == FALSE) {
-      newCatch <- data.frame(matrix(NA, nrow = length(bi), ncol = length(unique(B[, 
-                                                                                  2]))))
+      newCatch <- data.frame(matrix(NA, nrow = length(bi), ncol = length(unique(B[, 2]))))
       colnames(newCatch) = names(table(B[, 2]))
       
       for (w in 1:length(bi)) {
@@ -248,16 +245,14 @@ create_expectations <- function(dataset, gridfile, catch, AltMatrixName = NULL, 
       }
       
       
-    } else if (dummy.exp == TRUE) 
-    {
+    } else if (dummy.exp == TRUE) {
       
       newCatch <- as.data.frame(matrix(NA, nrow = length(bi), ncol = ncol(zoneRow)))
       dv <- as.data.frame(matrix(1, dim(meanCatch)[1], dim(meanCatch)[2]))  #length(ones(size(meanCatch))
       # dv(~emptyCellsCatch)=1% non empty=1 deprecated
       dv[is.na(dummyTrack), ] <- 0  #
       # Mis.Dum, takes a value of one whenever the expected location- and haul-specific
-      # estimates of revenues and bycatch are not empty NOTE: currently doesn't include
-      # catch==0
+      # estimates of revenues and bycatch are not empty NOTE: currently doesn't include catch==0
       dummyV <- as.data.frame(matrix(0, dim(newCatch)[1], dim(newCatch)[2]))  #zeros(size(newCatch))
       for (w in 1:length(bi)) {
         # if ~isinf(B(C(w),end))
