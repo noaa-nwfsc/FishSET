@@ -1,5 +1,5 @@
-shiftSortX <- function(x, ch, y, distance, alts, ab) {
-  #' shiftSortX
+shift_sort_x <- function(x, ch, y, distance, alts, ab) {
+  #' shift_sort_x
   #'
   #' Shifts choices so that the chosen zone will be automatically the first one
   #'
