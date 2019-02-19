@@ -9,9 +9,10 @@
 #' @param optimOpt Optimization options [max function evaluations, max iterations, (reltol) tolerance of x]
 #' @param func Name of likelihood function
 #' @param func.name Name of likelihood function for model result output table
-#' @param return.table Return an interactive data table of model output
-#' @importFrom DBI dbExecute dbWriteTable dbExistsTable dbReadTable
-#' @importFrom DT datatable
+#' @param select.model Return an interactive data table of model output that allows users to select and save table of best models
+#' @importFrom DBI dbExecute dbWriteTable dbExistsTable dbReadTable dbGetQuery dbDisconnect
+#' @importFrom DT datatable JS
+#' @import shiny
 #' @return
 #' OutLogit - [outmat1 se1 tEPM2] (coefs, ses, tstats) \cr 
 #' optoutput - optimization information \cr 
@@ -31,7 +32,7 @@
 
 
 
-discretefish_subroutine <- function(catch, choice, distance, otherdat, initparams, optimOpt, func, func.name, return.table=FALSE) {
+discretefish_subroutine <- function(catch, choice, distance, otherdat, initparams, optimOpt, func, func.name, select.model=FALSE) {
   
   errorExplain <- NULL
   OutLogit <- NULL
@@ -112,7 +113,7 @@ discretefish_subroutine <- function(catch, choice, distance, otherdat, initparam
     colnames(temp) = func.name
   }
   
-   
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   
   if (DBI::dbExistsTable(fishset_db, "out.mod") == FALSE) {
     DBI::dbWriteTable(fishset_db, "out.mod", out)
@@ -132,9 +133,98 @@ discretefish_subroutine <- function(catch, choice, distance, otherdat, initparam
 
     out.mod <<- out.mod
 
- if(return.table==TRUE){
-   rownames(out.mod)=c("AIC", "AICc", "BIC", "PseudoR2")
-    print(DT::datatable(t(round(out.mod, 5)), filter='top')) 
+ if(select.model==TRUE){
+ #  rownames(out.mod)=c("AIC", "AICc", "BIC", "PseudoR2")
+ #   print(DT::datatable(t(round(out.mod, 5)), filter='top'))
+    
+    runApp(list(
+      ui = basicPage(
+        
+        h2('Model Output'),
+        DT::DTOutput("mytable"),
+        h3(''),
+        actionButton("submit", "Save table", style="color: #fff; background-color: #337ab7; border-color: #2e6da4;display:inline-block;width:12%;text-align: center;"),
+        tags$button(
+          id = 'close',
+          type = "button",
+          style="color: #fff; background-color: #FF6347; border-color: #800000; display:inline-block;width:12%;text-align: center;margin-left:10px",
+          class = "btn action-button",
+          onclick = "setTimeout(function(){window.close();},500);",  # close browser
+          "Close window"
+        )
+      ),
+      
+      server = function(input, output) {
+        # helper function for making checkbox
+        shinyInput = function(FUN, len, id, ...) { 
+          inputs = character(len) 
+          for (i in seq_len(len)) { 
+            inputs[i] = as.character(FUN(paste0(id, i), label = NULL, ...)) 
+          } 
+          inputs 
+        } 
+        # datatable with checkbox
+        output$mytable = DT::renderDataTable({
+          data.frame(t(out.mod),Select=shinyInput(checkboxInput,nrow(t(out.mod)),"cbox_"))
+        }, filter='top', server = FALSE, escape = FALSE, options = list( 
+          paging=FALSE,
+          preDrawCallback = DT::JS('function() { 
+                                   Shiny.unbindAll(this.api().table().node()); }'), 
+          drawCallback = DT::JS('function() { 
+                                Shiny.bindAll(this.api().table().node()); } ') 
+          ) )
+        # helper function for reading checkbox
+        
+        shinyValue = function(id, len) { 
+          unlist(lapply(seq_len(len), function(i) { 
+            value = input[[paste0(id, i)]] 
+            if (is.null(value)) NA else value 
+          })) 
+        } 
+        
+        shinyDate = function(id, len) { 
+          unlist(lapply(seq_len(len), function(i) { 
+            #value = input[[paste0(id, i)]]
+            #if (is.null(value)) NA else value
+            value=ifelse(input[[paste0(id, i)]]!=TRUE, '' , as.character(Sys.Date())) 
+          })) 
+        }
+        
+        checkedsave <- reactive(cbind(
+          model = colnames(out.mod), t(out.mod), 
+          selected = shinyValue("cbox_", nrow(t(out.mod))), 
+          Date = shinyDate("cbox_", nrow(t(out.mod)))))
+        
+        
+        # When the Submit button is clicked, save the form data
+        observeEvent(input$submit, {
+          # Connect to the database
+          fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+          
+          if(DBI::dbExistsTable(fishset_db, 'modelChosen')==FALSE){
+            DBI::dbExecute(fishset_db, "CREATE TABLE modelChosen(model TEXT, AIC TEXT, AICc TEXT, BIC TEXT, PseudoR2 TEXT, selected TEXT, Date TEXT)")
+          }
+          # Construct the update query by looping over the data fields
+          query <- sprintf(
+            "INSERT INTO %s (%s) VALUES %s",
+            "modelChosen", 
+            paste(names(data.frame(as.data.frame(isolate(checkedsave())))), collapse = ", "),
+            paste0("('", matrix(apply(as.data.frame(isolate(checkedsave())), 1, paste, collapse="','"), ncol=1), collapse=',', "')")
+          )
+          # Submit the update query and disconnect
+          DBI::dbGetQuery(fishset_db, query)
+          showNotification("Table saved to database")
+        })
+        
+        # stop shiny
+        observe({
+          if (input$close > 0) stopApp()                             
+        })
+        
+        
+ }
+    ))
+    
   }
   
   MCM <- list(AIC = AIC, AICc = AICc, BIC = BIC, PseudoR2 = PseudoR2)
@@ -170,9 +260,12 @@ discretefish_subroutine <- function(catch, choice, distance, otherdat, initparam
   
   modelOut <- list(errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
                    seoutmat2 = seoutmat2, MCM = MCM, H1 = H1)
-  
+
+ 
   DBI::dbExecute(fishset_db, "CREATE TABLE IF NOT EXISTS data (modelout modelOut)")
   DBI::dbExecute(fishset_db, "INSERT INTO data VALUES (:modelout)", params = list(modelout = list(serialize(modelOut, NULL))))
+  DBI::dbDisconnect(fishset_db)
+  
   
   write(layout.json.ed(trace, "discretefish_subroutine", dataset = "", x = "", 
                        msg = paste("catch:", deparse(substitute(catch)), ", choice:", deparse(substitute(choice)), 
