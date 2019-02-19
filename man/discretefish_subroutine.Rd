@@ -6,7 +6,7 @@
 Subroutine to run chosen discrete choice model}
 \usage{
 discretefish_subroutine(catch, choice, distance, otherdat, initparams,
-  optimOpt, func, func.name, return.table = FALSE)
+  optimOpt, func, methodname, func.name, return.table = FALSE)
 }
 \arguments{
 \item{catch}{Data corresponding to actual zonal choice}
@@ -22,6 +22,8 @@ discretefish_subroutine(catch, choice, distance, otherdat, initparams,
 \item{optimOpt}{Optimization options [max function evaluations, max iterations, (reltol) tolerance of x]}
 
 \item{func}{Name of likelihood function}
+
+\item{methodname}{Optimization method (see optim options)}
 
 \item{func.name}{Name of likelihood function for model result output table}
 

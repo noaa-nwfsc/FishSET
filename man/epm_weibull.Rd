@@ -9,7 +9,7 @@ epm_weibull(starts3, dat, otherdat, alts)
 \arguments{
 \item{starts3}{Starting values. e.g. c([grid-varying variables], [interaction variables], [catch variance], [scale parameter]).}
 
-\item{dat}{Data matrix, see output from shiftSortX, alternatives with distance by column bind}
+\item{dat}{Data matrix, see output from shift_sort_x, alternatives with distance by column bind}
 
 \item{otherdat}{Other data used in model (as list). Any number of grid-varying variables (e.g. expected catch that varies by location) or 
 interaction variables (e.g. vessel characteristics that affect how much disutility is suffered by traveling a greater distance) are allowed. \cr \cr
