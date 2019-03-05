@@ -3,6 +3,7 @@
 #' @export fishset.compare
 #' @export load_maindata
 #' @export load_port
+#' @export load_aux
 
 
 read.dat <- function(x, data.type = c('csv', 'mat', 'json', 'shape')) { 
@@ -57,6 +58,7 @@ load_maindata <- function(x,y,compare){
   #' @param x name dataframe to be saved
   #' @param y name of previously saved dataframe
   #' @param compare TRUE/FALSE Compare new dataframe to previously saved dataframe before saving dataframe x to databases
+  #' @param project name of project for attaching to table
   #' @details Runs the fishset.compare function. Then uses the new dataframe x to generate the the information table that contains information for each variable on units, data format, and specialied variable.
   #
   fishset.compare(x,y,compare)
@@ -99,7 +101,7 @@ load_maindata <- function(x,y,compare){
                                   isHaul=ifelse(grepl('HAUL', colnames(x)), 1,0),
                                   isOther=rep(0, length(colnames(x))),
                                   tableLink=rep(NA, length(colnames(x))))
-  dbWriteTable(fishset_db,'MainDataTableInfo', MainDataTableInfo)
+  dbWriteTable(fishset_db, paste(project, 'MainDataTableInfo', sep=''), MainDataTableInfo)
 
     write(layout.json.ed(trace, "load_maindata", '', x = deparse(substitute(x)), 
                        msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
@@ -125,12 +127,14 @@ main_mod <- function(dataset, x, change.col=NULL, new.unit=NULL, new.type=NULL, 
   return(dataset)
 }
 
-load_port <- function(x, y, compare){
+load_port <- function(x, y, compare, project){
   #' Save port data
   #' @param x name dataframe to be saved
   #' @param y name of previously saved dataframe
   #' @param compare TRUE/FALSE Compare new dataframe to previously saved dataframe before saving dataframe x to databases
+  #' @param project name of project for attaching to table
   #' @details Runs a series of checks on the port data. If checks pass, runs the fishset.compare function and save the new dataframe x to the database.
+  #' 
   #
   
   if(all(grepl('Lon', names(x), ignore.case=TRUE)==FALSE)==TRUE) { 
@@ -143,6 +147,7 @@ load_port <- function(x, y, compare){
     warning('Port identification not found. Check that unique port ID (name, id, code) is included.')
   }
   fishset.compare(x,y,compare)
+  dbWriteTable(fishset_db, paste(project, 'PortTable', sep=''), x)
   
   write(layout.json.ed(trace, "load_port", '', x = deparse(substitute(x)), 
                        msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
@@ -150,3 +155,52 @@ load_port <- function(x, y, compare){
   
 }
 
+load_aux <- function(x, y, name, compare, project){
+  #' Save auxilliary data
+  #' @param x name dataframe to be saved
+  #' @param y name of previously saved dataframe
+  #' @param compare TRUE/FALSE Compare new dataframe to previously saved dataframe before saving dataframe x to databases
+  #' @param name Name of table
+  #' @param project name of project for attaching to table
+  #' @details Runs a series of checks on the auxilliary data. If checks pass, runs the fishset.compare function and save the new dataframe x to the database.
+  #
+   if(all(grepl('Lon', names(x), ignore.case=TRUE)==FALSE)==TRUE) { 
+    stop('Latitude and Longitude must be specified')
+  }
+  if(is.na(table(grepl('Lon', names(x), ignore.case=TRUE))[2])==FALSE & table(grepl('Lon', names(x), ignore.case=TRUE))[2]>1) { 
+    stop('Multiple latitude or longitude columns. Only one allowed.') 
+  } 
+  
+ fishset.compare(x,y,compare)
+  
+    dbWriteTable(fishset_db, paste(project, name, sep=''), name)
+  
+  write(layout.json.ed(trace, "load_aux", '', x = deparse(substitute(x)), 
+                       msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
+        paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+  
+}
+
+
+load_seasonal <- function(x, y, compare, project){
+  #' Save auxilliary data
+  #' @param x name dataframe to be saved
+  #' @param y name of previously saved dataframe
+  #' @param compare TRUE/FALSE Compare new dataframe to previously saved dataframe before saving dataframe x to databases
+  #' @param project name of project for attaching to table
+  #' @details Runs a series of checks on the port data. If checks pass, runs the fishset.compare function and save the new dataframe x to the database.
+  #
+  
+  if(all(grepl('date', names(x), ignore.case=TRUE)==FALSE)==TRUE) { 
+    stop('Date variable must be specified')
+  } 
+  
+  fishset.compare(x,y,compare)
+  
+  dbWriteTable(fishset_db, paste(project, 'SesaonalData', sep=''), x)
+  
+  write(layout.json.ed(trace, "load_seasonal", '', x = deparse(substitute(x)), 
+                       msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
+        paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+  
+}

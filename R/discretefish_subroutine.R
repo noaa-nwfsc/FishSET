@@ -10,9 +10,9 @@
 #' @param func Name of likelihood function
 #' @param methodname Optimization method (see optim options)
 #' @param func.name Name of likelihood function for model result output table
-#' @param select.model Return an interactive data table of model output that allows users to select and save table of best models
+#' @param select.model Return an interactive data table that allows users to select and save table of best models based on measures of fit 
 #' @importFrom DBI dbExecute dbWriteTable dbExistsTable dbReadTable dbGetQuery dbDisconnect
-#' @importFrom DT datatable JS
+#' @importFrom DT datatable JS DTOutput renderDataTable
 #' @import shiny
 #' @return
 #' OutLogit - [outmat1 se1 tEPM2] (coefs, ses, tstats) \cr 
@@ -165,7 +165,7 @@ discretefish_subroutine <- function(catch, choice, distance, otherdat, initparam
         # datatable with checkbox
         output$mytable = DT::renderDataTable({
           data.frame(t(out.mod),Select=shinyInput(checkboxInput,nrow(t(out.mod)),"cbox_"))
-        }, filter='top', server = FALSE, escape = FALSE, options = list( 
+        }, colnames=c('model','AIC','AICc','BIC','PseudoR2'), filter='top', server = FALSE, escape = FALSE, options = list( 
           paging=FALSE,
           preDrawCallback = DT::JS('function() { 
                                    Shiny.unbindAll(this.api().table().node()); }'), 

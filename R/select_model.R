@@ -1,0 +1,135 @@
+#' select_model
+#' View and select models
+#'
+#' @param table Name of table in database containing model measures of fit
+#' @param overwrite.table Append model selection to modelChosen table or delete existing table and save new table
+#' @importFrom DBI dbExistsTable dbDisconnect dbConnect dbRemoveTable dbExecute dbGetQuery 
+#' @importFrom DT datatable JS DTOutput renderDataTable
+#' @import shiny
+#' @return
+
+select_model <- function(table, overwrite.table){
+  
+  out.mod <- DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), paste0("SELECT * FROM", paste0("'", noquote(table), "'")))
+  
+  runApp(list(
+    ui = fluidPage(
+      
+      sidebarLayout(
+        sidebarPanel(
+          tags$br(),tags$br(),
+          actionButton("delete_btn", "Delete row"),
+          h3(''),
+          actionButton("submit", "Save table", style="color: #fff; background-color: #337ab7; border-color: #2e6da4;"),
+          tags$br(),tags$br(),
+          tags$button(
+            id = 'close',
+            type = "button",
+            style="color: #fff; background-color: #FF6347; border-color: #800000;",
+            class = "btn action-button",
+            onclick = "setTimeout(function(){window.close();},500);",  # close browser
+            "Close window"
+          )),
+        mainPanel(
+          h3('Model Output'),
+          DT::DTOutput("mytable"),
+          tags$script(HTML("Shiny.addCustomMessageHandler('unbind-DT', function(id) {
+                           Shiny.unbindAll($('#'+id).find('table').DataTable().table().node());})"))
+          )
+        )),
+    
+    server = function(input, output, session) {
+      # helper function for making checkbox
+      shinyInput = function(FUN, len, id, ...) { 
+        inputs = character(len) 
+        for (i in seq_len(len)) { 
+          inputs[i] = as.character(FUN(paste0(id, i), label = NULL, ...)) 
+        } 
+        inputs 
+      } 
+      
+      this_table <- reactiveVal(data.frame(t(out.mod)))#,Select=shinyInput(checkboxInput,nrow(t(out.mod)),"cbox_")))
+      
+      observeEvent(input$delete_btn, {
+        
+        t = this_table()
+        if (!is.null(input$mytable_rows_selected)) {
+          t <- t[-as.numeric(input$mytable_rows_selected),]
+        }
+        this_table(t)
+        session$sendCustomMessage('unbind-DT', 'mytable')
+      })
+      
+      # datatable with checkbox
+      output$mytable <- DT::renderDT({
+        data.frame(this_table(),Select=shinyInput(checkboxInput,nrow(this_table()),"cbox_"))
+      }, colnames=c('Model','AIC','AICc','BIC','PseudoR2','Selected'),  filter='top', server = FALSE, escape = FALSE, options = list( 
+        dom = 't', paging=FALSE,
+        preDrawCallback = DT::JS('function() { 
+                                 Shiny.unbindAll(this.api().table().node()); }'), 
+        drawCallback = DT::JS('function() { 
+                              Shiny.bindAll(this.api().table().node()); } ') 
+        ) )
+      
+      
+      # helper function for reading checkbox
+      shinyValue = function(id, len) { 
+        unlist(lapply(seq_len(len), function(i) { 
+          value = input[[paste0(id, i)]] 
+          if (is.null(value)) NA else value 
+        })) 
+      } 
+      
+      shinyDate = function(id, len) { 
+        unlist(lapply(seq_len(len), function(i) { 
+          value=ifelse(input[[paste0(id, i)]]!=TRUE, '' , as.character(Sys.Date())) 
+        })) 
+      }
+      
+      
+      checkedsave <- reactive(cbind(
+        model = rownames(isolate(this_table())),#colnames(out.mod), 
+        AIC=isolate(this_table()[,1]),
+        AICc=isolate(this_table()[,2]),
+        BIC=isolate(this_table()[,3]),
+        PseudoR2=isolate(this_table()[,4]),#t(out.mod), 
+        Selected = shinyValue("cbox_", nrow(this_table())),#t(out.mod))), 
+        Date = shinyDate("cbox_", nrow(this_table())) 
+      ))#t(out.mod)))))
+      
+      
+      # When the Submit button is clicked, save the form data
+      observeEvent(input$submit, {
+        # Connect to the database
+        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+        if(overwrite.table==T){
+          if(DBI::dbExistsTable(fishset_db, 'modelChosen')==TRUE){
+            DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), 'modelChosen')
+          }
+        }
+        
+        if(DBI::dbExistsTable(fishset_db, 'modelChosen')==FALSE){
+          DBI::dbExecute(fishset_db, "CREATE TABLE modelChosen(model TEXT, AIC TEXT, AICc TEXT, BIC TEXT, PseudoR2 TEXT, Selected TEXT, Date TEXT)")
+        }
+        # Construct the update query by looping over the data fields
+        query <- sprintf(
+          "INSERT INTO %s (%s) VALUES %s",
+          "modelChosen", 
+          paste(names(data.frame(as.data.frame(isolate(checkedsave())))), collapse = ", "),
+          paste0("('", matrix(apply(as.data.frame(isolate(checkedsave())), 1, paste, collapse="','"), ncol=1), collapse=',', "')")
+        )
+        # Submit the update query and disconnect
+        DBI::dbGetQuery(fishset_db, query)
+        DBI::dbDisconnect(fishset_db)
+        showNotification("Table saved to database")
+      })
+      
+      # stop shiny
+      observe({
+        if (input$close > 0) stopApp()                             
+      })
+      
+      
+}
+  ))
+  }

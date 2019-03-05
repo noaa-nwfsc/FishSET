@@ -5,7 +5,7 @@ is.nan.data.frame <- function(x, dataset) {
 }
 
 
-# modification to is.infinte, which idenitifies Inf in a list. This modification extends the search to dataframes and matrices.
+# modification to is.infinite, which idenitifies Inf in a list. This modification extends the search to dataframes and matrices.
 is.inf.data.frame <- function(dataset) {
   do.call(cbind, lapply(dataset, is.infinite))
 }
@@ -118,3 +118,24 @@ skewness <- function(x) {
   third.moment <- (1/(n - 2)) * sum((x - m)^3)
   third.moment/(var(x)^(3/2))
 }
+
+date_parser <- function(dates){
+  dates <- trimws(dates)
+  dates <- sub(' .*','\\1',dates)
+  if(!all(is.na(suppressWarnings(lubridate::mdy(dates)))==T)) {
+    lubridate::mdy(dates)
+  } else if(!all(is.na(suppressWarnings(lubridate::dmy(dates)))==T)) {
+    lubridate::dmy(dates)
+  } else if(!all(is.na(suppressWarnings(lubridate::ymd(dates)))==T)) {
+    lubridate::ymd(dates)
+  } else if(!all(is.na(suppressWarnings(lubridate::ydm(dates)))==T)) {
+    lubridate::ydm(dates)
+  } else if(!all(is.na(suppressWarnings(lubridate::myd(dates)))==T)) {
+    lubridate::myd(dates)
+  } else if(!all(is.na(suppressWarnings(lubridate::dym(dates)))==T)) {
+    lubridate::dym(dates)
+  } else {
+    stop('Date format not recognized. Format date before proceeding')
+  }
+}
+
