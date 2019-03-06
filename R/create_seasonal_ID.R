@@ -14,7 +14,7 @@
 
 
 
-create_seasonal_ID <- function (dataset, seasonaldat, use.location=c(TRUE,FALSE), use.geartype=c(TRUE,FALSE), target=NULL, all.species=TRUE, sp.col){
+create_seasonal_ID <- function (dataset, seasonaldat, use.location=c(TRUE,FALSE), use.geartype=c(TRUE,FALSE), target=NULL, sp.col){
 
 # Test that location_data match
   if(use.location == TRUE){
@@ -252,6 +252,12 @@ create_seasonal_ID <- function (dataset, seasonaldat, use.location=c(TRUE,FALSE)
    }
     }
   }
-  }
+    }
+
+  write(layout.json.ed(trace, 'create_seaonal_ID', deparse(substitute(dataset)), x='', 
+                       msg=paste('seasonaldat:', deparse(substitute(seasonaldat)), ', use.location:', use.location, 
+                                 ', use.geartype:', use.geartype, ', target:', target, ', sp.col:', sp.col)), 
+        paste(getwd(),'/Logs/',Sys.Date(),'.json', sep=''), append=T )
+  
   return(dataset)
 }
