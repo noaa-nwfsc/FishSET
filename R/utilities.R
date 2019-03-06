@@ -28,7 +28,18 @@ trim.space <- function(x, what = c("both", "leading", "trailing", "none"), space
   vgsub(re, "", x, ...)
 }
 
-
+trim.space <- function (x, what = c("both", "leading", "trailing", "none"), 
+          space.regex = "[:space:]", ...) {
+  if (missing(x)) 
+    stop("nothing to trim spaces to =(")
+  re <- switch(match.arg(what), both = sprintf("^[%s]+|[%s]+$", 
+                                               space.regex, space.regex), leading = sprintf("^[%s]+", 
+                                                                                            space.regex), trailing = sprintf("[%s]+$", space.regex), 
+               none = {
+                 return(x)
+               })
+  vgsub(re, "", x, ...)
+}
 
 is.empty <- function(x, trim = TRUE, ...) {
   if (length(x) <= 1) {
@@ -48,6 +59,19 @@ is.empty <- function(x, trim = TRUE, ...) {
   } else sapply(x, is.empty, trim = trim, ...)
 }
 
+find_first <- function(y){
+  g <- y[which(grepl('date', names(y), ignore.case=TRUE) == TRUE)]
+  if(all(g=='')==TRUE||all(is.empty(g)==TRUE)==TRUE) {warming('All date variables are empty')}
+  g2 <- date_parser(as.vector(unlist(c(g))))
+  names(g)[which(g2==min(g2, na.rm=TRUE))[1]]
+}
+
+find_last <- function(y){
+  g <- y[which(grepl('date', names(y), ignore.case=TRUE) == TRUE)]
+  if(all(g=='')==TRUE||all(is.empty(g)==TRUE)==TRUE) {warming('All date variables are empty')}
+  g2 <- date_parser(as.vector(unlist(c(g))))
+  names(g)[which(g2==max(g2, na.rm=TRUE))[1]]
+}
 
 polyval <- function(coef, z) {
   lz <- length(z)
