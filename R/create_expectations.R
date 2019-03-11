@@ -2,18 +2,18 @@
 
 #' @param dataset Observe or VMS data
 #' @param gridfile gridded data
-#' @param AltMatrixName Does not need to specified if ALT has been generated in createAlternativeChoice function
 #' @param catch Catch variable for averaging
-#' @param defineGroup If empty, data is treated as a fleet
 #' @param temporal Daily = Daily time line or sequential = sequential order
 #' @param temp.var Temporal variable for averaging
-#' @param temp.window Window size for averaging. Defaults to 1
-#' @param temp.lag Lag time for averaging
 #' @param calc.method select standard average, simple lag = simple lag regression of means, or weights= weights of regressed groups
 #' @param lag.method Simple: use region over entire group. Grouped: Use regression for individual time periods
 #' @param empty.catch Replace empty catch with NAN, 0, all catch = mean of all catch, group catch = mean of grouped catch
 #' @param empty.expectation Do not replace or replace with 0.0001 or 0
+#' @param temp.window Window size for averaging. Defaults to 1
+#' @param temp.lag Lag time for averaging
 #' @param dummy.exp T/F. Defaults to False. If false, no dummy variable is outputted. If true, output dummy variable for originally missing value.
+#' @param AltMatrixName Does not need to specified if ALT has been generated in createAlternativeChoice function
+#' @param defineGroup If empty, data is treated as a fleet
 #' @importFrom lubridate floor_date
 #' @importFrom zoo rollapply
 #' @importFrom DBI dbGetQuery
@@ -31,10 +31,10 @@
 # lubridate # to get floor of temporal variables
 
 
-create_expectations <- function(dataset, gridfile, catch, AltMatrixName = NULL, defineGroup = NULL, 
-                                temporal = c("daily", "sequential"), temp.var, temp.window = 1, temp.lag = 1, 
+create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", "sequential"), temp.var, 
                                 calc.method = c("standard average", "simple lag", "weights"), lag.method = c("simple", "grouped"),
-                                empty.catch = c(NULL, 0, "all catch", "grouped catch"), empty.expectation = c(NULL, 1e-04, 0), dummy.exp = FALSE) {
+                                empty.catch = c(NULL, 0, "all catch", "grouped catch"), empty.expectation = c(NULL, 1e-04, 0),  
+                                temp.window = 1, temp.lag = 1, dummy.exp = FALSE, AltMatrixName = NULL, defineGroup = NULL) {
   
   if (!exists("Alt")) {
     if (!exists('AltMatrixName')) {
@@ -295,12 +295,23 @@ create_expectations <- function(dataset, gridfile, catch, AltMatrixName = NULL, 
      )
 
 
-write(layout.json.ed(trace, 'create_expectations', deparse(substitute(dataset)), x='', 
-                          msg=paste('gridfile:', deparse(substitute(gridfile)), ', catch:', deparse(substitute(catch)), 
-                                    ', defineGroup:', defineGroup, ', temporal:', temporal, ', temp.var:', temp.var, ',temp.window:', temp.window,
-                                    ', temp.lag:', temp.lag, ', calc.method:', calc.method, ', lag.method:', lag.method, ', empty.catch:', empty.catch,
-                                    ', empty.expectation:', empty.expectation, ', empty.expectation:', empty.expectation)), 
-           paste(getwd(),'/Logs/',Sys.Date(),'.json', sep=''), append=T )
+#write(layout.json.ed(trace, 'create_expectations', deparse(substitute(dataset)), x='', 
+#                          msg=paste('gridfile:', deparse(substitute(gridfile)), ', catch:', deparse(substitute(catch)), 
+#                                    ', defineGroup:', defineGroup, ', temporal:', temporal, ', temp.var:', temp.var, ',temp.window:', temp.window,
+#                                    ', temp.lag:', temp.lag, ', calc.method:', calc.method, ', lag.method:', lag.method, ', empty.catch:', empty.catch,
+#                                    ', empty.expectation:', empty.expectation, ', empty.expectation:', empty.expectation)), 
+#           paste(getwd(),'/Logs/',Sys.Date(),'.json', sep=''), append=T )
+
+
+create_expectations_function <- list()
+create_expectations_function$functionID <- 'create_expectations'
+create_expectations_function$args <- c(deparse(substitute(dataset)), deparse(substitute(gridfile)), catch, temporal, temp.var, calc.method, lag.method, 
+                                    empty.catch, empty.expectation, temp.window, temp.lag)
+create_expectations_function$kwargs <- list('AltMatrixName'=AltMatrixName, 'defineGroup'=defineGroup)
+functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (create_expectations_function)
+body$fishset_run <- list(infoBodyout, functionBodyout)
+write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+
 }
 
 

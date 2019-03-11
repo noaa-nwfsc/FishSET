@@ -103,10 +103,17 @@ load_maindata <- function(x,y,compare){
                                   tableLink=rep(NA, length(colnames(x))))
   dbWriteTable(fishset_db, paste(project, 'MainDataTableInfo', sep=''), MainDataTableInfo)
 
-    write(layout.json.ed(trace, "load_maindata", '', x = deparse(substitute(x)), 
-                       msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
-        paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+    #write(layout.json.ed(trace, "load_maindata", '', x = deparse(substitute(x)), 
+    #                   msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
+     #   paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
   
+    load_maindata_function <- list()
+    load_maindata_function$functionID <- 'load_maindata'
+    load_maindata_function$args <- c(deparse(substitute(x)), deparse(substitute(y)), compare)
+    functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (load_maindata_function)
+    body$fishset_run <- list(infoBodyout, functionBodyout)
+    write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+    
 }
 
 main_mod <- function(dataset, x, change.col=NULL, new.unit=NULL, new.type=NULL, new.class=NULL) {
@@ -120,9 +127,16 @@ main_mod <- function(dataset, x, change.col=NULL, new.unit=NULL, new.type=NULL, 
     dataset[dataset[['variable_name']]==x, change.col] <- new.class
   }
   
-  write(layout.json.ed(trace, "main_mod", deparse(substitute(dataset)), x = deparse(substitute(x)), 
-                       msg = paste("change.col:", change.col, "new.unit:", new.unit, "new.type:", new.type, "new.class:", new.class, sep = "")),  
-        paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+  #write(layout.json.ed(trace, "main_mod", deparse(substitute(dataset)), x = deparse(substitute(x)), 
+  #                     msg = paste("change.col:", change.col, "new.unit:", new.unit, "new.type:", new.type, "new.class:", new.class, sep = "")),  
+  #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+
+  main_mod_function <- list()
+  main_mod$functionID <- 'main_mod'
+  main_mod$args <- c(deparse(substitute(dataset)), deparse(substitute(x)), change.col, new.unit, new.type, new.class)
+  main_mod$function_calls[[length(functionBodyout$function_calls)+1]] <<- (main_mod)
+  body$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
   
   return(dataset)
 }
@@ -149,10 +163,16 @@ load_port <- function(x, y, compare, project){
   fishset.compare(x,y,compare)
   dbWriteTable(fishset_db, paste(project, 'PortTable', sep=''), x)
   
-  write(layout.json.ed(trace, "load_port", '', x = deparse(substitute(x)), 
-                       msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
-        paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
-  
+  #write(layout.json.ed(trace, "load_port", '', x = deparse(substitute(x)), 
+  #                     msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
+  #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+
+  load_port_function <- list()
+  load_port_function$functionID <- 'load_port'
+  load_port_function$args <- c(deparse(substitute(x)), deparse(substitute(y)), compare)
+  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (load_port_function)
+  body$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
 }
 
 load_aux <- function(x, y, name, compare, project){
@@ -175,9 +195,16 @@ load_aux <- function(x, y, name, compare, project){
   
     dbWriteTable(fishset_db, paste(project, name, sep=''), name)
   
-  write(layout.json.ed(trace, "load_aux", '', x = deparse(substitute(x)), 
-                       msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
-        paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+  #write(layout.json.ed(trace, "load_aux", '', x = deparse(substitute(x)), 
+  #                     msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
+  #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+ 
+  load_aux_function <- list()
+  load_aux_function$functionID <- 'load_aux'
+  load_aux_function$args <- c(deparse(substitute(x)), deparse(substitute(y)), compare)
+  load_aux_function$function_calls[[length(functionBodyout$function_calls)+1]] <<- (load_aux_function)
+  body$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
   
 }
 
@@ -199,8 +226,15 @@ load_seasonal <- function(x, y, compare, project){
   
   dbWriteTable(fishset_db, paste(project, 'SesaonalData', sep=''), x)
   
-  write(layout.json.ed(trace, "load_seasonal", '', x = deparse(substitute(x)), 
-                       msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
-        paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+  #write(layout.json.ed(trace, "load_seasonal", '', x = deparse(substitute(x)), 
+  #                     msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
+  #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+
+  load_seasonal_function <- list()
+  load_seasonal_function$functionID <- 'load_seasonal'
+  load_seasonal_function$args <- c(deparse(substitute(x)), deparse(substitute(y)), compare)
+  load_seasonal_function$function_calls[[length(functionBodyout$function_calls)+1]] <<- (load_seasonal_function)
+  body$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
   
 }

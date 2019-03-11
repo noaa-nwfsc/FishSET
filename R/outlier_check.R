@@ -225,9 +225,18 @@ outlier_remove <- function(dataset, x, outlier.mod = "none", remove = T) {
     if (remove == TRUE) 
     {
       # log actions
-      write(layout.json.ed(trace, "outlier_remove", deparse(substitute(dataset)), deparse(substitute(x)), 
-                           msg = paste("outliers removed using", outlier.mod)),
-            paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+      #write(layout.json.ed(trace, "outlier_remove", deparse(substitute(dataset)), deparse(substitute(x)), 
+      #                     msg = paste("outliers removed using", outlier.mod)),
+      #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+      
+      outlier_remove_function <- list()
+      outlier_remove_function$functionID <- 'outlier_remove'
+      outlier_remove_function$args <- c(deparse(substitute(dataset)), deparse(substitute(x)), outlier.mod, remove)
+      outlier_remove_function$msg <- paste("outliers removed using", outlier.mod)
+      functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (outlier_remove_function)
+      body$fishset_run <- list(infoBodyout, functionBodyout)
+      write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+      
       
       if (outlier.mod == "none") {
         dataset <- dataset

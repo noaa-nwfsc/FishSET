@@ -1,6 +1,6 @@
 #' @export 
 # modification to is.nan, which idenitifies NaNs in a list. This modification extends the search to dataframes and matrices.
-is.nan.data.frame <- function(x, dataset) {
+is.nan.data.frame <- function(dataset) {
   do.call(cbind, lapply(dataset, is.nan))
 }
 

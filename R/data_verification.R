@@ -82,4 +82,13 @@ data_verification <- function(dataset, dataindex) {
     warning(paste("The units are not recognized for the following variables:", 
                 which(colSums(sapply(unitsAvailable, grepl, colnames(dataindex))) == 0)))
   }
+  
+  data_verification_function <- list()
+  data_verification_function$functionID <- 'data_verification'
+  data_verification_function$args <- c(deparse(substitute(dataset)), deparse(substitute(dataindex)))
+  data_verification_function$msg <- paste('See', paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), 'for record of data verification checks.')
+  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (data_verification_function)
+  body$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  
 }

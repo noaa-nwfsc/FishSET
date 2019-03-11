@@ -49,20 +49,40 @@ filter_dat <- function(dataset, exp, use.filter.table = F) {
   # NaNs only occurs on Numeric Variables
   if (use.filter.table == T) {
 
-        write(layout.json.ed(trace, "filter_dat", deparse(substitute(dataset)), x = "user-defined", 
-                         msg = paste("Rows have been removed based on", filterTable[exp, 3])),
-          paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+#        write(layout.json.ed(trace, "filter_dat", deparse(substitute(dataset)), x = "user-defined", 
+#                         msg = paste("Rows have been removed based on", filterTable[exp, 3])),
+#          paste(getwd(), "/Logs/", 'Messages', Sys.Date(), ".json", sep = ""), append = T)
 
         cat("The entire row will be removed from the dataframe.")
     dataset <- subset(dataset, eval(parse(text = filterTable[exp, 3])))
+    
+    
+    filter_dat_function <- list()
+    filter_dat_function$functionID <- 'filter_dat'
+    filter_dat_function$args <- c(deparse(substitute(dataset)), exp, use.filter.table)
+    filter_dat_function$output <- deparse(substitute(dataset))
+    filter_dat_function$msg <- paste("Rows have been removed based on", filterTable[exp, 3])
+    functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (filter_dat_function)
+    body$fishset_run <- list(infoBodyout, functionBodyout)
+    write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+    
     return(dataset)
   } else {
     
-    write(layout.json.ed(trace, "filter_dat", deparse(substitute(dataset)), x = "user-defined", 
-                         msg = paste("Rows have been removed based on", exp)),
-          paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+    #write(layout.json.ed(trace, "filter_dat", deparse(substitute(dataset)), x = "user-defined", 
+    #                     msg = paste("Rows have been removed based on", exp)),
+    #      paste(getwd(), "/Logs/", 'Messages', Sys.Date(), ".json", sep = ""), append = T)
 
-        dataset <- subset(dataset, eval(parse(text = exp)))
+    filter_dat_function <- list()
+    filter_dat_function$functionID <- 'filter_dat'
+    filter_dat_function$args <- c(deparse(substitute(dataset)), exp, use.filter.table)
+    filter_dat_function$output <- deparse(substitute(dataset))
+    filter_dat_function$msg <- paste("Rows have been removed based on", exp)
+    functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (filter_dat_function)
+    body$fishset_run <- list(infoBodyout, functionBodyout)
+    write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+        
+        
     return(dataset)
   }
 }

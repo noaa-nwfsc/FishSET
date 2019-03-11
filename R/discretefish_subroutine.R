@@ -265,12 +265,19 @@ discretefish_subroutine <- function(catch, choice, distance, otherdat, initparam
   DBI::dbDisconnect(fishset_db)
   
   
-  write(layout.json.ed(trace, "discretefish_subroutine", dataset = "", x = "", 
-                       msg = paste("catch:", deparse(substitute(catch)), ", choice:", deparse(substitute(choice)), 
-                                   ", distance:", deparse(substitute(distance)), ", otherdat:", deparse(substitute(otherdat)), 
-                                   ", initparams:", deparse(substitute(initparams)), ", optimOpt:", deparse(substitute(optimOpt)), 
-                                   ", func:", deparse(substitute(func)), ", methodname:", deparse(substitute(methodname)))), 
-        paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+  #write(layout.json.ed(trace, "discretefish_subroutine", dataset = "", x = "", 
+  #                     msg = paste("catch:", deparse(substitute(catch)), ", choice:", deparse(substitute(choice)), 
+  #                                 ", distance:", deparse(substitute(distance)), ", otherdat:", deparse(substitute(otherdat)), 
+  #                                 ", initparams:", deparse(substitute(initparams)), ", optimOpt:", deparse(substitute(optimOpt)), 
+  #                                 ", func:", deparse(substitute(func)), ", methodname:", deparse(substitute(methodname)))), 
+  #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+  
+  discretefish_subroutine_function <- list()
+  discretefish_subroutine_function$functionID <- 'discretefish_subroutine'
+  discretefish_subroutine_function$args <- c(catch, choice, distance, otherdat, initparams, optimOpt, func, methodname, func.name)
+  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (discretefish_subroutine_function)
+  body$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
   
   ############################################################################# 
   

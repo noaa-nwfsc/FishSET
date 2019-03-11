@@ -35,9 +35,15 @@ temp_mod <- function(dataset, x, fun.mod = "", define.format) {
   }
   
   # logging function information
-  df.name <- deparse(substitute(dataset))
-  write(layout.json.ed(trace, "TempMod", df.name, x, msg = paste("fun.mod:", fun.mod, "; define.format:", define.format)),
-                       paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+  #df.name <- deparse(substitute(dataset))
+  #write(layout.json.ed(trace, "TempMod", df.name, x, msg = paste("fun.mod:", fun.mod, "; define.format:", define.format)),
+  #                     paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+  temp_mod_function <- list()
+  temp_mod_function$functionID <- 'temp_mod'
+  temp_mod_function$args <- c(deparse(substitute(dataset)), x, fun.mod, define.format)
+  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (temp_mod_function)
+  body$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
   
   return(int)
   

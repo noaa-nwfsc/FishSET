@@ -34,10 +34,10 @@
 #'         Alt.zoneType 
 #'         Alt.int 
  
-create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "Port", "Other"), griddedDat=NULL, contents, 
-                                      Haul.Trip = c("Haul", "Trip"), alt_var, occasion, lon.dat, lat.dat, 
-                                      lon.grid, lat.grid, cat, use.grid = c(TRUE, FALSE), weight.var = NULL,  
-                                      hull.polygon = c(TRUE, FALSE), remove.na = FALSE, closest.pt = FALSE) {
+create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "Port", "Other"), contents, 
+                                      Haul.Trip = c("Haul", "Trip"), alt_var, occasion, lon.dat, lat.dat, lon.grid, lat.grid, 
+                                      cat, use.grid = c(TRUE, FALSE),  hull.polygon = c(TRUE, FALSE),remove.na = FALSE, 
+                                      closest.pt = FALSE, griddedDat=NULL, weight.var = NULL) {
   grid.file <- as.data.frame(gridfile)
   int <- find_centroid(use.grid = use.grid, dataset = dataset, gridfile = grid.file, 
                        lon.grid = lon.grid, lat.grid = lat.grid, lat.dat = lat.dat, lon.dat = lon.dat, 
@@ -175,15 +175,23 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
         
        Alt <<- Alt        
        
-       write(layout.json.ed(trace, 'create_alternative_choice', dataset=deparse(substitute(dataset)), x='', 
-                             msg=paste('gridfile:', deparse(substitute(gridfile)),  ', case:', case, ', contents:', contents, ', griddedDat:' , griddedDat,
-                                       ', Haul.Trip:', Haul.Trip, ', alt_var:',deparse(substitute(alt_var)),
-                                       ', occasion:', deparse(substitute(occasion)), 'lon.dat:', lon.dat, ', lat.dat:', lat.dat, 
-                                       ', lon.grid:', lon.grid, ', lat.grid:', lat.grid, ', cat:', cat, ', use.grid:', use.grid,
-                                       ', weight.var:', weight.var)), 
-              paste(getwd(),'/Logs/',Sys.Date(),'.json', sep=''), append=T )
+       #write(layout.json.ed(trace, 'create_alternative_choice', dataset=deparse(substitute(dataset)), x='', 
+       #                      msg=paste('gridfile:', deparse(substitute(gridfile)),  ', case:', case, ', contents:', contents, ', griddedDat:' , griddedDat,
+       #                                ', Haul.Trip:', Haul.Trip, ', alt_var:',deparse(substitute(alt_var)),
+       #                                ', occasion:', deparse(substitute(occasion)), 'lon.dat:', lon.dat, ', lat.dat:', lat.dat, 
+       #                                ', lon.grid:', lon.grid, ', lat.grid:', lat.grid, ', cat:', cat, ', use.grid:', use.grid,
+       #                                ', weight.var:', weight.var)), 
+       #       paste(getwd(),'/Logs/',Sys.Date(),'.json', sep=''), append=T )
         
- 
+       create_alternative_choice_function <- list()
+       create_alternative_choice_function$functionID <- 'create_alternative_choice'
+       create_alternative_choice_function$args <- c(deparse(substitute(dataset)), deparse(substitute(gridfile)), case, contents,
+                                                   Haul.Trip, alt_var, occasion, lon.dat, lat.dat, lon.grid,  lat.grid, cat,  use.grid)
+       create_alternative_choice_function$kwargs <- list('griddedDat'=griddedDat, 'weight.var'=weight.var)
+       functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (create_alternative_choice_function)
+       body$fishset_run <- list(infoBodyout, functionBodyout)
+       write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+       
 }                                                                                                                                                                                                                           
    
     

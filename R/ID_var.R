@@ -21,9 +21,17 @@ ID_var <- function(dataset, newID, ...) {
   colnames(int)[which(colnames(int) == "rowID")] = newID
   
   # logging function information
-  write(layout.json.ed(trace, "ID_var", deparse(substitute(dataset)), newID, 
-                       msg = paste(newID, "created based on", deparse(substitute(argList)))),
-        paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+  #write(layout.json.ed(trace, "ID_var", deparse(substitute(dataset)), newID, 
+  #                     msg = paste(newID, "created based on", deparse(substitute(argList)))),
+  #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+  
+  ID_var_function <- list()
+  ID_var_function$functionID <- 'ID_var'
+  ID_var_function$args <- c(deparse(substitute(dataset)), newID)
+  ID_var_function$kwargs <- list('argList'=argList)
+  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (ID_var_function)
+  body$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
   
   return(int)
 }

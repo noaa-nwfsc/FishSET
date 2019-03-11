@@ -14,7 +14,7 @@
 
 
 
-create_seasonal_ID <- function (dataset, seasonaldat, use.location=c(TRUE,FALSE), use.geartype=c(TRUE,FALSE), target=NULL, sp.col){
+create_seasonal_ID <- function (dataset, seasonaldat, use.location=c(TRUE,FALSE), use.geartype=c(TRUE,FALSE), sp.col, target=NULL){
 
 # Test that location_data match
   if(use.location == TRUE){
@@ -254,10 +254,19 @@ create_seasonal_ID <- function (dataset, seasonaldat, use.location=c(TRUE,FALSE)
   }
     }
 
-  write(layout.json.ed(trace, 'create_seaonal_ID', deparse(substitute(dataset)), x='', 
-                       msg=paste('seasonaldat:', deparse(substitute(seasonaldat)), ', use.location:', use.location, 
-                                 ', use.geartype:', use.geartype, ', target:', target, ', sp.col:', sp.col)), 
-        paste(getwd(),'/Logs/',Sys.Date(),'.json', sep=''), append=T )
+ # write(layout.json.ed(trace, 'create_seaonal_ID', deparse(substitute(dataset)), x='', 
+ #                      msg=paste('seasonaldat:', deparse(substitute(seasonaldat)), ', use.location:', use.location, 
+ #                                ', use.geartype:', use.geartype, ', target:', target, ', sp.col:', sp.col)), 
+ #       paste(getwd(),'/Logs/',Sys.Date(),'.json', sep=''), append=T )
+
+  create_seaonal_ID_function <- list()
+  create_seaonal_ID_function$functionID <- 'create_seaonal_ID'
+  create_seaonal_ID_function$args <- c(deparse(substitute(dataset)),  deparse(substitute(seasonaldat)), use.location, use.geartype, sp.col)
+  create_seaonal_ID_function$kwargs <- list('target'=target)
+  create_seaonal_ID_function$output <- deparse(substitute(dataset))
+  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (create_seaonal_ID_function)
+  body$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
   
   return(dataset)
 }

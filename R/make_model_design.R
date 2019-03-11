@@ -41,9 +41,8 @@
 # @examples
 
 
-make_model_design <- function(dataset, catchID = "HAUL", indeVarsForModel = "", gridVariablesInclude = "", 
-                              alternativeMatrix = c("loaded data", "gridded data"), lon.dat, lat.dat, priceCol = NULL, 
-                              vesselID = NULL) {
+make_model_design <- function(dataset, catchID = "HAUL", alternativeMatrix = c("loaded data", "gridded data"), lon.dat, lat.dat, 
+                               indeVarsForModel = "", gridVariablesInclude = "",priceCol = NULL, vesselID = NULL) {
   
   if (!exists("Alt")) {
     if (!exists('AltMatrixName')) {
@@ -305,11 +304,20 @@ make_model_design <- function(dataset, catchID = "HAUL", indeVarsForModel = "", 
                  params = list(ModelInputData = list(serialize(modelInputData, NULL))))
   DBI::dbDisconnect(fishset_db)
   
-  write(layout.json.ed(trace, "make_model_design", dataset = deparse(substitute(dataset)), x = "",
-                        msg = paste("catchID:", catchID, ", indeVarsForModel:", indeVarsForModel,  ", gridVariablesInclude:",
-                                           gridVariablesInclude, ", alternativeMatrix:", alternativeMatrix, ", lon.dat:", 
-                                           lon.dat, ", lat.dat:", lat.dat, ", priceCol:", priceCol, ", vesselID:", vesselID)), 
-        paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+  #write(layout.json.ed(trace, "make_model_design", dataset = deparse(substitute(dataset)), x = "",
+  #                      msg = paste("catchID:", catchID, ", indeVarsForModel:", indeVarsForModel,  ", gridVariablesInclude:",
+  #                                         gridVariablesInclude, ", alternativeMatrix:", alternativeMatrix, ", lon.dat:", 
+  #                                        lon.dat, ", lat.dat:", lat.dat, ", priceCol:", priceCol, ", vesselID:", vesselID)), 
+  #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+  
+  
+  make_model_design_function <- list()
+  make_model_design_function$functionID <- 'make_model_design'
+  make_model_design_function$args <- c(deparse(substitute(dataset)), deparse(substitute(dataindex)), catchID, alternativeMatrix, lon.dat, lat.dat)
+  make_model_design_function$kwargs <- list('indeVarsForModel'=indeVarsForModel, 'gridVariablesInclude'=gridVariablesInclude, 'priceCol'=priceCol, 'vesselID'=vesselID)
+  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (make_model_design_function)
+  body$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
   
   modelInputData <<- modelInputData
   
