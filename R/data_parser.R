@@ -11,14 +11,14 @@ read.dat <- function(x, data.type = c('csv', 'mat', 'json', 'shape')) {
 #' @param data.type csv, mat, json, shape
 #' @importFrom sf read_sf
 #' @importFrom R.matlab readMat
-#' @importFrom rjson fromJSON
+#' @importFrom jsonlite fromJSON
 #' @details Uses the appropriate function to read in data based on data type.
   if(data.type == 'shape'){
     shapeName <- sf::read_sf(x)#'~/path/to/file.shp'
   } else if(data.type=='mat') {
     R.matlab::readMat(x) 
   } else if(data.type=='json') {
-    rjson::fromJSON(x)
+    jsonlite::fromJSON(x)
   } else {
     
   }
@@ -26,11 +26,13 @@ read.dat <- function(x, data.type = c('csv', 'mat', 'json', 'shape')) {
 
 
 fishset.compare <- function(x, y, compare=c(TRUE,FALSE)){
+  #' Compare new dataset to previous version
   #' @param x name dataframe to be saved
   #' @param y name of previously saved dataframe
   #' @param compare TRUE/FALSE Compare new dataframe to previously saved dataframe before saving dataframe x to databases
+  #' @importFrom DBI dbWriteTable
   #' @details If compare is TRUE, colnames of the new and previously saved dataframe are compared for consistency. If false, no comparison is made and the new file is saved to the database.
-  
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   if(compare==TRUE){
     if(is.null(y)==TRUE){
       print(DBI::dbListTables(fishset_db))
@@ -40,7 +42,7 @@ fishset.compare <- function(x, y, compare=c(TRUE,FALSE)){
       old <- toupper(colnames(y))
       if(is.na(table(is.na(match(new, old)))[2])==TRUE){
         print('Column names match between previous and new datasets. New dataset uploaded to database')
-        dbWriteTable(fishset_db, paste(paste(deparse(substitute(X)),Sys.Date(), sep=''), deparse(substitute(X))))
+        DBI::dbWriteTable(fishset_db, paste(paste(deparse(substitute(x)),Sys.Date(), sep=''), deparse(substitute(x))))
       } else {
         cat(length(table(is.na(match(new,old)))[2]),'/',length(match(new,old)), ' mismatches', sep='')
         cat(noquote(paste(deparse(substitute(x)),'[',as.character(which(is.na(match(new,old))==TRUE)),']', sep='')),':', new[which(is.na(match(new,old))==TRUE)])
@@ -49,21 +51,25 @@ fishset.compare <- function(x, y, compare=c(TRUE,FALSE)){
       }
     }
   } else {
-    dbWriteTable(fishset_db, paste(deparse(substitute(X)), Sys.Date(), sep=''), deparse(substitute(X)))
+    DBI::dbWriteTable(fishset_db, paste(deparse(substitute(x)), Sys.Date(), sep=''), deparse(substitute(x)))
   }
+  DBI::dbDisconnect(fishset_db)
 }
 
 
-load_maindata <- function(x,y,compare){
+load_maindata <- function(x, y, project, compare){
+  #' LOad data into sql database
   #' @param x name dataframe to be saved
   #' @param y name of previously saved dataframe
+  #' @param project name of project
   #' @param compare TRUE/FALSE Compare new dataframe to previously saved dataframe before saving dataframe x to databases
-  #' @param project name of project for attaching to table
+  # @param project name of project for attaching to table
+  #' @importFrom jsonlite toJSON
   #' @details Runs the fishset.compare function. Then uses the new dataframe x to generate the the information table that contains information for each variable on units, data format, and specialied variable.
   #
   fishset.compare(x,y,compare)
   ## --------- MainDataTableInfo -------------- ##
-  MainDataTableInfo <- data.frame(variable_name=colnames(X),
+  MainDataTableInfo <- data.frame(variable_name=colnames(x),
                                   units=c(ifelse(grepl('DATE|TRIP_END|TRIP_START',colnames(x)), 'yyyymmdd',
                                                  ifelse(grepl('MIN',colnames(x)), 'min',
                                                         ifelse(grepl('FATHOMS',colnames(x)), 'fathoms',
@@ -101,19 +107,20 @@ load_maindata <- function(x,y,compare){
                                   isHaul=ifelse(grepl('HAUL', colnames(x)), 1,0),
                                   isOther=rep(0, length(colnames(x))),
                                   tableLink=rep(NA, length(colnames(x))))
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   dbWriteTable(fishset_db, paste(project, 'MainDataTableInfo', sep=''), MainDataTableInfo)
-
+  DBI::dbDisconnect(fishset_db)
     #write(layout.json.ed(trace, "load_maindata", '', x = deparse(substitute(x)), 
     #                   msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
      #   paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
   
     load_maindata_function <- list()
     load_maindata_function$functionID <- 'load_maindata'
-    load_maindata_function$args <- c(deparse(substitute(x)), deparse(substitute(y)), compare)
-    functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (load_maindata_function)
+    load_maindata_function$args <- c(deparse(substitute(x)), deparse(substitute(y)), project, compare)
+    functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_maindata_function)
     body$fishset_run <- list(infoBodyout, functionBodyout)
     write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-    
+    list2env(functionBodyout, envir = .GlobalEnv)
 }
 
 main_mod <- function(dataset, x, change.col=NULL, new.unit=NULL, new.type=NULL, new.class=NULL) {
@@ -134,9 +141,10 @@ main_mod <- function(dataset, x, change.col=NULL, new.unit=NULL, new.type=NULL, 
   main_mod_function <- list()
   main_mod$functionID <- 'main_mod'
   main_mod$args <- c(deparse(substitute(dataset)), deparse(substitute(x)), change.col, new.unit, new.type, new.class)
-  main_mod$function_calls[[length(functionBodyout$function_calls)+1]] <<- (main_mod)
+  main_mod$function_calls[[length(functionBodyout$function_calls)+1]] <- (main_mod)
   body$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  list2env(functionBodyout, envir = .GlobalEnv)
   
   return(dataset)
 }
@@ -161,8 +169,9 @@ load_port <- function(x, y, compare, project){
     warning('Port identification not found. Check that unique port ID (name, id, code) is included.')
   }
   fishset.compare(x,y,compare)
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   dbWriteTable(fishset_db, paste(project, 'PortTable', sep=''), x)
-  
+  DBI::dbDisconnect(fishset_db)
   #write(layout.json.ed(trace, "load_port", '', x = deparse(substitute(x)), 
   #                     msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
@@ -170,9 +179,10 @@ load_port <- function(x, y, compare, project){
   load_port_function <- list()
   load_port_function$functionID <- 'load_port'
   load_port_function$args <- c(deparse(substitute(x)), deparse(substitute(y)), compare)
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (load_port_function)
+  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_port_function)
   body$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  list2env(functionBodyout, envir = .GlobalEnv)
 }
 
 load_aux <- function(x, y, name, compare, project){
@@ -192,9 +202,10 @@ load_aux <- function(x, y, name, compare, project){
   } 
   
  fishset.compare(x,y,compare)
-  
-    dbWriteTable(fishset_db, paste(project, name, sep=''), name)
-  
+ 
+ fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+ DBI::dbWriteTable(fishset_db, paste(project, name, sep=''), name)
+ DBI::dbDisconnect(fishset_db)
   #write(layout.json.ed(trace, "load_aux", '', x = deparse(substitute(x)), 
   #                     msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
@@ -202,10 +213,10 @@ load_aux <- function(x, y, name, compare, project){
   load_aux_function <- list()
   load_aux_function$functionID <- 'load_aux'
   load_aux_function$args <- c(deparse(substitute(x)), deparse(substitute(y)), compare)
-  load_aux_function$function_calls[[length(functionBodyout$function_calls)+1]] <<- (load_aux_function)
+  load_aux_function$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_aux_function)
   body$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-  
+  list2env(functionBodyout, envir = .GlobalEnv)
 }
 
 
@@ -223,9 +234,9 @@ load_seasonal <- function(x, y, compare, project){
   } 
   
   fishset.compare(x,y,compare)
-  
-  dbWriteTable(fishset_db, paste(project, 'SesaonalData', sep=''), x)
-  
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  DBI::dbWriteTable(fishset_db, paste(project, 'SesaonalData', sep=''), x)
+  DBI::dbDisconnect(fishset_db)
   #write(layout.json.ed(trace, "load_seasonal", '', x = deparse(substitute(x)), 
   #                     msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
@@ -233,8 +244,8 @@ load_seasonal <- function(x, y, compare, project){
   load_seasonal_function <- list()
   load_seasonal_function$functionID <- 'load_seasonal'
   load_seasonal_function$args <- c(deparse(substitute(x)), deparse(substitute(y)), compare)
-  load_seasonal_function$function_calls[[length(functionBodyout$function_calls)+1]] <<- (load_seasonal_function)
+  load_seasonal_function$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_seasonal_function)
   body$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-  
+  list2env(functionBodyout, envir = .GlobalEnv)
 }

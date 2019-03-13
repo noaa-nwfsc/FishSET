@@ -10,16 +10,17 @@
 #' @param func Name of likelihood function
 #' @param methodname Optimization method (see optim options)
 #' @param func.name Name of likelihood function for model result output table
+#' @importFrom DT DTOutput
 #' @param select.model Return an interactive data table that allows users to select and save table of best models based on measures of fit 
 #' @importFrom DBI dbExecute dbWriteTable dbExistsTable dbReadTable dbGetQuery dbDisconnect
-#' @importFrom DT datatable JS DTOutput renderDataTable
+#' @importFrom DT datatable JS DTOutput 
+#' @importFrom stats optim
 #' @import shiny
 #' @return
 #' OutLogit - [outmat1 se1 tEPM2] (coefs, ses, tstats) \cr 
 #' optoutput - optimization information \cr 
 #' seoumat2 - ses \cr 
 #' MCM - Model Comparison metrics \cr 
-#' H1 - inverse hessian \cr 
 #' 
 # @examples 
 #choice <- as.data.frame(modelInputData$choice)
@@ -69,7 +70,7 @@ discretefish_subroutine <- function(catch, choice, distance, otherdat, initparam
   
   res <- tryCatch({
     
-    optim(starts2, fr, dat = d, otherdat = otherdat, alts = max(choice), method = methodname, 
+    stats::optim(starts2, fr, dat = d, otherdat = otherdat, alts = max(choice), method = methodname, 
 			control = controlin, hessian = TRUE)
     
   }, error = function(e) {
@@ -115,7 +116,7 @@ discretefish_subroutine <- function(catch, choice, distance, otherdat, initparam
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   
   if (DBI::dbExistsTable(fishset_db, "out.mod") == FALSE) {
-    DBI::dbWriteTable(fishset_db, "out.mod", out)
+    DBI::dbWriteTable(fishset_db, "out.mod", mod.out)
   } else {
     out.mod <- DBI::dbReadTable(fishset_db, "out.mod")
     if(exists('temp')){
@@ -136,8 +137,8 @@ discretefish_subroutine <- function(catch, choice, distance, otherdat, initparam
  #  rownames(out.mod)=c("AIC", "AICc", "BIC", "PseudoR2")
  #   print(DT::datatable(t(round(out.mod, 5)), filter='top'))
     
-    runApp(list(
-      ui = basicPage(
+    shiny::runApp(list(
+      ui = shiny::basicPage(
         
         h2('Model Output'),
         DT::DTOutput("mytable"),
@@ -163,7 +164,7 @@ discretefish_subroutine <- function(catch, choice, distance, otherdat, initparam
           inputs 
         } 
         # datatable with checkbox
-        output$mytable = DT::renderDataTable({
+        output$mytable = shiny::renderDataTable({
           data.frame(t(out.mod),Select=shinyInput(checkboxInput,nrow(t(out.mod)),"cbox_"))
         }, colnames=c('model','AIC','AICc','BIC','PseudoR2'), filter='top', server = FALSE, escape = FALSE, options = list( 
           paging=FALSE,
@@ -275,10 +276,10 @@ discretefish_subroutine <- function(catch, choice, distance, otherdat, initparam
   discretefish_subroutine_function <- list()
   discretefish_subroutine_function$functionID <- 'discretefish_subroutine'
   discretefish_subroutine_function$args <- c(catch, choice, distance, otherdat, initparams, optimOpt, func, methodname, func.name)
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (discretefish_subroutine_function)
+  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (discretefish_subroutine_function)
   body$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-  
+  list2env(functionBodyout, envir = .GlobalEnv)
   ############################################################################# 
   
   return(list(errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 

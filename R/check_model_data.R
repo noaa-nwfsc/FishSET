@@ -17,10 +17,10 @@
 
 
 check_model_data <- function(dataset, uniqueID, save.file = "sqlfile", db.name, save.name) {
-
+    tmp <- tempfile()
     if (length(which(is.nan.data.frame(dataset)) != 0) > 0) {
     cat(paste("\nNaNs are present in", 
-              names(which(colSums(is.nan.data.frame(dataset)) != 0))), file=paste(getwd(),'/Logs/InforMessage',Sys.Date(),'.txt', sep=''), append=TRUE)
+              names(which(colSums(is.nan.data.frame(dataset)) != 0))),file=tmp, append=T)
     stop(paste("NaNs are present in", 
                names(which(colSums(is.nan.data.frame(dataset)) != 0))))
   }
@@ -28,7 +28,7 @@ check_model_data <- function(dataset, uniqueID, save.file = "sqlfile", db.name, 
   # is.inf
   if (length(which(is.inf.data.frame(dataset)) != 0) > 0) {
     cat(paste("\nInfinite values are present in",
-               names(which(colSums(is.inf.data.frame(dataset)) != 0))), file=paste(getwd(),'/Logs/InforMessage',Sys.Date(),'.txt', sep=''), append=TRUE)
+               names(which(colSums(is.inf.data.frame(dataset)) != 0))), file=tmp, append=T)
     
     stop(paste("Infinite values are present in",
                names(which(colSums(is.inf.data.frame(dataset)) != 0))))
@@ -36,17 +36,19 @@ check_model_data <- function(dataset, uniqueID, save.file = "sqlfile", db.name, 
 
     if (length(dataset[[uniqueID]]) != length(unique(dataset[[unique]]))) {
       cat("\nThe uniqueID variable should define the length of unique occurrences in the dataset. Use the HaulToTrip function to collapse data.",
-          file=paste(getwd(),'/Logs/InforMessage',Sys.Date(),'.txt', sep=''), append=TRUE)
+          file=tmp, append=T)
       
      stop("The uniqueID variable should define the length of unique occurrences in the dataset. Use the HaulToTrip function to collapse data.")
   }
 
     if (save.file == "csvfile") {
     write.csv(dataset, paste(save.name, ".csv", sep = ""))
-      cat(paste("\nModified dataset saved to csv file under", save.name), file=paste(getwd(),'/Logs/InforMessage',Sys.Date(),'.txt', sep=''), append=TRUE)
+      cat(paste("\nModified dataset saved to csv file under", save.name), file=tmp, append=T)
   } else {
-    cat(paste("\nModified dataset saved to sql database under", save.name), file=paste(getwd(),'/Logs/InforMessage',Sys.Date(),'.txt', sep=''), append=TRUE)
+    cat(paste("\nModified dataset saved to sql database under", save.name), file=tmp, append=T)
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
     DBI::dbWriteTable(fishset_db, save.name, dataset)
+    DBI::dbDisconnect(fishset_db)
     # logging function information
   }
   
@@ -57,9 +59,10 @@ check_model_data <- function(dataset, uniqueID, save.file = "sqlfile", db.name, 
   checkModelData_function <- list()
   checkModelData_function$functionID <- 'check_model_data'
   checkModelData_function$args <- c(deparse(substitute(dataset)), uniqueID, save.file, db.name, save.name)
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (checkModelData_function)
+  checkModelData_function$msg <- suppressWarnings(readLines(tmp))
+  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (checkModelData_function)
   body$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-  
+  list2env(functionBodyout, envir = .GlobalEnv)
   
 }

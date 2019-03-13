@@ -16,10 +16,8 @@ logit_avgcat <- function(starts3, dat, otherdat, alts) {
     #' (number of alternatives)* and `intdat` variables as ones with dimension *(number of observations) x 1*.
     #' @param alts Number of alternative choices in model
     #' @return ld - negative log likelihood
-    #' @export
-    #' @examples
-    #'
-    
+    # @export
+
     ld1 <- list()
     intdat <- (otherdat$intdat)
     griddat <- (otherdat$griddat)

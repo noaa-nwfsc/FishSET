@@ -8,18 +8,17 @@
 #' @param lon.grid Longitude of points from gridfile
 #' @param lat.grid Latitude of points from gridfile
 #' @param cat Categorical variable defining the individual areas or zones in gridfile. If gridfile is class sf, cat should be name of list containing information on zones. 
-#' @param remove.na TRUE/FALSE Remove points where zone ID not identified
 #' @param closest.pt  TRUE/FALSE If true, zone ID identified as the closest polygon to the point
 #' @importFrom sp CRS Polygons Polygon SpatialPolygons SpatialPolygonsDataFrame coordinates
 #' @importFrom rgeos gDistance
+#' @importFrom grDevices chull
 #' @keywords  zone, polygon
 #' @return Returns dataset with new assignment column labeled zoneID
 #' @export assignment_column
 #' @details Converts point data from gridfile into polygons and then finds which polygon each point in the dataset is within. Use hull.polygon=T if data is sparse or irregular.
 
 # read.csv('Data/adfgstat6_map.csv', header = F) require(rjson) 
-# map <- rjson::fromJSON('C:/Users/melanie.harsch/Work/OLDFishSET/NMFS_RA.json', flatten=TRUE) 
-# map <- map$features
+
 
 assignment_column <- function(dataset, gridfile, hull.polygon = c(TRUE, FALSE), lon.grid, lat.grid, 
                               lon.dat, lat.dat, cat,  closest.pt = c(TRUE, FALSE)) {
@@ -28,10 +27,10 @@ assignment_column <- function(dataset, gridfile, hull.polygon = c(TRUE, FALSE), 
   if(any(class(gridfile)=='sf')) {
     #map2 <- sf::st_read('C:/Users/melanie.harsch/Work/OLDFishSET/NMFS_RA.json') 
     dat_sub <- sf::st_as_sf(x = dataset, 
-                            coords = c("LonLat_START_LON", "LonLat_START_LAT"),
+                            coords = c(lon.dat, lat.dat),
                             crs = "+proj=longlat +datum=WGS84")
     pts <- as.data.frame(sf::st_intersects(dat_sub, gridfile))
-    pts$ID <- gridfile[[cat]][temp$col.id]
+    pts$ID <- gridfile[[cat]][pts$col.id]
   } 
     else {
       # sort data
@@ -47,7 +46,7 @@ assignment_column <- function(dataset, gridfile, hull.polygon = c(TRUE, FALSE), 
   })
   
   if (hull.polygon == T) {
-    ps <- lapply(map_list, function(x) x[c(chull(x), chull(x)[1]), ])
+    ps <- lapply(map_list, function(x) x[c(grDevices::chull(x), grDevices::chull(x)[1]), ])
     p1 <- lapply(seq_along(ps), function(i) sp::Polygons(list(sp::Polygon(ps[[i]])), ID = names(map_list)[i]))
   } else {
       # add id variable
@@ -83,8 +82,18 @@ assignment_column <- function(dataset, gridfile, hull.polygon = c(TRUE, FALSE), 
   }
   
   if (any(is.na(pts$ID))) {
-    warning("Zone ID not identified for at least one point. Consider dropping points by assigning remove.na to TRUE or 
-         assigning these points to closest zone by setting closest to TRUE.")
+    drop.points <- dataset[is.na(pts$ID)==TRUE, c(lon.dat, lat.dat)]
+    warning("Zone ID not identified for at least one point. Consider plotting points against before dropping points by assigning remove.na to TRUE or 
+         assigning these points to closest zone by setting closest to TRUE. Undefined points are recorded in the log file")
+    assignment_column_function <- list()
+    assignment_column_function$functionID <- 'assignment_column'
+    assignment_column_function$args <- c(deparse(substitute(dataset)), deparse(substitute(gridfile)), hull.polygon, lon.grid, lat.grid, 
+                                         lon.dat, lat.dat, cat,  closest.pt)
+    assignment_column_function$msg <- drop.points
+    functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- list(assignment_column_function)
+    body$fishset_run <- list(infoBodyout, functionBodyout)
+    write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+    list2env(functionBodyout, envir = .GlobalEnv)
   }
   }
   

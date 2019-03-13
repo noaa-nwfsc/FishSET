@@ -7,7 +7,7 @@
 #' @return Returns the dataframe with new ID variable included
 #' @details Creates an variable to indicate distinct hauls or trips
 #' 
-# @examples dat <- IDvar(MainDataTable, newID='PermitID','GEAR_TYPE','TRIP_SEQ')
+# @examples dat <- ID_var(MainDataTable, newID='PermitID','GEAR_TYPE','TRIP_SEQ')
 
 
 ID_var <- function(dataset, newID, ...) {
@@ -28,10 +28,11 @@ ID_var <- function(dataset, newID, ...) {
   ID_var_function <- list()
   ID_var_function$functionID <- 'ID_var'
   ID_var_function$args <- c(deparse(substitute(dataset)), newID)
-  ID_var_function$kwargs <- list('argList'=argList)
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (ID_var_function)
+  #ID_var_function$kwargs <- list('argList'=idmaker)
+  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (ID_var_function)
   body$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  list2env(functionBodyout, envir = .GlobalEnv)
   
   return(int)
 }

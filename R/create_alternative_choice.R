@@ -19,6 +19,7 @@
 #' @param remove.na TRUE/FALSE Remove points where zone ID not identified. Called in assignment_column function.
 #' @param closest.pt  TRUE/FALSE If true, zone ID identified as the closest polygon to the point. Called in assignment_column function.
 #' @importFrom DBI dbExecute
+# @importFrom rlist list.append
 #' @return returns list containing information on alternative choice
 #' @export create_alternative_choice
 #' @details Functions returns alternative choice matrix
@@ -36,7 +37,7 @@
  
 create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "Port", "Other"), contents, 
                                       Haul.Trip = c("Haul", "Trip"), alt_var, occasion, lon.dat, lat.dat, lon.grid, lat.grid, 
-                                      cat, use.grid = c(TRUE, FALSE),  hull.polygon = c(TRUE, FALSE),remove.na = FALSE, 
+                                      cat, use.grid = c(TRUE, FALSE),  hull.polygon = c(TRUE, FALSE), remove.na = FALSE, 
                                       closest.pt = FALSE, griddedDat=NULL, weight.var = NULL) {
   grid.file <- as.data.frame(gridfile)
   int <- find_centroid(use.grid = use.grid, dataset = dataset, gridfile = grid.file, 
@@ -123,7 +124,7 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
         gridVar <- griddedDat
         
         if (DBI::dbExistsTable(fishset_db, griddedDat) == FALSE) {
-          DBI::dbWriteTable(fishset_db, griddedDat, out)
+          DBI::dbWriteTable(fishset_db, griddedDat, gridVar)
         } 
         
         int <- noquote(gsub("[^0-9]", "", colnames(gridVar)))
@@ -188,10 +189,10 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
        create_alternative_choice_function$args <- c(deparse(substitute(dataset)), deparse(substitute(gridfile)), case, contents,
                                                    Haul.Trip, alt_var, occasion, lon.dat, lat.dat, lon.grid,  lat.grid, cat,  use.grid)
        create_alternative_choice_function$kwargs <- list('griddedDat'=griddedDat, 'weight.var'=weight.var)
-       functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (create_alternative_choice_function)
+       functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_alternative_choice_function)
        body$fishset_run <- list(infoBodyout, functionBodyout)
        write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-       
+       list2env(functionBodyout, envir = .GlobalEnv)
 }                                                                                                                                                                                                                           
    
     

@@ -1,10 +1,10 @@
-#'  Log all actions and informative messages in an exterior file.
-#'
-#'  Exterior file is dated to the date the code is run
+#  Log all actions and informative messages in an exterior file.
+#
+#  Exterior file is dated to the date the code is run
 
-#' @param dataset dataframe or matrix
-#' @param x column in dataframe
-#' @param fun.name name of the function being applied
+# @param dataset dataframe or matrix
+# @param x column in dataframe
+# @param fun.name name of the function being applied
 # @keywords logging
 # @return Log file
 # @export layout.json.ed

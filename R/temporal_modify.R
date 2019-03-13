@@ -10,7 +10,7 @@
 #' @details define.format defines the format that the variable should take on. Examples include '%Y%m%d', '%Y-%m-%d %H:%M:%S'.
 #' The function also has options to extract year, month, minute, or month/day. These are defined through fun.mod
 #' 
-#' @examples  Date_Landed_YMD <- temp_mod(MainDataTable, 'DATE_LANDED', fun.mod = '',define.format = '%Y%m%d') 
+# @examples  Date_Landed_YMD <- temp_mod(MainDataTable, 'DATE_LANDED', fun.mod = '',define.format = '%Y%m%d') 
 #' Date_Landed_year <- temp_mod(MainDataTable, 'DATE_LANDED', fun.mod = 'year', define.format = '')
 
 # Change to Year, Month, day, minutes
@@ -41,9 +41,10 @@ temp_mod <- function(dataset, x, fun.mod = "", define.format) {
   temp_mod_function <- list()
   temp_mod_function$functionID <- 'temp_mod'
   temp_mod_function$args <- c(deparse(substitute(dataset)), x, fun.mod, define.format)
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (temp_mod_function)
+  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (temp_mod_function)
   body$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  list2env(functionBodyout, envir = .GlobalEnv)
   
   return(int)
   

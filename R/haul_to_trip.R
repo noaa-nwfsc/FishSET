@@ -19,11 +19,11 @@
 haul_to_trip <- function(dataset, dataindex, varnameindex, genTypeName, fun.time = min, fun.numeric = mean, ...) {
   # Create a column that indicates unique trip levels
 
-    write(layout.json.ed(trace, "haul_to_trip", deparse(substitute(dataset)), x = "", 
-                       msg = paste("dataindex:", deparse(substitute(dataindex)), ", varnameindex:", 
-                                   varnameindex, ", genTypeName:", genTypeName, ", fun.time:", deparse(substitute(fun.time)), 
-                                   ", fun.numeric:", deparse(substitute(fun.numeric)), sep = "")), 
-        paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+   # write(layout.json.ed(trace, "haul_to_trip", deparse(substitute(dataset)), x = "", 
+   #                    msg = paste("dataindex:", deparse(substitute(dataindex)), ", varnameindex:", 
+   #                                varnameindex, ", genTypeName:", genTypeName, ", fun.time:", deparse(substitute(fun.time)), 
+   #                                ", fun.numeric:", deparse(substitute(fun.numeric)), sep = "")), 
+   #     paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
 
     argList <- (as.character(match.call(expand.dots = FALSE)$...))
   
@@ -44,11 +44,11 @@ haul_to_trip <- function(dataset, dataindex, varnameindex, genTypeName, fun.time
   out <- 
     #Nothing listed
       cbind(
-        aggregate(int[,c(which(is.na(as.data.frame(dataindex[dataindex[, varnameindex] == colnames(int[,-which(colnames(int)=='rowID')]), 
+        stats::aggregate(int[,c(which(is.na(as.data.frame(dataindex[dataindex[, varnameindex] == colnames(int[,-which(colnames(int)=='rowID')]), 
                                                                  genTypeName]) == TRUE)), which(colnames(int)=='rowID'))], 
                list(int$rowID), FUN = head,  1)[,-1],
     #Time - note duration
-      aggregate(cbind(
+    stats::aggregate(cbind(
         as.data.frame(lapply(
           int[,c(which(as.data.frame(dataindex[dataindex[, varnameindex] == 
                                                          colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Time"))][-
@@ -56,7 +56,7 @@ haul_to_trip <- function(dataset, dataindex, varnameindex, genTypeName, fun.time
             colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Time"))]), ignore.case=T)==T)],  as.Date)), rowID=int$rowID), 
                 list(int$rowID), fun.time, na.rm = TRUE)[,-1],
       #Time - duration
-      aggregate(cbind(
+    stats::aggregate(cbind(
         as.data.frame(
           int[,c(which(as.data.frame(dataindex[dataindex[, varnameindex] == 
                                                          colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Time"))][-
@@ -65,24 +65,24 @@ haul_to_trip <- function(dataset, dataindex, varnameindex, genTypeName, fun.time
         list(int$rowID), fun.time, na.rm = TRUE)[,-1],
       
     #Other numeric  
-      aggregate(int[,c(which(as.data.frame(dataindex[dataindex[, varnameindex] == colnames(int[,-which(colnames(int)=='rowID')]), 
+    stats::aggregate(int[,c(which(as.data.frame(dataindex[dataindex[, varnameindex] == colnames(int[,-which(colnames(int)=='rowID')]), 
                                                      genTypeName]) == "Other Numeric"), which(colnames(int)=='rowID'))], 
                 list(int$rowID), fun.numeric, na.action = na.pass)[,-1],
     #Latitude
-      aggregate(int[,c(which(as.data.frame(dataindex[dataindex[, varnameindex] == colnames(int[,-which(colnames(int)=='rowID')]), 
+    stats::aggregate(int[,c(which(as.data.frame(dataindex[dataindex[, varnameindex] == colnames(int[,-which(colnames(int)=='rowID')]), 
                                                      genTypeName]) == "Latitude"), which(colnames(int)=='rowID'))], 
                 list(int$rowID),  FUN = head, 1)[,-1],
       
     #Coded
-      aggregate(int[,c(which(as.data.frame(dataindex[dataindex[, varnameindex] == colnames(int[,-which(colnames(int)=='rowID')]), 
+    stats::aggregate(int[,c(which(as.data.frame(dataindex[dataindex[, varnameindex] == colnames(int[,-which(colnames(int)=='rowID')]), 
                                                      genTypeName])== "Code Numeric"), which(colnames(int)=='rowID'))], 
                 list(int$rowID),  FUN = head, 1)[,-1],
     #Coded
-    aggregate(int[,c(which(as.data.frame(dataindex[dataindex[, varnameindex] == colnames(int[,-which(colnames(int)=='rowID')]), 
+    stats::aggregate(int[,c(which(as.data.frame(dataindex[dataindex[, varnameindex] == colnames(int[,-which(colnames(int)=='rowID')]), 
                                                    genTypeName]) == "Code"), which(colnames(int)=='rowID'))], 
               list(int$rowID),  FUN = head, 1)[,-1],
     #Coded
-    aggregate(int[,c(which(as.data.frame(dataindex[dataindex[, varnameindex] == colnames(int[,-which(colnames(int)=='rowID')]), 
+    stats::aggregate(int[,c(which(as.data.frame(dataindex[dataindex[, varnameindex] == colnames(int[,-which(colnames(int)=='rowID')]), 
                                                    genTypeName]) == "Code String"), which(colnames(int)=='rowID'))], 
               list(int$rowID),  FUN = head, 1)[,-1]
     
@@ -102,12 +102,13 @@ haul_to_trip <- function(dataset, dataindex, varnameindex, genTypeName, fun.time
    haul_to_trip_function <- list()
    haul_to_trip_function$functionID <- 'haul_to_trip'
    haul_to_trip_function$args <- c(deparse(substitute(dataset)), deparse(substitute(dataindex)), varnameindex, genTypeName)
-   haul_to_trip_function$kwargs <- list('fun.time'=fun.time, 'fun.numeric'=fun.numeric, 'argList'=argList)
-   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (haul_to_trip_function)
+   #haul_to_trip_function$kwargs <- list('fun.time'=fun.time, 'fun.numeric'=fun.numeric, 'argList'=idmaker)
+   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (haul_to_trip_function)
    body$fishset_run <- list(infoBodyout, functionBodyout)
    write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+   list2env(functionBodyout, envir = .GlobalEnv)
    
-  return(out)
+  #return(out)
 }
 
 

@@ -1,15 +1,14 @@
 #'  Make model design
 #'
 #' @param dataset dataframe or matrix
-#' @param indeVarsForModel Independent variables to include in the model
-#' @param gridVariablesInclude Variables from gridded dataset to include in the model. 
 #' @param catchID  Name of variable that containts catch data such as 'HAUL'
 #' @param alternativeMatrix Whether the alternative choice matrix should come from 'loaded data' or 'gridded data'
 #' @param lon.dat Variable containing longitude data
 #' @param lat.dat Variable containing latitude data
-#' @param priceCol=NULL If required, specify which variable contains price data
-#' @param vesselID=NULL If required, specify which varible defines vessel
-#' @param gridVaryingVariables  Generated in create_expectations function. Set to NULL expected catch matrix does not exist.
+#' @param indeVarsForModel Independent variables to include in the model
+#' @param gridVariablesInclude Variables from gridded dataset to include in the model. 
+#' @param priceCol NULL If required, specify which variable contains price data
+#' @param vesselID NULL If required, specify which varible defines vessel
 #' @importFrom geosphere distm
 #' @importFrom DBI dbGetQuery dbExecute
 #' @return  ModelInputData a list containing information on alternative choice
@@ -78,9 +77,9 @@ make_model_design <- function(dataset, catchID = "HAUL", alternativeMatrix = c("
   } else {
     if (any(indeVarsForModel %in% c("Miles * Miles", "Miles*Miles, Miles x Miles"), 
             ignore.case = TRUE)) {
-      bCHeader = list(bCHeader, lapply(indeVarsForModel[-1], function(x) MainDataTable[[x]][which(dataZoneTrue == 1)]))
+      bCHeader = list(bCHeader, lapply(indeVarsForModel[-1], function(x) dataset[[x]][which(dataZoneTrue == 1)]))
     } else {
-      bCHeader = list(bCHeader, lapply(indeVarsForModel, function(x) MainDataTable[[x]][which(dataZoneTrue == 1)]))
+      bCHeader = list(bCHeader, lapply(indeVarsForModel, function(x) dataset[[x]][which(dataZoneTrue == 1)]))
     }
   }
   
@@ -150,9 +149,9 @@ make_model_design <- function(dataset, catchID = "HAUL", alternativeMatrix = c("
           # cell2mat(data(v1).codeID(:,2)) # convert cell array to an ordinary array
           temp <- data.frame(unique(data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn)), 
                              tapply(data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == "LonLat_START")]$dataColumn)[, 1], 
-                                    data.frame(dataset[["data"]][, , which(unlist(out$data[, 1, ][3, ]) == alt_var)]$dataColumn), mean), 
+                                    data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn), mean), 
                              tapply(data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == "LonLat_START")]$dataColumn)[, 2], 
-                                    data.frame(dataset[["data"]][, , which(unlist(out$data[, 1, ][3, ]) == alt_var)]$dataColumn), mean))
+                                    data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn), mean))
           colnames(temp) = c(alt_var, "LON", "LAT")
           toXY1 <- merge(toXYa, temp)  #portLL(toXYa,:)  
         }
@@ -315,10 +314,11 @@ make_model_design <- function(dataset, catchID = "HAUL", alternativeMatrix = c("
   make_model_design_function$functionID <- 'make_model_design'
   make_model_design_function$args <- c(deparse(substitute(dataset)), deparse(substitute(dataindex)), catchID, alternativeMatrix, lon.dat, lat.dat)
   make_model_design_function$kwargs <- list('indeVarsForModel'=indeVarsForModel, 'gridVariablesInclude'=gridVariablesInclude, 'priceCol'=priceCol, 'vesselID'=vesselID)
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (make_model_design_function)
+  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (make_model_design_function)
   body$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-  
-  modelInputData <<- modelInputData
+  list2env(functionBodyout, envir = .GlobalEnv)
+ 
+   modelInputData <<- modelInputData
   
 }

@@ -1,7 +1,7 @@
 #' @export 
 # modification to is.nan, which idenitifies NaNs in a list. This modification extends the search to dataframes and matrices.
-is.nan.data.frame <- function(dataset) {
-  do.call(cbind, lapply(dataset, is.nan))
+is.nan.data.frame <- function(x) {
+  do.call(cbind, lapply(x, is.nan))
 }
 
 
@@ -14,6 +14,7 @@ is.inf.data.frame <- function(dataset) {
 vgsub <- function(pattern, replacement, x, ...) {
   for (i in 1:length(pattern)) x <- gsub(pattern[i], replacement[i], x, ...)
   x
+  return(x)
 }
 
 
@@ -61,14 +62,14 @@ is.empty <- function(x, trim = TRUE, ...) {
 
 find_first <- function(y){
   g <- y[which(grepl('date', names(y), ignore.case=TRUE) == TRUE)]
-  if(all(g=='')==TRUE||all(is.empty(g)==TRUE)==TRUE) {warming('All date variables are empty')}
+  if(all(g=='')==TRUE||all(is.empty(g)==TRUE)==TRUE) {warning('All date variables are empty')}
   g2 <- date_parser(as.vector(unlist(c(g))))
   names(g)[which(g2==min(g2, na.rm=TRUE))[1]]
 }
 
 find_last <- function(y){
   g <- y[which(grepl('date', names(y), ignore.case=TRUE) == TRUE)]
-  if(all(g=='')==TRUE||all(is.empty(g)==TRUE)==TRUE) {warming('All date variables are empty')}
+  if(all(g=='')==TRUE||all(is.empty(g)==TRUE)==TRUE) {warning('All date variables are empty')}
   g2 <- date_parser(as.vector(unlist(c(g))))
   names(g)[which(g2==max(g2, na.rm=TRUE))[1]]
 }
@@ -144,6 +145,9 @@ skewness <- function(x) {
 }
 
 date_parser <- function(dates){
+  #' Date parser
+  #' @param dates vector containing date data
+  #' @export date_parser
   dates <- trimws(dates)
   dates <- sub(' .*','\\1',dates)
   if(!all(is.na(suppressWarnings(lubridate::mdy(dates)))==T)) {

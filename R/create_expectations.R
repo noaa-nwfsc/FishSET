@@ -17,6 +17,7 @@
 #' @importFrom lubridate floor_date
 #' @importFrom zoo rollapply
 #' @importFrom DBI dbGetQuery
+#' @importFrom stats aggregate reshape coef lm
 #' @export create_expectations
 #' @return newGridVar dataframe. Saved to the global environment. Dataframe called in make_model_design
 #' @details Used during model creation to create an expectations of catch for alternative choices that are added to the model design file.
@@ -83,7 +84,7 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
   }
   numNAN = which(is.nan(numData) == T)
   if (!is.empty(numNAN)) {
-    numData[numNAN] = INF
+    numData[numNAN] = Inf
   }
   
   # [B,I,C]=unique([numData,spData],'rows')
@@ -97,7 +98,7 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
   # Time variable not chosen if isempty(ti #NOTE currently doesn't allow dummy or other options if no time detected
   if (is.empty(temp.var)) {
     
-    allCatch = aggregate(catchData, list(C), mean, na.rm = T)  #accumarray(C,catchData,[],@nanmean)# currently no replacement for nans
+    allCatch = stats::aggregate(catchData, list(C), mean, na.rm = T)  #accumarray(C,catchData,[],@nanmean)# currently no replacement for nans
     # Above line is grouping by the alternatives through the C above
     # [bi,~,ci]=unique([numData],'rows','Stable')
     bi <- unique(numData)
@@ -119,7 +120,7 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
       # daily time line
       tiDataFloor <- lubridate::floor_date(as.Date(tiData), unit = "day")  # assume, we are talking day of for time
       tLine <- sort(unique(tiDataFloor))  #min(tiDataFloor):max(tiDataFloor)
-    } else if (temporal == sequential) {
+    } else if (temporal == 'sequential') {
       # case u1 # observation time line
       tiDataFloor <- tiData  # just keeping things consistent
       tLine <- data.frame(unique(tiData))  #unique(tiData) 
@@ -150,11 +151,11 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
     df$tiData <- as.Date(tiData)
     df$catchData <- as.numeric(df$catchData)
     # rolledAvg <-
-    df2 <- aggregate(df, by = list(numData = numData, spData = spData, tiData = tiData), 
+    df2 <- stats::aggregate(df, by = list(numData = numData, spData = spData, tiData = tiData), 
                      mean, na.rm = T)[, c(1, 2, 3, 6)]
     df2 <- df2[order(df2$numData, df2$spData, df2$tiData), ]
     df2$ID <- paste(df2$numData, df2$spData, sep = "")
-    df2$lag.value <- c(rep(NA, lagTime), head(df2$catchData, n = -lagTime))
+    df2$lag.value <- c(rep(NA, lagTime), df2$catchData, n = -lagTime)
     df2$lag.value[which(!duplicated(df2$ID))] <- NA
     x <- lagTime
     for (i in 1:(lagTime - 1)) {
@@ -163,7 +164,7 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
     df2$ra <- zoo::rollapply(df2$lag.value, timeRange, mean, partial = T, fill = replaceValue)
     
     # meanCatchSimple <- left_join(df, rolledAvg) reshape catch data to wide format
-    meanCatchSimple <- reshape(df2[, c("numData", "spData", "tiData", "ra")], 
+    meanCatchSimple <- stats::reshape(df2[, c("numData", "spData", "tiData", "ra")], 
                                idvar = c("numData", "spData"), timevar = "tiData", direction = "wide")
     dummyTrack <- meanCatchSimple[, -c(1, 2)]  # preallocate for tracking no value
     
@@ -180,7 +181,7 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
       if (lag.method == "simple") {
         polys <- data.frame(matrix(NA, nrow = nrow(meanCatchSimple), ncol = 2))  #nan(size(meanCatchSimple,1),2)
         for (q in 1:nrow(meanCatchSimple)) {
-          meanCatch[q, ] <- polyval(coef(lm(as.numeric(meanCatchSimple[q,4:ncol(meanCatchSimple)]) ~  
+          meanCatch[q, ] <- polyval(stats::coef(stats::lm(as.numeric(meanCatchSimple[q,4:ncol(meanCatchSimple)]) ~  
                                             as.numeric(meanCatchSimple[q, 3:(ncol(meanCatchSimple) - 1)]))), 
                                     as.numeric(meanCatchSimple[q, 3:ncol(meanCatchSimple)]))  #polyval(polys[q,],meanCatchSimple[q,])
         }
@@ -308,10 +309,10 @@ create_expectations_function$functionID <- 'create_expectations'
 create_expectations_function$args <- c(deparse(substitute(dataset)), deparse(substitute(gridfile)), catch, temporal, temp.var, calc.method, lag.method, 
                                     empty.catch, empty.expectation, temp.window, temp.lag)
 create_expectations_function$kwargs <- list('AltMatrixName'=AltMatrixName, 'defineGroup'=defineGroup)
-functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (create_expectations_function)
+functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_expectations_function)
 body$fishset_run <- list(infoBodyout, functionBodyout)
 write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-
+list2env(functionBodyout, envir = .GlobalEnv)
 }
 
 

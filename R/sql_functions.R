@@ -1,28 +1,30 @@
-# Functions to work with sql database
+#' Functions to work with sql database
+#' @importFrom DBI dbConnect dbRemoveTable dbListTables dbExistsTable dbGetQuery
 
-#' @param table name of tablel in sql database
-#' @export
-
-#View tables in the fishset_db database
 tablesDatabase <- function() { 
-  dbListTables(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+# View tables in the fishset_db database
+  DBI::dbListTables(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
   }
 
-#View fields in the selected table in the fishset_db database
 tableFields <- function(table) { 
-  dbListFields(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), table) }
+#' View fields in the selected table in the fishset_db database
+#' @param table name of table in sql database
+  DBI::dbListFields(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), table) }
 
-#view the selected table in the fishset_db database
 tableView <- function(table) { 
+#' view the selected table in the fishset_db database
+  #' @param table name of tablel in sql database
   DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), paste0("SELECT * FROM", paste0("'", noquote(table), "'"))) 
   }
 
-#remove a table from the fishset_db database
 tableRemove <- function(table) { 
+#' remove a table from the fishset_db database
+  #' @param table name of tablel in sql database
   DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), table) 
   }
 
-#Check whether a specific table exists in the fishset_db database
 tableExists <- function(table) { 
-  dbExistsTable(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), table) 
+#' Check whether a specific table exists in the fishset_db database
+  #' @param table name of tablel in sql database
+  DBI::dbExistsTable(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), table) 
   }

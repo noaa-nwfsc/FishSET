@@ -4,9 +4,8 @@
 #' @param table Name of table in database containing model measures of fit
 #' @param overwrite.table Append model selection to modelChosen table or delete existing table and save new table
 #' @importFrom DBI dbExistsTable dbDisconnect dbConnect dbRemoveTable dbExecute dbGetQuery 
-#' @importFrom DT datatable JS DTOutput renderDataTable
+#' @importFrom DT DTOutput renderDT JS
 #' @import shiny
-#' @return
 
 select_model <- function(table, overwrite.table){
   

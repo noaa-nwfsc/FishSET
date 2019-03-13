@@ -32,10 +32,10 @@ nan_identify <- function(dataset) {
   nan_identify_function$functionID <- 'nan_identify'
   nan_identify_function$args <- c(deparse(substitute(dataset)))
   nan_identify_function$msg <- suppressWarnings(readLines(tmp))
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (nan_identify_function)
+  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (nan_identify_function)
   body$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-
+  list2env(functionBodyout, envir = .GlobalEnv)
 }
 
 
@@ -55,7 +55,7 @@ nan_filter <- function(dataset, x, replace = F, remove = F, rep.value = mean(dat
   #' @export nan_filter
 
     tmp <- tempfile()
-    
+    x.name <- x
     if (is.numeric(dataset[, x]) == T) {
     # Further actions are only taken if NaNs exist in the selected variable
     if (any(is.nan(dataset[, x])) == T) {
@@ -66,7 +66,7 @@ nan_filter <- function(dataset, x, replace = F, remove = F, rep.value = mean(dat
       # the identified rep.value (defaults to mean value)
       if (replace == T) {
         dataset[is.nan(dataset[, x]), x] = rep.value
-        cat("All NaNs in", x.name, "have been replaced with", rep.value, file=tmp, append=T)
+        cat("All NaNs in", x, "have been replaced with", rep.value, file=tmp, append=T)
 
         #        write(layout.json.ed(trace, "nan.filter", deparse(substitute(dataset)), deparse(substitute(x)), 
         #                     msg = paste(df.name, "[is.nan(", df.name, "[,", x.name, "]),", x.name, "] = ", rep.value)), 
@@ -94,9 +94,10 @@ nan_filter <- function(dataset, x, replace = F, remove = F, rep.value = mean(dat
   nan_filter_function$args <- c(deparse(substitute(dataset)))
   nan_filter_function$output <- deparse(substitute(dataset))
   nan_filter_function$msg <- suppressWarnings(readLines(tmp))
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <<- (nan_filter_function)
+  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (nan_filter_function)
   body$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  list2env(functionBodyout, envir = .GlobalEnv)
   
   return(dataset)
 }
