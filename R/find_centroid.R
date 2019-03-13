@@ -74,7 +74,7 @@ find_centroid <- function(use.grid, dataset, gridfile, lon.grid, lat.grid, lat.d
     # Lat and long must be within logical bounds
     if (is.data.frame(int) == T) {
       if (any(abs(int[[lon]]) > 180)) {
-        cat("Longitude is not valid (outside -180:180).", file=tmp) f
+        cat("Longitude is not valid (outside -180:180).", file=tmp) 
         x<-1
         #stop("Longitude is not valid (outside -180:180.")
       }

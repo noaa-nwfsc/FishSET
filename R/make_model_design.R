@@ -54,6 +54,8 @@ make_model_design <- function(dataset, catchID = "HAUL", alternativeMatrix = c("
   
   if (!exists("ExpectedCatch")) {
     stop("Expected Catch Matrix does not exist. Please run the create_expectations() function.")
+  }  else {
+    ExpectedCatch <- ExpectedCatch
   }
   
   alt_var <- Alt[["alt_var"]]
@@ -66,7 +68,10 @@ make_model_design <- function(dataset, catchID = "HAUL", alternativeMatrix = c("
    if (!is.empty(gridVariablesInclude)) {
     bCHeader <- list(bCHeader, gridVariablesInclude)
   }
-  if (exists("newDumV")) {
+  if (!exists("newDumV")) {
+    bcHeader <- bCHeader
+  } else {
+    newDumV <- newDumV
     bCHeader <- list(bCHeader, newDumV)
   }
   # 
@@ -319,6 +324,6 @@ make_model_design <- function(dataset, catchID = "HAUL", alternativeMatrix = c("
   write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
   list2env(functionBodyout, envir = .GlobalEnv)
  
-   modelInputData <<- modelInputData
-  
+   
+   list2env(modelInputData, envir = .GlobalEnv)
 }

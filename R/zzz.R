@@ -47,7 +47,7 @@
 #  writeLines(layout.json.ed(trace, '', '', 'LogFile'), paste(getwd(),'/Logs/',Sys.Date(),'.json', sep=''))
 }
 
-.onDetach <- function(libpath){
-  DBI::dbDisconnect(fishset_db)
+#.onDetach <- function(libpath){
+  #DBI::dbDisconnect(fishset_db)
   #close(fileConn)
-}
+#}

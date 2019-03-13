@@ -263,14 +263,15 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
         # the following is the output that is NROWS by number of alternatives
       }
 
-  newDumV <<- list(
+  newDumV <- list(
     matrix = dummyV,
     scale = 1,
   # name = name,
     units = 'T/F'
   # file = []
    )
-
+  list2env(newDumV, envir = .GlobalEnv)
+  
   #replaceEmptyExpAll=get(dp2V5,'String')# replace empty catch
   if(empty.expectation==0.0001) {
      newCatch[is.na(newCatch)] <- 0.0001
@@ -288,14 +289,14 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
   r <- nchar(sub('\\.[0-9]+', '', mean(mean(newCatch,na.rm=T),na.rm=T))) #regexp(num2str(nanmax(nanmax(newCatch))),'\.','split')
   sscale <- 10^(r-1)  
 
-  ExpectedCatch <<- list(
+  ExpectedCatch <- list(
      matrix = newCatch,
      scale = sscale,
      units = ifelse(grepl('lbs|pounds', catch, ignore.case = T)==T, 'LBS', 'MTS') #units of catch data
      #newGridVar.file=[]
      )
-
-
+  list2env(ExpectedCatch, envir = .GlobalEnv)
+  
 #write(layout.json.ed(trace, 'create_expectations', deparse(substitute(dataset)), x='', 
 #                          msg=paste('gridfile:', deparse(substitute(gridfile)), ', catch:', deparse(substitute(catch)), 
 #                                    ', defineGroup:', defineGroup, ', temporal:', temporal, ', temp.var:', temp.var, ',temp.window:', temp.window,
