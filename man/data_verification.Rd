@@ -4,7 +4,7 @@
 \alias{data_verification}
 \title{Check for serveral issues that may be present in the data.}
 \usage{
-data_verification(dataset, dataindex)
+data_verification(dataset)
 }
 \arguments{
 \item{dataset}{dataframe or matrix}

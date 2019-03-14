@@ -4,16 +4,17 @@
 \alias{load_maindata}
 \title{Load data into sql database}
 \usage{
-load_maindata(x, y, project, compare)
+load_maindata(x, over_write = TRUE, project = NULL, compare = FALSE,
+  y = NULL)
 }
 \arguments{
 \item{x}{name dataframe to be saved}
 
-\item{y}{name of previously saved dataframe}
-
 \item{project}{name of project}
 
 \item{compare}{TRUE/FALSE Compare new dataframe to previously saved dataframe before saving dataframe x to databases}
+
+\item{y}{name of previously saved dataframe. y must be defined if compare==TRUE}
 }
 \description{
 Load data into sql database

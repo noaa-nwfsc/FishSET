@@ -4,18 +4,17 @@
 \alias{load_aux}
 \title{Save auxilliary data}
 \usage{
-load_aux(x, y, name, compare, project)
+load_aux(x, over_write = TRUE, project = NULL, compare = FALSE,
+  y = NULL)
 }
 \arguments{
 \item{x}{name dataframe to be saved}
 
-\item{y}{name of previously saved dataframe}
-
-\item{name}{Name of table}
+\item{project}{name of project for attaching to table}
 
 \item{compare}{TRUE/FALSE Compare new dataframe to previously saved dataframe before saving dataframe x to databases}
 
-\item{project}{name of project for attaching to table}
+\item{y}{name of previously saved dataframe}
 }
 \description{
 Save auxilliary data

@@ -4,16 +4,17 @@
 \alias{load_seasonal}
 \title{Save auxilliary data}
 \usage{
-load_seasonal(x, y, compare, project)
+load_seasonal(x, over_write = TRUE, project = NULL, compare = FALSE,
+  y = NULL)
 }
 \arguments{
 \item{x}{name dataframe to be saved}
 
-\item{y}{name of previously saved dataframe}
+\item{project}{name of project for attaching to table}
 
 \item{compare}{TRUE/FALSE Compare new dataframe to previously saved dataframe before saving dataframe x to databases}
 
-\item{project}{name of project for attaching to table}
+\item{y}{name of previously saved dataframe}
 }
 \description{
 Save auxilliary data

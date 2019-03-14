@@ -15,9 +15,11 @@ To install:
 
 # Libraries #
 ---
-FishSET uses functions from the following libraries:
 
+The following libaries are imported:
 shiny
+
+Functions are imported from the following libraries:
 DBI
 DT
 R.matlab
