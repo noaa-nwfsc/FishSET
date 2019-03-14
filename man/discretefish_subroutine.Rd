@@ -6,7 +6,7 @@
 Subroutine to run chosen discrete choice model}
 \usage{
 discretefish_subroutine(catch, choice, distance, otherdat, initparams,
-  optimOpt, func, methodname, func.name, return.table = FALSE)
+  optimOpt, func, methodname, func.name, select.model = FALSE)
 }
 \arguments{
 \item{catch}{Data corresponding to actual zonal choice}
@@ -27,14 +27,13 @@ discretefish_subroutine(catch, choice, distance, otherdat, initparams,
 
 \item{func.name}{Name of likelihood function for model result output table}
 
-\item{return.table}{Return an interactive data table of model output}
+\item{select.model}{Return an interactive data table that allows users to select and save table of best models based on measures of fit}
 }
 \value{
 OutLogit - [outmat1 se1 tEPM2] (coefs, ses, tstats) \cr 
 optoutput - optimization information \cr 
 seoumat2 - ses \cr 
-MCM - Model Comparison metrics \cr 
-H1 - inverse hessian \cr
+MCM - Model Comparison metrics \cr
 }
 \description{
 discretefish_subroutine

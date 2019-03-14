@@ -166,7 +166,7 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
           stop('Problem with loaded matrix, NaN found.')
          }
         
-        Alt <- list.append(Alt, matrix = allMat[Alt[['dataZoneTrue']],])  #allMat[Alt[[dataZoneTrue]],]
+        Alt <-list.append(Alt, matrix = allMat[Alt[['dataZoneTrue']],])  #allMat[Alt[[dataZoneTrue]],]
       }
         
         #write Alt to datafile

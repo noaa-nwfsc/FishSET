@@ -46,7 +46,8 @@ logit_c <- function(starts3, dat, otherdat, alts) {
         
     }
     
-    ldglobalcheck <<- unlist(as.matrix(ld1))
+    ldglobalcheck <- unlist(as.matrix(ld1))
+    list2env(ldglobalcheck, envir = .GlobalEnv)
     
     ld <- (-do.call("sum", ld1))
     

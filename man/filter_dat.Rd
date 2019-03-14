@@ -11,7 +11,7 @@ filter_dat(dataset, exp, use.filter.table = F)
 
 \item{exp}{Filter expression. Use row row number if use.filter.table==TRUE. Otherwise, should take on the form of 'x<100' or is.na(x)==F.}
 
-\item{use.filter.Table}{TRUE or FALSE. If true then data is subsetted based on a filter in filterTable and exp is the row containing the filter.}
+\item{use.filter.table}{TRUE or FALSE. If true then data is subsetted based on a filter in filterTable and exp is the row containing the filter.}
 }
 \value{
 filter_dat applies user-definted filters. Output must be saved

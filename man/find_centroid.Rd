@@ -35,7 +35,7 @@ Generate centroid of polygon of zone or area
 \details{
 Functions returns the center of a zone or area based on set of latitude and longitudes for using in generating distance matrices.
  Function can also return a weighted centroid. Code works for dataframes and shape files. Lists can also be used as long as inputs are a list of latitudes, longitudes, and areas or zones.
- Includes assignmentColumn function. Assigns a zone from a gridded dataset to the main dataset.
+ Includes assignment_column function. Assigns a zone from a gridded dataset to the main dataset.
 }
 \keyword{centroid,}
 \keyword{polygon}

@@ -18,7 +18,7 @@ data_verification <- function(dataset, dataindex) {
   if (length(x) == length(unique(x))) {
     print("Variable names are unique within dataset.")
   } else {
-    cat("\nVariable names are notunique.", file=paste(getwd(),'/Logs/InforMessage',Sys.Date(),'.txt', sep=''), append=TRUE)
+    cat("\nVariable names are not unique.", file=paste(getwd(),'/Logs/InforMessage',Sys.Date(),'.txt', sep=''), append=TRUE)
     stop("Variable names must be unique.")
   }
   

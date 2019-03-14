@@ -36,7 +36,7 @@ filter_data <- function(dataset, x, exp, save.filter = FALSE, flog.dat = TRUE) {
     
     #write.table(filterTable, file = paste("Logs/ Log_file_", Sys.Date(), ".log"))
   }
-  assign("filterTable", filterTable, envir = .GlobalEnv)
+  list2env(filterTable, envir = .GlobalEnv)
   print(filterTable)
 }
 

@@ -29,6 +29,3 @@ ld - negative log likelihood
 \description{
 Average catch conditional logit procedure
 }
-\examples{
-
-}

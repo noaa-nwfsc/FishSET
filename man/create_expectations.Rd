@@ -4,12 +4,13 @@
 \alias{create_expectations}
 \title{Expected catch}
 \usage{
-create_expectations(dataset, gridfile, catch, AltMatrixName = NULL,
-  defineGroup = NULL, temporal = c("daily", "sequential"), temp.var,
-  temp.window = 1, temp.lag = 1, calc.method = c("standard average",
+create_expectations(dataset, gridfile, catch, temporal = c("daily",
+  "sequential"), temp.var, calc.method = c("standard average",
   "simple lag", "weights"), lag.method = c("simple", "grouped"),
   empty.catch = c(NULL, 0, "all catch", "grouped catch"),
-  empty.expectation = c(NULL, 1e-04, 0), dummy.exp = FALSE)
+  empty.expectation = c(NULL, 1e-04, 0), temp.window = 1,
+  temp.lag = 1, dummy.exp = FALSE, AltMatrixName = NULL,
+  defineGroup = NULL)
 }
 \arguments{
 \item{dataset}{Observe or VMS data}
@@ -18,17 +19,9 @@ create_expectations(dataset, gridfile, catch, AltMatrixName = NULL,
 
 \item{catch}{Catch variable for averaging}
 
-\item{AltMatrixName}{Does not need to specified if ALT has been generated in createAlternativeChoice function}
-
-\item{defineGroup}{If empty, data is treated as a fleet}
-
 \item{temporal}{Daily = Daily time line or sequential = sequential order}
 
 \item{temp.var}{Temporal variable for averaging}
-
-\item{temp.window}{Window size for averaging. Defaults to 1}
-
-\item{temp.lag}{Lag time for averaging}
 
 \item{calc.method}{select standard average, simple lag = simple lag regression of means, or weights= weights of regressed groups}
 
@@ -38,7 +31,15 @@ create_expectations(dataset, gridfile, catch, AltMatrixName = NULL,
 
 \item{empty.expectation}{Do not replace or replace with 0.0001 or 0}
 
+\item{temp.window}{Window size for averaging. Defaults to 1}
+
+\item{temp.lag}{Lag time for averaging}
+
 \item{dummy.exp}{T/F. Defaults to False. If false, no dummy variable is outputted. If true, output dummy variable for originally missing value.}
+
+\item{AltMatrixName}{Does not need to specified if ALT has been generated in createAlternativeChoice function}
+
+\item{defineGroup}{If empty, data is treated as a fleet}
 }
 \value{
 newGridVar dataframe. Saved to the global environment. Dataframe called in make_model_design
@@ -52,6 +53,6 @@ Expected catch
 Used during model creation to create an expectations of catch for alternative choices that are added to the model design file.
 The expectations created have several options and are created based on the group and time averaging choices of the user.
 The spatial alternatives are built in to the function and come from the structure Alt.
-NOTE: currently empty values and values ==nan are considered to be times of no fishing activitiy whereas values in the catch variable choosen ==0
-are considered fishing activity with no catch and so those are included in the averaging and dummy creation as a point in time when fishing occoured.
+NOTE: currently empty values and values ==nan are considered to be times of no fishing activity whereas values in the catch variable choosen ==0
+are considered fishing activity with no catch and so those are included in the averaging and dummy creation as a point in time when fishing occurred.
 }

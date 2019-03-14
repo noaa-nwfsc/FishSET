@@ -24,9 +24,7 @@ Transform units of a temporal variables
 \details{
 define.format defines the format that the variable should take on. Examples include '%Y%m%d', '%Y-%m-%d %H:%M:%S'.
 The function also has options to extract year, month, minute, or month/day. These are defined through fun.mod
-}
-\examples{
- Date_Landed_YMD <- temp_mod(MainDataTable, 'DATE_LANDED', fun.mod = '',define.format = '\%Y\%m\%d') 
+
 Date_Landed_year <- temp_mod(MainDataTable, 'DATE_LANDED', fun.mod = 'year', define.format = '')
 }
 \keyword{Date,}

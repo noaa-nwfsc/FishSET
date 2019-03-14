@@ -88,10 +88,12 @@ epm_normal <- function(starts3, dat, otherdat, alts) {
         ld <- .Machine$double.xmax
     }
     
-    ldsumglobalcheck <<- ld
-    paramsglobalcheck <<- starts3
-    ldglobalcheck <<- unlist(as.matrix(ld1))
-    
+    ldsumglobalcheck <- ld
+    list2env(ldsumglobalcheck, envir = .GlobalEnv)
+    paramsglobalcheck <- starts3
+    list2env(paramsglobalcheck, envir = .GlobalEnv)
+    ldglobalcheck <- unlist(as.matrix(ld1))
+    list2env(ldglobalcheck, envir = .GlobalEnv)
     return(ld)
     
 }

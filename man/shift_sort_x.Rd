@@ -25,6 +25,3 @@ d - matrix of choice possibilites and distance
 \description{
 Shifts choices so that the chosen zone will be automatically the first one
 }
-\examples{
-
-}

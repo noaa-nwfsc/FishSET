@@ -22,11 +22,9 @@ assignment_column(dataset, gridfile, hull.polygon = c(TRUE, FALSE),
 
 \item{lat.dat}{Latitude of points from dataset}
 
-\item{cat}{Categorical variable defining the individual areas or zones}
+\item{cat}{Categorical variable defining the individual areas or zones in gridfile. If gridfile is class sf, cat should be name of list containing information on zones.}
 
 \item{closest.pt}{TRUE/FALSE If true, zone ID identified as the closest polygon to the point}
-
-\item{remove.na}{TRUE/FALSE Remove points where zone ID not identified}
 }
 \value{
 Returns dataset with new assignment column labeled zoneID

@@ -28,6 +28,3 @@ ld - negative log likelihood
 \description{
 Conditional logit likelihood
 }
-\examples{
-
-}

@@ -15,7 +15,7 @@ filter_data(dataset, x, exp, save.filter = FALSE, flog.dat = TRUE)
 
 \item{save.filter}{Whether to save the filterTable as a csv file}
 
-\item{log.dat}{Whether to print filterTable to the log file}
+\item{flog.dat}{Whether to print filterTable to the log file}
 }
 \value{
 filterTable saved into the global environment. The data table will grow with each run of the function.

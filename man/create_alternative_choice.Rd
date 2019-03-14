@@ -7,8 +7,8 @@
 create_alternative_choice(dataset, gridfile, case = c("Centroid", "Port",
   "Other"), contents, Haul.Trip = c("Haul", "Trip"), alt_var, occasion,
   lon.dat, lat.dat, lon.grid, lat.grid, cat, use.grid = c(TRUE, FALSE),
-  weight.var = NULL, hull.polygon = c(TRUE, FALSE),
-  remove.na = FALSE, closest.pt = FALSE)
+  hull.polygon = c(TRUE, FALSE), remove.na = FALSE,
+  closest.pt = FALSE, griddedDat = NULL, weight.var = NULL)
 }
 \arguments{
 \item{dataset}{dataframe or matrix}
@@ -37,13 +37,15 @@ create_alternative_choice(dataset, gridfile, case = c("Centroid", "Port",
 
 \item{use.grid}{#TRUE/FALSE. If TRUE, gridded data is used to create centroids}
 
-\item{weight.var}{#Variable for weighted centroids}
-
 \item{hull.polygon}{Using in assignmentColumn function. Creates polying using convex hull method.}
 
 \item{remove.na}{TRUE/FALSE Remove points where zone ID not identified. Called in assignment_column function.}
 
 \item{closest.pt}{TRUE/FALSE If true, zone ID identified as the closest polygon to the point. Called in assignment_column function.}
+
+\item{griddedDat}{dataframe or matrix containing a variable that varies by the map grid. First column should match a column in the dataset. The remaining columns should match the zone IDs in the gridfile.}
+
+\item{weight.var}{#Variable for weighted centroids}
 }
 \value{
 returns list containing information on alternative choice

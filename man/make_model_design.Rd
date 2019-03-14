@@ -4,18 +4,15 @@
 \alias{make_model_design}
 \title{Make model design}
 \usage{
-make_model_design(dataset, catchID = "HAUL", indeVarsForModel = "",
-  gridVariablesInclude = "", alternativeMatrix = c("loaded data",
-  "gridded data"), lon.dat, lat.dat, priceCol = NULL, vesselID = NULL)
+make_model_design(dataset, catchID = "HAUL",
+  alternativeMatrix = c("loaded data", "gridded data"), lon.dat, lat.dat,
+  indeVarsForModel = "", gridVariablesInclude = "", priceCol = NULL,
+  vesselID = NULL)
 }
 \arguments{
 \item{dataset}{dataframe or matrix}
 
 \item{catchID}{Name of variable that containts catch data such as 'HAUL'}
-
-\item{indeVarsForModel}{Independent variables to include in the model}
-
-\item{gridVariablesInclude}{Variables from gridded dataset to include in the model.}
 
 \item{alternativeMatrix}{Whether the alternative choice matrix should come from 'loaded data' or 'gridded data'}
 
@@ -23,11 +20,13 @@ make_model_design(dataset, catchID = "HAUL", indeVarsForModel = "",
 
 \item{lat.dat}{Variable containing latitude data}
 
-\item{priceCol=NULL}{If required, specify which variable contains price data}
+\item{indeVarsForModel}{Independent variables to include in the model}
 
-\item{vesselID=NULL}{If required, specify which varible defines vessel}
+\item{gridVariablesInclude}{Variables from gridded dataset to include in the model.}
 
-\item{gridVaryingVariables}{Generated in create_expectations function. Set to NULL expected catch matrix does not exist.}
+\item{priceCol}{NULL If required, specify which variable contains price data}
+
+\item{vesselID}{NULL If required, specify which varible defines vessel}
 }
 \value{
 ModelInputData a list containing information on alternative choice
