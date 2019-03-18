@@ -1,6 +1,6 @@
 #' create_seasonal_ID
 #' Connects the variables in a table of season dates to main data table based on two column to the data in the main workspace.
-#' A new new variable is made with the Season identifier (TRUE/FALSE) in it. 
+#' A new variable is made with the Season identifier (TRUE/FALSE) in it. 
 #'
 #' @param dataset Name of table in database containing model measures of fit
 #' @param seasonaldat Append model selection to modelChosen table or delete existing table and save new table

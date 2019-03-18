@@ -6,7 +6,7 @@
 #' @return Returns statements as to whether issues in the data may exist
 #' @export data_verification
 #' @export table_info_verification
-#' @details dataVerification checks that all columnn names in the dataset are unique, whether specialized variables have been identified in the index 
+#' @details data_verification checks that all columnn names in the dataset are unique, whether specialized variables have been identified in the index 
 #' dataset, whether any columns in the dataset are empty, if units are defined and recognized, whether each row is a unique choice occurrence at the haul
 #' or trip level, and that data for either lat/long or fishing area are included.
 

@@ -35,10 +35,10 @@ check_model_data <- function(dataset, uniqueID, save.file = "sqlfile", db.name, 
   }
 
     if (length(dataset[[uniqueID]]) != length(unique(dataset[[unique]]))) {
-      cat("\nThe uniqueID variable should define the length of unique occurrences in the dataset. Use the HaulToTrip function to collapse data.",
+      cat("\nThe uniqueID variable should define the length of unique occurrences in the dataset. Use the haul_to_trip function to collapse data.",
           file=tmp, append=T)
       
-     stop("The uniqueID variable should define the length of unique occurrences in the dataset. Use the HaulToTrip function to collapse data.")
+     stop("The uniqueID variable should define the length of unique occurrences in the dataset. Use the haul_to_trip function to collapse data.")
   }
 
     if (save.file == "csvfile") {

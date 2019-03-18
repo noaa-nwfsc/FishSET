@@ -5,7 +5,7 @@
 #' @param newID name of new ID column
 #' @export ID_var
 #' @return Returns the dataframe with new ID variable included
-#' @details Creates an variable to indicate distinct hauls or trips
+#' @details Creates a variable to indicate distinct hauls or trips
 #' 
 # @examples dat <- ID_var(MainDataTable, newID='PermitID','GEAR_TYPE','TRIP_SEQ')
 

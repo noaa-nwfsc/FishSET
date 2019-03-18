@@ -44,7 +44,7 @@ cpue <- function(dataset, xWeight, xTime) {
 
 ##---- Dummy  Variables ----##
 #' Create a new dummy variable
-dummy_var <- function(dataset, DumFill = TRUE) {
+dummy_var <- function(dataset, DumFill = 'TRUE') {
   #' @param dataset dataframe or matrix
   #' @param DumFill Fill the dummy variable with TRUE or FALSE
   #' @export dummy_var
@@ -75,7 +75,7 @@ dummy_matrix <- function(dataset, x) {
   #' @param dataset dataframe or matrix
   #' @param x Variable to create 
   #' @export dummy_matrix
-  #' @details Function for generating new or specialized variables. dummy_matrix creates a dummy matrix. setQuants creates a coded variable based on the quantiles of x. 
+  #' @details Function for generating new or specialized variables. dummy_matrix creates a dummy matrix.
   # @example PortMatrix <- dummy_matrix(MainDataTable, 'PORT_CODE')
   
   #write(layout.json.ed(trace, "DummyMatrix", deparse(substitute(dataset)), x = deparse(substitute(x))), 
@@ -151,7 +151,7 @@ create_var_num <- function(dataset, x, y, method, name) {
   #' @param method Addition, substraction, multiplication, division
   #' @param name Name of new variable
   #' @export create_var_num
-  #' @details Function for generating new or specialized variables. create_var_num create a new numeric variable based on defined arithmetic function. New variable is added to the dataset.
+  #' @details Function for generating new or specialized variables. create_var_num creates a new numeric variable based on defined arithmetic function. New variable is added to the dataset.
   # example MainDataTable <- create_var_num(MainDataTable, 'TRIP_NUMBER_CHINOOK','TRIP_NUMBER_CHUM', 'sum','TimeChange')
   #'
    if (is.numeric(dataset[[x]]) == FALSE | is.numeric(dataset[[y]]) == FALSE) {
@@ -206,7 +206,7 @@ create_var_temp <- function(dataset, start, end, name, units = c("week", "day", 
   #' @param units Units of time varibles. Must be weeks, days, hours, or minutes
   #' @importFrom lubridate interval as.duration dweeks ddays dhours dminutes
   #' @export create_var_temp 
-  #' @details Function for generating new or specialized variables. create_var_temp adds a new variable to the dataset based on defined temporal function. 
+  #' @details Function for generating new or specialized variables. create_var_temp calculates the duration of time between two temporal variables based on defined time format. The new variable is added to the dataset. 
   # @example MainDataTable <- create_var_temp(MainDataTable, 'TRIP_START', 'TRIP_END', 'TripDur', units='minute')
   
   

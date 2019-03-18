@@ -20,7 +20,7 @@
 #' @importFrom stats aggregate reshape coef lm
 #' @export create_expectations
 #' @return newGridVar dataframe. Saved to the global environment. Dataframe called in make_model_design
-#' @details Used during model creation to create an expectations of catch for alternative choices that are added to the model design file.
+#' @details Used during model creation to create an expectation of catch for alternative choices that are added to the model design file.
 #' The expectations created have several options and are created based on the group and time averaging choices of the user.
 #' The spatial alternatives are built in to the function and come from the structure Alt.
 #' NOTE: currently empty values and values ==nan are considered to be times of no fishing activity whereas values in the catch variable choosen ==0
