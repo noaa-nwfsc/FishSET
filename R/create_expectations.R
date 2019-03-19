@@ -270,7 +270,7 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
     units = 'T/F'
   # file = []
    )
-  list2env(newDumV, envir = .GlobalEnv)
+  attach('newDumV', newDumVm, pos=1)
   
   #replaceEmptyExpAll=get(dp2V5,'String')# replace empty catch
   if(empty.expectation==0.0001) {
@@ -295,8 +295,7 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
      units = ifelse(grepl('lbs|pounds', catch, ignore.case = T)==T, 'LBS', 'MTS') #units of catch data
      #newGridVar.file=[]
      )
-  list2env(ExpectedCatch, envir = .GlobalEnv)
-  
+  assign("ExpectedCatch", value = ExpectedCatch, pos = 1)
 #write(layout.json.ed(trace, 'create_expectations', deparse(substitute(dataset)), x='', 
 #                          msg=paste('gridfile:', deparse(substitute(gridfile)), ', catch:', deparse(substitute(catch)), 
 #                                    ', defineGroup:', defineGroup, ', temporal:', temporal, ', temp.var:', temp.var, ',temp.window:', temp.window,
@@ -305,17 +304,18 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
 #           paste(getwd(),'/Logs/',Sys.Date(),'.json', sep=''), append=T )
 
 
-  body <- list()
-  logging_code()  
+  if(!exists('logbody')) { 
+    logging_code()
+  } 
   create_expectations_function <- list()
   create_expectations_function$functionID <- 'create_expectations'
   create_expectations_function$args <- c(deparse(substitute(dataset)), deparse(substitute(gridfile)), catch, temporal, temp.var, calc.method, lag.method, 
                                     empty.catch, empty.expectation, temp.window, temp.lag)
   create_expectations_function$kwargs <- list('AltMatrixName'=AltMatrixName, 'defineGroup'=defineGroup)
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_expectations_function)
-  body$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-  list2env(functionBodyout, envir = .GlobalEnv)
+  logbody$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  assign("functionBodyout", value = functionBodyout, pos = 1)
 }
 
 

@@ -13,7 +13,7 @@ is.inf.data.frame <- function(dataset) {
 }
 
 logging_code <- function(){
-  body <- list()
+  logbody <- list()
   infoBodyout <<- list()
   functionBodyout <<- list()
   infobody <<- list()
@@ -21,9 +21,11 @@ logging_code <- function(){
   infobody$rundate <<- Sys.Date()
   infoBodyout$info <<- list(infobody)
   
-  functionBodyout$function_calls <<- list()
+  functionBodyout$function_calls <- list()
   
-  body$fishset_run <- list(infoBodyout, functionBodyout)
+  logbody$fishset_run <- list(infoBodyout, functionBodyout)
+  logbody <<- logbody
+  functionBodyout <<- functionBodyout
 }
 
 vgsub <- function(pattern, replacement, x, ...) {

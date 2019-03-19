@@ -184,17 +184,18 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
        #                                ', weight.var:', weight.var)), 
        #       paste(getwd(),'/Logs/',Sys.Date(),'.json', sep=''), append=T )
         
-       body <- list()
-       logging_code()  
+       if(!exists('logbody')) { 
+         logging_code()
+       } 
        create_alternative_choice_function <- list()
        create_alternative_choice_function$functionID <- 'create_alternative_choice'
        create_alternative_choice_function$args <- c(deparse(substitute(dataset)), deparse(substitute(gridfile)), case, contents,
                                                    Haul.Trip, alt_var, occasion, lon.dat, lat.dat, lon.grid,  lat.grid, cat,  use.grid)
        create_alternative_choice_function$kwargs <- list('griddedDat'=griddedDat, 'weight.var'=weight.var)
        functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_alternative_choice_function)
-       body$fishset_run <- list(infoBodyout, functionBodyout)
-       write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-       list2env(functionBodyout, envir = .GlobalEnv)
+       logbody$fishset_run <- list(infoBodyout, functionBodyout)
+       write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+       assign("functionBodyout", value = functionBodyout, pos = 1)
 }                                                                                                                                                                                                                           
    
     

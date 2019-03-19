@@ -83,6 +83,14 @@ load_maindata <- function(x, over_write=TRUE, project=NULL,  compare=FALSE, y=NU
   fishset_compare(x,y,compare)
   ##-----------MainDataTable--------------------##
   data_verification(x)
+  # Check to see if lat/long or fish area is in dataset
+  indx <- grepl("lat|lon|area", colnames(x), ignore.case = TRUE)
+  if (length(x[indx]) > 0) {
+    cat("Pass: Latitude and longitude or fishing area included in the dataset.")
+  } else {
+    stop("Dataset must contain either latitude and longitude or fishing area designation.")
+  }
+  
   ## --------- MainDataTableInfo -------------- ##
   MainDataTableInfo <- data.frame(variable_name=colnames(x),
                                   units=c(ifelse(grepl('DATE|TRIP_END|TRIP_START',colnames(x)), 'yyyymmdd',
@@ -128,19 +136,21 @@ load_maindata <- function(x, over_write=TRUE, project=NULL,  compare=FALSE, y=NU
   DBI::dbWriteTable(fishset_db, paste(project, 'MainDataTable', sep=''), x, overwrite=over_write)
   DBI::dbWriteTable(fishset_db, paste(project, 'MainDataTableInfo', sep=''), MainDataTableInfo, overwrite=over_write)
   DBI::dbDisconnect(fishset_db)
+  print('Data saved to database')
     #write(layout.json.ed(trace, "load_maindata", '', x = deparse(substitute(x)), 
     #                   msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
      #   paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
   
-  body <- list()
-  logging_code()  
+  if(!exists('logbody')) { 
+    logging_code()
+  } 
     load_maindata_function <- list()
     load_maindata_function$functionID <- 'load_maindata'
     load_maindata_function$args <- c(deparse(substitute(x)), project, compare, deparse(substitute(y)))
     functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_maindata_function)
-    body$fishset_run <- list(infoBodyout, functionBodyout)
-    write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-    list2env(functionBodyout, envir = .GlobalEnv)
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
+    write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+    assign("functionBodyout", value = functionBodyout, pos = 1)
 }
 
 main_mod <- function(dataset, x, over_write=TRUE, project=NULL, change.col=NULL, new.unit=NULL, new.type=NULL, new.class=NULL) {
@@ -157,20 +167,21 @@ main_mod <- function(dataset, x, over_write=TRUE, project=NULL, change.col=NULL,
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   DBI::dbWriteTable(fishset_db, paste(project, 'MainDataTableInfo', sep=''), dataset, overwrite=over_write)
   DBI::dbDisconnect(fishset_db)
-  
+  print('Data saved to database')
   #write(layout.json.ed(trace, "main_mod", deparse(substitute(dataset)), x = deparse(substitute(x)), 
   #                     msg = paste("change.col:", change.col, "new.unit:", new.unit, "new.type:", new.type, "new.class:", new.class, sep = "")),  
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
 
-  body <- list()
-  logging_code()  
+  if(!exist(logbody)) { 
+    logging_code()
+  } 
   main_mod_function <- list()
   main_mod_function$functionID <- 'main_mod'
   main_mod_function$args <- c(deparse(substitute(dataset)), deparse(substitute(x)), project, change.col, new.unit, new.type, new.class)
   main_mod_function$function_calls[[length(functionBodyout$function_calls)+1]] <- (main_mod_function)
-  body$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-  list2env(functionBodyout, envir = .GlobalEnv)
+  logbody$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  assign("functionBodyout", value = functionBodyout, pos = 1)
   
   return(dataset)
 }
@@ -194,24 +205,31 @@ load_port <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
   } 
   if(all(grepl('name|id|code', names(x), ignore.case = TRUE)==FALSE)==TRUE){
     warning('Port identification not found. Check that unique port ID (name, id, code) is included.')
-  }
+  } 
+  
+  data_verification(x)
+
   fishset_compare(x,y,compare)
+  
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   DBI::dbWriteTable(fishset_db, paste(project, 'PortTable', sep=''), x, overwrite=over_write)
   DBI::dbDisconnect(fishset_db)
+  print('Data saved to database')
   #write(layout.json.ed(trace, "load_port", '', x = deparse(substitute(x)), 
   #                     msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
 
-  body <- list()
-  logging_code()  
+  if(!exists('logbody')) { 
+    logging_code()
+  } 
+  
   load_port_function <- list()
   load_port_function$functionID <- 'load_port'
   load_port_function$args <- c(deparse(substitute(x)), project, compare, deparse(substitute(y)))
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_port_function)
-  body$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-  list2env(functionBodyout, envir = .GlobalEnv)
+  logbody$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  assign("functionBodyout", value = functionBodyout, pos = 1)
 }
 
 load_aux <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
@@ -223,6 +241,7 @@ load_aux <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
   #' @param project name of project for attaching to table
   #' @details Runs a series of checks on the auxilliary data. If checks pass, runs the fishset_compare function and save the new dataframe x to the database.
   #
+  
    if(all(grepl('Lon', names(x), ignore.case=TRUE)==FALSE)==TRUE) { 
     stop('Latitude and Longitude must be specified')
   }
@@ -230,24 +249,29 @@ load_aux <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
     stop('Multiple latitude or longitude columns. Only one allowed.') 
   } 
   
+  data_verification(x)
+  
  fishset_compare(x,y,compare)
  
  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
  DBI::dbWriteTable(fishset_db, paste(project, x, sep=''), x, overwrite=over_write)
  DBI::dbDisconnect(fishset_db)
+ print('Data saved to database')
   #write(layout.json.ed(trace, "load_aux", '', x = deparse(substitute(x)), 
   #                     msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
  
- body <- list()
- logging_code()  
+ if(!exists('logbody')) { 
+   logging_code()
+ } 
+ 
  load_aux_function <- list()
   load_aux_function$functionID <- 'load_aux'
   load_aux_function$args <- c(deparse(substitute(x)), project, compare, deparse(substitute(y)))
   load_aux_function$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_aux_function)
-  body$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-  list2env(functionBodyout, envir = .GlobalEnv)
+  logbody$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  assign("functionBodyout", value = functionBodyout, pos = 1)
 }
 
 
@@ -265,21 +289,27 @@ load_seasonal <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NUL
     stop('Date variable must be specified')
   } 
   
+  data_verification(x)
+  
   fishset_compare(x,y,compare)
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   DBI::dbWriteTable(fishset_db, paste(project, 'SesaonalData', sep=''), x, overwrite=over_write)
   DBI::dbDisconnect(fishset_db)
+  print('Data saved to database')
+  
   #write(layout.json.ed(trace, "load_seasonal", '', x = deparse(substitute(x)), 
   #                     msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
 
-  body <- list()
-  logging_code()  
+  if(!exists('logbody')) { 
+    logging_code()
+  } 
+  
   load_seasonal_function <- list()
   load_seasonal_function$functionID <- 'load_seasonal'
   load_seasonal_function$args <- c(deparse(substitute(x)), project, compare, deparse(substitute(y)))
   load_seasonal_function$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_seasonal_function)
-  body$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-  list2env(functionBodyout, envir = .GlobalEnv)
+  logbody$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  assign("functionBodyout", value = functionBodyout, pos = 1)
 }

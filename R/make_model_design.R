@@ -315,17 +315,18 @@ make_model_design <- function(dataset, catchID = "HAUL", alternativeMatrix = c("
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
   
   
-  body <- list()
-  logging_code()  
+  if(!exists('logbody')) { 
+    logging_code()
+  } 
   make_model_design_function <- list()
   make_model_design_function$functionID <- 'make_model_design'
   make_model_design_function$args <- c(deparse(substitute(dataset)), deparse(substitute(dataindex)), catchID, alternativeMatrix, lon.dat, lat.dat)
   make_model_design_function$kwargs <- list('indeVarsForModel'=indeVarsForModel, 'gridVariablesInclude'=gridVariablesInclude, 'priceCol'=priceCol, 'vesselID'=vesselID)
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (make_model_design_function)
-  body$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-  list2env(functionBodyout, envir = .GlobalEnv)
+  logbody$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  assign("functionBodyout", value = functionBodyout, pos = 1)
  
    
-   list2env(modelInputData, envir = .GlobalEnv)
+   assign('modelInputData', modelInputData, pos=1)
 }

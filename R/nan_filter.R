@@ -28,17 +28,18 @@ nan_identify <- function(dataset) {
   }
   
   print(suppressWarnings(readLines(tmp)))
-  body <- list()
-  logging_code()  
+  if(!exists('logbody')) { 
+    logging_code()
+  } 
   nan_identify_function <- list()
   nan_identify_function$functionID <- 'nan_identify'
   nan_identify_function$args <- c(deparse(substitute(dataset)))
   nan_identify_function$msg <- suppressWarnings(readLines(tmp))
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (nan_identify_function)
-  body$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-  list2env(functionBodyout, envir = .GlobalEnv)
-  unlink(tmp)
+  logbody$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  assign("functionBodyout", value = functionBodyout, pos = 1)
+  rm(tmp)
 }
 
 
@@ -92,17 +93,18 @@ nan_filter <- function(dataset, x, replace = F, remove = F, rep.value = mean(dat
   
   print(suppressWarnings(readLines(tmp)))
   
-  body <- list()
-  logging_code()  
+  if(!exists('logbody')) { 
+    logging_code()
+  } 
   nan_filter_function <- list()
   nan_filter_function$functionID <- 'nan_filter'
   nan_filter_function$args <- c(deparse(substitute(dataset)))
   nan_filter_function$output <- deparse(substitute(dataset))
   nan_filter_function$msg <- suppressWarnings(readLines(tmp))
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (nan_filter_function)
-  body$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-  list2env(functionBodyout, envir = .GlobalEnv)
-  unlink(tmp)
+  logbody$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  assign("functionBodyout", value = functionBodyout, pos = 1)
+  rm(tmp)
   return(dataset)
 }

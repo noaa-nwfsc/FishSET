@@ -25,20 +25,22 @@ filter_data <- function(dataset, x, exp, save.filter = FALSE, flog.dat = TRUE) {
     write.csv(filterTable, paste(filterTable, "_", deparse(substitute(dataset)), ".csv", sep=''), sep = F, row.names = FALSE)
   }
   if (flog.dat == TRUE & save.filter == FALSE) {
-    body <- list()
-    logging_code()  
+    
+    if(!exists('logbody')) { 
+      logging_code()
+    } 
     filter_data_function <- list()
     filter_data_function$functionID <- 'filter_data'
     filter_data_function$args <- c(deparse(substitute(dataset)), x, exp)
     filter_data_function$msg <- filterTable
     functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (filter_data_function)
-    body$fishset_run <- list(infoBodyout, functionBodyout)
-    write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-    list2env(functionBodyout, envir = .GlobalEnv)
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
+    write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+    assign("functionBodyout", value = functionBodyout, pos = 1)
     
     #write.table(filterTable, file = paste("Logs/ Log_file_", Sys.Date(), ".log"))
   }
-  list2env(filterTable, envir = .GlobalEnv)
+  assign("filterTable", filterTable, pos=1)
   print(filterTable)
 }
 
@@ -69,15 +71,18 @@ filter_dat <- function(dataset, exp, use.filter.table = F) {
     dataset <- subset(dataset, eval(parse(text = filterTable[exp, 3])))
     
     
+    if(!exists('logbody')) { 
+      logging_code()
+    } 
     filter_dat_function <- list()
     filter_dat_function$functionID <- 'filter_dat'
     filter_dat_function$args <- c(deparse(substitute(dataset)), exp, use.filter.table)
     filter_dat_function$output <- deparse(substitute(dataset))
     filter_dat_function$msg <- paste("Rows have been removed based on", filterTable[exp, 3])
     functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (filter_dat_function)
-    body$fishset_run <- list(infoBodyout, functionBodyout)
-    write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-    list2env(functionBodyout, envir = .GlobalEnv)
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
+    write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+    assign("functionBodyout", value = functionBodyout, pos = 1)
     
     return(dataset)
   } else {
@@ -86,17 +91,18 @@ filter_dat <- function(dataset, exp, use.filter.table = F) {
     #                     msg = paste("Rows have been removed based on", exp)),
     #      paste(getwd(), "/Logs/", 'Messages', Sys.Date(), ".json", sep = ""), append = T)
 
-    body <- list()
-    logging_code()  
+    if(!exists('logbody')) { 
+      logging_code()
+    } 
     filter_dat_function <- list()
     filter_dat_function$functionID <- 'filter_dat'
     filter_dat_function$args <- c(deparse(substitute(dataset)), exp, use.filter.table)
     filter_dat_function$output <- deparse(substitute(dataset))
     filter_dat_function$msg <- paste("Rows have been removed based on", exp)
     functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (filter_dat_function)
-    body$fishset_run <- list(infoBodyout, functionBodyout)
-    write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-    list2env(functionBodyout, envir = .GlobalEnv)   
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
+    write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+    assign("functionBodyout", value = functionBodyout, pos = 1) 
         
     return(dataset)
   }

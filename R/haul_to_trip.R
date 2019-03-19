@@ -99,16 +99,17 @@ haul_to_trip <- function(dataset, dataindex, varnameindex, genTypeName, fun.time
    #                             genTypeName:', genTypeName, ',  fun.time:' , fun.time, ', fun.numeric:', fun.numeric)), 
    #     paste(getwd(),'/Logs/',Sys.Date(),'.json', sep=''), append=T )
   
-  body <- list()
-  logging_code()  
+  if(!exists('logbody')) { 
+    logging_code()
+  } 
   haul_to_trip_function <- list()
    haul_to_trip_function$functionID <- 'haul_to_trip'
    haul_to_trip_function$args <- c(deparse(substitute(dataset)), deparse(substitute(dataindex)), varnameindex, genTypeName)
    #haul_to_trip_function$kwargs <- list('fun.time'=fun.time, 'fun.numeric'=fun.numeric, 'argList'=idmaker)
    functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (haul_to_trip_function)
-   body$fishset_run <- list(infoBodyout, functionBodyout)
-   write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-   list2env(functionBodyout, envir = .GlobalEnv)
+   logbody$fishset_run <- list(infoBodyout, functionBodyout)
+   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+   assign("functionBodyout", value = functionBodyout, pos = 1)
    
   #return(out)
 }

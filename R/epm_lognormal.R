@@ -94,11 +94,11 @@ epm_lognormal <- function(starts3, dat, otherdat, alts) {
     }
     
     ldsumglobalcheck <- ld
-    list2env(ldsumglobalcheck, envir = .GlobalEnv)
+    assign('ldsumglobalcheck', value = ldsumglobalcheck, pos = 1)
     paramsglobalcheck <- starts3
-    list2env(paramsglobalcheck, envir = .GlobalEnv)
+    assign('paramsglobalcheck', value = paramsglobalcheck, pos = 1)
     ldglobalcheck <- unlist(as.matrix(ld1))
-    list2env(ldglobalcheck, envir = .GlobalEnv)
+    assign('ldglobalcheck', value = ldglobalcheck, pos = 1)
     
     return(ld)
     

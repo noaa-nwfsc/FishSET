@@ -46,7 +46,7 @@ logit_avgcat <- function(starts3, dat, otherdat, alts) {
     }
     
     ldglobalcheck <- unlist(as.matrix(ld1))
-    list2env(ldglobalcheck, envir = .GlobalEnv)
+    assign("ldglobalcheck", value = ldglobalcheck, pos = 1)
     
     ld <- (-do.call("sum", ld1))
     

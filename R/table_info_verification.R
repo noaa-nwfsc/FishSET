@@ -39,15 +39,16 @@ table_info_verification <- function(dataset, dataindex) {
     #            which(colSums(sapply(unitsAvailable, grepl, colnames(dataindex))) == 0)))
   }
   print(suppressWarnings(readLines(tmp)))
-  body <- list()
-  logging_code()  
+  if(!exists('logbody')) { 
+    logging_code()
+  } 
   table_info_verification_function <- list()
   table_info_verification_function$functionID <- 'table_info_verification'
   table_info_verification_function$args <- c(deparse(substitute(dataset)), deparse(substitute(dataindex)))
   table_info_verification_function$msg <- paste('See', paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), 'for record of data verification checks.')
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (table_info_verification_function)
-  body$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-  list2env(functionBodyout, envir = .GlobalEnv)
-  unlink(tmp)
+  logbody$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  assign("functionBodyout", value = functionBodyout, pos = 1)
+  rm(tmp)
 }

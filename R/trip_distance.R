@@ -113,16 +113,17 @@ create_TD <- function(dataset, PortTable, trip_id, starting_port, starting_haul 
   #                                ", ending_haul:", deparse(substitute(ending_haul)), ", ending_port:", ending_port, ", haul_order:", haul_order, ", a:", a, ", f:", f, sep = "")), 
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
   
-  body <- list()
-  logging_code()  
+  if(!exists('logbody')) { 
+    logging_code()
+  } 
   create_TD_function <- list()
   create_TD_function$functionID <- 'create_TD'
   create_TD_function$args <- c(deparse(substitute(dataset)), PortTable, trip_id, starting_port, starting_haul, ending_haul, ending_port, haul_order)
   create_TD_function$kwargs <- list('a'=a, 'f'=f)
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_TD_function)
-  body$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-  list2env(functionBodyout, envir = .GlobalEnv)
+  logbody$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  assign("functionBodyout", value = functionBodyout, pos = 1)
   
   return(haulLevelTripDist)
 }

@@ -43,17 +43,6 @@ data_verification <- function(dataset) {
     check <- 1
   }
   
-  # Check to see if lat/long or fish area is in dataset
-  indx <- grepl("lat|lon|area", colnames(dataset), ignore.case = TRUE)
-  if (length(dataset[indx]) > 0) {
-    cat("\nPass: Latitude and longitude or fishing area included in the dataset.", file=tmp, append=T)
-  } else {
-    cat("\nDataset must contain either latitude and longitude or fishing area designation.", file=tmp, append=T)
-    #stop("Dataset must contain either latitude and longitude or fishing area designation.")
-    check <- 1
-  }
-  
-  
   # Handling of empty variables
   if (any(apply(dataset, 2, function(x) all(is.na(x))) == TRUE)) {
     cat('\n',names(which(apply(dataset, 2, function(x) all(is.na(x))) == TRUE), 
@@ -63,17 +52,20 @@ data_verification <- function(dataset) {
   }
   
   print(suppressWarnings(readLines(tmp)))
-  body <- list()  
-  logging_code()  
+ 
+  if(!exists('logbody')) { 
+    logging_code()
+  } 
+  
   data_verification_function <- list()
   data_verification_function$functionID <- 'data_verification'
   data_verification_function$args <- c(deparse(substitute(dataset)))
   data_verification_function$msg <- suppressWarnings(readLines(tmp))
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- data_verification_function
-  body$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-  list2env(functionBodyout, envir = .GlobalEnv)
-  unlink(tmp)  
+  logbody$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  assign("functionBodyout", value = functionBodyout, pos = 1)
+  rm(tmp)  
   
   if(check==1) {
     stop('Data cannot be saved, at least one error exists')

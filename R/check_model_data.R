@@ -56,15 +56,16 @@ check_model_data <- function(dataset, uniqueID, save.file = "sqlfile", db.name, 
   #logging
   #write(layout.json.ed(trace, "checkModelData", deparse(substitute(dataset)), x, msg = paste("Saved as", save.name)),
   #                      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
-    body <- list()
-    logging_code()  
-    checkModelData_function <- list()
+    if(!exists('logbody')) { 
+      logging_code()
+    } 
+  checkModelData_function <- list()
   checkModelData_function$functionID <- 'check_model_data'
   checkModelData_function$args <- c(deparse(substitute(dataset)), uniqueID, save.file, db.name, save.name)
   checkModelData_function$msg <- suppressWarnings(readLines(tmp))
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (checkModelData_function)
-  body$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-  list2env(functionBodyout, envir = .GlobalEnv)
-  unlink(tmp)
+  logbody$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  assign("functionBodyout", value = functionBodyout, pos = 1)
+  rm(tmp)
 }

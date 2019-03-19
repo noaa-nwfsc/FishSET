@@ -25,16 +25,17 @@ ID_var <- function(dataset, newID, ...) {
   #                     msg = paste(newID, "created based on", deparse(substitute(argList)))),
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
   
-  body <- list()
-  logging_code()  
+  if(!exists('logbody')) { 
+    logging_code()
+  } 
   ID_var_function <- list()
   ID_var_function$functionID <- 'ID_var'
   ID_var_function$args <- c(deparse(substitute(dataset)), newID)
   #ID_var_function$kwargs <- list('argList'=idmaker)
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (ID_var_function)
-  body$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-  list2env(functionBodyout, envir = .GlobalEnv)
+  logbody$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  assign("functionBodyout", value = functionBodyout, pos = 1)
   
   return(int)
 }
