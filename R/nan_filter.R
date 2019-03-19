@@ -24,10 +24,12 @@ nan_identify <- function(dataset) {
   
   } else {
     #cat("\nNo columns in the dataframe contain NaNs", file=paste(getwd(),'/Logs/InforMessage',Sys.Date(),'.txt', sep=''), append=TRUE)
-    cat("No columns in the dataframe contain NaNs", file=tmp)
+    cat("\nNo columns in the dataframe contain NaNs", file=tmp, append=TRUE)
   }
   
   print(suppressWarnings(readLines(tmp)))
+  body <- list()
+  logging_code()  
   nan_identify_function <- list()
   nan_identify_function$functionID <- 'nan_identify'
   nan_identify_function$args <- c(deparse(substitute(dataset)))
@@ -36,6 +38,7 @@ nan_identify <- function(dataset) {
   body$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
   list2env(functionBodyout, envir = .GlobalEnv)
+  unlink(tmp)
 }
 
 
@@ -61,12 +64,12 @@ nan_filter <- function(dataset, x, replace = F, remove = F, rep.value = mean(dat
     if (any(is.nan(dataset[, x])) == T) {
       #cat('\n',length(which(is.nan(dataset[, x]) == T)), "NaNs identified in variable",  x, ".\n",
       #    file=paste(getwd(),'/Logs/InforMessage',Sys.Date(),'.txt', sep=''), append=TRUE)
-      cat(length(which(is.nan(dataset[, x]) == T)), "NaNs identified in variable",  x, ".\n", file=tmp)
+      cat(length(which(is.nan(dataset[, x]) == T)), "NaNs identified in variable",  x, file=tmp)
       
       # the identified rep.value (defaults to mean value)
       if (replace == T) {
         dataset[is.nan(dataset[, x]), x] = rep.value
-        cat("All NaNs in", x, "have been replaced with", rep.value, file=tmp, append=T)
+        cat("\nAll NaNs in", x, "have been replaced with", rep.value, file=tmp, append=T)
 
         #        write(layout.json.ed(trace, "nan.filter", deparse(substitute(dataset)), deparse(substitute(x)), 
         #                     msg = paste(df.name, "[is.nan(", df.name, "[,", x.name, "]),", x.name, "] = ", rep.value)), 
@@ -75,20 +78,22 @@ nan_filter <- function(dataset, x, replace = F, remove = F, rep.value = mean(dat
         
         # If remove is true then row inwhich the NaN occurs for selected column will be removed.
       } else if (remove == T) {
-        cat("The entire row will be removed from the dataframe.", file=tmp, append=T)
+        cat("\nThe entire row will be removed from the dataframe.", file=tmp, append=T)
         dataset <- dataset[!is.nan(dataset[, x]), ]
         
       }
     } else {
-      cat("No NaNs present in variable", x.name, file=tmp, append=T)
+      cat("\nNo NaNs present in variable", x.name, file=tmp, append=T)
     }
   } else {
     # Message returned if the selected variable is not numeric
-      cat("Variable is not numeric. Function not applied", fil=tmp, append=T)
+      cat("\nVariable is not numeric. Function not applied", fil=tmp, append=T)
   }
   
   print(suppressWarnings(readLines(tmp)))
   
+  body <- list()
+  logging_code()  
   nan_filter_function <- list()
   nan_filter_function$functionID <- 'nan_filter'
   nan_filter_function$args <- c(deparse(substitute(dataset)))
@@ -98,6 +103,6 @@ nan_filter <- function(dataset, x, replace = F, remove = F, rep.value = mean(dat
   body$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
   list2env(functionBodyout, envir = .GlobalEnv)
-  
+  unlink(tmp)
   return(dataset)
 }

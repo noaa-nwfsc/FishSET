@@ -25,6 +25,8 @@ ID_var <- function(dataset, newID, ...) {
   #                     msg = paste(newID, "created based on", deparse(substitute(argList)))),
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
   
+  body <- list()
+  logging_code()  
   ID_var_function <- list()
   ID_var_function$functionID <- 'ID_var'
   ID_var_function$args <- c(deparse(substitute(dataset)), newID)

@@ -305,15 +305,17 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
 #           paste(getwd(),'/Logs/',Sys.Date(),'.json', sep=''), append=T )
 
 
-create_expectations_function <- list()
-create_expectations_function$functionID <- 'create_expectations'
-create_expectations_function$args <- c(deparse(substitute(dataset)), deparse(substitute(gridfile)), catch, temporal, temp.var, calc.method, lag.method, 
+  body <- list()
+  logging_code()  
+  create_expectations_function <- list()
+  create_expectations_function$functionID <- 'create_expectations'
+  create_expectations_function$args <- c(deparse(substitute(dataset)), deparse(substitute(gridfile)), catch, temporal, temp.var, calc.method, lag.method, 
                                     empty.catch, empty.expectation, temp.window, temp.lag)
-create_expectations_function$kwargs <- list('AltMatrixName'=AltMatrixName, 'defineGroup'=defineGroup)
-functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_expectations_function)
-body$fishset_run <- list(infoBodyout, functionBodyout)
-write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-list2env(functionBodyout, envir = .GlobalEnv)
+  create_expectations_function$kwargs <- list('AltMatrixName'=AltMatrixName, 'defineGroup'=defineGroup)
+  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_expectations_function)
+  body$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  list2env(functionBodyout, envir = .GlobalEnv)
 }
 
 

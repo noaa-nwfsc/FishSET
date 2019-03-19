@@ -7,6 +7,8 @@
 
 log_func_model <- function(x) {
 
+  body <- list()
+  logging_code()  
   user_function <- list()
   user_function$functionID <- deparse(substitute(x))
   user_function$args <- names(dput(formals(x)))

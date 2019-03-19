@@ -25,6 +25,8 @@ filter_data <- function(dataset, x, exp, save.filter = FALSE, flog.dat = TRUE) {
     write.csv(filterTable, paste(filterTable, "_", deparse(substitute(dataset)), ".csv", sep=''), sep = F, row.names = FALSE)
   }
   if (flog.dat == TRUE & save.filter == FALSE) {
+    body <- list()
+    logging_code()  
     filter_data_function <- list()
     filter_data_function$functionID <- 'filter_data'
     filter_data_function$args <- c(deparse(substitute(dataset)), x, exp)
@@ -84,6 +86,8 @@ filter_dat <- function(dataset, exp, use.filter.table = F) {
     #                     msg = paste("Rows have been removed based on", exp)),
     #      paste(getwd(), "/Logs/", 'Messages', Sys.Date(), ".json", sep = ""), append = T)
 
+    body <- list()
+    logging_code()  
     filter_dat_function <- list()
     filter_dat_function$functionID <- 'filter_dat'
     filter_dat_function$args <- c(deparse(substitute(dataset)), exp, use.filter.table)

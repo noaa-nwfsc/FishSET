@@ -203,7 +203,7 @@ outlier_plot <- function(dataset, x, outlier.mod = "none", x.dist = "normal", sa
 outlier_remove <- function(dataset, x, outlier.mod = "none", remove = T) {
   #' Evaluate and edit outliers from variable
   #'  Contains functions to evaluate the data through histogram, QQ, and x-y plots.
-  #'  contains functions to evaulate the fit of the data in terms of distributions and analysis
+  #'  Contains functions to evaulate the fit of the data in terms of distributions and analysis
   
   #' @param dataset dataframe or matrix
   #' @param x column in dataframe
@@ -226,13 +226,13 @@ outlier_remove <- function(dataset, x, outlier.mod = "none", remove = T) {
    # MainDataTable <- outlier_remove(MainDataTable, 'dist', outlier.mod='mean_2SD', save.output=TRUE)
   if (is.numeric(dataset[, x]) == T) {
     # Begin outlier check
-    if (remove == TRUE) 
-    {
+    if (remove == TRUE) {
       # log actions
       #write(layout.json.ed(trace, "outlier_remove", deparse(substitute(dataset)), deparse(substitute(x)), 
       #                     msg = paste("outliers removed using", outlier.mod)),
       #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
       
+      body <- list()
       outlier_remove_function <- list()
       outlier_remove_function$functionID <- 'outlier_remove'
       outlier_remove_function$args <- c(deparse(substitute(dataset)), deparse(substitute(x)), outlier.mod, remove)

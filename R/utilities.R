@@ -1,5 +1,7 @@
 #' @export 
-# modification to is.nan, which idenitifies NaNs in a list. This modification extends the search to dataframes and matrices.
+
+
+
 is.nan.data.frame <- function(x) {
   do.call(cbind, lapply(x, is.nan))
 }
@@ -10,6 +12,19 @@ is.inf.data.frame <- function(dataset) {
   do.call(cbind, lapply(dataset, is.infinite))
 }
 
+logging_code <- function(){
+  body <- list()
+  infoBodyout <<- list()
+  functionBodyout <<- list()
+  infobody <<- list()
+  
+  infobody$rundate <<- Sys.Date()
+  infoBodyout$info <<- list(infobody)
+  
+  functionBodyout$function_calls <<- list()
+  
+  body$fishset_run <- list(infoBodyout, functionBodyout)
+}
 
 vgsub <- function(pattern, replacement, x, ...) {
   for (i in 1:length(pattern)) x <- gsub(pattern[i], replacement[i], x, ...)

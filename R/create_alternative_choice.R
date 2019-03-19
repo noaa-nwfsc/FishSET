@@ -184,6 +184,8 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
        #                                ', weight.var:', weight.var)), 
        #       paste(getwd(),'/Logs/',Sys.Date(),'.json', sep=''), append=T )
         
+       body <- list()
+       logging_code()  
        create_alternative_choice_function <- list()
        create_alternative_choice_function$functionID <- 'create_alternative_choice'
        create_alternative_choice_function$args <- c(deparse(substitute(dataset)), deparse(substitute(gridfile)), case, contents,

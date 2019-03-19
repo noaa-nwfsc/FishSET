@@ -259,6 +259,8 @@ create_seasonal_ID <- function (dataset, seasonaldat, use.location=c(TRUE,FALSE)
  #                                ', use.geartype:', use.geartype, ', target:', target, ', sp.col:', sp.col)), 
  #       paste(getwd(),'/Logs/',Sys.Date(),'.json', sep=''), append=T )
 
+  body <- list()
+  logging_code()  
   create_seaonal_ID_function <- list()
   create_seaonal_ID_function$functionID <- 'create_seaonal_ID'
   create_seaonal_ID_function$args <- c(deparse(substitute(dataset)),  deparse(substitute(seasonaldat)), use.location, use.geartype, sp.col)

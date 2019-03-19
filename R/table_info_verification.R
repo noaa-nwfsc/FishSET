@@ -13,10 +13,10 @@ table_info_verification <- function(dataset, dataindex) {
   indx <- colSums(sapply(allNecFields, grepl, colnames(dataindex), ignore.case = TRUE)) 
   
   if (length(which(colSums(sapply(allNecFields, grepl, colnames(dataindex))) == 0)) < 1) {
-    cat("Pass: All specialized variables indentified.", file=tmp)
+    cat("Pass: All specialized variables indentified.", file=tmp, append=TRUE)
   } else {
     cat(paste("\nThe following specialized variables were not specified:", 
-              names(which(colSums(sapply(allNecFields, grepl, colnames(dataindex))) == 0))), file=tmp)
+              names(which(colSums(sapply(allNecFields, grepl, colnames(dataindex))) == 0))), file=tmp, append=TRUE)
     
     #warning(paste("The following specialized variables are not specified:", 
     #            names(which(colSums(sapply(allNecFields, grepl, colnames(dataindex))) == 0))))
@@ -30,15 +30,17 @@ table_info_verification <- function(dataset, dataindex) {
                       "mm-dd-yyyy HH:MM:SS", "mm/dd/yyyy HH:MM:SS", "yyyy/mm/dd HH:MM:SS", "min")
   indx <- colSums(sapply(unitsAvailable, grepl, colnames(dataindex), ignore.case = TRUE))
   if (length(which(colSums(sapply(unitsAvailable, grepl, colnames(dataindex))) == 0))) {
-    print("Pass: All units are specified.")
+    cat("\nPass: All units are specified.", append=TRUE, file=tmp)
   } else {
     cat(paste("\nThe units are not recognized for the following variables:", 
-              which(colSums(sapply(unitsAvailable, grepl, colnames(dataindex))) == 0)), file=tmp)
+              which(colSums(sapply(unitsAvailable, grepl, colnames(dataindex))) == 0)), file=tmp, append=TRUE)
     
     #warning(paste("The units are not recognized for the following variables:", 
     #            which(colSums(sapply(unitsAvailable, grepl, colnames(dataindex))) == 0)))
   }
   print(suppressWarnings(readLines(tmp)))
+  body <- list()
+  logging_code()  
   table_info_verification_function <- list()
   table_info_verification_function$functionID <- 'table_info_verification'
   table_info_verification_function$args <- c(deparse(substitute(dataset)), deparse(substitute(dataindex)))
@@ -47,5 +49,5 @@ table_info_verification <- function(dataset, dataindex) {
   body$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
   list2env(functionBodyout, envir = .GlobalEnv)
-  
+  unlink(tmp)
 }

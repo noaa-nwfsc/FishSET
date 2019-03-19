@@ -99,7 +99,9 @@ haul_to_trip <- function(dataset, dataindex, varnameindex, genTypeName, fun.time
    #                             genTypeName:', genTypeName, ',  fun.time:' , fun.time, ', fun.numeric:', fun.numeric)), 
    #     paste(getwd(),'/Logs/',Sys.Date(),'.json', sep=''), append=T )
   
-   haul_to_trip_function <- list()
+  body <- list()
+  logging_code()  
+  haul_to_trip_function <- list()
    haul_to_trip_function$functionID <- 'haul_to_trip'
    haul_to_trip_function$args <- c(deparse(substitute(dataset)), deparse(substitute(dataindex)), varnameindex, genTypeName)
    #haul_to_trip_function$kwargs <- list('fun.time'=fun.time, 'fun.numeric'=fun.numeric, 'argList'=idmaker)

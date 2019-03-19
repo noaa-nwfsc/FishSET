@@ -113,6 +113,8 @@ create_TD <- function(dataset, PortTable, trip_id, starting_port, starting_haul 
   #                                ", ending_haul:", deparse(substitute(ending_haul)), ", ending_port:", ending_port, ", haul_order:", haul_order, ", a:", a, ", f:", f, sep = "")), 
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
   
+  body <- list()
+  logging_code()  
   create_TD_function <- list()
   create_TD_function$functionID <- 'create_TD'
   create_TD_function$args <- c(deparse(substitute(dataset)), PortTable, trip_id, starting_port, starting_haul, ending_haul, ending_port, haul_order)

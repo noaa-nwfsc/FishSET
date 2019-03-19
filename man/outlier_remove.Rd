@@ -4,7 +4,7 @@
 \alias{outlier_remove}
 \title{Evaluate and edit outliers from variable
  Contains functions to evaluate the data through histogram, QQ, and x-y plots.
- contains functions to evaulate the fit of the data in terms of distributions and analysis}
+ Contains functions to evaulate the fit of the data in terms of distributions and analysis}
 \usage{
 outlier_remove(dataset, x, outlier.mod = "none", remove = T)
 }
@@ -31,7 +31,7 @@ Returns the modified dataframe
 \description{
 Evaluate and edit outliers from variable
  Contains functions to evaluate the data through histogram, QQ, and x-y plots.
- contains functions to evaulate the fit of the data in terms of distributions and analysis
+ Contains functions to evaulate the fit of the data in terms of distributions and analysis
 }
 \details{
 outlier_check is a series of functions allowing users to evaluate the occurrence of outliers and their effect on the data using summary data and plots. Outliers can onlyl be assessed for numeric vectors.

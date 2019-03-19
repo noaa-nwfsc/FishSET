@@ -38,6 +38,8 @@ temp_mod <- function(dataset, x, fun.mod = "", define.format) {
   #df.name <- deparse(substitute(dataset))
   #write(layout.json.ed(trace, "TempMod", df.name, x, msg = paste("fun.mod:", fun.mod, "; define.format:", define.format)),
   #                     paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+  body <- list()
+  logging_code()  
   temp_mod_function <- list()
   temp_mod_function$functionID <- 'temp_mod'
   temp_mod_function$args <- c(deparse(substitute(dataset)), x, fun.mod, define.format)

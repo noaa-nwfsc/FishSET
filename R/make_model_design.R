@@ -315,6 +315,8 @@ make_model_design <- function(dataset, catchID = "HAUL", alternativeMatrix = c("
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
   
   
+  body <- list()
+  logging_code()  
   make_model_design_function <- list()
   make_model_design_function$functionID <- 'make_model_design'
   make_model_design_function$args <- c(deparse(substitute(dataset)), deparse(substitute(dataindex)), catchID, alternativeMatrix, lon.dat, lat.dat)

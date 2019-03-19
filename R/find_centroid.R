@@ -32,18 +32,19 @@ find_centroid <- function(use.grid, dataset, gridfile, lon.grid, lat.grid, lat.d
       int <- cbind(gridfile[[cat]], as.data.frame(int))
       colnames(int)=c("ZoneID", "cent.lon", "cent.lat")
       if (any(abs(int$cent.lon) > 180)) {
-        cat("Longitude is not valid (outside -180:180.", file=tmp)
+        cat("\nLongitude is not valid (outside -180:180.", file=tmp, append=TRUE)
         #stop("Longitude is not valid (outside -180:180.")
         x <- 1
       }
       if (any(abs(int$cent.lat) > 90)) {
-        cat("Latitude is not valid (outside -90:90.", file=tmp) 
+        cat("\nLatitude is not valid (outside -90:90.", file=tmp, append=TRUE) 
         x <-1    
        # stop("Latitude is not valid (outside -90:90.")
       } 
       if(mean(int)<0){
         if(length(which(int$x>mean(int$x)/4|int$x<mean(int$x)*4))>0){
-          cat('At least one centroid may be inaccurate. Check for consistency in signs.',print(int[which(int$x>mean(int$x)/4|int$x<mean(int$x)*4),]), file=tmp)
+          cat('\nAt least one centroid may be inaccurate. Check for consistency in signs.',
+              int[which(int$x>mean(int$x)/4|int$x<mean(int$x)*4),], file=tmp, append=TRUE)
         }
       }
     } else {
@@ -74,12 +75,12 @@ find_centroid <- function(use.grid, dataset, gridfile, lon.grid, lat.grid, lat.d
     # Lat and long must be within logical bounds
     if (is.data.frame(int) == T) {
       if (any(abs(int[[lon]]) > 180)) {
-        cat("Longitude is not valid (outside -180:180).", file=tmp) 
+        cat("\nLongitude is not valid (outside -180:180).", file=tmp, append=TRUE) 
         x<-1
         #stop("Longitude is not valid (outside -180:180.")
       }
       if (any(abs(int[[lat]]) > 90)) {
-        cat("Latitude is not valid (outside -90:90).", file=tmp)
+        cat("\nLatitude is not valid (outside -90:90).", file=tmp, append=TRUE)
         x<-1
         #stop("Latitude is not valid (outside -90:90.")
       }
@@ -124,6 +125,8 @@ find_centroid <- function(use.grid, dataset, gridfile, lon.grid, lat.grid, lat.d
   }
   
     print(suppressWarnings(readLines(tmp)))
+    body <- list()
+    logging_code()  
     find_centroid_function <- list()
     find_centroid_function$functionID <- 'find_centroid'
     find_centroid_function$args <- c(deparse(substitute(dataset)))
@@ -132,7 +135,7 @@ find_centroid <- function(use.grid, dataset, gridfile, lon.grid, lat.grid, lat.d
     body$fishset_run <- list(infoBodyout, functionBodyout)
     write(jsonlite::toJSON(body, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
     list2env(functionBodyout, envir = .GlobalEnv)
-    
+    unlink(tmp)
     
     return(int)
 }

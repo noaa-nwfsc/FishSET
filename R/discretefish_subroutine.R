@@ -273,6 +273,8 @@ discretefish_subroutine <- function(catch, choice, distance, otherdat, initparam
   #                                 ", func:", deparse(substitute(func)), ", methodname:", deparse(substitute(methodname)))), 
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
   
+  body <- list()
+  logging_code()  
   discretefish_subroutine_function <- list()
   discretefish_subroutine_function$functionID <- 'discretefish_subroutine'
   discretefish_subroutine_function$args <- c(catch, choice, distance, otherdat, initparams, optimOpt, func, methodname, func.name)

@@ -85,6 +85,8 @@ assignment_column <- function(dataset, gridfile, hull.polygon = c(TRUE, FALSE), 
     drop.points <- dataset[is.na(pts$ID)==TRUE, c(lon.dat, lat.dat)]
     warning("Zone ID not identified for at least one point. Consider plotting points against before dropping points by assigning remove.na to TRUE or 
          assigning these points to closest zone by setting closest to TRUE. Undefined points are recorded in the log file")
+    body <- list()
+    logging_code()  
     assignment_column_function <- list()
     assignment_column_function$functionID <- 'assignment_column'
     assignment_column_function$args <- c(deparse(substitute(dataset)), deparse(substitute(gridfile)), hull.polygon, lon.grid, lat.grid, 

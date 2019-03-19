@@ -18,6 +18,8 @@ cpue <- function(dataset, xWeight, xTime) {
   #                     msg=paste('xWeight;', deparse(substitute(xWeight)), 'xTime:', deparse(substitute(xTime)))), 
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
   
+  body <- list()
+  logging_code()  
   create_var_cpue_function <- list()
   create_var_cpue_function$functionID <- 'cpue'
   create_var_cpue_function$args <- c(deparse(substitute(dataset)), xWeight, xTime)
@@ -57,6 +59,8 @@ dummy_var <- function(dataset, DumFill = 'TRUE') {
   #write(layout.json.ed(trace, "DummyVar", deparse(substitute(dataset)), x = ""), 
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
   
+  body <- list()
+  logging_code()  
   create_var_dummy_var_function <- list()
   create_var_dummy_var_function$functionID <- 'dummy_var'
   create_var_dummy_var_function$args <- deparse(substitute(dataset))
@@ -81,6 +85,8 @@ dummy_matrix <- function(dataset, x) {
   #write(layout.json.ed(trace, "DummyMatrix", deparse(substitute(dataset)), x = deparse(substitute(x))), 
    #     paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
   
+  body <- list()
+  logging_code()  
   create_var_dummy_matrix_function <- list()
   create_var_dummy_matrix_function$functionID <- 'dummy_matrix'
   create_var_dummy_matrix_function$args <- c(deparse(substitute(dataset)), x)
@@ -118,6 +124,8 @@ set_quants <- function(dataset, x, quant.cat = c(0.2, 0.25, 0.4)) {
   #write(layout.json.ed(trace, "setQuants", deparse(substitute(dataset)), x = deparse(substitute(x)), 
   #                     msg = paste("quant.cat:", quant.cat, sep = "")),  
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+  body <- list()
+  logging_code()  
   create_var_set_quants_function <- list()
   create_var_set_quants_function$functionID <- 'set_quants'
   create_var_set_quants_function$args <- c(deparse(substitute(dataset)), x, quant.cat)
@@ -165,7 +173,9 @@ create_var_num <- function(dataset, x, y, method, name) {
    #logging
    #write(layout.json.ed(trace, "checkModelData", deparse(substitute(dataset)), x, msg = paste("Saved as", save.name)),
    #                      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
-   create_var_num_function <- list()
+  body <- list()
+  logging_code()  
+  create_var_num_function <- list()
    create_var_num_function$functionID <- 'create_var_num'
    create_var_num_function$args <- c(deparse(substitute(dataset)), x, y, method, name)
    create_var_num_function$output <- deparse(substitute(dataset))
@@ -222,7 +232,9 @@ create_var_temp <- function(dataset, start, end, name, units = c("week", "day", 
  #                                  ", name:",  name, ", units:", units, sep = "")), 
  #       paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
   
- create_var_temp_function <- list()
+  body <- list()
+  logging_code()  
+  create_var_temp_function <- list()
  create_var_temp_function$functionID <- 'create_var_temp'
  create_var_temp_function$args <- c(deparse(substitute(dataset)), start, end, name, units)
  create_var_temp_function$output <- deparse(substitute(dataset))

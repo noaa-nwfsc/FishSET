@@ -4,6 +4,7 @@
 #' @export load_maindata
 #' @export load_port
 #' @export load_aux
+#' @export load_seasonal
 
 
 read_dat <- function(x, data.type = c('csv', 'mat', 'json', 'shape', 'txt', 'spss', 'stata', 'R')) { 
@@ -131,6 +132,8 @@ load_maindata <- function(x, over_write=TRUE, project=NULL,  compare=FALSE, y=NU
     #                   msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
      #   paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
   
+  body <- list()
+  logging_code()  
     load_maindata_function <- list()
     load_maindata_function$functionID <- 'load_maindata'
     load_maindata_function$args <- c(deparse(substitute(x)), project, compare, deparse(substitute(y)))
@@ -159,6 +162,8 @@ main_mod <- function(dataset, x, over_write=TRUE, project=NULL, change.col=NULL,
   #                     msg = paste("change.col:", change.col, "new.unit:", new.unit, "new.type:", new.type, "new.class:", new.class, sep = "")),  
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
 
+  body <- list()
+  logging_code()  
   main_mod_function <- list()
   main_mod_function$functionID <- 'main_mod'
   main_mod_function$args <- c(deparse(substitute(dataset)), deparse(substitute(x)), project, change.col, new.unit, new.type, new.class)
@@ -198,6 +203,8 @@ load_port <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
   #                     msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
 
+  body <- list()
+  logging_code()  
   load_port_function <- list()
   load_port_function$functionID <- 'load_port'
   load_port_function$args <- c(deparse(substitute(x)), project, compare, deparse(substitute(y)))
@@ -232,7 +239,9 @@ load_aux <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
   #                     msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
  
-  load_aux_function <- list()
+ body <- list()
+ logging_code()  
+ load_aux_function <- list()
   load_aux_function$functionID <- 'load_aux'
   load_aux_function$args <- c(deparse(substitute(x)), project, compare, deparse(substitute(y)))
   load_aux_function$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_aux_function)
@@ -264,6 +273,8 @@ load_seasonal <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NUL
   #                     msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
 
+  body <- list()
+  logging_code()  
   load_seasonal_function <- list()
   load_seasonal_function$functionID <- 'load_seasonal'
   load_seasonal_function$args <- c(deparse(substitute(x)), project, compare, deparse(substitute(y)))
