@@ -27,6 +27,7 @@ data_check <- function(dataset, x, dataindex) {
      cat('The plot shows the data with no adjustments (distribution specified or points removed). Consider further visualizing the data with outlier_plot. Remove outliers with outlier_remove.')
      cat('\n')
      cat('\nData verification checks.\n')
-     data_verification(dataset, dataindex)
+     data_verification(dataset)
+     table_info_verification(dataset, dataindex)
 }
 

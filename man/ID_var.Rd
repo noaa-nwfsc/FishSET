@@ -20,5 +20,5 @@ Returns the dataframe with new ID variable included
 Create ID variable from another variable.
 }
 \details{
-Creates an variable to indicate distinct hauls or trips
+Creates a variable to indicate distinct hauls or trips
 }

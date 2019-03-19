@@ -72,6 +72,7 @@ fishset_compare <- function(x, y, compare=c(TRUE,FALSE)){
 load_maindata <- function(x, over_write=TRUE, project=NULL,  compare=FALSE, y=NULL){
   #' Load data into sql database
   #' @param x name dataframe to be saved
+  #' @param over_write TRUE/FALSE Save over previously saved file or not
   #' @param y name of previously saved dataframe. y must be defined if compare==TRUE
   #' @param project name of project
   #' @param compare TRUE/FALSE Compare new dataframe to previously saved dataframe before saving dataframe x to databases
@@ -172,6 +173,7 @@ main_mod <- function(dataset, x, over_write=TRUE, project=NULL, change.col=NULL,
 load_port <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
   #' Save port data
   #' @param x name dataframe to be saved
+  #' @param over_write TRUE/FALSE Save over previously saved file or not
   #' @param project name of project for attaching to table
   #' @param y name of previously saved dataframe
   #' @param compare TRUE/FALSE Compare new dataframe to previously saved dataframe before saving dataframe x to databases
@@ -208,6 +210,7 @@ load_port <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
 load_aux <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
   #' Save auxilliary data
   #' @param x name dataframe to be saved
+  #' @param over_write TRUE/FALSE Save over previously saved file or not
   #' @param y name of previously saved dataframe
   #' @param compare TRUE/FALSE Compare new dataframe to previously saved dataframe before saving dataframe x to databases
   #' @param project name of project for attaching to table
@@ -242,6 +245,7 @@ load_aux <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
 load_seasonal <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
   #' Save auxilliary data
   #' @param x name dataframe to be saved
+  #' @param over_write TRUE/FALSE Save over previously saved file or not
   #' @param y name of previously saved dataframe
   #' @param compare TRUE/FALSE Compare new dataframe to previously saved dataframe before saving dataframe x to databases
   #' @param project name of project for attaching to table

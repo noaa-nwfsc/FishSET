@@ -4,7 +4,7 @@
 \alias{dummy_var}
 \title{Create a new dummy variable}
 \usage{
-dummy_var(dataset, DumFill = TRUE)
+dummy_var(dataset, DumFill = "TRUE")
 }
 \arguments{
 \item{dataset}{dataframe or matrix}

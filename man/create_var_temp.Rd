@@ -22,5 +22,5 @@ create_var_temp(dataset, start, end, name, units = c("week", "day",
 Create temporal variables
 }
 \details{
-Function for generating new or specialized variables. create_var_temp adds a new variable to the dataset based on defined temporal function.
+Function for generating new or specialized variables. create_var_temp calculates the duration of time between two temporal variables based on defined time format. The new variable is added to the dataset.
 }

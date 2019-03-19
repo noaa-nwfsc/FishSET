@@ -4,7 +4,7 @@
 \alias{create_seasonal_ID}
 \title{create_seasonal_ID
 Connects the variables in a table of season dates to main data table based on two column to the data in the main workspace.
-A new new variable is made with the Season identifier (TRUE/FALSE) in it.}
+A new variable is made with the Season identifier (TRUE/FALSE) in it.}
 \usage{
 create_seasonal_ID(dataset, seasonaldat, use.location = c(TRUE, FALSE),
   use.geartype = c(TRUE, FALSE), sp.col, target = NULL)
@@ -28,5 +28,5 @@ dataset Returns the input dataset with two new variables
 \description{
 create_seasonal_ID
 Connects the variables in a table of season dates to main data table based on two column to the data in the main workspace.
-A new new variable is made with the Season identifier (TRUE/FALSE) in it.
+A new variable is made with the Season identifier (TRUE/FALSE) in it.
 }

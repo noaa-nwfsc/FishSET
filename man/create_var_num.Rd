@@ -21,5 +21,5 @@ create_var_num(dataset, x, y, method, name)
 Create numeric variables
 }
 \details{
-Function for generating new or specialized variables. create_var_num create a new numeric variable based on defined arithmetic function. New variable is added to the dataset.
+Function for generating new or specialized variables. create_var_num creates a new numeric variable based on defined arithmetic function. New variable is added to the dataset.
 }

@@ -15,5 +15,5 @@ dummy_matrix(dataset, x)
 Create dummy matrix from a coded ID variable
 }
 \details{
-Function for generating new or specialized variables. dummy_matrix creates a dummy matrix. setQuants creates a coded variable based on the quantiles of x.
+Function for generating new or specialized variables. dummy_matrix creates a dummy matrix.
 }

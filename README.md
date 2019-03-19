@@ -6,6 +6,7 @@ If you run into problems you can contact melanie.harsch@noaa.gov
 
 # Installation #
 ---
+Please note that devtools is required for installation. 
 
 To install:
 
