@@ -17,7 +17,7 @@ read_dat <- function(x, data.type = c('csv', 'mat', 'json', 'shape', 'txt', 'sps
 #' @importFrom utils read.table
 #' @details Uses the appropriate function to read in data based on data type.
   if(data.type == 'shape'){
-    shapeName <- sf::read_sf(x)#'~/path/to/file.shp'
+    sf::st_read(x)#'~/path/to/file.shp'
   } else if(data.type=='mat') {
     R.matlab::readMat(x) 
   } else if(data.type=='json') {

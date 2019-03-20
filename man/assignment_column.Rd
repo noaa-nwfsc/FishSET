@@ -5,7 +5,8 @@
 \title{Generate centroid of polygon of zone or area}
 \usage{
 assignment_column(dataset, gridfile, hull.polygon = c(TRUE, FALSE),
-  lon.grid, lat.grid, lon.dat, lat.dat, cat, closest.pt = c(TRUE, FALSE))
+  lon.grid, lat.grid, lon.dat, lat.dat, cat, closest.pt = c(TRUE, FALSE),
+  epsg = NULL)
 }
 \arguments{
 \item{dataset}{dataframe or matrix}
@@ -25,6 +26,8 @@ assignment_column(dataset, gridfile, hull.polygon = c(TRUE, FALSE),
 \item{cat}{Categorical variable defining the individual areas or zones in gridfile. If gridfile is class sf, cat should be name of list containing information on zones.}
 
 \item{closest.pt}{TRUE/FALSE If true, zone ID identified as the closest polygon to the point}
+
+\item{epsg}{ESPG number. See http://spatialreference.org/ to help identify optimal epsg number 2964}
 }
 \value{
 Returns dataset with new assignment column labeled zoneID

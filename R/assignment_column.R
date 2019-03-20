@@ -8,10 +8,12 @@
 #' @param lon.grid Longitude of points from gridfile
 #' @param lat.grid Latitude of points from gridfile
 #' @param cat Categorical variable defining the individual areas or zones in gridfile. If gridfile is class sf, cat should be name of list containing information on zones. 
+#' @param epsg ESPG number. See http://spatialreference.org/ to help identify optimal epsg number 2964
 #' @param closest.pt  TRUE/FALSE If true, zone ID identified as the closest polygon to the point
 #' @importFrom sp CRS Polygons Polygon SpatialPolygons SpatialPolygonsDataFrame coordinates
 #' @importFrom rgeos gDistance
 #' @importFrom grDevices chull
+#' @importFrom raster projection
 #' @keywords  zone, polygon
 #' @return Returns dataset with new assignment column labeled zoneID
 #' @export assignment_column
@@ -21,7 +23,7 @@
 
 
 assignment_column <- function(dataset, gridfile, hull.polygon = c(TRUE, FALSE), lon.grid, lat.grid, 
-                              lon.dat, lat.dat, cat,  closest.pt = c(TRUE, FALSE)) {
+                              lon.dat, lat.dat, cat,  closest.pt = c(TRUE, FALSE), epsg=NULL) {
   
   #For json and shape files
   if(any(class(gridfile)=='sf')) {
@@ -29,6 +31,14 @@ assignment_column <- function(dataset, gridfile, hull.polygon = c(TRUE, FALSE), 
     dat_sub <- sf::st_as_sf(x = dataset, 
                             coords = c(lon.dat, lat.dat),
                             crs = "+proj=longlat +datum=WGS84")
+    
+    if(raster::projection(shapemap) != raster::projection(dat_sub)) {
+      warning('Projection does not match. Consider transforming data to same epsg.')
+    }
+    if(!is.null(epsg)){
+      dat_sub <- st_transform(dat_sub, epsg)
+      gridfile <- st_transform(gridfile, epsg)
+    }
     pts <- as.data.frame(sf::st_intersects(dat_sub, gridfile))
     pts$ID <- gridfile[[cat]][pts$col.id]
   } 
@@ -50,7 +60,7 @@ assignment_column <- function(dataset, gridfile, hull.polygon = c(TRUE, FALSE), 
     p1 <- lapply(seq_along(ps), function(i) sp::Polygons(list(sp::Polygon(ps[[i]])), ID = names(map_list)[i]))
   } else {
       # add id variable
-      ps <- lapply(map_list, sp::Polygon)
+      ps <- suppressWarnings(lapply(map_list, sp::Polygon))
       p1 <- lapply(seq_along(ps), function(i) sp::Polygons(list(ps[[i]]), ID = names(map_list)[i]))
     }
   
