@@ -127,6 +127,7 @@ outlier_plot <- function(dataset, x, outlier.mod = "none", x.dist = "normal", sa
     if (save.output == "TRUE") {
       pdf("outlier_plot.pdf")
     }
+    graphics::par(mar=c(1,1,1,1)) 
     graphics::par(mfrow = c(2, 2))
     # points
     graphics::plot(dataset$y, dataset[, x], pch = 19, col = "red", ylab = x.name, xlab = "Data row", main = "")

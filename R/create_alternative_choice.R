@@ -39,13 +39,13 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
                                       Haul.Trip = c("Haul", "Trip"), alt_var, occasion, lon.dat, lat.dat, lon.grid, lat.grid, 
                                       cat, use.grid = c(TRUE, FALSE),  hull.polygon = c(TRUE, FALSE), remove.na = FALSE, 
                                       closest.pt = FALSE, griddedDat=NULL, weight.var = NULL) {
-  grid.file <- as.data.frame(gridfile)
-  int <- find_centroid(use.grid = use.grid, dataset = dataset, gridfile = grid.file, 
+  
+  int <- find_centroid(use.grid = use.grid, dataset = dataset, gridfile = gridfile, 
                        lon.grid = lon.grid, lat.grid = lat.grid, lat.dat = lat.dat, lon.dat = lon.dat, 
                        cat = cat, weight.var = weight.var)
   
-  if (!is.empty(weight.var)) {
-    int.data <- assignment_column(dataset = dataset, gridfile = grid.file, hull.polygon = hull.polygon, 
+  #if (!is.empty(weight.var)) {
+    int.data <- assignment_column(dataset = dataset, gridfile = gridfile, hull.polygon = hull.polygon, 
                                   lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat, 
                                   lat.dat = lat.dat, cat = cat, closest.pt = closest.pt)
     if (remove.na == TRUE) {
@@ -54,19 +54,19 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
     }
     
     choice <- data.frame(int.data$ZoneID)
-  } else if (use.grid == T) {
-    int.data <- assignment_column(dataset = dataset, gridfile = grid.file, lon.grid = lon.grid,
-                                  lat.grid = lat.grid, lon.dat = lon.dat, lat.dat = lat.dat, 
-                                  cat = cat, hull.polygon = hull.polygon, closest.pt = closest.pt)
-    if (remove.na == TRUE) {
-      dataset <- dataset[-which(is.na(int.data$ZoneID) == TRUE), ]
-      int.data <- subset(int.data, is.na(int.data$ZoneID) == FALSE)
-    }
+  #} else if (use.grid == T) {
+   # int.data <- assignment_column(dataset = dataset, gridfile = grid.file, hull.polygon = hull.polygon, 
+   #                               lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat, 
+   #                               lat.dat = lat.dat, cat = cat, closest.pt = closest.pt)
+   # if (remove.na == TRUE) {
+   #   dataset <- dataset[-which(is.na(int.data$ZoneID) == TRUE), ]
+  #    int.data <- subset(int.data, is.na(int.data$ZoneID) == FALSE)
+   # }
     
-    choice <- data.frame(int.data$ZoneID)
-  } else {
-    choice <- dataset[[cat]]
-  }
+  #  choice <- data.frame(int.data$ZoneID)
+  #} else {
+  #  choice <- dataset[[cat]]
+  #}
   if (is.null(choice)) {
     stop("Choice must be defined. Ensure that the zone or area assignment variable (cat) is defined.")
   }
@@ -176,14 +176,7 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
         
        Alt <<- Alt        
        
-       #write(layout.json.ed(trace, 'create_alternative_choice', dataset=deparse(substitute(dataset)), x='', 
-       #                      msg=paste('gridfile:', deparse(substitute(gridfile)),  ', case:', case, ', contents:', contents, ', griddedDat:' , griddedDat,
-       #                                ', Haul.Trip:', Haul.Trip, ', alt_var:',deparse(substitute(alt_var)),
-       #                                ', occasion:', deparse(substitute(occasion)), 'lon.dat:', lon.dat, ', lat.dat:', lat.dat, 
-       #                                ', lon.grid:', lon.grid, ', lat.grid:', lat.grid, ', cat:', cat, ', use.grid:', use.grid,
-       #                                ', weight.var:', weight.var)), 
-       #       paste(getwd(),'/Logs/',Sys.Date(),'.json', sep=''), append=T )
-        
+
        if(!exists('logbody')) { 
          logging_code()
        } 

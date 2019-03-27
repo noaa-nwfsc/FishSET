@@ -23,8 +23,10 @@
 
 
 
-find_centroid <- function(use.grid, dataset, gridfile, lon.grid, lat.grid, lat.dat, lon.dat, cat, weight.var) {
+find_centroid <- function(use.grid, dataset, gridfile, lon.grid, lat.grid, lon.dat, lat.dat, cat, weight.var) {
   tmp <- tempfile()
+  cat("", file=tmp, append=TRUE)
+  x <- 0
   #For json and shape files
   if(any(class(gridfile)=='sf')) {
     if (is.empty(weight.var)) {
@@ -32,7 +34,7 @@ find_centroid <- function(use.grid, dataset, gridfile, lon.grid, lat.grid, lat.d
       int <- cbind(gridfile[[cat]], as.data.frame(int))
       colnames(int)=c("ZoneID", "cent.lon", "cent.lat")
       if (any(abs(int$cent.lon) > 180)) {
-        cat("\nLongitude is not valid (outside -180:180.", file=tmp, append=TRUE)
+        cat("Longitude is not valid (outside -180:180).", file=tmp, append=TRUE)
         #stop("Longitude is not valid (outside -180:180.")
         x <- 1
       }
@@ -41,10 +43,10 @@ find_centroid <- function(use.grid, dataset, gridfile, lon.grid, lat.grid, lat.d
         x <-1    
        # stop("Latitude is not valid (outside -90:90.")
       } 
-      if(mean(int)<0){
-        if(length(which(int$x>mean(int$x)/4|int$x<mean(int$x)*4))>0){
-          cat('\nAt least one centroid may be inaccurate. Check for consistency in signs.',
-              int[which(int$x>mean(int$x)/4|int$x<mean(int$x)*4),], file=tmp, append=TRUE)
+      if(mean(int$cent.lon)<0){
+        if(length(which(int$cent.lon>mean(int$cent.lon)/4|int$cent.lon<mean(int$cent.lon)*4))>0){
+          print(paste('At least one centroid may be inaccurate. Check for consistency in signs.',
+              data.frame(int[which(int$cent.lon>mean(int$cent.lon)/4|int$cent.lon<mean(int$cent.lon)*4),])))
         }
       }
     } else {
@@ -116,14 +118,14 @@ find_centroid <- function(use.grid, dataset, gridfile, lon.grid, lat.grid, lat.d
       }
     }
     }
-  }
   
   if(x!=1){
     colnames(int)[colnames(int) == cat] <- "ZoneID"
     int <- int[, c("ZoneID", "cent.lon", "cent.lat")]
     int <- unique(int)
   }
-  
+  }
+     
     print(suppressWarnings(readLines(tmp)))
     if(!exists('logbody')) { 
       logging_code()

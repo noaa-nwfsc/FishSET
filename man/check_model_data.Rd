@@ -4,19 +4,16 @@
 \alias{check_model_data}
 \title{Check model data. Save output.}
 \usage{
-check_model_data(dataset, uniqueID, save.file = "sqlfile", db.name,
-  save.name)
+check_model_data(dataset, uniqueID, save.name, save.file = "sqlfile")
 }
 \arguments{
 \item{dataset}{input dataframe or matrix}
 
 \item{uniqueID}{dataframe that contains information on each column of the dataset}
 
-\item{save.file}{whether to save as sql table (sqlsave) or csv file (csvsave)}
-
-\item{db.name}{names of sql database to save dataset into}
-
 \item{save.name}{name for verified and saved data}
+
+\item{save.file}{whether to save as sql table (sqlsave) or csv file (csvsave)}
 }
 \value{
 Returns statements as to whether issues in the data may exist

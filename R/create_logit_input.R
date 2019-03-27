@@ -7,11 +7,11 @@ create_logit_input <- function(choice) {
   #' @export
   #'
   
-  x9 <- diag(max(choice))  # makes matrix of choice possibilites
-  x8 <- matrix(x9, 1, max(choice) * max(choice))
-  x7 <- matrix(rep(x9, each = dim(choice)[1]), nrow = dim(choice)[1])
+  #x9 <- diag(max(choice))  # makes matrix of choice possibilites
+  #x8 <- matrix(diag(max(choice)), 1, max(choice) * max(choice))
+  #x7 <- matrix(rep(diag(max(choice)), each = dim(choice)[1]), nrow = dim(choice)[1])
   
-  dataCompile <- x7
+  dataCompile <- matrix(rep(diag(max(choice)), each = dim(choice)[1]), nrow = dim(choice)[1])
   
   return(dataCompile)
   

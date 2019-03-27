@@ -32,7 +32,7 @@
 # lubridate # to get floor of temporal variables
 
 
-create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", "sequential"), temp.var, 
+create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", "sequential"), temp.var=NULL, 
                                 calc.method = c("standard average", "simple lag", "weights"), lag.method = c("simple", "grouped"),
                                 empty.catch = c(NULL, 0, "all catch", "grouped catch"), empty.expectation = c(NULL, 1e-04, 0),  
                                 temp.window = 1, temp.lag = 1, dummy.exp = FALSE, AltMatrixName = NULL, defineGroup = NULL) {
@@ -79,12 +79,12 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
   numData = as.data.frame(numData)[which(dataZoneTrue == 1), ]  #(Alt.dataZoneTrue,:)
   spData = choice[which(dataZoneTrue == 1), ]  # mapping to to the map file
   spNAN = which(is.na(spData) == T)
-  if (!is.empty(spNAN)) {
-    spData[spNAN] = Inf  # better for grouping than nans because aggregated
+  if (any(!is.empty(spNAN))) {
+    spData[spNAN] = rep(Inf, length(spNAN))  # better for grouping than nans because aggregated
   }
   numNAN = which(is.nan(numData) == T)
-  if (!is.empty(numNAN)) {
-    numData[numNAN] = Inf
+  if (any(!is.empty(numNAN))) {
+    numData[numNAN] = rep(Inf, length(numNAN))
   }
   
   # [B,I,C]=unique([numData,spData],'rows')
@@ -286,7 +286,7 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
 
 
   }# end of time vs not time
-  r <- nchar(sub('\\.[0-9]+', '', mean(mean(newCatch,na.rm=T),na.rm=T))) #regexp(num2str(nanmax(nanmax(newCatch))),'\.','split')
+  r <- nchar(sub('\\.[0-9]+', '', mean(as.matrix(newCatch),na.rm=T))) #regexp(num2str(nanmax(nanmax(newCatch))),'\.','split')
   sscale <- 10^(r-1)  
 
   ExpectedCatch <- list(

@@ -11,7 +11,7 @@ cpue(dataset, xWeight, xTime)
 
 \item{xWeight}{Weight variable}
 
-\item{xTime}{Time varibles. Must be weeks, days, hours, or minutes}
+\item{xTime}{Time variables. Must be weeks, days, hours, or minutes}
 }
 \description{
 Create catch per unit effort variable

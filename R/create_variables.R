@@ -9,16 +9,24 @@
 cpue <- function(dataset, xWeight, xTime) {
   #' @param dataset dataframe or matrix
   #' @param xWeight Weight variable
-  #' @param xTime Time varibles. Must be weeks, days, hours, or minutes
+  #' @param xTime Time variables. Must be weeks, days, hours, or minutes
   #' @export cpue 
   #' @details Function for generating new or specialized variables. cpue function create catch per unit effort variable. 
   # @example MainDataTable$cpue <- cpue(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', 'DURATION_IN_MIN')   
-
-  #write(layout.json.ed(trace, "cpue", deparse(substitute(dataset)), x = '', 
-  #                     msg=paste('xWeight;', deparse(substitute(xWeight)), 'xTime:', deparse(substitute(xTime)))), 
-  #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
+        if(!is.numeric(dataset[[xTime]])|!is.numeric(dataset[[xWeight]])){
+          stop('Data must be numeric. CPUE not calculated')
+        }
+  # Check that Weight variable is indeed a weight variable
+       if (!grepl("Duration", xTime, ignore.case = TRUE)) {
+        warning("xTime should be a measurement of time. CPUE calculated.")
+      } 
+      if (!grepl("LB|Pounds|MT", xWeight, ignore.case = TRUE)){
+        warning("xWeight must a measurement of mass. CPUE calculated.")
+      }
   
-  if(!exists('logbody')) { 
+  cpue <- dataset[[xWeight]]/dataset[[xTime]]
+ 
+   if(!exists('logbody')) { 
     logging_code()
   } 
   create_var_cpue_function <- list()
@@ -29,19 +37,7 @@ cpue <- function(dataset, xWeight, xTime) {
   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
   
-  # Check that Weight variable is indeed a weight variable
-  if (grepl("LB|Pounds|MT", xWeight, ignore.case = TRUE)) {
-    if (grepl("Min|Hour|Duration", xTime, ignore.case = TRUE)) {
-      if (!grepl("Duration", xTime, ignore.case = TRUE)) {
-        warning("xTime should be a length of time such as duration in minutes")
-      }
-      dataset[[xWeight]]/dataset[[xTime]]
-    } else {
-      stop("xTime must be a time measurement")
-    }
-  } else {
-    stop("xWeight must be in units of pounds or metric tons.")
-  }
+  return(cpue)
 }
 
 
@@ -160,7 +156,7 @@ create_var_num <- function(dataset, x, y, method, name) {
   #' @param dataset dataframe or matrix
   #' @param x Variable to create 
   #' @param y Second variable Note that in division  x is divided by y.
-  #' @param method Addition, substraction, multiplication, division
+  #' @param method Addition, subtraction, multiplication, division
   #' @param name Name of new variable
   #' @export create_var_num
   #' @details Function for generating new or specialized variables. create_var_num creates a new numeric variable based on defined arithmetic function. New variable is added to the dataset.
@@ -213,16 +209,15 @@ create_var_num <- function(dataset, x, y, method, name) {
 
 ##---- Temporal  Variables ----##
 #' Create temporal variables
-create_var_temp <- function(dataset, start, end, name, units = c("week", "day", "hour", "minute")) {
+create_var_temp <- function(dataset, start, end, units = c("week", "day", "hour", "minute")) {
   #' @param dataset dataframe or matrix
-  #' @param name Name of new variable
   #' @param start Variable indicating start of time period
   #' @param end Variable indicating end of time period
   #' @param units Units of time varibles. Must be weeks, days, hours, or minutes
   #' @importFrom lubridate interval as.duration dweeks ddays dhours dminutes
   #' @export create_var_temp 
   #' @details Function for generating new or specialized variables. create_var_temp calculates the duration of time between two temporal variables based on defined time format. The new variable is added to the dataset. 
-  # @example MainDataTable <- create_var_temp(MainDataTable, 'TRIP_START', 'TRIP_END', 'TripDur', units='minute')
+  # @example MainDataTable$TripDur <- create_var_temp(MainDataTable, 'TRIP_START', 'TRIP_END',  units='minute')
   
   
   if (any(grepl("dat|min|hour|week|month|TRIP_START|TRIP_END", start, ignore.case = TRUE)) == FALSE) {
@@ -237,7 +232,19 @@ create_var_temp <- function(dataset, start, end, name, units = c("week", "day", 
  #                                  ", name:",  name, ", units:", units, sep = "")), 
  #       paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
   
-  if(!exists('logbody')) { 
+  
+  elapsed.time <- lubridate::interval(date_parser(dataset[[start]]), date_parser(dataset[[end]]))
+  if (units == "week") {
+    dur <- lubridate::as.duration(elapsed.time)/lubridate::dweeks(1)
+  } else if (units == "day") {
+    dur <- lubridate::as.duration(elapsed.time)/lubridate::ddays(1)
+  } else if (units == "hour") {
+    duration() <- lubridate::as.duration(elapsed.time)/lubridate::dhours(1)
+  } else if (units == "minute") {
+    dur <- lubridate::as.duration(elapsed.time)/lubridate::dminutes(1)
+  }
+  
+    if(!exists('logbody')) { 
     logging_code()
   } 
   create_var_temp_function <- list()
@@ -247,17 +254,6 @@ create_var_temp <- function(dataset, start, end, name, units = c("week", "day", 
  logbody$fishset_run <- list(infoBodyout, functionBodyout)
  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
  assign("functionBodyout", value = functionBodyout, pos = 1)
-  
-  elapsed.time <- lubridate::interval(dataset[[start]],dataset[[end]])
-  if (units == "week") {
-    dataset[[name]] <- lubridate::as.duration(elapsed.time)/lubridate::dweeks(1)
-  } else if (units == "day") {
-    dataset[[name]] <- lubridate::as.duration(elapsed.time)/lubridate::ddays(1)
-  } else if (units == "hour") {
-    dataset[[name]] <- lubridate::as.duration(elapsed.time)/lubridate::dhours(1)
-  } else if (units == "minute") {
-    dataset[[name]] <- lubridate::as.duration(elapsed.time)/lubridate::dminutes(1)
-  }
-  
-  return(dataset)
+
+ return(dur)
 }

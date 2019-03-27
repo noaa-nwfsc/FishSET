@@ -5,7 +5,7 @@
 \title{Expected catch}
 \usage{
 create_expectations(dataset, gridfile, catch, temporal = c("daily",
-  "sequential"), temp.var, calc.method = c("standard average",
+  "sequential"), temp.var = NULL, calc.method = c("standard average",
   "simple lag", "weights"), lag.method = c("simple", "grouped"),
   empty.catch = c(NULL, 0, "all catch", "grouped catch"),
   empty.expectation = c(NULL, 1e-04, 0), temp.window = 1,

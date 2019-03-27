@@ -56,16 +56,16 @@ Use the read.dat function to read in these files.
 Data are saved in the sqlite database, fishset_db.
 
 Data can be imported and saved into the database using:
- * read.dat  Import data into R from several formats
+ * read_dat  Import data into R from several formats
  * load_maindata   Saves the main dataset into the database and generates the main data table information table. Both tables are saved in the fishset database. 
  * load_port  Checks that latitude and longitude and port identification are defined. Saves the table in the fishset database. 
  * load_aux   Checks that latitude and longitude are defined. Saves the table in the fishset database. 
  * load_seasonal   Checks that a date variable is defined. Saves the table in the fishset database. 
  
  Once data are saved in the fishset_db database, they can be accessed and viewed using:
- * tablesDatabase()   View tables in the fishset_db database
- * tableFields(x)     View fields in the table (here table x)
- * tableFields(x)     View table x from the fishset_db database
+ * tables_database()   View tables in the fishset_db database
+ * table_fields(x)     View fields in the table (here table x)
+ * table_view(x)       View table x from the fishset_db database
  
 
 ### Data management functions
@@ -134,7 +134,7 @@ Create vectors
   * trip_distance
     Summation of distance across a trip based on choices by the user for starting and ending ports, and hauls in between.
 
-
+Before moving on, it is recommended that users run the check_model_data function to check for further data issues in existing and created data.
 
 ## Mapping functions
 
@@ -158,7 +158,7 @@ FishSET requires two sets for modeling, 1) create a model design file and 2) run
     * shift_sort_x:  shifts choices so that the chosen zone will be automatically the first one
     * create_logit_input: creates a data matrix that is consistent with the built in model forms
     
-  Multiple likelihood function have been written. Users can alsowrite their own likelihood functions.
+  Multiple likelihood function have been written. Users can also write their own likelihood functions.
     * logit_c
     * logit_avgcat
     * epm_normal

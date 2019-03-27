@@ -13,7 +13,7 @@ create_var_num(dataset, x, y, method, name)
 
 \item{y}{Second variable Note that in division  x is divided by y.}
 
-\item{method}{Addition, substraction, multiplication, division}
+\item{method}{Addition, subtraction, multiplication, division}
 
 \item{name}{Name of new variable}
 }

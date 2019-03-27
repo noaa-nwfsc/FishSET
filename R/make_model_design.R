@@ -40,7 +40,7 @@
 # @examples
 
 
-make_model_design <- function(dataset, catchID = "HAUL", alternativeMatrix = c("loaded data", "gridded data"), lon.dat, lat.dat, 
+make_model_design <- function(dataset, catchID, alternativeMatrix = c("loaded data", "gridded data"), lon.dat, lat.dat, 
                                indeVarsForModel = "", gridVariablesInclude = "",priceCol = NULL, vesselID = NULL) {
   
   if (!exists("Alt")) {

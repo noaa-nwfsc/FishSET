@@ -11,7 +11,7 @@
 #' @param a numeric. Major (equatorial) radius of the ellipsoid. The default value is for WGS84
 #' @param f numeric. Ellipsoid flattening. The default value is for WGS84
 #' @importFrom geosphere distGeo
-#' @export create_TD
+#' @export create_trip_distance
 #' @return vector of trip distance
 #' @details Summation of distance across a trip based on choices by the user for starting and ending ports, and hauls in between.
 #'  Uses longitude and latitude to calculate the distance between and returns as a new variable. Relies on the distGeo function to calculate distances
@@ -19,7 +19,7 @@
 # @example MainDataTable$TripDistance <- create_TD(MainDataTable, PortTable, 'TRIP_SEQ', 'DISEMBARKED_PORT', c("LonLat_START_LON","LonLat_START_LAT"), c("LonLat_END_LON","LonLat_END_LAT"), 'EMBARKED_PORT', 'HAUL_SEQ')
 
 # 
-create_TD <- function(dataset, PortTable, trip_id, starting_port, starting_haul = c("Lon","Lat"), 
+create_trip_distance <- function(dataset, PortTable, trip_id, starting_port, starting_haul = c("Lon","Lat"), 
                       ending_haul = c("Lon", "Lat"), ending_port, haul_order, a = 6378137, f = 1/298.257223563) {
 
   if(any(unique(trimws(dataset[[ending_port]])) %in% unique(PortTable[,'Port_Name'])) == TRUE){

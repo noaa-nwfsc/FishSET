@@ -70,7 +70,7 @@ fishset_compare <- function(x, y, compare=c(TRUE,FALSE)){
 }
 
 
-load_maindata <- function(x, over_write=TRUE, project=NULL,  compare=FALSE, y=NULL){
+load_maindata <- function(dataset, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
   #' Load data into sql database
   #' @param x name dataframe to be saved
   #' @param over_write TRUE/FALSE Save over previously saved file or not
@@ -80,60 +80,62 @@ load_maindata <- function(x, over_write=TRUE, project=NULL,  compare=FALSE, y=NU
   #' @importFrom jsonlite toJSON
   #' @details Runs the fishset.compare function. Then uses the new dataframe x to generate the the information table that contains information for each variable on units, data format, and specialied variable.
   #
-  fishset_compare(x,y,compare)
+  
+  fishset_compare(dataset,y,compare)
   ##-----------MainDataTable--------------------##
-  data_verification(x)
+  data_verification_call(dataset)
   # Check to see if lat/long or fish area is in dataset
-  indx <- grepl("lat|lon|area", colnames(x), ignore.case = TRUE)
-  if (length(x[indx]) > 0) {
+  indx <- grepl("lat|lon|area", colnames(dataset), ignore.case = TRUE)
+  if (length(dataset[indx]) > 0) {
     cat("Pass: Latitude and longitude or fishing area included in the dataset.")
   } else {
     stop("Dataset must contain either latitude and longitude or fishing area designation.")
   }
-  
+  dat[, which(grepl('DATE|TRIP_END|TRIP_START',colnames(dat), ignore.case=TRUE)==TRUE)] <- 
+        lapply(dat[,which(grepl('DATE|TRIP_END|TRIP_START',colnames(dat), ignore.case=TRUE)==TRUE)], date_parser)
   ## --------- MainDataTableInfo -------------- ##
-  MainDataTableInfo <- data.frame(variable_name=colnames(x),
-                                  units=c(ifelse(grepl('DATE|TRIP_END|TRIP_START',colnames(x)), 'yyyymmdd',
-                                                 ifelse(grepl('MIN',colnames(x)), 'min',
-                                                        ifelse(grepl('FATHOMS',colnames(x)), 'fathoms',
-                                                               ifelse(grepl('HOURS|CHINOOK|CHUM|PROPORTION|SIZE', colnames(x)), 'numeric',
-                                                                      ifelse(grepl('DOLLARS',colnames(x)), 'dollars',
-                                                                             ifelse(grepl('POUNDS|LBS',colnames(x)), 'lbs',
-                                                                                    ifelse(grepl('Lon|Lat|LON|LAT',colnames(x)), 'decimal degrees',
-                                                                                           ifelse(grepl('PERCENT',colnames(x)), 'percent',
-                                                                                                  ifelse(grepl('MT',colnames(x)), 'metric tons',
-                                                                                                         ifelse(grepl('WEEK',colnames(x)), 'WK',
-                                                                                                                ifelse(grepl('WEEK',colnames(x)), 'Y/N',NA
+  MainDataTableInfo <- data.frame(variable_name=colnames(dataset),
+                                  units=c(ifelse(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE), 'yyyymmdd',
+                                                 ifelse(grepl('MIN',colnames(dataset), ignore.case=TRUE), 'min',
+                                                        ifelse(grepl('FATHOMS',colnames(dataset)), 'fathoms',
+                                                               ifelse(grepl('HOURS|CHINOOK|CHUM|PROPORTION|SIZE', colnames(dataset), ignore.case=TRUE), 'numeric',
+                                                                      ifelse(grepl('DOLLARS',colnames(dataset), ignore.case=TRUE), 'dollars',
+                                                                             ifelse(grepl('POUNDS|LBS',colnames(dataset), ignore.case=TRUE), 'lbs',
+                                                                                    ifelse(grepl('Lon|Lat|',colnames(dataset), ignore.case=TRUE), 'decimal degrees',
+                                                                                           ifelse(grepl('PERCENT',colnames(dataset), ignore.case=TRUE), 'percent',
+                                                                                                  ifelse(grepl('MT',colnames(dataset), ignore.case=TRUE), 'metric tons',
+                                                                                                         ifelse(grepl('WEEK',colnames(dataset), ignore.case=TRUE), 'WK',
+                                                                                                                ifelse(grepl('WEEK',colnames(dataset), ignore.case=TRUE), 'Y/N',NA
                                                                                                                 )))))))))))),
-                                  generalType=c(ifelse(grepl('DATE|MIN',colnames(x)), 'Time',
-                                                       ifelse(grepl('IFQ',colnames(x)), 'Flag',
-                                                              ifelse(grepl('ID',colnames(x)), 'Code',
-                                                                     ifelse(grepl('Long|Lat',colnames(x)), 'Latitude',
-                                                                            ifelse(grepl('TYPE|PROCESSOR|LOCATION|METHOD',colnames(x)), 'Code String',
-                                                                                   ifelse(grepl('CHINOOK|CHUM|FATHOMS|DOLLARS|LBS|PROPORTION|VALUE|PERCENT|MT',colnames(x)), 'Other Numeric',
-                                                                                          ifelse(grepl('HAUL|AREA|PERFORMANCE|PERMIT',colnames(x)), 'Code Numeric', NA)
+                                  generalType=c(ifelse(grepl('DATE|MIN',colnames(dataset), ignore.case=TRUE), 'Time',
+                                                       ifelse(grepl('IFQ',colnames(dataset), ignore.case=TRUE), 'Flag',
+                                                              ifelse(grepl('ID',colnames(dataset), ignore.case=TRUE), 'Code',
+                                                                     ifelse(grepl('Long|Lat',colnames(dataset), ignore.case=TRUE), 'Latitude',
+                                                                            ifelse(grepl('TYPE|PROCESSOR|LOCATION|METHOD',colnames(dataset), ignore.case=TRUE), 'Code String',
+                                                                                   ifelse(grepl('CHINOOK|CHUM|FATHOMS|DOLLARS|LBS|PROPORTION|VALUE|PERCENT|MT',colnames(dataset), ignore.case=TRUE), 'Other Numeric',
+                                                                                          ifelse(grepl('HAUL|AREA|PERFORMANCE|PERMIT',colnames(dataset), ignore.case=TRUE), 'Code Numeric', NA)
                                                                                    ))))))),
-                                  isXY=ifelse(grepl('HOURS|CHINOOK|CHUM|PROPORTION|SIZE', colnames(x)), 1,0),
-                                  isID=ifelse(grepl('ID', colnames(x)), 1,0),
-                                  variable_link=rep(NA, length(colnames(x))),
-                                  isTime=ifelse(grepl('DATE|MIN', colnames(x)), 1,0),
-                                  isCatch=ifelse(grepl('CATCH|POUNDS|LBS', colnames(x)), 1,0),
-                                  isEffort=ifelse(grepl('DURATION',colnames(x)), 1,0),
-                                  isCPUE=rep(0, length(colnames(x))),
-                                  isLon=ifelse(grepl('LON',colnames(x)), 1,0),
-                                  isLat=ifelse(grepl('LAT',colnames(x)), 1,0),
-                                  isValue=ifelse(grepl('DOLLARS',colnames(x)), 1,0),
-                                  isZoneArea=ifelse(grepl('AREA',colnames(x)), 1,0),
-                                  isPort=ifelse(grepl('PORT', colnames(x)), 1,0),
-                                  isPrice= rep(0, length(colnames(x))),
-                                  isTrip=ifelse(grepl('TRIP', colnames(x)), 1,0),
-                                  isHaul=ifelse(grepl('HAUL', colnames(x)), 1,0),
-                                  isOther=rep(0, length(colnames(x))),
-                                  tableLink=rep(NA, length(colnames(x))))
+                                  isXY=ifelse(grepl('HOURS|CHINOOK|CHUM|PROPORTION|SIZE', colnames(dataset), ignore.case=TRUE), 1,0),
+                                  isID=ifelse(grepl('ID', colnames(dataset), ignore.case=TRUE), 1,0),
+                                  variable_link=rep(NA, length(colnames(dataset))),
+                                  isTime=ifelse(grepl('DATE|MIN', colnames(dataset), ignore.case=TRUE), 1,0),
+                                  isCatch=ifelse(grepl('CATCH|POUNDS|LBS', colnames(dataset), ignore.case=TRUE), 1,0),
+                                  isEffort=ifelse(grepl('DURATION',colnames(dataset), ignore.case=TRUE), 1,0),
+                                  isCPUE=rep(0, length(colnames(dataset))),
+                                  isLon=ifelse(grepl('LON',colnames(dataset), ignore.case=TRUE), 1,0),
+                                  isLat=ifelse(grepl('LAT',colnames(dataset), ignore.case=TRUE), 1,0),
+                                  isValue=ifelse(grepl('DOLLARS',colnames(dataset), ignore.case=TRUE), 1,0),
+                                  isZoneArea=ifelse(grepl('AREA',colnames(dataset), ignore.case=TRUE), 1,0),
+                                  isPort=ifelse(grepl('PORT', colnames(dataset), ignore.case=TRUE), 1,0),
+                                  isPrice= rep(0, length(colnames(dataset)), ignore.case=TRUE),
+                                  isTrip=ifelse(grepl('TRIP', colnames(dataset), ignore.case=TRUE), 1,0),
+                                  isHaul=ifelse(grepl('HAUL', colnames(dataset), ignore.case=TRUE), 1,0),
+                                  isOther=rep(0, length(colnames(dataset))),
+                                  tableLink=rep(NA, length(colnames(dataset))))
   
-  table_info_verification(x, MainDataTableInfo)
+
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  DBI::dbWriteTable(fishset_db, paste(project, 'MainDataTable', sep=''), x, overwrite=over_write)
+  DBI::dbWriteTable(fishset_db, paste(project, 'MainDataTable', sep=''),  dataset, overwrite=over_write)
   DBI::dbWriteTable(fishset_db, paste(project, 'MainDataTableInfo', sep=''), MainDataTableInfo, overwrite=over_write)
   DBI::dbDisconnect(fishset_db)
   print('Data saved to database')
@@ -146,11 +148,14 @@ load_maindata <- function(x, over_write=TRUE, project=NULL,  compare=FALSE, y=NU
   } 
     load_maindata_function <- list()
     load_maindata_function$functionID <- 'load_maindata'
-    load_maindata_function$args <- c(deparse(substitute(x)), project, compare, deparse(substitute(y)))
+    load_maindata_function$args <- c(deparse(substitute(dataset)), project, compare, deparse(substitute(y)))
     functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_maindata_function)
     logbody$fishset_run <- list(infoBodyout, functionBodyout)
     write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
     assign("functionBodyout", value = functionBodyout, pos = 1)
+    
+    assign(paste0(project, 'MainDataTable'), value = dataset, pos=1)
+    cat('\n!!! -> Data saved to the working environment as ', paste0(project, 'MainDataTable.'), 'To improve ease of reproducing work, please use this name in future analysis. <- !!!')
 }
 
 main_mod <- function(dataset, x, over_write=TRUE, project=NULL, change.col=NULL, new.unit=NULL, new.type=NULL, new.class=NULL) {
@@ -207,7 +212,7 @@ load_port <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
     warning('Port identification not found. Check that unique port ID (name, id, code) is included.')
   } 
   
-  data_verification(x)
+  data_verification_call(x)
 
   fishset_compare(x,y,compare)
   
@@ -249,7 +254,7 @@ load_aux <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
     stop('Multiple latitude or longitude columns. Only one allowed.') 
   } 
   
-  data_verification(x)
+  data_verification_call(x)
   
  fishset_compare(x,y,compare)
  
@@ -289,7 +294,7 @@ load_seasonal <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NUL
     stop('Date variable must be specified')
   } 
   
-  data_verification(x)
+  data_verification_call(x)
   
   fishset_compare(x,y,compare)
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")

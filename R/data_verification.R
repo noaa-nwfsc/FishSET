@@ -51,6 +51,18 @@ data_verification <- function(dataset) {
     cat("\nPass: No empty variables exist in the dataset.", file=tmp, append=TRUE)
   }
   
+  if(any(grepl('lat|lon', names(dataset), ignore.case=TRUE))){
+    lat <- dataset[,which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)]
+    lon <- dataset[,which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)]
+  graphics::par(mar=c(1,1,1,1)) 
+  map('world', ylim=c(min(lat, na.rm=TRUE), max(lat, na.rm=TRUE)), 
+      xlim=c(min(lon, na.rm=TRUE), max(lon, na.rm=TRUE)))
+  points(dataset[sample(nrow(dataset), nrow(dataset)/10), which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)[1]], 
+         dataset[sample(nrow(dataset), nrow(dataset)/10), which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)[1]])
+  print('10% of samples plotted. Verify that points occur in correct geographic area.')
+  }
+  
+  
   print(suppressWarnings(readLines(tmp)))
  
   if(!exists('logbody')) { 

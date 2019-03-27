@@ -13,7 +13,7 @@ table_info_verification <- function(dataset, dataindex) {
   indx <- colSums(sapply(allNecFields, grepl, colnames(dataindex), ignore.case = TRUE)) 
   
   if (length(which(colSums(sapply(allNecFields, grepl, colnames(dataindex))) == 0)) < 1) {
-    cat("Pass: All specialized variables indentified.", file=tmp, append=TRUE)
+    cat("Pass: All specialized variables identified.", file=tmp, append=TRUE)
   } else {
     cat(paste("\nThe following specialized variables were not specified:", 
               names(which(colSums(sapply(allNecFields, grepl, colnames(dataindex))) == 0))), file=tmp, append=TRUE)
@@ -45,7 +45,7 @@ table_info_verification <- function(dataset, dataindex) {
   table_info_verification_function <- list()
   table_info_verification_function$functionID <- 'table_info_verification'
   table_info_verification_function$args <- c(deparse(substitute(dataset)), deparse(substitute(dataindex)))
-  table_info_verification_function$msg <- paste('See', paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), 'for record of data verification checks.')
+  table_info_verification_function$msg <- suppressWarnings(readLines(tmp))
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (table_info_verification_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))

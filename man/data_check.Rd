@@ -11,7 +11,7 @@ data_check(dataset, x, dataindex)
 
 \item{x}{column in dataframe to check for outliers}
 
-\item{dataindex}{dataframe that contains information on each column of the dataset}
+\item{dataindex}{dataframe that contains information on each column of the dataset. Must be in quotes.}
 }
 \description{
 Guided steps to cleaning the datafile

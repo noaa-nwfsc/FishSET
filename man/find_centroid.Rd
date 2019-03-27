@@ -4,8 +4,8 @@
 \alias{find_centroid}
 \title{Generate centroid of polygon of zone or area}
 \usage{
-find_centroid(use.grid, dataset, gridfile, lon.grid, lat.grid, lat.dat,
-  lon.dat, cat, weight.var)
+find_centroid(use.grid, dataset, gridfile, lon.grid, lat.grid, lon.dat,
+  lat.dat, cat, weight.var)
 }
 \arguments{
 \item{use.grid}{TRUE/FALSE}
@@ -18,9 +18,9 @@ find_centroid(use.grid, dataset, gridfile, lon.grid, lat.grid, lat.dat,
 
 \item{lat.grid}{Latitude of points from gridfile}
 
-\item{lat.dat}{Latitude of points from dataset}
-
 \item{lon.dat}{Longitude of points from dataset}
+
+\item{lat.dat}{Latitude of points from dataset}
 
 \item{cat}{Categorical variable defining the individual areas or zones}
 

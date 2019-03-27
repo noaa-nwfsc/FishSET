@@ -6,17 +6,18 @@
 Each row should be a unique trip. Reduces the number of rows.
 Unique trips are defined based on selected column(s). For example, landing permit number and disembared port. This id column is used to collapse the data to trip level.}
 \usage{
-haul_to_trip(dataset, dataindex, varnameindex, genTypeName,
-  fun.time = min, fun.numeric = mean, ...)
+haul_to_trip(dataset, dataindex, varnameindex = "variable_name",
+  genTypeName = "generalType", fun.time = min, fun.numeric = mean,
+  ...)
 }
 \arguments{
 \item{dataset}{dataframe or matrix over which to apply filter}
 
 \item{dataindex}{Dataframe that contains information on each column of the dataset}
 
-\item{varnameindex}{The column in dataindex that contains the column names of dataset}
+\item{varnameindex}{The column in dataindex that contains the column names of dataset. Should be 'variable_name' if dataindex was created using the load_maindata function}
 
-\item{genTypeName}{column in dataindex containing information on the general category of each column in dataset (time, numeric, etc)}
+\item{genTypeName}{column in dataindex containing information on the general category of each column in dataset (time, numeric, etc). Should be 'generalType' if dataindex created using the load_maindata function.}
 
 \item{fun.time}{Time units for function. Defaults to minutes}
 

@@ -4,10 +4,9 @@
 \alias{make_model_design}
 \title{Make model design}
 \usage{
-make_model_design(dataset, catchID = "HAUL",
-  alternativeMatrix = c("loaded data", "gridded data"), lon.dat, lat.dat,
-  indeVarsForModel = "", gridVariablesInclude = "", priceCol = NULL,
-  vesselID = NULL)
+make_model_design(dataset, catchID, alternativeMatrix = c("loaded data",
+  "gridded data"), lon.dat, lat.dat, indeVarsForModel = "",
+  gridVariablesInclude = "", priceCol = NULL, vesselID = NULL)
 }
 \arguments{
 \item{dataset}{dataframe or matrix}

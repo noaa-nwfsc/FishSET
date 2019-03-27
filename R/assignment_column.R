@@ -32,14 +32,15 @@ assignment_column <- function(dataset, gridfile, hull.polygon = c(TRUE, FALSE), 
                             coords = c(lon.dat, lat.dat),
                             crs = "+proj=longlat +datum=WGS84")
     
-    if(raster::projection(shapemap) != raster::projection(dat_sub)) {
+    if(raster::projection(gridfile) != raster::projection(dat_sub)) {
       warning('Projection does not match. Consider transforming data to same epsg.')
     }
     if(!is.null(epsg)){
       dat_sub <- st_transform(dat_sub, epsg)
       gridfile <- st_transform(gridfile, epsg)
     }
-    pts <- as.data.frame(sf::st_intersects(dat_sub, gridfile))
+    pts <- as.data.frame(as.numeric(sf::st_intersects(dat_sub, gridfile)))
+    colnames(pts)='col.id'
     pts$ID <- gridfile[[cat]][pts$col.id]
   } 
     else {

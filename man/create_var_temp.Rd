@@ -4,8 +4,8 @@
 \alias{create_var_temp}
 \title{Create temporal variables}
 \usage{
-create_var_temp(dataset, start, end, name, units = c("week", "day",
-  "hour", "minute"))
+create_var_temp(dataset, start, end, units = c("week", "day", "hour",
+  "minute"))
 }
 \arguments{
 \item{dataset}{dataframe or matrix}
@@ -13,8 +13,6 @@ create_var_temp(dataset, start, end, name, units = c("week", "day",
 \item{start}{Variable indicating start of time period}
 
 \item{end}{Variable indicating end of time period}
-
-\item{name}{Name of new variable}
 
 \item{units}{Units of time varibles. Must be weeks, days, hours, or minutes}
 }
