@@ -1,21 +1,23 @@
 #'  Create alternative choice matrix
-
-#' @param dataset dataframe or matrix
-#' @param gridfile name of gridded dataset
+#'
+#' Creates a matrix containing information on alternative choices. 
+#'
+#' @param dataset  Main data frame containing data on hauls or trips
+#' @param gridfile Name of file containing spatial data. Shape, json, and csv formats are supported.
 #' @param case Centroid='Centroid of Zonal Assignment', Port, Other
-#' @param griddedDat dataframe or matrix containing a variable that varies by the map grid. First column should match a column in the dataset. The remaining columns should match the zone IDs in the gridfile.
+#' @param griddedDat Data frame containing a variable that varies by the map grid. First column should match a column in the dataset. The remaining columns should match the zone IDs in the gridfile.
 #' @param contents Value of variable to subset dataset by. For instance, include only zones with at least 10 hauls.
-#' @param hull.polygon Using in assignmentColumn function. Creates polying using convex hull method.
-#' @param Haul.Trip Whether data is at trip or haul. Default to haul.
-#' @param alt_var # Identifies how to find lat/lon for starting point (must have a lat/lon associated with it) 
-#' @param occasion # Identifies how to find lat/lon for alternative choices such as 'Centroid of Zonal Assignment' 
-#' @param lon.dat #Longitude variable in dataset
-#' @param lat.dat #Latitude variable in dataset
-#' @param lon.grid #Longitude variable in gridfile
-#' @param lat.grid #Latitude variable in gridfile
-#' @param cat #Variable defining zones or areas. Must be defined for dataset or gridfile.
-#' @param use.grid #TRUE/FALSE. If TRUE, gridded data is used to create centroids
-#' @param weight.var #Variable for weighted centroids
+#' @param hull.polygon Used in assignment_column function. Creates polygon using convex hull method.
+#' @param haul.trip Should data be at trip or haul level. Defaults to haul.
+#' @param alt_var  Identifies how to find lat/lon for starting point (must have a lat/lon associated with it) 
+#' @param occasion  Identifies how to find lat/lon for alternative choices such as 'Centroid of Zonal Assignment' 
+#' @param lon.dat Longitude variable in dataset
+#' @param lat.dat Latitude variable in dataset
+#' @param lon.grid Longitude variable in gridfile
+#' @param lat.grid Latitude variable in gridfile
+#' @param cat Variable defining zones or areas. Must be defined for dataset or gridfile.
+#' @param use.grid TRUE/FALSE. If TRUE, griddedDat is used to create centroids
+#' @param weight.var Variable for weighted centroids
 #' @param remove.na TRUE/FALSE Remove points where zone ID not identified. Called in assignment_column function.
 #' @param closest.pt  TRUE/FALSE If true, zone ID identified as the closest polygon to the point. Called in assignment_column function.
 #' @importFrom DBI dbExecute
@@ -36,7 +38,7 @@
 #'         Alt.int 
  
 create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "Port", "Other"), contents, 
-                                      Haul.Trip = c("Haul", "Trip"), alt_var, occasion, lon.dat, lat.dat, lon.grid, lat.grid, 
+                                      haul.trip = c("Haul", "Trip"), alt_var, occasion, lon.dat, lat.dat, lon.grid, lat.grid, 
                                       cat, use.grid = c(TRUE, FALSE),  hull.polygon = c(TRUE, FALSE), remove.na = FALSE, 
                                       closest.pt = FALSE, griddedDat=NULL, weight.var = NULL) {
   

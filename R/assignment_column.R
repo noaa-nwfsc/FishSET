@@ -1,23 +1,26 @@
 #'  Generate centroid of polygon of zone or area
-
-#' @param dataset dataframe or matrix
-#' @param gridfile name of gridded dataset
-#' @param hull.polygon If TRUE, create convex hull polygon. Use if data points creating polygon are incomplete.
+#'  
+#'  Function is called by the create_alternative_choice function to assign each observation to zones defined by a spatial data set.
+#'
+#' @param dataset Main data frame containing data on hauls or trips
+#' @param gridfile Name of file containing spatial data. Shape, json, and csv formats are supported.
+#' @param hull.polygon If TRUE, created convex hull polygon. Use if spatial data creating polygon are sparse or irregular.
 #' @param lon.dat Longitude of points from dataset
 #' @param lat.dat Latitude of points from dataset
 #' @param lon.grid Longitude of points from gridfile
 #' @param lat.grid Latitude of points from gridfile
-#' @param cat Categorical variable defining the individual areas or zones in gridfile. If gridfile is class sf, cat should be name of list containing information on zones. 
-#' @param epsg ESPG number. See http://spatialreference.org/ to help identify optimal epsg number 2964
+#' @param cat Variable that identifies the individual areas or zones in gridfile. If gridfile is class sf, cat should be name of list containing information on zones. 
+#' @param epsg EPSG number. See http://spatialreference.org/ to help identify optimal epsg number 
+
 #' @param closest.pt  TRUE/FALSE If true, zone ID identified as the closest polygon to the point
 #' @importFrom sp CRS Polygons Polygon SpatialPolygons SpatialPolygonsDataFrame coordinates
 #' @importFrom rgeos gDistance
 #' @importFrom grDevices chull
 #' @importFrom raster projection
+#' @details Converts point data from gridfile into polygons and then finds which polygon each point in the dataset is within. Use hull.polygon=T if data is sparse or irregular.
 #' @keywords  zone, polygon
 #' @return Returns dataset with new assignment column labeled zoneID
-#' @export assignment_column
-#' @details Converts point data from gridfile into polygons and then finds which polygon each point in the dataset is within. Use hull.polygon=T if data is sparse or irregular.
+#' @export 
 
 # read.csv('Data/adfgstat6_map.csv', header = F) require(rjson) 
 

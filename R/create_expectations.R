@@ -1,7 +1,7 @@
 #' Expected catch
 
-#' @param dataset Observe or VMS data
-#' @param gridfile gridded data
+#' @param dataset  Main data frame containing data on hauls or trips
+#' @param gridfile Name of file containing spatial data. Shape, json, and csv formats are supported.
 #' @param catch Catch variable for averaging
 #' @param temporal Daily = Daily time line or sequential = sequential order
 #' @param temp.var Temporal variable for averaging
