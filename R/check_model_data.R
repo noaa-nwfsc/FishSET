@@ -2,13 +2,17 @@
 #'
 #'  Contains one function that tests for NaNs, Inf, and that each row is unique. The function stops if an if statement does not pass.
 
-#' @param dataset input dataframe or matrix
-#' @param uniqueID dataframe that contains information on each column of the dataset
-#' @param save.file whether to save as sql table (sqlsave) or csv file (csvsave)
+#' @param dataset  Main data frame containing data on hauls or trips
+#' @param uniqueID Variable that identifies unique occurrences.
+#' @param save.file Save data frame as sql table (sqlsave) or csv file (csvsave)
 #' @param save.name name for verified and saved data
 #' @return Returns statements as to whether issues in the data may exist
 #' @export check_model_data
-#' @details Checks data to be used for modelling. Checks for presence of NaNs and Inf. The verified data will not saves unless no NaNs or infinite values in the dataset. Verified data can then be saves as sql table or csv file.
+#' @details Checks data to be used for modelling. Checks for presence of NaNs and Inf. 
+#'    The verified data will not save if NaNs or infinite values are in the dataset. 
+#'    Verified data can then be saved as sql table or csv file. 
+#'    When saving to sql, the modified table will be saved and the previous, unmodified version of the table 
+#'    (if it exists),will be saved with the prefix 'raw'.
 
 # @examples checkModelData(MainDataTable, uniqueID='uniqueID_Code',
 # db.name=testdb, save.name='modelData')
@@ -47,10 +51,11 @@ check_model_data <- function(dataset, uniqueID, save.name, save.file = "sqlfile"
     cat(paste("\nModified dataset saved to sql database under", save.name), file=tmp, append=T)
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
     if(DBI::dbExistsTable(fishset_db, deparse(substitute(save.name)))==TRUE){
-      single_sql <- paste("raw", deparse(substitute(save.name)), sep='')
+      single_sql <- paste0("raw", deparse(substitute(save.name)))
       DBI::dbWriteTable(fishset_db, single_sql, save.name)
     }
-    DBI::dbWriteTable(fishset_db, deparse(substitute(save.name)), dataset, overwrite=TRUE)
+    single_sql <- paste0(deparse(substitute(save.name)))
+    DBI::dbWriteTable(fishset_db, single_sql, dataset, overwrite=TRUE)
     DBI::dbDisconnect(fishset_db)
     # logging function information
   }

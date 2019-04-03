@@ -12,6 +12,7 @@ shift_sort_x <- function(x, ch, y, distance, alts, ab) {
   #' @return d - matrix of choice possibilites and distance
   #'
   
+  
   ch0 <- ch - 1
   n <- max(dim(ch))
   d <- list()

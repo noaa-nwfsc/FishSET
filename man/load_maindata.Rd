@@ -8,6 +8,8 @@ load_maindata(dataset, over_write = TRUE, project = NULL,
   compare = FALSE, y = NULL)
 }
 \arguments{
+\item{dataset}{name dataframe to be saved}
+
 \item{over_write}{TRUE/FALSE Save over previously saved file or not}
 
 \item{project}{name of project}
@@ -15,8 +17,6 @@ load_maindata(dataset, over_write = TRUE, project = NULL,
 \item{compare}{TRUE/FALSE Compare new dataframe to previously saved dataframe before saving dataframe x to databases}
 
 \item{y}{name of previously saved dataframe. y must be defined if compare==TRUE}
-
-\item{x}{name dataframe to be saved}
 }
 \description{
 Load data into sql database

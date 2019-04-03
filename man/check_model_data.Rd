@@ -7,13 +7,13 @@
 check_model_data(dataset, uniqueID, save.name, save.file = "sqlfile")
 }
 \arguments{
-\item{dataset}{input dataframe or matrix}
+\item{dataset}{Main data frame containing data on hauls or trips}
 
-\item{uniqueID}{dataframe that contains information on each column of the dataset}
+\item{uniqueID}{Variable that identifies unique occurrences.}
 
 \item{save.name}{name for verified and saved data}
 
-\item{save.file}{whether to save as sql table (sqlsave) or csv file (csvsave)}
+\item{save.file}{Save data frame as sql table (sqlsave) or csv file (csvsave)}
 }
 \value{
 Returns statements as to whether issues in the data may exist
@@ -22,5 +22,9 @@ Returns statements as to whether issues in the data may exist
 Contains one function that tests for NaNs, Inf, and that each row is unique. The function stops if an if statement does not pass.
 }
 \details{
-Checks data to be used for modelling. Checks for presence of NaNs and Inf. The verified data will not saves unless no NaNs or infinite values in the dataset. Verified data can then be saves as sql table or csv file.
+Checks data to be used for modelling. Checks for presence of NaNs and Inf. 
+   The verified data will not save if NaNs or infinite values are in the dataset. 
+   Verified data can then be saved as sql table or csv file. 
+   When saving to sql, the modified table will be saved and the previous, unmodified version of the table 
+   (if it exists),will be saved with the prefix 'raw'.
 }

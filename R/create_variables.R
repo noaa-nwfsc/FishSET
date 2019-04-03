@@ -227,19 +227,13 @@ create_var_temp <- function(dataset, start, end, units = c("week", "day", "hour"
     warning("Function is designed for temporal variables")
   }
   
- #write(layout.json.ed(trace, "create_var_temp", deparse(substitute(dataset)), x = "", 
- #                      msg = paste("start:",   start, ", end:", end, 
- #                                  ", name:",  name, ", units:", units, sep = "")), 
- #       paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
-  
-  
   elapsed.time <- lubridate::interval(date_parser(dataset[[start]]), date_parser(dataset[[end]]))
   if (units == "week") {
     dur <- lubridate::as.duration(elapsed.time)/lubridate::dweeks(1)
   } else if (units == "day") {
     dur <- lubridate::as.duration(elapsed.time)/lubridate::ddays(1)
   } else if (units == "hour") {
-    duration() <- lubridate::as.duration(elapsed.time)/lubridate::dhours(1)
+    dur <- lubridate::as.duration(elapsed.time)/lubridate::dhours(1)
   } else if (units == "minute") {
     dur <- lubridate::as.duration(elapsed.time)/lubridate::dminutes(1)
   }

@@ -9,6 +9,7 @@
 #' @param gridVariablesInclude Variables from gridded dataset to include in the model. 
 #' @param priceCol NULL If required, specify which variable contains price data
 #' @param vesselID NULL If required, specify which varible defines vessel
+#' @param project Project name. For naming output saved in sql database
 #' @importFrom geosphere distm
 #' @importFrom DBI dbGetQuery dbExecute
 #' @return  ModelInputData a list containing information on alternative choice
@@ -41,7 +42,7 @@
 
 
 make_model_design <- function(dataset, catchID, alternativeMatrix = c("loaded data", "gridded data"), lon.dat, lat.dat, 
-                               indeVarsForModel = "", gridVariablesInclude = "",priceCol = NULL, vesselID = NULL) {
+                               indeVarsForModel = "", gridVariablesInclude = "", priceCol = NULL, vesselID = NULL, project) {
   
   if (!exists("Alt")) {
     if (!exists('AltMatrixName')) {
@@ -303,8 +304,9 @@ make_model_design <- function(dataset, catchID, alternativeMatrix = c("loaded da
                           gridVaryingVariables = ExpectedCatch)
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  DBI::dbExecute(fishset_db, "CREATE TABLE IF NOT EXISTS modelinputdata (ModelInputData MODELINPUTDATA)")
-  DBI::dbExecute(fishset_db, "INSERT INTO modelinputdata VALUES (:ModelInputData)", 
+  single_sql <- paste0(project, 'modelinputdata', format(Sys.Date(), format="%Y%m%d"))
+  DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(ModelInputData MODELINPUTDATA)"))
+  DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:ModelInputData)"), 
                  params = list(ModelInputData = list(serialize(modelInputData, NULL))))
   DBI::dbDisconnect(fishset_db)
   

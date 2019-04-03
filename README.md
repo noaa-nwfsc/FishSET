@@ -23,6 +23,7 @@ shiny
 Functions are imported from the following libraries:
 DBI
 DT
+ff
 R.matlab
 foreign
 geosphere
@@ -34,3 +35,4 @@ sf
 sp
 spatialEco
 zoo
+

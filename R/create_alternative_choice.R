@@ -1,23 +1,26 @@
 #'  Create alternative choice matrix
-
-#' @param dataset dataframe or matrix
-#' @param gridfile name of gridded dataset
+#'
+#' Creates a matrix containing information on alternative choices. 
+#'
+#' @param dataset  Main data frame containing data on hauls or trips
+#' @param gridfile Name of file containing spatial data. Shape, json, and csv formats are supported.
 #' @param case Centroid='Centroid of Zonal Assignment', Port, Other
-#' @param griddedDat dataframe or matrix containing a variable that varies by the map grid. First column should match a column in the dataset. The remaining columns should match the zone IDs in the gridfile.
+#' @param griddedDat Data frame containing a variable that varies by the map grid. First column should match a column in the dataset. The remaining columns should match the zone IDs in the gridfile.
 #' @param contents Value of variable to subset dataset by. For instance, include only zones with at least 10 hauls.
-#' @param hull.polygon Using in assignmentColumn function. Creates polying using convex hull method.
-#' @param Haul.Trip Whether data is at trip or haul. Default to haul.
-#' @param alt_var # Identifies how to find lat/lon for starting point (must have a lat/lon associated with it) 
-#' @param occasion # Identifies how to find lat/lon for alternative choices such as 'Centroid of Zonal Assignment' 
-#' @param lon.dat #Longitude variable in dataset
-#' @param lat.dat #Latitude variable in dataset
-#' @param lon.grid #Longitude variable in gridfile
-#' @param lat.grid #Latitude variable in gridfile
-#' @param cat #Variable defining zones or areas. Must be defined for dataset or gridfile.
-#' @param use.grid #TRUE/FALSE. If TRUE, gridded data is used to create centroids
-#' @param weight.var #Variable for weighted centroids
+#' @param hull.polygon Used in assignment_column function. Creates polygon using convex hull method.
+#' @param haul.trip Should data be at trip or haul level. Defaults to haul.
+#' @param alt_var  Identifies how to find lat/lon for starting point (must have a lat/lon associated with it) 
+#' @param occasion  Identifies how to find lat/lon for alternative choices such as 'Centroid of Zonal Assignment' 
+#' @param lon.dat Longitude variable in dataset
+#' @param lat.dat Latitude variable in dataset
+#' @param lon.grid Longitude variable in gridfile
+#' @param lat.grid Latitude variable in gridfile
+#' @param cat Variable defining zones or areas. Must be defined for dataset or gridfile.
+#' @param use.grid TRUE/FALSE. If TRUE, griddedDat is used to create centroids
+#' @param weight.var Variable for weighted centroids
 #' @param remove.na TRUE/FALSE Remove points where zone ID not identified. Called in assignment_column function.
 #' @param closest.pt  TRUE/FALSE If true, zone ID identified as the closest polygon to the point. Called in assignment_column function.
+#' @param project Name of project. Used for naming table saved to database
 #' @importFrom DBI dbExecute
 # @importFrom rlist list.append
 #' @return returns list containing information on alternative choice
@@ -36,9 +39,9 @@
 #'         Alt.int 
  
 create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "Port", "Other"), contents, 
-                                      Haul.Trip = c("Haul", "Trip"), alt_var, occasion, lon.dat, lat.dat, lon.grid, lat.grid, 
+                                      haul.trip = c("Haul", "Trip"), alt_var, occasion, lon.dat, lat.dat, lon.grid, lat.grid, 
                                       cat, use.grid = c(TRUE, FALSE),  hull.polygon = c(TRUE, FALSE), remove.na = FALSE, 
-                                      closest.pt = FALSE, griddedDat=NULL, weight.var = NULL) {
+                                      closest.pt = FALSE, griddedDat=NULL, weight.var = NULL, project) {
   
   int <- find_centroid(use.grid = use.grid, dataset = dataset, gridfile = gridfile, 
                        lon.grid = lon.grid, lat.grid = lat.grid, lat.dat = lat.dat, lon.dat = lon.dat, 
@@ -53,7 +56,14 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
       int.data <- subset(int.data, is.na(int.data$ZoneID) == FALSE)
     }
     
+    
+    if(any(is.na(int.data$ZoneID)==TRUE)==TRUE){
+      stop('No NAs allowed for the choice vector. Consider reunning the function using remove.na=TRUE.')
+    }
+    
     choice <- data.frame(int.data$ZoneID)
+    
+    
   #} else if (use.grid == T) {
    # int.data <- assignment_column(dataset = dataset, gridfile = grid.file, hull.polygon = hull.polygon, 
    #                               lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat, 
@@ -115,7 +125,7 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
          zoneHist = zoneHist,                                                                                                                                                                              
          zoneRow = zoneHist[greaterNZ, 3], # zones and choices array                                                                                                                                                  
         # assignChoice = gridInfo['dataColumnLink',,],                                                                                                                                                                            
-         zoneType = ifelse(Haul.Trip == 'Haul', 'Hauls', 'Trips'),
+         zoneType = ifelse(haul.trip == 'Haul', 'Hauls', 'Trips'),
          int = int # centroid data
         )  
    
@@ -170,8 +180,12 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
       }
         
         #write Alt to datafile
-        DBI::dbExecute (fishset_db, "CREATE TABLE IF NOT EXISTS altmatrix (AlternativeMatrix ALT)")
-        DBI::dbExecute (fishset_db, "INSERT INTO altmatrix VALUES (:AlternativeMatrix)", params = list(AlternativeMatrix = list(serialize(Alt, NULL))))
+        single_sql <- paste0(project, 'altmatrix', format(Sys.Date(), format="%Y%m%d"))
+        DBI::dbExecute (fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(AlternativeMatrix ALT)"))
+        DBI::dbExecute (fishset_db, paste("INSERT INTO", single_sql, "VALUES (:AlternativeMatrix)"), 
+                                          params = list(AlternativeMatrix = list(serialize(Alt, NULL))))
+        #DBI::dbExecute (fishset_db, "CREATE TABLE IF NOT EXISTS altmatrix (AlternativeMatrix ALT)")
+        #DBI::dbExecute (fishset_db, "INSERT INTO altmatrix VALUES (:AlternativeMatrix)", params = list(AlternativeMatrix = list(serialize(Alt, NULL))))
         DBI::dbDisconnect(fishset_db)
         
        Alt <<- Alt        
@@ -183,7 +197,7 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
        create_alternative_choice_function <- list()
        create_alternative_choice_function$functionID <- 'create_alternative_choice'
        create_alternative_choice_function$args <- c(deparse(substitute(dataset)), deparse(substitute(gridfile)), case, contents,
-                                                   Haul.Trip, alt_var, occasion, lon.dat, lat.dat, lon.grid,  lat.grid, cat,  use.grid)
+                                                   haul.trip, alt_var, occasion, lon.dat, lat.dat, lon.grid,  lat.grid, cat,  use.grid, project)
        create_alternative_choice_function$kwargs <- list('griddedDat'=griddedDat, 'weight.var'=weight.var)
        functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_alternative_choice_function)
        logbody$fishset_run <- list(infoBodyout, functionBodyout)

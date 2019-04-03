@@ -72,7 +72,7 @@ fishset_compare <- function(x, y, compare=c(TRUE,FALSE)){
 
 load_maindata <- function(dataset, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
   #' Load data into sql database
-  #' @param x name dataframe to be saved
+  #' @param dataset name dataframe to be saved
   #' @param over_write TRUE/FALSE Save over previously saved file or not
   #' @param y name of previously saved dataframe. y must be defined if compare==TRUE
   #' @param project name of project
@@ -91,8 +91,8 @@ load_maindata <- function(dataset, over_write=TRUE, project=NULL, compare=FALSE,
   } else {
     stop("Dataset must contain either latitude and longitude or fishing area designation.")
   }
-  dat[, which(grepl('DATE|TRIP_END|TRIP_START',colnames(dat), ignore.case=TRUE)==TRUE)] <- 
-        lapply(dat[,which(grepl('DATE|TRIP_END|TRIP_START',colnames(dat), ignore.case=TRUE)==TRUE)], date_parser)
+  dataset[, which(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE)==TRUE)] <- 
+        lapply(dataset[,which(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE)==TRUE)], date_parser)
   ## --------- MainDataTableInfo -------------- ##
   MainDataTableInfo <- data.frame(variable_name=colnames(dataset),
                                   units=c(ifelse(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE), 'yyyymmdd',
@@ -135,14 +135,14 @@ load_maindata <- function(dataset, over_write=TRUE, project=NULL, compare=FALSE,
   
 
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  DBI::dbWriteTable(fishset_db, paste(project, 'MainDataTable', Sys.Date(), sep=''),  dataset, overwrite=over_write)
+  DBI::dbWriteTable(fishset_db, paste(project, 'MainDataTableInfo', Sys.Date(), sep=''), MainDataTableInfo, overwrite=over_write)
   DBI::dbWriteTable(fishset_db, paste(project, 'MainDataTable', sep=''),  dataset, overwrite=over_write)
   DBI::dbWriteTable(fishset_db, paste(project, 'MainDataTableInfo', sep=''), MainDataTableInfo, overwrite=over_write)
   DBI::dbDisconnect(fishset_db)
   print('Data saved to database')
-    #write(layout.json.ed(trace, "load_maindata", '', x = deparse(substitute(x)), 
-    #                   msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
-     #   paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
-  
+ 
+    
   if(!exists('logbody')) { 
     logging_code()
   } 
@@ -155,7 +155,9 @@ load_maindata <- function(dataset, over_write=TRUE, project=NULL, compare=FALSE,
     assign("functionBodyout", value = functionBodyout, pos = 1)
     
     assign(paste0(project, 'MainDataTable'), value = dataset, pos=1)
-    cat('\n!!! -> Data saved to the working environment as ', paste0(project, 'MainDataTable.'), 'To improve ease of reproducing work, please use this name in future analysis. <- !!!')
+    cat('\n!!! -> Raw data saved as', paste0(project, 'MainDataTable', Sys.Date()),'.', 
+        'Working data saved to the database as ', paste0(project, 'MainDataTable.'), 
+        'To improve ease of reproducing work, please use this name in future analysis. <- !!!')
 }
 
 main_mod <- function(dataset, x, over_write=TRUE, project=NULL, change.col=NULL, new.unit=NULL, new.type=NULL, new.class=NULL) {
@@ -217,7 +219,8 @@ load_port <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
   fishset_compare(x,y,compare)
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  DBI::dbWriteTable(fishset_db, paste(project, 'PortTable', sep=''), x, overwrite=over_write)
+  DBI::dbWriteTable(fishset_db, paste0(project, 'PortTable', Sys.Date()), x, overwrite=over_write)
+  DBI::dbWriteTable(fishset_db, paste0(project, 'PortTable'), x, overwrite=over_write)
   DBI::dbDisconnect(fishset_db)
   print('Data saved to database')
   #write(layout.json.ed(trace, "load_port", '', x = deparse(substitute(x)), 
@@ -259,7 +262,8 @@ load_aux <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
  fishset_compare(x,y,compare)
  
  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
- DBI::dbWriteTable(fishset_db, paste(project, x, sep=''), x, overwrite=over_write)
+ DBI::dbWriteTable(fishset_db, paste0(project, x, Sys.Date()), x, overwrite=over_write)
+ DBI::dbWriteTable(fishset_db, paste0(project, x), x, overwrite=over_write)
  DBI::dbDisconnect(fishset_db)
  print('Data saved to database')
   #write(layout.json.ed(trace, "load_aux", '', x = deparse(substitute(x)), 

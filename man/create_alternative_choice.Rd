@@ -5,53 +5,55 @@
 \title{Create alternative choice matrix}
 \usage{
 create_alternative_choice(dataset, gridfile, case = c("Centroid", "Port",
-  "Other"), contents, Haul.Trip = c("Haul", "Trip"), alt_var, occasion,
+  "Other"), contents, haul.trip = c("Haul", "Trip"), alt_var, occasion,
   lon.dat, lat.dat, lon.grid, lat.grid, cat, use.grid = c(TRUE, FALSE),
   hull.polygon = c(TRUE, FALSE), remove.na = FALSE,
-  closest.pt = FALSE, griddedDat = NULL, weight.var = NULL)
+  closest.pt = FALSE, griddedDat = NULL, weight.var = NULL, project)
 }
 \arguments{
-\item{dataset}{dataframe or matrix}
+\item{dataset}{Main data frame containing data on hauls or trips}
 
-\item{gridfile}{name of gridded dataset}
+\item{gridfile}{Name of file containing spatial data. Shape, json, and csv formats are supported.}
 
 \item{case}{Centroid='Centroid of Zonal Assignment', Port, Other}
 
 \item{contents}{Value of variable to subset dataset by. For instance, include only zones with at least 10 hauls.}
 
-\item{Haul.Trip}{Whether data is at trip or haul. Default to haul.}
+\item{haul.trip}{Should data be at trip or haul level. Defaults to haul.}
 
-\item{alt_var}{# Identifies how to find lat/lon for starting point (must have a lat/lon associated with it)}
+\item{alt_var}{Identifies how to find lat/lon for starting point (must have a lat/lon associated with it)}
 
-\item{occasion}{# Identifies how to find lat/lon for alternative choices such as 'Centroid of Zonal Assignment'}
+\item{occasion}{Identifies how to find lat/lon for alternative choices such as 'Centroid of Zonal Assignment'}
 
-\item{lon.dat}{#Longitude variable in dataset}
+\item{lon.dat}{Longitude variable in dataset}
 
-\item{lat.dat}{#Latitude variable in dataset}
+\item{lat.dat}{Latitude variable in dataset}
 
-\item{lon.grid}{#Longitude variable in gridfile}
+\item{lon.grid}{Longitude variable in gridfile}
 
-\item{lat.grid}{#Latitude variable in gridfile}
+\item{lat.grid}{Latitude variable in gridfile}
 
-\item{cat}{#Variable defining zones or areas. Must be defined for dataset or gridfile.}
+\item{cat}{Variable defining zones or areas. Must be defined for dataset or gridfile.}
 
-\item{use.grid}{#TRUE/FALSE. If TRUE, gridded data is used to create centroids}
+\item{use.grid}{TRUE/FALSE. If TRUE, griddedDat is used to create centroids}
 
-\item{hull.polygon}{Using in assignmentColumn function. Creates polying using convex hull method.}
+\item{hull.polygon}{Used in assignment_column function. Creates polygon using convex hull method.}
 
 \item{remove.na}{TRUE/FALSE Remove points where zone ID not identified. Called in assignment_column function.}
 
 \item{closest.pt}{TRUE/FALSE If true, zone ID identified as the closest polygon to the point. Called in assignment_column function.}
 
-\item{griddedDat}{dataframe or matrix containing a variable that varies by the map grid. First column should match a column in the dataset. The remaining columns should match the zone IDs in the gridfile.}
+\item{griddedDat}{Data frame containing a variable that varies by the map grid. First column should match a column in the dataset. The remaining columns should match the zone IDs in the gridfile.}
 
-\item{weight.var}{#Variable for weighted centroids}
+\item{weight.var}{Variable for weighted centroids}
+
+\item{project}{Name of project. Used for naming table saved to database}
 }
 \value{
 returns list containing information on alternative choice
 }
 \description{
-Create alternative choice matrix
+Creates a matrix containing information on alternative choices.
 }
 \details{
 Functions returns alternative choice matrix

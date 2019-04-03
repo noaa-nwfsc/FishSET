@@ -2,18 +2,20 @@
 % Please edit documentation in R/assignment_column.R
 \name{assignment_column}
 \alias{assignment_column}
-\title{Generate centroid of polygon of zone or area}
+\title{Generate centroid of polygon of zone or area
+ 
+ Function is called by the create_alternative_choice function to assign each observation to zones defined by a spatial data set.}
 \usage{
 assignment_column(dataset, gridfile, hull.polygon = c(TRUE, FALSE),
   lon.grid, lat.grid, lon.dat, lat.dat, cat, closest.pt = c(TRUE, FALSE),
   epsg = NULL)
 }
 \arguments{
-\item{dataset}{dataframe or matrix}
+\item{dataset}{Main data frame containing data on hauls or trips}
 
-\item{gridfile}{name of gridded dataset}
+\item{gridfile}{Name of file containing spatial data. Shape, json, and csv formats are supported.}
 
-\item{hull.polygon}{If TRUE, create convex hull polygon. Use if data points creating polygon are incomplete.}
+\item{hull.polygon}{If TRUE, created convex hull polygon. Use if spatial data creating polygon are sparse or irregular.}
 
 \item{lon.grid}{Longitude of points from gridfile}
 
@@ -23,17 +25,19 @@ assignment_column(dataset, gridfile, hull.polygon = c(TRUE, FALSE),
 
 \item{lat.dat}{Latitude of points from dataset}
 
-\item{cat}{Categorical variable defining the individual areas or zones in gridfile. If gridfile is class sf, cat should be name of list containing information on zones.}
+\item{cat}{Variable that identifies the individual areas or zones in gridfile. If gridfile is class sf, cat should be name of list containing information on zones.}
 
 \item{closest.pt}{TRUE/FALSE If true, zone ID identified as the closest polygon to the point}
 
-\item{epsg}{ESPG number. See http://spatialreference.org/ to help identify optimal epsg number 2964}
+\item{epsg}{EPSG number. See http://spatialreference.org/ to help identify optimal epsg number}
 }
 \value{
 Returns dataset with new assignment column labeled zoneID
 }
 \description{
 Generate centroid of polygon of zone or area
+ 
+ Function is called by the create_alternative_choice function to assign each observation to zones defined by a spatial data set.
 }
 \details{
 Converts point data from gridfile into polygons and then finds which polygon each point in the dataset is within. Use hull.polygon=T if data is sparse or irregular.

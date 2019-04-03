@@ -1,7 +1,7 @@
 #' Expected catch
 
-#' @param dataset Observe or VMS data
-#' @param gridfile gridded data
+#' @param dataset  Main data frame containing data on hauls or trips
+#' @param gridfile Name of file containing spatial data. Shape, json, and csv formats are supported.
 #' @param catch Catch variable for averaging
 #' @param temporal Daily = Daily time line or sequential = sequential order
 #' @param temp.var Temporal variable for averaging
@@ -155,7 +155,7 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
                      mean, na.rm = T)[, c(1, 2, 3, 6)]
     df2 <- df2[order(df2$numData, df2$spData, df2$tiData), ]
     df2$ID <- paste(df2$numData, df2$spData, sep = "")
-    df2$lag.value <- c(rep(NA, lagTime), df2$catchData, n = -lagTime)
+    df2$lag.value <- c(rep(NA, lagTime), df2$catchData[-c(1:lagTime)])
     df2$lag.value[which(!duplicated(df2$ID))] <- NA
     x <- lagTime
     for (i in 1:(lagTime - 1)) {
@@ -195,6 +195,7 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
       }
     } else if (calc.method == "weights") {
       print("do nothing?")
+      meanCatch <- meanCatchSimple[, -c(1, 2)]
     }
     
     

@@ -13,9 +13,9 @@ create_expectations(dataset, gridfile, catch, temporal = c("daily",
   defineGroup = NULL)
 }
 \arguments{
-\item{dataset}{Observe or VMS data}
+\item{dataset}{Main data frame containing data on hauls or trips}
 
-\item{gridfile}{gridded data}
+\item{gridfile}{Name of file containing spatial data. Shape, json, and csv formats are supported.}
 
 \item{catch}{Catch variable for averaging}
 

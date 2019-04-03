@@ -6,7 +6,8 @@
 \usage{
 make_model_design(dataset, catchID, alternativeMatrix = c("loaded data",
   "gridded data"), lon.dat, lat.dat, indeVarsForModel = "",
-  gridVariablesInclude = "", priceCol = NULL, vesselID = NULL)
+  gridVariablesInclude = "", priceCol = NULL, vesselID = NULL,
+  project)
 }
 \arguments{
 \item{dataset}{dataframe or matrix}
@@ -26,6 +27,8 @@ make_model_design(dataset, catchID, alternativeMatrix = c("loaded data",
 \item{priceCol}{NULL If required, specify which variable contains price data}
 
 \item{vesselID}{NULL If required, specify which varible defines vessel}
+
+\item{project}{Project name. For naming output saved in sql database}
 }
 \value{
 ModelInputData a list containing information on alternative choice
