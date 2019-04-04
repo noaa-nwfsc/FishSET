@@ -1,5 +1,5 @@
 #' Generate haul level trip distance 
-#' 
+#'
 #' @param dataset dataframe or matrix
 #' @param PortTable dataframe with columns Port_Name, Port_Long, Port_Lat
 #' @param trip_id Vector defining unique trips 

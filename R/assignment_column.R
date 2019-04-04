@@ -11,7 +11,6 @@
 #' @param lat.grid Latitude of points from gridfile
 #' @param cat Variable that identifies the individual areas or zones in gridfile. If gridfile is class sf, cat should be name of list containing information on zones. 
 #' @param epsg EPSG number. See http://spatialreference.org/ to help identify optimal epsg number 
-# 2964
 #' @param closest.pt  TRUE/FALSE If true, zone ID identified as the closest polygon to the point
 #' @importFrom sp CRS Polygons Polygon SpatialPolygons SpatialPolygonsDataFrame coordinates
 #' @importFrom rgeos gDistance
