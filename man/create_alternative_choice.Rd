@@ -8,7 +8,7 @@ create_alternative_choice(dataset, gridfile, case = c("Centroid", "Port",
   "Other"), contents, haul.trip = c("Haul", "Trip"), alt_var, occasion,
   lon.dat, lat.dat, lon.grid, lat.grid, cat, use.grid = c(TRUE, FALSE),
   hull.polygon = c(TRUE, FALSE), remove.na = FALSE,
-  closest.pt = FALSE, griddedDat = NULL, weight.var = NULL, project)
+  closest.pt = FALSE, project, griddedDat = NULL, weight.var = NULL)
 }
 \arguments{
 \item{dataset}{Main data frame containing data on hauls or trips}
@@ -43,11 +43,11 @@ create_alternative_choice(dataset, gridfile, case = c("Centroid", "Port",
 
 \item{closest.pt}{TRUE/FALSE If true, zone ID identified as the closest polygon to the point. Called in assignment_column function.}
 
+\item{project}{Name of project. Used for naming table saved to database}
+
 \item{griddedDat}{Data frame containing a variable that varies by the map grid. First column should match a column in the dataset. The remaining columns should match the zone IDs in the gridfile.}
 
 \item{weight.var}{Variable for weighted centroids}
-
-\item{project}{Name of project. Used for naming table saved to database}
 }
 \value{
 returns list containing information on alternative choice

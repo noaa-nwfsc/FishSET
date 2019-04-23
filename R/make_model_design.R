@@ -41,8 +41,8 @@
 # @examples
 
 
-make_model_design <- function(dataset, catchID, alternativeMatrix = c("loaded data", "gridded data"), lon.dat, lat.dat, 
-                               indeVarsForModel = "", gridVariablesInclude = "", priceCol = NULL, vesselID = NULL, project) {
+make_model_design <- function(dataset, catchID, alternativeMatrix = c("loadedData", "griddedData"), lon.dat, lat.dat, project, 
+                               indeVarsForModel = NULL, gridVariablesInclude = NULL, priceCol = NULL, vesselID = NULL) {
   
   if (!exists("Alt")) {
     if (!exists('AltMatrixName')) {
@@ -91,7 +91,7 @@ make_model_design <- function(dataset, catchID, alternativeMatrix = c("loaded da
   
   
   ################### Steps if alternative matrix come from grid file use loaded alternatives matrix
-  if (alternativeMatrix == "grid matrix") {
+  if (alternativeMatrix == "griddedData") {
     
     X <- Alt[['matrix']]
     
@@ -310,20 +310,15 @@ make_model_design <- function(dataset, catchID, alternativeMatrix = c("loaded da
                  params = list(ModelInputData = list(serialize(modelInputData, NULL))))
   DBI::dbDisconnect(fishset_db)
   
-  #write(layout.json.ed(trace, "make_model_design", dataset = deparse(substitute(dataset)), x = "",
-  #                      msg = paste("catchID:", catchID, ", indeVarsForModel:", indeVarsForModel,  ", gridVariablesInclude:",
-  #                                         gridVariablesInclude, ", alternativeMatrix:", alternativeMatrix, ", lon.dat:", 
-  #                                        lon.dat, ", lat.dat:", lat.dat, ", priceCol:", priceCol, ", vesselID:", vesselID)), 
-  #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
-  
-  
+ 
   if(!exists('logbody')) { 
     logging_code()
   } 
   make_model_design_function <- list()
   make_model_design_function$functionID <- 'make_model_design'
-  make_model_design_function$args <- c(deparse(substitute(dataset)), deparse(substitute(dataindex)), catchID, alternativeMatrix, lon.dat, lat.dat)
+  make_model_design_function$args <- c(deparse(substitute(dataset)), catchID, alternativeMatrix, lon.dat, lat.dat, project)
   make_model_design_function$kwargs <- list('indeVarsForModel'=indeVarsForModel, 'gridVariablesInclude'=gridVariablesInclude, 'priceCol'=priceCol, 'vesselID'=vesselID)
+  make_model_design_function$output <- c('')
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (make_model_design_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))

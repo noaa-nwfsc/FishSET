@@ -6,10 +6,11 @@
 
 ##--- CPUE ----##
 #' Create catch per unit effort variable
-cpue <- function(dataset, xWeight, xTime) {
+cpue <- function(dataset, xWeight, xTime, name='cpue') {
   #' @param dataset dataframe or matrix
   #' @param xWeight Weight variable
   #' @param xTime Time variables. Must be weeks, days, hours, or minutes
+  #' @param name Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
   #' @export cpue 
   #' @details Function for generating new or specialized variables. cpue function create catch per unit effort variable. 
   # @example MainDataTable$cpue <- cpue(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', 'DURATION_IN_MIN')   
@@ -32,6 +33,8 @@ cpue <- function(dataset, xWeight, xTime) {
   create_var_cpue_function <- list()
   create_var_cpue_function$functionID <- 'cpue'
   create_var_cpue_function$args <- c(deparse(substitute(dataset)), xWeight, xTime)
+  create_var_cpue_function$kwargs <- list()
+  create_var_cpue_function$output <- paste0(deparse(substitute(dataset)),'$',name)
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_var_cpue_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
@@ -61,8 +64,9 @@ dummy_var <- function(dataset, DumFill = 'TRUE') {
   } 
   create_var_dummy_var_function <- list()
   create_var_dummy_var_function$functionID <- 'dummy_var'
-  create_var_dummy_var_function$args <- deparse(substitute(dataset))
-  create_var_dummy_var_function$kwargs <- list('DumFill'=DumFill)
+  create_var_dummy_var_function$args <- c(deparse(substitute(dataset)), DumFill)
+  create_var_dummy_var_function$kwargs <- list()
+  create_var_dummy_var_function$output <- c("")
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_var_dummy_var_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
@@ -89,6 +93,8 @@ dummy_matrix <- function(dataset, x) {
   create_var_dummy_matrix_function <- list()
   create_var_dummy_matrix_function$functionID <- 'dummy_matrix'
   create_var_dummy_matrix_function$args <- c(deparse(substitute(dataset)), x)
+  create_var_dummy_matrix_function$kwargs <- list()
+  create_var_dummy_matrix_function$output <- c('')
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_var_dummy_matrix_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
@@ -110,10 +116,11 @@ dummy_matrix <- function(dataset, x) {
 # Quantile are set as: .2 (0, 20%, 40%, 60%, 80%, 100%), 
 # .25 (0%, 25%, 50%, 75%, 100%),
 # .4 (0%, 10%, 40%, 90%, 100%)
-set_quants <- function(dataset, x, quant.cat = c(0.2, 0.25, 0.4)) {
+set_quants <- function(dataset, x, quant.cat = c(0.2, 0.25, 0.4), name='set_quants') {
   #' @param dataset dataframe or matrix
   #' @param x Variable to create 
   #' @param quant.cat Quantile categories. Includes 0.2, 0.25, 0.4.
+  #' @param name Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
   #' @export set_quants
   #' @details Function for generating new or specialized variables. setQuants creates a coded variable based on the quantiles of x. 
   # #Quantile are set as: .2 (0, 20%, 40%, 60%, 80%, 100%), .25 (0%, 25%, 50%, 75%, 100%), .4 (0%, 10%, 40%, 90%, 100%).
@@ -129,7 +136,8 @@ set_quants <- function(dataset, x, quant.cat = c(0.2, 0.25, 0.4)) {
   create_var_set_quants_function <- list()
   create_var_set_quants_function$functionID <- 'set_quants'
   create_var_set_quants_function$args <- c(deparse(substitute(dataset)), x, quant.cat)
-  create_var_set_quants_function$output <- deparse(substitute(dataset))
+  create_var_set_quants_function$kwargs <- list()
+  create_var_set_quants_function$output <- paste0(deparse(substitute(dataset)),'$',name)
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_var_set_quants_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
@@ -145,8 +153,8 @@ set_quants <- function(dataset, x, quant.cat = c(0.2, 0.25, 0.4)) {
   var.name <- paste("TRIP_OTC_MT", "quantile", sep = ".")
   var.name <- as.integer(cut(dataset[[x]], quantile(dataset[[x]], probs = prob.def), 
                              include.lowest = TRUE))
-  dataset$var.name = var.name
-  return(dataset)
+  
+  return(var.name)
 }
 
 
@@ -157,8 +165,7 @@ create_var_num <- function(dataset, x, y, method, name) {
   #' @param x Variable to create 
   #' @param y Second variable Note that in division  x is divided by y.
   #' @param method Addition, subtraction, multiplication, division
-  #' @param name Name of new variable
-  #' @export create_var_num
+  #' @param name Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
   #' @details Function for generating new or specialized variables. create_var_num creates a new numeric variable based on defined arithmetic function. New variable is added to the dataset.
   # example MainDataTable <- create_var_num(MainDataTable, 'TRIP_NUMBER_CHINOOK','TRIP_NUMBER_CHUM', 'sum','TimeChange')
   #'
@@ -166,20 +173,14 @@ create_var_num <- function(dataset, x, y, method, name) {
     stop("Variables must be numeric")
    }
   
-   #write(layout.json.ed(trace, "create_var_num", deparse(substitute(dataset)), x = x, 
-   #                    msg = paste("y:", y, ", method:", method, ", name:", name, sep = "")), 
-   #     paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
-  
-   #logging
-   #write(layout.json.ed(trace, "checkModelData", deparse(substitute(dataset)), x, msg = paste("Saved as", save.name)),
-   #                      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
-  if(!exists('logbody')) { 
+   if(!exists('logbody')) { 
     logging_code()
   } 
   create_var_num_function <- list()
    create_var_num_function$functionID <- 'create_var_num'
-   create_var_num_function$args <- c(deparse(substitute(dataset)), x, y, method, name)
-   create_var_num_function$output <- deparse(substitute(dataset))
+   create_var_num_function$args <- c(deparse(substitute(dataset)), x, y, method)
+   create_var_num_function$kwargs <- list()
+   create_var_num_function$output <- paste0(deparse(substitute(dataset)),'$',name)
    functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_var_num_function)
    logbody$fishset_run <- list(infoBodyout, functionBodyout)
    assign("functionBodyout", value = functionBodyout, pos = 1)
@@ -188,18 +189,16 @@ create_var_num <- function(dataset, x, y, method, name) {
    
    
   if (grepl("add|sum", method, ignore.case = TRUE)) {
-    dataset[[name]] <- dataset[[x]] + dataset[[y]]
+    name <- dataset[[x]] + dataset[[y]]
   } else if (grepl("sub", method, ignore.case = TRUE)) {
-    dataset[[name]] <- dataset[[x]] - dataset[[y]]
+    name <- dataset[[x]] - dataset[[y]]
   } else if (grepl("mult", method, ignore.case = TRUE)) {
-    dataset[[name]] <- dataset[[x]] * dataset[[y]]
+    name <- dataset[[x]] * dataset[[y]]
   } else if (grepl("div", method, ignore.case = TRUE)) {
-    dataset[[name]] <- dataset[[x]]/dataset[[y]]
+    name <- dataset[[x]]/dataset[[y]]
   }
 
-  
-  
-  return(dataset)
+  return(name)
 }
 
 
@@ -209,11 +208,12 @@ create_var_num <- function(dataset, x, y, method, name) {
 
 ##---- Temporal  Variables ----##
 #' Create temporal variables
-create_var_temp <- function(dataset, start, end, units = c("week", "day", "hour", "minute")) {
+create_var_temp <- function(dataset, start, end, units = c("week", "day", "hour", "minute"), name='create_var_temp') {
   #' @param dataset dataframe or matrix
   #' @param start Variable indicating start of time period
   #' @param end Variable indicating end of time period
   #' @param units Units of time varibles. Must be weeks, days, hours, or minutes
+  #' @param name Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
   #' @importFrom lubridate interval as.duration dweeks ddays dhours dminutes
   #' @export create_var_temp 
   #' @details Function for generating new or specialized variables. create_var_temp calculates the duration of time between two temporal variables based on defined time format. The new variable is added to the dataset. 
@@ -242,12 +242,13 @@ create_var_temp <- function(dataset, start, end, units = c("week", "day", "hour"
     logging_code()
   } 
   create_var_temp_function <- list()
- create_var_temp_function$functionID <- 'create_var_temp'
- create_var_temp_function$args <- c(deparse(substitute(dataset)), start, end, name, units)
- create_var_temp_function$output <- deparse(substitute(dataset))
- logbody$fishset_run <- list(infoBodyout, functionBodyout)
- write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
- assign("functionBodyout", value = functionBodyout, pos = 1)
+  create_var_temp_function$functionID <- 'create_var_temp'
+  create_var_temp_function$args <- c(deparse(substitute(dataset)), start, end, units)
+  create_var_temp_function$kwargs <- list()
+  create_var_temp_function$output <- paste0(deparse(substitute(dataset)),'$',name)
+  logbody$fishset_run <- list(infoBodyout, functionBodyout)
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  assign("functionBodyout", value = functionBodyout, pos = 1)
 
  return(dur)
 }

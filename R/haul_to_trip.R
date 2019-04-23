@@ -20,10 +20,11 @@ haul_to_trip <- function(dataset, dataindex, varnameindex='variable_name', genTy
                          fun.time = min, fun.numeric = mean, ...) {
   # Create a column that indicates unique trip levels
   #Load in dataindex
-    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
-    single_sql <- paste("select * from ", dataindex, sep='')
-    dataindex <- DBI::dbGetQuery(fishset_db,  single_sql)
-    DBI::dbDisconnect(fishset_db)
+  dataIndex <- dataindex_update(dataset, dataindex)
+#    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+#    single_sql <- paste("select * from ", dataindex, sep='')
+#    dataindex <- DBI::dbGetQuery(fishset_db,  single_sql)
+#    DBI::dbDisconnect(fishset_db)
 
     argList <- (as.character(match.call(expand.dots = FALSE)$...))
   
@@ -40,10 +41,11 @@ haul_to_trip <- function(dataset, dataindex, varnameindex='variable_name', genTy
     int <- int
   }
   
-  drop <- if (length(which(grepl('DUR', names(int[,c(which(as.data.frame(dataindex[dataindex[, varnameindex] == 
+  
+  drop <- if (length(which(grepl('DUR', names(int[,c(which(as.data.frame(dataIndex[dataIndex[, varnameindex] == 
                           colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Time"))]), ignore.case=T)==T)) == 0 ) {
           0 } else {
-            which(grepl('DUR', names(int[,c(which(as.data.frame(dataindex[dataindex[, varnameindex] == 
+            which(grepl('DUR', names(int[,c(which(as.data.frame(dataIndex[dataIndex[, varnameindex] == 
                          colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Time"))]), ignore.case=T)==T)
           }
   # Collapse data based on rowID and defined function
@@ -51,93 +53,94 @@ haul_to_trip <- function(dataset, dataindex, varnameindex='variable_name', genTy
    
     #Nothing listed
         if(length(which(is.na(as.data.frame(
-          dataindex[dataindex[, varnameindex] %in% colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == TRUE)))>0) {
+          dataIndex[dataIndex[, varnameindex] %in% colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == TRUE)))>0) {
           out <- cbind(out, 
-                      stats::aggregate(int[,c(which(is.na(as.data.frame(dataindex[dataindex[, varnameindex] %in% 
+                      stats::aggregate(int[,c(which(is.na(as.data.frame(dataIndex[dataIndex[, varnameindex] %in% 
                                                       colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == TRUE)), 
                                              which(colnames(int)=='rowID'))], 
                                         list(int$rowID), FUN = head,  1)[,-1])
         } 
     #Time - not duration
       if(length(which(as.data.frame(
-        dataindex[dataindex[, varnameindex] %in% colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Time"))>0) {
-        out2 <- stats::aggregate(cbind(
+        dataIndex[dataIndex[, varnameindex] %in% colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Time"))>0) {
+        out2 <-  suppressWarnings ( stats::aggregate(cbind(
                 as.data.frame(lapply(
             if(drop>0){    
-                int[,c(which(as.data.frame(dataindex[dataindex[, varnameindex] %in% 
+                int[,c(which(as.data.frame(dataIndex[dataIndex[, varnameindex] %in% 
                                                colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Time"))][-drop]
               } else{
-                as.data.frame(int[,c(which(dataindex[dataindex[, varnameindex] %in% 
+                as.data.frame(int[,c(which(dataIndex[dataIndex[, varnameindex] %in% 
                                                colnames(int[,-which(colnames(int)=='rowID')]), genTypeName] == "Time"))])
               }, 
-              as.Date)), rowID=int$rowID), list(int$rowID), fun.time, na.rm = TRUE)[,-1]
+              date_parser)), rowID=int$rowID), list(int$rowID), match.fun(fun.time), na.rm=T))[,-1]
           }
-        names(out2)[1:dim(out2)[2]-1] <- names(int)[which(dataindex[dataindex[, varnameindex] %in% 
+        names(out2)[1:dim(out2)[2]-1] <- names(int)[which(dataIndex[dataIndex[, varnameindex] %in% 
                                                           colnames(int[,-which(colnames(int)=='rowID')]), genTypeName] == "Time")] 
         out <- cbind(out, out2)
       #Time - duration
     if(length(which(as.data.frame(
-        dataindex[dataindex[, varnameindex] %in% colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Time"))>0 & 
-                  grepl('dur', colnames(int)[which(as.data.frame(dataindex[dataindex[, varnameindex] %in% 
-                               colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Time")], ignore.case=TRUE) == TRUE) {
+        dataIndex[dataIndex[, varnameindex] %in% colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Time"))>0 & 
+                  any(grepl('dur', colnames(int)[which(as.data.frame(dataIndex[dataIndex[, varnameindex] %in% 
+                               colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Time")], ignore.case=TRUE)) == TRUE) {
       out <- cbind(out, 
-                   stats::aggregate(cbind(
+                   suppressWarnings ( stats::aggregate(cbind(
                     as.data.frame(
-                      int[,c(which(as.data.frame(dataindex[dataindex[, varnameindex] %in% 
+                      int[,c(which(as.data.frame(dataIndex[dataIndex[, varnameindex] %in% 
                                                  colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Time"))][-
-                                    which(grepl('dur', names(int[,c(which(as.data.frame(dataindex[dataindex[, varnameindex] %in% 
+                                    which(grepl('dur', names(int[,c(which(as.data.frame(dataIndex[dataIndex[, varnameindex] %in% 
                                      colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Time"))]), 
-                                     ignore.case=T)==FALSE)]), rowID=int$rowID), list(int$rowID), fun.time, na.rm = TRUE)[,-1])
+                                     ignore.case=T)==FALSE)]), rowID=int$rowID), list(int$rowID), match.fun(fun.time), na.rm = TRUE))[,-1])
       }
     #Other numeric  
     if(length(which(as.data.frame(
-        dataindex[dataindex[, 'variable_name'] %in% colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Other Numeric"))>0) {
+        dataIndex[dataIndex[, varnameindex] %in% colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Other Numeric"))>0) {
       out <- cbind(out, 
-                   stats::aggregate(int[,c(which(as.data.frame(dataindex[dataindex[, varnameindex] %in% 
+                   stats::aggregate(int[,c(which(as.data.frame(dataIndex[dataIndex[, varnameindex] %in% 
                                                    colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Other Numeric"), 
                                            which(colnames(int)=='rowID'))], 
-                  list(int$rowID), fun.numeric, na.action = na.pass)[,-1])
+                  list(int$rowID), match.fun(fun.numeric), na.action = na.pass)[,-1])
     }
     #Latitude
     if(length(which(as.data.frame(
-        dataindex[dataindex[, varnameindex] %in% colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Latitude"))>0) {
+        dataIndex[dataIndex[, varnameindex] %in% colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Latitude"))>0) {
       out <- cbind(out, 
-                   stats::aggregate(int[,c(which(as.data.frame(dataindex[dataindex[, varnameindex] %in% 
+                   stats::aggregate(int[,c(which(as.data.frame(dataIndex[dataIndex[, varnameindex] %in% 
                                                  colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Latitude"), 
                                            which(colnames(int)=='rowID'))], 
                   list(int$rowID),  FUN = head, 1)[,-1])
     }
     #Coded
     if(length(which(as.data.frame(
-        dataindex[dataindex[, varnameindex] %in% colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Code Numeric"))>0) {
+        dataIndex[dataIndex[, varnameindex] %in% colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Code Numeric"))>0) {
       out <- cbind(out, 
-                   stats::aggregate(int[,c(which(as.data.frame(dataindex[dataindex[, varnameindex] %in% 
+                   stats::aggregate(int[,c(which(as.data.frame(dataIndex[dataIndex[, varnameindex] %in% 
                                                  colnames(int[,-which(colnames(int)=='rowID')]), genTypeName])== "Code Numeric"), 
                                            which(colnames(int)=='rowID'))], 
                   list(int$rowID),  FUN = head, 1)[,-1])
     }
     #Coded
     if(length(which(as.data.frame(
-        dataindex[dataindex[, varnameindex] %in% colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Code"))>0) {
+        dataIndex[dataIndex[, varnameindex] %in% colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Code"))>0) {
       out <- cbind(out, 
-                   stats::aggregate(int[,c(which(as.data.frame(dataindex[dataindex[, varnameindex] %in% 
+                   stats::aggregate(int[,c(which(as.data.frame(dataIndex[dataIndex[, varnameindex] %in% 
                                                  colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Code"), 
                                            which(colnames(int)=='rowID'))], 
               list(int$rowID),  FUN = head, 1)[,-1])
     }
     #Coded
     if(length(which(as.data.frame(
-      dataindex[dataindex[, varnameindex] %in% colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Code String"))>0) {
+      dataIndex[dataIndex[, varnameindex] %in% colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Code String"))>0) {
       out <- cbind(out, 
-                   stats::aggregate(int[,c(which(as.data.frame(dataindex[dataindex[, varnameindex] %in%
+                   stats::aggregate(int[,c(which(as.data.frame(dataIndex[dataIndex[, varnameindex] %in%
                                                  colnames(int[,-which(colnames(int)=='rowID')]), genTypeName]) == "Code String"),
                                            which(colnames(int)=='rowID'))], 
               list(int$rowID),  FUN = head, 1)[,-1])
     }
-    #Not in the dataindex file
-    if(length(colnames(int)[!(colnames(int) %in% dataindex$variable_name)])>0) {
+    #Not in the dataIndex file
+    if(length(colnames(int[,-grep('rowID', colnames(int[,-grep('rowID', colnames(int))]))])
+              [!(colnames(int[,-grep('rowID', colnames(int))]) %in% dataIndex[, varnameindex])])>0) {
       out <- cbind(out, 
-                   stats::aggregate(int[,c(colnames(int)[!(colnames(int) %in% dataindex$variable_name)])], 
+                   stats::aggregate(int[,c(colnames(int)[!(colnames(int) %in% dataIndex[, varnameindex])])], 
                                         list(int$rowID),  FUN = head, 1)[,-1])
     }
 
@@ -147,19 +150,14 @@ haul_to_trip <- function(dataset, dataindex, varnameindex='variable_name', genTy
   out <- data.frame(out)
 
     
-    
-   #write(layout.json.ed(trace, 'haul_to_trip', dataset=deparse(substitute(dataset)), x='', 
-   #                    msg=paste('dataindex:', deparse(substitute(dataindex)),  ', varnameindex:', varnameindex, ',
-   #                             genTypeName:', genTypeName, ',  fun.time:' , fun.time, ', fun.numeric:', fun.numeric)), 
-   #     paste(getwd(),'/Logs/',Sys.Date(),'.json', sep=''), append=T )
-  
   if(!exists('logbody')) { 
     logging_code()
   } 
   haul_to_trip_function <- list()
    haul_to_trip_function$functionID <- 'haul_to_trip'
-   haul_to_trip_function$args <- c(deparse(substitute(dataset)), dataindex, varnameindex, genTypeName)
-   #haul_to_trip_function$kwargs <- list('fun.time'=fun.time, 'fun.numeric'=fun.numeric, 'argList'=idmaker)
+   haul_to_trip_function$args <- c(paste0('dataset=',deparse(substitute(dataset))), dataindex, varnameindex, genTypeName)
+   haul_to_trip_function$kwargs <- list(fun.time, fun.numeric, ...)
+   haul_to_trip_function$output <- c(deparse(substitute(dataset)))
    functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (haul_to_trip_function)
    logbody$fishset_run <- list(infoBodyout, functionBodyout)
    write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))

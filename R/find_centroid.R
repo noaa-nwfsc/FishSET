@@ -126,20 +126,7 @@ find_centroid <- function(use.grid, dataset, gridfile, lon.grid, lat.grid, lon.d
   }
   }
      
-    print(suppressWarnings(readLines(tmp)))
-    if(!exists('logbody')) { 
-      logging_code()
-    } 
-    find_centroid_function <- list()
-    find_centroid_function$functionID <- 'find_centroid'
-    find_centroid_function$args <- c(deparse(substitute(dataset)))
-    find_centroid_function$msg <- suppressWarnings(readLines(tmp))
-    functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (find_centroid_function)
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-    write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-    assign("functionBodyout", value = functionBodyout, pos = 1)
-    rm(tmp)
-    
+
     return(int)
 }
 

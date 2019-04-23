@@ -70,6 +70,8 @@ data_check <- function(dataset, x, dataindex) {
         data_check_function <- list()
         data_check_function$functionID <- 'data_check'
         data_check_function$args <- c(deparse(substitute(dataset)), x, dataindex)
+        data_check_function$kwargs <- list()
+        data_check_function$output <- c('')
       functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (data_check_function)
       logbody$fishset_run <- list(infoBodyout, functionBodyout)
       write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))

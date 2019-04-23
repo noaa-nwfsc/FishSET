@@ -148,7 +148,9 @@ load_maindata <- function(dataset, over_write=TRUE, project=NULL, compare=FALSE,
   } 
     load_maindata_function <- list()
     load_maindata_function$functionID <- 'load_maindata'
-    load_maindata_function$args <- c(deparse(substitute(dataset)), project, compare, deparse(substitute(y)))
+    load_maindata_function$args <- c(deparse(substitute(dataset)), over_write, project, compare, deparse(substitute(y)))
+    load_maindata_function$kwargs <- list()
+    load_maindata_function$output <- c('')
     functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_maindata_function)
     logbody$fishset_run <- list(infoBodyout, functionBodyout)
     write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
@@ -184,7 +186,9 @@ main_mod <- function(dataset, x, over_write=TRUE, project=NULL, change.col=NULL,
   } 
   main_mod_function <- list()
   main_mod_function$functionID <- 'main_mod'
-  main_mod_function$args <- c(deparse(substitute(dataset)), deparse(substitute(x)), project, change.col, new.unit, new.type, new.class)
+  main_mod_function$args <- c(deparse(substitute(dataset)), deparse(substitute(x)), over_write, project, change.col, new.unit, new.type, new.class)
+  main_mod_function$kwargs <- list()
+  main_mod_function$output <- c('')
   main_mod_function$function_calls[[length(functionBodyout$function_calls)+1]] <- (main_mod_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
@@ -233,7 +237,9 @@ load_port <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
   
   load_port_function <- list()
   load_port_function$functionID <- 'load_port'
-  load_port_function$args <- c(deparse(substitute(x)), project, compare, deparse(substitute(y)))
+  load_port_function$args <- c(deparse(substitute(x)), over_write, project, compare, deparse(substitute(y)))
+  load_port_function$kwargs <- list()
+  load_port_function$output <- c('')
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_port_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
@@ -276,7 +282,9 @@ load_aux <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
  
  load_aux_function <- list()
   load_aux_function$functionID <- 'load_aux'
-  load_aux_function$args <- c(deparse(substitute(x)), project, compare, deparse(substitute(y)))
+  load_aux_function$args <- c(deparse(substitute(x)), over_write, project, compare, deparse(substitute(y)))
+  load_aux_function$kwargs <- list()
+  load_aux_function$output <- c('')
   load_aux_function$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_aux_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
@@ -316,9 +324,65 @@ load_seasonal <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NUL
   
   load_seasonal_function <- list()
   load_seasonal_function$functionID <- 'load_seasonal'
-  load_seasonal_function$args <- c(deparse(substitute(x)), project, compare, deparse(substitute(y)))
+  load_seasonal_function$args <- c(deparse(substitute(x)), over_write, project, compare, deparse(substitute(y)))
+  load_seasonal_function$kwargs <- list()
+  load_seasonal_function$output <- c()
   load_seasonal_function$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_seasonal_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
+}
+
+
+dataindex_update <- function(dataset, dataindex){
+  #' Update dataindex file
+  #' @param dataset name main dataframe
+  #' @param dataindex Name of dataindex file saved in the database
+  #' @export
+  
+MainDataTableInfo <- data.frame(variable_name=colnames(dataset),
+                                units=c(ifelse(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE), 'yyyymmdd',
+                                               ifelse(grepl('MIN',colnames(dataset), ignore.case=TRUE), 'min',
+                                                      ifelse(grepl('FATHOMS',colnames(dataset)), 'fathoms',
+                                                             ifelse(grepl('HOURS|CHINOOK|CHUM|PROPORTION|SIZE', colnames(dataset), ignore.case=TRUE), 'numeric',
+                                                                    ifelse(grepl('DOLLARS',colnames(dataset), ignore.case=TRUE), 'dollars',
+                                                                           ifelse(grepl('POUNDS|LBS',colnames(dataset), ignore.case=TRUE), 'lbs',
+                                                                                  ifelse(grepl('Lon|Lat|',colnames(dataset), ignore.case=TRUE), 'decimal degrees',
+                                                                                         ifelse(grepl('PERCENT',colnames(dataset), ignore.case=TRUE), 'percent',
+                                                                                                ifelse(grepl('MT',colnames(dataset), ignore.case=TRUE), 'metric tons',
+                                                                                                       ifelse(grepl('WEEK',colnames(dataset), ignore.case=TRUE), 'WK',
+                                                                                                              ifelse(grepl('WEEK',colnames(dataset), ignore.case=TRUE), 'Y/N',NA
+                                                                                                              )))))))))))),
+                                generalType=c(ifelse(grepl('DATE|MIN',colnames(dataset), ignore.case=TRUE), 'Time',
+                                                     ifelse(grepl('IFQ',colnames(dataset), ignore.case=TRUE), 'Flag',
+                                                            ifelse(grepl('ID',colnames(dataset), ignore.case=TRUE), 'Code',
+                                                                   ifelse(grepl('Long|Lat',colnames(dataset), ignore.case=TRUE), 'Latitude',
+                                                                          ifelse(grepl('TYPE|PROCESSOR|LOCATION|METHOD',colnames(dataset), ignore.case=TRUE), 'Code String',
+                                                                                 ifelse(grepl('CHINOOK|CHUM|FATHOMS|DOLLARS|LBS|PROPORTION|VALUE|PERCENT|MT',colnames(dataset), ignore.case=TRUE), 'Other Numeric',
+                                                                                        ifelse(grepl('HAUL|AREA|PERFORMANCE|PERMIT',colnames(dataset), ignore.case=TRUE), 'Code Numeric', NA)
+                                                                                 ))))))),
+                                isXY=ifelse(grepl('HOURS|CHINOOK|CHUM|PROPORTION|SIZE', colnames(dataset), ignore.case=TRUE), 1,0),
+                                isID=ifelse(grepl('ID', colnames(dataset), ignore.case=TRUE), 1,0),
+                                variable_link=rep(NA, length(colnames(dataset))),
+                                isTime=ifelse(grepl('DATE|MIN', colnames(dataset), ignore.case=TRUE), 1,0),
+                                isCatch=ifelse(grepl('CATCH|POUNDS|LBS', colnames(dataset), ignore.case=TRUE), 1,0),
+                                isEffort=ifelse(grepl('DURATION',colnames(dataset), ignore.case=TRUE), 1,0),
+                                isCPUE=rep(0, length(colnames(dataset))),
+                                isLon=ifelse(grepl('LON',colnames(dataset), ignore.case=TRUE), 1,0),
+                                isLat=ifelse(grepl('LAT',colnames(dataset), ignore.case=TRUE), 1,0),
+                                isValue=ifelse(grepl('DOLLARS',colnames(dataset), ignore.case=TRUE), 1,0),
+                                isZoneArea=ifelse(grepl('AREA',colnames(dataset), ignore.case=TRUE), 1,0),
+                                isPort=ifelse(grepl('PORT', colnames(dataset), ignore.case=TRUE), 1,0),
+                                isPrice= rep(0, length(colnames(dataset)), ignore.case=TRUE),
+                                isTrip=ifelse(grepl('TRIP', colnames(dataset), ignore.case=TRUE), 1,0),
+                                isHaul=ifelse(grepl('HAUL', colnames(dataset), ignore.case=TRUE), 1,0),
+                                isOther=rep(0, length(colnames(dataset))),
+                                tableLink=rep(NA, length(colnames(dataset))))
+
+
+fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+DBI::dbWriteTable(fishset_db, dataindex, MainDataTableInfo, overwrite=TRUE)
+DBI::dbDisconnect(fishset_db)
+
+return(MainDataTableInfo)
 }

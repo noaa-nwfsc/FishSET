@@ -4,7 +4,8 @@
 \alias{set_quants}
 \title{Create quantile variable}
 \usage{
-set_quants(dataset, x, quant.cat = c(0.2, 0.25, 0.4))
+set_quants(dataset, x, quant.cat = c(0.2, 0.25, 0.4),
+  name = "set_quants")
 }
 \arguments{
 \item{dataset}{dataframe or matrix}
@@ -12,6 +13,8 @@ set_quants(dataset, x, quant.cat = c(0.2, 0.25, 0.4))
 \item{x}{Variable to create}
 
 \item{quant.cat}{Quantile categories. Includes 0.2, 0.25, 0.4.}
+
+\item{name}{Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.}
 }
 \description{
 Create quantile variable

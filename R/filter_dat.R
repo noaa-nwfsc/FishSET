@@ -1,4 +1,4 @@
-filter_data <- function(dataset, x, exp, save.filter = FALSE, flog.dat = TRUE) {
+filter_table <- function(dataset, x, exp, save.filter = FALSE, flog.dat = TRUE) {
   #'  Define and store filters
   #'
   #' @param dataset dataframe or matrix over which to apply filter
@@ -8,7 +8,7 @@ filter_data <- function(dataset, x, exp, save.filter = FALSE, flog.dat = TRUE) {
   #' @param flog.dat Whether to print filterTable to the log file
   #' @importFrom utils head read.csv write.csv
   #' @keywords filter, subset
-  #' @export filter_data
+  #' @export filter_table
   #' @return  filterTable saved into the global environment. The data table will grow with each run of the function.
   #' @details This function allows users to define and store data filters which can then be applied to the data. The filter dataframe can be saved and will be logged in the log file.
   
@@ -30,8 +30,10 @@ filter_data <- function(dataset, x, exp, save.filter = FALSE, flog.dat = TRUE) {
       logging_code()
     } 
     filter_data_function <- list()
-    filter_data_function$functionID <- 'filter_data'
-    filter_data_function$args <- c(deparse(substitute(dataset)), x, exp)
+    filter_data_function$functionID <- 'filter_table'
+    filter_data_function$args <- c(deparse(substitute(dataset)), x, exp, save.filter, flog.dat)
+    filter_data_function$kwargs <- list()
+    filter_data_function$output <- c('')
     filter_data_function$msg <- filterTable
     functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (filter_data_function)
     logbody$fishset_run <- list(infoBodyout, functionBodyout)
@@ -77,6 +79,7 @@ filter_dat <- function(dataset, exp, use.filter.table = F) {
     filter_dat_function <- list()
     filter_dat_function$functionID <- 'filter_dat'
     filter_dat_function$args <- c(deparse(substitute(dataset)), exp, use.filter.table)
+    filter_dat_function$kwargs <- list()
     filter_dat_function$output <- deparse(substitute(dataset))
     filter_dat_function$msg <- paste("Rows have been removed based on", filterTable[exp, 3])
     functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (filter_dat_function)
@@ -97,6 +100,7 @@ filter_dat <- function(dataset, exp, use.filter.table = F) {
     filter_dat_function <- list()
     filter_dat_function$functionID <- 'filter_dat'
     filter_dat_function$args <- c(deparse(substitute(dataset)), exp, use.filter.table)
+    filter_dat_function$kwargs <- list()
     filter_dat_function$output <- deparse(substitute(dataset))
     filter_dat_function$msg <- paste("Rows have been removed based on", exp)
     functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (filter_dat_function)

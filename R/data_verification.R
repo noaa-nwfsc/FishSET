@@ -72,6 +72,8 @@ data_verification <- function(dataset) {
   data_verification_function <- list()
   data_verification_function$functionID <- 'data_verification'
   data_verification_function$args <- c(deparse(substitute(dataset)))
+  data_verification_function$kwargs <- list()
+  data_verification_function$output <- c('')
   data_verification_function$msg <- suppressWarnings(readLines(tmp))
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- data_verification_function
   logbody$fishset_run <- list(infoBodyout, functionBodyout)

@@ -1,4 +1,4 @@
-#' Outlier check function
+#' Outlier check functions
 
 outlier_table <- function(dataset, x) {
   #' Evaluate outliers in a table output
@@ -239,6 +239,8 @@ outlier_remove <- function(dataset, x, outlier.mod = "none", remove = T) {
       outlier_remove_function <- list()
       outlier_remove_function$functionID <- 'outlier_remove'
       outlier_remove_function$args <- c(deparse(substitute(dataset)), deparse(substitute(x)), outlier.mod, remove)
+      outlier_remove_function$kwargs <- list()
+      outlier_remove_function$output <- c('')
       outlier_remove_function$msg <- paste("outliers removed using", outlier.mod)
       functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (outlier_remove_function)
       logbody$fishset_run <- list(infoBodyout, functionBodyout)

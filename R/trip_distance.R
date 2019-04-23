@@ -118,8 +118,9 @@ create_trip_distance <- function(dataset, PortTable, trip_id, starting_port, sta
   } 
   create_TD_function <- list()
   create_TD_function$functionID <- 'create_TD'
-  create_TD_function$args <- c(deparse(substitute(dataset)), PortTable, trip_id, starting_port, starting_haul, ending_haul, ending_port, haul_order)
+  create_TD_function$args <- c(deparse(substitute(dataset)), deparse(substitute(PortTable)), trip_id, starting_port, starting_haul, ending_haul, ending_port, haul_order)
   create_TD_function$kwargs <- list('a'=a, 'f'=f)
+  create_TD_function$output <- c('')
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_TD_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))

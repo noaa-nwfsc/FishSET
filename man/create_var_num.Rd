@@ -15,7 +15,7 @@ create_var_num(dataset, x, y, method, name)
 
 \item{method}{Addition, subtraction, multiplication, division}
 
-\item{name}{Name of new variable}
+\item{name}{Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.}
 }
 \description{
 Create numeric variables

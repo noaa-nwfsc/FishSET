@@ -8,7 +8,7 @@
 #' @param save.name name for verified and saved data
 #' @return Returns statements as to whether issues in the data may exist
 #' @export check_model_data
-#' @details Checks data to be used for modelling. Checks for presence of NaNs and Inf. 
+#' @details Checks data to be used for modelling. Checks for presence of NAs, NaNs and Inf. 
 #'    The verified data will not save if NaNs or infinite values are in the dataset. 
 #'    Verified data can then be saved as sql table or csv file. 
 #'    When saving to sql, the modified table will be saved and the previous, unmodified version of the table 
@@ -21,13 +21,20 @@
 
 check_model_data <- function(dataset, uniqueID, save.name, save.file = "sqlfile") {
     tmp <- tempfile()
-    if (any(apply(dataset, 2, function(x) any(is.na(x)))==TRUE)) {
+    if (any(apply(dataset, 2, function(x) any(is.nan(x)))==TRUE)) {
     cat(paste("\nNaNs are present in", 
-              names(which(apply(dataset, 2, function(x) any(is.na(x)))==TRUE))), file=tmp, append=T)
+              names(which(apply(dataset, 2, function(x) any(is.nan(x)))==TRUE))), file=tmp, append=T)
     stop(paste("\nNaNs are present in", 
-               names(which(apply(dataset, 2, function(x) any(is.na(x)))==TRUE))))
+               names(which(apply(dataset, 2, function(x) any(is.nan(x)))==TRUE))))
   }
-  
+
+    if (any(apply(dataset, 2, function(x) any(is.na(x)))==TRUE)) {
+      cat(paste("\nNAs are present in", 
+                names(which(apply(dataset, 2, function(x) any(is.na(x)))==TRUE))), file=tmp, append=T)
+      stop(paste("\nNAs are present in", 
+                 names(which(apply(dataset, 2, function(x) any(is.na(x)))==TRUE))))
+    }
+    
   # is.inf
   if (any(apply(dataset, 2, function(x) any(is.infinite(x)))==TRUE)) {
     cat(paste("\nInfinite values are present in",
@@ -70,6 +77,8 @@ check_model_data <- function(dataset, uniqueID, save.name, save.file = "sqlfile"
   checkModelData_function <- list()
   checkModelData_function$functionID <- 'check_model_data'
   checkModelData_function$args <- c(deparse(substitute(dataset)), uniqueID, save.name, save.file)
+  checkModelData_function$kwargs <- list()
+  checkModelData_function$output <-  c('')
   checkModelData_function$msg <- suppressWarnings(readLines(tmp))
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- checkModelData_function
   logbody$fishset_run <- list(infoBodyout, functionBodyout)

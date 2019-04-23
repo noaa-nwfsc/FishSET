@@ -8,6 +8,7 @@
 #' @param methodname Optimization method (see optim options)
 #' @param func.name Name of likelihood function for model result output table
 #' @param project Name of project for naming output table in sql database
+#' @param name Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
 #' @importFrom DT DTOutput
 #' @param select.model Return an interactive data table that allows users to select and save table of best models based on measures of fit 
 #' @importFrom DBI dbExecute dbWriteTable dbExistsTable dbReadTable dbGetQuery dbDisconnect
@@ -33,7 +34,7 @@
 
 
 
-discretefish_subroutine <- function(x, initparams, optimOpt, func, methodname, func.name, select.model=FALSE, project) {
+discretefish_subroutine <- function(x, initparams, optimOpt, func, methodname, func.name, select.model=FALSE, project, name='discretefish_subroutine') {
   catch <- as.matrix(x[['catch']])
   choice <- x[['choice']]
   distance <- x[['zonalChoices']]
@@ -279,7 +280,9 @@ discretefish_subroutine <- function(x, initparams, optimOpt, func, methodname, f
   } 
   discretefish_subroutine_function <- list()
   discretefish_subroutine_function$functionID <- 'discretefish_subroutine'
-  discretefish_subroutine_function$args <- c(catch, choice, distance, otherdat, initparams, optimOpt, func, methodname, func.name, project)
+  discretefish_subroutine_function$args <- c(deparse(substitute(x)), initparams, optimOpt, func, methodname, func.name, project)
+  discretefish_subroutine_function$kwargs <- list()
+  discretefish_subroutine_function$output <- c(name)
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (discretefish_subroutine_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))

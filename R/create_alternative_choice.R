@@ -41,18 +41,18 @@
 create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "Port", "Other"), contents, 
                                       haul.trip = c("Haul", "Trip"), alt_var, occasion, lon.dat, lat.dat, lon.grid, lat.grid, 
                                       cat, use.grid = c(TRUE, FALSE),  hull.polygon = c(TRUE, FALSE), remove.na = FALSE, 
-                                      closest.pt = FALSE, griddedDat=NULL, weight.var = NULL, project) {
-  
-  int <- find_centroid(use.grid = use.grid, dataset = dataset, gridfile = gridfile, 
+                                      closest.pt = FALSE, project, griddedDat=NULL, weight.var = NULL) {
+  dat <- dataset
+  int <- find_centroid(use.grid = use.grid, dataset = dat, gridfile = gridfile, 
                        lon.grid = lon.grid, lat.grid = lat.grid, lat.dat = lat.dat, lon.dat = lon.dat, 
                        cat = cat, weight.var = weight.var)
   
   #if (!is.empty(weight.var)) {
-    int.data <- assignment_column(dataset = dataset, gridfile = gridfile, hull.polygon = hull.polygon, 
+    int.data <- assignment_column(dataset = dat, gridfile = gridfile, hull.polygon = hull.polygon, 
                                   lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat, 
                                   lat.dat = lat.dat, cat = cat, closest.pt = closest.pt)
     if (remove.na == TRUE) {
-      dataset <- dataset[-which(is.na(int.data$ZoneID) == TRUE), ]
+      dat <- dat[-which(is.na(int.data$ZoneID) == TRUE), ]
       int.data <- subset(int.data, is.na(int.data$ZoneID) == FALSE)
     }
     
@@ -86,11 +86,11 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
     C <- match(int.data$ZoneID, unique(int.data$ZoneID))  #  match(unlist(gridInfo['assignmentColumn',,]), unique(unlist(gridInfo['assignmentColumn',,])))
   
     } else {
-    a <- names(dataset[, which(grepl("zon|area", colnames(dataset), ignore.case = TRUE) == TRUE)])  #find(zp)   #find data that is zonal type                                                                                                                                                                                            
+    a <- names(dat[, which(grepl("zon|area", colnames(dat), ignore.case = TRUE) == TRUE)])  #find(zp)   #find data that is zonal type                                                                                                                                                                                            
     
     # [B,I,C]=unique([gridInfo.assignmentColumn(~isnan(gridInfo.assignmentColumn)),
     # data(a(v)).dataColumn(~isnan(gridInfo.assignmentColumn),:) ],'rows');%FIXME check that the order of output zones is consistent
-    temp <- cbind(as.character(int.data$ZoneID), dataset[[a[1]]])  #cbind(unlist(gridInfo['assignmentColumn',,]), unlist(dataset[[a]]))
+    temp <- cbind(as.character(int.data$ZoneID), dat[[a[1]]])  #cbind(unlist(gridInfo['assignmentColumn',,]), unlist(dataset[[a]]))
     B <- unique(temp)  # Correct ->> Needs to be lat/long
     C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*"))  #    C <- data(a(v))[dataColumn,'rows'] 
   }
@@ -146,7 +146,7 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
         #If gridded data is not an array, need to create matrix
         if (dim(gridVar)[1]==1) { #(is.empty(gridVar.row.array)){ #1d
           biG <- match(Alt[['zoneRow']], int) #[aiG,biG] = ismember(Alt.zoneRow, gridVar.col.array) #FIXME FOR STRING CONNECTIONS
-          numRows <- nrow(dataset) #size(data(1).dataColumn,1)  #
+          numRows <- nrow(dat) #size(data(1).dataColumn,1)  #
           if (!any(biG)){
             stop('The map associated to the data and the grid information in the gridded variable do not overlap.')
           }
@@ -159,12 +159,12 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
             stop('The map associated to the data and the grid information in the gridded variable do not overlap.')
           }
           
-          if (names(gridVar)[1] %in% colnames(dataset)==FALSE){
+          if (names(gridVar)[1] %in% colnames(dat)==FALSE){
             #wrong occourance variable to connect data
             stop('The data in the workspace and the loaded grid file do not have a matching variable for connecting.')
           }
           
-          biD <- match(dataset[,names(gridVar)[1]], gridVar[,1]) #[aiD,biD]=ismember(data(occasVar).dataColumn,gridVar.row.array)
+          biD <- match(dat[,names(gridVar)[1]], gridVar[,1]) #[aiD,biD]=ismember(data(occasVar).dataColumn,gridVar.row.array)
           
           if (!any(biD)){
             print('The data in the workspace and the loaded grid file do not have a matching variable for connecting.')
@@ -197,13 +197,17 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
        create_alternative_choice_function <- list()
        create_alternative_choice_function$functionID <- 'create_alternative_choice'
        create_alternative_choice_function$args <- c(deparse(substitute(dataset)), deparse(substitute(gridfile)), case, contents,
-                                                   haul.trip, alt_var, occasion, lon.dat, lat.dat, lon.grid,  lat.grid, cat,  use.grid, project)
-       create_alternative_choice_function$kwargs <- list('griddedDat'=griddedDat, 'weight.var'=weight.var)
+                                                   haul.trip, alt_var, occasion, lon.dat, lat.dat, lon.grid,  lat.grid, cat,  use.grid, 
+                                                   hull.polygon, remove.na, closest.pt, project)
+       create_alternative_choice_function$kwargs <- list('griddedDat'= griddedDat, 'weight.var'= weight.var)
+       create_alternative_choice_function$output <- c()
        functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_alternative_choice_function)
        logbody$fishset_run <- list(infoBodyout, functionBodyout)
        write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
        assign("functionBodyout", value = functionBodyout, pos = 1)
 }                                                                                                                                                                                                                           
    
-    
+
+
+
     

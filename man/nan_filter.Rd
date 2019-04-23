@@ -4,8 +4,7 @@
 \alias{nan_filter}
 \title{Filters NaN's from variable}
 \usage{
-nan_filter(dataset, x, replace = F, remove = F,
-  rep.value = mean(dataset[, x], na.rm = T))
+nan_filter(dataset, x, replace = F, remove = F, rep.value = NA)
 }
 \arguments{
 \item{dataset}{dataframe or matrix over which to check for NaNs}

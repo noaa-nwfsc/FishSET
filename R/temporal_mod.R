@@ -44,6 +44,8 @@ temporal_mod <- function(dataset, x, fun.mod = "", define.format) {
   temp_mod_function <- list()
   temp_mod_function$functionID <- 'temp_mod'
   temp_mod_function$args <- c(deparse(substitute(dataset)), x, fun.mod, define.format)
+  temp_mod_function$kwargs <- list()
+  temp_mod_function$output <- c('')
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (temp_mod_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))

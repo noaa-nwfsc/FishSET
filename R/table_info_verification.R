@@ -45,6 +45,8 @@ table_info_verification <- function(dataset, dataindex) {
   table_info_verification_function <- list()
   table_info_verification_function$functionID <- 'table_info_verification'
   table_info_verification_function$args <- c(deparse(substitute(dataset)), deparse(substitute(dataindex)))
+  table_info_verification_function$kwargs <- list()
+  table_info_verification_function$output <- c('')
   table_info_verification_function$msg <- suppressWarnings(readLines(tmp))
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (table_info_verification_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)

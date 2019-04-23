@@ -4,7 +4,7 @@
 \alias{cpue}
 \title{Create catch per unit effort variable}
 \usage{
-cpue(dataset, xWeight, xTime)
+cpue(dataset, xWeight, xTime, name = "cpue")
 }
 \arguments{
 \item{dataset}{dataframe or matrix}
@@ -12,6 +12,8 @@ cpue(dataset, xWeight, xTime)
 \item{xWeight}{Weight variable}
 
 \item{xTime}{Time variables. Must be weeks, days, hours, or minutes}
+
+\item{name}{Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.}
 }
 \description{
 Create catch per unit effort variable

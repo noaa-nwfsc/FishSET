@@ -33,8 +33,8 @@
 
 
 create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", "sequential"), temp.var=NULL, 
-                                calc.method = c("standard average", "simple lag", "weights"), lag.method = c("simple", "grouped"),
-                                empty.catch = c(NULL, 0, "all catch", "grouped catch"), empty.expectation = c(NULL, 1e-04, 0),  
+                                calc.method = c("standardAverage", "simpleLag", "weights"), lag.method = c("simple", "grouped"),
+                                empty.catch = c(NULL, 0, "allCatch", "groupedCatch"), empty.expectation = c(NULL, 1e-04, 0),  
                                 temp.window = 1, temp.lag = 1, dummy.exp = FALSE, AltMatrixName = NULL, defineGroup = NULL) {
   
   if (!exists("Alt")) {
@@ -138,9 +138,9 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
       replaceValue <- NA
     } else if (empty.catch == "0") {
       replaceValue <- 0
-    } else if (empty.catch == "all catch") {
+    } else if (empty.catch == "allCatch") {
       replaceValue <- mean(catchData, na.rm = T)
-    } else if (empty.catch == "grouped catch") {
+    } else if (empty.catch == "groupedCatch") {
       replaceValue <- aggregate(catchData, list(C), mean, na.rm = T)
     }
     
@@ -169,9 +169,9 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
     dummyTrack <- meanCatchSimple[, -c(1, 2)]  # preallocate for tracking no value
     
     
-    if (calc.method == "standard average") {
+    if (calc.method == "standardAverage") {
       meanCatch <- meanCatchSimple[, -c(1, 2)]
-    } else if (calc.method == "simple lag") {
+    } else if (calc.method == "simpleLag") {
       # at this point could use means to get a regression compared to a lag of the same
       # calculation at all zones, then use that to predict...
       
@@ -297,13 +297,6 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
      #newGridVar.file=[]
      )
   assign("ExpectedCatch", value = ExpectedCatch, pos = 1)
-#write(layout.json.ed(trace, 'create_expectations', deparse(substitute(dataset)), x='', 
-#                          msg=paste('gridfile:', deparse(substitute(gridfile)), ', catch:', deparse(substitute(catch)), 
-#                                    ', defineGroup:', defineGroup, ', temporal:', temporal, ', temp.var:', temp.var, ',temp.window:', temp.window,
-#                                    ', temp.lag:', temp.lag, ', calc.method:', calc.method, ', lag.method:', lag.method, ', empty.catch:', empty.catch,
-#                                    ', empty.expectation:', empty.expectation, ', empty.expectation:', empty.expectation)), 
-#           paste(getwd(),'/Logs/',Sys.Date(),'.json', sep=''), append=T )
-
 
   if(!exists('logbody')) { 
     logging_code()
@@ -311,12 +304,14 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
   create_expectations_function <- list()
   create_expectations_function$functionID <- 'create_expectations'
   create_expectations_function$args <- c(deparse(substitute(dataset)), deparse(substitute(gridfile)), catch, temporal, temp.var, calc.method, lag.method, 
-                                    empty.catch, empty.expectation, temp.window, temp.lag)
+                                    empty.catch, empty.expectation, temp.window, temp.lag, dummy.exp)
   create_expectations_function$kwargs <- list('AltMatrixName'=AltMatrixName, 'defineGroup'=defineGroup)
+  create_expectations_function$output <- c()
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_expectations_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
 }
 
+ 
 

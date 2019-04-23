@@ -2,10 +2,12 @@
 % Please edit documentation in R/sql_functions.R
 \name{tables_database}
 \alias{tables_database}
-\title{Functions to work with sql database}
+\title{Functions to work with sql database
+View tables in the fishset_db database}
 \usage{
 tables_database()
 }
 \description{
 Functions to work with sql database
+View tables in the fishset_db database
 }

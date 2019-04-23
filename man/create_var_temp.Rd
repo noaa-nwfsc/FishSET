@@ -5,7 +5,7 @@
 \title{Create temporal variables}
 \usage{
 create_var_temp(dataset, start, end, units = c("week", "day", "hour",
-  "minute"))
+  "minute"), name = "create_var_temp")
 }
 \arguments{
 \item{dataset}{dataframe or matrix}
@@ -15,6 +15,8 @@ create_var_temp(dataset, start, end, units = c("week", "day", "hour",
 \item{end}{Variable indicating end of time period}
 
 \item{units}{Units of time varibles. Must be weeks, days, hours, or minutes}
+
+\item{name}{Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.}
 }
 \description{
 Create temporal variables
