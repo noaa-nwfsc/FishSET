@@ -68,23 +68,25 @@ find_last <- function(y){
   names(g)[which(g2==max(g2, na.rm=TRUE))[1]]
 }
 
-polyval <- function(coef, z) {
-  lz <- length(z)
-  if (!lz) 
-    return(numeric(0))
-  n <- length(coef)
-  if (!n) {
-    z[] <- 0
-    return(z)
+polyval <- function (pc, x, nderiv = 0L) {
+    ## check missing aruments
+    if (missing(x) || missing(pc)) stop ("arguments missing with no default!")
+    ## polynomial order p
+    p <- length(pc) - 1L
+    ## number of derivatives
+    n <- nderiv
+    ## earlier return?
+    if (n > p) return(rep.int(0, length(x)))
+    ## polynomial basis from degree 0 to degree `(p - n)`
+    X <- outer(x, 0:(p - n), FUN = "^")
+    ## initial coefficients
+    ## the additional `+ 1L` is because R vector starts from index 1 not 0
+    beta <- pc[n:p + 1L]
+    ## factorial multiplier
+    beta <- beta * factorial(n:p) / factorial(0:(p - n))
+    ## matrix vector multiplication
+    drop(X %*% beta)
   }
-  if (!(mode(coef) == "numeric") && !(mode(coef) == "complex")) 
-    stop("Argument 'coef' must be a real or complex vector.")
-  d_z <- dim(z)
-  dim(z) <- lz
-  y <- outer(z, (n - 1):0, "^") %*% coef
-  dim(y) <- d_z
-  return(y)
-}
 
 
 accumarray <- function(subs, val, sz = NULL, func = sum, fillval = 0) {
