@@ -2,7 +2,7 @@
 % Please edit documentation in R/outlier_check.R
 \name{outlier_table}
 \alias{outlier_table}
-\title{Outlier check function
+\title{Outlier check functions
 Evaluate outliers in a table output}
 \usage{
 outlier_table(dataset, x)
@@ -16,7 +16,7 @@ outlier_table(dataset, x)
 Returns table with quantiles for all numeric variables in the dataframe
 }
 \description{
-Outlier check function
+Outlier check functions
 Evaluate outliers in a table output
 }
 \keyword{outliers}

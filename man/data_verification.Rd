@@ -2,20 +2,25 @@
 % Please edit documentation in R/data_verification.R
 \name{data_verification}
 \alias{data_verification}
-\title{Check for serveral issues that may be present in the data.}
+\title{Check for common data quality issues that may be present in the data set.}
 \usage{
 data_verification(dataset)
 }
 \arguments{
-\item{dataset}{dataframe or matrix}
+\item{dataset}{Main dataframe containing data on hauls or trips.}
 }
 \value{
-Returns statements as to whether issues in the data may exist
+Returns statements as to whether data quality issues may exist.
 }
 \description{
-Contains one function that tests several if statements. The function stops if a if statement does not pass.
+Function tests for common data quality issues.
 }
 \details{
-checks that all columnn names in the dataset are unique, whether any columns in the dataset are empty, whether each row is a unique choice 
-occurrence at the haul or trip level, and that data for either lat/long or fishing area are included.
+Checks that all columnn names in the dataset are unique, whether any columns in the dataset are empty, whether each row is a unique choice 
+occurrence at the haul or trip level, and that either latitude and longitude or fishing area are included.
+}
+\examples{
+\dontrun{ 
+data_verification(MainDataTable)
+}
 }

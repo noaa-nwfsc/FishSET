@@ -15,8 +15,13 @@ read_dat <- function(x, data.type = c('csv', 'mat', 'json', 'shape', 'txt', 'sps
 #' @importFrom jsonlite fromJSON
 #' @importFrom foreign read.spss read.dta
 #' @importFrom utils read.table
-#' @details Uses the appropriate function to read in data based on data type.
-  if(data.type == 'shape'){
+#' @details Uses the appropriate function to read in data based on data type. Supported data types include shaple, csv, json, matlab, R, spss, and stata files.
+#' @examples 
+#' \dontrun{ 
+#' dat <- read_dat('nmfs_manage_simple.shp', 'shape')
+#' }
+  
+    if(data.type == 'shape'){
     sf::st_read(x)#'~/path/to/file.shp'
   } else if(data.type=='mat') {
     R.matlab::readMat(x) 
@@ -37,12 +42,17 @@ read_dat <- function(x, data.type = c('csv', 'mat', 'json', 'shape', 'txt', 'sps
 
 
 fishset_compare <- function(x, y, compare=c(TRUE,FALSE)){
-  #' Compare new dataset to previous version
-  #' @param x name dataframe to be saved
-  #' @param y name of previously saved dataframe
-  #' @param compare TRUE/FALSE Compare new dataframe to previously saved dataframe before saving dataframe x to databases
+  #' Compare column names of new data set to previously saved version
+  #' @param x Dataframe to be saved
+  #' @param y Previously saved dataframe
+  #' @param compare TRUE/FALSE Compare new dataframe to previously saved dataframe before saving dataframe x to sqlite database
   #' @importFrom DBI dbWriteTable dbDisconnect
-  #' @details If compare is TRUE, colnames of the new and previously saved dataframe are compared for consistency. If false, no comparison is made and the new file is saved to the database.
+  #' @details This function is called indirectly by the data import functions (\emph{load_maindata}, \emph{load_port}, \emph{load_aux}, \emph{load_seasonal}). The function is designed to check for consistency between versions of the same dataset. 
+  #' To use the logged functions to rerun code after data has been updated, say with a new year of data, the column names, including
+  #' spelling and capitalization, must match the previous version.
+  #' Set the compare parameter to TRUE to compare colnames of the new and previously saved data sets. The new data set will be saved to the sqlite database if colnames match.
+  #' If no previous versions of the data set exist in the sqlite database or the analysis will not be rerun using saved function calls in the log file,
+  #' then set the compare parameter to false. No comparison will be made and the new file will be saved to the database.
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   if(compare==TRUE){
     if(is.null(y)==TRUE){
@@ -52,13 +62,13 @@ fishset_compare <- function(x, y, compare=c(TRUE,FALSE)){
       new <- toupper(colnames(x))
       old <- toupper(colnames(y))
       if(is.na(table(is.na(match(new, old)))[2])==TRUE){
-        print('Column names match between previous and new datasets. New dataset uploaded to database')
+        cat('Column names match between previous and new data sets. New data set uploaded to database')
         #DBI::dbWriteTable(fishset_db, paste(paste(deparse(substitute(x)),Sys.Date(), sep=''), deparse(substitute(x))))
       } else {
         cat(length(table(is.na(match(new,old)))[2]),'/',length(match(new,old)), ' mismatches', sep='')
         cat(noquote(paste(deparse(substitute(x)),'[',as.character(which(is.na(match(new,old))==TRUE)),']', sep='')),':', new[which(is.na(match(new,old))==TRUE)])
         cat(noquote(paste(deparse(substitute(y)),'[',as.character(which(is.na(match(new,old))==TRUE)),']', sep='')),':', old[which(is.na(match(new,old))==TRUE)])
-        stop('Column names did not match. Dataset will not be uploaded to database')
+        stop('Column names did not match. Data set will not be uploaded to database')
         
       }
     }
@@ -135,10 +145,10 @@ load_maindata <- function(dataset, over_write=TRUE, project=NULL, compare=FALSE,
   
 
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  DBI::dbWriteTable(fishset_db, paste(project, 'MainDataTable', Sys.Date(), sep=''),  dataset, overwrite=over_write)
-  DBI::dbWriteTable(fishset_db, paste(project, 'MainDataTableInfo', Sys.Date(), sep=''), MainDataTableInfo, overwrite=over_write)
-  DBI::dbWriteTable(fishset_db, paste(project, 'MainDataTable', sep=''),  dataset, overwrite=over_write)
-  DBI::dbWriteTable(fishset_db, paste(project, 'MainDataTableInfo', sep=''), MainDataTableInfo, overwrite=over_write)
+  DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable', Sys.Date()),  dataset, overwrite=over_write)
+  DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTableInfo', Sys.Date()), MainDataTableInfo, overwrite=over_write)
+  DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable'),  dataset, overwrite=over_write)
+  DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTableInfo'), MainDataTableInfo, overwrite=over_write)
   DBI::dbDisconnect(fishset_db)
   print('Data saved to database')
  
@@ -310,7 +320,7 @@ load_seasonal <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NUL
   
   fishset_compare(x,y,compare)
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  DBI::dbWriteTable(fishset_db, paste(project, 'SesaonalData', sep=''), x, overwrite=over_write)
+  DBI::dbWriteTable(fishset_db, paste0(project, 'SesaonalData'), x, overwrite=over_write)
   DBI::dbDisconnect(fishset_db)
   print('Data saved to database')
   

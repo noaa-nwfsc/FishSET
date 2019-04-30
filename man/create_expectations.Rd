@@ -53,6 +53,6 @@ Expected catch
 Used during model creation to create an expectation of catch for alternative choices that are added to the model design file.
 The expectations created have several options and are created based on the group and time averaging choices of the user.
 The spatial alternatives are built in to the function and come from the structure Alt.
-NOTE: currently empty values and values ==nan are considered to be times of no fishing activity whereas values in the catch variable choosen ==0
+NOTE: currently empty values and values == nan are considered to be times of no fishing activity whereas values in the catch variable chosen == 0
 are considered fishing activity with no catch and so those are included in the averaging and dummy creation as a point in time when fishing occurred.
 }

@@ -1,15 +1,17 @@
-#' Check for serveral issues that may be present in the data.
+#' Check for common data quality issues that may be present in the data set.
 #'
-
-# @examples dataVerification(MainDataTable, MainDataTableInfo)
+#'  Function tests for common data quality issues.
+#' @param dataset Main dataframe containing data on hauls or trips.
+#' @return Returns statements as to whether data quality issues may exist.
+#' @export data_verification
+#' @details Checks that all columnn names in the dataset are unique, whether any columns in the dataset are empty, whether each row is a unique choice 
+#' occurrence at the haul or trip level, and that either latitude and longitude or fishing area are included.
+  #' @examples 
+  #' \dontrun{ 
+  #' data_verification(MainDataTable)
+  #' }
 
 data_verification <- function(dataset) {
-#'  Contains one function that tests several if statements. The function stops if a if statement does not pass.
-#' @param dataset dataframe or matrix
-#' @return Returns statements as to whether issues in the data may exist
-#' @export data_verification
-#' @details checks that all columnn names in the dataset are unique, whether any columns in the dataset are empty, whether each row is a unique choice 
-#' occurrence at the haul or trip level, and that data for either lat/long or fishing area are included.
   tmp <- tempfile()
   cat("Data verification checks", file=tmp, append=TRUE)
   check <- 0
@@ -45,8 +47,8 @@ data_verification <- function(dataset) {
   
   # Handling of empty variables
   if (any(apply(dataset, 2, function(x) all(is.na(x))) == TRUE)) {
-    cat('\n',names(which(apply(dataset, 2, function(x) all(is.na(x))) == TRUE), 
-              "is empty. Consider removing the column from the dataset."), file=tmp, append=T)
+    cat("\n",names(which(apply(dataset, 2, function(x) all(is.na(x))) == TRUE)), "is empty. 
+        Consider removing the column from the dataset.", file=tmp, append=T)
   } else {
     cat("\nPass: No empty variables exist in the dataset.", file=tmp, append=TRUE)
   }
@@ -82,7 +84,7 @@ data_verification <- function(dataset) {
   rm(tmp)  
   
   if(check==1) {
-    stop('Data cannot be saved, at least one error exists')
+    stop('At least one error exists')
   }
   
 

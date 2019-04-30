@@ -2,11 +2,12 @@
 title: "Introduction to FishSET"
 author: "Melanie Harsch"
 date: "`r Sys.Date()`"
-output:
-  word_document: default
-  pdf_document: default
-vignette: |
-  %\VignetteIndexEntry{Barebones FishSET Vignette} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
+output: rmarkdown::html_vignette
+#  word_document: default
+vignette: >
+  %\VignetteIndexEntry{FishSET Vignette} 
+  %\VignetteEngine{knitr::rmarkdown} 
+  %\VignetteEncoding{UTF-8}
 ---
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
@@ -44,9 +45,16 @@ We recommend using the following commands to install FishSET
 FishSET is designed for reproducability. All data is stored in a sql database called fishset_db and all function calls are logged in a log file. 
 Both the database and log folder are created in the working directory when the FishSET package is first loaded. The purpose of saving data and function calls is to allow users to rerun previous steps with the saved data or with updated data. 
 
-Because all data and function calls are saved, it is important to distinguish between projects or, if desired, years. Function calls that call or save data have a `project` parameter. For example, in the sql database we could have two primary data tables called `pcodMainDataTable` and `salmonMainDataTable` where the project was pcod and salmon respectively. 
+Saving tables and lists to the database requires a call to open a connection to the sqlite database, a call to write the table to the database, and a final call to close the connection to the databae. These three calls are done within the function. For instance, the `load_maindata` function opens a data set, runs a set of checks on the data set, and then saves the data set to the fishset_db database. Embedded in the function are the lines of code that save the table to the database.
 
-When data is loaded into R using the data import functions (see below), a raw and working table is saved (`pcodMainDataTable20190419`, `pcodMainDataTable`). Any cleaning and analysis to the data are done on the working table. Tables associated with model runs are also created, including the model design file and model output tables. Again, these are saved with the project name preceding the default table name.
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+    DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTableInfo', Sys.Date()), MainDataTableInfo, overwrite=over_write)
+    DBI::dbDisconnect(fishset_db)
+
+
+In this example, the user must provide the `project` parameter in the function call. Because all data and function calls are saved, it is important to distinguish between projects and/or years. Function calls that call or save data have a `project` parameter. For example, in the sql database we could have two primary data tables called `pcodMainDataTable` and `salmonMainDataTable` where the project was pcod and salmon respectively. The project can be be any descriptive string such as fishery name, location, year, a combination of these, etc.
+
+When data is loaded into R using the data import functions (see below), a raw and working table is saved (`pcodMainDataTable20190419`, `pcodMainDataTable`). Any cleaning and analysis to the data are done on the working table. Tables associated with model runs are also created, including the model design file and model output tables. Again, these are saved with the project name preceding the default table name followed by the date it was created.
 
 Function calls are saved in dated files in the log folder. The log files saves the function name, the parameter values, including input data, and output. It is important to use the naming convention for tables saved to the sql database. For instance,  use `pcodMainDataTable` rather than ambiguous names such as `dat`. Doing so allows for easier recognition of the data and project along with ability to rerun the function using the log file. Note that the list of function calls is resest when either the FishSET library is closed or the R session is closed. Thus, although a new log file will be created each day that FishSET functions are called, the new function calls will be added to the list of function called and saved the previous day. This is useful if the users is working on a project over multiple days but wants to keep all function calls within a single file. To reset the function list saved to the log file, use `log_reset()`.
 

@@ -2,29 +2,35 @@
 % Please edit documentation in R/check_model_data.R
 \name{check_model_data}
 \alias{check_model_data}
-\title{Check model data. Save output.}
+\title{Check data for issues that will affect modeling functions.}
 \usage{
 check_model_data(dataset, uniqueID, save.name, save.file = "sqlfile")
 }
 \arguments{
-\item{dataset}{Main data frame containing data on hauls or trips}
+\item{dataset}{Main dataframe containing data on hauls or trips}
 
 \item{uniqueID}{Variable that identifies unique occurrences.}
 
 \item{save.name}{name for verified and saved data}
 
-\item{save.file}{Save data frame as sql table (sqlsave) or csv file (csvsave)}
+\item{save.file}{Save dataframe as sql table (sqlsave) or csv file (csvsave)}
 }
 \value{
 Returns statements as to whether issues in the data may exist
 }
 \description{
-Contains one function that tests for NaNs, Inf, and that each row is unique. The function stops if an if statement does not pass.
+Function tests for common data quality that will affect modeling functions. The function stops if a check does not pass.
 }
 \details{
-Checks data to be used for modelling. Checks for presence of NaNs and Inf. 
-   The verified data will not save if NaNs or infinite values are in the dataset. 
-   Verified data can then be saved as sql table or csv file. 
+Checks data to be used for modeling for presence of NAs, NaNs and Inf and that each row is a unique choice occurrence. 
+   Model functions may fail or return inaccurate results if any of these issues exist.
+   The verified data will not save if any of these issues are in the data set. 
+   If data passes all tests, the verified data can then be saved as sql table or csv file. 
    When saving to sql, the modified table will be saved and the previous, unmodified version of the table 
-   (if it exists),will be saved with the prefix 'raw'.
+   (if it exists), will be saved with the prefix 'raw'.
+}
+\examples{
+\dontrun{ 
+check_model_data(MainDataTable, uniqueID='uniqueID_Code', save.name='modelData')
+}
 }

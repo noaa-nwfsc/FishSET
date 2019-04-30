@@ -1,19 +1,21 @@
-filter_table <- function(dataset, x, exp, save.filter = FALSE, flog.dat = TRUE) {
-  #'  Define and store filters
+filter_table <- function(dataset, x, exp, project) {
+  #'  Define and store filter expressions
   #'
   #' @param dataset dataframe or matrix over which to apply filter
-  #' @param x column in dataframe over which to filter will be applied
-  #' @param exp Filter expression. Should take on the form of 'x<100' or is.na(x)==F.
-  #' @param save.filter Whether to save the filterTable as a csv file
-  #' @param flog.dat Whether to print filterTable to the log file
-  #' @importFrom utils head read.csv write.csv
+  #' @param x column in dataframe over which filter will be applied
+  #' @param exp Filter expression. Should take on the form of 'x<100' or 'is.na(x)==F'.
+  #' @param project name of project
+  #' @importFrom utils head read.csv write.csv 
+  #' @importFrom DBI dbConnect dbWriteTable dbDisconnect
   #' @keywords filter, subset
   #' @export filter_table
-  #' @return  filterTable saved into the global environment. The data table will grow with each run of the function.
-  #' @details This function allows users to define and store data filters which can then be applied to the data. The filter dataframe can be saved and will be logged in the log file.
+  #' @return  Filter expressions saved as a table into the global environment. The data table will grow with each run of the function.
+  #' @details This function allows users to define and store data filter expressions which can then be applied to the data.  The filter table will be saved in the sqlite database under the project name (\emph{project}), the date the table was created and the word \emph{filterTable}.  The new filter functions are added each time the function is run and the table is also automatically updated in the fishet_db database. The function call will be logged in the log file.
   
-  # @examples Generate data for example: 
-  # filter_data(MainDataTable, 'PERFORMANCE_Code','PERFORMANCE_Code==1') 
+  #' @examples Generate data for example:
+  #' \dontrun{  
+  #' filter_data(MainDataTable, 'PERFORMANCE_Code','PERFORMANCE_Code==1', pcod') 
+  #' }
 
   if (exists("filterTable") == F) {
     filterTable <- data.frame(dataframe = NA, vector = NA, FilterFunction = NA)
@@ -24,9 +26,14 @@ filter_table <- function(dataset, x, exp, save.filter = FALSE, flog.dat = TRUE) 
   if (save.filter == TRUE) {
     write.csv(filterTable, paste(filterTable, "_", deparse(substitute(dataset)), ".csv", sep=''), sep = F, row.names = FALSE)
   }
-  if (flog.dat == TRUE & save.filter == FALSE) {
-    
-    if(!exists('logbody')) { 
+  
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  DBI::dbWriteTable(fishset_db, paste(project, 'filterTable', Sys.Date(), sep=''),  filterTable, overwrite=TRUE)
+  DBI::dbDisconnect(fishset_db)
+  cat('Data saved to fishset_db database')
+  
+  
+     if(!exists('logbody')) { 
       logging_code()
     } 
     filter_data_function <- list()
@@ -40,8 +47,6 @@ filter_table <- function(dataset, x, exp, save.filter = FALSE, flog.dat = TRUE) 
     write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
     assign("functionBodyout", value = functionBodyout, pos = 1)
     
-    #write.table(filterTable, file = paste("Logs/ Log_file_", Sys.Date(), ".log"))
-  }
   assign("filterTable", filterTable, pos=1)
   print(filterTable)
 }

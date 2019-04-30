@@ -16,5 +16,10 @@ read_dat(x, data.type = c("csv", "mat", "json", "shape", "txt", "spss",
 Import data
 }
 \details{
-Uses the appropriate function to read in data based on data type.
+Uses the appropriate function to read in data based on data type. Supported data types include shaple, csv, json, matlab, R, spss, and stata files.
+}
+\examples{
+\dontrun{ 
+dat <- read_dat('nmfs_manage_simple.shp', 'shape')
+}
 }

@@ -2,20 +2,25 @@
 % Please edit documentation in R/data_parser.R
 \name{fishset_compare}
 \alias{fishset_compare}
-\title{Compare new dataset to previous version}
+\title{Compare column names of new data set to previously saved version}
 \usage{
 fishset_compare(x, y, compare = c(TRUE, FALSE))
 }
 \arguments{
-\item{x}{name dataframe to be saved}
+\item{x}{Dataframe to be saved}
 
-\item{y}{name of previously saved dataframe}
+\item{y}{Previously saved dataframe}
 
-\item{compare}{TRUE/FALSE Compare new dataframe to previously saved dataframe before saving dataframe x to databases}
+\item{compare}{TRUE/FALSE Compare new dataframe to previously saved dataframe before saving dataframe x to sqlite database}
 }
 \description{
-Compare new dataset to previous version
+Compare column names of new data set to previously saved version
 }
 \details{
-If compare is TRUE, colnames of the new and previously saved dataframe are compared for consistency. If false, no comparison is made and the new file is saved to the database.
+This function is called indirectly by the data import functions (\emph{load_maindata}, \emph{load_port}, \emph{load_aux}, \emph{load_seasonal}). The function is designed to check for consistency between versions of the same dataset. 
+To use the logged functions to rerun code after data has been updated, say with a new year of data, the column names, including
+spelling and capitalization, must match the previous version.
+Set the compare parameter to TRUE to compare colnames of the new and previously saved data sets. The new data set will be saved to the sqlite database if colnames match.
+If no previous versions of the data set exist in the sqlite database or the analysis will not be rerun using saved function calls in the log file,
+then set the compare parameter to false. No comparison will be made and the new file will be saved to the database.
 }
