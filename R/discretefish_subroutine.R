@@ -27,7 +27,7 @@
 #griddatfin <- list(predicted_catch=modelInputData$gridVaryingVariables$matrix)
 #intdatfin <- list(modelInputData$bCHeader[[-1]])
 #results <- discretefish_subroutine(catch=as.data.frame(modelInputData$catch), choice=modelInputData$choice, distance=modelInputData$zonalChoices,
-#                                   otherdat=list(griddat=griddatfin,intdat=intdatfin), initparams= c(0.5, -2.8), optimOpt=c(100000,1.00000000000000e-06,1,1),
+#                                   otherdat=list(griddat=griddatfin,intdat=intdatfin), initparams= c(0.5, -2.8), optimOpt=c(100000,1.00000000000000e-08,1,1),
 #                                   func=logit_c, methodname="BFGS", 'newlogit4', select.model=TRUE, project='projectName')
 
 
