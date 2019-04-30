@@ -23,7 +23,7 @@
 #' @details Used during model creation to create an expectation of catch for alternative choices that are added to the model design file.
 #' The expectations created have several options and are created based on the group and time averaging choices of the user.
 #' The spatial alternatives are built in to the function and come from the structure Alt.
-#' NOTE: currently empty values and values ==nan are considered to be times of no fishing activity whereas values in the catch variable choosen ==0
+#' NOTE: currently empty values and values == nan are considered to be times of no fishing activity whereas values in the catch variable chosen == 0
 #' are considered fishing activity with no catch and so those are included in the averaging and dummy creation as a point in time when fishing occurred.
 
 #' @return newGridVar,  newDumV
@@ -39,12 +39,12 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
   
   if (!exists("Alt")) {
     if (!exists('AltMatrixName')) {
+      stop('Alternative choice matrix not found. Please run the createAlternativeChoice() function or 
+           define the Alternative choice matrix name from the sqlite database. Name will contain altmatrix in it along with date created and project if defined.')
+      } else {
       fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-      Alt <- unserialize(DBI::dbGetQuery(fishset_db, "SELECT AlternativeMatrix FROM data LIMIT 1")$AlternativeMatrix[[1]])
+      Alt <- unserialize(DBI::dbGetQuery(fishset_db, "SELECT AlternativeMatrix FROM", AltMatrixName, "LIMIT 1")$AlternativeMatrix[[1]])
       DBI::dbDisconnect(fishset_db)
-      if (!exists("Alt")) {
-        stop("Alternative Choice Matrix does not exist. Please run the createAlternativeChoice() function.")
-      }
     }
   }
   
@@ -52,9 +52,8 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
   choice <- Alt[["choice"]]  # used for catch and other variables
   zoneRow <- Alt[["zoneRow"]]
   
-  # for now if no time.. only allow mean based on group without options TODO: allow
-  # options from tab 2, currently turned off ti=find([data.isTime])# TODO add optin
-  # for other time
+  # for now if no time, only allow mean based on group without options TODO: allow
+  # options from tab 2, currently turned off ti=find([data.isTime])# TODO add option for other time
   if (!any(grepl("DATE|MIN", colnames(dataset)))) {
     warning("No time variable found, only averaging in groups and per zone is capable")
   }
@@ -95,7 +94,8 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
   
   catchData <- as.numeric(dataset[[catch]][which(dataZoneTrue == 1)])
   
-  # Time variable not chosen if isempty(ti #NOTE currently doesn't allow dummy or other options if no time detected
+  # Time variable not chosen if temp.var is empty
+  #NOTE currently doesn't allow dummy or other options if no time detected
   if (is.empty(temp.var)) {
     
     allCatch = stats::aggregate(catchData, list(C), mean, na.rm = T)  #accumarray(C,catchData,[],@nanmean)# currently no replacement for nans
@@ -151,8 +151,8 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
     df$tiData <- as.Date(tiData)
     df$catchData <- as.numeric(df$catchData)
     # rolledAvg <-
-    df2 <- stats::aggregate(df, by = list(numData = numData, spData = spData, tiData = tiData), 
-                     mean, na.rm = T)[, c(1, 2, 3, 6)]
+    df2 <- suppressWarnings(stats::aggregate(df, by = list(numData = numData, spData = spData, tiData = tiData), 
+                     mean, na.rm = T))[, c(1, 2, 3, 6)]
     df2 <- df2[order(df2$numData, df2$spData, df2$tiData), ]
     df2$ID <- paste(df2$numData, df2$spData, sep = "")
     df2$lag.value <- c(rep(NA, lagTime), df2$catchData[-c(1:lagTime)])
@@ -172,17 +172,16 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
     if (calc.method == "standardAverage") {
       meanCatch <- meanCatchSimple[, -c(1, 2)]
     } else if (calc.method == "simpleLag") {
-      # at this point could use means to get a regression compared to a lag of the same
-      # calculation at all zones, then use that to predict...
+      # at this point could use means to get a regression compared to a lag of the same calculation at all zones, then use that to predict...
       
       # need to multiply polys by constant
       
-      # switch get(cp2V2,'Value')
       if (lag.method == "simple") {
-        polys <- data.frame(matrix(NA, nrow = nrow(meanCatchSimple), ncol = 2))  #nan(size(meanCatchSimple,1),2)
+#        polys <- data.frame(matrix(NA, nrow = nrow(meanCatchSimple), ncol = 2))  #nan(size(meanCatchSimple,1),2)
         for (q in 1:nrow(meanCatchSimple)) {
-          meanCatch[q, ] <- polyval(stats::coef(stats::lm(as.numeric(meanCatchSimple[q,4:ncol(meanCatchSimple)]) ~  
-                                            as.numeric(meanCatchSimple[q, 3:(ncol(meanCatchSimple) - 1)]))), 
+          meanCatch[q, ] <- polyval(stats::coef(stats::lm(as.numeric(meanCatchSimple[q, 3:(ncol(meanCatchSimple) - 1)]) ~
+                                                            as.numeric(meanCatchSimple[q, 4:ncol(meanCatchSimple)])  
+                                            )), 
                                     as.numeric(meanCatchSimple[q, 3:ncol(meanCatchSimple)]))  #polyval(polys[q,],meanCatchSimple[q,])
         }
       } else {
@@ -224,7 +223,7 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
     
     
     # dummyChoiceOut=get(dp2V4,'String') no dummy variable
-    if (dummy.exp == FALSE) {
+
       newCatch <- data.frame(matrix(NA, nrow = length(bi), ncol = length(unique(B[, 2]))))
       colnames(newCatch) = names(table(B[, 2]))
       
@@ -240,16 +239,15 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
         newCatch[newCatch == 0] <- 1e-04
       } else if (empty.expectation == 0) {
         # (case 'replace with 0'
-        newCatch[is.na(newCatch)] <- 0  #c(NULL, 0.0001, 0)  #switch replaceEmptyExpAll{get(dp2V5,'Value')}
+        newCatch[is.na(newCatch)] <- 0  
       } else {
         # case 'no replacement'
         newCatch = newCatch
       }
       
       
-    } else if (dummy.exp == TRUE) {
+    if (dummy.exp == TRUE) {
       
-      newCatch <- as.data.frame(matrix(NA, nrow = length(bi), ncol = ncol(zoneRow)))
       dv <- as.data.frame(matrix(1, dim(meanCatch)[1], dim(meanCatch)[2]))  #length(ones(size(meanCatch))
       # dv(~emptyCellsCatch)=1% non empty=1 deprecated
       dv[is.na(dummyTrack), ] <- 0  #
@@ -259,7 +257,6 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
       for (w in 1:length(bi)) {
         # if ~isinf(B(C(w),end))
         col <- B[C[w], 2]  #col=find(Alt.zoneRow==B(C(w),end))
-        newCatch[which(cit == cit[w]), col] <- meanCatch[C[w], bi[w]]  #newCatch(cit==cit(w),col)=meanCatch(C(w),bi(w))
         dummyV[which(cit == cit[w]), col] <- dv[C[w], bi[w]]
         # the following is the output that is NROWS by number of alternatives
       }
