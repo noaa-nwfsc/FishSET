@@ -4,19 +4,19 @@
 \alias{data_verification}
 \title{Check for common data quality issues that may be present in the data set.}
 \usage{
-data_verification(dataset)
+data_verification(dat)
 }
 \arguments{
-\item{dataset}{Main dataframe containing data on hauls or trips.}
+\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
 }
 \value{
-Returns statements as to whether data quality issues may exist.
+Statements as to whether data quality issues may exist.
 }
 \description{
 Function tests for common data quality issues.
 }
 \details{
-Checks that all columnn names in the dataset are unique, whether any columns in the dataset are empty, whether each row is a unique choice 
+Checks that all columnn names in the data frame are unique, whether any columns in the data frame are empty, whether each row is a unique choice 
 occurrence at the haul or trip level, and that either latitude and longitude or fishing area are included.
 }
 \examples{

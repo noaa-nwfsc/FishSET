@@ -1,13 +1,38 @@
-#' View summary statistics for a dataframe
+#' View summary statistics 
 #'
-#' @param dataset dataframe or matrix over which to apply function
+#' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param x Optional variable to apply function over.
 #' @keywords summary statistics
 #' @export summary_stats
-#' @details This function print summary statistics. It prints the number of unique observations for each column along with standard summary statistics
+#' @details Prints summary statistics for each variable in the data set. If `x` is specified, summary stats will be returned only
+#' for that variable. Function is called in the \code{\link{data_check}} function.
+#' @examples
+#' \dontrun{
+#' summary_stats(MainDataTable, x='')
+#' summary_stats(MainDataTable, x='HAUL')
+#' }
 
-# @examples
-# summary_stats(MainDataTable[,'HAUL'])
-
-summary_stats <- function(dataset) {
+summary_stats <- function(dat, x=NULL) {
+  
+  
+  #Call in datasets
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  if(is.character(dat)==TRUE){
+    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
+      print(DBI::dbListTables(fishset_db))
+      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+    } else {
+      dataset <- table_view(dat)
+    }
+  } else {
+    dataset <- dat 
+  }
+  DBI::dbDisconnect(fishset_db)
+  
+  
+  if(is.empty(x)){
     rbind(summary(dataset), apply(dataset, 2, function(x) paste("UniqueObs:", length(unique(x)))))
+  } else {
+    c(summary(dataset[[x]]), paste("UniqueObs:", length(unique(dataset[[x]]))))
+  }
 }

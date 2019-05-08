@@ -2,21 +2,32 @@
 % Please edit documentation in R/outlier_check.R
 \name{outlier_table}
 \alias{outlier_table}
-\title{Outlier check functions
-Evaluate outliers in a table output}
+\title{Evaluate outliers in a table output}
 \usage{
-outlier_table(dataset, x)
+outlier_table(dat, x)
 }
 \arguments{
-\item{dataset}{dataframe or matrix}
+\item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}
 
-\item{x}{column in dataframe}
+\item{x}{Column in data frame to check for outliers}
 }
 \value{
-Returns table with quantiles for all numeric variables in the dataframe
+Table for evaluating whether outliers may exist in the selected data column.
 }
 \description{
-Outlier check functions
 Evaluate outliers in a table output
+}
+\details{
+The returned table has dimension 7 x 10. The table allows users to assess outliers by subsetting the data by quantiles or standard deviations, and then
+reporting summary stats for the subsetted data.  
+Each row is a different subset of the data. In the first row, all data is included. 
+In the second row, data within the 5 to 95 percent quantiles are included. Subsequent rows include data within the 25-75\% quantile, the mean of `x` +/2SD, the mean of `x` +/3SD,
+the median of `x` +/2SD, and the median of `x` +/3SD.
+The second column identifies how data were subset. The remaining columns include the mean, median, standard deviation, minimum, maximum, number of NAs, and skew of the data.
+}
+\examples{
+\dontrun{
+outlier_table(MainDataTable, 'HAUL') 
+}
 }
 \keyword{outliers}

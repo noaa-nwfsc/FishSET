@@ -2,25 +2,37 @@
 % Please edit documentation in R/nan_filter.R
 \name{na_filter}
 \alias{na_filter}
-\title{Filters NaN's from variable}
+\title{Filters NA's from variable}
 \usage{
-na_filter(dataset, x, replace = F, remove = F, rep.value = NA)
+na_filter(dat, x, replace = F, remove = F, rep.value = NA)
 }
 \arguments{
-\item{dataset}{dataframe or matrix over which to check for NAs}
+\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
 
-\item{x}{column in dataframe over which to remove or replace NAs}
+\item{x}{Column(s) in data framce in which to remove or replace NaNs. If multiple columns are passed use x=c().}
 
-\item{replace}{whether to (TRUE) or not to (FALSE) replace NAs in a column. Defaults to FALSE.}
+\item{replace}{TRUE/FALSE Replace NaNs in a vector? Defaults to FALSE.}
 
-\item{remove}{whether to (TRUE) or not to (FALSE) remove all remove the entire row of the dataframe where NA is present in a specified column. Defaults to FALSE.}
+\item{remove}{TRUE/FALSE Remove all remove the entire row of the dataframe where NaN is present in a specified column? Defaults to FALSE.}
 
-\item{rep.value}{value to replace all NAs in a column. Defaults to the mean value of the column.}
+\item{rep.value}{Value to replace all NaNs in a column. Defaults to the mean value of the column.}
 }
 \value{
 Returns the modified dataframe
 }
 \description{
-Function to return a modified dataframe where NaNshave been replaced or removed.
+Function to return a modified dataframe where NAs have been replaced or removed.
+}
+\details{
+Function to return a modified dataframe where NAs have been replaced or removed.
+}
+\examples{
+\dontrun{
+nan_identify(MainDataTable)
+mod.dat <- na_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT') 
+mod.dat <- na_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T) 
+mod.dat <- na_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T, rep.value=0) 
+mod.dat <- na_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', remove=T) 
+}
 }
 \keyword{NA}

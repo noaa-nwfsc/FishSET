@@ -1,18 +1,17 @@
-#' Check data for issues that will affect modeling functions. 
+#' Check data for data quality issues that will affect modeling functions. 
 #'
-#'  Function tests for common data quality that will affect modeling functions. The function stops if a check does not pass.
 
-#' @param dataset  Main dataframe containing data on hauls or trips
+#' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
 #' @param uniqueID Variable that identifies unique occurrences.
-#' @param save.file Save dataframe as sql table (sqlsave) or csv file (csvsave)
-#' @param save.name name for verified and saved data
-#' @return Returns statements as to whether issues in the data may exist
+#' @param save.file TRUE/FALSE Save to fishset_db SQLite database? Defaults to TRUE
+#' @param save.name Name for verified and saved data.
+#' @return Returns statements as to data quality issues in the data may exist.
 #' @export check_model_data
 #' @details Checks data to be used for modeling for presence of NAs, NaNs and Inf and that each row is a unique choice occurrence. 
 #'    Model functions may fail or return inaccurate results if any of these issues exist.
 #'    The verified data will not save if any of these issues are in the data set. 
-#'    If data passes all tests, the verified data can then be saved as sql table or csv file. 
-#'    When saving to sql, the modified table will be saved and the previous, unmodified version of the table 
+#'    If data passes all tests, the verified data can then be saved as SQL table or csv file. 
+#'    When saving to SQL, the modified table will be saved and the previous, unmodified version of the table 
 #'    (if it exists), will be saved with the prefix 'raw'.
 
 #' @examples 
@@ -21,8 +20,23 @@
 #' }
 
 
-
-check_model_data <- function(dataset, uniqueID, save.name, save.file = "sqlfile") {
+check_model_data <- function(dat, uniqueID, save.name, save.file = TRUE) {
+ 
+   #Call in data sets
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  if(is.character(dat)==TRUE){
+    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
+      print(DBI::dbListTables(fishset_db))
+      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+    } else {
+      dataset <- table_view(dat)
+    }
+  } else {
+    dataset <- dat  
+  }
+  DBI::dbDisconnect(fishset_db)
+  
+  
     tmp <- tempfile()
     x <- 0
     if (any(apply(dataset, 2, function(x) any(is.nan(x)))==TRUE)) {
@@ -63,11 +77,8 @@ check_model_data <- function(dataset, uniqueID, save.name, save.file = "sqlfile"
        if(x <- 1) {
          stop('At least one test did not pass. Data set will not be saved.')
        }
-    if (save.file == "csvfile") {
-    write.csv(dataset, paste(save.name, ".csv", sep = ""))
-      cat(paste("\nModified datas et saved to csv file under", save.name), file=tmp, append=T)
-  } else {
-    cat(paste("\nModified data set saved to sql database under", save.name), file=tmp, append=T)
+    if (save.file == TRUE) {
+      cat(paste("\nModified data set saved to fishset_db database under", save.name), file=tmp, append=T)
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
     if(DBI::dbExistsTable(fishset_db, deparse(substitute(save.name)))==TRUE){
       single_sql <- paste0("raw", deparse(substitute(save.name)))
@@ -80,15 +91,12 @@ check_model_data <- function(dataset, uniqueID, save.name, save.file = "sqlfile"
   }
   
     suppressWarnings(readLines(tmp))
-  #logging
-  #write(layout.json.ed(trace, "checkModelData", deparse(substitute(dataset)), x, msg = paste("Saved as", save.name)),
-  #                      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
-    if(!exists('logbody')) { 
+     if(!exists('logbody')) { 
       logging_code()
     } 
   checkModelData_function <- list()
   checkModelData_function$functionID <- 'check_model_data'
-  checkModelData_function$args <- c(deparse(substitute(dataset)), uniqueID, save.name, save.file)
+  checkModelData_function$args <- c(deparse(substitute(dat)), uniqueID, save.name, save.file)
   checkModelData_function$kwargs <- list()
   checkModelData_function$output <-  c('')
   checkModelData_function$msg <- suppressWarnings(readLines(tmp))

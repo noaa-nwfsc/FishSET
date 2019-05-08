@@ -2,13 +2,21 @@
 % Please edit documentation in R/sql_functions.R
 \name{table_remove}
 \alias{table_remove}
-\title{remove a table from the fishset_db database}
+\title{Remove a table from the fishset_db database}
 \usage{
 table_remove(table)
 }
 \arguments{
-\item{table}{name of tablel in sql database}
+\item{table}{Name of table in sql database}
 }
 \description{
-remove a table from the fishset_db database
+Remove a table from the fishset_db database
+}
+\details{
+Function utilizes sql functions to permanently remove a table from the SQLite fishset_db database.
+}
+\examples{
+\dontrun{  
+table_remove('MainDataTable') 
+}
 }

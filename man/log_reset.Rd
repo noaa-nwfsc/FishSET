@@ -12,3 +12,9 @@ Reset function calls saved in log file
 \details{
 Removes the three log file lists from the working directory
 }
+\examples{
+\dontrun{ 
+log_reset() 
+}
+
+}

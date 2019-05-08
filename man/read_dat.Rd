@@ -8,7 +8,7 @@ read_dat(x, data.type = c("csv", "mat", "json", "shape", "txt", "spss",
   "stata", "R"))
 }
 \arguments{
-\item{x}{name and directory of dataframe to be read in}
+\item{x}{Name and directory of data frame to be read in. For example, `nmfs_manage_simple.shp`.}
 
 \item{data.type}{csv, mat, json, shape}
 }
@@ -16,7 +16,7 @@ read_dat(x, data.type = c("csv", "mat", "json", "shape", "txt", "spss",
 Import data
 }
 \details{
-Uses the appropriate function to read in data based on data type. Supported data types include shaple, csv, json, matlab, R, spss, and stata files.
+Uses the appropriate function to read in data based on data type. Supported data types include shape, csv, json, matlab, R, spss, and stata files.
 }
 \examples{
 \dontrun{ 

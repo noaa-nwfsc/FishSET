@@ -2,29 +2,36 @@
 % Please edit documentation in R/filter_dat.R
 \name{filter_table}
 \alias{filter_table}
-\title{Define and store filters}
+\title{Define and store filter expressions}
 \usage{
-filter_table(dataset, x, exp, save.filter = FALSE, flog.dat = TRUE)
+filter_table(dat, x, exp, project)
 }
 \arguments{
-\item{dataset}{dataframe or matrix over which to apply filter}
+\item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}
 
-\item{x}{column in dataframe over which to filter will be applied}
+\item{x}{Column in dat aframe over which filter will be applied}
 
-\item{exp}{Filter expression. Should take on the form of 'x<100' or is.na(x)==F.}
+\item{exp}{Filter expression. Should take on the form of `x<100` or `is.na(x)==F`.}
 
-\item{save.filter}{Whether to save the filterTable as a csv file}
-
-\item{flog.dat}{Whether to print filterTable to the log file}
+\item{project}{Name of project}
 }
 \value{
-filterTable saved into the global environment. The data table will grow with each run of the function.
+Filter expressions saved as a table into the global environment.
 }
 \description{
-Define and store filters
+Define and store filter expressions
 }
 \details{
-This function allows users to define and store data filters which can then be applied to the data. The filter dataframe can be saved and will be logged in the log file.
+This function allows users to define and store data filter expressions which can then be applied to the data.  
+The filter table will be saved in the SQLite database under the project name (\emph{project}), the date the table was created and the 
+string \emph{filterTable}. The new filter functions are added each time the function is run and the table is also automatically updated in the 
+fishet_db database. The function call will be logged in the log file.
+}
+\examples{
+\dontrun{  
+filter_data(MainDataTable, 'PERFORMANCE_Code','PERFORMANCE_Code==1', 'pcod') 
+}
+
 }
 \keyword{filter,}
 \keyword{subset}

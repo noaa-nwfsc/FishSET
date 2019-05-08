@@ -1,29 +1,49 @@
-#' Filters NaN's from variable
+# Filters NaN's from variable
 
-# @examples my.df <- data.frame(length=c(1, 2, 3,4), height=c(NaN, 2, NaN,10), age=c(1,2,4,6),ID=c('a',Inf,'c','d'),speed=c(NaN,NA,44,40)) nan.identify(my.df)
-# nan.filter(my.df, 'speed') mod.dat <- nan.filter(my.df, 'speed', replace=T) 
-# mod.dat <- nan.filter(my.df, 'speed', replace=T, rep.value=0) 
-# mod.dat <- nan.filter(my.df, 'speed', remove=T) 
 
-nan_identify <- function(dataset) {
-  #' Identify NaN's in dataset
+nan_identify <- function(dat){
+  #' Identify NaN's and NAs in data set
   #'
-  #' @param dataset dataframe or matrix over which to check for NaNs
-  #' @keywords NaN
+  #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @keywords NaN, NA
+  #' @description Check whether any columns in the data frame contain NAs or NaNs. Returns column names containing NAs or NaNs.
+  #' @return Message with names of columns containing NAs or NaNs, if any.
   #' @export nan_identify
+#' @examples 
+#' \dontrun{
+#' nan_identify(MainDataTable)
+#' mod.dat <-nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT') 
+#' mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T) 
+#' mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T, rep.value=0) 
+#' mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', remove=T) 
+#' }
 
+  #Call in datasets
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  if(is.character(dat)==TRUE){
+    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
+      print(DBI::dbListTables(fishset_db))
+      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+    } else {
+      dataset <- table_view(dat)
+    }
+  } else {
+    dataset <- dat 
+  }
+  DBI::dbDisconnect(fishset_db)
+  
+  
    tmp <- tempfile()
+   #Check for NAs
   if (any(apply(dataset, 2, function(x) any(is.na(x)))==TRUE)) {
-        #cat("\nThe", names(which(colSums(is.nan.data.frame(dataset)) != 0)), "columns contain", 
-        #unname(which(colSums(is.nan.data.frame(dataset)) != 0)), "NaNs. Consider using nan.filter to replace or remove NaNs", 
-        #file=paste(getwd(),'/Logs/InforMessage',Sys.Date(),'.txt', sep=''), append=TRUE)
-    cat("The", names(which(apply(dataset, 2, function(x) any(is.na(x)))==TRUE)), "columns contain NSs. Consider using na_filter to replace or remove NAs", file=tmp)
+    cat("The", names(which(apply(dataset, 2, function(x) any(is.na(x)))==TRUE)), "columns contain NAs. Consider using nan_filter to replace or remove NAs", file=tmp)
   
   } else {
     #cat("\nNo columns in the dataframe contain NaNs", file=paste(getwd(),'/Logs/InforMessage',Sys.Date(),'.txt', sep=''), append=TRUE)
     cat("No columns in the dataframe contain NAs", file=tmp, append=TRUE)
   }
   
+   #check for NaNs
    if (any(apply(dataset, 2, function(x) any(is.nan(x)))==TRUE)) {
      #cat("\nThe", names(which(colSums(is.nan.data.frame(dataset)) != 0)), "columns contain", 
      #unname(which(colSums(is.nan.data.frame(dataset)) != 0)), "NaNs. Consider using nan.filter to replace or remove NaNs", 
@@ -42,7 +62,7 @@ nan_identify <- function(dataset) {
   } 
   nan_identify_function <- list()
   nan_identify_function$functionID <- 'nan_identify'
-  nan_identify_function$args <- c(deparse(substitute(dataset)))
+  nan_identify_function$args <- c(deparse(substitute(dat)))
   nan_identify_function$kwargs <- list()
   nan_identify_function$output <- c('')
   nan_identify_function$msg <- suppressWarnings(readLines(tmp))
@@ -54,21 +74,43 @@ nan_identify <- function(dataset) {
 }
 
 
-# Replaces nans in the dataColumn with the choosen value or removes rows containing NaNs
-nan_filter <- function(dataset, x, replace = F, remove = F, rep.value=NA) {
-  #' Filters NaN's from variable
+# Replaces nans in the data column with the choosen value or removes rows containing NaNs
+nan_filter <- function(dat, x, replace = F, remove = F, rep.value=NA) {
+  #' Filters NaN's from data frame
   #'
-  #'  Function to return a modified dataframe where NaNshave been replaced or removed.
-  #'
-  #' @param dataset dataframe or matrix over which to check for NaNs
-  #' @param x column in dataframe over which to remove or replace NaNs
-  #' @param replace whether to (TRUE) or not to (FALSE) replace NaNs in a column. Defaults to FALSE.
-  #' @param remove whether to (TRUE) or not to (FALSE) remove all remove the entire row of the dataframe where NaN is present in a specified column. Defaults to FALSE.
-  #' @param rep.value value to replace all NaNs in a column. Defaults to the mean value of the column.
+  #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @param x Column(s) in data framce in which to remove or replace NaNs. If multiple columns are passed use x=c().
+  #' @param replace TRUE/FALSE Replace NaNs in a vector? Defaults to FALSE.
+  #' @param remove TRUE/FALSE Remove all remove the entire row of the dataframe where NaN is present in a specified column? Defaults to FALSE.
+  #' @param rep.value Value to replace all NaNs in a column. Defaults to the mean value of the column.
+  #' @details Replaces nans in the data column with the chosen value or removes rows containing NaNs.
   #' @keywords NaN
-  #' @return Returns the modified dataframe
+  #' @return Returns the modified data frame
   #' @export nan_filter
-    int <- dataset
+  #' @examples 
+  #' \dontrun{
+  #' nan_identify(MainDataTable)
+  #' mod.dat <-nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT') 
+  #' mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T) 
+  #' mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T, rep.value=0) 
+  #' mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', remove=T) 
+  #' }
+  
+  #Call in datasets
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  if(is.character(dat)==TRUE){
+    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
+      print(DBI::dbListTables(fishset_db))
+      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+    } else {
+      dataset <- table_view(dat)
+    }
+  } else {
+    dataset <- dat 
+  }
+  DBI::dbDisconnect(fishset_db)
+  
+      int <- dataset
     tmp <- tempfile()
     for(i in 1:length(x)){
     x.name <- x[i]
@@ -105,9 +147,9 @@ nan_filter <- function(dataset, x, replace = F, remove = F, rep.value=NA) {
   } 
   nan_filter_function <- list()
   nan_filter_function$functionID <- 'nan_filter'
-  nan_filter_function$args <-  c(deparse(substitute(dataset)),  deparse(substitute(x)), replace, remove, rep.value)
+  nan_filter_function$args <-  c(deparse(substitute(dat)),  deparse(substitute(x)), replace, remove, rep.value)
   nan_filter_function$kwargs <- list()
-  nan_filter_function$output <-  c(deparse(substitute(dataset)))
+  nan_filter_function$output <-  c(deparse(substitute(dat)))
   nan_filter_function$msg <- suppressWarnings(readLines(tmp))
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- nan_filter_function
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
@@ -119,20 +161,47 @@ nan_filter <- function(dataset, x, replace = F, remove = F, rep.value=NA) {
 }
 
 
+
 # Replaces nans in the dataColumn with the choosen value or removes rows containing NaNs
-na_filter <- function(dataset, x, replace = F, remove = F, rep.value=NA) {
-  #' Filters NaN's from variable
+na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA) {
+  #' Filters NA's from variable
   #'
-  #'  Function to return a modified dataframe where NaNshave been replaced or removed.
+  #'  Function to return a modified dataframe where NAs have been replaced or removed.
   #'
-  #' @param dataset dataframe or matrix over which to check for NAs
-  #' @param x column in dataframe over which to remove or replace NAs
-  #' @param replace whether to (TRUE) or not to (FALSE) replace NAs in a column. Defaults to FALSE.
-  #' @param remove whether to (TRUE) or not to (FALSE) remove all remove the entire row of the dataframe where NA is present in a specified column. Defaults to FALSE.
-  #' @param rep.value value to replace all NAs in a column. Defaults to the mean value of the column.
+  #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @param x Column(s) in data framce in which to remove or replace NaNs. If multiple columns are passed use x=c().
+  #' @param replace TRUE/FALSE Replace NaNs in a vector? Defaults to FALSE.
+  #' @param remove TRUE/FALSE Remove all remove the entire row of the dataframe where NaN is present in a specified column? Defaults to FALSE.
+  #' @param rep.value Value to replace all NaNs in a column. Defaults to the mean value of the column.
+  #' @details Function to return a modified dataframe where NAs have been replaced or removed.
   #' @keywords NA
   #' @return Returns the modified dataframe
   #' @export na_filter
+  #' @examples 
+  #' \dontrun{
+  #' nan_identify(MainDataTable)
+  #' mod.dat <- na_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT') 
+  #' mod.dat <- na_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T) 
+  #' mod.dat <- na_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T, rep.value=0) 
+  #' mod.dat <- na_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', remove=T) 
+  #' }
+  
+  #Call in datasets
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  if(is.character(dat)==TRUE){
+    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
+      print(DBI::dbListTables(fishset_db))
+      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+    } else {
+      dataset <- table_view(dat)
+    }
+  } else {
+    dataset <- dat 
+  }
+  DBI::dbDisconnect(fishset_db)
+  
+  
+  
   int <- dataset
   tmp <- tempfile()
   for(i in 1:length(x)){
@@ -170,9 +239,9 @@ na_filter <- function(dataset, x, replace = F, remove = F, rep.value=NA) {
   } 
   nan_filter_function <- list()
   nan_filter_function$functionID <- 'na_filter'
-  nan_filter_function$args <-  c(deparse(substitute(dataset)),  deparse(substitute(x)), replace, remove, rep.value)
+  nan_filter_function$args <-  c(deparse(substitute(dat)),  deparse(substitute(x)), replace, remove, rep.value)
   nan_filter_function$kwargs <- list()
-  nan_filter_function$output <-  c(deparse(substitute(dataset)))
+  nan_filter_function$output <-  c(deparse(substitute(dat)))
   nan_filter_function$msg <- suppressWarnings(readLines(tmp))
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- nan_filter_function
   logbody$fishset_run <- list(infoBodyout, functionBodyout)

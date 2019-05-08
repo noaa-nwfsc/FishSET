@@ -1,17 +1,15 @@
-#' Check for common data quality issues that may be present in the data set.
-#'
-#' Function tests for common data quality issues.
-#' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
-#' @return Statements as to whether data quality issues may exist.
-#' @export data_verification
-#' @details Checks that all columnn names in the data frame are unique, whether any columns in the data frame are empty, whether each row is a unique choice 
-#' occurrence at the haul or trip level, and that either latitude and longitude or fishing area are included.
-  #' @examples 
-  #' \dontrun{ 
-  #' data_verification(MainDataTable)
+data_verification_call <- function(dat) {
+  #' Checks for common issues with data
+  #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @return Returns statements as to whether issues in the data may exist
+  #' @export data_verification
+  #' @details  Contains one function checks that all columnn names in the dataset are unique, whether any columns in the dataset are empty, 
+  #' whether each row is a unique choice occurrence at the haul or trip level, and that data for either lat/long or fishing area are included.
+  #' Main data table is not saved to fishset_db database if any tests fail.
+  #' @examples
+  #' \dontrun{
+  #' data_verification_call(MainDataTable)
   #' }
-
-data_verification <- function(dat) {
   
   #Call in datasets
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
@@ -22,11 +20,10 @@ data_verification <- function(dat) {
     } else {
       dataset <- table_view(dat)
     }
-  } else {
-    dataset <- dat 
+  }else {
+    dataset <- table_view(dat)  
   }
   DBI::dbDisconnect(fishset_db)
-  
   
   tmp <- tempfile()
   cat("Data verification checks", file=tmp, append=TRUE)
@@ -63,8 +60,8 @@ data_verification <- function(dat) {
   
   # Handling of empty variables
   if (any(apply(dataset, 2, function(x) all(is.na(x))) == TRUE)) {
-    cat("\n",names(which(apply(dataset, 2, function(x) all(is.na(x))) == TRUE)), "is empty. 
-        Consider removing the column from the dataset.", file=tmp, append=T)
+    cat('\n',names(which(apply(dataset, 2, function(x) all(is.na(x))) == TRUE), 
+                   "is empty. Consider removing the column from the dataset."), file=tmp, append=T)
   } else {
     cat("\nPass: No empty variables exist in the dataset.", file=tmp, append=TRUE)
   }
@@ -72,37 +69,20 @@ data_verification <- function(dat) {
   if(any(grepl('lat|lon', names(dataset), ignore.case=TRUE))){
     lat <- dataset[,which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)]
     lon <- dataset[,which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)]
-  graphics::par(mar=c(1,1,1,1)) 
-  map('world', ylim=c(min(lat, na.rm=TRUE), max(lat, na.rm=TRUE)), 
-      xlim=c(min(lon, na.rm=TRUE), max(lon, na.rm=TRUE)))
-  points(dataset[sample(nrow(dataset), nrow(dataset)/10), which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)[1]], 
-         dataset[sample(nrow(dataset), nrow(dataset)/10), which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)[1]])
-  print('10% of samples plotted. Verify that points occur in correct geographic area.')
+    graphics::par(mar=c(1,1,1,1)) 
+    map('world', ylim=c(min(lat, na.rm=TRUE), max(lat, na.rm=TRUE)), 
+        xlim=c(min(lon, na.rm=TRUE), max(lon, na.rm=TRUE)))
+    points(dataset[sample(nrow(dataset), nrow(dataset)/10), which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)[1]], 
+           dataset[sample(nrow(dataset), nrow(dataset)/10), which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)[1]])
+    print('10% of samples plotted. Verify that points occur in correct geographic area.')
   }
   
   
   print(suppressWarnings(readLines(tmp)))
- 
-  if(!exists('logbody')) { 
-    logging_code()
-  } 
   
-  data_verification_function <- list()
-  data_verification_function$functionID <- 'data_verification'
-  data_verification_function$args <- c(deparse(substitute(dat)))
-  data_verification_function$kwargs <- list()
-  data_verification_function$output <- c('')
-  data_verification_function$msg <- suppressWarnings(readLines(tmp))
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- data_verification_function
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
   rm(tmp)  
   
   if(check==1) {
-    stop('At least one error exists')
+    stop('Data cannot be saved, at least one error exists')
   }
-  
-
 }
-

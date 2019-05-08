@@ -2,13 +2,19 @@
 % Please edit documentation in R/sql_functions.R
 \name{table_view}
 \alias{table_view}
-\title{view the selected table in the fishset_db database}
+\title{View the selected fishset_db table}
 \usage{
 table_view(table)
 }
 \arguments{
-\item{table}{name of tablel in sql database}
+\item{table}{name of table in sql database}
 }
 \description{
-view the selected table in the fishset_db database
+Function utilizes sql functions to view or call the selected table from the SQLite fishset_db database in a function. 
+Use this function if you do not want the data loaded into the global environment.
+}
+\examples{
+\dontrun{  
+head(table_view('MainDataTable')) 
+}
 }

@@ -2,25 +2,32 @@
 % Please edit documentation in R/data_parser.R
 \name{load_port}
 \alias{load_port}
-\title{Save port data}
+\title{Save port data to fishset_db SQLite database}
 \usage{
 load_port(x, over_write = TRUE, project = NULL, compare = FALSE,
   y = NULL)
 }
 \arguments{
-\item{x}{name dataframe to be saved}
+\item{x}{Data frame to be saved to fishset_db SQLite database.}
 
-\item{over_write}{TRUE/FALSE Save over previously saved file or not}
+\item{over_write}{TRUE/FALSE Save over data table previously saved in fishset_db database?}
 
-\item{project}{name of project for attaching to table}
+\item{project}{Name of project. Parameter is used to generate meaningful table names in fishset_db database.}
 
-\item{compare}{TRUE/FALSE Compare new dataframe to previously saved dataframe before saving dataframe x to databases}
+\item{compare}{TRUE/FALSE If TRUE, compare new data frame to previously saved data frame `y` in fishset_db before saving new data frame to the fishset_db database}
 
-\item{y}{name of previously saved dataframe}
+\item{y}{Name of previously saved table in fishset_db database. y must be defined if `compare==TRUE`.}
 }
 \description{
-Save port data
+Save port data to fishset_db SQLite database
 }
 \details{
-Runs a series of checks on the port data. If checks pass, runs the fishset_compare function and save the new dataframe x to the database.
+Runs a series of checks on the port data. If checks pass, runs the fishset_compare function and saves the new data frame to the fishset_db database.  
+The data is saved in the fishset_db database as the raw data and the working data. In both cases, the table name is the `project`, if defined, and the file type `PortTable`. 
+Date is also attached to the name for the raw data.
+}
+\examples{
+\dontrun{  
+load_port(dataset='PortTable', over_write=TRUE, project='', compare=TRUE, y='PortTable01012011') 
+}
 }

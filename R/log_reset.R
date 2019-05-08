@@ -2,6 +2,10 @@
 #' 
 #' @details Removes the three log file lists from the working directory
 #' @export log_reset
+#' @examples 
+#' \dontrun{ 
+#' log_reset() 
+#' }
 #' 
 
 log_reset <- function(){

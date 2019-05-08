@@ -2,25 +2,25 @@
 % Please edit documentation in R/data_parser.R
 \name{fishset_compare}
 \alias{fishset_compare}
-\title{Compare column names of new data set to previously saved version}
+\title{Compare column names of new data frame to previously saved version}
 \usage{
 fishset_compare(x, y, compare = c(TRUE, FALSE))
 }
 \arguments{
-\item{x}{Dataframe to be saved}
+\item{x}{Updated data frame to be saved}
 
-\item{y}{Previously saved dataframe}
+\item{y}{Previously saved version of data frame}
 
-\item{compare}{TRUE/FALSE Compare new dataframe to previously saved dataframe before saving dataframe x to sqlite database}
+\item{compare}{TRUE/FALSE Compare new data frame to previously saved data frame before saving data frame `x` to SQLite database.}
 }
 \description{
-Compare column names of new data set to previously saved version
+Compare column names of new data frame to previously saved version
 }
 \details{
-This function is called indirectly by the data import functions (\emph{load_maindata}, \emph{load_port}, \emph{load_aux}, \emph{load_seasonal}). The function is designed to check for consistency between versions of the same dataset. 
-To use the logged functions to rerun code after data has been updated, say with a new year of data, the column names, including
-spelling and capitalization, must match the previous version.
-Set the compare parameter to TRUE to compare colnames of the new and previously saved data sets. The new data set will be saved to the sqlite database if colnames match.
-If no previous versions of the data set exist in the sqlite database or the analysis will not be rerun using saved function calls in the log file,
-then set the compare parameter to false. No comparison will be made and the new file will be saved to the database.
+This function is called indirectly by the data import functions (\code{\link{load_maindata}}, \code{\link{load_port}}, \code{\link{load_aux}}, 
+\code{\link{load_seasonal}}). The function is designed to check for consistency between versions of the same data frame so that the logged functions can be used to rerun the previous analysis on the updated data. 
+To use the logged functions to rerun code after data has been updated (i.e., new year of data), the column names, including spelling and capitalization, must match the previous version.
+Set the `compare` parameter to TRUE to compare column names of the new and previously saved data frames. The new data frame will be saved to the SQLite database if column names match.
+If no previous versions of the data frame exist in the SQLite database or the analysis will not be rerun using saved function calls in the log file, set the `compare` parameter to FALSE.
+ No comparison will be made and the new file will be saved to the database.
 }

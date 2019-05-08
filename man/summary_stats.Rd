@@ -2,18 +2,27 @@
 % Please edit documentation in R/summary_stats.R
 \name{summary_stats}
 \alias{summary_stats}
-\title{View summary statistics for a dataframe}
+\title{View summary statistics}
 \usage{
-summary_stats(dataset)
+summary_stats(dat, x = NULL)
 }
 \arguments{
-\item{dataset}{dataframe or matrix over which to apply function}
+\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
+
+\item{x}{Optional variable to apply function over.}
 }
 \description{
-View summary statistics for a dataframe
+View summary statistics
 }
 \details{
-This function print summary statistics. It prints the number of unique observations for each column along with standard summary statistics
+Prints summary statistics for each variable in the data set. If `x` is specified, summary stats will be returned only
+for that variable. Function is called in the \code{\link{data_check}} function.
+}
+\examples{
+\dontrun{
+summary_stats(MainDataTable, x='')
+summary_stats(MainDataTable, x='HAUL')
+}
 }
 \keyword{statistics}
 \keyword{summary}

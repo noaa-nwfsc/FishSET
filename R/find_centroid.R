@@ -1,13 +1,13 @@
 #'  Generate centroid of polygon of zone or area
 
-#' @param dataset dataframe or matrix
-#' @param gridfile name of gridded dataset
-#' @param lon.dat Longitude of points from dataset
-#' @param lat.dat Latitude of points from dataset
-#' @param lon.grid Longitude of points from gridfile
-#' @param lat.grid Latitude of points from gridfile
-#' @param cat Categorical variable defining the individual areas or zones
-#' @param weight.var Variable for weighted average
+#' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
+#' @param gridfile Gridded data set. Table loaded to fishet_db using \code{\link{load_grid}} function.
+#' @param lon.dat Longitude of points from dataset.
+#' @param lat.dat Latitude of points from dataset.
+#' @param lon.grid Longitude of points from gridfile.
+#' @param lat.grid Latitude of points from gridfile.
+#' @param cat Variable defining the individual areas or zones.
+#' @param weight.var Variable for weighted average.
 #' @param use.grid TRUE/FALSE
 #' @keywords centroid, zone, polygon
 #' @importFrom sf st_centroid  
@@ -15,15 +15,31 @@
 #' @importFrom rgeos gCentroid
 #' @importFrom stats ave weighted.mean
 #' @importFrom methods as
-#' @return Returns a dataframe with location of centroid
+#' @return Data frame where each row is a unique zone and columns are the latitude and longitude defining the centroid of each zone.
 #' @export find_centroid
-#' @details Functions returns the center of a zone or area based on set of latitude and longitudes for using in generating distance matrices.
-#'  Function can also return a weighted centroid. Code works for dataframes and shape files. Lists can also be used as long as inputs are a list of latitudes, longitudes, and areas or zones.
-#'  Includes assignment_column function. Assigns a zone from a gridded dataset to the main dataset.
+#' @details Functions returns the center of a zone or area based on set of latitude and longitudes. Zone centroids are used in calculating distance matrices.
+#'  Function can also return a weighted centroid. Code works for data frames and shape files. Lists can also be used as long as inputs are a list of 
+#'  latitudes, longitudes, and areas or zones. Calls \code{\link{assignment_column}} function. 
 
 
 
-find_centroid <- function(use.grid, dataset, gridfile, lon.grid, lat.grid, lon.dat, lat.dat, cat, weight.var) {
+find_centroid <- function(use.grid, dat, gridfile, lon.grid, lat.grid, lon.dat, lat.dat, cat, weight.var) {
+  #Call in datasets
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  if(is.character(dat)==TRUE){
+    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
+      print(DBI::dbListTables(fishset_db))
+      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+    } else {
+      dataset <- table_view(dat)
+    }
+  } else {
+    dataset <- dat 
+  }
+  DBI::dbDisconnect(fishset_db)
+  
+  
+  
   tmp <- tempfile()
   cat("", file=tmp, append=TRUE)
   x <- 0

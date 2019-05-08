@@ -32,6 +32,7 @@ The FishSET package provides functions for:
 * Mapping
 * Statistical modeling
   
+This vignette contains a short description of the goals of FishSET, the functions within FishSET, and how to use the FishSET package. A longer manual is in development. 
 ## Installing
 Devtools is currently required to install and build FishSET. It will need to be installed and loaded before FishSET can be installed.
 We recommend using the following commands to install FishSET

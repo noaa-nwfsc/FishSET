@@ -2,11 +2,15 @@
 % Please edit documentation in R/sql_functions.R
 \name{tables_database}
 \alias{tables_database}
-\title{SQL call functions}
+\title{View names of tables in the fishset_db database}
 \usage{
 tables_database()
 }
 \description{
-Functions call sql functions to view tables in the sqlite database. Functions allow users to view names of tables in the database, view fields of selected table, view the selected table, remove tables from the database, and check whether a specific table exists in the database.
-View tables in the fishset_db database
+Function utilizes sql functions to view names of tables in the SQLite fishset_db database.
+}
+\examples{
+\dontrun{  
+tables_database() 
+}
 }

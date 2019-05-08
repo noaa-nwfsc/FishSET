@@ -1,9 +1,14 @@
-#' Log user created functions or models
+#' Log user-created functions or models
 #'
-#' @param x Name of cunction
-#' @details Logs names of the function, parameters in function, and function call in the dated log file.
+#' @param x Name of function
+#' @details Logs names of the function, parameters in function, and function call in the log file. Use this function to log user-defined likelihood functions.
 #' @export log_func_model
-# example log_func_model(nan_filter)
+#' @examples 
+#' \dontrun{
+#' my_func <- function(a,b){ a + b }
+#' log_func_model(my_func)
+#' }
+#' 
 
 log_func_model <- function(x) {
 

@@ -5,6 +5,7 @@ create_logit_input <- function(choice) {
   #' @param choice A (number of observations) x 1 vector of chosen locations
   #' @return dataCompile - a data matrix
   #' @importFrom ff ff
+  #' @details Called in the discrete_fish_subroutine function
   #' @export
   #'
   #

@@ -2,38 +2,40 @@
 % Please edit documentation in R/outlier_check.R
 \name{outlier_remove}
 \alias{outlier_remove}
-\title{Evaluate and edit outliers from variable
- Contains functions to evaluate the data through histogram, QQ, and x-y plots.
- Contains functions to evaulate the fit of the data in terms of distributions and analysis}
+\title{Evaluate and edit outliers from variable}
 \usage{
-outlier_remove(dataset, x, outlier.mod = "none", remove = T)
+outlier_remove(dat, x, dat.remove = "none", remove = T)
 }
 \arguments{
-\item{dataset}{dataframe or matrix}
+\item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}
 
-\item{x}{column in dataframe}
+\item{x}{Column in data frame containing potential outliers.}
 
-\item{outlier.mod}{defines method to ..
-Choices include:
-                none: No data points are removed
-                5_95_quant: Removes data points outside the 5th and 95th quantiles
-                25_75_quant: Removes data points outside the 25th and 75th quantiles
-                mean_2SD: Removes data points outside +/- 2SD of the mean
-                median_2SD: Removes data points outside +/- 2SD of the meadian
-                mean_3SD: Removes data points outside +/- 3SD of the mean
-                median_3SD: Removes data points outside +/- 3SD of the meadian}
+\item{dat.remove}{Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD}
 
-\item{remove}{Save data with outliers removed. If TRUE, the revised data tables, based on outlier.mod, is returned.}
+\item{remove}{Save data with outliers removed. If TRUE, the revised data table, with values removed outside the `dat.remove` expression, is returned.}
 }
 \value{
 Returns the modified dataframe
 }
 \description{
 Evaluate and edit outliers from variable
- Contains functions to evaluate the data through histogram, QQ, and x-y plots.
- Contains functions to evaulate the fit of the data in terms of distributions and analysis
 }
 \details{
-outlier_check is a series of functions allowing users to evaluate the occurrence of outliers and their effect on the data using summary data and plots. Outliers can onlyl be assessed for numeric vectors.
+The dat.remove choices are
+ \itemize{
+ \item{none: No data points are removed}
+ \item{5_95_quant: Removes data points outside the 5th and 95th quantiles}
+ \item{25_75_quant: Removes data points outside the 25th and 75th quantiles}
+ \item{mean_2SD: Removes data points outside +/- 2SD of the mean}
+ \item{median_2SD: Removes data points outside +/- 2SD of the median}
+ \item{mean_3SD: Removes data points outside +/- 3SD of the mean}
+ \item{median_3SD: Removes data points outside +/- 3SD of the median}
+ }
+}
+\examples{
+\dontrun{
+MainDataTable <- outlier_remove(MainDataTable, 'dist', dat.remove='mean_2SD', save.output=TRUE)
+}
 }
 \keyword{outliers}

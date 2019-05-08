@@ -1,48 +1,62 @@
 #'  Make model design
 #'
-#' @param dataset dataframe or matrix
-#' @param catchID  Name of variable that containts catch data such as 'HAUL'
+#' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param catchID  Name of variable that contains catch data such as 'HAUL'
 #' @param alternativeMatrix Whether the alternative choice matrix should come from 'loaded data' or 'gridded data'
-#' @param lon.dat Variable containing longitude data
-#' @param lat.dat Variable containing latitude data
-#' @param indeVarsForModel Independent variables to include in the model
-#' @param gridVariablesInclude Variables from gridded dataset to include in the model. 
-#' @param priceCol NULL If required, specify which variable contains price data
-#' @param vesselID NULL If required, specify which varible defines vessel
-#' @param project Project name. For naming output saved in sql database
+#' @param lon.dat longitude Column containing longitude data
+#' @param lat.dat latitude Column containing latitude data
+#' @param indeVarsForModel list List columns names of independent variables to include in the model using `c()`.
+#' @param gridVariablesInclude list List columns names of variables from gridded dataset to include in the model using `c()`. 
+#' @param priceCol NULL If required, specify which variable contains price data.
+#' @param vesselID NULL If required, specify which varible defines individual vessels.
+#' @param project name. name of project. For name of output table saved in sql database
 #' @importFrom geosphere distm
 #' @importFrom DBI dbGetQuery dbExecute
-#' @return  ModelInputData a list containing information on alternative choice
 #' @export make_model_design
-#' @details Functions returns model design matrix. Calls the create_centroid function to generate Lat/Lon centroid of zones or areas.
-#' Also calls the Alternative Choice functions which defines alternative fishing options.
-#' #outputs:                                                                                                                                                                                                                   
-#'     modelInputData <- list(
-#'     catch=catch, #vector of data defined my uses as containing catch data 
-#'     scales= c(catch=yscale, zonal=mscale, data=dscale),   # scale vectors to put catch data, zonal data, and other data to same scale   
-#'     zonalChoices <- X, # area choice from data
-#'     instances, dim(zonalChoices)[1],  #number of observations
-#'     alts <- dim(zonalChoices)[2], #number of alternative zones
-#'     epmDefaultPrice <- epmDefaultPrice,    #Price data is user-defined                                                                                                                                                                               
-#'     dataZoneTrue <- dataZoneTrue,  #Vector of 0/1 indicating whether the data from taht zone is to be included.
-#'     numOfNecessary <- Alt$numOfNecessary,  # # of hauls/trips per zone                                                                                                                                                   
-#'     typeOfNecessary <- Alt$zoneType,  #haul or trip                                                                                                                                                                         
-#'     altChoiceType <- altChoiceType, # function choice                                                                                                                                                                      
-#'     altChoiceUnits <- altChoiceUnits, # units of X                                                                                                                                                                         
-#'     altToLocal1 <- altToLocal1,   #Defines how starting points (Lat/Lon) are defined. Can be zonal centroid, port, etc                                                                                                                                                                                     
-#'     altToLocal2 <- altToLocal2,   #Defines how end points (Lat/Lon) are defined
-#'     bCHeader <-  bCHeader,  #Variables to include in the model, includes independent variables and interactions                                                                                                                                                                                             
-#'     bColumnsWant <- bColumnsWant ,                                                                                                                                                                                        
-#'     bInterAct <- bInterAct,                                                                                                                                                                                               
-#'     msq <-  msq,      
-#'     gridVaryingVariables <- gridVaryingVariables,
-#'     created <- Sys.time()                                                                                                                                                                        
-#'     )
-# @examples
+#' @details Functions returns model design matrix. Calls the Alternative Choice matrix from `create_alternative_choice` function which defines alternative fishing options
+#' and the expected catch from the `create_expectations` function. The distance from the starting point to alternative choices is calculated.
+#' @return 
+#'   Model design matrix containing \cr
+#'   \tabular{rlll}{
+#'     choice: \tab Data corresponding to actual zonal choice\cr 
+#'     catch: \tab Data corresponding to actual zonal catch\cr 
+#'     scales: \tab Scale vectors to put catch data, zonal data, and other data on same scale\cr 
+#'     distance: \tab Data corresponding to distance\cr
+#'     instances: \tab Number of observations\cr 
+#'     alt: \tab Number of alternative zones\cr
+#'     epmDefaultPrice: \tab Price data\cr 
+#'     dataZoneTrue: \tab Vector of 0/1 indicating whether the data from that zone is to be included.\cr 
+#'     numOfNecessary: \tab Minimum number of hauls/trips per zone for data from that zone to be included\cr
+#'     typeOfNecessary: \tab Haul or trip\cr
+#'     altChoiceType: \tab Function choice. Set to distance\cr
+#'     altChoiceUnits: \tab Units of distance\cr
+#'     altToLocal: \tab dentifies how to find lat/lon for starting point. Can be zonal centroid, port, etc\cr
+#'     altToLocal2: \tab Identifies how to find lat/lon for alternative choices such as 'Centroid of Zonal Assignment'\cr 
+#'     bCHeader: \tab Variables to include in the model that do not vary by zone. Includes independent variables and interactions\cr
+#'     gridVaryingVariables: \tab Variables to include in the model that do vary by zone such as expected catch (from \code{\link{create_expectations}} function)
+#'  }
+  #' @examples
+#' \dontrun{
+#' make_model_design(MainDataTable, catchID = 'HAUL', alternativeMatrix = "loadedData", 
+#'                   'LonLat_START_LON', 'LonLat_START_LAT', project = 'pcod')
+#' }
 
 
 make_model_design <- function(dataset, catchID, alternativeMatrix = c("loadedData", "griddedData"), lon.dat, lat.dat, project, 
                                indeVarsForModel = NULL, gridVariablesInclude = NULL, priceCol = NULL, vesselID = NULL) {
+  
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  if(is.character(dat)==TRUE){
+    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
+      print(DBI::dbListTables(fishset_db))
+      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+    } else {
+      dataset <- table_view(dat)
+    }
+  } else {
+    dataset <- dat  
+  }
+ 
   
   if (!exists("Alt")) {
     if (!exists('AltMatrixName')) {
@@ -54,7 +68,7 @@ make_model_design <- function(dataset, catchID, alternativeMatrix = c("loadedDat
   }
   
   if (!exists("ExpectedCatch")) {
-    stop("Expected Catch Matrix does not exist. Please run the create_expectations() function.")
+    stop("Expected Catch Matrix does not exist. Please run the create_expectations function.")
   }  else {
     ExpectedCatch <- ExpectedCatch
   }
@@ -288,7 +302,7 @@ make_model_design <- function(dataset, catchID, alternativeMatrix = c("loadedDat
   modelInputData <- list(catch = catch, 
                           choice = choice[which(dataZoneTrue == 1), ], 
                           scales = c(catch = yscale, zonal = mscale, data = dscale), 
-                          zonalChoices = X, 
+                          distance = X, 
                           instances = dim(X)[1], 
                           alts = dim(X)[2], 
                           epmDefaultPrice = epmDefaultPrice, 
@@ -299,8 +313,8 @@ make_model_design <- function(dataset, catchID, alternativeMatrix = c("loadedDat
                           altToLocal1 = altToLocal1, 
                           altToLocal2 = altToLocal2, 
                           bCHeader = bCHeader, 
-                          bColumnsWant = bColumnsWant, 
-                          bInterAct = bInterAct, 
+                          #bColumnsWant = bColumnsWant, 
+                         # bInterAct = bInterAct, 
                           gridVaryingVariables = ExpectedCatch)
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
@@ -316,7 +330,7 @@ make_model_design <- function(dataset, catchID, alternativeMatrix = c("loadedDat
   } 
   make_model_design_function <- list()
   make_model_design_function$functionID <- 'make_model_design'
-  make_model_design_function$args <- c(deparse(substitute(dataset)), catchID, alternativeMatrix, lon.dat, lat.dat, project)
+  make_model_design_function$args <- c(deparse(substitute(dat)), catchID, alternativeMatrix, lon.dat, lat.dat, project)
   make_model_design_function$kwargs <- list('indeVarsForModel'=indeVarsForModel, 'gridVariablesInclude'=gridVariablesInclude, 'priceCol'=priceCol, 'vesselID'=vesselID)
   make_model_design_function$output <- c('')
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (make_model_design_function)

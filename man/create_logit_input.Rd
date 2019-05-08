@@ -17,3 +17,6 @@ dataCompile - a data matrix
 create_logit_input
 Creates a data matrix that is consistent with the built in model forms
 }
+\details{
+Called in the discrete_fish_subroutine function
+}

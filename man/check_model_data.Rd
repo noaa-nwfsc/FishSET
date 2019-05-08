@@ -2,31 +2,31 @@
 % Please edit documentation in R/check_model_data.R
 \name{check_model_data}
 \alias{check_model_data}
-\title{Check data for issues that will affect modeling functions.}
+\title{Check data for data quality issues that will affect modeling functions.}
 \usage{
-check_model_data(dataset, uniqueID, save.name, save.file = "sqlfile")
+check_model_data(dat, uniqueID, save.name, save.file = TRUE)
 }
 \arguments{
-\item{dataset}{Main dataframe containing data on hauls or trips}
+\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
 
 \item{uniqueID}{Variable that identifies unique occurrences.}
 
-\item{save.name}{name for verified and saved data}
+\item{save.name}{Name for verified and saved data.}
 
-\item{save.file}{Save dataframe as sql table (sqlsave) or csv file (csvsave)}
+\item{save.file}{TRUE/FALSE Save to fishset_db SQLite database? Defaults to TRUE}
 }
 \value{
-Returns statements as to whether issues in the data may exist
+Returns statements as to data quality issues in the data may exist.
 }
 \description{
-Function tests for common data quality that will affect modeling functions. The function stops if a check does not pass.
+Check data for data quality issues that will affect modeling functions.
 }
 \details{
 Checks data to be used for modeling for presence of NAs, NaNs and Inf and that each row is a unique choice occurrence. 
    Model functions may fail or return inaccurate results if any of these issues exist.
    The verified data will not save if any of these issues are in the data set. 
-   If data passes all tests, the verified data can then be saved as sql table or csv file. 
-   When saving to sql, the modified table will be saved and the previous, unmodified version of the table 
+   If data passes all tests, the verified data can then be saved as SQL table or csv file. 
+   When saving to SQL, the modified table will be saved and the previous, unmodified version of the table 
    (if it exists), will be saved with the prefix 'raw'.
 }
 \examples{

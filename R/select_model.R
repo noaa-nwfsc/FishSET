@@ -1,11 +1,22 @@
-#' select_model
-#' View and select models
+# select_model
+#' View and select models 
 #'
 #' @param table Name of table in database containing model measures of fit
-#' @param overwrite.table Append model selection to modelChosen table or delete existing table and save new table
+#' @param overwrite.table If FALSE, appends model selection to out.mod table. If true, overwrites new table with model selection columns. Set to TRUE if models are deleted or selected models are changed.
 #' @importFrom DBI dbExistsTable dbDisconnect dbConnect dbRemoveTable dbExecute dbGetQuery 
 #' @importFrom DT DTOutput renderDT JS
 #' @import shiny
+#' @details Opens an interactive data table that displays model measures of fit for each model run saved in the model measures of fit table in the fishet_db database. 
+#' The name of this table should contain the string `out.mod`. 
+#' Users can delete models from the table and select the preferred model by checking the `selected` box. The table is then saved to the fishet_db database with two new columns added, a TRUE/FALSE selected column
+#' and the date it was selected. The table is saved with the phrase `modelChosen` in the fishset_db database. The function can also be called indirectly in the 
+#' \code{\link{discretefish_subroutine}} by specifying 
+#' the `select.model` parameter as TRUE. The `modelChose` table is not used in any functions. The purpose of this function and the `modelChosen` table is to save a
+#' reference of the preferred model. 
+#' @examples 
+#' \dontrun{
+#' select_model('out.mod', overwrite.table=FALSE)
+#' }
 
 select_model <- function(table, overwrite.table){
   
@@ -119,10 +130,10 @@ select_model <- function(table, overwrite.table){
         )
         # Submit the update query and disconnect
         DBI::dbGetQuery(fishset_db, query)
-        DBI::dbDisconnect(fishset_db)
+        
         showNotification("Table saved to database")
       })
-      
+      DBI::dbDisconnect(fishset_db)
       # stop shiny
       observe({
         if (input$close > 0) stopApp()                             

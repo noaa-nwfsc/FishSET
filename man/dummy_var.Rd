@@ -2,18 +2,25 @@
 % Please edit documentation in R/create_variables.R
 \name{dummy_var}
 \alias{dummy_var}
-\title{Create a new dummy variable}
+\title{Create new dummy variable}
 \usage{
-dummy_var(dataset, DumFill = "TRUE")
+dummy_var(dat, DumFill = "TRUE", name = "dummy_var")
 }
 \arguments{
-\item{dataset}{dataframe or matrix}
+\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
 
 \item{DumFill}{Fill the dummy variable with TRUE or FALSE}
+
+\item{name}{Name of created dummy variable. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.}
 }
 \description{
-Create a new dummy variable
+Create new dummy variable
 }
 \details{
-Function for generating new or specialized variables. dummy_var creates a dummy variable and dummy_matrix creates a dummy matrix.
+Creates a dummy variable of either FALSE or TRUE with length of the number of rows of the data set.
+}
+\examples{
+\dontrun{
+MainDataTable$dummyvar <- dummy_var(MainDataTable, DumFill=TRUE)
+}
 }

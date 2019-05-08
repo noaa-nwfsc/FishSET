@@ -1,21 +1,54 @@
 #' create_seasonal_ID
-#' Connects the variables in a table of season dates to main data table based on two column to the data in the main workspace.
-#' A new variable is made with the Season identifier (TRUE/FALSE) in it. 
+#' Create season identifier  
 #'
-#' @param dataset Name of table in database containing model measures of fit
-#' @param seasonaldat Append model selection to modelChosen table or delete existing table and save new table
-#' @param use.location TRUE/FALSE If true, season dates depend on fishery location. Colnames of location must match the two datasets
-#' @param use.geartype TRUE/FALSE If true, season dates depend on gear type. Column names must match the two datasets
-#' @param target Name of target species. If not null, will return a vector with name of fishery season for each row of dataset. Will first check the dates of the fishery season for target species before checking other species.
-#' @param sp.col Column name containing species names in seasonaldat 
-#' @return dataset Returns the input dataset with two new variables
-# @example 
-#  MainDataTable <- create_seasonal_ID(MainDataTable, seasonal, use.location = TRUE, TRUE, target='', all.species=TRUE, sp.col='SPECIES')
+#' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param seasonal.dat Name of table in fishset_db containing date of fishery season(s).
+#' @param use.location TRUE/FALSE If true, fishery season dates depend on fishery location. Column names containing location must match the two data sets.
+#' @param use.geartype TRUE/FALSE If true, fishery season dates depend on gear type. Column name containing gear type must match the two data sets.
+#' @param sp.col Column containing species names in seasonaldat. 
+#' @param target Name of target species. If `target` is NULL, runs through fisheries in order listed in seasonal.dat
+#' @return  The input dataset with variables SeasonID, and seasonID*fishery (`seasonIDChinook`). 
+#' @details Uses a table of season dates for fisheries to create season ID variables. 
+#' Output is a SeasonID variable and multiple SeasonID*fishery variables.
+#' The seasonID variable is a vector where each row is the fishery season based on dates of the observation. 
+#' If target fishery `target` is defined then the function returns SeasonID as vector of the target fishery `target` or `Other`.
+#'  If `target` is not defined, then, for each row, SeasonID is the first fishery listed in seasonal.dat for which fishery season date encompasses the dates for that row in the main data table. 
+#' SeasonID*fishery variables are a TRUE/FALSE seasonID vector for each fishery (labeled by seasonID and fishery) where TRUE indicates the dates for a given row in the main data table fall within the fishery dates for that fishery.
+#' @examples 
+#' \dontrun{ 
+#'  MainDataTable <- create_seasonal_ID(MainDataTable, seasonal, use.location = TRUE,  
+#'  use.geartype = TRUE, sp.col = 'SPECIES', target = 'POLLOCK')
+#'  }
+#'
 
+create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), use.geartype=c(TRUE,FALSE), sp.col, target=NULL){
 
-
-create_seasonal_ID <- function (dataset, seasonaldat, use.location=c(TRUE,FALSE), use.geartype=c(TRUE,FALSE), sp.col, target=NULL){
-
+  #Call in datasets
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  if(is.character(dat)==TRUE){
+    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
+      print(DBI::dbListTables(fishset_db))
+      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+    } else {
+      dataset <- table_view(dat)
+    }
+  } else {
+    dataset <- dat  
+  }
+  if(is.character(seasonal.dat)==TRUE){
+    if(is.null(seasonal.dat)==TRUE | table_exists(seasonal.dat)==FALSE){
+      print(DBI::dbListTables(fishset_db))
+      stop(paste(seasonal.dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+    } else {
+      seasonaldat <- table_view(seasonal.dat)
+    }
+  } else {
+    seasonaldat <- seasonal.dat  
+  }
+  
+  DBI::dbDisconnect(fishset_db)
+  
+  
 # Test that location_data match
   if(use.location == TRUE){
   if(!any(match(names(dataset)[which(grepl('area|zon', names(dataset), ignore.case=TRUE))], names(seasonaldat), nomatch=0)>0)){
@@ -254,17 +287,13 @@ create_seasonal_ID <- function (dataset, seasonaldat, use.location=c(TRUE,FALSE)
   }
     }
 
- # write(layout.json.ed(trace, 'create_seaonal_ID', deparse(substitute(dataset)), x='', 
- #                      msg=paste('seasonaldat:', deparse(substitute(seasonaldat)), ', use.location:', use.location, 
- #                                ', use.geartype:', use.geartype, ', target:', target, ', sp.col:', sp.col)), 
- #       paste(getwd(),'/Logs/',Sys.Date(),'.json', sep=''), append=T )
 
   if(!exists('logbody')) { 
     logging_code()
   } 
   create_seaonal_ID_function <- list()
   create_seaonal_ID_function$functionID <- 'create_seaonal_ID'
-  create_seaonal_ID_function$args <- c(deparse(substitute(dataset)),  deparse(substitute(seasonaldat)), use.location, use.geartype, sp.col)
+  create_seaonal_ID_function$args <- c(deparse(substitute(dat)),  deparse(substitute(seasonal.dat)), use.location, use.geartype, sp.col)
   create_seaonal_ID_function$kwargs <- list('target'=target)
   create_seaonal_ID_function$output <- deparse(substitute(dataset))
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_seaonal_ID_function)

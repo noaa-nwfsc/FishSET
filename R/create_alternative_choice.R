@@ -1,9 +1,9 @@
-#'  Create alternative choice matrix
+#' Create alternative choice matrix
 #'
-#' Creates a matrix containing information on alternative choices. 
+#' Creates a list containing information on alternative choices. 
 #'
-#' @param dataset  Main data frame containing data on hauls or trips
-#' @param gridfile Name of file containing spatial data. Shape, json, and csv formats are supported.
+#' @param dat  Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param gridfile Spatial data. Shape, json, and csv formats are supported.
 #' @param case Centroid='Centroid of Zonal Assignment', Port, Other
 #' @param griddedDat Data frame containing a variable that varies by the map grid. First column should match a column in the dataset. The remaining columns should match the zone IDs in the gridfile.
 #' @param contents Value of variable to subset dataset by. For instance, include only zones with at least 10 hauls.
@@ -17,42 +17,58 @@
 #' @param lat.grid Latitude variable in gridfile
 #' @param cat Variable defining zones or areas. Must be defined for dataset or gridfile.
 #' @param use.grid TRUE/FALSE. If TRUE, griddedDat is used to create centroids
-#' @param weight.var Variable for weighted centroids
+#' @param weight.var variable weighted centroids
 #' @param remove.na TRUE/FALSE Remove points where zone ID not identified. Called in assignment_column function.
 #' @param closest.pt  TRUE/FALSE If true, zone ID identified as the closest polygon to the point. Called in assignment_column function.
 #' @param project Name of project. Used for naming table saved to database
 #' @importFrom DBI dbExecute
-# @importFrom rlist list.append
-#' @return returns list containing information on alternative choice
 #' @export create_alternative_choice
-#' @details Functions returns alternative choice matrix
-#' #outputs:                                                                                                                                                                                                                   
-#'         Alt.dataZoneTrue - # array of logical values to identify which are to be used in model                                                                                                                           
-#'         Alt.greaterNZ                                                                                                                                                                                                     
-#'         Alt.numOfNecessary                                                                                                                                                                                                
-#'         Alt.altChoiceUnits                                                                                                                                                                                                
-#'         Alt.alt_var- alternative variable                                                                                                                                                                                 
-#'         Alt.occassion- occassion variable                                                                                                                                                                                   
-#'         Alt.functionType                                                                                                                                                                                                  
-#'         Alt.zoneRow                                                                                                                                                                                                       
-#'         Alt.zoneType 
-#'         Alt.int 
+#' @details Functions returns alternative choice matrix. Function must be called before the create_expectations, make_model_design, or discretefish_subroutine functions can be called.
+#' Function identifies which zones are to be included, based on number of hauls per trip, and assigns each observation to a zone.
+#' @return Alternative choice matrix\cr
+#' \tabular{rlll}{                                                                                                                                                                                                           
+#'         dataZoneTrue: \tab Vector of 0/1 indicating whether the data from that zone is to be included in the model\cr
+#'         greaterNZ: \tab zone which pass numofNecessary test\cr
+#'         numOfNecessary: \tab Minimum number of hauls necessary within a zone for zone to be included\cr
+#'         altChoiceUnits: \tab set to miles\cr
+#'         altChoiceType: \tab set to distance\cr
+#'         alt_var: \tab Identifies how to find lat/lon for starting point\cr
+#'         occasion: \tab Identifies how to find lat/lon for alternative choices such as 'Centroid of Zonal Assignment' \cr
+#'         zoneRow: \tab zones and choices array\cr
+#'         zoneType: \tab haul or trip\cr
+#'         int: \tab Centroid for each zone. Generated from find_centroid function
+#'         }
  
-create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "Port", "Other"), contents, 
+create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port", "Other"), contents, 
                                       haul.trip = c("Haul", "Trip"), alt_var, occasion, lon.dat, lat.dat, lon.grid, lat.grid, 
                                       cat, use.grid = c(TRUE, FALSE),  hull.polygon = c(TRUE, FALSE), remove.na = FALSE, 
                                       closest.pt = FALSE, project, griddedDat=NULL, weight.var = NULL) {
-  dat <- dataset
-  int <- find_centroid(use.grid = use.grid, dataset = dat, gridfile = gridfile, 
+  
+  
+  #Call in datasets
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  if(is.character(dat)==TRUE){
+    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
+      print(DBI::dbListTables(fishset_db))
+      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+    } else {
+      dataset <- table_view(dat)
+    }
+  } else {
+    dataset <- dat  
+  }
+  DBI::dbDisconnect(fishset_db)
+
+  int <- find_centroid(use.grid = use.grid, dataset = dataset, gridfile = gridfile, 
                        lon.grid = lon.grid, lat.grid = lat.grid, lat.dat = lat.dat, lon.dat = lon.dat, 
                        cat = cat, weight.var = weight.var)
   
   #if (!is.empty(weight.var)) {
-    int.data <- assignment_column(dataset = dat, gridfile = gridfile, hull.polygon = hull.polygon, 
+    int.data <- assignment_column(dataset = dataset, gridfile = gridfile, hull.polygon = hull.polygon, 
                                   lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat, 
                                   lat.dat = lat.dat, cat = cat, closest.pt = closest.pt)
     if (remove.na == TRUE) {
-      dat <- dat[-which(is.na(int.data$ZoneID) == TRUE), ]
+      dataset <- dataset[-which(is.na(int.data$ZoneID) == TRUE), ]
       int.data <- subset(int.data, is.na(int.data$ZoneID) == FALSE)
     }
     
@@ -86,11 +102,11 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
     C <- match(int.data$ZoneID, unique(int.data$ZoneID))  #  match(unlist(gridInfo['assignmentColumn',,]), unique(unlist(gridInfo['assignmentColumn',,])))
   
     } else {
-    a <- names(dat[, which(grepl("zon|area", colnames(dat), ignore.case = TRUE) == TRUE)])  #find(zp)   #find data that is zonal type                                                                                                                                                                                            
+    a <- names(dataset[, which(grepl("zon|area", colnames(dataset), ignore.case = TRUE) == TRUE)])  #find(zp)   #find data that is zonal type                                                                                                                                                                                            
     
     # [B,I,C]=unique([gridInfo.assignmentColumn(~isnan(gridInfo.assignmentColumn)),
     # data(a(v)).dataColumn(~isnan(gridInfo.assignmentColumn),:) ],'rows');%FIXME check that the order of output zones is consistent
-    temp <- cbind(as.character(int.data$ZoneID), dat[[a[1]]])  #cbind(unlist(gridInfo['assignmentColumn',,]), unlist(dataset[[a]]))
+    temp <- cbind(as.character(int.data$ZoneID), dataset[[a[1]]])  #cbind(unlist(gridInfo['assignmentColumn',,]), unlist(dataset[[a]]))
     B <- unique(temp)  # Correct ->> Needs to be lat/long
     C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*"))  #    C <- data(a(v))[dataColumn,'rows'] 
   }
@@ -146,7 +162,7 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
         #If gridded data is not an array, need to create matrix
         if (dim(gridVar)[1]==1) { #(is.empty(gridVar.row.array)){ #1d
           biG <- match(Alt[['zoneRow']], int) #[aiG,biG] = ismember(Alt.zoneRow, gridVar.col.array) #FIXME FOR STRING CONNECTIONS
-          numRows <- nrow(dat) #size(data(1).dataColumn,1)  #
+          numRows <- nrow(dataset) #size(data(1).dataColumn,1)  #
           if (!any(biG)){
             stop('The map associated to the data and the grid information in the gridded variable do not overlap.')
           }
@@ -159,12 +175,12 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
             stop('The map associated to the data and the grid information in the gridded variable do not overlap.')
           }
           
-          if (names(gridVar)[1] %in% colnames(dat)==FALSE){
+          if (names(gridVar)[1] %in% colnames(dataset)==FALSE){
             #wrong occourance variable to connect data
             stop('The data in the workspace and the loaded grid file do not have a matching variable for connecting.')
           }
           
-          biD <- match(dat[,names(gridVar)[1]], gridVar[,1]) #[aiD,biD]=ismember(data(occasVar).dataColumn,gridVar.row.array)
+          biD <- match(dataset[,names(gridVar)[1]], gridVar[,1]) #[aiD,biD]=ismember(data(occasVar).dataColumn,gridVar.row.array)
           
           if (!any(biD)){
             print('The data in the workspace and the loaded grid file do not have a matching variable for connecting.')
@@ -196,7 +212,7 @@ create_alternative_choice <- function(dataset, gridfile, case = c("Centroid", "P
        } 
        create_alternative_choice_function <- list()
        create_alternative_choice_function$functionID <- 'create_alternative_choice'
-       create_alternative_choice_function$args <- c(deparse(substitute(dataset)), deparse(substitute(gridfile)), case, contents,
+       create_alternative_choice_function$args <- c(deparse(substitute(dat)), deparse(substitute(gridfile)), case, contents,
                                                    haul.trip, alt_var, occasion, lon.dat, lat.dat, lon.grid,  lat.grid, cat,  use.grid, 
                                                    hull.polygon, remove.na, closest.pt, project)
        create_alternative_choice_function$kwargs <- list('griddedDat'= griddedDat, 'weight.var'= weight.var)

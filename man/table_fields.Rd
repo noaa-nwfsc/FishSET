@@ -2,7 +2,7 @@
 % Please edit documentation in R/sql_functions.R
 \name{table_fields}
 \alias{table_fields}
-\title{View fields in the selected table in the fishset_db database}
+\title{Lists fields for the selected fishset_db table}
 \usage{
 table_fields(table)
 }
@@ -10,5 +10,10 @@ table_fields(table)
 \item{table}{name of table in sql database}
 }
 \description{
-View fields in the selected table in the fishset_db database
+Function utilizes sql functions to view tables in the SQLite fishset_db database. View fields of selected table.
+}
+\examples{
+\dontrun{  
+table_fields('MainDataTable') 
+}
 }

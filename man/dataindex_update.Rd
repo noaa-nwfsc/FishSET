@@ -7,10 +7,20 @@
 dataindex_update(dataset, dataindex)
 }
 \arguments{
-\item{dataset}{name main dataframe}
+\item{dataindex}{Name dataindex file should be saved as in database. Table name should exist in the fishset_db database. Name must be in quotes.}
 
-\item{dataindex}{Name of dataindex file saved in the database}
+\item{dat}{Main data frame. Table in fishset_db database should contain the string `MainDataTable`.}
 }
 \description{
 Update dataindex file
+}
+\details{
+The MainDataTableInfo table is first created when the MainDataTable is loaded and saved to the fishset_db. However, this table may not match the variables in 
+the main data table after the FishSET variable creation functions have been run. It may be necessary to update the MainDataTableInfo table in the fishset_db database. 
+Running this function adds information on variables created using the FishSET data creation functions.
+}
+\examples{
+\dontrun{  
+dataindex_update(dataset='pcodMainDataTable', dataindex='pcodMainDataTableInfo') 
+}
 }

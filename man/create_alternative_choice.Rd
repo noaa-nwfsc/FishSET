@@ -4,16 +4,16 @@
 \alias{create_alternative_choice}
 \title{Create alternative choice matrix}
 \usage{
-create_alternative_choice(dataset, gridfile, case = c("Centroid", "Port",
+create_alternative_choice(dat, gridfile, case = c("Centroid", "Port",
   "Other"), contents, haul.trip = c("Haul", "Trip"), alt_var, occasion,
   lon.dat, lat.dat, lon.grid, lat.grid, cat, use.grid = c(TRUE, FALSE),
   hull.polygon = c(TRUE, FALSE), remove.na = FALSE,
   closest.pt = FALSE, project, griddedDat = NULL, weight.var = NULL)
 }
 \arguments{
-\item{dataset}{Main data frame containing data on hauls or trips}
+\item{dat}{Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.}
 
-\item{gridfile}{Name of file containing spatial data. Shape, json, and csv formats are supported.}
+\item{gridfile}{Spatial data. Shape, json, and csv formats are supported.}
 
 \item{case}{Centroid='Centroid of Zonal Assignment', Port, Other}
 
@@ -47,25 +47,27 @@ create_alternative_choice(dataset, gridfile, case = c("Centroid", "Port",
 
 \item{griddedDat}{Data frame containing a variable that varies by the map grid. First column should match a column in the dataset. The remaining columns should match the zone IDs in the gridfile.}
 
-\item{weight.var}{Variable for weighted centroids}
+\item{weight.var}{variable weighted centroids}
 }
 \value{
-returns list containing information on alternative choice
+Alternative choice matrix\cr
+\tabular{rlll}{                                                                                                                                                                                                           
+        dataZoneTrue: \tab Vector of 0/1 indicating whether the data from that zone is to be included in the model\cr
+        greaterNZ: \tab zone which pass numofNecessary test\cr
+        numOfNecessary: \tab Minimum number of hauls necessary within a zone for zone to be included\cr
+        altChoiceUnits: \tab set to miles\cr
+        altChoiceType: \tab set to distance\cr
+        alt_var: \tab Identifies how to find lat/lon for starting point\cr
+        occasion: \tab Identifies how to find lat/lon for alternative choices such as 'Centroid of Zonal Assignment' \cr
+        zoneRow: \tab zones and choices array\cr
+        zoneType: \tab haul or trip\cr
+        int: \tab Centroid for each zone. Generated from find_centroid function
+        }
 }
 \description{
-Creates a matrix containing information on alternative choices.
+Creates a list containing information on alternative choices.
 }
 \details{
-Functions returns alternative choice matrix
-#outputs:                                                                                                                                                                                                                   
-        Alt.dataZoneTrue - # array of logical values to identify which are to be used in model                                                                                                                           
-        Alt.greaterNZ                                                                                                                                                                                                     
-        Alt.numOfNecessary                                                                                                                                                                                                
-        Alt.altChoiceUnits                                                                                                                                                                                                
-        Alt.alt_var- alternative variable                                                                                                                                                                                 
-        Alt.occassion- occassion variable                                                                                                                                                                                   
-        Alt.functionType                                                                                                                                                                                                  
-        Alt.zoneRow                                                                                                                                                                                                       
-        Alt.zoneType 
-        Alt.int
+Functions returns alternative choice matrix. Function must be called before the create_expectations, make_model_design, or discretefish_subroutine functions can be called.
+Function identifies which zones are to be included, based on number of hauls per trip, and assigns each observation to a zone.
 }

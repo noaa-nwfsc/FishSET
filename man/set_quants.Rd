@@ -4,15 +4,14 @@
 \alias{set_quants}
 \title{Create quantile variable}
 \usage{
-set_quants(dataset, x, quant.cat = c(0.2, 0.25, 0.4),
-  name = "set_quants")
+set_quants(dat, x, quant.cat = c(0.2, 0.25, 0.4), name = "set_quants")
 }
 \arguments{
-\item{dataset}{dataframe or matrix}
+\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
 
-\item{x}{Variable to create}
+\item{x}{Variable to transform into quantiles}
 
-\item{quant.cat}{Quantile categories. Includes 0.2, 0.25, 0.4.}
+\item{quant.cat}{Quantile categories. Includes 0.2, 0.25, and 0.4.}
 
 \item{name}{Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.}
 }
@@ -20,5 +19,16 @@ set_quants(dataset, x, quant.cat = c(0.2, 0.25, 0.4),
 Create quantile variable
 }
 \details{
-Function for generating new or specialized variables. setQuants creates a coded variable based on the quantiles of x.
+Creates a coded variable of 5-6 levels based on the quantiles of x. 
+Quantile options are: 
+\itemize{
+  \item{.2:  (0\%, 20\%, 40\%, 60\%, 80\%, 100\%)}
+  \item{.25: (0\%, 25\%, 50\%, 75\%, 100\%)}
+  \item{.4:  (0\%, 10\%, 50\%, 90\%, 100\%)}
+  }
+}
+\examples{
+\dontrun{
+MainDataTable <- set_quants(MainDataTable, 'HAUL', quant.cat=.2)
+}
 }

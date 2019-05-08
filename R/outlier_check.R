@@ -1,19 +1,42 @@
-#' Outlier check functions
+# Outlier check functions. 
 
-outlier_table <- function(dataset, x) {
+outlier_table <- function(dat, x) {
   #' Evaluate outliers in a table output
   #'
-  #' @param dataset dataframe or matrix
-  #' @param x column in dataframe
+  #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
+  #' @param x Column in data frame to check for outliers 
   #' @importFrom stats quantile sd var na.pass
   #' @importFrom grDevices dev.off pdf  
   #' @keywords outliers
   #' @export outlier_table
-  #' @return Returns table with quantiles for all numeric variables in the dataframe
-  # @examples Generate data for example. Inject outliers into cars dataset.  
-  # cars1 <- cbind(rbind(cars[1:30, ], data.frame(speed=c(19,19,20,20,20), dist=c(190, 186, 210, 220, 218))), ID=rep(c('a','b','c','d','e'), 7)) 
-  # outlier_table(cars1, 'dist') 
-   x.name <- x
+  #' @return Table for evaluating whether outliers may exist in the selected data column.
+  #' @details The returned table has dimension 7 x 10. The table allows users to assess outliers by subsetting the data by quantiles or standard deviations, and then
+  #' reporting summary stats for the subsetted data.  
+  #' Each row is a different subset of the data. In the first row, all data is included. 
+  #' In the second row, data within the 5 to 95 percent quantiles are included. Subsequent rows include data within the 25-75\% quantile, the mean of `x` +/2SD, the mean of `x` +/3SD,
+  #' the median of `x` +/2SD, and the median of `x` +/3SD.
+  #' The second column identifies how data were subset. The remaining columns include the mean, median, standard deviation, minimum, maximum, number of NAs, and skew of the data.
+  #' @examples 
+  #' \dontrun{
+  #' outlier_table(MainDataTable, 'HAUL') 
+  #' }
+  
+  #Call in datasets
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  if(is.character(dat)==TRUE){
+    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
+      print(DBI::dbListTables(fishset_db))
+      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+    } else {
+      dataset <- table_view(dat)
+    }
+  } else {
+    dataset <- dat 
+  }
+  DBI::dbDisconnect(fishset_db)
+  
+  
+    x.name <- x
   # numeric. Cannot check outliers if not.
   if (is.numeric(dataset[, x]) == T) {
     # Output table of summary statistics Row 1 No data removed
@@ -72,62 +95,83 @@ outlier_table <- function(dataset, x) {
 
 
 ##---------------------------##
-outlier_plot <- function(dataset, x, outlier.mod = "none", x.dist = "normal", save.output = FALSE, remove = F) {
-  #' Evaluate outliers by plotting the data
-  #' @param dataset dataframe or matrix
-  #' @param x column in dataframe
-  #' @param outlier.mod defines method to ..
-
-  #' Choices include:
-  #'                 none: No data points are removed
-  #'                 5_95_quant: Removes data points outside the 5th and 95th quantiles
-  #'                 25_75_quant: Removes data points outside the 25th and 75th quantiles
-  #'                 mean_2SD: Removes data points outside +/- 2SD of the mean
-  #'                 median_2SD: Removes data points outside +/- 2SD of the meadian
-  #'                 mean_3SD: Removes data points outside +/- 3SD of the mean
-  #'                 median_3SD: Removes data points outside +/- 3SD of the meadian
+outlier_plot <- function(dat, x, dat.remove = "none", x.dist = "normal", output ='screen') {
+  #' Evaluate outliers through plots
+  #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
+  #' @param x Column in dataf rame to check for outliers
+  #' @param dat.remove Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD
   #' @param x.dist Distribution of the data. Choices include: normal, lognormal, exponential, weibull, poisson, negative binomial
-  #' @param save.output Save plots as pdf file. If TRUE, three plots are returned as pdf file. If false, plots are printed to the screen.
-  #' @param remove Save data with outliers removed. If TRUE, the revised data tables, based on outlier.mod, is returned.
+  #' @param output Return plots as pdf file or to the screen. If `pdf`, plots are returned as pdf file. If `screen`, plots are printed to the screen.
   #' @keywords outliers
+  #' @details  The function returns three plots, the data, a probability plot, and a Q-Q plot. The data plot is the value of
+  #'  x against row number. Red points are all the data without any points removed. The blue points are the subsetted data. If `dat.remove` is `none`, then only blue points will be shown. 
+  #'  The probability plot is a histogram of the data with the fitted probability distribution based on `x.dist`. The Q-Q plot plots are
+  #'  sampled quantiles against theoretical quantiles. 
+  #'  The dat.remove choices are
+  #'  \itemize{
+  #'  \item{none: No data points are removed}
+  #'  \item{5_95_quant: Removes data points outside the 5th and 95th quantiles}
+  #'  \item{25_75_quant: Removes data points outside the 25th and 75th quantiles}
+  #'  \item{mean_2SD: Removes data points outside +/- 2SD of the mean}
+  #'  \item{median_2SD: Removes data points outside +/- 2SD of the median}
+  #'  \item{mean_3SD: Removes data points outside +/- 3SD of the mean}
+  #'  \item{median_3SD: Removes data points outside +/- 3SD of the median}
+  #'  }
   #' @export outlier_plot
   #' @return Plot of the data
-  # @examples Generate data for example. Inject outliers into cars dataset.  
-  # cars1 <- cbind(rbind(cars[1:30, ], data.frame(speed=c(19,19,20,20,20), dist=c(190, 186, 210, 220, 218))), ID=rep(c('a','b','c','d','e'), 7)) 
-  # outlier_plot(cars1, 'dist', outlier.mod='mean_2SD', x.dist='normal', save.output=FALSE)
+  #' @examples 
+  #' \dontrun{
+  #' outlier_plot(MainDataTable, 'Haul', dat.remove='mean_2SD', x.dist='normal', output='screen')
+  #' }
   
+  
+  #Call in datasets
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  if(is.character(dat)==TRUE){
+    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
+      print(DBI::dbListTables(fishset_db))
+      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+    } else {
+      dataset <- table_view(dat)
+    }
+  } else {
+    dataset <- dat 
+  }
+  DBI::dbDisconnect(fishset_db)
+  
+
   x.name <- x
   if (is.numeric(dataset[, x]) == T) {
     # Begin outlier check
     dataset$y <- 1:length(dataset[, x])
-    if (outlier.mod == "none") {
+    if (dat.remove == "none") {
       dataset <- dataset
       dat_sub <- dataset
     } else {
-      if (outlier.mod == "5_95_quant") {
+      if (dat.remove == "5_95_quant") {
         dat_sub <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.95) & dataset[, x] > stats::quantile(dataset[, x], 0.05), ]
-      } else if (outlier.mod == "25_75_quant") {
+      } else if (dat.remove == "25_75_quant") {
         dat_sub <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.75) & dataset[, x] > stats::quantile(dataset[, x], 0.25), ]
-      } else if (outlier.mod == "mean_2SD") {
+      } else if (dat.remove == "mean_2SD") {
         dat_sub <- dataset[dataset[, x] < (mean(dataset[, x], na.rm = T) + 2 * 
                                              stats::sd(dataset[, x], na.rm = T)) & 
                              dataset[, x] > (mean(dataset[, x], na.rm = T) - 2 * stats::sd(dataset[, x], na.rm = T)), ]
-      } else if (outlier.mod == "median_2SD") {
+      } else if (dat.remove == "median_2SD") {
         dat_sub <- dataset[dataset[, x] < (stats::median(dataset[, x], na.rm = T) + 2 * stats::sd(dataset[, x], na.rm = T)) & 
                              dataset[, x] > (stats::median(dataset[, x], na.rm = T) - 2 * stats::sd(dataset[, x], na.rm = T)), ]
-      } else if (outlier.mod == "mean_3SD") {
+      } else if (dat.remove == "mean_3SD") {
         dat_sub <- dataset[dataset[, x] < (mean(dataset[, x], na.rm = T) + 3 * stats::sd(dataset[, x], na.rm = T)) & 
                              dataset[, x] > (mean(dataset[, x], na.rm = T) - 3 * stats::sd(dataset[, x], na.rm = T)), ]
-      } else if (outlier.mod == "median_3SD") {
+      } else if (dat.remove == "median_3SD") {
         dat_sub <- dataset[dataset[, x] < (stats::median(dataset[, x], na.rm = T) + 3 * stats::sd(dataset[, x], na.rm = T)) & 
                              dataset[, x] > (stats::median(dataset[, x], na.rm = T) - 3 * stats::sd(dataset[, x], na.rm = T)), ]
       }
     }  #End Outlier mod
     # open a pdf file
-    if (save.output == "TRUE") {
+    if (output == "pdf") {
       pdf("outlier_plot.pdf")
     }
-    graphics::par(mar=c(1,1,1,1)) 
+    graphics::par(mar=c(4,4,4,4)) 
     graphics::par(mfrow = c(2, 2))
     # points
     graphics::plot(dataset$y, dataset[, x], pch = 19, col = "red", ylab = x.name, xlab = "Data row", main = "")
@@ -186,9 +230,9 @@ outlier_plot <- function(dataset, x, outlier.mod = "none", x.dist = "normal", sa
     graphics::plot(fit_quants, data_quants, xlab = "Theoretical Quantiles", ylab = "Sample Quantiles")
     graphics::title(main = paste("Q-Q plot of", x.dist, "fit against data"))
     graphics::abline(0, 1)
-    graphics::mtext(paste("Plots for", x, "with", x.dist, "and", outlier.mod, "outliers removed"), outer = TRUE, cex = 1, line = -1.5)
+    graphics::mtext(paste0("Plots for ", x, " with ", x.dist, " distribution and data removed based on '", dat.remove, "'"), outer = TRUE, cex = 1, line = -1.5)
     # Close the pdf file
-    if (save.output == "TRUE") {
+    if (output == "pdf") {
       dev.off()
     }
     
@@ -201,71 +245,87 @@ outlier_plot <- function(dataset, x, outlier.mod = "none", x.dist = "normal", sa
 
 
 ##---------------------------##
-outlier_remove <- function(dataset, x, outlier.mod = "none", remove = T) {
+outlier_remove <- function(dat, x, dat.remove = "none", remove = T) {
   #' Evaluate and edit outliers from variable
-  #'  Contains functions to evaluate the data through histogram, QQ, and x-y plots.
-  #'  Contains functions to evaulate the fit of the data in terms of distributions and analysis
-  
-  #' @param dataset dataframe or matrix
-  #' @param x column in dataframe
-  #' @param outlier.mod defines method to ..
-  #' Choices include:
-  #'                 none: No data points are removed
-  #'                 5_95_quant: Removes data points outside the 5th and 95th quantiles
-  #'                 25_75_quant: Removes data points outside the 25th and 75th quantiles
-  #'                 mean_2SD: Removes data points outside +/- 2SD of the mean
-  #'                 median_2SD: Removes data points outside +/- 2SD of the meadian
-  #'                 mean_3SD: Removes data points outside +/- 3SD of the mean
-  #'                 median_3SD: Removes data points outside +/- 3SD of the meadian
-  #' @param remove Save data with outliers removed. If TRUE, the revised data tables, based on outlier.mod, is returned.
+  #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
+  #' @param x Column in data frame containing potential outliers.
+  #' @param dat.remove Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD
+  #' @param remove Save data with outliers removed. If TRUE, the revised data table, with values removed outside the `dat.remove` expression, is returned.
   #' @keywords outliers
   #' @export outlier_remove
   #' @return Returns the modified dataframe
-  #' @details outlier_check is a series of functions allowing users to evaluate the occurrence of outliers and their effect on the data using summary data and plots. Outliers can onlyl be assessed for numeric vectors.
+  #' @details   The dat.remove choices are
+  #'  \itemize{
+  #'  \item{none: No data points are removed}
+  #'  \item{5_95_quant: Removes data points outside the 5th and 95th quantiles}
+  #'  \item{25_75_quant: Removes data points outside the 25th and 75th quantiles}
+  #'  \item{mean_2SD: Removes data points outside +/- 2SD of the mean}
+  #'  \item{median_2SD: Removes data points outside +/- 2SD of the median}
+  #'  \item{mean_3SD: Removes data points outside +/- 3SD of the mean}
+  #'  \item{median_3SD: Removes data points outside +/- 3SD of the median}
+  #'  }
+  #' @examples 
+  #' \dontrun{
+   #' MainDataTable <- outlier_remove(MainDataTable, 'dist', dat.remove='mean_2SD', save.output=TRUE)
+   #' }
   
-  # @examples Generate data for example. Inject outliers into cars dataset.  
-   # MainDataTable <- outlier_remove(MainDataTable, 'dist', outlier.mod='mean_2SD', save.output=TRUE)
+  #Call in datasets
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  if(is.character(dat)==TRUE){
+    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
+      print(DBI::dbListTables(fishset_db))
+      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+    } else {
+      dataset <- table_view(dat)
+    }
+  } else {
+    dataset <- dat 
+  }
+  DBI::dbDisconnect(fishset_db)
+  
+  
+  
   if (is.numeric(dataset[, x]) == T) {
     # Begin outlier check
     if (remove == TRUE) {
       # log actions
-      #write(layout.json.ed(trace, "outlier_remove", deparse(substitute(dataset)), deparse(substitute(x)), 
-      #                     msg = paste("outliers removed using", outlier.mod)),
-      #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
-      
-      if(!exists('logbody')) { 
-        logging_code()
-      } 
-      outlier_remove_function <- list()
-      outlier_remove_function$functionID <- 'outlier_remove'
-      outlier_remove_function$args <- c(deparse(substitute(dataset)), deparse(substitute(x)), outlier.mod, remove)
-      outlier_remove_function$kwargs <- list()
-      outlier_remove_function$output <- c('')
-      outlier_remove_function$msg <- paste("outliers removed using", outlier.mod)
-      functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (outlier_remove_function)
-      logbody$fishset_run <- list(infoBodyout, functionBodyout)
-      write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-      assign("functionBodyout", value = functionBodyout, pos = 1)
-      
-      if (outlier.mod == "none") {
+ 
+        
+      if (dat.remove == "none") {
         dataset <- dataset
-      } else if (outlier.mod == "5_95_quant") {
+      } else if (dat.remove == "5_95_quant") {
         dataset <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.95) & dataset[, x] > stats::quantile(dataset[, x], 0.05), ]
-      } else if (outlier.mod == "25_75_quant") {
+      } else if (dat.remove == "25_75_quant") {
         dataset <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.75) & dataset[, x] > stats::quantile(dataset[, x], 0.25), ]
-      } else if (outlier.mod == "mean_2SD") {
+      } else if (dat.remove == "mean_2SD") {
         dataset <- dataset[dataset[, x] < (mean(dataset[, x], na.rm = T) + 2 * stats::sd(dataset[, x], na.rm = T)) & 
                              dataset[, x] > (mean(dataset[, x], na.rm = T) - 2 * stats::sd(dataset[, x], na.rm = T)), ]
-      } else if (outlier.mod == "median_2SD") {
+      } else if (dat.remove == "median_2SD") {
         dataset <- dataset[dataset[, x] < (stats::median(dataset[, x], na.rm = T) + 2 * stats::sd(dataset[, x], na.rm = T)) & 
                              dataset[, x] > (stats::median(dataset[, x], na.rm = T) - 2 * stats::sd(dataset[, x], na.rm = T)), ]
-      } else if (outlier.mod == "mean_3SD") {
+      } else if (dat.remove == "mean_3SD") {
         dataset <- dataset[dataset[, x] < (mean(dataset[, x], na.rm = T) + 3 * stats::sd(dataset[, x], na.rm = T)) & 
                              dataset[, x] > (mean(dataset[, x], na.rm = T) - 3 * stats::sd(dataset[, x], na.rm = T)), ]
-      } else if (outlier.mod == "median_3SD") {
+      } else if (dat.remove == "median_3SD") {
         dataset <- dataset[dataset[, x] < (stats::median(dataset[, x], na.rm = T) + 3 * stats::sd(dataset[, x], na.rm = T)) & 
                              dataset[, x] > (stats::median(dataset[, x], na.rm = T) - 3 * stats::sd(dataset[, x], na.rm = T)), ]
       }
+      
+        if(!exists('logbody')) { 
+        logging_code()
+      } 
+        outlier_remove_function <- list()
+        outlier_remove_function$functionID <- 'outlier_remove'
+        outlier_remove_function$args <- c(deparse(substitute(dat)), deparse(substitute(x)), dat.remove, remove)
+        outlier_remove_function$kwargs <- list()
+        outlier_remove_function$output <- c('')
+        outlier_remove_function$msg <- paste("outliers removed using", dat.remove)
+        functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (outlier_remove_function)
+        logbody$fishset_run <- list(infoBodyout, functionBodyout)
+        write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+        assign("functionBodyout", value = functionBodyout, pos = 1)
+
+      
       return(dataset)
     }  #End Outlier check
     if (remove == FALSE) {

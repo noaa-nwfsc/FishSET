@@ -1,18 +1,18 @@
 #' Expected catch
 
-#' @param dataset  Main data frame containing data on hauls or trips
-#' @param gridfile Name of file containing spatial data. Shape, json, and csv formats are supported.
-#' @param catch Catch variable for averaging
-#' @param temporal Daily = Daily time line or sequential = sequential order
-#' @param temp.var Temporal variable for averaging
-#' @param calc.method select standard average, simple lag = simple lag regression of means, or weights= weights of regressed groups
-#' @param lag.method Simple: use region over entire group. Grouped: Use regression for individual time periods
-#' @param empty.catch Replace empty catch with NAN, 0, all catch = mean of all catch, group catch = mean of grouped catch
-#' @param empty.expectation Do not replace or replace with 0.0001 or 0
-#' @param temp.window Window size for averaging. Defaults to 1
-#' @param temp.lag Lag time for averaging
+#' @param dat  Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param gridfile Spatial data. Shape, json, and csv formats are supported.
+#' @param catch Variable containing catch data.
+#' @param temporal Daily (Daily time line) or sequential (sequential order)
+#' @param temp.var Variable containing temporal data
+#' @param calc.method Select standard average (standardAverage), simple lag regression of means (simpleLag), or weights of regressed groups (weights)
+#' @param lag.method  Use regression over entire group (simple) or for grouped time periods (grouped)
+#' @param empty.catch Replace empty catch with NA, 0, mean of all catch (allCatch), or mean of grouped catch(groupCatch) 
+#' @param empty.expectation Do not replace (NULL) or replace with 0.0001 or 0
+#' @param temp.window Temporal window size. Defaults to 1
+#' @param temp.lag Temporal lag time in days.
 #' @param dummy.exp T/F. Defaults to False. If false, no dummy variable is outputted. If true, output dummy variable for originally missing value.
-#' @param AltMatrixName Does not need to specified if ALT has been generated in createAlternativeChoice function
+#' @param AltMatrixName Does not need to specified if ALT has been generated in \code{\link{createAlternativeChoice}} function.
 #' @param defineGroup If empty, data is treated as a fleet
 #' @importFrom lubridate floor_date
 #' @importFrom zoo rollapply
@@ -22,20 +22,41 @@
 #' @return newGridVar dataframe. Saved to the global environment. Dataframe called in make_model_design
 #' @details Used during model creation to create an expectation of catch for alternative choices that are added to the model design file.
 #' The expectations created have several options and are created based on the group and time averaging choices of the user.
-#' The spatial alternatives are built in to the function and come from the structure Alt.
-#' NOTE: currently empty values and values == nan are considered to be times of no fishing activity whereas values in the catch variable chosen == 0
+#' The spatial alternatives are built in to the function and come from the structure Alt. 
+#' The primary choices are whether to treat data as a fleet or to group the data (defineGroup) and the time frame of catch data for calculating expected catch.
+#' Values must be provided for `defineGroup` and `temporal` parameters. If data should be treated as a fleet, set defineGroup to NULL. If the entire record of catch data is to be used, set temporal to NULL.
+#' Empty catch values are considered to be times of no fishing activity whereas values of 0 in the catch variable 
 #' are considered fishing activity with no catch and so those are included in the averaging and dummy creation as a point in time when fishing occurred.
 
 #' @return newGridVar,  newDumV
-# 
+#' @examples 
+#' \dontrun{
+#' create_expectations(MainDataTable, adfg, 'OFFICIAL_TOTAL_CATCH_MT',  temporal='daily', 
+#'                     temp.var="DATE_FISHING_BEGAN", calc.method='standard average', lag.method='simple',  
+#'                     empty.catch='all catch', empty.expectation= 0.0001, temp.window=4,  
+#'                     temp.lag=2, dummy.exp=FALSE, AltMatrixName='pcodaltmatrix20110101', defineGroup=NULL)
+#' }
 
-# lubridate # to get floor of temporal variables
 
-
-create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", "sequential"), temp.var=NULL, 
+create_expectations <- function(dat, gridfile, catch, defineGroup = NULL, temp.var=NULL, temporal = c("daily", "sequential"), 
                                 calc.method = c("standardAverage", "simpleLag", "weights"), lag.method = c("simple", "grouped"),
                                 empty.catch = c(NULL, 0, "allCatch", "groupedCatch"), empty.expectation = c(NULL, 1e-04, 0),  
-                                temp.window = 1, temp.lag = 1, dummy.exp = FALSE, AltMatrixName = NULL, defineGroup = NULL) {
+                                temp.window = 1, temp.lag = 1, dummy.exp = FALSE, AltMatrixName = NULL) {
+  
+  #Call in datasets
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  if(is.character(dat)==TRUE){
+    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
+      print(DBI::dbListTables(fishset_db))
+      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+    } else {
+      dataset <- table_view(dat)
+    }
+  } else {
+    dataset <- dat  
+  }
+  DBI::dbDisconnect(fishset_db)
+  
   
   if (!exists("Alt")) {
     if (!exists('AltMatrixName')) {
@@ -188,8 +209,9 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
         # case 2
         polys <- as.data.frame(meanCatchSimple[, 4:ncol(meanCatchSimple)]) / 
                                     as.data.frame(meanCatchSimple[, 3:(ncol(meanCatchSimple) - 1)])
-        # pad last measurement?with same as end
-        polys[, (ncol(polys) + 1)] <- polys[, ncol(polys)]
+        # pad last measurement mean of polys. Using means is more robust against extreme values.
+        polys[, (ncol(polys) + 1)] <- apply(as.data.frame(meanCatchSimple[, 4:ncol(meanCatchSimple)]) / 
+                                              as.data.frame(meanCatchSimple[, 3:(ncol(meanCatchSimple) - 1)]), 1, mean, na.rm=T)#polys[, ncol(polys)]
         meanCatch <- meanCatchSimple[, -c(1, 2)] * polys
       }
     } else if (calc.method == "weights") {
@@ -300,7 +322,7 @@ create_expectations <- function(dataset, gridfile, catch, temporal = c("daily", 
   } 
   create_expectations_function <- list()
   create_expectations_function$functionID <- 'create_expectations'
-  create_expectations_function$args <- c(deparse(substitute(dataset)), deparse(substitute(gridfile)), catch, temporal, temp.var, calc.method, lag.method, 
+  create_expectations_function$args <- c(deparse(substitute(dat)), deparse(substitute(gridfile)), catch, temporal, temp.var, calc.method, lag.method, 
                                     empty.catch, empty.expectation, temp.window, temp.lag, dummy.exp)
   create_expectations_function$kwargs <- list('AltMatrixName'=AltMatrixName, 'defineGroup'=defineGroup)
   create_expectations_function$output <- c()

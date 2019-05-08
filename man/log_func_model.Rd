@@ -2,16 +2,23 @@
 % Please edit documentation in R/log_func_model.R
 \name{log_func_model}
 \alias{log_func_model}
-\title{Log user created functions or models}
+\title{Log user-created functions or models}
 \usage{
 log_func_model(x)
 }
 \arguments{
-\item{x}{Name of cunction}
+\item{x}{Name of function}
 }
 \description{
-Log user created functions or models
+Log user-created functions or models
 }
 \details{
-Logs names of the function, parameters in function, and function call in the dated log file.
+Logs names of the function, parameters in function, and function call in the log file. Use this function to log user-defined likelihood functions.
+}
+\examples{
+\dontrun{
+my_func <- function(a,b){ a + b }
+log_func_model(my_func)
+}
+
 }
