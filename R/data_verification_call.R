@@ -60,8 +60,8 @@ data_verification_call <- function(dat) {
   
   # Handling of empty variables
   if (any(apply(dataset, 2, function(x) all(is.na(x))) == TRUE)) {
-    cat('\n',names(which(apply(dataset, 2, function(x) all(is.na(x))) == TRUE), 
-                   "is empty. Consider removing the column from the dataset."), file=tmp, append=T)
+    cat('\n',names(which(apply(dataset, 2, function(x) all(is.na(x))) == TRUE)), 
+                   "is empty. Consider removing the column from the dataset.", file=tmp, append=T)
   } else {
     cat("\nPass: No empty variables exist in the dataset.", file=tmp, append=TRUE)
   }

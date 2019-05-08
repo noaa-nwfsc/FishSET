@@ -19,7 +19,7 @@ test_that('date_parser returns a date', {
 
 test_that('all calc.method outputs are the same for create_expectations', {
  x<- matrix(nrow=1, c(.5,.1,.4,.3,.2,.65,1.6,2.6,2.1,6.5,2.6,2.265,7))  
- expect_equal(polyval(stats::coef(stats::lm(x[, 1:12] ~x[1, 2:13])), x), x, tolerance=.2)
+ expect_equal(signal::polyval(stats::coef(stats::lm(x[, 1:12] ~x[1, 2:13])), x), x, tolerance=.6)
  expect_equal(x * c(x[, 2:13] / x[, 1:12],mean(x[,2:13] / x[, 1:12])), x, tolerance=.6)
 })
 

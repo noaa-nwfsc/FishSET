@@ -5,7 +5,7 @@
 #' @param define.format Format of temporal data. Format can be user-defined or from pre-defined choices. 
 #' @keywords Date as.Date
 #' @return Variable with modified time units
-#' @details Converts a date variable to desired units using \code{\link[base]{as.Date}}. The FishSET \code{\link{date_parse}} function is 
+#' @details Converts a date variable to desired units using \code{\link[base]{as.Date}}. The FishSET date_parse function is 
 #' also called to ensure the date variable is in a format that can be used by the \code{\link[base]{as.Date}} function.
 #'  `define.format` defines the format that the variable should take on. Examples include `\%Y\%m\%d`, `\%Y-\%m-\%d \%H:\%M:\%S`. Users can define their own format or use one of the predefined ones.
 

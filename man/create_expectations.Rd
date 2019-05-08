@@ -39,7 +39,7 @@ create_expectations(dat, gridfile, catch, defineGroup = NULL,
 
 \item{dummy.exp}{T/F. Defaults to False. If false, no dummy variable is outputted. If true, output dummy variable for originally missing value.}
 
-\item{AltMatrixName}{Does not need to specified if ALT has been generated in \code{\link{createAlternativeChoice}} function.}
+\item{AltMatrixName}{Does not need to specified if ALT has been generated in \code{\link{create_alternative_choice}} function.}
 }
 \value{
 newGridVar dataframe. Saved to the global environment. Dataframe called in make_model_design
@@ -61,8 +61,9 @@ are considered fishing activity with no catch and so those are included in the a
 \examples{
 \dontrun{
 create_expectations(MainDataTable, adfg, 'OFFICIAL_TOTAL_CATCH_MT',  temporal='daily', 
-                    temp.var="DATE_FISHING_BEGAN", calc.method='standard average', lag.method='simple',  
-                    empty.catch='all catch', empty.expectation= 0.0001, temp.window=4,  
-                    temp.lag=2, dummy.exp=FALSE, AltMatrixName='pcodaltmatrix20110101', defineGroup=NULL)
+                     temp.var="DATE_FISHING_BEGAN", calc.method='standard average', 
+                     lag.method='simple',  empty.catch='all catch', empty.expectation= 0.0001, 
+                     temp.window=4, temp.lag=2, dummy.exp=FALSE, 
+                     AltMatrixName='pcodaltmatrix20110101', defineGroup=NULL)
 }
 }

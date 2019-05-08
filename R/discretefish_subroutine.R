@@ -28,8 +28,10 @@
 #griddatfin <- list(predicted_catch=modelInputData$gridVaryingVariables$matrix)
 #intdatfin <- list(modelInputData$bCHeader[[-1]])
 #' \dontrun{
-#' results <- discretefish_subroutine(modelInputData, initparams= c(0.5, -2.8), optimOpt=c(100000,1.00000000000000e-08,1,1),
-#'                                   func=logit_c, methodname="BFGS", 'newlogit4', select.model=TRUE, project='projectName')
+#' results <- discretefish_subroutine(modelInputData, initparams= c(0.5, -2.8), 
+#'                                    optimOpt=c(100000,1.00000000000000e-08,1,1),
+#'                                    func=logit_c, methodname="BFGS", 'newlogit4', 
+#'                                    select.model=TRUE, project='projectName')
 #' }
 
 

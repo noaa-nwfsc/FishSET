@@ -12,12 +12,13 @@
 #' @param temp.window Temporal window size. Defaults to 1
 #' @param temp.lag Temporal lag time in days.
 #' @param dummy.exp T/F. Defaults to False. If false, no dummy variable is outputted. If true, output dummy variable for originally missing value.
-#' @param AltMatrixName Does not need to specified if ALT has been generated in \code{\link{createAlternativeChoice}} function.
+#' @param AltMatrixName Does not need to specified if ALT has been generated in \code{\link{create_alternative_choice}} function.
 #' @param defineGroup If empty, data is treated as a fleet
 #' @importFrom lubridate floor_date
 #' @importFrom zoo rollapply
 #' @importFrom DBI dbGetQuery
 #' @importFrom stats aggregate reshape coef lm
+#' @importFrom signal polyval
 #' @export create_expectations
 #' @return newGridVar dataframe. Saved to the global environment. Dataframe called in make_model_design
 #' @details Used during model creation to create an expectation of catch for alternative choices that are added to the model design file.
@@ -32,9 +33,10 @@
 #' @examples 
 #' \dontrun{
 #' create_expectations(MainDataTable, adfg, 'OFFICIAL_TOTAL_CATCH_MT',  temporal='daily', 
-#'                     temp.var="DATE_FISHING_BEGAN", calc.method='standard average', lag.method='simple',  
-#'                     empty.catch='all catch', empty.expectation= 0.0001, temp.window=4,  
-#'                     temp.lag=2, dummy.exp=FALSE, AltMatrixName='pcodaltmatrix20110101', defineGroup=NULL)
+#'                      temp.var="DATE_FISHING_BEGAN", calc.method='standard average', 
+#'                      lag.method='simple',  empty.catch='all catch', empty.expectation= 0.0001, 
+#'                      temp.window=4, temp.lag=2, dummy.exp=FALSE, 
+#'                      AltMatrixName='pcodaltmatrix20110101', defineGroup=NULL)
 #' }
 
 
@@ -200,7 +202,7 @@ create_expectations <- function(dat, gridfile, catch, defineGroup = NULL, temp.v
       if (lag.method == "simple") {
 #        polys <- data.frame(matrix(NA, nrow = nrow(meanCatchSimple), ncol = 2))  #nan(size(meanCatchSimple,1),2)
         for (q in 1:nrow(meanCatchSimple)) {
-          meanCatch[q, ] <- polyval(stats::coef(stats::lm(as.numeric(meanCatchSimple[q, 3:(ncol(meanCatchSimple) - 1)]) ~
+          meanCatch[q, ] <- signal::polyval(stats::coef(stats::lm(as.numeric(meanCatchSimple[q, 3:(ncol(meanCatchSimple) - 1)]) ~
                                                             as.numeric(meanCatchSimple[q, 4:ncol(meanCatchSimple)])  
                                             )), 
                                     as.numeric(meanCatchSimple[q, 3:ncol(meanCatchSimple)]))  #polyval(polys[q,],meanCatchSimple[q,])

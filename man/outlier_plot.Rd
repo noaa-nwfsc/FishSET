@@ -45,4 +45,4 @@ The function returns three plots, the data, a probability plot, and a Q-Q plot. 
 outlier_plot(MainDataTable, 'Haul', dat.remove='mean_2SD', x.dist='normal', output='screen')
 }
 }
-\keyword{outliers}
+\keyword{outlier}

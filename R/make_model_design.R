@@ -42,7 +42,7 @@
 #' }
 
 
-make_model_design <- function(dataset, catchID, alternativeMatrix = c("loadedData", "griddedData"), lon.dat, lat.dat, project, 
+make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", "griddedData"), lon.dat, lat.dat, project, 
                                indeVarsForModel = NULL, gridVariablesInclude = NULL, priceCol = NULL, vesselID = NULL) {
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")

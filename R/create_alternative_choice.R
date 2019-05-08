@@ -59,12 +59,12 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
   }
   DBI::dbDisconnect(fishset_db)
 
-  int <- find_centroid(use.grid = use.grid, dataset = dataset, gridfile = gridfile, 
+  int <- find_centroid(use.grid = use.grid, dat=dataset, gridfile = gridfile, 
                        lon.grid = lon.grid, lat.grid = lat.grid, lat.dat = lat.dat, lon.dat = lon.dat, 
                        cat = cat, weight.var = weight.var)
   
   #if (!is.empty(weight.var)) {
-    int.data <- assignment_column(dataset = dataset, gridfile = gridfile, hull.polygon = hull.polygon, 
+    int.data <- assignment_column(dat=dataset, gridfile = gridfile, hull.polygon = hull.polygon, 
                                   lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat, 
                                   lat.dat = lat.dat, cat = cat, closest.pt = closest.pt)
     if (remove.na == TRUE) {

@@ -4,11 +4,13 @@
 \alias{make_model_design}
 \title{Make model design}
 \usage{
-make_model_design(dataset, catchID, alternativeMatrix = c("loadedData",
+make_model_design(dat, catchID, alternativeMatrix = c("loadedData",
   "griddedData"), lon.dat, lat.dat, project, indeVarsForModel = NULL,
   gridVariablesInclude = NULL, priceCol = NULL, vesselID = NULL)
 }
 \arguments{
+\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
+
 \item{catchID}{Name of variable that contains catch data such as 'HAUL'}
 
 \item{alternativeMatrix}{Whether the alternative choice matrix should come from 'loaded data' or 'gridded data'}
@@ -26,8 +28,6 @@ make_model_design(dataset, catchID, alternativeMatrix = c("loadedData",
 \item{priceCol}{NULL If required, specify which variable contains price data.}
 
 \item{vesselID}{NULL If required, specify which varible defines individual vessels.}
-
-\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
 }
 \value{
 Model design matrix containing \cr

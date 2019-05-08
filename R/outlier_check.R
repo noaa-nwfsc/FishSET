@@ -102,7 +102,8 @@ outlier_plot <- function(dat, x, dat.remove = "none", x.dist = "normal", output 
   #' @param dat.remove Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD
   #' @param x.dist Distribution of the data. Choices include: normal, lognormal, exponential, weibull, poisson, negative binomial
   #' @param output Return plots as pdf file or to the screen. If `pdf`, plots are returned as pdf file. If `screen`, plots are printed to the screen.
-  #' @keywords outliers
+  #' @keywords outlier
+  #' @importFrom graphics points
   #' @details  The function returns three plots, the data, a probability plot, and a Q-Q plot. The data plot is the value of
   #'  x against row number. Red points are all the data without any points removed. The blue points are the subsetted data. If `dat.remove` is `none`, then only blue points will be shown. 
   #'  The probability plot is a histogram of the data with the fitted probability distribution based on `x.dist`. The Q-Q plot plots are

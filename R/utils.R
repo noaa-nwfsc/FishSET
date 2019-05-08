@@ -1,4 +1,5 @@
 
+#NULL
 
 vgsub <- function(pattern, replacement, x, ...) {
   for (i in 1:length(pattern)) x <- gsub(pattern[i], replacement[i], x, ...)
@@ -22,7 +23,6 @@ logging_code <- function(){
   functionBodyout <<- functionBodyout
 }
 
-
 trim.space <- function(x, what = c("both", "leading", "trailing", "none"), space.regex = "[:space:]", ...) {
   if (missing(x)) 
     stop("nothing to trim spaces to =(")
@@ -33,8 +33,6 @@ trim.space <- function(x, what = c("both", "leading", "trailing", "none"), space
                })
   vgsub(re, "", x, ...)
 }
-
-
 
 is.empty <- function(x, trim = TRUE, ...) {
   if (length(x) <= 1) {
@@ -67,27 +65,6 @@ find_last <- function(y){
   g2 <- date_parser(as.vector(unlist(c(g))))
   names(g)[which(g2==max(g2, na.rm=TRUE))[1]]
 }
-
-polyval <- function (pc, x, nderiv = 0L) {
-    ## check missing aruments
-    if (missing(x) || missing(pc)) stop ("arguments missing with no default!")
-    ## polynomial order p
-    p <- length(pc) - 1L
-    ## number of derivatives
-    n <- nderiv
-    ## earlier return?
-    if (n > p) return(rep.int(0, length(x)))
-    ## polynomial basis from degree 0 to degree `(p - n)`
-    X <- outer(x, 0:(p - n), FUN = "^")
-    ## initial coefficients
-    ## the additional `+ 1L` is because R vector starts from index 1 not 0
-    beta <- pc[n:p + 1L]
-    ## factorial multiplier
-    beta <- beta * factorial(n:p) / factorial(0:(p - n))
-    ## matrix vector multiplication
-    drop(X %*% beta)
-  }
-
 
 accumarray <- function(subs, val, sz = NULL, func = sum, fillval = 0) {
   stopifnot(is.numeric(subs), is.numeric(val))
@@ -131,7 +108,6 @@ accumarray <- function(subs, val, sz = NULL, func = sum, fillval = 0) {
   return(A)
 }
 
-
 skewness <- function(x) {
   n <- length(x)
   v <- var(x)
@@ -163,71 +139,3 @@ date_parser <- function(dates){
   }
 }
 
-data_verification_call <- function(dataset) {
-  #'  Contains one function that tests several if statements. The function stops if an if statement does not pass.
-  #' @param dataset dataframe or matrix
-  #' @return Returns statements as to whether issues in the data may exist
-  #' @export data_verification
-  #' @details checks that all columnn names in the dataset are unique, whether any columns in the dataset are empty, whether each row is a unique choice 
-  #' occurrence at the haul or trip level, and that data for either lat/long or fishing area are included.
-  tmp <- tempfile()
-  cat("Data verification checks", file=tmp, append=TRUE)
-  check <- 0
-  # check that names are unique in dataset
-  x <- colnames(dataset)
-  if (length(x) == length(unique(x)) & length(toupper(x)) == length(unique(toupper(x)))) {
-    cat("\nPass: Variable names as written are unique within dataset.", file=tmp, append=T)
-  } else if (length(x) == length(unique(x)) & length(toupper(x)) != length(unique(toupper(x)))) {
-    cat('\nData set will not be saved to database. Duplicate case insensitive colnames. Sqlite column names are case insensitive.', file=tmp, append=T)
-    check <- 1
-  } else {
-    cat("\nVariable names are not unique.\n", file=tmp, append=T)
-    check <- 1
-    #stop("Variable names must be unique.\n")
-  }
-  
-  if (length(toupper(x)) == length(unique(toupper(x)))) {
-    cat("\nPass: Variable names are unique within dataset.", file=tmp, append=T)
-  } else {
-    cat("\nVariable names are not unique.", file=tmp, append=T)
-    check <- 1
-    #stop("Variable names must be unique.")
-  }
-  
-  # check each row of data is a unique choice occurrence at haul or trip level
-  if (dim(dataset)[1] == dim(unique(dataset))[1]) {
-    cat("\nPass: Each row is a unique choice occurrence.", file=tmp, append=T)
-  } else {
-    cat("\nEach row in dataset is not a unique choice occurrence at haul or trip level.", file=tmp, append=T)
-    #stop("Each row in dataset must be a unique choice occurrence at haul or trip level.")
-    check <- 1
-  }
-  
-  # Handling of empty variables
-  if (any(apply(dataset, 2, function(x) all(is.na(x))) == TRUE)) {
-    cat('\n',names(which(apply(dataset, 2, function(x) all(is.na(x))) == TRUE), 
-                   "is empty. Consider removing the column from the dataset."), file=tmp, append=T)
-  } else {
-    cat("\nPass: No empty variables exist in the dataset.", file=tmp, append=TRUE)
-  }
-  
-  if(any(grepl('lat|lon', names(dataset), ignore.case=TRUE))){
-    lat <- dataset[,which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)]
-    lon <- dataset[,which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)]
-    graphics::par(mar=c(1,1,1,1)) 
-    map('world', ylim=c(min(lat, na.rm=TRUE), max(lat, na.rm=TRUE)), 
-        xlim=c(min(lon, na.rm=TRUE), max(lon, na.rm=TRUE)))
-    points(dataset[sample(nrow(dataset), nrow(dataset)/10), which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)[1]], 
-           dataset[sample(nrow(dataset), nrow(dataset)/10), which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)[1]])
-    print('10% of samples plotted. Verify that points occur in correct geographic area.')
-  }
-  
-  
-  print(suppressWarnings(readLines(tmp)))
-  
-  rm(tmp)  
-  
-  if(check==1) {
-    stop('Data cannot be saved, at least one error exists')
-  }
-}

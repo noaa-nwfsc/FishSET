@@ -20,7 +20,7 @@ Variable with modified time units
 Transform units of a date variable
 }
 \details{
-Converts a date variable to desired units using \code{\link[base]{as.Date}}. The FishSET \code{\link{date_parse}} function is 
+Converts a date variable to desired units using \code{\link[base]{as.Date}}. The FishSET date_parse function is 
 also called to ensure the date variable is in a format that can be used by the \code{\link[base]{as.Date}} function.
  `define.format` defines the format that the variable should take on. Examples include `\%Y\%m\%d`, `\%Y-\%m-\%d \%H:\%M:\%S`. Users can define their own format or use one of the predefined ones.
 \itemize{

@@ -4,12 +4,12 @@
 \alias{dataindex_update}
 \title{Update dataindex file}
 \usage{
-dataindex_update(dataset, dataindex)
+dataindex_update(dat, dataindex)
 }
 \arguments{
-\item{dataindex}{Name dataindex file should be saved as in database. Table name should exist in the fishset_db database. Name must be in quotes.}
-
 \item{dat}{Main data frame. Table in fishset_db database should contain the string `MainDataTable`.}
+
+\item{dataindex}{Name dataindex file should be saved as in database. Table name should exist in the fishset_db database. Name must be in quotes.}
 }
 \description{
 Update dataindex file

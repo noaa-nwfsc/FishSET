@@ -4,16 +4,16 @@
 \alias{load_grid}
 \title{Save gridded data}
 \usage{
-load_grid(dataset, x, over_write = TRUE, project = NULL)
+load_grid(dat, x, over_write = TRUE, project = NULL)
 }
 \arguments{
+\item{dat}{Main data frame. Table in fishset_db database should contain the string `MainDataTable`.}
+
 \item{x}{Name of gridded data frame to be saved}
 
 \item{over_write}{TRUE/FALSE Save over previously saved file or not.}
 
 \item{project}{Name of project for attaching to name of the table.}
-
-\item{dat}{Main data frame. Table in fishset_db database should contain the string `MainDataTable`.}
 }
 \description{
 Save gridded data

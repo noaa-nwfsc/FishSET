@@ -40,7 +40,9 @@ Subroutine to run chosen discrete choice model
 }
 \examples{
 \dontrun{
-results <- discretefish_subroutine(modelInputData, initparams= c(0.5, -2.8), optimOpt=c(100000,1.00000000000000e-08,1,1),
-                                  func=logit_c, methodname="BFGS", 'newlogit4', select.model=TRUE, project='projectName')
+results <- discretefish_subroutine(modelInputData, initparams= c(0.5, -2.8), 
+                                   optimOpt=c(100000,1.00000000000000e-08,1,1),
+                                   func=logit_c, methodname="BFGS", 'newlogit4', 
+                                   select.model=TRUE, project='projectName')
 }
 }
