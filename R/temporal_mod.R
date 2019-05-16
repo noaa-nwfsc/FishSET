@@ -45,29 +45,39 @@ temporal_mod <- function(dat, x, define.format) {
   
   if (!define.format %in% c("year","month","day","hour", "minute")) {
     # User defines the format of the time variable
-    int <- format(date_parser(dataset[[x]]), format = define.format)
+    int <- format(FishSET:::date_parser(dataset[[x]]), format = define.format)
     # Extract specific time unit
   } else {
     if (define.format == "month") {
       # Month:
-      int <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m")
+      int <- format(as.Date(FishSET:::date_parser(dataset[[x]])), format = "%Y/%m")
     } else if (define.format == "year") {
       # Year:
-      int <- format(as.Date(date_parser(dataset[[x]])), format = "%Y")
+      int <- format(as.Date(FishSET:::date_parser(dataset[[x]])), format = "%Y")
     } else if (define.format == "day") {
       # Month/day
-      int <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m/%d")
+      int <- format(as.Date(FishSET:::date_parser(dataset[[x]])), format = "%Y/%m/%d")
     } else if(define.format == "hour") {
-      int <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m/%d %H")
+      int <- format(as.Date(FishSET:::date_parser(dataset[[x]])), format = "%Y/%m/%d %H")
     }else if(define.format == "minute") {
-      int <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m/%d %H:%M")
+      int <- format(as.DateFishSET:::date_parser(dataset[[x]])), format = "%Y/%m/%d %H:%M")
       }else {
       warning("define.format is not recognized. Pre-formatted choices include, year, month, day, hour, minute")
     }
   }
   
   if(!exists('logbody')) { 
-    logging_code()
+    logbody <- list()
+    infoBodyout <- list()
+    functionBodyout <- list()
+    infobody <- list()
+    
+    infobody$rundate <- Sys.Date()
+    infoBodyout$info <- list(infobody)
+    
+    functionBodyout$function_calls <- list()
+    
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
   } 
   temp_mod_function <- list()
   temp_mod_function$functionID <- 'temp_mod'

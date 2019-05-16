@@ -86,8 +86,8 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
   
   
   dat.temp <- dataset[which(grepl('date', names(dataset), ignore.case=TRUE) == TRUE)]#
-  dat.start <- as.data.frame(apply(dat.temp, 1, function(x) find_first(x)))  
-  dat.end <- as.data.frame(apply(dat.temp, 1, function(x) find_last(x)))  
+  dat.start <- as.data.frame(apply(dat.temp, 1, function(x) FishSET:::find_first(x)))  
+  dat.end <- as.data.frame(apply(dat.temp, 1, function(x) FishSET:::find_last(x)))  
   
   rownames(dataset)=make.names(dat.start[,1], unique=TRUE)
   dat.start <- as.Date(sapply(gsub("\\.|[[:digit:]]", "", rownames(dataset)), function(x) dataset[[x, x]]), origin='1970-01-01')
@@ -120,8 +120,8 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
       if(all(seasontemp[which(grepl('date', names(seasontemp), ignore.case=TRUE) == TRUE)]=='')==TRUE){
           dataset[['SeasonID']] <- NA
         } else {
-           dataset[['SeasonID']] <-ifelse((dat.start > date_parser(seasontemp[[find_first(seasontemp)]][1])) %in%  
-                                            (dat.end < date_parser(seasontemp[[find_last(seasontemp)]][1]))==TRUE,
+           dataset[['SeasonID']] <-ifelse((dat.start > FishSET:::date_parser(seasontemp[[FishSET:::find_first(seasontemp)]][1])) %in%  
+                                            (dat.end < FishSET:::date_parser(seasontemp[[FishSET:::find_last(seasontemp)]][1]))==TRUE,
                                     target, 'Other')
       }
     } else {
@@ -150,8 +150,8 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
         dataset[which(dataset[[loc.name]]==loc[j]),'SeasonID'] <- NA
       } else {
         dataset[which(dataset[[loc.name]]==loc[j]),'SeasonID'] <- 
-                  ifelse((dat.start[which(dataset[[loc.name]]==loc[j])] > date_parser(seasontemp[[find_first(seasontemp)]][1])) %in%  
-                          (dat.end[which(dataset[[loc.name]]==loc[j])] < date_parser(seasontemp[[find_last(seasontemp)]][1]))==TRUE,
+                  ifelse((dat.start[which(dataset[[loc.name]]==loc[j])] > FishSET:::date_parser(seasontemp[[FishSET:::find_first(seasontemp)]][1])) %in%  
+                          (dat.end[which(dataset[[loc.name]]==loc[j])] < FishSET:::date_parser(seasontemp[[FishSET:::find_last(seasontemp)]][1]))==TRUE,
                   target, 'Other')
       }
       }
@@ -165,8 +165,8 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
       while(all(is.na(dataset[['SeasonID']]))==TRUE){
           seasontemp <- seasonsub[i,]
           dataset[which(is.na(dataset[['SeasonID']]==TRUE)), 'SeasonID'] <- 
-                    ifelse(((dat.start[which(is.na(dataset[['SeasonID']])==TRUE)] > date_parser(seasontemp[[find_first(seasontemp)]][1])) %in%  
-                            (dat.end[which(is.na(dataset[['SeasonID']])==TRUE)] < date_parser(seasontemp[[find_last(seasontemp)]][1]))==TRUE),
+                    ifelse(((dat.start[which(is.na(dataset[['SeasonID']])==TRUE)] > FishSET:::date_parser(seasontemp[[FishSET:::find_first(seasontemp)]][1])) %in%  
+                            (dat.end[which(is.na(dataset[['SeasonID']])==TRUE)] < FishSET:::date_parser(seasontemp[[FishSET:::find_last(seasontemp)]][1]))==TRUE),
                as.character(seasontemp[[sp.col]]), NA)
       i <- i +1
     }
@@ -177,7 +177,7 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
       while(all(is.na(dataset[['SeasonID']]))==TRUE){ 
           seasontemp <- seasonsub[i,]
             seasontemp <- seasontemp[which(grepl(as.character(loc[j]), gsub(',', '|', seasontemp[[loc.name]]))==TRUE),]
-            if(all(is.empty(seasontemp))==TRUE){
+            if(all(FishSET:::is_empty(seasontemp))==TRUE){
               next
             }
           if(dim(seasontemp)[1] > 1) {
@@ -203,8 +203,8 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
             dataset[which(is.na(dataset$SeasonID)==TRUE) && which(dataset[[loc.name]]==loc[j]),'SeasonID'] <- NA
           } else {
             dataset[which(is.na(dataset$SeasonID)==TRUE) && which(dataset[[loc.name]]==loc[j]),'SeasonID'] <-
-                    ifelse (((dat.start[which(is.na(dataset$SeasonID)==TRUE) && which(dataset[[loc.name]]==loc[j])] > date_parser(seasontemp[[find_first(seasontemp)]][1])) %in%  
-                              (dat.end[which(is.na(dataset$SeasonID)==TRUE) && which(dataset[[loc.name]]==loc[j])] < date_parser(seasontemp[[find_last(seasontemp)]][1]))==TRUE),
+                    ifelse (((dat.start[which(is.na(dataset$SeasonID)==TRUE) && which(dataset[[loc.name]]==loc[j])] > FishSET:::date_parser(seasontemp[[FishSET:::find_first(seasontemp)]][1])) %in%  
+                              (dat.end[which(is.na(dataset$SeasonID)==TRUE) && which(dataset[[loc.name]]==loc[j])] < FishSET:::date_parser(seasontemp[[FishSET:::find_last(seasontemp)]][1]))==TRUE),
                      as.character(seasontemp[[sp.col]]), NA)
           }
           
@@ -228,8 +228,8 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
       if(all(seasontemp[which(grepl('date', names(seasontemp), ignore.case=TRUE) == TRUE)]=='')==TRUE){
         dataset[[paste0('SeasonID',spp[i])]] <- FALSE
       } else {
-        dataset[[paste0('SeasonID',spp[i])]] <- (dat.start > date_parser(seasontemp[[find_first(seasontemp)]][1])) %in%  
-          (dat.end < date_parser(seasontemp[[find_last(seasontemp)]][1]))
+        dataset[[paste0('SeasonID',spp[i])]] <- (dat.start > FishSET:::date_parser(seasontemp[[FishSET:::find_first(seasontemp)]][1])) %in%  
+          (dat.end < FishSET:::date_parser(seasontemp[[FishSET:::find_last(seasontemp)]][1]))
     }
   } else if(use.location==FALSE&use.geartype==TRUE){
     if(dim(seasontemp)[1] > 1){
@@ -248,8 +248,8 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
     if(all(seasontemp[which(grepl('date', names(seasontemp), ignore.case=TRUE) == TRUE)]=='')==TRUE){
       dataset[[paste0('SeasonID',spp[i])]] <- FALSE
     } else {
-      dataset[[paste0('SeasonID',spp[i])]] <- (dat.start > date_parser(seasontemp[[find_first(seasontemp)]][1])) %in%  
-        (dat.end < date_parser(seasontemp[[find_last(seasontemp)]][1]))
+      dataset[[paste0('SeasonID',spp[i])]] <- (dat.start > FishSET:::date_parser(seasontemp[[FishSET:::find_first(seasontemp)]][1])) %in%  
+        (dat.end < FishSET:::date_parser(seasontemp[[FishSET:::find_last(seasontemp)]][1]))
     }
   }
   
@@ -280,8 +280,8 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
      dataset[which(dataset[[loc.name]]==loc[j]),paste0('SeasonID',spp[i])] <- FALSE
    } else {
      dataset[which(dataset[[loc.name]]==loc[j]),paste0('SeasonID',spp[i])] <- 
-       (dat.start[which(dataset[[loc.name]]==loc[j])] > date_parser(seasontemp[[find_first(seasontemp)]][1])) %in%  
-          (dat.end[which(dataset[[loc.name]]==loc[j])] < date_parser(seasontemp[[find_last(seasontemp)]][1]))
+       (dat.start[which(dataset[[loc.name]]==loc[j])] > FishSET:::date_parser(seasontemp[[FishSET:::find_first(seasontemp)]][1])) %in%  
+          (dat.end[which(dataset[[loc.name]]==loc[j])] < FishSET:::date_parser(seasontemp[[FishSET:::find_last(seasontemp)]][1]))
    }
     }
   }
@@ -289,7 +289,18 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
 
 
   if(!exists('logbody')) { 
-    logging_code()
+    logbody <- list()
+    infoBodyout <- list()
+    functionBodyout <- list()
+    infobody <- list()
+    
+    infobody$rundate <- Sys.Date()
+    infoBodyout$info <- list(infobody)
+    
+    functionBodyout$function_calls <- list()
+    
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
+    
   } 
   create_seaonal_ID_function <- list()
   create_seaonal_ID_function$functionID <- 'create_seaonal_ID'

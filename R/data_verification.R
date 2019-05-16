@@ -84,7 +84,17 @@ data_verification <- function(dat) {
   print(suppressWarnings(readLines(tmp)))
  
   if(!exists('logbody')) { 
-    logging_code()
+    logbody <- list()
+    infoBodyout <- list()
+    functionBodyout <- list()
+    infobody <- list()
+    
+    infobody$rundate <- Sys.Date()
+    infoBodyout$info <- list(infobody)
+    
+    functionBodyout$function_calls <- list()
+    
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
   } 
   
   data_verification_function <- list()

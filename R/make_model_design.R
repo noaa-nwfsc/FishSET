@@ -80,7 +80,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   choice <- Alt[["choice"]]
   bCHeader <- Alt[["altChoiceUnits"]]
   
-   if (!is.empty(gridVariablesInclude)) {
+   if (!FishSET:::is_empty(gridVariablesInclude)) {
     bCHeader <- list(bCHeader, gridVariablesInclude)
   }
   if (!exists("newDumV")) {
@@ -90,7 +90,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
     bCHeader <- list(bCHeader, newDumV)
   }
   # 
-  if (is.empty(indeVarsForModel)) {
+  if (FishSET:::is_empty(indeVarsForModel)) {
     bCHeader <- list(bCHeader, indeVarsForModel = as.data.frame(rep(1, nrow(choice))))
     bColumnsWant <- ""
     bInterAct <- ""
@@ -147,7 +147,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
       # Port (isfield(data,'isPort') && data(v1).isPort){ Data from dataframe
       if (any(grepl("Port", alt_var, ignore.case = TRUE) == T)) {
         if (is.data.frame(dataset)) {
-          if (any(is.empty(dataset[[alt_var]]))) {
+          if (any(FishSET:::is_empty(dataset[[alt_var]]))) {
             stop("alt_var does not exist in datset")
           }
           
@@ -209,10 +209,10 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
           stop("Define both lat and long in occasion variable.")
         }
         
-        if (any(is.empty(dataset[[occasion[1]]]))) {
+        if (any(FishSET:::is_empty(dataset[[occasion[1]]]))) {
           stop("occasion does not exist in datset")
         }
-        if (any(is.empty(dataset[[occasion[2]]]))) {
+        if (any(FishSET:::is_empty(dataset[[occasion[2]]]))) {
           stop("occasion does not exist in datset")
         }
         toXY2 <- data.frame(dataset[[occasion[1]]][which(dataZoneTrue == 1)], 
@@ -326,7 +326,17 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   
  
   if(!exists('logbody')) { 
-    logging_code()
+    logbody <- list()
+    infoBodyout <- list()
+    functionBodyout <- list()
+    infobody <- list()
+    
+    infobody$rundate <- Sys.Date()
+    infoBodyout$info <- list(infobody)
+    
+    functionBodyout$function_calls <- list()
+    
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
   } 
   make_model_design_function <- list()
   make_model_design_function$functionID <- 'make_model_design'

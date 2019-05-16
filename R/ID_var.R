@@ -44,7 +44,17 @@ ID_var <- function(dat, newID, ...) {
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
   
   if(!exists('logbody')) { 
-    logging_code()
+    logbody <- list()
+    infoBodyout <- list()
+    functionBodyout <- list()
+    infobody <- list()
+    
+    infobody$rundate <- Sys.Date()
+    infoBodyout$info <- list(infobody)
+    
+    functionBodyout$function_calls <- list()
+    
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
   } 
   ID_var_function <- list()
   ID_var_function$functionID <- 'ID_var'

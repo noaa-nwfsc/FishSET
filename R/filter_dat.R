@@ -2,7 +2,7 @@ filter_table <- function(dat, x, exp, project) {
   #'  Define and store filter expressions
   #'
   #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
-  #' @param x Column in dat aframe over which filter will be applied
+  #' @param x Column in dataaframe over which filter will be applied
   #' @param exp Filter expression. Should take on the form of `x<100` or `is.na(x)==F`.
   #' @param project Name of project
   #' @importFrom utils head read.csv write.csv 
@@ -11,12 +11,12 @@ filter_table <- function(dat, x, exp, project) {
   #' @export filter_table
   #' @return  Filter expressions saved as a table into the global environment. 
   #' @details This function allows users to define and store data filter expressions which can then be applied to the data.  
-  #' The filter table will be saved in the SQLite database under the project name (\emph{project}), the date the table was created and the 
-  #' string \emph{filterTable}. The new filter functions are added each time the function is run and the table is also automatically updated in the 
+  #' The filter table will be saved in the SQLite fishset_db  database under the project name (\emph{project}) and (\emph{filterTable}). 
+  #' The new filter functions are added each time the function is run and the table is also automatically updated in the 
   #' fishet_db database. The function call will be logged in the log file.
   #' @examples 
   #' \dontrun{  
-  #' filter_data(MainDataTable, 'PERFORMANCE_Code','PERFORMANCE_Code==1', 'pcod') 
+  #' filter_table(MainDataTable, 'PERFORMANCE_Code','PERFORMANCE_Code==1', 'pcod') 
   #' }
   #' 
 
@@ -36,28 +36,36 @@ filter_table <- function(dat, x, exp, project) {
   
   
 
-  if (exists("filterTable") == F) {
+  if (table_exists(paste0(project, "filterTable")) == F) {
     filterTable <- data.frame(dataframe = NA, vector = NA, FilterFunction = NA)
     filterTable[1, ] <- c(deparse(substitute(dataset)), deparse(substitute(x)), exp)
   } else {
+    filterTable <- table_view(paste0(project, "filterTable"))
     filterTable <- rbind(filterTable, c(deparse(substitute(dataset)), deparse(substitute(x)), exp))
   }
-  if (save.filter == TRUE) {
-    write.csv(filterTable, paste(filterTable, "_", deparse(substitute(dataset)), ".csv", sep=''), sep = F, row.names = FALSE)
-  }
-  
+ 
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  DBI::dbWriteTable(fishset_db, paste(project, 'filterTable', Sys.Date(), sep=''),  filterTable, overwrite=TRUE)
+  DBI::dbWriteTable(fishset_db, paste0(project, 'filterTable'),  filterTable, overwrite=TRUE)
   DBI::dbDisconnect(fishset_db)
   cat('Data saved to fishset_db database')
   
   
      if(!exists('logbody')) { 
-      logging_code()
+       logbody <- list()
+       infoBodyout <- list()
+       functionBodyout <- list()
+       infobody <- list()
+       
+       infobody$rundate <- Sys.Date()
+       infoBodyout$info <- list(infobody)
+       
+       functionBodyout$function_calls <- list()
+       
+       logbody$fishset_run <- list(infoBodyout, functionBodyout)
     } 
     filter_data_function <- list()
     filter_data_function$functionID <- 'filter_table'
-    filter_data_function$args <- c(deparse(substitute(dat)), x, exp, save.filter, flog.dat)
+    filter_data_function$args <- c(deparse(substitute(dat)), x, exp, project)
     filter_data_function$kwargs <- list()
     filter_data_function$output <- c('')
     filter_data_function$msg <- filterTable
@@ -66,7 +74,6 @@ filter_table <- function(dat, x, exp, project) {
     write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
     assign("functionBodyout", value = functionBodyout, pos = 1)
     
-  assign("filterTable", filterTable, pos=1)
   print(filterTable)
 }
 
@@ -120,7 +127,17 @@ filter_dat <- function(dat, exp, filterTable) {
      }
   
     if(!exists('logbody')) { 
-      logging_code()
+      logbody <- list()
+      infoBodyout <- list()
+      functionBodyout <- list()
+      infobody <- list()
+      
+      infobody$rundate <- Sys.Date()
+      infoBodyout$info <- list(infobody)
+      
+      functionBodyout$function_calls <- list()
+      
+      logbody$fishset_run <- list(infoBodyout, functionBodyout)
     } 
     filter_dat_function <- list()
     filter_dat_function$functionID <- 'filter_dat'

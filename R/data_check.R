@@ -91,7 +91,17 @@ data_check <- function(dat, x, dataindex) {
         }
      
       if(!exists('logbody')) { 
-        logging_code()
+        logbody <- list()
+        infoBodyout <- list()
+        functionBodyout <- list()
+        infobody <- list()
+        
+        infobody$rundate <- Sys.Date()
+        infoBodyout$info <- list(infobody)
+        
+        functionBodyout$function_calls <- list()
+        
+        logbody$fishset_run <- list(infoBodyout, functionBodyout)
       } 
         data_check_function <- list()
         data_check_function$functionID <- 'data_check'

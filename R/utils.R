@@ -7,23 +7,7 @@ vgsub <- function(pattern, replacement, x, ...) {
   return(x)
 }
 
-logging_code <- function(){
-  logbody <- list()
-  infoBodyout <<- list()
-  functionBodyout <<- list()
-  infobody <<- list()
-  
-  infobody$rundate <<- Sys.Date()
-  infoBodyout$info <<- list(infobody)
-  
-  functionBodyout$function_calls <- list()
-  
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  logbody <<- logbody
-  functionBodyout <<- functionBodyout
-}
-
-trim.space <- function(x, what = c("both", "leading", "trailing", "none"), space.regex = "[:space:]", ...) {
+trim_space <- function(x, what = c("both", "leading", "trailing", "none"), space.regex = "[:space:]", ...) {
   if (missing(x)) 
     stop("nothing to trim spaces to =(")
   re <- switch(match.arg(what), both = sprintf("^[%s]+|[%s]+$", space.regex, space.regex), 
@@ -31,10 +15,10 @@ trim.space <- function(x, what = c("both", "leading", "trailing", "none"), space
                none = {
                  return(x)
                })
-  vgsub(re, "", x, ...)
+  FishSET:::vgsub(re, "", x, ...)
 }
 
-is.empty <- function(x, trim = TRUE, ...) {
+is_empty <- function(x, trim = TRUE, ...) {
   if (length(x) <= 1) {
     if (is.null(x)) 
       return(TRUE)
@@ -42,27 +26,27 @@ is.empty <- function(x, trim = TRUE, ...) {
       return(TRUE)
     if (is.na(x) || is.nan(x)) 
       return(TRUE)
-    if (is.character(x) && nchar(ifelse(trim, trim.space(x), x)) == 0) 
+    if (is.character(x) && nchar(ifelse(trim, FishSET:::trim_space(x), x)) == 0) 
       return(TRUE)
     if (is.logical(x) && !isTRUE(x)) 
       return(TRUE)
     if (is.numeric(x) && x == 0) 
       return(TRUE)
     return(FALSE)
-  } else sapply(x, is.empty, trim = trim, ...)
+  } else sapply(x, FishSET:::is_empty, trim = trim, ...)
 }
 
 find_first <- function(y){
   g <- y[which(grepl('date', names(y), ignore.case=TRUE) == TRUE)]
-  if(all(g=='')==TRUE||all(is.empty(g)==TRUE)==TRUE) {warning('All date variables are empty')}
-  g2 <- date_parser(as.vector(unlist(c(g))))
+  if(all(g=='')==TRUE||all(FishSET:::is_empty(g)==TRUE)==TRUE) {warning('All date variables are empty')}
+  g2 <- FishSET:::date_parser(as.vector(unlist(c(g))))
   names(g)[which(g2==min(g2, na.rm=TRUE))[1]]
 }
 
 find_last <- function(y){
   g <- y[which(grepl('date', names(y), ignore.case=TRUE) == TRUE)]
-  if(all(g=='')==TRUE||all(is.empty(g)==TRUE)==TRUE) {warning('All date variables are empty')}
-  g2 <- date_parser(as.vector(unlist(c(g))))
+  if(all(g=='')==TRUE||all(FishSET:::is_empty(g)==TRUE)==TRUE) {warning('All date variables are empty')}
+  g2 <- FishSET:::date_parser(as.vector(unlist(c(g))))
   names(g)[which(g2==max(g2, na.rm=TRUE))[1]]
 }
 

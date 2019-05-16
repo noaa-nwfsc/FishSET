@@ -2,7 +2,8 @@ data_verification_call <- function(dat) {
   #' Checks for common issues with data
   #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
   #' @return Returns statements as to whether issues in the data may exist
-  #' @export data_verification
+  #' @export data_verification_call
+  #' @importFrom maps map
   #' @details  Contains one function checks that all columnn names in the dataset are unique, whether any columns in the dataset are empty, 
   #' whether each row is a unique choice occurrence at the haul or trip level, and that data for either lat/long or fishing area are included.
   #' Main data table is not saved to fishset_db database if any tests fail.
@@ -21,7 +22,7 @@ data_verification_call <- function(dat) {
       dataset <- table_view(dat)
     }
   }else {
-    dataset <- table_view(dat)  
+    dataset <- dat  
   }
   DBI::dbDisconnect(fishset_db)
   
@@ -70,7 +71,7 @@ data_verification_call <- function(dat) {
     lat <- dataset[,which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)]
     lon <- dataset[,which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)]
     graphics::par(mar=c(1,1,1,1)) 
-    map('world', ylim=c(min(lat, na.rm=TRUE), max(lat, na.rm=TRUE)), 
+    maps::map('world', ylim=c(min(lat, na.rm=TRUE), max(lat, na.rm=TRUE)), 
         xlim=c(min(lon, na.rm=TRUE), max(lon, na.rm=TRUE)))
     points(dataset[sample(nrow(dataset), nrow(dataset)/10), which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)[1]], 
            dataset[sample(nrow(dataset), nrow(dataset)/10), which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)[1]])

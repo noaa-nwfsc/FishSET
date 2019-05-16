@@ -88,7 +88,7 @@ haul_to_trip <- function(dat, dataindex, fun.time = min, fun.numeric = mean, ...
                 as.data.frame(int[,c(which(dataIndex[dataIndex[, 'variable_name'] %in% 
                                                colnames(int[,-which(colnames(int)=='rowID')]), 'generalType'] == "Time"))])
               }, 
-              date_parser)), rowID=int$rowID), list(int$rowID), match.fun(fun.time), na.rm=T))[,-1]
+            FishSET:::date_parser)), rowID=int$rowID), list(int$rowID), match.fun(fun.time), na.rm=T))[,-1]
           }
         names(out2)[1:dim(out2)[2]-1] <- names(int)[which(dataIndex[dataIndex[, 'variable_name'] %in% 
                                                           colnames(int[,-which(colnames(int)=='rowID')]), 'generalType'] == "Time")] 
@@ -167,7 +167,17 @@ haul_to_trip <- function(dat, dataindex, fun.time = min, fun.numeric = mean, ...
 
     
   if(!exists('logbody')) { 
-    logging_code()
+    logbody <- list()
+    infoBodyout <- list()
+    functionBodyout <- list()
+    infobody <- list()
+    
+    infobody$rundate <- Sys.Date()
+    infoBodyout$info <- list(infobody)
+    
+    functionBodyout$function_calls <- list()
+    
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
   } 
   haul_to_trip_function <- list()
    haul_to_trip_function$functionID <- 'haul_to_trip'

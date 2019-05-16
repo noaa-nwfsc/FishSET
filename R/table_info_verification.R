@@ -63,7 +63,17 @@ table_info_verification <- function(dataindex) {
   }
   print(suppressWarnings(readLines(tmp)))
   if(!exists('logbody')) { 
-    logging_code()
+    logbody <- list()
+    infoBodyout <- list()
+    functionBodyout <- list()
+    infobody <- list()
+    
+    infobody$rundate <- Sys.Date()
+    infoBodyout$info <- list(infobody)
+    
+    functionBodyout$function_calls <- list()
+    
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
   } 
   table_info_verification_function <- list()
   table_info_verification_function$functionID <- 'table_info_verification'

@@ -10,6 +10,7 @@
 #' @param select.model Return an interactive data table that allows users to select and save table of best models based on measures of fit 
 #' @param project Name of project for naming output table in sql database
 #' @param name Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
+#' @export discretefish_subroutine
 #' @importFrom DT DTOutput
 #' @importFrom DBI dbExecute dbWriteTable dbExistsTable dbReadTable dbGetQuery dbDisconnect
 #' @importFrom DT datatable JS DTOutput 
@@ -37,7 +38,8 @@
 
 
 
-discretefish_subroutine <- function(x, initparams, optimOpt, func, methodname, func.name, select.model=FALSE, project, name='discretefish_subroutine') {
+discretefish_subroutine <- function(x, initparams, optimOpt, func, methodname, func.name, 
+                                    select.model=FALSE, project, name='discretefish_subroutine') {
   catch <- as.matrix(x[['catch']])
   choice <- x[['choice']]
   distance <- x[['distance']]
@@ -101,7 +103,7 @@ discretefish_subroutine <- function(x, initparams, optimOpt, func, methodname, f
   output <- list(counts = res[["counts"]], convergence = res[["convergence"]], 
                  optim_message = res[["message"]])
   H <- res[["hessian"]]
-  
+  #############################################################################  
   # Model comparison metrics (MCM)
   param <- max(dim(as.matrix(starts2)))
   obs <- dim(dataCompile)[1]
@@ -125,10 +127,10 @@ discretefish_subroutine <- function(x, initparams, optimOpt, func, methodname, f
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   
-  if (DBI::dbExistsTable(fishset_db, "out.mod") == FALSE) {
-    DBI::dbWriteTable(fishset_db, "out.mod", mod.out)
+  if (DBI::dbExistsTable(fishset_db, paste0(project,"modelfit")) == FALSE) {
+    DBI::dbWriteTable(fishset_db, paste0(project,"modelfit"), mod.out )
   } else {
-    out.mod <- DBI::dbReadTable(fishset_db, "out.mod")
+    out.mod <- DBI::dbReadTable(fishset_db, paste0(project, "modelfit"))
     if(exists('temp')){
     out.mod <- cbind(out.mod, temp)
     } else {
@@ -138,11 +140,11 @@ discretefish_subroutine <- function(x, initparams, optimOpt, func, methodname, f
     if (any(duplicated(colnames(out.mod))) == T) {
       stop("Duplicate columns names. Please define a unique column name for the model output,")
     }
-    DBI::dbWriteTable(fishset_db, "out.mod", out.mod, overwrite = T)
+    DBI::dbWriteTable(fishset_db, paste0(project, "modelfit"), out.mod, overwrite = T)
   }
 
     out.mod <<- out.mod
-
+    ############################################################################# 
  if(select.model==TRUE){
  #  rownames(out.mod)=c("AIC", "AICc", "BIC", "PseudoR2")
  #   print(DT::datatable(t(round(out.mod, 5)), filter='top'))
@@ -210,14 +212,14 @@ discretefish_subroutine <- function(x, initparams, optimOpt, func, methodname, f
         observeEvent(input$submit, {
           # Connect to the database
           fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-          
-          if(DBI::dbExistsTable(fishset_db, 'modelChosen')==FALSE){
-            DBI::dbExecute(fishset_db, "CREATE TABLE modelChosen(model TEXT, AIC TEXT, AICc TEXT, BIC TEXT, PseudoR2 TEXT, selected TEXT, Date TEXT)")
+          single_sql <- paste0(project, "modelChosen")
+          if(DBI::dbExistsTable(fishset_db, single_sql)==FALSE){
+            DBI::dbExecute(fishset_db, paste0("CREATE TABLE ",single_sql,"(model TEXT, AIC TEXT, AICc TEXT, BIC TEXT, PseudoR2 TEXT, selected TEXT, Date TEXT)"))
           }
           # Construct the update query by looping over the data fields
           query <- sprintf(
             "INSERT INTO %s (%s) VALUES %s",
-            "modelChosen", 
+            single_sql, 
             paste(names(data.frame(as.data.frame(isolate(checkedsave())))), collapse = ", "),
             paste0("('", matrix(apply(as.data.frame(isolate(checkedsave())), 1, paste, collapse="','"), ncol=1), collapse=',', "')")
           )
@@ -237,7 +239,8 @@ discretefish_subroutine <- function(x, initparams, optimOpt, func, methodname, f
     
   }
   
-  MCM <- list(AIC = AIC, AICc = AICc, BIC = BIC, PseudoR2 = PseudoR2)
+    ############################################################################# 
+    MCM <- list(AIC = AIC, AICc = AICc, BIC = BIC, PseudoR2 = PseudoR2)
   
   if (is.null(H) == FALSE) {
     

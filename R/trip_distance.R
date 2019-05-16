@@ -150,7 +150,17 @@ create_trip_distance <- function(dat, PortTable, trip_id, starting_port, startin
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
   
   if(!exists('logbody')) { 
-    logging_code()
+    logbody <- list()
+    infoBodyout <- list()
+    functionBodyout <- list()
+    infobody <- list()
+    
+    infobody$rundate <- Sys.Date()
+    infoBodyout$info <- list(infobody)
+    
+    functionBodyout$function_calls <- list()
+    
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
   } 
   create_TD_function <- list()
   create_TD_function$functionID <- 'create_TD'

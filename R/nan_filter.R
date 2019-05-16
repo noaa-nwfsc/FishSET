@@ -58,7 +58,17 @@ nan_identify <- function(dat){
    
    print(suppressWarnings(readLines(tmp)))
   if(!exists('logbody')) { 
-    logging_code()
+    logbody <- list()
+    infoBodyout <- list()
+    functionBodyout <- list()
+    infobody <- list()
+    
+    infobody$rundate <- Sys.Date()
+    infoBodyout$info <- list(infobody)
+    
+    functionBodyout$function_calls <- list()
+    
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
   } 
   nan_identify_function <- list()
   nan_identify_function$functionID <- 'nan_identify'
@@ -143,7 +153,17 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value=NA) {
   print(suppressWarnings(readLines(tmp)))
   
   if(!exists('logbody')) { 
-    logging_code()
+    logbody <- list()
+    infoBodyout <- list()
+    functionBodyout <- list()
+    infobody <- list()
+    
+    infobody$rundate <- Sys.Date()
+    infoBodyout$info <- list(infobody)
+    
+    functionBodyout$function_calls <- list()
+    
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
   } 
   nan_filter_function <- list()
   nan_filter_function$functionID <- 'nan_filter'
@@ -235,7 +255,17 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA) {
   print(suppressWarnings(readLines(tmp)))
   
   if(!exists('logbody')) { 
-    logging_code()
+    logbody <- list()
+    infoBodyout <- list()
+    functionBodyout <- list()
+    infobody <- list()
+    
+    infobody$rundate <- Sys.Date()
+    infoBodyout$info <- list(infobody)
+    
+    functionBodyout$function_calls <- list()
+    
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
   } 
   nan_filter_function <- list()
   nan_filter_function$functionID <- 'na_filter'

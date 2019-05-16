@@ -1,4 +1,4 @@
-#'  Generate centroid of polygon of zone or area
+#'  Assign observations to zone or area
 #'  
 #'
 #' @param dat Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.

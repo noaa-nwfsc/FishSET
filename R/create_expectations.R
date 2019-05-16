@@ -82,7 +82,7 @@ create_expectations <- function(dat, gridfile, catch, defineGroup = NULL, temp.v
   }
   
   # Check that define group is either empty of an actual variable in the dataset
-  if (!is.empty(defineGroup)) {
+  if (!FishSET:::is_empty(defineGroup)) {
     if (any(is.null(dataset[[defineGroup]]))) {
       stop("defineGroup not recognized. Check that parameter is correctly defined")
     }
@@ -101,11 +101,11 @@ create_expectations <- function(dat, gridfile, catch, defineGroup = NULL, temp.v
   numData = as.data.frame(numData)[which(dataZoneTrue == 1), ]  #(Alt.dataZoneTrue,:)
   spData = choice[which(dataZoneTrue == 1), ]  # mapping to to the map file
   spNAN = which(is.na(spData) == T)
-  if (any(!is.empty(spNAN))) {
+  if (any(!FishSET:::is_empty(spNAN))) {
     spData[spNAN] = rep(Inf, length(spNAN))  # better for grouping than nans because aggregated
   }
   numNAN = which(is.nan(numData) == T)
-  if (any(!is.empty(numNAN))) {
+  if (any(!FishSET:::is_empty(numNAN))) {
     numData[numNAN] = rep(Inf, length(numNAN))
   }
   
@@ -119,7 +119,7 @@ create_expectations <- function(dat, gridfile, catch, defineGroup = NULL, temp.v
   
   # Time variable not chosen if temp.var is empty
   #NOTE currently doesn't allow dummy or other options if no time detected
-  if (is.empty(temp.var)) {
+  if (FishSET:::is_empty(temp.var)) {
     
     allCatch = stats::aggregate(catchData, list(C), mean, na.rm = T)  #accumarray(C,catchData,[],@nanmean)# currently no replacement for nans
     # Above line is grouping by the alternatives through the C above
@@ -320,7 +320,18 @@ create_expectations <- function(dat, gridfile, catch, defineGroup = NULL, temp.v
   assign("ExpectedCatch", value = ExpectedCatch, pos = 1)
 
   if(!exists('logbody')) { 
-    logging_code()
+    logbody <- list()
+    infoBodyout <- list()
+    functionBodyout <- list()
+    infobody <- list()
+    
+    infobody$rundate <- Sys.Date()
+    infoBodyout$info <- list(infobody)
+    
+    functionBodyout$function_calls <- list()
+    
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
+    
   } 
   create_expectations_function <- list()
   create_expectations_function$functionID <- 'create_expectations'

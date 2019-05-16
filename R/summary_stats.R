@@ -30,7 +30,7 @@ summary_stats <- function(dat, x=NULL) {
   DBI::dbDisconnect(fishset_db)
   
   
-  if(is.empty(x)){
+  if(FishSET:::is_empty(x)){
     rbind(summary(dataset), apply(dataset, 2, function(x) paste("UniqueObs:", length(unique(x)))))
   } else {
     c(summary(dataset[[x]]), paste("UniqueObs:", length(unique(dataset[[x]]))))

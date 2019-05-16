@@ -1,6 +1,6 @@
 #' Create alternative choice matrix
 #'
-#' Creates a list containing information on alternative choices. 
+#' Creates a list containing information on how alternative fishing choices should be defined. 
 #'
 #' @param dat  Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
 #' @param gridfile Spatial data. Shape, json, and csv formats are supported.
@@ -59,11 +59,10 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
   }
   DBI::dbDisconnect(fishset_db)
 
-  int <- find_centroid(use.grid = use.grid, dat=dataset, gridfile = gridfile, 
-                       lon.grid = lon.grid, lat.grid = lat.grid, lat.dat = lat.dat, lon.dat = lon.dat, 
-                       cat = cat, weight.var = weight.var)
+  int <- find_centroid(dat=dataset, gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.grid, 
+                       lat.dat = lat.dat, lon.dat = lon.dat, cat = cat, weight.var = weight.var)
   
-  #if (!is.empty(weight.var)) {
+  #if (!FishSET::is_empty(weight.var)) {
     int.data <- assignment_column(dat=dataset, gridfile = gridfile, hull.polygon = hull.polygon, 
                                   lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat, 
                                   lat.dat = lat.dat, cat = cat, closest.pt = closest.pt)
@@ -80,20 +79,7 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
     choice <- data.frame(int.data$ZoneID)
     
     
-  #} else if (use.grid == T) {
-   # int.data <- assignment_column(dataset = dataset, gridfile = grid.file, hull.polygon = hull.polygon, 
-   #                               lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat, 
-   #                               lat.dat = lat.dat, cat = cat, closest.pt = closest.pt)
-   # if (remove.na == TRUE) {
-   #   dataset <- dataset[-which(is.na(int.data$ZoneID) == TRUE), ]
-  #    int.data <- subset(int.data, is.na(int.data$ZoneID) == FALSE)
-   # }
-    
-  #  choice <- data.frame(int.data$ZoneID)
-  #} else {
-  #  choice <- dataset[[cat]]
-  #}
-  if (is.null(choice)) {
+   if (is.null(choice)) {
     stop("Choice must be defined. Ensure that the zone or area assignment variable (cat) is defined.")
   }
   
@@ -111,14 +97,14 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
     C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*"))  #    C <- data(a(v))[dataColumn,'rows'] 
   }
   
-  numH <- accumarray(C, C)
+  numH <- FishSET:::accumarray(C, C)
   binH <- 1:length(numH)
   numH <- numH/t(binH)
   zoneHist <- data.frame(numH = as.vector(numH), binH = as.vector(binH), B[, 1])
   
   zoneHist[which(zoneHist[, 1] < contents), 3] <- NA
   
-  if (any(is.empty(which(is.na(zoneHist[, 3]) == F)))) {
+  if (any(FishSET:::is_empty(which(is.na(zoneHist[, 3]) == F)))) {
     stop("No zones meet criteria. Check the contents parameter or zone identification.")
   }
   #dataZoneTrue=ismember(gridInfo.assignmentColumn,zoneHist(greaterNZ,3));
@@ -160,7 +146,7 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
         }
         
         #If gridded data is not an array, need to create matrix
-        if (dim(gridVar)[1]==1) { #(is.empty(gridVar.row.array)){ #1d
+        if (dim(gridVar)[1]==1) { #(FishSET:::is_empty(gridVar.row.array)){ #1d
           biG <- match(Alt[['zoneRow']], int) #[aiG,biG] = ismember(Alt.zoneRow, gridVar.col.array) #FIXME FOR STRING CONNECTIONS
           numRows <- nrow(dataset) #size(data(1).dataColumn,1)  #
           if (!any(biG)){
@@ -208,7 +194,18 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
        
 
        if(!exists('logbody')) { 
-         logging_code()
+         logbody <- list()
+         infoBodyout <- list()
+         functionBodyout <- list()
+         infobody <- list()
+         
+         infobody$rundate <- Sys.Date()
+         infoBodyout$info <- list(infobody)
+         
+         functionBodyout$function_calls <- list()
+         
+         logbody$fishset_run <- list(infoBodyout, functionBodyout)
+         
        } 
        create_alternative_choice_function <- list()
        create_alternative_choice_function$functionID <- 'create_alternative_choice'

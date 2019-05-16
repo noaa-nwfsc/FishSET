@@ -45,7 +45,17 @@ cpue <- function(dat, xWeight, xTime, name='cpue') {
   cpue <- dataset[[xWeight]]/dataset[[xTime]]
  
    if(!exists('logbody')) { 
-    logging_code()
+     logbody <- list()
+     infoBodyout <- list()
+     functionBodyout <- list()
+     infobody <- list()
+     
+     infobody$rundate <- Sys.Date()
+     infoBodyout$info <- list(infobody)
+     
+     functionBodyout$function_calls <- list()
+     
+     logbody$fishset_run <- list(infoBodyout, functionBodyout)
   } 
   create_var_cpue_function <- list()
   create_var_cpue_function$functionID <- 'cpue'
@@ -90,7 +100,17 @@ dummy_var <- function(dat, DumFill = 'TRUE', name='dummy_var') {
   dummyvar <- as.vector(rep(DumFill, nrow(dataset)))
 
   if(!exists('logbody')) { 
-    logging_code()
+    logbody <- list()
+    infoBodyout <- list()
+    functionBodyout <- list()
+    infobody <- list()
+    
+    infobody$rundate <- Sys.Date()
+    infoBodyout$info <- list(infobody)
+    
+    functionBodyout$function_calls <- list()
+    
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
   } 
   create_var_dummy_var_function <- list()
   create_var_dummy_var_function$functionID <- 'dummy_var'
@@ -140,7 +160,17 @@ dummy_matrix <- function(dat, x) {
   colnames(int) = paste(x, "_", levels(as.factor(dataset[[x]])))
   
   if(!exists('logbody')) { 
-    logging_code()
+    logbody <- list()
+    infoBodyout <- list()
+    functionBodyout <- list()
+    infobody <- list()
+    
+    infobody$rundate <- Sys.Date()
+    infoBodyout$info <- list(infobody)
+    
+    functionBodyout$function_calls <- list()
+    
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
   } 
   create_var_dummy_matrix_function <- list()
   create_var_dummy_matrix_function$functionID <- 'dummy_matrix'
@@ -203,7 +233,17 @@ if (quant.cat == 0.2) {
                              include.lowest = TRUE))
   
   if(!exists('logbody')) { 
-    logging_code()
+    logbody <- list()
+    infoBodyout <- list()
+    functionBodyout <- list()
+    infobody <- list()
+    
+    infobody$rundate <- Sys.Date()
+    infoBodyout$info <- list(infobody)
+    
+    functionBodyout$function_calls <- list()
+    
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
   } 
   create_var_set_quants_function <- list()
   create_var_set_quants_function$functionID <- 'set_quants'
@@ -263,7 +303,18 @@ create_var_num <- function(dat, x, y, method, name='create_var_num') {
   }
   
    if(!exists('logbody')) { 
-    logging_code()
+     logbody <- list()
+     infoBodyout <- list()
+     functionBodyout <- list()
+     infobody <- list()
+     
+     infobody$rundate <- Sys.Date()
+     infoBodyout$info <- list(infobody)
+     
+     functionBodyout$function_calls <- list()
+     
+     logbody$fishset_run <- list(infoBodyout, functionBodyout)
+     
   } 
   create_var_num_function <- list()
    create_var_num_function$functionID <- 'create_var_num'
@@ -328,7 +379,7 @@ create_duration <- function(dat, start, end, units = c("week", "day", "hour", "m
     warning("Function is designed for temporal variables")
   }
   
-  elapsed.time <- lubridate::interval(date_parser(dataset[[start]]), date_parser(dataset[[end]]))
+  elapsed.time <- lubridate::interval(FishSET:::date_parser(dataset[[start]]), FishSET:::date_parser(dataset[[end]]))
   if (units == "week") {
     dur <- lubridate::as.duration(elapsed.time)/lubridate::dweeks(1)
   } else if (units == "day") {
@@ -340,7 +391,17 @@ create_duration <- function(dat, start, end, units = c("week", "day", "hour", "m
   }
   
     if(!exists('logbody')) { 
-    logging_code()
+      logbody <- list()
+      infoBodyout <- list()
+      functionBodyout <- list()
+      infobody <- list()
+      
+      infobody$rundate <- Sys.Date()
+      infoBodyout$info <- list(infobody)
+      
+      functionBodyout$function_calls <- list()
+      
+      logbody$fishset_run <- list(infoBodyout, functionBodyout)
   } 
   create_var_temp_function <- list()
   create_var_temp_function$functionID <- 'create_duration'

@@ -120,7 +120,6 @@ load_maindata <- function(dat, over_write=TRUE, project=NULL, compare=FALSE, y=N
   }
   }
   
-  DBI::dbDisconnect(fishset_db)
   
   fishset_compare(dataset,y_call,compare)
   ##-----------MainDataTable--------------------##
@@ -132,8 +131,14 @@ load_maindata <- function(dat, over_write=TRUE, project=NULL, compare=FALSE, y=N
   } else {
     stop("Dataset must contain either latitude and longitude or fishing area designation.")
   }
+  
+  if(length(which(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE)==TRUE))==1) {
+    dataset[, which(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE)==TRUE)] <- 
+      FishSET:::date_parser(dataset[,which(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE)==TRUE)])
+  } else if(length(which(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE)==TRUE))>1){
   dataset[, which(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE)==TRUE)] <- 
-        lapply(dataset[,which(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE)==TRUE)], date_parser)
+        lapply(dataset[,which(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE)==TRUE)], FishSET:::date_parser)
+  }
   ## --------- MainDataTableInfo -------------- ##
   MainDataTableInfo <- data.frame(variable_name=colnames(dataset),
                                   units=c(ifelse(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE), 'yyyymmdd',
@@ -175,7 +180,6 @@ load_maindata <- function(dat, over_write=TRUE, project=NULL, compare=FALSE, y=N
                                   tableLink=rep(NA, length(colnames(dataset))))
   
 
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable', Sys.Date()),  dataset, overwrite=over_write)
   DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTableInfo', Sys.Date()), MainDataTableInfo, overwrite=over_write)
   DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable'),  dataset, overwrite=over_write)
@@ -185,7 +189,20 @@ load_maindata <- function(dat, over_write=TRUE, project=NULL, compare=FALSE, y=N
  
     
   if(!exists('logbody')) { 
-    logging_code()
+    logbody <- list()
+    infoBodyout <<- list()
+    functionBodyout <<- list()
+    infobody <<- list()
+    
+    infobody$rundate <<- Sys.Date()
+    infoBodyout$info <<- list(infobody)
+    
+    functionBodyout$function_calls <- list()
+    
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
+    logbody <<- logbody
+    functionBodyout <<- functionBodyout
+    
   } 
     load_maindata_function <- list()
     load_maindata_function$functionID <- 'load_maindata'
@@ -251,7 +268,18 @@ main_mod <- function(dat, x, new.unit=NULL, new.type=NULL, new.class=NULL) {
   print('Data saved to database')
  
   if(!exist(logbody)) { 
-    logging_code()
+    logbody <- list()
+    infoBodyout <- list()
+    functionBodyout <- list()
+    infobody <- list()
+    
+    infobody$rundate <- Sys.Date()
+    infoBodyout$info <- list(infobody)
+    
+    functionBodyout$function_calls <- list()
+    
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
+    
   } 
   main_mod_function <- list()
   main_mod_function$functionID <- 'main_mod'
@@ -322,7 +350,18 @@ load_port <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
 
   if(!exists('logbody')) { 
-    logging_code()
+    logbody <- list()
+    infoBodyout <- list()
+    functionBodyout <- list()
+    infobody <- list()
+    
+    infobody$rundate <- Sys.Date()
+    infoBodyout$info <- list(infobody)
+    
+    functionBodyout$function_calls <- list()
+    
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
+    
   } 
   
   load_port_function <- list()
@@ -381,7 +420,18 @@ load_aux <- function(dat, x, over_write=TRUE, project=NULL){
   print('Data saved to database')
 
  if(!exists('logbody')) { 
-   logging_code()
+   logbody <- list()
+   infoBodyout <- list()
+   functionBodyout <- list()
+   infobody <- list()
+   
+   infobody$rundate <- Sys.Date()
+   infoBodyout$info <- list(infobody)
+   
+   functionBodyout$function_calls <- list()
+   
+   logbody$fishset_run <- list(infoBodyout, functionBodyout)
+   
  } 
  
  load_aux_function <- list()
@@ -394,7 +444,6 @@ load_aux <- function(dat, x, over_write=TRUE, project=NULL){
   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
 }
-
 
 load_grid <- function(dat, x, over_write=TRUE, project=NULL){
   #' Save gridded data
@@ -430,12 +479,23 @@ load_grid <- function(dat, x, over_write=TRUE, project=NULL){
   data_verification_call(x)
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  DBI::dbWriteTable(fishset_db, paste0(project, x), overwrite=over_write)
+  DBI::dbWriteTable(fishset_db, paste0(project, x), x, overwrite=over_write)
   DBI::dbDisconnect(fishset_db)
   print('Data saved to database')
   
   if(!exists('logbody')) { 
-    logging_code()
+    logbody <- list()
+    infoBodyout <- list()
+    functionBodyout <- list()
+    infobody <- list()
+    
+    infobody$rundate <- Sys.Date()
+    infoBodyout$info <- list(infobody)
+    
+    functionBodyout$function_calls <- list()
+    
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
+    
   } 
   
   load_gridded_function <- list()
@@ -449,7 +509,6 @@ load_grid <- function(dat, x, over_write=TRUE, project=NULL){
   assign("functionBodyout", value = functionBodyout, pos = 1)
 }
 
-
 dataindex_update <- function(dat, dataindex){
   #' Update dataindex file
   #' @param  dat Main data frame. Table in fishset_db database should contain the string `MainDataTable`.
@@ -460,7 +519,7 @@ dataindex_update <- function(dat, dataindex){
   #' Running this function adds information on variables created using the FishSET data creation functions. 
   #' @examples
   #' \dontrun{  
-  #' dataindex_update(dataset='pcodMainDataTable', dataindex='pcodMainDataTableInfo') 
+  #' dataindex_update(dat='pcodMainDataTable', dataindex='pcodMainDataTableInfo') 
   #' }
 
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")

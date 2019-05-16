@@ -1,14 +1,13 @@
 #'  Generate centroid of polygon of zone or area
 
 #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
-#' @param gridfile Gridded data set. Table loaded to fishet_db using \code{\link{load_grid}} function.
+#' @param gridfile Spatial data set. Can be shape file, data frame, or list.
 #' @param lon.dat Longitude of points from dataset.
 #' @param lat.dat Latitude of points from dataset.
 #' @param lon.grid Longitude of points from gridfile.
 #' @param lat.grid Latitude of points from gridfile.
 #' @param cat Variable defining the individual areas or zones.
 #' @param weight.var Variable for weighted average.
-#' @param use.grid TRUE/FALSE
 #' @keywords centroid, zone, polygon
 #' @importFrom sf st_centroid  
 #' @importFrom spatialEco wt.centroid
@@ -23,7 +22,7 @@
 
 
 
-find_centroid <- function(use.grid, dat, gridfile, lon.grid, lat.grid, lon.dat, lat.dat, cat, weight.var) {
+find_centroid <- function(dat, gridfile, lon.grid, lat.grid, lon.dat, lat.dat, cat, weight.var) {
   #Call in datasets
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   if(is.character(dat)==TRUE){
@@ -45,7 +44,7 @@ find_centroid <- function(use.grid, dat, gridfile, lon.grid, lat.grid, lon.dat, 
   x <- 0
   #For json and shape files
   if(any(class(gridfile)=='sf')) {
-    if (is.empty(weight.var)) {
+    if (FishSET:::is_empty(weight.var)) {
       int <- rgeos::gCentroid(methods::as(gridfile, "Spatial"), byid = TRUE)
       int <- cbind(gridfile[[cat]], as.data.frame(int))
       colnames(int)=c("ZoneID", "cent.lon", "cent.lat")
@@ -80,8 +79,8 @@ find_centroid <- function(use.grid, dat, gridfile, lon.grid, lat.grid, lon.dat, 
   } 
   #begin dataframe
   else {
-    # Centroid based on grid file or dataset
-    if (use.grid == T) {
+    # Centroid based on spatial data file or data set
+    if (!is.null(gridfile)) {
       int <- gridfile
       lon <- lon.grid
       lat <- lat.grid
@@ -105,7 +104,7 @@ find_centroid <- function(use.grid, dat, gridfile, lon.grid, lat.grid, lon.dat, 
     } 
     if(x!=1){
     # simple centroid
-    if (is.empty(weight.var)) {
+    if (FishSET:::is_empty(weight.var)) {
       if (is.data.frame(int) == T) {
         int$cent.lon <- stats::ave(int[[lon]], int[[cat]])
         int$cent.lat <- stats::ave(int[[lat]], int[[cat]])
@@ -115,7 +114,7 @@ find_centroid <- function(use.grid, dat, gridfile, lon.grid, lat.grid, lon.dat, 
     } else {
       # weighted centroid
       if (is.data.frame(int) == T) {
-        if (use.grid == T) {
+        if (!is.null(gridfile)) {
         
           int <- assignment_column(dat=dataset, gridfile = gridfile, lon.grid = lon.grid, 
                                 lat.grid = lat.grid, lon.dat = lon.dat, lat.dat = lat.dat, cat = cat)  

@@ -44,48 +44,48 @@ outlier_table <- function(dat, x) {
                             N = length(dataset[, x]), mean = mean(dataset[, x], na.rm = T), median = stats::median(dataset[, x], na.rm = T), 
                             SD = sd(dataset[, x]), min = min(dataset[, x], na.rm = T), 
                             max = max(dataset[,x], na.rm = T), NAs = sum(length(which(is.na(dataset[, x])))), 
-                            skew = skewness(dataset[,x]))
+                            skew = FishSET:::skewness(dataset[,x]))
     # Row 2 5-95% quantile
     temp <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.95) & dataset[, x] > stats::quantile(dataset[, x], 0.05), ]
     dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "5_95_quant", 
                                              N = length(temp[, x]), mean = mean(temp[, x], na.rm = T), 
                                              median = stats::median(temp[, x], na.rm = T), SD = stats::sd(temp[, x]), min = min(temp[, x], na.rm = T), 
                                              max = max(temp[, x], na.rm = T), NAs = sum(length(which(is.na(temp[, x])))), 
-                                             skew = skewness(temp[, x])))
+                                             skew = FishSET:::skewness(temp[, x])))
     # Row 3 25-75% quantile
     temp <- dataset[dataset[, x] < quantile(dataset[, x], 0.75) & dataset[, x] > quantile(dataset[, x], 0.25), ]
     dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "25_75_quant", 
                                              N = length(temp[, x]), mean = mean(temp[, x], na.rm = T), median = stats::median(temp[, x], na.rm = T), 
                                              SD = stats::sd(temp[, x]), min = min(temp[, x], na.rm = T), max = max(temp[, x], na.rm = T), 
-                                             NAs = sum(length(which(is.na(temp[, x])))), skew = skewness(temp[, x])))
+                                             NAs = sum(length(which(is.na(temp[, x])))), skew = FishSET:::skewness(temp[, x])))
     # Row 4 Mean +/2SD
     temp <- dataset[dataset[, x] < (mean(dataset[, x], na.rm = T) + 2 * stats::sd(dataset[, x], na.rm = T)) & 
                       dataset[, x] > (mean(dataset[, x], na.rm = T) - 2 * stats::sd(dataset[, x], na.rm = T)), ]
     dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "mean_2SD", 
                                              N = length(temp[, x]), mean = mean(temp[, x], na.rm = T), median = stats::median(temp[, x], na.rm = T), 
                                              SD = stats::sd(temp[, x]), min = min(temp[, x], na.rm = T), max = max(temp[, x], na.rm = T), 
-                                             NAs = sum(length(which(is.na(temp[, x])))), skew = skewness(temp[, x])))
+                                             NAs = sum(length(which(is.na(temp[, x])))), skew = FishSET:::skewness(temp[, x])))
     # Row 5 Mean +/3SD
     temp <- dataset[dataset[, x] < (mean(dataset[, x], na.rm = T) + 3 * stats::sd(dataset[, x], na.rm = T)) & 
                       dataset[, x] > (mean(dataset[, x], na.rm = T) - 3 * stats::sd(dataset[, x], na.rm = T)), ]
     dat.table <- rbind(dat.table, data.frame(Vector = x, outlier_check = "mean_3SD", 
                                              N = length(temp[, x]), mean = mean(temp[, x], na.rm = T), median = stats::median(temp[, x], na.rm = T), 
                                              SD = stats::sd(temp[, x]), min = min(temp[, x], na.rm = T), max = max(temp[, x], na.rm = T), 
-                                             NAs = sum(length(which(is.na(temp[, x])))), skew = skewness(temp[, x])))
+                                             NAs = sum(length(which(is.na(temp[, x])))), skew = FishSET:::skewness(temp[, x])))
     # Row 6 Median +/-2SD
     temp <- dataset[dataset[, x] < (stats::median(dataset[, x], na.rm = T) + 2 * stats::sd(dataset[, x], na.rm = T)) & 
                       dataset[, x] > (stats::median(dataset[, x], na.rm = T) - 2 * stats::sd(dataset[, x], na.rm = T)), ]
     dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "median_2SD", 
                                              N = length(temp[, x]), mean = mean(temp[, x], na.rm = T), median = stats::median(temp[, x], na.rm = T), 
                                              SD = stats::sd(temp[, x]), min = min(temp[, x], na.rm = T), max = max(temp[, x], na.rm = T), 
-                                             NAs = sum(length(which(is.na(temp[, x])))), skew = skewness(temp[, x])))
+                                             NAs = sum(length(which(is.na(temp[, x])))), skew = FishSET:::skewness(temp[, x])))
     # Row 7 Median +/-3SD
     temp <- dataset[dataset[, x] < (stats::median(dataset[, x], na.rm = T) + 3 * stats::sd(dataset[, x], na.rm = T)) & 
                       dataset[, x] > (stats::median(dataset[, x], na.rm = T) - 3 * stats::sd(dataset[, x], na.rm = T)), ]
     dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "median_3SD", 
                                              N = length(temp[, x]), mean = mean(temp[, x], na.rm = T), median = stats::median(temp[, x], na.rm = T),
                                              SD = sd(temp[, x]), min = min(temp[, x], na.rm = T), max = max(temp[, x], na.rm = T), 
-                                             NAs = sum(length(which(is.na(temp[, x])))), skew = skewness(temp[, x])))
+                                             NAs = sum(length(which(is.na(temp[, x])))), skew = FishSET:::skewness(temp[, x])))
     return(dat.table)
   } else {
     print("Data is not numeric.")
@@ -117,6 +117,15 @@ outlier_plot <- function(dat, x, dat.remove = "none", x.dist = "normal", output 
   #'  \item{median_2SD: Removes data points outside +/- 2SD of the median}
   #'  \item{mean_3SD: Removes data points outside +/- 3SD of the mean}
   #'  \item{median_3SD: Removes data points outside +/- 3SD of the median}
+  #'  }
+  #'  The distribution choices are
+  #'  \itemize{
+  #'   \item{normal}
+  #'    \item{lognormal}
+  #'    \item{exponential}
+  #'    \item{weibull}
+  #'    \item{poisson}
+  #'    \item{negative binomial}
   #'  }
   #' @export outlier_plot
   #' @return Plot of the data
@@ -169,8 +178,8 @@ outlier_plot <- function(dat, x, dat.remove = "none", x.dist = "normal", output 
       }
     }  #End Outlier mod
     # open a pdf file
-    if (output == "pdf") {
-      pdf("outlier_plot.pdf")
+    if (output == "png") {
+      pdf("outlier_plot.png")
     }
     graphics::par(mar=c(4,4,4,4)) 
     graphics::par(mfrow = c(2, 2))
@@ -210,7 +219,7 @@ outlier_plot <- function(dat, x, dat.remove = "none", x.dist = "normal", output 
       fit_quants <- stats::qnorm(quants, mean(dat_sub[, x]), sd(dat_sub[, x]))
     } else if (x.dist == "lognormal") {
       # lognormal
-      fit_quants <- stats::qlnorm(quants, mean = mean(log(dat_sub[, x])), sd = sd(log(dat_sub)))
+      fit_quants <- stats::qlnorm(quants, mean = mean(log(dat_sub[, x])), sd = sd(log(dat_sub[, x])))
     } else if (x.dist == "exponential") {
       # Exponential
       fit_quants <- stats::qexp(quants, rate = 1/mean(dat_sub[, x]))
@@ -313,8 +322,18 @@ outlier_remove <- function(dat, x, dat.remove = "none", remove = T) {
       }
       
         if(!exists('logbody')) { 
-        logging_code()
-      } 
+          logbody <- list()
+          infoBodyout <- list()
+          functionBodyout <- list()
+          infobody <- list()
+          
+          infobody$rundate <- Sys.Date()
+          infoBodyout$info <- list(infobody)
+          
+          functionBodyout$function_calls <- list()
+          
+          logbody$fishset_run <- list(infoBodyout, functionBodyout)
+        } 
         outlier_remove_function <- list()
         outlier_remove_function$functionID <- 'outlier_remove'
         outlier_remove_function$args <- c(deparse(substitute(dat)), deparse(substitute(x)), dat.remove, remove)
