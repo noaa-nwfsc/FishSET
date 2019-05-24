@@ -70,14 +70,20 @@ data_verification_call <- function(dat) {
   if(any(grepl('lat|lon', names(dataset), ignore.case=TRUE))){
     lat <- dataset[,which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)]
     lon <- dataset[,which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)]
+    
+    if(is.factor(lat)) {
+      lat <- as.numeric(as.character(lat))
+    }
+    if(is.factor(lon)) {
+      lon <- as.numeric(as.character(lon))
+    }
     graphics::par(mar=c(1,1,1,1)) 
     maps::map('world', ylim=c(min(lat, na.rm=TRUE), max(lat, na.rm=TRUE)), 
-        xlim=c(min(lon, na.rm=TRUE), max(lon, na.rm=TRUE)))
-    points(dataset[sample(nrow(dataset), nrow(dataset)/10), which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)[1]], 
-           dataset[sample(nrow(dataset), nrow(dataset)/10), which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)[1]])
+              xlim=c(min(lon, na.rm=TRUE), max(lon, na.rm=TRUE)))
+    points(as.numeric(as.character(dataset[sample(nrow(dataset), nrow(dataset)/10), which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)[1]])), 
+           as.numeric(as.character(dataset[sample(nrow(dataset), nrow(dataset)/10), which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)[1]])))
     print('10% of samples plotted. Verify that points occur in correct geographic area.')
   }
-  
   
   print(suppressWarnings(readLines(tmp)))
   

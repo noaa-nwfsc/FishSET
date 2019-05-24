@@ -12,7 +12,7 @@
 #' @param temp.window Temporal window size. Defaults to 1
 #' @param temp.lag Temporal lag time in days.
 #' @param dummy.exp T/F. Defaults to False. If false, no dummy variable is outputted. If true, output dummy variable for originally missing value.
-#' @param AltMatrixName Does not need to specified if ALT has been generated in \code{\link{create_alternative_choice}} function.
+#' @param project Name of project. Used to pull working alternative choice matrix from fishset_db database.
 #' @param defineGroup If empty, data is treated as a fleet
 #' @importFrom lubridate floor_date
 #' @importFrom zoo rollapply
@@ -40,10 +40,10 @@
 #' }
 
 
-create_expectations <- function(dat, gridfile, catch, defineGroup = NULL, temp.var=NULL, temporal = c("daily", "sequential"), 
+create_expectations <- function(dat, project, gridfile, catch, defineGroup = NULL, temp.var=NULL, temporal = c("daily", "sequential"), 
                                 calc.method = c("standardAverage", "simpleLag", "weights"), lag.method = c("simple", "grouped"),
                                 empty.catch = c(NULL, 0, "allCatch", "groupedCatch"), empty.expectation = c(NULL, 1e-04, 0),  
-                                temp.window = 1, temp.lag = 1, dummy.exp = FALSE, AltMatrixName = NULL) {
+                                temp.window = 1, temp.lag = 1, dummy.exp = FALSE) {
   
   #Call in datasets
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
@@ -59,17 +59,10 @@ create_expectations <- function(dat, gridfile, catch, defineGroup = NULL, temp.v
   }
   DBI::dbDisconnect(fishset_db)
   
-  
-  if (!exists("Alt")) {
-    if (!exists('AltMatrixName')) {
-      stop('Alternative choice matrix not found. Please run the createAlternativeChoice() function or 
-           define the Alternative choice matrix name from the sqlite database. Name will contain altmatrix in it along with date created and project if defined.')
-      } else {
       fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-      Alt <- unserialize(DBI::dbGetQuery(fishset_db, "SELECT AlternativeMatrix FROM", AltMatrixName, "LIMIT 1")$AlternativeMatrix[[1]])
+      Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
       DBI::dbDisconnect(fishset_db)
-    }
-  }
+
   
   dataZoneTrue <- Alt[["dataZoneTrue"]]  # used for catch and other variables
   choice <- Alt[["choice"]]  # used for catch and other variables
@@ -335,9 +328,9 @@ create_expectations <- function(dat, gridfile, catch, defineGroup = NULL, temp.v
   } 
   create_expectations_function <- list()
   create_expectations_function$functionID <- 'create_expectations'
-  create_expectations_function$args <- c(deparse(substitute(dat)), deparse(substitute(gridfile)), catch, temporal, temp.var, calc.method, lag.method, 
+  create_expectations_function$args <- c(deparse(substitute(dat)), project, deparse(substitute(gridfile)), catch, temporal, temp.var, calc.method, lag.method, 
                                     empty.catch, empty.expectation, temp.window, temp.lag, dummy.exp)
-  create_expectations_function$kwargs <- list('AltMatrixName'=AltMatrixName, 'defineGroup'=defineGroup)
+  create_expectations_function$kwargs <- list('defineGroup'=defineGroup)
   create_expectations_function$output <- c()
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_expectations_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)

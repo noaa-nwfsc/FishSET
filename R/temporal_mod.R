@@ -43,6 +43,7 @@ temporal_mod <- function(dat, x, define.format) {
   }
   DBI::dbDisconnect(fishset_db)
   
+  
   if (!define.format %in% c("year","month","day","hour", "minute")) {
     # User defines the format of the time variable
     int <- format(FishSET:::date_parser(dataset[[x]]), format = define.format)
@@ -60,7 +61,7 @@ temporal_mod <- function(dat, x, define.format) {
     } else if(define.format == "hour") {
       int <- format(as.Date(FishSET:::date_parser(dataset[[x]])), format = "%Y/%m/%d %H")
     }else if(define.format == "minute") {
-      int <- format(as.DateFishSET:::date_parser(dataset[[x]])), format = "%Y/%m/%d %H:%M")
+      int <- format(as.Date(FishSET:::date_parser(dataset[[x]])), format = "%Y/%m/%d %H:%M")
       }else {
       warning("define.format is not recognized. Pre-formatted choices include, year, month, day, hour, minute")
     }

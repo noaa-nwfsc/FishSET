@@ -1,14 +1,14 @@
 # discretefish_subroutine
 #' Subroutine to run chosen discrete choice model
 #'
-#' @param x  Output from make_model_design function containing catch, choice, distance, and otherdat. Should have 'modelInputData' in the table name.
+#' @param project  Name of project. For obtaining catch, choice, distance, and otherdat data generated from make_model_design function. 
+#' Working modelInputData table (table without date) will be putlled from fishset_db database.
 #' @param initparams  Initial parameter estimates for revenue/location-specific covariates then cost/distance
 #' @param optimOpt  Optimization options [max function evaluations, max iterations, (reltol) tolerance of x, trace]
 #' @param func Name of likelihood function
 #' @param methodname Optimization method (see optim options)
-#' @param func.name Name of likelihood function for model result output table
+#' @param mod.name Name of model run for model result output table
 #' @param select.model Return an interactive data table that allows users to select and save table of best models based on measures of fit 
-#' @param project Name of project for naming output table in sql database
 #' @param name Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
 #' @export discretefish_subroutine
 #' @importFrom DT DTOutput
@@ -38,8 +38,15 @@
 
 
 
-discretefish_subroutine <- function(x, initparams, optimOpt, func, methodname, func.name, 
-                                    select.model=FALSE, project, name='discretefish_subroutine') {
+discretefish_subroutine <- function(project, initparams, optimOpt, func, methodname, mod.name, 
+                                    select.model=FALSE,  name='discretefish_subroutine') {
+  
+  #Call in datasets
+
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
+  
+  
   catch <- as.matrix(x[['catch']])
   choice <- x[['choice']]
   distance <- x[['distance']]
@@ -107,22 +114,25 @@ discretefish_subroutine <- function(x, initparams, optimOpt, func, methodname, f
   # Model comparison metrics (MCM)
   param <- max(dim(as.matrix(starts2)))
   obs <- dim(dataCompile)[1]
-  AIC <- 2 * param - 2 * LL
+  AIC <- round(2 * param - 2 * LL,3)
   
-  AICc <- AIC + (2 * param * (param + 1))/(obs - param - 1)
+  AICc <- round(AIC + (2 * param * (param + 1))/(obs - param - 1),3)
   
-  BIC <- -2 * LL + param * log(obs)
+  BIC <- round(-2 * LL + param * log(obs),3)
   
-  PseudoR2 <- (LL_start - LL)/LL_start
-  
+  PseudoR2 <- round((LL_start - LL)/LL_start,3)
+  cat(AIC)
+  cat(AICc)
+  cat(BIC)
+  cat(PseudoR2)
   if (!exists("mod.out")) {
     mod.out <- data.frame(matrix(NA, nrow = 4, ncol = 1))
     mod.out[, 1] = c(AIC, AICc, BIC, PseudoR2)
     rownames(mod.out) = c("AIC", "AICc", "BIC", "PseudoR2")
-    colnames(mod.out) = func.name
+    colnames(mod.out) = mod.name
   } else {
     temp <- data.frame(c(AIC, AICc, BIC, PseudoR2))
-    colnames(temp) = func.name
+    colnames(temp) = mod.name
   }
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
@@ -143,12 +153,12 @@ discretefish_subroutine <- function(x, initparams, optimOpt, func, methodname, f
     DBI::dbWriteTable(fishset_db, paste0(project, "modelfit"), out.mod, overwrite = T)
   }
 
-    out.mod <<- out.mod
+    #out.mod <<- out.mod
     ############################################################################# 
  if(select.model==TRUE){
  #  rownames(out.mod)=c("AIC", "AICc", "BIC", "PseudoR2")
  #   print(DT::datatable(t(round(out.mod, 5)), filter='top'))
-    
+    library(shiny)
     shiny::runApp(list(
       ui = shiny::basicPage(
         
@@ -286,7 +296,7 @@ discretefish_subroutine <- function(x, initparams, optimOpt, func, methodname, f
   } 
   discretefish_subroutine_function <- list()
   discretefish_subroutine_function$functionID <- 'discretefish_subroutine'
-  discretefish_subroutine_function$args <- c(deparse(substitute(x)), initparams, optimOpt, func, methodname, func.name, project)
+  discretefish_subroutine_function$args <- c(project, initparams, optimOpt, deparse(substitute(func)), methodname, mod.name)
   discretefish_subroutine_function$kwargs <- list()
   discretefish_subroutine_function$output <- c(name)
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (discretefish_subroutine_function)

@@ -43,13 +43,15 @@ haul_to_trip <- function(dat, dataindex, fun.time = min, fun.numeric = mean, ...
 #    DBI::dbDisconnect(fishset_db)
 
     argList <- (as.character(match.call(expand.dots = FALSE)$...))
+    
+    print(argList)
   
   idmaker = function(vec) {
     return(paste(sort(vec), collapse = ""))
   }
   int <- as.data.frame(cbind(dataset, rowID = as.numeric(factor(apply(as.matrix(dataset[, eval(substitute(argList))]), 1, idmaker)))))
   #int <- int[, c(colnames(sapply(dataindex[[varnameindex]], grepl, colnames(int))), "rowID")]
-  
+  cat(length(unique(int$rowID)), 'unique trips were identified using', argList, '\n')
   # Handling of empty variables
   if (any(apply(int, 2, function(x) all(is.na(x))) == TRUE)) {
     int <- int[, -which(apply(int, 2, function(x) all(is.na(x))) == TRUE)]
@@ -181,8 +183,8 @@ haul_to_trip <- function(dat, dataindex, fun.time = min, fun.numeric = mean, ...
   } 
   haul_to_trip_function <- list()
    haul_to_trip_function$functionID <- 'haul_to_trip'
-   haul_to_trip_function$args <- c(paste0('dat=',deparse(substitute(dat))), dataindex)
-   haul_to_trip_function$kwargs <- list(fun.time, fun.numeric, ...)
+   haul_to_trip_function$args <- c(paste0('dat=',deparse(substitute(dat))), deparse(substitute(dataindex)))
+   haul_to_trip_function$kwargs <- list(fun.time, deparse(substitute(fun.numeric)), ...)
    haul_to_trip_function$output <- c(deparse(substitute(dat)))
    functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (haul_to_trip_function)
    logbody$fishset_run <- list(infoBodyout, functionBodyout)

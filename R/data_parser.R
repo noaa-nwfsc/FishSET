@@ -9,9 +9,9 @@
 #' @export main_mod
 
 
-read_dat <- function(x, data.type = c('csv', 'mat', 'json', 'shape', 'txt', 'spss', 'stata', 'R')) { 
+read_dat <- function(x, data.type ) { 
 #' @param x Name and directory of data frame to be read in. For example, `nmfs_manage_simple.shp`.
-#' @param data.type csv, mat, json, shape
+#' @param data.type csv, mat, json, shape = c('csv', 'mat', 'json', 'shape', 'txt', 'spss', 'stata', 'R')
 #' @importFrom sf read_sf
 #' @importFrom R.matlab readMat
 #' @importFrom jsonlite fromJSON
@@ -23,21 +23,21 @@ read_dat <- function(x, data.type = c('csv', 'mat', 'json', 'shape', 'txt', 'sps
 #' dat <- read_dat('nmfs_manage_simple.shp', 'shape')
 #' }
   
-    if(data.type == 'shape'){
-    sf::st_read(x)#'~/path/to/file.shp'
-  } else if(data.type=='mat') {
+  if(data.type=='R'){
+    return(get(load(x)))
+  } else if(data.type=='mat'){
     R.matlab::readMat(x) 
-  } else if(data.type=='json') {
+  } else if(data.type=='json'){
     jsonlite::fromJSON(x)
   } else if(data.type=='csv'){
     read.csv(x)
   } else if(data.type=='spss'){
     foreign::read.spss(x)
-  } else if(data.type=='stata') {
+  } else if(data.type=='stata'){
     foreign::read.dta(x) 
-  } else if(data.type=='R') {
-    load(x) 
-    } else {
+  } else if(data.type == 'shape'){
+    sf::st_read(x)#'~/path/to/file.shp' 
+  } else {
     utils::read.table(x)
   }
 }
@@ -106,7 +106,7 @@ load_maindata <- function(dat, over_write=TRUE, project=NULL, compare=FALSE, y=N
    dataset <- dat 
 
      #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
   if(compare==TRUE){
   if(is.character(y)==TRUE){
     if(is.null(y)==TRUE | table_exists(y)==FALSE){
@@ -132,13 +132,12 @@ load_maindata <- function(dat, over_write=TRUE, project=NULL, compare=FALSE, y=N
     stop("Dataset must contain either latitude and longitude or fishing area designation.")
   }
   
-  if(length(which(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE)==TRUE))==1) {
-    dataset[, which(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE)==TRUE)] <- 
-      FishSET:::date_parser(dataset[,which(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE)==TRUE)])
-  } else if(length(which(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE)==TRUE))>1){
-  dataset[, which(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE)==TRUE)] <- 
-        lapply(dataset[,which(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE)==TRUE)], FishSET:::date_parser)
+  n <- which(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE))
+  for(i in 1:length(n)){
+    dataset[,n[i]] <- format(FishSET:::date_parser(dataset[,n[i]]), '%Y-%m-%d %H:%M:%S')
   }
+  
+  
   ## --------- MainDataTableInfo -------------- ##
   MainDataTableInfo <- data.frame(variable_name=colnames(dataset),
                                   units=c(ifelse(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE), 'yyyymmdd',
@@ -180,8 +179,8 @@ load_maindata <- function(dat, over_write=TRUE, project=NULL, compare=FALSE, y=N
                                   tableLink=rep(NA, length(colnames(dataset))))
   
 
-  DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable', Sys.Date()),  dataset, overwrite=over_write)
-  DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTableInfo', Sys.Date()), MainDataTableInfo, overwrite=over_write)
+  DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable', format(Sys.Date(), format="%Y%m%d")),  dataset, overwrite=over_write)
+  DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTableInfo', format(Sys.Date(), format="%Y%m%d")), MainDataTableInfo, overwrite=over_write)
   DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable'),  dataset, overwrite=over_write)
   DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTableInfo'), MainDataTableInfo, overwrite=over_write)
   DBI::dbDisconnect(fishset_db)
@@ -215,9 +214,9 @@ load_maindata <- function(dat, over_write=TRUE, project=NULL, compare=FALSE, y=N
     assign("functionBodyout", value = functionBodyout, pos = 1)
     
     assign(paste0(project, 'MainDataTable'), value = dataset, pos=1)
-    cat('\n!!! -> Raw data saved as', paste0(project, 'MainDataTable', Sys.Date()),'.', 
-        'Working data saved to the database as ', paste0(project, 'MainDataTable.'), 
-        'To improve ease of reproducing work, please use this name in future analysis. <- !!!')
+    cat('\n!!! -> Raw data saved as', paste0(project, 'MainDataTable', format(Sys.Date(), format="%Y%m%d"),'.'), 
+        'Working data saved to the database as', paste0(project, 'MainDataTable.'), 'Table is also in the working environment. 
+        To improve ease of reproducing work, please use this name in future analysis. <- !!!')
 }
 
 main_mod <- function(dat, x, new.unit=NULL, new.type=NULL, new.class=NULL) {
@@ -237,7 +236,7 @@ main_mod <- function(dat, x, new.unit=NULL, new.type=NULL, new.class=NULL) {
   #' }
 
  #Call in data sets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
   if(is.character(dat)==TRUE){
     if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
       print(DBI::dbListTables(fishset_db))
@@ -318,7 +317,7 @@ load_port <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
   if(is.na(table(grepl('Lon', names(x), ignore.case=TRUE))[2])==FALSE & table(grepl('Lon', names(x), ignore.case=TRUE))[2]>1) { 
     stop('Multiple latitude or longitude columns. Only one allowed.') 
   } 
-  if(all(grepl('name|id|code', names(x), ignore.case = TRUE)==FALSE)==TRUE){
+  if(all(grepl('name|id|code|PORT', names(x), ignore.case = TRUE)==FALSE)==TRUE){
     warning('Port identification not found. Check that unique port ID (name, id, code) is included.')
   } 
   
@@ -340,8 +339,8 @@ load_port <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
 
   fishset_compare(x,y_call,compare)
   
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  DBI::dbWriteTable(fishset_db, paste0(project, 'PortTable', Sys.Date()), x, overwrite=over_write)
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+  DBI::dbWriteTable(fishset_db, paste0(project, 'PortTable', format(Sys.Date(), format="%Y%m%d")), x, overwrite=over_write)
   DBI::dbWriteTable(fishset_db, paste0(project, 'PortTable'), x, overwrite=over_write)
   DBI::dbDisconnect(fishset_db)
   print('Data saved to database')
@@ -393,7 +392,7 @@ load_aux <- function(dat, x, over_write=TRUE, project=NULL){
   #' }
   
   #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  suppressWarnings( fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
   if(is.character(dat)==TRUE){
     if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
       print(DBI::dbListTables(fishset_db))
@@ -414,7 +413,7 @@ load_aux <- function(dat, x, over_write=TRUE, project=NULL){
   data_verification_call(x)
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  DBI::dbWriteTable(fishset_db, paste0(project, x, Sys.Date()), x, overwrite=over_write)
+  DBI::dbWriteTable(fishset_db, paste0(project, x, format(Sys.Date(), format="%Y%m%d")), x, overwrite=over_write)
   DBI::dbWriteTable(fishset_db, paste0(project, x), x, overwrite=over_write)
   DBI::dbDisconnect(fishset_db)
   print('Data saved to database')
@@ -459,7 +458,7 @@ load_grid <- function(dat, x, over_write=TRUE, project=NULL){
   #' load_grid(dataset='pcodMainDataTable', x=SeaSurfaceTemp, over_write=TRUE, project='pcod') 
   #' }
   
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
   if(is.character(dat)==TRUE){
     if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
       print(DBI::dbListTables(fishset_db))
@@ -522,7 +521,7 @@ dataindex_update <- function(dat, dataindex){
   #' dataindex_update(dat='pcodMainDataTable', dataindex='pcodMainDataTableInfo') 
   #' }
 
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
   if(is.character(dat)==TRUE){
     if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
       print(DBI::dbListTables(fishset_db))

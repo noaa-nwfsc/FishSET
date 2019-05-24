@@ -46,12 +46,19 @@ data_check <- function(dat, x, dataindex) {
 
 #Run checks
     print(summary_stats(dataset))
-     cat('\nNaN checks\n')
+     cat('\nNA checks\n')
           if (any(apply(dataset, 2, function(x) any(is.na(x)))==TRUE)) {
-            cat("The", names(which(apply(dataset, 2, function(x) any(is.na(x)))==TRUE)), "columns contain NaNs. Consider using nan_filter to replace or remove NaNs")
+            cat("The", names(which(apply(dataset, 2, function(x) any(is.na(x)))==TRUE)), "columns contain NAs. Consider using na_filter to replace or remove NAs")
           } else {
             cat("No columns in the dataframe contain NaNs")
           }
+ 
+     cat('\nNaN checks\n')
+     if (any(apply(dataset, 2, function(x) any(is.nan(x)))==TRUE)) {
+       cat("The", names(which(apply(dataset, 2, function(x) any(is.nan(x)))==TRUE)), "columns contain NaNs. Consider using nan_filter to replace or remove NaNs")
+     } else {
+       cat("No columns in the dataframe contain NaNs")
+     }
      
      cat('\n')
      cat('\nOutlier checks')

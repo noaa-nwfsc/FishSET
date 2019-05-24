@@ -60,7 +60,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   
   if (!exists("Alt")) {
     if (!exists('AltMatrixName')) {
-      Alt <- unserialize(DBI::dbGetQuery(fishset_db, "SELECT AlternativeMatrix FROM altmatrix LIMIT 1")$AlternativeMatrix[[1]])
+      Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
       if (!exists("Alt")) {
         stop("Alternative Choice Matrix does not exist. Please run the createAlternativeChoice() function.")
       }
@@ -318,9 +318,13 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
                           gridVaryingVariables = ExpectedCatch)
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  single_sql <- paste0(project, 'modelinputdata', format(Sys.Date(), format="%Y%m%d"))
+  single_sql <- paste0(project, 'modelinputdata')
+  date_sql <- paste0(project, 'modelinputdata', format(Sys.Date(), format="%Y%m%d"))
   DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(ModelInputData MODELINPUTDATA)"))
   DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:ModelInputData)"), 
+                 params = list(ModelInputData = list(serialize(modelInputData, NULL))))
+  DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", date_sql, "(ModelInputData MODELINPUTDATA)"))
+  DBI::dbExecute(fishset_db, paste("INSERT INTO", date_sql, "VALUES (:ModelInputData)"), 
                  params = list(ModelInputData = list(serialize(modelInputData, NULL))))
   DBI::dbDisconnect(fishset_db)
   

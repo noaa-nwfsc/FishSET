@@ -15,7 +15,7 @@ logit_c <- function(starts3, dat, otherdat, alts) {
     #' and `intdat` variables as ones with dimension *(number of observations) x 1*.
     #' @param alts Number of alternative choices in model
     #' @return ld - negative log likelihood
-    # @export
+    #' @export
     # @examples
     #'
     

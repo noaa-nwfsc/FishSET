@@ -182,15 +182,19 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
       }
         
         #write Alt to datafile
-        single_sql <- paste0(project, 'altmatrix', format(Sys.Date(), format="%Y%m%d"))
+        single_sql <- paste0(project, 'altmatrix')
+        date_sql <- paste0(project, 'altmatrix', format(Sys.Date(), format="%Y%m%d"))
         DBI::dbExecute (fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(AlternativeMatrix ALT)"))
         DBI::dbExecute (fishset_db, paste("INSERT INTO", single_sql, "VALUES (:AlternativeMatrix)"), 
                                           params = list(AlternativeMatrix = list(serialize(Alt, NULL))))
+        DBI::dbExecute (fishset_db, paste("CREATE TABLE IF NOT EXISTS", date_sql, "(AlternativeMatrix ALT)"))
+        DBI::dbExecute (fishset_db, paste("INSERT INTO", date_sql, "VALUES (:AlternativeMatrix)"), 
+                        params = list(AlternativeMatrix = list(serialize(Alt, NULL))))
         #DBI::dbExecute (fishset_db, "CREATE TABLE IF NOT EXISTS altmatrix (AlternativeMatrix ALT)")
         #DBI::dbExecute (fishset_db, "INSERT INTO altmatrix VALUES (:AlternativeMatrix)", params = list(AlternativeMatrix = list(serialize(Alt, NULL))))
         DBI::dbDisconnect(fishset_db)
         
-       Alt <<- Alt        
+     
        
 
        if(!exists('logbody')) { 

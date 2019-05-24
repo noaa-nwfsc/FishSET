@@ -9,6 +9,7 @@ shift_sort_x <- function(x, ch, y, distance, alts, ab) {
   #' @param distance Data corresponding to distance
   #' @param alts Number of alternative choices in model
   #' @param ab Number of cost parameters + number of alts
+  #' @export
   #' @return d - matrix of choice possibilites and distance
   #'
   

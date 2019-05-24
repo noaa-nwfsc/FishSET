@@ -267,6 +267,7 @@ create_var_num <- function(dat, x, y, method, name='create_var_num') {
   #' @param y variable  Variable will be the denominator if `method` is division.
   #' @param method Arithmetic expression. Options include: addition, subtraction, multiplication, and division.
   #' @param name Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
+  #' @export create_var_num
   #' @details Creates a new numeric variable based on defined arithmetic expression `method`. New variable is added to the data set.
   #' @examples 
   #' \dontrun{

@@ -21,10 +21,10 @@
 #' }
 
 
-check_model_data <- function(dat, dataindex, uniqueID, save.name, save.file = TRUE) {
- 
+check_model_data <- function(dat, dataindex, uniqueID, save.file = TRUE) {
+     x <- 0
    #Call in data sets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
   if(is.character(dat)==TRUE){
     if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
       print(DBI::dbListTables(fishset_db))
@@ -41,7 +41,7 @@ check_model_data <- function(dat, dataindex, uniqueID, save.name, save.file = TR
   dataIndex <- dataindex_update(dataset, dataindex)
   
     tmp <- tempfile()
-    x <- 0
+
     if (any(apply(dataset, 2, function(x) any(is.nan(x)))==TRUE)) {
     cat("\nNaNs are present in", 
               names(which(apply(dataset, 2, function(x) any(is.nan(x)))==TRUE)), file=tmp, append=T)
@@ -58,6 +58,7 @@ check_model_data <- function(dat, dataindex, uniqueID, save.name, save.file = TR
       x <- 1
     }
     
+
   # is.inf
   if (any(apply(dataset, 2, function(x) any(is.infinite(x)))==TRUE)) {
     cat(paste("\nInfinite values are present in",
@@ -67,7 +68,7 @@ check_model_data <- function(dat, dataindex, uniqueID, save.name, save.file = TR
                names(which(apply(dataset, 2, function(x) any(is.infinite(x)))==TRUE)))
     x <- 1
   }
-
+    
     if (length(dataset[[uniqueID]]) != length(unique(dataset[[uniqueID]]))) {
       cat("\nThe uniqueID variable should define the length of unique occurrences in the dataset. Use the haul_to_trip function to collapse data.",
           file=tmp, append=T)
@@ -77,21 +78,24 @@ check_model_data <- function(dat, dataindex, uniqueID, save.name, save.file = TR
      x <- 1
   }
 
-       if(x <- 1) {
-         stop('At least one test did not pass. Data set will not be saved.')
-       }
+    if(x == 1) {
+      suppressWarnings(readLines(tmp))
+         warning('At least one test did not pass. Data set will not be saved.')
+    }
+    if(x==0){
     if (save.file == TRUE) {
       cat(paste("\nModified data set saved to fishset_db database"), file=tmp, append=T)
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+    fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
     if(DBI::dbExistsTable(fishset_db, deparse(substitute(dat)))==TRUE){
       single_sql <- paste0("raw", deparse(substitute(dat)))
-      DBI::dbWriteTable(fishset_db, single_sql, dataset)
+      DBI::dbWriteTable(fishset_db, single_sql, dataset, overwrite=TRUE)
     }
     single_sql <- deparse(substitute(dat))
     DBI::dbWriteTable(fishset_db, single_sql, dataset, overwrite=TRUE)
     DBI::dbDisconnect(fishset_db)
     # logging function information
-  }
+    }
+    }
   
     suppressWarnings(readLines(tmp))
      if(!exists('logbody')) { 

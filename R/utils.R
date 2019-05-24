@@ -101,9 +101,6 @@ skewness <- function(x) {
 }
 
 date_parser <- function(dates){
-  #' Date parser
-  #' @param dates vector containing date data
-  #' @export date_parser
   dates <- trimws(dates)
   dates <- sub(' .*','\\1',dates)
   if(!all(is.na(suppressWarnings(lubridate::mdy(dates)))==T)) {

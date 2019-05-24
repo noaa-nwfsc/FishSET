@@ -18,8 +18,9 @@
 #' select_model('out.mod', overwrite.table=FALSE)
 #' }
 
-select_model <- function(table, overwrite.table){
-  
+select_model <- function(table, overwrite.table=TRUE){
+
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   out.mod <- DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), paste0("SELECT * FROM", paste0("'", noquote(table), "'")))
   
   runApp(list(
@@ -142,4 +143,4 @@ select_model <- function(table, overwrite.table){
       
 }
   ))
-  }
+}
