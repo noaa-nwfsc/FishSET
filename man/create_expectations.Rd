@@ -4,16 +4,17 @@
 \alias{create_expectations}
 \title{Expected catch}
 \usage{
-create_expectations(dat, gridfile, catch, defineGroup = NULL,
+create_expectations(dat, project, gridfile, catch, defineGroup = NULL,
   temp.var = NULL, temporal = c("daily", "sequential"),
   calc.method = c("standardAverage", "simpleLag", "weights"),
   lag.method = c("simple", "grouped"), empty.catch = c(NULL, 0,
   "allCatch", "groupedCatch"), empty.expectation = c(NULL, 1e-04, 0),
-  temp.window = 1, temp.lag = 1, dummy.exp = FALSE,
-  AltMatrixName = NULL)
+  temp.window = 1, temp.lag = 1, dummy.exp = FALSE)
 }
 \arguments{
 \item{dat}{Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.}
+
+\item{project}{Name of project. Used to pull working alternative choice matrix from fishset_db database.}
 
 \item{gridfile}{Spatial data. Shape, json, and csv formats are supported.}
 
@@ -38,8 +39,6 @@ create_expectations(dat, gridfile, catch, defineGroup = NULL,
 \item{temp.lag}{Temporal lag time in days.}
 
 \item{dummy.exp}{T/F. Defaults to False. If false, no dummy variable is outputted. If true, output dummy variable for originally missing value.}
-
-\item{AltMatrixName}{Does not need to specified if ALT has been generated in \code{\link{create_alternative_choice}} function.}
 }
 \value{
 newGridVar dataframe. Saved to the global environment. Dataframe called in make_model_design

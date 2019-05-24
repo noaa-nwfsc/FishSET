@@ -4,15 +4,13 @@
 \alias{find_centroid}
 \title{Generate centroid of polygon of zone or area}
 \usage{
-find_centroid(use.grid, dat, gridfile, lon.grid, lat.grid, lon.dat,
-  lat.dat, cat, weight.var)
+find_centroid(dat, gridfile, lon.grid, lat.grid, lon.dat, lat.dat, cat,
+  weight.var)
 }
 \arguments{
-\item{use.grid}{TRUE/FALSE}
-
 \item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}
 
-\item{gridfile}{Gridded data set. Table loaded to fishet_db using \code{\link{load_grid}} function.}
+\item{gridfile}{Spatial data set. Can be shape file, data frame, or list.}
 
 \item{lon.grid}{Longitude of points from gridfile.}
 

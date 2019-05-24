@@ -21,6 +21,6 @@ Running this function adds information on variables created using the FishSET da
 }
 \examples{
 \dontrun{  
-dataindex_update(dataset='pcodMainDataTable', dataindex='pcodMainDataTableInfo') 
+dataindex_update(dat='pcodMainDataTable', dataindex='pcodMainDataTableInfo') 
 }
 }

@@ -39,6 +39,15 @@ The function returns three plots, the data, a probability plot, and a Q-Q plot. 
  \item{mean_3SD: Removes data points outside +/- 3SD of the mean}
  \item{median_3SD: Removes data points outside +/- 3SD of the median}
  }
+ The distribution choices are
+ \itemize{
+  \item{normal}
+   \item{lognormal}
+   \item{exponential}
+   \item{weibull}
+   \item{poisson}
+   \item{negative binomial}
+ }
 }
 \examples{
 \dontrun{

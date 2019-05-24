@@ -1,12 +1,14 @@
+<!-- word_document: inst/doc -->
+<!--   pdf_document: inst/doc -->
 ---
 title: "Introduction to FishSET"
 author: "Melanie Harsch"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
-#  word_document: default
-vignette: >
+  
+vignette: |
   %\VignetteIndexEntry{FishSET Vignette} 
-  %\VignetteEngine{knitr::rmarkdown} 
+  %\VignetteEngine{knitr::rmarkdown}  
   %\VignetteEncoding{UTF-8}
 ---
 ```{r setup, include = FALSE}
@@ -33,6 +35,7 @@ The FishSET package provides functions for:
 * Statistical modeling
   
 This vignette contains a short description of the goals of FishSET, the functions within FishSET, and how to use the FishSET package. A longer manual is in development. 
+
 ## Installing
 Devtools is currently required to install and build FishSET. It will need to be installed and loaded before FishSET can be installed.
 We recommend using the following commands to install FishSET
@@ -41,36 +44,70 @@ We recommend using the following commands to install FishSET
     library(devtools)
 	  install("PATH/TO/Directory/Containing/FishSET")
 	  library(FishSET)
+	  
+## Before you begin
+We have included an RMarkdown Notebook file. This file takes you through to the basic steps in FishSET from data loading to modeling. We recommend opening this file as a tutorial.
 
-## Storing data and Project deliniation
-FishSET is designed for reproducability. All data is stored in a sql database called fishset_db and all function calls are logged in a log file. 
+### Notebooks 
+In addition, we are recommending the use of either Jupyter Notebooks or RMarkdown Notebooks for reproducing workflow and producing a report that incorporates code, text, and output. Jupyter Notebooks can be used in both a standard R terminal and an RStudio terminal. RMarkdown Notebooks can only be used in an RStudio terminal. In an RStudio session open and begin working in a notebook environment by clicking *File -> New File -> R Notebook*. If asked to add or update packages, click yes. A new file should soon appear with `output: html_notebook` at the top of the file. 
+
+
+```{r fig1, echo=FALSE, fig.cap="Opening a new R Notebook file", out.width = '1%'}
+knitr::include_graphics('C:/Users/melanie.harsch/Pictures/Screenshots/OpeningNotebook.png')
+```
+
+
+
+At this point, you can begin adding text and code chunks. To output the Notebook file, you will need to first save the file. Then click the *preview* button to view the document in the viewer. If the document does not appear in the view, click the *gear* icon and make sure the *Preview in viewer pane* is checked. To publish the document, select one of the *knit* options in the *preview* dropdown or add lines similar to the one below to the first chunk in your notebook file. See [Chapter 3 of RMarkdown: The Definitive Guide]( https://bookdown.org/yihui/rmarkdown/notebook.html) for more information.
+
+```
+---
+title: "Notebook Example"
+output: pdf_document
+html_notebook:toc: yes
+---
+```
+
+In the regular R terminal, you will need to the Jupyter notebook. Follow [these directions](https://www.datacamp.com/community/blog/jupyter-notebook-r?utm_source=adwords_ppc&utm_campaignid=1565261270&utm_adgroupid=67750485268&utm_device=c&utm_keyword=&utm_matchtype=b&utm_network=g&utm_adpostion=1t1&utm_creative=332661264371&utm_targetid=dsa-473406574235&utm_loc_interest_ms=&utm_loc_physical_ms=9033316&gclid=EAIaIQobChMIxLzM6JaK4gIVDy2GCh2Vowc7EAAYASAAEgLJUvD_BwE) to load and activate an IRKernel and begin working with R in a notebook environment. Please note, these directions are for the regular R terminal and will not work in an RStudio terminal.
+
+
+## Storing data and project delineation
+FishSET is designed for reproducibility. All data is stored in a SQL database called fishset_db and all function calls are logged in a log file. 
 Both the database and log folder are created in the working directory when the FishSET package is first loaded. The purpose of saving data and function calls is to allow users to rerun previous steps with the saved data or with updated data. 
 
-Saving tables and lists to the database requires a call to open a connection to the sqlite database, a call to write the table to the database, and a final call to close the connection to the databae. These three calls are done within the function. For instance, the `load_maindata` function opens a data set, runs a set of checks on the data set, and then saves the data set to the fishset_db database. Embedded in the function are the lines of code that save the table to the database.
+All FishSET function calls are saved in dated log files. These log files are useful for documenting which functions were run and the parameter choices. They are also useful for rerunning analyes with updated data. Note that new log files will be saved each day FishSET functions are run however the list of saved functions to be logged will not reset between days if the FishSET package is not closed between days. This allows work completed over multiple days to be saved in the same file. To reset the list of saved function calls run `log_reset()`. 
+
+```{r figLog, echo=FALSE, , out.width = '1%'}
+knitr::include_graphics('C:/Users/melanie.harsch/Pictures/Screenshots/LogFolder.png')
+```
+
+Saving tables and lists to the database requires a call to open a connection to the SQLite database, a call to write the table to the database, and a final call to close the connection to the database. These three calls are done within the function. For instance, the `load_maindata` function opens a data set, runs a set of checks on the data set, and then saves the data set to the fishset_db database. Embedded in the function are the lines of code that save the table to the database.
 
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
     DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTableInfo', Sys.Date()), MainDataTableInfo, overwrite=over_write)
     DBI::dbDisconnect(fishset_db)
 
 
-In this example, the user must provide the `project` parameter in the function call. Because all data and function calls are saved, it is important to distinguish between projects and/or years. Function calls that call or save data have a `project` parameter. For example, in the sql database we could have two primary data tables called `pcodMainDataTable` and `salmonMainDataTable` where the project was pcod and salmon respectively. The project can be be any descriptive string such as fishery name, location, year, a combination of these, etc.
+In this example, the user must provide the `project` parameter in the function call. Because all data and function calls are saved, it is important to distinguish between projects and/or years. Function calls that call or save data have a `project` parameter. For example, in the SQL database we could have two primary data tables called `pcodMainDataTable` and `salmonMainDataTable` where the project was pcod and salmon respectively. The project can be any descriptive string such as fishery name, location, year, a combination of these, etc.
 
 When data is loaded into R using the data import functions (see below), a raw and working table is saved (`pcodMainDataTable20190419`, `pcodMainDataTable`). Any cleaning and analysis to the data are done on the working table. Tables associated with model runs are also created, including the model design file and model output tables. Again, these are saved with the project name preceding the default table name followed by the date it was created.
 
-Function calls are saved in dated files in the log folder. The log files saves the function name, the parameter values, including input data, and output. It is important to use the naming convention for tables saved to the sql database. For instance,  use `pcodMainDataTable` rather than ambiguous names such as `dat`. Doing so allows for easier recognition of the data and project along with ability to rerun the function using the log file. Note that the list of function calls is resest when either the FishSET library is closed or the R session is closed. Thus, although a new log file will be created each day that FishSET functions are called, the new function calls will be added to the list of function called and saved the previous day. This is useful if the users is working on a project over multiple days but wants to keep all function calls within a single file. To reset the function list saved to the log file, use `log_reset()`.
+Function calls are saved in dated files in the log folder. The log files saves the function name, the parameter values, including input data, and output. It is important to use the naming convention for tables saved to the SQL database. For instance,  use `pcodMainDataTable` rather than ambiguous names such as `dat`. Using the database naming conventions allows for easier recognition of the data and project along with ability to rerun the function using the log file. Note that the list of function calls is reset when either the FishSET library is closed or the R session is closed. Thus, although a new log file will be created each day that FishSET functions are called, the new function calls will be added to the list of function called and saved the previous day. This is useful if the users is working on a project over multiple days but wants to keep all function calls within a single file. To reset the function list saved to the log file, use `log_reset()`.
 
 ## Data
 There are five types of data files that can be imported into FishSET. All optional data files must be able to be linked to the primary data file.
 
 ```{r table1, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
-tabl <- "   
-| File Type        | Description                                                                   |
-|------------------|-------------------------------------------------------------------------------|
-| Primary data     | Required file that contains the main data for the model.                      |
-| Port data        | Required file with the latitude and longitude locations of ports.             |
-| Gridded data     | Optional file that contains additional data that varies by two dimensions.    |
-| Auxilliary data  | Optional file that contains additional data to link to the primary data.      |
-| Seasonal data    | Optional file that contains additional data on fishery seasons.               |
+tabl <- "  
+
+| File Type        | Description                                                                 |
+|------------------|-----------------------------------------------------------------------------|
+| Primary data     | Required file that contains the main data for the model.                    |
+| Port data        | Required file with the latitude and longitude locations of ports.           |
+| Gridded data     | Optional file that contains additional data that varies by two dimensions.  |
+| Auxiliary data   | Optional file that contains additional data to link to the primary data.    |
+|------------------|-----------------------------------------------------------------------------|
+
 "
 cat(tabl) # output the table in a format good for HTML/PDF/docx conversion
 ```
@@ -81,29 +118,29 @@ FishSET will accept several data formats including:
   * csv files
   * txt files
   * json files
-  * matlab files  
+  * matlab files
   * shape files
   * spss files
-  * R files 
+  * R files
 
 
 Use the `read_dat` function to read in these files.
 
-### Saving data tables to sqlite database
-Data are saved in the sqlite database, fishset_db.
+### Saving data tables to SQLite database
+Data are saved in the SQLite database, fishset_db.
 
   Data can be imported, checked that required columns are defined, optionally compared against previously saved versions of the data, and then saved into the database using:
   
-     load_maindata       Save main data file and creates main data information table. 
-     load_port           Data set with latitude and longitude of ports. 
-     load_aux            Additional data such as vessel characteristics. 
-     load_seasonal       Data set on time periods for fishery seasons.
+     load_maindata Save main data file and creates main data information table. 
+     load_port     Data set with latitude and longitude of ports. 
+     load_aux      Additional data such as vessel characteristics and fishery season. 
+     load_grid     Additional data that varies over two dimensions such as SST and wind speed.
  
  Once data are saved in the fishset_db database, they can be accessed and viewed using:
  
-     tables_database()   View tables in the fishset_db database.
-     table_fields(x)     View fields in table x.
-     table_view(x)       View table x from the fishset_db database.
+     tables_database() View tables in the fishset_db database.
+     table_fields(x)   View fields in table x.
+     table_view(x)     View table x from the fishset_db database.
  
 
 ### Data management functions
@@ -111,26 +148,26 @@ Data management functions provide tools for:
 
   Visualizing the data 
   
-     summary_stats    Returns a tables with basic summary statistics for all variables in dataframe.
+     summary_stats    Returns a tables with basic summary statistics for all variables in data table.
   Checking for outliers  
   
-     outlier_table       Returns table with quantiles for all numeric variables in the dataframe.
-     outlier_plot        Returns a plot of the selected variable.
-     outlier_remove      Returns modified data set where outliers have been removed.
+     outlier_table    Returns table with quantiles for all numeric variables in the data table
+     outlier_plot     Returns a plot of the selected variable.
+     outlier_remove   Returns modified data set where outliers have been removed.
   Checking for NaNs 
   
-     nan_identify        Checks whether NAs or NaNs are present in any variable.
-     nan_filter          Returns modified data set where NaNs have been removed or replaced.
-     na_filter           Returns modified data set where NAs have been removed or replaced.
+     nan_identify     Checks whether NAs or NaNs are present in any variable.
+     nan_filter       Returns modified data set where NaNs have been removed or replaced.
+     na_filter        Returns modified data set where NAs have been removed or replaced.
   Further filtering
   
-     filter_table        Stores filter functions in a table.     
-     filter_dat          Apply stored and new filter functions to data.
+     filter_table     Stores filter functions in a table.     
+     filter_dat       Apply stored and new filter functions to data.
   Running multiple functions
   
-     data_check         Calls the summary stats, outlier, and nan functions.
-     data_verification  Checks for unique column names, each row is a unique choice occurrence, etc.
-     check_model_data   Checks for presence of NAs, NaNs and Inf in model data. 
+     data_check        Calls the summary stats, outlier, and nan functions.
+     data_verification Checks for unique column names, each row is a unique choice occurrence, etc.
+     check_model_data  Checks for presence of NAs, NaNs and Inf in model data. 
 
 
 
@@ -140,11 +177,12 @@ Further filtering of the data can be accomplished using the `filter_table` and `
 
 ```{r table2, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
 tabl <- '   
-| dataframe       |   vector       |  FilterFunction           |
+| Data table      |   Vector       |  FilterFunction           |
 |-----------------|----------------|---------------------------|
 | MainDataTable   |  "PORT_CODE"   |  PORT_CODE == 1           |
 | MainDataTable   |  "TRIP_START"  |  TRIP_START >= 2011-02-01 |
 | PortDataTable   |  "LATITUDE"    |  LATITUDE < 57            |
+
 '
 cat(tabl) # output the table in a format good for HTML/PDF/docx conversion
 ```
@@ -152,7 +190,7 @@ cat(tabl) # output the table in a format good for HTML/PDF/docx conversion
 
 The filter functions can then be called and applied to the data using the `filter_dat` function.
 
-The `data_verification` function runs more general checks on the data set at the time that the data is loaded into FishSET, including that all columnn names in the data set are unique, that specialized variables have been identified in the index data set, that no columns in the data set are empty, that units are defined and recognized, that each row is a unique choice occurrence at the haul or trip level, and that data for either latitude/longitude or fishing area are included. 
+The `data_verification` function runs more general checks on the data set at the time that the data is loaded into FishSET, including that all column names in the data set are unique, that specialized variables have been identified in the index data set, that no columns in the data set are empty, that units are defined and recognized, that each row is a unique choice occurrence at the haul or trip level, and that data for either latitude/longitude or fishing area are included. 
 
 The `check_model_data` function checks that the data set meets several requirements, including no NA, NaN or INF values in the data and that each row is a unique occurrence at the haul or trip level. 
 
@@ -182,7 +220,7 @@ Several functions exist that allow users to modify or create vectors and matrice
 
   Trip level data and variables: 
 
-     haul_to_trip   Collapse the dataframe from haul to trip.
+     haul_to_trip   Collapse the data table from haul to trip.
      trip_distance  Summed distance across trip defined by start and end ports and hauls in between.
 
 FishSET is not limited to the pre-defined functions. Users can create their own functions and then save them to the log file.
@@ -201,6 +239,7 @@ Mapping functions are in development
 For modeling, FishSET requires creating a model design file and then selecting the likelihood function and parameters.
 Output from each model run is saved as two tables. A model comparison metric table saves AIC, AICc, BIC, PseudoR2. A model output table saves the full output from the model run including parameter estimates. 
 
+(\emph{This section will be changed})
 Often it is desirable to compare output from different likelihood functions and/or alternate iterations of the data. In these cases, it is advised that users first run all desired likelihood functions before creating a new model design file. Descriptive model names are essential for identifying the different choices in the model output. More details are provided in the `Run Models` section below.
 
 ### Create model design functions
@@ -209,7 +248,7 @@ Often it is desirable to compare output from different likelihood functions and/
      assignment_column  Assigns each observation to a zone based on latitude and longitude.
      find_centroid      Returns the center of a zone or area based on set of latitude and longitudes. 
   
-  The following functions should be called in the order listed. These functions create:
+  The following functions should be called in the order listed. 
   
     create_alternative_choice Alternative choice matrix. Calls assignment_column and find_centroid functions.
     create_expectations       Expectation of catch for alternative choices.
@@ -223,23 +262,23 @@ Often it is desirable to compare output from different likelihood functions and/
     
   Multiple likelihood functions have been included in FishSET. Users can also write their own likelihood functions and then save them in the log file using the `log_func_model` function.
   
-     logit_c           Conditional logit function
-     logit_avgcat      Average catch logit function
-     epm_normal        Expected profit model with a normally distributed catch function
-     epm_lognormal     Expected profit model with a log-normally distributed catch function
-     epm_weibull       Expected profit model with a weibull distributed catch function
+     logit_c       Conditional logit function
+     logit_avgcat  Average catch logit function
+     epm_normal    Expected profit model with a normally distributed catch function
+     epm_lognormal Expected profit model with a log-normally distributed catch function
+     epm_weibull  Expected profit model with a Weibull distributed catch function
     
   Log user-created likelihood functions:
   
-    log_func_model   Saves the user created likelihood function in the log file.
+    log_func_model Saves the user created likelihood function in the log file.
     
   Running models
   
-    discrete_fish_subroutine  Runs model based on model design file and defined likelihood function.
+    discrete_fish_subroutine Runs model based on model design file and defined likelihood function.
     
   Viewing 
   
-    select_model   Open an interactive table displaying model fit and model comparison measures.
+    select_model Open an interactive table displaying model fit and model comparison measures.
 
 ## Model design file details
 
@@ -264,11 +303,11 @@ If there are no other data, then `griddat` is set as ones with dimension *(numbe
 variables as ones with dimension *(number of observations) x 1*. Finally, users can write their own likelihoods and save these likelihoods using the `log_func_model` function.
 
 ### Run models 
-To run models, call the `discretefish_subroutine` function. All data are stored in a table in the sqlite database using the `make_model_design` function. The user also supplies initial parameters, optimization options, and the likelihood function name, for a total of 7 total inputs.
+To run models, call the `discretefish_subroutine` function. All data are stored in a table in the SQLite database using the `make_model_design` function. The user also supplies initial parameters, optimization options, and the likelihood function name, for a total of 7 total inputs.
 For example:
   
     Initial parameters for revenue then cost.                   initparams <- c(2.5, -0.8)          
-    Optimization options for maximum iterations, relative       optimOpt <- c(1000, 1.00e-06, 1, 1)
+    Optimization options for maximum iterations, relative       optimOpt <- c(1000, 1.00e-08, 1, 1)
       tolerance of x, report frequency, and whether to report.
     Conditional logit likelihood function.                      func <- logit_c 
     Optimization method from base R `optim` options.            methodname <- "BFGS"
@@ -300,7 +339,7 @@ knitr::include_graphics('C:/Users/melanie.harsch/Pictures/Screenshots/ModelOutTa
 
 The table shows the model comparison metrics AIC, AICc, BIC, and PsuedoR2 for each of the model runs. In this example, the model runs are 'func.name2', 'newlogic', and 'newlogit2'. To the right of the table is a 'Select' column. Selecting a box results in a table saved to the database that looks similar to this table
 
-```{r pressure2, echo=FALSE, fig.cap="Example of interactive table", out.width = '1%'}
+```{r pressure2, echo=FALSE, fig.cap="Example of interactive table output", out.width = '1%'}
 knitr::include_graphics('C:/Users/melanie.harsch/Pictures/Screenshots/TableSaved.png')
 ```
 

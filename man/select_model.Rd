@@ -4,7 +4,7 @@
 \alias{select_model}
 \title{View and select models}
 \usage{
-select_model(table, overwrite.table)
+select_model(table, overwrite.table = TRUE)
 }
 \arguments{
 \item{table}{Name of table in database containing model measures of fit}

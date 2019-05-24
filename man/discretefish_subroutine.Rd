@@ -4,12 +4,12 @@
 \alias{discretefish_subroutine}
 \title{Subroutine to run chosen discrete choice model}
 \usage{
-discretefish_subroutine(x, initparams, optimOpt, func, methodname,
-  func.name, select.model = FALSE, project,
-  name = "discretefish_subroutine")
+discretefish_subroutine(project, initparams, optimOpt, func, methodname,
+  mod.name, select.model = FALSE, name = "discretefish_subroutine")
 }
 \arguments{
-\item{x}{Output from make_model_design function containing catch, choice, distance, and otherdat. Should have 'modelInputData' in the table name.}
+\item{project}{Name of project. For obtaining catch, choice, distance, and otherdat data generated from make_model_design function. 
+Working modelInputData table (table without date) will be putlled from fishset_db database.}
 
 \item{initparams}{Initial parameter estimates for revenue/location-specific covariates then cost/distance}
 
@@ -19,11 +19,9 @@ discretefish_subroutine(x, initparams, optimOpt, func, methodname,
 
 \item{methodname}{Optimization method (see optim options)}
 
-\item{func.name}{Name of likelihood function for model result output table}
+\item{mod.name}{Name of model run for model result output table}
 
 \item{select.model}{Return an interactive data table that allows users to select and save table of best models based on measures of fit}
-
-\item{project}{Name of project for naming output table in sql database}
 
 \item{name}{Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.}
 }

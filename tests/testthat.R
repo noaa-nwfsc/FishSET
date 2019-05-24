@@ -14,7 +14,7 @@ test_check("FishSET")
 #})
 
 test_that('date_parser returns a date', {
-  expect_true(all.equal(date_parser('2011/10/5'), as.Date('2011/10/5')))
+  expect_true(all.equal(FishSET:::date_parser('2011/10/5'), as.Date('2011/10/5')))
 })
 
 test_that('all calc.method outputs are the same for create_expectations', {

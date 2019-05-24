@@ -4,13 +4,12 @@
 \alias{read_dat}
 \title{Import data}
 \usage{
-read_dat(x, data.type = c("csv", "mat", "json", "shape", "txt", "spss",
-  "stata", "R"))
+read_dat(x, data.type)
 }
 \arguments{
 \item{x}{Name and directory of data frame to be read in. For example, `nmfs_manage_simple.shp`.}
 
-\item{data.type}{csv, mat, json, shape}
+\item{data.type}{csv, mat, json, shape = c('csv', 'mat', 'json', 'shape', 'txt', 'spss', 'stata', 'R')}
 }
 \description{
 Import data

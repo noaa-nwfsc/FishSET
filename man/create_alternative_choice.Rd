@@ -65,7 +65,7 @@ Alternative choice matrix\cr
         }
 }
 \description{
-Creates a list containing information on alternative choices.
+Creates a list containing information on how alternative fishing choices should be defined.
 }
 \details{
 Functions returns alternative choice matrix. Function must be called before the create_expectations, make_model_design, or discretefish_subroutine functions can be called.

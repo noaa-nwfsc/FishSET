@@ -2,7 +2,7 @@
 % Please edit documentation in R/assignment_column.R
 \name{assignment_column}
 \alias{assignment_column}
-\title{Generate centroid of polygon of zone or area}
+\title{Assign observations to zone or area}
 \usage{
 assignment_column(dat, gridfile, hull.polygon = c(TRUE, FALSE), lon.grid,
   lat.grid, lon.dat, lat.dat, cat, closest.pt = c(TRUE, FALSE),
@@ -33,7 +33,7 @@ assignment_column(dat, gridfile, hull.polygon = c(TRUE, FALSE), lon.grid,
 Main data frame with new assignment column labeled zoneID.
 }
 \description{
-Generate centroid of polygon of zone or area
+Assign observations to zone or area
 }
 \details{
 Function is called by the \code{\link{create_alternative_choice}} function to assign each observation to zones defined by a spatial data set.
