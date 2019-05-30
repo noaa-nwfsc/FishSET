@@ -2,26 +2,37 @@
 % Please edit documentation in R/nan_filter.R
 \name{nan_filter}
 \alias{nan_filter}
-\title{Filters NaN's from variable}
+\title{Filters NaN's from data frame}
 \usage{
-nan_filter(dataset, x, replace = F, remove = F,
-  rep.value = mean(dataset[, x], na.rm = T))
+nan_filter(dat, x, replace = F, remove = F, rep.value = NA)
 }
 \arguments{
-\item{dataset}{dataframe or matrix over which to check for NaNs}
+\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
 
-\item{x}{column in dataframe over which to remove or replace NaNs}
+\item{x}{Column(s) in data framce in which to remove or replace NaNs. If multiple columns are passed use x=c().}
 
-\item{replace}{whether to (TRUE) or not to (FALSE) replace NaNs in a column. Defaults to FALSE.}
+\item{replace}{TRUE/FALSE Replace NaNs in a vector? Defaults to FALSE.}
 
-\item{remove}{whether to (TRUE) or not to (FALSE) remove all remove the entire row of the dataframe where NaN is present in a specified column. Defaults to FALSE.}
+\item{remove}{TRUE/FALSE Remove all remove the entire row of the dataframe where NaN is present in a specified column? Defaults to FALSE.}
 
-\item{rep.value}{value to replace all NaNs in a column. Defaults to the mean value of the column.}
+\item{rep.value}{Value to replace all NaNs in a column. Defaults to the mean value of the column.}
 }
 \value{
-Returns the modified dataframe
+Returns the modified data frame
 }
 \description{
-Function to return a modified dataframe where NaNshave been replaced or removed.
+Filters NaN's from data frame
+}
+\details{
+Replaces nans in the data column with the chosen value or removes rows containing NaNs.
+}
+\examples{
+\dontrun{
+nan_identify(MainDataTable)
+mod.dat <-nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT') 
+mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T) 
+mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T, rep.value=0) 
+mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', remove=T) 
+}
 }
 \keyword{NaN}

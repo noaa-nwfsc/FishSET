@@ -2,22 +2,30 @@
 % Please edit documentation in R/data_check.R
 \name{data_check}
 \alias{data_check}
-\title{Guided steps to cleaning the datafile}
+\title{Guided steps to cleaning data frame}
 \usage{
-data_check(dataset, x, dataindex)
+data_check(dat, x, dataindex)
 }
 \arguments{
-\item{dataset}{dataframe or matrix}
+\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
 
-\item{x}{column in dataframe to check for outliers}
+\item{x}{Column in data frame to check for outliers.}
 
-\item{dataindex}{dataframe that contains information on each column of the dataset. Must be in quotes.}
+\item{dataindex}{MainDataTableInfo table from fishet_db database that is associated with the data set. This table contains information on each column of the data frame.
+Must be in quotes if called from the fishset_db database.}
 }
 \description{
-Guided steps to cleaning the datafile
+Guided steps to cleaning data frame
 }
 \details{
-Prints summary stats for all variable in the dataframe. Checks for NaNs and prints vectors that contain NaNs.
-Checks for outliers for specified vector. Further actions may be taken to further evaluate and remove NaNs and outliers.
-Checks that all columnn names in the dataset are unique, whether specialized variables have been identified in the index dataset, whether any columns in the dataset are empty, if units are defined and recognized, whether each row is a unique choice occurrence at the haul or trip level, and that data for either lat/long or fishing area are included.
+Prints summary stats for all variable in the main data frame. Checks for NaNs and NAs and prints column names that contain NaNs or NAs.
+Checks for outliers for specified data column. Further actions may be taken to further evaluate and remove NaNs and outliers.
+Checks that all column names in the data frame are unique, whether specialized variables have been identified in the index data set, whether any columns in the data frame are empty, if units are defined and recognized, whether each row is a unique choice occurrence at the haul or trip level, and that data for either lat/long or fishing area are included.
+The function is also called in other functions to check for common issues with data.
+}
+\examples{
+\dontrun{
+data_check(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', 'MainDataTableInfo')
+}
+
 }

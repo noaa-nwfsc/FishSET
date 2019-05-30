@@ -4,38 +4,36 @@
 \alias{find_centroid}
 \title{Generate centroid of polygon of zone or area}
 \usage{
-find_centroid(use.grid, dataset, gridfile, lon.grid, lat.grid, lon.dat,
-  lat.dat, cat, weight.var)
+find_centroid(dat, gridfile, lon.grid, lat.grid, lon.dat, lat.dat, cat,
+  weight.var)
 }
 \arguments{
-\item{use.grid}{TRUE/FALSE}
+\item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}
 
-\item{dataset}{dataframe or matrix}
+\item{gridfile}{Spatial data set. Can be shape file, data frame, or list.}
 
-\item{gridfile}{name of gridded dataset}
+\item{lon.grid}{Longitude of points from gridfile.}
 
-\item{lon.grid}{Longitude of points from gridfile}
+\item{lat.grid}{Latitude of points from gridfile.}
 
-\item{lat.grid}{Latitude of points from gridfile}
+\item{lon.dat}{Longitude of points from dataset.}
 
-\item{lon.dat}{Longitude of points from dataset}
+\item{lat.dat}{Latitude of points from dataset.}
 
-\item{lat.dat}{Latitude of points from dataset}
+\item{cat}{Variable defining the individual areas or zones.}
 
-\item{cat}{Categorical variable defining the individual areas or zones}
-
-\item{weight.var}{Variable for weighted average}
+\item{weight.var}{Variable for weighted average.}
 }
 \value{
-Returns a dataframe with location of centroid
+Data frame where each row is a unique zone and columns are the latitude and longitude defining the centroid of each zone.
 }
 \description{
 Generate centroid of polygon of zone or area
 }
 \details{
-Functions returns the center of a zone or area based on set of latitude and longitudes for using in generating distance matrices.
- Function can also return a weighted centroid. Code works for dataframes and shape files. Lists can also be used as long as inputs are a list of latitudes, longitudes, and areas or zones.
- Includes assignment_column function. Assigns a zone from a gridded dataset to the main dataset.
+Functions returns the center of a zone or area based on set of latitude and longitudes. Zone centroids are used in calculating distance matrices.
+ Function can also return a weighted centroid. Code works for data frames and shape files. Lists can also be used as long as inputs are a list of 
+ latitudes, longitudes, and areas or zones. Calls \code{\link{assignment_column}} function.
 }
 \keyword{centroid,}
 \keyword{polygon}

@@ -2,25 +2,32 @@
 % Please edit documentation in R/filter_dat.R
 \name{filter_dat}
 \alias{filter_dat}
-\title{Remove rows based on user-defined filter}
+\title{Remove rows based on user-defined filter expressions}
 \usage{
-filter_dat(dataset, exp, use.filter.table = F)
+filter_dat(dat, exp, filterTable)
 }
 \arguments{
-\item{dataset}{dataframe or matrix over which to apply filter}
+\item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}
 
-\item{exp}{Filter expression. Use row row number if use.filter.table==TRUE. Otherwise, should take on the form of 'x<100' or is.na(x)==F.}
+\item{exp}{Filter expression. Use row number if use.filter.table==TRUE. Otherwise, should take on the form of `x<100` or `is.na(x)==F`.}
 
-\item{use.filter.table}{TRUE or FALSE. If true then data is subsetted based on a filter in filterTable and exp is the row containing the filter.}
+\item{filterTable}{Name of filter table in fishset_db database. Name should contain the phrase 'filterTable'.}
 }
 \value{
-filter_dat applies user-definted filters. Output must be saved
+Filtered data frame
 }
 \description{
-Remove rows based on user-defined filter
+Remove rows based on user-defined filter expressions
 }
 \details{
-This function allows users to define and store data filters which can then be applied to the data. The filter dataframe can be saved and will be logged in the log file.
+Filter data frame based on pre-defined filter expression from filterTable or user-defined filter expression.
+}
+\examples{
+\dontrun{  
+newdat <- filter_dat(MainDataTable, exp=3, filterTable='pcodfilterTable01012011')
+newdat <- filter_dat(MainDataTable, exp='PERFORMANCE_Code==1', filteTable='')
+}
+
 }
 \keyword{filter,}
 \keyword{subset}

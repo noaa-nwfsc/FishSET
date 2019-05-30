@@ -2,20 +2,27 @@
 % Please edit documentation in R/create_variables.R
 \name{cpue}
 \alias{cpue}
-\title{Create catch per unit effort variable}
+\title{Create catch per unit effort}
 \usage{
-cpue(dataset, xWeight, xTime)
+cpue(dat, xWeight, xTime, name = "cpue")
 }
 \arguments{
-\item{dataset}{dataframe or matrix}
+\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
 
 \item{xWeight}{Weight variable}
 
-\item{xTime}{Time variables. Must be weeks, days, hours, or minutes}
+\item{xTime}{Time variable. Must be weeks, days, hours, or minutes.}
+
+\item{name}{Name of created variable. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.}
 }
 \description{
-Create catch per unit effort variable
+Create catch per unit effort
 }
 \details{
-Function for generating new or specialized variables. cpue function create catch per unit effort variable.
+Creates the catch per unit effort variable. Catch variable must be in weight (lbs, mts). Effort variable should be a measurement of duration in time.
+}
+\examples{
+\dontrun{
+MainDataTable$cpue <- cpue(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', 'DURATION_IN_MIN') 
+}  
 }

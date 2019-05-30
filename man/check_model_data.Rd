@@ -2,29 +2,36 @@
 % Please edit documentation in R/check_model_data.R
 \name{check_model_data}
 \alias{check_model_data}
-\title{Check model data. Save output.}
+\title{Check data table for data quality issues that will affect modeling functions.}
 \usage{
-check_model_data(dataset, uniqueID, save.name, save.file = "sqlfile")
+check_model_data(dat, dataindex, uniqueID, save.file = TRUE)
 }
 \arguments{
-\item{dataset}{Main data frame containing data on hauls or trips}
+\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
+
+\item{dataindex}{Data frame that contains information on each column of the main data frame. In fishset_db database the table will contain the phrase `MainDataTableInfo`}
 
 \item{uniqueID}{Variable that identifies unique occurrences.}
 
-\item{save.name}{name for verified and saved data}
-
-\item{save.file}{Save data frame as sql table (sqlsave) or csv file (csvsave)}
+\item{save.file}{TRUE/FALSE Save to fishset_db SQLite database? Defaults to TRUE}
 }
 \value{
-Returns statements as to whether issues in the data may exist
+Returns statements as to data quality issues in the data may exist.
 }
 \description{
-Contains one function that tests for NaNs, Inf, and that each row is unique. The function stops if an if statement does not pass.
+Check data table for data quality issues that will affect modeling functions.
 }
 \details{
-Checks data to be used for modelling. Checks for presence of NaNs and Inf. 
-   The verified data will not save if NaNs or infinite values are in the dataset. 
-   Verified data can then be saved as sql table or csv file. 
-   When saving to sql, the modified table will be saved and the previous, unmodified version of the table 
-   (if it exists),will be saved with the prefix 'raw'.
+Checks data to be used for modeling for presence of NAs, NaNs and Inf and that each row is a unique choice occurrence. 
+   Model functions may fail or return inaccurate results if any of these issues exist.
+   The verified data will not save if any of these issues are in the data set. 
+   If data passes all tests, the verified data will  then be saved as SQL table. 
+   When saving to SQL, the modified table will be saved and the previous, unmodified version of the table 
+   (if it exists), will be saved with the prefix 'raw'.
+   The data index table will also be updated and saved.
+}
+\examples{
+\dontrun{ 
+check_model_data('MainDataTable', 'MainDataTableInfo', uniqueID='uniqueID_Code', save.file=TRUE)
+}
 }

@@ -2,36 +2,56 @@
 % Please edit documentation in R/outlier_check.R
 \name{outlier_plot}
 \alias{outlier_plot}
-\title{Evaluate outliers by plotting the data}
+\title{Evaluate outliers through plots}
 \usage{
-outlier_plot(dataset, x, outlier.mod = "none", x.dist = "normal",
-  save.output = FALSE, remove = F)
+outlier_plot(dat, x, dat.remove = "none", x.dist = "normal",
+  output = "screen")
 }
 \arguments{
-\item{dataset}{dataframe or matrix}
+\item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}
 
-\item{x}{column in dataframe}
+\item{x}{Column in dataf rame to check for outliers}
 
-\item{outlier.mod}{defines method to ..
-Choices include:
-                none: No data points are removed
-                5_95_quant: Removes data points outside the 5th and 95th quantiles
-                25_75_quant: Removes data points outside the 25th and 75th quantiles
-                mean_2SD: Removes data points outside +/- 2SD of the mean
-                median_2SD: Removes data points outside +/- 2SD of the meadian
-                mean_3SD: Removes data points outside +/- 3SD of the mean
-                median_3SD: Removes data points outside +/- 3SD of the meadian}
+\item{dat.remove}{Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD}
 
 \item{x.dist}{Distribution of the data. Choices include: normal, lognormal, exponential, weibull, poisson, negative binomial}
 
-\item{save.output}{Save plots as pdf file. If TRUE, three plots are returned as pdf file. If false, plots are printed to the screen.}
-
-\item{remove}{Save data with outliers removed. If TRUE, the revised data tables, based on outlier.mod, is returned.}
+\item{output}{Return plots as pdf file or to the screen. If `pdf`, plots are returned as pdf file. If `screen`, plots are printed to the screen.}
 }
 \value{
 Plot of the data
 }
 \description{
-Evaluate outliers by plotting the data
+Evaluate outliers through plots
 }
-\keyword{outliers}
+\details{
+The function returns three plots, the data, a probability plot, and a Q-Q plot. The data plot is the value of
+ x against row number. Red points are all the data without any points removed. The blue points are the subsetted data. If `dat.remove` is `none`, then only blue points will be shown. 
+ The probability plot is a histogram of the data with the fitted probability distribution based on `x.dist`. The Q-Q plot plots are
+ sampled quantiles against theoretical quantiles. 
+ The dat.remove choices are
+ \itemize{
+ \item{none: No data points are removed}
+ \item{5_95_quant: Removes data points outside the 5th and 95th quantiles}
+ \item{25_75_quant: Removes data points outside the 25th and 75th quantiles}
+ \item{mean_2SD: Removes data points outside +/- 2SD of the mean}
+ \item{median_2SD: Removes data points outside +/- 2SD of the median}
+ \item{mean_3SD: Removes data points outside +/- 3SD of the mean}
+ \item{median_3SD: Removes data points outside +/- 3SD of the median}
+ }
+ The distribution choices are
+ \itemize{
+  \item{normal}
+   \item{lognormal}
+   \item{exponential}
+   \item{weibull}
+   \item{poisson}
+   \item{negative binomial}
+ }
+}
+\examples{
+\dontrun{
+outlier_plot(MainDataTable, 'Haul', dat.remove='mean_2SD', x.dist='normal', output='screen')
+}
+}
+\keyword{outlier}

@@ -3,30 +3,43 @@
 \name{create_seasonal_ID}
 \alias{create_seasonal_ID}
 \title{create_seasonal_ID
-Connects the variables in a table of season dates to main data table based on two column to the data in the main workspace.
-A new variable is made with the Season identifier (TRUE/FALSE) in it.}
+Create season identifier}
 \usage{
-create_seasonal_ID(dataset, seasonaldat, use.location = c(TRUE, FALSE),
+create_seasonal_ID(dat, seasonal.dat, use.location = c(TRUE, FALSE),
   use.geartype = c(TRUE, FALSE), sp.col, target = NULL)
 }
 \arguments{
-\item{dataset}{Name of table in database containing model measures of fit}
+\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
 
-\item{seasonaldat}{Append model selection to modelChosen table or delete existing table and save new table}
+\item{seasonal.dat}{Name of table in fishset_db containing date of fishery season(s).}
 
-\item{use.location}{TRUE/FALSE If true, season dates depend on fishery location. Colnames of location must match the two datasets}
+\item{use.location}{TRUE/FALSE If true, fishery season dates depend on fishery location. Column names containing location must match the two data sets.}
 
-\item{use.geartype}{TRUE/FALSE If true, season dates depend on gear type. Column names must match the two datasets}
+\item{use.geartype}{TRUE/FALSE If true, fishery season dates depend on gear type. Column name containing gear type must match the two data sets.}
 
-\item{sp.col}{Column name containing species names in seasonaldat}
+\item{sp.col}{Column containing species names in seasonaldat.}
 
-\item{target}{Name of target species. If not null, will return a vector with name of fishery season for each row of dataset. Will first check the dates of the fishery season for target species before checking other species.}
+\item{target}{Name of target species. If `target` is NULL, runs through fisheries in order listed in seasonal.dat}
 }
 \value{
-dataset Returns the input dataset with two new variables
+The input dataset with variables SeasonID, and seasonID*fishery (`seasonIDChinook`).
 }
 \description{
 create_seasonal_ID
-Connects the variables in a table of season dates to main data table based on two column to the data in the main workspace.
-A new variable is made with the Season identifier (TRUE/FALSE) in it.
+Create season identifier
+}
+\details{
+Uses a table of season dates for fisheries to create season ID variables. 
+Output is a SeasonID variable and multiple SeasonID*fishery variables.
+The seasonID variable is a vector where each row is the fishery season based on dates of the observation. 
+If target fishery `target` is defined then the function returns SeasonID as vector of the target fishery `target` or `Other`.
+ If `target` is not defined, then, for each row, SeasonID is the first fishery listed in seasonal.dat for which fishery season date encompasses the dates for that row in the main data table. 
+SeasonID*fishery variables are a TRUE/FALSE seasonID vector for each fishery (labeled by seasonID and fishery) where TRUE indicates the dates for a given row in the main data table fall within the fishery dates for that fishery.
+}
+\examples{
+\dontrun{ 
+ MainDataTable <- create_seasonal_ID(MainDataTable, seasonal, use.location = TRUE,  
+ use.geartype = TRUE, sp.col = 'SPECIES', target = 'POLLOCK')
+ }
+
 }

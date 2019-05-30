@@ -1,15 +1,33 @@
-#' Check for serveral issues that may be present in the data.
+#' Check for common data quality issues that may be present in the data set.
 #'
-
-# @examples dataVerification(MainDataTable, MainDataTableInfo)
-
-data_verification <- function(dataset) {
-#'  Contains one function that tests several if statements. The function stops if a if statement does not pass.
-#' @param dataset dataframe or matrix
-#' @return Returns statements as to whether issues in the data may exist
+#' Function tests for common data quality issues.
+#' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+#' @return Statements as to whether data quality issues may exist.
 #' @export data_verification
-#' @details checks that all columnn names in the dataset are unique, whether any columns in the dataset are empty, whether each row is a unique choice 
-#' occurrence at the haul or trip level, and that data for either lat/long or fishing area are included.
+#' @details Checks that all columnn names in the data frame are unique, whether any columns in the data frame are empty, whether each row is a unique choice 
+#' occurrence at the haul or trip level, and that either latitude and longitude or fishing area are included.
+  #' @examples 
+  #' \dontrun{ 
+  #' data_verification(MainDataTable)
+  #' }
+
+data_verification <- function(dat) {
+  
+  #Call in datasets
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  if(is.character(dat)==TRUE){
+    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
+      print(DBI::dbListTables(fishset_db))
+      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+    } else {
+      dataset <- table_view(dat)
+    }
+  } else {
+    dataset <- dat 
+  }
+  DBI::dbDisconnect(fishset_db)
+  
+  
   tmp <- tempfile()
   cat("Data verification checks", file=tmp, append=TRUE)
   check <- 0
@@ -45,8 +63,8 @@ data_verification <- function(dataset) {
   
   # Handling of empty variables
   if (any(apply(dataset, 2, function(x) all(is.na(x))) == TRUE)) {
-    cat('\n',names(which(apply(dataset, 2, function(x) all(is.na(x))) == TRUE), 
-              "is empty. Consider removing the column from the dataset."), file=tmp, append=T)
+    cat("\n",names(which(apply(dataset, 2, function(x) all(is.na(x))) == TRUE)), "is empty. 
+        Consider removing the column from the dataset.", file=tmp, append=T)
   } else {
     cat("\nPass: No empty variables exist in the dataset.", file=tmp, append=TRUE)
   }
@@ -54,11 +72,18 @@ data_verification <- function(dataset) {
   if(any(grepl('lat|lon', names(dataset), ignore.case=TRUE))){
     lat <- dataset[,which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)]
     lon <- dataset[,which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)]
+    
+    if(is.factor(lat)) {
+      lat <- as.numeric(as.character(lat))
+    }
+    if(is.factor(lon)) {
+      lon <- as.numeric(as.character(lon))
+    }
   graphics::par(mar=c(1,1,1,1)) 
-  map('world', ylim=c(min(lat, na.rm=TRUE), max(lat, na.rm=TRUE)), 
+  maps::map('world', ylim=c(min(lat, na.rm=TRUE), max(lat, na.rm=TRUE)), 
       xlim=c(min(lon, na.rm=TRUE), max(lon, na.rm=TRUE)))
-  points(dataset[sample(nrow(dataset), nrow(dataset)/10), which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)[1]], 
-         dataset[sample(nrow(dataset), nrow(dataset)/10), which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)[1]])
+  points(as.numeric(as.character(dataset[sample(nrow(dataset), nrow(dataset)/10), which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)[1]])), 
+         as.numeric(as.character(dataset[sample(nrow(dataset), nrow(dataset)/10), which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)[1]])))
   print('10% of samples plotted. Verify that points occur in correct geographic area.')
   }
   
@@ -66,12 +91,24 @@ data_verification <- function(dataset) {
   print(suppressWarnings(readLines(tmp)))
  
   if(!exists('logbody')) { 
-    logging_code()
+    logbody <- list()
+    infoBodyout <- list()
+    functionBodyout <- list()
+    infobody <- list()
+    
+    infobody$rundate <- Sys.Date()
+    infoBodyout$info <- list(infobody)
+    
+    functionBodyout$function_calls <- list()
+    
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
   } 
   
   data_verification_function <- list()
   data_verification_function$functionID <- 'data_verification'
-  data_verification_function$args <- c(deparse(substitute(dataset)))
+  data_verification_function$args <- c(deparse(substitute(dat)))
+  data_verification_function$kwargs <- list()
+  data_verification_function$output <- c('')
   data_verification_function$msg <- suppressWarnings(readLines(tmp))
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- data_verification_function
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
@@ -80,7 +117,7 @@ data_verification <- function(dataset) {
   rm(tmp)  
   
   if(check==1) {
-    stop('Data cannot be saved, at least one error exists')
+    stop('At least one error exists')
   }
   
 

@@ -2,16 +2,27 @@
 % Please edit documentation in R/nan_filter.R
 \name{nan_identify}
 \alias{nan_identify}
-\title{Filters NaN's from variable
-Identify NaN's in dataset}
+\title{Identify NaN's and NAs in data set}
 \usage{
-nan_identify(dataset)
+nan_identify(dat)
 }
 \arguments{
-\item{dataset}{dataframe or matrix over which to check for NaNs}
+\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
+}
+\value{
+Message with names of columns containing NAs or NaNs, if any.
 }
 \description{
-Filters NaN's from variable
-Identify NaN's in dataset
+Check whether any columns in the data frame contain NAs or NaNs. Returns column names containing NAs or NaNs.
 }
-\keyword{NaN}
+\examples{
+\dontrun{
+nan_identify(MainDataTable)
+mod.dat <-nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT') 
+mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T) 
+mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T, rep.value=0) 
+mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', remove=T) 
+}
+}
+\keyword{NA}
+\keyword{NaN,}

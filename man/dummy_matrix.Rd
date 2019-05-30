@@ -4,16 +4,21 @@
 \alias{dummy_matrix}
 \title{Create dummy matrix from a coded ID variable}
 \usage{
-dummy_matrix(dataset, x)
+dummy_matrix(dat, x)
 }
 \arguments{
-\item{dataset}{dataframe or matrix}
+\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
 
-\item{x}{Variable to create}
+\item{x}{Variable in dataset used to generate dummy matrix}
 }
 \description{
 Create dummy matrix from a coded ID variable
 }
 \details{
-Function for generating new or specialized variables. dummy_matrix creates a dummy matrix.
+Creates a dummy matrix of TRUE/FALSE with dimensions \emph{(number of observations in dataset) x (number of factors in x)} where each column is a unique factor level. Values are TRUE if the value in the column matches the column factor level and FALSE otherwise.
+}
+\examples{
+\dontrun{
+PortMatrix <- dummy_matrix(MainDataTable, 'PORT_CODE')
+}
 }

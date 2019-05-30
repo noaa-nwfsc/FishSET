@@ -4,39 +4,49 @@
 \alias{create_trip_distance}
 \title{Generate haul level trip distance}
 \usage{
-create_trip_distance(dataset, PortTable, trip_id, starting_port,
+create_trip_distance(dat, PortTable, trip_id, starting_port,
   starting_haul = c("Lon", "Lat"), ending_haul = c("Lon", "Lat"),
   ending_port, haul_order, a = 6378137, f = 1/298.257223563)
 }
 \arguments{
-\item{dataset}{dataframe or matrix}
+\item{dat}{Main data frame. In fishset_db database, table name contains phrase `MainDataTable`.}
 
-\item{PortTable}{dataframe with columns Port_Name, Port_Long, Port_Lat}
+\item{PortTable}{Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat. Table is generated using the load_port function and saved in the fishset_db database.}
 
-\item{trip_id}{Vector defining unique trips}
+\item{trip_id}{Variable in 'dat' to identify unique trips.}
 
-\item{starting_port}{Vector defining port at start of trip}
+\item{starting_port}{Variable in `dat` to identify port at start of trip}
 
-\item{starting_haul}{Vector defining Lat/Long of start of haul. Should contain two vectors.}
+\item{starting_haul}{lat/long Variables in `dat` containing lat/long at start of haul. Should contain two vectors.}
 
-\item{ending_haul}{Vector defining Lat/Long of end of haul. Should contain two vectors.}
+\item{ending_haul}{lat/long Variables in `dat` containing lat/long at end of haul. Should contain two vectors.}
 
-\item{ending_port}{Vector defining port at end of trip}
+\item{ending_port}{Variable in `dat` to identify port at end of trip}
 
-\item{haul_order}{Vector defining order that hauls occur}
+\item{haul_order}{Variable in `dat` containing information on the order that hauls occur within a trip. Can be time, coded variable, etc.}
 
-\item{a}{numeric. Major (equatorial) radius of the ellipsoid. The default value is for WGS84}
+\item{a}{Major (equatorial) radius of the ellipsoid. The default value is for WGS84 ellipsoid.}
 
-\item{f}{numeric. Ellipsoid flattening. The default value is for WGS84}
+\item{f}{Ellipsoid flattening. The default value is for WGS84 ellipsoid.}
 }
 \value{
-vector of trip distance
+Vector of trip distance
 }
 \description{
 Generate haul level trip distance
 }
 \details{
 Summation of distance across a trip based on choices by the user for starting and ending ports, and hauls in between.
- Uses longitude and latitude to calculate the distance between and returns as a new variable. Relies on the distGeo function to calculate distances
- between hauls. Inputs are a dataframe or matrix of trips, ports, etc and a datatable on ports including latitude and longitude of ports.
+ Uses longitude and latitude to calculate the distance between hauls within a trip and returns as a new variable. 
+ Utilizes the \code{\link[geosphere]{distGeo}} function from the geosphere package to calculate distances between hauls.
+  Inputs are the main data table containing information on trips, ports, etc., and a port data table containing latitude and longitude of ports.
+ The ellipsoid parameters `a` and `f` are numeric and can be changed if an ellipsoid other than WGS84 is appropriate. See the geosphere R package for more details 
+ \url{https://cran.r-project.org/web/packages/geosphere/geosphere.pdf}.
+}
+\examples{
+\dontrun{
+ MainDataTable$TripDistance <- create_trip_distance(MainDataTable, PortTable, 'TRIP_SEQ', 
+                               'DISEMBARKED_PORT', c("LonLat_START_LON","LonLat_START_LAT"),
+                               c("LonLat_END_LON","LonLat_END_LAT"), 'EMBARKED_PORT', 'HAUL_SEQ')
+ }
 }

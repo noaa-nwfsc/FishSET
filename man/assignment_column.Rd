@@ -2,45 +2,42 @@
 % Please edit documentation in R/assignment_column.R
 \name{assignment_column}
 \alias{assignment_column}
-\title{Generate centroid of polygon of zone or area
- 
- Function is called by the create_alternative_choice function to assign each observation to zones defined by a spatial data set.}
+\title{Assign observations to zone or area}
 \usage{
-assignment_column(dataset, gridfile, hull.polygon = c(TRUE, FALSE),
-  lon.grid, lat.grid, lon.dat, lat.dat, cat, closest.pt = c(TRUE, FALSE),
+assignment_column(dat, gridfile, hull.polygon = c(TRUE, FALSE), lon.grid,
+  lat.grid, lon.dat, lat.dat, cat, closest.pt = c(TRUE, FALSE),
   epsg = NULL)
 }
 \arguments{
-\item{dataset}{Main data frame containing data on hauls or trips}
+\item{dat}{Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.}
 
-\item{gridfile}{Name of file containing spatial data. Shape, json, and csv formats are supported.}
+\item{gridfile}{Spatial data. Shape, json, and csv formats are supported.}
 
-\item{hull.polygon}{If TRUE, created convex hull polygon. Use if spatial data creating polygon are sparse or irregular.}
+\item{hull.polygon}{T/F If TRUE, creates convex hull polygon. Use if spatial data creating polygon are sparse or irregular.}
 
-\item{lon.grid}{Longitude of points from gridfile}
+\item{lon.grid}{Column containing longitude data in gridfile.}
 
-\item{lat.grid}{Latitude of points from gridfile}
+\item{lat.grid}{lColumn containing latitude data in gridfile.}
 
-\item{lon.dat}{Longitude of points from dataset}
+\item{lon.dat}{Column containing longitude data in main data frame.}
 
-\item{lat.dat}{Latitude of points from dataset}
+\item{lat.dat}{Column containing latitude data in main data frame.}
 
-\item{cat}{Variable that identifies the individual areas or zones in gridfile. If gridfile is class sf, cat should be name of list containing information on zones.}
+\item{cat}{Column in gridfile that identifies the individual areas or zones. If gridfile is class sf, `cat` should be name of list containing information on zones.}
 
-\item{closest.pt}{TRUE/FALSE If true, zone ID identified as the closest polygon to the point}
+\item{closest.pt}{TRUE/FALSE If true, zone ID identified as the closest polygon to the point.}
 
-\item{epsg}{EPSG number. See http://spatialreference.org/ to help identify optimal epsg number}
+\item{epsg}{EPSG number. See \url{http://spatialreference.org/} to help identify optimal epsg number.}
 }
 \value{
-Returns dataset with new assignment column labeled zoneID
+Main data frame with new assignment column labeled zoneID.
 }
 \description{
-Generate centroid of polygon of zone or area
- 
- Function is called by the create_alternative_choice function to assign each observation to zones defined by a spatial data set.
+Assign observations to zone or area
 }
 \details{
-Converts point data from gridfile into polygons and then finds which polygon each point in the dataset is within. Use hull.polygon=T if data is sparse or irregular.
+Function is called by the \code{\link{create_alternative_choice}} function to assign each observation to zones defined by a spatial data set.
+Converts point data from gridfile into polygons and then finds which polygon each observation in the main data frame is within. Use hull.polygon=T if data is sparse or irregular.
 }
 \keyword{polygon}
 \keyword{zone,}

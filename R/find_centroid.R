@@ -1,35 +1,50 @@
 #'  Generate centroid of polygon of zone or area
 
-#' @param dataset dataframe or matrix
-#' @param gridfile name of gridded dataset
-#' @param lon.dat Longitude of points from dataset
-#' @param lat.dat Latitude of points from dataset
-#' @param lon.grid Longitude of points from gridfile
-#' @param lat.grid Latitude of points from gridfile
-#' @param cat Categorical variable defining the individual areas or zones
-#' @param weight.var Variable for weighted average
-#' @param use.grid TRUE/FALSE
+#' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
+#' @param gridfile Spatial data set. Can be shape file, data frame, or list.
+#' @param lon.dat Longitude of points from dataset.
+#' @param lat.dat Latitude of points from dataset.
+#' @param lon.grid Longitude of points from gridfile.
+#' @param lat.grid Latitude of points from gridfile.
+#' @param cat Variable defining the individual areas or zones.
+#' @param weight.var Variable for weighted average.
 #' @keywords centroid, zone, polygon
 #' @importFrom sf st_centroid  
 #' @importFrom spatialEco wt.centroid
 #' @importFrom rgeos gCentroid
 #' @importFrom stats ave weighted.mean
 #' @importFrom methods as
-#' @return Returns a dataframe with location of centroid
+#' @return Data frame where each row is a unique zone and columns are the latitude and longitude defining the centroid of each zone.
 #' @export find_centroid
-#' @details Functions returns the center of a zone or area based on set of latitude and longitudes for using in generating distance matrices.
-#'  Function can also return a weighted centroid. Code works for dataframes and shape files. Lists can also be used as long as inputs are a list of latitudes, longitudes, and areas or zones.
-#'  Includes assignment_column function. Assigns a zone from a gridded dataset to the main dataset.
+#' @details Functions returns the center of a zone or area based on set of latitude and longitudes. Zone centroids are used in calculating distance matrices.
+#'  Function can also return a weighted centroid. Code works for data frames and shape files. Lists can also be used as long as inputs are a list of 
+#'  latitudes, longitudes, and areas or zones. Calls \code{\link{assignment_column}} function. 
 
 
 
-find_centroid <- function(use.grid, dataset, gridfile, lon.grid, lat.grid, lon.dat, lat.dat, cat, weight.var) {
+find_centroid <- function(dat, gridfile, lon.grid, lat.grid, lon.dat, lat.dat, cat, weight.var) {
+  #Call in datasets
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  if(is.character(dat)==TRUE){
+    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
+      print(DBI::dbListTables(fishset_db))
+      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+    } else {
+      dataset <- table_view(dat)
+    }
+  } else {
+    dataset <- dat 
+  }
+  DBI::dbDisconnect(fishset_db)
+  
+  
+  
   tmp <- tempfile()
   cat("", file=tmp, append=TRUE)
   x <- 0
   #For json and shape files
   if(any(class(gridfile)=='sf')) {
-    if (is.empty(weight.var)) {
+    if (FishSET:::is_empty(weight.var)) {
       int <- rgeos::gCentroid(methods::as(gridfile, "Spatial"), byid = TRUE)
       int <- cbind(gridfile[[cat]], as.data.frame(int))
       colnames(int)=c("ZoneID", "cent.lon", "cent.lat")
@@ -52,7 +67,7 @@ find_centroid <- function(use.grid, dataset, gridfile, lon.grid, lat.grid, lon.d
     } else {
   #Weighted variables 
       if(x!=1){
-      int <- assignment_column(dataset = dataset, gridfile = gridfile, lon.grid = lon.grid, 
+      int <- assignment_column(dat = dataset, gridfile = gridfile, lon.grid = lon.grid, 
                               lat.grid = lat.grid, lon.dat = lon.dat, lat.dat = lat.dat, cat = cat)  
       int$cent.lon <- stats::ave(int[c(lon.dat, weight.var)], int$ZoneID, 
                           FUN = function(x) stats::weighted.mean(x[[lon.dat]], x[[weight.var]]))[[1]]
@@ -64,8 +79,8 @@ find_centroid <- function(use.grid, dataset, gridfile, lon.grid, lat.grid, lon.d
   } 
   #begin dataframe
   else {
-    # Centroid based on grid file or dataset
-    if (use.grid == T) {
+    # Centroid based on spatial data file or data set
+    if (!is.null(gridfile)) {
       int <- gridfile
       lon <- lon.grid
       lat <- lat.grid
@@ -89,7 +104,7 @@ find_centroid <- function(use.grid, dataset, gridfile, lon.grid, lat.grid, lon.d
     } 
     if(x!=1){
     # simple centroid
-    if (is.empty(weight.var)) {
+    if (FishSET:::is_empty(weight.var)) {
       if (is.data.frame(int) == T) {
         int$cent.lon <- stats::ave(int[[lon]], int[[cat]])
         int$cent.lat <- stats::ave(int[[lat]], int[[cat]])
@@ -99,9 +114,9 @@ find_centroid <- function(use.grid, dataset, gridfile, lon.grid, lat.grid, lon.d
     } else {
       # weighted centroid
       if (is.data.frame(int) == T) {
-        if (use.grid == T) {
+        if (!is.null(gridfile)) {
         
-          int <- assignment_column(dataset = dataset, gridfile = gridfile, lon.grid = lon.grid, 
+          int <- assignment_column(dat=dataset, gridfile = gridfile, lon.grid = lon.grid, 
                                 lat.grid = lat.grid, lon.dat = lon.dat, lat.dat = lat.dat, cat = cat)  
           int$cent.lon <- stats::ave(int[c(lon.dat, weight.var)], int$ZoneID, 
                             FUN = function(x) stats::weighted.mean(x[[lon.dat]], x[[weight.var]]))[[1]]
@@ -126,20 +141,7 @@ find_centroid <- function(use.grid, dataset, gridfile, lon.grid, lat.grid, lon.d
   }
   }
      
-    print(suppressWarnings(readLines(tmp)))
-    if(!exists('logbody')) { 
-      logging_code()
-    } 
-    find_centroid_function <- list()
-    find_centroid_function$functionID <- 'find_centroid'
-    find_centroid_function$args <- c(deparse(substitute(dataset)))
-    find_centroid_function$msg <- suppressWarnings(readLines(tmp))
-    functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (find_centroid_function)
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-    write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
-    assign("functionBodyout", value = functionBodyout, pos = 1)
-    rm(tmp)
-    
+
     return(int)
 }
 

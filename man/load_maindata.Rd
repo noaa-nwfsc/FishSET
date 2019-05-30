@@ -2,25 +2,33 @@
 % Please edit documentation in R/data_parser.R
 \name{load_maindata}
 \alias{load_maindata}
-\title{Load data into sql database}
+\title{Load data into SQL database}
 \usage{
-load_maindata(dataset, over_write = TRUE, project = NULL,
+load_maindata(dat, over_write = TRUE, project = NULL,
   compare = FALSE, y = NULL)
 }
 \arguments{
-\item{dataset}{name dataframe to be saved}
+\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
 
-\item{over_write}{TRUE/FALSE Save over previously saved file or not}
+\item{over_write}{TRUE/FALSE Save over data table previously saved in fishset_db database?}
 
-\item{project}{name of project}
+\item{project}{Name of project. Parameter is used to generate meaningful table names in fishset_db database.}
 
-\item{compare}{TRUE/FALSE Compare new dataframe to previously saved dataframe before saving dataframe x to databases}
+\item{compare}{TRUE/FALSE If TRUE, compare new data frame to previously saved data frame `y` in fishset_db before saving new data frame to the fishset_db database}
 
-\item{y}{name of previously saved dataframe. y must be defined if compare==TRUE}
+\item{y}{Name of previously saved table in fishset_db database. y must be defined if `compare==TRUE`.}
 }
 \description{
-Load data into sql database
+Load data into SQL database
 }
 \details{
-Runs the fishset.compare function. Then uses the new dataframe x to generate the the information table that contains information for each variable on units, data format, and specialied variable.
+Runs the fishset_compare function if `compare` is TRUE.  Then checks the data for common data issues using the \code{\link{data_verification}} function and that latitude and longitude are defined. 
+The index table that contains information for each variable on units, data format, and specialized variable is then generated. Finally, the data sets (main and index tables) are saved 
+in the fishset_db as raw and working tables. In both cases, the table name is the `project`, if defined, and the table type `MainDataTable` or `MainDataTableInfo`. Date is also attached to the name for the raw data.
+}
+\examples{
+\dontrun{  
+load_maindata(dataset='MainDataTable', over_write=TRUE, project='', 
+              compare=TRUE, y='MainDataTable01012011') 
+}
 }

@@ -2,24 +2,30 @@
 % Please edit documentation in R/create_variables.R
 \name{create_var_num}
 \alias{create_var_num}
-\title{Create numeric variables}
+\title{Create numeric variables using arithmetic expression}
 \usage{
-create_var_num(dataset, x, y, method, name)
+create_var_num(dat, x, y, method, name = "create_var_num")
 }
 \arguments{
-\item{dataset}{dataframe or matrix}
+\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
 
-\item{x}{Variable to create}
+\item{x}{variable  Variable will be the numerator if `method` is division.}
 
-\item{y}{Second variable Note that in division  x is divided by y.}
+\item{y}{variable  Variable will be the denominator if `method` is division.}
 
-\item{method}{Addition, subtraction, multiplication, division}
+\item{method}{Arithmetic expression. Options include: addition, subtraction, multiplication, and division.}
 
-\item{name}{Name of new variable}
+\item{name}{Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.}
 }
 \description{
-Create numeric variables
+Create numeric variables using arithmetic expression
 }
 \details{
-Function for generating new or specialized variables. create_var_num creates a new numeric variable based on defined arithmetic function. New variable is added to the dataset.
+Creates a new numeric variable based on defined arithmetic expression `method`. New variable is added to the data set.
+}
+\examples{
+\dontrun{
+MainDataTable$tot_salmon <- create_var_num(MainDataTable, 'HAUL_CHINOOK', 'HAUL_CHUM',
+                                            'sum',' TimeChange')
+}
 }

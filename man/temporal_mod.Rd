@@ -2,30 +2,43 @@
 % Please edit documentation in R/temporal_mod.R
 \name{temporal_mod}
 \alias{temporal_mod}
-\title{Transform units of a temporal variables}
+\title{Transform units of a date variable}
 \usage{
-temporal_mod(dataset, x, fun.mod = "", define.format)
+temporal_mod(dat, x, define.format)
 }
 \arguments{
-\item{dataset}{dataframe or matrix}
+\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
 
 \item{x}{Time variable to modify}
 
-\item{fun.mod}{Defines temporal time frame such as year, month, day}
-
-\item{define.format}{Format of temporal data}
+\item{define.format}{Format of temporal data. Format can be user-defined or from pre-defined choices.}
 }
 \value{
-Returns variable with modified time unites
+Variable with modified time units
 }
 \description{
-Transform units of a temporal variables
+Transform units of a date variable
 }
 \details{
-define.format defines the format that the variable should take on. Examples include '%Y%m%d', '%Y-%m-%d %H:%M:%S'.
-The function also has options to extract year, month, minute, or month/day. These are defined through fun.mod
-
-Date_Landed_year <- temp_mod(MainDataTable, 'DATE_LANDED', fun.mod = 'year', define.format = '')
+Converts a date variable to desired units using \code{\link[base]{as.Date}}. The FishSET date_parse function is 
+also called to ensure the date variable is in a format that can be used by the \code{\link[base]{as.Date}} function.
+ `define.format` defines the format that the variable should take on. Examples include `\%Y\%m\%d`, `\%Y-\%m-\%d \%H:\%M:\%S`. Users can define their own format or use one of the predefined ones.
+\itemize{
+Predefined formats
+\item{year: Takes on the format `\%Y` and returns the year.}
+\item{month: Takes on the format `\%Y/\%m` and returns the year and month.}
+\item{day: Takes on the format `\%Y/\%m/\%d` and returns the year, month, and day.}
+\item{hour: Takes on the format `\%Y/\%m/\%d \%H` and returns the year, month, day and hour.}
+\item{minute: Takes on the format `\%Y/\%m/\%d \%H:\%M` and returns the year, month, day, hour, and minute.}
 }
-\keyword{Date,}
+For more information on formats, see \url{https://www.stat.berkeley.edu/~s133/dates.html}.
+}
+\examples{
+ 
+\dontrun{
+Date_Landed_YMD <- temp_mod(MainDataTable, 'DATE_LANDED', define.format = '\%Y\%m\%d') 
+Date_Landed_year <- temp_mod(MainDataTable, 'DATE_LANDED', define.format = 'year')
+}
+}
+\keyword{Date}
 \keyword{as.Date}

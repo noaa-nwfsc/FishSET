@@ -2,23 +2,28 @@
 % Please edit documentation in R/ID_var.R
 \name{ID_var}
 \alias{ID_var}
-\title{Create ID variable from another variable.}
+\title{Create ID variable from one or more variable.s}
 \usage{
-ID_var(dataset, newID, ...)
+ID_var(dat, newID, ...)
 }
 \arguments{
-\item{dataset}{dataframe or matrix}
+\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
 
 \item{newID}{name of new ID column}
 
-\item{...}{Column(s) that define the variable(s) over which to make new ID}
+\item{...}{Column(s) in main data frame that define unique observations.}
 }
 \value{
-Returns the dataframe with new ID variable included
+Data frame with `newID` ID variable included.
 }
 \description{
-Create ID variable from another variable.
+Create ID variable from one or more variable.s
 }
 \details{
-Creates a variable to indicate distinct hauls or trips
+Function is used to create a variable that indicates distinct hauls or trips.
+}
+\examples{
+\dontrun{
+dat <- ID_var(MainDataTable, newID='PermitID','GEAR_TYPE','TRIP_SEQ')
+}
 }

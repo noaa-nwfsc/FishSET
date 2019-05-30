@@ -2,21 +2,29 @@
 % Please edit documentation in R/table_info_verification.R
 \name{table_info_verification}
 \alias{table_info_verification}
-\title{Contains one function that tests several if statements. The function stops if a if statement does not pass.}
+\title{Check for common data issues}
 \usage{
-table_info_verification(dataset, dataindex)
+table_info_verification(dataindex)
 }
 \arguments{
-\item{dataset}{dataframe or matrix}
-
-\item{dataindex}{dataframe that contains information on each column of the dataset}
+\item{dataindex}{Data table saved in fishset_db database that contains information on each column of the main dataset. 
+Table name should contain the phrase `MainDataTableInfo`.
+Can be called from the global environment or the fishset_db database.}
 }
 \value{
-Returns statements as to whether issues in the data may exist
+Returns statements as to whether issues in the `dataindex` table may exist
 }
 \description{
-Contains one function that tests several if statements. The function stops if a if statement does not pass.
+Check for common data issues
 }
 \details{
-checks whether specialized variables have been identified in the index dataset and if units are defined and recognized
+Checks whether specialized variables have been identified in the `dataindex` table and if units are defined and recognized.
+}
+\examples{
+\dontrun{
+#Table loaded from fishet_db database
+   table_info_verification('MainDataTableInfo') 
+#Table loaded from the global environment.
+   table_info_verification(MainDataTableInfo) 
+}
 }

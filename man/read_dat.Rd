@@ -4,17 +4,21 @@
 \alias{read_dat}
 \title{Import data}
 \usage{
-read_dat(x, data.type = c("csv", "mat", "json", "shape", "txt", "spss",
-  "stata", "R"))
+read_dat(x, data.type)
 }
 \arguments{
-\item{x}{name and directory of dataframe to be read in}
+\item{x}{Name and directory of data frame to be read in. For example, `nmfs_manage_simple.shp`.}
 
-\item{data.type}{csv, mat, json, shape}
+\item{data.type}{csv, mat, json, shape = c('csv', 'mat', 'json', 'shape', 'txt', 'spss', 'stata', 'R')}
 }
 \description{
 Import data
 }
 \details{
-Uses the appropriate function to read in data based on data type.
+Uses the appropriate function to read in data based on data type. Supported data types include shape, csv, json, matlab, R, spss, and stata files.
+}
+\examples{
+\dontrun{ 
+dat <- read_dat('nmfs_manage_simple.shp', 'shape')
+}
 }
