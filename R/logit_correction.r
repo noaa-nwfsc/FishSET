@@ -1,4 +1,4 @@
-logit_correction_v <- function(starts3, dat, otherdat, alts) {
+logit_correction <- function(starts3, dat, otherdat, alts) {
     #' logit_correction
     #'
     #' Full information model with Dahl's correction function
