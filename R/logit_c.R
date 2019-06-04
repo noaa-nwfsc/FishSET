@@ -1,11 +1,11 @@
-logit_c <- function(starts3, dat, otherdat, alts) {
+logit_c <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
     #' logit_c
     #'
     #' Conditional logit likelihood
     #'
     #' @param starts3 Starting values. e.g. c([grid-varying variables], [interaction variables]).
     #' @param dat Data matrix, see output from shift_sort_x, alternatives with distance by column bind
-    #' @param otherdat Other data used in model (as list). Any number of grid-varying variables (e.g. expected catch that varies by location) or 
+     #' @param otherdat Other data used in model (as list). Any number of grid-varying variables (e.g. expected catch that varies by location) or 
     #' interaction variables (e.g. vessel characteristics that affect how much disutility is suffered by traveling a greater distance) are allowed. \cr \cr
     #' However, the user must place these in `otherdat` as list objects named `griddat` and `intdat` respectively. Note the variables 
     #' within `griddat` and `intdat` have no naming restrictions. \cr \cr
@@ -14,6 +14,9 @@ logit_c <- function(starts3, dat, otherdat, alts) {
     #' If there are no other data, the user can set `griddat` as ones with dimension *(number of observations) x (number of alternatives)*
     #' and `intdat` variables as ones with dimension *(number of observations) x 1*.
     #' @param alts Number of alternative choices in model
+    #' @param project
+    #' @param expname
+    #' @param mod.name
     #' @return ld - negative log likelihood
     #' @export
     # @examples
@@ -47,7 +50,24 @@ logit_c <- function(starts3, dat, otherdat, alts) {
     }
     
     ldglobalcheck <- unlist(as.matrix(ld1))
-    assign("ldglobalcheck", value = ldglobalcheck, pos = 1)
+    ldglobalcheck <- list(model=paste0(project, expname, mod.name), ldglobalcheck=ldglobalcheck)
+    #assign("ldglobalcheck", value = ldglobalcheck, pos = 1)
+    
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+    single_sql <- paste0(project, "ldglobalcheck", format(Sys.Date(), format="%Y%m%d"))
+    second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
+    
+    if(table_exists(single_sql)==TRUE){
+    x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
+    table_remove(single_sql)
+    ldglobalcheck <- c(x, ldglobalcheck)
+    }
+    
+    DBI::dbExecute(fishset_db, paste0("CREATE TABLE IF NOT EXISTS ", project, "ldglobalcheck", 
+                                      format(Sys.Date(), format="%Y%m%d"), "(data ldglobalcheck)"))
+    DBI::dbExecute(fishset_db, second_sql, params = list(data = list(serialize(ldglobalcheck, NULL))))
+    DBI::dbDisconnect(fishset_db)
+    
     
     ld <- (-do.call("sum", ld1))
     

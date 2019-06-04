@@ -184,6 +184,8 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
         #write Alt to datafile
         single_sql <- paste0(project, 'altmatrix')
         date_sql <- paste0(project, 'altmatrix', format(Sys.Date(), format="%Y%m%d"))
+        table_remove(single_sql)
+        table_remove(date_sql)
         DBI::dbExecute (fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(AlternativeMatrix ALT)"))
         DBI::dbExecute (fishset_db, paste("INSERT INTO", single_sql, "VALUES (:AlternativeMatrix)"), 
                                           params = list(AlternativeMatrix = list(serialize(Alt, NULL))))

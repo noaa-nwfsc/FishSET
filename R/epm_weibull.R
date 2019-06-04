@@ -1,4 +1,4 @@
-epm_weibull <- function(starts3, dat, otherdat, alts) {
+epm_weibull <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
     #' epm_weibull
     #'
     #' Expected profit model weibull catch function
@@ -14,6 +14,9 @@ epm_weibull <- function(starts3, dat, otherdat, alts) {
     #' If there are no other data, the user can set `griddat` as ones with dimension *(number of observations) x (number of alternatives)*
     #' and `intdat` variables as ones with dimension *(number of observations) x 1*.
     #' @param alts Number of alternative choices in model
+    #' @param project
+    #' @param expname
+    #' @param mod.name
     #' @return ld - negative log likelihood
     #' @export
 
@@ -95,11 +98,31 @@ epm_weibull <- function(starts3, dat, otherdat, alts) {
     }
     
     ldsumglobalcheck <- ld
-    assign('ldsumglobalcheck', value = ldsumglobalcheck, pos = 1)
+    #assign('ldsumglobalcheck', value = ldsumglobalcheck, pos = 1)
     paramsglobalcheck <- starts3
-    assign('paramsglobalcheck', value = paramsglobalcheck, pos = 1)
+    #assign('paramsglobalcheck', value = paramsglobalcheck, pos = 1)
     ldglobalcheck <- unlist(as.matrix(ld1))
-    assign('ldglobalcheck', value = ldglobalcheck, pos = 1)
+    #assign('ldglobalcheck', value = ldglobalcheck, pos = 1)
+    
+    ldglobalcheck <- list(model=paste0(project, expname, mod.name), ldsumglobalcheck=ldsumglobalcheck,
+                          paramsglobalcheck=paramsglobalcheck, ldglobalcheck=ldglobalcheck)
+    #assign("ldglobalcheck", value = ldglobalcheck, pos = 1)
+    
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+    single_sql <- paste0(project, "ldglobalcheck", format(Sys.Date(), format="%Y%m%d"))
+    second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
+    
+    if(table_exists(single_sql)==TRUE){
+      x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
+      table_remove(single_sql)
+      ldglobalcheck <- c(x, ldglobalcheck)
+    }
+    
+    DBI::dbExecute(fishset_db, paste0("CREATE TABLE IF NOT EXISTS ", project, "ldglobalcheck", 
+                                      format(Sys.Date(), format="%Y%m%d"), "(data ldglobalcheck)"))
+    DBI::dbExecute(fishset_db, second_sql, params = list(data = list(serialize(ldglobalcheck, NULL))))
+    DBI::dbDisconnect(fishset_db)
+    
     
     return(ld)
     

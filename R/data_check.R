@@ -70,7 +70,7 @@ data_check <- function(dat, x, dataindex) {
          Consider further visualizing the data with outlier_plot. Remove outliers with outlier_remove.')
      cat('\n')
      cat('\nData verification checks.\n')
-     data_verification_call(dataset)
+     data_verification(dataset)
      #Table_verification_function
         allNecFields = c("name", "units", "general", "XY", "ID", "Time", "Catch", "Effort", 
                         "CPUE", "Lat", "Value", "Area", "Port", "Price", "Trip", "Haul", "Other")

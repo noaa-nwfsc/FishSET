@@ -320,6 +320,8 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   single_sql <- paste0(project, 'modelinputdata')
   date_sql <- paste0(project, 'modelinputdata', format(Sys.Date(), format="%Y%m%d"))
+  table_remove(single_sql)
+  table_remove(date_sql)
   DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(ModelInputData MODELINPUTDATA)"))
   DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:ModelInputData)"), 
                  params = list(ModelInputData = list(serialize(modelInputData, NULL))))
