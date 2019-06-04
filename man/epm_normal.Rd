@@ -4,7 +4,7 @@
 \alias{epm_normal}
 \title{epm_normal}
 \usage{
-epm_normal(starts3, dat, otherdat, alts)
+epm_normal(starts3, dat, otherdat, alts, project, expname, mod.name)
 }
 \arguments{
 \item{starts3}{Starting values. e.g. c([grid-varying variables], [interaction variables], [catch variance], [scale parameter]).}
@@ -21,9 +21,13 @@ If there are no other data, the user can set `griddat` as ones with dimension *(
 and `intdat` variables as ones with dimension *(number of observations) x 1*.}
 
 \item{alts}{Number of alternative choices in model}
-}
-\value{
-ld - negative log likelihood
+
+\item{project}{Name of project}
+
+\item{expname}{Expected catch table}
+
+\item{mod.name}{Name of model run for model result output table
+#' @return ld - negative log likelihood}
 }
 \description{
 Expected profit model normal catch function

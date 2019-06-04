@@ -14,9 +14,9 @@ epm_weibull <- function(starts3, dat, otherdat, alts, project, expname, mod.name
     #' If there are no other data, the user can set `griddat` as ones with dimension *(number of observations) x (number of alternatives)*
     #' and `intdat` variables as ones with dimension *(number of observations) x 1*.
     #' @param alts Number of alternative choices in model
-    #' @param project
-    #' @param expname
-    #' @param mod.name
+    #' @param project Name of project
+    #' @param expname Expected catch table
+    #' @param mod.name Name of model run for model result output table
     #' @return ld - negative log likelihood
     #' @export
 

@@ -350,7 +350,7 @@ long_exp <- long_expectations(dat=dat, project=project, gridfile=gridfile, catch
      short_exp = short_exp,
      med_exp = med_exp,
      long_exp = long_exp,
-     user_exp = newCatch,
+     user_defined_exp = newCatch,
      scale = sscale,
      units = ifelse(grepl('lbs|pounds', catch, ignore.case = T)==T, 'LBS', 'MTS') #units of catch data
      #newGridVar.file=[]
@@ -369,8 +369,8 @@ long_exp <- long_expectations(dat=dat, project=project, gridfile=gridfile, catch
     functionBodyout$function_calls <- list()
     
     logbody$fishset_run <- list(infoBodyout, functionBodyout)
-    
   } 
+  
   create_expectations_function <- list()
   create_expectations_function$functionID <- 'create_expectations'
   create_expectations_function$args <- c(deparse(substitute(dat)), project, deparse(substitute(gridfile)), catch, temporal, temp.var, calc.method, lag.method, 

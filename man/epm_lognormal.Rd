@@ -4,7 +4,7 @@
 \alias{epm_lognormal}
 \title{epm_lognormal}
 \usage{
-epm_lognormal(starts3, dat, otherdat, alts)
+epm_lognormal(starts3, dat, otherdat, alts, project, expname, mod.name)
 }
 \arguments{
 \item{starts3}{Starting values. e.g. c([grid-varying variables], [interaction variables], [catch variance], [scale parameter]).}
@@ -21,6 +21,12 @@ If there are no other data, the user can set `griddat` as ones with dimension *(
 and `intdat` variables as ones with dimension *(number of observations) x 1*.}
 
 \item{alts}{Number of alternative choices in model}
+
+\item{project}{Name of project}
+
+\item{expname}{Expected catch table}
+
+\item{mod.name}{Name of model run for model result output table}
 }
 \value{
 ld - negative log likelihood

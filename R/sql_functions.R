@@ -82,3 +82,35 @@ table_exists <- function(table) {
   return(DBI::dbExistsTable(fishset_db, table)) 
   DBI::dbDisconnect(fishset_db)
 }
+
+model_out_view <- function(table){
+  #' View discrete choice model output
+  #' @param table  Table name in sqlite database. Should contain the phrase modelout.
+  #' @export
+  #' @description Returns output from running the discretefish_subroutine function. The table parameter must be the full name of the table name in the fishet_db database.
+  #' @examples 
+  #' \dontrun{
+  #' model_out_view('pcodmodelout20190604')
+  #' }
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", table, " LIMIT 1"))$data[[1]])
+  return(x)
+  DBI::dbDisconnect(fishset_db)
+  
+}
+
+globalcheck_view <- function(table){
+  #' View error output from discrete choice model 
+  #' @param table  Table name in sqlite database. Should contain the phrase modelout.
+  #' @export
+  #' @description Returns error output from running the discretefish_subroutine function. The table parameter must be the full name of the table name in the fishet_db database.
+  #' @examples 
+  #' \dontrun{
+  #' globalcheck_view('pcodldglobalcheck20190604')
+  #' }
+ 
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", table , " LIMIT 1"))$data[[1]])
+  return(x)
+  DBI::dbDisconnect(fishset_db)
+}

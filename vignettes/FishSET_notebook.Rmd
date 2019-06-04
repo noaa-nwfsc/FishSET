@@ -19,11 +19,13 @@ knitr::opts_knit$set(root.dir = '../')
 # One `../` means go one level up towards the root,
 # here, moving from `scripts` folder to the root `my_project`
 ```
+
 This tutorial uses [R Markdown](http://rmarkdown.rstudio.com) Notebook to demonstrate the FishSET package. We recommend running FishSET in a Notebook environment to store results and plots. This tutorial is meant to provide an overview of FishSET functionality. For more information on FishSET and the FishSET functions, please read the package documentation and the vignette. A more extensive help document is in development. 
 
 ## Installing
 Devtools is currently required to install and build FishSET. It will need to be installed and loaded before FishSET can be installed.
 We recommend using the following lines to install FishSET.
+
 ```{r echo=TRUE}
 #    install.packages("devtools") 
 #    library(devtools)
@@ -58,9 +60,9 @@ port <- read_dat('./data/port.RData', data.type = 'R')
 FishSET requires a primary data file that contains the main data for the model, such as haul locations and total catch. Port data, containing the latitude and longitude of ports should also be included. To load the primary data use *load_maindata*. In this example, we set the parameters `compare` to FALSE and `y` to NULL as there is no previous version of the data compare against. 
 
 ```{r load-data, echo=TRUE}
-#Load main data set into fishset_db database
+#Load main data into fishset_db database
 load_maindata(dat, over_write = TRUE, project= 'pcod', compare = FALSE, y = NULL)
-#Loadd port data set into fishset_db database
+#Load port data into fishset_db database
 load_port(port, over_write = TRUE, project = 'pcod', compare = FALSE, y = NULL)
 ```
 
@@ -78,7 +80,8 @@ Functions can call data tables from the fishset_db database or from the global e
 ```{r echo=TRUE}
 #Check for common data quality issues
 data_check('pcodMainDataTable', 'OFFICIAL_TOTAL_CATCH', 'pcodMainDataTableInfo')
-data_check(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH', 'pcodMainDataTableInfo')
+# Not run
+#data_check(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH', 'pcodMainDataTableInfo')
 ```
 
 The data parser functions (*load_maindata*, *load_port*, *load_aux*, *load_gridd*) call the *data_verification* function. This function checks that each observation is a unique occurrence, that variable names are unique, and that no empty variables exist. The data will not be saved to the fishset_db database if any of these checks fail. The data should also be checked for presence of NAs, NaNs, outliers, and the distribution of location points. The *data_check* function runs these tests. The output states that NAs are present in the data. We can remove those using *na_filter*.
@@ -87,13 +90,35 @@ The data parser functions (*load_maindata*, *load_port*, *load_aux*, *load_gridd
 pcodMainDataTable <- na_filter('pcodMainDataTable', c('DEPLOY_LATITUDE','DEPLOY_LONGITUDE'), replace = F, remove = T)
 ```
 
-The plotted haul locations appear to be in the correct location but some occur over land. We need to further check these. We may also want to further check for outliers.
+The plot raw data, distribution of the data, and Q-Q plot indicate that there may be some extreme data in the upper catch values. We can evaluate for the potential existence of outliers further using the *outlier_plot* function and specifying the parameters for including data.
 
 ```{r echo=TRUE}
 outlier_plot('pcodMainDataTable', 'OFFICIAL_TOTAL_CATCH', dat.remove='5_95_quant', x.dist='lognormal')
 ```
 
-The plot output in this example does not provide evidence that outliers should be removed.
+In this example, the data appear to better fit a log-normal distribution than a normal distribution. However, removing points outside the 5 to 95 percent quantiles removes more than the extreme upper values and does not result in a better fit. The plot output in this example does not provide evidence that outliers should be removed.
+
+The output from the *data_check* function call also returned a map with haul locations. The plotted haul locations appear to be in the correct location but some occur over land. Points that occur over land or outside zone areas will not be assigned to zones and will not be included in the model. 
+
+```{r echo=FALSE, message=FALSE, fig.env='figure'}
+map2 <- read_dat('inst/extdata/nmfs_manage_simple.json', 'shape')
+temp <- suppressWarnings(assignment_column(pcodMainDataTable, map2, TRUE, 'DEPLOY_LONGITUDE','DEPLOY_LATITUDE', lon.grid='', lat.grid='', cat='NMFS_AREA', closest.pt = FALSE))
+graphics::par(mfrow = c(1, 2), mar=c(0,0,0,0), oma=c(0,0,0,0))
+
+maps::map('world', ylim=c(48, 74), xlim=c(-180, -130.2))
+plot(map2, add=TRUE)
+points(as.numeric(as.character(temp[which(is.na(temp$ZoneID)==TRUE),'DEPLOY_LONGITUDE'])), 
+       as.numeric(as.character(temp[which(is.na(temp$ZoneID)==TRUE),'DEPLOY_LATITUDE'])), col='red', pch=19)
+
+
+maps::map('world', ylim=c(min(temp[,'DEPLOY_LATITUDE'], na.rm=TRUE), max(temp[,'DEPLOY_LATITUDE'], na.rm=TRUE)), xlim=c(min(temp[,'DEPLOY_LONGITUDE'], na.rm=TRUE), max(temp[,'DEPLOY_LONGITUDE'], na.rm=TRUE)))
+plot(map2, add=TRUE)
+pts <- sample(which(is.na(temp$ZoneID)==FALSE), 100)
+points(as.numeric(as.character(temp[pts,'DEPLOY_LONGITUDE'])), 
+       as.numeric(as.character(temp[pts, 'DEPLOY_LATITUDE'])), col='red', pch=19)
+
+```
+The plot to the left shows points that were not assigned to a NMFS area. These points all fall on land or outside the NMFS areas. The plot on the right shows the points which were assigned to a NMFS area.
 
 ## Data analysis
 This section demonstrates how to modify existing variables and create new variables from existing ones. See the vignette for a complete list of data creation functions.
@@ -140,7 +165,15 @@ The following functions creates a list containing information on how alternative
 
 ```{r model-design-file, echo=TRUE}
 create_alternative_choice('pcodMainDataTable', map2, case = "Centroid", contents = 200, haul.trip = "Trip", alt_var = 'centroid',  occasion = 'centroid', 'DEPLOY_LONGITUDE', 'DEPLOY_LATITUDE', lon.grid='', lat.grid='', cat='NMFS_AREA', use.grid = FALSE, hull.polygon =TRUE, remove.na = T, closest.pt = FALSE, griddedDat = NULL, weight.var = NULL, project = 'pcod')
+```
 
+Before running the *expected_catch* function, check whether there is sufficient data to use the desired temporal window for the moving average calculation.
+```{r echo=TRUE}
+temp_obs_table(pcodMainDataTable, map2, x, lon.grid='', lat.grid='', lon.dat='DEPLOY_LONGITUDE', lat.dat='DEPLOY_LATITUDE', cat='NMFS_AREA')
+```
+**!!!->>> ADD MORE TEXT HERE ON OUTPUT ONCE DATA HAS BEEN REDONE <<<<-!!!!**
+
+```{r echo=TRUE}
 create_expectations('pcodMainDataTable', 'pcod', map2, catch = 'OFFICIAL_TOTAL_CATCH', temporal = "daily", temp.var = NULL, calc.method = "standard average", lag.method = "simple", empty.catch = NULL, empty.expectation = NULL, temp.window = 1, temp.lag = 1, dummy.exp = FALSE, defineGroup = NULL)
 
 make_model_design('pcodMainDataTable', catchID = "OFFICIAL_TOTAL_CATCH", alternativeMatrix = "loaded data", 'DEPLOY_LONGITUDE', 'DEPLOY_LATITUDE', indeVarsForModel = "", gridVariablesInclude = "", priceCol = NULL, vesselID = NULL, project = 'pcod')
@@ -152,12 +185,13 @@ At this point, several tables should exist in the fishset_db database, including
 tables_database()
 ```
 
-
 The discrete choice model can be run after the model design folder is created. The function calls the working model design file from the database. Data (catch, choice, distance matrix, expected catch, independent variables, interaction terms, grid varying variables) for the matrix is contained in the model design file. The initial parameters, optimization options, likelihood function, and optimization method need to be defined. Model measures of fit are stored in a table and saved to the fishset_db database. Output from models is added to the table after each run of *discretefish_subroutine*. Use the `mod.name` parameter to distinguish between model runs.
 
 ```{r discrete-choice-model, echo=TRUE}
 #RUN MODEL FUNCTIONS
-results <- discretefish_subroutine("pcod", initparams=c(2.5, -.1), optimOpt=c(1000,1.00e-08,1,1), func=logit_c, methodname="BFGS", mod.name='pcod_logitParamSet1', select.model=FALSE)
-print(results)
+discretefish_subroutine("pcod", initparams=c(2.5, -.1), optimOpt=c(1000,1.00e-08,1,1), func=logit_c, methodname="BFGS", mod.name='pcod_logitParamSet1', select.model=FALSE)
+results <- model_out_view("pcodmodelout20190604")
+str(out)
+errors <- globalcheck_view("pcodldglobalcheck20190604")
 ```
 

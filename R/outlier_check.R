@@ -238,9 +238,9 @@ outlier_plot <- function(dat, x, dat.remove = "none", x.dist = "normal", output 
     data_quants <- stats::quantile(dat_sub[, x], quants)
     # create Q-Q plot
     graphics::plot(fit_quants, data_quants, xlab = "Theoretical Quantiles", ylab = "Sample Quantiles")
-    graphics::title(main = paste("Q-Q plot of", x.dist, "fit against data"))
+    graphics::title(main = paste("Q-Q plot of", x.dist, "fit against data"), cex=.75)
     graphics::abline(0, 1)
-    graphics::mtext(paste0("Plots for ", x, " with ", x.dist, " distribution and data removed based on '", dat.remove, "'"), outer = TRUE, cex = 1, line = -1.5)
+    graphics::mtext(paste0("Plots for ", x, " with ", x.dist, " distribution and \ndata removed based on '", dat.remove, "'"), outer = TRUE, cex = .9, line = -1.95)
     # Close the pdf file
     if (output == "pdf") {
       dev.off()

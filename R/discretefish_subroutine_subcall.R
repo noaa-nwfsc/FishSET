@@ -1,5 +1,5 @@
-# discretefish_subroutine
-#' Subroutine to run chosen discrete choice model
+# discretefish_subroutine_subcall
+#' Subroutine to run chosen discrete choice model without looping
 #'
 #' @param project  Name of project. For obtaining catch, choice, distance, and otherdat data generated from make_model_design function. 
 #' Working modelInputData table (table without date) will be putlled from fishset_db database.
@@ -38,7 +38,7 @@
 
 
 
-discretefish_subroutine <- function(project, initparams, optimOpt, func, methodname, mod.name, 
+discretefish_subroutine_subcall <- function(project, initparams, optimOpt, func, methodname, mod.name, 
                                     select.model=FALSE,  name='discretefish_subroutine') {
   
   #Call in datasets
@@ -119,10 +119,6 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
   BIC <- round(-2 * LL + param * log(obs),3)
   
   PseudoR2 <- round((LL_start - LL)/LL_start,3)
-  cat(AIC)
-  cat(AICc)
-  cat(BIC)
-  cat(PseudoR2)
   if (!exists("mod.out")) {
     mod.out <- data.frame(matrix(NA, nrow = 4, ncol = 1))
     mod.out[, 1] = c(AIC, AICc, BIC, PseudoR2)
@@ -150,7 +146,42 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
     }
     DBI::dbWriteTable(fishset_db, paste0(project, "modelfit"), out.mod, overwrite = T)
   }
-
+  
+  ### Full model output
+    MCM <- list(AIC = AIC, AICc = AICc, BIC = BIC, PseudoR2 = PseudoR2)
+  
+  if (is.null(H) == FALSE) {
+    
+    H1 <- tryCatch({
+      solve(H)
+    }, error = function(e) {
+      return("Error, singular, check 'ldglobalcheck'")      
+    })
+    
+    diag2 <- tryCatch({
+      diag(H1)
+    }, error = function(e) {
+      return("Error, NAs, check 'ldglobalcheck'")
+    })
+    
+    se2 <- tryCatch({
+      sqrt(diag2)
+    }, warning = function(war) {
+      print("Check 'ldglobalcheck'")
+      sqrt(diag2)
+    })
+    
+    outmat2 <- t(q2)
+    seoutmat2 <- t(se2)
+    optoutput <- output
+    tLogit <- t(outmat2/se2)
+    OutLogit <- cbind(t(outmat2), as.matrix(se2), (tLogit))
+  }
+  
+  modelOut <- list(errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
+                   seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table=choice.table)
+####
+ 
     #out.mod <<- out.mod
     ############################################################################# 
  if(select.model==TRUE){
@@ -248,40 +279,7 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
   }
   
     ############################################################################# 
-    MCM <- list(AIC = AIC, AICc = AICc, BIC = BIC, PseudoR2 = PseudoR2)
   
-  if (is.null(H) == FALSE) {
-    
-    H1 <- tryCatch({
-      solve(H)
-    }, error = function(e) {
-      return("Error, singular, check 'ldglobalcheck'")      
-    })
-    
-    diag2 <- tryCatch({
-      diag(H1)
-    }, error = function(e) {
-      return("Error, NAs, check 'ldglobalcheck'")
-    })
-    
-    se2 <- tryCatch({
-      sqrt(diag2)
-    }, warning = function(war) {
-      print("Check 'ldglobalcheck'")
-      sqrt(diag2)
-    })
-    
-    outmat2 <- t(q2)
-    seoutmat2 <- t(se2)
-    optoutput <- output
-    tLogit <- t(outmat2/se2)
-    OutLogit <- cbind(t(outmat2), as.matrix(se2), (tLogit))
-  }
-  
-  modelOut <- list(errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
-                   seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table=choice.table)
-
-   
   single_sql <- paste0(project, "modelout", format(Sys.Date(), format="%Y%m%d"))
   second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
   DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(data modelOut)"))
@@ -290,8 +288,19 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
   
   
   if(!exists('logbody')) { 
-    logging_code()
+    logbody <- list()
+    infoBodyout <- list()
+    functionBodyout <- list()
+    infobody <- list()
+    
+    infobody$rundate <- Sys.Date()
+    infoBodyout$info <- list(infobody)
+    
+    functionBodyout$function_calls <- list()
+    
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
   } 
+  
   discretefish_subroutine_function <- list()
   discretefish_subroutine_function$functionID <- 'discretefish_subroutine'
   discretefish_subroutine_function$args <- c(project, initparams, optimOpt, deparse(substitute(func)), methodname, mod.name)
