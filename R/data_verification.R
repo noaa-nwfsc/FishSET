@@ -82,8 +82,9 @@ data_verification <- function(dat) {
   graphics::par(mar=c(1,1,1,1)) 
   maps::map('world', ylim=c(min(lat, na.rm=TRUE), max(lat, na.rm=TRUE)), 
       xlim=c(min(lon, na.rm=TRUE), max(lon, na.rm=TRUE)))
-  points(as.numeric(as.character(dataset[sample(nrow(dataset), nrow(dataset)/10), which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)[1]])), 
-         as.numeric(as.character(dataset[sample(nrow(dataset), nrow(dataset)/10), which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)[1]])))
+  pts <- sample(nrow(dataset), nrow(dataset)/10)
+  points(as.numeric(as.character(dataset[pts, which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)[1]])), 
+         as.numeric(as.character(dataset[pts, which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)[1]])))
   print('10% of samples plotted. Verify that points occur in correct geographic area.')
   }
   
