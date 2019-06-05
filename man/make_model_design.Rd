@@ -23,7 +23,7 @@ make_model_design(dat, catchID, alternativeMatrix = c("loadedData",
 
 \item{indeVarsForModel}{list List columns names of independent variables to include in the model using `c()`.}
 
-\item{gridVariablesInclude}{list List columns names of variables from gridded dataset to include in the model using `c()`.}
+\item{gridVariablesInclude}{list List data set that varies over a grid to include in the model using `c()`.}
 
 \item{priceCol}{NULL If required, specify which variable contains price data.}
 
