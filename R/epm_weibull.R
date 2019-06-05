@@ -91,7 +91,43 @@ epm_weibull <- function(starts3, dat, otherdat, alts, project, expname, mod.name
         
     }
     
-    ld <- (-do.call("sum", ld1))
+    #############################################
+    gridmu <- (matrix(gridcoef[1:alts,],obsnum,alts,byrow=TRUE)*griddat)
+    gridmu <- sqrt(gridmu^2)
+        
+    expgridcoef <- gridmu * matrix(gamma(1 + (1/k)), alts, obsnum)
+		
+	betas <- matrix(c((matrix(expgridcoef[1:alts,],obsnum,alts,byrow=TRUE)*pricedat), intdat*intcoef),obsnum,(alts*gridnum)+intnum)
+        
+	djztemp <- betas[1:obsnum,rep(1:ncol(betas), each = alts)]*dat[, 3:(dim(dat)[2])]
+	dim(djztemp) <- c(nrow(djztemp), ncol(djztemp)/(alts+1), alts+1)
+
+	prof <- rowSums(djztemp,dim=2)
+	profx <- prof - prof[,1]
+
+	exb <- exp(profx/matrix(sigmac, dim(prof)[1], dim(prof)[2]))
+
+	ldchoice <- (-log(rowSums(exb)))
+
+	#############################################
+
+	yj <- dat[, 1]
+	cj <- dat[, 2]
+	
+    if (signum == 1) {
+		empk <- k
+    } else {
+		empk <- k[cj, ]
+    }
+        
+	ldcatch <- (matrix((log(empk)),obsnum)) + (matrix((-(empk)),obsnum)*log(gridmu[cj, ])) + (matrix((empk - 1),obsnum)*log(yj)) +
+			(((yj) - gridmu[cj, ])^(matrix(empk,obsnum)))
+			
+	ld1 <- ldcatch + ldchoice
+	
+	#############################################
+	
+	ld <- -sum(ld1)
     
     if (is.nan(ld) == TRUE) {
         ld <- .Machine$double.xmax

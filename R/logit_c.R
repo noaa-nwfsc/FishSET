@@ -51,8 +51,21 @@ logit_c <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
 
 	#############################################
     
-    ldglobalcheck <- unlist(as.matrix(ldchoice))
-    ldglobalcheck <- list(model=paste0(project, expname, mod.name), ldglobalcheck=ldglobalcheck)
+	ld <- -sum(ldchoice)
+
+    if (is.nan(ld) == TRUE) {
+        ld <- .Machine$double.xmax
+    }
+	
+    ldsumglobalcheck <- ld
+    #assign('ldsumglobalcheck', value = ldsumglobalcheck, pos = 1)
+    paramsglobalcheck <- starts3
+    #assign('paramsglobalcheck', value = paramsglobalcheck, pos = 1)
+    ldglobalcheck <- unlist(as.matrix(ld1))
+    #assign('ldglobalcheck', value = ldglobalcheck, pos = 1)
+    
+    ldglobalcheck <- list(model=paste0(project, expname, mod.name), ldsumglobalcheck=ldsumglobalcheck,
+                          paramsglobalcheck=paramsglobalcheck, ldglobalcheck=ldglobalcheck)
     #assign("ldglobalcheck", value = ldglobalcheck, pos = 1)
     
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
@@ -69,12 +82,6 @@ logit_c <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
                                       format(Sys.Date(), format="%Y%m%d"), "(data ldglobalcheck)"))
     DBI::dbExecute(fishset_db, second_sql, params = list(data = list(serialize(ldglobalcheck, NULL))))
     DBI::dbDisconnect(fishset_db)
-    
-    ld <- -sum(ldchoice)
-
-    if (is.nan(ld) == TRUE) {
-        ld <- .Machine$double.xmax
-    }
     
     return(ld)
     

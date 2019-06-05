@@ -85,7 +85,41 @@ epm_normal <- function(starts3, dat, otherdat, alts, project, expname, mod.name)
         
     }
     
-    ld <- (-do.call("sum", ld1))
+	#############################################
+
+	betas <- matrix(c((matrix(gridcoef[1:alts,],obsnum,alts,byrow=TRUE)*griddat*pricedat), intdat*intcoef),obsnum,(alts*gridnum)+intnum)
+        
+	djztemp <- betas[1:obsnum,rep(1:ncol(betas), each = alts)]*dat[, 3:(dim(dat)[2])]
+	dim(djztemp) <- c(nrow(djztemp), ncol(djztemp)/(alts+1), alts+1)
+
+	prof <- rowSums(djztemp,dim=2)
+	profx <- prof - prof[,1]
+
+	exb <- exp(profx/matrix(sigmac, dim(prof)[1], dim(prof)[2]))
+
+	ldchoice <- (-log(rowSums(exb)))
+
+	#############################################
+
+	yj <- dat[, 1]
+	cj <- dat[, 2]
+	
+	empcatches <- (matrix(gridcoef[1:alts,],obsnum,alts,byrow=TRUE)*griddat)
+        
+    if (signum == 1) {
+		empsigmaa <- sigmaa
+    } else {
+		empsigmaa <- sigmaa[cj]
+    }
+	
+	ldcatch <- (matrix((-(0.5) * log(2 * pi)),obsnum)) + (-(0.5) * log(matrix(empsigmaa,obsnum)^2)) + 
+			(-(0.5) * (((yj - empcatches[cj, ])/(matrix(empsigmaa,obsnum)))^2))
+			
+	ld1 <- ldcatch + ldchoice
+	
+	#############################################
+	
+	ld <- -sum(ld1)
     
     if (is.nan(ld) == TRUE) {
         ld <- .Machine$double.xmax

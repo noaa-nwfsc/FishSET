@@ -100,7 +100,7 @@ logit_correction <- function(starts3, dat, otherdat, alts) {
 	empcatches <- Xvar%*%gridcoef
 	# crossprod(t(Xvar),(gridcoef))
 		
-	ldcatch <- matrix((-(0.5) * log(2 * pi)),obsnum) + (-(0.5) * log(matrix(sigmaa,obsnum)^2)) + 
+	ldcatch <- (matrix((-(0.5) * log(2 * pi)),obsnum)) + (-(0.5) * log(matrix(sigmaa,obsnum)^2)) + 
 			(-(0.5) * (((yj - empcatches)/(matrix(sigmaa,obsnum)))^2))
 
 	ld1 <- ldcatch + ldchoice
