@@ -7,10 +7,10 @@ logit_correction <- function(starts3, dat, otherdat, alts) {
     #' @param dat Data matrix, see output from shift_sort_x, alternatives with distance by column bind
     #' @param otherdat Other data used in model (as list). Any number of grid-varying variables (e.g. expected catch that varies by location) or 
     #' interaction variables (e.g. vessel characteristics that affect how much disutility is suffered by traveling a greater distance) are allowed. \cr \cr
-    #' However, the user must place these in `otherdat` as list objects named `griddat` and `intdat` respectively. Note the variables #' within `griddat` 
-    #' and `intdat` have no naming restrictions. \cr \cr
-    #' Also note that `griddat` variables are  dimension *(number of observations) x #' (number of alternatives)*, while `intdat` variables are 
-    #' dimension *(number of observations) x 1*, to be interacted with the distance to each #' alternative. \cr \cr
+    #' However, the user must place these in `otherdat` as list objects named `griddat` and `intdat` respectively. Note the variables 
+	#' within `griddat` and `intdat` have no naming restrictions. \cr \cr
+    #' Also note that `griddat` variables are dimension *(number of observations) x (number of alternatives)*, while `intdat` variables are 
+    #' dimension *(number of observations) x 1*, to be interacted with the distance to each alternative. \cr \cr
     #' If there are no other data, the user can set `griddat` as ones with dimension *(number of observations) x (number of alternatives)*
     #' and `intdat` variables as ones with dimension *(number of observations) x 1*.
     #' @param alts Number of alternative choices in model
@@ -57,9 +57,9 @@ logit_correction <- function(starts3, dat, otherdat, alts) {
 	dim(djztemp) <- c(nrow(djztemp), ncol(djztemp)/(alts+1), alts+1)
 
 	prof <- rowSums(djztemp,dim=2)
-	profx = prof - prof[,1]
+	profx <- prof - prof[,1]
 
-	exb = exp(profx/matrix(sigmac, dim(prof)[1], dim(prof)[2]))
+	exb <- exp(profx/matrix(sigmac, dim(prof)[1], dim(prof)[2]))
 
 	ldchoice <- (-log(rowSums(exb)))
 
@@ -104,16 +104,20 @@ logit_correction <- function(starts3, dat, otherdat, alts) {
 			(-(0.5) * (((yj - empcatches)/(matrix(sigmaa,obsnum)))^2))
 
 	ld1 <- ldcatch + ldchoice
+	
+	#############################################
 
+    # ldsumglobalcheck <<- ld
+    # paramsglobalcheck <<- starts3
+    # ldglobalcheck <<- unlist(as.matrix(ld1))
+    ldglobalcheck <- unlist(as.matrix(ld1))
+    assign("ldglobalcheck", value = ldglobalcheck, pos = 1)
+	
 	ld <- -sum(ld1)
     
     if (is.nan(ld) == TRUE) {
         ld <- .Machine$double.xmax
     }
-    
-    # ldsumglobalcheck <<- ld
-    # paramsglobalcheck <<- starts3
-    # ldglobalcheck <<- unlist(as.matrix(ld1))
     
     return(ld)
     

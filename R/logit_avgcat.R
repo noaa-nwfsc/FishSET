@@ -27,28 +27,34 @@ logit_avgcat <- function(starts3, dat, otherdat, alts) {
     intcoef <- as.matrix(starts3[((length(griddat) * (alts - 1)) + 1):(((length(griddat) * 
         (alts - 1))) + length(intdat)), ])
     
-    for (i in 1:dim(dat)[1]) {
-        
-        betas1 <- c(matrix(as.matrix(gridcoef), (alts - 1), length(griddat)) %*% 
-            (as.matrix(do.call(rbind, lapply(griddat, `[`, i, )))), t(as.matrix(do.call(rbind, 
-            lapply(intdat, `[`, i, )))) %*% as.matrix(intcoef))
-        betas <- t(as.matrix(betas1))
-        
-        djz <- t(dat[i, (alts + 3):dim(dat)[2]])
-        
-        dj <- matrix(djz, nrow = alts, ncol = dim(betas)[2])
-        
-        xb <- dj %*% t(betas)
-        xb <- xb - xb[1]
-        exb <- exp(xb)
-        ld1[[i]] <- (-log(t(exb) %*% (rep(1, alts))))
-        
-    }
-    
-    ldglobalcheck <- unlist(as.matrix(ld1))
+   	#############################################
+	
+	obsnum <- dim(griddat)[1]
+	gridnum <- otherdat$gridnum
+	intnum <- otherdat$intnum
+	
+	betas <- matrix(c((matrix(gridcoef[1:(alts-1),],obsnum,(alts-1),byrow=TRUE)*griddat), intdat*intcoef),obsnum,((alts-1)*gridnum)+intnum)
+
+	djztemp <- betas[1:obsnum,rep(1:ncol(betas), each = (alts-1))]*dat[, (alts+3):(dim(dat)[2])]
+	dim(djztemp) <- c(nrow(djztemp), ncol(djztemp)/((alts-1)+1), (alts-1)+1)
+
+	prof <- rowSums(djztemp,dim=2)
+	profx <- prof - prof[,1]
+
+	exb <- exp(profx/matrix(sigmac, dim(prof)[1], dim(prof)[2]))
+
+	ldchoice <- (-log(rowSums(exb)))
+
+	#############################################
+	
+    ldglobalcheck <- unlist(as.matrix(ldchoice))
     assign("ldglobalcheck", value = ldglobalcheck, pos = 1)
+	
+	ld <- -sum(ldchoice)
     
-    ld <- (-do.call("sum", ld1))
+    if (is.nan(ld) == TRUE) {
+        ld <- .Machine$double.xmax
+    }
     
     return(ld)
     
