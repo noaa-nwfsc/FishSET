@@ -189,9 +189,13 @@ The discrete choice model can be run after the model design folder is created. T
 
 ```{r discrete-choice-model, echo=TRUE}
 #RUN MODEL FUNCTIONS
-discretefish_subroutine("pcod", initparams=c(2.5, -.1), optimOpt=c(1000,1.00e-08,1,1), func=logit_c, methodname="BFGS", mod.name='pcod_logitParamSet1', select.model=FALSE)
+#Average catch example
+discretefish_subroutine("pcod", initparams=c(2.5, -.1, 1, -.2, 1, 1, 1, .1), optimOpt=c(1000,1.00e-08,1,1), func=logit_avgcat, methodname="BFGS", mod.name='pcod_avg_cat', select.model=FALSE)
+#conditional logit example
+#discretefish_subroutine("pcod", initparams=c(2.5, -.1), optimOpt=c(1000,1.00e-08,1,1), func=logit_c, methodname="BFGS", mod.name='pcod_logitParamSet1', select.model=FALSE)
 results <- model_out_view("pcodmodelout20190604")
-str(out)
+print(str(results))
+print(results[[1]]$MCM)
 errors <- globalcheck_view("pcodldglobalcheck20190604")
 ```
 

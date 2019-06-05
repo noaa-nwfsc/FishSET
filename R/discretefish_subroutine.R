@@ -71,7 +71,7 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
 
   ### Data needs will vary by the logit function ###
   if(grepl('epm', find_original_name(fr))){
-    otherdat <- list(griddat=list(griddatfin=x[['bCHeader']][['gridVariablesInclude']]), intdat=list(x[['bCHeader']][['indeVarsForModel']]), pricedat=list(x[['epmDefaultPrice']]))
+    otherdat <- list(griddat=list(griddatfin=x[['bCHeader']][['gridVariablesInclude']]), intdat=list(x[['bCHeader']][['indeVarsForModel']]), pricedat=x[['epmDefaultPrice']])
     nexpcatch <- 1
     expname <-  find_original_name(fr)
   }  else if(find_original_name(fr)=='logic_avgcat'){
