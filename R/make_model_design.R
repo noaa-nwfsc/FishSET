@@ -71,6 +71,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   ExpectedCatch <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", project, "ExpectedCatch LIMIT 1"))$data[[1]])
   }
   if (!exists("ExpectedCatch")) {
+    ExpectedCatch=''
     warning("Expected Catch Matrix does not exist. Please run the create_expectations function if expected catch will be included in the model.")
   }  
   
