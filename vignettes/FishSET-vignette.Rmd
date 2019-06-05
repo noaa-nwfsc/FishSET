@@ -141,6 +141,11 @@ Data are saved in the SQLite database, fishset_db.
      tables_database() View tables in the fishset_db database.
      table_fields(x)   View fields in table x.
      table_view(x)     View table x from the fishset_db database.
+     
+ Model output files can be view in the fishset_db database using:
+     
+     globalcheck_view(table)  View error output generated from discrete choice models
+     model_out_view(table)    View output from discrete choice models for models that converged
  
 
 ### Data management functions
@@ -240,6 +245,8 @@ For modeling, FishSET requires creating a model design file and then selecting t
 Output from each model run is saved as two tables. A model comparison metric table saves AIC, AICc, BIC, PseudoR2. A model output table saves the full output from the model run including parameter estimates. 
 
 (\emph{This section will be changed})
+The create_expectations functions has three default cases that are generated along with a user-defined case. The near-term case uses uses the previous two days catch, the medium-term cases uses the previous seven days catch, and the longer-term uses the prevous seven days catch from one year prior. A user-defined case is also generated. Prior to running the create_expectations function, check that sufficient data exists for the desired moving window size using the temp_obs_table function. Shorter moving windows and temporal lags may result in numerous missing expected catch values if temporal data is sparse. All parameters defined in the create_expectations function call outside of window size and temporal lag size are applied to the three default cases and the user-defined case. 
+
 Often it is desirable to compare output from different likelihood functions and/or alternate iterations of the data. In these cases, it is advised that users first run all desired likelihood functions before creating a new model design file. Descriptive model names are essential for identifying the different choices in the model output. More details are provided in the `Run Models` section below.
 
 ### Create model design functions
@@ -251,8 +258,10 @@ Often it is desirable to compare output from different likelihood functions and/
   The following functions should be called in the order listed. 
   
     create_alternative_choice Alternative choice matrix. Calls assignment_column and find_centroid functions.
+    temp_obs_table            View number of observations by year, month, and zone.
     create_expectations       Expectation of catch for alternative choices.
     make_model_design         Model design file that contains data to be used in the model runs.
+
 
 ### Run model functions  
   The following functions are called indirectly
@@ -279,10 +288,14 @@ Often it is desirable to compare output from different likelihood functions and/
   Viewing 
   
     select_model Open an interactive table displaying model fit and model comparison measures.
+    globalcheck_view(table)  View error output generated from discrete choice models
+    model_out_view(table)    View output from discrete choice models for models that converged
+    
 
 ## Model design file details
 
 ## Model run details
+The discretefish_subroutine function runs the selected model based on the selected data, parameters, and likelihood function. The function will run loop through each of the expected case tables. Three output tables are generated, a table containing information for assessing errors and why the model did not converge, a table containing model fit and model comparison mesaures, and a table containing the model output for models that converged. Each table contains output from each expected catch table and are labeled by the expected catch case (short_exp, med_exp, long_exp, user_defined_exp) and an identifier for the model.
 
 ### Data
 User supplies all necessary data via the model design file. This data includes `catch`, `choice`, and `distance` data, plus any other data `otherdat` they need to run their chosen likelihood. The data `catch` and `choice` should be data frames with dimensions *(number of observations) x 1*. The data `otherdat` can include predicted catch, interactions, and gridded data.
@@ -322,9 +335,9 @@ The subroutine function takes in 7 inputs and outputs model results in a list th
 	 MCM            Model comparison metrics (e.g. AIC, BIC)
 	 H1             The inverse hessian 
 
-When calling the `discretefish_subroutine` function users must provide a descriptive name for the model run `func.name`. As output from each model run is saved, this parameter is used to differentiate between model runs and should be descriptive enough for users to identify between models runs. If true, `select.model` parameter opens an interactive table that allows users to select top model runs or delete model runs that do not need to be saved. More details are provided below. The `project` parameter is for naming the model output table in the database and distinguishing it from other projects. The `name` parameter is used in the logging function to reproduce work flow. It is the desired name of the output.
+When calling the `discretefish_subroutine` function users must provide a descriptive name for the model run `mod.name`. As output from each model run is saved, this parameter is used to differentiate between model runs and should be descriptive enough for users to identify between models runs. If true, `select.model` parameter opens an interactive table that allows users to select top model runs or delete model runs that do not need to be saved. More details are provided below. The `project` parameter is for naming the model output table in the database and distinguishing it from other projects. The `name` parameter is used in the logging function to reproduce work flow. It is the desired name of the output.
 
-`results <- discretefish_subroutine(modelInputData, optimOpt, func, methodname, func.name, select.model=FALSE, project, name='results')`
+`discretefish_subroutine(project, initparams, optimOpt, func, methodname, mod.name, select.model=FALSE, name='results')`
 
 ### Scenarios 
 

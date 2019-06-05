@@ -4,12 +4,12 @@
 \alias{create_expectations}
 \title{Expected catch}
 \usage{
-create_expectations(dat, project, gridfile, catch, defineGroup = NULL,
+create_expectations(dat, project, gridfile, catch, defineGroup,
   temp.var = NULL, temporal = c("daily", "sequential"),
   calc.method = c("standardAverage", "simpleLag", "weights"),
   lag.method = c("simple", "grouped"), empty.catch = c(NULL, 0,
   "allCatch", "groupedCatch"), empty.expectation = c(NULL, 1e-04, 0),
-  temp.window = 1, temp.lag = 1, dummy.exp = FALSE)
+  temp.window = 7, temp.lag = 0, temp.year = 0, dummy.exp = FALSE)
 }
 \arguments{
 \item{dat}{Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.}
@@ -34,9 +34,11 @@ create_expectations(dat, project, gridfile, catch, defineGroup = NULL,
 
 \item{empty.expectation}{Do not replace (NULL) or replace with 0.0001 or 0}
 
-\item{temp.window}{Temporal window size. Defaults to 1}
+\item{temp.window}{Temporal window size. In days. Defaults to 14 (14 days)}
 
 \item{temp.lag}{Temporal lag time in days.}
+
+\item{temp.year}{IF expected catch should be based on catch from previous year(s), set temp.year to the number of years to go back.}
 
 \item{dummy.exp}{T/F. Defaults to False. If false, no dummy variable is outputted. If true, output dummy variable for originally missing value.}
 }
@@ -50,12 +52,19 @@ Expected catch
 }
 \details{
 Used during model creation to create an expectation of catch for alternative choices that are added to the model design file.
+IMPORTANT: Use the temp_obs_table function before using this function to assess the availability of data for desired temporal moving window size. Sparse data is not suited for shorter moving window sizes. 
 The expectations created have several options and are created based on the group and time averaging choices of the user.
 The spatial alternatives are built in to the function and come from the structure Alt. 
 The primary choices are whether to treat data as a fleet or to group the data (defineGroup) and the time frame of catch data for calculating expected catch.
 Values must be provided for `defineGroup` and `temporal` parameters. If data should be treated as a fleet, set defineGroup to NULL. If the entire record of catch data is to be used, set temporal to NULL.
 Empty catch values are considered to be times of no fishing activity whereas values of 0 in the catch variable 
 are considered fishing activity with no catch and so those are included in the averaging and dummy creation as a point in time when fishing occurred.
+Three default expected catch cases will be run:
+\itemize{
+\item{Near-term: Movng window size of two days. In this case, vessels are grouped based on defineGroup parameter.}
+\item{Medium-term: Moving window size of seven days. In this case, there is no grouping and catch for entire fleet is used.}
+\item{Long-term: Moving window size of seven days from the previous year. In this case, there is no grouping and catch for entire fleet is used.}
+}
 }
 \examples{
 \dontrun{

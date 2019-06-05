@@ -1,4 +1,4 @@
-logit_avgcat <- function(starts3, dat, otherdat, alts) {
+logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
     #' logit_avgcat
     #'
     #' Average catch conditional logit procedure
@@ -15,6 +15,9 @@ logit_avgcat <- function(starts3, dat, otherdat, alts) {
     #' If there are no other data, the user can set `griddat` as ones with dimension *(number of observations) x 
     #' (number of alternatives)* and `intdat` variables as ones with dimension *(number of observations) x 1*.
     #' @param alts Number of alternative choices in model
+    #' @param project Name of project
+    #' @param expname Expected catch table
+    #' @param mod.name Name of model run for model result output table
     #' @return ld - negative log likelihood
     #' @export
 
@@ -48,10 +51,27 @@ logit_avgcat <- function(starts3, dat, otherdat, alts) {
 	#############################################
 	
     ldglobalcheck <- unlist(as.matrix(ldchoice))
-    assign("ldglobalcheck", value = ldglobalcheck, pos = 1)
-	
-	ld <- -sum(ldchoice)
+    #assign("ldglobalcheck", value = ldglobalcheck, pos = 1)
+    ldglobalcheck <- list(model=paste0(project, expname, mod.name), ldglobalcheck=ldglobalcheck)
+    #assign("ldglobalcheck", value = ldglobalcheck, pos = 1)
     
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+    single_sql <- paste0(project, "ldglobalcheck", format(Sys.Date(), format="%Y%m%d"))
+    second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
+    
+    if(table_exists(single_sql)==TRUE){
+      x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
+      table_remove(single_sql)
+      ldglobalcheck <- c(x, ldglobalcheck)
+    }
+    
+    DBI::dbExecute(fishset_db, paste0("CREATE TABLE IF NOT EXISTS ", project, "ldglobalcheck", 
+                                      format(Sys.Date(), format="%Y%m%d"), "(data ldglobalcheck)"))
+    DBI::dbExecute(fishset_db, second_sql, params = list(data = list(serialize(ldglobalcheck, NULL))))
+    DBI::dbDisconnect(fishset_db)
+
+    ld <- -sum(ldchoice)
+	
     if (is.nan(ld) == TRUE) {
         ld <- .Machine$double.xmax
     }

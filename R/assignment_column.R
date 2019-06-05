@@ -21,11 +21,9 @@
 #' @return Main data frame with new assignment column labeled zoneID.
 #' @export 
 
-# read.csv('Data/adfgstat6_map.csv', header = F) require(rjson) 
-
 
 assignment_column <- function(dat, gridfile, hull.polygon = c(TRUE, FALSE), lon.grid, lat.grid, 
-                              lon.dat, lat.dat, cat,  closest.pt = c(TRUE, FALSE), epsg=NULL) {
+                              lon.dat, lat.dat, cat, closest.pt = c(TRUE, FALSE), epsg=NULL) {
   
   #Call in data sets
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")

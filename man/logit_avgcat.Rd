@@ -4,7 +4,7 @@
 \alias{logit_avgcat}
 \title{logit_avgcat}
 \usage{
-logit_avgcat(starts3, dat, otherdat, alts)
+logit_avgcat(starts3, dat, otherdat, alts, project, expname, mod.name)
 }
 \arguments{
 \item{starts3}{Starting values with dimensions equal to (number of alternatives - 1)*(number of grid-varying variables) + (number of interactions).
@@ -22,6 +22,12 @@ If there are no other data, the user can set `griddat` as ones with dimension *(
 (number of alternatives)* and `intdat` variables as ones with dimension *(number of observations) x 1*.}
 
 \item{alts}{Number of alternative choices in model}
+
+\item{project}{Name of project}
+
+\item{expname}{Expected catch table}
+
+\item{mod.name}{Name of model run for model result output table}
 }
 \value{
 ld - negative log likelihood

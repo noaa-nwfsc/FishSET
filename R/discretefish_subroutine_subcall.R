@@ -1,5 +1,5 @@
-# discretefish_subroutine
-#' Subroutine to run chosen discrete choice model
+# discretefish_subroutine_subcall
+#' Subroutine to run chosen discrete choice model without looping
 #'
 #' @param project  Name of project. For obtaining catch, choice, distance, and otherdat data generated from make_model_design function. 
 #' Working modelInputData table (table without date) will be putlled from fishset_db database.
@@ -38,7 +38,7 @@
 
 
 
-discretefish_subroutine <- function(project, initparams, optimOpt, func, methodname, mod.name, 
+discretefish_subroutine_subcall <- function(project, initparams, optimOpt, func, methodname, mod.name, 
                                     select.model=FALSE,  name='discretefish_subroutine') {
   
   #Call in datasets
@@ -54,14 +54,14 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
   choice.table <- as.matrix(choice, as.numeric(factor(choice)))
   choice <- as.matrix(as.numeric(factor(choice)))
   ab <- max(choice) + 1  #no interactions in create_logit_input - interact distances in likelihood function instead
-  
+
   errorExplain <- NULL
   OutLogit <- NULL
   optoutput <- NULL
   seoutmat2 <- NULL
   MCM <- NULL
   H1 <- NULL
-  fr <- func  #e.g. logit_c
+  fr <- func  #e.g. clogit
   
   dataCompile <- create_logit_input(choice)
   
@@ -69,22 +69,12 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
   
   starts2 <- initparams
   
-  nexpcatch <- length(names(x[['gridVaryingVariables']]))-2
-
-  #Begin loop  
-  for(i in 1:nexpcatch){
-    expname <- paste(names(x[['gridVaryingVariables']])[i],'_')
-    otherdat <- list(griddat=list(griddatfin=x[['gridVaryingVariables']][[names(x[['gridVaryingVariables']])[i]]]),intdat=list(x[['bCHeader']][[-1]]))
-    
-
-  
-  LL_start <- fr(starts2, d, otherdat, max(choice), project, expname, mod.name)
+  LL_start <- fr(starts2, d, otherdat, max(choice))
   
   if (is.null(LL_start) || is.nan(LL_start) || is.infinite(LL_start)) {
     # haven't checked what happens when error yet
     errorExplain <- "Initial function results bad (Nan, Inf, or undefined), check 'ldglobalcheck'"
-    cat("Initial function results bad (Nan, Inf, or undefined), check 'ldglobalcheck'")
-    next
+    return("Initial function results bad (Nan, Inf, or undefined), check 'ldglobalcheck'")
   }
   
   ############################################################################# 
@@ -98,7 +88,7 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
   res <- tryCatch({
     
     stats::optim(starts2, fr, dat = d, otherdat = otherdat, alts = max(choice), method = methodname, 
-                 control = controlin, hessian = TRUE, project=project, expname=expname, mod.name=mod.name)
+			control = controlin, hessian = TRUE)
     
   }, error = function(e) {
     
@@ -108,9 +98,9 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
   
   if (res[[1]][1] == "Optimization error, check 'ldglobalcheck'") {
     
-    print(list(name=names(x[['gridVaryingVariables']])[i], errorExplain = res, OutLogit = OutLogit, optoutput = optoutput, 
+    return(list(errorExplain = res, OutLogit = OutLogit, optoutput = optoutput, 
                 seoutmat2 = seoutmat2, MCM = MCM, H1 = H1))
-    next
+    
   }
   
   q2 <- res[["par"]]
@@ -133,10 +123,10 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
     mod.out <- data.frame(matrix(NA, nrow = 4, ncol = 1))
     mod.out[, 1] = c(AIC, AICc, BIC, PseudoR2)
     rownames(mod.out) = c("AIC", "AICc", "BIC", "PseudoR2")
-    colnames(mod.out) = paste0(names(x[['gridVaryingVariables']])[i],mod.name)
+    colnames(mod.out) = mod.name
   } else {
     temp <- data.frame(c(AIC, AICc, BIC, PseudoR2))
-    colnames(temp) = paste0(names(x[['gridVaryingVariables']])[i],mod.name)
+    colnames(temp) = mod.name
   }
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
@@ -146,85 +136,57 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
   } else {
     out.mod <- DBI::dbReadTable(fishset_db, paste0(project, "modelfit"))
     if(exists('temp')){
-      out.mod <- cbind(out.mod, temp)
+    out.mod <- cbind(out.mod, temp)
     } else {
-      out.mod <- cbind(out.mod, mod.out)
+    out.mod <- cbind(out.mod, mod.out)
     }
     
     if (any(duplicated(colnames(out.mod))) == T) {
-      warning("Duplicate columns names. Please define a unique column name for the model output.")
+      stop("Duplicate columns names. Please define a unique column name for the model output,")
     }
     DBI::dbWriteTable(fishset_db, paste0(project, "modelfit"), out.mod, overwrite = T)
   }
   
   ### Full model output
-  MCM <- list(AIC = AIC, AICc = AICc, BIC = BIC, PseudoR2 = PseudoR2)
+    MCM <- list(AIC = AIC, AICc = AICc, BIC = BIC, PseudoR2 = PseudoR2)
   
   if (is.null(H) == FALSE) {
     
-    Htrial <- function(x){
-      Htrial = tryCatch({
+    H1 <- tryCatch({
       solve(H)
     }, error = function(e) {
       return("Error, singular, check 'ldglobalcheck'")      
     })
-      Htrial
-    }    
-    print(Htrial(H))
-    H1 <- Htrial(H)
-
-
-    diagtrial <- function(x){
-        diagtrial = tryCatch({
-        diag(H1)
-        }, error = function(e) {
-          return("Error, NAs, check 'ldglobalcheck'")
-          })
-        diagtrial
-      }
-    if(H1[1]!="Error, singular, check 'ldglobalcheck'"){
-      diag2 <- diagtrial(H1)
-      print(diag2)
-      }
     
+    diag2 <- tryCatch({
+      diag(H1)
+    }, error = function(e) {
+      return("Error, NAs, check 'ldglobalcheck'")
+    })
     
-    if(H1[1]!="Error, singular, check 'ldglobalcheck'"){
-      if(diag2[1]!="Error, NAs, check 'ldglobalcheck'"){
     se2 <- tryCatch({
       sqrt(diag2)
     }, warning = function(war) {
       print("Check 'ldglobalcheck'")
       sqrt(diag2)
     })
-    }}
     
-    if(H1[1]!="Error, singular, check 'ldglobalcheck'"){
     outmat2 <- t(q2)
     seoutmat2 <- t(se2)
     optoutput <- output
     tLogit <- t(outmat2/se2)
     OutLogit <- cbind(t(outmat2), as.matrix(se2), (tLogit))
-    }
   }
   
-  if(H1[1]!="Error, singular, check 'ldglobalcheck'\n") next
-  
-  if(exists('modelOut')) {
-     modelOut[[length(modelOut)+1]] <- list(name=names(x[['gridVaryingVariables']])[i],errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
-                     seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table=choice.table)
-    } else {
-      modelOut <-  list()
-      modelOut[[length(modelOut)+1]] <- list(name=names(x[['gridVaryingVariables']])[i],errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
+  modelOut <- list(errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
                    seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table=choice.table)
-    }
-  }
-  #### End looping through expectated catch cases
-  
-  #out.mod <<- out.mod
-  ############################################################################# 
-  if(select.model==TRUE){
-    #  rownames(out.mod)=c("AIC", "AICc", "BIC", "PseudoR2")
-    #   print(DT::datatable(t(round(out.mod, 5)), filter='top'))
+####
+ 
+    #out.mod <<- out.mod
+    ############################################################################# 
+ if(select.model==TRUE){
+ #  rownames(out.mod)=c("AIC", "AICc", "BIC", "PseudoR2")
+ #   print(DT::datatable(t(round(out.mod, 5)), filter='top'))
     library(shiny)
     shiny::runApp(list(
       ui = shiny::basicPage(
@@ -311,12 +273,12 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
         })
         
         
-  }
+ }
     ))
     
-}
+  }
   
-  ############################################################################# 
+    ############################################################################# 
   
   single_sql <- paste0(project, "modelout", format(Sys.Date(), format="%Y%m%d"))
   second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
@@ -350,7 +312,7 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
   assign("functionBodyout", value = functionBodyout, pos = 1)
   ############################################################################# 
   
- # return(list(errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
- #             seoutmat2 = seoutmat2, MCM = MCM, H1 = H1))
+  return(list(errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
+              seoutmat2 = seoutmat2, MCM = MCM, H1 = H1))
   
-  }
+}

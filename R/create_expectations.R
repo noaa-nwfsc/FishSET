@@ -9,8 +9,9 @@
 #' @param lag.method  Use regression over entire group (simple) or for grouped time periods (grouped)
 #' @param empty.catch Replace empty catch with NA, 0, mean of all catch (allCatch), or mean of grouped catch(groupCatch) 
 #' @param empty.expectation Do not replace (NULL) or replace with 0.0001 or 0
-#' @param temp.window Temporal window size. Defaults to 1
+#' @param temp.window Temporal window size. In days. Defaults to 14 (14 days)
 #' @param temp.lag Temporal lag time in days.
+#' @param temp.year IF expected catch should be based on catch from previous year(s), set temp.year to the number of years to go back.
 #' @param dummy.exp T/F. Defaults to False. If false, no dummy variable is outputted. If true, output dummy variable for originally missing value.
 #' @param project Name of project. Used to pull working alternative choice matrix from fishset_db database.
 #' @param defineGroup If empty, data is treated as a fleet
@@ -22,12 +23,19 @@
 #' @export create_expectations
 #' @return newGridVar dataframe. Saved to the global environment. Dataframe called in make_model_design
 #' @details Used during model creation to create an expectation of catch for alternative choices that are added to the model design file.
+#' IMPORTANT: Use the temp_obs_table function before using this function to assess the availability of data for desired temporal moving window size. Sparse data is not suited for shorter moving window sizes. 
 #' The expectations created have several options and are created based on the group and time averaging choices of the user.
 #' The spatial alternatives are built in to the function and come from the structure Alt. 
 #' The primary choices are whether to treat data as a fleet or to group the data (defineGroup) and the time frame of catch data for calculating expected catch.
 #' Values must be provided for `defineGroup` and `temporal` parameters. If data should be treated as a fleet, set defineGroup to NULL. If the entire record of catch data is to be used, set temporal to NULL.
 #' Empty catch values are considered to be times of no fishing activity whereas values of 0 in the catch variable 
 #' are considered fishing activity with no catch and so those are included in the averaging and dummy creation as a point in time when fishing occurred.
+#' Three default expected catch cases will be run:
+#' \itemize{
+#' \item{Near-term: Movng window size of two days. In this case, vessels are grouped based on defineGroup parameter.}
+#' \item{Medium-term: Moving window size of seven days. In this case, there is no grouping and catch for entire fleet is used.}
+#' \item{Long-term: Moving window size of seven days from the previous year. In this case, there is no grouping and catch for entire fleet is used.}
+#' }
 
 #' @return newGridVar,  newDumV
 #' @examples 
@@ -40,10 +48,10 @@
 #' }
 
 
-create_expectations <- function(dat, project, gridfile, catch, defineGroup = NULL, temp.var=NULL, temporal = c("daily", "sequential"), 
+create_expectations <- function(dat, project, gridfile, catch, defineGroup, temp.var=NULL, temporal = c("daily", "sequential"), 
                                 calc.method = c("standardAverage", "simpleLag", "weights"), lag.method = c("simple", "grouped"),
                                 empty.catch = c(NULL, 0, "allCatch", "groupedCatch"), empty.expectation = c(NULL, 1e-04, 0),  
-                                temp.window = 1, temp.lag = 1, dummy.exp = FALSE) {
+                                temp.window = 7, temp.lag = 0, temp.year=0, dummy.exp = FALSE) {
   
   #Call in datasets
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
@@ -81,7 +89,20 @@ create_expectations <- function(dat, project, gridfile, catch, defineGroup = NUL
     }
   }
   
-  
+ ##1. Option 1. Short-term, individual grouping t - 2 (window)
+short_exp <- short_expectations(dat=dat, project=project, gridfile=gridfile, catch=catch, defineGroup=defineGroup, temp.var=temp.var, 
+                                temporal=temporal, calc.method=calc.method, lag.method=lag.method, empty.catch=empty.catch, 
+                                empty.expectation=empty.expectation, dummy.exp = FALSE)
+##2. Option 2 medium: group by fleet (all vessels in dataset) t -7
+med_exp <- medium_expectations(dat=dat, project=project, gridfile=gridfile, catch=catch, defineGroup=defineGroup, temp.var=temp.var, 
+                                temporal=temporal, calc.method=calc.method, lag.method=lag.method, empty.catch=empty.catch, 
+                                empty.expectation=empty.expectation, dummy.exp = FALSE)
+##3. option 3  last year, group by fleet t-7
+long_exp <- long_expectations(dat=dat, project=project, gridfile=gridfile, catch=catch, defineGroup=defineGroup, temp.var=temp.var, 
+                                temporal=temporal, calc.method=calc.method, lag.method=lag.method, empty.catch=empty.catch, 
+                                empty.expectation=empty.expectation, dummy.exp = FALSE)
+
+ 
   # check whether defining a group or using all fleet averaging 
   if (is.null(defineGroup)) {
     # just use an id=ones to get all info as one group
@@ -146,40 +167,72 @@ create_expectations <- function(dat, project, gridfile, catch, defineGroup = NUL
     
     timeRange <- temp.window
     lagTime <- temp.lag
-    yearRange <- 1  #Not used?  get(jhSpinnerYear,'Value')
+    yearRange <- temp.year  
     
-    # NOTE, currently this is replaced midstream. 
-    #If we want to have different ways of handling emptys versus edges of catch then would change that here 
-    if (empty.catch == "NULL") {
-      replaceValue <- NA
-    } else if (empty.catch == "0") {
-      replaceValue <- 0
-    } else if (empty.catch == "allCatch") {
-      replaceValue <- mean(catchData, na.rm = T)
-    } else if (empty.catch == "groupedCatch") {
-      replaceValue <- aggregate(catchData, list(C), mean, na.rm = T)
-    }
-    
-    # Use R's rollapply and lag function to calculate moving average 
+       # Use R's rollapply and lag function to calculate moving average 
     # Empty values are replaced as defined above
     df <- as.data.frame(cbind(numData, spData = as.character(spData), catchData = as.numeric(catchData), 
                               tiData = as.Date(tiData)))
     df$tiData <- as.Date(tiData)
     df$catchData <- as.numeric(df$catchData)
-    # rolledAvg <-
+    
+    -
     df2 <- suppressWarnings(stats::aggregate(df, by = list(numData = numData, spData = spData, tiData = tiData), 
                      mean, na.rm = T))[, c(1, 2, 3, 6)]
     df2 <- df2[order(df2$numData, df2$spData, df2$tiData), ]
     df2$ID <- paste(df2$numData, df2$spData, sep = "")
-    df2$lag.value <- c(rep(NA, lagTime), df2$catchData[-c(1:lagTime)])
-    df2$lag.value[which(!duplicated(df2$ID))] <- NA
-    x <- lagTime
-    for (i in 1:(lagTime - 1)) {
-      df2$lag.value[(which(!duplicated(df2$ID)) + lagTime - i)] <- NA
-    }
-    df2$ra <- zoo::rollapply(df2$lag.value, timeRange, mean, partial = T, fill = replaceValue)
     
-    # meanCatchSimple <- left_join(df, rolledAvg) reshape catch data to wide format
+    #Lag time
+    if(length(which(duplicated(df2$ID)==TRUE))==0) {
+      lagTime <- 0
+      warning('Selected groups and choice data results in only single observations. Cannot use lag time for choosen group and choice data.
+              Setting lag time to 0.')
+    } else if((length(which(duplicated(df2$ID)==TRUE))/length(df2$ID))<.25) {
+      lagTime <- 0
+      warning(paste0('Selected groups and choice data results in ', length(which(duplicated(df2$ID)==FALSE))/length(df2$ID)*100,
+                     '% of observations with only single observations. Cannot use lag time for choosen group and choice data. Setting lag time to 0.'))
+    }
+    
+    if(lagTime>0){
+      df2$lag.value <- c(rep(NA, lagTime), df2$catchData[-c(1:lagTime)])
+      df2$lag.value[which(!duplicated(df2$ID))] <- NA
+    } else {
+      df2$lag.value <- df2$catchData
+    }
+    if(lagTime>2){
+      for (i in 1:(lagTime - 1)) {
+        df2$lag.value[(which(!duplicated(df2$ID)) + lagTime - i)] <- NA
+      }
+    }
+    
+    #Moving window averaging
+
+    myfunc <- function(x,y){mean(df2[df2$tiData >= x-yearRange-timeRange & df2$tiData <= x-yearRange & df2$ID==y,'lag.value'], na.rm=TRUE)}
+    df2$ra <- mapply(myfunc, df2$tiData, df2$ID)
+    
+ # #Replace empty values
+    if (is.null(empty.catch)) {
+      myfunc <- function(x){mean(df2[lubridate::year(df2$tiData) >= format(as.Date(x), format = "%Y") & 
+                                       lubridate::year(df2$tiData) <  lubridate::year(x)+1, 'lag.value'], na.rm=TRUE)}
+      df2$ra[which(is.na(df2$ra)==TRUE)] <- unlist(lapply(df2$tiData[which(is.na(df2$ra)==TRUE)], myfunc))
+      #replaceValue <- NA
+    } else if (empty.catch == "0") {
+      df2$ra[which(is.na(df2$ra)==TRUE)] <- 0
+    } else if (empty.catch == "allCatch") {
+      myfunc <- function(x){mean(df2[lubridate::year(df2$tiData) >= format(as.Date(x), format = "%Y") & 
+                                       lubridate::year(df2$tiData) <  lubridate::year(x)+1, 'lag.value'], na.rm=TRUE)}
+      df2$ra[which(is.na(df2$ra)==TRUE)] <- unlist(lapply(df2$tiData[which(is.na(df2$ra)==TRUE)], myfunc))
+      #replaceValue <- mean(catchData, na.rm = T)
+    } else if (empty.catch == "groupedCatch") {
+      myfunc <- function(x, y){mean(df2[lubridate::year(df2$tiData) >= format(as.Date(x), format = "%Y") & 
+                                       lubridate::year(df2$tiData) <  lubridate::year(x)+1 & df2$ID==y, 'lag.value'], na.rm=TRUE)}
+      df2$ra[which(is.na(df2$ra)==TRUE)] <- mapply(myfunc, df2$tiData[which(is.na(df2$ra)==TRUE)], df2$ID[which(is.na(df2$ra)==TRUE)])
+        # replaceValue <- aggregate(catchData, list(C), mean, na.rm = T)
+    }
+    
+    #df2$ra <- zoo::rollapply(df2$lag.value, timeRange, mean, partial = T, fill = replaceValue)
+    
+    # reshape catch data to wide format with date as columns
     meanCatchSimple <- stats::reshape(df2[, c("numData", "spData", "tiData", "ra")], 
                                idvar = c("numData", "spData"), timevar = "tiData", direction = "wide")
     dummyTrack <- meanCatchSimple[, -c(1, 2)]  # preallocate for tracking no value
@@ -215,21 +268,6 @@ create_expectations <- function(dat, project, gridfile, catch, defineGroup = NUL
     }
     
     
-    ## ----> This was empty in FishSET program. ADD LATER??? <-----## check choice for
-    ## post calculation dummy issue, this really only affects instances where empty
-    ## values have been replaced earlier with a number other then 0 or nan
-    ## dummyChoice=get(dp2V3,'String') switch dummyChoice{get(dp2V3,'Value')}#FIXME
-    ## this only takes into account values that did not exist as opposed to NAN values
-    
-    # case 'no replacement'
-    
-    # case 'replace expectations with nan for originally missing values'
-    # meanCatch(emptyCellsCatch)=nan case 'replace expectations with 0 for originally
-    # missing values' meanCatch(emptyCellsCatch)=0
-    
-    # end
-    
-    
     bi <- match(tiDataFloor, tLine, nomatch = 0)  # [~,bi]=ismember(tiDataFloor,tLine)
     
     # this is the time for each alternative ('occurence level')
@@ -251,7 +289,9 @@ create_expectations <- function(dat, project, gridfile, catch, defineGroup = NUL
         newCatch[which(cit == cit[w]), col] <- meanCatch[C[w], bi[w]]  ## loop shouldn't be necessary but no loop results in out of memory issue
       }
       
-      if (empty.expectation == 1e-04) {
+      if(is.null(empty.expectation)){
+        newCatch[is.na(newCatch)] = 0.0001
+      } else if (empty.expectation == 1e-04) {
         newCatch[is.na(newCatch)] <- 1e-04
         newCatch[newCatch == 0] <- 1e-04
       } else if (empty.expectation == 0) {
@@ -259,7 +299,7 @@ create_expectations <- function(dat, project, gridfile, catch, defineGroup = NUL
         newCatch[is.na(newCatch)] <- 0  
       } else {
         # case 'no replacement'
-        newCatch = newCatch
+        newCatch[is.na(newCatch)] = 0.0001
       }
       
       
@@ -288,13 +328,15 @@ create_expectations <- function(dat, project, gridfile, catch, defineGroup = NUL
   attach('newDumV', newDumVm, pos=1)
   
   #replaceEmptyExpAll=get(dp2V5,'String')# replace empty catch
-  if(empty.expectation==0.0001) {
+  if(is.null(empty.expectation)){
+    newCatch[is.na(newCatch)] = 0.0001 
+  } else if(empty.expectation==0.0001) {
      newCatch[is.na(newCatch)] <- 0.0001
      newCatch[newCatch==0] <- 0.0001
   } else if (empty.expectation==0) { #(case 'replace with 0'
      newCatch[is.na(newCatch)] <- 0 #c(NULL, 0.0001, 0)  #switch replaceEmptyExpAll{get(dp2V5,'Value')}
   } else { #case 'no replacement'
-     newCatch = newCatch
+    newCatch[is.na(newCatch)] = 0.0001 
   }
 
   } #end dummy.exp==TRUE
@@ -305,7 +347,10 @@ create_expectations <- function(dat, project, gridfile, catch, defineGroup = NUL
   sscale <- 10^(r-1)  
 
   ExpectedCatch <- list(
-     matrix = newCatch,
+     short_exp = short_exp,
+     med_exp = med_exp,
+     long_exp = long_exp,
+     user_defined_exp = newCatch,
      scale = sscale,
      units = ifelse(grepl('lbs|pounds', catch, ignore.case = T)==T, 'LBS', 'MTS') #units of catch data
      #newGridVar.file=[]
@@ -324,8 +369,8 @@ create_expectations <- function(dat, project, gridfile, catch, defineGroup = NUL
     functionBodyout$function_calls <- list()
     
     logbody$fishset_run <- list(infoBodyout, functionBodyout)
-    
   } 
+  
   create_expectations_function <- list()
   create_expectations_function$functionID <- 'create_expectations'
   create_expectations_function$args <- c(deparse(substitute(dat)), project, deparse(substitute(gridfile)), catch, temporal, temp.var, calc.method, lag.method, 
