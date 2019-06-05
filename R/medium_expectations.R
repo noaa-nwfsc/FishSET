@@ -58,7 +58,7 @@ medium_expectations <- function(dat, project, gridfile, catch, defineGroup, temp
   catchData <- as.numeric(dataset[[catch]][which(dataZoneTrue == 1)])
   
   # Time variable not chosen if temp.var is empty
-  tiData <- dataset[[temp.var]][which(dataZoneTrue == 1)]  
+  tiData <- as.Date(dataset[[temp.var]][which(dataZoneTrue == 1)], origin='1970-01-01') 
   if (temporal == "daily") {
     # daily time line
     tiDataFloor <- lubridate::floor_date(as.Date(tiData), unit = "day")  # assume, we are talking day of for time

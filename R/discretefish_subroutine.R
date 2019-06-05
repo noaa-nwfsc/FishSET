@@ -49,7 +49,7 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
   catch <- as.matrix(x[['catch']])
   choice <- x[['choice']]
   distance <- x[['distance']]
-  otherdat <- list(griddat=list(griddatfin=x[['gridVaryingVariables']][['matrix']]),intdat=list(x[['bCHeader']][[-1]]))
+  #otherdat <- list(griddat=list(griddatfin=x[['gridVaryingVariables']][['matrix']]), intdat=list(x[['bCHeader']][[-1]]), pricedata=list(epmDefaultPrice))
   
   choice.table <- as.matrix(choice, as.numeric(factor(choice)))
   choice <- as.matrix(as.numeric(factor(choice)))
@@ -68,14 +68,25 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
   d <- shift_sort_x(dataCompile, choice, catch, distance, max(choice), ab)
   
   starts2 <- initparams
-  
-  nexpcatch <- length(names(x[['gridVaryingVariables']]))-2
 
+  ### Data needs will vary by the logit function ###
+  if(grepl('epm', find_original_name(fr))){
+    otherdat <- list(griddat=list(griddatfin=x[['bCHeader']][['gridVariablesInclude']]), intdat=list(x[['bCHeader']][['indeVarsForModel']]), pricedat=list(x[['epmDefaultPrice']]))
+    nexpcatch <- 1
+    expname <-  find_original_name(fr)
+  }  else if(find_original_name(fr)=='logic_avgcat'){
+    otherdat <- list(griddat=list(griddatfin=x[['bCHeader']][['gridVariablesInclude']]), intdat=list(x[['bCHeader']][['indeVarsForModel']]))  
+    nexpcatch <- 1
+    expname <-  find_original_name(fr)
+  } else if(find_original_name(fr)=='logit_c'){
+    nexpcatch <- length(names(x[['gridVaryingVariables']]))-2
+  }
   #Begin loop  
   for(i in 1:nexpcatch){
-    expname <- paste(names(x[['gridVaryingVariables']])[i],'_')
+    if(find_original_name(fr)=='logit_c'){
+    expname <- paste0(names(x[['gridVaryingVariables']])[i],'_',find_original_name(fr))
     otherdat <- list(griddat=list(griddatfin=x[['gridVaryingVariables']][[names(x[['gridVaryingVariables']])[i]]]),intdat=list(x[['bCHeader']][[-1]]))
-    
+    }
 
   
   LL_start <- fr(starts2, d, otherdat, max(choice), project, expname, mod.name)
@@ -133,10 +144,10 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
     mod.out <- data.frame(matrix(NA, nrow = 4, ncol = 1))
     mod.out[, 1] = c(AIC, AICc, BIC, PseudoR2)
     rownames(mod.out) = c("AIC", "AICc", "BIC", "PseudoR2")
-    colnames(mod.out) = paste0(names(x[['gridVaryingVariables']])[i],mod.name)
+    colnames(mod.out) = paste0(expname,mod.name)
   } else {
     temp <- data.frame(c(AIC, AICc, BIC, PseudoR2))
-    colnames(temp) = paste0(names(x[['gridVaryingVariables']])[i],mod.name)
+    colnames(temp) = paste0(expname,mod.name)
   }
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
@@ -210,13 +221,21 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
   if(H1[1]!="Error, singular, check 'ldglobalcheck'\n") next
   
   if(exists('modelOut')) {
-     modelOut[[length(modelOut)+1]] <- list(name=names(x[['gridVaryingVariables']])[i],errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
+     modelOut[[length(modelOut)+1]] <- list(name=expname,errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
                      seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table=choice.table)
     } else {
       modelOut <-  list()
-      modelOut[[length(modelOut)+1]] <- list(name=names(x[['gridVaryingVariables']])[i],errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
+      modelOut[[length(modelOut)+1]] <- list(name=expname,errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
                    seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table=choice.table)
     }
+  single_sql <- paste0(project, "modelOut", format(Sys.Date(), format="%Y%m%d"))
+  if(table_exists(single_sql)){
+    table_remove(single_sql)
+  }
+  second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
+  DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(data modelOut)"))
+  DBI::dbExecute(fishset_db, second_sql, params = list(data = list(serialize(modelOut, NULL))))
+  DBI::dbDisconnect(fishset_db)
   }
   #### End looping through expectated catch cases
   
@@ -318,13 +337,8 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
   
   ############################################################################# 
   
-  single_sql <- paste0(project, "modelout", format(Sys.Date(), format="%Y%m%d"))
-  second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
-  DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(data modelOut)"))
-  DBI::dbExecute(fishset_db, second_sql, params = list(data = list(serialize(modelOut, NULL))))
-  DBI::dbDisconnect(fishset_db)
-  
-  
+   
+ 
   if(!exists('logbody')) { 
     logbody <- list()
     infoBodyout <- list()
@@ -350,7 +364,9 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
   assign("functionBodyout", value = functionBodyout, pos = 1)
   ############################################################################# 
   
- # return(list(errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
- #             seoutmat2 = seoutmat2, MCM = MCM, H1 = H1))
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
+  return(x)
+  DBI::dbDisconnect(fishset_db)
   
   }

@@ -151,7 +151,7 @@ long_exp <- long_expectations(dat=dat, project=project, gridfile=gridfile, catch
     
     # End No time variable temp.var
   } else {
-    tiData <- dataset[[temp.var]][which(dataZoneTrue == 1)]  #(ti(get(mp3V1,'Value'))).dataColumn(Alt.dataZoneTrue,:) # this part involves time which is more complicated
+    tiData <- as.Date(dataset[[temp.var]][which(dataZoneTrue == 1)], origin='1970-01-01')  #(ti(get(mp3V1,'Value'))).dataColumn(Alt.dataZoneTrue,:) # this part involves time which is more complicated
     
     if (temporal == "daily") {
       # daily time line
@@ -355,8 +355,18 @@ long_exp <- long_expectations(dat=dat, project=project, gridfile=gridfile, catch
      units = ifelse(grepl('lbs|pounds', catch, ignore.case = T)==T, 'LBS', 'MTS') #units of catch data
      #newGridVar.file=[]
      )
-  assign("ExpectedCatch", value = ExpectedCatch, pos = 1)
+  #assign("ExpectedCatch", value = ExpectedCatch, pos = 1)
 
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  single_sql <- paste0(project, 'ExpectedCatch')
+  if(table_exists(single_sql)){
+    table_remove(single_sql)
+  }
+  DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(data ExpectedCatch)"))
+  DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:data)"), 
+                 params = list(data = list(serialize(ExpectedCatch, NULL))))
+  DBI::dbDisconnect(fishset_db)
+   
   if(!exists('logbody')) { 
     logbody <- list()
     infoBodyout <- list()
