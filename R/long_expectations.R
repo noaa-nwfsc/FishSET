@@ -1,5 +1,26 @@
 
   ##3. option 3  last year, group by fleet t-7
+#' Long expectations
+#' @param dat  Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param project Name of project. Used to pull working alternative choice matrix from fishset_db database.
+#' @param gridfile Spatial data. Shape, json, and csv formats are supported.
+#' @param catch Variable containing catch data.
+#' @param defineGroup If empty, data is treated as a fleet
+#' @param temp.var Variable containing temporal data
+#' @param temporal Daily (Daily time line) or sequential (sequential order)
+#' @param calc.method Select standard average (standardAverage), simple lag regression of means (simpleLag), or weights of regressed groups (weights)
+#' @param lag.method  Use regression over entire group (simple) or for grouped time periods (grouped)
+#' @param empty.catch Replace empty catch with NA, 0, mean of all catch (allCatch), or mean of grouped catch(groupCatch) 
+#' @param empty.expectation Do not replace (NULL) or replace with 0.0001 or 0
+#' @param dummy.exp T/F. Defaults to False. If false, no dummy variable is outputted. If true, output dummy variable for originally missing value.
+#' @importFrom lubridate floor_date
+#' @importFrom zoo rollapply
+#' @importFrom DBI dbGetQuery
+#' @importFrom stats aggregate reshape coef lm
+#' @importFrom signal polyval
+#' @export create_expectations
+#' @return Expected catch matrix. Saved to database via create_expectations
+
 long_expectations <- function(dat, project, gridfile, catch, defineGroup, temp.var, temporal, calc.method,  
                               lag.method, empty.catch, empty.expectation, dummy.exp){
   

@@ -3,6 +3,7 @@
 #' Function tests for common data quality issues.
 #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
 #' @return Statements as to whether data quality issues may exist.
+#' @importFrom stringi stri_count_regex
 #' @export data_verification
 #' @details Checks that all columnn names in the data frame are unique, whether any columns in the data frame are empty, whether each row is a unique choice 
 #' occurrence at the haul or trip level, and that either latitude and longitude or fishing area are included.
@@ -80,11 +81,13 @@ data_verification <- function(dat) {
       lon <- as.numeric(as.character(lon))
     }
   graphics::par(mar=c(1,1,1,1)) 
-  maps::map('world', ylim=c(min(lat, na.rm=TRUE), max(lat, na.rm=TRUE)), 
-      xlim=c(min(lon, na.rm=TRUE), max(lon, na.rm=TRUE)))
+  longitude <- which(stringi::stri_count_regex(colnames(dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1]
+  latitude <- which(stringi::stri_count_regex(colnames(dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]
+  maps::map('world', ylim=c(min(dataset[, latitude], na.rm=TRUE), max(dataset[, latitude], na.rm=TRUE)), 
+      xlim=c(min(dataset[, longitude], na.rm=TRUE), max(dataset[, longitude], na.rm=TRUE)))
   pts <- sample(nrow(dataset), nrow(dataset)/10)
-  points(as.numeric(as.character(dataset[pts, which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)[1]])), 
-         as.numeric(as.character(dataset[pts, which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)[1]])))
+  points(as.numeric(as.character(dataset[pts, longitude])), 
+         as.numeric(as.character(dataset[pts, latitude])))
   print('10% of samples plotted. Verify that points occur in correct geographic area.')
   }
   

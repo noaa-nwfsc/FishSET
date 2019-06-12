@@ -1,10 +1,10 @@
 \name{port}
 \docType{data}
 \alias{port}
-\title{Port data}
+\title{port data}
 \description{
-  Latitude and longitude of ports
+  Data for port
 }
 \usage{data(port)}
-\format{Data frame with three columns}
+\format{Data frame }
 \keyword{datasets}

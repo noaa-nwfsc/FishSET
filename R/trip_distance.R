@@ -38,7 +38,7 @@ create_trip_distance <- function(dat, PortTable, trip_id, starting_port, startin
         print(DBI::dbListTables(fishset_db))
         stop(paste(PortTable, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
       } else {
-      port.table <- table_view(portTable)
+      port.table <- table_view(PortTable)
       }
     } else {
       port.table <- PortTable
@@ -58,15 +58,11 @@ create_trip_distance <- function(dat, PortTable, trip_id, starting_port, startin
     
   
   
-  if(any(unique(trimws(dataset[[ending_port]])) %in% unique(port.table[,'Port_Name'])) == TRUE){
-    ''
-  } else {
+  if(!any(unique(trimws(dataset[[ending_port]])) %in% unique(port.table[,'Port_Name']))){
     stop('Ending_port from the data set and port_name from the port table do not match.')
   }
 
-  if(any(unique(trimws(dataset[[starting_port]])) %in% unique(port.table[,'Port_Name'])) == TRUE){
-    ''
-  } else {
+  if(!any(unique(trimws(dataset[[starting_port]])) %in% unique(port.table[,'Port_Name'])) == TRUE){
     stop('starting_port from the data set and port_name from the port table do not match')
   }
   
@@ -97,14 +93,16 @@ create_trip_distance <- function(dat, PortTable, trip_id, starting_port, startin
   
   portLLS <- data.frame(matrix(NA, nrow = length(dataset[[startPort]][portStartidx]),  ncol = 2)) 
   portLLE <- data.frame(matrix(NA, nrow = length(dataset[[endPort]][portEndidx]), ncol = 2))  #
-  portLLS[, 1] <- sapply(trimws(dataset[[startPort]][portStartidx]), 
-                         function(x) port.table[which(port.table[[Port_Name]] == x), "Port_Long"])
+                  a <- sapply(trimws(dataset[[startPort]][portStartidx]), 
+                         function(x) port.table[which(port.table[['Port_Name']] == x), "Port_Long"])
+                  a[lengths(a) == 0] <- NA_character_
+  portLLS[, 1] <- unlist(a)
   portLLS[, 2] <- sapply(trimws(dataset[[startPort]][portStartidx]), 
-                         function(x) port.table[which(port.table[[Port_Name]] == x), "Port_Lat"])
+                         function(x) port.table[which(port.table[['Port_Name']] == x), "Port_Lat"])
   portLLE[, 1] <- sapply(trimws(dataset[[endPort]][portEndidx]), 
-                         function(x) port.table[which(port.table[[Port_Name]] == x), "Port_Long"])
+                         function(x) port.table[which(port.table[['Port_Name']] == x), "Port_Long"])
   portLLE[, 2] <- sapply(trimws(dataset[[endPort]][portEndidx]), 
-                         function(x) port.table[which(port.table[[Port_Name]] == x), "Port_Lat"])
+                         function(x) port.table[which(port.table[['Port_Name']] == x), "Port_Lat"])
   
   portToStart <- geosphere::distGeo(cbind(portLLS[, 1], portLLS[, 2]), 
                                     cbind(dataset[[haulLocalStart[1]]][portStartidx], dataset[[haulLocalStart[2]]][portStartidx]), a = a, f = f)
@@ -134,11 +132,11 @@ create_trip_distance <- function(dat, PortTable, trip_id, starting_port, startin
   
   # now try to sum all dist for one trip
   
-  sumToHaul <- accumarray(C, haulEndToStart)  #summs the port to 1st haul + end  first haul to start of next haul
+  sumToHaul <- FishSET:::accumarray(C, haulEndToStart)  #summs the port to 1st haul + end  first haul to start of next haul
   if (any(haulLocalStart %in% haulLocalEnd)) {
     tripDist <- rowSums(cbind(sumToHaul, portToEnd), na.rm = T) # need to make a haul level tripdist variable
   } else {
-   sumInnerDist <- accumarray(C, innerHaulDist)
+   sumInnerDist <- FishSET:::accumarray(C, innerHaulDist)
     tripDist <- rowSums(cbind(sumToHaul, sumInnerDist, portToEnd), na.rm = T)  
     
   }

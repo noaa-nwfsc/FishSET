@@ -30,7 +30,7 @@
 #'     typeOfNecessary: \tab Haul or trip\cr
 #'     altChoiceType: \tab Function choice. Set to distance\cr
 #'     altChoiceUnits: \tab Units of distance\cr
-#'     altToLocal: \tab dentifies how to find lat/lon for starting point. Can be zonal centroid, port, etc\cr
+#'     altToLocal: \tab Identifies how to find lat/lon for starting point. Can be zonal centroid, port, etc\cr
 #'     altToLocal2: \tab Identifies how to find lat/lon for alternative choices such as 'Centroid of Zonal Assignment'\cr 
 #'     bCHeader: \tab Variables to include in the model that do not vary by zone. Includes independent variables and interactions\cr
 #'     gridVaryingVariables: \tab Variables to include in the model that do vary by zone such as expected catch (from \code{\link{create_expectations}} function)
@@ -83,7 +83,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   units <- Alt[["altChoiceUnits"]]
   
    if (FishSET:::is_empty(gridVariablesInclude)) {
-    gridVariablesInclude = as.data.frame(rep(1, nrow(choice)))
+    gridVariablesInclude = as.data.frame(matrix(1, nrow=nrow(choice), ncol=max(as.numeric(as.factor(unlist(choice))))))
    } else {
     gridVariablesInclude
   }

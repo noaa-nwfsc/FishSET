@@ -70,22 +70,23 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
   starts2 <- initparams
 
   ### Data needs will vary by the logit function ###
-  if(grepl('epm', find_original_name(fr))){
+  if(grepl('epm', FishSET:::find_original_name(fr))){
     otherdat <- list(griddat=list(griddatfin=x[['bCHeader']][['gridVariablesInclude']]), intdat=list(x[['bCHeader']][['indeVarsForModel']]), pricedat=x[['epmDefaultPrice']])
     nexpcatch <- 1
-    expname <-  find_original_name(fr)
-  }  else if(find_original_name(fr)=='logic_avgcat'){
-    otherdat <- list(griddat=list(griddatfin=x[['bCHeader']][['gridVariablesInclude']]), intdat=list(x[['bCHeader']][['indeVarsForModel']]))  
+    expname <-  FishSET:::find_original_name(fr)
+  }  else if(FishSET:::find_original_name(fr)=='logit_avgcat'){
+    otherdat <- list(griddat=list(griddatfin=data.frame(rep(1, nrow(choice)))),#x[['bCHeader']][['gridVariablesInclude']]), 
+                                  intdat=list(x[['bCHeader']][['indeVarsForModel']]))  
     nexpcatch <- 1
-    expname <-  find_original_name(fr)
-  } else if(find_original_name(fr)=='logit_c'){
+    expname <-  FishSET:::find_original_name(fr)
+  } else if(FishSET:::find_original_name(fr)=='logit_c'){
     nexpcatch <- length(names(x[['gridVaryingVariables']]))-2
   }
   #Begin loop  
   for(i in 1:nexpcatch){
-    if(find_original_name(fr)=='logit_c'){
-    expname <- paste0(names(x[['gridVaryingVariables']])[i],'_',find_original_name(fr))
-    otherdat <- list(griddat=list(griddatfin=x[['gridVaryingVariables']][[names(x[['gridVaryingVariables']])[i]]]),intdat=list(x[['bCHeader']][[-1]]))
+    if(FishSET:::find_original_name(fr)=='logit_c'){
+    expname <- paste0(names(x[['gridVaryingVariables']])[i],'_',FishSET:::find_original_name(fr))
+    otherdat <- list(griddat=list(griddatfin=x[['gridVaryingVariables']][[names(x[['gridVaryingVariables']])[i]]]),intdat=list(x[['bCHeader']][['indeVarsForModel']]))
     }
 
   
@@ -218,7 +219,7 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
     }
   }
   
-  if(H1[1]!="Error, singular, check 'ldglobalcheck'\n") next
+  #if(H1[1]!="Error, singular, check 'ldglobalcheck'") next
   
   if(exists('modelOut')) {
      modelOut[[length(modelOut)+1]] <- list(name=expname,errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
@@ -363,10 +364,11 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
   ############################################################################# 
-  
+  single_sql <- paste0(project, "modelOut", format(Sys.Date(), format="%Y%m%d"))
+  if(table_exists(single_sql)){
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
   return(x)
   DBI::dbDisconnect(fishset_db)
-  
+  }
   }

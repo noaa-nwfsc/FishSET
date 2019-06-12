@@ -4,11 +4,13 @@
 \alias{load_port}
 \title{Save port data to fishset_db SQLite database}
 \usage{
-load_port(x, over_write = TRUE, project = NULL, compare = FALSE,
-  y = NULL)
+load_port(dat, port_name, over_write = TRUE, project = NULL,
+  compare = FALSE, y = NULL)
 }
 \arguments{
-\item{x}{Data frame to be saved to fishset_db SQLite database.}
+\item{dat}{Data frame to be saved to fishset_db SQLite database.}
+
+\item{port_name}{Column name or number containing port names. Names should match port names in main data set.}
 
 \item{over_write}{TRUE/FALSE Save over data table previously saved in fishset_db database?}
 
