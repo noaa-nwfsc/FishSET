@@ -10,7 +10,7 @@ epm_lognormal <- function(starts3, dat, otherdat, alts, project, expname, mod.na
 	#' The catch sigma(s) are either of length 1 or length kk (if the analyst is estimating a location-specific catch parameter).
 	#' The scale parameter is of length 1.
     #' @param dat Data matrix, see output from shift_sort_x, alternatives with distance.
-    #' @param otherdat Other data used in model (as list containing objects griddat, intdat, and prices. \cr \cr
+    #' @param otherdat Other data used in model (as list containing objects griddat, intdat, and prices). \cr \cr
 	#' For grid-specific variables griddat and cost variables to be interacted with distance intdat, any number of variables are allowed, as a list of matrices. 
 	#' Note the variables (each as a matrix) within `griddat` and `intdat` have no naming restrictions. 
 	#' Also note that `griddat` variables are dimension *(number of observations) x (number of alternatives)*, 

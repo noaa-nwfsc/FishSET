@@ -7,7 +7,7 @@ logit_c <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
 	#' c([grid-specific parameters], [cost (distance) parameters]). \cr \cr
 	#' The grid-specific parameters function and cost parameters are of length (# of grid-specific variables) and (# of cost parameters) respectively.
     #' @param dat Data matrix, see output from shift_sort_x, alternatives with distance.
-    #' @param otherdat Other data used in model (as list containing objects griddat, intdat, and prices. \cr \cr
+    #' @param otherdat Other data used in model (as list containing objects griddat and intdat). \cr \cr
 	#' For grid-specific variables griddat and cost variables to be interacted with distance intdat, any number of variables are allowed, as a list of matrices. 
 	#' Note the variables (each as a matrix) within `griddat` and `intdat` have no naming restrictions.
 	#' Grid-specific variables may correspond to catches that vary by location, 

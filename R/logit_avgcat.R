@@ -8,7 +8,7 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
 	#' The catch function and cost parameters are of length (# of catch variables)*(kk-1) and (# of cost variables) respectively,
 	#' where kk equals the number of alternatives.
     #' @param dat Data matrix, see output from shift_sort_x, alternatives with distance.
-    #' @param otherdat Other data used in model (as list containing objects griddat amd intdat. \cr \cr
+    #' @param otherdat Other data used in model (as list containing objects griddat and intdat). \cr \cr
 	#' For grid-specific variables griddat and cost variables to be interacted with distance intdat, any number of variables are allowed, as a list of matrices. 
 	#' Note the variables (each as a matrix) within `griddat` and `intdat` have no naming restrictions.
 	#' Also note that `griddat` variables are dimension *(number of observations) x 1*, 
