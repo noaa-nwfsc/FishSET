@@ -1,103 +1,108 @@
 epm_lognormal <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
-    #' epm_lognormal
+    #' Expected profit model lognormal catch function
     #'
     #' Expected profit model lognormal catch function
     #'
-    #' @param starts3 Starting values. e.g. c([grid-varying variables], [interaction variables], [catch variance], [scale parameter]).
-    #' @param dat Data matrix, see output from shift_sort_x, alternatives with distance by column bind
-    #' @param otherdat Other data used in model (as list). Any number of grid-varying variables (e.g. expected catch that varies by location) or 
-    #' interaction variables (e.g. vessel characteristics that affect how much disutility is suffered by traveling a greater distance) are allowed. \cr \cr
-    #' However, the user must place these in `otherdat` as list objects named `griddat` and `intdat` respectively. Note the variables #' within `griddat` 
-    #' and `intdat` have no naming restrictions. \cr \cr
-    #' Also note that `griddat` variables are  dimension *(number of observations) x #' (number of alternatives)*, while `intdat` variables are 
-    #' dimension *(number of observations) x 1*, to be interacted with the distance to each #' alternative. \cr \cr
+    #' @param starts3 Starting values as a vector (num). For this likelihood, the order takes:
+	#' c([catch function parameters], [cost (distance) parameters], [catch sigma(s)], [scale parameter]). \cr \cr
+	#' The catch function and cost parameters are of length (# of catch variables)*kk and (# of cost variables) respectively,
+	#' where kk equals the number of alternatives.
+	#' The catch sigma(s) are either of length 1 or length kk (if the analyst is estimating a location-specific catch parameter).
+	#' The scale parameter is of length 1.
+    #' @param dat Data matrix, see output from shift_sort_x, alternatives with distance.
+    #' @param otherdat Other data used in model (as list containing objects griddat, intdat, and prices. \cr \cr
+	#' For grid-specific variables griddat and cost variables to be interacted with distance intdat, any number of variables are allowed, as a list of matrices. 
+	#' Note the variables (each as a matrix) within `griddat` and `intdat` have no naming restrictions. 
+	#' Also note that `griddat` variables are dimension *(number of observations) x (number of alternatives)*, 
+	#' while `intdat` variables are dimension *(number of observations) x 1*, to be interacted with the distance to each alternative.
+	#' Grid-specific variables may correspond to catches that vary by location, 
+	#' or interaction variables may be vessel characteristics that affect how much disutility is suffered by traveling a greater distance.
+	#' Note in this likelihood the grid-specific variables are the variables in the catch equation, and
+	#' each variable varies across observations but not for each location: they are grid-specific due to the location-specific coefficients. 
     #' If there are no other data, the user can set `griddat` as ones with dimension *(number of observations) x (number of alternatives)*
-    #' and `intdat` variables as ones with dimension *(number of observations) x 1*.
-    #' @param alts Number of alternative choices in model
-    #' @param project Name of project
+    #' and `intdat` variables as ones with dimension *(number of observations) x 1*. \cr \cr
+	#' The variable prices is a matrix of dimension *(number of observations) x 1*, corresponding to prices.
+    #' @param alts Number of alternative choices in model as length 1 vector (num).
+	#' @param project Name of project
     #' @param expname Expected catch table
     #' @param mod.name Name of model run for model result output table
-    #' @return ld - negative log likelihood
+    #' @return ld: negative log likelihood
     #' @export
-
-    
-    ld1 <- list()
-    griddat <- (otherdat$griddat)
-    intdat <- (otherdat$intdat)
-    pricedat <- (otherdat$pricedat)
-    
+    #' @examples
+	#' data(zi)
+	#' data(catch)
+	#' data(choice)
+	#' data(distance)
+	#' data(si)
+	#' data(prices)
+	#' 
+	#' catch[catch<0] <- 0.00001
+	#' #Note lognormal catch distribution.
+	#'	
+	#' optimOpt <- c(1000,1.00000000000000e-08,1,0)
+	#' 
+	#' methodname <- "BFGS"
+	#' 
+	#' si2 <- sample(1:5,dim(si)[1],replace=TRUE)
+	#' zi2 <- sample(1:10,dim(zi)[1],replace=TRUE)
+	#'
+	#' otherdat <- list(griddat=list(si=as.matrix(cbind(si,si,si,si)),si2=as.matrix(cbind(si2,si2,si2,si2))),
+	#' 			intdat=list(zi=as.matrix(zi),zi2=as.matrix(zi2)),pricedat=list(prices=as.matrix(prices)))
+	#'
+	#' initparams <- c(0.25, 0.0, -0.15, -0.25, 0.35, 0.1, -0.25, -0.35, -0.8, -0.4, .3, .2, .35, .25, 1)
+	#' 
+	#' func <- epm_lognormal
+	#' 
+	#' results <- discretefish_subroutine(catch,choice,distance,otherdat,initparams,optimOpt,func,methodname)
+	#'
+	
+	griddat <- as.matrix(do.call(cbind, otherdat$griddat))
+    intdat <- as.matrix(do.call(cbind, otherdat$intdat))
+	
+	gridnum <- dim(griddat)[2]/alts
+	intnum <- dim(intdat)[2]
+	#get number of variables
+	
+	obsnum <- dim(griddat)[1]
+	
+    pricedat <-  as.matrix(unlist(otherdat$pricedat))
+	
     starts3 <- as.matrix(starts3)
-    gridcoef <- as.matrix(starts3[1:(length(griddat) * alts), ])
+    gridcoef <- as.matrix(starts3[1:(gridnum * alts), ])
     
-    intcoef <- as.matrix(starts3[(((length(griddat) * alts) + length(intdat)) - 
-        length(intdat) + 1):((length(griddat) * alts) + length(intdat)), 
+	intcoef <- as.matrix(starts3[(((gridnum * alts) + intnum) - 
+        intnum + 1):((gridnum * alts) + intnum), 
         ])
     
-    if ((dim(starts3)[1] - ((length(griddat) * alts) + length(intdat) + 
+    if ((dim(starts3)[1] - ((gridnum * alts) + intnum + 
         1)) == alts) {
-        sigmaa <- as.matrix(starts3[((length(griddat) * alts) + length(intdat) + 
-            1):((length(griddat) * alts) + length(intdat) + alts), ])
+        sigmaa <- as.matrix(starts3[((gridnum * alts) + intnum + 
+            1):((gridnum * alts) + intnum + alts), ])
         signum <- alts
     } else {
-        sigmaa <- as.matrix(starts3[((length(griddat) * alts) + length(intdat) + 
+        sigmaa <- as.matrix(starts3[((gridnum * alts) + intnum + 
             1), ])
         signum <- 1
     }
+	
     sigmaa <- sqrt(sigmaa^2)
     
-    sigmac <- as.matrix(starts3[((length(griddat) * alts) + length(intdat) + 
-        1 + signum), ])  #end of vector
-    
-    for (i in 1:dim(dat)[1]) {
-        
-        gridmu <- t(t(as.numeric(rowSums(t(as.matrix(do.call(rbind, lapply(griddat, 
-            `[`, i, ))) * t(matrix(gridcoef, alts, length(griddat))))))))
-        
-        expgridcoef <- exp(gridmu + (0.5 * (matrix(sigmaa, alts, 1)^2)))
-        
-        betas1 <- c((expgridcoef) %*% as.matrix(do.call(rbind, lapply(pricedat, 
-            `[`, i, ))), t(as.matrix(do.call(rbind, lapply(intdat, `[`, 
-            i, )))) %*% as.matrix(intcoef))
-        betas <- t(as.matrix(betas1))
-        
-        djz <- t(dat[i, 3:dim(dat)[2]])
-        
-        dj <- matrix(djz, nrow = alts, ncol = dim(betas)[2])
-        
-        xb <- dj %*% t(betas)
-        xb <- xb - xb[1]
-        exb <- exp(xb/matrix(sigmac, length(xb), 1))
-        
-        ldchoice <- (-log(t(exb) %*% (rep(1, alts))))
-        
-        yj <- dat[i, 1]
-        cj <- dat[i, 2]
-        
-        if (signum == 1) {
-            empsigmaa <- sigmaa
-        } else {
-            empsigmaa <- sigmaa[cj, ]
-        }
-        
-        ldcatch0 <- (-(log(yj)))
-        ldcatch1 <- (-(log(empsigmaa)))
-        ldcatch2 <- (-(0.5) * log(2 * pi))
-        ldcatch3 <- (-(0.5) * (((log(yj) - gridmu[cj, ])/(empsigmaa))^2))
-        
-        ldcatch <- ldcatch0 + ldcatch1 + ldcatch2 + ldcatch3
-        
-        ld1[[i]] <- ldcatch + ldchoice
-        
-    }
+    sigmac <- as.matrix(starts3[((gridnum * alts) + intnum + 
+        1 + signum), ])
+	#end of vector
 	
     #############################################
+	
+	gridmu <- (matrix(gridcoef,obsnum,alts*gridnum,byrow=TRUE)*griddat)
+	dim(gridmu) <- c(nrow(gridmu), alts, gridnum)
+	gridmu <- rowSums(gridmu,dim=2)
+    
+	expgridcoef <- exp(gridmu + (0.5 * (matrix(sigmaa, obsnum, alts)^2)))
 
-	gridmu <- matrix((matrix(gridcoef[1:alts,],obsnum,alts,byrow=TRUE)*griddat),obsnum,(alts*gridnum))
-        
-	expgridcoef <- exp(gridmu + (0.5 * (matrix(sigmaa, alts, obsnum)^2)))
+	intbetas <- .rowSums(intdat*matrix(intcoef,obsnum,intnum,byrow=TRUE),obsnum,intnum)
 
-	betas <- matrix(c((matrix(expgridcoef[1:alts,],obsnum,alts,byrow=TRUE)*pricedat), intdat*intcoef),obsnum,(alts*gridnum)+intnum)
-        
+	betas <- matrix(c((expgridcoef*matrix(pricedat,obsnum,alts)), intbetas),obsnum,(alts+1))
+                
 	djztemp <- betas[1:obsnum,rep(1:ncol(betas), each = alts)]*dat[, 3:(dim(dat)[2])]
 	dim(djztemp) <- c(nrow(djztemp), ncol(djztemp)/(alts+1), alts+1)
 
@@ -116,11 +121,20 @@ epm_lognormal <- function(starts3, dat, otherdat, alts, project, expname, mod.na
     if (signum == 1) {
 		empsigmaa <- sigmaa
     } else {
-		empsigmaa <- sigmaa[cj, ]
+		empsigmaa <- sigmaa[cj]
     }
 
+	empgridbetas <- t(gridcoef)
+	dim(empgridbetas) <- c(nrow(empgridbetas), alts, gridnum)
+	
+	empgriddat <- griddat
+	dim(empgriddat) <- c(nrow(empgriddat), alts, gridnum)
+	
+	empgridmu <- .rowSums(empgridbetas[,cj,]*empgriddat[,1,],obsnum,gridnum)
+	#note grid data same across all alternatives
+	
 	ldcatch <- (matrix((-(log(yj))),obsnum)) + (matrix((-(log(empsigmaa))),obsnum)) + (matrix((-(0.5) * log(2 * pi)),obsnum)) +
-			(-(0.5) * (((log(yj) - gridmu[cj, ])/(matrix(empsigmaa,obsnum)))^2))
+			(-(0.5) * (((log(yj) - empgridmu)/(matrix(empsigmaa,obsnum)))^2))
 	
 	ld1 <- ldcatch + ldchoice
 	
@@ -133,15 +147,11 @@ epm_lognormal <- function(starts3, dat, otherdat, alts, project, expname, mod.na
     }
     
     ldsumglobalcheck <- ld
-    #assign('ldsumglobalcheck', value = ldsumglobalcheck, pos = 1)
     paramsglobalcheck <- starts3
-    #assign('paramsglobalcheck', value = paramsglobalcheck, pos = 1)
     ldglobalcheck <- unlist(as.matrix(ld1))
-    #assign('ldglobalcheck', value = ldglobalcheck, pos = 1)
     
     ldglobalcheck <- list(model=paste0(project, expname, mod.name), ldsumglobalcheck=ldsumglobalcheck,
                           paramsglobalcheck=paramsglobalcheck, ldglobalcheck=ldglobalcheck)
-    #assign("ldglobalcheck", value = ldglobalcheck, pos = 1)
     
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
     single_sql <- paste0(project, "ldglobalcheck", format(Sys.Date(), format="%Y%m%d"))

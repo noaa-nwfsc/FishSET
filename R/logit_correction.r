@@ -1,35 +1,75 @@
-logit_correction <- function(starts3, dat, otherdat, alts) {
-    #' logit_correction
+logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
+    #' Full information model with Dahl's correction function
     #'
     #' Full information model with Dahl's correction function
     #'
-    #' @param starts3 Starting values. e.g. c([grid-varying variables], [interaction variables], [catch variance], [scale parameter]).
-    #' @param dat Data matrix, see output from shift_sort_x, alternatives with distance by column bind
-    #' @param otherdat Other data used in model (as list). Any number of grid-varying variables (e.g. expected catch that varies by location) or 
-    #' interaction variables (e.g. vessel characteristics that affect how much disutility is suffered by traveling a greater distance) are allowed. \cr \cr
-    #' However, the user must place these in `otherdat` as list objects named `griddat` and `intdat` respectively. Note the variables 
-	#' within `griddat` and `intdat` have no naming restrictions. \cr \cr
-    #' Also note that `griddat` variables are dimension *(number of observations) x (number of alternatives)*, while `intdat` variables are 
-    #' dimension *(number of observations) x 1*, to be interacted with the distance to each alternative. \cr \cr
+    #' @param starts3 Starting values as a vector (num). For this likelihood, the order takes:
+	#' c([marginal utility from catch], [catch function parameters], [polynomial starting parameters], [cost (distance) parameters], [catch sigma]). \cr \cr
+	#' The number of polynomial interaction terms is currently set to 2, so given the chosen degree 'polyn' there should be (((polyn+1)*2) + 2)*kk polynomial
+	#' starting parameters, where kk equals the number of alternatives. The marginal utility from catch and catch sigma are of length 1 respectively.
+	#' The catch function and cost parameters are of length (# of catch variables)*kk and (# of cost variables) respectively.
+    #' @param dat Data matrix, see output from shift_sort_x, alternatives with distance.
+    #' @param otherdat Other data used in model (as list containing objects griddat, intdat, startloc, polyn, and distance. \cr \cr
+	#' For grid-specific variables (griddat) and cost variables to be interacted with distance (intdat), any number of variables are allowed, as a list of matrices. 
+	#' Note the variables (each as a matrix) within `griddat` and `intdat` have no naming restrictions. 
+	#' Also note that `griddat` variables are dimension *(number of observations) x (number of alternatives)*, 
+	#' while `intdat` variables are dimension *(number of observations) x 1*, to be interacted with the distance to each alternative.
+	#' Grid-specific variables may correspond to catches that vary by location, 
+	#' or interaction variables may be vessel characteristics that affect how much disutility is suffered by traveling a greater distance.
+	#' Note in this likelihood the grid-specific variables are the variables in the catch equation, and
+	#' each variable varies across observations but not for each location: they are grid-specific due to the location-specific coefficients. 
     #' If there are no other data, the user can set `griddat` as ones with dimension *(number of observations) x (number of alternatives)*
-    #' and `intdat` variables as ones with dimension *(number of observations) x 1*.
-    #' @param alts Number of alternative choices in model
-    #' @return ld - negative log likelihood
+    #' and `intdat` variables as ones with dimension *(number of observations) x 1*. \cr \cr
+	#' The variable startloc is a matrix of dimension *(number of observations) x 1*, 
+	#' that corresponds to the starting location when the agent decides between alternatives. \cr \cr
+	#' The variable polyn is a vector of length 1 corresponding to the chosen polynomial degree. \cr \cr
+	#' The variable distance is a matrix of dimension *(number of observations) x (number of alternatives)* corresponding to the distance to each alternative.
+    #' @param alts Number of alternative choices in model as length 1 vector (num).
+	#' @param project Name of project
+    #' @param expname Expected catch table
+    #' @param mod.name Name of model run for model result output table
+    #' @return ld: negative log likelihood
     #' @export
     #' @examples
-    #'
+	#' data(zi)
+	#' data(catch)
+	#' data(choice)
+	#' data(distance)
+	#' data(si)
+	#' data(startloc)
+	#' 
+	#' optimOpt <- c(1000,1.00000000000000e-08,1,0)
+	#' 
+	#' methodname <- "BFGS"
+	#' 
+	#' polyn <- 3
+	#' kk <- 4
+	#' 
+	#' si2 <- sample(1:5,dim(si)[1],replace=TRUE)
+	#' zi2 <- sample(1:10,dim(zi)[1],replace=TRUE)
+	#'
+	#' otherdat <- list(griddat=list(si=as.matrix(cbind(si,si,si,si)),si2=as.matrix(cbind(si2,si2,si2,si2))),
+	#' 			intdat=list(zi=as.matrix(zi),zi2=as.matrix(zi2)),startloc=as.matrix(startloc),polyn=polyn,distance=as.matrix(distance))
+	#'
+	#' initparams <- c(3, 0.5, 0.4, 0.3, 0.2, 0.55, 0.45, 0.35, 0.25, rep(0, (((polyn+1)*2) + 2)*kk), -0.3,-0.4, 3)
+	#' 
+	#' func <- logit_correction
+	#' 
+	#' results <- discretefish_subroutine(catch,choice,distance,otherdat,initparams,optimOpt,func,methodname)
+	#'
     
-    ld1 <- matrix(ncol=1, nrow=dim(dat)[1])
-
-    griddat <- (otherdat$griddat)
-    intdat <- (otherdat$intdat)
+	griddat <- as.matrix(do.call(cbind, otherdat$griddat))
+    intdat <- as.matrix(do.call(cbind, otherdat$intdat))
+	
+	gridnum <- dim(griddat)[2]/alts
+	intnum <- dim(intdat)[2]
+	#get number of variables
+	
     startloc <- (otherdat$startloc)
     distance <- otherdat$distance
 	
 	polyn <- otherdat$polyn
-	gridnum <- otherdat$gridnum
-	intnum <- otherdat$intnum
-	
+
     starts3 <- as.matrix(starts3)
 	
 	revcoef <- as.matrix(starts3[1:1, ])
@@ -38,35 +78,42 @@ logit_correction <- function(starts3, dat, otherdat, alts) {
 	
     gridcoef <- as.matrix(starts3[2:(1 + gridlength), ])
     
-	intcoef <- (-1)
-	
-	sigmaa <- as.matrix(starts3[((1 + gridlength) + 
-            1), ])
 	signum <- 1
-    
-    sigmac <- as.matrix(starts3[((1 + gridlength) + 
-        1 + signum), ])  #end of vector
 
+	intcoef <- as.numeric(starts3[(1 + 1 + gridlength):((1 + 1 + gridlength) + intnum - 1),]) 
+	
+	sigmac <- (1)
+	
+	sigmaa <- as.matrix(starts3[((1 + 1 + gridlength + intnum - 1) + 
+            1), ])
+	#end of vector
+    
 	obsnum <- dim(griddat)[1]
 	
 	#############################################
 
-	betas <- matrix(c(rep(revcoef,obsnum)*(matrix(gridcoef[1:alts,],obsnum,alts,byrow=TRUE)*griddat), intdat*intcoef),obsnum,(alts*gridnum)+intnum)
+	gridbetas <- (matrix(gridcoef[1:(alts*gridnum),],obsnum,alts*gridnum,byrow=TRUE)*griddat)
+	dim(gridbetas) <- c(nrow(gridbetas), alts, gridnum)
+	gridbetas <- rowSums(gridbetas,dim=2)
+	
+	intbetas <- .rowSums(intdat*matrix(intcoef,obsnum,intnum,byrow=TRUE),obsnum,intnum)
 
+	betas <- matrix(c((gridbetas*matrix(revcoef,obsnum,alts)), intbetas),obsnum,(alts+1))
+		
 	djztemp <- betas[1:obsnum,rep(1:ncol(betas), each = alts)]*dat[, 3:(dim(dat)[2])]
 	dim(djztemp) <- c(nrow(djztemp), ncol(djztemp)/(alts+1), alts+1)
 
 	prof <- rowSums(djztemp,dim=2)
-	profx <- prof - prof[,1]
+	profx = prof - prof[,1]
 
-	exb <- exp(profx/matrix(sigmac, dim(prof)[1], dim(prof)[2]))
+	exb = exp(profx/matrix(sigmac, dim(prof)[1], dim(prof)[2]))
 
 	ldchoice <- (-log(rowSums(exb)))
 
 	#############################################
 
-	revside <- rep(revcoef,obsnum)*(matrix(gridcoef[1:alts,],obsnum,alts,byrow=TRUE)*griddat)
-	costside <- distance*matrix(intdat,obsnum,alts)*matrix(intcoef,obsnum,alts)
+	revside <- gridbetas*matrix(revcoef,obsnum,alts)
+	costside <- distance*intbetas
 
 	probprof <- revside + costside
 
@@ -95,30 +142,43 @@ logit_correction <- function(starts3, dat, otherdat, alts) {
 	staymat <- matrix(c(locstay,(matrix(probstay,obsnum,alts*polyn)^matrix(rep(1:polyn,each=alts),obsnum,alts*polyn,byrow=TRUE))),obsnum,alts*(polyn+1))*
 		matrix((startloc == cj),obsnum,alts*(polyn+1)) #1 is for constant
 
-	Xvar <- matrix(c(griddat*locmove, staymat, movemat), obsnum, dim(gridcoef)[1])
+	Xvar <- matrix(c(griddat*matrix(locmove,obsnum,gridnum*alts), staymat, movemat), obsnum, dim(gridcoef)[1])
 
 	empcatches <- Xvar%*%gridcoef
-	# crossprod(t(Xvar),(gridcoef))
 		
-	ldcatch <- (matrix((-(0.5) * log(2 * pi)),obsnum)) + (-(0.5) * log(matrix(sigmaa,obsnum)^2)) + 
+	ldcatch <- matrix((-(0.5) * log(2 * pi)),obsnum) + (-(0.5) * log(matrix(sigmaa,obsnum)^2)) + 
 			(-(0.5) * (((yj - empcatches)/(matrix(sigmaa,obsnum)))^2))
 
 	ld1 <- ldcatch + ldchoice
-	
-	#############################################
 
-    # ldsumglobalcheck <<- ld
-    # paramsglobalcheck <<- starts3
-    # ldglobalcheck <<- unlist(as.matrix(ld1))
-    ldglobalcheck <- unlist(as.matrix(ld1))
-    assign("ldglobalcheck", value = ldglobalcheck, pos = 1)
-	
 	ld <- -sum(ld1)
     
     if (is.nan(ld) == TRUE) {
         ld <- .Machine$double.xmax
     }
     
+	ldsumglobalcheck <- ld
+    paramsglobalcheck <- starts3
+    ldglobalcheck <- unlist(as.matrix(ld1))
+    
+    ldglobalcheck <- list(model=paste0(project, expname, mod.name), ldsumglobalcheck=ldsumglobalcheck,
+                          paramsglobalcheck=paramsglobalcheck, ldglobalcheck=ldglobalcheck)
+    
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+    single_sql <- paste0(project, "ldglobalcheck", format(Sys.Date(), format="%Y%m%d"))
+    second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
+    
+    if(table_exists(single_sql)==TRUE){
+      x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
+      table_remove(single_sql)
+      ldglobalcheck <- c(x, ldglobalcheck)
+    }
+    
+    DBI::dbExecute(fishset_db, paste0("CREATE TABLE IF NOT EXISTS ", project, "ldglobalcheck", 
+                                      format(Sys.Date(), format="%Y%m%d"), "(data ldglobalcheck)"))
+    DBI::dbExecute(fishset_db, second_sql, params = list(data = list(serialize(ldglobalcheck, NULL))))
+    DBI::dbDisconnect(fishset_db)
+
     return(ld)
     
 }
