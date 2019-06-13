@@ -373,10 +373,10 @@ create_duration <- function(dat, start, end, units = c("week", "day", "hour", "m
   DBI::dbDisconnect(fishset_db)
   
   
-  if (any(grepl("dat|min|hour|week|month|TRIP_START|TRIP_END", start, ignore.case = TRUE)) == FALSE) {
+  if (any(grepl("date|min|hour|week|month|TRIP_START|TRIP_END", start, ignore.case = TRUE)) == FALSE) {
     warning("Function is designed for temporal variables")
   }
-  if (any(grepl("dat|min|hour|week|month|TRIP_START|TRIP_END", end, ignore.case = TRUE)) == FALSE) {
+  if (any(grepl("date|min|hour|week|month|TRIP_START|TRIP_END", end, ignore.case = TRUE)) == FALSE) {
     warning("Function is designed for temporal variables")
   }
   

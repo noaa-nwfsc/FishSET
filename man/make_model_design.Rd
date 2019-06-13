@@ -23,7 +23,7 @@ make_model_design(dat, catchID, alternativeMatrix = c("loadedData",
 
 \item{indeVarsForModel}{list List columns names of independent variables to include in the model using `c()`.}
 
-\item{gridVariablesInclude}{list List columns names of variables from gridded dataset to include in the model using `c()`.}
+\item{gridVariablesInclude}{list List data set that varies over a grid to include in the model using `c()`.}
 
 \item{priceCol}{NULL If required, specify which variable contains price data.}
 
@@ -44,7 +44,7 @@ Model design matrix containing \cr
     typeOfNecessary: \tab Haul or trip\cr
     altChoiceType: \tab Function choice. Set to distance\cr
     altChoiceUnits: \tab Units of distance\cr
-    altToLocal: \tab dentifies how to find lat/lon for starting point. Can be zonal centroid, port, etc\cr
+    altToLocal: \tab Identifies how to find lat/lon for starting point. Can be zonal centroid, port, etc\cr
     altToLocal2: \tab Identifies how to find lat/lon for alternative choices such as 'Centroid of Zonal Assignment'\cr 
     bCHeader: \tab Variables to include in the model that do not vary by zone. Includes independent variables and interactions\cr
     gridVaryingVariables: \tab Variables to include in the model that do vary by zone such as expected catch (from \code{\link{create_expectations}} function)

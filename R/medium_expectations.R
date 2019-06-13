@@ -1,5 +1,26 @@
 
 ##2. Option 2 medium: group by fleet (all vessels in dataset) t -7
+#' Medium expectations
+#' @param dat  Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param project Name of project. Used to pull working alternative choice matrix from fishset_db database.
+#' @param gridfile Spatial data. Shape, json, and csv formats are supported.
+#' @param catch Variable containing catch data.
+#' @param defineGroup If empty, data is treated as a fleet
+#' @param temp.var Variable containing temporal data
+#' @param temporal Daily (Daily time line) or sequential (sequential order)
+#' @param calc.method Select standard average (standardAverage), simple lag regression of means (simpleLag), or weights of regressed groups (weights)
+#' @param lag.method  Use regression over entire group (simple) or for grouped time periods (grouped)
+#' @param empty.catch Replace empty catch with NA, 0, mean of all catch (allCatch), or mean of grouped catch(groupCatch) 
+#' @param empty.expectation Do not replace (NULL) or replace with 0.0001 or 0
+#' @param dummy.exp T/F. Defaults to False. If false, no dummy variable is outputted. If true, output dummy variable for originally missing value.
+#' @importFrom lubridate floor_date
+#' @importFrom zoo rollapply
+#' @importFrom DBI dbGetQuery
+#' @importFrom stats aggregate reshape coef lm
+#' @importFrom signal polyval
+#' @export create_expectations
+#' @return Expected catch matrix. Saved to database via create_expectations
+
 medium_expectations <- function(dat, project, gridfile, catch, defineGroup, temp.var, temporal, calc.method,  
                                 lag.method, empty.catch, empty.expectation, dummy.exp){
   
@@ -58,7 +79,7 @@ medium_expectations <- function(dat, project, gridfile, catch, defineGroup, temp
   catchData <- as.numeric(dataset[[catch]][which(dataZoneTrue == 1)])
   
   # Time variable not chosen if temp.var is empty
-  tiData <- dataset[[temp.var]][which(dataZoneTrue == 1)]  
+  tiData <- as.Date(dataset[[temp.var]][which(dataZoneTrue == 1)], origin='1970-01-01') 
   if (temporal == "daily") {
     # daily time line
     tiDataFloor <- lubridate::floor_date(as.Date(tiData), unit = "day")  # assume, we are talking day of for time

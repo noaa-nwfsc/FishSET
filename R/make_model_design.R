@@ -6,7 +6,7 @@
 #' @param lon.dat longitude Column containing longitude data
 #' @param lat.dat latitude Column containing latitude data
 #' @param indeVarsForModel list List columns names of independent variables to include in the model using `c()`.
-#' @param gridVariablesInclude list List columns names of variables from gridded dataset to include in the model using `c()`. 
+#' @param gridVariablesInclude list List data set that varies over a grid to include in the model using `c()`. 
 #' @param priceCol NULL If required, specify which variable contains price data.
 #' @param vesselID NULL If required, specify which varible defines individual vessels.
 #' @param project name. name of project. For name of output table saved in sql database
@@ -30,7 +30,7 @@
 #'     typeOfNecessary: \tab Haul or trip\cr
 #'     altChoiceType: \tab Function choice. Set to distance\cr
 #'     altChoiceUnits: \tab Units of distance\cr
-#'     altToLocal: \tab dentifies how to find lat/lon for starting point. Can be zonal centroid, port, etc\cr
+#'     altToLocal: \tab Identifies how to find lat/lon for starting point. Can be zonal centroid, port, etc\cr
 #'     altToLocal2: \tab Identifies how to find lat/lon for alternative choices such as 'Centroid of Zonal Assignment'\cr 
 #'     bCHeader: \tab Variables to include in the model that do not vary by zone. Includes independent variables and interactions\cr
 #'     gridVaryingVariables: \tab Variables to include in the model that do vary by zone such as expected catch (from \code{\link{create_expectations}} function)
@@ -67,39 +67,43 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
     }
   }
   
-  if (!exists("ExpectedCatch")) {
-    stop("Expected Catch Matrix does not exist. Please run the create_expectations function.")
-  }  else {
-    ExpectedCatch <- ExpectedCatch
+  if(table_exists(paste0(project,'ExpectedCatch'))){
+  ExpectedCatch <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", project, "ExpectedCatch LIMIT 1"))$data[[1]])
   }
+  if (!exists("ExpectedCatch")) {
+    ExpectedCatch=''
+    warning("Expected Catch Matrix does not exist. Please run the create_expectations function if expected catch will be included in the model.")
+  }  
   
   alt_var <- Alt[["alt_var"]]
   occasion <- Alt[["occasion"]]
   dataZoneTrue <- Alt[["dataZoneTrue"]]  
   int <- Alt[["int"]]
   choice <- Alt[["choice"]]
-  bCHeader <- Alt[["altChoiceUnits"]]
+  units <- Alt[["altChoiceUnits"]]
   
-   if (!FishSET:::is_empty(gridVariablesInclude)) {
-    bCHeader <- list(bCHeader, gridVariablesInclude)
+   if (FishSET:::is_empty(gridVariablesInclude)) {
+    gridVariablesInclude = as.data.frame(matrix(1, nrow=nrow(choice), ncol=max(as.numeric(as.factor(unlist(choice))))))
+   } else {
+    gridVariablesInclude
   }
   if (!exists("newDumV")) {
-    bcHeader <- bCHeader
+    newDumV <- 1
   } else {
     newDumV <- newDumV
-    bCHeader <- list(bCHeader, newDumV)
+    #bCHeader <- list(bCHeader, newDumV)
   }
   # 
   if (FishSET:::is_empty(indeVarsForModel)) {
-    bCHeader <- list(bCHeader, indeVarsForModel = as.data.frame(rep(1, nrow(choice))))
+    bCHeader <- list(units=units, gridVariablesInclude=gridVariablesInclude, newDumV=newDumV, indeVarsForModel = as.data.frame(rep(1, nrow(choice))))
     bColumnsWant <- ""
     bInterAct <- ""
   } else {
     if (any(indeVarsForModel %in% c("Miles * Miles", "Miles*Miles, Miles x Miles"), 
             ignore.case = TRUE)) {
-      bCHeader = list(bCHeader, lapply(indeVarsForModel[-1], function(x) dataset[[x]][which(dataZoneTrue == 1)]))
+      bCHeader = list(units=units, gridVariablesInclude=gridVariablesInclude, newDumV=newDumV, lapply(indeVarsForModel[-1], function(x) dataset[[x]][which(dataZoneTrue == 1)]))
     } else {
-      bCHeader = list(bCHeader, lapply(indeVarsForModel, function(x) dataset[[x]][which(dataZoneTrue == 1)]))
+      bCHeader = list(units=units, gridVariablesInclude=gridVariablesInclude, newDumV=newDumV, lapply(indeVarsForModel, function(x) dataset[[x]][which(dataZoneTrue == 1)]))
     }
   }
   
@@ -320,8 +324,12 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   single_sql <- paste0(project, 'modelinputdata')
   date_sql <- paste0(project, 'modelinputdata', format(Sys.Date(), format="%Y%m%d"))
-  table_remove(single_sql)
-  table_remove(date_sql)
+  if(table_exists(single_sql)){
+    table_remove(single_sql)
+  } 
+  if(table_exists(date_sql)){
+    table_remove(date_sql)
+  }
   DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(ModelInputData MODELINPUTDATA)"))
   DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:ModelInputData)"), 
                  params = list(ModelInputData = list(serialize(modelInputData, NULL))))

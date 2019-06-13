@@ -6,6 +6,7 @@
 #' @importFrom DBI dbExistsTable dbDisconnect dbConnect dbRemoveTable dbExecute dbGetQuery 
 #' @importFrom DT DTOutput renderDT JS
 #' @import shiny
+#' @export
 #' @details Opens an interactive data table that displays model measures of fit for each model run saved in the model measures of fit table in the fishet_db database. 
 #' The name of this table should contain the string `out.mod`. 
 #' Users can delete models from the table and select the preferred model by checking the `selected` box. The table is then saved to the fishet_db database with two new columns added, a TRUE/FALSE selected column

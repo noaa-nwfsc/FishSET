@@ -5,7 +5,7 @@
 \title{Create alternative choice matrix}
 \usage{
 create_alternative_choice(dat, gridfile, case = c("Centroid", "Port",
-  "Other"), contents, haul.trip = c("Haul", "Trip"), alt_var, occasion,
+  "Other"), min.haul, haul.trip = c("Haul", "Trip"), alt_var, occasion,
   lon.dat, lat.dat, lon.grid, lat.grid, cat, use.grid = c(TRUE, FALSE),
   hull.polygon = c(TRUE, FALSE), remove.na = FALSE,
   closest.pt = FALSE, project, griddedDat = NULL, weight.var = NULL)
@@ -17,7 +17,7 @@ create_alternative_choice(dat, gridfile, case = c("Centroid", "Port",
 
 \item{case}{Centroid='Centroid of Zonal Assignment', Port, Other}
 
-\item{contents}{Value of variable to subset dataset by. For instance, include only zones with at least 10 hauls.}
+\item{min.haul}{Minimum number of hauls. Removes zones with fewer hauls than min.haul. For instance, include only zones with at least 100 hauls.}
 
 \item{haul.trip}{Should data be at trip or haul level. Defaults to haul.}
 

@@ -120,3 +120,13 @@ date_parser <- function(dates){
   }
 }
 
+find_original_name <- function(fun) {
+  objects <- ls(envir = environment(fun))
+  for (i in objects) {
+    if (identical(fun, get(i, envir = environment(fun)))) {
+      return(i)
+    }
+  }
+}
+
+

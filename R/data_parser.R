@@ -293,9 +293,10 @@ main_mod <- function(dat, x, new.unit=NULL, new.type=NULL, new.class=NULL) {
   return(dataset)
 }
 
-load_port <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
+load_port <- function(dat, port_name, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
   #' Save port data to fishset_db SQLite database
-  #' @param x Data frame to be saved to fishset_db SQLite database.
+  #' @param dat Data frame to be saved to fishset_db SQLite database.
+  #' @param port_name Column name or number containing port names. Names should match port names in main data set.
   #' @param over_write TRUE/FALSE Save over data table previously saved in fishset_db database?
   #' @param project Name of project. Parameter is used to generate meaningful table names in fishset_db database.
   #' @param compare TRUE/FALSE If TRUE, compare new data frame to previously saved data frame `y` in fishset_db before saving new data frame to the fishset_db database
@@ -310,7 +311,7 @@ load_port <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
   #' load_port(dataset='PortTable', over_write=TRUE, project='', compare=TRUE, y='PortTable01012011') 
   #' }
   
-  
+  x <- dat
   if(all(grepl('Lon', names(x), ignore.case=TRUE)==FALSE)==TRUE) { 
     stop('Latitude and Longitude must be specified')
   }
@@ -320,6 +321,15 @@ load_port <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
   if(all(grepl('name|id|code|PORT', names(x), ignore.case = TRUE)==FALSE)==TRUE){
     warning('Port identification not found. Check that unique port ID (name, id, code) is included.')
   } 
+  
+  if(!is.numeric(port_name)){
+    colnames(x)[grep(port_name, colnames(x))] <- 'Port_Name'
+  } else {
+    colnames(x)[port_name] <- 'Port_Name'
+  }
+  
+  colnames(x)[grep('LON', colnames(x), ignore.case=TRUE)] <- "Port_Long"
+  colnames(x)[grep('LAT', colnames(x), ignore.case=TRUE)] <- "Port_Lat"  
   
   data_verification_call(x)
   
@@ -365,7 +375,7 @@ load_port <- function(x, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
   
   load_port_function <- list()
   load_port_function$functionID <- 'load_port'
-  load_port_function$args <- c(deparse(substitute(x)), over_write, project, compare, deparse(substitute(y)))
+  load_port_function$args <- c(deparse(substitute(dat)), deparse(substitute(port_name)), over_write, project, compare, deparse(substitute(y)))
   load_port_function$kwargs <- list()
   load_port_function$output <- c('')
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_port_function)

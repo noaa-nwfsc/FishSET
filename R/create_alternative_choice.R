@@ -6,7 +6,7 @@
 #' @param gridfile Spatial data. Shape, json, and csv formats are supported.
 #' @param case Centroid='Centroid of Zonal Assignment', Port, Other
 #' @param griddedDat Data frame containing a variable that varies by the map grid. First column should match a column in the dataset. The remaining columns should match the zone IDs in the gridfile.
-#' @param contents Value of variable to subset dataset by. For instance, include only zones with at least 10 hauls.
+#' @param min.haul Minimum number of hauls. Removes zones with fewer hauls than min.haul. For instance, include only zones with at least 100 hauls.
 #' @param hull.polygon Used in assignment_column function. Creates polygon using convex hull method.
 #' @param haul.trip Should data be at trip or haul level. Defaults to haul.
 #' @param alt_var  Identifies how to find lat/lon for starting point (must have a lat/lon associated with it) 
@@ -39,7 +39,7 @@
 #'         int: \tab Centroid for each zone. Generated from find_centroid function
 #'         }
  
-create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port", "Other"), contents, 
+create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port", "Other"), min.haul, 
                                       haul.trip = c("Haul", "Trip"), alt_var, occasion, lon.dat, lat.dat, lon.grid, lat.grid, 
                                       cat, use.grid = c(TRUE, FALSE),  hull.polygon = c(TRUE, FALSE), remove.na = FALSE, 
                                       closest.pt = FALSE, project, griddedDat=NULL, weight.var = NULL) {
@@ -102,16 +102,16 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
   numH <- numH/t(binH)
   zoneHist <- data.frame(numH = as.vector(numH), binH = as.vector(binH), B[, 1])
   
-  zoneHist[which(zoneHist[, 1] < contents), 3] <- NA
+  zoneHist[which(zoneHist[, 1] < min.haul), 3] <- NA
   
   if (any(FishSET:::is_empty(which(is.na(zoneHist[, 3]) == F)))) {
-    stop("No zones meet criteria. Check the contents parameter or zone identification.")
+    stop("No zones meet criteria. Check the min.haul parameter or zone identification.")
   }
   #dataZoneTrue=ismember(gridInfo.assignmentColumn,zoneHist(greaterNZ,3));
   dataZoneTrue <- cbind(int.data$ZoneID %in% zoneHist[, 3], match(int.data$ZoneID, zoneHist[, 3], nomatch = 0))  
         #dataZoneTrue=ismember(gridInfo.assignmentColumn,zoneHist(greaterNZ,3));
-  greaterNZ <-  which(zoneHist[,1] >= contents) # ifelse(!is.na(zoneHist[, 1]) & zoneHist[, 1] >= 0, 1, 0)
-  numOfNecessary <- contents
+  greaterNZ <-  which(zoneHist[,1] >= min.haul) # ifelse(!is.na(zoneHist[, 1]) & zoneHist[, 1] >= 0, 1, 0)
+  numOfNecessary <- min.haul
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   
@@ -184,8 +184,12 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
         #write Alt to datafile
         single_sql <- paste0(project, 'altmatrix')
         date_sql <- paste0(project, 'altmatrix', format(Sys.Date(), format="%Y%m%d"))
-        table_remove(single_sql)
-        table_remove(date_sql)
+        if(table_exists(single_sql)){
+          table_remove(single_sql)
+        } 
+        if(table_exists(date_sql)){
+          table_remove(date_sql)
+        }
         DBI::dbExecute (fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(AlternativeMatrix ALT)"))
         DBI::dbExecute (fishset_db, paste("INSERT INTO", single_sql, "VALUES (:AlternativeMatrix)"), 
                                           params = list(AlternativeMatrix = list(serialize(Alt, NULL))))
@@ -215,7 +219,7 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
        } 
        create_alternative_choice_function <- list()
        create_alternative_choice_function$functionID <- 'create_alternative_choice'
-       create_alternative_choice_function$args <- c(deparse(substitute(dat)), deparse(substitute(gridfile)), case, contents,
+       create_alternative_choice_function$args <- c(deparse(substitute(dat)), deparse(substitute(gridfile)), case, min.haul,
                                                    haul.trip, alt_var, occasion, lon.dat, lat.dat, lon.grid,  lat.grid, cat,  use.grid, 
                                                    hull.polygon, remove.na, closest.pt, project)
        create_alternative_choice_function$kwargs <- list('griddedDat'= griddedDat, 'weight.var'= weight.var)

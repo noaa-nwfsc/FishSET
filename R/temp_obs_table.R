@@ -22,18 +22,32 @@
 
 temp_obs_table <- function(dat, gridfile, x, lon.grid, lat.grid, lon.dat, lat.dat, cat){
   
- out <- assignment_column(dat, gridfile, hull.polygon = TRUE, lon.grid, lat.grid, 
+  #Call in datasets
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  if(is.character(dat)==TRUE){
+    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
+      print(DBI::dbListTables(fishset_db))
+      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+    } else {
+      dataset <- table_view(dat)
+    }
+  } else {
+    dataset <- dat  
+  }
+  DBI::dbDisconnect(fishset_db)
+  
+ out <- assignment_column(dataset, gridfile, hull.polygon = TRUE, lon.grid, lat.grid, 
                           lon.dat, lat.dat, cat, closest.pt =FALSE, epsg=NULL)
  
- out$YEAR <- temporal_mod(dat, x, 'year') 
- out$MONTH <- temporal_mod(dat, x, '%m') 
+ out$YEAR <- temporal_mod(dataset, x, 'year') 
+ out$MONTH <- temporal_mod(dataset, x, '%m') 
  
  cat('Number of observations by year') 
  print(table(out$YEAR))
- cat('Number of observations by year and month') 
- print(table(out$YEAR, out$MONTH))
- cat('Number of observations by year and Zone') 
+  cat('Number of observations by year and Zone') 
  print(table(out$YEAR, out$ZoneID))
+cat('Number of observations by year and month') 
+ print(table(out$YEAR, out$MONTH))
  cat('Number of observations by year and month split by Zone') 
  for(i in 1:length(unique(out$ZoneID))){
    cat('Zone', unique(out$ZoneID)[i])

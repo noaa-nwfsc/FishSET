@@ -163,18 +163,16 @@ map2 <- read_dat('inst/extdata/nmfs_manage_simple.json', 'shape')
 ###CREATE MODEL DESIGN FUNCTIONS
 The following functions creates a list containing information on how alternative fishing choices should be defined *create_alternative_choice*, calculate the expectation of catch for alternative choices *create_expectations*, and the model design matrix *make_model_design*. The model design matrix is a list containing actual zonal catch, actual zonal choice, the distance matrix (distance from starting point to alternative choice), price data (if needed), and other data such as independent variables and interaction terms. The output from these functions is saved to the fishset_db database. See package documentation for further information on the parameters for these functions.
 
-```{r model-design-file, echo=TRUE}
-create_alternative_choice('pcodMainDataTable', map2, case = "Centroid", contents = 200, haul.trip = "Trip", alt_var = 'centroid',  occasion = 'centroid', 'DEPLOY_LONGITUDE', 'DEPLOY_LATITUDE', lon.grid='', lat.grid='', cat='NMFS_AREA', use.grid = FALSE, hull.polygon =TRUE, remove.na = T, closest.pt = FALSE, griddedDat = NULL, weight.var = NULL, project = 'pcod')
-```
-
-Before running the *expected_catch* function, check whether there is sufficient data to use the desired temporal window for the moving average calculation.
+Use the tembs_obs_table to check for sparsity. Zones with sparse data can be filterd from the data by setting a minimum haul value (min.haul parameter) in the create_alternative_choice function.
 ```{r echo=TRUE}
-temp_obs_table(pcodMainDataTable, map2, x, lon.grid='', lat.grid='', lon.dat='DEPLOY_LONGITUDE', lat.dat='DEPLOY_LATITUDE', cat='NMFS_AREA')
+temp_obs_table(pcodMainDataTable, map2, "DATE_FISHING_BEGAN", lon.grid='', lat.grid='', lon.dat='DEPLOY_LONGITUDE', lat.dat='DEPLOY_LATITUDE', cat='NMFS_AREA')
 ```
 **!!!->>> ADD MORE TEXT HERE ON OUTPUT ONCE DATA HAS BEEN REDONE <<<<-!!!!**
 
-```{r echo=TRUE}
-create_expectations('pcodMainDataTable', 'pcod', map2, catch = 'OFFICIAL_TOTAL_CATCH', temporal = "daily", temp.var = NULL, calc.method = "standard average", lag.method = "simple", empty.catch = NULL, empty.expectation = NULL, temp.window = 1, temp.lag = 1, dummy.exp = FALSE, defineGroup = NULL)
+```{r model-design-file, echo=TRUE}
+create_alternative_choice('pcodMainDataTable', map2, case = "Centroid", min.haul = 200, haul.trip = "Trip", alt_var = 'centroid',  occasion = 'centroid', 'DEPLOY_LONGITUDE', 'DEPLOY_LATITUDE', lon.grid='', lat.grid='', cat='NMFS_AREA', use.grid = FALSE, hull.polygon =TRUE, remove.na = T, closest.pt = FALSE, griddedDat = NULL, weight.var = NULL, project = 'pcod')
+
+create_expectations('pcodMainDataTable', 'pcod', map2, catch = 'OFFICIAL_TOTAL_CATCH', temporal = "daily", temp.var = NULL, calc.method = "standardAverage", lag.method = "simple", empty.catch = NULL, empty.expectation = NULL, temp.window = 1, temp.lag = 1, dummy.exp = FALSE, defineGroup = NULL)
 
 make_model_design('pcodMainDataTable', catchID = "OFFICIAL_TOTAL_CATCH", alternativeMatrix = "loaded data", 'DEPLOY_LONGITUDE', 'DEPLOY_LATITUDE', indeVarsForModel = "", gridVariablesInclude = "", priceCol = NULL, vesselID = NULL, project = 'pcod')
 ```
@@ -189,9 +187,13 @@ The discrete choice model can be run after the model design folder is created. T
 
 ```{r discrete-choice-model, echo=TRUE}
 #RUN MODEL FUNCTIONS
-discretefish_subroutine("pcod", initparams=c(2.5, -.1), optimOpt=c(1000,1.00e-08,1,1), func=logit_c, methodname="BFGS", mod.name='pcod_logitParamSet1', select.model=FALSE)
+#Average catch example
+discretefish_subroutine("pcod", initparams=c(2.5, -.1, 1, -.2, 1, 1, 1, .1), optimOpt=c(1000,1.00e-08,1,1), func=logit_avgcat, methodname="BFGS", mod.name='pcod_avg_cat', select.model=FALSE)
+#conditional logit example
+#discretefish_subroutine("pcod", initparams=c(2.5, -.1), optimOpt=c(1000,1.00e-08,1,1), func=logit_c, methodname="BFGS", mod.name='pcod_logitParamSet1', select.model=FALSE)
 results <- model_out_view("pcodmodelout20190604")
-str(out)
+print(str(results))
+print(results[[1]]$MCM)
 errors <- globalcheck_view("pcodldglobalcheck20190604")
 ```
 
