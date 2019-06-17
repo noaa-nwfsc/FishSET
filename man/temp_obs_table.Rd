@@ -32,6 +32,7 @@ Use this function before calling the create_expectations function to inform choi
 }
 \examples{
 \dontrun{
-temp_obs_table(MainDataTable, map2, "DATE_FISHING_BEGAN", "", "", "LONLAT_START_LONGITUDE", "LONLAT_START_LATITUDE", "NMFS_AREA")
+temp_obs_table(MainDataTable, map2, "DATE_FISHING_BEGAN", "", "", 
+             "LONLAT_START_LONGITUDE", "LONLAT_START_LATITUDE", "NMFS_AREA")
 }
 }

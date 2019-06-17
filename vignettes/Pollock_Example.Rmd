@@ -1,0 +1,241 @@
+---
+editor_options:
+  chunk_output_type: inline
+output:
+  word_document: default
+  html_document: default
+---
+<!-- pdf_document: inst/doc -->
+---
+title: "Pollock Trial"
+output: html_notebook
+---
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = '../') 
+# Or use multiple `../` if needed; 
+# One `../` means go one level up towards the root,
+# here, moving from `scripts` folder to the root `my_project`
+```
+
+This document uses the pollock data set.
+```{r}
+library(FishSET)
+```
+# Data processes
+## Integrate and assess data
+
+```{r}
+load_maindata(read_dat('./data/PollockData.RData', 'R'), over_write = TRUE, project= 'pollock', compare = FALSE, y = NULL)
+load_port(read_dat('./data/port.RData', data.type = 'R'), port_name='PORT', over_write = TRUE, project= 'pollock', compare = FALSE, y = NULL)
+```
+The main data table and the plot file pass the basic tests required for importing a file into the database.
+
+## Investigate and summarize data
+###      Summary statistics
+```{r echo=TRUE}
+data_check('pollockMainDataTable', 'OFFICIAL_TOTAL_CATCH_MT', 'pollockMainDataTableInfo')
+```
+
+      
+###   Identify outliers or data problems
+```{r}
+summary_stats('pollockMainDataTable')  
+outlier_table('pollockMainDataTable', 'HAUL_VALUE_OTHER_DOLLARS')
+```
+   
+###  Divide data into fleets or other groups, where appropriate
+```{r}
+pollockMainDataTable <- ID_var('pollockMainDataTable', 'HAUL_ID','HAUL_DATE')
+pollockMainDataTable <- ID_var(pollockMainDataTable, 'TRIP_ID','DISEMBARKED_PORT', 'DATE_FISHING_BEGAN', 'PERMIT')
+head(pollockMainDataTable)
+collapsedpollock <- haul_to_trip(pollockMainDataTable, 'MainDataTableInfo', min, mean,'TRIP_ID')
+head(collapsedpollock)
+```
+    
+###  Understand fisher and community groups, distributions and heterogeneity
+<!--- Nothing here? --->
+
+###  Spatial summaries
+```{r}
+##!!! Don't run this. Currently an issue with a port in the main table not being in the port table
+#collapsedpollock$TripDistance <- create_trip_distance(collapsedpollock, "pollockPortTable", 'TRIP_ID', 
+#                                'DISEMBARKED_PORT', c("LonLat_START_LON","LonLat_START_LAT"),
+#                                c("LonLat_END_LON","LonLat_END_LAT"), 'EMBARKED_PORT', 'HAUL_ID')
+```
+ More spatial summaries are planned
+ 1) Plot of points on their own
+ 3) Kernel density plot (Allen has working examples)
+```{r KerneldensityGradient, echo=FALSE, fig.cap="Kernel density plot", out.width = '1%'}
+knitr::include_graphics('C:/Users/melanie.harsch/Downloads/gradient2001.png')
+```
+ 
+###Select dataset for analysis
+###Allow export of integrated dataset
+```{r}
+#currently users save the integrated dataset before moving on to modeling. It is part of the 'checking' the data before moving on to modeling.
+# No functions exist to export out to a folder outside the database
+check_model_data(pollockMainDataTable, 'pcodMainDataTableInfo', uniqueID='TRIP_ID')
+```
+
+###Supplement dataset with dummies and other information from within the dataset
+```{r}
+# create a dummy variable
+pollockMainDataTable$dummyvar <- dummy_var(pollockMainDataTable, DumFill=TRUE)
+head(pollockMainDataTable$dummyvar)
+# create dummy matrix
+head(dummy_matrix(pollockMainDataTable, 'PORT_CODE'))
+
+#Add duration variable
+collapsedpollock$TripDur <- create_duration(collapsedpollock, 'FISHING_START_DATE', 'DATE_LANDED',  units='minute')
+
+#CPUE
+collapsedpollock$cpue <- cpue(collapsedpollock, 'OFFICIAL_TOTAL_CATCH_MT', 'TripDur')
+head(collapsedpollock)
+# Dummy matrix in expected catch function
+```
+####Add geospatial information
+```{r}
+# Trip Distance exists but returning an error at the moment
+##!!! Don't run this. Currently an issue with a port in the main table not being in the port table
+#collapsedpollock$TripDistance <- create_trip_distance(collapsedpollock, "pollockPortTable", 'TRIP_ID', 
+#                                'DISEMBARKED_PORT', c("LonLat_START_LON","LonLat_START_LAT"),
+#                                c("LonLat_END_LON","LonLat_END_LAT"), 'EMBARKED_PORT', 'HAUL_ID')
+
+#The following two functions can are called in the create_alt_choice function but can be called on their own 
+#Find centroid of zone or area
+map2 <- read_dat('inst/extdata/nmfs_manage_simple.json', 'shape')
+find_centroid(collapsedpollock, map2, lon.grid='', lat.grid='', lon.dat='LonLat_START_LON', lat.dat='LonLat_START_LAT', cat='NMFS_AREA', weight.var=NULL)
+  
+#Assign vessel to zones
+collapsedpollock <- assignment_column(collapsedpollock, map2, hull.polygon = TRUE, lon.grid='', lat.grid='', lon.dat='LonLat_START_LON', lat.dat='LonLat_START_LAT', cat='NMFS_AREA', closest.pt = FALSE, epsg=NULL)
+```
+Create spatial variables function
+These functions are listed in Asana to be added
+	  port or lat/long   miles/km/meters to or midpoint locations    port or lat/long
+    Moran I and getis Org (hot spot) (kernel density plot to be added here)
+    Spatial summary statistics (+spatial histogram)
+    Haul midpoint
+    Trip centroid (simple and weighted) 
+
+###Items not listed but important
+Check data before moving on to modeling. NA's need to be removed before moving on to modeling.
+```{r echo=TRUE} 
+check_model_data(collapsedpollock, 'pollowMainDataTableInfo', uniqueID='rowID', save.file = FALSE)
+#Remove NA's
+collapsedpollock <- na_filter(collapsedpollock, c('LBS_110_PACIFIC_COD_LBS','LBS_270_POLLOCK_LBS'), replace = F, remove = T)
+#Check data again and save teh final data set to the database
+check_model_data(collapsedpollock, 'pollowMainDataTableInfo', uniqueID='rowID', save.file = TRUE)
+```
+
+# Model selection
+##Choose Model type(s)
+##Choose model and data features
+Eliminate sparse zones?
+What variables are included in each type of model (may not be the same)
+##Expectations models
+
+##Connect biological or other models, as appropriate
+These steps are done through the create_alternative_choice function, the create_expectations function and the make_model_design function
+
+To assess sparsity in zone first run
+```{r}
+temp_obs_table(collapsedpollock, map2, 'FISHING_START_DATE', lon.grid='', lat.grid='', lon.dat='LonLat_START_LON', lat.dat='LonLat_START_LAT', cat='NMFS_AREA')
+```
+From the table, data appears to be sparse in zones, 513, 521,513 and we may want to only include zone with more than 200 hauls.
+We do this in the create_alternative_choice functions by specifying min.haul to 200.
+
+The create_alternative_choice function finds the zone centroids and assigns hauls to zones. The functions calculates the number of hauls within a zone and then, based on min.haul, creates an identifier (0/1) of which observations to include. An observation in a zone with less then the minimum haul number will not be included in the mode. The function calls in any gridded data that the user might want and checks that it can be linked with the main data. The function also establishes how to find lat/lon for starting points and lat/lon for alternative choices. The actual distance matrix is calculated in the make_model_design_function
+```{r}
+create_alternative_choice(collapsedpollock, map2, case = "Centroid", min.haul = 200, haul.trip = "Trip", alt_var = 'centroid',  occasion = 'centroid', 'LonLat_START_LON', 'LonLat_START_LAT', lon.grid='', lat.grid='', cat='NMFS_AREA', use.grid = FALSE, hull.polygon =TRUE, remove.na = T, closest.pt = FALSE, griddedDat = NULL, weight.var = NULL, project = 'pollock')
+```
+
+The expected catch function. Outputs four tables based on the users selections. The difference between each table is how the temporal window (temp.window), is treated. Based on the code below, the vessels will be treated as a fleet (no grouping) for all cases. In the near-term case the moving window size is set to 2 days (temp.window=2), in the medium-term, the moving window size is set to seven days. For the long-term case, the moving window is set to seven days one year prior. In this example, there is only one year of data, so this function would not be calculated.
+```{r}
+create_expectations(collapsedpollock, 'pollock', map2, catch = 'OFFICIAL_TOTAL_CATCH_MT', temporal = "daily", temp.var = NULL, calc.method = "standardAverage", lag.method = "simple", empty.catch = NULL, empty.expectation = NULL, temp.window = 1, temp.lag = 1, dummy.exp = FALSE, defineGroup = NULL)
+```
+
+The model design function creates a table that hold the information that will be used in the model included catch data, choice (which zone was actually fished in for each observation), price data, grid varying data (includes expected catch and other data that varies by grid such as SST), and other explanatory variables.
+```{r}
+make_model_design(collapsedpollock, catchID = "OFFICIAL_TOTAL_CATCH_MT", alternativeMatrix = "loaded data", 'LonLat_START_LON', 'LonLat_START_LAT', indeVarsForModel = "", gridVariablesInclude = "", priceCol = NULL, vesselID = NULL, project = 'pollock')
+```
+
+
+#Run models
+##Based on the Model Selection, run the selected models
+This is in the works. Currently only running one model at a time.
+##Assess convergence
+Returned to screen on to report
+##Gather data on model performance (time, iterations, etc.)
+Time not returned but interations are along with measures of model fit.
+##Store outputs
+Automatically stored in the database 
+
+```{r}
+#Average catch logit
+#Converges but error when calculating inverse hessian
+#results <- discretefish_subroutine("pollock", initparams=c(.5, .1, .5, .2, .4, .3, .6, .1), optimOpt=c(1000,1.00e-010,1,1), func=logit_avgcat, methodname="BFGS", mod.name='pollock_avg_cat_test4', select.model=FALSE)
+#conditional logit example
+#The three predefined expected catch cases result in an error when calculating inverse hessian. The user-defined case works
+results <- discretefish_subroutine("pollock", initparams=c(2.5, -.1), optimOpt=c(1000,1.00e-08,1,1), func=logit_c, methodname="BFGS", mod.name='pcod_logitParamSet1', select.model=FALSE)
+#-- Output stored in results --#
+#View globalcheck output first model 
+globalcheck_view('pollockldglobalcheck20190610')$ldglobalcheck[1:10]
+str(results)
+```
+
+
+#Compare model results
+##Model goodness-of-fit
+```{r}
+table_view("pollockmodelfit")
+```
+##In sample prediction
+##Out-of-sample prediction
+
+#Select model(s) that best captures the dynamic that you believe are important
+```{r ModelSelect, echo=FALSE, fig.cap="Model selection table", out.width = '1%'}
+#Function to open interactive table does not work in a r notebook file. 
+#select_model("pollockmodelfit", overwrite.table=TRUE)
+knitr::include_graphics('C:/Users/melanie.harsch/Pictures/Screenshots/Screenshot (25)')
+
+```
+
+#Report on modeling process and output
+Currently using R Notebook to capture steps, output, and results. 
+##Capture the outputs above 
+###Summary statistics
+###Spatial summaries
+###Overall modeling & data selection process
+###Selected model(s)
+###Results
+
+#Save results and process for updating and replication
+All functions contain code that logs what functions were run and the parameters use.
+```{r LogFile, echo=FALSE, fig.cap="Log file for this notebook file", out.width = '1%'}
+knitr::include_graphics('C:/Users/melanie.harsch/Pictures/Screenshots/LogFile.png')
+```
+ 
+
+#Future
+## Existing Policy Evaluation process 
+A discrete choice model is one element to such an analysis, but there are a variety of methods that we might use to examine the impacts of changes in management.
+Divide data into two periods
+Summarize pre/post data
+
+##Policy scenario analysis Tools
+###Beginning with the best performing model(s)
+###Evaluate possible policies
+  Spatial closures
+  Note: the following are (FUTURE)
+     Integrating bioeconomic models
+     Testing hypotheses of behavioral changes 
+     Catch shares
+###Evaluation metrics
+Welfare impacts
+  Total
+  On designated groups
+Prediction
+
+
+
+

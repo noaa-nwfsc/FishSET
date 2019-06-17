@@ -50,8 +50,8 @@ The database will be empty if this is the first time you have used FishSET.
 This tutorial uses simulated data. The data is stored in the FishSET R package data folder. Use the *read_dat* function to read in the data. The *read_dat* function reads in several data formats including csv, matlab, and shape. Read the function documentation for more information.
 ```{r import-data, echo=TRUE}
 #Main data 
-dat <- read_dat('./data/ExpData.RData', data.type = 'R')
-head(dat)
+ExpData <- read_dat('./data/ExpData.RData', data.type = 'R')
+head(ExpData)
 #Port data
 port <- read_dat('./data/port.RData', data.type = 'R')
 ```
@@ -61,7 +61,7 @@ FishSET requires a primary data file that contains the main data for the model, 
 
 ```{r load-data, echo=TRUE}
 #Load main data into fishset_db database
-load_maindata(dat, over_write = TRUE, project= 'pcod', compare = FALSE, y = NULL)
+load_maindata(ExpData, over_write = TRUE, project= 'pcod', compare = FALSE, y = NULL)
 #Load port data into fishset_db database
 load_port(port, over_write = TRUE, project = 'pcod', compare = FALSE, y = NULL)
 ```
