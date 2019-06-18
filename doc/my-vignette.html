@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="Melanie Harsch" />
+
+<meta name="date" content="2019-03-21" />
+
+<title>Introduction to FishSET</title>
+
+
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#header {
+text-align: center;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Introduction to FishSET</h1>
+<h4 class="author">Melanie Harsch</h4>
+<h4 class="date">2019-03-21</h4>
+
+
+
+<p>The Spatial Economics Toolbox for Fisheries (FishSET) is a set of statistical programming and data management tools developed to achieve the following goals:</p>
+<ol style="list-style-type: decimal">
+<li><p>Standardize data management and organization.</p></li>
+<li><p>Provide easily accessible tools to enable location choice models to provide input to the management of key fisheries.</p></li>
+<li><p>Organize statistical code so that predictions of fisher behavior developed by the field’s leading innovators can be incorporated and transparent to all users.</p></li>
+</ol>
+<p>The FishSET package provides functions for: * Data management * Data Analysis * Mapping * Statistical Modeling</p>
+<div id="data" class="section level2">
+<h2>Data</h2>
+<p>There are 5 types of data files that can be imported into FishSET</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">File Type</th>
+<th align="center">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Main data</td>
+<td align="center">Required file that contains the main data for the model</td>
+</tr>
+<tr class="even">
+<td align="left">Port data</td>
+<td align="center">Required file with the latitude and longitude locations of ports</td>
+</tr>
+<tr class="odd">
+<td align="left">Gridded data</td>
+<td align="center">Optional file that contains any variable to connect to the data set that varies by two dimensions, one of which must be the map grid</td>
+</tr>
+<tr class="even">
+<td align="left">Auxilliary data</td>
+<td align="center">Optional file that contains additional data to link to the data set</td>
+</tr>
+<tr class="odd">
+<td align="left">Seaonal data</td>
+<td align="center">Optional file that contains additional data on fishery seasons that can be linked to the main data set</td>
+</tr>
+</tbody>
+</table>
+<p>FishSET will accept several data formats including: * csv files * txt files * json files * matlab files<br />
+* shape files * spss files * R files</p>
+<p>Use the read.dat function to read in these files.</p>
+<div id="data-import-and-saving-functions" class="section level3">
+<h3>Data import and saving functions</h3>
+<p>Data are saved in the sqlite database, fishset_db.</p>
+<p>Data can be imported and saved into the database using: * read.dat Import data into R from several formats * load_maindata Saves the main dataset into the database and generates the main data table information table. Both tables are saved in the fishset database. * load_port Checks that latitude and longitude and port identification are defined. Saves the table in the fishset database. * load_aux Checks that latitude and longitude are defined. Saves the table in the fishset database. * load_seasonal Checks that a date variable is defined. Saves the table in the fishset database.</p>
+<p>Once data are saved in the fishset_db database, they can be accessed and viewed using: * tablesDatabase() View tables in the fishset_db database * tableFields(x) View fields in the table (here table x) * tableFields(x) View table x from the fishset_db database</p>
+</div>
+<div id="data-management-functions" class="section level3">
+<h3>Data management functions</h3>
+<p>Data management functions provide tools for visualizing the data:<br />
+* summary_stats Checking for outliers:<br />
+* outlier_check * outlier_table * outlier_plot * outlier_remove Checking for NaNs * nan_filter * nan_idenitfy Further filtering * filter_data * filter_dat Running multiple functions * data_check * data_verification * check_model_data</p>
+<p>The data_check function calls several data management functions including, summary_stats, nan_identify, outlier_table, outlier_plot, and data_verification. The nan_identify and two outlier functions are meant to aid in identifying whether outlying points occur in the dataset and identify the occurrence of NaNs in the dataset. Outliers can be removed with outlier_remove. NaNs can be removed with nan_filter.</p>
+<p>Further filtering of the data can be accomplished using the filter_data and filter_dat functions. The filter_data functions allows users define and save filter functions as a table.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">dataframe</th>
+<th align="center">vector</th>
+<th align="left">FilterFunction</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">MainDataTable</td>
+<td align="center">“PORT_CODE”</td>
+<td align="left">PORT_CODE==1</td>
+</tr>
+<tr class="even">
+<td align="left">MainDataTable</td>
+<td align="center">“TRIP_START”</td>
+<td align="left">TRIP_START &gt;= 2011-02-01</td>
+</tr>
+<tr class="odd">
+<td align="left">Port data</td>
+<td align="center">“LATITUDE”</td>
+<td align="left">LATITUDE&lt;57</td>
+</tr>
+</tbody>
+</table>
+<p>The filter functions can then be called and applied to the data using the filter_dat function.</p>
+<p>The data_verification function runs more general checks on the dataset at the time that the data is loaded into FishSET, including that all columnn names in the dataset are unique, that specialized variables have been identified in the index dataset, that no columns in the dataset are empty, that units are defined and recognized, that each row is a unique choice occurrence at the haul or trip level, and that data for either lat/long or fishing area are included.</p>
+<p>The check_model_data function checks that the dataset meets several requirements, including no NA’s and INF values in the data, that each row is a unique occurrence at the haul or trip level.</p>
+<p>It is recommended that users begin by running the data_check. It is recommended to run the check_model_data function before moving on to the modeling functions. There are several data creation functions that users may which to run before moving on to generating models.</p>
+</div>
+<div id="data-creation-functions" class="section level3">
+<h3>Data creation functions</h3>
+<p>Several functions exist that allow users to modify or create vectors and matrices. These functions are useful to ensure date vectors are in the correct format, to generate rate variables (such as catch/hours fished), calculating more complex variables such as trip distance, and adding variance to confidential data.</p>
+<p>Functions that modify vectors focus on * temp_mod: transforms a date variable into desired units (year, month, month/day, minutes) * set_quants: generating a coded variable based on the quantiles of selected variable. This function is especially useful for handling confidential data.</p>
+<p>Functions to create nominal ID variables. * ID_var: creates a nominal variable to indicate distinct hauls or trips * create_seasonal_ID: creates a fishery season identifier (TRUE/FALSE)</p>
+<p>Create vectors * create_var_num: creates a new numeric variable based on defined arithmetic function of two variables () * create_var_temp: calculates the duration of time between two temporal variables based on defined time format. * cpue: creates catch per unit effort variable * dummy_var: creates a vector of TRUE or FALSE the length of the dataset * dummy_matrix: creates a matrix with same dimensions at the dataset filled with TRUE or FALSE</p>
+<ul>
+<li><p>haul_to_trip Collapse the dataframe from haul to trip.</p></li>
+<li><p>trip_distance Summation of distance across a trip based on choices by the user for starting and ending ports, and hauls in between.</p></li>
+</ul>
+</div>
+</div>
+<div id="mapping-functions" class="section level2">
+<h2>Mapping functions</h2>
+<p>Mapping functions are in development</p>
+</div>
+<div id="modeling-functions" class="section level2">
+<h2>Modeling functions</h2>
+<p>FishSET requires two sets for modeling, 1) create a model design file and 2) run model with selected likelihood function and parameters</p>
+<p>###Create model desing functions The following functions are called indirectly * assignment_column: assigns each observation (row) in the dataset to a zone based on Latitude and Longitude * find_centroid: returns the center of a zone or area based on set of latitude and longitudes</p>
+<p>The following functions should be called in the order listed: * create_alternative_choice: creates the alternative choice matrix. Calls the assignment_column and find_centroid functions * create_expectations: create an expectation of catch for alternative choices that are added to the model design file * make_model_design: creates the model design file that contains data to be used in the model runs</p>
+<p>###Run model functions<br />
+The following funcitons are called indirectly * shift_sort_x: shifts choices so that the chosen zone will be automatically the first one * create_logit_input: creates a data matrix that is consistent with the built in model forms</p>
+<p>Multiple likelihood function have been written. Users can alsowrite their own likelihood functions. * logit_c * logit_avgcat * epm_normal * epm_lognormal * epm_weibull</p>
+<p>Running models *discrete_fish_subroutine: Runs model based on data designed in make_model_design and defined likelihood function.</p>
+<p>Viewing * select_model: open an interactive table displaying model fit and model comparison measures</p>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
