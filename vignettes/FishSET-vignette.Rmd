@@ -154,6 +154,9 @@ Data management functions provide tools for:
   Visualizing the data 
   
      summary_stats    Returns a tables with basic summary statistics for all variables in data table.
+     spatial_hist     Returns historgram of latitude and longitude by grouping variable.
+     spatial_summary  Returns line plots of selected variable against date and zone.
+     
   Checking for outliers  
   
      outlier_table    Returns table with quantiles for all numeric variables in the data table
@@ -221,6 +224,11 @@ Several functions exist that allow users to modify or create vectors and matrice
      cpue             Catch per unit effort.
      dummy_var        Vector of TRUE or FALSE the length  (rows) of the data set. 
      dummy_matrix     Matrix with same dimensions at the data set filled with TRUE or FALSE.
+     
+  Create spatial variables:
+  
+    create_dist_between Distance between lat/long points, port, and/or centroid of fishing zone/area
+    create_mid_haul     Returns the midpoint location (lon/lat) for each haul
 
 
   Trip level data and variables: 
@@ -239,6 +247,9 @@ Before moving on, it is recommended that users run the `check_model_data` functi
 ## Mapping functions
 
 Mapping functions are in development
+
+    map_kernel  Kernel density (hotspot) plots
+ 
 
 ## Modeling functions
 For modeling, FishSET requires creating a model design file and then selecting the likelihood function and parameters.

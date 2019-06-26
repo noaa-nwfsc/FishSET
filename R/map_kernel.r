@@ -3,15 +3,17 @@ map_kernel <- function(type, latlon, group = NULL, facet = FALSE, minmax = NULL)
     #'
     #' Wrapper function to map kernel densities using ggplot2
     #'
-	#' @param type Type of plot ("point", "contours", "gradient"). Note if you have a group, you must facet when choosing "gradient"
-	#' (cannot overlap polygons clearly).
+	  #' @param type Type of plot ("point", "contours", "gradient"). Note if you have a group, you must facet when choosing "gradient"
+	  #' (cannot overlap polygons clearly).
     #' @param latlon A matrix of (# of observations) x 2 corresponding to latitude/longitude pair coordinates in decimal degrees.
     #' @param group Optional group parameter if user maps based on a factor group. Should be a factor with length of (# of observations), 
-	#' where each observation corresponds to the latlon coordinate of the same index. Recall that the legend will output the names of
-	#' factor levels as you have named them. (See ?factor).
+	  #' where each observation corresponds to the latlon coordinate of the same index. Recall that the legend will output the names of
+	  #' factor levels as you have named them. (See ?factor).
     #' @param facet Optional facet parameter if user maps each group as a separate facet ("TRUE", "FALSE"), default = "FALSE".
-	#' @param facet Optional map extent parameter, a vector (num) of length 4 corresponding to c(minlat, maxlat, minlon, maxlon).
+	  #' @param facet Optional map extent parameter, a vector (num) of length 4 corresponding to c(minlat, maxlat, minlon, maxlon).
     #' @return mapout: ggplot2 object
+    #' @import ggplot2
+    #' @importFrom maps map_data
     #' @export
     #' @examples
 	#' type <- "contours"
@@ -29,7 +31,9 @@ map_kernel <- function(type, latlon, group = NULL, facet = FALSE, minmax = NULL)
 	#' 
 	
 ## currently outputs to FishSET not file (could include dirout as argument)
-
+library('ggplot2')
+world <- map_data('world')
+  
 datatomap <- as.data.frame(latlon)
 colnames(datatomap) <- c("lat", "lon")
 datatomap$groupv <- group
@@ -82,16 +86,16 @@ if (is.null(group) == FALSE & facet == FALSE) {
 
 mapout <- ggplot() +
 geom_map(data=world, map=world, aes(x=long, y=lat, map_id=region),fill="grey", color="black", size=0.375) +
-geom_point(data=datatomap,aes(x=lon,y=lat, colour = groupv), size=0.375, alpha = 0.25) +
+  ggplot2::geom_point(data=datatomap,aes(x=lon,y=lat, colour = groupv), size=0.375, alpha = 0.25) +
 xlim(minlon,maxlon) + ylim(minlat,maxlat) +
-ggtitle("Points") + guides(colour = guide_legend(override.aes = list(size=10))) +
+  ggtitle("Points") + guides(colour = guide_legend(override.aes = list(size=10))) +
 theme(text = element_text(size=20), axis.title.y=element_text(vjust=1.5),legend.title=element_blank()) + xlab("Longitude") + ylab("Latitude")
 
 return(mapout)
 
 } else if (is.null(group) == FALSE & facet == TRUE) {
 
-mapout <- ggplot() +
+  mapout <- ggplot() +
 geom_map(data=world, map=world, aes(x=long, y=lat, map_id=region),fill="grey", color="black", size=0.375) +
 geom_point(data=datatomap,aes(x=lon,y=lat, colour = groupv), size=0.375) +
 xlim(minlon,maxlon) + ylim(minlat,maxlat) +
@@ -168,8 +172,8 @@ stop("Cannot overlap gradients please facet or use contours")
 } else if (is.null(group) == FALSE & facet == TRUE) {
 
 mapout <- ggplot() +
-geom_map(data=world, map=world, aes(x=long, y=lat, map_id=region),fill="grey", color="black", size=0.375) +
-geom_point(data=datatomap,aes(x=lon,y=lat, colour = groupv), color="black", size=0.375) +
+  geom_map(data=world, map=world, aes(x=long, y=lat, map_id=region),fill="grey", color="black", size=0.375) +
+  geom_point(data=datatomap,aes(x=lon,y=lat, colour = groupv), color="black", size=0.375) +
 stat_density_2d(data=datatomap, aes(x=lon,y=lat, fill = stat(level)), geom = "polygon")+
 xlim(minlon,maxlon) + ylim(minlat,maxlat)+
 facet_wrap(.~groupv) +
@@ -182,8 +186,8 @@ return(mapout)
 } else {
 
 mapout <- ggplot() +
-geom_map(data=world, map=world, aes(x=long, y=lat, map_id=region),fill="grey", color="black", size=0.375) +
-geom_point(data=datatomap,aes(x=lon,y=lat), color="black", size=0.375) +
+  geom_map(data=world, map=world, aes(x=long, y=lat, map_id=region),fill="grey", color="black", size=0.375) +
+  geom_point(data=datatomap,aes(x=lon,y=lat), color="black", size=0.375) +
 stat_density_2d(data=datatomap, aes(x=lon,y=lat, fill = stat(level)), geom = "polygon")+
 xlim(minlon,maxlon) + ylim(minlat,maxlat)+
 scale_fill_gradient(name="Level\n(density)") +

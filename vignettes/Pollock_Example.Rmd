@@ -203,8 +203,14 @@ knitr::include_graphics('C:/Users/melanie.harsch/Pictures/Screenshots/Screenshot
 #Report on modeling process and output
 Currently using R Notebook to capture steps, output, and results. 
 ##Capture the outputs above 
+
 ###Summary statistics
 ###Spatial summaries
+```{r KernelDensityPlot, echo=FALSE, fig.cap="", out.width = '1%'}
+map_kernel('gradient', dat[,c('LonLat_START_LAT', 'LonLat_START_LON')], group=NULL, minmax=NULL)
+```
+#Select model(s) that best captures the dynamic that you believe are important
+  
 ###Overall modeling & data selection process
 ###Selected model(s)
 ###Results

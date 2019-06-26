@@ -153,6 +153,24 @@ pcodMainDataTable <- na_filter(pcodMainDataTable, c('DEPLOYMENT_DATE','DATESTART
 check_model_data(pcodMainDataTable, 'pcodMainDataTableInfo', uniqueID='rowID', save.file = TRUE)
 ```
 
+## Spatial functions
+```{r KernelDensityPlot, echo=FALSE, fig.cap="", out.width = '1%'}
+map_kernel('gradient', pcodMainDataTable[,c('DEPLOY_LATITUDE', 'DEPLOY_LONGITUDE')], group=NULL, minmax=NULL)
+# This function returns the lat/long of the haul midpoint.
+# The example data does not have lat and long for both start and end points of the haul so we cannot calculate it in this example.
+pcodMainDataTable$haulmid <- create_mid_haul(pcodMainDataTable, c('DEPLOY_LATITUDE', 'DEPLOY_LONGITUDE'), end='')
+# Plot historgram of lat/long split by grouping variables
+spatial_hist(pcodMainDataTable, 'GEAR_TYPE')
+# Spatial summary statistics plot
+spatial_summary(pcodMainDataTable, stat.var='mean', variable='OFFICIAL_TOTAL_CATCH', map2, '', '', 'LonLat_START_LON', 'LonLat_START_LAT', 'NMFS_AREA')
+
+```
+
+Additional spatial functions that cannot be run with this dataset:
+
+  create_mid_haul  Calculate midpoint of a haul
+  This function cannot be run because the example dataset 
+
 ## Modeling functions
 
 Need shape file for assigning fishing area centroids and assigning fishing occurrences to fishing areas.
