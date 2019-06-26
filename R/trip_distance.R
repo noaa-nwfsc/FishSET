@@ -21,7 +21,7 @@
 #'  \url{https://cran.r-project.org/web/packages/geosphere/geosphere.pdf}.
 #' @examples
 #' \dontrun{
-#'  MainDataTable$TripDistance <- create_trip_distance(MainDataTable, PortTable, 'TRIP_SEQ', 
+#'  MainDataTable$TripDistance <- create_trip_distance(MainDataTable, pollockPortTable, 'TRIP_SEQ', 
 #'                                'DISEMBARKED_PORT', c("LonLat_START_LON","LonLat_START_LAT"),
 #'                                c("LonLat_END_LON","LonLat_END_LAT"), 'EMBARKED_PORT', 'HAUL_SEQ')
 #'  }
@@ -95,8 +95,8 @@ create_trip_distance <- function(dat, PortTable, trip_id, starting_port, startin
   portLLE <- data.frame(matrix(NA, nrow = length(dataset[[endPort]][portEndidx]), ncol = 2))  #
                   a <- sapply(trimws(dataset[[startPort]][portStartidx]), 
                          function(x) port.table[which(port.table[['Port_Name']] == x), "Port_Long"])
-                  a[lengths(a) == 0] <- NA_character_
-  portLLS[, 1] <- unlist(a)
+                  #a[lengths(a) == 0] <- NA_character_
+  portLLS[, 1] <- as.numeric(a) #unlist(a)
   portLLS[, 2] <- sapply(trimws(dataset[[startPort]][portStartidx]), 
                          function(x) port.table[which(port.table[['Port_Name']] == x), "Port_Lat"])
   portLLE[, 1] <- sapply(trimws(dataset[[endPort]][portEndidx]), 
