@@ -20,6 +20,7 @@ explore_startparams <- function(space,startsr,dev,func,catch,choice,distance,oth
 #' savestarts - Starting value permuations (corresponding to each saved likelihood value) \cr 
 #' @export
 #' @examples
+#' \dontrun{
 #' data(zi)
 #' data(catch)
 #' data(choice)
@@ -47,7 +48,7 @@ explore_startparams <- function(space,startsr,dev,func,catch,choice,distance,oth
 #' results$newstart
 #' min(unlist(results$saveLLstarts))
 #' match(min(unlist(results$saveLLstarts)),unlist(results$saveLLstarts))
-#'
+#' }
 
 fr <- func #e.g. clogit
 

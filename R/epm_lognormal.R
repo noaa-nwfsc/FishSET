@@ -29,6 +29,7 @@ epm_lognormal <- function(starts3, dat, otherdat, alts, project, expname, mod.na
     #' @return ld: negative log likelihood
     #' @export
     #' @examples
+    #' \dontrun{
 	#' data(zi)
 	#' data(catch)
 	#' data(choice)
@@ -54,8 +55,7 @@ epm_lognormal <- function(starts3, dat, otherdat, alts, project, expname, mod.na
 	#' func <- epm_lognormal
 	#' 
 	#' results <- discretefish_subroutine(catch,choice,distance,otherdat,initparams,optimOpt,func,methodname)
-	#'
-	
+	#' }	
 	griddat <- as.matrix(do.call(cbind, otherdat$griddat))
     intdat <- as.matrix(do.call(cbind, otherdat$intdat))
 	

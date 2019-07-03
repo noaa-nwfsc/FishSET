@@ -28,6 +28,7 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
     #' @return ld: negative log likelihood
     #' @export
     #' @examples
+    #' \dontrun{
 	#' data(zi)
 	#' data(catch)
 	#' data(choice)
@@ -48,7 +49,7 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
 	#' func <- logit_avgcat
 	#' 
 	#' results <- discretefish_subroutine(catch,choice,distance,otherdat,initparams,optimOpt,func,methodname)
-	#'
+	#' }
 	
 	griddat <- as.matrix(do.call(cbind, otherdat$griddat))
     intdat <- as.matrix(do.call(cbind, otherdat$intdat))
