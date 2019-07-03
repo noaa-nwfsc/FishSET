@@ -6,7 +6,7 @@
 \usage{
 make_model_design(dat, catchID, alternativeMatrix = c("loadedData",
   "griddedData"), lon.dat, lat.dat, project, indeVarsForModel = NULL,
-  gridVariablesInclude = NULL, priceCol = NULL, vesselID = NULL)
+  gridVariablesInclude = NULL, priceCol = NULL)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
@@ -26,8 +26,6 @@ make_model_design(dat, catchID, alternativeMatrix = c("loadedData",
 \item{gridVariablesInclude}{list List data set that varies over a grid to include in the model using `c()`.}
 
 \item{priceCol}{NULL If required, specify which variable contains price data.}
-
-\item{vesselID}{NULL If required, specify which varible defines individual vessels.}
 }
 \value{
 Model design matrix containing \cr

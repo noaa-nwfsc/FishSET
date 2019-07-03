@@ -8,7 +8,7 @@
 #' @param indeVarsForModel list List columns names of independent variables to include in the model using `c()`.
 #' @param gridVariablesInclude list List data set that varies over a grid to include in the model using `c()`. 
 #' @param priceCol NULL If required, specify which variable contains price data.
-#' @param vesselID NULL If required, specify which varible defines individual vessels.
+# @param vesselID NULL If required, specify which variable defines individual vessels.
 #' @param project name. name of project. For name of output table saved in sql database
 #' @importFrom geosphere distm
 #' @importFrom DBI dbGetQuery dbExecute
@@ -43,7 +43,7 @@
 
 
 make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", "griddedData"), lon.dat, lat.dat, project, 
-                               indeVarsForModel = NULL, gridVariablesInclude = NULL, priceCol = NULL, vesselID = NULL) {
+                               indeVarsForModel = NULL, gridVariablesInclude = NULL, priceCol = NULL) {
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   if(is.character(dat)==TRUE){
@@ -276,15 +276,15 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   
   
   # some models need vessel ID } !isfield(data,'vesselID')){
-  if (is.null(vesselID) & any(grepl("vesselID", names(dataset), ignore.case = T)) == F) {
-    warning("ModelInputData matrix generated but Vessel ID not found. Rerun if Vessel ID is needed for models.")
-  } else {
-    if (!is.null(vesselID)) {
-      vesselID <- dataset[which(dataZoneTrue == 1), vesselID]
-    } else {
-      vesselID <- dataset[which(dataZoneTrue == 1), "vesselID"]  #data([data.vesselID]).dataColumn(dataZoneTrue)   
-    }
-  }
+ # if (is.null(vesselID) & any(grepl("vesselID", names(dataset), ignore.case = T)) == F) {
+ #   warning("ModelInputData matrix generated but Vessel ID not found. Rerun if Vessel ID is needed for models.")
+ # } else {
+ #   if (!is.null(vesselID)) {
+ #     vesselID <- dataset[which(dataZoneTrue == 1), vesselID]
+ #   } else {
+ #     vesselID <- dataset[which(dataZoneTrue == 1), "vesselID"]  #data([data.vesselID]).dataColumn(dataZoneTrue)   
+ #   }
+ # }
   
   # Some models need price data
   if (!is.null(priceCol)) {
@@ -321,15 +321,28 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
                          # bInterAct = bInterAct, 
                           gridVaryingVariables = ExpectedCatch)
   
+  
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   single_sql <- paste0(project, 'modelinputdata')
   date_sql <- paste0(project, 'modelinputdata', format(Sys.Date(), format="%Y%m%d"))
+  if(table_exists(single_sql)){
+    modelInputData <- table_view()
+    single_sql[[length(single_sql)+1]] <- list(name=expname,errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
+                                           seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table=choice.table)
+  } else {
+    modelInputData <-  list()
+    modelInputData[[length(modelInputData)+1]] <- list(name=expname,errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
+                                           seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table=choice.table)
+  }
+
+  single_sql <- paste0(project, 'modelinputdata')
   if(table_exists(single_sql)){
     table_remove(single_sql)
   } 
   if(table_exists(date_sql)){
     table_remove(date_sql)
   }
+  
   DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(ModelInputData MODELINPUTDATA)"))
   DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:ModelInputData)"), 
                  params = list(ModelInputData = list(serialize(modelInputData, NULL))))
@@ -355,7 +368,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   make_model_design_function <- list()
   make_model_design_function$functionID <- 'make_model_design'
   make_model_design_function$args <- c(deparse(substitute(dat)), catchID, alternativeMatrix, lon.dat, lat.dat, project)
-  make_model_design_function$kwargs <- list('indeVarsForModel'=indeVarsForModel, 'gridVariablesInclude'=gridVariablesInclude, 'priceCol'=priceCol, 'vesselID'=vesselID)
+  make_model_design_function$kwargs <- list('indeVarsForModel'=indeVarsForModel, 'gridVariablesInclude'=gridVariablesInclude, 'priceCol'=priceCol)
   make_model_design_function$output <- c('')
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (make_model_design_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
