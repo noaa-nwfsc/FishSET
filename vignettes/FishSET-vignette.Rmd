@@ -92,7 +92,7 @@ In this example, the user must provide the `project` parameter in the function c
 
 When data is loaded into R using the data import functions (see below), a raw and working table is saved (`pcodMainDataTable20190419`, `pcodMainDataTable`). Any cleaning and analysis to the data are done on the working table. Tables associated with model runs are also created, including the model design file and model output tables. Again, these are saved with the project name preceding the default table name followed by the date it was created.
 
-Function calls are saved in dated files in the log folder. The log files saves the function name, the parameter values, including input data, and output. It is important to use the naming convention for tables saved to the SQL database. For instance,  use `pcodMainDataTable` rather than ambiguous names such as `dat`. Using the database naming conventions allows for easier recognition of the data and project along with ability to rerun the function using the log file. Note that the list of function calls is reset when either the FishSET library is closed or the R session is closed. Thus, although a new log file will be created each day that FishSET functions are called, the new function calls will be added to the list of function called and saved the previous day. This is useful if the users is working on a project over multiple days but wants to keep all function calls within a single file. To reset the function list saved to the log file, use `log_reset()`.
+Function calls are saved in dated files in the log folder. The log files saves the function name, the parameter values, including input data, and output. It is important to use the naming convention for tables saved to the SQL database. For instance,  use `pcodMainDataTable` rather than ambiguous names such as *dat*. Using the database naming conventions allows for easier recognition of the data and project along with ability to rerun the function using the log file. Note that the list of function calls is reset when either the FishSET library is closed or the R session is closed. Thus, although a new log file will be created each day that FishSET functions are called, the new function calls will be added to the list of function called and saved the previous day. This is useful if the users is working on a project over multiple days but wants to keep all function calls within a single file. To reset the function list saved to the log file, use `log_reset()`.
 
 ## Data
 There are five types of data files that can be imported into FishSET. All optional data files must be able to be linked to the primary data file.
@@ -176,6 +176,10 @@ Data management functions provide tools for:
      data_check        Calls the summary stats, outlier, and nan functions.
      data_verification Checks for unique column names, each row is a unique choice occurrence, etc.
      check_model_data  Checks for presence of NAs, NaNs and Inf in model data. 
+  Other helpful functions
+     
+     degree            Convert lat/long to decimal format
+  
 
 
 

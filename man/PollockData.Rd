@@ -1,9 +1,9 @@
 \name{PollockData}
 \docType{data}
-\alias{pollockData}
+\alias{PollockData}
 \title{Pollock data}
 \description{
-  Data for pollow
+  Data for pollock
 }
 \usage{data(PollockData)}
 \format{Data frame }

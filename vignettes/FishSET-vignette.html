@@ -195,7 +195,7 @@ $(document).ready(function () {
 <!-- word_document: inst/doc -->
 <div id="section" class="section level2">
 <h2><!--   pdf_document: inst/doc --></h2>
-<p>title: “Introduction to FishSET” author: “Melanie Harsch” date: “2019-05-28” output: rmarkdown::html_vignette</p>
+<p>title: “Introduction to FishSET” author: “Melanie Harsch” date: “2019-07-02” output: rmarkdown::html_vignette</p>
 <p>vignette: | % %<br />
 % —</p>
 <p>The Spatial Economics Toolbox for Fisheries (FishSET) is a set of statistical programming and data management tools developed to achieve the following goals:</p>
@@ -254,7 +254,7 @@ DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTableInfo', Sys.Date()), 
 DBI::dbDisconnect(fishset_db)</code></pre>
 <p>In this example, the user must provide the <code>project</code> parameter in the function call. Because all data and function calls are saved, it is important to distinguish between projects and/or years. Function calls that call or save data have a <code>project</code> parameter. For example, in the SQL database we could have two primary data tables called <code>pcodMainDataTable</code> and <code>salmonMainDataTable</code> where the project was pcod and salmon respectively. The project can be any descriptive string such as fishery name, location, year, a combination of these, etc.</p>
 <p>When data is loaded into R using the data import functions (see below), a raw and working table is saved (<code>pcodMainDataTable20190419</code>, <code>pcodMainDataTable</code>). Any cleaning and analysis to the data are done on the working table. Tables associated with model runs are also created, including the model design file and model output tables. Again, these are saved with the project name preceding the default table name followed by the date it was created.</p>
-<p>Function calls are saved in dated files in the log folder. The log files saves the function name, the parameter values, including input data, and output. It is important to use the naming convention for tables saved to the SQL database. For instance, use <code>pcodMainDataTable</code> rather than ambiguous names such as <code>dat</code>. Using the database naming conventions allows for easier recognition of the data and project along with ability to rerun the function using the log file. Note that the list of function calls is reset when either the FishSET library is closed or the R session is closed. Thus, although a new log file will be created each day that FishSET functions are called, the new function calls will be added to the list of function called and saved the previous day. This is useful if the users is working on a project over multiple days but wants to keep all function calls within a single file. To reset the function list saved to the log file, use <code>log_reset()</code>.</p>
+<p>Function calls are saved in dated files in the log folder. The log files saves the function name, the parameter values, including input data, and output. It is important to use the naming convention for tables saved to the SQL database. For instance, use <code>pcodMainDataTable</code> rather than ambiguous names such as <em>dat</em>. Using the database naming conventions allows for easier recognition of the data and project along with ability to rerun the function using the log file. Note that the list of function calls is reset when either the FishSET library is closed or the R session is closed. Thus, although a new log file will be created each day that FishSET functions are called, the new function calls will be added to the list of function called and saved the previous day. This is useful if the users is working on a project over multiple days but wants to keep all function calls within a single file. To reset the function list saved to the log file, use <code>log_reset()</code>.</p>
 </div>
 <div id="data" class="section level2">
 <h2>Data</h2>
@@ -315,13 +315,20 @@ DBI::dbDisconnect(fishset_db)</code></pre>
 <p>Once data are saved in the fishset_db database, they can be accessed and viewed using:</p>
 <pre><code> tables_database() View tables in the fishset_db database.
  table_fields(x)   View fields in table x.
- table_view(x)     View table x from the fishset_db database.</code></pre>
+ table_view(x)     View table x from the fishset_db database.
+ </code></pre>
+<p>Model output files can be view in the fishset_db database using:</p>
+<pre><code> globalcheck_view(table)  View error output generated from discrete choice models
+ model_out_view(table)    View output from discrete choice models for models that converged</code></pre>
 </div>
 <div id="data-management-functions" class="section level3">
 <h3>Data management functions</h3>
 <p>Data management functions provide tools for:</p>
 <p>Visualizing the data</p>
-<pre><code> summary_stats    Returns a tables with basic summary statistics for all variables in data table.</code></pre>
+<pre><code> summary_stats    Returns a tables with basic summary statistics for all variables in data table.
+ spatial_hist     Returns historgram of latitude and longitude by grouping variable.
+ spatial_summary  Returns line plots of selected variable against date and zone.
+ </code></pre>
 <p>Checking for outliers</p>
 <pre><code> outlier_table    Returns table with quantiles for all numeric variables in the data table
  outlier_plot     Returns a plot of the selected variable.
@@ -337,6 +344,8 @@ DBI::dbDisconnect(fishset_db)</code></pre>
 <pre><code> data_check        Calls the summary stats, outlier, and nan functions.
  data_verification Checks for unique column names, each row is a unique choice occurrence, etc.
  check_model_data  Checks for presence of NAs, NaNs and Inf in model data. </code></pre>
+<p>Other helpful functions</p>
+<pre><code> degree            Convert lat/long to decimal format</code></pre>
 <p>The data_check function calls several data management functions including, <code>summary_stats</code>, <code>nan_identify</code>, <code>outlier_table</code>, <code>outlier_plot</code>, and <code>data_verification</code>. The <code>nan_identify</code> and two outlier functions are meant to aid in identifying whether outlying points occur in the data set and identify the occurrence of NaNs in the data set. Outliers can be removed with <code>outlier_remove</code>. NaNs can be removed with <code>nan_filter</code>.</p>
 <p>Further filtering of the data can be accomplished using the <code>filter_table</code> and <code>filter_dat</code> functions. The <code>filter_table</code> functions allows users define and save filter functions as a table.</p>
 <table>
@@ -384,7 +393,11 @@ DBI::dbDisconnect(fishset_db)</code></pre>
  create_var_temp  Duration of time between two temporal variables based on defined time format.
  cpue             Catch per unit effort.
  dummy_var        Vector of TRUE or FALSE the length  (rows) of the data set. 
- dummy_matrix     Matrix with same dimensions at the data set filled with TRUE or FALSE.</code></pre>
+ dummy_matrix     Matrix with same dimensions at the data set filled with TRUE or FALSE.
+ </code></pre>
+<p>Create spatial variables:</p>
+<pre><code>create_dist_between Distance between lat/long points, port, and/or centroid of fishing zone/area
+create_mid_haul     Returns the midpoint location (lon/lat) for each haul</code></pre>
 <p>Trip level data and variables:</p>
 <pre><code> haul_to_trip   Collapse the data table from haul to trip.
  trip_distance  Summed distance across trip defined by start and end ports and hauls in between.</code></pre>
@@ -397,11 +410,13 @@ DBI::dbDisconnect(fishset_db)</code></pre>
 <div id="mapping-functions" class="section level2">
 <h2>Mapping functions</h2>
 <p>Mapping functions are in development</p>
+<pre><code>map_kernel  Kernel density (hotspot) plots</code></pre>
 </div>
 <div id="modeling-functions" class="section level2">
 <h2>Modeling functions</h2>
 <p>For modeling, FishSET requires creating a model design file and then selecting the likelihood function and parameters. Output from each model run is saved as two tables. A model comparison metric table saves AIC, AICc, BIC, PseudoR2. A model output table saves the full output from the model run including parameter estimates.</p>
-<p>() Often it is desirable to compare output from different likelihood functions and/or alternate iterations of the data. In these cases, it is advised that users first run all desired likelihood functions before creating a new model design file. Descriptive model names are essential for identifying the different choices in the model output. More details are provided in the <code>Run Models</code> section below.</p>
+<p>() The create_expectations functions has three default cases that are generated along with a user-defined case. The near-term case uses uses the previous two days catch, the medium-term cases uses the previous seven days catch, and the longer-term uses the prevous seven days catch from one year prior. A user-defined case is also generated. Prior to running the create_expectations function, check that sufficient data exists for the desired moving window size using the temp_obs_table function. Shorter moving windows and temporal lags may result in numerous missing expected catch values if temporal data is sparse. All parameters defined in the create_expectations function call outside of window size and temporal lag size are applied to the three default cases and the user-defined case.</p>
+<p>Often it is desirable to compare output from different likelihood functions and/or alternate iterations of the data. In these cases, it is advised that users first run all desired likelihood functions before creating a new model design file. Descriptive model names are essential for identifying the different choices in the model output. More details are provided in the <code>Run Models</code> section below.</p>
 <div id="create-model-design-functions" class="section level3">
 <h3>Create model design functions</h3>
 <p>The following functions are called indirectly</p>
@@ -409,6 +424,7 @@ DBI::dbDisconnect(fishset_db)</code></pre>
  find_centroid      Returns the center of a zone or area based on set of latitude and longitudes. </code></pre>
 <p>The following functions should be called in the order listed.</p>
 <pre><code>create_alternative_choice Alternative choice matrix. Calls assignment_column and find_centroid functions.
+temp_obs_table            View number of observations by year, month, and zone.
 create_expectations       Expectation of catch for alternative choices.
 make_model_design         Model design file that contains data to be used in the model runs.</code></pre>
 </div>
@@ -428,7 +444,9 @@ make_model_design         Model design file that contains data to be used in the
 <p>Running models</p>
 <pre><code>discrete_fish_subroutine Runs model based on model design file and defined likelihood function.</code></pre>
 <p>Viewing</p>
-<pre><code>select_model Open an interactive table displaying model fit and model comparison measures.</code></pre>
+<pre><code>select_model Open an interactive table displaying model fit and model comparison measures.
+globalcheck_view(table)  View error output generated from discrete choice models
+model_out_view(table)    View output from discrete choice models for models that converged</code></pre>
 </div>
 </div>
 <div id="model-design-file-details" class="section level2">
@@ -436,6 +454,7 @@ make_model_design         Model design file that contains data to be used in the
 </div>
 <div id="model-run-details" class="section level2">
 <h2>Model run details</h2>
+<p>The discretefish_subroutine function runs the selected model based on the selected data, parameters, and likelihood function. The function will run loop through each of the expected case tables. Three output tables are generated, a table containing information for assessing errors and why the model did not converge, a table containing model fit and model comparison mesaures, and a table containing the model output for models that converged. Each table contains output from each expected catch table and are labeled by the expected catch case (short_exp, med_exp, long_exp, user_defined_exp) and an identifier for the model.</p>
 <div id="data-1" class="section level3">
 <h3>Data</h3>
 <p>User supplies all necessary data via the model design file. This data includes <code>catch</code>, <code>choice</code>, and <code>distance</code> data, plus any other data <code>otherdat</code> they need to run their chosen likelihood. The data <code>catch</code> and <code>choice</code> should be data frames with dimensions <em>(number of observations) x 1</em>. The data <code>otherdat</code> can include predicted catch, interactions, and gridded data.</p>
@@ -459,8 +478,8 @@ Optimization method from base R `optim` options.            methodname &lt;- &qu
  seoutmat2      Standard errors
  MCM            Model comparison metrics (e.g. AIC, BIC)
  H1             The inverse hessian </code></pre>
-<p>When calling the <code>discretefish_subroutine</code> function users must provide a descriptive name for the model run <code>func.name</code>. As output from each model run is saved, this parameter is used to differentiate between model runs and should be descriptive enough for users to identify between models runs. If true, <code>select.model</code> parameter opens an interactive table that allows users to select top model runs or delete model runs that do not need to be saved. More details are provided below. The <code>project</code> parameter is for naming the model output table in the database and distinguishing it from other projects. The <code>name</code> parameter is used in the logging function to reproduce work flow. It is the desired name of the output.</p>
-<p><code>results &lt;- discretefish_subroutine(modelInputData, optimOpt, func, methodname, func.name, select.model=FALSE, project, name='results')</code></p>
+<p>When calling the <code>discretefish_subroutine</code> function users must provide a descriptive name for the model run <code>mod.name</code>. As output from each model run is saved, this parameter is used to differentiate between model runs and should be descriptive enough for users to identify between models runs. If true, <code>select.model</code> parameter opens an interactive table that allows users to select top model runs or delete model runs that do not need to be saved. More details are provided below. The <code>project</code> parameter is for naming the model output table in the database and distinguishing it from other projects. The <code>name</code> parameter is used in the logging function to reproduce work flow. It is the desired name of the output.</p>
+<p><code>discretefish_subroutine(project, initparams, optimOpt, func, methodname, mod.name, select.model=FALSE, name='results')</code></p>
 </div>
 <div id="scenarios" class="section level3">
 <h3>Scenarios</h3>
