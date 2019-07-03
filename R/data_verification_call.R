@@ -32,9 +32,9 @@ data_verification_call <- function(dat) {
   # check that names are unique in dataset
   x <- colnames(dataset)
   if (length(x) == length(unique(x)) & length(toupper(x)) == length(unique(toupper(x)))) {
-    cat("\nPass: Variable names as written are unique within dataset.", file=tmp, append=T)
+    cat("\nPass: Variable names are unique within dataset..", file=tmp, append=T)
   } else if (length(x) == length(unique(x)) & length(toupper(x)) != length(unique(toupper(x)))) {
-    cat('\nData set will not be saved to database. Duplicate case insensitive colnames. Sqlite column names are case insensitive.', file=tmp, append=T)
+    cat('\nData set will not be saved to database. Duplicate case-insensitive colnames. Sqlite column names are case insensitive.', file=tmp, append=T)
     check <- 1
   } else {
     cat("\nVariable names are not unique.\n", file=tmp, append=T)
@@ -42,13 +42,6 @@ data_verification_call <- function(dat) {
     #stop("Variable names must be unique.\n")
   }
   
-  if (length(toupper(x)) == length(unique(toupper(x)))) {
-    cat("\nPass: Variable names are unique within dataset.", file=tmp, append=T)
-  } else {
-    cat("\nVariable names are not unique.", file=tmp, append=T)
-    check <- 1
-    #stop("Variable names must be unique.")
-  }
   
   # check each row of data is a unique choice occurrence at haul or trip level
   if (dim(dataset)[1] == dim(unique(dataset))[1]) {

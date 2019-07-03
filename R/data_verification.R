@@ -28,31 +28,6 @@ data_verification <- function(dat) {
   }
   DBI::dbDisconnect(fishset_db)
   
-  
-  tmp <- tempfile()
-  cat("Data verification checks", file=tmp, append=TRUE)
-  check <- 0
-  # check that names are unique in dataset
-  x <- colnames(dataset)
-  if (length(x) == length(unique(x)) & length(toupper(x)) == length(unique(toupper(x)))) {
-    cat("\nPass: Variable names as written are unique within dataset.", file=tmp, append=T)
-  } else if (length(x) == length(unique(x)) & length(toupper(x)) != length(unique(toupper(x)))) {
-    cat('\nData set will not be saved to database. Duplicate case insensitive colnames. Sqlite column names are case insensitive.', file=tmp, append=T)
-    check <- 1
-  } else {
-    cat("\nVariable names are not unique.\n", file=tmp, append=T)
-    check <- 1
-    #stop("Variable names must be unique.\n")
-  }
-  
-  if (length(toupper(x)) == length(unique(toupper(x)))) {
-    cat("\nPass: Variable names are unique within dataset.", file=tmp, append=T)
-  } else {
-    cat("\nVariable names are not unique.", file=tmp, append=T)
-    check <- 1
-    #stop("Variable names must be unique.")
-  }
-  
   # check each row of data is a unique choice occurrence at haul or trip level
   if (dim(dataset)[1] == dim(unique(dataset))[1]) {
     cat("\nPass: Each row is a unique choice occurrence.", file=tmp, append=T)
@@ -73,13 +48,10 @@ data_verification <- function(dat) {
   if(any(grepl('lat|lon', names(dataset), ignore.case=TRUE))){
     lat <- dataset[,which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)]
     lon <- dataset[,which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)]
+    cat('At least one lat/lon variable is not in degrees. Use the degree function to convert to degrees if ')
+  } 
     
-    if(is.factor(lat)) {
-      lat <- as.numeric(as.character(lat))
-    }
-    if(is.factor(lon)) {
-      lon <- as.numeric(as.character(lon))
-    }
+    
   graphics::par(mar=c(1,1,1,1)) 
   longitude <- which(stringi::stri_count_regex(colnames(dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1]
   latitude <- which(stringi::stri_count_regex(colnames(dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]
@@ -89,7 +61,7 @@ data_verification <- function(dat) {
   points(as.numeric(as.character(dataset[pts, longitude])), 
          as.numeric(as.character(dataset[pts, latitude])))
   print('10% of samples plotted. Verify that points occur in correct geographic area.')
-  }
+  
   
   
   print(suppressWarnings(readLines(tmp)))

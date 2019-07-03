@@ -50,7 +50,7 @@ data_check <- function(dat, x, dataindex) {
           if (any(apply(dataset, 2, function(x) any(is.na(x)))==TRUE)) {
             cat("The", names(which(apply(dataset, 2, function(x) any(is.na(x)))==TRUE)), "columns contain NAs. Consider using na_filter to replace or remove NAs")
           } else {
-            cat("No columns in the dataframe contain NaNs")
+            cat("No columns in the dataframe contain NAs")
           }
  
      cat('\nNaN checks\n')
@@ -62,12 +62,17 @@ data_check <- function(dat, x, dataindex) {
      
      cat('\n')
      cat('\nOutlier checks')
+     cat('\n Use the table and plot printed below to assess whether whether outlying points may exist in the selected variable.\n
+         If further checking is needed use the outlier_plot function to assess the impact of removing points.')
+     print('The outlier table shows basic summary statistics for subsets of the selected variable.')
      print(outlier_table(dataset, x))
      cat('\n')
      cat('\n')
      outlier_plot(dataset, x)
      cat('The plot shows the data with no adjustments (distribution specified or points removed). 
-         Consider further visualizing the data with outlier_plot. Remove outliers with outlier_remove.')
+         If potential outliers are visible on the null plot, consider further visualizing the data with outlier_plot. 
+         Start by using the outlier_plot function ans subsetting the data using the most conservative method: outlier_plot(dataset, x, dat.remove = "5_95_quant"). 
+         If outliers are present, remove with the outlier_remove function.')
      cat('\n')
      cat('\nData verification checks.\n')
      data_verification(dataset)
@@ -80,7 +85,8 @@ data_check <- function(dat, x, dataindex) {
             cat("Pass: All specialized variables identified.")
         } else {
             cat(paste("\nThe following specialized variables were not specified:", 
-                 names(which(colSums(sapply(allNecFields, grepl, colnames(dataindex2))) == 0))))
+                 names(which(colSums(sapply(allNecFields, grepl, colnames(dataindex2))) == 0))),
+                'Use the main_mod function to specify unites for these variables.')
         }
      
         # Units are sensible
@@ -94,7 +100,8 @@ data_check <- function(dat, x, dataindex) {
           cat("\nPass: All units are specified.")
         } else {
           cat(paste("\nThe units are not recognized for the following variables:", 
-                 which(colSums(sapply(unitsAvailable, grepl, colnames(dataindex2))) == 0)))
+                 which(colSums(sapply(unitsAvailable, grepl, colnames(dataindex2))) == 0)),
+              'Use the main_mod function to specify unites for these variables.')
         }
      
       if(!exists('logbody')) { 
