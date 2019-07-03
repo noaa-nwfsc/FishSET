@@ -129,4 +129,24 @@ find_original_name <- function(fun) {
   }
 }
 
+degree <- function(dat, lat, long){
+  #' Convert lat/long coordinates to decimate degrees
+  #' @param dat Data table containing latitude and longitude data
+  #' @param lat Name of vector containing latitude data
+  #' @param long Name of vector containg longitude data
+  #' @export degree
+  #' @importFrom OSMscale degree
+  #' @details Uses the degree function to convert lat long coordinates to decimal degrees.
+  #' @return The original dataframe with the converted latitudes and longitudes
+  #' @examples 
+  #' \dontrun{
+  #' dat <- degree(MainDataTable, 'LatLon_START_LAT', 'LatLon_START_LON')}
+  #' 
+  if(!is.numeric(lat)) {
+    dat[[lat]] <- OSMscale::degree(lat, lon)$lat
+    dat[[lon]] <- OSMscale::degree(lat, lon)$long
+   return(degree) 
+  }
+}
+
 

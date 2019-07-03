@@ -10,29 +10,30 @@ map_kernel <- function(type, latlon, group = NULL, facet = FALSE, minmax = NULL)
 	  #' where each observation corresponds to the latlon coordinate of the same index. Recall that the legend will output the names of
 	  #' factor levels as you have named them. (See ?factor).
     #' @param facet Optional facet parameter if user maps each group as a separate facet ("TRUE", "FALSE"), default = "FALSE".
-	  #' @param facet Optional map extent parameter, a vector (num) of length 4 corresponding to c(minlat, maxlat, minlon, maxlon).
+	  #' @param minmax Optional map extent parameter, a vector (num) of length 4 corresponding to c(minlat, maxlat, minlon, maxlon).
     #' @return mapout: ggplot2 object
     #' @import ggplot2
-    #' @importFrom maps map_data
+    #' @importFrom maps map
     #' @export
     #' @examples
-	#' type <- "contours"
-	#' latlon <- as.matrix(cbind(datatomap.2001$lat, datatomap.2001$lon))
-	#' group <- datatomap.2001$Vessel
-	#' minmax = c(50, max(datatomap.2001$lat,datatomap.2001$lat)*1.001, min(datatomap.2001$lon,datatomap.2001$lon)*1.001 , -142.5)
-	#' 
-	#' map_kernel(type,latlon,group=group,minmax=minmax)
-	#' 
-	#' type <- "gradient"
-	#' map_kernel(type,latlon,group=group,facet=TRUE,minmax=minmax)
-	#' 
-	#' type <- "point"
-	#' map_kernel(type,latlon)
-	#' 
+    #' \dontrun{
+	  #' type <- "contours"
+	  #' latlon <- as.matrix(cbind(datatomap.2001$lat, datatomap.2001$lon))
+	  #' group <- datatomap.2001$Vessel
+  	#' minmax = c(50, max(datatomap.2001$lat,datatomap.2001$lat)*1.001, min(datatomap.2001$lon,datatomap.2001$lon)*1.001 , -142.5)
+  	#' 
+  	#' map_kernel(type,latlon,group=group,minmax=minmax)
+  	#' 
+   	#' type <- "gradient"
+  	#' map_kernel(type,latlon,group=group,facet=TRUE,minmax=minmax)
+  	#' 
+  	#' type <- "point"
+  	#' map_kernel(type,latlon)
+  	#' }
 	
 ## currently outputs to FishSET not file (could include dirout as argument)
 library('ggplot2')
-world <- map_data('world')
+world <- maps::map('world')
   
 datatomap <- as.data.frame(latlon)
 colnames(datatomap) <- c("lat", "lon")
