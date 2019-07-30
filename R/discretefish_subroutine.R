@@ -2,7 +2,7 @@
 #' Subroutine to run chosen discrete choice model
 #'
 #' @param project  Name of project. For obtaining catch, choice, distance, and otherdat data generated from make_model_design function. 
-#' Working modelInputData table (table without date) will be putlled from fishset_db database.
+#' Working modelInputData table (table without date) will be pulled from fishset_db database.
 #' @param initparams  Initial parameter estimates for revenue/location-specific covariates then cost/distance
 #' @param optimOpt  Optimization options [max function evaluations, max iterations, (reltol) tolerance of x, trace]
 #' @param func Name of likelihood function
@@ -29,7 +29,7 @@
 #griddatfin <- list(predicted_catch=modelInputData$gridVaryingVariables$matrix)
 #intdatfin <- list(modelInputData$bCHeader[[-1]])
 #' \dontrun{
-#' results <- discretefish_subroutine(modelInputData, initparams= c(0.5, -2.8), 
+#' results <- discretefish_subroutine('pcod', initparams= c(0.5, -2.8), 
 #'                                    optimOpt=c(100000,1.00000000000000e-08,1,1),
 #'                                    func=logit_c, methodname="BFGS", 'newlogit4', 
 #'                                    select.model=TRUE, project='projectName')
@@ -69,7 +69,7 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
   
   starts2 <- initparams
 
-  ### Data needs will vary by the logit function ###
+  ### Data needs will vary by the likelihood function ###
   if(grepl('epm', FishSET:::find_original_name(fr))){
     otherdat <- list(griddat=list(griddatfin=x[['bCHeader']][['gridVariablesInclude']]), intdat=list(x[['bCHeader']][['indeVarsForModel']]), pricedat=x[['epmDefaultPrice']])
     nexpcatch <- 1

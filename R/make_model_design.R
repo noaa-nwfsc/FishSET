@@ -5,17 +5,35 @@
 #' @param alternativeMatrix Whether the alternative choice matrix should come from 'loaded data' or 'gridded data'
 #' @param lon.dat longitude Column containing longitude data
 #' @param lat.dat latitude Column containing latitude data
-#' @param indeVarsForModel list List columns names of independent variables to include in the model using `c()`.
-#' @param gridVariablesInclude list List data set that varies over a grid to include in the model using `c()`. 
+#' @param vars1 List varialbes using `c()`. See Detail section for how to specifiy for each likelihood function. 
+#' @param vars2 List varialbes using `c()`. See Detail section for how to specifiy for each likelihood function. 
 #' @param priceCol NULL If required, specify which variable contains price data.
 # @param vesselID NULL If required, specify which variable defines individual vessels.
 #' @param project name. name of project. For name of output table saved in sql database
 #' @importFrom geosphere distm
-#' @importFrom DBI dbGetQuery dbExecute
+#' @importFrom DBI dbGetQuery dbExecute dbListTables
 #' @export make_model_design
 #' @details Functions returns model design matrix. Calls the Alternative Choice matrix from `create_alternative_choice` function which defines alternative fishing options
 #' and the expected catch from the `create_expectations` function. The distance from the starting point to alternative choices is calculated.
 #' @return 
+#' vars1 details \cr
+#' \tabular{rlll}{
+#' logit_c: independent variables that get interacted widh distance.
+#' logit_avgcat:
+#' epm_normal
+#' epm_lognormal
+#' epm_weibull
+#' }
+#' 
+#' ' vars2 details \cr
+#' \tabular{rlll}{
+#' logit_c: 
+#' logit_avgcat:
+#' epm_normal
+#' epm_lognormal
+#' epm_weibull
+#' }
+
 #'   Model design matrix containing \cr
 #'   \tabular{rlll}{
 #'     choice: \tab Data corresponding to actual zonal choice\cr 
@@ -57,6 +75,8 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
     dataset <- dat  
   }
  
+  indeVarsForModel = vars1
+  gridVariablesInclude=vars2
   
   if (!exists("Alt")) {
     if (!exists('AltMatrixName')) {
