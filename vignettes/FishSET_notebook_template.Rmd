@@ -1,0 +1,110 @@
+---
+title: "FishSET Notebook"
+Author: 'Your Name'
+date: '`r format(Sys.Date(),"%Y-%B-%d")`'
+output: html_notebook
+# These are the parameters that will be obtained from shiny objects, if run # 
+# Update data tables?
+#  If update is set to 'No' then interactive will not run when 
+update: 'No'
+params:
+  x1: "holder"
+  x2: "holder"
+  x3: "holder"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = '../') 
+# Or use multiple `../` if needed; 
+# One `../` means go one level up towards the root,
+# here, moving from `scripts` folder to the root `my_project`
+```
+
+<!-- reference: https://stackoverflow.com/questions/46515474/create-static-report-from-dynamic-shiny-markdown -->
+
+<!-- PLEASE READ -->
+This is the FishSET package template written in [R Markdown](http://rmarkdown.rstudio.com). 
+The template is divided into sections. Each sections has questions or text to help guide writing the analysis and document.
+Code written in the document will be run with the output appearing in the document. When the documnet is knit, only the output will be displayed if echo=F.
+For example, press the arrow in the code chunk below
+```{r, echo=FALSE}
+x <- 2
+print(x+x)
+```
+
+Many FishSET functions are interactive. The functions will not work when you *knit* this file and generate a static document. 
+<!-- END PLEASE READ --->
+
+##Introduction
+ What are your main questions? 
+ 
+ Who do you want to study?
+
+ What aspects do you want to understand?
+ 
+ Why are you conducting this analysis?
+
+##Data verification
+Questions to ask:
+  What data are needed? 
+      * Pull data into R using the `read_dat` function
+      * Parse data file and save to RSqlite database using the `load_maindata`, `load_port`, `load_aux`, and `load_grid` functions.
+  Which variables do you need to explore your questions? 
+      * Use `select_vars` function to subset data to these desired variables. The `add_vars` function can be used to add variables from the raw data table to the working data table.
+      * Check variables for outliers, NaNs, and NAs using the data_check function. Further checks on outliers can be accomplished using the `outlier_table` and          `outlier_plot` functions.
+      * Create variables that are needed such as CPUE using the data creation functions outlined in the FishSET vignette.
+  Which model(s) do you plan to use. Models have differing data requirements.
+      * Before modeling, check for potential errors in existing and created variables using the `check_model_data` function.
+      *NEED MORE HERE
+
+Steps: 
+1) Need to pull in data
+2) Need to select what data we want from the dataset
+3) Select data verification functions with option to print tables and plots
+
+
+## Spatial stuff
+1) Another GUI here
+2) Force assignment column 
+3) View zones
+4) table output option
+
+##Generate necessary variables
+1) Dynamic GUI? How to organize data creation functions
+   Most likely, split by type, temporal, numeric, spatial
+   
+## Modeling section
+1) Really only want the model design GUI here
+2) Table output here
+
+
+## Policy scenario
+This is a great way to begin running code, checking output, and developing analysis. Interactive functions, functions that prompt for further parameter details or use shiny objects to identify parameters, will work when code chunks are run inline. These functions will not work when a static document created by pressing the *Preview* or *Knit* buttons. If functions containing shiny objects are kept in a static notebook document then a warning message will be produced when the document is *Knit*. Click *No* and the static document will be generated with a gray space where the shiny object should be. 
+
+Both static and dynamic versions of these functions exist within FishSET. These functions are detailed below.
+
+```{r Static and Dynamic functions, echo=FALSE, results='asis'}
+tabl <- "  
+
+| Description                                 | Dynamic Function      | Static Function           |
+|---------------------------------------------|-----------------------|---------------------------|
+| Create variable of distance between points  | create_dist_between   |                           |
+| Create model design file                    | model_design          | make_model_design         |  
+| Select best model                           | select_model          | discretefish_subroutine   |
+|                                             |                       |                           |
+|                                             |                       |                           |
+|---------------------------------------------|-----------------------|---------------------------|
+
+"
+cat(tabl) # output the table in a format good for HTML/PDF/docx conversion
+```
+
+*create_dist_between*
+Run this function in the R console or within the line chunk. The function prompts for further parameters, depending upon initial choices. To use in a static document...
+
+*Create model design file*
+
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

@@ -1,4 +1,4 @@
-#' Create ID variable from one or more variable.s
+#' Create ID variable from one or more variables
 #'
 #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
 #' @param newID name of new ID column
