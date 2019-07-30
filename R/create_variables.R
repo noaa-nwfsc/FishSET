@@ -454,16 +454,16 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
  #' @param units  Unit of measurement for calculated distance between start and ending points. Can be in miles, meters, kilometers, or midpoint location
  #' @export
  #' @importFrom geosphere distGeo midPoint
- #' @details   Creates a vector of distance between two points. The start and end points must be different vectors. If the start or ending points are from a port or the center of a fishing zone or area, then a prompt will appear asking for further parameters to be specified. If the starting or ending points are a port, then latitude and longitude are extracted from the port table stored in the fishset_db database.  In this case, PortTable must be specified.  If the starting or ending points are the center of the fishing zone or area, then the assignment_column function will be called to assign each observation to a zone. The find_centroid function will then be called to determine the centroid of each zone. Distance measurements will be between these centroids. 
- #' @return
+ #' @description   Creates a vector of distance between two points. The start and end points must be different vectors. If the start or ending points are from a port or the center of a fishing zone or area, then a prompt will appear asking for further parameters to be specified. If the starting or ending points are a port, then latitude and longitude are extracted from the port table stored in the fishset_db database.  In this case, PortTable must be specified.  If the starting or ending points are the center of the fishing zone or area, then the assignment_column function will be called to assign each observation to a zone. The find_centroid function will then be called to determine the centroid of each zone. Distance measurements will be between these centroids. 
+ #' @details 
   #' \tabular{rlll}{
-  #' portTable: \tab Port table from fishset_db database Required if start or end is a port vector \cr
-  #' gridfile: \tab patial data set Can be shape file data frame or list Required if start or end is centroid \cr 
-  #' lon.dat: \tab Longitude of points from dataset Required if start or end is centroid \cr 
-  #' lat.dat: \tab Latitude of points from dataset Required if start or end is centroid \cr
-  #' lon.grid: \tab Longitude of points from gridfile Required if start or end is centroid \cr 
-  #' lat.grid: \tab Longitude of points from gridfile Required if start or end is centroid \cr
-  #' cat: \tab Variable defining the individual areas or zones Required if start or end is centroid \cr 
+  #' portTable: \tab Port table from fishset_db database. Required if start or end is a port vector. \cr
+  #' gridfile: \tab patial data set Can be shape file data frame or list. Required if start or end is centroid. \cr 
+  #' lon.dat: \tab Longitude of points from dataset. Required if start or end is centroid. \cr 
+  #' lat.dat: \tab Latitude of points from dataset. Required if start or end is centroid. \cr
+  #' lon.grid: \tab Longitude of points from gridfile. Required if start or end is centroid. \cr 
+  #' lat.grid: \tab Longitude of points from gridfile. Required if start or end is centroid. \cr
+  #' cat: \tab Variable defining the individual areas or zones. Required if start or end is centroid. \cr 
   #' }
 #' @examples 
 #' \dontrun{
