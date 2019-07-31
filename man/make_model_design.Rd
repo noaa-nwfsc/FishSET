@@ -34,64 +34,7 @@ each likelihood function.}
 \item{vesselID}{NULL If required, specify which variable defines individual vessels.}
 }
 \value{
-Variable names details \cr
-\tabular{lllllll}{
-\tab \tab \strong{vars1} \tab \tab \strong{vars2} \tab \cr \cr
-\strong{logit_c}: \tab \tab \preformatted{"travel distance variables" are
-    alternative-invariant variables that are interacted with travel distance
-    to form the cost portion of the likelihood. Each variable name therefore
-    corresponds to data with dimensions (number of observations) by (unity),
-    and returns a single parameter.} \tab \tab
-    \preformatted{"alternative-specific variables" vary across alternatives,
-    e.g. catch rates. Each variable name therefore corresponds to data with
-    dimensions (number of observations) by (number of alternatives), and
-    returns (k) parameters where (k) equals the number of
-    alternatives.} \cr \cr
-\strong{logit_avgcat}: \tab \tab \preformatted{"travel distance variables"
-    are alternative-invariant variables that are interacted with travel
-    distance to form the cost portion of the likelihood. Each variable name
-    therefore corresponds to data with dimensions (number of observations) by
-    (unity), and returns a single parameter.} \tab \tab
-    \preformatted{"alternative-invariant variables" do not vary across
-    alternatives, e.g. vessel gross tonnage. Each variable name therefore
-    corresponds to data with dimensions (number of observations) by (unity),
-    and returns (k-1) parameters where (k) equals the number of alternatives,
-    as a normalization of parameters is needed as the probabilities sum to
-    one. Interpretation is therefore relative to the first
-    alternative.} \cr \cr
-\strong{epm_normal}: \tab \tab \preformatted{"travel distance variables" are
-    alternative-invariant variables that are interacted with travel distance
-    to form the cost portion of the likelihood. Each variable name therefore
-    corresponds to data with dimensions (number of observations) by (unity),
-    and returns a single parameter.} \tab \tab \preformatted{"catch function
-    variables" are alternative-invariant variables that are interacted with
-    zonal constants to form the catch portion of the likelihood. Each
-    variable name therefore corresponds to data with dimensions (number of
-    observations) by (unity), and returns (k) parameters where (k) equals the
-    number of lternatives.} \cr \cr
-\strong{epm_lognormal}: \tab \tab \preformatted{"travel distance variables"
-    are alternative-invariant variables that are interacted with travel
-    distance to form the cost portion of the likelihood. Each variable name
-    therefore corresponds to data with dimensions (number of observations) by
-    (unity), and returns a single parameter.} \tab \tab \preformatted{"catch
-    function variables" are alternative-invariant variables that are
-    interacted with zonal constants to form the catch portion of the
-    likelihood. Each variable name therefore corresponds to data with
-    dimensions (number of observations) by (unity), and returns (k)
-    parameters where (k) equals the number of alternatives.} \cr \cr
-\strong{epm_weibull}: \tab \tab \preformatted{"travel distance variables" are
-    alternative-invariant variables that are interacted with travel distance
-    to form the cost portion of the likelihood. Each variable name therefore
-    corresponds to data with dimensions (number of observations) by (unity),
-    and returns a single parameter.} \tab \tab \preformatted{"catch function
-    variables" are alternative-invariant variables that are interacted with
-    zonal constants to form the catch portion of the likelihood. Each
-    variable name therefore corresponds to data with dimensions (number of
-    observations) by (unity), and returns (k) parameters where (k) equals the
-    number of alternatives.} \cr \cr
-}
-
-  Model design matrix containing \cr
+Model design matrix containing \cr
   \tabular{rlll}{
     choice: \tab Data corresponding to actual zonal choice\cr 
     catch: \tab Data corresponding to actual zonal catch\cr 
@@ -109,7 +52,7 @@ Variable names details \cr
     altToLocal2: \tab Identifies how to find lat/lon for alternative choices such as 'Centroid of Zonal Assignment'\cr 
     bCHeader: \tab Variables to include in the model that do not vary by zone. Includes independent variables and interactions\cr
     gridVaryingVariables: \tab Variables to include in the model that do vary by zone such as expected catch (from \code{\link{create_expectations}} function)
- }
+  }
 }
 \description{
 Make model design
@@ -117,6 +60,67 @@ Make model design
 \details{
 Functions returns model design matrix. Calls the Alternative Choice matrix from `create_alternative_choice` function which defines alternative fishing options
 and the expected catch from the `create_expectations` function. The distance from the starting point to alternative choices is calculated.
+Variable names details \cr
+\tabular{lllllll}{
+\tab \tab \strong{vars1} \tab \tab \strong{vars2} \tab \cr \cr
+\strong{logit_c}: \tab \tab
+    \preformatted{"travel-distance variables" are alternative-invariant
+    variables that are interacted with travel distance to form the cost
+    portion of the likelihood. Each variable name therefore corresponds to
+    data with dimensions (number of observations) by (unity), and returns a
+    single parameter.} \tab \tab
+    \preformatted{"alternative-specific variables" vary across alternatives,
+    e.g. catch rates. Each variable name therefore corresponds to data with
+    dimensions (number of observations) by (number of alternatives), and
+    returns a single parameter for each variable (e.g. the marginal utility
+    from catch).} \cr \cr
+\strong{logit_avgcat}: \tab \tab
+    \preformatted{"travel-distance variables" are alternative-invariant
+    variables that are interacted with travel distance to form the cost
+    portion of the likelihood. Each variable name therefore corresponds to
+    data with dimensions (number of observations) by (unity), and returns a
+    single parameter.} \tab \tab
+    \preformatted{"average-catch variables" are alternative-invariant
+    variables, e.g. vessel gross tonnage. Each variable name therefore
+    corresponds to data with dimensions (number of observations) by (unity),
+    and returns (k-1) parameters where (k) equals the number of alternatives,
+    as a normalization of parameters is needed as the probabilities sum to
+    one. Interpretation is therefore relative to the first
+    alternative.} \cr \cr
+\strong{epm_normal}: \tab \tab
+    \preformatted{"travel-distance variables" are alternative-invariant
+    variables that are interacted with travel distance to form the cost
+    portion of the likelihood. Each variable name therefore corresponds to
+    data with dimensions (number of observations) by (unity), and returns a
+    single parameter.} \tab \tab
+    \preformatted{"catch-function variables" are alternative-invariant
+    variables that are interacted with zonal constants to form the catch
+    portion of the likelihood. Each variable name therefore corresponds to
+    data with dimensions (number of observations) by (unity), and returns (k)
+    parameters where (k) equals the number of alternatives.} \cr \cr
+\strong{epm_lognormal}: \tab \tab
+    \preformatted{"travel-distance variables" are alternative-invariant
+    variables that are interacted with travel distance to form the cost
+    portion of the likelihood. Each variable name therefore corresponds to
+    data with dimensions (number of observations) by (unity), and returns a
+    single parameter.} \tab \tab
+    \preformatted{"catch-function variables" are alternative-invariant
+    variables that are interacted with zonal constants to form the catch
+    portion of the likelihood. Each variable name therefore corresponds to
+    data with dimensions (number of observations) by (unity), and returns (k)
+    parameters where (k) equals the number of alternatives.} \cr \cr
+\strong{epm_weibull}: \tab \tab
+    \preformatted{"travel-distance variables" are alternative-invariant
+    variables that are interacted with travel distance to form the cost
+    portion of the likelihood. Each variable name therefore corresponds to
+    data with dimensions (number of observations) by (unity), and returns a
+    single parameter.} \tab \tab
+    \preformatted{"catch-function variables" are alternative-invariant
+    variables that are interacted with zonal constants to form the catch
+    portion of the likelihood. Each variable name therefore corresponds to
+    data with dimensions (number of observations) by (unity), and returns (k)
+    parameters where (k) equals the number of alternatives.} \cr \cr
+}
 }
 \examples{
 \dontrun{
