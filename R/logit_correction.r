@@ -74,8 +74,10 @@ logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod
 	#' si2 <- sample(1:5,dim(si)[1],replace=TRUE)
 	#' zi2 <- sample(1:10,dim(zi)[1],replace=TRUE)
 	#'
-	#' otherdat <- list(griddat=list(si=as.matrix(cbind(si,si,si,si)),si2=as.matrix(cbind(si2,si2,si2,si2))),
-	#' 			intdat=list(zi=as.matrix(zi),zi2=as.matrix(zi2)),startloc=as.matrix(startloc),polyn=polyn,distance=as.matrix(distance))
+	#' otherdat <- list(griddat=list(si=as.matrix(si),si2=as.matrix(si2)),
+    #'     intdat=list(zi=as.matrix(zi),zi2=as.matrix(zi2)),
+	#'     startloc=as.matrix(startloc),polyn=polyn,
+	#'     distance=as.matrix(distance))
 	#'
 	#' initparams <- c(3, 0.5, 0.4, 0.3, 0.2, 0.55, 0.45, 0.35, 0.25, rep(0, (((polyn+1)*2) + 2)*kk), -0.3,-0.4, 3)
 	#' 
@@ -84,12 +86,14 @@ logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod
 	#' results <- discretefish_subroutine(catch,choice,distance,otherdat,initparams,optimOpt,func,methodname)
 	#' }
     
+    obsnum <- dim(griddat)[1]
+
 	griddat <- as.matrix(do.call(cbind, otherdat$griddat))
+    gridnum <- dim(griddat)[2]
+	griddat <- matrix(apply(griddat, 2, function(x) rep(x,times=alts)), obsnum,
+	    gridnum*alts)
     intdat <- as.matrix(do.call(cbind, otherdat$intdat))
-	
-	gridnum <- dim(griddat)[2]/alts
 	intnum <- dim(intdat)[2]
-	#get number of variables
 	
     startloc <- (otherdat$startloc)
     distance <- otherdat$distance
@@ -114,10 +118,6 @@ logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod
             1), ])
 	#end of vector
     
-	obsnum <- dim(griddat)[1]
-	
-	#############################################
-
 	gridbetas <- (matrix(gridcoef[1:(alts*gridnum),],obsnum,alts*gridnum,byrow=TRUE)*griddat)
 	dim(gridbetas) <- c(nrow(gridbetas), alts, gridnum)
 	gridbetas <- rowSums(gridbetas,dim=2)
@@ -135,8 +135,6 @@ logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod
 	exb = exp(profx/matrix(sigmac, dim(prof)[1], dim(prof)[2]))
 
 	ldchoice <- (-log(rowSums(exb)))
-
-	#############################################
 
 	revside <- gridbetas*matrix(revcoef,obsnum,alts)
 	costside <- distance*intbetas
