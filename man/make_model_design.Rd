@@ -120,6 +120,17 @@ Variable names details \cr
     portion of the likelihood. Each variable name therefore corresponds to
     data with dimensions (number of observations) by (unity), and returns (k)
     parameters where (k) equals the number of alternatives.} \cr \cr
+\strong{logit_correction}: \tab \tab
+    \preformatted{"travel-distance variables" are alternative-invariant
+    variables that are interacted with travel distance to form the cost
+    portion of the likelihood. Each variable name therefore corresponds to
+    data with dimensions (number of observations) by (unity), and returns a
+    single parameter.} \tab \tab
+    \preformatted{"catch-function variables" are alternative-invariant
+    variables that are interacted with zonal constants to form the catch
+    portion of the likelihood. Each variable name therefore corresponds to
+    data with dimensions (number of observations) by (unity), and returns (k)
+    parameters where (k) equals the number of alternatives.} \cr \cr
 }
 }
 \examples{
