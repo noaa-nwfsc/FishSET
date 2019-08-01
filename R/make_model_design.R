@@ -6,8 +6,10 @@
 #' @param lon.dat longitude Column containing longitude data
 #' @param lat.dat latitude Column containing latitude data
 #' @param likelihood Name of likelihood function. Current choices are logit_c, logit_avgcat, epm_normal, epm_weibull, epm_ognormal.
-#' @param vars1 List varialbes using `c()`. See Detail section for how to specify for each likelihood function. 
-#' @param vars2 List varialbes using `c()`. See Detail section for how to specify for each likelihood function. 
+#' @param vars1 List varialbes using `c()`. These depend on the likelihood 
+#'     the user chooses, so please see the Detail section for how to specify for each likelihood function.
+#' @param vars2 List varialbes using `c()`. These depend on the likelihood
+#'     the user chooses, so please see the Detail section for how to specify for each likelihood function.
 #' @param priceCol NULL If required, specify which variable contains price data.
 # @param vesselID NULL If required, specify which variable defines individual vessels.
 #' @param project name. name of project. For name of output table saved in sql database
