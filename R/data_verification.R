@@ -48,7 +48,7 @@ data_verification <- function(dat) {
   if(any(grepl('lat|lon', names(dataset), ignore.case=TRUE))){
     lat <- dataset[,which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)]
     lon <- dataset[,which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)]
-    cat('At least one lat/lon variable is not in degrees. Use the degree function to convert to degrees if ')
+    cat('At least one lat/lon variable is not in degrees. Use the degree function to convert to degrees.')
   } 
     
     

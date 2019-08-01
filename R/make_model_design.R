@@ -5,12 +5,12 @@
 #' @param alternativeMatrix Whether the alternative choice matrix should come from 'loaded data' or 'gridded data'
 #' @param lon.dat longitude Column containing longitude data
 #' @param lat.dat latitude Column containing latitude data
-#' @param vars1 List variable names using `c()`. These depend on the likelihood
-#'     the user chooses, so please see the Detail section for how to specify for
-#'     each likelihood function.
-#' @param vars2 List variable names using `c()`. These depend on the likelihood
-#'     the user chooses, so please see the Detail section for how to specify for
-#'     each likelihood function.
+#' @param likelihood Name of likelihood function. Current choices are logit_c, logit_avgcat, epm_normal, epm_weibull, epm_ognormal.
+#' @param vars1 List varialbes using `c()`. These depend on the likelihood 
+#'     the user chooses, so please see the Detail section for how to specify for each likelihood function.
+#' @param vars2 List varialbes using `c()`. These depend on the likelihood
+#'     the user chooses, so please see the Detail section for how to specify for each likelihood function.
+
 #' @param priceCol NULL If required, specify which variable contains price data.
 #' @param vesselID NULL If required, specify which variable defines individual vessels.
 #' @param project name. name of project. For name of output table saved in sql database
@@ -94,6 +94,7 @@
 #' @return 
 #'   Model design matrix containing \cr
 #'   \tabular{rlll}{
+#'     likelihood: \tab Name of likelihood function\cr
 #'     choice: \tab Data corresponding to actual zonal choice\cr 
 #'     catch: \tab Data corresponding to actual zonal catch\cr 
 #'     scales: \tab Scale vectors to put catch data, zonal data, and other data on same scale\cr 
@@ -119,7 +120,7 @@
 
 
 make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", "griddedData"), lon.dat, lat.dat, project, 
-                               indeVarsForModel = NULL, gridVariablesInclude = NULL, priceCol = NULL) {
+                               likelihood= NULL, vars1 = NULL, vars2 = NULL, priceCol = NULL) {
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   if(is.character(dat)==TRUE){
@@ -381,7 +382,8 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   dscale = 1
   
   ### -- Create output list --- ###
-  modelInputData <- list(catch = catch, 
+  modelInputData <- list(likelihood=likelihood,
+                          catch = catch, 
                           choice = choice[which(dataZoneTrue == 1), ], 
                           scales = c(catch = yscale, zonal = mscale, data = dscale), 
                           distance = X, 
