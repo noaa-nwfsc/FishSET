@@ -3,24 +3,40 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
     #'
     #' Average catch multinomial logit procedure
     #'
-    #' @param starts3 Starting values as a vector (num). For this likelihood, the order takes:
-	#' c([catch function parameters], [cost (distance) parameters]). \cr \cr
-	#' The catch function and cost parameters are of length (# of catch variables)*(kk-1) and (# of cost variables) respectively,
-	#' where kk equals the number of alternatives.
+    #' @param starts3 Starting values as a vector (num). For this likelihood,
+    #'     the order takes: c([average-catch parameters], [travel-distance
+	#'     parameters]). \cr \cr
+    #'     The average-catch and travel-distance parameters are of length (# of
+	#'     average-catch variables)*(k-1) and (# of travel-distance variables
+	#'     respectively, where (k) equals the number of alternatives.
     #' @param dat Data matrix, see output from shift_sort_x, alternatives with distance.
-    #' @param otherdat Other data used in model (as list containing objects griddat and intdat). \cr \cr
-	#' For grid-specific variables griddat and cost variables to be interacted with distance intdat, any number of variables are allowed, as a list of matrices. 
-	#' Note the variables (each as a matrix) within `griddat` and `intdat` have no naming restrictions.
-	#' Also note that `griddat` variables are dimension *(number of observations) x 1*, 
-	#' while `intdat` variables are dimension *(number of observations) x 1*, to be interacted with the distance to each alternative.
-	#' Grid-specific variables may correspond to catches that vary by location, 
-	#' or interaction variables may be vessel characteristics that affect how much disutility is suffered by traveling a greater distance.
-	#' Note in this likelihood the the grid-specific variables are are only of dimension *(number of observations) x 1* (compared to other likelihoods), and
-	#' each variable varies across observations but not for each location: they are grid-specific due to the location-specific coefficients. 
-	#' Also note that only (kk-1) grid-specific parameters are estimated: one alternative must be dropped and the remaining parameters are estimated relative to the
-	#' dropped (first) alternative.
-    #' If there are no other data, the user can set `griddat` as ones with dimension *(number of observations) x 1*
-    #' and `intdat` variables as ones with dimension *(number of observations) x 1*.
+    #' @param otherdat Other data used in model (as a list containing objects
+	#'     `intdat` and `griddat`). \cr \cr
+	#'     For this likelihood, `intdat` are "travel-distance variables", which
+    #'     are alternative-invariant variables that are interacted with travel
+    #'     distance to form the cost portion of the likelihood. Each variable
+    #'     name therefore corresponds to data with dimensions (number of
+    #'     observations) by (unity), and returns a single parameter. \cr \cr
+    #'     In `griddat` are "average-catch variables" that do not vary across
+	#'     alternatives, e.g. vessel gross tonnage. Each variable name therefore
+	#'     corresponds to data with dimensions (number of observations) by
+	#'     (unity), and returns (k-1) parameters where (k) equals the number of
+	#'     alternatives, as a normalization of parameters is needed as the
+	#'     probabilities sum to one. Interpretation is therefore relative to the
+	#'     first alternative. \cr \cr
+	#'     For both objects any number of variables are allowed, as a list of
+	#'     matrices. Note the variables (each as a matrix) within `griddat` and
+	#'     `intdat` have no naming restrictions. "Average-catch variables"
+	#'     may correspond to variables that impact average catches by location,
+    #'     or "travel-distance variables" may be vessel characteristics that
+	#'     affect how much disutility is suffered by traveling a greater
+    #'     distance. Note in this likelihood the "average-catch variables" vary
+	#'     across observations but not for each location: they are allowed to
+    #'     affect alternatives differently due to the location-specific
+	#'     coefficients. \cr \cr
+    #'     If there are no other data, the user can set `griddat` as ones with
+	#'     dimension (number of observations) by (unity) and `intdat` variables
+	#'     as ones with dimension (number of observations) by (unity).
     #' @param alts Number of alternative choices in model as length 1 vector (num).
 	#' @param project Name of project
     #' @param expname Expected catch table
