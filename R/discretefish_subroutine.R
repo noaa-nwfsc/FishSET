@@ -5,7 +5,7 @@
 #' Working modelInputData table (table without date) will be pulled from fishset_db database.
 #' @param initparams  Initial parameter estimates for revenue/location-specific covariates then cost/distance
 #' @param optimOpt  Optimization options [max function evaluations, max iterations, (reltol) tolerance of x, trace]
-#' @param func Name of likelihood function
+# @param func Name of likelihood function
 #' @param methodname Optimization method (see optim options)
 #' @param mod.name Name of model run for model result output table
 #' @param select.model Return an interactive data table that allows users to select and save table of best models based on measures of fit 
@@ -38,17 +38,17 @@
 
 
 
-discretefish_subroutine <- function(project, initparams, optimOpt, func, methodname, mod.name, 
+discretefish_subroutine <- function(project, initparams, optimOpt, methodname, mod.name, 
                                     select.model=FALSE,  name='discretefish_subroutine') {
   
   #Call in datasets
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
   
-  
   catch <- as.matrix(x[['catch']])
   choice <- x[['choice']]
   distance <- x[['distance']]
+  startingloc <- x[['startingloc']]
   #otherdat <- list(griddat=list(griddatfin=x[['gridVaryingVariables']][['matrix']]), intdat=list(x[['bCHeader']][[-1]]), pricedata=list(epmDefaultPrice))
   
   choice.table <- as.matrix(choice, as.numeric(factor(choice)))
@@ -61,8 +61,11 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
   seoutmat2 <- NULL
   MCM <- NULL
   H1 <- NULL
-  fr <- func  #e.g. logit_c
+  fr <- x[['likelihood']]#func  #e.g. logit_c
   
+  if(fr=='logit_correction' & all(is.na(startingloc))){
+    'Stop. Startingloc parameter is not specified. Rerun the create_alternative_choice function'
+  }
   dataCompile <- create_logit_input(choice)
   
   d <- shift_sort_x(dataCompile, choice, catch, distance, max(choice), ab)
@@ -74,7 +77,14 @@ discretefish_subroutine <- function(project, initparams, optimOpt, func, methodn
     otherdat <- list(griddat=list(griddatfin=x[['bCHeader']][['gridVariablesInclude']]), intdat=list(x[['bCHeader']][['indeVarsForModel']]), pricedat=x[['epmDefaultPrice']])
     nexpcatch <- 1
     expname <-  FishSET:::find_original_name(fr)
-  }  else if(FishSET:::find_original_name(fr)=='logit_avgcat'){
+  }  else if(FishSET:::find_original_name(fr)=='logit_correction'){
+    otherdat <- list(griddat=list(griddatfin=data.frame(rep(1, nrow(choice)))),#x[['bCHeader']][['gridVariablesInclude']]), 
+                     intdat=list(x[['bCHeader']][['indeVarsForModel']]),
+                     startloc=x[['startloc']],
+                     polyn=x[['polyn']])  
+    nexpcatch <- 1
+    expname <-  FishSET:::find_original_name(fr)
+    } else if(FishSET:::find_original_name(fr)=='logit_avgcat'){
     otherdat <- list(griddat=list(griddatfin=data.frame(rep(1, nrow(choice)))),#x[['bCHeader']][['gridVariablesInclude']]), 
                                   intdat=list(x[['bCHeader']][['indeVarsForModel']]))  
     nexpcatch <- 1

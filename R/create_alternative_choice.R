@@ -77,7 +77,7 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
     }
     
     choice <- data.frame(int.data$ZoneID)
-    
+    startingoc <- if(is.null(int.data$startingloc)) { rep(NA, nrow(int.data))} else { data.frame(int.data$startingloc)}
     
    if (is.null(choice)) {
     stop("Choice must be defined. Ensure that the zone or area assignment variable (cat) is defined.")
@@ -123,7 +123,8 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
          altChoiceUnits = 'miles',    #miles   
          altChoiceType = 'distance',
          alt_var =  alt_var, #altToLocal1
-         occasion = occasion,  #altToLocal2                                                                                                                                                                          
+         occasion = occasion,  #altToLocal2  
+         startingloc = startingloc,
          zoneHist = zoneHist,                                                                                                                                                                              
          zoneRow = zoneHist[greaterNZ, 3], # zones and choices array                                                                                                                                                  
         # assignChoice = gridInfo['dataColumnLink',,],                                                                                                                                                                            

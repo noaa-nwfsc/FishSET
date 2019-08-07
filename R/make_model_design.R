@@ -5,13 +5,16 @@
 #' @param alternativeMatrix Whether the alternative choice matrix should come from 'loaded data' or 'gridded data'
 #' @param lon.dat longitude Column containing longitude data
 #' @param lat.dat latitude Column containing latitude data
-#' @param likelihood Name of likelihood function. Current choices are logit_c, logit_avgcat, epm_normal, epm_weibull, epm_ognormal.
+#' @param likelihood Name of likelihood function. Current choices are logit_c, logit_avgcat, logit_correction, epm_normal, epm_weibull, epm_ognormal.
 #' @param vars1 List varialbes using `c()`. These depend on the likelihood 
 #'     the user chooses, so please see the Detail section for how to specify for each likelihood function.
 #' @param vars2 List varialbes using `c()`. These depend on the likelihood
 #'     the user chooses, so please see the Detail section for how to specify for each likelihood function.
 
 #' @param priceCol NULL If required, specify which variable contains price data.
+#' @param startloc Vector required for logit_correction likelihood. startloc is a matrix of dimension (number of observations) 
+#'     by (unity), that corresponds to the starting location when the agent decides between alternatives. 
+#' @param polyn Vector required for logit_correction likelihood. Correction polynomial degree.  
 #' @param vesselID NULL If required, specify which variable defines individual vessels.
 #' @param project name. name of project. For name of output table saved in sql database
 #' @importFrom geosphere distm
@@ -120,7 +123,7 @@
 
 
 make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", "griddedData"), lon.dat, lat.dat, project, 
-                               likelihood= NULL, vars1 = NULL, vars2 = NULL, priceCol = NULL) {
+                               likelihood= NULL, vars1 = NULL, vars2 = NULL, priceCol = NULL, startloc=NULL, polyn=NULL) {
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   if(is.character(dat)==TRUE){
@@ -159,6 +162,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   dataZoneTrue <- Alt[["dataZoneTrue"]]  
   int <- Alt[["int"]]
   choice <- Alt[["choice"]]
+  startingloc <- Alt[['startingloc']]
   units <- Alt[["altChoiceUnits"]]
   
    if (FishSET:::is_empty(gridVariablesInclude)) {
@@ -385,6 +389,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   modelInputData <- list(likelihood=likelihood,
                           catch = catch, 
                           choice = choice[which(dataZoneTrue == 1), ], 
+                          startingloc = startingloc[which(dataZoneTrue ==1), ],
                           scales = c(catch = yscale, zonal = mscale, data = dscale), 
                           distance = X, 
                           instances = dim(X)[1], 
@@ -399,6 +404,8 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
                           bCHeader = bCHeader, 
                           #bColumnsWant = bColumnsWant, 
                          # bInterAct = bInterAct, 
+                          startloc = startloc,
+                          polyn = polyn,
                           gridVaryingVariables = ExpectedCatch)
   
   

@@ -15,7 +15,7 @@
 #' model_design_gui(PollockData, 'pcod')
 #' }
 
-model_design_gui <- function(dat, project){
+model_design <- function(dat, project){
 
 library(shiny)
 library(shinyjs) #resettable
@@ -57,14 +57,24 @@ runApp(list(
                         ),
                         h4('Likelihood function'),
                          selectInput("model", label = "",
-                                    choices = list("Conditional logit" = 'logit_c', "Average catch" = "logit_avgcat", 'EPM normal'='epm_normal',
-                                                   'EPM lognormal'='epm_lognormal', 'EPM Weibull'='epm_weibull'),
+                                    choices = list("Conditional logit" = 'logit_c', "Average catch" = "logit_avgcat", "Logit Dahl correction" = "logit_correction",
+                                                   'EPM normal'='epm_normal', 'EPM lognormal'='epm_lognormal', 'EPM Weibull'='epm_weibull'),
                                     selected = 'logit_c'),
                         h4('Select variables to include in model'),
                             div(style="display: inline-block;vertical-align:top; width: 200px;", uiOutput('indvariables')),
                             div(style="display: inline-block;vertical-align:top; width: 200px;", uiOutput('gridvariables')),
                         selectInput('catch','Variable containing catch data',
                                     choices=colnames(dat[,grep('haul|mt|lb|metric|pounds|catch', colnames(dat), ignore.case=TRUE)])),
+                        conditionalPanel(
+                             condition="input.model=='epm_normal' || input.model=='epm_lognormal' || input.model=='epm_weibull'",
+                             checkboxInput('lockk', 'Location-specific catch parameter', value=FALSE),
+                             textInput('price', 'Price variable', value='NULL')
+                        ),
+                        conditionalPanel(
+                          condition="input.model=='logit_correction'",
+                          numericInput('polyn', 'Correction polynomial degree', value=2),
+                          textInput('startloc', 'Initial location during choice occassion', value='NULL')
+                        ),
                         h3('Model parameters'),
 
 
@@ -82,12 +92,7 @@ runApp(list(
                              uiOutput("Inits")
                              #uiOutput("ui1")
                         ),
-                        conditionalPanel(
-                             condition="input.model=='epm_normal' || input.model=='epm_lognormal' || input.model=='epm_weibull'",
-                             checkboxInput('lockk', 'Location-specific catch parameter', value=FALSE),
-                             textInput('price', 'Price variable', value='NULL')
-                        ),
-
+ 
                         dataTableOutput('table')
                     )
 
@@ -136,7 +141,7 @@ runApp(list(
           drop <- grep('date|port|processor|gear|target|lon|lat|permit|ifq', colnames(dat), ignore.case=TRUE)
 
           intlab <- renderText({
-               if(input$model=='logit_c') { label='var1_logit_c'} else { label='var1_other'}
+               if(input$model=='logit_c') { label='travel-distance variables'} else { label='travel-distance variables'}
           })
           output$indvariables <- renderUI ({
                intvariables <- c('none', colnames(dat[,-drop]))
@@ -150,7 +155,7 @@ runApp(list(
                 #                choices = intvariables, selected = 'none')),
                #     conditionalPanel(condition="input.model=='logit_avgcat'",
                          selectInput('indeVarsForModel', label = intlab(), multiple=TRUE,
-                                choices = intvariables, selected = 'none')#)
+                                choices = intvariables, selected = '')#)
                #)
           })
 
@@ -159,17 +164,17 @@ runApp(list(
                tagList(
            #    if(FishSET:::is_empty(gridVariablesInclude)) {
                     conditionalPanel(
-                         condition="input.model=='epm_normal' || input.model=='epm_lognormal' || input.model=='epm_weibull'",
-                                   selectInput("gridVariablesInclude", label = "vars2", multiple=TRUE,
-                                   choices = 'none',selected = 'none')),
+                         condition="input.model=='epm_normal' || input.model=='epm_lognormal' || input.model=='epm_weibull' || input.model=='logit_correction'",
+                                   selectInput("gridVariablesInclude", label = "catch-function variables", multiple=TRUE,
+                                   choices = 'none',selected = '')),
                     conditionalPanel(
                          condition="input.model=='logit_c'",
-                         selectInput("gridVariablesInclude", label = "vars2", multiple=TRUE,
-                                    choices = 'none',selected = 'none')),
+                         selectInput("gridVariablesInclude", label = "alternative-specific variables", multiple=TRUE,
+                                    choices = 'none',selected = '')),
                     conditionalPanel(
                          condition="input.model=='logit_avgcat'",
-                         selectInput("gridVariablesInclude", label = "vars2", multiple=TRUE,
-                                    choices = 'none',selected = 'none'))
+                         selectInput("gridVariablesInclude", label = "average-catch variables", multiple=TRUE,
+                                    choices = 'none',selected = ''))
            #    } else {
            #         selectInput("gridVariablesInclude", label = "Grid varying variables for model", multiple=TRUE,
            #                     choices = c('none', names(gridVariablesInclude)),
@@ -179,13 +184,16 @@ runApp(list(
           })
 
             numInits <- reactive({
+                 polyn <- input$polyn
                  gridNum <- as.integer(as.factor(length(input$gridVariablesInclude)))
                intNum <- as.integer(length(input$indeVarsForModel))
                if(input$model == 'logit_c'){
                     numInits <- gridNum+intNum
                } else if(input$model == 'logit_avgcat') {
                     numInits <- gridNum*(alt-1)+intNum
-               } else {
+               } else if(input$model == 'logit_correction'){
+                    numInits <- gridNum*4 + intNum + ((((polyn+1)*2)+2)*4) +1+1
+                 } else {
                     if(input$lockk=='TRUE'){
                          numInits <- gridNum*alt+intNum+alt+1
                     } else {

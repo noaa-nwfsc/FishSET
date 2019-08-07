@@ -39,6 +39,8 @@ assignment_column <- function(dat, gridfile, hull.polygon = c(TRUE, FALSE), lon.
   }
   DBI::dbDisconnect(fishset_db)
   
+  dataset[[lat.dat]] <- as.numeric(as.vector(dataset[[lat.dat]]))
+  dataset[[lon.dat]] <- as.numeric(as.vector(dataset[[lon.dat]]))
   
   #For json and shape files
   if(any(class(gridfile)=='sf')) {
