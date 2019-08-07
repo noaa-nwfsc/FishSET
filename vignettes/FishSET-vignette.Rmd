@@ -237,6 +237,7 @@ Several functions exist that allow users to modify or create vectors and matrice
   
     create_dist_between Distance between lat/long points, port, and/or centroid of fishing zone/area
     create_mid_haul     Returns the midpoint location (lon/lat) for each haul
+    create_startingloc  Returns vector of zone/area at point when choice of where to go next was made. Used with logit_correction likelihood.
 
 
   Trip level data and variables: 
@@ -292,6 +293,7 @@ Often it is desirable to compare output from different likelihood functions and/
   
      logit_c       Conditional logit function
      logit_avgcat  Average catch logit function
+     logit_correction  Full information model with Dahl's correction function. Requires the create_startingloc function.
      epm_normal    Expected profit model with a normally distributed catch function
      epm_lognormal Expected profit model with a log-normally distributed catch function
      epm_weibull  Expected profit model with a Weibull distributed catch function

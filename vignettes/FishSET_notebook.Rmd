@@ -1,10 +1,11 @@
 ---
 editor_options:
   chunk_output_type: inline
-output:
-  html_document: default
-  word_document: default
-  runtime: shiny
+runtime: shiny
+output: 
+    html_document: default
+ #   word_document: default
+
 ---
 <!-- pdf_document: inst/doc -->
 
@@ -37,12 +38,12 @@ library(FishSET)
 
 When the FishSET package is loaded for the first time, a folder is created in the working directory called *Logs*. All FishSET function calls are saved in dated log files. These log files are useful for documenting which functions are run and the parameter choices. They are also useful for rerunning analyses with updated data. Note that new log files will be saved each day FishSET functions are run however the list of saved functions to be logged will not reset between days if the FishSET package is not closed between days. To reset the list of saved function calls run
 ```{r echo=TRUE, warning=FALSE}
-log_reset()
+FishSET:::log_reset()
 ```
 
 When FishSET is loaded, an RSQLite databased called `fishset_db` is also created in the working directory. All data tables generated using FishSET functions are stored in this database. Data tables are saved as both raw and working tables. To view the tables in the database type
 ```{r echo=TRUE}
-tables_database()
+FishSET:::tables_database()
 ```
 
 The database will be empty if this is the first time you have used FishSET.
@@ -52,10 +53,10 @@ The database will be empty if this is the first time you have used FishSET.
 This tutorial uses simulated data. The data is stored in the FishSET R package data folder. Use the *read_dat* function to read in the data. The *read_dat* function reads in several data formats including csv, matlab, and shape. Read the function documentation for more information.
 ```{r import-data, echo=TRUE}
 #Main data 
-ExpData <- read_dat('./data/ExpData.RData', data.type = 'R')
+ExpData <- FishSET:::read_dat('./data/ExpData.RData', data.type = 'R')
 head(ExpData)
 #Port data
-port <- read_dat('./data/port.RData', data.type = 'R')
+port <- FishSET:::read_dat('./data/port.RData', data.type = 'R')
 ```
 
 
@@ -63,15 +64,15 @@ FishSET requires a primary data file that contains the main data for the model, 
 
 ```{r load-data, echo=TRUE}
 #Load main data into fishset_db database
-load_maindata(ExpData, over_write = TRUE, project= 'pcod', compare = FALSE, y = NULL)
+FishSET:::load_maindata(ExpData, over_write = TRUE, project= 'pcod', compare = FALSE, y = NULL)
 #Load port data into fishset_db database
-load_port(port, port_name='PORT', over_write = TRUE, project = 'pcod', compare = FALSE, y = NULL)
+FishSET:::load_port(port, port_name='PORT', over_write = TRUE, project = 'pcod', compare = FALSE, y = NULL)
 ```
 
 Now if we look at the fishset_db database there should be six data tables, raw and working copies of the main data table and an information table that was created by the *load_maindata* function and raw and working copies of the port data created by the *load_port* function.
 
 ```{r echo=TRUE}
-tables_database()
+FishSET:::tables_database()
 ```
 
 Other data can be loaded into the fishset_db database using *load_aux* and *load_grid*.
@@ -86,19 +87,19 @@ Functions can call data tables from the fishset_db database or from the global e
 
 ```{r echo=TRUE}
 #Check for common data quality issues
-data_check('pcodMainDataTable', 'OFFICIAL_TOTAL_CATCH', 'pcodMainDataTableInfo')
+FishSET:::data_check('pcodMainDataTable', 'OFFICIAL_TOTAL_CATCH', 'pcodMainDataTableInfo')
 ```
 
 The data parser functions (*load_maindata*, *load_port*, *load_aux*, *load_gridd*) call the *data_verification* function. This function checks that each observation is a unique occurrence, that variable names are unique, and that no empty variables exist. The data will not be saved to the fishset_db database if any of these checks fail. The data should also be checked for presence of NAs, NaNs, outliers, and the distribution of location points. The *data_check* function runs these tests. The output states that NAs are present in the data. We can remove those using *na_filter*.
 
 ```{r echo=TRUE}
-pcodMainDataTable <- na_filter('pcodMainDataTable', c('DEPLOY_LATITUDE','DEPLOY_LONGITUDE'), replace = F, remove = T)
+pcodMainDataTable <- FishSET:::na_filter('pcodMainDataTable', c('DEPLOY_LATITUDE','DEPLOY_LONGITUDE'), replace = F, remove = T)
 ```
 
 The plot raw data, distribution of the data, and Q-Q plot indicate that there may be some extreme data in the upper catch values. We can evaluate for the potential existence of outliers further using the *outlier_plot* function and specifying the parameters for including data.
 
 ```{r echo=TRUE}
-outlier_plot('pcodMainDataTable', 'OFFICIAL_TOTAL_CATCH', dat.remove='5_95_quant', x.dist='lognormal')
+FishSET:::outlier_plot('pcodMainDataTable', 'OFFICIAL_TOTAL_CATCH', dat.remove='5_95_quant', x.dist='lognormal')
 ```
 
 In this example, the data appear to better fit a log-normal distribution than a normal distribution. However, removing points outside the 5 to 95 percent quantiles removes more than the extreme upper values and does not result in a better fit. The plot output in this example does not provide evidence that outliers should be removed.
@@ -106,8 +107,8 @@ In this example, the data appear to better fit a log-normal distribution than a 
 The output from the *data_check* function call also returned a map with haul locations. The plotted haul locations appear to be in the correct location but some occur over land. Points that occur over land or outside zone areas will not be assigned to zones and will not be included in the model. 
 
 ```{r echo=FALSE, fig.env='figure', message=FALSE}
-map2 <- read_dat('inst/extdata/nmfs_manage_simple.json', 'shape')
-temp <- suppressWarnings(assignment_column(pcodMainDataTable, map2, TRUE, 'DEPLOY_LONGITUDE','DEPLOY_LATITUDE', lon.grid='', lat.grid='', cat='NMFS_AREA', closest.pt = FALSE))
+map2 <- FishSET:::read_dat('inst/extdata/nmfs_manage_simple.json', 'shape')
+temp <- suppressWarnings(FishSET:::assignment_column(pcodMainDataTable, map2, TRUE, 'DEPLOY_LONGITUDE','DEPLOY_LATITUDE', lon.grid='', lat.grid='', cat='NMFS_AREA', closest.pt = FALSE))
 graphics::par(mfrow = c(1, 2), mar=c(0,0,0,0), oma=c(0,0,0,0))
 
 maps::map('world', ylim=c(48, 74), xlim=c(-180, -130.2))
@@ -131,31 +132,31 @@ This section demonstrates how to modify existing variables and create new variab
 ### Create CPUE variable.
 ```{r echo=TRUE}
 #Make sure date varibles are in the correct format
-pcodMainDataTable$ENDDATE <- temporal_mod(pcodMainDataTable, 'DEPLOYMENT_DATE', define.format='%Y-%m-%d')
+pcodMainDataTable$ENDDATE <- FishSET:::temporal_mod(pcodMainDataTable, 'DEPLOYMENT_DATE', define.format='%Y-%m-%d')
 #Calculate duration as a measure of fishing effort
-pcodMainDataTable$duration <- create_duration(pcodMainDataTable, 'DATESTART', 'ENDDATE',  units = "hour")
+pcodMainDataTable$duration <- FishSET:::create_duration(pcodMainDataTable, 'DATESTART', 'ENDDATE',  units = "hour")
 #Calculate cpue using catch and duration
-pcodMainDataTable$cpue <- cpue(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH', 'duration')
+pcodMainDataTable$cpue <- FishSET:::cpue(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH', 'duration')
 ```
 
 ### Collapse data from haul to trip
 ```{r echo=TRUE}
 ### Collapse data from Haul to Trip
-pcodMainDataTable <- haul_to_trip(pcodMainDataTable, 'pcodMainDataTableInfo',fun.time = min, fun.numeric = mean, 'DEPLOYMENT_DATE')
+pcodMainDataTable <- FishSET:::haul_to_trip(pcodMainDataTable, 'pcodMainDataTableInfo',fun.time = min, fun.numeric = mean, 'DEPLOYMENT_DATE')
 ```
 
 ### Save and check data before moving on to modeling
 If variables have been created or modified, the data set should be checked one more time before moving on to the modeling functions. This ensures that the data is compatible with the modeling functions. In addition, the modified data set will be saved to the fishset_db database.
 
 ```{r echo=TRUE} 
-check_model_data(pcodMainDataTable, 'pcodMainDataTableInfo', uniqueID='rowID', save.file = TRUE)
+FishSET:::heck_model_data(pcodMainDataTable, 'pcodMainDataTableInfo', uniqueID='rowID', save.file = TRUE)
 ```
 
 The output from the data check function indicates that NAs are present in the data. We need to remove these and then check the data again.
 
 ```{r echo=TRUE}
-pcodMainDataTable <- na_filter(pcodMainDataTable, c('DEPLOYMENT_DATE','DATESTART', 'ENDDATE', 'cpue'), replace = F, remove = T)
-check_model_data(pcodMainDataTable, 'pcodMainDataTableInfo', uniqueID='rowID', save.file = TRUE)
+pcodMainDataTable <- FishSET:::na_filter(pcodMainDataTable, c('DEPLOYMENT_DATE','DATESTART', 'ENDDATE', 'cpue'), replace = F, remove = T)
+FishSET:::check_model_data(pcodMainDataTable, 'pcodMainDataTableInfo', uniqueID='rowID', save.file = TRUE)
 ```
 
 ## Spatial functions
@@ -170,7 +171,7 @@ check_model_data(pcodMainDataTable, 'pcodMainDataTableInfo', uniqueID='rowID', s
 # Plot historgram of lat/long split by grouping variables
 #spatial_hist(pcodMainDataTable, 'GEAR_TYPE')
 # Spatial summary statistics plot
-spatial_summary(pcodMainDataTable, stat.var='mean', variable='OFFICIAL_TOTAL_CATCH', map2, '', '', 'DEPLOY_LONGITUDE', 'DEPLOY_LATITUDE', 'NMFS_AREA')
+FishSET:::spatial_summary(pcodMainDataTable, stat.var='mean', variable='OFFICIAL_TOTAL_CATCH', map2, '', '', 'DEPLOY_LONGITUDE', 'DEPLOY_LATITUDE', 'NMFS_AREA')
 ```
 
 ```{r}
@@ -198,7 +199,7 @@ Additional spatial functions that cannot be run with this dataset:
 
 Need shape file for assigning fishing area centroids and assigning fishing occurrences to fishing areas.
 ```{r echo=TRUE, warning=FALSE, message=F}
-map2 <- read_dat('inst/extdata/nmfs_manage_simple.json', 'shape')
+map2 <- FishSET:::read_dat('inst/extdata/nmfs_manage_simple.json', 'shape')
 ```
 
 ###CREATE MODEL DESIGN FUNCTIONS
@@ -206,22 +207,22 @@ The following functions creates a list containing information on how alternative
 
 Use the tembs_obs_table to check for sparsity. Zones with sparse data can be filterd from the data by setting a minimum haul value (min.haul parameter) in the create_alternative_choice function.
 ```{r echo=TRUE}
-temp_obs_table(pcodMainDataTable, map2, "DATE_FISHING_BEGAN", lon.grid='', lat.grid='', lon.dat='DEPLOY_LONGITUDE', lat.dat='DEPLOY_LATITUDE', cat='NMFS_AREA')
+FishSET:::temp_obs_table(pcodMainDataTable, map2, "DATE_FISHING_BEGAN", lon.grid='', lat.grid='', lon.dat='DEPLOY_LONGITUDE', lat.dat='DEPLOY_LATITUDE', cat='NMFS_AREA')
 ```
 **!!!->>> ADD MORE TEXT HERE ON OUTPUT ONCE DATA HAS BEEN REDONE <<<<-!!!!**
 
 ```{r model-design-file, echo=TRUE, warning=FALSE}
-create_alternative_choice('pcodMainDataTable', map2, case = "Centroid", min.haul = 200, haul.trip = "Trip", alt_var = 'centroid',  occasion = 'centroid', 'DEPLOY_LONGITUDE', 'DEPLOY_LATITUDE', lon.grid='', lat.grid='', cat='NMFS_AREA', use.grid = FALSE, hull.polygon =TRUE, remove.na = T, closest.pt = FALSE, griddedDat = NULL, weight.var = NULL, project = 'pcod')
+FishSET:::create_alternative_choice('pcodMainDataTable', map2, case = "Centroid", min.haul = 200, haul.trip = "Trip", alt_var = 'centroid',  occasion = 'centroid', 'DEPLOY_LONGITUDE', 'DEPLOY_LATITUDE', lon.grid='', lat.grid='', cat='NMFS_AREA', use.grid = FALSE, hull.polygon =TRUE, remove.na = T, closest.pt = FALSE, griddedDat = NULL, weight.var = NULL, project = 'pcod')
 
-create_expectations('pcodMainDataTable', 'pcod', map2, catch = 'OFFICIAL_TOTAL_CATCH', temporal = "daily", temp.var = NULL, calc.method = "standardAverage", lag.method = "simple", empty.catch = NULL, empty.expectation = NULL, temp.window = 1, temp.lag = 1, dummy.exp = FALSE, defineGroup = NULL)
+FishSET:::create_expectations('pcodMainDataTable', 'pcod', map2, catch = 'OFFICIAL_TOTAL_CATCH', temporal = "daily", temp.var = NULL, calc.method = "standardAverage", lag.method = "simple", empty.catch = NULL, empty.expectation = NULL, temp.window = 1, temp.lag = 1, dummy.exp = FALSE, defineGroup = NULL)
 
-make_model_design('pcodMainDataTable', catchID = "OFFICIAL_TOTAL_CATCH", alternativeMatrix = "loaded data", 'DEPLOY_LONGITUDE', 'DEPLOY_LATITUDE', indeVarsForModel = "", gridVariablesInclude = "", priceCol = NULL, vesselID = NULL, project = 'pcod')
+FishSET:::make_model_design('pcodMainDataTable', catchID = "OFFICIAL_TOTAL_CATCH", alternativeMatrix = "loaded data", 'DEPLOY_LONGITUDE', 'DEPLOY_LATITUDE', indeVarsForModel = "", gridVariablesInclude = "", priceCol = NULL, vesselID = NULL, project = 'pcod')
 ```
 
 At this point, several tables should exist in the fishset_db database, including a model design file.
 
 ```{r}
-tables_database()
+FishSET:::tables_database()
 ```
 
 The discrete choice model can be run after the model design folder is created. The function calls the working model design file from the database. Data (catch, choice, distance matrix, expected catch, independent variables, interaction terms, grid varying variables) for the matrix is contained in the model design file. The initial parameters, optimization options, likelihood function, and optimization method need to be defined. Model measures of fit are stored in a table and saved to the fishset_db database. Output from models is added to the table after each run of *discretefish_subroutine*. Use the `mod.name` parameter to distinguish between model runs.
@@ -235,7 +236,7 @@ The discrete choice model can be run after the model design folder is created. T
 results <- model_out_view("pcodmodelout20190604")
 print(str(results))
 print(results[[1]]$MCM)
-errors <- globalcheck_view("pcodldglobalcheck20190604")
+errors <- FishSET:::globalcheck_view("pcodldglobalcheck20190604")
 ```
 
 ```{r, echo=FALSE}

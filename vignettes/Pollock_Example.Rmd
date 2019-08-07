@@ -27,6 +27,7 @@ library(FishSET)
 ```{r}
 load_maindata(read_dat('./data/PollockData.RData', 'R'), over_write = TRUE, project= 'pollock', compare = FALSE, y = NULL)
 load_port(read_dat('./data/port.RData', data.type = 'R'), port_name='PORT', over_write = TRUE, project= 'pollock', compare = FALSE, y = NULL)
+select_vars('PollockMainDataTable', 'pollock')
 ```
 The main data table and the plot file pass the basic tests required for importing a file into the database.
 
@@ -207,7 +208,7 @@ Currently using R Notebook to capture steps, output, and results.
 ###Summary statistics
 ###Spatial summaries
 ```{r KernelDensityPlot, echo=FALSE, fig.cap="", out.width = '1%'}
-map_kernel('gradient', dat[,c('LonLat_START_LAT', 'LonLat_START_LON')], group=NULL, minmax=NULL)
+map_kernel('gradient', collapsedpollock[,c('LonLat_START_LAT', 'LonLat_START_LON')], group=NULL, minmax=NULL)
 ```
 #Select model(s) that best captures the dynamic that you believe are important
   

@@ -2,18 +2,23 @@
 title: "FishSET Notebook"
 Author: 'Your Name'
 date: '`r format(Sys.Date(),"%Y-%B-%d")`'
-output: html_notebook
+output: 
+  #Eword_document: default
+  html_document: default
+runtime: shiny
 # These are the parameters that will be obtained from shiny objects, if run # 
 # Update data tables?
 #  If update is set to 'No' then interactive will not run when 
-update: 'No'
+
 params:
+  update: 'Yes'
   x1: "holder"
   x2: "holder"
   x3: "holder"
 ---
 
 ```{r setup, include=FALSE}
+update <- 'Yes'
 knitr::opts_knit$set(root.dir = '../') 
 # Or use multiple `../` if needed; 
 # One `../` means go one level up towards the root,
@@ -28,7 +33,10 @@ The template is divided into sections. Each sections has questions or text to he
 Code written in the document will be run with the output appearing in the document. When the documnet is knit, only the output will be displayed if echo=F.
 For example, press the arrow in the code chunk below
 ```{r, echo=FALSE}
-x <- 2
+if(update=='No'){
+    x <- 2
+} else { x <- 4
+    select_checks()}
 print(x+x)
 ```
 

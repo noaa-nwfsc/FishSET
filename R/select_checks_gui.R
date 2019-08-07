@@ -12,10 +12,10 @@
 #' @details Opens an interactive table that allows uses to select which data validation checks to run by clicking check boxes. 
 #' @examples 
 #' \dontrun{
-#' select_vars('pcodMainDataTable')
+#' select_checks('pcodMainDataTable', 'pcod')
 #' }
 
-select_checks_gui <- function(dat, project){
+select_checks <- function(dat, project){
   library(shiny)
   
   runApp(list(
@@ -40,13 +40,18 @@ select_checks_gui <- function(dat, project){
           #h5('Only selected variables will be available in the working data set. All variables will be retained in the saved raw data set.'),
           #Checkbox input widget  
           radioButtons("checks", "", choices = c('Summary table', 'Outliers', 'NAs', 'NaNs', 'Unique observations', 'Empty variables', 'Lat/Lon units')
-                       )),
-        
+                       )
+       ),#END SIDEBAR LAYOUT
+
         #outlier_table    outlier_plot     nan_identify                   
          mainPanel(
+           tags$br(), tags$br(),
            verbatimTextOutput("Case"),
-          tableOutput("output_table")
-        ))),
+          tableOutput("output_table"),
+          tags$br(),tags$br(),
+          #---> Add in a conditional panel here <----
+          uiOutput('NA_NAN')
+         ))),
     
 ## SERVER SIDE    
     server = function(input, output, session) {
@@ -62,6 +67,13 @@ select_checks_gui <- function(dat, project){
       } else {
         dat <- dat  
       }
+      
+      output$showNA <- reactive ({
+        val <- ifelse (any(apply(dat, 2, function(x) any(is.na(x))))==TRUE, 1, 0)
+      })
+      output$showNAN <- reactive ({
+        val <- ifelse (any(apply(dat, 2, function(x) any(is.nan(x))))==TRUE, 1, 0)
+      })
       
       summary <- FishSET:::summary_stats(dat)
       na <- function(x) { if (any(apply(dat, 2, function(x) any(is.na(x))))==TRUE) {
@@ -111,11 +123,20 @@ select_checks_gui <- function(dat, project){
           } else {
             NULL
           }
-            
           })
     
-      
-        
+      output$NA_NAN <- renderUI ({
+        tagList(
+        conditionalPanel(
+          condition = "input.checks == 'NAs' && output.showNA == 1",
+           radioButtons('NA_Filter', 'Filter NAs by', choices=c('Remove all', 'Replace with mean'), selected='')
+        ),
+        conditionalPanel(
+          condition = "input.checks == 'NaNs'",
+          radioButtons('NA_Filter', 'Filter NaNs by', choices=c('Remove all', 'Replace with mean'), selected='')
+        )
+        )
+      }) 
         #output_table())
       
       #output$data_table <- renderDataTable(out))
