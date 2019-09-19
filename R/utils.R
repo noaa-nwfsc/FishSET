@@ -1,5 +1,30 @@
 
-#NULL
+
+table_format <- function(x) {
+#' Import and format saved tables to notebook file
+#' @param x Name of table saved in inst/output
+#' @export
+#' @import formattable
+suppressMessages(library(formattable))
+tab_int <- read.csv(paste0(getwd(),'/inst/output/', x, '.csv'))
+if(grepl('summary', x)){
+colnames(tab_int)[1] <- 'Variable'  
+ formattable(tab_int, 
+              align =c("l",rep("c", ncol(tab_int)-2), "r"), 
+              list(`Variable` = formatter(
+                "span", style = ~ style(color = "grey",font.weight = "bold")) 
+              ))
+} else {
+  formattable(tab_int)
+}
+}
+
+plot_format <- function(x){
+  #' Import and format plots to notebook file
+  #' @param x Name of plot saved in inst/output
+  #' @export
+  knitr::include_graphics(paste0(getwd(), '/inst/output/',x,'.png'))
+}
 
 vgsub <- function(pattern, replacement, x, ...) {
   for (i in 1:length(pattern)) x <- gsub(pattern[i], replacement[i], x, ...)
@@ -92,7 +117,12 @@ accumarray <- function(subs, val, sz = NULL, func = sum, fillval = 0) {
   return(A)
 }
 
-skewness <- function(x) {
+skewness <- function(x, na.rm=FALSE) {
+  if(na.rm==TRUE){
+    x = x[is.na(x)==FALSE]
+  } else {
+    x = x
+  }
   n <- length(x)
   v <- var(x)
   m <- mean(x)
@@ -142,11 +172,191 @@ degree <- function(dat, lat, long){
   #' \dontrun{
   #' dat <- degree(MainDataTable, 'LatLon_START_LAT', 'LatLon_START_LON')}
   #' 
-  if(!is.numeric(lat)) {
+  if(!is.numeric(lat)|!is.numeric(lon)) {
     dat[[lat]] <- OSMscale::degree(lat, lon)$lat
     dat[[lon]] <- OSMscale::degree(lat, lon)$long
    return(degree) 
   }
 }
 
+data_pull <- function(dat){
+  #' Pull data from sqlite database
+  #' @param dat Data table 
+  #' @export data_pull 
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  if(is.character(dat)==TRUE){
+    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
+      print(DBI::dbListTables(fishset_db))
+      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+    } else {
+      dataset <- table_view(dat)
+    }
+  } else {
+    dataset <- dat  
+  }
+  DBI::dbDisconnect(fishset_db)
+  
+  if(is.character(dat)==TRUE){
+    dat <- dat
+  } else {
+    dat <- deparse(substitute(dat))
+  }
+  return(list(dat=dat,dataset=dataset))
 
+}
+
+##---------------------------##
+outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plot_type) {
+  #' Evaluate outliers through plots
+  #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
+  #' @param x Column in dataf rame to check for outliers
+  #' @param dat.remove Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD
+  #' @param x.dist Distribution of the data. Choices include: normal, lognormal, exponential, weibull, poisson, negative binomial
+  #' @param plot_type Which plot to reeturn
+  #' @importFrom graphics points
+  #' @importFrom ggpubr annotate_figure text_grob
+  #' @import ggplot2
+  #' @details  The function returns three plots, the data, a probability plot, and a Q-Q plot. The data plot is the value of
+  #'  x against row number. Red points are all the data without any points removed. The blue points are the subsetted data. If `dat.remove` is `none`, then only blue points will be shown. 
+  #'  The probability plot is a histogram of the data with the fitted probability distribution based on `x.dist`. The Q-Q plot plots are
+  #'  sampled quantiles against theoretical quantiles. 
+  #'  
+  #' @export 
+  #' @return Plot of the data
+  
+  
+  library(ggplot2)
+  
+  dataset <- dat
+  x.name <- x
+  if (is.numeric(dataset[, x]) == T) {
+    # Begin outlier check
+    dataset$val <- 1:nrow(dataset)
+    if (dat.remove == "none") {
+      dataset$Points <- 'Kept'
+    } else {
+      if (dat.remove == "5_95_quant") {
+        dataset$Points <- ifelse(dataset[, x] < stats::quantile(dataset[, x], 0.95, na.rm=TRUE) & 
+          dataset[, x] > stats::quantile(dataset[, x], 0.05, na.rm=TRUE), 'Kept','Removed')
+      } else if (dat.remove == "25_75_quant") {
+        dataset$Points  <-ifelse(dataset[, x] < stats::quantile(dataset[, x], 0.75, na.rm=TRUE) & 
+                                   dataset[, x] > stats::quantile(dataset[, x], 0.25, na.rm=TRUE), 'Kept','Removed')
+      } else if (dat.remove == "mean_2SD") {
+        dataset$Points  <- ifelse(dataset[, x] < (mean(dataset[, x], na.rm = T) + 2 * 
+                                             stats::sd(dataset[, x], na.rm = T)) & 
+                             dataset[, x] > (mean(dataset[, x], na.rm = T) - 2 * stats::sd(dataset[, x], na.rm = T)), 'Kept','Removed')
+      } else if (dat.remove == "median_2SD") {
+        dataset$Points  <- ifelse(dataset[, x] < (stats::median(dataset[, x], na.rm = T) + 2 * stats::sd(dataset[, x], na.rm = T)) & 
+                             dataset[, x] > (stats::median(dataset[, x], na.rm = T) - 2 * stats::sd(dataset[, x], na.rm = T)),  'Kept','Removed')
+      } else if (dat.remove == "mean_3SD") {
+        dataset$Points  <- ifelse(dataset[, x] < (mean(dataset[, x], na.rm = T) + 3 * stats::sd(dataset[, x], na.rm = T)) & 
+                             dataset[, x] > (mean(dataset[, x], na.rm = T) - 3 * stats::sd(dataset[, x], na.rm = T)),  'Kept','Removed')
+      } else if (dat.remove == "median_3SD") {
+        dataset$Points  <- ifelse(dataset[, x] < (stats::median(dataset[, x], na.rm = T) + 3 * stats::sd(dataset[, x], na.rm = T)) & 
+                             dataset[, x] > (stats::median(dataset[, x], na.rm = T) - 3 * stats::sd(dataset[, x], na.rm = T)),  'Kept','Removed')
+      }
+    }  #End Outlier mod
+    
+    mytheme <- theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+                     panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text=element_text(size=11),
+                     axis.title=element_text(size=11))                                                                                          
+    
+    # Hist
+    ##Plot 2!  
+    if (x.dist == "normal") {    
+      arg.return <- stat_function(fun = dnorm, colour = "blue", 
+                               args = list(mean = mean(dataset[dataset$Points=='Kept',x], na.rm = TRUE), sd = sd(dataset[dataset$Points=='Kept',x], na.rm = TRUE)))
+    } else if (x.dist == "lognormal") {
+      # lognormal
+      arg.return <-  stat_function(fun = dlnorm, colour = "blue", 
+                               args = list(mean = mean(log(dataset[dataset$Points=='Kept',x]), na.rm = TRUE), sd = sd(log(dataset[dataset$Points=='Kept',x]), na.rm = TRUE)))
+    } else if (x.dist == "exponential") {
+      # Exponential
+      arg.return <- stat_function(fun = dexp, colour = "blue", 
+                               args = list(rate = 1/mean(dataset[dataset$Points=='Kept',x],na.rm=TRUE)))
+    } else if (x.dist == "weibull") {
+      # Weibull
+      arg.return <- stat_function(fun = dweibull, colour = "blue", 
+                               args = list(shape = 1.2/sqrt(var(log(dataset[dataset$Points=='Kept',x]),na.rm=TRUE)), 
+                                           scale = mean(dataset[dataset$Points=='Kept',x],na.rm=TRUE) + 0.572/(1.2/sqrt(var(log(dataset[dataset$Points=='Kept',x]),na.rm=TRUE)))))
+    } else if (x.dist == "poisson") {
+      # Poisson
+      arg.return <-  stat_function(fun = dpois, colour = "blue", 
+                               args = list(lambda = mean(dataset[dataset$Points=='Kept',x],na.rm=TRUE)))
+    } else if (x.dist == "negative binomial") {
+      # Negative Binomial
+      arg.return <- stat_function(fun = dnbinom, colour = "blue", 
+                               args = list( mean(dataset[dataset$Points=='Kept',x],na.rm=TRUE)^2/(var(dataset[dataset$Points=='Kept',x],na.rm=TRUE) - mean(dataset[dataset$Points=='Kept',x],na.rm=TRUE)), 
+                                            mu = mean(dataset[dataset$Points=='Kept',x],na.rm=TRUE)))
+    }
+    
+    #Plot3
+    # Probability plot
+    quants <- seq(0, 1, length = length(dataset[dataset$Points=='Kept',x]) + 2)[2:(length(dataset[dataset$Points=='Kept',x]) + 1)]
+    # normal
+    if (x.dist == "normal") {
+      fit_quants <- stats::qnorm(quants, mean(dataset[dataset$Points=='Kept',x],na.rm=TRUE), sd(dataset[dataset$Points=='Kept',x],na.rm=TRUE))
+    } else if (x.dist == "lognormal") {
+      # lognormal
+      fit_quants <- stats::qlnorm(quants, mean = mean(log(dataset[dataset$Points=='Kept',x]),na.rm=TRUE), sd = sd(log(dataset[dataset$Points=='Kept',x]),na.rm=TRUE))
+    } else if (x.dist == "exponential") {
+      # Exponential
+      fit_quants <- stats::qexp(quants, rate = 1/mean(dataset[dataset$Points=='Kept',x],na.rm=TRUE))
+    } else if (x.dist == "weibull") {
+      # Weibull
+      fit_quants <- stats::qweibull(quants, shape = 1.2/sqrt(var(log(dataset[dataset$Points=='Kept',x]),na.rm=TRUE)), 
+                                    scale = mean(dataset[dataset$Points=='Kept',x],na.rm=TRUE) + 0.572/(1.2/sqrt(var(log(dataset[dataset$Points=='Kept',x]),na.rm=TRUE))))
+    } else if (x.dist == "poisson") {
+      # Poisson
+      fit_quants <- stats::qpois(quants, lambda = mean(dataset[dataset$Points=='Kept',x],na.rm=TRUE))
+    } else if (x.dist == "negative binomial") {
+      # Negative Binomial
+      fit_quants <- stats::qnbinom(quants, size = mean(dataset[dataset$Points=='Kept',x],na.rm=TRUE)^2/(var(dataset[dataset$Points=='Kept',x],na.rm=TRUE) - mean(dataset[dataset$Points=='Kept',x],na.rm=TRUE)), 
+                                   mu = mean(dataset[dataset$Points=='Kept',x],na.rm=TRUE))
+    }
+    
+    data_quants <- stats::quantile(as.numeric(dataset[dataset$Points=='Kept',x]), quants,na.rm=TRUE)
+    # create Q-Q plot
+    temp <- data.frame(fit_quants, data_quants) 
+    p3 <- ggplot(temp, aes(x=fit_quants, y=data_quants)) + geom_point(shape=1) + geom_abline() +
+      labs(x='Theoretical Quantiles', y='Sample Quantiles', title=paste('Q-Q plot of', x.dist, 'fit against data'))+
+      mytheme
+    
+    if(plot_type=='1'){
+      return(dataset)
+    } else if(plot_type=='2'){
+        suppressWarnings(arg.return)
+      } else if(plot_type=='3'){
+        suppressWarnings(return(temp))
+      }
+    #Put it all together
+    #fig <- suppressWarnings(ggpubr::ggarrange(p1, p2, p3 , ncol = 2, nrow = 2))
+    # labels = c("A", "B", "C"),
+    #fig <- ggpubr::annotate_figure(fig, top = ggpubr::text_grob(paste("Plots for ", x, " with ", x.dist, 
+    #                                                                  " distribution and data removed based on '", dat.remove,
+    #                                                                  "'. \nBlue: included points   Red: removed points"), size = 10))         
+    
+  } else {
+    # Actions to take if data is not numeric
+    print("Data is not numeric. Plots not generated.")
+  }
+}
+
+shiny_running = function () {
+  # Look for `runApp` call somewhere in the call stack.
+  frames = sys.frames()
+  calls = lapply(sys.calls(), `[[`, 1)
+  call_name = function (call)
+    if (is.function(call)) '<closure>' else deparse(call)
+  call_names = vapply(calls, call_name, character(1))
+  
+  target_call = grep('^runApp$', call_names)
+  
+  if (length(target_call) == 0)
+    return(FALSE)
+  
+  # Found a function called `runApp`, verify that it’s Shiny’s.
+  target_frame = frames[[target_call]]
+  namespace_frame = parent.env(target_frame)
+  isNamespace(namespace_frame) && environmentName(namespace_frame) == 'shiny'
+}
