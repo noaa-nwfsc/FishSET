@@ -721,14 +721,18 @@ output$plot_time <- renderPlot({
                    selected= names(which(lapply(values$dataset, is.numeric)==TRUE)), multiple=TRUE, selectize=TRUE, width='90%')
      })
      
-      output$output_table_corr <- DT::renderDT(
-        if(length(input$corr_select)>2){
+     
+     tableInputCorr <- reactive({
+       if(length(input$corr_select)>2){
                c1 <- round(cor(values$dataset[,input$corr_select], use="complete.obs"), 2)
                colnames(c1)=gsub("_","-", colnames(c1))
                return(c1)
          } else {
                 NULL
-          } ,  server=FALSE, extensions = list('Scroller'), 
+          } 
+     })
+      output$output_table_corr <- DT::renderDT(
+        tableInputCorr(),  server=FALSE, extensions = list('Scroller'), 
         options=list(autoWidth = TRUE, scrollX=TRUE, deferRender = T,
                      scrollY = 'auto', scroller = TRUE, scrollX = T, pageLength = 25)
      )
@@ -885,7 +889,7 @@ output$plot_time <- renderPlot({
             options = list(autoWidth=FALSE, scrollX=T, responsive=TRUE, pageLength = 25)
                   )
     
-        output$output_table_outlier <- DT::renderDataTable(
+       tableInputOutlier <- reactive({
          if (input$checks=='Outliers'){
             table <- FishSET:::outlier_table(values$dataset, input$column_check)
             rownames(table)=table[,2]
@@ -893,10 +897,12 @@ output$plot_time <- renderPlot({
             #table <<- table
           } else {
             NULL
-          }, server = FALSE, selection='single', rownames=TRUE,
-          #extensions = c("Buttons"), 
-          options = list(autoWidth=FALSE, scrollX=T,  responsive=TRUE,
-                         pageLength = 7)
+          }
+       })
+        
+         output$output_table_outlier <- DT::renderDataTable(
+         tableInputOutlier(), server = FALSE, selection='single', rownames=TRUE,
+          options = list(autoWidth=FALSE, scrollX=T,  responsive=TRUE, pageLength = 7)
         )
         
         ranges1 <- reactiveValues(x = NULL, y = NULL)   
@@ -1119,16 +1125,13 @@ output$plot_time <- renderPlot({
       
       ## Save buttons
      output$SaveButtonsExplore <- renderUI({
-       tagList(
-         shinySaveButton(id = 'downloadplotExplore', label ='Save plot to folder', title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png"),
-         shinySaveButton(id = 'downloaddataExplore', label ='Save table to folder', title = "", filename = paste0(project, input$plot_type, '_FilteredTable'),  filetype = "png")
-       )
+         shinySaveButton(id = 'downloadplotExplore', label ='Save plot to folder', title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
      })
     
       output$SaveButtonsAnal <- renderUI({
         tagList(
           shinySaveButton(id = 'downloadplotAnal', label ='Save plot to folder', title = "", filename = paste0(project,'_', input$corr_reg, '_plot'), filetype = "png"),
-          shinySaveButton(id = 'downloaddataAnal', label ='Save table to folder as png', title = "", filename = paste0(project,'_', input$corr_reg, '_table'),  filetype = "png")
+          shinySaveButton(id = 'downloaddataAnal', label ='Save table to folder as csv')
         )
       })
       
@@ -1157,7 +1160,7 @@ output$plot_time <- renderPlot({
           } else if(input$corr_reg=='Regression'){
              fig <- plotInputreg()
           }
-          device <- function(..., width, height) grDevices::png(..., width = 9, height = 8, res = 300, units = "in")
+          device <- function(..., width, height) grDevices::png(..., width = 9, height = 6, res = 300, units = "in")
           ggplot2::ggsave(fig, filename = as.character(fileinfo$datapath), device=device)
         }
       })
@@ -1193,38 +1196,17 @@ output$plot_time <- renderPlot({
         }
       })
       
-    
- 
-      
         observeEvent(input$downloaddata, {
           if(input$checks=='Summary table'){
               write.csv(tableInputSummary(), paste0(loc,'/inst/output/summary_table.csv'))
+          } else if(input$checks=='Outliers'){
+             write.csv(tableInputOutlier(), paste0(loc, '/inst/output/outlier_table.csv'))
           }
         })
         
-#        observeEvent(input$downloaddata, {
-#         if(input$checks=='Summary table'){
-#        if(is.null(input$output_table_summary_rows_selected)){
-#          return <- 1:nrow(table_out())
-#        } else {
-#          return <- input$output_table_summary_rows_selected
-#        }
-#          } else {
-#          return <- 1:nrow(table_out())
-#      }
-#        volumes <- c("wd"=paste0(loc, "/inst/output/"))
- #       shinyFileSave(input, "downloaddata", roots=volumes, session=session)
-#        fileinfo <- parseSavePath(volumes, input$downloaddata)
-#       
-#          png(paste0(loc, "/inst/output/", project,'_', input$checks,"_table.png"), 
-#                          height =(25+25*nrow(table_out()[return,])), width=550)
-#          tt <- gridExtra::ttheme_default(colhead=list(fg_params = list(parse=TRUE, fontsize=9)),
-#                                          rowhead=list(fg_params = list(parse=TRUE, fontsize=9)),
-#                                          core=list(fg_params=list(fontsize=8)))
-#         gridExtra::grid.table(table_out()[return,], theme=tt)
-#         
-#      }, ignoreInit = T)
-      
+        observeEvent(input$downloaddataAnal,{
+          write.csv(tableInputCorr(), paste0(loc, '/inst/output/correlation_table.csv'))
+        })
 ##----
             # stop shiny
       observe({
