@@ -39,8 +39,7 @@ alternatives because each variable may have been estimated in a
 previous procedure (i.e. a construction of expected catch). \cr \cr
 If there are no other data, the user can set `griddat` as ones with
 dimension (number of observations) by (number of alternatives) and
-`intdat` variables as ones with dimension (number of observations) by
-(unity).}
+`intdat` variables as ones with dimension (number of observations) by (unity}
 
 \item{alts}{Number of alternative choices in model as length 1 vector (num).}
 
@@ -81,6 +80,7 @@ initparams <- c(2.5, 2, -1, -2)
 
 func <- logit_c
 
-results <- discretefish_subroutine(catch,choice,distance,otherdat,initparams,optimOpt,func,methodname)
+results <- discretefish_subroutine(catch,choice,distance,otherdat,
+initparams,optimOpt,func,methodname)
 }
 }

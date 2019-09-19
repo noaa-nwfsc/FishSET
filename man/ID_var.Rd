@@ -2,7 +2,7 @@
 % Please edit documentation in R/ID_var.R
 \name{ID_var}
 \alias{ID_var}
-\title{Create ID variable from one or more variable.s}
+\title{Create ID variable from one or more variables}
 \usage{
 ID_var(dat, newID, ...)
 }
@@ -17,7 +17,7 @@ ID_var(dat, newID, ...)
 Data frame with `newID` ID variable included.
 }
 \description{
-Create ID variable from one or more variable.s
+Create ID variable from one or more variables
 }
 \details{
 Function is used to create a variable that indicates distinct hauls or trips.

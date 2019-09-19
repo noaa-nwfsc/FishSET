@@ -5,8 +5,9 @@
 \title{Make model design}
 \usage{
 make_model_design(dat, catchID, alternativeMatrix = c("loadedData",
-  "griddedData"), lon.dat, lat.dat, project, indeVarsForModel = NULL,
-  gridVariablesInclude = NULL, priceCol = NULL)
+  "griddedData"), lon.dat, lat.dat, project, likelihood = NULL,
+  vars1 = NULL, vars2 = NULL, priceCol = NULL, startloc = NULL,
+  polyn = NULL, vesselID = NULL)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
@@ -21,21 +22,27 @@ make_model_design(dat, catchID, alternativeMatrix = c("loadedData",
 
 \item{project}{name. name of project. For name of output table saved in sql database}
 
+\item{likelihood}{Name of likelihood function. Current choices are logit_c, logit_avgcat, logit_correction, epm_normal, epm_weibull, epm_ognormal.}
+
+\item{vars1}{List varialbes using `c()`. These depend on the likelihood 
+the user chooses, so please see the Detail section for how to specify for each likelihood function.}
+
+\item{vars2}{List varialbes using `c()`. These depend on the likelihood
+the user chooses, so please see the Detail section for how to specify for each likelihood function.}
+
 \item{priceCol}{NULL If required, specify which variable contains price data.}
 
-\item{vars1}{List variable names using `c()`. These depend on the likelihood
-the user chooses, so please see the Detail section for how to specify for
-each likelihood function.}
+\item{startloc}{Vector required for logit_correction likelihood. startloc is a matrix of dimension (number of observations) 
+by (unity), that corresponds to the starting location when the agent decides between alternatives.}
 
-\item{vars2}{List variable names using `c()`. These depend on the likelihood
-the user chooses, so please see the Detail section for how to specify for
-each likelihood function.}
+\item{polyn}{Vector required for logit_correction likelihood. Correction polynomial degree.}
 
 \item{vesselID}{NULL If required, specify which variable defines individual vessels.}
 }
 \value{
 Model design matrix containing \cr
   \tabular{rlll}{
+    likelihood: \tab Name of likelihood function\cr
     choice: \tab Data corresponding to actual zonal choice\cr 
     catch: \tab Data corresponding to actual zonal catch\cr 
     scales: \tab Scale vectors to put catch data, zonal data, and other data on same scale\cr 

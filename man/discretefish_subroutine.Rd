@@ -4,18 +4,16 @@
 \alias{discretefish_subroutine}
 \title{Subroutine to run chosen discrete choice model}
 \usage{
-discretefish_subroutine(project, initparams, optimOpt, func, methodname,
+discretefish_subroutine(project, initparams, optimOpt, methodname,
   mod.name, select.model = FALSE, name = "discretefish_subroutine")
 }
 \arguments{
 \item{project}{Name of project. For obtaining catch, choice, distance, and otherdat data generated from make_model_design function. 
-Working modelInputData table (table without date) will be putlled from fishset_db database.}
+Working modelInputData table (table without date) will be pulled from fishset_db database.}
 
 \item{initparams}{Initial parameter estimates for revenue/location-specific covariates then cost/distance}
 
 \item{optimOpt}{Optimization options [max function evaluations, max iterations, (reltol) tolerance of x, trace]}
-
-\item{func}{Name of likelihood function}
 
 \item{methodname}{Optimization method (see optim options)}
 
@@ -38,7 +36,7 @@ Subroutine to run chosen discrete choice model
 }
 \examples{
 \dontrun{
-results <- discretefish_subroutine(modelInputData, initparams= c(0.5, -2.8), 
+results <- discretefish_subroutine('pcod', initparams= c(0.5, -2.8), 
                                    optimOpt=c(100000,1.00000000000000e-08,1,1),
                                    func=logit_c, methodname="BFGS", 'newlogit4', 
                                    select.model=TRUE, project='projectName')

@@ -21,6 +21,7 @@ Returns midpoint of each haul. Each row of data must be a unique haul. Requires 
 }
 \examples{
 \dontrun{
-MainDataTable$haulMidPoint <- create_mid_haul(MainDataTable, start = c("LonLat_START_LON", "LonLat_START_LAT"), end = c("LonLat_END_LON", "LonLat_END_LAT")) 
+MainDataTable$haulMidPoint <- create_mid_haul(MainDataTable, start = c("LonLat_START_LON", 
+                         "LonLat_START_LAT"), end = c("LonLat_END_LON", "LonLat_END_LAT")) 
 }
 }

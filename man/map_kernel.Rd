@@ -31,7 +31,8 @@ Wrapper function to map kernel densities using ggplot2
 type <- "contours"
 latlon <- as.matrix(cbind(datatomap.2001$lat, datatomap.2001$lon))
 group <- datatomap.2001$Vessel
-minmax = c(50, max(datatomap.2001$lat,datatomap.2001$lat)*1.001, min(datatomap.2001$lon,datatomap.2001$lon)*1.001 , -142.5)
+minmax = c(50, max(datatomap.2001$lat,datatomap.2001$lat)*1.001,
+ min(datatomap.2001$lon,datatomap.2001$lon)*1.001 , -142.5)
 
 map_kernel(type,latlon,group=group,minmax=minmax)
 

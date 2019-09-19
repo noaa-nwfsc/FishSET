@@ -16,7 +16,7 @@ outlier_remove(dat, x, dat.remove = "none", remove = T)
 \item{remove}{Save data with outliers removed. If TRUE, the revised data table, with values removed outside the `dat.remove` expression, is returned.}
 }
 \value{
-Returns the modified dataframe
+Returns the modified dataframe. MOdified dataframe will be saved to fishset_db database.
 }
 \description{
 Evaluate and edit outliers from variable

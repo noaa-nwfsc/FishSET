@@ -4,7 +4,8 @@
 \alias{nan_filter}
 \title{Filters NaN's from data frame}
 \usage{
-nan_filter(dat, x, replace = F, remove = F, rep.value = NA)
+nan_filter(dat, x, replace = F, remove = F, rep.value = NA,
+  over_write = FALSE)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
@@ -16,6 +17,8 @@ nan_filter(dat, x, replace = F, remove = F, rep.value = NA)
 \item{remove}{TRUE/FALSE Remove all remove the entire row of the dataframe where NaN is present in a specified column? Defaults to FALSE.}
 
 \item{rep.value}{Value to replace all NaNs in a column. Defaults to the mean value of the column.}
+
+\item{over_write}{Over_write modified data set in fishset_db database?}
 }
 \value{
 Returns the modified data frame
@@ -24,7 +27,7 @@ Returns the modified data frame
 Filters NaN's from data frame
 }
 \details{
-Replaces nans in the data column with the chosen value or removes rows containing NaNs.
+Replaces nans in the data column with the chosen value or removes rows containing NaNs. Modified data frame saved to fishset_db database.
 }
 \examples{
 \dontrun{
