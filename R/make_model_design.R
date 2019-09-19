@@ -123,20 +123,13 @@
 
 
 make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", "griddedData"), lon.dat, lat.dat, project, 
-                               likelihood= NULL, vars1 = NULL, vars2 = NULL, priceCol = NULL, startloc=NULL, polyn=NULL) {
+                               likelihood= NULL, vars1 = NULL, vars2 = NULL, priceCol = NULL, startloc=NULL, polyn=NULL, vesselID=NULL) {
   
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat  
-  }
- 
+  #Call in datasets
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
+  
   indeVarsForModel = vars1
   gridVariablesInclude=vars2
   
@@ -454,12 +447,12 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   } 
   make_model_design_function <- list()
   make_model_design_function$functionID <- 'make_model_design'
-  make_model_design_function$args <- c(deparse(substitute(dat)), catchID, alternativeMatrix, lon.dat, lat.dat, project)
+  make_model_design_function$args <- c(dat, catchID, alternativeMatrix, lon.dat, lat.dat, project)
   make_model_design_function$kwargs <- list('indeVarsForModel'=indeVarsForModel, 'gridVariablesInclude'=gridVariablesInclude, 'priceCol'=priceCol)
   make_model_design_function$output <- c('')
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (make_model_design_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
  
    

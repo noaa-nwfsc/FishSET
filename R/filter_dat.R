@@ -21,33 +21,24 @@ filter_table <- function(dat, x, exp, project) {
   #' 
 
   #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat 
-  }
-  DBI::dbDisconnect(fishset_db)
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
   
   
 
-  if (table_exists(paste0(project, "filterTable")) == F) {
+  if (table_exists(paste0(project, "FilterTable")) == F) {
     filterTable <- data.frame(dataframe = NA, vector = NA, FilterFunction = NA)
     filterTable[1, ] <- c(deparse(substitute(dataset)), deparse(substitute(x)), exp)
   } else {
-    filterTable <- table_view(paste0(project, "filterTable"))
+    filterTable <- table_view(paste0(project, "FilterTable"))
     filterTable <- rbind(filterTable, c(deparse(substitute(dataset)), deparse(substitute(x)), exp))
   }
  
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  DBI::dbWriteTable(fishset_db, paste0(project, 'filterTable'),  filterTable, overwrite=TRUE)
+  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+  DBI::dbWriteTable(fishset_db, paste0(project, 'FilterTable'),  filterTable, overwrite=TRUE)
   DBI::dbDisconnect(fishset_db)
-  cat('Data saved to fishset_db database')
+  cat('Table saved to fishset_db database')
   
   
      if(!exists('logbody')) { 
@@ -65,13 +56,13 @@ filter_table <- function(dat, x, exp, project) {
     } 
     filter_data_function <- list()
     filter_data_function$functionID <- 'filter_table'
-    filter_data_function$args <- c(deparse(substitute(dat)), x, exp, project)
+    filter_data_function$args <- c(dat, x, exp, project)
     filter_data_function$kwargs <- list()
     filter_data_function$output <- c('')
     filter_data_function$msg <- filterTable
     functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (filter_data_function)
     logbody$fishset_run <- list(infoBodyout, functionBodyout)
-    write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+    write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
     assign("functionBodyout", value = functionBodyout, pos = 1)
     
   print(filterTable)
@@ -97,18 +88,9 @@ filter_dat <- function(dat, exp, filterTable) {
   #' 
   
   #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat 
-  }
-  DBI::dbDisconnect(fishset_db)
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
   
   
   # NaNs only occurs on Numeric Variables
@@ -141,13 +123,13 @@ filter_dat <- function(dat, exp, filterTable) {
     } 
     filter_dat_function <- list()
     filter_dat_function$functionID <- 'filter_dat'
-    filter_dat_function$args <- c(deparse(substitute(dat)), exp, filterTable)
+    filter_dat_function$args <- c(dat, exp, filterTable)
     filter_dat_function$kwargs <- list()
     filter_dat_function$output <- deparse(substitute(dataset))
     filter_dat_function$msg <- paste("Rows have been removed based on", exp)
     functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (filter_dat_function)
     logbody$fishset_run <- list(infoBodyout, functionBodyout)
-    write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+    write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
     assign("functionBodyout", value = functionBodyout, pos = 1) 
         
     return(dataset)

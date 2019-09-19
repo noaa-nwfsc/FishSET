@@ -20,11 +20,17 @@
 #' }
 
 select_model <- function(table, overwrite.table=TRUE){
-
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  library(shiny)
+  if(!exists('loc')){
+    loc = getwd()
+  } else {
+    loc = loc
+  }
+  
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite"))
   out.mod <- DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), paste0("SELECT * FROM", paste0("'", noquote(table), "'")))
   
-  runApp(list(
+  shinyApp(
     ui = fluidPage(
       
       sidebarLayout(
@@ -113,7 +119,7 @@ select_model <- function(table, overwrite.table=TRUE){
       # When the Submit button is clicked, save the form data
       observeEvent(input$submit, {
         # Connect to the database
-        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite"))
         if(overwrite.table==T){
           if(DBI::dbExistsTable(fishset_db, 'modelChosen')==TRUE){
             DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), 'modelChosen')
@@ -143,5 +149,5 @@ select_model <- function(table, overwrite.table=TRUE){
       
       
 }
-  ))
+  )
 }

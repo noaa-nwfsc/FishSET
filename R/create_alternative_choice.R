@@ -59,6 +59,13 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
   }
   DBI::dbDisconnect(fishset_db)
 
+  
+  if(is.character(dat)==TRUE){
+    dat <- dat
+  } else {
+    dat <- deparse(substitute(dat))
+  }
+  
   int <- find_centroid(dat=dataset, gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.grid, 
                        lat.dat = lat.dat, lon.dat = lon.dat, cat = cat, weight.var = weight.var)
   
@@ -220,14 +227,14 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
        } 
        create_alternative_choice_function <- list()
        create_alternative_choice_function$functionID <- 'create_alternative_choice'
-       create_alternative_choice_function$args <- c(deparse(substitute(dat)), deparse(substitute(gridfile)), case, min.haul,
+       create_alternative_choice_function$args <- c(dat, deparse(substitute(gridfile)), case, min.haul,
                                                    haul.trip, alt_var, occasion, lon.dat, lat.dat, lon.grid,  lat.grid, cat,  use.grid, 
                                                    hull.polygon, remove.na, closest.pt, project)
        create_alternative_choice_function$kwargs <- list('griddedDat'= griddedDat, 'weight.var'= weight.var)
        create_alternative_choice_function$output <- c()
        functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_alternative_choice_function)
        logbody$fishset_run <- list(infoBodyout, functionBodyout)
-       write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+       write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
        assign("functionBodyout", value = functionBodyout, pos = 1)
 }                                                                                                                                                                                                                           
    

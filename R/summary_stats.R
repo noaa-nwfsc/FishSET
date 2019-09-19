@@ -16,23 +16,34 @@ summary_stats <- function(dat, x=NULL) {
   
   
   #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat 
-  }
-  DBI::dbDisconnect(fishset_db)
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
+  
+  # Min
+  #apply(dataset, 2, function(x) min(x, na.rm=T))
+  #1st Quartile
+  #apply(dataset, 2, function(x) quantile(x)[2])
+  #Median
+  #apply(dataset, 2, function(x) median(x, na.rm=T))
+  #Mean
+  #apply(dataset, 2, function(x) mean(x, na.rm=TRUE))
+  #3rd Quartile
+  #apply(dataset, 2, function(x) length(unique(x)))
+  #Max
+  #apply(dataset, 2, function(x) max(x, n.arm=TRUE))
+  #UniqueObs 
+ #apply(dataset, 2, function(x) paste("UniqueObs:", length(unique(x))))
   
   
   if(FishSET:::is_empty(x)){
-    rbind(summary(dataset), apply(dataset, 2, function(x) paste("UniqueObs:", length(unique(x)))))
+    as.data.frame(as.matrix(rbind(summary(dataset, digits=2), 
+                                  apply(dataset, 2, function(x) paste("UniqueObs:", length(unique(x)))),
+                                  apply(dataset, 2, function(x) paste("No. 0's:", length(which(x==0))))
+                                  )), row.names=FALSE)[-c(2,5),]
   } else {
-    c(summary(dataset[[x]]), paste("UniqueObs:", length(unique(dataset[[x]]))))
+    c(summary(dataset[[x]]), paste("UniqueObs:", length(unique(dataset[[x]]))), 
+                            paste("No. 0's:", length(which(dataset[[x]]==0)))
+      )[-c(2,5)]
   }
 }

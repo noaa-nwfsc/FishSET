@@ -65,7 +65,8 @@ logit_c <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
 	#' 
 	#' func <- logit_c
 	#' 
-	#' results <- discretefish_subroutine(catch,choice,distance,otherdat,initparams,optimOpt,func,methodname)
+	#' results <- discretefish_subroutine(catch,choice,distance,otherdat,
+	#' initparams,optimOpt,func,methodname)
 	#' }
     
 	griddat <- as.matrix(do.call(cbind, otherdat$griddat))

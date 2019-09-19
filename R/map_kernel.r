@@ -20,7 +20,8 @@ map_kernel <- function(type, latlon, group = NULL, facet = FALSE, minmax = NULL)
 	  #' type <- "contours"
 	  #' latlon <- as.matrix(cbind(datatomap.2001$lat, datatomap.2001$lon))
 	  #' group <- datatomap.2001$Vessel
-  	#' minmax = c(50, max(datatomap.2001$lat,datatomap.2001$lat)*1.001, min(datatomap.2001$lon,datatomap.2001$lon)*1.001 , -142.5)
+  	#' minmax = c(50, max(datatomap.2001$lat,datatomap.2001$lat)*1.001,
+  	#'  min(datatomap.2001$lon,datatomap.2001$lon)*1.001 , -142.5)
   	#' 
   	#' map_kernel(type,latlon,group=group,minmax=minmax)
   	#' 
@@ -33,7 +34,7 @@ map_kernel <- function(type, latlon, group = NULL, facet = FALSE, minmax = NULL)
 	
 ## currently outputs to FishSET not file (could include dirout as argument)
 library('ggplot2')
-world <- maps::map('world')
+world <- map_data("world")
   
 datatomap <- as.data.frame(latlon)
 colnames(datatomap) <- c("lat", "lon")
@@ -90,7 +91,9 @@ geom_map(data=world, map=world, aes(x=long, y=lat, map_id=region),fill="grey", c
   ggplot2::geom_point(data=datatomap,aes(x=lon,y=lat, colour = groupv), size=0.375, alpha = 0.25) +
 xlim(minlon,maxlon) + ylim(minlat,maxlat) +
   ggtitle("Points") + guides(colour = guide_legend(override.aes = list(size=10))) +
-theme(text = element_text(size=20), axis.title.y=element_text(vjust=1.5),legend.title=element_blank()) + xlab("Longitude") + ylab("Latitude")
+theme(text = element_text(size=12), axis.title.y=element_text(vjust=1.5),legend.title=element_blank(),
+      panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+      panel.background = element_blank() ,panel.border = element_rect(colour = "black", fill=NA, size=1)) + xlab("Longitude") + ylab("Latitude")
 
 return(mapout)
 
@@ -102,7 +105,9 @@ geom_point(data=datatomap,aes(x=lon,y=lat, colour = groupv), size=0.375) +
 xlim(minlon,maxlon) + ylim(minlat,maxlat) +
 ggtitle("Points") +
 facet_wrap(.~groupv) +
-theme(text = element_text(size=20), axis.title.y=element_text(vjust=1.5),legend.position = "none") + xlab("Longitude") + ylab("Latitude")
+theme(text = element_text(size=12), axis.title.y=element_text(vjust=1.5),legend.position = "none",
+      panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+      panel.background = element_blank() ,panel.border = element_rect(colour = "black", fill=NA, size=1)) + xlab("Longitude") + ylab("Latitude")
 
 return(mapout)
 
@@ -113,7 +118,9 @@ geom_map(data=world, map=world, aes(x=long, y=lat, map_id=region),fill="grey", c
 geom_point(data=datatomap,aes(x=lon,y=lat), color="black", size=0.375) +
 xlim(minlon,maxlon) + ylim(minlat,maxlat) +
 ggtitle("Points") +
-theme(text = element_text(size=20), axis.title.y=element_text(vjust=1.5)) + xlab("Longitude") + ylab("Latitude")
+theme(text = element_text(size=12), axis.title.y=element_text(vjust=1.5),
+      panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+      panel.background = element_blank() ,panel.border = element_rect(colour = "black", fill=NA, size=1)) + xlab("Longitude") + ylab("Latitude")
 
 return(mapout)
 
@@ -130,7 +137,9 @@ geom_point(data=datatomap,aes(x=lon,y=lat, colour = groupv), color="black", size
 geom_density_2d(data=datatomap,aes(x=lon,y=lat, colour = groupv)) +
 xlim(minlon,maxlon) + ylim(minlat,maxlat)+
 ggtitle("Spatial kernel (contours)") +
-theme(text = element_text(size=20), axis.title.y=element_text(vjust=1.5),legend.title=element_blank()) + xlab("Longitude") + ylab("Latitude")
+theme(text = element_text(size=12), axis.title.y=element_text(vjust=1.5),legend.title=element_blank(),
+      panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+      panel.background = element_blank() ,panel.border = element_rect(colour = "black", fill=NA, size=1)) + xlab("Longitude") + ylab("Latitude")
 
 return(mapout)
 
@@ -143,7 +152,9 @@ geom_density_2d(data=datatomap,aes(x=lon,y=lat, colour = groupv)) +
 xlim(minlon,maxlon) + ylim(minlat,maxlat)+
 ggtitle("Spatial kernel (contours)") +
 facet_wrap(.~groupv) +
-theme(text = element_text(size=20), axis.title.y=element_text(vjust=1.5),legend.position = "none") + xlab("Longitude") + ylab("Latitude")
+theme(text = element_text(size=12), axis.title.y=element_text(vjust=1.5),legend.position = "none",
+      panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+      panel.background = element_blank() ,panel.border = element_rect(colour = "black", fill=NA, size=1)) + xlab("Longitude") + ylab("Latitude")
 
 return(mapout)
 
@@ -155,7 +166,9 @@ geom_point(data=datatomap,aes(x=lon,y=lat), color="black", size=0.375) +
 geom_density_2d(data=datatomap,aes(x=lon,y=lat)) +
 xlim(minlon,maxlon) + ylim(minlat,maxlat)+
 ggtitle("Spatial kernel (contours)") +
-theme(text = element_text(size=20), axis.title.y=element_text(vjust=1.5),legend.title=element_blank()) + xlab("Longitude") + ylab("Latitude")
+theme(text = element_text(size=12), axis.title.y=element_text(vjust=1.5),legend.title=element_blank(),
+      panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+      panel.background = element_blank() ,panel.border = element_rect(colour = "black", fill=NA, size=1)) + xlab("Longitude") + ylab("Latitude")
 
 return(mapout)
 
@@ -180,7 +193,9 @@ xlim(minlon,maxlon) + ylim(minlat,maxlat)+
 facet_wrap(.~groupv) +
 scale_fill_gradient(name="Level\n(density)") +
 ggtitle("Spatial kernel (gradient)") +
-theme(text = element_text(size=20), axis.title.y=element_text(vjust=1.5)) + xlab("Longitude") + ylab("Latitude")
+theme(text = element_text(size=12), axis.title.y=element_text(vjust=1.5),
+      panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+      panel.background = element_blank() ,panel.border = element_rect(colour = "black", fill=NA, size=1)) + xlab("Longitude") + ylab("Latitude")
 
 return(mapout)
 
@@ -193,7 +208,9 @@ stat_density_2d(data=datatomap, aes(x=lon,y=lat, fill = stat(level)), geom = "po
 xlim(minlon,maxlon) + ylim(minlat,maxlat)+
 scale_fill_gradient(name="Level\n(density)") +
 ggtitle("Spatial kernel (gradient)") +
-theme(text = element_text(size=20), axis.title.y=element_text(vjust=1.5)) + xlab("Longitude") + ylab("Latitude")
+theme(text = element_text(size=12), axis.title.y=element_text(vjust=1.5),
+      panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+      panel.background = element_blank() ,panel.border = element_rect(colour = "black", fill=NA, size=1) ) + xlab("Longitude") + ylab("Latitude")
 
 return(mapout)
 

@@ -24,17 +24,10 @@
 create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), use.geartype=c(TRUE,FALSE), sp.col, target=NULL){
 
   #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat  
-  }
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
+  
   if(is.character(seasonal.dat)==TRUE){
     if(is.null(seasonal.dat)==TRUE | table_exists(seasonal.dat)==FALSE){
       print(DBI::dbListTables(fishset_db))
@@ -45,7 +38,11 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
   } else {
     seasonaldat <- seasonal.dat  
   }
-  
+  if(is.character(seasonal.dat)==TRUE){
+    seasonal.dat <- seasonal.dat
+  } else {
+    deparse(substitute(seasonal.dat))
+  }
   DBI::dbDisconnect(fishset_db)
   
   
@@ -304,12 +301,12 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
   } 
   create_seaonal_ID_function <- list()
   create_seaonal_ID_function$functionID <- 'create_seaonal_ID'
-  create_seaonal_ID_function$args <- c(deparse(substitute(dat)),  deparse(substitute(seasonal.dat)), use.location, use.geartype, sp.col)
+  create_seaonal_ID_function$args <- c(dat, seasonal.dat, use.location, use.geartype, sp.col)
   create_seaonal_ID_function$kwargs <- list('target'=target)
   create_seaonal_ID_function$output <- deparse(substitute(dataset))
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_seaonal_ID_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
   
   return(dataset)

@@ -5,7 +5,7 @@
 #' View and select which variables to add to working data set
 #'
 #' @param working_dat Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
-#' @param raw_dat
+#' @param raw_dat Main raw (unmodified data frame)
 #' @param project Name of project. Parameter is used to generate meaningful table names in fishset_db database.
 #' @importFrom DBI  dbDisconnect dbConnect dbListTables dbWriteTable 
 #' @import shiny
@@ -23,8 +23,13 @@
 
 add_vars <- function(working_dat, raw_dat, project){
   library(shiny)
+  if(!exists('loc')){
+    loc = getwd()
+  } else {
+    loc = loc
+  }
   
-  runApp(list(
+  shinyApp(
     ui = fluidPage(
       # tweaks, a list object to set up multicols for checkboxGroupInput
       tags$head(tags$style(HTML("
@@ -84,7 +89,7 @@ add_vars <- function(working_dat, raw_dat, project){
 ##  Beging SERVER functions  
     server = function(input, output, session) {
       col_show <- 1
-      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
       if(is.character(working_dat)==TRUE){
         if(is.null(working_dat)==TRUE | table_exists(working_dat)==FALSE){
           print(DBI::dbListTables(fishset_db))
@@ -157,7 +162,7 @@ add_vars <- function(working_dat, raw_dat, project){
       # When the Submit button is clicked, save the form data
       observeEvent(input$submit, {
         # Connect to the database
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
         DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable',  format(Sys.Date(), format="%Y%m%d")), data_table(), overwrite=TRUE)
         
         showNotification(paste0("Table saved to database as ", project, 'MainDataTable',  format(Sys.Date(), format="%Y%m%d"), ". Please close the window."))
@@ -173,6 +178,6 @@ add_vars <- function(working_dat, raw_dat, project){
       
       
     }
-      ))
+      )
   }
 

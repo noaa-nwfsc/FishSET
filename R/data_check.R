@@ -18,28 +18,17 @@
 data_check <- function(dat, x, dataindex) {
 #Call in data
       suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
-  #Call in main data set
-    if(is.character(dat)==TRUE){
-      if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-        print(DBI::dbListTables(fishset_db))
-        stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-      } else {
-      dataset <- table_view(dat)
-    } 
-      } else {
-     dataset <- dat 
-    }
+
+    #Call in main data set
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
+  
   #call in data index
-  if(is.character(dataindex)==TRUE){
-    if(is.null(dataindex)==TRUE | table_exists(dataindex)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dataindex, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataindex2 <- table_view(dataindex)
-    }
-    } else {
-    dataindex2 <- dataindex 
-    }
+  out <- data_pull(dataindex)
+  dataindex <- out$dat
+  dataindex2 <- out$dataset
+  
       #single_sql <- paste("select * from ", dataindex, sep='')
       #dataindex2 <- DBI::dbGetQuery(fishset_db,  single_sql)
       DBI::dbDisconnect(fishset_db)
@@ -119,12 +108,12 @@ data_check <- function(dat, x, dataindex) {
       } 
         data_check_function <- list()
         data_check_function$functionID <- 'data_check'
-        data_check_function$args <- c(deparse(substitute(dat)), x, dataindex)
+        data_check_function$args <- c(dat, x, dataindex)
         data_check_function$kwargs <- list()
         data_check_function$output <- c('')
       functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (data_check_function)
       logbody$fishset_run <- list(infoBodyout, functionBodyout)
-      write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+      write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
       assign("functionBodyout", value = functionBodyout, pos = 1)
     
 }

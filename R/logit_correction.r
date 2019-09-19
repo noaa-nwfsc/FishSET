@@ -68,11 +68,13 @@ logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod
 	#'     startloc=as.matrix(startloc),polyn=polyn,
 	#'     distance=as.matrix(distance))
 	#'
-	#' initparams <- c(3, 0.5, 0.4, 0.3, 0.2, 0.55, 0.45, 0.35, 0.25, rep(0, (((polyn+1)*2) + 2)*kk), -0.3,-0.4, 3)
+	#' initparams <- c(3, 0.5, 0.4, 0.3, 0.2, 0.55, 0.45, 0.35, 0.25,
+	#'  rep(0, (((polyn+1)*2) + 2)*kk), -0.3,-0.4, 3)
 	#' 
 	#' func <- logit_correction
 	#' 
-	#' results <- discretefish_subroutine(catch,choice,distance,otherdat,initparams,optimOpt,func,methodname)
+	#' results <- discretefish_subroutine(catch,choice,distance,
+	#' otherdat,initparams,optimOpt,func,methodname)
 	#' }
     
     obsnum <- dim(griddat)[1]

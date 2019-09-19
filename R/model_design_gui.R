@@ -5,7 +5,9 @@
 #' @param project If FALSE, appends model selection to out.mod table. If true, overwrites new table with model selection columns. Set to TRUE if models are deleted or selected models are changed.
 #' @importFrom DBI dbExistsTable dbDisconnect dbConnect dbRemoveTable dbExecute dbGetQuery
 #' @importFrom DT DTOutput renderDT JS
-#' @import shiny shinyjs
+# @import shinyjs 
+#' @import shiny 
+#' @importFrom shinyjs useShinyjs reset
 #' @export
 #' @details Opens an interactive session to specify data and parameters for models. Once all parameters have been chosen, select the 'save model and add new model' button
 #' to save the selections. A new model can then be specified.
@@ -17,14 +19,15 @@
 
 model_design <- function(dat, project){
 
-library(shiny)
-library(shinyjs) #resettable
+#library(shinyjs)
+  library(shiny)
+ #resettable
 
 #dat <- pcodMainDataTable
 runApp(list(
      model_table <- data.frame('mod_name'='', 'likelihood'='', 'alternatives'='', 'optimOpts'='', 'inits'='', 'vars1'='','vars2'='', 'catch'=''),
      ui = fluidPage(
-          useShinyjs(),
+          shinyjs::useShinyjs(),
 
 
           sidebarLayout(
@@ -276,7 +279,7 @@ runApp(list(
                DBI::dbGetQuery(fishset_db, query)
                DBI::dbDisconnect(fishset_db)
 
-               reset("form")
+               shinyjs::reset("form")
           })
 
 

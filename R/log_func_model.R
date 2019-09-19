@@ -33,7 +33,7 @@ log_func_model <- function(x) {
   user_function$msg <- args(x)
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (user_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
 
 }

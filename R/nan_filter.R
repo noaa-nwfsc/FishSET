@@ -19,19 +19,9 @@ nan_identify <- function(dat){
 #' }
 
   #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat 
-  }
-  DBI::dbDisconnect(fishset_db)
-  
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
   
    tmp <- tempfile()
    #Check for NAs
@@ -72,20 +62,20 @@ nan_identify <- function(dat){
   } 
   nan_identify_function <- list()
   nan_identify_function$functionID <- 'nan_identify'
-  nan_identify_function$args <- c(deparse(substitute(dat)))
+  nan_identify_function$args <- c(dat)
   nan_identify_function$kwargs <- list()
   nan_identify_function$output <- c('')
   nan_identify_function$msg <- suppressWarnings(readLines(tmp))
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (nan_identify_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
   rm(tmp)
 }
 
 
 # Replaces nans in the data column with the choosen value or removes rows containing NaNs
-nan_filter <- function(dat, x, replace = F, remove = F, rep.value=NA) {
+nan_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write=FALSE) {
   #' Filters NaN's from data frame
   #'
   #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
@@ -93,7 +83,8 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value=NA) {
   #' @param replace TRUE/FALSE Replace NaNs in a vector? Defaults to FALSE.
   #' @param remove TRUE/FALSE Remove all remove the entire row of the dataframe where NaN is present in a specified column? Defaults to FALSE.
   #' @param rep.value Value to replace all NaNs in a column. Defaults to the mean value of the column.
-  #' @details Replaces nans in the data column with the chosen value or removes rows containing NaNs.
+  #' @param over_write Over_write modified data set in fishset_db database?
+  #' @details Replaces nans in the data column with the chosen value or removes rows containing NaNs. Modified data frame saved to fishset_db database.
   #' @keywords NaN
   #' @return Returns the modified data frame
   #' @export nan_filter
@@ -107,20 +98,11 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value=NA) {
   #' }
   
   #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat 
-  }
-  DBI::dbDisconnect(fishset_db)
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
   
-      int <- dataset
+    int <- dataset
     tmp <- tempfile()
     for(i in 1:length(x)){
     x.name <- x[i]
@@ -130,7 +112,7 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value=NA) {
       # the identified rep.value (defaults to mean value)
       if (replace == T) {
         if(is.nan(rep.value)==TRUE) {
-          rep.value <- mean(int[, x], na.rm = T)
+          rep.value <- mean(int[, x.name], na.rm = T)
         }
           if (is.numeric(int[, x.name]) == T) {
           # Further actions are only taken if NaNs exist in the selected variable
@@ -147,10 +129,19 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value=NA) {
         int <- int[!is.nan(int[, x.name]), ]
       }
     } else {
-      cat("\nNo NaNs present in variable", x.name, file=tmp, append=T)
+      cat("\nNo NaNs present in variable", x.name, file=tmp)
     }
-  }  
-  print(suppressWarnings(readLines(tmp)))
+    }  
+    
+  print(suppressWarnings(readLines(tmp)))  
+  
+  if(over_write==TRUE&any(is.nan(dataset))==TRUE){
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+  DBI::dbWriteTable(fishset_db, deparse(substitute(dat)), int, overwrite=over_write)
+  DBI::dbDisconnect(fishset_db)
+  }
+  
+  
   
   if(!exists('logbody')) { 
     logbody <- list()
@@ -167,13 +158,13 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value=NA) {
   } 
   nan_filter_function <- list()
   nan_filter_function$functionID <- 'nan_filter'
-  nan_filter_function$args <-  c(deparse(substitute(dat)),  deparse(substitute(x)), replace, remove, rep.value)
+  nan_filter_function$args <-  c(dat,  deparse(substitute(x)), replace, remove, rep.value)
   nan_filter_function$kwargs <- list()
   nan_filter_function$output <-  c(deparse(substitute(dat)))
   nan_filter_function$msg <- suppressWarnings(readLines(tmp))
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- nan_filter_function
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
   rm(tmp)
   
@@ -183,7 +174,7 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value=NA) {
 
 
 # Replaces nans in the dataColumn with the choosen value or removes rows containing NaNs
-na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA) {
+na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write=FALSE) {
   #' Filters NA's from variable
   #'
   #'  Function to return a modified dataframe where NAs have been replaced or removed.
@@ -193,7 +184,8 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA) {
   #' @param replace TRUE/FALSE Replace NaNs in a vector? Defaults to FALSE.
   #' @param remove TRUE/FALSE Remove all remove the entire row of the dataframe where NaN is present in a specified column? Defaults to FALSE.
   #' @param rep.value Value to replace all NaNs in a column. Defaults to the mean value of the column.
-  #' @details Function to return a modified dataframe where NAs have been replaced or removed.
+  #' @param over_write Over_write modified data set in fishset_db database?
+  #' @details Function to return a modified dataframe where NAs have been replaced or removed. Modified data frame saved to fishset_db database.
   #' @keywords NA
   #' @return Returns the modified dataframe
   #' @export na_filter
@@ -221,7 +213,6 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA) {
   DBI::dbDisconnect(fishset_db)
   
   
-  
   int <- dataset
   tmp <- tempfile()
   for(i in 1:length(x)){
@@ -232,10 +223,10 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA) {
       # the identified rep.value (defaults to mean value)
       if (replace == T) {
         if(is.na(rep.value)==TRUE) {
-          rep.value <- mean(int[, x], na.rm = T)
+          rep.value <- mean(int[, x.name], na.rm = T)
         }
         if (is.numeric(int[, x.name]) == T) {
-          # Further actions are only taken if NaNs exist in the selected variable
+          # Further actions are only taken if NAs exist in the selected variable
           int[is.na(int[, x.name]), x.name] = rep.value
           cat("\nAll NAs in", x.name, "have been replaced with", rep.value, file=tmp, append=T)
         } else {
@@ -249,10 +240,18 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA) {
         int <- int[!is.na(int[, x.name]), ]
       }
     } else {
-      cat("\nNo NAs present in variable", x.name, file=tmp, append=T)
+      cat("\nNo NAs present in variable", x.name, file=tmp)
     }
   }  
   print(suppressWarnings(readLines(tmp)))
+  
+  #Save the revised data set
+  if(over_write==TRUE&any(is.na(dataset))==TRUE){
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+  DBI::dbWriteTable(fishset_db, deparse(substitute(dat)), int, overwrite=over_write)
+  DBI::dbDisconnect(fishset_db)
+  print('Data saved to database')
+  }
   
   if(!exists('logbody')) { 
     logbody <- list()
@@ -269,13 +268,13 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA) {
   } 
   nan_filter_function <- list()
   nan_filter_function$functionID <- 'na_filter'
-  nan_filter_function$args <-  c(deparse(substitute(dat)),  deparse(substitute(x)), replace, remove, rep.value)
+  nan_filter_function$args <-  c(dat,  deparse(substitute(x)), replace, remove, rep.value)
   nan_filter_function$kwargs <- list()
   nan_filter_function$output <-  c(deparse(substitute(dat)))
   nan_filter_function$msg <- suppressWarnings(readLines(tmp))
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- nan_filter_function
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
   rm(tmp)
   

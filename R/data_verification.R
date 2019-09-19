@@ -15,18 +15,11 @@
 data_verification <- function(dat) {
   
   #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat 
-  }
-  DBI::dbDisconnect(fishset_db)
+  #Call in datasets
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
+  
   
   # check each row of data is a unique choice occurrence at haul or trip level
   if (dim(dataset)[1] == dim(unique(dataset))[1]) {
@@ -48,7 +41,11 @@ data_verification <- function(dat) {
   if(any(grepl('lat|lon', names(dataset), ignore.case=TRUE))){
     lat <- dataset[,which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)]
     lon <- dataset[,which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)]
-    cat('At least one lat/lon variable is not in degrees. Use the degree function to convert to degrees.')
+    if(any(is.numeric(colnames(lat)))|any(is.numeric(colnames(lon)))==TRUE){
+    cat('At least one lat/lon variable is not in degrees. Use the function degree() to convert to degrees.')
+    } else {
+      cat('\nPass: lat/lon variables in degrees.')
+    }
   } 
     
     
@@ -82,13 +79,13 @@ data_verification <- function(dat) {
   
   data_verification_function <- list()
   data_verification_function$functionID <- 'data_verification'
-  data_verification_function$args <- c(deparse(substitute(dat)))
+  data_verification_function$args <- c(dat)
   data_verification_function$kwargs <- list()
   data_verification_function$output <- c('')
   data_verification_function$msg <- suppressWarnings(readLines(tmp))
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- data_verification_function
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
   rm(tmp)  
   

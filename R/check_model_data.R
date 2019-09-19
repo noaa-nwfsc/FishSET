@@ -37,8 +37,14 @@ check_model_data <- function(dat, dataindex, uniqueID, save.file = TRUE) {
   }
   DBI::dbDisconnect(fishset_db)
   
+  if(is.character(dat)==TRUE){
+    dat <- dat
+  } else {
+    dat <- deparse(substitute(dat))
+  }
+  
   #update dataindex
-  dataIndex <- dataindex_update(dataset, dataindex)
+  dataIndex_update <- dataindex_update(dataset, dataindex)
   
     tmp <- tempfile()
 
@@ -113,13 +119,13 @@ check_model_data <- function(dat, dataindex, uniqueID, save.file = TRUE) {
     } 
   checkModelData_function <- list()
   checkModelData_function$functionID <- 'check_model_data'
-  checkModelData_function$args <- c(deparse(substitute(dat)), deparse(substitute(dataindex)), uniqueID, save.file)
+  checkModelData_function$args <- c(dat, dataindex, uniqueID, save.file)
   checkModelData_function$kwargs <- list()
   checkModelData_function$output <-  c('')
   checkModelData_function$msg <- suppressWarnings(readLines(tmp))
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- checkModelData_function
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
   rm(tmp)
 }

@@ -17,18 +17,9 @@ table_info_verification <- function(dataindex) {
     tmp <- tempfile()
   
   #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dataindex)==TRUE){
-    if(is.null(dataindex)==TRUE | table_exists(dataindex)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dataindex, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-    dataindex_pull <- table_view(dataindex)
-    }
-  } else {
-    dataindex_pull <- dataindex 
-   }
-  DBI::dbDisconnect(fishset_db)
+  out <- data_pull(dataindex)
+  dataindex <- out$dat
+  dataindex_pull <- out$dataset
   
   # Identify if any specialized variables are not identified
   allNecFields = c("name", "units", "general", "XY", "ID", "Time", "Catch", "Effort", 
@@ -77,13 +68,13 @@ table_info_verification <- function(dataindex) {
   } 
   table_info_verification_function <- list()
   table_info_verification_function$functionID <- 'table_info_verification'
-  table_info_verification_function$args <- c(deparse(substitute(dataindex)))
+  table_info_verification_function$args <- c(dataindex)
   table_info_verification_function$kwargs <- list()
   table_info_verification_function$output <- c('')
   table_info_verification_function$msg <- suppressWarnings(readLines(tmp))
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (table_info_verification_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
   rm(tmp)
 }

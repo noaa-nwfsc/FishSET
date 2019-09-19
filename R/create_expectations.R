@@ -54,19 +54,10 @@ create_expectations <- function(dat, project, gridfile, catch, defineGroup, temp
                                 temp.window = 7, temp.lag = 0, temp.year=0, dummy.exp = FALSE) {
   
   #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat  
-  }
-  DBI::dbDisconnect(fishset_db)
-  
+   out <- data_pull(dat)
+   dat <- out$dat
+   datset <- out$dataset
+   
       fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
       Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
       DBI::dbDisconnect(fishset_db)
@@ -383,13 +374,13 @@ long_exp <- long_expectations(dat=dat, project=project, gridfile=gridfile, catch
   
   create_expectations_function <- list()
   create_expectations_function$functionID <- 'create_expectations'
-  create_expectations_function$args <- c(deparse(substitute(dat)), project, deparse(substitute(gridfile)), catch, temporal, temp.var, calc.method, lag.method, 
+  create_expectations_function$args <- c(dat, project, deparse(substitute(gridfile)), catch, temporal, temp.var, calc.method, lag.method, 
                                     empty.catch, empty.expectation, temp.window, temp.lag, dummy.exp)
   create_expectations_function$kwargs <- list('defineGroup'=defineGroup)
   create_expectations_function$output <- c()
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_expectations_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
 }
 

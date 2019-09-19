@@ -14,41 +14,29 @@
 #' @param lat.grid Latitude variable in gridfile
 #' @param cat Variable defining zones or areas. Must be defined for dataset or gridfile.
 #' @importFrom DBI dbExecute
-#' @export create_startloc
+#' @export create_startingloc
 #' @details Function creates the startloc vector that is needed for the logit_correction function. The assignment_column function is called to assign 
 #' port locations and haul locations to zones. The starting port is used to define the starting location at the start of the trip. 
 #' @examples
 #' \dontrun{
-#' MainDataTable$startloc <- create_startloc(MainDataTable, map2, pollockPortTable, 'TRIP_SEQ','HAUL_SEQ','DISEMBARKED_PORT',
-#'                                 "LonLat_START_LON","LonLat_START_LAT", "","", 'NMFS_AREA')
+#' MainDataTable$startloc <- create_startingloc(MainDataTable, map2, pollockPortTable, 
+#'                               'TRIP_SEQ','HAUL_SEQ','DISEMBARKED_PORT',
+#'                               "LonLat_START_LON","LonLat_START_LAT", "","", 'NMFS_AREA')
 #' }
 
-create_startloc <- function(dat, gridfile, PortTable, trip_id, haul_order, starting_port, lon.dat, lat.dat, lon.grid, lat.grid, cat) {
+create_startingloc <- function(dat, gridfile, PortTable, trip_id, haul_order, starting_port, lon.dat, lat.dat, lon.grid, lat.grid, cat) {
   
   #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat  
-  }
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
+  
   
   #  in port table
-  if(is.character(PortTable)==TRUE){
-    if(table_exists(PortTable)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(PortTable, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      port.table <- table_view(PortTable)
-    }
-  } else {
-    port.table <- PortTable
-  }
+  out <- data_pull(portTable)
+  PortTable <- out$dat
+  port.table <- out$dataset
+  
   
   DBI::dbDisconnect(fishset_db)
   
@@ -95,13 +83,13 @@ create_startloc <- function(dat, gridfile, PortTable, trip_id, haul_order, start
   } 
   create_startingloc_function <- list()
   create_startingloc_function$functionID <- 'create_startingloc'
-  create_startingloc_function$args <- c(deparse(substitute(dat)), deparse(substitute(gridfile)), deparse(substitute(PortTable)), trip_id, 
+  create_startingloc_function$args <- c(dat, deparse(substitute(gridfile)), PortTable, trip_id, 
                                         haul_order, lon.dat, lat.dat, lon.grid, lat.grid, cat)
   create_startingloc_function$kwargs <- c()
   create_startingloc_function$output <- c()
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_startingloc_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
   
   return(startingloc)

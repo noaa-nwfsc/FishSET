@@ -13,13 +13,18 @@
 #' Data should be loaded into the fishset_db database before running this function. Select variables that will be used to generate further variables, such as rates or cpue, and variables to be included in models.
 #' @examples 
 #' \dontrun{
-#' select_vars('pcodMainDataTable')
+#' select_vars('pcodMainDataTable', pcod)
 #' }
 
 select_vars <- function(dat, project){
   library(shiny)
-
-  runApp(list(
+  if(!exists('loc')){
+    loc = getwd()
+  } else {
+    loc = loc
+  }
+  
+  shinyApp(
     ui = fluidPage(
       # tweaks, a list object to set up multicols for checkboxGroupInput
         tags$head(tags$style(HTML("
@@ -61,8 +66,8 @@ select_vars <- function(dat, project){
           h5('Variables can be added back into the to working data set using the add_vars function.'),
         #Checkbox input widget  
           tags$div(align = 'left', 
-                   class = 'multicol', checkboxGroupInput("columns", "", choices = colnames(dat), 
-                                                          selected = colnames(dat)[grep('lat|long', colnames(dat), ignore.case=TRUE)], 
+                   class = 'multicol', checkboxGroupInput("columns", "", choices = colnames(dataset), 
+                                                          selected = colnames(dataset)[grep('lat|long', colnames(dataset), ignore.case=TRUE)], 
                                                           inline=FALSE)),
         tags$br(), tags$br(),
         h4('First five rows of data selected.'),
@@ -70,33 +75,36 @@ select_vars <- function(dat, project){
         ))),
     
     server = function(input, output, session) {
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+      
+        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
         if(is.character(dat)==TRUE){
           if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
             print(DBI::dbListTables(fishset_db))
             stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
           } else {
-           dat <- table_view(dat)
+           dataset <- table_view(dat)
           }
         } else {
-          dat <- dat  
+          dataset <- dat  
         }
         DBI::dbDisconnect(fishset_db)
-      dat$linkID <- seq_along(dat[,1])  
+        #dataset$linkID <- seq_along(dataset[,1])  
       dInput <- reactive({
-        dat
+        dataset
       })
-                         
+      #values <- reactiveValues(dataset=dataset)   
+      
      data_table <- reactive({
      # If missing input, return to avoid error later in function
-         if(is.null(dat))
+         if(is.null(dInput()))
             return(NULL)
                            
             # Get the data set
-            dataset <- dInput()
+            values <- dInput()
                            
             # Keep the selected columns
-            dataset[, c(input$columns, 'linkID'), drop = FALSE]
+            values$linkID <- seq_along(dataset[,1])
+            values[, c(input$columns, 'linkID'), drop = FALSE]
             
            })
                          
@@ -106,10 +114,14 @@ select_vars <- function(dat, project){
       # When the Submit button is clicked, save the form data
       observeEvent(input$submit, {
         # Connect to the database
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
-        DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable',  format(Sys.Date(), format="%Y%m%d")), data_table(), overwrite=TRUE)
+        print('Data table updated. ')
+        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
+        DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable'), data_table(), overwrite=TRUE)
         
-        showNotification(paste0("Table saved to database as ", project, 'MainDataTable',  format(Sys.Date(), format="%Y%m%d"), ". Please close the window."))
+        showNotification(paste0("Table saved to database as ", project, 'MainDataTable.', ". 
+                                Enter", paste0('"',project, 'MainDataTable"'), "as the dat parameter in future function calls or
+                                load the updated data using", paste0('table_view("',project, 'MainDataTable")'), ". 
+                                The app window can be closed."))
         DBI::dbDisconnect(fishset_db)
       })
      
@@ -122,6 +134,6 @@ select_vars <- function(dat, project){
       
       
 }
-  ))
+  )
   }
 

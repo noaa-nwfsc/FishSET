@@ -22,18 +22,10 @@ haul_to_trip <- function(dat, dataindex, fun.time = min, fun.numeric = mean, ...
   # Create a column that indicates unique trip levels
   
   #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat 
-  }
-  DBI::dbDisconnect(fishset_db)
+  #Call in datasets
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
   
   #Load in dataindex
   dataIndex <- dataindex_update(dataset, dataindex)
@@ -183,12 +175,12 @@ haul_to_trip <- function(dat, dataindex, fun.time = min, fun.numeric = mean, ...
   } 
   haul_to_trip_function <- list()
    haul_to_trip_function$functionID <- 'haul_to_trip'
-   haul_to_trip_function$args <- c(paste0('dat=',deparse(substitute(dat))), deparse(substitute(dataindex)))
+   haul_to_trip_function$args <- c(dat, deparse(substitute(dataindex)))
    haul_to_trip_function$kwargs <- list(fun.time, deparse(substitute(fun.numeric)), ...)
-   haul_to_trip_function$output <- c(deparse(substitute(dat)))
+   haul_to_trip_function$output <- c(dat)
    functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (haul_to_trip_function)
    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
    assign("functionBodyout", value = functionBodyout, pos = 1)
    
   return(out)

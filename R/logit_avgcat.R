@@ -58,13 +58,15 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
 	#' si2 <- sample(1:5,dim(si)[1],replace=TRUE)
 	#' zi2 <- sample(1:10,dim(zi)[1],replace=TRUE)
 	#'
-	#' otherdat <- list(griddat=list(si=as.matrix(si),si2=as.matrix(si2)),intdat=list(zi=as.matrix(zi),zi2=as.matrix(zi2)))
+	#' otherdat <- list(griddat=list(si=as.matrix(si),si2=as.matrix(si2)),
+	#' intdat=list(zi=as.matrix(zi),zi2=as.matrix(zi2)))
 	#'
 	#' initparams <- c(1.5, 1.25, 1.0, 0.9, 0.8, 0.75, -1, -0.5)
 	#' 
 	#' func <- logit_avgcat
 	#' 
-	#' results <- discretefish_subroutine(catch,choice,distance,otherdat,initparams,optimOpt,func,methodname)
+	#' results <- discretefish_subroutine(catch,choice,distance,
+	#' otherdat,initparams,optimOpt,func,methodname)
 	#' }
 	
 	griddat <- as.matrix(do.call(cbind, otherdat$griddat))

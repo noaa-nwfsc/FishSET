@@ -16,18 +16,9 @@ cpue <- function(dat, xWeight, xTime, name='cpue') {
 
   
   #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat  
-  }
-  DBI::dbDisconnect(fishset_db)
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
   
   
  
@@ -59,12 +50,12 @@ cpue <- function(dat, xWeight, xTime, name='cpue') {
   } 
   create_var_cpue_function <- list()
   create_var_cpue_function$functionID <- 'cpue'
-  create_var_cpue_function$args <- c(deparse(substitute(dat)), xWeight, xTime)
+  create_var_cpue_function$args <- c(dat, xWeight, xTime)
   create_var_cpue_function$kwargs <- list()
   create_var_cpue_function$output <- paste0(deparse(substitute(dat)),'$',name)
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_var_cpue_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
   
   return(cpue)
@@ -84,18 +75,10 @@ dummy_var <- function(dat, DumFill = 'TRUE', name='dummy_var') {
   #' MainDataTable$dummyvar <- dummy_var(MainDataTable, DumFill=TRUE)
   #' }
 
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat  
-  }
-  DBI::dbDisconnect(fishset_db)
+  #Pull in data
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
   
   dummyvar <- as.vector(rep(DumFill, nrow(dataset)))
 
@@ -114,12 +97,12 @@ dummy_var <- function(dat, DumFill = 'TRUE', name='dummy_var') {
   } 
   create_var_dummy_var_function <- list()
   create_var_dummy_var_function$functionID <- 'dummy_var'
-  create_var_dummy_var_function$args <- c(deparse(substitute(dat)), DumFill)
+  create_var_dummy_var_function$args <- c(dat, DumFill)
   create_var_dummy_var_function$kwargs <- list()
   create_var_dummy_var_function$output <- paste0(deparse(substitute(dat)),'$',name)
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_var_dummy_var_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
   
   return(dummyvar)
@@ -138,18 +121,9 @@ dummy_matrix <- function(dat, x) {
   #'}
    
   
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat  
-  }
-  DBI::dbDisconnect(fishset_db)
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
   
     # create the matrix
   factor.levels <- levels(as.factor(dataset[[x]]))
@@ -174,12 +148,12 @@ dummy_matrix <- function(dat, x) {
   } 
   create_var_dummy_matrix_function <- list()
   create_var_dummy_matrix_function$functionID <- 'dummy_matrix'
-  create_var_dummy_matrix_function$args <- c(deparse(substitute(dat)), x)
+  create_var_dummy_matrix_function$args <- c(dat, x)
   create_var_dummy_matrix_function$kwargs <- list()
   create_var_dummy_matrix_function$output <- c('')
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_var_dummy_matrix_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
   
   return(int)
@@ -207,18 +181,9 @@ set_quants <- function(dat, x, quant.cat = c(0.2, 0.25, 0.4), name='set_quants')
   #' }
   #
   
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat  
-  }
-  DBI::dbDisconnect(fishset_db)
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
   
   
 if (quant.cat == 0.2) {
@@ -247,12 +212,12 @@ if (quant.cat == 0.2) {
   } 
   create_var_set_quants_function <- list()
   create_var_set_quants_function$functionID <- 'set_quants'
-  create_var_set_quants_function$args <- c(deparse(substitute(dat)), x, quant.cat)
+  create_var_set_quants_function$args <- c(dat, x, quant.cat)
   create_var_set_quants_function$kwargs <- list()
   create_var_set_quants_function$output <- paste0(deparse(substitute(dat)),'$',name)
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_var_set_quants_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
   
   return(var.name)
@@ -275,18 +240,9 @@ create_var_num <- function(dat, x, y, method, name='create_var_num') {
   #'                                             'sum',' TimeChange')
   #' }
   
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat  
-  }
-  DBI::dbDisconnect(fishset_db)
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
   
   
   if (is.numeric(dataset[[x]]) == FALSE | is.numeric(dataset[[y]]) == FALSE) {
@@ -319,14 +275,14 @@ create_var_num <- function(dat, x, y, method, name='create_var_num') {
   } 
   create_var_num_function <- list()
    create_var_num_function$functionID <- 'create_var_num'
-   create_var_num_function$args <- c(deparse(substitute(dat)), x, y, method)
+   create_var_num_function$args <- c(dat, x, y, method)
    create_var_num_function$kwargs <- list()
    create_var_num_function$output <- paste0(deparse(substitute(dat)),'$',name)
    functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_var_num_function)
    logbody$fishset_run <- list(infoBodyout, functionBodyout)
    assign("functionBodyout", value = functionBodyout, pos = 1)
    
-   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
    
   return(name)
 }
@@ -343,7 +299,8 @@ create_mid_haul <- function(dat, start=c('lon', 'lat'), end=c('lon','lat')) {
 #' @export
 #' @examples 
 #' \dontrun{
-#' MainDataTable$haulMidPoint <- create_mid_haul(MainDataTable, start = c("LonLat_START_LON", "LonLat_START_LAT"), end = c("LonLat_END_LON", "LonLat_END_LAT")) 
+#' MainDataTable$haulMidPoint <- create_mid_haul(MainDataTable, start = c("LonLat_START_LON", 
+#'                          "LonLat_START_LAT"), end = c("LonLat_END_LON", "LonLat_END_LAT")) 
 #' }
 #
  if(FishSET:::is_empty(start)||FishSET:::is_empty(end)) {
@@ -408,41 +365,47 @@ spatial_summary <- function(dat, stat.var=c('length','no_unique_obs','perc_total
   #' max: \tab Maximum \cr
   #' sum: \tab Sum \cr
   #' }
-  dat <- assignment_column(dat=dat,  gridfile=gridfile, hull.polygon = TRUE, lon.grid, lat.grid, 
+  #' 
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
+  
+  
+  datset <- assignment_column(dat=datset,  gridfile=gridfile, hull.polygon = TRUE, lon.grid, lat.grid, 
                     lon.dat, lat.dat, cat, closest.pt = TRUE, epsg=NULL)
-  date.var <- grep('date', names(dat), ignore.case=TRUE)[1]
-  var <- grep(variable, names(dat), ignore.case=TRUE)[1]
+  date.var <- grep('date', names(datset), ignore.case=TRUE)[1]
+  var <- grep(variable, names(datset), ignore.case=TRUE)[1]
   
    if(stat.var=='mean'){ 
-     lab <- paste('mean', names(dat)[var])
+     lab <- paste('mean', names(datset)[var])
    } else if(stat.var=='median'){
-     lab <- paste('median', names(dat)[var])
+     lab <- paste('median', names(datset)[var])
    } else if(stat.var=='min'){
-     lab <- paste('min', names(dat)[var])
+     lab <- paste('min', names(datset)[var])
    } else if(stat.var=='max'){
-     lab <- paste('max', names(dat)[var])
+     lab <- paste('max', names(datset)[var])
    } else if(stat.var=='sum'){
-     lab <- paste('sum', names(dat)[var])
+     lab <- paste('sum', names(datset)[var])
    } else if(stat.var=='length'){
-     lab <- paste('No. observations', names(dat)[var])
+     lab <- paste('No. observations', names(datset)[var])
    }
   par(mfrow=c(1,2))
   
   if(stat.var=='no_unique_obs'){
-    plot(aggregate(dat[[variable]], by=list(dat[,date.var]), function(x) length(unique(x))), type = "l", lty = 1, ylab=paste('No. unique obs', names(dat)[var], 'per day'), xlab='Date')
-    lines(aggregate(dat[[variable]], by=list(dat[,date.var]), function(x) length(unique(x))))
-    plot(aggregate(dat[[variable]], by=list(as.factor(dat$ZoneID)), function(x) length(unique(x))), type = "l", lty = 1, ylab=paste('No. unique obs', names(dat)[var]), xlab='Zone')
-    lines(aggregate(dat[[variable]], by=list(as.factor(dat$ZoneID)), function(x) length(unique(x))))
+    plot(aggregate(datasetaset[[variable]], by=list(dataset[,datasete.var]), function(x) length(unique(x))), type = "l", lty = 1, ylab=paste('No. unique obs', names(dataset)[var], 'per day'), xlab='datasete')
+    lines(aggregate(dataset[[variable]], by=list(dataset[,datasete.var]), function(x) length(unique(x))))
+    plot(aggregate(dataset[[variable]], by=list(as.factor(dataset$ZoneID)), function(x) length(unique(x))), type = "l", lty = 1, ylab=paste('No. unique obs', names(dataset)[var]), xlab='Zone')
+    lines(aggregate(dataset[[variable]], by=list(as.factor(dataset$ZoneID)), function(x) length(unique(x))))
   } else if(stat.var=='perc_total'){
-    plot(aggregate(dat[[variable]], by=list(dat[,date.var]), function(x) length((x))/length(dat[[variable]])*100), type = "l", lty = 1, ylab=paste('Percent total', names(dat)[var], 'per day'), xlab='Date')
-    lines(aggregate(dat[[variable]], by=list(dat[,date.var]), function(x) length((x))/length(dat[[variable]])*100))
-    plot(aggregate(dat[[variable]], by=list(as.factor(dat$ZoneID)), function(x) length((x))/length(dat[[variable]])*100), type = "l", lty = 1, ylab=paste('Percent total', names(dat)[var]), xlab='Zone')
-    lines(aggregate(dat[[variable]], by=list(as.factor(dat$ZoneID)), function(x) length((x))/length(dat[[variable]])*100))
+    plot(aggregate(dataset[[variable]], by=list(dataset[,datasete.var]), function(x) length((x))/length(dataset[[variable]])*100), type = "l", lty = 1, ylab=paste('Percent total', names(dataset)[var], 'per day'), xlab='datasete')
+    lines(aggregate(dataset[[variable]], by=list(dataset[,datasete.var]), function(x) length((x))/length(dataset[[variable]])*100))
+    plot(aggregate(dataset[[variable]], by=list(as.factor(dataset$ZoneID)), function(x) length((x))/length(dataset[[variable]])*100), type = "l", lty = 1, ylab=paste('Percent total', names(dataset)[var]), xlab='Zone')
+    lines(aggregate(dataset[[variable]], by=list(as.factor(dataset$ZoneID)), function(x) length((x))/length(dataset[[variable]])*100))
   } else {
-    plot(aggregate(dat[[variable]], by=list(dat[,date.var]), stat.var), type = "l", lty = 1, ylab=paste(lab, 'per day'), xlab='Date')
-    lines(aggregate(dat[[variable]], by=list(dat[,date.var]), stat.var))
-    plot(aggregate(dat[[variable]], by=list(as.factor(dat$ZoneID)), stat.var), type='l', ylab=lab, xlab='Zone')
-    lines(aggregate(dat[[variable]], by=list(as.factor(dat$ZoneID)), stat.var))
+    plot(aggregate(dataset[[variable]], by=list(dataset[,datasete.var]), stat.var), type = "l", lty = 1, ylab=paste(lab, 'per day'), xlab='datasete')
+    lines(aggregate(dataset[[variable]], by=list(dataset[,datasete.var]), stat.var))
+    plot(aggregate(dataset[[variable]], by=list(as.factor(dataset$ZoneID)), stat.var), type='l', ylab=lab, xlab='Zone')
+    lines(aggregate(dataset[[variable]], by=list(as.factor(dataset$ZoneID)), stat.var))
   }
 }
 
@@ -467,9 +430,12 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
   #' }
 #' @examples 
 #' \dontrun{
-#' MainDataTable$DistCentPort <- create_dist_between(MainDataTable,'centroid','EMBARKED_PORT', units='miles')
-#' MainDataTable$DistLocLock <- create_dist_between(MainDataTable,c('LonLat_START_LON','LonLat_START_LAT'),c('LonLat_END_LON','LonLat_END_LAT'), units='midpoint')
-#' MainDataTable$DistPortPort <- create_dist_between(MainDataTable,'DISEMBARKED_PORT','EMBARKED_PORT', units='meters')
+#' MainDataTable$DistCentPort <- create_dist_between(MainDataTable,'centroid','EMBARKED_PORT', 
+#'                                                  units='miles')
+#' MainDataTable$DistLocLock <- create_dist_between(MainDataTable,c('LonLat_START_LON',
+#'                   'LonLat_START_LAT'),c('LonLat_END_LON','LonLat_END_LAT'), units='midpoint')
+#' MainDataTable$DistPortPort <- create_dist_between(MainDataTable,'DISEMBARKED_PORT',
+#'                                      'EMBARKED_PORT', units='meters')
 #' }
 
   # \tabular{AddPromptparams}{
@@ -484,16 +450,11 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
   }
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
  
-    if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat  
-  }
+  #Call in datasets
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
+  
   
   if(any(grepl('port', c(start[1],end[1]), ignore.case=TRUE))){
     #  in port table
@@ -594,12 +555,12 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
   
   create_dist_between_function <- list()
   create_dist_between_function$functionID <- 'create_dist_between'
-  create_dist_between_function$args <- c(deparse(substitute(dat)), start, end, units)
+  create_dist_between_function$args <- c(dat, start, end, units)
   create_dist_between_function$kwargs <- list(vars)
   #create_dist_between_function$output <- paste0(deparse(substitute(dat)),'$',name)
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_dist_between_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
   
   return(distBetween)
@@ -625,18 +586,9 @@ create_duration <- function(dat, start, end, units = c("week", "day", "hour", "m
   #' }
   
   #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat  
-  }
-  DBI::dbDisconnect(fishset_db)
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
   
   
   if (any(grepl("date|min|hour|week|month|TRIP_START|TRIP_END", start, ignore.case = TRUE)) == FALSE) {
@@ -672,11 +624,11 @@ create_duration <- function(dat, start, end, units = c("week", "day", "hour", "m
   } 
   create_var_temp_function <- list()
   create_var_temp_function$functionID <- 'create_duration'
-  create_var_temp_function$args <- c(deparse(substitute(dat)), start, end, units)
+  create_var_temp_function$args <- c(dat, start, end, units)
   create_var_temp_function$kwargs <- list()
   create_var_temp_function$output <- paste0(deparse(substitute(dat)),'$',name)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
 
  return(dur)

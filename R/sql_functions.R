@@ -28,7 +28,7 @@ table_fields <- function(table) {
   #' table_fields('MainDataTable') 
   #' }
   
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
   return(DBI::dbListFields(fishset_db, table)) 
   DBI::dbDisconnect(fishset_db)
   }
@@ -45,7 +45,7 @@ table_view <- function(table) {
   #' head(table_view('MainDataTable')) 
   #' }
   
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
   return(DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM", paste0("'", noquote(table), "'")))) 
   DBI::dbDisconnect(fishset_db)
   }
@@ -61,7 +61,7 @@ table_remove <- function(table) {
   #' table_remove('MainDataTable') 
   #' }
   
-  fishset_db <-DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  suppressWarnings(fishset_db <-DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
   DBI::dbRemoveTable(fishset_db, table) 
   DBI::dbDisconnect(fishset_db)
   }
@@ -78,7 +78,7 @@ table_exists <- function(table) {
   #' table_exists('MainDataTable') 
   #' }
   
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
   return(DBI::dbExistsTable(fishset_db, table)) 
   DBI::dbDisconnect(fishset_db)
 }
@@ -92,7 +92,7 @@ model_out_view <- function(table){
   #' \dontrun{
   #' model_out_view('pcodmodelout20190604')
   #' }
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
   x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", table, " LIMIT 1"))$data[[1]])
   return(x)
   DBI::dbDisconnect(fishset_db)
@@ -109,7 +109,7 @@ globalcheck_view <- function(table){
   #' globalcheck_view('pcodldglobalcheck20190604')
   #' }
  
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
   x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", table , " LIMIT 1"))$data[[1]])
   return(x)
   DBI::dbDisconnect(fishset_db)

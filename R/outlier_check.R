@@ -6,7 +6,7 @@ outlier_table <- function(dat, x) {
   #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
   #' @param x Column in data frame to check for outliers 
   #' @importFrom stats quantile sd var na.pass
-  #' @importFrom grDevices dev.off pdf  
+  #' @importFrom grDevices dev.off pdf 
   #' @keywords outliers
   #' @export outlier_table
   #' @return Table for evaluating whether outliers may exist in the selected data column.
@@ -21,71 +21,106 @@ outlier_table <- function(dat, x) {
   #' outlier_table(MainDataTable, 'HAUL') 
   #' }
   
-  #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat 
-  }
-  DBI::dbDisconnect(fishset_db)
+   #Call in datasets
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
   
   
     x.name <- x
+    
+    emptyrow <- data.frame(
+      N = 0, 
+      mean = NA, 
+      median = NA, 
+      SD = NA, 
+      min = NA, 
+      max = NA, 
+      NAs = NA, 
+      skew = NA)
+    
+    filledrow <-  function(dat,x){
+      data.frame(
+      N = length(temp[, x]), 
+      mean = round(mean(temp[, x], na.rm = T),2), 
+      median = round(stats::median(temp[, x], na.rm = T),2), 
+      SD = round(stats::sd(temp[, x], na.rm=T),2), 
+      min = round(min(temp[, x], na.rm = T),2), 
+      max = round(max(temp[, x], na.rm = T),2), 
+      NAs = sum(length(which(is.na(temp[, x])))), 
+      skew = round(FishSET:::skewness(temp[, x], na.rm=T),2)
+    )}
   # numeric. Cannot check outliers if not.
   if (is.numeric(dataset[, x]) == T) {
     # Output table of summary statistics Row 1 No data removed
     dat.table <- data.frame(Vector = x.name, outlier_check = "None", 
-                            N = length(dataset[, x]), mean = mean(dataset[, x], na.rm = T), median = stats::median(dataset[, x], na.rm = T), 
-                            SD = sd(dataset[, x]), min = min(dataset[, x], na.rm = T), 
-                            max = max(dataset[,x], na.rm = T), NAs = sum(length(which(is.na(dataset[, x])))), 
-                            skew = FishSET:::skewness(dataset[,x]))
+                            N = length(dataset[, x]), 
+                            mean = round(mean(dataset[, x], na.rm = T),2), 
+                            median = round(stats::median(dataset[, x], na.rm = T),2), 
+                            SD = round(sd(dataset[, x], na.rm=T),2), 
+                            min = round(min(dataset[, x], na.rm = T), 2), 
+                            max = round(max(dataset[,x], na.rm = T),2), 
+                            NAs = sum(length(which(is.na(dataset[, x])))), 
+                            skew = round(FishSET:::skewness(dataset[,x], na.rm=T), 2))
     # Row 2 5-95% quantile
-    temp <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.95) & dataset[, x] > stats::quantile(dataset[, x], 0.05), ]
+    temp <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.95, na.rm=TRUE) & 
+                      dataset[, x] > stats::quantile(dataset[, x], 0.05, na.rm=TRUE), ]
     dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "5_95_quant", 
-                                             N = length(temp[, x]), mean = mean(temp[, x], na.rm = T), 
-                                             median = stats::median(temp[, x], na.rm = T), SD = stats::sd(temp[, x]), min = min(temp[, x], na.rm = T), 
-                                             max = max(temp[, x], na.rm = T), NAs = sum(length(which(is.na(temp[, x])))), 
-                                             skew = FishSET:::skewness(temp[, x])))
+                                             if(dim(temp)[1]==0){
+                                               emptyrow
+                                             } else {
+                                                filledrow(temp,x)
+                                             }
+                                             ))
     # Row 3 25-75% quantile
-    temp <- dataset[dataset[, x] < quantile(dataset[, x], 0.75) & dataset[, x] > quantile(dataset[, x], 0.25), ]
+    temp <- dataset[dataset[, x] < quantile(dataset[, x], 0.75, na.rm=TRUE) & dataset[, x] > quantile(dataset[, x], 0.25, na.rm=TRUE), ]
     dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "25_75_quant", 
-                                             N = length(temp[, x]), mean = mean(temp[, x], na.rm = T), median = stats::median(temp[, x], na.rm = T), 
-                                             SD = stats::sd(temp[, x]), min = min(temp[, x], na.rm = T), max = max(temp[, x], na.rm = T), 
-                                             NAs = sum(length(which(is.na(temp[, x])))), skew = FishSET:::skewness(temp[, x])))
+                                             if(dim(temp)[1]==0){
+                                               emptyrow
+                                             } else {
+                                              filledrow(temp,x)
+                                               }
+                                              ))
     # Row 4 Mean +/2SD
     temp <- dataset[dataset[, x] < (mean(dataset[, x], na.rm = T) + 2 * stats::sd(dataset[, x], na.rm = T)) & 
                       dataset[, x] > (mean(dataset[, x], na.rm = T) - 2 * stats::sd(dataset[, x], na.rm = T)), ]
     dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "mean_2SD", 
-                                             N = length(temp[, x]), mean = mean(temp[, x], na.rm = T), median = stats::median(temp[, x], na.rm = T), 
-                                             SD = stats::sd(temp[, x]), min = min(temp[, x], na.rm = T), max = max(temp[, x], na.rm = T), 
-                                             NAs = sum(length(which(is.na(temp[, x])))), skew = FishSET:::skewness(temp[, x])))
+                                             if(dim(temp)[1]==0){
+                                               emptyrow
+                                             } else {
+                                               filledrow(temp,x)
+                                             }
+                                             ))
     # Row 5 Mean +/3SD
     temp <- dataset[dataset[, x] < (mean(dataset[, x], na.rm = T) + 3 * stats::sd(dataset[, x], na.rm = T)) & 
                       dataset[, x] > (mean(dataset[, x], na.rm = T) - 3 * stats::sd(dataset[, x], na.rm = T)), ]
     dat.table <- rbind(dat.table, data.frame(Vector = x, outlier_check = "mean_3SD", 
-                                             N = length(temp[, x]), mean = mean(temp[, x], na.rm = T), median = stats::median(temp[, x], na.rm = T), 
-                                             SD = stats::sd(temp[, x]), min = min(temp[, x], na.rm = T), max = max(temp[, x], na.rm = T), 
-                                             NAs = sum(length(which(is.na(temp[, x])))), skew = FishSET:::skewness(temp[, x])))
+                                             if(dim(temp)[1]==0){
+                                               emptyrow
+                                             } else {
+                                               filledrow(temp,x)
+                                             }
+                                              ))
     # Row 6 Median +/-2SD
     temp <- dataset[dataset[, x] < (stats::median(dataset[, x], na.rm = T) + 2 * stats::sd(dataset[, x], na.rm = T)) & 
                       dataset[, x] > (stats::median(dataset[, x], na.rm = T) - 2 * stats::sd(dataset[, x], na.rm = T)), ]
     dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "median_2SD", 
-                                             N = length(temp[, x]), mean = mean(temp[, x], na.rm = T), median = stats::median(temp[, x], na.rm = T), 
-                                             SD = stats::sd(temp[, x]), min = min(temp[, x], na.rm = T), max = max(temp[, x], na.rm = T), 
-                                             NAs = sum(length(which(is.na(temp[, x])))), skew = FishSET:::skewness(temp[, x])))
+                                             if(dim(temp)[1]==0){
+                                               emptyrow
+                                             } else {
+                                               filledrow(temp,x)
+                                             }
+                                              ))
     # Row 7 Median +/-3SD
     temp <- dataset[dataset[, x] < (stats::median(dataset[, x], na.rm = T) + 3 * stats::sd(dataset[, x], na.rm = T)) & 
                       dataset[, x] > (stats::median(dataset[, x], na.rm = T) - 3 * stats::sd(dataset[, x], na.rm = T)), ]
     dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "median_3SD", 
-                                             N = length(temp[, x]), mean = mean(temp[, x], na.rm = T), median = stats::median(temp[, x], na.rm = T),
-                                             SD = sd(temp[, x]), min = min(temp[, x], na.rm = T), max = max(temp[, x], na.rm = T), 
-                                             NAs = sum(length(which(is.na(temp[, x])))), skew = FishSET:::skewness(temp[, x])))
+                                             if(dim(temp)[1]==0){
+                                               emptyrow
+                                             } else {
+                                               filledrow(temp,x)
+                                             }
+                                              ))
     return(dat.table)
   } else {
     print("Data is not numeric.")
@@ -95,15 +130,17 @@ outlier_table <- function(dat, x) {
 
 
 ##---------------------------##
-outlier_plot <- function(dat, x, dat.remove = "none", x.dist = "normal", output ='screen') {
+outlier_plot <- function(dat, x, dat.remove = "none", x.dist = "normal", output.screen =TRUE) {
   #' Evaluate outliers through plots
   #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
   #' @param x Column in dataf rame to check for outliers
   #' @param dat.remove Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD
   #' @param x.dist Distribution of the data. Choices include: normal, lognormal, exponential, weibull, poisson, negative binomial
-  #' @param output Return plots as pdf file or to the screen. If `pdf`, plots are returned as pdf file. If `screen`, plots are printed to the screen.
+  #' @param output.screen If true, return plots to the screen. If false, returns plot to the inst/output folder as png file.
   #' @keywords outlier
   #' @importFrom graphics points
+  #' @importFrom ggpubr annotate_figure text_grob
+  #' @import ggplot2
   #' @details  The function returns three plots, the data, a probability plot, and a Q-Q plot. The data plot is the value of
   #'  x against row number. Red points are all the data without any points removed. The blue points are the subsetted data. If `dat.remove` is `none`, then only blue points will be shown. 
   #'  The probability plot is a histogram of the data with the fitted probability distribution based on `x.dist`. The Q-Q plot plots are
@@ -131,23 +168,15 @@ outlier_plot <- function(dat, x, dat.remove = "none", x.dist = "normal", output 
   #' @return Plot of the data
   #' @examples 
   #' \dontrun{
-  #' outlier_plot(MainDataTable, 'Haul', dat.remove='mean_2SD', x.dist='normal', output='screen')
+  #' outlier_plot(MainDataTable, 'Haul', dat.remove='mean_2SD', x.dist='normal', output.screen=TRUE)
   #' }
   
+  library(ggplot2)
   
   #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat 
-  }
-  DBI::dbDisconnect(fishset_db)
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
   
 
   x.name <- x
@@ -159,9 +188,9 @@ outlier_plot <- function(dat, x, dat.remove = "none", x.dist = "normal", output 
       dat_sub <- dataset
     } else {
       if (dat.remove == "5_95_quant") {
-        dat_sub <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.95) & dataset[, x] > stats::quantile(dataset[, x], 0.05), ]
+        dat_sub <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.95, na.rm=TRUE) & dataset[, x] > stats::quantile(dataset[, x], 0.05, na.rm=TRUE), ]
       } else if (dat.remove == "25_75_quant") {
-        dat_sub <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.75) & dataset[, x] > stats::quantile(dataset[, x], 0.25), ]
+        dat_sub <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.75, na.rm=TRUE) & dataset[, x] > stats::quantile(dataset[, x], 0.25, na.rm=TRUE), ]
       } else if (dat.remove == "mean_2SD") {
         dat_sub <- dataset[dataset[, x] < (mean(dataset[, x], na.rm = T) + 2 * 
                                              stats::sd(dataset[, x], na.rm = T)) & 
@@ -177,72 +206,98 @@ outlier_plot <- function(dat, x, dat.remove = "none", x.dist = "normal", output 
                              dataset[, x] > (stats::median(dataset[, x], na.rm = T) - 3 * stats::sd(dataset[, x], na.rm = T)), ]
       }
     }  #End Outlier mod
-    # open a pdf file
-    if (output == "png") {
-      pdf("outlier_plot.png")
-    }
-    graphics::par(mar=c(4,4,4,4)) 
-    graphics::par(mfrow = c(2, 2))
+  
+    #graphics::par(mar=c(4,4,4,4)) 
+    #graphics::par(mfrow = c(2, 2))
     # points
-    graphics::plot(dataset$y, dataset[, x], pch = 19, col = "red", ylab = x.name, xlab = "Data row", main = "")
-    graphics::points(dat_sub$y, dat_sub[, x], pch = 19, col = "blue")
+    
+    
+    mytheme <- theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+                     panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text=element_text(size=9),
+                     axis.title=element_text(size=8))                                                                                          
+    ##Plot 1!
+    distplot <- function(gdf,first, second){        
+      ggplot(gdf, aes_string(x=first, y=second)) + geom_point(color = 'red', na.rm=TRUE) + 
+        geom_point(data=dat_sub,aes_string(x=first,y=second), color='blue',na.rm=TRUE)+
+        labs(x='Data row')+ mytheme
+    }
+    p1 <- distplot(dataset, 'y', x)
+    
+    
     # Hist
-    h <- graphics::hist(dat_sub[, x], breaks = length(dat_sub[, x]), col = "red", ylab = "", xlab = x.name, main = "")
-    xfit <- seq(min(dat_sub[, x]), max(dat_sub[, x]), length = 40)
-    # normal
-    if (x.dist == "normal") {
-      yfit <- stats::dnorm(xfit, mean = mean(dat_sub[, x]), sd = stats::sd(dat_sub[, x]))
+    ##Plot 2!     
+    p2 <- ggplot(dat_sub, aes_string(x)) + geom_histogram(aes(y = ..density..), na.rm=TRUE, bins=round(nrow(dataset)/2)) + 
+      mytheme  
+    if (x.dist == "normal") {    
+      p2 <- p2 + stat_function(fun = dnorm, colour = "blue", 
+                               args = list(mean = mean(dat_sub[,x], na.rm = TRUE), sd = sd(dat_sub[,x], na.rm = TRUE)))
     } else if (x.dist == "lognormal") {
       # lognormal
-      yfit <- stats::dlnorm(xfit, mean = mean(log(dat_sub[, x])), sd = stats::sd(log(dat_sub[, x])))
+      p2 <- p2 + stat_function(fun = dlnorm, colour = "blue", 
+                               args = list(mean = mean(log(dat_sub[,x]), na.rm = TRUE), sd = sd(log(dat_sub[,x]), na.rm = TRUE)))
     } else if (x.dist == "exponential") {
       # Exponential
-      yfit <- stats::dexp(xfit, rate = 1/mean(dat_sub[, x]))
+      p2 <- p2 + stat_function(fun = dexp, colour = "blue", 
+                               args = list(rate = 1/mean(dat_sub[, x],na.rm=TRUE)))
     } else if (x.dist == "weibull") {
       # Weibull
-      yfit <- stats::dweibull(xfit, shape = 1.2/sqrt(var(log(dat_sub[, x]))), 
-                       scale = mean(dat_sub[, x]) + 0.572/(1.2/sqrt(var(log(dat_sub[, x])))))
+      p2 <- p2 + stat_function(fun = dweibull, colour = "blue", 
+                               args = list(shape = 1.2/sqrt(var(log(dat_sub[, x]),na.rm=TRUE)), 
+                                           scale = mean(dat_sub[, x],na.rm=TRUE) + 0.572/(1.2/sqrt(var(log(dat_sub[, x]),na.rm=TRUE)))))
     } else if (x.dist == "poisson") {
       # Poisson
-      yfit <- stats::dpois(round(xfit, 0), lambda = mean(dat_sub[, x]))
+      p2 <- p2 + stat_function(fun = dpois, colour = "blue", 
+                               args = list(lambda = mean(dat_sub[, x],na.rm=TRUE)))
     } else if (x.dist == "negative binomial") {
       # Negative Binomial
-      yfit <- stats::dnbinom(round(xfit, 0), size = mean(dat_sub[, x])^2/(var(dat_sub[, x]) - mean(dat_sub[, x])), 
-                             mu = mean(dat_sub[, x]))
+      p2 <- p2 + stat_function(fun = dnbinom, colour = "blue", 
+                               args = list( mean(dat_sub[, x],na.rm=TRUE)^2/(var(dat_sub[, x],na.rm=TRUE) - mean(dat_sub[, x],na.rm=TRUE)), 
+                                            mu = mean(dat_sub[, x],na.rm=TRUE)))
     }
-    yfit <- yfit * diff(h$mids[1:2]) * length(dat_sub[, x])
-    graphics::lines(xfit, yfit, col = "blue", lwd = 2)
+    
+#Plot3
     # Probability plot
     quants <- seq(0, 1, length = length(dat_sub[, x]) + 2)[2:(length(dat_sub[, x]) + 1)]
     # normal
     if (x.dist == "normal") {
-      fit_quants <- stats::qnorm(quants, mean(dat_sub[, x]), sd(dat_sub[, x]))
+      fit_quants <- stats::qnorm(quants, mean(dat_sub[, x],na.rm=TRUE), sd(dat_sub[, x],na.rm=TRUE))
     } else if (x.dist == "lognormal") {
       # lognormal
-      fit_quants <- stats::qlnorm(quants, mean = mean(log(dat_sub[, x])), sd = sd(log(dat_sub[, x])))
+      fit_quants <- stats::qlnorm(quants, mean = mean(log(dat_sub[, x]),na.rm=TRUE), sd = sd(log(dat_sub[, x]),na.rm=TRUE))
     } else if (x.dist == "exponential") {
       # Exponential
-      fit_quants <- stats::qexp(quants, rate = 1/mean(dat_sub[, x]))
+      fit_quants <- stats::qexp(quants, rate = 1/mean(dat_sub[, x],na.rm=TRUE))
     } else if (x.dist == "weibull") {
       # Weibull
-      fit_quants <- stats::qweibull(quants, shape = 1.2/sqrt(var(log(dat_sub[, x]))), 
-                             scale = mean(dat_sub[, x]) + 0.572/(1.2/sqrt(var(log(dat_sub[, x])))))
+      fit_quants <- stats::qweibull(quants, shape = 1.2/sqrt(var(log(dat_sub[, x]),na.rm=TRUE)), 
+                             scale = mean(dat_sub[, x],na.rm=TRUE) + 0.572/(1.2/sqrt(var(log(dat_sub[, x]),na.rm=TRUE))))
     } else if (x.dist == "poisson") {
       # Poisson
-      fit_quants <- stats::qpois(round(quants, 0), lambda = mean(dat_sub[, x]))
+      fit_quants <- stats::qpois(quants, lambda = mean(dat_sub[, x],na.rm=TRUE))
     } else if (x.dist == "negative binomial") {
       # Negative Binomial
-      fit_quants <- stats::qnbinom(round(quants, 0), size = mean(dat_sub[, x])^2/(var(dat_sub[, x]) - mean(dat_sub[, x])), 
-                            mu = mean(dat_sub[, x]))
+      fit_quants <- stats::qnbinom(quants, size = mean(dat_sub[, x],na.rm=TRUE)^2/(var(dat_sub[, x],na.rm=TRUE) - mean(dat_sub[, x],na.rm=TRUE)), 
+                            mu = mean(dat_sub[, x],na.rm=TRUE))
     }
-    data_quants <- stats::quantile(dat_sub[, x], quants)
-    # create Q-Q plot
-    graphics::plot(fit_quants, data_quants, xlab = "Theoretical Quantiles", ylab = "Sample Quantiles")
-    graphics::title(main = paste("Q-Q plot of", x.dist, "fit against data"), cex=.75)
-    graphics::abline(0, 1)
-    graphics::mtext(paste0("Plots for ", x, " with ", x.dist, " distribution and \ndata removed based on '", dat.remove, "'"), outer = TRUE, cex = .9, line = -1.95)
-    # Close the pdf file
-    if (output == "pdf") {
+    
+    data_quants <- stats::quantile(as.numeric(dat_sub[, x]), quants,na.rm=TRUE)
+     # create Q-Q plot
+    temp <- data.frame(fit_quants, data_quants) 
+    p3 <- ggplot(temp, aes(x=fit_quants, y=data_quants)) + geom_point(shape=1) + geom_abline() +
+      labs(x='Theoretical Quantiles', y='Sample Quantiles', title=paste('Q-Q plot of', x.dist, 'fit against data'))+
+      mytheme
+    
+#Put it all together
+    fig <- suppressWarnings(ggpubr::ggarrange(p1, p2, p3 , ncol = 2, nrow = 2))
+    # labels = c("A", "B", "C"),
+    fig <- ggpubr::annotate_figure(fig, top = ggpubr::text_grob(paste("Plots for ", x, " with ", x.dist, 
+                                                               " distribution and data removed based on '", dat.remove,
+                                                               "'. \nBlue: included points   Red: removed points"), size = 10))         
+    
+    plot(fig)
+   # Close the pdf file
+    if (output.screen == FALSE) {
+      ggplot2::ggsave(file="outlier_plot.png", path=paste0(getwd(),"/inst/output/"))
       dev.off()
     }
     
@@ -255,15 +310,16 @@ outlier_plot <- function(dat, x, dat.remove = "none", x.dist = "normal", output 
 
 
 ##---------------------------##
-outlier_remove <- function(dat, x, dat.remove = "none", remove = T) {
+outlier_remove <- function(dat, x, dat.remove = "none", remove = T, over_write=FALSE) {
   #' Evaluate and edit outliers from variable
   #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
   #' @param x Column in data frame containing potential outliers.
   #' @param dat.remove Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD
   #' @param remove Save data with outliers removed. If TRUE, the revised data table, with values removed outside the `dat.remove` expression, is returned.
+  #' @param over_write
   #' @keywords outliers
   #' @export outlier_remove
-  #' @return Returns the modified dataframe
+  #' @return Returns the modified dataframe. MOdified dataframe will be saved to fishset_db database.
   #' @details   The dat.remove choices are
   #'  \itemize{
   #'  \item{none: No data points are removed}
@@ -280,19 +336,9 @@ outlier_remove <- function(dat, x, dat.remove = "none", remove = T) {
    #' }
   
   #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat 
-  }
-  DBI::dbDisconnect(fishset_db)
-  
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
   
   
   if (is.numeric(dataset[, x]) == T) {
@@ -304,9 +350,9 @@ outlier_remove <- function(dat, x, dat.remove = "none", remove = T) {
       if (dat.remove == "none") {
         dataset <- dataset
       } else if (dat.remove == "5_95_quant") {
-        dataset <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.95) & dataset[, x] > stats::quantile(dataset[, x], 0.05), ]
+        dataset <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.95, na.rm=TRUE) & dataset[, x] > stats::quantile(dataset[, x], 0.05, na.rm=TRUE), ]
       } else if (dat.remove == "25_75_quant") {
-        dataset <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.75) & dataset[, x] > stats::quantile(dataset[, x], 0.25), ]
+        dataset <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.75, na.rm=TRUE) & dataset[, x] > stats::quantile(dataset[, x], 0.25, na.rm=TRUE), ]
       } else if (dat.remove == "mean_2SD") {
         dataset <- dataset[dataset[, x] < (mean(dataset[, x], na.rm = T) + 2 * stats::sd(dataset[, x], na.rm = T)) & 
                              dataset[, x] > (mean(dataset[, x], na.rm = T) - 2 * stats::sd(dataset[, x], na.rm = T)), ]
@@ -319,6 +365,13 @@ outlier_remove <- function(dat, x, dat.remove = "none", remove = T) {
       } else if (dat.remove == "median_3SD") {
         dataset <- dataset[dataset[, x] < (stats::median(dataset[, x], na.rm = T) + 3 * stats::sd(dataset[, x], na.rm = T)) & 
                              dataset[, x] > (stats::median(dataset[, x], na.rm = T) - 3 * stats::sd(dataset[, x], na.rm = T)), ]
+      }
+      
+      
+      if(dat.remove!='none'& over_write=='TRUE'){
+      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+      DBI::dbWriteTable(fishset_db, deparse(substitute(dat)), dataset, overwrite=over_write)
+      DBI::dbDisconnect(fishset_db)
       }
       
         if(!exists('logbody')) { 
@@ -336,13 +389,13 @@ outlier_remove <- function(dat, x, dat.remove = "none", remove = T) {
         } 
         outlier_remove_function <- list()
         outlier_remove_function$functionID <- 'outlier_remove'
-        outlier_remove_function$args <- c(deparse(substitute(dat)), deparse(substitute(x)), dat.remove, remove)
+        outlier_remove_function$args <- c(dat, deparse(substitute(x)), dat.remove, remove)
         outlier_remove_function$kwargs <- list()
         outlier_remove_function$output <- c('')
         outlier_remove_function$msg <- paste("outliers removed using", dat.remove)
         functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (outlier_remove_function)
         logbody$fishset_run <- list(infoBodyout, functionBodyout)
-        write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+        write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
         assign("functionBodyout", value = functionBodyout, pos = 1)
 
       

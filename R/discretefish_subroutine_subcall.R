@@ -308,7 +308,7 @@ discretefish_subroutine_subcall <- function(project, initparams, optimOpt, func,
   discretefish_subroutine_function$output <- c(name)
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (discretefish_subroutine_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
   ############################################################################# 
   

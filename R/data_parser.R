@@ -11,7 +11,7 @@
 
 read_dat <- function(x, data.type ) { 
 #' @param x Name and directory of data frame to be read in. For example, `nmfs_manage_simple.shp`.
-#' @param data.type csv, mat, json, shape = c('csv', 'mat', 'json', 'shape', 'txt', 'spss', 'stata', 'R')
+#' @param data.type csv, mat, json, shape, txt, spss, stata, R)
 #' @importFrom sf read_sf
 #' @importFrom R.matlab readMat
 #' @importFrom jsonlite fromJSON
@@ -48,6 +48,7 @@ fishset_compare <- function(x, y, compare=c(TRUE,FALSE)){
   #' @param x Updated data frame to be saved
   #' @param y Previously saved version of data frame
   #' @param compare TRUE/FALSE Compare new data frame to previously saved data frame before saving data frame `x` to SQLite database.
+  #' @export
   #' @importFrom DBI dbConnect dbDisconnect dbListTables
   #' @details This function is called indirectly by the data import functions (\code{\link{load_maindata}}, \code{\link{load_port}}, \code{\link{load_aux}}, 
   #' \code{\link{load_grid}}). The function is designed to check for consistency between versions of the same data frame so that the logged functions can be used to rerun the previous analysis on the updated data. 
@@ -56,7 +57,7 @@ fishset_compare <- function(x, y, compare=c(TRUE,FALSE)){
   #' If no previous versions of the data frame exist in the SQLite database or the analysis will not be rerun using saved function calls in the log file, set the `compare` parameter to FALSE.
   #'  No comparison will be made and the new file will be saved to the database.
 
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
   if(compare==TRUE){
     if(is.null(y)==TRUE | table_exists(y)==FALSE){
       print(DBI::dbListTables(fishset_db))
@@ -104,24 +105,12 @@ load_maindata <- function(dat, over_write=TRUE, project=NULL, compare=FALSE, y=N
   #' }
   
    dataset <- dat 
-
      #Call in datasets
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
   if(compare==TRUE){
-  if(is.character(y)==TRUE){
-    if(is.null(y)==TRUE | table_exists(y)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(y, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-    y_call <- table_view(y)
-    }
-  } else {
-    y_call <- y  
+
+  fishset_compare(dataset,y,compare)
   }
-  }
-  
-  
-  fishset_compare(dataset,y_call,compare)
   ##-----------MainDataTable--------------------##
   data_verification_call(dataset)
   # Check to see if lat/long or fish area is in dataset
@@ -178,13 +167,21 @@ load_maindata <- function(dat, over_write=TRUE, project=NULL, compare=FALSE, y=N
                                   isOther=rep(0, length(colnames(dataset))),
                                   tableLink=rep(NA, length(colnames(dataset))))
   
-
-  DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable', format(Sys.Date(), format="%Y%m%d")),  dataset, overwrite=over_write)
-  DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTableInfo', format(Sys.Date(), format="%Y%m%d")), MainDataTableInfo, overwrite=over_write)
-  DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable'),  dataset, overwrite=over_write)
-  DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTableInfo'), MainDataTableInfo, overwrite=over_write)
+  if(table_exists(paste0(project, 'MainDataTable', format(Sys.Date(), format="%Y%m%d")))==FALSE | over_write==TRUE){
+    DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable', format(Sys.Date(), format="%Y%m%d")),  dataset, overwrite=over_write)
+    DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTableInfo', format(Sys.Date(), format="%Y%m%d")), MainDataTableInfo, overwrite=over_write)
+    print('Table saved to database')
+  } else {
+    warning(paste('Table not saved.', paste0(project, 'MainDataTable', format(Sys.Date(), format="%Y%m%d")), 'exists in database, and overwrite is FALSE.'))
+  }
+  if(table_exists(paste0(project, 'MainDataTable'))==FALSE | over_write==TRUE){
+    DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable'),  dataset, overwrite=over_write)
+    DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTableInfo'), MainDataTableInfo, overwrite=over_write)
+  } else {
+    warning(paste('Table not saved.', paste0(project, 'MainDataTable'), 'exists in database, and overwrite is FALSE.'))
+  }
   DBI::dbDisconnect(fishset_db)
-  print('Data saved to database')
+  
  
     
   if(!exists('logbody')) { 
@@ -205,12 +202,16 @@ load_maindata <- function(dat, over_write=TRUE, project=NULL, compare=FALSE, y=N
   } 
     load_maindata_function <- list()
     load_maindata_function$functionID <- 'load_maindata'
-    load_maindata_function$args <- c(deparse(substitute(dat)), over_write, project, compare, deparse(substitute(y)))
+    if(shiny_running()==FALSE){
+      load_maindata_function$args <- c(deparse(substitute(dat)), over_write, project, compare, deparse(substitute(y)))
+    } else {
+      load_maindata_function$args <- c(deparse(substitute(dat)), over_write, project, compare, y)
+    }
     load_maindata_function$kwargs <- list()
     load_maindata_function$output <- c('')
     functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_maindata_function)
     logbody$fishset_run <- list(infoBodyout, functionBodyout)
-    write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+    write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
     assign("functionBodyout", value = functionBodyout, pos = 1)
     
     assign(paste0(project, 'MainDataTable'), value = dataset, pos=1)
@@ -287,7 +288,7 @@ main_mod <- function(dat, x, new.unit=NULL, new.type=NULL, new.class=NULL) {
   main_mod_function$output <- c('')
   main_mod_function$function_calls[[length(functionBodyout$function_calls)+1]] <- (main_mod_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
   
   return(dataset)
@@ -334,24 +335,16 @@ load_port <- function(dat, port_name, over_write=TRUE, project=NULL, compare=FAL
   data_verification_call(x)
   
   if(compare==TRUE){
-    if(is.character(y)==TRUE){
-      if(is.null(y)==TRUE | table_exists(y)==FALSE){
-        print(DBI::dbListTables(fishset_db))
-        stop(paste(y, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-      } else {
-        y_call <- table_view(y)
-      }
-    } else {
-      y_call <- y  
-    }
+  fishset_compare(x,y,compare)
   }
   
-
-  fishset_compare(x,y_call,compare)
-  
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
-  DBI::dbWriteTable(fishset_db, paste0(project, 'PortTable', format(Sys.Date(), format="%Y%m%d")), x, overwrite=over_write)
-  DBI::dbWriteTable(fishset_db, paste0(project, 'PortTable'), x, overwrite=over_write)
+  if(table_exists(paste0(project, 'PortTable'))==FALSE | over_write==TRUE){
+    DBI::dbWriteTable(fishset_db, paste0(project, 'PortTable', format(Sys.Date(), format="%Y%m%d")), x, overwrite=over_write)
+    DBI::dbWriteTable(fishset_db, paste0(project, 'PortTable'), x, overwrite=over_write)
+  } else {
+    warning(paste('Table not saved.', paste0(project, 'PortTable'), 'exists in database, and overwrite is FALSE.')) 
+  }
   DBI::dbDisconnect(fishset_db)
   print('Data saved to database')
   #write(layout.json.ed(trace, "load_port", '', x = deparse(substitute(x)), 
@@ -380,7 +373,7 @@ load_port <- function(dat, port_name, over_write=TRUE, project=NULL, compare=FAL
   load_port_function$output <- c('')
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_port_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
 }
 
@@ -422,12 +415,15 @@ load_aux <- function(dat, x, over_write=TRUE, project=NULL){
   
   data_verification_call(x)
   
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+  if(table_exists(paste0(project, x))==FALSE | over_write==TRUE){
   DBI::dbWriteTable(fishset_db, paste0(project, x, format(Sys.Date(), format="%Y%m%d")), x, overwrite=over_write)
   DBI::dbWriteTable(fishset_db, paste0(project, x), x, overwrite=over_write)
+   print('Data saved to database')
+  } else {
+    warning(paste('Table not saved.', paste0(project, x), 'exists in database, and overwrite is FALSE.')) 
+  }
   DBI::dbDisconnect(fishset_db)
-  print('Data saved to database')
-
  if(!exists('logbody')) { 
    logbody <- list()
    infoBodyout <- list()
@@ -450,7 +446,7 @@ load_aux <- function(dat, x, over_write=TRUE, project=NULL){
   load_aux_function$output <- c('')
   load_aux_function$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_aux_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
 }
 
@@ -487,11 +483,14 @@ load_grid <- function(dat, x, over_write=TRUE, project=NULL){
   
   data_verification_call(x)
   
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  DBI::dbWriteTable(fishset_db, paste0(project, x), x, overwrite=over_write)
-  DBI::dbDisconnect(fishset_db)
+  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+  if(table_exists(paste0(project, x))==FALSE | over_write==TRUE){
+    DBI::dbWriteTable(fishset_db, paste0(project, x), x, overwrite=over_write)
   print('Data saved to database')
-  
+  } else {
+    warning(paste('Table not saved.', paste0(project, x), 'exists in database, and overwrite is FALSE.')) 
+  }
+  DBI::dbDisconnect(fishset_db)
   if(!exists('logbody')) { 
     logbody <- list()
     infoBodyout <- list()
@@ -514,7 +513,7 @@ load_grid <- function(dat, x, over_write=TRUE, project=NULL){
   load_gridded_function$output <- c()
   load_gridded_function$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_gridded_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
 }
 

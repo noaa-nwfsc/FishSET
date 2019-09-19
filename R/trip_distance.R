@@ -30,33 +30,14 @@
 create_trip_distance <- function(dat, PortTable, trip_id, starting_port, starting_haul = c("Lon","Lat"), 
                       ending_haul = c("Lon", "Lat"), ending_port, haul_order, a = 6378137, f = 1/298.257223563) {
 
- #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-   #  in port table
-    if(is.character(PortTable)==TRUE){
-      if(table_exists(PortTable)==FALSE){
-        print(DBI::dbListTables(fishset_db))
-        stop(paste(PortTable, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-      } else {
-      port.table <- table_view(PortTable)
-      }
-    } else {
-      port.table <- PortTable
-    }
+  #Call in datasets
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset
   
-    if(is.character(dat)==TRUE){
-      if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-        print(DBI::dbListTables(fishset_db))
-        stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-      } else {
-        dataset <- table_view(dat)
-      }
-    } else {
-      dataset <- dat 
-    }
-    DBI::dbDisconnect(fishset_db)
-    
-  
+  out <- data_pull(PortTable)
+  PortTable <- out$dat
+  port.table <- out$dataset
   
   if(!any(unique(trimws(dataset[[ending_port]])) %in% unique(port.table[,'Port_Name']))){
     stop('Ending_port from the data set and port_name from the port table do not match.')
@@ -162,12 +143,12 @@ create_trip_distance <- function(dat, PortTable, trip_id, starting_port, startin
   } 
   create_TD_function <- list()
   create_TD_function$functionID <- 'create_TD'
-  create_TD_function$args <- c(deparse(substitute(dat)), deparse(substitute(PortTable)), trip_id, starting_port, starting_haul, ending_haul, ending_port, haul_order)
+  create_TD_function$args <- c(dat, PortTable, trip_id, starting_port, starting_haul, ending_haul, ending_port, haul_order)
   create_TD_function$kwargs <- list('a'=a, 'f'=f)
   create_TD_function$output <- c('')
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_TD_function)
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
   
   return(haulLevelTripDist)
