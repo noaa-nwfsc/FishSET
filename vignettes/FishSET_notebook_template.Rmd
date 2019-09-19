@@ -1,25 +1,22 @@
 ---
 title: "FishSET Notebook"
-Author: 'Your Name'
-date: '`r format(Sys.Date(),"%Y-%B-%d")`'
-output: 
-  #Eword_document: default
-  html_document: default
-runtime: shiny
-# These are the parameters that will be obtained from shiny objects, if run # 
-# Update data tables?
-#  If update is set to 'No' then interactive will not run when 
-
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+  word_document: default
 params:
-  update: 'Yes'
-  x1: "holder"
-  x2: "holder"
-  x3: "holder"
+  update: no
+Author: Your Name
 ---
 
+
 ```{r setup, include=FALSE}
-update <- 'Yes'
+update <- 'FALSE'
+loc <- getwd()
 knitr::opts_knit$set(root.dir = '../') 
+library(formattable)
 # Or use multiple `../` if needed; 
 # One `../` means go one level up towards the root,
 # here, moving from `scripts` folder to the root `my_project`
@@ -27,17 +24,17 @@ knitr::opts_knit$set(root.dir = '../')
 
 <!-- reference: https://stackoverflow.com/questions/46515474/create-static-report-from-dynamic-shiny-markdown -->
 
+<!-- reference: https://shiny.rstudio.com/articles/generating-reports.html -->
+
 <!-- PLEASE READ -->
 This is the FishSET package template written in [R Markdown](http://rmarkdown.rstudio.com). 
 The template is divided into sections. Each sections has questions or text to help guide writing the analysis and document.
-Code written in the document will be run with the output appearing in the document. When the documnet is knit, only the output will be displayed if echo=F.
+Code written in the document will be run with the output appearing in the document. When the document is knit, only the output will be displayed if echo=F.
 For example, press the arrow in the code chunk below
 ```{r, echo=FALSE}
-if(update=='No'){
+dat <-FishSET:::read_dat('./data/ExpData.RData', data.type = 'R')
     x <- 2
-} else { x <- 4
-    select_checks()}
-print(x+x)
+    print(x+x)
 ```
 
 Many FishSET functions are interactive. The functions will not work when you *knit* this file and generate a static document. 
@@ -66,11 +63,39 @@ Questions to ask:
       *NEED MORE HERE
 
 Steps: 
-1) Need to pull in data
+1) Pull in data. Example code provided below
+```{r, echo=FALSE } 
+#dat <- read.dat('path\to\dat', data.type='csv')
+```
+
 2) Need to select what data we want from the dataset
+```{r, echo=FALSE } 
+if(params$update=='TRUE'){
+FishSET:::select_vars_gui(dat, 'test')
+}
+```
+
+
 3) Select data verification functions with option to print tables and plots
+```{r, echo=FALSE } 
+if(params$update=='TRUE'){
+FishSET:::select_checks_gui("testMainDataTable", 'test')
+}
+```
 
 
+```{r, ehco=FALSE}
+FishSET:::table_format('summary_table') 
+```
+
+```{r, out.width = '60%', echo=FALSE}
+knitr::include_graphics(paste0(getwd(), '/inst/output/Test_Regression_plot.png'))
+```
+
+
+```{r, echo=FALSE}
+print(dim(dat))
+```
 ## Spatial stuff
 1) Another GUI here
 2) Force assignment column 
