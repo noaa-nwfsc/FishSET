@@ -74,7 +74,7 @@ create_expectations <- function(dat, project, gridfile, catch, defineGroup, temp
   }
   
   # Check that define group is either empty of an actual variable in the dataset
-  if (!FishSET:::is_empty(defineGroup)) {
+  if (!is_empty(defineGroup)) {
     if (any(is.null(dataset[[defineGroup]]))) {
       stop("defineGroup not recognized. Check that parameter is correctly defined")
     }
@@ -106,11 +106,11 @@ long_exp <- long_expectations(dat=dat, project=project, gridfile=gridfile, catch
   numData = as.data.frame(numData)[which(dataZoneTrue == 1), ]  #(Alt.dataZoneTrue,:)
   spData = choice[which(dataZoneTrue == 1), ]  # mapping to to the map file
   spNAN = which(is.na(spData) == T)
-  if (any(!FishSET:::is_empty(spNAN))) {
+  if (any(!is_empty(spNAN))) {
     spData[spNAN] = rep(Inf, length(spNAN))  # better for grouping than nans because aggregated
   }
   numNAN = which(is.nan(numData) == T)
-  if (any(!FishSET:::is_empty(numNAN))) {
+  if (any(!is_empty(numNAN))) {
     numData[numNAN] = rep(Inf, length(numNAN))
   }
   
@@ -124,7 +124,7 @@ long_exp <- long_expectations(dat=dat, project=project, gridfile=gridfile, catch
   
   # Time variable not chosen if temp.var is empty
   #NOTE currently doesn't allow dummy or other options if no time detected
-  if (FishSET:::is_empty(temp.var)) {
+  if (is_empty(temp.var)) {
     
     allCatch = stats::aggregate(catchData, list(C), mean, na.rm = T)  #accumarray(C,catchData,[],@nanmean)# currently no replacement for nans
     # Above line is grouping by the alternatives through the C above

@@ -4,7 +4,8 @@
 \alias{outlier_remove}
 \title{Evaluate and edit outliers from variable}
 \usage{
-outlier_remove(dat, x, dat.remove = "none", remove = T)
+outlier_remove(dat, x, dat.remove = "none", remove = T,
+  over_write = FALSE)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}
@@ -14,6 +15,8 @@ outlier_remove(dat, x, dat.remove = "none", remove = T)
 \item{dat.remove}{Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD}
 
 \item{remove}{Save data with outliers removed. If TRUE, the revised data table, with values removed outside the `dat.remove` expression, is returned.}
+
+\item{over_write}{Save over previous file}
 }
 \value{
 Returns the modified dataframe. MOdified dataframe will be saved to fishset_db database.
@@ -38,4 +41,3 @@ The dat.remove choices are
 MainDataTable <- outlier_remove(MainDataTable, 'dist', dat.remove='mean_2SD', save.output=TRUE)
 }
 }
-\keyword{outliers}

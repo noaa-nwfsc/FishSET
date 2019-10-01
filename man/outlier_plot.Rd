@@ -5,7 +5,7 @@
 \title{Evaluate outliers through plots}
 \usage{
 outlier_plot(dat, x, dat.remove = "none", x.dist = "normal",
-  output = "screen")
+  output.screen = TRUE)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}
@@ -16,7 +16,7 @@ outlier_plot(dat, x, dat.remove = "none", x.dist = "normal",
 
 \item{x.dist}{Distribution of the data. Choices include: normal, lognormal, exponential, weibull, poisson, negative binomial}
 
-\item{output}{Return plots as pdf file or to the screen. If `pdf`, plots are returned as pdf file. If `screen`, plots are printed to the screen.}
+\item{output.screen}{If true, return plots to the screen. If false, returns plot to the inst/output folder as png file.}
 }
 \value{
 Plot of the data
@@ -51,7 +51,7 @@ The function returns three plots, the data, a probability plot, and a Q-Q plot. 
 }
 \examples{
 \dontrun{
-outlier_plot(MainDataTable, 'Haul', dat.remove='mean_2SD', x.dist='normal', output='screen')
+outlier_plot(MainDataTable, 'Haul', dat.remove='mean_2SD', x.dist='normal', output.screen=TRUE)
 }
 }
 \keyword{outlier}

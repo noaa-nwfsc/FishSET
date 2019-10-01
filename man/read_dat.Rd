@@ -9,7 +9,7 @@ read_dat(x, data.type)
 \arguments{
 \item{x}{Name and directory of data frame to be read in. For example, `nmfs_manage_simple.shp`.}
 
-\item{data.type}{csv, mat, json, shape = c('csv', 'mat', 'json', 'shape', 'txt', 'spss', 'stata', 'R')}
+\item{data.type}{csv, mat, json, shape, txt, spss, stata, R)}
 }
 \description{
 Import data

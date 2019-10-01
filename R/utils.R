@@ -4,26 +4,27 @@ table_format <- function(x) {
 #' Import and format saved tables to notebook file
 #' @param x Name of table saved in inst/output
 #' @export
-#' @import formattable
-suppressMessages(library(formattable))
+#' @importFrom pander panderOptions pander 
+
 tab_int <- read.csv(paste0(getwd(),'/inst/output/', x, '.csv'))
-panderOptions('table.alignment.default', function(df)
+pander::panderOptions('table.alignment.default', function(df)
   ifelse(sapply(df, is.numeric), 'right', 'left'))
-panderOptions('table.emphasize.rownames',TRUE)
-panderOptions('table.split.table', Inf)
-panderOptions('graph.fontsize',8)
-panderOptions('table.style', 'multiline')
+pander::panderOptions('table.emphasize.rownames',TRUE)
+pander::panderOptions('table.split.table', Inf)
+pander::panderOptions('graph.fontsize',8)
+pander::panderOptions('table.style', 'multiline')
 if(grepl('summary', x)){
-colnames(tab_int)[1] <- 'Variable'  
- pander(tab_int)
+  colnames(tab_int)[1] <- 'Variable'  
+  pander::pander(tab_int)
 } else {
-  pander(tab_int)
+  pander::pander(tab_int)
 }
 }
 
 plot_format <- function(x){
   #' Import and format plots to notebook file
   #' @param x Name of plot saved in inst/output
+  #' @importFrom knitr include_graphics
   #' @export
   knitr::include_graphics(paste0(getwd(), '/inst/output/',x,'.png'))
 }
@@ -168,6 +169,7 @@ degree <- function(dat, lat, lon){
   #' @param lon Name of vector containg longitude data
   #' @export degree
   #' @importFrom OSMscale degree
+  #' @importFrom stringr str_replace
   #' @details Uses the degree function to convert lat long coordinates to decimal degrees.
   #' @return The original dataframe with the converted latitudes and longitudes
   #' @examples 
@@ -175,13 +177,11 @@ degree <- function(dat, lat, lon){
   #' dat <- degree(MainDataTable, 'LatLon_START_LAT', 'LatLon_START_LON')}
   #' 
   if(!is.numeric(lat)|!is.numeric(lon)) {
-    temp <- apply(dat[,which(grepl('lon', names(dat), ignore.case=TRUE))], 2, function(x) stringr::str_replace(x, "°", ""))
+    temp <- apply(dat[,which(grepl('lon', names(dat), ignore.case=TRUE))], 2, function(x) stringr::str_replace(x, "\u00b0", ""))
     temp <- apply(temp, 2, function(x) stringr::str_replace(x, "'", ""))
-    #temp <- apply(temp, 2, function(x) stringr::str_replace(x, "\", ""))
     
     for (i in 1:ncol(temp)){
-    temp[,i] <- sapply((strsplit(temp[,i], "[°\\.]")), as.numeric)[1,]+sapply((strsplit(temp[,i], "[°\\.]")), as.numeric)[2,]/60
-    #z[1, ] + z[2, ]/60 + z[3, ]/3600
+    temp[,i] <- sapply((strsplit(temp[,i], "[\u00b0\\.]")), as.numeric)[1,]+sapply((strsplit(temp[,i], "[\u00b0\\.]")), as.numeric)[2,]/60
     }
     dat[,which(grepl('lon', names(dat), ignore.case=TRUE))] <- temp
    return(dat) 
@@ -234,7 +234,7 @@ outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plo
   #' @return Plot of the data
   
   
-  library(ggplot2)
+  requireNamespace(ggplot2)
   
   dataset <- dat
   x.name <- x
@@ -351,21 +351,21 @@ outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plo
   }
 }
 
-shiny_running = function () {
+#shiny_running = function () {
   # Look for `runApp` call somewhere in the call stack.
-  frames = sys.frames()
-  calls = lapply(sys.calls(), `[[`, 1)
-  call_name = function (call)
-    if (is.function(call)) '<closure>' else deparse(call)
-  call_names = vapply(calls, call_name, character(1))
+#  frames = sys.frames()
+#  calls = lapply(sys.calls(), `[[`, 1)
+#  call_name = function (call)
+#    if (is.function(call)) '<closure>' else deparse(call)
+#  call_names = vapply(calls, call_name, character(1))
   
-  target_call = grep('^runApp$', call_names)
+#  target_call = grep('^runApp$', call_names)
   
-  if (length(target_call) == 0)
-    return(FALSE)
+#  if (length(target_call) == 0)
+#    return(FALSE)
   
   # Found a function called `runApp`, verify that it’s Shiny’s.
-  target_frame = frames[[target_call]]
-  namespace_frame = parent.env(target_frame)
-  isNamespace(namespace_frame) && environmentName(namespace_frame) == 'shiny'
-}
+#  target_frame = frames[[target_call]]
+#  namespace_frame = parent.env(target_frame)
+#  isNamespace(namespace_frame) && environmentName(namespace_frame) == 'shiny'
+#}

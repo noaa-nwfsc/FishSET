@@ -139,7 +139,7 @@ outlier_plot <- function(dat, x, dat.remove = "none", x.dist = "normal", output.
   #' @param output.screen If true, return plots to the screen. If false, returns plot to the inst/output folder as png file.
   #' @keywords outlier
   #' @importFrom graphics points
-  #' @importFrom ggpubr annotate_figure text_grob
+  # @importFrom ggpubr annotate_figure text_grob
   #' @import ggplot2
   #' @details  The function returns three plots, the data, a probability plot, and a Q-Q plot. The data plot is the value of
   #'  x against row number. Red points are all the data without any points removed. The blue points are the subsetted data. If `dat.remove` is `none`, then only blue points will be shown. 
@@ -316,8 +316,7 @@ outlier_remove <- function(dat, x, dat.remove = "none", remove = T, over_write=F
   #' @param x Column in data frame containing potential outliers.
   #' @param dat.remove Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD
   #' @param remove Save data with outliers removed. If TRUE, the revised data table, with values removed outside the `dat.remove` expression, is returned.
-  #' @param over_write
-  #' @keywords outliers
+  #' @param over_write Save over previous file
   #' @export outlier_remove
   #' @return Returns the modified dataframe. MOdified dataframe will be saved to fishset_db database.
   #' @details   The dat.remove choices are

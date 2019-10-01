@@ -2,22 +2,22 @@
 % Please edit documentation in R/utils.R
 \name{degree}
 \alias{degree}
-\title{Convert lat/long coordinates to decimate degrees}
+\title{Convert lat/long coordinates to decimal degrees}
 \usage{
-degree(dat, lat, long)
+degree(dat, lat, lon)
 }
 \arguments{
 \item{dat}{Data table containing latitude and longitude data}
 
 \item{lat}{Name of vector containing latitude data}
 
-\item{long}{Name of vector containg longitude data}
+\item{lon}{Name of vector containg longitude data}
 }
 \value{
 The original dataframe with the converted latitudes and longitudes
 }
 \description{
-Convert lat/long coordinates to decimate degrees
+Convert lat/long coordinates to decimal degrees
 }
 \details{
 Uses the degree function to convert lat long coordinates to decimal degrees.

@@ -1,22 +1,22 @@
 ---
 title: "FishSET Notebook"
 date: "`r Sys.Date()`"
+always_allow_html: yes
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
   word_document: default
-params:
-  update: no
 Author: Your Name
+#params: update <- FALSE
 ---
-
+<!-- Update text above -->
 
 ```{r setup, include=FALSE}
 update <- 'FALSE'
 loc <- getwd()
 knitr::opts_knit$set(root.dir = '../') 
-library(formattable)
+#library(formattable)
 # Or use multiple `../` if needed; 
 # One `../` means go one level up towards the root,
 # here, moving from `scripts` folder to the root `my_project`
@@ -28,17 +28,58 @@ library(formattable)
 
 <!-- PLEASE READ -->
 This is the FishSET package template written in [R Markdown](http://rmarkdown.rstudio.com). 
-The template is divided into sections. Each sections has questions or text to help guide writing the analysis and document.
+The template is designed to assist in writing and presenting output. Add or delete text as needed. 
+Guiding comments are provided between "<!-" and " -->". These comments will not show up in the output document.
+Guidance in R code is commented out with "#".
+*Important* 
+The template is designed to be used in two steps. First, run interactive code and save output. These codes are in the first section called `Interactive Functions`. Click the green arrow at the top of the R code chunk to open the interactive session. Second, load output and fill in text before knitting the document.
+When running the interactive code, make sure `update` in the R code chunk above is `TRUE`. When knitting the output document, set `update` to `FALSE`. By setting output to false, a static document will be produced. 
+
+*Other information*
+The template is divided into sections. Each section has questions or text to help guide writing the analysis and document. 
+
 Code written in the document will be run with the output appearing in the document. When the document is knit, only the output will be displayed if echo=F.
 For example, press the arrow in the code chunk below
 ```{r, echo=FALSE}
+
 dat <-FishSET:::read_dat('./data/ExpData.RData', data.type = 'R')
     x <- 2
     print(x+x)
 ```
 
-Many FishSET functions are interactive. The functions will not work when you *knit* this file and generate a static document. 
+Useful functions:
+Below is an R code chunk to load a formatted data table that has been created using an interactive function.
+Copy and paste as needed. Change `x` to the name of the table, such as `summary_table`.
+```{r, ehco=FALSE}
+library(pander)
+panderOptions('table.alignment.default', function(df)
+    ifelse(sapply(df, is.numeric), 'right', 'left'))
+panderOptions('table.emphasize.rownames',TRUE)
+panderOptions('table.split.table', Inf)
+panderOptions('graph.fontsize',8)
+panderOptions('table.style', 'multiline')
+dt <- read.csv(paste0(getwd(),'/inst/output/', 'summary_table', '.csv'))
+pander(dt)
+```
+
+Below is an R code chunk to load a plot created using an interactive function. Copy and paste as needed. Change `x` to the name of the table, such as `Regression_plot`.
+Figure captions can be added using `fig.cap`. Size of the figure in the output document can be adjused with `out.width`.
+```{r, fig.cap="plotting example", out.width = '60%', echo=FALSE}
+#plot_format('Test_Outliers_plot')
+knitr::include_graphics(paste0(getwd(), '/inst/output/Test_Outliers_plot.png'))
+```
+
+Please delete from the 'Please Read' to here before knitting the document.
 <!-- END PLEASE READ --->
+
+##Interactive functions
+<!-- Load data to database, explore data, run basic data quality checks, run basic analyses -->
+```{r, echo=FALSE } 
+if(update=='TRUE'){
+FishSET:::select_checks_gui("testMainDataTable", 'test')
+}
+```
+
 
 ##Introduction
  What are your main questions? 
@@ -62,40 +103,7 @@ Questions to ask:
       * Before modeling, check for potential errors in existing and created variables using the `check_model_data` function.
       *NEED MORE HERE
 
-Steps: 
-1) Pull in data. Example code provided below
-```{r, echo=FALSE } 
-#dat <- read.dat('path\to\dat', data.type='csv')
-```
 
-2) Need to select what data we want from the dataset
-```{r, echo=FALSE } 
-if(params$update=='TRUE'){
-FishSET:::select_vars_gui(dat, 'test')
-}
-```
-
-
-3) Select data verification functions with option to print tables and plots
-```{r, echo=FALSE } 
-if(params$update=='TRUE'){
-FishSET:::select_checks_gui("testMainDataTable", 'test')
-}
-```
-
-
-```{r, ehco=FALSE}
-FishSET:::table_format('summary_table') 
-```
-
-```{r, out.width = '60%', echo=FALSE}
-knitr::include_graphics(paste0(getwd(), '/inst/output/Test_Regression_plot.png'))
-```
-
-
-```{r, echo=FALSE}
-print(dim(dat))
-```
 ## Spatial stuff
 1) Another GUI here
 2) Force assignment column 

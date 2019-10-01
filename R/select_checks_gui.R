@@ -1,7 +1,6 @@
 # Validation checks selection tool
 # Select which data validation checks to apply.
 
-###----->> WORKING ON DATA REFRESH <-----####
 
 # select_checks
 #' View and select which validation checks to run
@@ -10,9 +9,10 @@
 #' @param project Name of project. Parameter is used to generate meaningful table names in fishset_db database.
 #' @importFrom DBI  dbDisconnect dbConnect dbListTables dbWriteTable 
 #' @import shiny
-#' @import shinyFiles
+# @import shinyFiles
 #' @importFrom ggpubr ggarrange
-#' @importFrom gridExtra grid.table
+#' @importFrom ggcorrplot ggcorrplot
+# @importFrom gridExtra grid.table
 #' @importFrom stringi stri_count_regex
 #' @export select_checks
 #' @details Opens an interactive table that allows uses to select which data validation checks to run by clicking check boxes. 
@@ -22,10 +22,10 @@
 #' }
 
 select_checks <- function(dat, project){#
-  library(shiny)
-  library(DT)
-  library(shinyFiles)
-  library(ggplot2)
+  requireNamespace(shiny)
+  requireNamespace(DT)
+  #requireNamespace(shinyFiles)
+  requireNamespace(ggplot2)
 #----
   #Helper functions
 #----
@@ -381,17 +381,17 @@ tabPanel("Upload Data", value = "upload",
       # refresh data
     observeEvent(input$refresh, {
       suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
-      values$dataset <- FishSET:::table_view(dat)
+      values$dataset <- table_view(dat)
       DBI::dbDisconnect(fishset_db)
     }, ignoreInit = F) 
     observeEvent(input$refresh1, {
       suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
-      values$dataset <- FishSET:::table_view(dat)
+      values$dataset <- table_view(dat)
       DBI::dbDisconnect(fishset_db)
     }, ignoreInit = F) 
     observeEvent(input$refresh2, {
       suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
-      values$dataset <- FishSET:::table_view(dat)
+      values$dataset <- table_view(dat)
       DBI::dbDisconnect(fishset_db)
     }, ignoreInit = F) 
     
@@ -553,7 +553,7 @@ tabPanel("Upload Data", value = "upload",
     })
 
   t2 = reactive({
-    if(length(unique(lubridate::year(FishSET:::date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]]))))>1){
+    if(length(unique(lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]]))))>1){
         'Year'
     } else { 
         'Month'}
@@ -561,39 +561,39 @@ tabPanel("Upload Data", value = "upload",
   
    df2l=reactive({
      if(input$p2fun=='No. observations'){
-        if(length(unique(lubridate::year(FishSET:::date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]]))))>1){
+        if(length(unique(lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]]))))>1){
           aggregate(values$dataset[[input$col_select]]~
-                lubridate::year(FishSET:::date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=length)
+                lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=length)
         } else {
           aggregate(values$dataset[[input$col_select]]~
-                 lubridate::month(FishSET:::date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=length)
+                 lubridate::month(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=length)
         }
      } else if(input$p2fun=='No. unique observations'){
-        if(length(unique(lubridate::year(FishSET:::date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]]))))>1){
+        if(length(unique(lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]]))))>1){
           aggregate(values$dataset[[input$col_select]]~
-                     lubridate::year(FishSET:::date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=function(x) length(unique(x)))
+                     lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=function(x) length(unique(x)))
         } else {
          aggregate(values$dataset[[input$col_select]]~
-                     lubridate::month(FishSET:::date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=function(x) length(unique(x)))
+                     lubridate::month(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=function(x) length(unique(x)))
          }
      } else {
-        if(length(unique(lubridate::year(FishSET:::date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]]))))>1){
+        if(length(unique(lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]]))))>1){
            aggregate(values$dataset[[input$col_select]]~
-                     lubridate::year(FishSET:::date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=function(x) round(length(x)/nrow(values$dataset)*100,2))
+                     lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=function(x) round(length(x)/nrow(values$dataset)*100,2))
         } else {
           aggregate(values$dataset[[input$col_select]]~
-                     lubridate::month(FishSET:::date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=function(x) round(length(x)/nrow(values$dataset)*100,2))
+                     lubridate::month(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=function(x) round(length(x)/nrow(values$dataset)*100,2))
         }
       }
     })
  
 df2m=reactive({
-     if(length(unique(lubridate::year(FishSET:::date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]]))))>1){
+     if(length(unique(lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]]))))>1){
      aggregate(values$dataset[[input$col_select]]~
-                 lubridate::year(FishSET:::date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=input$p3fun, na.rm=T)
+                 lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=input$p3fun, na.rm=T)
    } else {
      aggregate(values$dataset[[input$col_select]]~
-                 lubridate::month(FishSET:::date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=input$p3fun,na.rm=T)
+                 lubridate::month(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=input$p3fun,na.rm=T)
    }
    })
    
@@ -685,7 +685,7 @@ output$plot_time <- renderPlot({
             return(NULL)
           } else {
             if(input$plot_table=='Plots'&input$plot_type=='Spatial'){
-                  FishSET:::map_kernel('gradient', values$dataset[,c(which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1], 
+                  map_kernel('gradient', values$dataset[,c(which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1], 
                                                               which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1])])
          } else {
            return(NULL)
