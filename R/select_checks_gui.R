@@ -93,14 +93,19 @@ shinyApp(
                   .sidebar { height: 90vh; overflow-y: auto; }
                   .dataTables_wrapper { overflow-x: scroll; }
                   " )
-  )),
+  ),
+  
+  tags$script(HTML('Shiny.addCustomMessageHandler("jsCode",
+                           function(message) {
+                           eval(message.value);
+                           });'))),
 
 #----
-      tabsetPanel(
+      tabsetPanel(id = "tabs",
 #----
 #UPLOAD DATA
 #-----
-tabPanel("Upload Data",
+tabPanel("Upload Data", value = "upload",
           tags$style(type='text/css', "#uploadMain { width:100%; margin-top: 24px;margin-left:-20px;padding-left:2px; padding-right:5px}"),
          
          mainPanel(
@@ -139,23 +144,28 @@ tabPanel("Upload Data",
                         fileInput("auxdat", "Choose auxiliary data file that links to primary data",
                                   multiple = FALSE, placeholder = 'Optional data')),
                 column(3, uiOutput('ui.actionA'))
-           )
+           ),
+           uiOutput("SaveButtonsUpload"),
+           textInput('notesUp', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
          )),
 #-----
         
 #---- 
 #BEGIN DATA EXPLORATION TABSET PANEL 
 #----   
-          tabPanel("Data Exploration", 
+          tabPanel("Data Exploration", value = "explore",
                    sidebarLayout(
                      sidebarPanel(width=2,
                                   tags$br(),tags$br(),
-                       uiOutput('SaveButtonsExplore'),
-                       actionButton('saveData','Save data to fishset_db database'),
+                      conditionalPanel(
+                          condition='input.plot_table=="Plots"',
+                          uiOutput('SaveButtonsExplore')),
                        conditionalPanel(
                          condition='input.plot_table=="Table"',
-                         actionButton('subsetData', 'Subset data to selected columns')
+                         actionButton('subsetData', 'Remove variable from data set')
                        ),
+                       actionButton('saveData','Save data to fishset_db database'),
+                       
                        tags$br(),tags$br(),
                        tags$button(
                          id = 'close',
@@ -182,7 +192,8 @@ tabPanel("Upload Data",
                       conditionalPanel(
                         condition='input.plot_table=="Plots" & input.plot_type=="Spatial"',
                         uiOutput("location_info_spatial")
-                        )
+                        ),
+                      textInput('notesExplore', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
                    ),
                    mainPanel(width=10,
                      tags$div(dataTableOutput("output_table_exploration"), style = "font-size: 75%; width: 100%"),
@@ -228,15 +239,15 @@ tabPanel("Upload Data",
 #----
 #BEGIN DATA QUALITY EVALUATION TABSET PANEL  
 #----
-          tabPanel("Data Quality Evaluation", 
+          tabPanel("Data Quality Evaluation", value = "qaqc",
             sidebarLayout(
               sidebarPanel(width=3,
               tags$br(),tags$br(),
               uiOutput('SaveButtons'),
-              actionButton('saveData','Save data to fishset_db database'),
+              actionButton('saveDataQ','Save data to fishset_db database'),
               tags$br(),tags$br(),
               tags$button(
-                id = 'close',
+                id = 'close1',
                 type = "button",
                 style="color: #fff; background-color: #FF6347; border-color: #800000;",
                 class = "btn action-button",
@@ -244,7 +255,7 @@ tabPanel("Upload Data",
                 "Close app"
               ),
               
-              actionButton("refresh", "Refresh data", 
+              actionButton("refresh1", "Refresh data", 
                 icon = icon("fa fa-refresh"),
                 style = "color: white; background-color: blue;" 
                ),
@@ -255,12 +266,32 @@ tabPanel("Upload Data",
             uiOutput('outlier_column'),
             uiOutput('outlier_subset'),
             uiOutput('outlier_dist'),
-            uiOutput('removeNA'),
-            uiOutput('removeNAN'),
-            uiOutput('removeOutliers'),
             conditionalPanel(
-              condition='input.checks=="Outliers"',
-              uiOutput("hover_info1"))
+              condition = "input.checks == 'NAs'",
+              radioButtons('NA_Filter', 'Filter NAs by', choices=c('none','Remove all','Replace with mean'), selected='none')
+            ),
+            conditionalPanel(
+              condition = "input.checks == 'NaNs'",
+              radioButtons('NAN_Filter', 'Filter NaNs by', choices=c('none','Remove all','Replace with mean'), selected='none')
+            ),
+            conditionalPanel(condition="input.checks=='Outliers'",
+                             checkboxInput('Outlier_Filter', 'Remove outliers', value=FALSE)),
+            conditionalPanel(
+              condition ='input.checks=="Outliers"',
+              uiOutput("hover_info1")),
+            conditionalPanel(
+              condition ='input.checks=="Unique observations"',
+              checkboxInput('Unique_Filter', 'Remove non-unique rows', value=FALSE)
+            ),
+            conditionalPanel(
+              condition ='input.checks=="Empty variables"',
+              checkboxInput('Empty_Filter', 'Remove empty variables', value=FALSE)
+            ),
+            conditionalPanel(
+              condition ='input.checks=="Lat_Lon units"',
+              checkboxInput('LatLon_Filter', 'Convert lat/long to decimal degrees', value=FALSE)
+            ),
+            textInput('notesQAQC', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
             ),#END SIDEBAR LAYOUT             
           mainPanel(width=9,
                     tags$br(), tags$br(),
@@ -285,24 +316,25 @@ tabPanel("Upload Data",
 #---- 
 #BEGIN BASIC ANALYSIS TABSET PANEL 
 #----
-             tabPanel("Simple Analyses",
+             tabPanel("Simple Analyses", value = "analysis",
                       sidebarLayout(
                         sidebarPanel(
                            uiOutput('SaveButtonsAnal'),
                           tags$button(
-                            id = 'close',
+                            id = 'close2',
                             type = "button",
                             style="color: #fff; background-color: #FF6347; border-color: #800000;",
                             class = "btn action-button",
                             onclick = "setTimeout(function(){window.close();},500);",  # close browser
                             "Close app"
                           ),
-                          actionButton("refresh", "Refresh data", 
+                          actionButton("refresh2", "Refresh data", 
                                        icon = icon("fa fa-refresh"),
                                        style = "color: white; background-color: blue;" 
                           ),
                           tags$br(),tags$br(),
-                          selectInput('corr_reg','Show correlations or simple linear regression', choices=c('Correlation','Regression'), selected='Correlation')
+                          selectInput('corr_reg','Show correlations or simple linear regression', choices=c('Correlation','Regression'), selected='Correlation'),
+                          textInput('notesAnal', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
                       ),
                         mainPanel(
                           tags$br(),
@@ -322,8 +354,7 @@ tabPanel("Upload Data",
                             uiOutput('reg_exp_out'),
                             verbatimTextOutput('output_text_reg'),
                             plotOutput('output_plot_reg')
-                            ))
-                        )
+                            ))  )
                       ))
       
 #----           
@@ -331,16 +362,21 @@ tabPanel("Upload Data",
     
 ### SERVER SIDE    
     server = function(input, output, session) {
-   
+##Logging trial
+  ####!!!!!!!! ----> WORK HERE <------########
+      #log_action <- reactive({})
+      #observe(input$plot_type)
+ #     log_action<-reactive({c(input$Test_R, input$Test_R2, input$Test_R3)})
+      
 ##Pull data functions 
 ##----
-    if(is.character(dat)==TRUE){
-          suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
-          dataset <- table_view(dat)
-          DBI::dbDisconnect(fishset_db)
-        } else {
-          dataset <- dat  
-        }
+#    if(is.character(dat)==TRUE){
+#         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
+#          dataset <- table_view(dat)
+ #         DBI::dbDisconnect(fishset_db)
+#        } else {
+#          dataset <- dat  
+#        }
     values <- reactiveValues(dataset=dataset)
       # refresh data
     observeEvent(input$refresh, {
@@ -348,6 +384,17 @@ tabPanel("Upload Data",
       values$dataset <- FishSET:::table_view(dat)
       DBI::dbDisconnect(fishset_db)
     }, ignoreInit = F) 
+    observeEvent(input$refresh1, {
+      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
+      values$dataset <- FishSET:::table_view(dat)
+      DBI::dbDisconnect(fishset_db)
+    }, ignoreInit = F) 
+    observeEvent(input$refresh2, {
+      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
+      values$dataset <- FishSET:::table_view(dat)
+      DBI::dbDisconnect(fishset_db)
+    }, ignoreInit = F) 
+    
 ##----     
 
 #DATA UPLOAD FUNCTIONS
@@ -390,8 +437,13 @@ tabPanel("Upload Data",
     output$ui.actionP2 <- renderUI({
       if (is.null(input$portdat)) return()
       tagList(
-        textInput('port_name', label=div(style = "font-size:14px;  font-weight: 400;", 'Enter column name containing port names'), 
-                  value='', placeholder = 'Column name')
+        selectInput('port_name', "Enter column name containing port names", 
+                    choices=names(FishSET::read_dat(input$portdat$datapath, if(sub('.*\\.', '', input$portdat$name) == 'shp') { 
+            'shape'} else if(sub('.*\\.', '', input$portdat$name) == 'RData') { 
+              'R'} else { sub('.*\\.', '', input$portdat$name)})), selected="")
+         
+       # ))#label=div(style = "font-size:14px;  font-weight: 400;", 'Enter column name containing port names'), 
+                 # value='', placeholder = 'Column name')
       )
     })
     
@@ -443,7 +495,7 @@ tabPanel("Upload Data",
       options = list(autoWidth=TRUE, scrolly=T, responsive=TRUE, pageLength = 15,
                      searchCols = default_search_columns, buttons = c('csv'))
     )
-    observe({input$saveData
+    observeEvent(c(input$saveData,input$saveDataQ),{
       # when it updates, save the search strings so they're not lost
       isolate({
         # update global search and column search strings
@@ -476,10 +528,10 @@ tabPanel("Upload Data",
     })
     
     observeEvent(input$subsetData,{
-      values$dataset <- values$dataset[,input$output_table_exploration_columns_selected+1]
+      values$dataset <- values$dataset[,-(input$output_table_exploration_columns_selected+1)]
     })
     
-    output$editText <- renderText('To edit table, double click on a cell. \nUse boxes at top of table to subset data by filtering.\nFilter functions will be automatically saved to the FilterTable table in the fishet_db database when the save data button is pushed. \nTo select variables to retain for analyses and modeling, single click on column cells (not column names). \nThen click the "Subset Data" button. \nOnly selected variables will be available in the working data set.\nClick the "Save Data" button to save changes.')
+    output$editText <- renderText('Edit cells: double click.\n\nFilter: Boxes at top.\nFilter functions saved to FilterTable in fishet_db database when "save data" button is pushed.\n\nRemove variables: Click on column cell then click "Remove Variable" button.\nVariables can be added back using the add_vars function.\n\nClick the "Save Data" button to save changes.')
 
     #Subset by columns
     
@@ -782,7 +834,7 @@ output$plot_time <- renderPlot({
        if(length(input$reg_exp_select)!=1){
          return(NULL)
        } else {
-         annotate_figure(ggpubr::ggarrange(ggplot(values$dataset, aes_string(x=input$reg_exp_select, y=input$reg_resp_select)) + geom_point()+
+         ggpubr::annotate_figure(ggpubr::ggarrange(ggplot(values$dataset, aes_string(x=input$reg_exp_select, y=input$reg_resp_select)) + geom_point()+
            geom_smooth(method=lm)+
              labs(subtitle=paste(input$reg_resp_select, 'against', input$reg_exp_select), x=input$reg_exp_select, y=input$reg_resp_select)+
            theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
@@ -794,7 +846,7 @@ output$plot_time <- renderPlot({
                 theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
                     panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text=element_text(size=11),
                       axis.title=element_text(size=11)),
-          ncol=2, nrow=1), top=text_grob('Simple linear regression plots', size=14))
+          ncol=2, nrow=1), top=ggpubr::text_grob('Simple linear regression plots', size=14))
        }
      })
   
@@ -808,64 +860,258 @@ output$plot_time <- renderPlot({
 ###-----      
 #Basic functions   
 ##----
-      na <- function(x) { if (any(apply(values$dataset, 2, function(x) any(is.na(x))))==TRUE) {
-        cat("The", names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), "columns contain NAs.\nConsider using na_filter to replace or remove NAs")
-      } else {
-        cat("No columns in the dataframe contain NAs")
+          RC <- isolate({sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), collapse = ", "))})
+          RN <- isolate({sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE))], 2, 
+                                                                  function(x) length(which(is.na(x)==TRUE))), collapse=", "))})
+          RA <- isolate({length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
+                                                                         function(x) any(is.na(x)))==TRUE))], 2, function(x) which(is.na(x)==TRUE)))))})
+          RM <- isolate({sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, 
+                                                                          function(x) any(is.na(x)))==TRUE))],2, mean, na.rm=TRUE), collapse = ", "))})
+  na <- function(x) { 
+     if(any(apply(x, 2, function(x) any(is.na(x))))==TRUE) {
+         if(input$NA_Filter=='none'){
+          paste("The", RC,
+              "variables contain", RN, "missing values, respectively.\nConsider using na_filter to replace or remove the", RA, "rows with missing values.") 
+     }} else {
+      if(input$NA_Filter=='none'){
+         paste("No columns in the data set contain missing values.")
+        } else {
+          if(input$NA_Filter=='Remove all'){
+         paste("The", RC, "variables contained", RN, "missing values.\n", RA, "rows containing missing values have been removed from the data set.")
+        } else if(input$NA_Filter=='Replace with mean'){
+         paste("The", RC, "variables contained", RN, "missing values.\nMissing values have been replaced with the mean values of", RM, "respectively.")
+         }
+        } 
       }}
       
-      nan <- function(x) { if (any(apply(values$dataset, 2, function(x) any(is.nan(x))))==TRUE) {
-        cat("The", names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), "columns contain NaNs.\nConsider using nan_filter to replace or remove NaNs")
-      } else {
-        cat("No columns in the dataframe contain NaNs")
+  RCN <- isolate({sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", "))})
+  RNN <- isolate({sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE))], 2, 
+                                                          function(x) length(which(is.nan(x)==TRUE))), collapse=", "))})
+  RAN <- isolate({length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
+                                                                              function(x) any(is.nan(x)))==TRUE))], 2, function(x) which(is.nan(x)==TRUE)))))})
+  RMN <- isolate({sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, 
+                                                                               function(x) any(is.nan(x)))==TRUE))],2, mean, na.rm=TRUE), collapse = ", "))})               
+  nan <- function(x) { 
+    if(any(apply(x, 2, function(x) any(is.nan(x))))==TRUE) {
+      if(input$NAN_Filter=='none'){
+        paste("The", RCN,
+            "variables contain", RNN, "non-numbers, respectively.\nConsider using nan_filter to replace or remove the", RAN, "rows with non-numbers.") 
+      }} else {
+        if(input$NAN_Filter=='none'){
+          "No columns in the data set contain non-numbers."
+        } else {
+          if(input$NAN_Filter=='Remove all'){
+            paste("The", RC, "variables contained", RNN, "non-numbers.\n", RA, "rows containing non-numbers have been removed from the data set.")
+          } else if(input$NAN_Filter=='Replace with mean'){
+            paste("The", RCN, "variables contained", RNN, "non-numbers.\nNon-numbers have been replaced with the mean values of", RMN, "respectively.")
+          }
+        } 
       }}
+  
       
       #Unique observations
       obs <- function(x) { if (dim(values$dataset)[1] == dim(unique(values$dataset))[1]) {
-        cat("Each row is a unique choice occurrence. No further action required.")
+        "Each row is a unique choice occurrence. No further action required."
       } else {
-        cat("Each row in dataset is not a unique choice occurrence at haul or trip level.")
+        if(input$Unique_Filter=='FALSE'){
+        "Each row in data set is not a unique choice occurrence at haul or trip level. \nConsider removing non-unique rows."
+        } else {
+          "Duplicate choice occurrence at haul or trip level existed in the data set and have been removed."
+        }
       }
       }
       
       #Empty variables
       empty <- function(x) { if (any(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)) {
-        cat(names(which(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)), "is empty. 
+        if(input$Empty_Filter=='FALSE'){
+          paste(names(which(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)), "is empty. 
             \nConsider removing the column from the data set.")
+        } else {
+          paste(names(which(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)), "is empty and has been removed from the data set.")
+        }
       } else {
-        cat("No empty variables exist in the data set. No further action required.")
+        "No empty variables exist in the data set. No further action required."
       }
       }
       
       #Lat/Lon units
-      lat_lon <- function(x) { if(any(is.numeric(colnames(values$dataset[,which(grepl('lat', names(values$dataset), ignore.case=TRUE)==TRUE)])))|
-           any(is.numeric(colnames(values$dataset[,which(grepl('lon', names(values$dataset), ignore.case=TRUE)==TRUE)])))==TRUE){
-          cat('At least one lat/lon variable is not in degrees. \nUse the function degree() to convert to degrees.')
+      lat_lon <- function(x) { 
+      if(any(apply(values$dataset[,which(grepl('lat|lon', names(values$dataset), ignore.case=TRUE)==TRUE)], 2, function(x) !is.numeric(x))==TRUE)==TRUE){
+        if(input$LatLon_Filter==FALSE){
+          'At least one latitude or longitude variable is not in decimal degrees. \nClick the button to the left to convert to decimal degrees.'
         } else {
-          cat('Latitude and longitude variables in degrees. \nNo further action required.')
+          'At least one latitude or longitude variable is not in decimal degrees. \nLatitude and longitude variables converted to decimal degrees.'
+        }
+        } else {
+          'Latitude and longitude variables in decimal degrees. \nNo further action required.'
         }
       } 
       
-##Output to main panel       
+##Output to main panel
       output$Case<-renderPrint({
-         if (input$checks=='Summary table') {
-          cat("Summary table of NUMERIC variables in data set. \nFilter rows to be saved in output by highlighting desired rows.")
+        if(input$checks=='Summary table') {
+          "Summary table of NUMERIC variables in data set."
         } else  if (input$checks=='Outliers'){
-          cat('Table to assess outliers.', input$column_check, "shown. \nZoom in by highlighting desired area and double clicking. \nDouble click again to reset plot.")
+                      if(input$dat.remove=='none'){
+                        paste('Table to assess outliers.', input$column_check, "shown. \nZoom in by highlighting desired area and double clicking. \nDouble click again to reset plot.")
+              } else {
+                paste('Table to assess outliers.', input$column_check, 'shown. \nZoom in by highlighting desired area and double clicking. \nDouble click again to reset plot. 
+              \nExcluding points that fall outside the',  if(input$dat.remove=='5_95_quant'){
+               '5th and 95th quantiles'
+              } else if(input$dat.remove=='25_75_quant') {
+                '25th and 75th quantiles'
+              } else if(input$dat.remove=='mean_2SD'){
+                'mean +/- 2SD'
+              } else if(input$dat.remove=='mean_3SD'){
+                'mean +/- 3SD'
+              } else if(input$dat.remove=='median_2SD') {
+                'median +/- 2SD'
+              } else if(input$dat.remove=='median_3SD'){
+                'median +/- 3SD'
+              }, "results in removing", nrow(values$dataset)-tableInputOutlier()[which(rownames(tableInputOutlier())==input$dat.remove),1] ,"points from the data set.")
+              }
         } else  if (input$checks=='NAs'){
-            cat(na(values$dataset))
+          na(values$dataset)
         } else if(input$checks=='NaNs') {
-          cat(nan(values$dataset))
+          nan(values$dataset)
         } else if(input$checks=='Unique observations'){
-          cat(obs(values$dataset))
+          obs(values$dataset)
         } else if(input$checks=='Empty variables'){
-          cat(empty(values$dataset))
+          empty(values$dataset)
         } else if(input$checks=='Lat_Lon units'){
-          cat(lat_lon(values$dataset))
+          lat_lon(values$dataset)
         } else {
-          cat('Make a selection in the left hand column')
+          'Make a selection in the left hand column'
         } 
       })
+      
+     
+      
+      ##Output to saved file
+   case_to_print <- reactive({
+     if(input$tabs=='qaqc'){
+        if(input$checks=='Summary table') {
+          "Summary table of numeric variables viewed.\n"
+        } else  if (input$checks=='Outliers'){
+          if(input$dat.remove=='none'){
+            paste0('Table and plots to assess outliers viewed for ', input$column_check, ".\n")
+          } else {
+            paste('Table and plot to assess outliers viewed for', input$column_check, 'with',
+              nrow(values$dataset)-tableInputOutlier()[which(rownames(tableInputOutlier())==input$dat.remove),1], 
+              'points that fall outside the',  if(input$dat.remove=='5_95_quant'){
+                '5th and 95th quantiles'
+              } else if(input$dat.remove=='25_75_quant') {
+                '25th and 75th quantiles'
+              } else if(input$dat.remove=='mean_2SD'){
+                'mean +/- 2SD'
+              } else if(input$dat.remove=='mean_3SD'){
+                'mean +/- 3SD'
+              } else if(input$dat.remove=='median_2SD') {
+                'median +/- 2SD'
+              } else if(input$dat.remove=='median_3SD'){
+                'median +/- 3SD'
+              }, "removed.\n")
+          }
+        } else if (input$checks=='NAs'){
+          if(any(apply(values$dataset, 2, function(x) any(is.na(x))))==TRUE) {
+            if(input$NA_Filter=='none'){
+              paste("Occurrence of missing values checked. The", RC,
+                    "variables contain", RN, "missing values, respectively.", RA, "rows have missing values. Missing values were not removed or replaced.\n") 
+            }} else {
+              if(input$NA_Filter=='none'){
+                paste("Occurrence of missing values checked. No columns in the data set contain missing values.\n")
+              } else {
+                if(input$NA_Filter=='Remove all'){
+                  paste("Occurrence of missing values checked. The", RC, "variables contained", RN, "missing values.", RA, "rows containing missing values were removed from the data set.\n")
+                } else if(input$NA_Filter=='Replace with mean'){
+                  paste("Occurrence of missing values checked. The", RC, "variables contained", RN, "missing values. Missing values were replaced with the mean values of", RM, "respectively.\n")
+                }
+              } }
+        } else if(input$checks=='NaNs') {
+          if(any(apply(values$dataset, 2, function(x) any(is.nan(x))))==TRUE) {
+            if(input$NAN_Filter=='none'){
+              paste("Occurruence of non-numbers checked. The", RCN,
+                    "variables contain", RNN, "non-numbers, respectively.", RAN, "rows have non-numbers. No action was taken to remove or replace non-numbers.\n") 
+            }} else {
+              if(input$NAN_Filter=='none'){
+                "Occurruence of non-numbers checked. No columns in the data set contain non-numbers.\n"
+              } else {
+                if(input$NAN_Filter=='Remove all'){
+                  paste("Occurruence of non-numbers checked. The", RC, "variables contained", RNN, "non-numbers.", 
+                        RA, "rows containing non-numbers were removed from the data set.\n")
+                } else if(input$NAN_Filter=='Replace with mean'){
+                  paste("Occurruence of non-numbers checked. The", RCN, "variables contained", RNN, "non-numbers. Non-numbers were replaced with the mean values of", RMN, "respectively.\n")
+                }
+              } }
+        } else if(input$checks=='Unique observations'){
+          if (dim(values$dataset)[1] == dim(unique(values$dataset))[1]) {
+            "Each row is a unique choice occurrence.\n"
+          } else {
+            if(input$Unique_Filter=='FALSE'){
+              "Each row in data set is not a unique choice occurrence at haul or trip level. No action taken.\n"
+            } else {
+              "Duplicate choice occurrence at haul or trip level existed in the data set and have been removed.\n"
+            }
+          }
+        } else if(input$checks=='Empty variables'){
+          if (any(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)) {
+            if(input$Empty_Filter=='FALSE'){
+              paste('Occurrence of empty variables was checked and the', names(which(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)), 
+                    "variable is empty. The varible was not removed from the data set.\n")
+            } else {
+              paste('Occurrence of empty variables was checked and the', names(which(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)), 
+                    "was empty and was removed from the data set.\n")
+            }
+          } else {
+            "Occurrence of empty variables was checked and not found in the data set.\n"
+          }
+        } else if(input$checks=='Lat_Lon units'){
+          if(any(apply(values$dataset[,which(grepl('lat|lon', names(values$dataset), ignore.case=TRUE)==TRUE)], 2, function(x) !is.numeric(x))==TRUE)==TRUE){
+            if(input$LatLon_Filter==FALSE){
+              'Latitude and longitude units were checked and are not in decimal degrees.\n'
+            } else {
+              'Latitude or longitude units not in decimal degrees were converted to decimal degrees.\n'
+            }
+          } else {
+            'Latitude and longitude units were checked and are in decimal degrees.\n'
+          }
+        }
+     } else if(input$tabs=='explore'){
+         if(input$plot_table=='Plots'& input$plot_type=='Temporal'){
+          paste0("Viewed plots of ", input$col_select, ' against time for raw points, the ', input$p2fun, ", and the ",  input$p3fun, ' value.\n')
+        } else if(input$plot_table=='Plots'& input$plot_type=='Spatial'){
+          "Looked at the mapped distribution of occurrence points and mapped density of occurrence points.\n"
+        } else if(input$plot_table=='Plots'& input$plot_type=='x-y plot'){
+            paste0("Viewed plotted relationship between ", input$x_y_select1,  'and ', input$x_y_select2, '.\n')
+        } 
+       } else if(input$tabs=='analysis'){
+        if(input$corr_reg=='Correlation'){
+            paste0("Viewed correlation matrix for ",  isolate({sub(",([^,]*)$", ", and\\1",paste(input$corr_select, collapse = ", "))}), '.\n')
+        } else if(input$corr_reg=='Regression'){
+            paste0('Veiwed plot and linear regression test output for ',input$reg_exp_select, ' on ', input$reg_resp_select,'.\n') 
+        } 
+       }
+      })
+   
+  notes <- reactive({ 
+   if(input$tabs=='qaqc'){
+      if(!is.null(input$notesQAQC)){
+          paste0(input$notesQAQC, "\n")
+      }
+   } else if(input$tabs=='anal') {
+       if(!is.null(input$notesAnal)){
+            paste0(input$notesAnal, "\n")
+       }
+   } else if(input$tabs=='explore'){
+       if(!is.null(input$notesExplore)){
+          paste0(input$notesExplore, "\n")
+       }
+   } else if(input$tabs=='upload'){
+     if(!is.null(input$notesUp)){
+       paste0(input$notesUp, "\n")
+     }
+   }
+  })
 ##----
      
 ##Table output
@@ -885,8 +1131,8 @@ output$plot_time <- renderPlot({
       })
       
         output$output_table_summary <- DT::renderDataTable(
-          tableInputSummary(), server = FALSE, selection=list(target ='row+column'),rownames=TRUE,
-            options = list(autoWidth=FALSE, scrollX=T, responsive=TRUE, pageLength = 25)
+          tableInputSummary(), server = FALSE, rownames=TRUE,
+            options = list(autoWidth=FALSE, scrollX=T, responsive=FALSE, pageLength = 25)
                   )
     
        tableInputOutlier <- reactive({
@@ -901,7 +1147,14 @@ output$plot_time <- renderPlot({
        })
         
          output$output_table_outlier <- DT::renderDataTable(
-         tableInputOutlier(), server = FALSE, selection='single', rownames=TRUE,
+           if (input$checks=='Outliers'){
+             table <- FishSET:::outlier_table(values$dataset, input$column_check)
+             rownames(table)=table[,2]
+             table <- table[,3:10]
+             #table <<- table
+           } else {
+             NULL
+           }, server = FALSE, selection='single', rownames=TRUE,
           options = list(autoWidth=FALSE, scrollX=T,  responsive=TRUE, pageLength = 7)
         )
         
@@ -910,13 +1163,13 @@ output$plot_time <- renderPlot({
         ranges3 <- reactiveValues(x = NULL, y = NULL)
         #Plot output
         output$plot1 <- renderPlot(
-     
           if (is.null(values$dataset)) {
             return(NULL)
           } else {
           if(input$checks=='Outliers'){
-            values$dataset$val <- 1:nrow(values$dataset)
-             dat_sub <- suppressWarnings(FishSET:::outlier_plot_int(values$dataset, input$column_check, input$dat.remove, input$x.dist, plot_type=1))
+            temp <- values$dataset
+            temp$val <- 1:nrow(temp)
+             dat_sub <- suppressWarnings(FishSET:::outlier_plot_int(temp, input$column_check, input$dat.remove, input$x.dist, plot_type=1))
              suppressWarnings(ggplot() + geom_point(data=dat_sub, aes_string(x='val', y=input$column_check, color = 'Points', na.rm=TRUE)) +
                scale_color_manual(breaks=c('Kept','Removed'),values=c('blue','red'))+
                  coord_cartesian(xlim = ranges1$x, ylim = ranges1$y, expand = FALSE)+
@@ -934,11 +1187,12 @@ output$plot_time <- renderPlot({
             return(NULL)
           } else {
             if(input$checks=='Outliers'){
-              values$dataset$val <- 1:nrow(values$dataset)
-              dat_sub <- FishSET:::outlier_plot_int(values$dataset, input$column_check, input$dat.remove, input$x.dist, plot_type=1)
-              arg.return <- FishSET:::outlier_plot_int(values$dataset, input$column_check, input$dat.remove, input$x.dist, plot_type=2)
+              temp <- values$dataset
+              temp$val <- 1:nrow(temp)
+              dat_sub <- FishSET:::outlier_plot_int(temp, input$column_check, input$dat.remove, input$x.dist, plot_type=1)
+              arg.return <- FishSET:::outlier_plot_int(temp, input$column_check, input$dat.remove, input$x.dist, plot_type=2)
               ggplot(dat_sub[dat_sub$Points=='Kept',], aes_string(input$column_check)) + 
-                geom_histogram(aes(y = ..density..), na.rm=TRUE, bins=round(nrow(values$dataset)/2)) + arg.return +
+                geom_histogram(aes(y = ..density..), na.rm=TRUE, bins=round(nrow(temp)/2)) + arg.return +
                 coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)+
                 theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
                       panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text=element_text(size=12),
@@ -953,8 +1207,9 @@ output$plot_time <- renderPlot({
             return(NULL)
           } else {
             if(input$checks=='Outliers'){
-              values$dataset$val <- 1:nrow(values$dataset)
-              temp <- FishSET:::outlier_plot_int(values$dataset, input$column_check, input$dat.remove, input$x.dist, plot_type=3)
+              temp <- values$dataset
+              temp$val <- 1:nrow(temp)
+              temp <- FishSET:::outlier_plot_int(temp, input$column_check, input$dat.remove, input$x.dist, plot_type=3)
               ggplot(temp, aes(x=fit_quants, y=data_quants)) + geom_point(shape=1) + geom_abline() +
                 labs(x='Theoretical Quantiles', y='Sample Quantiles', title=paste('Q-Q plot of', input$x.dist, 'fit against data'))+
                 coord_cartesian(xlim = ranges3$x, ylim = ranges3$y, expand = FALSE)+
@@ -969,8 +1224,10 @@ output$plot_time <- renderPlot({
         
         #Hover info       
         output$hover_info1 <- renderUI({
+          temp <- values$dataset
+          temp$val <- 1:nrow(temp)
           hover <- input$plot1_hover
-          point <- nearPoints(values$dataset, input$plot1_hover,  threshold = 5, maxpoints = 1, addDist = FALSE)
+          point <- nearPoints(temp, input$plot1_hover,  threshold = 5, maxpoints = 1, addDist = FALSE)
           if (nrow(point) == 0) return(NULL)
           
           # calculate point position INSIDE the image as percent of total dimensions
@@ -991,8 +1248,7 @@ output$plot_time <- renderPlot({
           # actual tooltip created as wellPanel
           wellPanel(
             style = style,
-            p(HTML(paste0("<b> value: </b>", point[[input$column_check]], "<br/>")))
-          )
+            paste0("Value: ", point[[input$column_check]]))
         })
       
         
@@ -1047,8 +1303,8 @@ output$plot_time <- renderPlot({
           conditionalPanel(
             condition="input.checks=='Outliers'",
             selectInput('dat.remove', 'Method to subset the data', 
-                        choices=c('none', '5_95_quant', '25_75_quant','mean_2SD','median_2SD','mean_3SD','median_3SD'),
-                        selected=c('none', '5_95_quant', '25_75_quant','mean_2SD','median_2SD','mean_3SD','median_3SD')[input$output_table_outlier_rows_selected]))
+                        choices=c('none', '5_95_quant', '25_75_quant','mean_2SD','mean_3SD','median_2SD','median_3SD'),
+                        selected=c('none', '5_95_quant', '25_75_quant','mean_2SD','mean_3SD','median_2SD','median_3SD')[input$output_table_outlier_rows_selected]))
                         })
         output$outlier_dist <- renderUI({
           conditionalPanel(
@@ -1060,42 +1316,36 @@ output$plot_time <- renderPlot({
 
 ##Filtering options
 ##----
-      output$removeNA <- renderUI ({
-        conditionalPanel(
-          condition = "input.checks == 'NAs'",#
-           radioButtons('NA_Filter', 'Filter NAs by', choices=c('Remove all', 'Replace with mean'), selected='')
-        )
-        })
-        output$removeNAN <- renderUI ({
-        conditionalPanel(
-          condition = "input.checks == 'NaNs'",#
-          radioButtons('NAN_Filter', 'Filter NaNs by', choices=c('Remove all', 'Replace with mean'), selected='')
-        )
-        })
-        output$removeOutliers <- renderUI ({
-        conditionalPanel(condition="input.checks=='Outliers'",
-                         checkboxInput('Outlier_Filter', 'Remove outliers', value=FALSE))
-      }) 
-        #output_table())
+      #output_table())
      
       
       observeEvent(input$NA_Filter,{
         if(input$NA_Filter=='Remove all'){
           if(any(apply(values$dataset, 2, function(x) any(is.na(x))))==TRUE){
           values$dataset <- FishSET:::na_filter(values$dataset, names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), replace = FALSE, remove = TRUE, over_write=FALSE)  
-        } }else {
+        } else {
+          cat('No missing values to remove')
+        }
+          }else if(input$NA_Filter=='Replace with mean') {
           if(any(apply(values$dataset, 2, function(x) any(is.na(x))))==TRUE){
           values$dataset <- FishSET:::na_filter(values$dataset,  names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), replace = TRUE, remove = FALSE, over_write=FALSE)
+          } else {
+            cat('No missing values to remove')
         }}
       })
       
         observeEvent(input$NAN_Filter,{
-          if(input$NA_Filter=='Remove all'){
+          if(input$NAN_Filter=='Remove all'){
             if(any(apply(values$dataset, 2, function(x) any(is.nan(x))))==TRUE){
-            values$dataset <- FishSET:::nan_filter(values$dataset, names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), replace = FALSE, remove = TRUE, over_write=FALSE)  
-                  } }else {
+            values$dataset <- FishSET:::nan_filter(values$dataset, names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), replace = FALSE, remove = TRUE, over_write=FALSE)  
+                  } else{
+                    print('No non-numbers to remove.')
+                  } 
+            }else if(input$NAN_Filter=='Replace with mean'){
                     if(any(apply(values$dataset, 2, function(x) any(is.nan(x))))==TRUE){
            values$dataset <- FishSET:::nan_filter(values$dataset,  names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), replace = TRUE, remove = FALSE, over_write=FALSE)
+                    } else {
+                      print('No non-numbers to remove.')
                     }}
       })
         
@@ -1104,7 +1354,39 @@ output$plot_time <- renderPlot({
           values$dataset <- FishSET::outlier_remove(values$dataset, input$column_check, dat.remove = input$dat.remove, remove = T, over_write=FALSE)
             }
         })
+        
+        observeEvent(input$Unique_Filter,{
+          if(input$Unique_Filter=='TRUE'){
+            values$dataset <- unique(values$dataset)
+          }
+        })
+        
+        observeEvent(input$Empty_Filter,{
+          if(input$Empty_Filter=='TRUE'){
+            values$dataset <- values$dataset[, names(values$dataset)!=names(which(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE))]
+          }
+        })
+        
+        observeEvent(input$LatLon_Filter, {
+          if(input$LatLon_Filter=='TRUE'){
+            if(any(apply(values$dataset[,which(grepl('lat|lon', names(values$dataset), ignore.case=TRUE)==TRUE)], 2, function(x) !is.numeric(x))==TRUE)==TRUE){
+             values$dataset <- FishSET:::degree(values$dataset, colnames(values$dataset[,which(grepl('lat', names(values$dataset), ignore.case=TRUE))]) ,
+                                               colnames(values$dataset[,which(grepl('lon', names(values$dataset), ignore.case=TRUE))]) ) 
+            } else {
+            cat("All latitude and longitude variables are already in decimal degrees. Function not applied.")
+            }
+          }
+        })
 ##----        
+
+####----
+##Resetting inputs
+        observeEvent(input$refresh1,{
+          updateCheckboxInput(session, 'Outlier_Filter', value=FALSE)
+          updateRadioButtons(session, 'NA_Filter', selected='none')
+          updateRadioButtons(session, 'NAN_Filter', selected='none')
+        })
+###----                
 
 ####-----        
 ##Save output       
@@ -1115,64 +1397,166 @@ output$plot_time <- renderPlot({
           DBI::dbDisconnect(fishset_db)
         })
         
+        observeEvent(input$saveDataQ, {
+          suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+          DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable'), values$dataset, overwrite=TRUE)
+          DBI::dbDisconnect(fishset_db)
+        })
         
       output$SaveButtons <- renderUI({
         tagList(
-          shinySaveButton(id = 'downloadplot', label ='Save plot to folder', title = "", filename = paste0(project,'_', input$checks, '_plot'), filetype = "png"),
-          actionButton('downloaddata', label ='Save table to folder as csv')#, filename = paste0(project,'_', input$checks, '_table'),  filetype = "png")
+          #shinySaveButton(id = 'downloadplot', label ='Save plot to folder', title = "", filename = paste0(project,'_', input$checks, '_plot'), filetype = "png"),
+          actionButton('downloadplot', label ='Save plot to folder'),
+          downloadLink('downloadplotHIDE', label=''),
+          actionButton('downloaddata', label ='Save table to folder as csv'),
+          downloadLink("downloadText", label=''),
+          actionButton('callTextDownload','Store text of function run')
+        )
+      })
+      
+      output$SaveButtonsUpload <- renderUI({
+        tagList(
+          downloadLink("downloadTextUp", label=''),
+          actionButton('callTextDownloadUp','Store text of function run')
         )
       })
       
       ## Save buttons
      output$SaveButtonsExplore <- renderUI({
-         shinySaveButton(id = 'downloadplotExplore', label ='Save plot to folder', title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
+       tagList(
+          downloadLink('downloadplotEXPLOREHIDE', label=''),
+          actionButton('downloadplotExplore', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
+          downloadLink("downloadTextExplore", label=''),
+          actionButton('callTextDownloadExplore','Store text of function run')
+       )
      })
     
       output$SaveButtonsAnal <- renderUI({
         tagList(
-          shinySaveButton(id = 'downloadplotAnal', label ='Save plot to folder', title = "", filename = paste0(project,'_', input$corr_reg, '_plot'), filetype = "png"),
-          shinySaveButton(id = 'downloaddataAnal', label ='Save table to folder as csv')
+          downloadLink('downloadplotAnalHIDE', label =''),
+          downloadLink('downloaddataAnalHIDE', label =''),
+          actionButton('downloadplotAnal', label ='Save plot to folder'),#, title = "", filename = paste0(project,'_', input$corr_reg, '_plot'), filetype = "png"),
+          actionButton('downloaddataAnal', label ='Save table to folder as csv'),
+          downloadLink("downloadTextAnal", label=''),
+          actionButton('callTextDownloadAnal','Store text of function run.')
         )
       })
       
-###----        
+
+ ###----        
 
 ##Downloads      
 ##----
+ savedText <- reactiveValues(answers = logical(0))
+  observeEvent(c(input$callTextDownload,
+                 input$callTextDownloadAnal,
+                 input$callTextDownloadExplore,
+                 input$callTextDownloadUp),{
+      savedText$answers <- as.character(c(savedText$answers, case_to_print(), notes()))
+  })
+  
+  observeEvent(input$callTextDownloadUp, {
+    output$downloadTextUp <- downloadHandler(
+      filename = function() {
+        paste0(loc, '/inst/output/StoredText.txt')
+      },
+      content = function(file) {
+        writeLines(savedText$answers, file)
+      },
+      contentType = "text/csv"
+    )
+    jsinject <- "setTimeout(function(){window.open($('#downloadTextUp').attr('href'))}, 100);"
+    session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
+  })
+  
+  observeEvent(input$callTextDownloadExplore, {
+   output$downloadTextExplore <- downloadHandler(
+        filename = function() {
+          paste0(loc, '/inst/output/StoredText.txt')
+        },
+        content = function(file) {
+          writeLines(savedText$answers, file)
+        },
+        contentType = "text/csv"
+      )
+    jsinject <- "setTimeout(function(){window.open($('#downloadTextExplore').attr('href'))}, 100);"
+    session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
+  })
+  
+  observeEvent(input$callTextDownloadAnal,{
+               output$downloadTextAnal<- downloadHandler(
+                   filename = function() {
+                     paste0(loc, '/inst/output/StoredText.txt')
+                   },
+                   content = function(file) {
+                     writeLines(savedText$answers, file)
+                   },
+                   contentType = "text/csv"
+                 )
+                 jsinject <- "setTimeout(function(){window.open($('#downloadTextAnal').attr('href'))}, 100);"
+                 session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
+               })
+  observeEvent(input$callTextDownload,{
+                 output$downloadText <- downloadHandler(
+                   filename = function() {
+                     paste0(loc, '/inst/output/StoredText.txt')
+                   },
+                   content = function(file) {
+                     writeLines(savedText$answers, file)
+                   },
+                   contentType = "text/csv"
+                 )
+                 jsinject <- "setTimeout(function(){window.open($('#downloadText').attr('href'))}, 100);"
+                 session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
+               })
+  
       observeEvent(input$downloadplot, {
-        volumes <- c("UserFolder"=paste0(loc, "/inst/output/"))
-        shinyFileSave(input, "downloadplot", roots=volumes, session=session)
-        fileinfo <- parseSavePath(volumes, input$downloadplot)
-        if (nrow(fileinfo) > 0) {
-          device <- function(..., width, height) grDevices::png(..., width = 10, height = 8, res = 300, units = "in")
-          ggplot2::ggsave(FishSET:::outlier_plot(values$dataset, input$column_check, input$dat.remove, input$x.dist), 
-                          filename = as.character(fileinfo$datapath), device=device)
-        }
+        output$downloadplotHIDE <<- downloadHandler(
+        filename = function() {
+          paste0(loc, '/inst/output/',project,'Outlier.png')
+        },
+        content = function(file) {
+             ggplot2::ggsave(file, plot=FishSET:::outlier_plot(values$dataset, input$column_check, input$dat.remove, input$x.dist))
+        })
+      jsinject <- "setTimeout(function(){window.open($('#downloadplotHIDE').attr('href'))}, 100);"
+      session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
       })
   
-      observeEvent(input$downloadplotAnal, {
-        volumes <- c("UserFolder"=paste0(loc, "/inst/output/"))
-        shinyFileSave(input, "downloadplotAnal", roots=volumes, session=session)
-        fileinfo <- parseSavePath(volumes, input$downloadplotAnal)
-        if (nrow(fileinfo) > 0) {
+     observeEvent(input$downloadplotAnal, {
+       output$downloadplotAnalHIDE <<- downloadHandler(
+         filename = function() {
+           if(input$corr_reg=='Correlation'){
+           paste0(loc, '/inst/output/', project,'CorrelationPlot.png')
+           } else {
+             paste0(loc, '/inst/output/',project,'RegressionPlot.png') 
+           }
+         },
+         content = function(file) {
           if(input$corr_reg=='Correlation'){
-              fig <- plotInputcorr()
+            ggplot2::ggsave(file, plot=plotInputcorr(), device=function(..., width, height) grDevices::png(..., width = 12, height = 4, res = 300, units = "in"))
           } else if(input$corr_reg=='Regression'){
-             fig <- plotInputreg()
+            ggplot2::ggsave(file, plot=plotInputreg(), device=function(..., width, height) grDevices::png(..., width = 12, height = 4, res = 300, units = "in"))
           }
-          device <- function(..., width, height) grDevices::png(..., width = 9, height = 6, res = 300, units = "in")
-          ggplot2::ggsave(fig, filename = as.character(fileinfo$datapath), device=device)
-        }
+         })
+         jsinject <- "setTimeout(function(){window.open($('#downloadplotAnalHIDE').attr('href'))}, 100);"
+         session$sendCustomMessage(type = 'jsCode', list(value = jsinject)) 
       })
       
       
-      observeEvent(input$downloadplotExplore, {
-        volumes <- c("UserFolder"=paste0(loc, "/inst/output/"))
-        shinyFileSave(input, "downloadplotExplore", roots=volumes, session=session)
-        fileinfo <- parseSavePath(volumes, input$downloadplotExplore)
-        if (nrow(fileinfo) > 0) {
+         observeEvent(input$downloadplotExplore, {
+           output$downloadplotEXPLOREHIDE <<- downloadHandler(
+               filename = function() {
+                 if(input$plot_type=='Temporal'){
+                   paste0(loc, '/inst/output/', project,'TemporalPlot.png')
+                 } else if(input$plot_type=='Spatial') {
+                   paste0(loc, '/inst/output/',project,'SpatialPlot.png') 
+                 } else {
+                   paste0(loc, '/inst/output/',project,'x-yPlot.png') 
+                 }
+               },
+             content = function(file) {
          if(input$plot_type=='Temporal'){
-          fig <- plotInput_time() 
+           ggplot2::ggsave(file, plot=plotInput_time(), device=function(..., width, height) grDevices::png(..., width = 12, height = 4, res = 300, units = "in")) 
         } else if(input$plot_type=='Spatial'){
           longitude <- which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1]
           latitude <- which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]
@@ -1187,32 +1571,57 @@ output$plot_time <- renderPlot({
                   panel.background = element_blank(),  axis.text=element_text(size=12),
                   axis.title=element_text(size=12),panel.border = element_rect(colour = "black", fill=NA, size=1) )
           
-             fig <- suppressWarnings(ggpubr::ggarrange(p1, plotInput_kernel(),ncol =2, nrow = 1))
+          ggplot2::ggsave(file, plot=suppressWarnings(ggpubr::ggarrange(p1, plotInput_kernel(),ncol =2, nrow = 1)), 
+                          device=function(..., width, height) grDevices::png(..., width = 12, height = 4, res = 300, units = "in"))
         } else if(input$plot_type=='x-y plot'){
-            fig <-plotInput_xy()
+          ggplot2::ggsave(file, plot=plotInput_xy(), device=function(..., width, height) grDevices::png(..., width = 12, height = 4, res = 300, units = "in"))
         }
-          device <- function(..., width, height) grDevices::png(..., width = 12, height = 4, res = 300, units = "in")
-          ggplot2::ggsave(fig, filename = as.character(fileinfo$datapath), device=device)
-        }
+          })
+        jsinject <- "setTimeout(function(){window.open($('#downloadplotEXPLOREHIDE').attr('href'))}, 100);"
+        session$sendCustomMessage(type = 'jsCode', list(value = jsinject)) 
       })
       
         observeEvent(input$downloaddata, {
           if(input$checks=='Summary table'){
-              write.csv(tableInputSummary(), paste0(loc,'/inst/output/summary_table.csv'))
+              write.csv(tableInputSummary(), paste0(loc,'/inst/output/',project,'summary_table.csv'))
           } else if(input$checks=='Outliers'){
-             write.csv(tableInputOutlier(), paste0(loc, '/inst/output/outlier_table.csv'))
+             write.csv(tableInputOutlier(), paste0(loc, '/inst/output/',project,'outlier_table.csv'))
           }
         })
         
-        observeEvent(input$downloaddataAnal,{
-          write.csv(tableInputCorr(), paste0(loc, '/inst/output/correlation_table.csv'))
+        observeEvent(input$downloaddataAnal, {
+          if(length(input$corr_select)>2){
+            output$downloaddataAnalHIDE <<- downloadHandler(
+              write.csv(tableInputCorr(), paste0(loc, '/inst/output/',project,'correlation_table.csv'))
+            )
+            } else {
+         output$downloaddataAnalHIDE <<- downloadHandler(
+                filename = function() {
+                paste0(loc, '/inst/output/',project,'correlation_analysis.png')
+                },
+            content = function(file) {
+              png(file)
+              print(cor.test(values$dataset[[input$corr_select[1]]], values$dataset[[input$corr_select[2]]]))
+              dev.off()
+            }
+            )   }
+          jsinject <- "setTimeout(function(){window.open($('#downloaddataAnalHIDE').attr('href'))}, 100);"
+          session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
+         
         })
+        
 ##----
-            # stop shiny
+# stop shiny
       observe({
         if (input$close > 0) stopApp()
       })
-      
+        observe({
+          if (input$close1 > 0) stopApp()
+        })
+        observe({
+          if (input$close2 > 0) stopApp()
+        })
+        
     }
       )
 }
