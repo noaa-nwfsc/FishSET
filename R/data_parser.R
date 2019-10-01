@@ -312,15 +312,19 @@ load_port <- function(dat, port_name, over_write=TRUE, project=NULL, compare=FAL
   #' load_port(dataset='PortTable', over_write=TRUE, project='', compare=TRUE, y='PortTable01012011') 
   #' }
   
+  val <- 0
   x <- dat
   if(all(grepl('Lon', names(x), ignore.case=TRUE)==FALSE)==TRUE) { 
-    stop('Latitude and Longitude must be specified')
+    warning('Latitude and Longitude must be specified')
+    val <- 1
   }
   if(is.na(table(grepl('Lon', names(x), ignore.case=TRUE))[2])==FALSE & table(grepl('Lon', names(x), ignore.case=TRUE))[2]>1) { 
-    stop('Multiple latitude or longitude columns. Only one allowed.') 
+    warning('Multiple latitude or longitude columns. Only one allowed.') 
+    val <- 1
   } 
   if(all(grepl('name|id|code|PORT', names(x), ignore.case = TRUE)==FALSE)==TRUE){
     warning('Port identification not found. Check that unique port ID (name, id, code) is included.')
+    val <- 1
   } 
   
   if(!is.numeric(port_name)){
@@ -338,6 +342,7 @@ load_port <- function(dat, port_name, over_write=TRUE, project=NULL, compare=FAL
   fishset_compare(x,y,compare)
   }
   
+  if(val==0){
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
   if(table_exists(paste0(project, 'PortTable'))==FALSE | over_write==TRUE){
     DBI::dbWriteTable(fishset_db, paste0(project, 'PortTable', format(Sys.Date(), format="%Y%m%d")), x, overwrite=over_write)
@@ -347,6 +352,7 @@ load_port <- function(dat, port_name, over_write=TRUE, project=NULL, compare=FAL
   }
   DBI::dbDisconnect(fishset_db)
   print('Data saved to database')
+  
   #write(layout.json.ed(trace, "load_port", '', x = deparse(substitute(x)), 
   #                     msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
@@ -375,6 +381,7 @@ load_port <- function(dat, port_name, over_write=TRUE, project=NULL, compare=FAL
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
   assign("functionBodyout", value = functionBodyout, pos = 1)
+  }
 }
 
 load_aux <- function(dat, x, over_write=TRUE, project=NULL){
