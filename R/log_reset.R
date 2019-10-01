@@ -10,8 +10,8 @@
 
 log_reset <- function(){
   if(exists('functionBodyout')){
-  rm(functionBodyout)
-  rm(logbody)
-  rm(infoBodyout)
+  rm('functionBodyout')
+  rm('logbody')
+  rm('infoBodyout')
   }
 }

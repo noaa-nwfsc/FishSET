@@ -199,19 +199,9 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write=
   #' }
   
   #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat 
-  }
-  DBI::dbDisconnect(fishset_db)
-  
+  out <- data_pull(dat)
+  dat <- out$dat
+  datset <- out$dataset  
   
   int <- dataset
   tmp <- tempfile()
