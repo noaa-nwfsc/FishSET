@@ -7,15 +7,17 @@ table_format <- function(x) {
 #' @import formattable
 suppressMessages(library(formattable))
 tab_int <- read.csv(paste0(getwd(),'/inst/output/', x, '.csv'))
+panderOptions('table.alignment.default', function(df)
+  ifelse(sapply(df, is.numeric), 'right', 'left'))
+panderOptions('table.emphasize.rownames',TRUE)
+panderOptions('table.split.table', Inf)
+panderOptions('graph.fontsize',8)
+panderOptions('table.style', 'multiline')
 if(grepl('summary', x)){
 colnames(tab_int)[1] <- 'Variable'  
- formattable(tab_int, 
-              align =c("l",rep("c", ncol(tab_int)-2), "r"), 
-              list(`Variable` = formatter(
-                "span", style = ~ style(color = "grey",font.weight = "bold")) 
-              ))
+ pander(tab_int)
 } else {
-  formattable(tab_int)
+  pander(tab_int)
 }
 }
 
@@ -159,11 +161,11 @@ find_original_name <- function(fun) {
   }
 }
 
-degree <- function(dat, lat, long){
-  #' Convert lat/long coordinates to decimate degrees
+degree <- function(dat, lat, lon){
+  #' Convert lat/long coordinates to decimal degrees
   #' @param dat Data table containing latitude and longitude data
   #' @param lat Name of vector containing latitude data
-  #' @param long Name of vector containg longitude data
+  #' @param lon Name of vector containg longitude data
   #' @export degree
   #' @importFrom OSMscale degree
   #' @details Uses the degree function to convert lat long coordinates to decimal degrees.
@@ -173,9 +175,16 @@ degree <- function(dat, lat, long){
   #' dat <- degree(MainDataTable, 'LatLon_START_LAT', 'LatLon_START_LON')}
   #' 
   if(!is.numeric(lat)|!is.numeric(lon)) {
-    dat[[lat]] <- OSMscale::degree(lat, lon)$lat
-    dat[[lon]] <- OSMscale::degree(lat, lon)$long
-   return(degree) 
+    temp <- apply(dat[,which(grepl('lon', names(dat), ignore.case=TRUE))], 2, function(x) stringr::str_replace(x, "°", ""))
+    temp <- apply(temp, 2, function(x) stringr::str_replace(x, "'", ""))
+    #temp <- apply(temp, 2, function(x) stringr::str_replace(x, "\", ""))
+    
+    for (i in 1:ncol(temp)){
+    temp[,i] <- sapply((strsplit(temp[,i], "[°\\.]")), as.numeric)[1,]+sapply((strsplit(temp[,i], "[°\\.]")), as.numeric)[2,]/60
+    #z[1, ] + z[2, ]/60 + z[3, ]/3600
+    }
+    dat[,which(grepl('lon', names(dat), ignore.case=TRUE))] <- temp
+   return(dat) 
   }
 }
 
