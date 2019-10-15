@@ -1,4 +1,4 @@
-moran <- function(datatomap) {
+moran_stats <- function(datatomap) {
     #' Wrapper function to calculate Moran's I
     #'
     #' Wrapper function to calculate global and local Moran's I by discrete area
@@ -72,10 +72,12 @@ moranmap <- ggplot(data=datatomap) +
 	xlim(minlon,maxlon) + 
 	ylim(minlat,maxlat) + 
     ggtitle("Moran's I statistics") +
-	annotate(geom='text', x=-171.5, y=54 + (.5/3*2+.5),
+	annotate(geom='text', x = min(adfgstat6$path_lon)*0.9915, 
+	    y = min(adfgstat6$path_lat)*0.997,
 	    label=paste0("Global Moran's I = ", round(gmoran$observed,2)),
 		parse=FALSE, size = annotatesize, color = "black", hjust = 0) +
-	annotate(geom='text', x=-171.5, y=54 + (.5/3+.5),
+	annotate(geom='text', x = min(adfgstat6$path_lon)*0.9915, 
+	    y = min(adfgstat6$path_lat)*0.994,
 	    label=paste0("p-value = ", round(gmoran$p.value,2)),
 		parse=FALSE, size = annotatesize, color = "black", hjust = 0) +
     theme(text = element_text(size=20), axis.title.y=element_text(vjust=1.5),
