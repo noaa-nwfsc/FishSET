@@ -10,14 +10,12 @@ getis_ord_stats <- function(datatomap) {
     #' @return moranmap: ggplot2 object; morantable: table of statistics
     #' @import ggplot2
     #' @import spdep
-    #' @import ape
     #' @importFrom maps map
     #' @export
     #' @examples
     #' \dontrun{
     #' datatomap <- merge(subadfgstat6, varofint, by = c("ADFGstat6"), 
     #'     all.x = TRUE, all.y = TRUE)
-    #' test <- test
     #' }
     #'
 
@@ -56,7 +54,7 @@ getismap <- ggplot(data=datatomap) +
     geom_polygon(data=datatomap,aes(x=path_lon,y=path_lat,group = ADFGstat6,
     fill=GetisOrd,),color="black",alpha=1,size=0.375) + 
     scale_fill_gradient2(low="skyblue2", high="firebrick1", 
-        mid = "white", name="Local\nGetis-Ord")+
+        mid = "white", name="Local\nGetis-Ord") +
     xlim(minlon,maxlon) + 
     ylim(minlat,maxlat) + 
     ggtitle("Getis-Ord statistics") +

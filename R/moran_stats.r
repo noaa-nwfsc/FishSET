@@ -10,7 +10,6 @@ moran_stats <- function(datatomap) {
     #' @return moranmap: ggplot2 object; morantable: table of statistics
     #' @import ggplot2
     #' @import spdep
-    #' @import ape
     #' @importFrom maps map
     #' @export
     #' @examples
