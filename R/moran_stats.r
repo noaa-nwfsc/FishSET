@@ -9,31 +9,27 @@ moran_stats <- function(datatomap) {
     #'     ("path_lon", "path_lat"), and the variable of interest ("varofint").
     #' @return moranmap: ggplot2 object; morantable: table of statistics
     #' @import ggplot2
-    #' @import spdep
     #' @importFrom maps map
+    #' @importFrom spdep knn2nb knearneigh nb2listw localmoran moran.test
     #' @export
     #' @examples
     #' \dontrun{
-    #' datatomap <- merge(subadfgstat6, varofint, by = c("ADFGstat6"), 
-    #'     all.x = TRUE, all.y = TRUE)
-    #' test <- test
+    #' names(datatomap)[1] <- "path_lon"
+    #' names(datatomap)[2] <- "path_lat"
+    #' names(datatomap)[3] <- "centroid_lon"
+    #' names(datatomap)[4] <- "centroid_lat"
+    #' names(datatomap)[5] <- "ADFGstat6"
+    #' names(datatomap)[5] <- "varofint"
+    #' moran_stats(datatomap)
     #' }
     #'
 
-# library(ape)
-library(spdep)
-library(ggplot2)
+requireNamespace(ggplot2)
 world <- map_data("world")
 
 uniquedatatomap <- datatomap[!duplicated(datatomap$ADFGstat6),
     c("ADFGstat6", "centroid_lon","centroid_lat", "varofint")]
     
-# adfg.dists <- as.matrix(dist(as.matrix(
-    # uniquedatatomap[,c("centroid_lon","centroid_lat")])))
-# adfg.dists.inv <- 1/adfg.dists
-# diag(adfg.dists.inv) <- 0
-# gmoran <- Moran.I(uniquedatatomap$varofint, adfg.dists.inv)
-
 nb.rk <- knn2nb(knearneigh(as.matrix(uniquedatatomap[,c("centroid_lon",
     "centroid_lat")]), longlat=TRUE))
 locm <- localmoran(uniquedatatomap$varofint, listw = nb2listw(nb.rk))
