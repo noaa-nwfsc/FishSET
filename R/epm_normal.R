@@ -45,6 +45,9 @@ epm_normal <- function(starts3, dat, otherdat, alts, project, expname, mod.name)
     #'     observations) by (unity), corresponding to prices.
     #' @param alts Number of alternative choices in model as length equal to
     #'     unity (as a numeric vector).
+    #' @param project Name of project
+    #' @param expname Expected catch table
+    #' @param mod.name Name of model run for model result output table
     #' @return ld: negative log likelihood
     #' @export
     #' @examples
