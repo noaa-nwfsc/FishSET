@@ -24,7 +24,7 @@ outlier_table <- function(dat, x) {
    #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
   
     x.name <- x
@@ -176,7 +176,7 @@ outlier_plot <- function(dat, x, dat.remove = "none", x.dist = "normal", output.
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
 
   x.name <- x
@@ -337,7 +337,7 @@ outlier_remove <- function(dat, x, dat.remove = "none", remove = T, over_write=F
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
   
   if (is.numeric(dataset[, x]) == T) {
@@ -372,32 +372,14 @@ outlier_remove <- function(dat, x, dat.remove = "none", remove = T, over_write=F
       DBI::dbWriteTable(fishset_db, deparse(substitute(dat)), dataset, overwrite=over_write)
       DBI::dbDisconnect(fishset_db)
       }
-      
-        if(!exists('logbody')) { 
-          logbody <- list()
-          infoBodyout <- list()
-          functionBodyout <- list()
-          infobody <- list()
-          
-          infobody$rundate <- Sys.Date()
-          infoBodyout$info <- list(infobody)
-          
-          functionBodyout$function_calls <- list()
-          
-          logbody$fishset_run <- list(infoBodyout, functionBodyout)
-        } 
         outlier_remove_function <- list()
         outlier_remove_function$functionID <- 'outlier_remove'
         outlier_remove_function$args <- c(dat, deparse(substitute(x)), dat.remove, remove)
         outlier_remove_function$kwargs <- list()
         outlier_remove_function$output <- c('')
         outlier_remove_function$msg <- paste("outliers removed using", dat.remove)
-        functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (outlier_remove_function)
-        logbody$fishset_run <- list(infoBodyout, functionBodyout)
-        write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-        assign("functionBodyout", value = functionBodyout, pos = 1)
-
-      
+        log_call(outlier_remove_function)
+        
       return(dataset)
     }  #End Outlier check
     if (remove == FALSE) {

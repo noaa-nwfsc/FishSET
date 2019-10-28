@@ -28,7 +28,7 @@ read_dat <- function(x, data.type ) {
   } else if(data.type=='mat'){
     R.matlab::readMat(x) 
   } else if(data.type=='json'){
-    jsonlite::fromJSON(x)
+    sf::st_read(x)
   } else if(data.type=='csv'){
     read.csv(x)
   } else if(data.type=='spss'){
@@ -182,24 +182,7 @@ load_maindata <- function(dat, over_write=TRUE, project=NULL, compare=FALSE, y=N
   }
   DBI::dbDisconnect(fishset_db)
   
- 
-    
-  if(!exists('logbody')) { 
-    logbody <- list()
-    infoBodyout <<- list()
-    functionBodyout <<- list()
-    infobody <<- list()
-    
-    infobody$rundate <<- Sys.Date()
-    infoBodyout$info <<- list(infobody)
-    
-    functionBodyout$function_calls <- list()
-    
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-    logbody <<- logbody
-    functionBodyout <<- functionBodyout
-    
-  } 
+#log function
     load_maindata_function <- list()
     load_maindata_function$functionID <- 'load_maindata'
     if(shiny_running()==FALSE){
@@ -209,12 +192,9 @@ load_maindata <- function(dat, over_write=TRUE, project=NULL, compare=FALSE, y=N
     }
     load_maindata_function$kwargs <- list()
     load_maindata_function$output <- c('')
-    functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_maindata_function)
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-    write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-    assign("functionBodyout", value = functionBodyout, pos = 1)
-    
-    assign(paste0(project, 'MainDataTable'), value = dataset, pos=1)
+    log.call(load_maindata_function)
+ 
+        assign(paste0(project, 'MainDataTable'), value = dataset, pos=1)
     cat('\n!!! -> Raw data saved as', paste0(project, 'MainDataTable', format(Sys.Date(), format="%Y%m%d"),'.'), 
         'Working data saved to the database as', paste0(project, 'MainDataTable.'), 'Table is also in the working environment. 
         To improve ease of reproducing work, please use this name in future analysis. <- !!!')
@@ -267,30 +247,13 @@ main_mod <- function(dat, x, new.unit=NULL, new.type=NULL, new.class=NULL) {
   DBI::dbDisconnect(fishset_db)
   print('Data saved to database')
  
-  if(!exist(logbody)) { 
-    logbody <- list()
-    infoBodyout <- list()
-    functionBodyout <- list()
-    infobody <- list()
-    
-    infobody$rundate <- Sys.Date()
-    infoBodyout$info <- list(infobody)
-    
-    functionBodyout$function_calls <- list()
-    
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-    
-  } 
+#log function
   main_mod_function <- list()
   main_mod_function$functionID <- 'main_mod'
   main_mod_function$args <- c(deparse(substitute(dat)), deparse(substitute(x)), new.unit, new.type, old.class, new.class)
   main_mod_function$kwargs <- list()
   main_mod_function$output <- c('')
-  main_mod_function$function_calls[[length(functionBodyout$function_calls)+1]] <- (main_mod_function)
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
-  
+  log.call(main_mod_function)
   return(dataset)
 }
 
@@ -357,31 +320,13 @@ load_port <- function(dat, port_name, over_write=TRUE, project=NULL, compare=FAL
   #                     msg = paste("y:", deparse(substitute(y)), "compare:", compare, sep = "")),  
   #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
 
-  if(!exists('logbody')) { 
-    logbody <- list()
-    infoBodyout <- list()
-    functionBodyout <- list()
-    infobody <- list()
-    
-    infobody$rundate <- Sys.Date()
-    infoBodyout$info <- list(infobody)
-    
-    functionBodyout$function_calls <- list()
-    
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-    
-  } 
-  
-  load_port_function <- list()
+   load_port_function <- list()
   load_port_function$functionID <- 'load_port'
   load_port_function$args <- c(deparse(substitute(dat)), deparse(substitute(port_name)), over_write, project, compare, deparse(substitute(y)))
   load_port_function$kwargs <- list()
   load_port_function$output <- c('')
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_port_function)
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
-  }
+  log.call(load_port_function)
+    }
 }
 
 load_aux <- function(dat, x, over_write=TRUE, project=NULL){
@@ -431,30 +376,14 @@ load_aux <- function(dat, x, over_write=TRUE, project=NULL){
     warning(paste('Table not saved.', paste0(project, x), 'exists in database, and overwrite is FALSE.')) 
   }
   DBI::dbDisconnect(fishset_db)
- if(!exists('logbody')) { 
-   logbody <- list()
-   infoBodyout <- list()
-   functionBodyout <- list()
-   infobody <- list()
+
    
-   infobody$rundate <- Sys.Date()
-   infoBodyout$info <- list(infobody)
-   
-   functionBodyout$function_calls <- list()
-   
-   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-   
- } 
- 
  load_aux_function <- list()
   load_aux_function$functionID <- 'load_aux'
   load_aux_function$args <- c(deparse(substitute(dat)), deparse(substitute(x)), over_write, project)
   load_aux_function$kwargs <- list()
   load_aux_function$output <- c('')
-  load_aux_function$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_aux_function)
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
+  log.call(load_aux_function)
 }
 
 load_grid <- function(dat, x, over_write=TRUE, project=NULL){
@@ -498,30 +427,13 @@ load_grid <- function(dat, x, over_write=TRUE, project=NULL){
     warning(paste('Table not saved.', paste0(project, x), 'exists in database, and overwrite is FALSE.')) 
   }
   DBI::dbDisconnect(fishset_db)
-  if(!exists('logbody')) { 
-    logbody <- list()
-    infoBodyout <- list()
-    functionBodyout <- list()
-    infobody <- list()
-    
-    infobody$rundate <- Sys.Date()
-    infoBodyout$info <- list(infobody)
-    
-    functionBodyout$function_calls <- list()
-    
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-    
-  } 
-  
+
   load_gridded_function <- list()
   load_gridded_function$functionID <- 'load_gridded'
   load_gridded_function$args <- c(deparse(substitute(dataset)), over_write, project)
   load_gridded_function$kwargs <- list()
   load_gridded_function$output <- c()
-  load_gridded_function$function_calls[[length(functionBodyout$function_calls)+1]] <- (load_gridded_function)
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
+  log.call(load_gridded_function)
 }
 
 dataindex_update <- function(dat, dataindex){

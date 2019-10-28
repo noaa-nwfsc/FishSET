@@ -128,7 +128,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
   indeVarsForModel = vars1
   gridVariablesInclude=vars2
@@ -228,7 +228,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
       if (any(grepl("Port", alt_var, ignore.case = TRUE) == T)) {
         if (is.data.frame(dataset)) {
           if (any(FishSET:::is_empty(dataset[[alt_var]]))) {
-            stop("alt_var does not exist in datset")
+            stop("alt_var does not exist in dataset")
           }
           
           toXYa <- data.frame(dataset[[alt_var]][which(dataZoneTrue == 1)])  #  data[[altToLocal1]]data(v1).dataColumn(dataZoneTrue,:)      #subset data to when dataZoneTrue==1                                                                                                                                                              
@@ -290,10 +290,10 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
         }
         
         if (any(FishSET:::is_empty(dataset[[occasion[1]]]))) {
-          stop("occasion does not exist in datset")
+          stop("occasion does not exist in dataset")
         }
         if (any(FishSET:::is_empty(dataset[[occasion[2]]]))) {
-          stop("occasion does not exist in datset")
+          stop("occasion does not exist in dataset")
         }
         toXY2 <- data.frame(dataset[[occasion[1]]][which(dataZoneTrue == 1)], 
                             dataset[[occasion[2]]][which(dataZoneTrue == 1)])
@@ -431,30 +431,13 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
                  params = list(ModelInputData = list(serialize(modelInputData, NULL))))
   DBI::dbDisconnect(fishset_db)
   
- 
-  if(!exists('logbody')) { 
-    logbody <- list()
-    infoBodyout <- list()
-    functionBodyout <- list()
-    infobody <- list()
-    
-    infobody$rundate <- Sys.Date()
-    infoBodyout$info <- list(infobody)
-    
-    functionBodyout$function_calls <- list()
-    
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  } 
+
   make_model_design_function <- list()
   make_model_design_function$functionID <- 'make_model_design'
   make_model_design_function$args <- c(dat, catchID, alternativeMatrix, lon.dat, lat.dat, project)
   make_model_design_function$kwargs <- list('indeVarsForModel'=indeVarsForModel, 'gridVariablesInclude'=gridVariablesInclude, 'priceCol'=priceCol)
   make_model_design_function$output <- c('')
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (make_model_design_function)
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
- 
+  log_call(make_model_design_function)
    
    assign('modelInputData', modelInputData, pos=1)
 }

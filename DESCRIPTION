@@ -3,7 +3,7 @@ Type: Package
 Version: 0.1
 Date: Sys.Date()
 Title: Spatial Economics Toolbox for Fisheries (FishSET)
-Authors@R: c(person("Melanie Harsch", "Developer", role = c("aut", "cre"), email = "melanie.harsch@noaa.gov"), person("Alan", "Haynie", role = "ctb"), person("Allen", "Chen", role = "ctb", email = "A.User@whereever.net"))
+Authors@R: c(person("Melanie Harsch", "Developer", role = c("aut", "cre"), email = "melanie.harsch@noaa.gov"), person("Alan", "Haynie", role = "ctb"))
 Maintainer: Melanie Harsch <melanie.harsch@noaa.gov>
 Depends: R (>= 3.5.0)
 Imports: RSQLite, jsonlite, DBI, DT, ff, foreign, formattable, geosphere, ggcorrplot, ggplot2, ggpubr, knitr, lubridate, maps, methods, OSMscale, pander, raster, rgeos, R.matlab, sf, shiny, shinyjs, signal, sp, spatialEco, stringi, stringr, zoo

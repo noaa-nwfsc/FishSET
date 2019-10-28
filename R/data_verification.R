@@ -18,7 +18,7 @@ data_verification <- function(dat) {
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
   
   # check each row of data is a unique choice occurrence at haul or trip level
@@ -63,31 +63,15 @@ data_verification <- function(dat) {
   
   print(suppressWarnings(readLines(tmp)))
  
-  if(!exists('logbody')) { 
-    logbody <- list()
-    infoBodyout <- list()
-    functionBodyout <- list()
-    infobody <- list()
-    
-    infobody$rundate <- Sys.Date()
-    infoBodyout$info <- list(infobody)
-    
-    functionBodyout$function_calls <- list()
-    
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  } 
-  
+
   data_verification_function <- list()
   data_verification_function$functionID <- 'data_verification'
   data_verification_function$args <- c(dat)
   data_verification_function$kwargs <- list()
   data_verification_function$output <- c('')
   data_verification_function$msg <- suppressWarnings(readLines(tmp))
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- data_verification_function
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
-  rm(tmp)  
+  log_call(data_verification_function)
+   rm(tmp)  
   
   if(check==1) {
     stop('At least one error exists')

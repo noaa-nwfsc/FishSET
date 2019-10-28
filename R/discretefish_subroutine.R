@@ -347,33 +347,13 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
 }
   
   ############################################################################# 
-  
-   
- 
-  if(!exists('logbody')) { 
-    logbody <- list()
-    infoBodyout <- list()
-    functionBodyout <- list()
-    infobody <- list()
-    
-    infobody$rundate <- Sys.Date()
-    infoBodyout$info <- list(infobody)
-    
-    functionBodyout$function_calls <- list()
-    
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  } 
-  
   discretefish_subroutine_function <- list()
   discretefish_subroutine_function$functionID <- 'discretefish_subroutine'
   discretefish_subroutine_function$args <- c(project, initparams, optimOpt, deparse(substitute(func)), methodname, mod.name)
   discretefish_subroutine_function$kwargs <- list()
   discretefish_subroutine_function$output <- c(name)
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (discretefish_subroutine_function)
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
-  ############################################################################# 
+  log_call(discretefish_subroutine_function)
+   ############################################################################# 
   single_sql <- paste0(project, "modelOut", format(Sys.Date(), format="%Y%m%d"))
   if(table_exists(single_sql)){
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")

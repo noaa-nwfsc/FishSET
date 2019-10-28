@@ -6,8 +6,8 @@
 #' @param hull.polygon T/F If TRUE, creates convex hull polygon. Use if spatial data creating polygon are sparse or irregular.
 #' @param lon.dat Column containing longitude data in main data frame.
 #' @param lat.dat Column containing latitude data in main data frame.
-#' @param lon.grid Column containing longitude data in gridfile.
-#' @param lat.grid lColumn containing latitude data in gridfile.
+#' @param lon.grid If gridfile is not shape or json file, specify column containing longitude data in gridfile. 
+#' @param lat.grid If gridfile is not shape or json file, specify column containing latitude data in gridfile.
 #' @param cat  Column in gridfile that identifies the individual areas or zones. If gridfile is class sf, `cat` should be name of list containing information on zones. 
 #' @param epsg EPSG number. See \url{http://spatialreference.org/} to help identify optimal epsg number. 
 #' @param closest.pt  TRUE/FALSE If true, zone ID identified as the closest polygon to the point.
@@ -22,8 +22,8 @@
 #' @export 
 
 
-assignment_column <- function(dat, gridfile, hull.polygon = c(TRUE, FALSE), lon.grid, lat.grid, 
-                              lon.dat, lat.dat, cat, closest.pt = c(TRUE, FALSE), epsg=NULL) {
+assignment_column <- function(dat, gridfile, hull.polygon = c(TRUE, FALSE),  
+                              lon.dat, lat.dat, cat, closest.pt = c(TRUE, FALSE), lon.grid=NULL, lat.grid=NULL, epsg=NULL) {
   
   #Call in data sets
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
@@ -44,7 +44,7 @@ assignment_column <- function(dat, gridfile, hull.polygon = c(TRUE, FALSE), lon.
   
   #For json and shape files
   if(any(class(gridfile)=='sf')) {
-    #map2 <- sf::st_read('C:/Users/melanie.harsch/Work/OLDFishSET/NMFS_RA.json') 
+    #map2 <- sf::st_read('Z:/OLDFishSET/NMFS_RA.json') 
     dat_sub <- sf::st_as_sf(x = dataset, 
                             coords = c(lon.dat, lat.dat),
                             crs = "+proj=longlat +datum=WGS84")
@@ -53,8 +53,8 @@ assignment_column <- function(dat, gridfile, hull.polygon = c(TRUE, FALSE), lon.
       warning('Projection does not match. Consider transforming data to same epsg.')
     }
     if(!is.null(epsg)){
-      dat_sub <- st_transform(dat_sub, epsg)
-      gridfile <- st_transform(gridfile, epsg)
+      dat_sub <- sf::st_transform(dat_sub, epsg)
+      gridfile <- sf::st_transform(gridfile, epsg)
     }
     pts <- as.data.frame(as.numeric(sf::st_intersects(dat_sub, gridfile)))
     colnames(pts)='col.id'

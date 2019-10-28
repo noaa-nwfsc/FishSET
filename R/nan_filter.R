@@ -21,7 +21,7 @@ nan_identify <- function(dat){
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
    tmp <- tempfile()
    #Check for NAs
@@ -47,29 +47,14 @@ nan_identify <- function(dat){
    
    
    print(suppressWarnings(readLines(tmp)))
-  if(!exists('logbody')) { 
-    logbody <- list()
-    infoBodyout <- list()
-    functionBodyout <- list()
-    infobody <- list()
-    
-    infobody$rundate <- Sys.Date()
-    infoBodyout$info <- list(infobody)
-    
-    functionBodyout$function_calls <- list()
-    
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  } 
-  nan_identify_function <- list()
+   nan_identify_function <- list()
   nan_identify_function$functionID <- 'nan_identify'
   nan_identify_function$args <- c(dat)
   nan_identify_function$kwargs <- list()
   nan_identify_function$output <- c('')
   nan_identify_function$msg <- suppressWarnings(readLines(tmp))
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (nan_identify_function)
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
+  log_call(nan_identify_function)
+  
   rm(tmp)
 }
 
@@ -100,7 +85,7 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
     int <- dataset
     tmp <- tempfile()
@@ -141,31 +126,14 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write
   DBI::dbDisconnect(fishset_db)
   }
   
-  
-  
-  if(!exists('logbody')) { 
-    logbody <- list()
-    infoBodyout <- list()
-    functionBodyout <- list()
-    infobody <- list()
-    
-    infobody$rundate <- Sys.Date()
-    infoBodyout$info <- list(infobody)
-    
-    functionBodyout$function_calls <- list()
-    
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  } 
   nan_filter_function <- list()
   nan_filter_function$functionID <- 'nan_filter'
   nan_filter_function$args <-  c(dat,  deparse(substitute(x)), replace, remove, rep.value)
   nan_filter_function$kwargs <- list()
   nan_filter_function$output <-  c(deparse(substitute(dat)))
   nan_filter_function$msg <- suppressWarnings(readLines(tmp))
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- nan_filter_function
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
+  log_call(nan_filter_function)
+  
   rm(tmp)
   
   return(int)
@@ -201,7 +169,7 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write=
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset  
+  dataset <- out$dataset  
   
   int <- dataset
   tmp <- tempfile()
@@ -243,29 +211,14 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write=
   print('Data saved to database')
   }
   
-  if(!exists('logbody')) { 
-    logbody <- list()
-    infoBodyout <- list()
-    functionBodyout <- list()
-    infobody <- list()
-    
-    infobody$rundate <- Sys.Date()
-    infoBodyout$info <- list(infobody)
-    
-    functionBodyout$function_calls <- list()
-    
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  } 
-  nan_filter_function <- list()
+   nan_filter_function <- list()
   nan_filter_function$functionID <- 'na_filter'
   nan_filter_function$args <-  c(dat,  deparse(substitute(x)), replace, remove, rep.value)
   nan_filter_function$kwargs <- list()
   nan_filter_function$output <-  c(deparse(substitute(dat)))
   nan_filter_function$msg <- suppressWarnings(readLines(tmp))
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- nan_filter_function
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
+  log_call(nan_filter_function)
+  
   rm(tmp)
   
   return(int)

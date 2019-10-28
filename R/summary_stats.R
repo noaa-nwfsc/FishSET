@@ -18,7 +18,7 @@ summary_stats <- function(dat, x=NULL) {
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
   # Min
   #apply(dataset, 2, function(x) min(x, na.rm=T))

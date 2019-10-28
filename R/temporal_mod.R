@@ -21,8 +21,8 @@
 #' @export temporal_mod
 #' @examples  
 #' \dontrun{
-#' Date_Landed_YMD <- temp_mod(MainDataTable, 'DATE_LANDED', define.format = '%Y%m%d') 
-#' Date_Landed_year <- temp_mod(MainDataTable, 'DATE_LANDED', define.format = 'year')
+#' Date_Landed_YMD <- temporal_mod(MainDataTable, 'DATE_LANDED', define.format = '%Y%m%d') 
+#' Date_Landed_year <- temporal_mod(MainDataTable, 'DATE_LANDED', define.format = 'year')
 #' }
 
 
@@ -32,7 +32,7 @@ temporal_mod <- function(dat, x, define.format) {
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
   
   if (!define.format %in% c("year","month","day","hour", "minute")) {
@@ -58,28 +58,12 @@ temporal_mod <- function(dat, x, define.format) {
     }
   }
   
-  if(!exists('logbody')) { 
-    logbody <- list()
-    infoBodyout <- list()
-    functionBodyout <- list()
-    infobody <- list()
-    
-    infobody$rundate <- Sys.Date()
-    infoBodyout$info <- list(infobody)
-    
-    functionBodyout$function_calls <- list()
-    
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  } 
   temp_mod_function <- list()
   temp_mod_function$functionID <- 'temp_mod'
   temp_mod_function$args <- c(dat, x, define.format)
   temp_mod_function$kwargs <- list()
   temp_mod_function$output <- c('')
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (temp_mod_function)
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
+  log_call(temp_mod_function)
   
   return(int)
   

@@ -53,28 +53,13 @@ table_info_verification <- function(dataindex) {
     #            which(colSums(sapply(unitsAvailable, grepl, colnames(dataindex))) == 0)))
   }
   print(suppressWarnings(readLines(tmp)))
-  if(!exists('logbody')) { 
-    logbody <- list()
-    infoBodyout <- list()
-    functionBodyout <- list()
-    infobody <- list()
-    
-    infobody$rundate <- Sys.Date()
-    infoBodyout$info <- list(infobody)
-    
-    functionBodyout$function_calls <- list()
-    
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  } 
   table_info_verification_function <- list()
   table_info_verification_function$functionID <- 'table_info_verification'
   table_info_verification_function$args <- c(dataindex)
   table_info_verification_function$kwargs <- list()
   table_info_verification_function$output <- c('')
   table_info_verification_function$msg <- suppressWarnings(readLines(tmp))
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (table_info_verification_function)
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
+  log_call(table_info_verification_function)
+  
   rm(tmp)
 }

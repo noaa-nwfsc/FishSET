@@ -15,7 +15,7 @@ data_verification_call <- function(dat) {
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
   
   tmp <- tempfile()

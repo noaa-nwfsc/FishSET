@@ -14,20 +14,21 @@ cpue <- function(dat, xWeight, xTime, name='cpue') {
   #' MainDataTable$cpue <- cpue(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', 'DURATION_IN_MIN') 
   #' }  
 
-  
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
-  
-  
+  dataset <- out$dataset
+  tmp <- 0
  
          if(!is.numeric(dataset[[xTime]])|!is.numeric(dataset[[xWeight]])){
-          stop('Data must be numeric. CPUE not calculated')
-        }
+           tmp = 1
+          warning('Data must be numeric. CPUE not calculated')
+         }
+  
+  if(tmp == 0){
   # Check that Weight variable is indeed a weight variable
        if (!grepl("Duration", xTime, ignore.case = TRUE)) {
-        warning("xTime should be a measurement of time. CPUE calculated.")
+        warning("xTime should be a measurement of time. Use the create_duration function. CPUE calculated.")
       } 
       if (!grepl("LB|Pounds|MT", xWeight, ignore.case = TRUE)){
         warning("xWeight must a measurement of mass. CPUE calculated.")
@@ -35,32 +36,16 @@ cpue <- function(dat, xWeight, xTime, name='cpue') {
   
   cpue <- dataset[[xWeight]]/dataset[[xTime]]
  
-   if(!exists('logbody')) { 
-     logbody <- list()
-     infoBodyout <- list()
-     functionBodyout <- list()
-     infobody <- list()
-     
-     infobody$rundate <- Sys.Date()
-     infoBodyout$info <- list(infobody)
-     
-     functionBodyout$function_calls <- list()
-     
-     logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  } 
   create_var_cpue_function <- list()
   create_var_cpue_function$functionID <- 'cpue'
   create_var_cpue_function$args <- c(dat, xWeight, xTime)
   create_var_cpue_function$kwargs <- list()
   create_var_cpue_function$output <- paste0(deparse(substitute(dat)),'$',name)
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_var_cpue_function)
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
-  
-  return(cpue)
-}
 
+  log.call(create_var_cpue_function)
+  return(cpue)
+  }
+}
 
 ##---- Dummy  Variables ----##
 #' Create new dummy variable
@@ -78,36 +63,19 @@ dummy_var <- function(dat, DumFill = 'TRUE', name='dummy_var') {
   #Pull in data
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
   dummyvar <- as.vector(rep(DumFill, nrow(dataset)))
 
-  if(!exists('logbody')) { 
-    logbody <- list()
-    infoBodyout <- list()
-    functionBodyout <- list()
-    infobody <- list()
-    
-    infobody$rundate <- Sys.Date()
-    infoBodyout$info <- list(infobody)
-    
-    functionBodyout$function_calls <- list()
-    
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  } 
   create_var_dummy_var_function <- list()
   create_var_dummy_var_function$functionID <- 'dummy_var'
   create_var_dummy_var_function$args <- c(dat, DumFill)
   create_var_dummy_var_function$kwargs <- list()
   create_var_dummy_var_function$output <- paste0(deparse(substitute(dat)),'$',name)
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_var_dummy_var_function)
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
-  
+ 
+  log.call(create_var_dummy_var_function)
   return(dummyvar)
 }
-
 
 #' Create dummy matrix from a coded ID variable
 dummy_matrix <- function(dat, x) {
@@ -123,7 +91,7 @@ dummy_matrix <- function(dat, x) {
   
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
     # create the matrix
   factor.levels <- levels(as.factor(dataset[[x]]))
@@ -133,32 +101,14 @@ dummy_matrix <- function(dat, x) {
   int <- data.frame(lapply(1:length(factor.levels), function(x) ifelse(int[, x] == colnames(int)[x], TRUE, FALSE)))
   colnames(int) = paste(x, "_", levels(as.factor(dataset[[x]])))
   
-  if(!exists('logbody')) { 
-    logbody <- list()
-    infoBodyout <- list()
-    functionBodyout <- list()
-    infobody <- list()
-    
-    infobody$rundate <- Sys.Date()
-    infoBodyout$info <- list(infobody)
-    
-    functionBodyout$function_calls <- list()
-    
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  } 
   create_var_dummy_matrix_function <- list()
   create_var_dummy_matrix_function$functionID <- 'dummy_matrix'
   create_var_dummy_matrix_function$args <- c(dat, x)
   create_var_dummy_matrix_function$kwargs <- list()
   create_var_dummy_matrix_function$output <- c('')
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_var_dummy_matrix_function)
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
-  
+  log.call(create_var_dummy_matrix_function)
   return(int)
 }
-
 
 ##---- Coded variables ----##
 #' Create quantile variable
@@ -177,15 +127,20 @@ set_quants <- function(dat, x, quant.cat = c(0.2, 0.25, 0.4), name='set_quants')
   #'   }
   #' @examples 
   #' \dontrun{
-  #' MainDataTable <- set_quants(MainDataTable, 'HAUL', quant.cat=.2)
+  #' MainDataTable$haul.quant <- set_quants(MainDataTable, 'HAUL', quant.cat=.2)
   #' }
   #
   
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
+  tmp <- 0
   
-  
+  if(!is.numeric(dataset[[x]])){
+    tmp <- 1
+    warning('Variable must be numeric. Function not run.')
+  }
+if(tmp == 0){  
 if (quant.cat == 0.2) {
     prob.def = c(0, 0.2, 0.4, 0.6, 0.8, 1)
   } else if (quant.cat == 0.25) {
@@ -193,36 +148,20 @@ if (quant.cat == 0.2) {
   } else if (quant.cat == 0.4) {
     prob.def = c(0, 0.1, 0.5, 0.9, 1)
   }
-  var.name <- paste("TRIP_OTC_MT", "quantile", sep = ".")
+  #var.name <- paste("TRIP_OTC_MT", "quantile", sep = ".")
   var.name <- as.integer(cut(dataset[[x]], quantile(dataset[[x]], probs = prob.def), 
                              include.lowest = TRUE))
   
-  if(!exists('logbody')) { 
-    logbody <- list()
-    infoBodyout <- list()
-    functionBodyout <- list()
-    infobody <- list()
-    
-    infobody$rundate <- Sys.Date()
-    infoBodyout$info <- list(infobody)
-    
-    functionBodyout$function_calls <- list()
-    
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  } 
   create_var_set_quants_function <- list()
   create_var_set_quants_function$functionID <- 'set_quants'
   create_var_set_quants_function$args <- c(dat, x, quant.cat)
   create_var_set_quants_function$kwargs <- list()
   create_var_set_quants_function$output <- paste0(deparse(substitute(dat)),'$',name)
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_var_set_quants_function)
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
-  
+ 
+  log.call(create_var_set_quants_function)
   return(var.name)
 }
-
+}
 
 ##---- Numeric  Variables ----##
 #' Create numeric variables using arithmetic expression
@@ -230,7 +169,7 @@ create_var_num <- function(dat, x, y, method, name='create_var_num') {
   #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
   #' @param x variable  Variable will be the numerator if `method` is division. 
   #' @param y variable  Variable will be the denominator if `method` is division.
-  #' @param method Arithmetic expression. Options include: addition, subtraction, multiplication, and division.
+  #' @param method Arithmetic expression. Options include: sum, addition, subtraction, multiplication, and division.
   #' @param name Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
   #' @export create_var_num
   #' @details Creates a new numeric variable based on defined arithmetic expression `method`. New variable is added to the data set.
@@ -242,13 +181,15 @@ create_var_num <- function(dat, x, y, method, name='create_var_num') {
   
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
-  
+  dataset <- out$dataset
+  tmp <- 0
   
   if (is.numeric(dataset[[x]]) == FALSE | is.numeric(dataset[[y]]) == FALSE) {
-    stop("Variables must be numeric")
+    tmp <- 1
+    warning("Variables must be numeric")
    }
   
+  if(tmp==0){
   if (grepl("add|sum", method, ignore.case = TRUE)) {
     name <- dataset[[x]] + dataset[[y]]
   } else if (grepl("sub", method, ignore.case = TRUE)) {
@@ -259,63 +200,123 @@ create_var_num <- function(dat, x, y, method, name='create_var_num') {
     name <- dataset[[x]]/dataset[[y]]
   }
   
-   if(!exists('logbody')) { 
-     logbody <- list()
-     infoBodyout <- list()
-     functionBodyout <- list()
-     infobody <- list()
-     
-     infobody$rundate <- Sys.Date()
-     infoBodyout$info <- list(infobody)
-     
-     functionBodyout$function_calls <- list()
-     
-     logbody$fishset_run <- list(infoBodyout, functionBodyout)
-     
-  } 
   create_var_num_function <- list()
    create_var_num_function$functionID <- 'create_var_num'
    create_var_num_function$args <- c(dat, x, y, method)
    create_var_num_function$kwargs <- list()
    create_var_num_function$output <- paste0(deparse(substitute(dat)),'$',name)
-   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_var_num_function)
-   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-   assign("functionBodyout", value = functionBodyout, pos = 1)
-   
-   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-   
-  return(name)
-}
+   log.call(create_var_num_function)
 
+  return(name)
+  }
+}
 
 ##---- Spatial  Variables ----##
 #' Calculate latitude and longitude of haul midpoint 
-create_mid_haul <- function(dat, start=c('lon', 'lat'), end=c('lon','lat')) {
+create_mid_haul <- function(dat, start=c('lon', 'lat'), end=c('lon','lat'), name='mid_haul') {
 #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
 #' @param start Starting location of haul. Must be specificied as vector containing longitudinal data and vector containing latitudinal data separated by comma.
 #' @param end Ending location of haul. Must be specificied as vector containing longitudinal data and vector containing latitudinal data separated by comma.
 #' @details Returns midpoint of each haul. Each row of data must be a unique haul. Requires a start and end point for each observations.
+#' @return Main data frame with two new variables added, lat and lon of midpoint.
 #' @importFrom geosphere distGeo midPoint
 #' @export
 #' @examples 
 #' \dontrun{
-#' MainDataTable$haulMidPoint <- create_mid_haul(MainDataTable, start = c("LonLat_START_LON", 
-#'                          "LonLat_START_LAT"), end = c("LonLat_END_LON", "LonLat_END_LAT")) 
+#' MainDataTable <- create_mid_haul(MainDataTable, start = c("LonLat_START_LON", 
+#'                          "LonLat_START_LAT"), end = c("LonLat_END_LON", "LonLat_END_LAT"), name='mid_haul') 
 #' }
 #
+  
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset
+  tmp <- 0
+  
  if(FishSET:::is_empty(start)||FishSET:::is_empty(end)) {
-   stop('Starting and end locations must both be specified')
+   tmp <- 1
+   warning('Starting and end locations must both be specified. Function not run.')
  }
- 
-  if(dim(dat[,start])[1] != dim(dat[,end])[1]){
-    stop('Starting and ending locations are of different lengths')
+
+
+  if(dim(dataset[,start])[1] != dim(dataset[,end])[1]){
+    tmp <- 1
+    warning('Starting and ending locations are of different lengths. Function not run.')
   }
 
-  distBetween <- geosphere::midPoint(dat[,start], dat[,end])
+  if(tmp==0){
+  distBetween <- geosphere::midPoint(dataset[,start], dataset[,end])
+  colnames(distBetween)= c(paste0(name,'lon'), paste0(name,'lat'))
+  out <- cbind(dataset, distBetween)
+  
+  create_mid_haul_function <- list()
+  create_mid_haul_function$functionID <- 'create_mid_haul'
+  create_mid_haul_function$args <- c(dat, start, end)
+  create_mid_haul_function$kwargs <- list()
+  create_mid_haul_function$output <- paste0(dat,'$',name)
+  log.call(create_mid_haul_function)
+  
+  return(out)
+  }
 }
 
-#trip centroid
+##----trip centroid-----#
+  #' Calculate centroid of each trip 
+  #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @param lat Vector containing latitudinal data.
+  #' @param lon Vector containing longitudinal data.
+  #' @param weight.var Variable for weighted average.
+  #' @param ... Column(s) that identify the individual trip.
+  #' @details Returns centroid of each trip
+  #' @importFrom geosphere distGeo midPoint
+  #' @export 
+  #' @examples 
+  #' \dontrun{
+  #' pollockMainDataTable <- create_trip_centroid('pollockMainDataTable', 'LonLat_START_LON', 'LonLat_START_LAT', 
+  #'                                  weight.var=NULL, 'DISEMBARKED_PORT','EMBARKED_PORT')
+  #' }
+create_trip_centroid <- function(dat, lon, lat, weight.var=NULL, ...) {  
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset
+  
+  if(grepl('input', as.character(match.call(expand.dots = FALSE)$...)[1])==TRUE){
+    argList <- eval(...) } else {
+      argList <- (as.character(match.call(expand.dots = FALSE)$...))
+    }
+  
+  idmaker = function(vec) {
+    return(paste(sort(vec), collapse = ""))
+  }
+  int <- as.data.frame(cbind(dataset, rowID = as.numeric(factor(apply(as.matrix(dataset[, eval(substitute(argList))]), 1, idmaker)))))
+  #int <- int[, c(colnames(sapply(dataindex[[varnameindex]], grepl, colnames(int))), "rowID")]
+  cat(length(unique(int$rowID)), 'unique trips were identified using', argList, '\n')
+  # Handling of empty variables
+  if (any(apply(int, 2, function(x) all(is.na(x))) == TRUE)) {
+    int <- int[, -which(apply(int, 2, function(x) all(is.na(x))) == TRUE)]
+  } else {
+    int <- int
+  }
+  
+  if (FishSET:::is_empty(weight.var)) {
+    int$cent.lon <- stats::ave(int[[lon]], int[['rowID']])
+    int$cent.lat <- stats::ave(int[[lat]], int[['rowID']])
+  } else {
+    # weighted centroid
+    int$cent.lon <- stats::ave(int[c(lon, weight.var)], int[['rowID']], 
+                               FUN = function(x) stats::weighted.mean(x[[lon]], x[[weight.var]]))[[1]]
+    int$cent.lat <- stats::ave(int[c(lat, weight.var)], int[['rowID']], 
+                               FUN = function(x) stats::weighted.mean(x[[lat]], x[[weight.var]]))[[1]]
+  }
+  
+  create_trip_centroid_function <- list()
+  create_trip_centroid_function$functionID <- 'create_trip_centroid'
+  create_trip_centroid_function$args <- c(dat, dat, lon, lat, weight.var, argList)
+  create_trip_centroid_function$kwargs <- list()
+  log.call(create_trip_centroid_function)
 
+  return(int)
+}
 
 #' Histogram of latitude and longitude by grouping variable
 spatial_hist <- function(dat, group){
@@ -368,26 +369,26 @@ spatial_summary <- function(dat, stat.var=c('length','no_unique_obs','perc_total
   #' 
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
   
-  datset <- assignment_column(dat=datset,  gridfile=gridfile, hull.polygon = TRUE, lon.grid, lat.grid, 
+  dataset <- assignment_column(dat=dataset,  gridfile=gridfile, hull.polygon = TRUE, lon.grid, lat.grid, 
                     lon.dat, lat.dat, cat, closest.pt = TRUE, epsg=NULL)
-  date.var <- grep('date', names(datset), ignore.case=TRUE)[1]
-  var <- grep(variable, names(datset), ignore.case=TRUE)[1]
+  date.var <- grep('date', names(dataset), ignore.case=TRUE)[1]
+  var <- grep(variable, names(dataset), ignore.case=TRUE)[1]
   
    if(stat.var=='mean'){ 
-     lab <- paste('mean', names(datset)[var])
+     lab <- paste('mean', names(dataset)[var])
    } else if(stat.var=='median'){
-     lab <- paste('median', names(datset)[var])
+     lab <- paste('median', names(dataset)[var])
    } else if(stat.var=='min'){
-     lab <- paste('min', names(datset)[var])
+     lab <- paste('min', names(dataset)[var])
    } else if(stat.var=='max'){
-     lab <- paste('max', names(datset)[var])
+     lab <- paste('max', names(dataset)[var])
    } else if(stat.var=='sum'){
-     lab <- paste('sum', names(datset)[var])
+     lab <- paste('sum', names(dataset)[var])
    } else if(stat.var=='length'){
-     lab <- paste('No. observations', names(datset)[var])
+     lab <- paste('No. observations', names(dataset)[var])
    }
   par(mfrow=c(1,2))
   
@@ -446,14 +447,14 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
   
   #Call in datasets
   if(start[1]==end[1]){
-    stop('Starting and ending vectors are identical.')
-  }
+    warning('Starting and ending vectors are identical.')
+  } else {
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
  
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
   
   if(any(grepl('port', c(start[1],end[1]), ignore.case=TRUE))){
@@ -539,34 +540,15 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
    } 
   
  #Log the function 
-  if(!exists('logbody')) { 
-    logbody <- list()
-    infoBodyout <- list()
-    functionBodyout <- list()
-    infobody <- list()
-    
-    infobody$rundate <- Sys.Date()
-    infoBodyout$info <- list(infobody)
-    
-    functionBodyout$function_calls <- list()
-    
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  } 
-  
   create_dist_between_function <- list()
   create_dist_between_function$functionID <- 'create_dist_between'
   create_dist_between_function$args <- c(dat, start, end, units)
   create_dist_between_function$kwargs <- list(vars)
-  #create_dist_between_function$output <- paste0(deparse(substitute(dat)),'$',name)
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_dist_between_function)
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
   
+  log.call(create_dist_between_function)
   return(distBetween)
   }
-
-
+  }
 
 
 ##---- Temporal  Variables ----##
@@ -588,7 +570,7 @@ create_duration <- function(dat, start, end, units = c("week", "day", "hour", "m
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
   
   if (any(grepl("date|min|hour|week|month|TRIP_START|TRIP_END", start, ignore.case = TRUE)) == FALSE) {
@@ -609,27 +591,12 @@ create_duration <- function(dat, start, end, units = c("week", "day", "hour", "m
     dur <- lubridate::as.duration(elapsed.time)/lubridate::dminutes(1)
   }
   
-    if(!exists('logbody')) { 
-      logbody <- list()
-      infoBodyout <- list()
-      functionBodyout <- list()
-      infobody <- list()
-      
-      infobody$rundate <- Sys.Date()
-      infoBodyout$info <- list(infobody)
-      
-      functionBodyout$function_calls <- list()
-      
-      logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  } 
   create_var_temp_function <- list()
   create_var_temp_function$functionID <- 'create_duration'
   create_var_temp_function$args <- c(dat, start, end, units)
   create_var_temp_function$kwargs <- list()
   create_var_temp_function$output <- paste0(deparse(substitute(dat)),'$',name)
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
-
+  log.call(create_var_temp_function)
+  
  return(dur)
 }

@@ -103,29 +103,14 @@ check_model_data <- function(dat, dataindex, uniqueID, save.file = TRUE) {
     }
     }
   
-    suppressWarnings(readLines(tmp))
-     if(!exists('logbody')) { 
-       logbody <- list()
-       infoBodyout <- list()
-       functionBodyout <- list()
-       infobody <- list()
-       
-       infobody$rundate <- Sys.Date()
-       infoBodyout$info <- list(infobody)
-       
-       functionBodyout$function_calls <- list()
-       
-       logbody$fishset_run <- list(infoBodyout, functionBodyout)
-    } 
   checkModelData_function <- list()
   checkModelData_function$functionID <- 'check_model_data'
   checkModelData_function$args <- c(dat, dataindex, uniqueID, save.file)
   checkModelData_function$kwargs <- list()
   checkModelData_function$output <-  c('')
   checkModelData_function$msg <- suppressWarnings(readLines(tmp))
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- checkModelData_function
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
+  suppressWarnings(readLines(tmp))
+  
+  log.call(checkModelData_function)
   rm(tmp)
 }

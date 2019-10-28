@@ -1,3 +1,13 @@
+pull_info_data <- function(project){
+#' Pulling the most recent data index file for given projet
+#' @param project
+#' @export
+
+g <- tables_database()
+g <- g[grep(paste0('Info.*',project,'|',project,'.*Info'), g)]
+g <- gsub("[^0-9\\.]", "", g[grep('Info.', g)])[which(gsub("[^0-9\\.]", "", g[grep('Info.', g)]) == max(gsub("[^0-9\\.]", "", g[grep('Info.', g)])))]
+paste0(project,'MainDataTableInfo',g)
+}
 
 
 table_format <- function(x) {
@@ -134,6 +144,11 @@ skewness <- function(x, na.rm=FALSE) {
 }
 
 date_parser <- function(dates){
+  #' Parse date variable
+  #' @param dates
+  #' @importFrom lubridate dym ymd myd ydm dmy mdy
+  #' @export
+  
   dates <- trimws(dates)
   dates <- sub(' .*','\\1',dates)
   if(!all(is.na(suppressWarnings(lubridate::mdy(dates)))==T)) {

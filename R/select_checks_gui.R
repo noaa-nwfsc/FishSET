@@ -21,7 +21,7 @@
 #' select_checks('pcodMainDataTable', 'pcod')
 #' }
 
-select_checks <- function(dat, project){#
+select_checks <- function(dat=NULL, project){#
   requireNamespace(shiny)
   requireNamespace(DT)
   #requireNamespace(shinyFiles)
@@ -135,7 +135,7 @@ tabPanel("Upload Data", value = "upload",
            ),
            fluidRow( 
                 column(6,
-                        fileInput("griddat", "Choose data file that varies over two dimensions (gridded)'",
+                        fileInput("griddat", "Choose data file that varies over two dimensions (gridded)",
                                     multiple = FALSE, placeholder = 'Optional data')),
                 column(3, uiOutput('ui.actionG'))
            ),
@@ -149,7 +149,6 @@ tabPanel("Upload Data", value = "upload",
            textInput('notesUp', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
          )),
 #-----
-        
 #---- 
 #BEGIN DATA EXPLORATION TABSET PANEL 
 #----   
@@ -355,45 +354,138 @@ tabPanel("Upload Data", value = "upload",
                             verbatimTextOutput('output_text_reg'),
                             plotOutput('output_plot_reg')
                             ))  )
-                      ))
-      
+                      )),
+
+#----
+#Create New variables
+#----
+ tabPanel('Compute new variables', value='new',
+#----
+          sidebarLayout(
+            sidebarPanel(
+              uiOutput('SaveButtonsNew'),
+              actionButton('saveDataNew','Save data to fishset_db database'),
+              tags$br(),tags$br(),
+              tags$button(
+                id = 'closeNew',
+                type = "button",
+                style="color: #fff; background-color: #FF6347; border-color: #800000;",
+                class = "btn action-button",
+                onclick = "setTimeout(function(){window.close();},500);",  # close browser
+                "Close app"
+              ),
+              actionButton("refreshNew", "Refresh data", 
+                           icon = icon("fa fa-refresh"),
+                           style = "color: white; background-color: blue;"),
+              actionButton('runNew',"Run function",
+                           icon=icon('fa fa-run'),
+                           syle="color: white; background-color: green;"),
+              textInput('notesNew', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+              selectInput('VarCreateTop', "Create variables based on", multiple=FALSE,  
+                          choices=c('Data transformations', 'Nominal ID', 'Arithmetic and temporal functions', 'Spatial functions', 'Trip-level functions')),
+              conditionalPanel(condition="input.VarCreateTop=='Data transformations'",
+                               selectInput('trans','Functions',multiple = FALSE, 
+                                           choices = c("Change time unit"='temp_mod','Coded variable based on quantiles'='set_quants'))),
+              conditionalPanel(condition="input.VarCreateTop=='Nominal ID'",
+                               selectInput('ID','Functions', 
+                                           choices = c('Create distinct haul or trip ID'='ID_var','Create fishery season identifier'='create_seasonal_ID'),
+                                           multiple = FALSE)),
+              conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'",
+                               selectInput('numfunc','Functions',multiple = FALSE, 
+                                           choices = c('Numeric functions'='create_var_num','Catch per unit effort'='cpue'))),
+              conditionalPanel(condition="input.VarCreateTop=='Spatial functions'",
+                               selectInput('dist','Functions',multiple = FALSE, 
+                                           choices = c('Distance between two points'='create_dist_between',
+                                                       'Midpoint location (lon/lat) for each haul'='create_mid_haul',
+                                                       'Duration of time between two temporal variables'='create_duration',
+                                                       'Zone when choice of where to go next was made'='create_startingloc'))),
+              conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'",
+                               selectInput('trip','Functions',multiple = FALSE, 
+                                           choices = c('Collapse haul to trip'='haul_to_trip','Calculate trip distance'='trip_distance',
+                                                      'Calculate trip centroid'='trip_centroid'))),
+              #dummy_var        Vector of TRUE or FALSE the length  (rows) of the data set. 
+              #dummy_matrix     Matrix with same dimensions at the data set filled with TRUE or FALSE.
+
+       #More sub choices Transformations     
+              uiOutput('trans_time_out'),
+              conditionalPanel(condition="input.VarCreateTop=='Data transformations'&input.trans=='temp_mod'",
+                              selectInput('define.format','Temporal units to return data in',choices=c('year', "month","day", 'hour', 'minute'))),
+              uiOutput('trans_quant_name'),
+              conditionalPanel(condition="input.VarCreateTop=='Data transformations'&input.trans=='set_quants'",
+                               selectInput('quant.cat','Quantile categories',choices=c('0.2', '0.25', '0.4'))),
+       #More sub choices Nominal IDS  
+              uiOutput('unique_col_id'),
+              conditionalPanel(condition="input.VarCreateTop=='Nominal ID'&input.ID=='create_seasonal_ID'",
+                               fileInput("seasonal.dat", "Choose data file containing data on fishery seasons",
+                                         multiple = FALSE)),
+              uiOutput('sp.col.select'),
+              conditionalPanel(condition="input.VarCreateTop=='Nominal ID'&input.ID=='create_seasonal_ID'",
+                               checkboxInput('use.location', "Optional: Do fishery season dates depend on fishery location?", value=FALSE)),
+              conditionalPanel(condition="input.VarCreateTop=='Nominal ID'&input.ID=='create_seasonal_ID'",
+                              checkboxInput('use.geartype', "Optional: Do fishery season dates depend on fishery location?", value=FALSE)),
+              conditionalPanel(condition="input.VarCreateTop=='Nominal ID'&input.ID=='create_seasonal_ID'",
+                               textInput('target', "Optional: Name of target species", value=NULL)),
+              
+       #More sub choices Arithmetic functions  
+              uiOutput('var_x_select'),
+              uiOutput('var_y_select'),
+              conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='create_var_num'",
+                               selectInput('create.method', 'Arithmetic expression', choices=c('addition', 'subtraction', 'multiplication', 'division'))),
+              uiOutput('input_xWeight'),
+              uiOutput('input_xTime'),
+              uiOutput('dur_add'),
+       #More sub choices Spatial functions  
+              uiOutput('dist_between_input'),
+              uiOutput('dist_betwn_opts'),
+              conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'",
+                              selectInput('units', 'Distance unit',choices = c('miles','meters','km','midpoint'))),
+              uiOutput('start_mid_input'),
+              uiOutput('end_mid_input'),
+              uiOutput('input_dur_start'),
+              uiOutput('input_dur_end'),
+              conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_duration'",
+                            selectInput('dur.units', 'Unit of time for calculating duration', choices = c("week", "day", "hour", "minute"))),
+              uiOutput('input_startingloc'),
+              uiOutput('input_startingloc_extra'),
+              conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='haul_to_trip'",
+                                selectInput('fun.numeric','Numeric function to transform data', choices = c('min','mean','max','median','sum'), selected = 'mean')),
+              conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='haul_to_trip'",
+                          selectInput('fun.time','Numeric function to transform temporal data', choices = c('min','mean','max','median'), selected = 'mean')),
+              uiOutput('input_IDVAR'),
+              uiOutput('input_trip_dist_vars'),
+              uiOutput('input_tri_cent'),
+              conditionalPanel(condition="input.VarCreateTop=='Data transformations' || (input.VarCreateTop=='Nominal ID'&input.ID=='ID_var') ||
+                               input.VarCreateTop=='Arithmetic and temporal functions'||input.VarCreateTop=='Spatial functions",
+                               textInput('varname','Name of new variable', value='', placeholder = ''))
+          ),
+          mainPanel(
+            dataTableOutput("output_table_create")
+          )
+          ))
 #----           
         ) ),
     
 ### SERVER SIDE    
     server = function(input, output, session) {
-##Logging trial
-  ####!!!!!!!! ----> WORK HERE <------########
-      #log_action <- reactive({})
-      #observe(input$plot_type)
- #     log_action<-reactive({c(input$Test_R, input$Test_R2, input$Test_R3)})
-      
+
 ##Pull data functions 
-##----
-#    if(is.character(dat)==TRUE){
-#         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
-#          dataset <- table_view(dat)
- #         DBI::dbDisconnect(fishset_db)
-#        } else {
-#          dataset <- dat  
-#        }
     values <- reactiveValues(dataset=dataset)
       # refresh data
-    observeEvent(input$refresh, {
+    observeEvent(c(input$refresh,input$refresh1,input$refresh2,input$refreshNew), {
       suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
       values$dataset <- table_view(dat)
       DBI::dbDisconnect(fishset_db)
     }, ignoreInit = F) 
-    observeEvent(input$refresh1, {
-      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
-      values$dataset <- table_view(dat)
-      DBI::dbDisconnect(fishset_db)
-    }, ignoreInit = F) 
-    observeEvent(input$refresh2, {
-      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
-      values$dataset <- table_view(dat)
-      DBI::dbDisconnect(fishset_db)
-    }, ignoreInit = F) 
+#    observeEvent(input$refresh1, {
+#      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
+#      values$dataset <- table_view(dat)
+#      DBI::dbDisconnect(fishset_db)
+#    }, ignoreInit = F) 
+ #   observeEvent(input$refresh2, {
+ #     suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
+ #     values$dataset <- table_view(dat)
+#      DBI::dbDisconnect(fishset_db)
+#    }, ignoreInit = F) 
     
 ##----     
 
@@ -527,6 +619,13 @@ tabPanel("Upload Data", value = "upload",
       })
     })
     
+    observeEvent(input$saveDataNew,{
+      fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+      DBI::dbWriteTable(fishset_db, paste0(project, 'FilterTable'),  FilterTable, overwrite=TRUE)
+      DBI::dbDisconnect(fishset_db)
+    })
+      
+      
     observeEvent(input$subsetData,{
       values$dataset <- values$dataset[,-(input$output_table_exploration_columns_selected+1)]
     })
@@ -854,7 +953,310 @@ output$plot_time <- renderPlot({
         print(plotInputreg())
       })    
 ###----
+
+#DATA CREATION/MODIFICATION FUNCTIONS
+###----
+      #Transformations 
+      output$trans_time_out <- renderUI({
+                  conditionalPanel(condition="input.VarCreateTop=='Data transformations'&input.trans=='temp_mod'",
+                                  selectInput('TimeVar','Select variable',
+                                   choices=c(colnames(values$dataset)[grep('date|hour|time|year', colnames(values$dataset), ignore.case=TRUE)])))
+      })
+      output$trans_quant_name <-  renderUI({
+                  conditionalPanel(condition="input.VarCreateTop=='Data transformations'&input.trans=='set_quants'",
+                                                   selectInput('trans_var_name','Select variable', 
+                                                               choices=names(values$dataset[,unlist(lapply(values$dataset, is.numeric))]), multiple=FALSE))
+      })
+      output$unique_col_id <- renderUI({
+                  conditionalPanel(condition="input.VarCreateTop=='Nominal ID'&input.ID=='ID_var'",
+                                                        selectInput('unique_identifier','Variables that identify unique observations',
+                                                                    choices=colnames(values$dataset), multiple=TRUE))
+      })
+      seasonalData <- reactive({
+        if(is.null(input$seasonal.dat)){return()} 
+        type <- sub('.*\\.', '', input$seasonal.dat$name)
+        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
+        g <- read_dat(input$seasonal.dat$datapath, type)
+        return(g)
+      })
+      output$sp.col.select<- renderUI({
+        conditionalPanel(condition="input.VarCreateTop=='Nominal ID'&input.ID=='create_seasonal_ID'",
+                                                 selectInput('sp.col', "Column containing species names in table containing seasonal data", 
+                                                             choices=names(seasonalData())
+                                                             , multiple = FALSE))
+        })
+
+      output$var_x_select <- renderUI({
+            conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='create_var_num'",
+                          selectInput('var_x', 'First variable. Will be the numerator if dividing.', 
+                                      choices=names(values$dataset[,unlist(lapply(values$dataset, is.numeric))])))
+        })
+      output$var_y_select <- renderUI({
+            conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='create_var_num'",
+                          selectInput('var_y', 'Second variable. Will be the denomenator if dividing.',  
+                                      choices=names(values$dataset[,unlist(lapply(values$dataset, is.numeric))])))
+        })
+      output$input_xWeight <- renderUI({
+                    conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='cpue'",
+                       selectInput('xWeight','Weight variable', 
+                                   choices=names(values$dataset[,grep("mt|lb|ton|pound|weight|metric|kilo|mass", names(values$dataset), ignore.case = TRUE)])))
+      })
+      output$input_xTime <- renderUI({
+                  conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='cpue'",
+                       selectInput('xTime','Time variable. Must be weeks, days, hours, or minutes', 
+                                   choices=c('Calculate duration', names(values$dataset[,unlist(lapply(values$dataset, is.numeric))]))))
+      })
+      output$dur_add <- renderUI({
+             tagList(
+               conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='cpue'&input.xTime=='Calculate duration'",
+                         selectInput('dur.start2', 'Variable indicating start of time period', 
+                                     choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]))),
+               conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='cpue'&input.xTime=='Calculate duration'",         
+                                selectInput('dur.end2', 'Variable indicating end of time period', 
+                                                 choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]))),
+               conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='cpue'&input.xTime=='Calculate duration'",          
+                                selectInput('dur.units2', 'Unit of time for calculating duration', choices = c("week", "day", "hour", "minute")))
+              )
+      })
+      output$dist_between_input <- renderUI({
+        tagList(
+          conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'",
+                           selectInput('start', 'Starting location',choices = c('Zonal centroid', 'Port', 'Lat/lon coordinates'))),
+          conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'",
+                         selectInput('end', 'Ending location', choices = c('Zonal centroid', 'Port', 'Lat/lon coordinates'))),
+      #Port
+              conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Port'||
+                           input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Port'" ,
+                           selectInput("filePort", "Choose file from FishSET SQL database containing port data", 
+                                       choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE)),
+      #Gridded dat
+        conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Zonal centroid'||
+                         input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Zonal centroid'",
+                       fileInput("fileGrid", "Choose file defining area/zone polygons", multiple = FALSE)),   
+        
+      #port
+          conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Port'",
+                           selectInput('port.start', 'Variable containing port name at starting location', 
+                                       choices=names(values$dataset[,grep('port', names(values$dataset), ignore.case=T)]))),
+          conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Port'" ,
+                       selectInput('port.end', 'Variable containing port name at ending location', choices=names(values$dataset[,grep('port', names(values$dataset), ignore.case=T)]))),
+                         # fileInput("filePort", "Choose file containing port data",    
+      #Zonal
+         #coords
+          conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Lat/lon coordinates'" ,
+                           selectInput('start.latlon', 'Select lat then lon for starting location', 
+                                       choices=names(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=T)]), multiple=TRUE)),
+          conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Lat/lon coordinates'" ,
+                       selectInput('end.latlon', 'Select lat then lon for ending location', 
+                                   choices=names(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=T)]), multiple=TRUE))
+          
+
+        )#)  
+           })   
+    output$dist_betwn_opts <- renderUI({
+      tagList(
+          conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Zonal centroid'||
+                            input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Zonal centroid'" ,
+                       selectInput('cat', 'Individual areas/zones from the spatial data set', choices=names(as.data.frame(griddata())))),
+           if(any(class(griddata())=='sf')==FALSE){
+                   conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Zonal centroid'||
+                            input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Zonal centroid'" , 
+                           selectInput('long.grid', 'Select vector containing latitude then longitude from spatial data set', choices=names(values$dataset), multiple=TRUE))
+          },
+          conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Zonal centroid'||
+                            input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Zonal centroid'" ,
+                       selectInput('lon.dat', 'Select lat then lon from data set to assign observations to zone', 
+                                   choices=names(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=T)]), multiple=TRUE))
+      )
+    })
+      
+      griddata <- reactive({
+        if(is.null(input$fileGrid)){return()} 
+        type <- sub('.*\\.', '', input$fileGrid$name)
+        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
+        g <- read_dat(input$fileGrid$datapath, type)
+        return(g)
+      })
+      
+      output$start_mid_input <- renderUI({
+        conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&&input.dist=='create_mid_haul'",
+                         selectInput('mid.start','Select  LON then Lat that define starting locations',multiple = TRUE,
+                                     choices = names(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=TRUE)])))
+      })
+      output$end_mid_input <- renderUI({
+        conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_mid_haul'",
+                         selectInput('mid.end','Select LON then Lat that define ending locations',multiple = TRUE,
+                                     choices = names(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=TRUE)])))
+      })
+      output$input_dur_start <- renderUI({
+        conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_duration'",
+                                   selectInput('dur.start', 'Variable indicating start of time period', 
+                                               choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)])))
+        })
+      output$input_dur_end <- renderUI({
+        conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_duration'",
+                                    selectInput('dur.end', 'Variable indicating end of time period', 
+                                                choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)])))
+        })
+      
+      GridFileData <- reactive({
+        if(is.null(input$grid.dat)){return()} 
+        type <- sub('.*\\.', '', input$grid.dat$name)
+        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
+        g <- read_dat(input$grid.dat$datapath, type)
+        return(g)
+      })
+      
+### ---> HERE <----###
+      output$input_startingloc <- renderUI({
+       tagList(
+          conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
+                       selectInput('trip_id_SL', 'Variable in primary data set to identify unique trips', choices=c('',names(values$dataset)))),
+          conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
+                       selectInput('haul_order_SL', 'Variable in primary data set defining haul order within a trip. Can be time, coded variable, etc.',
+                                   choices=c('',names(values$dataset)))),
+          conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
+                       selectInput('starting_port_SL',  "Variable in primary data set identifying port at start of trip", 
+                                   choices=names(values$dataset[,grep('port',names(values$dataset), ignore.case = TRUE)]))),
+          conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
+                       selectInput('lon.dat_SL', "Longitude variable in primary data set", 
+                                   choice= names(values$dataset[,grep("lon", names(values$dataset), ignore.case = TRUE)]))), 
+          conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
+                       selectInput('lat.dat_SL', "Latitude variable in primary data set", 
+                                   choice= names(values$dataset[,grep("lat", names(values$dataset), ignore.case = TRUE)]))),
+          conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
+                       selectInput("port.dat", "Choose file from FishSET SQL database containing port data", 
+                                   choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE)),
+          conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
+                       fileInput("grid.dat", "Choose data file containing map shapefile (shape, json, and csv formats are supported)",
+                                 multiple = FALSE, placeholder = ''))
+          )})
+         output$input_startingloc_extra <- renderUI({
+           tagList(
+         if(any(class(GridFileData())=='sf')==FALSE){
+            conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
+                             selectInput('lat.grid_SL', 'Select vector containing latitude from spatial data set', choices=names(values$dataset), multiple=TRUE))
+          },
+          if(any(class(GridFileData())=='sf')==FALSE){
+            conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
+                             selectInput('lon.grid_SL', 'Select vector containing longitude from spatial data set', choices=names(values$dataset), multiple=TRUE))
+          },
+          conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
+                       selectInput('cat_SL', "Variable defining zones or areas", choice= names(as.data.frame(GridFileData()))))
+       )
+     })
      
+### ---> HERE <----###
+      output$input_IDVAR <- renderUI({
+        conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='haul_to_trip'",
+                       selectInput("Haul_Trip_IDVar", "Variable(s) that define unique trips", choices=names(values$dataset), multiple=TRUE))
+      })
+      output$input_trip_dist_vars <- renderUI({
+        tagList(
+          conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Port'||
+                           input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Port'" ,
+                           selectInput("port.dat.dist", "Choose file from FishSET SQL database containing port data", 
+                                       choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE)),
+          #
+          conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='trip_distance'",
+                       selectInput('trip_ID','Variable in data file to identify unique trips', multiple = FALSE, 
+                                   choices = names(values$dataset))),
+          conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='trip_distance'",
+                       selectInput('starting_port','Variable in data file to identify port at start of trip',multiple = FALSE, 
+                                   choices = names(values$dataset)[grep('port', names(values$dataset), ignore.case=TRUE)])),
+          conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='trip_distance'",
+                       selectInput('starting_haul','Select variables containing lat then long at START of haul',multiple = TRUE, 
+                                   choices = names(values$dataset)[grep('lat|long', names(values$dataset), ignore.case=TRUE)])),
+          conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='trip_distance'",
+                       selectInput('ending_haul','Select variables containing lat then long at END of haul',multiple = TRUE, 
+                                   choices = names(values$dataset)[grep('lat|long', names(values$dataset), ignore.case=TRUE)])),
+          conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='trip_distance'",
+                       selectInput('ending_port','Variable in data file to identify port at end of trip',multiple = FALSE, 
+                                   choices = names(values$dataset)[grep('port', names(values$dataset), ignore.case=TRUE)])),
+          conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='trip_distance'",
+                       selectInput('haul_order','Variable in data file containing information on the order that hauls occur within a trip.',
+                                   multiple = FALSE, choices = names(values$dataset)))
+        )
+      })
+      output$input_tri_cent <-  renderUI({
+        tagList(
+        conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='trip_centroid'",
+                         selectInput('trip_cent_lon','Vector containing longitudinal data', 
+                                     choices =names(values$dataset)[grep('lon|lat', names(values$dataset), ignore.case=TRUE)], multiple = FALSE)),
+        conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='trip_centroid'",
+                         selectInput('trip_cent_lat', 'Vector containing latitudinal data', 
+                                     choices =names(values$dataset)[grep('lon|lat', names(values$dataset), ignore.case=TRUE)], multiple = FALSE)),
+        conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='trip_centroid'",
+                         selectInput('trip_cent_weight','Variable for weighted average', multiple = FALSE, 
+                                     choices=c('', names(values$dataset)), selected=)),
+        conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='trip_centroid'",
+                         selectInput('trip_cent_id','Column(s) that identify the individual trip', multiple = TRUE, 
+                                     choices = names(values$dataset)))
+      )
+      })
+      
+      observeEvent(input$runNew, {
+        if(input$VarCreateTop=='Data transformations'&input$trans=='temp_mod') {
+          values$dataset[[input$varname]] <- temporal_mod(values$dataset, input$TimeVar, input$define.format) #!
+        } else if(input$VarCreateTop=='Data transformations'&input$trans=='set_quants'){
+          values$dataset[[input$varname]] <- set_quants(values$dataset, x=input$trans_var_name, quant.cat = input$quant.cat, name=input$varname) #!
+        } else if(input$VarCreateTop=='Nominal ID'&input$ID=='ID_var'){
+          values$dataset <- ID_var(values$dataset, newID=input$varname, input$unique_identifier) 
+        } else if(input$VarCreateTop=='Nominal ID'&input$ID=='create_seasonal_ID'){
+          values$dataset <- create_seasonal_ID(values$dataset, seasonal.dat=seasonalData(), use.location=input$use.location, 
+                                               use.geartype=input$use.geartype, sp.col=input$sp.col, target=input$target)
+        } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='create_var_num'){
+          values$dataset[[input$varname]] <- create_var_num(values$dataset, input$var_x, input$var_y, method=input$create.method, name=input$varname) 
+        } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='cpue') {
+              if(input$xTime!='Calculate duration'){
+          values$dataset[[input$varname]] <- cpue(values$dataset, input$xWeight, input$xTime, name=input$varname)  
+              } else {
+           values$dataset[['dur']] <- create_duration(values$dataset, input$dur.start2, input$dur.end2, input$dur.units2, name=NULL)
+           values$dataset[[input$varname]] <- cpue(values$dataset, input$xWeight, 'dur', name=input$varname)  
+              }
+        } else if(input$VarCreateTop=='Spatial functions' & input$dist=='create_dist_between'){
+          
+          #'Zonal centroid', 'Port', 'Lat/lon coordinates'
+          if(input$start=='Lat/lon coordinates'){
+            start <-input$start.latlon
+          } else if(input$start=='Port'){
+            start <- input$port.start
+          } else {
+            start <- 'centroid'
+          }
+          if(input$end=='Lat/lon coordinates'){
+            end <-input$end.latlon
+          } else if(input$end=='Port'){
+            end <- input$port.end
+          } else {
+            end <- 'centroid'
+          }
+            values$dataset[[input$varname]] <- create_dist_between_for_gui(values$dataset, start=start, end=end, input$units,  portTable=input$filePort, 
+                                                                        gridfile=griddata(),lon.dat=input$lon.dat[2], lat.dat=input$lon.dat[1], 
+                                                                         input$cat, lon.grid=input$long.grid[2], lat.grid=input$long.grid[1]) 
+        } else if(input$VarCreateTop=='Spatial functions' & input$dist=='create_mid_haul'){
+           values$dataset <- create_mid_haul(values$dataset, input$mid.start, input$mid.end, input$varname)
+        } else if(input$VarCreateTop=='Spatial functions'&input$dist=='create_duration'){
+           values$dataset[[input$varname]] <- create_duration(values$dataset, input$dur.start, input$dur.end, input$dur.units, name=NULL)
+        } else if(input$VarCreateTop=='Spatial functions'&input$dist=='create_startingloc'){
+           values$dataset[['startingloc']] <- create_startingloc(values$dataset,  gridfile=GridFileData(),  portTable=input$port.dat, 
+                                                                trip_id=input$trip_id_SL, haul_order=input$haul_order_SL, starting_port=input$starting_port_SL, 
+                         input$lon.dat_SL, input$lat.dat_SL, input$cat_SL, input$lon.grid_SL, input$lat.grid_SL)
+        } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='haul_to_trip'){
+           values$dataset <- haul_to_trip(values$dataset, project=project, input$fun.numeric, input$fun.time, input$Haul_Trip_IDVar)
+        } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='trip_distance'){
+           value$dataset$TripDistance <- create_trip_distance(values$dataset, input$port.dat.dist, input$trip_ID, input$starting_port, 
+                                                              c(input$starting_haul[2], input$starting_haul[1]), 
+                                                              c(input$ending_haul[2],input$ending_haul[1]), input$ending_port, input$haul_order)
+        } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='trip_centroid'){
+           values$dataset <- create_trip_centroid(values$dataset, lon=input$trip_cent_lon, lat=input$trip_cent_lat, weight.var=input$trip_cent_weight, input$trip_cent_id)
+        }
+      })
+
+      output$output_table_create <- DT::renderDataTable(
+        head(values$dataset)
+      )
+###----
          
 #DATA QUALITY FUNCTIONS
 ###-----      
@@ -1109,6 +1511,10 @@ output$plot_time <- renderPlot({
    } else if(input$tabs=='upload'){
      if(!is.null(input$notesUp)){
        paste0(input$notesUp, "\n")
+     }
+   } else if(input$tabs=='new'){
+     if(!is.null(input$notesNew)){
+       paste0(input$notesNew, '\n')
      }
    }
   })
@@ -1410,14 +1816,14 @@ output$plot_time <- renderPlot({
           downloadLink('downloadplotHIDE', label=''),
           actionButton('downloaddata', label ='Save table to folder as csv'),
           downloadLink("downloadText", label=''),
-          actionButton('callTextDownload','Store text of function run')
+          actionButton('callTextDownload','Save notes')
         )
       })
       
       output$SaveButtonsUpload <- renderUI({
         tagList(
           downloadLink("downloadTextUp", label=''),
-          actionButton('callTextDownloadUp','Store text of function run')
+          actionButton('callTextDownloadUp','Save notes')
         )
       })
       
@@ -1427,7 +1833,7 @@ output$plot_time <- renderPlot({
           downloadLink('downloadplotEXPLOREHIDE', label=''),
           actionButton('downloadplotExplore', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
           downloadLink("downloadTextExplore", label=''),
-          actionButton('callTextDownloadExplore','Store text of function run')
+          actionButton('callTextDownloadExplore','Save notes')
        )
      })
     
@@ -1438,10 +1844,19 @@ output$plot_time <- renderPlot({
           actionButton('downloadplotAnal', label ='Save plot to folder'),#, title = "", filename = paste0(project,'_', input$corr_reg, '_plot'), filetype = "png"),
           actionButton('downloaddataAnal', label ='Save table to folder as csv'),
           downloadLink("downloadTextAnal", label=''),
-          actionButton('callTextDownloadAnal','Store text of function run.')
+          actionButton('callTextDownloadAnal','Save notes.')
         )
       })
       
+      output$SaveButtonsNew <- renderUI({
+        tagList(
+          downloadLink('downloadplotNew', label=''),
+          actionButton('downloadplotNew', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
+          downloadLink("downloadTextNew", label=''),
+          actionButton('callTextDownloadNew','Save notes.')
+        )
+      })
+        
 
  ###----        
 
@@ -1451,7 +1866,8 @@ output$plot_time <- renderPlot({
   observeEvent(c(input$callTextDownload,
                  input$callTextDownloadAnal,
                  input$callTextDownloadExplore,
-                 input$callTextDownloadUp),{
+                 input$callTextDownloadUp,
+                 input$callTextDownloadNew),{
       savedText$answers <- as.character(c(savedText$answers, case_to_print(), notes()))
   })
   
@@ -1468,7 +1884,6 @@ output$plot_time <- renderPlot({
     jsinject <- "setTimeout(function(){window.open($('#downloadTextUp').attr('href'))}, 100);"
     session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
   })
-  
   observeEvent(input$callTextDownloadExplore, {
    output$downloadTextExplore <- downloadHandler(
         filename = function() {
@@ -1482,7 +1897,6 @@ output$plot_time <- renderPlot({
     jsinject <- "setTimeout(function(){window.open($('#downloadTextExplore').attr('href'))}, 100);"
     session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
   })
-  
   observeEvent(input$callTextDownloadAnal,{
                output$downloadTextAnal<- downloadHandler(
                    filename = function() {
@@ -1509,6 +1923,21 @@ output$plot_time <- renderPlot({
                  jsinject <- "setTimeout(function(){window.open($('#downloadText').attr('href'))}, 100);"
                  session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
                })
+  
+  observeEvent(input$callTextDownloadNew, {
+    output$downloadTextNew <- downloadHandler(
+      filename = function() {
+        paste0(loc, '/inst/output/StoredText.txt')
+      },
+      content = function(file) {
+        writeLines(savedText$answers, file)
+      },
+      contentType = "text/csv"
+    )
+    jsinject <- "setTimeout(function(){window.open($('#downloadTextNew').attr('href'))}, 100);"
+    session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
+  })
+  
   
       observeEvent(input$downloadplot, {
         output$downloadplotHIDE <<- downloadHandler(
@@ -1621,7 +2050,10 @@ output$plot_time <- renderPlot({
         observe({
           if (input$close2 > 0) stopApp()
         })
+        observe({
+          if (input$closeNew > 0) stopApp()
+        })
         
     }
-      )
+       )
 }

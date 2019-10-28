@@ -26,7 +26,7 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
   if(is.character(seasonal.dat)==TRUE){
     if(is.null(seasonal.dat)==TRUE | table_exists(seasonal.dat)==FALSE){
@@ -284,30 +284,12 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
   }
     }
 
-
-  if(!exists('logbody')) { 
-    logbody <- list()
-    infoBodyout <- list()
-    functionBodyout <- list()
-    infobody <- list()
-    
-    infobody$rundate <- Sys.Date()
-    infoBodyout$info <- list(infobody)
-    
-    functionBodyout$function_calls <- list()
-    
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-    
-  } 
   create_seaonal_ID_function <- list()
   create_seaonal_ID_function$functionID <- 'create_seaonal_ID'
   create_seaonal_ID_function$args <- c(dat, seasonal.dat, use.location, use.geartype, sp.col)
   create_seaonal_ID_function$kwargs <- list('target'=target)
   create_seaonal_ID_function$output <- deparse(substitute(dataset))
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_seaonal_ID_function)
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
+  log_call(create_seaonal_ID_function)
   
   return(dataset)
 }

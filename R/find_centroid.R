@@ -22,11 +22,11 @@
 
 
 
-find_centroid <- function(dat, gridfile, lon.grid, lat.grid, lon.dat, lat.dat, cat, weight.var) {
+find_centroid <- function(dat, gridfile, lon.dat, lat.dat, cat, lon.grid=NULL, lat.grid=NULL, weight.var=NULL) {
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
   
   
@@ -52,7 +52,7 @@ find_centroid <- function(dat, gridfile, lon.grid, lat.grid, lon.dat, lat.dat, c
       if(mean(int$cent.lon)<0){
         if(length(which(int$cent.lon>mean(int$cent.lon)/4|int$cent.lon<mean(int$cent.lon)*4))>0){
           print(paste('At least one centroid may be inaccurate. Check for consistency in signs.',
-              data.frame(int[which(int$cent.lon>mean(int$cent.lon)/4|int$cent.lon<mean(int$cent.lon)*4),])))
+              paste(data.frame(int[which(int$cent.lon>mean(int$cent.lon)/4|int$cent.lon<mean(int$cent.lon)*4),])), collapse="; "))
         }
       }
     } else {

@@ -21,7 +21,7 @@
 #'  \url{https://cran.r-project.org/web/packages/geosphere/geosphere.pdf}.
 #' @examples
 #' \dontrun{
-#'  MainDataTable$TripDistance <- create_trip_distance(MainDataTable, pollockPortTable, 'TRIP_SEQ', 
+#'  MainDataTable$TripDistance <- create_trip_distance(MainDataTable, 'pollockPortTable', 'TRIP_SEQ', 
 #'                                'DISEMBARKED_PORT', c("LonLat_START_LON","LonLat_START_LAT"),
 #'                                c("LonLat_END_LON","LonLat_END_LAT"), 'EMBARKED_PORT', 'HAUL_SEQ')
 #'  }
@@ -33,7 +33,7 @@ create_trip_distance <- function(dat, PortTable, trip_id, starting_port, startin
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
   out <- data_pull(PortTable)
   PortTable <- out$dat
@@ -46,7 +46,7 @@ create_trip_distance <- function(dat, PortTable, trip_id, starting_port, startin
   if(!any(unique(trimws(dataset[[starting_port]])) %in% unique(port.table[,'Port_Name'])) == TRUE){
     stop('starting_port from the data set and port_name from the port table do not match')
   }
-  
+
   tripsFound <- unique(dataset[[trip_id]])
   C <- match(dataset[[trip_id]], tripsFound)  #C = row ID of those unique items
   
@@ -74,16 +74,16 @@ create_trip_distance <- function(dat, PortTable, trip_id, starting_port, startin
   
   portLLS <- data.frame(matrix(NA, nrow = length(dataset[[startPort]][portStartidx]),  ncol = 2)) 
   portLLE <- data.frame(matrix(NA, nrow = length(dataset[[endPort]][portEndidx]), ncol = 2))  #
-                  a <- sapply(trimws(dataset[[startPort]][portStartidx]), 
+                  temp <- sapply(trimws(dataset[[startPort]][portStartidx]), 
                          function(x) port.table[which(port.table[['Port_Name']] == x), "Port_Long"])
                   #a[lengths(a) == 0] <- NA_character_
-  portLLS[, 1] <- as.numeric(a) #unlist(a)
-  portLLS[, 2] <- sapply(trimws(dataset[[startPort]][portStartidx]), 
-                         function(x) port.table[which(port.table[['Port_Name']] == x), "Port_Lat"])
-  portLLE[, 1] <- sapply(trimws(dataset[[endPort]][portEndidx]), 
-                         function(x) port.table[which(port.table[['Port_Name']] == x), "Port_Long"])
-  portLLE[, 2] <- sapply(trimws(dataset[[endPort]][portEndidx]), 
-                         function(x) port.table[which(port.table[['Port_Name']] == x), "Port_Lat"])
+  portLLS[, 1] <- as.numeric(temp) #unlist(a)
+  portLLS[, 2] <- as.numeric(sapply(trimws(dataset[[startPort]][portStartidx]), 
+                         function(x) port.table[which(port.table[['Port_Name']] == x), "Port_Lat"]))
+  portLLE[, 1] <- as.numeric(sapply(trimws(dataset[[endPort]][portEndidx]), 
+                         function(x) port.table[which(port.table[['Port_Name']] == x), "Port_Long"]))
+  portLLE[, 2] <- as.numeric(sapply(trimws(dataset[[endPort]][portEndidx]), 
+                         function(x) port.table[which(port.table[['Port_Name']] == x), "Port_Lat"]))
   
   portToStart <- geosphere::distGeo(cbind(portLLS[, 1], portLLS[, 2]), 
                                     cbind(dataset[[haulLocalStart[1]]][portStartidx], dataset[[haulLocalStart[2]]][portStartidx]), a = a, f = f)
@@ -122,34 +122,13 @@ create_trip_distance <- function(dat, PortTable, trip_id, starting_port, startin
     
   }
   haulLevelTripDist = tripDist[C]
-  
-  #write(layout.json.ed(trace, "create_TD",  deparse(substitute(dataset)), x = "", 
-  #                     msg = paste("PortTable:",  deparse(substitute(PortTable)), ", trip_id:", trip_id, ", starting_port:", starting_port, ", starting_haul:",  deparse(substitute(starting_haul)), 
-  #                                ", ending_haul:", deparse(substitute(ending_haul)), ", ending_port:", ending_port, ", haul_order:", haul_order, ", a:", a, ", f:", f, sep = "")), 
-  #      paste(getwd(), "/Logs/", Sys.Date(), ".json", sep = ""), append = T)
-  
-  if(!exists('logbody')) { 
-    logbody <- list()
-    infoBodyout <- list()
-    functionBodyout <- list()
-    infobody <- list()
-    
-    infobody$rundate <- Sys.Date()
-    infoBodyout$info <- list(infobody)
-    
-    functionBodyout$function_calls <- list()
-    
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  } 
+
   create_TD_function <- list()
   create_TD_function$functionID <- 'create_TD'
   create_TD_function$args <- c(dat, PortTable, trip_id, starting_port, starting_haul, ending_haul, ending_port, haul_order)
   create_TD_function$kwargs <- list('a'=a, 'f'=f)
   create_TD_function$output <- c('')
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_TD_function)
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
-  
+  log.call(create_TD_function)
+ 
   return(haulLevelTripDist)
 }

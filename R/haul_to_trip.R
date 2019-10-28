@@ -1,9 +1,9 @@
 #' Collapse the dataframe from haul to trip.
 #'
 #' @param dat Data frame containing haul level data. In the fishset_db database, the table will contain the phrase `MainDataTable`
-#' @param dataindex Data frame that contains information on each column of the main data frame. In fishset_db database the table will contain the phrase `MainDataTableInfo`
-#' @param fun.time Time units for function. Defaults to minutes.
-#' @param fun.numeric Defaults to mean
+#' @param project Name of project
+#' @param fun.time Numeric function defining how to collapse temporal data. For example, min, mean, max. Cannot be sum for temporal variables.
+#' @param fun.numeric Numeric function defining how to collapse numeric or temporal data. For example, min, mean, max, sum. Defaults to mean.
 #' @param ... Column(s) that identify the individual trip.
 #' @export haul_to_trip
 #' @return Data frame with each row representing a trip or haul
@@ -14,29 +14,30 @@
 #' 
 #' @examples
 #' \dontrun{
-#'  dat <- haul_to_trip(MainDataTable, 'MainDataTableInfo',min,mean,'PERMIT','DISEMBARKED_PORT')
+#'  dat <- haul_to_trip(pollockMainDataTable, 'pollock',min,mean,'PERMIT','DISEMBARKED_PORT')
 #'  }
 
 
-haul_to_trip <- function(dat, dataindex, fun.time = min, fun.numeric = mean, ...) {
+haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, ...) {#fun.time = min, 
   # Create a column that indicates unique trip levels
   
   #Call in datasets
-  #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
   #Load in dataindex
-  dataIndex <- dataindex_update(dataset, dataindex)
+  
+  dataIndex <- dataindex_update(dataset, pull_info_data(project))
 #    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
 #    single_sql <- paste("select * from ", dataindex, sep='')
 #    dataindex <- DBI::dbGetQuery(fishset_db,  single_sql)
 #    DBI::dbDisconnect(fishset_db)
-
-    argList <- (as.character(match.call(expand.dots = FALSE)$...))
-    
-    print(argList)
+ 
+   if(grepl('input', as.character(match.call(expand.dots = FALSE)$...)[1])==TRUE){
+    argList <- eval(...) } else {
+      argList <- (as.character(match.call(expand.dots = FALSE)$...))
+    }
   
   idmaker = function(vec) {
     return(paste(sort(vec), collapse = ""))
@@ -51,11 +52,11 @@ haul_to_trip <- function(dat, dataindex, fun.time = min, fun.numeric = mean, ...
     int <- int
   }
   
-  
-  drop <- if (length(which(grepl('DUR', names(int[,c(which(as.data.frame(dataIndex[dataIndex[, 'variable_name'] == 
-                          colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Time"))]), ignore.case=T)==T)) == 0 ) {
-          0 } else {
-            which(grepl('DUR', names(int[,c(which(as.data.frame(dataIndex[dataIndex[, 'variable_name'] == 
+
+     drop <- 0
+    if (length(which(grepl('DUR', names(int[,c(which(as.data.frame(dataIndex[dataIndex[, 'variable_name'] == 
+                          colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Time"))]), ignore.case=T)==T)) != 0 ) {
+       drop <-  which(grepl('DUR', names(int[,c(which(as.data.frame(dataIndex[dataIndex[, 'variable_name'] == 
                          colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Time"))]), ignore.case=T)==T)
           }
   # Collapse data based on rowID and defined function
@@ -63,13 +64,13 @@ haul_to_trip <- function(dat, dataindex, fun.time = min, fun.numeric = mean, ...
    
     #Nothing listed
         if(length(which(is.na(as.data.frame(
-          dataIndex[dataIndex[, 'variable_name'] %in% colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == TRUE)))>0) {
+          dataIndex[dataIndex[, 'variable_name'] %in% colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == TRUE)))>0) 
           out <- cbind(out, 
                       stats::aggregate(int[,c(which(is.na(as.data.frame(dataIndex[dataIndex[, 'variable_name'] %in% 
                                                       colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == TRUE)), 
                                              which(colnames(int)=='rowID'))], 
                                         list(int$rowID), FUN = head,  1)[,-1])
-        } 
+         
     #Time - not duration
       if(length(which(as.data.frame(
         dataIndex[dataIndex[, 'variable_name'] %in% colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Time"))>0) {
@@ -99,7 +100,7 @@ haul_to_trip <- function(dat, dataindex, fun.time = min, fun.numeric = mean, ...
                                                  colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Time"))][-
                                     which(grepl('dur', names(int[,c(which(as.data.frame(dataIndex[dataIndex[, 'variable_name'] %in% 
                                      colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Time"))]), 
-                                     ignore.case=T)==FALSE)]), rowID=int$rowID), list(int$rowID), match.fun(fun.time), na.rm = TRUE))[,-1])
+                                     ignore.case=T)==FALSE)]), rowID=int$rowID), list(int$rowID), match.fun(fun.numeric), na.rm = TRUE))[,-1])
       }
     #Other numeric  
     if(length(which(as.data.frame(
@@ -108,7 +109,7 @@ haul_to_trip <- function(dat, dataindex, fun.time = min, fun.numeric = mean, ...
                    stats::aggregate(int[,c(which(as.data.frame(dataIndex[dataIndex[, 'variable_name'] %in% 
                                                    colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Other Numeric"), 
                                            which(colnames(int)=='rowID'))], 
-                  list(int$rowID), match.fun(fun.numeric), na.action = na.pass)[,-1])
+                  list(int$rowID), match.fun(fun.numeric), na.rm=T)[,-1])
     }
     #Latitude
     if(length(which(as.data.frame(
@@ -119,7 +120,7 @@ haul_to_trip <- function(dat, dataindex, fun.time = min, fun.numeric = mean, ...
                                            which(colnames(int)=='rowID'))], 
                   list(int$rowID),  FUN = head, 1)[,-1])
     }
-    #Coded
+    #Coded numeric
     if(length(which(as.data.frame(
         dataIndex[dataIndex[, 'variable_name'] %in% colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Code Numeric"))>0) {
       out <- cbind(out, 
@@ -137,7 +138,7 @@ haul_to_trip <- function(dat, dataindex, fun.time = min, fun.numeric = mean, ...
                                            which(colnames(int)=='rowID'))], 
               list(int$rowID),  FUN = head, 1)[,-1])
     }
-    #Coded
+    #Coded string
     if(length(which(as.data.frame(
       dataIndex[dataIndex[, 'variable_name'] %in% colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Code String"))>0) {
       out <- cbind(out, 
@@ -160,28 +161,12 @@ haul_to_trip <- function(dat, dataindex, fun.time = min, fun.numeric = mean, ...
   out <- data.frame(out)
 
     
-  if(!exists('logbody')) { 
-    logbody <- list()
-    infoBodyout <- list()
-    functionBodyout <- list()
-    infobody <- list()
-    
-    infobody$rundate <- Sys.Date()
-    infoBodyout$info <- list(infobody)
-    
-    functionBodyout$function_calls <- list()
-    
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  } 
-  haul_to_trip_function <- list()
+   haul_to_trip_function <- list()
    haul_to_trip_function$functionID <- 'haul_to_trip'
    haul_to_trip_function$args <- c(dat, deparse(substitute(dataindex)))
-   haul_to_trip_function$kwargs <- list(fun.time, deparse(substitute(fun.numeric)), ...)
+   haul_to_trip_function$kwargs <- list(deparse(substitute(fun.numeric)), ...)
    haul_to_trip_function$output <- c(dat)
-   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (haul_to_trip_function)
-   logbody$fishset_run <- list(infoBodyout, functionBodyout)
-   write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-   assign("functionBodyout", value = functionBodyout, pos = 1)
+   log_call(haul_to_trip_function)
    
   return(out)
 }

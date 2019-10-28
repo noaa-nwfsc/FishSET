@@ -209,22 +209,6 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
         DBI::dbDisconnect(fishset_db)
         
      
-       
-
-       if(!exists('logbody')) { 
-         logbody <- list()
-         infoBodyout <- list()
-         functionBodyout <- list()
-         infobody <- list()
-         
-         infobody$rundate <- Sys.Date()
-         infoBodyout$info <- list(infobody)
-         
-         functionBodyout$function_calls <- list()
-         
-         logbody$fishset_run <- list(infoBodyout, functionBodyout)
-         
-       } 
        create_alternative_choice_function <- list()
        create_alternative_choice_function$functionID <- 'create_alternative_choice'
        create_alternative_choice_function$args <- c(dat, deparse(substitute(gridfile)), case, min.haul,
@@ -232,10 +216,8 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
                                                    hull.polygon, remove.na, closest.pt, project)
        create_alternative_choice_function$kwargs <- list('griddedDat'= griddedDat, 'weight.var'= weight.var)
        create_alternative_choice_function$output <- c()
-       functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_alternative_choice_function)
-       logbody$fishset_run <- list(infoBodyout, functionBodyout)
-       write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-       assign("functionBodyout", value = functionBodyout, pos = 1)
+       
+       log.call(create_alternative_choice_function)
 }                                                                                                                                                                                                                           
    
 

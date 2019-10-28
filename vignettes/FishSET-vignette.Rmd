@@ -185,7 +185,7 @@ Data management functions provide tools for:
      check_model_data  Checks for presence of NAs, NaNs and Inf in model data. 
   Other helpful functions
      
-     degree            Convert lat/long to decimal format
+     degree            Convert lat/long from degree to decimal format
   
 
 
@@ -231,7 +231,6 @@ Several functions exist that allow users to modify or create vectors and matrice
   Create variables based on:
   
      create_var_num   Defined arithmetic function of two variables.
-     create_var_temp  Duration of time between two temporal variables based on defined time format.
      cpue             Catch per unit effort.
      dummy_var        Vector of TRUE or FALSE the length  (rows) of the data set. 
      dummy_matrix     Matrix with same dimensions at the data set filled with TRUE or FALSE.
@@ -240,8 +239,8 @@ Several functions exist that allow users to modify or create vectors and matrice
   
     create_dist_between Distance between lat/long points, port, and/or centroid of fishing zone/area
     create_mid_haul     Returns the midpoint location (lon/lat) for each haul
+    create_duration     Duration of time between two temporal variables based on defined time format.
     create_startingloc  Returns vector of zone/area at point when choice of where to go next was made. Used with logit_correction likelihood.
-
 
   Trip level data and variables: 
 

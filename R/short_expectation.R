@@ -26,7 +26,7 @@ short_expectations <- function(dat, project, gridfile, catch, defineGroup, temp.
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])

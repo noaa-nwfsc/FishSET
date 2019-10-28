@@ -23,7 +23,7 @@ filter_table <- function(dat, x, exp, project) {
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
   
 
@@ -40,31 +40,14 @@ filter_table <- function(dat, x, exp, project) {
   DBI::dbDisconnect(fishset_db)
   cat('Table saved to fishset_db database')
   
-  
-     if(!exists('logbody')) { 
-       logbody <- list()
-       infoBodyout <- list()
-       functionBodyout <- list()
-       infobody <- list()
-       
-       infobody$rundate <- Sys.Date()
-       infoBodyout$info <- list(infobody)
-       
-       functionBodyout$function_calls <- list()
-       
-       logbody$fishset_run <- list(infoBodyout, functionBodyout)
-    } 
     filter_data_function <- list()
     filter_data_function$functionID <- 'filter_table'
     filter_data_function$args <- c(dat, x, exp, project)
     filter_data_function$kwargs <- list()
     filter_data_function$output <- c('')
     filter_data_function$msg <- filterTable
-    functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (filter_data_function)
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-    write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-    assign("functionBodyout", value = functionBodyout, pos = 1)
-    
+    log_call(filter_data_function)
+     
   print(filterTable)
 }
 
@@ -90,7 +73,7 @@ filter_dat <- function(dat, exp, filterTable) {
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
   
   # NaNs only occurs on Numeric Variables
@@ -108,30 +91,14 @@ filter_dat <- function(dat, exp, filterTable) {
     dataset <- subset(dataset, eval(parse(text = exp)))
      }
   
-    if(!exists('logbody')) { 
-      logbody <- list()
-      infoBodyout <- list()
-      functionBodyout <- list()
-      infobody <- list()
-      
-      infobody$rundate <- Sys.Date()
-      infoBodyout$info <- list(infobody)
-      
-      functionBodyout$function_calls <- list()
-      
-      logbody$fishset_run <- list(infoBodyout, functionBodyout)
-    } 
     filter_dat_function <- list()
     filter_dat_function$functionID <- 'filter_dat'
     filter_dat_function$args <- c(dat, exp, filterTable)
     filter_dat_function$kwargs <- list()
     filter_dat_function$output <- deparse(substitute(dataset))
     filter_dat_function$msg <- paste("Rows have been removed based on", exp)
-    functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (filter_dat_function)
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-    write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-    assign("functionBodyout", value = functionBodyout, pos = 1) 
-        
+    log_call(filter_dat_function)
+    
     return(dataset)
  
 }

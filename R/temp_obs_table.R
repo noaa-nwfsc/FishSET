@@ -26,7 +26,7 @@ temp_obs_table <- function(dat, gridfile, x, lon.grid, lat.grid, lon.dat, lat.da
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
  out <- assignment_column(dataset, gridfile, hull.polygon = TRUE, lon.grid, lat.grid, 
                           lon.dat, lat.dat, cat, closest.pt =FALSE, epsg=NULL)

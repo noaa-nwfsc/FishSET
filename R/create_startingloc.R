@@ -4,7 +4,7 @@
 #'
 #' @param dat  Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
 #' @param gridfile Spatial data. Shape, json, and csv formats are supported.
-#' @param PortTable Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat. Table is generated using the load_port function and saved in the fishset_db database.
+#' @param portTable Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat. Table is generated using the load_port function and saved in the fishset_db database.
 #' @param trip_id Variable in 'dat' to identify unique trips. 
 #' @param haul_order Variable in `dat` containing information on the order that hauls occur within a trip. Can be time, coded variable, etc.
 #' @param starting_port Variable in `dat` to identify port at start of trip
@@ -21,15 +21,14 @@
 #' \dontrun{
 #' MainDataTable$startloc <- create_startingloc(MainDataTable, map2, pollockPortTable, 
 #'                               'TRIP_SEQ','HAUL_SEQ','DISEMBARKED_PORT',
-#'                               "LonLat_START_LON","LonLat_START_LAT", "","", 'NMFS_AREA')
+#'                               "LonLat_START_LON","LonLat_START_LAT", 'NMFS_AREA', "","")
 #' }
 
-create_startingloc <- function(dat, gridfile, PortTable, trip_id, haul_order, starting_port, lon.dat, lat.dat, lon.grid, lat.grid, cat) {
-  
+create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, starting_port, lon.dat, lat.dat, cat, lon.grid=NULL, lat.grid=NULL) {
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
   
   #  in port table
@@ -41,8 +40,8 @@ create_startingloc <- function(dat, gridfile, PortTable, trip_id, haul_order, st
   DBI::dbDisconnect(fishset_db)
   
   port <- assignment_column(dat=port.table, gridfile = gridfile, hull.polygon = FALSE, 
-                            lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = 'LONGITUDE', 
-                            lat.dat = 'LATITUDE', cat = cat, closest.pt = TRUE)
+                            lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = 'Port_Long', 
+                            lat.dat = 'Port_Lat', cat = cat, closest.pt = TRUE)
   
   int.data <- assignment_column(dat=dataset, gridfile = gridfile, hull.polygon = FALSE, 
                                 lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat, 
@@ -59,7 +58,7 @@ create_startingloc <- function(dat, gridfile, PortTable, trip_id, haul_order, st
 
   #Make starting of trips set to zone of starting port  
   if(!is.null(trip_id)){
-       rownumbers <- match(trimws(int.data[tapply(seq_along(int.data[[trip_id]]), int.data[[trip_id]], min), starting_port]), port$PORT)
+       rownumbers <- match(trimws(int.data[tapply(seq_along(int.data[[trip_id]]), int.data[[trip_id]], min), starting_port]), port$Port_Name)
       startingloc[tapply(seq_along(int.data[[trip_id]]), int.data[[trip_id]], min)] <- port[rownumbers, 'ZoneID']
   } else {
     rownumbers <- match(trimws(int.data[1, starting_port]), port$PORT)
@@ -67,30 +66,14 @@ create_startingloc <- function(dat, gridfile, PortTable, trip_id, haul_order, st
   }
   
 
-  if(!exists('logbody')) { 
-    logbody <- list()
-    infoBodyout <- list()
-    functionBodyout <- list()
-    infobody <- list()
-    
-    infobody$rundate <- Sys.Date()
-    infoBodyout$info <- list(infobody)
-    
-    functionBodyout$function_calls <- list()
-    
-    logbody$fishset_run <- list(infoBodyout, functionBodyout)
-    
-  } 
   create_startingloc_function <- list()
   create_startingloc_function$functionID <- 'create_startingloc'
-  create_startingloc_function$args <- c(dat, deparse(substitute(gridfile)), PortTable, trip_id, 
+  create_startingloc_function$args <- c(dat, deparse(substitute(gridfile)), portTable, trip_id, 
                                         haul_order, lon.dat, lat.dat, lon.grid, lat.grid, cat)
   create_startingloc_function$kwargs <- c()
   create_startingloc_function$output <- c()
-  functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (create_startingloc_function)
-  logbody$fishset_run <- list(infoBodyout, functionBodyout)
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-  assign("functionBodyout", value = functionBodyout, pos = 1)
+   
+  log.call(create_startingloc_function)
   
   return(startingloc)
 }                                                                                                                                                                                                                           

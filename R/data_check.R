@@ -22,7 +22,7 @@ data_check <- function(dat, x, dataindex) {
     #Call in main data set
   out <- data_pull(dat)
   dat <- out$dat
-  datset <- out$dataset
+  dataset <- out$dataset
   
   #call in data index
   out <- data_pull(dataindex)
@@ -93,28 +93,13 @@ data_check <- function(dat, x, dataindex) {
               'Use the main_mod function to specify unites for these variables.')
         }
      
-      if(!exists('logbody')) { 
-        logbody <- list()
-        infoBodyout <- list()
-        functionBodyout <- list()
-        infobody <- list()
-        
-        infobody$rundate <- Sys.Date()
-        infoBodyout$info <- list(infobody)
-        
-        functionBodyout$function_calls <- list()
-        
-        logbody$fishset_run <- list(infoBodyout, functionBodyout)
-      } 
+   
         data_check_function <- list()
         data_check_function$functionID <- 'data_check'
         data_check_function$args <- c(dat, x, dataindex)
         data_check_function$kwargs <- list()
         data_check_function$output <- c('')
-      functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- (data_check_function)
-      logbody$fishset_run <- list(infoBodyout, functionBodyout)
-      write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
-      assign("functionBodyout", value = functionBodyout, pos = 1)
-    
+        log_call(data_check_function)
+        
 }
 
