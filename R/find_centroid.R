@@ -22,7 +22,7 @@
 
 
 
-find_centroid <- function(dat, gridfile, lon.dat, lat.dat, cat, lon.grid=NULL, lat.grid=NULL, weight.var=NULL) {
+find_centroid <- function(dat, gridfile, lon.dat=NULL, lat.dat=NULL, cat, lon.grid=NULL, lat.grid=NULL, weight.var=NULL) {
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
