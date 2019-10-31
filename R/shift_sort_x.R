@@ -12,7 +12,6 @@ shift_sort_x <- function(x, ch, y, distance, alts, ab) {
     #' @param ab Number of cost parameters + number of alts
     #' @return d: matrix of choice possibilites and distance
     #' @export
-    #' @examples 
     #'
     
     ch0 <- ch - 1

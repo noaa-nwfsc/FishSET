@@ -36,7 +36,7 @@ summary_stats <- function(dat, x=NULL) {
  #apply(dataset, 2, function(x) paste("UniqueObs:", length(unique(x))))
   
   
-  if(FishSET:::is_empty(x)){
+  if(is_empty(x)){
     as.data.frame(as.matrix(rbind(summary(dataset, digits=2), 
                                   apply(dataset, 2, function(x) paste("UniqueObs:", length(unique(x)))),
                                   apply(dataset, 2, function(x) paste("No. 0's:", length(which(x==0))))

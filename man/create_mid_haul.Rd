@@ -4,7 +4,8 @@
 \alias{create_mid_haul}
 \title{Calculate latitude and longitude of haul midpoint}
 \usage{
-create_mid_haul(dat, start = c("lon", "lat"), end = c("lon", "lat"))
+create_mid_haul(dat, start = c("lon", "lat"), end = c("lon", "lat"),
+  name = "mid_haul")
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
@@ -12,6 +13,11 @@ create_mid_haul(dat, start = c("lon", "lat"), end = c("lon", "lat"))
 \item{start}{Starting location of haul. Must be specificied as vector containing longitudinal data and vector containing latitudinal data separated by comma.}
 
 \item{end}{Ending location of haul. Must be specificied as vector containing longitudinal data and vector containing latitudinal data separated by comma.}
+
+\item{name}{Name of new variable. Defaults to `mid_haul`}
+}
+\value{
+Main data frame with two new variables added, lat and lon of midpoint.
 }
 \description{
 Calculate latitude and longitude of haul midpoint
@@ -21,7 +27,8 @@ Returns midpoint of each haul. Each row of data must be a unique haul. Requires 
 }
 \examples{
 \dontrun{
-MainDataTable$haulMidPoint <- create_mid_haul(MainDataTable, start = c("LonLat_START_LON", 
-                         "LonLat_START_LAT"), end = c("LonLat_END_LON", "LonLat_END_LAT")) 
+MainDataTable <- create_mid_haul(MainDataTable, start = c("LonLat_START_LON", 
+                "LonLat_START_LAT"), end = c("LonLat_END_LON", "LonLat_END_LAT"),
+                 name='mid_haul') 
 }
 }

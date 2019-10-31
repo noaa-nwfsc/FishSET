@@ -17,8 +17,3 @@ View and select which validation checks to run
 \details{
 Opens an interactive table that allows uses to select which data validation checks to run by clicking check boxes.
 }
-\examples{
-\dontrun{
-select_checks('pcodMainDataTable', 'pcod')
-}
-}

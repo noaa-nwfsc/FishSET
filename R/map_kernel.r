@@ -1,5 +1,4 @@
-map_kernel <- function(type, latlon, group = NULL, facet = FALSE, 
-    minmax = NULL) {
+map_kernel <- function(type, latlon, group = NULL, facet = FALSE, minmax = NULL) {
     #' Wrapper function to map kernel densities
     #'
     #' Wrapper function to map kernel densities using ggplot2
@@ -40,7 +39,7 @@ map_kernel <- function(type, latlon, group = NULL, facet = FALSE,
     #' }    
     
 ## currently outputs to FishSET not file (could include dirout as argument)
-library('ggplot2')
+requireNamespace('ggplot2')
 world <- map_data("world")
   
 datatomap <- as.data.frame(latlon)
@@ -96,7 +95,7 @@ if (is.null(group) == FALSE & facet == FALSE) {
 mapout <- ggplot() +
     geom_map(data=world, map=world, aes(x=long, y=lat, map_id=region),
         fill="grey", color="black", size=0.375) +
-    ggplot2::geom_point(data=datatomap,aes(x=lon,y=lat, colour = groupv), 
+    geom_point(data=datatomap,aes(x=lon,y=lat, colour = groupv), 
         size=0.375, alpha = 0.25) +
     xlim(minlon,maxlon) + ylim(minlat,maxlat) +
     ggtitle("Points") + 

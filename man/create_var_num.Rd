@@ -13,7 +13,7 @@ create_var_num(dat, x, y, method, name = "create_var_num")
 
 \item{y}{variable  Variable will be the denominator if `method` is division.}
 
-\item{method}{Arithmetic expression. Options include: addition, subtraction, multiplication, and division.}
+\item{method}{Arithmetic expression. Options include: sum, addition, subtraction, multiplication, and division.}
 
 \item{name}{Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.}
 }

@@ -4,9 +4,9 @@
 \alias{assignment_column}
 \title{Assign observations to zone or area}
 \usage{
-assignment_column(dat, gridfile, hull.polygon = c(TRUE, FALSE), lon.grid,
-  lat.grid, lon.dat, lat.dat, cat, closest.pt = c(TRUE, FALSE),
-  epsg = NULL)
+assignment_column(dat, gridfile, hull.polygon = c(TRUE, FALSE), lon.dat,
+  lat.dat, cat, closest.pt = c(TRUE, FALSE), lon.grid = NULL,
+  lat.grid = NULL, epsg = NULL)
 }
 \arguments{
 \item{dat}{Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.}
@@ -15,10 +15,6 @@ assignment_column(dat, gridfile, hull.polygon = c(TRUE, FALSE), lon.grid,
 
 \item{hull.polygon}{T/F If TRUE, creates convex hull polygon. Use if spatial data creating polygon are sparse or irregular.}
 
-\item{lon.grid}{Column containing longitude data in gridfile.}
-
-\item{lat.grid}{lColumn containing latitude data in gridfile.}
-
 \item{lon.dat}{Column containing longitude data in main data frame.}
 
 \item{lat.dat}{Column containing latitude data in main data frame.}
@@ -26,6 +22,10 @@ assignment_column(dat, gridfile, hull.polygon = c(TRUE, FALSE), lon.grid,
 \item{cat}{Column in gridfile that identifies the individual areas or zones. If gridfile is class sf, `cat` should be name of list containing information on zones.}
 
 \item{closest.pt}{TRUE/FALSE If true, zone ID identified as the closest polygon to the point.}
+
+\item{lon.grid}{If gridfile is not shape or json file, specify column containing longitude data in gridfile.}
+
+\item{lat.grid}{If gridfile is not shape or json file, specify column containing latitude data in gridfile.}
 
 \item{epsg}{EPSG number. See \url{http://spatialreference.org/} to help identify optimal epsg number.}
 }

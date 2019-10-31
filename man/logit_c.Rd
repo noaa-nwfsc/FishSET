@@ -14,7 +14,8 @@ The alternative-specific parameters and travel-distance parameters
 are of length (# of alternative-specific variables) and (# of
 travel-distance variables) respectively.}
 
-\item{dat}{Data matrix, see output from shift_sort_x, alternatives with distance.}
+\item{dat}{Data matrix, see output from shift_sort_x, alternatives with
+distance.}
 
 \item{otherdat}{Other data used in model (as a list containing objects
 `intdat` and `griddat`). \cr \cr
@@ -39,9 +40,11 @@ alternatives because each variable may have been estimated in a
 previous procedure (i.e. a construction of expected catch). \cr \cr
 If there are no other data, the user can set `griddat` as ones with
 dimension (number of observations) by (number of alternatives) and
-`intdat` variables as ones with dimension (number of observations) by (unity}
+`intdat` variables as ones with dimension (number of observations) by
+(unity).}
 
-\item{alts}{Number of alternative choices in model as length 1 vector (num).}
+\item{alts}{Number of alternative choices in model as length equal to
+unity (as a numeric vector).}
 
 \item{project}{Name of project}
 
@@ -55,6 +58,17 @@ ld: negative log likelihood
 \description{
 Conditional logit likelihood
 }
+\section{Graphical examples}{
+ 
+\if{html}{
+\figure{logit_c_grid.png}{options: width="40\%" 
+alt="Figure: logit_c_grid.png"}
+\cr
+\figure{logit_c_travel.png}{options: width="40\%" 
+alt="Figure: logit_c_travel.png"}
+}
+}
+
 \examples{
 \dontrun{
 data(zi)
@@ -62,25 +76,25 @@ data(catch)
 data(choice)
 data(distance)
 data(si)
-data(prices)
 
 optimOpt <- c(1000,1.00000000000000e-08,1,0)
 
-methodname <- "BFGS"
+methodname <- 'BFGS'
 
 kk <- 4
 
 si2 <- matrix(sample(1:5,dim(si)[1]*kk,replace=TRUE),dim(si)[1],kk)
 zi2 <- sample(1:10,dim(zi)[1],replace=TRUE)
 
-otherdat <- list(griddat=list(predicted_catch=as.matrix(predicted_catch),si2=as.matrix(si2)),
-		intdat=list(zi=as.matrix(zi),zi2=as.matrix(zi2)))
+otherdat <- list(griddat=list(predicted_catch=as.matrix(predicted_catch),
+    si2=as.matrix(si2)), intdat=list(zi=as.matrix(zi),
+    zi2=as.matrix(zi2)))
 
 initparams <- c(2.5, 2, -1, -2)
 
 func <- logit_c
 
 results <- discretefish_subroutine(catch,choice,distance,otherdat,
-initparams,optimOpt,func,methodname)
+    initparams,optimOpt,func,methodname)
 }
 }

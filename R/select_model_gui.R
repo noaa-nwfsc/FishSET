@@ -20,7 +20,9 @@
 #' }
 
 select_model <- function(table, overwrite.table=TRUE){
-  library(shiny)
+  
+  requireNamespace(shiny)
+  
   if(!exists('loc')){
     loc = getwd()
   } else {

@@ -3,10 +3,10 @@
 #'
 #' @param dat Name of table in database containing model measures of fit
 #' @param project If FALSE, appends model selection to out.mod table. If true, overwrites new table with model selection columns. Set to TRUE if models are deleted or selected models are changed.
+#' @import shiny 
 #' @importFrom DBI dbExistsTable dbDisconnect dbConnect dbRemoveTable dbExecute dbGetQuery
 #' @importFrom DT DTOutput renderDT JS
 # @import shinyjs 
-#' @import shiny 
 #' @importFrom shinyjs useShinyjs reset
 #' @export
 #' @details Opens an interactive session to specify data and parameters for models. Once all parameters have been chosen, select the 'save model and add new model' button
@@ -20,7 +20,7 @@
 model_design <- function(dat, project){
 
 #library(shinyjs)
-  library(shiny)
+  requireNamespace(shiny)
  #resettable
 
 #dat <- pcodMainDataTable
@@ -130,11 +130,11 @@ runApp(list(
           #Main Data frame
           fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
           if(is.character(dat)==TRUE){
-               if(is.null(dat)==TRUE | FishSET:::table_exists(dat)==FALSE){
+               if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
                     print(DBI::dbListTables(fishset_db))
                     stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
                } else {
-                    dat <- FishSET:::table_view(dat)
+                    dat <- table_view(dat)
                }
           } else {
                dat <- dat
@@ -165,7 +165,7 @@ runApp(list(
 
           output$gridvariables <- renderUI ({
                tagList(
-           #    if(FishSET:::is_empty(gridVariablesInclude)) {
+           #    if(is_empty(gridVariablesInclude)) {
                     conditionalPanel(
                          condition="input.model=='epm_normal' || input.model=='epm_lognormal' || input.model=='epm_weibull' || input.model=='logit_correction'",
                                    selectInput("gridVariablesInclude", label = "catch-function variables", multiple=TRUE,

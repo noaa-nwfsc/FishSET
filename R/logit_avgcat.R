@@ -46,6 +46,7 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
     #' @return ld: negative log likelihood
     #' @export
     #' @examples
+    #' \dontrun{
     #' data(zi)
     #' data(catch)
     #' data(choice)
@@ -68,7 +69,7 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
     #'
     #' results <- discretefish_subroutine(catch,choice,distance,otherdat,
     #'     initparams,optimOpt,func,methodname)
-    #'
+    #' }
     #' @section Graphical examples: 
     #' \if{html}{
     #' \figure{logit_avgcat_grid.png}{options: width="40\%" 

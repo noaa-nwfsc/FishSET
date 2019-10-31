@@ -48,7 +48,7 @@ outlier_table <- function(dat, x) {
       min = round(min(temp[, x], na.rm = T),2), 
       max = round(max(temp[, x], na.rm = T),2), 
       NAs = sum(length(which(is.na(temp[, x])))), 
-      skew = round(FishSET:::skewness(temp[, x], na.rm=T),2)
+      skew = round(skewness(temp[, x], na.rm=T),2)
     )}
   # numeric. Cannot check outliers if not.
   if (is.numeric(dataset[, x]) == T) {
@@ -61,7 +61,7 @@ outlier_table <- function(dat, x) {
                             min = round(min(dataset[, x], na.rm = T), 2), 
                             max = round(max(dataset[,x], na.rm = T),2), 
                             NAs = sum(length(which(is.na(dataset[, x])))), 
-                            skew = round(FishSET:::skewness(dataset[,x], na.rm=T), 2))
+                            skew = round(skewness(dataset[,x], na.rm=T), 2))
     # Row 2 5-95% quantile
     temp <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.95, na.rm=TRUE) & 
                       dataset[, x] > stats::quantile(dataset[, x], 0.05, na.rm=TRUE), ]
@@ -130,7 +130,7 @@ outlier_table <- function(dat, x) {
 
 
 ##---------------------------##
-outlier_plot <- function(dat, x, dat.remove = "none", x.dist = "normal", output.screen =TRUE) {
+outlier_plot <- function(dat, x, dat.remove, x.dist, output.screen=FALSE){
   #' Evaluate outliers through plots
   #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
   #' @param x Column in dataf rame to check for outliers
@@ -139,6 +139,7 @@ outlier_plot <- function(dat, x, dat.remove = "none", x.dist = "normal", output.
   #' @param output.screen If true, return plots to the screen. If false, returns plot to the inst/output folder as png file.
   #' @keywords outlier
   #' @importFrom graphics points
+  #' @importFrom stats dnorm dpois dweibull rnorm dbinom dlnorm dexp dnbinom
   # @importFrom ggpubr annotate_figure text_grob
   #' @import ggplot2
   #' @details  The function returns three plots, the data, a probability plot, and a Q-Q plot. The data plot is the value of
@@ -171,7 +172,7 @@ outlier_plot <- function(dat, x, dat.remove = "none", x.dist = "normal", output.
   #' outlier_plot(MainDataTable, 'Haul', dat.remove='mean_2SD', x.dist='normal', output.screen=TRUE)
   #' }
   
-  library(ggplot2)
+  requireNamespace(ggplot2)
   
   #Call in datasets
   out <- data_pull(dat)
@@ -217,9 +218,10 @@ outlier_plot <- function(dat, x, dat.remove = "none", x.dist = "normal", output.
                      axis.title=element_text(size=8))                                                                                          
     ##Plot 1!
     distplot <- function(gdf,first, second){        
-      ggplot(gdf, aes_string(x=first, y=second)) + geom_point(color = 'red', na.rm=TRUE) + 
-        geom_point(data=dat_sub,aes_string(x=first,y=second), color='blue',na.rm=TRUE)+
-        labs(x='Data row')+ mytheme
+      ggplot(gdf, aes_string(x=first, y=second)) + 
+        geom_point(color = 'red', na.rm=TRUE) + 
+        geom_point(data=dat_sub,aes_string(x=first,y=second), color='blue', na.rm=TRUE) +
+        labs(x='Data row') + mytheme
     }
     p1 <- distplot(dataset, 'y', x)
     
@@ -230,11 +232,13 @@ outlier_plot <- function(dat, x, dat.remove = "none", x.dist = "normal", output.
       mytheme  
     if (x.dist == "normal") {    
       p2 <- p2 + stat_function(fun = dnorm, colour = "blue", 
-                               args = list(mean = mean(dat_sub[,x], na.rm = TRUE), sd = sd(dat_sub[,x], na.rm = TRUE)))
+                               args = list(mean = mean(dat_sub[,x], na.rm = TRUE), 
+                                           sd = sd(dat_sub[,x], na.rm = TRUE)))
     } else if (x.dist == "lognormal") {
       # lognormal
       p2 <- p2 + stat_function(fun = dlnorm, colour = "blue", 
-                               args = list(mean = mean(log(dat_sub[,x]), na.rm = TRUE), sd = sd(log(dat_sub[,x]), na.rm = TRUE)))
+                               args = list(mean = mean(log(dat_sub[,x]), na.rm = TRUE), 
+                                           sd = sd(log(dat_sub[,x]), na.rm = TRUE)))
     } else if (x.dist == "exponential") {
       # Exponential
       p2 <- p2 + stat_function(fun = dexp, colour = "blue", 
@@ -297,7 +301,7 @@ outlier_plot <- function(dat, x, dat.remove = "none", x.dist = "normal", output.
     plot(fig)
    # Close the pdf file
     if (output.screen == FALSE) {
-      ggplot2::ggsave(file="outlier_plot.png", path=paste0(getwd(),"/inst/output/"))
+      ggsave(file="outlier_plot.png", path=paste0(getwd(),"/inst/output/"))
       dev.off()
     }
     

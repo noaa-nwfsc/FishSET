@@ -29,6 +29,7 @@ explore_startparams <- function(space, startsr, dev, func, catch, choice,
     #'     likelihood value) \cr
     #' @export
     #' @examples
+    #' \dontrun{
     #' data(zi)
     #' data(catch)
     #' data(choice)
@@ -60,7 +61,7 @@ explore_startparams <- function(space, startsr, dev, func, catch, choice,
     #' results$newstart
     #' min(unlist(results$saveLLstarts))
     #' match(min(unlist(results$saveLLstarts)),unlist(results$saveLLstarts))
-    #'
+    #'}
     
     fr <- func
     # e.g. clogit

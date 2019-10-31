@@ -158,7 +158,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   startingloc <- Alt[['startingloc']]
   units <- Alt[["altChoiceUnits"]]
   
-   if (FishSET:::is_empty(gridVariablesInclude)) {
+   if (is_empty(gridVariablesInclude)) {
     gridVariablesInclude = as.data.frame(matrix(1, nrow=nrow(choice), ncol=max(as.numeric(as.factor(unlist(choice))))))
    } else {
     gridVariablesInclude
@@ -170,7 +170,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
     #bCHeader <- list(bCHeader, newDumV)
   }
   # 
-  if (FishSET:::is_empty(indeVarsForModel)) {
+  if (is_empty(indeVarsForModel)) {
     bCHeader <- list(units=units, gridVariablesInclude=gridVariablesInclude, newDumV=newDumV, indeVarsForModel = as.data.frame(rep(1, nrow(choice))))
     bColumnsWant <- ""
     bInterAct <- ""
@@ -227,7 +227,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
       # Port (isfield(data,'isPort') && data(v1).isPort){ Data from dataframe
       if (any(grepl("Port", alt_var, ignore.case = TRUE) == T)) {
         if (is.data.frame(dataset)) {
-          if (any(FishSET:::is_empty(dataset[[alt_var]]))) {
+          if (any(is_empty(dataset[[alt_var]]))) {
             stop("alt_var does not exist in dataset")
           }
           
@@ -289,10 +289,10 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
           stop("Define both lat and long in occasion variable.")
         }
         
-        if (any(FishSET:::is_empty(dataset[[occasion[1]]]))) {
+        if (any(is_empty(dataset[[occasion[1]]]))) {
           stop("occasion does not exist in dataset")
         }
-        if (any(FishSET:::is_empty(dataset[[occasion[2]]]))) {
+        if (any(is_empty(dataset[[occasion[2]]]))) {
           stop("occasion does not exist in dataset")
         }
         toXY2 <- data.frame(dataset[[occasion[1]]][which(dataZoneTrue == 1)], 

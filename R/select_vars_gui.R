@@ -17,12 +17,17 @@
 #' }
 
 select_vars <- function(dat, project){
-  library(shiny)
+  requireNamespace(shiny)
+  
   if(!exists('loc')){
     loc = getwd()
   } else {
     loc = loc
   }
+
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset
   
   shinyApp(
     ui = fluidPage(

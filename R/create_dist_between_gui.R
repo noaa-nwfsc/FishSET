@@ -4,13 +4,14 @@ create_dist_between_for_gui <- function(dat, start, end, units, portTable=NULL, 
   #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
   #' @param start  Starting location. Should be a port, lat/long location, or the centroid of zonal assignment. 
   #' @param end  Ending location. Should be a port, lat/long location, or the centroid of the fishing zone or area. 
-  #' @param portTable
-  #' @param gridfile
-  #' @param lon.dat
-  #' @param lat.dat
-  #' @param lon.grid
-  #' @param lat.grid
-  #' @param cat
+  #' @param units Unit of distance (miles, kilometers)
+  #' @param portTable Data table containing port data
+  #' @param gridfile Grid file
+  #' @param lon.dat Variable containing longitude from main dataset
+  #' @param lat.dat Variable containing latitude from main dataset
+  #' @param lon.grid Variable containing longitude from main grid file
+  #' @param lat.grid Variable containing latitude from main grid file
+  #' @param cat Variable in grid file designating column containing zones or areas.
   #' @export
   #' @importFrom geosphere distGeo midPoint
   #' @importFrom jsonlite  toJSON

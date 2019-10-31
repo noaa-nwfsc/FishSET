@@ -4,16 +4,16 @@
 \alias{haul_to_trip}
 \title{Collapse the dataframe from haul to trip.}
 \usage{
-haul_to_trip(dat, dataindex, fun.time = min, fun.numeric = mean, ...)
+haul_to_trip(dat, project, fun.numeric = mean, fun.time = mean, ...)
 }
 \arguments{
 \item{dat}{Data frame containing haul level data. In the fishset_db database, the table will contain the phrase `MainDataTable`}
 
-\item{dataindex}{Data frame that contains information on each column of the main data frame. In fishset_db database the table will contain the phrase `MainDataTableInfo`}
+\item{project}{Name of project}
 
-\item{fun.time}{Time units for function. Defaults to minutes.}
+\item{fun.numeric}{Numeric function defining how to collapse numeric or temporal data. For example, min, mean, max, sum. Defaults to mean.}
 
-\item{fun.numeric}{Defaults to mean}
+\item{fun.time}{Numeric function defining how to collapse temporal data. For example, min, mean, max. Cannot be sum for temporal variables.}
 
 \item{...}{Column(s) that identify the individual trip.}
 }
@@ -31,6 +31,6 @@ For instance, the mean value of the numeric observations. For non-numeric and no
 }
 \examples{
 \dontrun{
- dat <- haul_to_trip(MainDataTable, 'MainDataTableInfo',min,mean,'PERMIT','DISEMBARKED_PORT')
+ dat <- haul_to_trip(pollockMainDataTable, 'pollock',min,mean,'PERMIT','DISEMBARKED_PORT')
  }
 }

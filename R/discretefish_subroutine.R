@@ -73,29 +73,29 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
   starts2 <- initparams
 
   ### Data needs will vary by the likelihood function ###
-  if(grepl('epm', FishSET:::find_original_name(fr))){
+  if(grepl('epm', find_original_name(fr))){
     otherdat <- list(griddat=list(griddatfin=x[['bCHeader']][['gridVariablesInclude']]), intdat=list(x[['bCHeader']][['indeVarsForModel']]), pricedat=x[['epmDefaultPrice']])
     nexpcatch <- 1
-    expname <-  FishSET:::find_original_name(fr)
-  }  else if(FishSET:::find_original_name(fr)=='logit_correction'){
+    expname <-  find_original_name(fr)
+  }  else if(find_original_name(fr)=='logit_correction'){
     otherdat <- list(griddat=list(griddatfin=data.frame(rep(1, nrow(choice)))),#x[['bCHeader']][['gridVariablesInclude']]), 
                      intdat=list(x[['bCHeader']][['indeVarsForModel']]),
                      startloc=x[['startloc']],
                      polyn=x[['polyn']])  
     nexpcatch <- 1
-    expname <-  FishSET:::find_original_name(fr)
-    } else if(FishSET:::find_original_name(fr)=='logit_avgcat'){
+    expname <-  find_original_name(fr)
+    } else if(find_original_name(fr)=='logit_avgcat'){
     otherdat <- list(griddat=list(griddatfin=data.frame(rep(1, nrow(choice)))),#x[['bCHeader']][['gridVariablesInclude']]), 
                                   intdat=list(x[['bCHeader']][['indeVarsForModel']]))  
     nexpcatch <- 1
-    expname <-  FishSET:::find_original_name(fr)
-  } else if(FishSET:::find_original_name(fr)=='logit_c'){
+    expname <-  find_original_name(fr)
+  } else if(find_original_name(fr)=='logit_c'){
     nexpcatch <- length(names(x[['gridVaryingVariables']]))-2
   }
   #Begin loop  
   for(i in 1:nexpcatch){
-    if(FishSET:::find_original_name(fr)=='logit_c'){
-    expname <- paste0(names(x[['gridVaryingVariables']])[i],'_',FishSET:::find_original_name(fr))
+    if(find_original_name(fr)=='logit_c'){
+    expname <- paste0(names(x[['gridVaryingVariables']])[i],'_', find_original_name(fr))
     otherdat <- list(griddat=list(griddatfin=x[['gridVaryingVariables']][[names(x[['gridVaryingVariables']])[i]]]),intdat=list(x[['bCHeader']][['indeVarsForModel']]))
     }
 
@@ -255,7 +255,7 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
   if(select.model==TRUE){
     #  rownames(out.mod)=c("AIC", "AICc", "BIC", "PseudoR2")
     #   print(DT::datatable(t(round(out.mod, 5)), filter='top'))
-    library(shiny)
+    requireNamespace(shiny)
     shiny::runApp(list(
       ui = shiny::basicPage(
         

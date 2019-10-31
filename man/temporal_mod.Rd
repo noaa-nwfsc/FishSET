@@ -36,8 +36,8 @@ For more information on formats, see \url{https://www.stat.berkeley.edu/~s133/da
 \examples{
  
 \dontrun{
-Date_Landed_YMD <- temp_mod(MainDataTable, 'DATE_LANDED', define.format = '\%Y\%m\%d') 
-Date_Landed_year <- temp_mod(MainDataTable, 'DATE_LANDED', define.format = 'year')
+Date_Landed_YMD <- temporal_mod(MainDataTable, 'DATE_LANDED', define.format = '\%Y\%m\%d') 
+Date_Landed_year <- temporal_mod(MainDataTable, 'DATE_LANDED', define.format = 'year')
 }
 }
 \keyword{Date}

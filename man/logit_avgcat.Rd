@@ -14,7 +14,8 @@ The average-catch and travel-distance parameters are of length (# of
 average-catch variables)*(k-1) and (# of travel-distance variables
 respectively, where (k) equals the number of alternatives.}
 
-\item{dat}{Data matrix, see output from shift_sort_x, alternatives with distance.}
+\item{dat}{Data matrix, see output from shift_sort_x, alternatives with
+distance.}
 
 \item{otherdat}{Other data used in model (as a list containing objects
 `intdat` and `griddat`). \cr \cr
@@ -44,7 +45,8 @@ If there are no other data, the user can set `griddat` as ones with
 dimension (number of observations) by (unity) and `intdat` variables
 as ones with dimension (number of observations) by (unity).}
 
-\item{alts}{Number of alternative choices in model as length 1 vector (num).}
+\item{alts}{Number of alternative choices in model as length equal to
+unity (as a numeric vector).}
 
 \item{project}{Name of project}
 
@@ -58,6 +60,17 @@ ld: negative log likelihood
 \description{
 Average catch multinomial logit procedure
 }
+\section{Graphical examples}{
+ 
+\if{html}{
+\figure{logit_avgcat_grid.png}{options: width="40\%" 
+alt="Figure: logit_avgcat_grid.png"}
+\cr
+\figure{logit_avgcat_travel.png}{options: width="40\%" 
+alt="Figure: logit_avgcat_travel.png"}
+}
+}
+
 \examples{
 \dontrun{
 data(zi)
@@ -68,19 +81,19 @@ data(si)
 
 optimOpt <- c(1000,1.00000000000000e-08,1,0)
 
-methodname <- "BFGS"
+methodname <- 'BFGS'
 
 si2 <- sample(1:5,dim(si)[1],replace=TRUE)
 zi2 <- sample(1:10,dim(zi)[1],replace=TRUE)
 
 otherdat <- list(griddat=list(si=as.matrix(si),si2=as.matrix(si2)),
-intdat=list(zi=as.matrix(zi),zi2=as.matrix(zi2)))
+    intdat=list(zi=as.matrix(zi),zi2=as.matrix(zi2)))
 
 initparams <- c(1.5, 1.25, 1.0, 0.9, 0.8, 0.75, -1, -0.5)
 
 func <- logit_avgcat
 
-results <- discretefish_subroutine(catch,choice,distance,
-otherdat,initparams,optimOpt,func,methodname)
+results <- discretefish_subroutine(catch,choice,distance,otherdat,
+    initparams,optimOpt,func,methodname)
 }
 }

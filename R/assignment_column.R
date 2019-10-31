@@ -23,7 +23,8 @@
 
 
 assignment_column <- function(dat, gridfile, hull.polygon = c(TRUE, FALSE),  
-                              lon.dat, lat.dat, cat, closest.pt = c(TRUE, FALSE), lon.grid=NULL, lat.grid=NULL, epsg=NULL) {
+                              lon.dat, lat.dat, cat, closest.pt = c(TRUE, FALSE), 
+                              lon.grid=NULL, lat.grid=NULL, epsg=NULL) {
   
   #Call in data sets
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")

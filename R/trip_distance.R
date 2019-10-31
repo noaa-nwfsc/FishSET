@@ -113,11 +113,11 @@ create_trip_distance <- function(dat, PortTable, trip_id, starting_port, startin
   
   # now try to sum all dist for one trip
   
-  sumToHaul <- FishSET:::accumarray(C, haulEndToStart)  #summs the port to 1st haul + end  first haul to start of next haul
+  sumToHaul <- accumarray(C, haulEndToStart)  #summs the port to 1st haul + end  first haul to start of next haul
   if (any(haulLocalStart %in% haulLocalEnd)) {
     tripDist <- rowSums(cbind(sumToHaul, portToEnd), na.rm = T) # need to make a haul level tripdist variable
   } else {
-   sumInnerDist <- FishSET:::accumarray(C, innerHaulDist)
+   sumInnerDist <- accumarray(C, innerHaulDist)
     tripDist <- rowSums(cbind(sumToHaul, sumInnerDist, portToEnd), na.rm = T)  
     
   }

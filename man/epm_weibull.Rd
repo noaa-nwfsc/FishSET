@@ -17,7 +17,8 @@ sigma(s) are either of length equal to unity or length (k) if the
 analyst is estimating location-specific catch sigma parameters. The
 scale parameter is of length equal to unity.}
 
-\item{dat}{Data matrix, see output from shift_sort_x, alternatives with distance.}
+\item{dat}{Data matrix, see output from shift_sort_x, alternatives with
+distance.}
 
 \item{otherdat}{Other data used in model (as a list containing objects
 `intdat`, `griddat`, and `prices`). \cr \cr
@@ -49,7 +50,8 @@ of observations) by (unity). \cr \cr
 The variable `prices` is a matrix of dimension (number of
 observations) by (unity), corresponding to prices.}
 
-\item{alts}{Number of alternative choices in model as length 1 vector (num).}
+\item{alts}{Number of alternative choices in model as length equal to
+unity (as a numeric vector).}
 
 \item{project}{Name of project}
 
@@ -63,6 +65,20 @@ ld: negative log likelihood
 \description{
 Expected profit model weibull catch function
 }
+\section{Graphical examples}{
+ 
+\if{html}{
+\figure{epm_weibull_grid.png}{options: width="40\%" 
+alt="Figure: epm_weibull_grid.png"}
+\cr
+\figure{epm_weibull_travel.png}{options: width="40\%" 
+alt="Figure: epm_weibull_travel.png"}
+\cr
+\figure{epm_weibull_sigma.png}{options: width="40\%" 
+alt="Figure: epm_weibull_sigma.png"}
+}
+}
+
 \examples{
 \dontrun{
 data(zi)
@@ -77,7 +93,7 @@ catch[catch<0] <- 0.00001
 
 optimOpt <- c(1000,1.00000000000000e-08,1,0)
 
-methodname <- "BFGS"
+methodname <- 'BFGS'
 
 si2 <- sample(1:5,dim(si)[1],replace=TRUE)
 zi2 <- sample(1:10,dim(zi)[1],replace=TRUE)

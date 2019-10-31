@@ -22,7 +22,8 @@
 #Drop rows that are not in linkID
 
 add_vars <- function(working_dat, raw_dat, project){
-  library(shiny)
+  requireNamespace(shiny)
+  
   if(!exists('loc')){
     loc = getwd()
   } else {

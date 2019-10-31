@@ -51,6 +51,7 @@ epm_weibull <- function(starts3, dat, otherdat, alts, project, expname, mod.name
     #' @return ld: negative log likelihood
     #' @export
     #' @examples
+    #' \dontrun{
     #' data(zi)
     #' data(catch)
     #' data(choice)
@@ -79,7 +80,7 @@ epm_weibull <- function(starts3, dat, otherdat, alts, project, expname, mod.name
     #'
     #' results <- discretefish_subroutine(catch,choice,distance,otherdat,
     #'     initparams,optimOpt,func,methodname)
-    #'
+    #' }
     #' @section Graphical examples: 
     #' \if{html}{
     #' \figure{epm_weibull_grid.png}{options: width="40\%" 

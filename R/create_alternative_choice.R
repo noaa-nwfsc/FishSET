@@ -104,14 +104,14 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
     C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*"))  #    C <- data(a(v))[dataColumn,'rows'] 
   }
   
-  numH <- FishSET:::accumarray(C, C)
+  numH <- accumarray(C, C)
   binH <- 1:length(numH)
   numH <- numH/t(binH)
   zoneHist <- data.frame(numH = as.vector(numH), binH = as.vector(binH), B[, 1])
   
   zoneHist[which(zoneHist[, 1] < min.haul), 3] <- NA
   
-  if (any(FishSET:::is_empty(which(is.na(zoneHist[, 3]) == F)))) {
+  if (any(is_empty(which(is.na(zoneHist[, 3]) == F)))) {
     stop("No zones meet criteria. Check the min.haul parameter or zone identification.")
   }
   #dataZoneTrue=ismember(gridInfo.assignmentColumn,zoneHist(greaterNZ,3));
@@ -154,7 +154,7 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
         }
         
         #If gridded data is not an array, need to create matrix
-        if (dim(gridVar)[1]==1) { #(FishSET:::is_empty(gridVar.row.array)){ #1d
+        if (dim(gridVar)[1]==1) { #(is_empty(gridVar.row.array)){ #1d
           biG <- match(Alt[['zoneRow']], int) #[aiG,biG] = ismember(Alt.zoneRow, gridVar.col.array) #FIXME FOR STRING CONNECTIONS
           numRows <- nrow(dataset) #size(data(1).dataColumn,1)  #
           if (!any(biG)){

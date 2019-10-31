@@ -7,25 +7,25 @@
 #'
 #' @param dat Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
 #' @param project Name of project. Parameter is used to generate meaningful table names in fishset_db database.
-#' @importFrom DBI  dbDisconnect dbConnect dbListTables dbWriteTable 
 #' @import shiny
-# @import shinyFiles
+#' @import ggplot2
+#' @importFrom DT DTOutput renderDT
 #' @importFrom ggpubr ggarrange
 #' @importFrom ggcorrplot ggcorrplot
+#' @importFrom DBI  dbDisconnect dbConnect dbListTables dbWriteTable 
 # @importFrom gridExtra grid.table
 #' @importFrom stringi stri_count_regex
 #' @export select_checks
 #' @details Opens an interactive table that allows uses to select which data validation checks to run by clicking check boxes. 
-#' @examples 
+#' @examples
 #' \dontrun{
-#' select_checks('pcodMainDataTable', 'pcod')
+#' select_checks(pcodMainDataTable, 'pcod')
 #' }
 
-select_checks <- function(dat=NULL, project){#
+
+select_checks <- function(dat, project){#
   requireNamespace(shiny)
-  requireNamespace(DT)
-  #requireNamespace(shinyFiles)
-  requireNamespace(ggplot2)
+   requireNamespace(ggplot2)
 #----
   #Helper functions
 #----
@@ -37,7 +37,7 @@ select_checks <- function(dat=NULL, project){#
  
   if(is.character(dat)==TRUE){
     suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
-    dataset <- FishSET:::table_view(dat)
+    dataset <- table_view(dat)
     DBI::dbDisconnect(fishset_db)
   } else {
     dataset <- dat  
@@ -49,10 +49,10 @@ select_checks <- function(dat=NULL, project){#
     dat <- deparse(substitute(dat))
   }
   # default global search value
-  if (!exists("default_search")) default_search <- ""
+  if (!exists("default_search")) {default_search <- ""}
   
   # default column search values
-  if (!exists("default_search_columns")) default_search_columns <- NULL
+  if (!exists("default_search_columns")) {default_search_columns <- NULL}
   
   simpleCap <- function(x) {
     s <- strsplit(x, " ")[[1]]
@@ -200,7 +200,7 @@ tabPanel("Upload Data", value = "upload",
                       textInput('notesExplore', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
                    ),
                    mainPanel(width=10,
-                     tags$div(dataTableOutput("output_table_exploration"), style = "font-size: 75%; width: 100%"),
+                     tags$div(DTOutput("output_table_exploration"), style = "font-size: 75%; width: 100%"),
                      conditionalPanel(
                        condition='input.plot_table=="Plots" && input.plot_type=="Temporal"', 
                         uiOutput('column_select')),
@@ -300,8 +300,8 @@ tabPanel("Upload Data", value = "upload",
           mainPanel(width=9,
                     tags$br(), tags$br(),
             verbatimTextOutput("Case"),
-            dataTableOutput("output_table_summary"),
-            dataTableOutput("output_table_outlier"),
+            DTOutput("output_table_summary"),
+            DTOutput("output_table_outlier"),
             tags$br(),tags$br(),
             splitLayout(cellWidths = c('33%','33%','33%'),
             plotOutput('plot1',
@@ -347,7 +347,7 @@ tabPanel("Upload Data", value = "upload",
                             tagList(
                               uiOutput('corr_out'),
                               verbatimTextOutput('output_text_corr'),
-                              div(DT::dataTableOutput('output_table_corr'), style = "font-size: 75%; width: 100%"),
+                              div(DT::DTOutput('output_table_corr'), style = "font-size: 75%; width: 100%"),
                               tags$br(), tags$br(),
                               plotOutput('output_plot_corr', width='100%', height = "600px")
                           )),
@@ -466,7 +466,7 @@ tabPanel("Upload Data", value = "upload",
               uiOutput('input_tri_cent')
           ),
           mainPanel(
-            dataTableOutput("output_table_create")
+            DTOutput("output_table_create")
           )
           ))
 #----           
@@ -1122,10 +1122,10 @@ output$plot_time <- renderPlot({
                                    choices=names(values$dataset[,grep('port',names(values$dataset), ignore.case = TRUE)]))),
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
                            style = "margin-left:19px;", selectInput('lon.dat_SL', "Longitude variable in primary data set", 
-                                   choice= names(values$dataset[,grep("lon", names(values$dataset), ignore.case = TRUE)]))), 
+                                   choices= names(values$dataset[,grep("lon", names(values$dataset), ignore.case = TRUE)]))), 
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
                            style = "margin-left:19px;", selectInput('lat.dat_SL', "Latitude variable in primary data set", 
-                                   choice= names(values$dataset[,grep("lat", names(values$dataset), ignore.case = TRUE)]))),
+                                   choices= names(values$dataset[,grep("lat", names(values$dataset), ignore.case = TRUE)]))),
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
                            style = "margin-left:19px;",  selectInput("port.dat", "Choose file from FishSET SQL database containing port data", 
                                    choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE)),
@@ -1144,7 +1144,7 @@ output$plot_time <- renderPlot({
                              style = "margin-left:19px;", selectInput('lon.grid_SL', 'Select vector containing longitude from spatial data set', choices=names(values$dataset), multiple=TRUE))
           },
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
-                           style = "margin-left:19px;", selectInput('cat_SL', "Variable defining zones or areas", choice= names(as.data.frame(GridFileData()))))
+                           style = "margin-left:19px;", selectInput('cat_SL', "Variable defining zones or areas", choices= names(as.data.frame(GridFileData()))))
        )
      })
       output$input_IDVAR <- renderUI({
@@ -1253,7 +1253,7 @@ output$plot_time <- renderPlot({
         }
       })
 
-      output$output_table_create <- DT::renderDataTable(
+      output$output_table_create <- DT::renderDT(
         head(values$dataset)
       )
 ###----
@@ -1525,7 +1525,7 @@ output$plot_time <- renderPlot({
       tableInputSummary <- reactive({
          if (input$checks=='Summary table') { 
           temp <- values$dataset
-          stable <- FishSET:::summary_stats(temp) 
+          stable <- summary_stats(temp) 
           nums <- unlist(lapply(temp, is.numeric))
           stable  <- apply(stable[nums], 2, function(x) gsub(".*:","", x))
           rownames(stable)=c('Min', 'Median','Mean', 'Max','NAs','Unique Obs.', "No. 0's")
@@ -1536,14 +1536,14 @@ output$plot_time <- renderPlot({
         }
       })
       
-        output$output_table_summary <- DT::renderDataTable(
+        output$output_table_summary <- DT::renderDT(
           tableInputSummary(), server = FALSE, rownames=TRUE,
             options = list(autoWidth=FALSE, scrollX=T, responsive=FALSE, pageLength = 25)
                   )
     
        tableInputOutlier <- reactive({
          if (input$checks=='Outliers'){
-            table <- FishSET:::outlier_table(values$dataset, input$column_check)
+            table <- outlier_table(values$dataset, input$column_check)
             rownames(table)=table[,2]
             table <- table[,3:10]
             #table <<- table
@@ -1552,9 +1552,9 @@ output$plot_time <- renderPlot({
           }
        })
         
-         output$output_table_outlier <- DT::renderDataTable(
+         output$output_table_outlier <- DT::renderDT(
            if (input$checks=='Outliers'){
-             table <- FishSET:::outlier_table(values$dataset, input$column_check)
+             table <- outlier_table(values$dataset, input$column_check)
              rownames(table)=table[,2]
              table <- table[,3:10]
              #table <<- table
@@ -1575,7 +1575,7 @@ output$plot_time <- renderPlot({
           if(input$checks=='Outliers'){
             temp <- values$dataset
             temp$val <- 1:nrow(temp)
-             dat_sub <- suppressWarnings(FishSET:::outlier_plot_int(temp, input$column_check, input$dat.remove, input$x.dist, plot_type=1))
+             dat_sub <- suppressWarnings(outlier_plot_int(temp, input$column_check, input$dat.remove, input$x.dist, plot_type=1))
              suppressWarnings(ggplot() + geom_point(data=dat_sub, aes_string(x='val', y=input$column_check, color = 'Points', na.rm=TRUE)) +
                scale_color_manual(breaks=c('Kept','Removed'),values=c('blue','red'))+
                  coord_cartesian(xlim = ranges1$x, ylim = ranges1$y, expand = FALSE)+
@@ -1595,8 +1595,8 @@ output$plot_time <- renderPlot({
             if(input$checks=='Outliers'){
               temp <- values$dataset
               temp$val <- 1:nrow(temp)
-              dat_sub <- FishSET:::outlier_plot_int(temp, input$column_check, input$dat.remove, input$x.dist, plot_type=1)
-              arg.return <- FishSET:::outlier_plot_int(temp, input$column_check, input$dat.remove, input$x.dist, plot_type=2)
+              dat_sub <- outlier_plot_int(temp, input$column_check, input$dat.remove, input$x.dist, plot_type=1)
+              arg.return <- outlier_plot_int(temp, input$column_check, input$dat.remove, input$x.dist, plot_type=2)
               ggplot(dat_sub[dat_sub$Points=='Kept',], aes_string(input$column_check)) + 
                 geom_histogram(aes(y = ..density..), na.rm=TRUE, bins=round(nrow(temp)/2)) + arg.return +
                 coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)+
@@ -1615,7 +1615,7 @@ output$plot_time <- renderPlot({
             if(input$checks=='Outliers'){
               temp <- values$dataset
               temp$val <- 1:nrow(temp)
-              temp <- FishSET:::outlier_plot_int(temp, input$column_check, input$dat.remove, input$x.dist, plot_type=3)
+              temp <- outlier_plot_int(temp, input$column_check, input$dat.remove, input$x.dist, plot_type=3)
               ggplot(temp, aes(x=fit_quants, y=data_quants)) + geom_point(shape=1) + geom_abline() +
                 labs(x='Theoretical Quantiles', y='Sample Quantiles', title=paste('Q-Q plot of', input$x.dist, 'fit against data'))+
                 coord_cartesian(xlim = ranges3$x, ylim = ranges3$y, expand = FALSE)+
@@ -1728,13 +1728,13 @@ output$plot_time <- renderPlot({
       observeEvent(input$NA_Filter,{
         if(input$NA_Filter=='Remove all'){
           if(any(apply(values$dataset, 2, function(x) any(is.na(x))))==TRUE){
-          values$dataset <- FishSET:::na_filter(values$dataset, names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), replace = FALSE, remove = TRUE, over_write=FALSE)  
+          values$dataset <- na_filter(values$dataset, names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), replace = FALSE, remove = TRUE, over_write=FALSE)  
         } else {
           cat('No missing values to remove')
         }
           }else if(input$NA_Filter=='Replace with mean') {
           if(any(apply(values$dataset, 2, function(x) any(is.na(x))))==TRUE){
-          values$dataset <- FishSET:::na_filter(values$dataset,  names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), replace = TRUE, remove = FALSE, over_write=FALSE)
+          values$dataset <- na_filter(values$dataset,  names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), replace = TRUE, remove = FALSE, over_write=FALSE)
           } else {
             cat('No missing values to remove')
         }}
@@ -1743,13 +1743,13 @@ output$plot_time <- renderPlot({
         observeEvent(input$NAN_Filter,{
           if(input$NAN_Filter=='Remove all'){
             if(any(apply(values$dataset, 2, function(x) any(is.nan(x))))==TRUE){
-            values$dataset <- FishSET:::nan_filter(values$dataset, names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), replace = FALSE, remove = TRUE, over_write=FALSE)  
+            values$dataset <- nan_filter(values$dataset, names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), replace = FALSE, remove = TRUE, over_write=FALSE)  
                   } else{
                     print('No non-numbers to remove.')
                   } 
             }else if(input$NAN_Filter=='Replace with mean'){
                     if(any(apply(values$dataset, 2, function(x) any(is.nan(x))))==TRUE){
-           values$dataset <- FishSET:::nan_filter(values$dataset,  names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), replace = TRUE, remove = FALSE, over_write=FALSE)
+           values$dataset <- nan_filter(values$dataset,  names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), replace = TRUE, remove = FALSE, over_write=FALSE)
                     } else {
                       print('No non-numbers to remove.')
                     }}
@@ -1776,7 +1776,7 @@ output$plot_time <- renderPlot({
         observeEvent(input$LatLon_Filter, {
           if(input$LatLon_Filter=='TRUE'){
             if(any(apply(values$dataset[,which(grepl('lat|lon', names(values$dataset), ignore.case=TRUE)==TRUE)], 2, function(x) !is.numeric(x))==TRUE)==TRUE){
-             values$dataset <- FishSET:::degree(values$dataset, colnames(values$dataset[,which(grepl('lat', names(values$dataset), ignore.case=TRUE))]) ,
+             values$dataset <- degree(values$dataset, colnames(values$dataset[,which(grepl('lat', names(values$dataset), ignore.case=TRUE))]) ,
                                                colnames(values$dataset[,which(grepl('lon', names(values$dataset), ignore.case=TRUE))]) ) 
             } else {
             cat("All latitude and longitude variables are already in decimal degrees. Function not applied.")
@@ -1945,7 +1945,7 @@ output$plot_time <- renderPlot({
           paste0(loc, '/inst/output/',project,'Outlier.png')
         },
         content = function(file) {
-             ggplot2::ggsave(file, plot=FishSET:::outlier_plot(values$dataset, input$column_check, input$dat.remove, input$x.dist))
+             ggplot2::ggsave(file, plot=outlier_plot(values$dataset, input$column_check, input$dat.remove, input$x.dist))
         })
       jsinject <- "setTimeout(function(){window.open($('#downloadplotHIDE').attr('href'))}, 100);"
       session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   

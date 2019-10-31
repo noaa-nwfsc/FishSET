@@ -1,6 +1,6 @@
 pull_info_data <- function(project){
-#' Pulling the most recent data index file for given projet
-#' @param project
+#' Pull the most recent data index file for given projet
+#' @param project Name of project, such as pollock
 #' @export
 
 g <- tables_database()
@@ -53,7 +53,7 @@ trim_space <- function(x, what = c("both", "leading", "trailing", "none"), space
                none = {
                  return(x)
                })
-  FishSET:::vgsub(re, "", x, ...)
+  vgsub(re, "", x, ...)
 }
 
 is_empty <- function(x, trim = TRUE, ...) {
@@ -64,27 +64,27 @@ is_empty <- function(x, trim = TRUE, ...) {
       return(TRUE)
     if (is.na(x) || is.nan(x)) 
       return(TRUE)
-    if (is.character(x) && nchar(ifelse(trim, FishSET:::trim_space(x), x)) == 0) 
+    if (is.character(x) && nchar(ifelse(trim, trim_space(x), x)) == 0) 
       return(TRUE)
     if (is.logical(x) && !isTRUE(x)) 
       return(TRUE)
     if (is.numeric(x) && x == 0) 
       return(TRUE)
     return(FALSE)
-  } else sapply(x, FishSET:::is_empty, trim = trim, ...)
+  } else sapply(x, is_empty, trim = trim, ...)
 }
 
 find_first <- function(y){
   g <- y[which(grepl('date', names(y), ignore.case=TRUE) == TRUE)]
-  if(all(g=='')==TRUE||all(FishSET:::is_empty(g)==TRUE)==TRUE) {warning('All date variables are empty')}
-  g2 <- FishSET:::date_parser(as.vector(unlist(c(g))))
+  if(all(g=='')==TRUE||all(is_empty(g)==TRUE)==TRUE) {warning('All date variables are empty')}
+  g2 <- date_parser(as.vector(unlist(c(g))))
   names(g)[which(g2==min(g2, na.rm=TRUE))[1]]
 }
 
 find_last <- function(y){
   g <- y[which(grepl('date', names(y), ignore.case=TRUE) == TRUE)]
-  if(all(g=='')==TRUE||all(FishSET:::is_empty(g)==TRUE)==TRUE) {warning('All date variables are empty')}
-  g2 <- FishSET:::date_parser(as.vector(unlist(c(g))))
+  if(all(g=='')==TRUE||all(is_empty(g)==TRUE)==TRUE) {warning('All date variables are empty')}
+  g2 <- date_parser(as.vector(unlist(c(g))))
   names(g)[which(g2==max(g2, na.rm=TRUE))[1]]
 }
 
@@ -145,7 +145,7 @@ skewness <- function(x, na.rm=FALSE) {
 
 date_parser <- function(dates){
   #' Parse date variable
-  #' @param dates
+  #' @param dates Variable containing dates
   #' @importFrom lubridate dym ymd myd ydm dmy mdy
   #' @export
   
@@ -249,7 +249,7 @@ outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plo
   #' @return Plot of the data
   
   
-  requireNamespace(ggplot2)
+  requireNamespace(ot2)
   
   dataset <- dat
   x.name <- x
@@ -342,7 +342,7 @@ outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plo
     data_quants <- stats::quantile(as.numeric(dataset[dataset$Points=='Kept',x]), quants,na.rm=TRUE)
     # create Q-Q plot
     temp <- data.frame(fit_quants, data_quants) 
-    p3 <- ggplot(temp, aes(x=fit_quants, y=data_quants)) + geom_point(shape=1) + geom_abline() +
+    p3 <- ot(temp, aes(x=fit_quants, y=data_quants)) + geom_point(shape=1) + geom_abline() +
       labs(x='Theoretical Quantiles', y='Sample Quantiles', title=paste('Q-Q plot of', x.dist, 'fit against data'))+
       mytheme
     

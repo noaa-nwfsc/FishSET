@@ -45,7 +45,7 @@ Summation of distance across a trip based on choices by the user for starting an
 }
 \examples{
 \dontrun{
- MainDataTable$TripDistance <- create_trip_distance(MainDataTable, pollockPortTable, 'TRIP_SEQ', 
+ MainDataTable$TripDistance <- create_trip_distance(MainDataTable, 'pollockPortTable', 'TRIP_SEQ', 
                                'DISEMBARKED_PORT', c("LonLat_START_LON","LonLat_START_LAT"),
                                c("LonLat_END_LON","LonLat_END_LAT"), 'EMBARKED_PORT', 'HAUL_SEQ')
  }

@@ -7,18 +7,24 @@
 map_kernel(type, latlon, group = NULL, facet = FALSE, minmax = NULL)
 }
 \arguments{
-\item{type}{Type of plot ("point", "contours", "gradient"). Note if you have a group, you must facet when choosing "gradient"
-(cannot overlap polygons clearly).}
+\item{type}{Type of plot ("point", "contours", "gradient"). Note if you
+have a group, you must facet when choosing "gradient" (cannot overlap
+polygons clearly).}
 
-\item{latlon}{A matrix of (# of observations) x 2 corresponding to latitude/longitude pair coordinates in decimal degrees.}
+\item{latlon}{A matrix of (# of observations) x 2 corresponding to 
+latitude/longitude pair coordinates in decimal degrees.}
 
-\item{group}{Optional group parameter if user maps based on a factor group. Should be a factor with length of (# of observations), 
-where each observation corresponds to the latlon coordinate of the same index. Recall that the legend will output the names of
+\item{group}{Optional group parameter if user maps based on a factor 
+group. Should be a factor with length of (# of observations), 
+where each observation corresponds to the latlon coordinate of the same 
+index. Recall that the legend will output the names of
 factor levels as you have named them. (See ?factor).}
 
-\item{facet}{Optional facet parameter if user maps each group as a separate facet ("TRUE", "FALSE"), default = "FALSE".}
+\item{facet}{Optional facet parameter if user maps each group as a 
+separate facet ("TRUE", "FALSE"), default = "FALSE".}
 
-\item{minmax}{Optional map extent parameter, a vector (num) of length 4 corresponding to c(minlat, maxlat, minlon, maxlon).}
+\item{minmax}{Optional map extent parameter, a vector (num) of length 4 
+corresponding to c(minlat, maxlat, minlon, maxlon).}
 }
 \value{
 mapout: ggplot2 object
@@ -41,5 +47,5 @@ map_kernel(type,latlon,group=group,facet=TRUE,minmax=minmax)
 
 type <- "point"
 map_kernel(type,latlon)
-}
+}    
 }

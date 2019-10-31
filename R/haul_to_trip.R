@@ -83,7 +83,7 @@ haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, ...)
                 as.data.frame(int[,c(which(dataIndex[dataIndex[, 'variable_name'] %in% 
                                                colnames(int[,-which(colnames(int)=='rowID')]), 'generalType'] == "Time"))])
               }, 
-            FishSET:::date_parser)), rowID=int$rowID), list(int$rowID), match.fun(fun.time), na.rm=T))[,-1]
+            date_parser)), rowID=int$rowID), list(int$rowID), match.fun(fun.time), na.rm=T))[,-1]
           }
         names(out2)[1:dim(out2)[2]-1] <- names(int)[which(dataIndex[dataIndex[, 'variable_name'] %in% 
                                                           colnames(int[,-which(colnames(int)=='rowID')]), 'generalType'] == "Time")] 

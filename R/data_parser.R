@@ -123,7 +123,7 @@ load_maindata <- function(dat, over_write=TRUE, project=NULL, compare=FALSE, y=N
   
   n <- which(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE))
   for(i in 1:length(n)){
-    dataset[,n[i]] <- format(FishSET:::date_parser(dataset[,n[i]]), '%Y-%m-%d %H:%M:%S')
+    dataset[,n[i]] <- format(date_parser(dataset[,n[i]]), '%Y-%m-%d %H:%M:%S')
   }
   
   

@@ -187,7 +187,7 @@ discretefish_subroutine_subcall <- function(project, initparams, optimOpt, func,
  if(select.model==TRUE){
  #  rownames(out.mod)=c("AIC", "AICc", "BIC", "PseudoR2")
  #   print(DT::datatable(t(round(out.mod, 5)), filter='top'))
-    library(shiny)
+    requireNamespace(shiny)
     shiny::runApp(list(
       ui = shiny::basicPage(
         

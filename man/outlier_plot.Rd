@@ -4,8 +4,7 @@
 \alias{outlier_plot}
 \title{Evaluate outliers through plots}
 \usage{
-outlier_plot(dat, x, dat.remove = "none", x.dist = "normal",
-  output.screen = TRUE)
+outlier_plot(dat, x, dat.remove, x.dist, output.screen = FALSE)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}

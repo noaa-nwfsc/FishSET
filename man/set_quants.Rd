@@ -29,6 +29,6 @@ Quantile options are:
 }
 \examples{
 \dontrun{
-MainDataTable <- set_quants(MainDataTable, 'HAUL', quant.cat=.2)
+MainDataTable$haul.quant <- set_quants(MainDataTable, 'HAUL', quant.cat=.2)
 }
 }

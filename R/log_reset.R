@@ -1,6 +1,5 @@
 log_reset <- function(){
- #' Reset function calls saved in log file
-#' 
+#' Reset function calls saved in log file
 #' @details Removes the three log file lists from the working directory
 #' @export log_reset
 #' @examples 
@@ -18,7 +17,7 @@ log_reset <- function(){
 
 log_call <- function(fun.name){
   #' Reset function calls saved in log file
-  #' @param fun.name
+  #' @param fun.name Function name
   #' @details uplodate log file
   #' 
   

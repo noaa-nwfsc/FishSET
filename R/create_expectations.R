@@ -198,26 +198,26 @@ long_exp <- long_expectations(dat=dat, project=project, gridfile=gridfile, catch
     
     #Moving window averaging
 
-    myfunc <- function(x,y){mean(df2[df2$tiData >= x-yearRange-timeRange & df2$tiData <= x-yearRange & df2$ID==y,'lag.value'], na.rm=TRUE)}
-    df2$ra <- mapply(myfunc, df2$tiData, df2$ID)
+    myfunc_ave <- function(x,y){mean(df2[df2$tiData >= x-yearRange-timeRange & df2$tiData <= x-yearRange & df2$ID==y,'lag.value'], na.rm=TRUE)}
+    df2$ra <- mapply(myfunc_ave, df2$tiData, df2$ID)
     
  # #Replace empty values
     if (is.null(empty.catch)) {
-      myfunc <- function(x){mean(df2[lubridate::year(df2$tiData) >= format(as.Date(x), format = "%Y") & 
+      myfunc_emp <- function(x){mean(df2[lubridate::year(df2$tiData) >= format(as.Date(x), format = "%Y") & 
                                        lubridate::year(df2$tiData) <  lubridate::year(x)+1, 'lag.value'], na.rm=TRUE)}
-      df2$ra[which(is.na(df2$ra)==TRUE)] <- unlist(lapply(df2$tiData[which(is.na(df2$ra)==TRUE)], myfunc))
+      df2$ra[which(is.na(df2$ra)==TRUE)] <- unlist(lapply(df2$tiData[which(is.na(df2$ra)==TRUE)], myfunc_emp))
       #replaceValue <- NA
     } else if (empty.catch == "0") {
       df2$ra[which(is.na(df2$ra)==TRUE)] <- 0
     } else if (empty.catch == "allCatch") {
-      myfunc <- function(x){mean(df2[lubridate::year(df2$tiData) >= format(as.Date(x), format = "%Y") & 
+      myfunc_AC <- function(x){mean(df2[lubridate::year(df2$tiData) >= format(as.Date(x), format = "%Y") & 
                                        lubridate::year(df2$tiData) <  lubridate::year(x)+1, 'lag.value'], na.rm=TRUE)}
-      df2$ra[which(is.na(df2$ra)==TRUE)] <- unlist(lapply(df2$tiData[which(is.na(df2$ra)==TRUE)], myfunc))
+      df2$ra[which(is.na(df2$ra)==TRUE)] <- unlist(lapply(df2$tiData[which(is.na(df2$ra)==TRUE)], myfunc_AC))
       #replaceValue <- mean(catchData, na.rm = T)
     } else if (empty.catch == "groupedCatch") {
-      myfunc <- function(x, y){mean(df2[lubridate::year(df2$tiData) >= format(as.Date(x), format = "%Y") & 
+      myfunc_GC <- function(x, y){mean(df2[lubridate::year(df2$tiData) >= format(as.Date(x), format = "%Y") & 
                                        lubridate::year(df2$tiData) <  lubridate::year(x)+1 & df2$ID==y, 'lag.value'], na.rm=TRUE)}
-      df2$ra[which(is.na(df2$ra)==TRUE)] <- mapply(myfunc, df2$tiData[which(is.na(df2$ra)==TRUE)], df2$ID[which(is.na(df2$ra)==TRUE)])
+      df2$ra[which(is.na(df2$ra)==TRUE)] <- mapply(myfunc_GC, df2$tiData[which(is.na(df2$ra)==TRUE)], df2$ID[which(is.na(df2$ra)==TRUE)])
         # replaceValue <- aggregate(catchData, list(C), mean, na.rm = T)
     }
     

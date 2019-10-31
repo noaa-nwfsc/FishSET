@@ -35,7 +35,7 @@ find_centroid <- function(dat, gridfile, lon.dat=NULL, lat.dat=NULL, cat, lon.gr
   x <- 0
   #For json and shape files
   if(any(class(gridfile)=='sf')) {
-    if (FishSET:::is_empty(weight.var)) {
+    if (is_empty(weight.var)) {
       int <- rgeos::gCentroid(methods::as(gridfile, "Spatial"), byid = TRUE)
       int <- cbind(gridfile[[cat]], as.data.frame(int))
       colnames(int)=c("ZoneID", "cent.lon", "cent.lat")
@@ -95,7 +95,7 @@ find_centroid <- function(dat, gridfile, lon.dat=NULL, lat.dat=NULL, cat, lon.gr
     } 
     if(x!=1){
     # simple centroid
-    if (FishSET:::is_empty(weight.var)) {
+    if (is_empty(weight.var)) {
       if (is.data.frame(int) == T) {
         int$cent.lon <- stats::ave(int[[lon]], int[[cat]])
         int$cent.lat <- stats::ave(int[[lat]], int[[cat]])

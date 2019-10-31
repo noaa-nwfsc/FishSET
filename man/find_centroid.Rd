@@ -4,23 +4,23 @@
 \alias{find_centroid}
 \title{Generate centroid of polygon of zone or area}
 \usage{
-find_centroid(dat, gridfile, lon.grid, lat.grid, lon.dat, lat.dat, cat,
-  weight.var)
+find_centroid(dat, gridfile, lon.dat = NULL, lat.dat = NULL, cat,
+  lon.grid = NULL, lat.grid = NULL, weight.var = NULL)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}
 
 \item{gridfile}{Spatial data set. Can be shape file, data frame, or list.}
 
-\item{lon.grid}{Longitude of points from gridfile.}
-
-\item{lat.grid}{Latitude of points from gridfile.}
-
 \item{lon.dat}{Longitude of points from dataset.}
 
 \item{lat.dat}{Latitude of points from dataset.}
 
 \item{cat}{Variable defining the individual areas or zones.}
+
+\item{lon.grid}{Longitude of points from gridfile.}
+
+\item{lat.grid}{Latitude of points from gridfile.}
 
 \item{weight.var}{Variable for weighted average.}
 }

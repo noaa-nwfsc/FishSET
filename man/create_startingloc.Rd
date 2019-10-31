@@ -4,15 +4,16 @@
 \alias{create_startingloc}
 \title{Create Starting location vector}
 \usage{
-create_startingloc(dat, gridfile, PortTable, trip_id, haul_order,
-  starting_port, lon.dat, lat.dat, lon.grid, lat.grid, cat)
+create_startingloc(dat, gridfile, portTable, trip_id, haul_order,
+  starting_port, lon.dat, lat.dat, cat, lon.grid = NULL,
+  lat.grid = NULL)
 }
 \arguments{
 \item{dat}{Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.}
 
 \item{gridfile}{Spatial data. Shape, json, and csv formats are supported.}
 
-\item{PortTable}{Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat. Table is generated using the load_port function and saved in the fishset_db database.}
+\item{portTable}{Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat. Table is generated using the load_port function and saved in the fishset_db database.}
 
 \item{trip_id}{Variable in 'dat' to identify unique trips.}
 
@@ -24,11 +25,11 @@ create_startingloc(dat, gridfile, PortTable, trip_id, haul_order,
 
 \item{lat.dat}{Latitude variable in dataset}
 
+\item{cat}{Variable defining zones or areas. Must be defined for dataset or gridfile.}
+
 \item{lon.grid}{Longitude variable in gridfile}
 
 \item{lat.grid}{Latitude variable in gridfile}
-
-\item{cat}{Variable defining zones or areas. Must be defined for dataset or gridfile.}
 }
 \description{
 Creates a vector containing zone/area location when choice of where to fish next was chosen.
@@ -41,6 +42,6 @@ port locations and haul locations to zones. The starting port is used to define 
 \dontrun{
 MainDataTable$startloc <- create_startingloc(MainDataTable, map2, pollockPortTable, 
                               'TRIP_SEQ','HAUL_SEQ','DISEMBARKED_PORT',
-                              "LonLat_START_LON","LonLat_START_LAT", "","", 'NMFS_AREA')
+                              "LonLat_START_LON","LonLat_START_LAT", 'NMFS_AREA', "","")
 }
 }

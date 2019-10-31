@@ -217,6 +217,7 @@ create_mid_haul <- function(dat, start=c('lon', 'lat'), end=c('lon','lat'), name
 #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
 #' @param start Starting location of haul. Must be specificied as vector containing longitudinal data and vector containing latitudinal data separated by comma.
 #' @param end Ending location of haul. Must be specificied as vector containing longitudinal data and vector containing latitudinal data separated by comma.
+#' @param name Name of new variable. Defaults to `mid_haul`
 #' @details Returns midpoint of each haul. Each row of data must be a unique haul. Requires a start and end point for each observations.
 #' @return Main data frame with two new variables added, lat and lon of midpoint.
 #' @importFrom geosphere distGeo midPoint
@@ -224,7 +225,8 @@ create_mid_haul <- function(dat, start=c('lon', 'lat'), end=c('lon','lat'), name
 #' @examples 
 #' \dontrun{
 #' MainDataTable <- create_mid_haul(MainDataTable, start = c("LonLat_START_LON", 
-#'                          "LonLat_START_LAT"), end = c("LonLat_END_LON", "LonLat_END_LAT"), name='mid_haul') 
+#'                 "LonLat_START_LAT"), end = c("LonLat_END_LON", "LonLat_END_LAT"),
+#'                  name='mid_haul') 
 #' }
 #
   
@@ -233,7 +235,7 @@ create_mid_haul <- function(dat, start=c('lon', 'lat'), end=c('lon','lat'), name
   dataset <- out$dataset
   tmp <- 0
   
- if(FishSET:::is_empty(start)||FishSET:::is_empty(end)) {
+ if(is_empty(start)||is_empty(end)) {
    tmp <- 1
    warning('Starting and end locations must both be specified. Function not run.')
  }
@@ -272,8 +274,9 @@ create_mid_haul <- function(dat, start=c('lon', 'lat'), end=c('lon','lat'), name
   #' @export 
   #' @examples 
   #' \dontrun{
-  #' pollockMainDataTable <- create_trip_centroid('pollockMainDataTable', 'LonLat_START_LON', 'LonLat_START_LAT', 
-  #'                                  weight.var=NULL, 'DISEMBARKED_PORT','EMBARKED_PORT')
+  #' pollockMainDataTable <- create_trip_centroid('pollockMainDataTable', 
+  #'                               'LonLat_START_LON', 'LonLat_START_LAT', 
+  #'                               weight.var=NULL, 'DISEMBARKED_PORT','EMBARKED_PORT')
   #' }
 create_trip_centroid <- function(dat, lon, lat, weight.var=NULL, ...) {  
   out <- data_pull(dat)
@@ -298,7 +301,7 @@ create_trip_centroid <- function(dat, lon, lat, weight.var=NULL, ...) {
     int <- int
   }
   
-  if (FishSET:::is_empty(weight.var)) {
+  if (is_empty(weight.var)) {
     int$cent.lon <- stats::ave(int[[lon]], int[['rowID']])
     int$cent.lat <- stats::ave(int[[lat]], int[['rowID']])
   } else {
@@ -323,6 +326,7 @@ spatial_hist <- function(dat, group){
 #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
 #' @param group Vector containing grouping categories
 #' @import ggplot2
+#' @importFrom reshape2 melt
 #' @return histogram of latitude and longitude by grouping variable
 #' @export
 #' @examples 
@@ -330,20 +334,20 @@ spatial_hist <- function(dat, group){
 #' spatial_summary(MainDataTable, 'GEAR_TYPE')
 #' }
 
-  library(ggplot2)
+  requireNamespace(ggplot2)
   
   dat <- dat[, c(grep(group, names(dat)), grep('lon|lat', names(dat), ignore.case=TRUE))]
-  melt.dat <- melt(dat)
-  ggplot(melt.dat,aes(value,group=group,fill=group))+
-         geom_histogram(position="identity",alpha=0.5,binwidth=0.25)+ 
-          facet_wrap(~ variable, scales = "free")+ scale_color_grey() + scale_fill_grey() +theme_classic()
+  melt.dat <- reshape2::melt(dat)
+  ggplot(melt.dat, aes(value, group=group, fill=group))+
+         geom_histogram(position="identity", alpha=0.5, binwidth=0.25)+ 
+          facet_wrap(~ variable, scales = "free")+ scale_color_grey() + scale_fill_grey() + theme_classic()
 }
 
 #hot-spot analysis ( getis ord and morans I)
 
 #'spatial summary statistics
-spatial_summary <- function(dat, stat.var=c('length','no_unique_obs','perc_total','mean','median','min','max','sum'), variable,
-                gridfile, lon.grid, lat.grid, lon.dat, lat.dat, cat){
+spatial_summary <- function(dat, stat.var=c('length','no_unique_obs','perc_total','mean','median','min','max','sum'), 
+               variable, gridfile, lon.grid, lat.grid, lon.dat, lat.dat, cat){
   #' @param dat Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
   #' @param stat.var Options are length, no_unique_obs, perc_total, mean, median, min, max, and sum
   #' @param gridfile Spatial data. Shape, json, and csv formats are supported.
@@ -353,6 +357,7 @@ spatial_summary <- function(dat, stat.var=c('length','no_unique_obs','perc_total
   #' @param lon.grid Column containing longitude data in gridfile.
   #' @param lat.grid lColumn containing latitude data in gridfile.
   #' @param cat  Column in gridfile that identifies the individual areas or zones. If gridfile is class sf, `cat` should be name of list containing information on zones. 
+  #' @importFrom graphics par lines plot
   #' @export
   #' @description Returns plot of selected variable by against date and zone.
   #' @details
@@ -390,21 +395,21 @@ spatial_summary <- function(dat, stat.var=c('length','no_unique_obs','perc_total
    } else if(stat.var=='length'){
      lab <- paste('No. observations', names(dataset)[var])
    }
-  par(mfrow=c(1,2))
+  graphics::par(mfrow=c(1,2))
   
   if(stat.var=='no_unique_obs'){
-    plot(aggregate(datasetaset[[variable]], by=list(dataset[,datasete.var]), function(x) length(unique(x))), type = "l", lty = 1, ylab=paste('No. unique obs', names(dataset)[var], 'per day'), xlab='datasete')
-    lines(aggregate(dataset[[variable]], by=list(dataset[,datasete.var]), function(x) length(unique(x))))
-    plot(aggregate(dataset[[variable]], by=list(as.factor(dataset$ZoneID)), function(x) length(unique(x))), type = "l", lty = 1, ylab=paste('No. unique obs', names(dataset)[var]), xlab='Zone')
+    graphics::plot(aggregate(dataset[[variable]], by=list(dataset[,date.var]), function(x) length(unique(x))), type = "l", lty = 1, ylab=paste('No. unique obs', names(dataset)[var], 'per day'), xlab='datasete')
+    graphics::lines(aggregate(dataset[[variable]], by=list(dataset[,date.var]), function(x) length(unique(x))))
+    graphics::plot(aggregate(dataset[[variable]], by=list(as.factor(dataset$ZoneID)), function(x) length(unique(x))), type = "l", lty = 1, ylab=paste('No. unique obs', names(dataset)[var]), xlab='Zone')
     lines(aggregate(dataset[[variable]], by=list(as.factor(dataset$ZoneID)), function(x) length(unique(x))))
   } else if(stat.var=='perc_total'){
-    plot(aggregate(dataset[[variable]], by=list(dataset[,datasete.var]), function(x) length((x))/length(dataset[[variable]])*100), type = "l", lty = 1, ylab=paste('Percent total', names(dataset)[var], 'per day'), xlab='datasete')
-    lines(aggregate(dataset[[variable]], by=list(dataset[,datasete.var]), function(x) length((x))/length(dataset[[variable]])*100))
+    plot(aggregate(dataset[[variable]], by=list(dataset[,date.var]), function(x) length((x))/length(dataset[[variable]])*100), type = "l", lty = 1, ylab=paste('Percent total', names(dataset)[var], 'per day'), xlab='datasete')
+    lines(aggregate(dataset[[variable]], by=list(dataset[,date.var]), function(x) length((x))/length(dataset[[variable]])*100))
     plot(aggregate(dataset[[variable]], by=list(as.factor(dataset$ZoneID)), function(x) length((x))/length(dataset[[variable]])*100), type = "l", lty = 1, ylab=paste('Percent total', names(dataset)[var]), xlab='Zone')
     lines(aggregate(dataset[[variable]], by=list(as.factor(dataset$ZoneID)), function(x) length((x))/length(dataset[[variable]])*100))
   } else {
-    plot(aggregate(dataset[[variable]], by=list(dataset[,datasete.var]), stat.var), type = "l", lty = 1, ylab=paste(lab, 'per day'), xlab='datasete')
-    lines(aggregate(dataset[[variable]], by=list(dataset[,datasete.var]), stat.var))
+    plot(aggregate(dataset[[variable]], by=list(dataset[,date.var]), stat.var), type = "l", lty = 1, ylab=paste(lab, 'per day'), xlab='datasete')
+    lines(aggregate(dataset[[variable]], by=list(dataset[,date.var]), stat.var))
     plot(aggregate(dataset[[variable]], by=list(as.factor(dataset$ZoneID)), stat.var), type='l', ylab=lab, xlab='Zone')
     lines(aggregate(dataset[[variable]], by=list(as.factor(dataset$ZoneID)), stat.var))
   }
@@ -580,7 +585,7 @@ create_duration <- function(dat, start, end, units = c("week", "day", "hour", "m
     warning("Function is designed for temporal variables")
   }
   
-  elapsed.time <- lubridate::interval(FishSET:::date_parser(dataset[[start]]), FishSET:::date_parser(dataset[[end]]))
+  elapsed.time <- lubridate::interval(date_parser(dataset[[start]]), date_parser(dataset[[end]]))
   if (units == "week") {
     dur <- lubridate::as.duration(elapsed.time)/lubridate::dweeks(1)
   } else if (units == "day") {
