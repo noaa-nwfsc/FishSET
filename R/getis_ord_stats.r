@@ -1,22 +1,20 @@
-getis_ord_stats <- function(dat, varofint, gridfile, lon.dat=NULL, lat.dat=NULL, cat=NULL, lon.grid=NULL, lat.grid=NULL,datatomap) {
+getis_ord_stats <- function(dat, varofint, gridfile, lon.dat=NULL, lat.dat=NULL, cat=NULL, lon.grid=NULL, lat.grid=NULL) {
   #' Wrapper function to calculate Getis-Ord statistics
   #'
   #' Wrapper function to calculate global and local Getis-Ord by discrete area
   #'
-  #' @param datatomap A data frame with the ADFG Stat6 area as a factor
-  #'     "ADFGstat6", the lon/lat centroid for each area ("centroid_lon",
-  #'     "centroidlat"), the path_lon/path_lat outlining each area
-  #'     ("path_lon", "path_lat"), and the variable of interest ("varofint").
   #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
-  #' @param varofint 
+  #' @param varofint Numeric variable  
   #' @param gridfile Spatial data set. Can be shape file, data frame, or list.
   #' @param lon.dat Longitude of points from dataset.
   #' @param lat.dat Latitude of points from dataset.
   #' @param lon.grid Longitude of points from gridfile.
   #' @param lat.grid Latitude of points from gridfile.
   #' @param cat Variable defining the individual areas or zones.
-  #' @param weight.var Variable for weighted average.
-  #' @details Requires a map file with lat/lon defining boundaries of area/zones and variable of interest for weighting.
+  #' @details Requires A data frame with area as a factor, the lon/lat centroid for each area ("centroid_lon",
+  #'     "centroidlat"), the path_lon/path_lat outlining each area
+  #'     ("path_lon", "path_lat"), and the variable of interest ("varofint") or 
+  #'  a map file with lat/lon defining boundaries of area/zones and variable of interest for weighting.
   #' Also required is the lat/lon defining the center of a zone/area. If the centroid is not included in the map file, 
   #' then the find_centorid function can be called to calculate the centroid of each zone. If the varible of interest is not
   #' associated with a area/zone than the assignement_column function can be used to assign each observation to a zone.  
@@ -25,6 +23,7 @@ getis_ord_stats <- function(dat, varofint, gridfile, lon.dat=NULL, lat.dat=NULL,
   #' @import ggplot2
   #' @importFrom maps map
   #' @importFrom spdep knn2nb knearneigh nb2listw localG globalG.test
+  #' @importFrom sf st_geometry
   #' @export
   #' @examples
   #' \dontrun{
@@ -52,11 +51,11 @@ getis_ord_stats <- function(dat, varofint, gridfile, lon.dat=NULL, lat.dat=NULL,
   }
   
   # Create dataset  
-  any(class(gridfile)=='sf'){
-    nc_geom <- sf::st_geometry(map2)
-    temp <- data.frame('ZoneID'=rep(map2$NMFS_AREA[1], 'path'=dim(as.data.frame(nc_geom[[1]][[1]]))[1]), as.data.frame(nc_geom[[1]][[1]]))
+  if(any(class(gridfile)=='sf')){
+    nc_geom <- sf::st_geometry(gridfile)
+    temp <- data.frame('ZoneID'=rep(gridfile[[cat]][1], 'path'=dim(as.data.frame(nc_geom[[1]][[1]]))[1]), as.data.frame(nc_geom[[1]][[1]]))
     for(i in 2:length(nc_geom)){
-      temp <- rbind(temp, data.frame('ZoneID'=rep(map2$NMFS_AREA[i], 'path'=dim(as.data.frame(nc_geom[[1]][[i]]))[1]), as.data.frame(nc_geom[[1]][[i]])))
+      temp <- rbind(temp, data.frame('ZoneID'=rep(gridfile[[cat]][i], 'path'=dim(as.data.frame(nc_geom[[1]][[i]]))[1]), as.data.frame(nc_geom[[1]][[i]])))
     }
     #datatomap <- merge(temp, int, by='ZoneID')
     int <- merge(int, dataset[,c(varofint, 'ZoneID')], by='ZoneID')
@@ -116,6 +115,6 @@ getis_ord_stats <- function(dat, varofint, gridfile, lon.dat=NULL, lat.dat=NULL,
     ylab("Latitude")
   
   return(list(getismap = getismap, 
-              getistable = uniquedatatomap[,c("ADFGstat6", "GetisOrd")]))
+              getistable = uniquedatatomap[,c("ZoneID", "GetisOrd")]))
   
 }
