@@ -1,4 +1,4 @@
-moran_stats <- function(datatomap) {
+moran_stats <- function(dat, varofint, gridfile, lon.dat=NULL, lat.dat=NULL, cat=NULL, lon.grid=NULL, lat.grid=NULL) {
   #' Wrapper function to calculate Moran's I
   #'
   #' Wrapper function to calculate global and local Moran's I by discrete area
@@ -36,16 +36,21 @@ moran_stats <- function(datatomap) {
   #' }
   #'
   
-  requireNamespace(ggplot2)
+  #requireNamespace(ggplot2)
   world <- map_data("world")
+  
+  #Call in datasets
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset
   
   #Assign data to zone
   if(!is.null(cat)){
-    dataset <- assignment_column(dat, gridfile, hull.polygon = TRUE, lon.dat, lat.dat, cat, closest.pt = TRUE,
+    dataset <- assignment_column(dataset, gridfile, hull.polygon = TRUE, lon.dat, lat.dat, cat, closest.pt = TRUE,
                                  lon.grid, lat.grid, epsg=NULL)
     
     #Idenfity centroid of zone
-    int <- find_centroid(dat, gridfile, lon.dat, lat.dat, cat, lon.grid, lat.grid, weight.var=NULL)
+    int <- find_centroid(dataset, gridfile, lon.dat, lat.dat, cat, lon.grid, lat.grid, weight.var=NULL)
   }
   
   # Create dataset  
@@ -76,7 +81,7 @@ moran_stats <- function(datatomap) {
   
   gmoranspdep <- spdep::moran.test(uniquedatatomap$varofint, listw = spdep::nb2listw(nb.rk))
   
-  datatomap <- merge(temp, uniquedatatomap)
+  datatomap <- unique(merge(temp, uniquedatatomap))
   
   minlon = min(datatomap$path_lon)*1.001 #lon negative
   maxlon = max(datatomap$path_lon)*0.985
@@ -90,8 +95,8 @@ moran_stats <- function(datatomap) {
               size=0.375) + 
     geom_map(data=world, map=world, aes(x=long, y=lat, map_id=region),
              fill="grey", color="black", size=0.375) +
-    geom_polygon(data=datatomap,aes(x=path_lon,y=path_lat,group = ZoneID,
-                                    fill=Moran,),color="black",alpha=1,size=0.375) + 
+    geom_polygon(data=datatomap, aes(x=path_lon,y=path_lat,group = ZoneID,
+                                    fill=Moran), color="black",alpha=1,size=0.375) + 
     scale_fill_gradient2(low="skyblue2", high="firebrick1", 
                          mid = "white", name="Local\nMoran's I")+
     xlim(minlon,maxlon) + 

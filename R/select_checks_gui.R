@@ -156,7 +156,7 @@ tabPanel("Upload Data", value = "upload",
 #-----
 #---- 
 #BEGIN DATA EXPLORATION TABSET PANEL 
-#----   
+#----
           tabPanel("Data Exploration", value = "explore",
                    sidebarLayout(
                      sidebarPanel(width=2,
@@ -189,15 +189,22 @@ tabPanel("Upload Data", value = "upload",
                          selectInput('plot_type', 'Select Plot Type', choices=c('Temporal','Spatial','x-y plot'))
                          ),
                        
+                          #selectInput('varofint', 'Variable of interest', choices=c('A','B','C'))
+                       conditionalPanel(condition="input.plot_table=='Plots'& input.plot_type=='Spatial'",
+                                        uiOutput("mtgt_output")),
+                      uiOutput('mtgt_out2'),
                        conditionalPanel(
                          condition='input.plot_table=="Table"',
                          verbatimTextOutput('editText')
                       ),
+                      
                       conditionalPanel(
                         condition='input.plot_table=="Plots" & input.plot_type=="Spatial"',
-                        uiOutput("location_info_spatial")
+                            uiOutput("location_info_spatial")
                         ),
                       textInput('notesExplore', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                     
+                      
                    ),
                    mainPanel(width=10,
                      tags$div(DTOutput("output_table_exploration"), style = "font-size: 75%; width: 100%"),
@@ -234,6 +241,10 @@ tabPanel("Upload Data", value = "upload",
                      conditionalPanel(
                        condition='input.plot_table=="Plots" & input.plot_type=="Spatial"',
                        plotOutput('map_kernel')),
+                     conditionalPanel(
+                       condition='input.plot_table=="Plots" & input.plot_type=="Spatial"',
+                        DTOutput('output_table_gt_mt')),
+# ----> HERE ADD GETISORD and MORAN I <-----###
                      conditionalPanel(
                        condition='input.plot_table=="Plots" && input.plot_type=="x-y plot"',   
                         plotOutput('plot_xy'))
@@ -658,7 +669,7 @@ tabPanel("Upload Data", value = "upload",
                                                    inline=FALSE))
     })
 
-  t2 = reactive({
+   t2 = reactive({
     if(length(unique(lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]]))))>1){
         'Year'
     } else { 
@@ -693,7 +704,7 @@ tabPanel("Upload Data", value = "upload",
       }
     })
  
-df2m=reactive({
+   df2m=reactive({
      if(length(unique(lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]]))))>1){
      aggregate(values$dataset[[input$col_select]]~
                  lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=input$p3fun, na.rm=T)
@@ -704,7 +715,7 @@ df2m=reactive({
    })
    
 
-plotInput_time <-  reactive({
+   plotInput_time <-  reactive({
       if(grepl('date', input$col_select[1], ignore.case=T)==TRUE){
         p1 <- ggplot(values$dataset, 
                aes_string(x=as.Date(values$dataset[,grep('date',  colnames(values$dataset), ignore.case = TRUE)[1]], origin='01-01-1970'),
@@ -747,7 +758,7 @@ plotInput_time <-  reactive({
   #}
 })
 
-output$plot_time <- renderPlot({
+   output$plot_time <- renderPlot({
   print(plotInput_time())
 })
 
@@ -764,8 +775,6 @@ output$plot_time <- renderPlot({
                             ifelse((max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]], na.rm=TRUE)+abs(max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]], na.rm=TRUE)/10) > 90),
                                    90, max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]], na.rm=TRUE)+abs(max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]], na.rm=TRUE)/10)))
      })
-
-     
      output$plot_spatial <- renderPlot({#plotInput_spatial <-  reactive({
        if (is.null(values$dataset)) {
          return(NULL)
@@ -784,9 +793,7 @@ output$plot_time <- renderPlot({
                    axis.title=element_text(size=12),panel.border = element_rect(colour = "black", fill=NA, size=1) )
          } 
      })
-     
-         
-         plotInput_kernel <- reactive ({
+     plotInput_kernel <- reactive ({
            if (is.null(values$dataset)) {
             return(NULL)
           } else {
@@ -851,6 +858,52 @@ output$plot_time <- renderPlot({
                                      90, max(values$dataset[, latitude], na.rm=TRUE)+abs(max(values$dataset[, latitude], na.rm=TRUE)/10)))
        }
      })
+     
+     output$mtgt_output <- renderUI({
+              tagList( 
+                conditionalPanel(condition="input.plot_table=='Plots'&input.plot_type=='Spatial'",
+                                 style = "margin-left:19px;", selectInput('varofint', 'Variable of interest', choices=names(values$dataset))),
+                conditionalPanel(condition="input.plot_table=='Plots'&input.plot_type=='Spatial'",
+                                                  style = "margin-left:19px;",  selectInput('gtmt_lonlat', 'Select lat then lon from data set to assign observations to zone', 
+                        choices=c(NULL, names(values$dataset)[grep('lon|lat', names(values$dataset), ignore.case=TRUE)]), multiple = TRUE)), 
+                conditionalPanel(condition="input.plot_table=='Plots'&input.plot_type=='Spatial'",
+                                         style = "margin-left:19px;", fileInput("gtmtfileGrid", "Choose file defining area/zone polygons", multiple = FALSE)) 
+       )
+     })    
+     gtmtGridFileData <- reactive({
+       if(is.null(input$gtmtfileGrid)){return()} 
+       type <- sub('.*\\.', '', input$gtmtfileGrid$name)
+       if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
+       g <- read_dat(input$gtmtfileGrid$datapath, type)
+       return(g)
+     })
+     output$mtgt_out2 <- renderUI({
+        tagList(
+          conditionalPanel(condition="input.plot_table=='Plots'&input.plot_type=='Spatial'",
+                        style = "margin-left:19px;", selectInput('mtgtcat',  "Variable defining zones or areas", 
+                                                                 choices= c('', names(as.data.frame(gtmtGridFileData()))), selected='')),
+           conditionalPanel(condition="input.plot_table=='Plots'&input.plot_type=='Spatial'",
+                        style = "margin-left:19px;", selectInput('mtgtlonlat', 'Select vector containing latitude then longitude from spatial data set', 
+                                                     choices= c(NULL, names(as.data.frame(gtmtGridFileData()))), multiple=TRUE))
+        )
+      })
+###-----> HERE ADD MORAN I AND GETIS ORD <-----####
+    gtmt_table <- reactive({
+      if(input$mtgtcat==''){
+        return( NULL)
+      } else {
+        gt <- getis_ord_stats(values$dataset, input$varofint, gtmtGridFileData(), lon.dat=input$gtmt_lonlat[2], lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat, lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$getistable
+        mt <- moran_stats(values$dataset, input$varofint, gtmtGridFileData(), lon.dat=input$gtmt_lonlat[2], lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat, lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$morantable
+        print(gt)
+               return(as.data.frame(merge(gt, mt)))
+      }
+      }) 
+  
+  output$output_table_gt_mt <- DT::renderDT(  
+    gtmt_table()
+  )
+
+###-----> HERE ADD MORAN I AND GETIS ORD <-----####
      
      #4. X VS. Y
      plotInput_xy <- reactive({
@@ -965,7 +1018,6 @@ output$plot_time <- renderPlot({
 ###----
       #Transformations 
       output$trans_time_out <- renderUI({
-        
                  conditionalPanel(condition="input.VarCreateTop=='Data transformations'&input.trans=='temp_mod'",
                                   style = "margin-left:19px;", selectInput('TimeVar','Select variable',
                                    choices=c(colnames(values$dataset)[grep('date|hour|time|year', colnames(values$dataset), ignore.case=TRUE)])))
@@ -1116,7 +1168,7 @@ output$plot_time <- renderPlot({
                            style = "margin-left:19px;", selectInput('trip_id_SL', 'Variable in primary data set to identify unique trips', choices=c('',names(values$dataset)))),
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
                            style = "margin-left:19px;", selectInput('haul_order_SL', 'Variable in primary data set defining haul order within a trip. Can be time, coded variable, etc.',
-                                   choices=c('',names(values$dataset)))),
+                                   choices=c('', names(values$dataset)))),
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
                            style = "margin-left:19px;", selectInput('starting_port_SL',  "Variable in primary data set identifying port at start of trip", 
                                    choices=names(values$dataset[,grep('port',names(values$dataset), ignore.case = TRUE)]))),
@@ -1137,11 +1189,11 @@ output$plot_time <- renderPlot({
            tagList(
          if(any(class(GridFileData())=='sf')==FALSE){
             conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
-                             style = "margin-left:19px;", selectInput('lat.grid_SL', 'Select vector containing latitude from spatial data set', choices=names(values$dataset), multiple=TRUE))
+                             style = "margin-left:19px;", selectInput('lat.grid_SL', 'Select vector containing latitude from spatial data set', choices= names(as.data.frame(GridFileData())), multiple=TRUE))
           },
           if(any(class(GridFileData())=='sf')==FALSE){
             conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
-                             style = "margin-left:19px;", selectInput('lon.grid_SL', 'Select vector containing longitude from spatial data set', choices=names(values$dataset), multiple=TRUE))
+                             style = "margin-left:19px;", selectInput('lon.grid_SL', 'Select vector containing longitude from spatial data set', choices= names(as.data.frame(GridFileData())), multiple=TRUE))
           },
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
                            style = "margin-left:19px;", selectInput('cat_SL', "Variable defining zones or areas", choices= names(as.data.frame(GridFileData()))))
@@ -1245,7 +1297,7 @@ output$plot_time <- renderPlot({
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='haul_to_trip'){
            values$dataset <- haul_to_trip(values$dataset, project=project, input$fun.numeric, input$fun.time, input$Haul_Trip_IDVar)
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='trip_distance'){
-           value$dataset$TripDistance <- create_trip_distance(values$dataset, input$port.dat.dist, input$trip_ID, input$starting_port, 
+           values$dataset$TripDistance <- create_trip_distance(values$dataset, input$port.dat.dist, input$trip_ID, input$starting_port, 
                                                               c(input$starting_haul[2], input$starting_haul[1]), 
                                                               c(input$ending_haul[2],input$ending_haul[1]), input$ending_port, input$haul_order)
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='trip_centroid'){

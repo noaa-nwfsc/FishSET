@@ -27,18 +27,9 @@ assignment_column <- function(dat, gridfile, hull.polygon = c(TRUE, FALSE),
                               lon.grid=NULL, lat.grid=NULL, epsg=NULL) {
   
   #Call in data sets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat  
-  }
-  DBI::dbDisconnect(fishset_db)
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset
   
   dataset[[lat.dat]] <- as.numeric(as.vector(dataset[[lat.dat]]))
   dataset[[lon.dat]] <- as.numeric(as.vector(dataset[[lon.dat]]))

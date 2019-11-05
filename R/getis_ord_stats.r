@@ -37,17 +37,21 @@ getis_ord_stats <- function(dat, varofint, gridfile, lon.dat=NULL, lat.dat=NULL,
   #' }
   #'
   
-  requireNamespace(ggplot2)
+ # requireNamespace(ggplot2)
   world <- map_data("world")
-  
+
+  #Call in datasets
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset
   
   #Assign data to zone
   if(!is.null(cat)){
-    dataset <- assignment_column(dat, gridfile, hull.polygon = TRUE, lon.dat, lat.dat, cat, closest.pt = TRUE,
+    dataset <- assignment_column(dataset, gridfile, hull.polygon = TRUE, lon.dat, lat.dat, cat, closest.pt = TRUE,
                                  lon.grid, lat.grid, epsg=NULL)
     
     #Idenfity centroid of zone
-    int <- find_centroid(dat, gridfile, lon.dat, lat.dat, cat, lon.grid, lat.grid, weight.var=NULL)
+    int <- find_centroid(dataset, gridfile, lon.dat, lat.dat, cat, lon.grid, lat.grid, weight.var=NULL)
   }
   
   # Create dataset  
@@ -79,7 +83,7 @@ getis_ord_stats <- function(dat, varofint, gridfile, lon.dat=NULL, lat.dat=NULL,
   globalgetis <- spdep::globalG.test(uniquedatatomap[['varofint']], 
                                      listw = spdep::nb2listw(nb.rk, style="B"))
   
-  datatomap <- merge(temp, uniquedatatomap)
+  datatomap <- unique(merge(temp, uniquedatatomap))
   
   minlon = min(datatomap$path_lon)*1.001 #lon negative
   maxlon = max(datatomap$path_lon)*0.985
@@ -88,15 +92,15 @@ getis_ord_stats <- function(dat, varofint, gridfile, lon.dat=NULL, lat.dat=NULL,
   
   annotatesize <- 6
   
-  getismap <- ggplot(data=datatomap, aes(x = path_lon, y = path_lat)) +
+  getismap <- ggplot(data=datatomap) +
     geom_path(aes(x=path_lon,y=path_lat,group = ZoneID), color="black", 
               size=0.375) + 
     geom_map(data=world, map=world, aes(map_id=region),
              fill="grey", color="black", size=0.375) +
-    xlim(minlon,maxlon) + 
-    ylim(minlat,maxlat) + 
     geom_polygon(data=datatomap,aes(x=path_lon,y= path_lat,group = ZoneID,
                                     fill=GetisOrd),color="black",alpha=1, size=0.375) + 
+    xlim(minlon,maxlon) + 
+    ylim(minlat,maxlat) +
     scale_fill_gradient2(low="skyblue2", high="firebrick1", 
                          mid = "white", name="Local\nGetis-Ord") +
     ggtitle("Getis-Ord statistics") +
