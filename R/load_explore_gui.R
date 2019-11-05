@@ -1,9 +1,7 @@
-# Validation checks selection tool
-# Select which data validation checks to apply.
+# Interactive tool to run FishSET functions 
+# Runs functions associated with loading data, exploring data, checking for data quality issues, generating new variables, and basic data analyis function.
 
-
-# select_checks
-#' View and select which validation checks to run
+# load_explore
 #'
 #' @param dat Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
 #' @param project Name of project. Parameter is used to generate meaningful table names in fishset_db database.
@@ -16,14 +14,14 @@
 # @importFrom gridExtra grid.table
 #' @importFrom stringi stri_count_regex
 #' @export select_checks
-#' @details Opens an interactive table that allows uses to select which data validation checks to run by clicking check boxes. 
+#' @details Opens an interactive page that allows users to select which functions to run by clicking check boxes. 
 #' @examples
 #' \dontrun{
 #' select_checks(pcodMainDataTable, 'pcod')
 #' }
 
 
-select_checks <- function(dat, project){#
+load_explore <- function(dat, project){#
   requireNamespace(shiny)
    requireNamespace(ggplot2)
 #----
