@@ -1,7 +1,7 @@
-# Interactive tool to run FishSET functions 
-# Runs functions associated with loading data, exploring data, checking for data quality issues, generating new variables, and basic data analyis function.
+#' Interactive tool to run FishSET functions 
+#' Runs functions associated with loading data, exploring data, checking for data quality issues, generating new variables, and basic data analyis function.
 
-# load_explore
+#' load_explore
 #'
 #' @param dat Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
 #' @param project Name of project. Parameter is used to generate meaningful table names in fishset_db database.
@@ -13,11 +13,11 @@
 #' @importFrom DBI  dbDisconnect dbConnect dbListTables dbWriteTable 
 # @importFrom gridExtra grid.table
 #' @importFrom stringi stri_count_regex
-#' @export select_checks
+#' @export load_explore
 #' @details Opens an interactive page that allows users to select which functions to run by clicking check boxes. 
 #' @examples
 #' \dontrun{
-#' select_checks(pcodMainDataTable, 'pcod')
+#' load_explore(pcodMainDataTable, 'pcod')
 #' }
 
 

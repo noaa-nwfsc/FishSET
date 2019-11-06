@@ -4,19 +4,41 @@
 \alias{moran_stats}
 \title{Wrapper function to calculate Moran's I}
 \usage{
-moran_stats(datatomap)
+moran_stats(dat, varofint, gridfile, lon.dat = NULL, lat.dat = NULL,
+  cat = NULL, lon.grid = NULL, lat.grid = NULL)
 }
 \arguments{
-\item{datatomap}{A data frame with the ADFG Stat6 area as a factor
-"ADFGstat6", the lon/lat centroid for each area ("centroid_lon",
-"centroidlat"), the path_lon/path_lat outlining each area
-("path_lon", "path_lat"), and the variable of interest ("varofint").}
+\item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}
+
+\item{varofint}{Numeric variable}
+
+\item{gridfile}{Spatial data set. Can be shape file, data frame, or list.}
+
+\item{lon.dat}{Longitude of points from dataset.}
+
+\item{lat.dat}{Latitude of points from dataset.}
+
+\item{cat}{Variable defining the individual areas or zones.}
+
+\item{lon.grid}{Longitude of points from gridfile.}
+
+\item{lat.grid}{Latitude of points from gridfile.}
 }
 \value{
 moranmap: ggplot2 object; morantable: table of statistics
 }
 \description{
 Wrapper function to calculate global and local Moran's I by discrete area
+}
+\details{
+Requires A data frame with area as a factor, the lon/lat centroid for each area ("centroid_lon",
+    "centroidlat"), the path_lon/path_lat outlining each area
+    ("path_lon", "path_lat"), and the variable of interest ("varofint") or 
+ a map file with lat/lon defining boundaries of area/zones and variable of interest for weighting.
+Also required is the lat/lon defining the center of a zone/area. If the centroid is not included in the map file, 
+then the find_centorid function can be called to calculate the centroid of each zone. If the varible of interest is not
+associated with a area/zone than the assignement_column function can be used to assign each observation to a zone.  
+Parameters to identify centroid and assign variable of interest to area/zone are optional and default to NULL.
 }
 \examples{
 \dontrun{

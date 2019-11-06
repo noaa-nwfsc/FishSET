@@ -159,11 +159,14 @@ Data management functions provide tools for:
      summary_stats    Returns a tables with basic summary statistics for all variables in data table.
      spatial_hist     Returns historgram of latitude and longitude by grouping variable.
      spatial_summary  Returns line plots of selected variable against date and zone.
+     getis_ord_stats  Returns plot and table of Getis Ord statistic
+     moran_stats      Returns plot and table of Moran's I statistic
 
   Subsetting the data
   
      select_vars      Select which variables from raw data set to include in the working data set. 
      add_vars         Add varables from raw data set to working data set after the select_vars function has been run.
+
   Checking for outliers  
   
      outlier_table    Returns table with quantiles for all numeric variables in the data table
