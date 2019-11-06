@@ -15,7 +15,7 @@
 #' @param startloc Vector required for logit_correction likelihood. startloc is a matrix of dimension (number of observations) 
 #'     by (unity), that corresponds to the starting location when the agent decides between alternatives. 
 #' @param polyn Vector required for logit_correction likelihood. Correction polynomial degree.  
-#' @param vesselID NULL If required, specify which variable defines individual vessels.
+# @param vesselID NULL If required, specify which variable defines individual vessels.
 #' @param project name. name of project. For name of output table saved in sql database
 #' @importFrom geosphere distm
 #' @importFrom DBI dbGetQuery dbExecute dbListTables
@@ -123,18 +123,31 @@
 
 
 make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", "griddedData"), lon.dat, lat.dat, project, 
-                               likelihood= NULL, vars1 = NULL, vars2 = NULL, priceCol = NULL, startloc=NULL, polyn=NULL, vesselID=NULL) {
+                               likelihood= NULL, vars1 = NULL, vars2 = NULL, priceCol = NULL, startloc=NULL, polyn=NULL) {#, vesselID=NULL
   
-  #Call in datasets
+      fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")  
+      #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
   dataset <- out$dataset
   
-  indeVarsForModel = vars1
-  gridVariablesInclude=vars2
+#Script necessary to ensure paramers generated in shiny app are in correct format
+  if (vars1=='none') { indeVarsForModel <- NULL } else { indeVarsForModel=vars1}
+  if (vars2=='none') { gridVariablesInclude <- NULL } else { gridVariablesInclude=vars2}
+  if (priceCol=='none') { priceCol <- NULL } else { priceCol = priceCol }
+  if (startloc=='none') { startloc <- NULL } else { startloc = startloc }
+  lon.dat <- as.character(lon.dat)
+  lat.dat <- as.character(lat.dat)
   
+  if(lon.dat==lat.dat){
+    warning('Longitude and Latitude variables are identical.')
+  }
+  #indeVarsForModel = vars1
+  #gridVariablesInclude=vars2
+
   if (!exists("Alt")) {
     if (!exists('AltMatrixName')) {
+
       Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
       if (!exists("Alt")) {
         stop("Alternative Choice Matrix does not exist. Please run the createAlternativeChoice() function.")
@@ -361,12 +374,12 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
  #     vesselID <- dataset[which(dataZoneTrue == 1), "vesselID"]  #data([data.vesselID]).dataColumn(dataZoneTrue)   
  #   }
  # }
-  
+
   # Some models need price data
-  if (!is.null(priceCol)) {
-    epmDefaultPrice <- dataset[which(dataZoneTrue == 1), priceCol]
-  } else {
+  if (is.null(priceCol)) {
     epmDefaultPrice <- ""
+  } else {
+    epmDefaultPrice <- dataset[which(dataZoneTrue == 1), priceCol]
   }
   
   # scales zonal
@@ -379,7 +392,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   dscale = 1
   
   ### -- Create output list --- ###
-  modelInputData <- list(likelihood=likelihood,
+  modelInputData_tosave <- list(likelihood=likelihood,
                           catch = catch, 
                           choice = choice[which(dataZoneTrue == 1), ], 
                           startingloc = startingloc[which(dataZoneTrue ==1), ],
@@ -401,18 +414,17 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
                           polyn = polyn,
                           gridVaryingVariables = ExpectedCatch)
   
-  
+ 
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   single_sql <- paste0(project, 'modelinputdata')
   date_sql <- paste0(project, 'modelinputdata', format(Sys.Date(), format="%Y%m%d"))
   if(table_exists(single_sql)){
-    modelInputData <- table_view()
-    single_sql[[length(single_sql)+1]] <- list(name=expname,errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
-                                           seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table=choice.table)
+    #modelInputData <- table_view()
+    modelInputData <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
+    modelInputData[[length(modelInputData)+1]] <- modelInputData_tosave
   } else {
     modelInputData <-  list()
-    modelInputData[[length(modelInputData)+1]] <- list(name=expname,errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
-                                           seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table=choice.table)
+    modelInputData[[length(modelInputData)+1]] <- modelInputData_tosave
   }
 
   single_sql <- paste0(project, 'modelinputdata')
