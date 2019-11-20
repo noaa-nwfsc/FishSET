@@ -4,14 +4,17 @@ moran_stats <- function(dat, varofint, gridfile, lon.dat=NULL, lat.dat=NULL, cat
   #' Wrapper function to calculate global and local Moran's I by discrete area
   #'
   #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
-  #' @param varofint Numeric variable  
+  #' @param varofint Numeric variable of interest to test for spatial autocorrelation.
   #' @param gridfile Spatial data set. Can be shape file, data frame, or list.
   #' @param lon.dat Longitude of points from dataset.
   #' @param lat.dat Latitude of points from dataset.
   #' @param lon.grid Longitude of points from gridfile.
   #' @param lat.grid Latitude of points from gridfile.
   #' @param cat Variable defining the individual areas or zones.
-  #' @details Requires A data frame with area as a factor, the lon/lat centroid for each area ("centroid_lon",
+  #' @details Measure degree of spatial autocorrelation.
+  #' Function utilizes the localmoran and knearneigh functions from the spdep package. All parameters are set to NULL except the varofint and location variables.
+  #' The spatial input is a row-standardized spatial weights matrix for computed nearest neighbor matrix, which is the null setting for the nb2listw function.
+  #' The function requires A data frame with area as a factor, the lon/lat centroid for each area ("centroid_lon",
   #'     "centroidlat"), the path_lon/path_lat outlining each area
   #'     ("path_lon", "path_lat"), and the variable of interest ("varofint") or 
   #'  a map file with lat/lon defining boundaries of area/zones and variable of interest for weighting.
@@ -77,7 +80,7 @@ moran_stats <- function(dat, varofint, gridfile, lon.dat=NULL, lat.dat=NULL, cat
                                                                         "centroid_lat")]), longlat=TRUE))
   locm <- spdep::localmoran(uniquedatatomap$varofint, listw = spdep::nb2listw(nb.rk))
   
-  uniquedatatomap$Moran <- locm[,1]
+  uniquedatatomap$Moran <- round(locm[,1],3)
   
   gmoranspdep <- spdep::moran.test(uniquedatatomap$varofint, listw = spdep::nb2listw(nb.rk))
   
@@ -116,7 +119,8 @@ moran_stats <- function(dat, varofint, gridfile, lon.dat=NULL, lat.dat=NULL, cat
     xlab("Longitude") + 
     ylab("Latitude")
   
+  colnames(uniquedatatomap)[which(colnames(uniquedatatomap)=='Moran')] <- 'Morans_I'
   return(list(moranmap = moranmap, 
-              morantable = uniquedatatomap[,c("ZoneID", "Moran")]))
+              morantable = uniquedatatomap[,c("ZoneID", "Morans_I")]))
   
 }

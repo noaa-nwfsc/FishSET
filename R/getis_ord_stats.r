@@ -4,14 +4,17 @@ getis_ord_stats <- function(dat, varofint, gridfile, lon.dat=NULL, lat.dat=NULL,
   #' Wrapper function to calculate global and local Getis-Ord by discrete area
   #'
   #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
-  #' @param varofint Numeric variable  
+  #' @param varofint Numeric variable of interest to test for spatial high/low clustering. 
   #' @param gridfile Spatial data set. Can be shape file, data frame, or list.
   #' @param lon.dat Longitude of points from dataset.
   #' @param lat.dat Latitude of points from dataset.
   #' @param lon.grid Longitude of points from gridfile.
   #' @param lat.grid Latitude of points from gridfile.
   #' @param cat Variable defining the individual areas or zones.
-  #' @details Requires A data frame with area as a factor, the lon/lat centroid for each area ("centroid_lon",
+  #' @details Calculates degree, within each zone, that high or low values of the varofint cluster in space. 
+  #' Function utilizes the localmoran and knearneigh functions from the spdep package. All parameters are set to NULL except the varofint and location variables.
+  #' The spatial input is a row-standardized spatial weights matrix for computed nearest neighbor matrix, which is the null setting for the nb2listw function.
+  #' Requires A data frame with area as a factor, the lon/lat centroid for each area ("centroid_lon",
   #'     "centroidlat"), the path_lon/path_lat outlining each area
   #'     ("path_lon", "path_lat"), and the variable of interest ("varofint") or 
   #'  a map file with lat/lon defining boundaries of area/zones and variable of interest for weighting.
@@ -78,7 +81,7 @@ getis_ord_stats <- function(dat, varofint, gridfile, lon.dat=NULL, lat.dat=NULL,
                                                                         "centroid_lat")]), longlat=TRUE))
   locg <- spdep::localG(uniquedatatomap[['varofint']], listw = spdep::nb2listw(nb.rk))
   
-  uniquedatatomap$GetisOrd <- locg
+  uniquedatatomap$GetisOrd <- round(locg,3)
   
   globalgetis <- spdep::globalG.test(uniquedatatomap[['varofint']], 
                                      listw = spdep::nb2listw(nb.rk, style="B"))
@@ -117,6 +120,7 @@ getis_ord_stats <- function(dat, varofint, gridfile, lon.dat=NULL, lat.dat=NULL,
           legend.title=element_text(size=15)) + 
     xlab("Longitude") + 
     ylab("Latitude")
+  
   
   return(list(getismap = getismap, 
               getistable = uniquedatatomap[,c("ZoneID", "GetisOrd")]))
