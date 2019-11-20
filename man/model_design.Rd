@@ -21,6 +21,6 @@ Click the 'run model' button to run the models.
 }
 \examples{
 \dontrun{
-model_design_gui(PollockData, 'pcod')
+model_design('pollockMainDataTable', 'pollock')
 }
 }

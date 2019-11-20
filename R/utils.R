@@ -249,7 +249,7 @@ outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plo
   #' @return Plot of the data
   
   
-  requireNamespace(ot2)
+  requireNamespace(ggplot2)
   
   dataset <- dat
   x.name <- x

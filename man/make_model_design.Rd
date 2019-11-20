@@ -7,7 +7,7 @@
 make_model_design(dat, catchID, alternativeMatrix = c("loadedData",
   "griddedData"), lon.dat, lat.dat, project, likelihood = NULL,
   vars1 = NULL, vars2 = NULL, priceCol = NULL, startloc = NULL,
-  polyn = NULL, vesselID = NULL)
+  polyn = NULL)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
@@ -36,8 +36,6 @@ the user chooses, so please see the Detail section for how to specify for each l
 by (unity), that corresponds to the starting location when the agent decides between alternatives.}
 
 \item{polyn}{Vector required for logit_correction likelihood. Correction polynomial degree.}
-
-\item{vesselID}{NULL If required, specify which variable defines individual vessels.}
 }
 \value{
 Model design matrix containing \cr

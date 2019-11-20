@@ -141,7 +141,7 @@ outlier_plot <- function(dat, x, dat.remove, x.dist, output.screen=FALSE){
   #' @importFrom graphics points
   #' @importFrom stats dnorm dpois dweibull rnorm dbinom dlnorm dexp dnbinom
   # @importFrom ggpubr annotate_figure text_grob
-  #' @import ggplot2
+  #' @importFrom  ggplot2 ggplot geom_point aes_string theme geom_histogram labs aes geom_abline geom_abline
   #' @details  The function returns three plots, the data, a probability plot, and a Q-Q plot. The data plot is the value of
   #'  x against row number. Red points are all the data without any points removed. The blue points are the subsetted data. If `dat.remove` is `none`, then only blue points will be shown. 
   #'  The probability plot is a histogram of the data with the fitted probability distribution based on `x.dist`. The Q-Q plot plots are
@@ -172,7 +172,7 @@ outlier_plot <- function(dat, x, dat.remove, x.dist, output.screen=FALSE){
   #' outlier_plot(MainDataTable, 'Haul', dat.remove='mean_2SD', x.dist='normal', output.screen=TRUE)
   #' }
   
-  requireNamespace(ggplot2)
+ # library(ggplot2)
   
   #Call in datasets
   out <- data_pull(dat)
@@ -213,48 +213,49 @@ outlier_plot <- function(dat, x, dat.remove, x.dist, output.screen=FALSE){
     # points
     
     
-    mytheme <- theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+    mytheme <- ggplot2::theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
                      panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text=element_text(size=9),
                      axis.title=element_text(size=8))                                                                                          
     ##Plot 1!
     distplot <- function(gdf,first, second){        
-      ggplot(gdf, aes_string(x=first, y=second)) + 
-        geom_point(color = 'red', na.rm=TRUE) + 
-        geom_point(data=dat_sub,aes_string(x=first,y=second), color='blue', na.rm=TRUE) +
-        labs(x='Data row') + mytheme
+      ggplot2::ggplot(gdf, ggplot2::aes_string(x=first, y=second)) + 
+        ggplot2::geom_point(color = 'red', na.rm=TRUE) + 
+        ggplot2::geom_point(data=dat_sub, ggplot2::aes_string(x=first,y=second), color='blue', na.rm=TRUE) +
+        ggplot2::labs(x='Data row') + mytheme
     }
     p1 <- distplot(dataset, 'y', x)
     
     
     # Hist
     ##Plot 2!     
-    p2 <- ggplot(dat_sub, aes_string(x)) + geom_histogram(aes(y = ..density..), na.rm=TRUE, bins=round(nrow(dataset)/2)) + 
+    p2 <- ggplot2::ggplot(dat_sub, aes_string(x)) + ggplot2::geom_histogram(ggplot2::aes(y = ..density..), na.rm=TRUE,
+                                                                            bins=round(nrow(dataset)/2)) + 
       mytheme  
     if (x.dist == "normal") {    
-      p2 <- p2 + stat_function(fun = dnorm, colour = "blue", 
+      p2 <- p2 + ggplot2::stat_function(fun = dnorm, colour = "blue", 
                                args = list(mean = mean(dat_sub[,x], na.rm = TRUE), 
                                            sd = sd(dat_sub[,x], na.rm = TRUE)))
     } else if (x.dist == "lognormal") {
       # lognormal
-      p2 <- p2 + stat_function(fun = dlnorm, colour = "blue", 
+      p2 <- p2 + ggplot2::stat_function(fun = dlnorm, colour = "blue", 
                                args = list(mean = mean(log(dat_sub[,x]), na.rm = TRUE), 
                                            sd = sd(log(dat_sub[,x]), na.rm = TRUE)))
     } else if (x.dist == "exponential") {
       # Exponential
-      p2 <- p2 + stat_function(fun = dexp, colour = "blue", 
+      p2 <- p2 + ggplot2::stat_function(fun = dexp, colour = "blue", 
                                args = list(rate = 1/mean(dat_sub[, x],na.rm=TRUE)))
     } else if (x.dist == "weibull") {
       # Weibull
-      p2 <- p2 + stat_function(fun = dweibull, colour = "blue", 
+      p2 <- p2 + ggplot2::stat_function(fun = dweibull, colour = "blue", 
                                args = list(shape = 1.2/sqrt(var(log(dat_sub[, x]),na.rm=TRUE)), 
                                            scale = mean(dat_sub[, x],na.rm=TRUE) + 0.572/(1.2/sqrt(var(log(dat_sub[, x]),na.rm=TRUE)))))
     } else if (x.dist == "poisson") {
       # Poisson
-      p2 <- p2 + stat_function(fun = dpois, colour = "blue", 
+      p2 <- p2 + ggplot2::stat_function(fun = dpois, colour = "blue", 
                                args = list(lambda = mean(dat_sub[, x],na.rm=TRUE)))
     } else if (x.dist == "negative binomial") {
       # Negative Binomial
-      p2 <- p2 + stat_function(fun = dnbinom, colour = "blue", 
+      p2 <- p2 + ggplot2::stat_function(fun = dnbinom, colour = "blue", 
                                args = list( mean(dat_sub[, x],na.rm=TRUE)^2/(var(dat_sub[, x],na.rm=TRUE) - mean(dat_sub[, x],na.rm=TRUE)), 
                                             mu = mean(dat_sub[, x],na.rm=TRUE)))
     }
@@ -287,8 +288,8 @@ outlier_plot <- function(dat, x, dat.remove, x.dist, output.screen=FALSE){
     data_quants <- stats::quantile(as.numeric(dat_sub[, x]), quants,na.rm=TRUE)
      # create Q-Q plot
     temp <- data.frame(fit_quants, data_quants) 
-    p3 <- ggplot(temp, aes(x=fit_quants, y=data_quants)) + geom_point(shape=1) + geom_abline() +
-      labs(x='Theoretical Quantiles', y='Sample Quantiles', title=paste('Q-Q plot of', x.dist, 'fit against data'))+
+    p3 <- ggplot2::ggplot(temp, ggplot2::aes(x=fit_quants, y=data_quants)) + ggplot2::geom_point(shape=1) + ggplot2::geom_abline() +
+      ggplot2::labs(x='Theoretical Quantiles', y='Sample Quantiles', title=paste('Q-Q plot of', x.dist, 'fit against data'))+
       mytheme
     
 #Put it all together
@@ -301,7 +302,7 @@ outlier_plot <- function(dat, x, dat.remove, x.dist, output.screen=FALSE){
     plot(fig)
    # Close the pdf file
     if (output.screen == FALSE) {
-      ggsave(file="outlier_plot.png", path=paste0(getwd(),"/inst/output/"))
+      ggplot2::ggsave(file="outlier_plot.png", path=paste0(getwd(),"/inst/output/"))
       dev.off()
     }
     

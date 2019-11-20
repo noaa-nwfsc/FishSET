@@ -10,7 +10,7 @@ moran_stats(dat, varofint, gridfile, lon.dat = NULL, lat.dat = NULL,
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}
 
-\item{varofint}{Numeric variable}
+\item{varofint}{Numeric variable of interest to test for spatial autocorrelation.}
 
 \item{gridfile}{Spatial data set. Can be shape file, data frame, or list.}
 
@@ -31,7 +31,10 @@ moranmap: ggplot2 object; morantable: table of statistics
 Wrapper function to calculate global and local Moran's I by discrete area
 }
 \details{
-Requires A data frame with area as a factor, the lon/lat centroid for each area ("centroid_lon",
+Measure degree of spatial autocorrelation.
+Function utilizes the localmoran and knearneigh functions from the spdep package. All parameters are set to NULL except the varofint and location variables.
+The spatial input is a row-standardized spatial weights matrix for computed nearest neighbor matrix, which is the null setting for the nb2listw function.
+The function requires A data frame with area as a factor, the lon/lat centroid for each area ("centroid_lon",
     "centroidlat"), the path_lon/path_lat outlining each area
     ("path_lon", "path_lat"), and the variable of interest ("varofint") or 
  a map file with lat/lon defining boundaries of area/zones and variable of interest for weighting.
