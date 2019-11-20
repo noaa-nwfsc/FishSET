@@ -19,5 +19,6 @@ Runs functions associated with loading data, exploring data, checking for data q
 load_explore
 }
 \details{
-Opens an interactive page that allows users to select which functions to run by clicking check boxes.
+Opens an interactive page that allows users to select which functions to run by clicking check boxes. 
+Zonal centroid', 'Port', 'Lat/lon coordinates'
 }
