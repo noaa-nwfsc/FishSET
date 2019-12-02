@@ -22,9 +22,8 @@
 #' @export 
 
 
-assignment_column <- function(dat, gridfile, hull.polygon = c(TRUE, FALSE),  
-                              lon.dat, lat.dat, cat, closest.pt = c(TRUE, FALSE), 
-                              lon.grid=NULL, lat.grid=NULL, epsg=NULL) {
+assignment_column <- function(dat, gridfile, lon.dat, lat.dat, cat, closest.pt = c(TRUE, FALSE), 
+                              lon.grid=NULL, lat.grid=NULL, hull.polygon = c(TRUE, FALSE), epsg=NULL) {
   
   #Call in data sets
   out <- data_pull(dat)

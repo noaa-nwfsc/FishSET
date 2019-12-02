@@ -17,8 +17,9 @@
 #' @export
 #' @examples 
 #' \dontrun{
-#' temp_obs_table(MainDataTable, map2, "DATE_FISHING_BEGAN", "", "", 
-#'              "LONLAT_START_LONGITUDE", "LONLAT_START_LATITUDE", "NMFS_AREA")
+#' temp_obs_table('pollockMainDataTable', gridfile=map2, x="DATE_FISHING_BEGAN", 
+#'                 lon.grid="", lat.grid="", lon.dat="LonLat_START_LON", 
+#'                 lat.dat="LonLat_START_LAT", cat="NMFS_AREA")
 #' }
 
 temp_obs_table <- function(dat, gridfile, x, lon.grid, lat.grid, lon.dat, lat.dat, cat){
@@ -27,9 +28,9 @@ temp_obs_table <- function(dat, gridfile, x, lon.grid, lat.grid, lon.dat, lat.da
   out <- data_pull(dat)
   dat <- out$dat
   dataset <- out$dataset
-  
- out <- assignment_column(dataset, gridfile, hull.polygon = TRUE, lon.grid, lat.grid, 
-                          lon.dat, lat.dat, cat, closest.pt =FALSE, epsg=NULL)
+
+ out <- assignment_column(dataset, gridfile=gridfile, lon.grid=long.grid, lat.grid=lat.dat, lon.dat=lon.dat, lat.dat=lat.dat,  
+                          cat=cat, closest.pt =FALSE, hull.polygon = TRUE, epsg=NULL)
  
  out$YEAR <- temporal_mod(dataset, x, 'year') 
  out$MONTH <- temporal_mod(dataset, x, '%m') 

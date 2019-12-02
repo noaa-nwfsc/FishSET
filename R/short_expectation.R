@@ -4,6 +4,7 @@
 #' @param project Name of project. Used to pull working alternative choice matrix from fishset_db database.
 #' @param gridfile Spatial data. Shape, json, and csv formats are supported.
 #' @param catch Variable containing catch data.
+#' @param price Variable containing price/value data. Used in calculating expected revenue. Leave null if calculating expected catch. Multiplied against catch to generated revenue.
 #' @param defineGroup If empty, data is treated as a fleet
 #' @param temp.var Variable containing temporal data
 #' @param temporal Daily (Daily time line) or sequential (sequential order)
@@ -20,7 +21,7 @@
 #' @export create_expectations
 #' @return Expected catch matrix. Saved to database via create_expectations
 
-short_expectations <- function(dat, project, gridfile, catch, defineGroup, temp.var, temporal, calc.method,  
+short_expectations <- function(dat, project, gridfile, catch, price, defineGroup, temp.var, temporal, calc.method,  
                                lag.method, empty.catch, empty.expectation, dummy.exp){
   
   #Call in datasets
@@ -69,7 +70,10 @@ short_expectations <- function(dat, project, gridfile, catch, defineGroup, temp.
     C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*"))  #C = row ID of those unique items
     
     catchData <- as.numeric(dataset[[catch]][which(dataZoneTrue == 1)])
-    
+    if(!is.null(price)){
+      priceData <- as.numeric(dataset[[price]][which(dataZoneTrue == 1)])
+      catchData <- catchData*priceData
+    }
     # Time variable not chosen if temp.var is empty
       tiData <- as.Date(dataset[[temp.var]][which(dataZoneTrue == 1)], origin='1970-01-01')  #(ti(get(mp3V1,'Value'))).dataColumn(Alt.dataZoneTrue,:) # this part involves time which is more complicated
       if (temporal == "daily") {

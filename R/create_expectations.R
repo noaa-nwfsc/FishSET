@@ -1,8 +1,9 @@
-#' Expected catch
+#' Expected catch/Expected Revenue
 
 #' @param dat  Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
 #' @param gridfile Spatial data. Shape, json, and csv formats are supported.
 #' @param catch Variable containing catch data.
+#' @param price Variable containing price/value data. Used in calculating expected revenue. Leave null if calculating expected catch. Multiplied against catch to generated revenue.
 #' @param temporal Daily (Daily time line) or sequential (sequential order)
 #' @param temp.var Variable containing temporal data
 #' @param calc.method Select standard average (standardAverage), simple lag regression of means (simpleLag), or weights of regressed groups (weights)
@@ -11,10 +12,12 @@
 #' @param empty.expectation Do not replace (NULL) or replace with 0.0001 or 0
 #' @param temp.window Temporal window size. In days. Defaults to 14 (14 days)
 #' @param temp.lag Temporal lag time in days.
-#' @param temp.year IF expected catch should be based on catch from previous year(s), set temp.year to the number of years to go back.
+#' @param year.lat IF expected catch should be based on catch from previous year(s), set year.lag to the number of years to go back.
 #' @param dummy.exp T/F. Defaults to False. If false, no dummy variable is outputted. If true, output dummy variable for originally missing value.
 #' @param project Name of project. Used to pull working alternative choice matrix from fishset_db database.
 #' @param defineGroup If empty, data is treated as a fleet
+#' @param replace.output Default is FALSE. If TRUE, replaces existing saved expected catch dataframe with new expected catch dataframe. 
+#' If FALSE, add new expected catch dataframes to previously saved expected catch dataframes.
 #' @importFrom lubridate floor_date
 #' @importFrom zoo rollapply
 #' @importFrom DBI dbGetQuery
@@ -22,7 +25,7 @@
 #' @importFrom signal polyval
 #' @export create_expectations
 #' @return newGridVar dataframe. Saved to the global environment. Dataframe called in make_model_design
-#' @details Used during model creation to create an expectation of catch for alternative choices that are added to the model design file.
+#' @details Used during model creation to create an expectation of catch or revenue for alternative choices that are added to the model design file.
 #' IMPORTANT: Use the temp_obs_table function before using this function to assess the availability of data for desired temporal moving window size. Sparse data is not suited for shorter moving window sizes. 
 #' The expectations created have several options and are created based on the group and time averaging choices of the user.
 #' The spatial alternatives are built in to the function and come from the structure Alt. 
@@ -40,7 +43,7 @@
 #' @return newGridVar,  newDumV
 #' @examples 
 #' \dontrun{
-#' create_expectations(MainDataTable, adfg, 'OFFICIAL_TOTAL_CATCH_MT',  temporal='daily', 
+#' create_expectations(MainDataTable, adfg, 'OFFICIAL_TOTAL_CATCH_MT',  price=NULL, temporal='daily', 
 #'                      temp.var="DATE_FISHING_BEGAN", calc.method='standard average', 
 #'                      lag.method='simple',  empty.catch='all catch', empty.expectation= 0.0001, 
 #'                      temp.window=4, temp.lag=2, dummy.exp=FALSE, 
@@ -48,10 +51,10 @@
 #' }
 
 
-create_expectations <- function(dat, project, gridfile, catch, defineGroup, temp.var=NULL, temporal = c("daily", "sequential"), 
+create_expectations <- function(dat, project, gridfile, catch, price=NULL, defineGroup, temp.var=NULL, temporal = c("daily", "sequential"), 
                                 calc.method = c("standardAverage", "simpleLag", "weights"), lag.method = c("simple", "grouped"),
                                 empty.catch = c(NULL, 0, "allCatch", "groupedCatch"), empty.expectation = c(NULL, 1e-04, 0),  
-                                temp.window = 7, temp.lag = 0, temp.year=0, dummy.exp = FALSE) {
+                                temp.window = 7, temp.lag = 0, year.lag=0, dummy.exp = FALSE, replace.output=FALSE) {
   
   #Call in datasets
    out <- data_pull(dat)
@@ -100,7 +103,7 @@ long_exp <- long_expectations(dat=dat, project=project, gridfile=gridfile, catch
     numData <- data.frame(rep(1, dim(dataset)[1]))  #ones(size(data(1).dataColumn,1),1)
     # Define by group case u1hmP1
   } else {
-    numData = as.integer(dataset[[defineGroup]])
+    numData = as.integer(as.factor(dataset[[defineGroup]]))
   }
   
   numData = as.data.frame(numData)[which(dataZoneTrue == 1), ]  #(Alt.dataZoneTrue,:)
@@ -121,7 +124,10 @@ long_exp <- long_expectations(dat=dat, project=project, gridfile=gridfile, catch
   C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*"))  #C = row ID of those unique items
   
   catchData <- as.numeric(dataset[[catch]][which(dataZoneTrue == 1)])
-  
+  if(!is.null(price)){
+  priceData <- as.numeric(dataset[[price]][which(dataZoneTrue == 1)])
+  catchData <- catchData*priceData
+  }
   # Time variable not chosen if temp.var is empty
   #NOTE currently doesn't allow dummy or other options if no time detected
   if (is_empty(temp.var)) {
@@ -158,7 +164,7 @@ long_exp <- long_expectations(dat=dat, project=project, gridfile=gridfile, catch
     
     timeRange <- temp.window
     lagTime <- temp.lag
-    yearRange <- temp.year  
+    yearRange <- year.lag  
     
        # Use R's rollapply and lag function to calculate moving average 
     # Empty values are replaced as defined above
@@ -334,14 +340,15 @@ long_exp <- long_expectations(dat=dat, project=project, gridfile=gridfile, catch
 
 
   }# end of time vs not time
+  
   r <- nchar(sub('\\.[0-9]+', '', mean(as.matrix(newCatch),na.rm=T))) #regexp(num2str(nanmax(nanmax(newCatch))),'\.','split')
   sscale <- 10^(r-1)  
 
   ExpectedCatch <- list(
-     short_exp = short_exp,
-     med_exp = med_exp,
-     long_exp = long_exp,
-     user_defined_exp = newCatch,
+     paste('short_exp', catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation, '2', '0', '0', sep='_') = short_exp,
+     paste('med_exp', catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation, '7', '0', '0', sep='_') = med_exp,
+     paste('long_exp', catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation, '7', '0', '1', sep='_') = long_exp,
+     paste('user_defined_exp', catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation, temp.window, temp.lag, year.lag, sep='_') = newCatch,
      scale = sscale,
      units = ifelse(grepl('lbs|pounds', catch, ignore.case = T)==T, 'LBS', 'MTS') #units of catch data
      #newGridVar.file=[]
@@ -350,18 +357,29 @@ long_exp <- long_expectations(dat=dat, project=project, gridfile=gridfile, catch
 
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
   single_sql <- paste0(project, 'ExpectedCatch')
-  if(table_exists(single_sql)){
-    table_remove(single_sql)
+  
+  if(replace.output==TRUE){
+    if(table_exists(single_sql)){
+      ExpectedCatchOld <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", project, "ExpectedCatch LIMIT 1"))$data[[1]])
+      ExpectedCatch <- c(ExpectedCatchOld, ExpectedCatch)
+    } else {
+      ExpectedCatch = ExpectedCatch
+    }
   }
+  
+    if(table_exists(single_sql)){
+      table_remove(single_sql)
+    }
+
   DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(data ExpectedCatch)"))
   DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:data)"), 
                  params = list(data = list(serialize(ExpectedCatch, NULL))))
   DBI::dbDisconnect(fishset_db)
    
- create_expectations_function <- list()
+  create_expectations_function <- list()
   create_expectations_function$functionID <- 'create_expectations'
-  create_expectations_function$args <- c(dat, project, deparse(substitute(gridfile)), catch, temporal, temp.var, calc.method, lag.method, 
-                                    empty.catch, empty.expectation, temp.window, temp.lag, dummy.exp)
+  create_expectations_function$args <- c(dat, project, deparse(substitute(gridfile)), catch, price, temporal, temp.var, calc.method, lag.method, 
+                                    empty.catch, empty.expectation, temp.window, temp.lag, lag.year, dummy.exp)
   create_expectations_function$kwargs <- list('defineGroup'=defineGroup)
   create_expectations_function$output <- c()
  

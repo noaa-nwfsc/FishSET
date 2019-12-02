@@ -37,25 +37,104 @@ model_design <- function(dat, project){
   shinyApp(
     ui = fluidPage(
       shinyjs::useShinyjs(),
-      
-      sidebarLayout(
-        sidebarPanel(
-          tags$br(),tags$br(),
-          actionButton("addModel", "Save model and add new model", style="color: #fff; background-color: #337ab7; border-color: #800000;"),
-          tags$br(),tags$br(),
-          actionButton("submit", "Run model", style="color: #fff; background-color: #6da363; border-color: #800000;"),
-          tags$br(),tags$br(),
-          tags$button(
-            id = 'close',
-            type = "button",
-            style="color: #fff; background-color: #FF6347; border-color: #800000;",
-            class = "btn action-button",
-            onclick = "setTimeout(function(){window.close();},500);",  # close browser
-            "Close window"
-          )),
+#----
+#Expected Catch
+#----
+        tabsetPanel(
+          tabPanel("Expected Catch/Revenue",
+                   sidebarLayout(
+                     sidebarPanel(
+                      actionButton("submitE", "Run expected catch/revenue function", style="color: #fff; background-color: #6da363; border-color: #800000;"), 
+                      tags$br(),tags$br(),
+                      tags$p('Compute expected catch for each observation and zone. 
+                             Function returns the expected catch or expected revenude data frame based on selected parameters along with three null functions: 
+                             expected catch/revenue based on catch of the previous two day (short-term expected catch) .
+                             expected catch/revemnue based on catch for the previous seven days (medium-term expected catch), and 
+                             expected catch/revenue based on catch in the previous year (long-term expected catch).
+                             Output saved in fishset_db sqLite database. Previously saved expected catch/revenue output will be written over if the', 
+                             tags$i('Replace previously saved'), 'box is unchecked. Checking this box will add new output to existing output.')
+                     ),
+                mainPanel(
+                      h4("Create an expectation of catch or revenue for alternative choices"),
+                       fileInput("fileGridExC", "Choose data file containing spatial data defining zones (shape, json, and csv formats are supported)",
+                            multiple = FALSE, placeholder = ''),
+                      selectizeInput('catche','Catch variable for averaging',
+                                   choices=colnames(dataset[,grep('haul|mt|lb|metric|pounds|catch', colnames(dataset), ignore.case=TRUE)])),
+                      selectizeInput('price', 'If expected revenue is to be calculated, select variable containing price or value data', 
+                                     choices=c('', colnames(dataset[,grep('value|dollar', colnames(dataset), ignore.case=TRUE)]))),
+                       #h5('Compute expectations for the entire fleet or by defined groups'),
+                       selectizeInput('group','Choose variable that defines groups',
+                                    choices=c('Fleet (no group)', names(dataset[, !sapply(dataset, is.numeric)]))),
+                       
+                       h4('Temporal options'),
+                       h5('Use the entire temporal record of catch or take the timeline of catch into account. 
+                          When timeline in considered catch can be calculated as the moving average where 
+                          catch for a given day is the average for the defined number of days (window), 
+                          shifted to the past by the defined number of days (lag). For example, a window of 3 days and lag of 1 day means we take the 
+                          average catch of the three days priors to the given date.'),
+                       div(style = "margin-left:19px;font-size: 12px", 
+                           selectInput('temporal', 'Method to sort time:', c('Entire record of catch (no time)', 'Daily timeline', 'Sequential order'))),
+                       conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'",
+                                        style = "margin-left:19px;font-size: 12px", selectInput('temp.var', 'Temporal variable for averaging', 
+                                                              choices=c(names(dataset)[grep('date|year|hour|day', colnames(dataset), ignore.case = TRUE)]))),
+                       conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'",
+                                        style = "margin-left:19px;font-size: 12px",
+                                        numericInput('temp.year', 'No. of years to go back if expected catch based on from previous year(s) catch ', value=0, min=0, max='')),
+                       #if(input$temporal!='Entire record of catch (no time)') {h5('Moving window averaging parameters')},
+                       conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'",
+                                        style = "margin-left:19px;font-size: 12px", numericInput('temp.window', 'Window size (days) to average over', value = 7, min=0)),
+                       conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'", 
+                                        style = "margin-left:19px;font-size: 12px", numericInput('temp.lag', 'Time lag (in days) ', value = 0, min=0, max='')),
+                       conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'", 
+                                        style = "margin-left:19px;font-size: 12px", selectInput('calc.method','Expectation calculation:', 
+                                                    choices = c("Standard average"="standardAverage", "Simple lag regression of means"="simpleLag"#, 
+                                                                #"Weights of regressed groups"="weights"
+                                                                 ))), 
+                       conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'", 
+                                        selectInput('lag.method', 'Method to average across time steps', choices= c("Entire time period"="simple", "Grouped time periods"="grouped"))),
+                        
+                       h4('Averaging options'),
+                       div(style = "margin-left:19px; font-size: 12px", selectInput('empty.catch', 'Replace empty catch with:', 
+                                   choices = c("NA: NA's removed when averaging"='NA', '0', 'Mean of all catch' ="allCatch", 'Mean of grouped catch' = "groupedCatch"))), 
+                      #h6("Note: Na's removed when averaging"), 
+                      h4('Expected Catch/Dummy options'), 
+                        div(style = "margin-left:19px; font-size: 12px",selectInput('empty.expectation', 'Replace empty expected catch with:', 
+                                                                                    choices = c("NA: NA's removed when averaging"='NA', 1e-04, 0))),  
+                      #h6("Note: Na's removed when averaging"),
+                         div(style = "margin-left:19px; font-size: 14px",
+                             checkboxInput('dummy.exp', 'Output dummy variable for originally missing values?', value=FALSE)),
+                             checkboxInput('replace.output', 'Replace previously saved expected catch output with new output', value=FALSE)
+                  )
+
+        )),
+#----
+#Model Parameters
+#----
+          tabPanel("Select model parameters",
+          sidebarLayout(
+          sidebarPanel(
+            tags$br(),tags$br(),
+            actionButton("addModel", "Save model and add new model", style="color: #fff; background-color: #337ab7; border-color: #800000;"),
+            tags$br(),tags$br(),
+            actionButton("resetModel", "Clear choices"),
+            tags$br(),tags$br(),
+            actionButton("submit", "Run model(s)", style="color: #fff; background-color: #6da363; border-color: #800000;"),
+            tags$br(),tags$br(),
+            tags$button(
+              id = 'close',
+              type = "button",
+              style="color: #fff; background-color: #FF6347; border-color: #800000;",
+              class = "btn action-button",
+              onclick = "setTimeout(function(){window.close();},500);",  # close browser
+              "Close window"
+          ),
+            tags$br(),tags$br(),
+            tags$p(tags$strong("More information"), tags$br(),
+                             "Model parameter table is editable. Double click a cell to edit.")
+        ),
         mainPanel(
           div(id = "form",
-              h3('Alternative choice matrix parameters'),
+              h4('Alternative choice matrix parameters'),
               selectInput("alternatives", label = "Create alternative choice matrix from",
                           choices = list("Loaded data" = 'loadedData', "Grid data" = "griddedData"),
                           selected = 'loadedData'),
@@ -72,10 +151,9 @@ model_design <- function(dat, project){
                                          'EPM normal'='epm_normal', 'EPM lognormal'='epm_lognormal', 'EPM Weibull'='epm_weibull'),
                           selected = 'logit_c'),
               h4('Select variables to include in model'),
-              div(style="display: inline-block;vertical-align:top; width: 200px;", uiOutput('indvariables')),
-              div(style="display: inline-block;vertical-align:top; width: 200px;", uiOutput('gridvariables')),
-              selectInput('catch','Variable containing catch data',
-                          choices=colnames(dataset[,grep('haul|mt|lb|metric|pounds|catch', colnames(dataset), ignore.case=TRUE)])),
+              div(style="display: inline-block;vertical-align:top; width: 250px;", uiOutput('indvariables')),
+              div(style="display: inline-block;vertical-align:top; width: 250px;", uiOutput('gridvariables')),
+              uiOutput('catch_out'),
               conditionalPanel(
                 condition="input.model=='epm_normal' || input.model=='epm_lognormal' || input.model=='epm_weibull'",
                 checkboxInput('lockk', 'Location-specific catch parameter', value=FALSE),
@@ -105,23 +183,52 @@ model_design <- function(dat, project){
                 #uiOutput("ui1")
               ),
               
-              dataTableOutput('table')
+              DT::DTOutput('table')
           )
           
           
           
-        ))),
-    ## BEGIN SERVER FILE ##
-    server = function(input, output, session) {
+        )))
+#----
+)),
+
+## BEGIN SERVER FILE ##
+server = function(input, output, session) {
       
       
+#----
+#Expected Catch      
+#----
+  griddataExC <- reactive({
+    if(is.null(input$fileGridExC)){return()} 
+    type <- sub('.*\\.', '', input$fileGridExC$name)
+    if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
+    g <- read_dat(input$fileGrid$datapath, type)
+    return(g)
+  })
+
+      observeEvent(input$submitE, {
+      showNotification('call create expectation function', type='message', duration=10)
+        create_expectations(dataset, project, griddataExC(), input$catche, price=input$price, defineGroup=input$group, temp.var=input$temp.var, 
+                                     temporal = input$temporal, calc.method = input$calc.method, lag.method = input$lag.method,
+                                     empty.catch = input$empty.catch, empty.expectation = input$empty.expectation,  
+                                     temp.window = input$temp.window, temp.lag = input$temp.lag, temp.year=input$temp.year, dummy.exp = input$dummy.exp)
+    }) 
       
+
+#----
+#Model Parameters
+#----
       # helper function for making checkbox
       #names <- c('one','two', 'three')
       inline = function (x) {
         tags$div(style="display:inline-block;", x)
       }
       
+      output$catch_out <- renderUI({
+        selectInput('catch','Variable containing catch data',
+                    choices=colnames(dataset[,grep('haul|mt|lb|metric|pounds|catch', colnames(dataset), ignore.case=TRUE)]), selected=input$catche)
+      })
       # Data needed
       ## Alternative choices
       if (!exists("Alt")) {
@@ -265,13 +372,16 @@ model_design <- function(dat, project){
         DBI::dbGetQuery(fishset_db, query)
         DBI::dbDisconnect(fishset_db)
         
-        shinyjs::reset("form")
+        
       })
       
-      
-      output$table <- renderDataTable({
-        model_table()
+      observeEvent(input$resetModel, {
+      shinyjs::reset("form")
       })
+      
+      output$table <- DT::renderDT(
+        model_table(), editable = T
+      )
       # Save model and add new model shiny
       observe({
         if (input$submit > 0) {
@@ -285,7 +395,7 @@ model_design <- function(dat, project){
           }
         }
       })
-      
+#----      
       # stop shiny
       observe({
         if (input$close > 0) stopApp()
