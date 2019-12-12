@@ -632,7 +632,7 @@
             conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Zonal centroid'||
                              input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Zonal centroid'" , 
                              style = "margin-left:19px;", selectizeInput('long.grid', 'Select vector containing latitude then longitude from spatial data set',
-                                                                      choices=names(values$dataset), multiple=TRUE, options = list(maxItems = 2)))
+                                                                      choices=names(as.data.frame(griddata())), multiple=TRUE, options = list(maxItems = 2)))
           },
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Zonal centroid'||
                            input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Zonal centroid'" ,

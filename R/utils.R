@@ -40,12 +40,20 @@ plot_format <- function(x){
 }
 
 vgsub <- function(pattern, replacement, x, ...) {
+  #' @param pattern pattern
+  #' @param replacement replacement
+  #' @param x x
+  #' @export
   for (i in 1:length(pattern)) x <- gsub(pattern[i], replacement[i], x, ...)
   x
   return(x)
 }
 
 trim_space <- function(x, what = c("both", "leading", "trailing", "none"), space.regex = "[:space:]", ...) {
+  #' @param x variable of interest
+  #' @param what Choices are both, leading, trailing, none
+  #' @param space.regex Default set to [:space:]
+  #' @export
   if (missing(x)) 
     stop("nothing to trim spaces to =(")
   re <- switch(match.arg(what), both = sprintf("^[%s]+|[%s]+$", space.regex, space.regex), 
@@ -57,6 +65,9 @@ trim_space <- function(x, what = c("both", "leading", "trailing", "none"), space
 }
 
 is_empty <- function(x, trim = TRUE, ...) {
+  #' @param x x
+  #' @param trim defaults to true
+  #' @export
   if (length(x) <= 1) {
     if (is.null(x)) 
       return(TRUE)
@@ -75,6 +86,8 @@ is_empty <- function(x, trim = TRUE, ...) {
 }
 
 find_first <- function(y){
+  #' @param y variable of interest
+  #' @export
   g <- y[which(grepl('date', names(y), ignore.case=TRUE) == TRUE)]
   if(all(g=='')==TRUE||all(is_empty(g)==TRUE)==TRUE) {warning('All date variables are empty')}
   g2 <- date_parser(as.vector(unlist(c(g))))
@@ -82,6 +95,9 @@ find_first <- function(y){
 }
 
 find_last <- function(y){
+  #' @param y variable of interest
+  #' @export
+  
   g <- y[which(grepl('date', names(y), ignore.case=TRUE) == TRUE)]
   if(all(g=='')==TRUE||all(is_empty(g)==TRUE)==TRUE) {warning('All date variables are empty')}
   g2 <- date_parser(as.vector(unlist(c(g))))
@@ -89,6 +105,13 @@ find_last <- function(y){
 }
 
 accumarray <- function(subs, val, sz = NULL, func = sum, fillval = 0) {
+  #' @param subs subs
+  #' @param val val
+  #' @param sz sz
+  #' @param func set to sum
+  #' @param fillval set to 0
+  #' @export
+  
   stopifnot(is.numeric(subs), is.numeric(val))
   subs <- floor(subs)
   val <- c(val)
@@ -131,6 +154,9 @@ accumarray <- function(subs, val, sz = NULL, func = sum, fillval = 0) {
 }
 
 skewness <- function(x, na.rm=FALSE) {
+  #' @param x variable of interest
+  #' @param na.rm set to FALSE
+  #' @export
   if(na.rm==TRUE){
     x = x[is.na(x)==FALSE]
   } else {
@@ -169,6 +195,8 @@ date_parser <- function(dates){
 }
 
 find_original_name <- function(fun) {
+  #' @param fun function
+  #' @export
   objects <- ls(envir = environment(fun))
   for (i in objects) {
     if (identical(fun, get(i, envir = environment(fun)))) {

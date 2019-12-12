@@ -1,3 +1,7 @@
+#2004	Central GOA Rockfish Cooperative
+#2008 Amendment 80 Alaska
+#1993	Pacific halibut and Sablefish IFQ Program	Alaska
+#1999	American Fisheries Act (AFA) Pollock Program Alaska
 
     ## USER INTERFACE    
     ui = fluidPage(
@@ -13,23 +17,17 @@
                                 -moz-column-fill: auto;
                                 -column-fill: auto;
                                 } 
-                                ")),
-                tags$style(HTML(
-                  ".checkbox { 
-                  margin-left: 0px;
-                  margin-right: 10px;
-}
-.checkbox+.checkbox {
-margin-left: 0px;
-margin-right: 10px;
-}
-")),
-                
-                tags$style(HTML("
-                                .sidebar { height: 90vh; overflow-y: auto; }
-                                .dataTables_wrapper { overflow-x: scroll; }
-                                " )
-                ),
+                              .checkbox { 
+                                margin-left: 0px;
+                                margin-right: 10px;
+                                }
+                              .checkbox+.checkbox {
+                              margin-left: 0px;
+                              margin-right: 10px;
+                              }
+                              .sidebar { height: 90vh; overflow-y: auto; }
+                              .dataTables_wrapper { overflow-x: scroll; }
+                    " )),
                 
                 
                 #  tags$style(HTML(
