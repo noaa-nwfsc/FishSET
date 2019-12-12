@@ -1,7 +1,6 @@
 #' Expected catch/Expected Revenue
 
 #' @param dat  Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
-#' @param gridfile Spatial data. Shape, json, and csv formats are supported.
 #' @param catch Variable containing catch data.
 #' @param price Variable containing price/value data. Used in calculating expected revenue. Leave null if calculating expected catch. Multiplied against catch to generated revenue.
 #' @param temporal Daily (Daily time line) or sequential (sequential order)
@@ -51,7 +50,7 @@
 #' }
 
 
-create_expectations <- function(dat, project, gridfile, catch, price=NULL, defineGroup, temp.var=NULL, temporal = c("daily", "sequential"), 
+create_expectations <- function(dat, project, catch, price=NULL, defineGroup, temp.var=NULL, temporal = c("daily", "sequential"), 
                                 calc.method = c("standardAverage", "simpleLag", "weights"), lag.method = c("simple", "grouped"),
                                 empty.catch = c(NULL, 0, "allCatch", "groupedCatch"), empty.expectation = c(NULL, 1e-04, 0),  
                                 temp.window = 7, temp.lag = 0, year.lag=0, dummy.exp = FALSE, replace.output=FALSE) {
@@ -84,15 +83,15 @@ create_expectations <- function(dat, project, gridfile, catch, price=NULL, defin
   }
   
  ##1. Option 1. Short-term, individual grouping t - 2 (window)
-short_exp <- short_expectations(dat=dat, project=project, gridfile=gridfile, catch=catch, defineGroup=defineGroup, temp.var=temp.var, 
+short_exp <- short_expectations(dat=dat, project=project, catch=catch, defineGroup=defineGroup, temp.var=temp.var, 
                                 temporal=temporal, calc.method=calc.method, lag.method=lag.method, empty.catch=empty.catch, 
                                 empty.expectation=empty.expectation, dummy.exp = FALSE)
 ##2. Option 2 medium: group by fleet (all vessels in dataset) t -7
-med_exp <- medium_expectations(dat=dat, project=project, gridfile=gridfile, catch=catch, defineGroup=defineGroup, temp.var=temp.var, 
+med_exp <- medium_expectations(dat=dat, project=project, catch=catch, defineGroup=defineGroup, temp.var=temp.var, 
                                 temporal=temporal, calc.method=calc.method, lag.method=lag.method, empty.catch=empty.catch, 
                                 empty.expectation=empty.expectation, dummy.exp = FALSE)
 ##3. option 3  last year, group by fleet t-7
-long_exp <- long_expectations(dat=dat, project=project, gridfile=gridfile, catch=catch, defineGroup=defineGroup, temp.var=temp.var, 
+long_exp <- long_expectations(dat=dat, project=project, catch=catch, defineGroup=defineGroup, temp.var=temp.var, 
                                 temporal=temporal, calc.method=calc.method, lag.method=lag.method, empty.catch=empty.catch, 
                                 empty.expectation=empty.expectation, dummy.exp = FALSE)
 
@@ -173,7 +172,6 @@ long_exp <- long_expectations(dat=dat, project=project, gridfile=gridfile, catch
     df$tiData <- as.Date(tiData)
     df$catchData <- as.numeric(df$catchData)
     
-    -
     df2 <- suppressWarnings(stats::aggregate(df, by = list(numData = numData, spData = spData, tiData = tiData), 
                      mean, na.rm = T))[, c(1, 2, 3, 6)]
     df2 <- df2[order(df2$numData, df2$spData, df2$tiData), ]
@@ -343,12 +341,17 @@ long_exp <- long_expectations(dat=dat, project=project, gridfile=gridfile, catch
   
   r <- nchar(sub('\\.[0-9]+', '', mean(as.matrix(newCatch),na.rm=T))) #regexp(num2str(nanmax(nanmax(newCatch))),'\.','split')
   sscale <- 10^(r-1)  
-
+#    g<- function(catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation){
+#      paste(catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation, sep='_')
+#    }
+#    h <- function(emp.window, temp.lag, year.lag){
+ #     paste(emp.window, temp.lag, year.lag, sep="_")
+  #    }
   ExpectedCatch <- list(
-     paste('short_exp', catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation, '2', '0', '0', sep='_') = short_exp,
-     paste('med_exp', catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation, '7', '0', '0', sep='_') = med_exp,
-     paste('long_exp', catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation, '7', '0', '1', sep='_') = long_exp,
-     paste('user_defined_exp', catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation, temp.window, temp.lag, year.lag, sep='_') = newCatch,
+     short_exp= short_exp,#, g( price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation), '2', '0', '0', sep='_') 
+     med_exp= med_exp,#, g(catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation), '7', '0', '0', sep='_') 
+     long_exp= long_exp,#, g(catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation), '7', '0', '1', sep='_') 
+     user_defined_exp= newCatch,#, g(catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation), h(temp.window, temp.lag, year.lag), sep='_') ,
      scale = sscale,
      units = ifelse(grepl('lbs|pounds', catch, ignore.case = T)==T, 'LBS', 'MTS') #units of catch data
      #newGridVar.file=[]
@@ -378,7 +381,7 @@ long_exp <- long_expectations(dat=dat, project=project, gridfile=gridfile, catch
    
   create_expectations_function <- list()
   create_expectations_function$functionID <- 'create_expectations'
-  create_expectations_function$args <- c(dat, project, deparse(substitute(gridfile)), catch, price, temporal, temp.var, calc.method, lag.method, 
+  create_expectations_function$args <- c(dat, project, catch, price, temporal, temp.var, calc.method, lag.method, 
                                     empty.catch, empty.expectation, temp.window, temp.lag, lag.year, dummy.exp)
   create_expectations_function$kwargs <- list('defineGroup'=defineGroup)
   create_expectations_function$output <- c()
