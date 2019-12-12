@@ -121,11 +121,18 @@
 #'                   'LonLat_START_LON', 'LonLat_START_LAT', project = 'pcod')
 #' }
 
+library(shiny)
+library(shinyjs)
+library(ggplot2)
+library(FishSET)
+library(DT)
+project <- 'pollock'
+dat <- 'pollockMainDataTable'
 
 make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", "griddedData"), lon.dat, lat.dat, project, 
                                likelihood= NULL, vars1 = NULL, vars2 = NULL, priceCol = NULL, startloc=NULL, polyn=NULL) {#, vesselID=NULL
   
-      fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")  
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")  
       #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
@@ -224,7 +231,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
     # End Grid Matrix
   } else {
     
-    # steps if alternatie matrix comes from loaded data (expectations)
+    # steps if alternative matrix comes from loaded data (expectations)
     
     #####---Begin Alt Var--###
     if (any(grepl("zon", alt_var, ignore.case = T))) {
