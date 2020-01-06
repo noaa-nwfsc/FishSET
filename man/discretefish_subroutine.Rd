@@ -4,8 +4,15 @@
 \alias{discretefish_subroutine}
 \title{Subroutine to run chosen discrete choice model}
 \usage{
-discretefish_subroutine(project, initparams, optimOpt, methodname,
-  mod.name, select.model = FALSE, name = "discretefish_subroutine")
+discretefish_subroutine(
+  project,
+  initparams,
+  optimOpt,
+  methodname,
+  mod.name,
+  select.model = FALSE,
+  name = "discretefish_subroutine"
+)
 }
 \arguments{
 \item{project}{Name of project. For obtaining catch, choice, distance, and otherdat data generated from make_model_design function. 

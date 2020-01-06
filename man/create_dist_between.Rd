@@ -4,8 +4,12 @@
 \alias{create_dist_between}
 \title{Distance between two points}
 \usage{
-create_dist_between(dat, start, end, units = c("miles", "meters", "km",
-  "midpoint"))
+create_dist_between(
+  dat,
+  start,
+  end,
+  units = c("miles", "meters", "km", "midpoint")
+)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}

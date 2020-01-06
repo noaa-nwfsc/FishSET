@@ -4,9 +4,19 @@
 \alias{create_startingloc}
 \title{Create Starting location vector}
 \usage{
-create_startingloc(dat, gridfile, portTable, trip_id, haul_order,
-  starting_port, lon.dat, lat.dat, cat, lon.grid = NULL,
-  lat.grid = NULL)
+create_startingloc(
+  dat,
+  gridfile,
+  portTable,
+  trip_id,
+  haul_order,
+  starting_port,
+  lon.dat,
+  lat.dat,
+  cat,
+  lon.grid = NULL,
+  lat.grid = NULL
+)
 }
 \arguments{
 \item{dat}{Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.}

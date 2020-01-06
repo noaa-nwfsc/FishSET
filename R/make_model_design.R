@@ -1,5 +1,7 @@
 #' Make model design
-#'
+#' 
+#' Create a list containing likelihood function, parameters, and data to be pass to model call function
+#' 
 #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
 #' @param catchID  Name of variable that contains catch data such as 'HAUL'
 #' @param alternativeMatrix Whether the alternative choice matrix should come from 'loaded data' or 'gridded data'
@@ -10,12 +12,10 @@
 #'     the user chooses, so please see the Detail section for how to specify for each likelihood function.
 #' @param vars2 List varialbes using `c()`. These depend on the likelihood
 #'     the user chooses, so please see the Detail section for how to specify for each likelihood function.
-
 #' @param priceCol NULL If required, specify which variable contains price data.
 #' @param startloc Vector required for logit_correction likelihood. startloc is a matrix of dimension (number of observations) 
 #'     by (unity), that corresponds to the starting location when the agent decides between alternatives. 
 #' @param polyn Vector required for logit_correction likelihood. Correction polynomial degree.  
-# @param vesselID NULL If required, specify which variable defines individual vessels.
 #' @param project name. name of project. For name of output table saved in sql database
 #' @importFrom geosphere distm
 #' @importFrom DBI dbGetQuery dbExecute dbListTables
@@ -121,17 +121,12 @@
 #'                   'LonLat_START_LON', 'LonLat_START_LAT', project = 'pcod')
 #' }
 
-library(shiny)
-library(shinyjs)
-library(ggplot2)
-library(FishSET)
-library(DT)
-project <- 'pollock'
-dat <- 'pollockMainDataTable'
+#project <- 'pollock'
+#dat <- 'pollockMainDataTable'
 
 make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", "griddedData"), lon.dat, lat.dat, project, 
                                likelihood= NULL, vars1 = NULL, vars2 = NULL, priceCol = NULL, startloc=NULL, polyn=NULL) {#, vesselID=NULL
-  
+
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")  
       #Call in datasets
   out <- data_pull(dat)
@@ -458,5 +453,5 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   make_model_design_function$output <- c('')
   log_call(make_model_design_function)
    
-   assign('modelInputData', modelInputData, pos=1)
+  # assign('modelInputData', modelInputData, pos=1)
 }

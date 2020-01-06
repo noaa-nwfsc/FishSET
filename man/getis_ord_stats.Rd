@@ -4,8 +4,16 @@
 \alias{getis_ord_stats}
 \title{Wrapper function to calculate Getis-Ord statistics}
 \usage{
-getis_ord_stats(dat, varofint, gridfile, lon.dat = NULL,
-  lat.dat = NULL, cat = NULL, lon.grid = NULL, lat.grid = NULL)
+getis_ord_stats(
+  dat,
+  varofint,
+  gridfile,
+  lon.dat = NULL,
+  lat.dat = NULL,
+  cat = NULL,
+  lon.grid = NULL,
+  lat.grid = NULL
+)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}

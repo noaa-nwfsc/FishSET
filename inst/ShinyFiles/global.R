@@ -1,5 +1,6 @@
-#requireNamespace(shiny)
-#requireNamespace(ggplot2)
+requireNamespace(shiny)
+requireNamespace(ggplot2)
+requireNamespace(shinyjs)
 #----
 #Helper functions
 #----

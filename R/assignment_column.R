@@ -100,13 +100,11 @@ assignment_column <- function(dat, gridfile, lon.dat, lat.dat, cat, closest.pt =
     pts[which(is.na(pts$ID) == TRUE), ] <- closest
   }
   
-  if (any(is.na(pts$ID))) {
-    drop.points <- dataset[is.na(pts$ID)==TRUE, c(lon.dat, lat.dat)]
-    warning("Zone ID not identified for at least one point. Consider plotting points against before dropping points by assigning remove.na to TRUE or 
-         assigning these points to closest zone by setting closest to TRUE. Undefined points are recorded in the log file")
-
-
-  }
+#  if (any(is.na(pts$ID))) {
+#    drop.points <- dataset[is.na(pts$ID)==TRUE, c(lon.dat, lat.dat)]
+#    warning("Zone ID not identified for at least one point. Consider plotting points against before dropping points by assigning remove.na to TRUE or 
+#         assigning these points to closest zone by setting closest to TRUE. Undefined points are recorded in the log file")
+#  }
   }
   
   pts <- cbind(dataset, ZoneID=pts$ID)

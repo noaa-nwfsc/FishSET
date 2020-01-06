@@ -4,18 +4,29 @@
 \alias{medium_expectations}
 \title{Medium expectations}
 \usage{
-medium_expectations(dat, project, gridfile, catch, defineGroup, temp.var,
-  temporal, calc.method, lag.method, empty.catch, empty.expectation,
-  dummy.exp)
+medium_expectations(
+  dat,
+  project,
+  catch,
+  price,
+  defineGroup,
+  temp.var,
+  temporal,
+  calc.method,
+  lag.method,
+  empty.catch,
+  empty.expectation,
+  dummy.exp
+)
 }
 \arguments{
 \item{dat}{Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.}
 
 \item{project}{Name of project. Used to pull working alternative choice matrix from fishset_db database.}
 
-\item{gridfile}{Spatial data. Shape, json, and csv formats are supported.}
-
 \item{catch}{Variable containing catch data.}
+
+\item{price}{Variable containing price/value data. Used in calculating expected revenue. Leave null if calculating expected catch. Multiplied against catch to generated revenue.}
 
 \item{defineGroup}{If empty, data is treated as a fleet}
 

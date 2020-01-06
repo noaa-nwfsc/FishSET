@@ -4,8 +4,16 @@
 \alias{find_centroid}
 \title{Generate centroid of polygon of zone or area}
 \usage{
-find_centroid(dat, gridfile, lon.dat = NULL, lat.dat = NULL, cat,
-  lon.grid = NULL, lat.grid = NULL, weight.var = NULL)
+find_centroid(
+  dat,
+  gridfile,
+  lon.dat = NULL,
+  lat.dat = NULL,
+  cat,
+  lon.grid = NULL,
+  lat.grid = NULL,
+  weight.var = NULL
+)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}

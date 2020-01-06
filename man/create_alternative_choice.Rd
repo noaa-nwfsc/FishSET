@@ -4,11 +4,25 @@
 \alias{create_alternative_choice}
 \title{Create alternative choice matrix}
 \usage{
-create_alternative_choice(dat, gridfile, case = c("Centroid", "Port",
-  "Other"), min.haul, haul.trip = c("Haul", "Trip"), alt_var, occasion,
-  lon.dat, lat.dat, lon.grid, lat.grid, cat, use.grid = c(TRUE, FALSE),
-  hull.polygon = c(TRUE, FALSE), remove.na = FALSE,
-  closest.pt = FALSE, project, griddedDat = NULL, weight.var = NULL)
+create_alternative_choice(
+  dat,
+  gridfile,
+  case = c("Centroid", "Port", "Other"),
+  min.haul,
+  alt_var,
+  occasion,
+  dist.unit = "miles",
+  lon.dat,
+  lat.dat,
+  lon.grid,
+  lat.grid,
+  cat,
+  hull.polygon = c(TRUE, FALSE),
+  closest.pt = FALSE,
+  project,
+  griddedDat = NULL,
+  weight.var = NULL
+)
 }
 \arguments{
 \item{dat}{Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.}
@@ -19,11 +33,11 @@ create_alternative_choice(dat, gridfile, case = c("Centroid", "Port",
 
 \item{min.haul}{Minimum number of hauls. Removes zones with fewer hauls than min.haul. For instance, include only zones with at least 100 hauls.}
 
-\item{haul.trip}{Should data be at trip or haul level. Defaults to haul.}
-
 \item{alt_var}{Identifies how to find lat/lon for starting point (must have a lat/lon associated with it)}
 
 \item{occasion}{Identifies how to find lat/lon for alternative choices such as 'Centroid of Zonal Assignment'}
+
+\item{dist.unit}{Distance returned as meters, kilometers, or miles. Defaults to miles.}
 
 \item{lon.dat}{Longitude variable in dataset}
 
@@ -35,11 +49,7 @@ create_alternative_choice(dat, gridfile, case = c("Centroid", "Port",
 
 \item{cat}{Variable defining zones or areas. Must be defined for dataset or gridfile.}
 
-\item{use.grid}{TRUE/FALSE. If TRUE, griddedDat is used to create centroids}
-
 \item{hull.polygon}{Used in assignment_column function. Creates polygon using convex hull method.}
-
-\item{remove.na}{TRUE/FALSE Remove points where zone ID not identified. Called in assignment_column function.}
 
 \item{closest.pt}{TRUE/FALSE If true, zone ID identified as the closest polygon to the point. Called in assignment_column function.}
 
@@ -60,7 +70,6 @@ Alternative choice matrix\cr
         alt_var: \tab Identifies how to find lat/lon for starting point\cr
         occasion: \tab Identifies how to find lat/lon for alternative choices such as 'Centroid of Zonal Assignment' \cr
         zoneRow: \tab zones and choices array\cr
-        zoneType: \tab haul or trip\cr
         int: \tab Centroid for each zone. Generated from find_centroid function
         }
 }

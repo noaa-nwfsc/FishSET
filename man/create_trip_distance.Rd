@@ -4,9 +4,18 @@
 \alias{create_trip_distance}
 \title{Generate haul level trip distance}
 \usage{
-create_trip_distance(dat, PortTable, trip_id, starting_port,
-  starting_haul = c("Lon", "Lat"), ending_haul = c("Lon", "Lat"),
-  ending_port, haul_order, a = 6378137, f = 1/298.257223563)
+create_trip_distance(
+  dat,
+  PortTable,
+  trip_id,
+  starting_port,
+  starting_haul = c("Lon", "Lat"),
+  ending_haul = c("Lon", "Lat"),
+  ending_port,
+  haul_order,
+  a = 6378137,
+  f = 1/298.257223563
+)
 }
 \arguments{
 \item{dat}{Main data frame. In fishset_db database, table name contains phrase `MainDataTable`.}

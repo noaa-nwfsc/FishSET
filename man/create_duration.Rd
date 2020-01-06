@@ -4,8 +4,13 @@
 \alias{create_duration}
 \title{Create duration of time variable}
 \usage{
-create_duration(dat, start, end, units = c("week", "day", "hour",
-  "minute"), name = "create_duration")
+create_duration(
+  dat,
+  start,
+  end,
+  units = c("week", "day", "hour", "minute"),
+  name = "create_duration"
+)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}

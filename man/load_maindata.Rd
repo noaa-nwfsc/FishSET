@@ -4,8 +4,13 @@
 \alias{load_maindata}
 \title{Load data into SQL database}
 \usage{
-load_maindata(dat, over_write = TRUE, project = NULL,
-  compare = FALSE, y = NULL)
+load_maindata(
+  dat,
+  over_write = TRUE,
+  project = NULL,
+  compare = FALSE,
+  y = NULL
+)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}

@@ -120,7 +120,6 @@ dummy_num <- function(dat, var, value, opts='more_less', name='dummy_num'){
   return(out)
 }
 
-
 #' Create new dummy variable
 dummy_var <- function(dat, DumFill = 'TRUE', name='dummy_var') {
   #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
@@ -545,7 +544,7 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
     vars <- if(interactive()) fun()
       if(table_exists(gsub("\'|\"","",vars[1]))==FALSE){
         print(DBI::dbListTables(fishset_db))
-        stop(paste(PortTable, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+        stop(paste('PortTable', 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
       } else {
         port.table <- table_view(gsub("\'|\"","",vars[1]))
       }

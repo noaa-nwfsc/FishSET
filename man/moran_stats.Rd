@@ -4,8 +4,16 @@
 \alias{moran_stats}
 \title{Wrapper function to calculate Moran's I}
 \usage{
-moran_stats(dat, varofint, gridfile, lon.dat = NULL, lat.dat = NULL,
-  cat = NULL, lon.grid = NULL, lat.grid = NULL)
+moran_stats(
+  dat,
+  varofint,
+  gridfile,
+  lon.dat = NULL,
+  lat.dat = NULL,
+  cat = NULL,
+  lon.grid = NULL,
+  lat.grid = NULL
+)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}

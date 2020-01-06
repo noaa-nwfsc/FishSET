@@ -57,9 +57,18 @@
                                       fluidRow(
                                         column(width = 6,
                                                tags$div(tags$p(tags$br(), 'Background on FishSET'),
-                                                        tags$p('This page should be brief but visually appealing'),
-                                                        tags$p('Page should quickly explain the tabs on the page'),
-                                                        tags$p('Contact with questions'))
+                                                        tags$p('The Spatial Economics Toolbox for Fisheries (FishSET) is a set of statistical programming 
+                                                              and data management tools developed to achieve the following goals of 
+                                                               standardizing data management and organization,
+                                                               providing easily accessible tools to enable location choice models to provide input to the
+                                                               management of key fisheries, and
+                                                               organizing statistical code so that predictions of fisher behavior developed by the field’s leading
+                                                               innovators can be incorporated and transparent to all users.'),
+                                                        tags$p('The toolbox is divided into tabs to guide users through all steps from uploading data to
+                                                               developing and evaluating models. Tabs can be navigated in any order.'),
+                                                        tags$p('For questions and comments please contact:',
+                                                               tags$ul('Alan Haynie  alan.haynie@noaa.gov'),
+                                                               tags$ul('Melanie Harsch melanie.harsch@nooa.gov')))
                                         )
                                       )
                              ),

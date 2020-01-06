@@ -11,7 +11,7 @@
 #' @param empty.expectation Do not replace (NULL) or replace with 0.0001 or 0
 #' @param temp.window Temporal window size. In days. Defaults to 14 (14 days)
 #' @param temp.lag Temporal lag time in days.
-#' @param year.lat IF expected catch should be based on catch from previous year(s), set year.lag to the number of years to go back.
+#' @param year.lag IF expected catch should be based on catch from previous year(s), set year.lag to the number of years to go back.
 #' @param dummy.exp T/F. Defaults to False. If false, no dummy variable is outputted. If true, output dummy variable for originally missing value.
 #' @param project Name of project. Used to pull working alternative choice matrix from fishset_db database.
 #' @param defineGroup If empty, data is treated as a fleet

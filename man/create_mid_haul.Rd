@@ -4,8 +4,12 @@
 \alias{create_mid_haul}
 \title{Calculate latitude and longitude of haul midpoint}
 \usage{
-create_mid_haul(dat, start = c("lon", "lat"), end = c("lon", "lat"),
-  name = "mid_haul")
+create_mid_haul(
+  dat,
+  start = c("lon", "lat"),
+  end = c("lon", "lat"),
+  name = "mid_haul"
+)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}

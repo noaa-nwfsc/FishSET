@@ -4,8 +4,7 @@
 \alias{outlier_remove}
 \title{Evaluate and edit outliers from variable}
 \usage{
-outlier_remove(dat, x, dat.remove = "none", remove = T,
-  over_write = FALSE)
+outlier_remove(dat, x, dat.remove = "none", remove = T, over_write = FALSE)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}

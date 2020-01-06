@@ -172,7 +172,7 @@ outlier_plot <- function(dat, x, dat.remove, x.dist, output.screen=FALSE){
   #' outlier_plot(MainDataTable, 'Haul', dat.remove='mean_2SD', x.dist='normal', output.screen=TRUE)
   #' }
   
- # library(ggplot2)
+  requireNamespace(ggplot2)
   
   #Call in datasets
   out <- data_pull(dat)

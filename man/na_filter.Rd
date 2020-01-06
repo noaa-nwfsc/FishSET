@@ -4,8 +4,7 @@
 \alias{na_filter}
 \title{Filters NA's from variable}
 \usage{
-na_filter(dat, x, replace = F, remove = F, rep.value = NA,
-  over_write = FALSE)
+na_filter(dat, x, replace = F, remove = F, rep.value = NA, over_write = FALSE)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}

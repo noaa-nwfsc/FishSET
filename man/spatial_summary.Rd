@@ -4,9 +4,18 @@
 \alias{spatial_summary}
 \title{spatial summary statistics}
 \usage{
-spatial_summary(dat, stat.var = c("length", "no_unique_obs",
-  "perc_total", "mean", "median", "min", "max", "sum"), variable, gridfile,
-  lon.grid, lat.grid, lon.dat, lat.dat, cat)
+spatial_summary(
+  dat,
+  stat.var = c("length", "no_unique_obs", "perc_total", "mean", "median", "min", "max",
+    "sum"),
+  variable,
+  gridfile,
+  lon.grid,
+  lat.grid,
+  lon.dat,
+  lat.dat,
+  cat
+)
 }
 \arguments{
 \item{dat}{Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.}

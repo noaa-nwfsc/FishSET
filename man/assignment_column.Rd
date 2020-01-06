@@ -4,16 +4,23 @@
 \alias{assignment_column}
 \title{Assign observations to zone or area}
 \usage{
-assignment_column(dat, gridfile, hull.polygon = c(TRUE, FALSE), lon.dat,
-  lat.dat, cat, closest.pt = c(TRUE, FALSE), lon.grid = NULL,
-  lat.grid = NULL, epsg = NULL)
+assignment_column(
+  dat,
+  gridfile,
+  lon.dat,
+  lat.dat,
+  cat,
+  closest.pt = c(TRUE, FALSE),
+  lon.grid = NULL,
+  lat.grid = NULL,
+  hull.polygon = c(TRUE, FALSE),
+  epsg = NULL
+)
 }
 \arguments{
 \item{dat}{Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.}
 
 \item{gridfile}{Spatial data. Shape, json, and csv formats are supported.}
-
-\item{hull.polygon}{T/F If TRUE, creates convex hull polygon. Use if spatial data creating polygon are sparse or irregular.}
 
 \item{lon.dat}{Column containing longitude data in main data frame.}
 
@@ -26,6 +33,8 @@ assignment_column(dat, gridfile, hull.polygon = c(TRUE, FALSE), lon.dat,
 \item{lon.grid}{If gridfile is not shape or json file, specify column containing longitude data in gridfile.}
 
 \item{lat.grid}{If gridfile is not shape or json file, specify column containing latitude data in gridfile.}
+
+\item{hull.polygon}{T/F If TRUE, creates convex hull polygon. Use if spatial data creating polygon are sparse or irregular.}
 
 \item{epsg}{EPSG number. See \url{http://spatialreference.org/} to help identify optimal epsg number.}
 }

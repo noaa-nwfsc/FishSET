@@ -4,8 +4,14 @@
 \alias{load_port}
 \title{Save port data to fishset_db SQLite database}
 \usage{
-load_port(dat, port_name, over_write = TRUE, project = NULL,
-  compare = FALSE, y = NULL)
+load_port(
+  dat,
+  port_name,
+  over_write = TRUE,
+  project = NULL,
+  compare = FALSE,
+  y = NULL
+)
 }
 \arguments{
 \item{dat}{Data frame to be saved to fishset_db SQLite database.}

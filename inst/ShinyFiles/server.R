@@ -1,8 +1,7 @@
 
     ### SERVER SIDE    
     server = function(input, output, session) {
-      shinyEnv <- environment()
-      
+     
       ##inline scripting 
       #----
       r <- reactiveValues(done = 0, ok = TRUE, output = "")
@@ -12,7 +11,7 @@
         tryCatch(
           {
             r$output <- isolate(
-              paste(capture.output(eval(parse(text = input$expr), envir = shinyEnv)), collapse = '\n')
+              paste(utils::capture.output(eval(parse(text = input$expr))), collapse = '\n')
             )
             r$ok <- TRUE
           },
@@ -37,7 +36,7 @@
         tryCatch(
           {
             r$output <- isolate(
-              paste(capture.output(eval(parse(text = input$exprQA), envir = shinyEnv)), collapse = '\n')
+              paste(capture.output(eval(parse(text = input$exprQA))), collapse = '\n')
             )
             r$ok <- TRUE
           },
@@ -62,7 +61,7 @@
         tryCatch(
           {
             r$output <- isolate(
-              paste(capture.output(eval(parse(text = input$exprA), envir = shinyEnv)), collapse = '\n')
+              paste(capture.output(eval(parse(text = input$exprA))), collapse = '\n')
             )
             r$ok <- TRUE
           },
@@ -87,7 +86,7 @@
         tryCatch(
           {
             r$output <- isolate(
-              paste(capture.output(eval(parse(text = input$exprN), envir = shinyEnv)), collapse = '\n')
+              paste(capture.output(eval(parse(text = input$exprN))), collapse = '\n')
             )
             r$ok <- TRUE
           },
@@ -112,7 +111,7 @@
         tryCatch(
           {
             r$output <- isolate(
-              paste(capture.output(eval(parse(text = input$exprZ), envir = shinyEnv)), collapse = '\n')
+              paste(capture.output(eval(parse(text = input$exprZ))), collapse = '\n')
             )
             r$ok <- TRUE
           },
@@ -137,7 +136,7 @@
         tryCatch(
           {
             r$output <- isolate(
-              paste(capture.output(eval(parse(text = input$exprEC), envir = shinyEnv)), collapse = '\n')
+              paste(capture.output(eval(parse(text = input$exprEC))), collapse = '\n')
             )
             r$ok <- TRUE
           },
@@ -162,7 +161,7 @@
         tryCatch(
           {
             r$output <- isolate(
-              paste(capture.output(eval(parse(text = input$exprM), envir = shinyEnv)), collapse = '\n')
+              paste(capture.output(eval(parse(text = input$exprM))), collapse = '\n')
             )
             r$ok <- TRUE
           },

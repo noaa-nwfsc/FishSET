@@ -39,8 +39,8 @@
  
 create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port", "Other"), min.haul, 
                                       alt_var, occasion, dist.unit='miles', lon.dat, lat.dat, lon.grid, lat.grid, 
-                                      cat, hull.polygon = c(TRUE, FALSE), remove.na = FALSE, 
-                                      closest.pt = FALSE, project, griddedDat=NULL, weight.var = NULL) {
+                                      cat, hull.polygon = c(TRUE, FALSE), closest.pt = FALSE, project, 
+                                      griddedDat=NULL, weight.var = NULL) {
   
   
   stopanaly <- 0
@@ -103,7 +103,7 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
     C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*"))  #    C <- data(a(v))[dataColumn,'rows'] 
   }
   
-  numH <- FishSET:::accumarray(C, C)
+  numH <- accumarray(C, C)
   binH <- 1:length(numH)
   numH <- numH/t(binH)
   zoneHist <- data.frame(numH = as.vector(numH), binH = as.vector(binH), B[, 1])
@@ -188,7 +188,7 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
           stop('Problem with loaded matrix, NaN found.')
          }
         
-        Alt <-list.append(Alt, matrix = allMat[Alt[['dataZoneTrue']],])  #allMat[Alt[[dataZoneTrue]],]
+        Alt <- list.append(Alt, matrix = allMat[Alt[['dataZoneTrue']],])  #allMat[Alt[[dataZoneTrue]],]
       }
         
         

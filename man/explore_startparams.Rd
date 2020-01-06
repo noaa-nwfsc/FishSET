@@ -4,8 +4,16 @@
 \alias{explore_startparams}
 \title{Function to explore starting value parameter space}
 \usage{
-explore_startparams(space, startsr, dev, func, catch, choice, distance,
-  otherdat)
+explore_startparams(
+  space,
+  startsr,
+  dev,
+  func,
+  catch,
+  choice,
+  distance,
+  otherdat
+)
 }
 \arguments{
 \item{space}{Number of starting value permutations to test (the size of

@@ -4,8 +4,7 @@
 \alias{nan_filter}
 \title{Filters NaN's from data frame}
 \usage{
-nan_filter(dat, x, replace = F, remove = F, rep.value = NA,
-  over_write = FALSE)
+nan_filter(dat, x, replace = F, remove = F, rep.value = NA, over_write = FALSE)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}

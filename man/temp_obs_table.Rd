@@ -32,7 +32,8 @@ Use this function before calling the create_expectations function to inform choi
 }
 \examples{
 \dontrun{
-temp_obs_table(MainDataTable, map2, "DATE_FISHING_BEGAN", "", "", 
-             "LONLAT_START_LONGITUDE", "LONLAT_START_LATITUDE", "NMFS_AREA")
+temp_obs_table('pollockMainDataTable', gridfile=map2, x="DATE_FISHING_BEGAN", 
+                lon.grid="", lat.grid="", lon.dat="LonLat_START_LON", 
+                lat.dat="LonLat_START_LAT", cat="NMFS_AREA")
 }
 }

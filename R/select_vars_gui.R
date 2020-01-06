@@ -17,7 +17,7 @@
 #' }
 
 select_vars <- function(dat, project){
-  requireNamespace(shiny)
+#  requireNamespace(shiny)
   
   if(!exists('loc')){
     loc = getwd()

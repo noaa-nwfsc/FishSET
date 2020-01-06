@@ -4,8 +4,7 @@
 \alias{outlier_plot_int}
 \title{Evaluate outliers through plots}
 \usage{
-outlier_plot_int(dat, x, dat.remove = "none", x.dist = "normal",
-  plot_type)
+outlier_plot_int(dat, x, dat.remove = "none", x.dist = "normal", plot_type)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}

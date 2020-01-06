@@ -4,10 +4,20 @@
 \alias{make_model_design}
 \title{Make model design}
 \usage{
-make_model_design(dat, catchID, alternativeMatrix = c("loadedData",
-  "griddedData"), lon.dat, lat.dat, project, likelihood = NULL,
-  vars1 = NULL, vars2 = NULL, priceCol = NULL, startloc = NULL,
-  polyn = NULL)
+make_model_design(
+  dat,
+  catchID,
+  alternativeMatrix = c("loadedData", "griddedData"),
+  lon.dat,
+  lat.dat,
+  project,
+  likelihood = NULL,
+  vars1 = NULL,
+  vars2 = NULL,
+  priceCol = NULL,
+  startloc = NULL,
+  polyn = NULL
+)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
@@ -60,7 +70,7 @@ Model design matrix containing \cr
   }
 }
 \description{
-Make model design
+Create a list containing likelihood function, parameters, and data to be pass to model call function
 }
 \details{
 Functions returns model design matrix. Calls the Alternative Choice matrix from `create_alternative_choice` function which defines alternative fishing options

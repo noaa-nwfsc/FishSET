@@ -5,8 +5,14 @@
 \title{create_seasonal_ID
 Create season identifier}
 \usage{
-create_seasonal_ID(dat, seasonal.dat, use.location = c(TRUE, FALSE),
-  use.geartype = c(TRUE, FALSE), sp.col, target = NULL)
+create_seasonal_ID(
+  dat,
+  seasonal.dat,
+  use.location = c(TRUE, FALSE),
+  use.geartype = c(TRUE, FALSE),
+  sp.col,
+  target = NULL
+)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}

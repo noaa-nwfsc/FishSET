@@ -9,7 +9,6 @@ g <- gsub("[^0-9\\.]", "", g[grep('Info.', g)])[which(gsub("[^0-9\\.]", "", g[gr
 paste0(project,'MainDataTableInfo',g)
 }
 
-
 table_format <- function(x) {
 #' Import and format saved tables to notebook file
 #' @param x Name of table saved in inst/output
@@ -40,9 +39,11 @@ plot_format <- function(x){
 }
 
 vgsub <- function(pattern, replacement, x, ...) {
+  #' vgsub function
   #' @param pattern pattern
   #' @param replacement replacement
   #' @param x x
+  #' @param ... Additional arguments
   #' @export
   for (i in 1:length(pattern)) x <- gsub(pattern[i], replacement[i], x, ...)
   x
@@ -50,9 +51,11 @@ vgsub <- function(pattern, replacement, x, ...) {
 }
 
 trim_space <- function(x, what = c("both", "leading", "trailing", "none"), space.regex = "[:space:]", ...) {
+  #' trim space function
   #' @param x variable of interest
   #' @param what Choices are both, leading, trailing, none
   #' @param space.regex Default set to [:space:]
+  #' @param ... Additional arguments
   #' @export
   if (missing(x)) 
     stop("nothing to trim spaces to =(")
@@ -65,8 +68,10 @@ trim_space <- function(x, what = c("both", "leading", "trailing", "none"), space
 }
 
 is_empty <- function(x, trim = TRUE, ...) {
+  #' Empty variable check
   #' @param x x
   #' @param trim defaults to true
+  #' @param ... Additional arguments
   #' @export
   if (length(x) <= 1) {
     if (is.null(x)) 
@@ -86,6 +91,7 @@ is_empty <- function(x, trim = TRUE, ...) {
 }
 
 find_first <- function(y){
+  #' Find earliest date
   #' @param y variable of interest
   #' @export
   g <- y[which(grepl('date', names(y), ignore.case=TRUE) == TRUE)]
@@ -95,6 +101,7 @@ find_first <- function(y){
 }
 
 find_last <- function(y){
+  #' Find latest date
   #' @param y variable of interest
   #' @export
   
@@ -105,6 +112,7 @@ find_last <- function(y){
 }
 
 accumarray <- function(subs, val, sz = NULL, func = sum, fillval = 0) {
+  #' Accumarray fucntion
   #' @param subs subs
   #' @param val val
   #' @param sz sz
@@ -154,6 +162,7 @@ accumarray <- function(subs, val, sz = NULL, func = sum, fillval = 0) {
 }
 
 skewness <- function(x, na.rm=FALSE) {
+  #' Calculate skewness
   #' @param x variable of interest
   #' @param na.rm set to FALSE
   #' @export
@@ -195,6 +204,7 @@ date_parser <- function(dates){
 }
 
 find_original_name <- function(fun) {
+  #' find original name
   #' @param fun function
   #' @export
   objects <- ls(envir = environment(fun))

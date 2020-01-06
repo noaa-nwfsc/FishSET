@@ -24,8 +24,6 @@ filter_table <- function(dat, x, exp, project) {
   out <- data_pull(dat)
   dat <- out$dat
   dataset <- out$dataset
-  
-  
 
   if (table_exists(paste0(project, "FilterTable")) == F) {
     filterTable <- data.frame(dataframe = NA, vector = NA, FilterFunction = NA)

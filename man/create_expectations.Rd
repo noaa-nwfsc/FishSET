@@ -2,23 +2,35 @@
 % Please edit documentation in R/create_expectations.R
 \name{create_expectations}
 \alias{create_expectations}
-\title{Expected catch}
+\title{Expected catch/Expected Revenue}
 \usage{
-create_expectations(dat, project, gridfile, catch, defineGroup,
-  temp.var = NULL, temporal = c("daily", "sequential"),
+create_expectations(
+  dat,
+  project,
+  catch,
+  price = NULL,
+  defineGroup,
+  temp.var = NULL,
+  temporal = c("daily", "sequential"),
   calc.method = c("standardAverage", "simpleLag", "weights"),
-  lag.method = c("simple", "grouped"), empty.catch = c(NULL, 0,
-  "allCatch", "groupedCatch"), empty.expectation = c(NULL, 1e-04, 0),
-  temp.window = 7, temp.lag = 0, temp.year = 0, dummy.exp = FALSE)
+  lag.method = c("simple", "grouped"),
+  empty.catch = c(NULL, 0, "allCatch", "groupedCatch"),
+  empty.expectation = c(NULL, 1e-04, 0),
+  temp.window = 7,
+  temp.lag = 0,
+  year.lag = 0,
+  dummy.exp = FALSE,
+  replace.output = FALSE
+)
 }
 \arguments{
 \item{dat}{Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.}
 
 \item{project}{Name of project. Used to pull working alternative choice matrix from fishset_db database.}
 
-\item{gridfile}{Spatial data. Shape, json, and csv formats are supported.}
-
 \item{catch}{Variable containing catch data.}
+
+\item{price}{Variable containing price/value data. Used in calculating expected revenue. Leave null if calculating expected catch. Multiplied against catch to generated revenue.}
 
 \item{defineGroup}{If empty, data is treated as a fleet}
 
@@ -38,9 +50,12 @@ create_expectations(dat, project, gridfile, catch, defineGroup,
 
 \item{temp.lag}{Temporal lag time in days.}
 
-\item{temp.year}{IF expected catch should be based on catch from previous year(s), set temp.year to the number of years to go back.}
+\item{year.lag}{IF expected catch should be based on catch from previous year(s), set year.lag to the number of years to go back.}
 
 \item{dummy.exp}{T/F. Defaults to False. If false, no dummy variable is outputted. If true, output dummy variable for originally missing value.}
+
+\item{replace.output}{Default is FALSE. If TRUE, replaces existing saved expected catch dataframe with new expected catch dataframe. 
+If FALSE, add new expected catch dataframes to previously saved expected catch dataframes.}
 }
 \value{
 newGridVar dataframe. Saved to the global environment. Dataframe called in make_model_design
@@ -48,10 +63,10 @@ newGridVar dataframe. Saved to the global environment. Dataframe called in make_
 newGridVar,  newDumV
 }
 \description{
-Expected catch
+Expected catch/Expected Revenue
 }
 \details{
-Used during model creation to create an expectation of catch for alternative choices that are added to the model design file.
+Used during model creation to create an expectation of catch or revenue for alternative choices that are added to the model design file.
 IMPORTANT: Use the temp_obs_table function before using this function to assess the availability of data for desired temporal moving window size. Sparse data is not suited for shorter moving window sizes. 
 The expectations created have several options and are created based on the group and time averaging choices of the user.
 The spatial alternatives are built in to the function and come from the structure Alt. 
@@ -68,7 +83,7 @@ Three default expected catch cases will be run:
 }
 \examples{
 \dontrun{
-create_expectations(MainDataTable, adfg, 'OFFICIAL_TOTAL_CATCH_MT',  temporal='daily', 
+create_expectations(MainDataTable, adfg, 'OFFICIAL_TOTAL_CATCH_MT',  price=NULL, temporal='daily', 
                      temp.var="DATE_FISHING_BEGAN", calc.method='standard average', 
                      lag.method='simple',  empty.catch='all catch', empty.expectation= 0.0001, 
                      temp.window=4, temp.lag=2, dummy.exp=FALSE, 

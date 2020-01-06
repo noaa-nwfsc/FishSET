@@ -4,12 +4,10 @@
 \alias{select_model}
 \title{View and select models}
 \usage{
-select_model(table, overwrite.table = TRUE)
+select_model(project)
 }
 \arguments{
-\item{table}{Name of table in database containing model measures of fit}
-
-\item{overwrite.table}{If FALSE, appends model selection to out.mod table. If true, overwrites new table with model selection columns. Set to TRUE if models are deleted or selected models are changed.}
+\item{project}{Name of project}
 }
 \description{
 View and select models
@@ -25,6 +23,6 @@ reference of the preferred model.
 }
 \examples{
 \dontrun{
-select_model('out.mod', overwrite.table=FALSE)
+select_model('pollockmodelfit', overwrite.table=FALSE)
 }
 }

@@ -4,9 +4,19 @@
 \alias{create_dist_between_for_gui}
 \title{Distance between two points}
 \usage{
-create_dist_between_for_gui(dat, start, end, units, portTable = NULL,
-  gridfile = NULL, lon.dat = NULL, lat.dat = NULL, cat = NULL,
-  lon.grid = NULL, lat.grid = NULL)
+create_dist_between_for_gui(
+  dat,
+  start,
+  end,
+  units,
+  portTable = NULL,
+  gridfile = NULL,
+  lon.dat = NULL,
+  lat.dat = NULL,
+  cat = NULL,
+  lon.grid = NULL,
+  lat.grid = NULL
+)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}

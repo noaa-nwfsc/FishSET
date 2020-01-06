@@ -44,7 +44,7 @@ check_model_data <- function(dat, dataindex, uniqueID, save.file = TRUE) {
   }
   
   #update dataindex
-  dataIndex_update <- dataindex_update(dataset, dataindex)
+  dataindex_update(dataset, dataindex)
   
     tmp <- tempfile()
 
