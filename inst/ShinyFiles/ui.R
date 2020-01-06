@@ -1,10 +1,6 @@
-#2004	Central GOA Rockfish Cooperative
-#2008 Amendment 80 Alaska
-#1993	Pacific halibut and Sablefish IFQ Program	Alaska
-#1999	American Fisheries Act (AFA) Pollock Program Alaska
-
     ## USER INTERFACE    
-    ui = fluidPage(
+    ui = function(request){
+      fluidPage(
  
       #---- 
       #Formatting
@@ -38,11 +34,23 @@
                                  function(message) {
                                  eval(message.value);
                                  });'))),
+      #----
+      ##Inline scripting
+      #-----
+      # enable the <enter> key to press the [Run] button
+      tags$script(HTML(
+        '$(document).keyup(function(event) {
+        if (event.keyCode == 13) {
+        $("#run").click();
+        }
+    });'
+  )),
+  
 
       #----
       tabsetPanel(id = "tabs",
-                  #---
                   #Landing page
+                  #----
                   tabPanel("Information",
                            tabsetPanel(
                              tabPanel("Background",
@@ -93,8 +101,16 @@
                            tags$style(type='text/css', "#uploadMain { width:100%; margin-top: 24px;margin-left:-20px;padding-left:2px; padding-right:5px}"),
                            
                            mainPanel(
-                             tags$br(), tags$br(),
                              #div(style="display:inline-block;vertical-align:bottom;",
+                             tags$button(
+                               id = 'closeDat',
+                               type = "button",
+                               style="color: #fff; background-color: #FF6347; border-color: #800000;",
+                               class = "btn action-button",
+                               onclick = "setTimeout(function(){window.close();},500);",  # close browser
+                               "Close app"
+                             ),
+                             tags$br(), tags$br(),
                              fluidRow(
                                column(6,
                                       fileInput("maindat", "Choose primary data file",
@@ -148,8 +164,6 @@
                                             actionButton('subsetData', 'Remove variable from data set')
                                           ),
                                           actionButton('saveData','Save data to fishset_db database'),
-                                          
-                                          tags$br(),tags$br(),
                                           tags$button(
                                             id = 'close',
                                             type = "button",
@@ -162,6 +176,9 @@
                                                        icon = icon("fa fa-refresh"),
                                                        style = "color: white; background-color: blue;" 
                                           ),
+                                          tags$br(), tags$br(),
+                                          textInput('notesExplore', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. 
+                                                    Text can be inserted into report later.'),
                                           selectInput('plot_table', 'View data table or plots', choices=c('Table','Plots'), selected='Table'),
                                           conditionalPanel(
                                             condition="input.plot_table=='Plots'",
@@ -181,9 +198,14 @@
                                             condition='input.plot_table=="Plots" & input.plot_type=="Spatial"',
                                             uiOutput("location_info_spatial")
                                           ),
-                                          textInput('notesExplore', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                                          
-                                          
+                                        
+                                          ##Inline scripting 
+                                          textInput("expr", label = "Enter an R expression",
+                                                   value = "values$dataset"),
+                                          actionButton("runI", "Run", class = "btn-success"),
+                                          div( style = "margin-top: 2em;",
+                                               uiOutput('resultI')
+                                          )
                              ),
                              mainPanel(width=10,
                                        tags$div(DT::DTOutput("output_table_exploration"), style = "font-size: 75%; width: 100%"),
@@ -238,7 +260,7 @@
                                           tags$br(),tags$br(),
                                           uiOutput('SaveButtons'),
                                           actionButton('saveDataQ','Save data to fishset_db database'),
-                                          tags$br(),tags$br(),
+                                          tags$br(),
                                           tags$button(
                                             id = 'close1',
                                             type = "button",
@@ -252,6 +274,9 @@
                                                        icon = icon("fa fa-refresh"),
                                                        style = "color: white; background-color: blue;" 
                                           ),
+                                          tags$br(), tags$br(),
+                                          textInput('notesQAQC', "Notes", value=NULL,
+                                                    placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
                                           h4('Select data validation check functions to run'),
                                           #Checkbox input widget  
                                           radioButtons("checks", "", choices = c('Summary table', 'Outliers', 'NAs', 'NaNs', 'Unique observations', 
@@ -284,7 +309,13 @@
                                             condition ='input.checks=="Lat_Lon units"',
                                             checkboxInput('LatLon_Filter', 'Convert lat/long to decimal degrees', value=FALSE)
                                           ),
-                                          textInput('notesQAQC', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                                          ##Inline scripting 
+                                          textInput("exprQA", label = "Enter an R expression",
+                                                    value = "values$dataset"),
+                                          actionButton("runQA", "Run", class = "btn-success"),
+                                          div(style = "margin-top: 2em;",
+                                               uiOutput('resultQA')
+                                          )
                              ),#END SIDEBAR LAYOUT             
                              mainPanel(width=9,
                                        tags$br(), tags$br(),
@@ -326,8 +357,18 @@
                                             style = "color: white; background-color: blue;" 
                                ),
                                tags$br(),tags$br(),
-                               selectInput('corr_reg','Show correlations or simple linear regression', choices=c('Correlation','Regression'), selected='Correlation'),
-                               textInput('notesAnal', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                               textInput('notesAnal', "Notes", value=NULL, 
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                               tags$br(),tags$br(),
+                               selectInput('corr_reg','Show correlations or simple linear regression', 
+                                           choices=c('Correlation','Regression'), selected='Correlation'),
+                               ##Inline scripting 
+                               textInput("exprA", label = "Enter an R expression",
+                                         value = "values$dataset"),
+                               actionButton("runA", "Run", class = "btn-success"),
+                               div(style = "margin-top: 2em;",
+                                   uiOutput('resultA')
+                               )
                              ),
                              mainPanel(
                                tags$br(),
@@ -353,12 +394,12 @@
                   #----
                   #Create New variables
                   #----
-                  tabPanel('Compute new variables', value='new',
+                  tabPanel('Compute New Variables', value='new',
                            sidebarLayout(
                              sidebarPanel(
                                uiOutput('SaveButtonsNew'),
                                actionButton('saveDataNew','Save data to fishset_db database'),
-                               tags$br(),tags$br(),
+                               tags$br(),
                                tags$button(
                                  id = 'closeNew',
                                  type = "button",
@@ -371,9 +412,10 @@
                                             icon = icon("fa fa-refresh"),
                                             style = "color: white; background-color: blue;"),
                                actionButton('runNew',"Run function",
-                                            icon=icon('fa fa-run'),
-                                            syle="color: white; background-color: green;"),
-                               textInput('notesNew', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                                            style="color: #fff; background-color: #6da363; border-color: #800000;"),
+                               tags$br(),tags$br(),                              
+                               textInput('notesNew', "Notes", value=NULL, 
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
                                selectInput('VarCreateTop', "Create variables based on", multiple=FALSE,  
                                            choices=c('Data transformations', 'Nominal ID', 'Arithmetic and temporal functions', 'Dummy variables', 'Spatial functions', 'Trip-level functions')),
                                
@@ -404,8 +446,6 @@
                                                                         'Calculate trip centroid'='trip_centroid'))),
                                conditionalPanel(condition="input.VarCreateTop!='Trip-level functions'", 
                                                 textInput('varname','Name of new variable', value='', placeholder = '')),
-                               #dummy_var        Vector of TRUE or FALSE the length  (rows) of the data set. 
-                               #dummy_matrix     Matrix with same dimensions at the data set filled with TRUE or FALSE.
                                
                                #More sub choices Data Transformations     
                                uiOutput('trans_time_out'),
@@ -413,7 +453,9 @@
                                                 style = "margin-left:19px;", selectInput('define.format','Temporal units to return data in',choices=c('year', "month","day", 'hour', 'minute'))),
                                uiOutput('trans_quant_name'),
                                conditionalPanel(condition="input.VarCreateTop=='Data transformations'&input.trans=='set_quants'",
-                                                style = "margin-left:19px;", selectInput('quant.cat','Quantile categories',choices=c('0.2', '0.25', '0.4'))),
+                                                style = "margin-left:19px;", selectInput('quant.cat','Quantile categories',
+                                                                                         choices=c('0%, 20%, 40%, 60%, 80%, 100%'='.2', '0%, 25%, 50%, 75%, 100%'='0.25', 
+                                                                                                   '0%, 10%, 50%, 90%, 100%'='0.4'))),
                                #More sub choices Nominal IDS  
                                uiOutput('unique_col_id'),
                                conditionalPanel(condition="input.VarCreateTop=='Nominal ID'&input.ID=='create_seasonal_ID'",
@@ -436,10 +478,11 @@
                                uiOutput('input_xTime'),
                                uiOutput('dur_add'),
                                
+                               #dummy_var        Vector of TRUE or FALSE the length  (rows) of the data set. 
+                               #dummy_matrix     Matrix with same dimensions at the data set filled with TRUE or FALSE.
                                #More sub choices for dummy functions
                                uiOutput('dummy_select'),
                                uiOutput('dummy_sub'),
-                               uiOutput('dum_num_sub'),
                                
                                #More sub choices Spatial functions  
                                uiOutput('dist_between_input'),
@@ -463,12 +506,309 @@
                                                                                          choices = c('min','mean','max','median'), selected = 'mean')),
                                uiOutput('input_IDVAR'),
                                uiOutput('input_trip_dist_vars'),
-                               uiOutput('input_tri_cent')
+                               uiOutput('input_tri_cent'),
+                               ##Inline scripting 
+                               textInput("exprN", label = "Enter an R expression",
+                                         value = "values$dataset"),
+                               actionButton("runN", "Run", class = "btn-success"),
+                               div(style = "margin-top: 2em;",
+                                   uiOutput('resultN')
+                               )
                              ),
                              mainPanel(
                                DT::DTOutput("output_table_create")
                              )
-                           ))
-                  #----           
-      ) )
+                           )),
+                  #----   
+                  #-----
+                  #Zonal definition
+                  #-----
+                  tabPanel('Zonal Definition',
+                           sidebarLayout(
+                             sidebarPanel(
+                               tags$button(
+                                 id = 'closeZ',
+                                 type = "button",
+                                 style="color: #fff; background-color: #FF6347; border-color: #800000;",
+                                 class = "btn action-button",
+                                 onclick = "setTimeout(function(){window.close();},500);",  # close browser
+                                 "Close app"
+                               ),
+                               actionButton("refreshZ", "Refresh data", 
+                                            icon = icon("fa fa-refresh"),
+                                            style = "color: white; background-color: blue;" 
+                               ),
+                               #runcodeUI (code='', type='ace'),
+                               # actionButton("eval", "Evaluate"),
+                               radioButtons('choiceTab', '', choices=c('Select catch and price variables'='primary', #basic parameters to populate elsewhere like catch, price
+                                                                       'Calculate zonal centroid and assign observations to zones'='zone', #calculate zonal centroid
+                                                                       'Select variables that define alternative fishing choices'='distm')),#, #calculate distance matrix
+                               #checkboxInput('ExpedCatch', 'Define variables to calculate expected catch', value=FALSE)
+                               conditionalPanel(condition="input.choiceTab=='zone'",  
+                                                actionButton('runCentroid','Assign observations to centroids', style = "color: white; background-color: green;")),
+                               conditionalPanel(condition="input.choiceTab=='distm'",
+                                                actionButton('saveALT','Save choices', style = "color: white; background-color: green;")),
+                               textInput('notesZone', "Notes", value=NULL, 
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                               ##Inline scripting 
+                               textInput("exprZ", label = "Enter an R expression",
+                                         value = "values$dataset"),
+                               actionButton("runZ", "Run", class = "btn-success"),
+                               div(style = "margin-top: 2em;",
+                                   uiOutput('resultZ')
+                               )
+                             ),
+                             mainPanel(
+                               #We'll in in the choices here
+                               #BASELINE
+                               verbatimTextOutput("output"),
+                               uiOutput('conditionalInput1'),
+                               #--------#
+                               #CENTROID
+                               uiOutput('conditionalInput2'),
+                               uiOutput('cond2'),
+                               #runs assignment column and find_centroid functions
+                               # find_centroid(dat, gridfile, lon.dat, lat.dat, cat, lon.grid, lat.grid, weight.var) 
+                               #  assignment_column(dat, gridfile, lon.dat, lat.dat, cat, closest.pt, lon.grid, lat.grid, hull.polygon, epsg)
+                               #--------#
+                               #DISTANCE MATRIX
+                               uiOutput('conditionalInput3'),
+                               div(style="display: inline-block;vertical-align:top; width: 500px;",
+                                   conditionalPanel(condition="input.choiceTab=='distm'",plotOutput('zoneIDNumbers_plot'))),
+                               div(style="display: inline-block;vertical-align:top; width: 160px;",
+                                   conditionalPanel(condition="input.choiceTab=='distm'",textOutput('zoneIDText')))
+                               #--------#
+                               #EXPECTED CATCH
+                             )
+                           )),
+                  #-----
+                  #Expected Catch
+                  #----
+                  tabPanel("Expected Catch/Revenue",
+                           sidebarLayout(
+                             sidebarPanel(
+                               tags$button(
+                                 id = 'closeEC',
+                                 type = "button",
+                                 style="color: #fff; background-color: #FF6347; border-color: #800000;",
+                                 class = "btn action-button",
+                                 onclick = "setTimeout(function(){window.close();},500);",  # close browser
+                                 "Close app"
+                               ),
+                               actionButton("refreshEC", "Refresh data", 
+                                            icon = icon("fa fa-refresh"),
+                                            style = "color: white; background-color: blue;" 
+                               ),
+                               tags$br(),
+                               actionButton("submitE", "Run expected catch/revenue function", style="color: #fff; background-color: #6da363; border-color: #800000;"), 
+                               tags$br(),tags$br(),                               
+                               textInput('notesEC', "Notes", value=NULL, 
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+
+                               uiOutput('selectcp'),
+                               #h5('Compute expectations for the entire fleet or by defined groups'),
+                               
+                               
+                               h4('Temporal options'),
+                               h5('Use the entire temporal record of catch or take the timeline of catch into account. 
+                                  When timeline in considered catch can be calculated as the moving average where 
+                                  catch for a given day is the average for the defined number of days (window), 
+                                  shifted to the past by the defined number of days (lag). For example, a window of 3 days and lag of 1 day means we take the 
+                                  average catch of the three days priors to the given date.'),
+                               div(style = "margin-left:19px;font-size: 12px", 
+                                   selectInput('temporal', 'Method to sort time:', c('Entire record of catch (no time)', 'Daily timeline', 'Sequential order'))),
+                               uiOutput('expcatch'),
+                               conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'",
+                                                style = "margin-left:19px;font-size: 12px",
+                                                numericInput('temp_year', 'No. of years to go back if expected catch based on from previous year(s) catch ', value=0, min=0, max='')),
+                               #if(input$temporal!='Entire record of catch (no time)') {h5('Moving window averaging parameters')},
+                               conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'",
+                                                style = "margin-left:19px;font-size: 12px", 
+                                                numericInput('temp_window', 'Window size (days) to average over', value = 7, min=0)),
+                               conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'", 
+                                                style = "margin-left:19px;font-size: 12px", 
+                                                numericInput('temp_lag', 'Time lag (in days) ', value = 0, min=0, max='')),
+                               conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'", 
+                                                style = "margin-left:19px;font-size: 12px", 
+                                                selectInput('calc_method','Expectation calculation:', 
+                                                            choices = c("Standard average"="standardAverage", "Simple lag regression of means"="simpleLag"#, 
+                                                                        #"Weights of regressed groups"="weights"
+                                                            ))), 
+                               conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'", 
+                                                selectInput('lag_method', 'Method to average across time steps', 
+                                                            choices= c("Entire time period"="simple", "Grouped time periods"="grouped"))),
+                               
+                               h4('Averaging options'),
+                               div(style = "margin-left:19px; font-size: 12px", 
+                                   selectInput('empty_catch', 'Replace empty catch with:', 
+                                               choices = c("NA: NA's removed when averaging"='NA', '0', 'Mean of all catch' ="allCatch", 'Mean of grouped catch' = "groupedCatch"))), 
+                               #h6("Note: Na's removed when averaging"), 
+                               h4('Expected Catch/Dummy options'), 
+                               div(style = "margin-left:19px; font-size: 12px",
+                                   selectInput('empty_expectation', 'Replace empty expected catch with:', choices = c("NA: NA's removed when averaging"='NA', 1e-04, 0))),  
+                               #h6("Note: Na's removed when averaging"),
+                               div(style = "margin-left:19px; font-size: 14px",
+                                   checkboxInput('dummy_exp', 'Output dummy variable for originally missing values?', value=FALSE)),
+                               checkboxInput('replace_output', 'Replace previously saved expected catch output with new output', value=FALSE),
+                               ##Inline scripting 
+                               textInput("exprEC", label = "Enter an R expression",
+                                         value = "values$dataset"),
+                               actionButton("runEC", "Run", class = "btn-success"),
+                               div(style = "margin-top: 2em;",
+                                   uiOutput('resultEC')
+                               )
+                               ),
+                             mainPanel(
+                               tags$br(),tags$br(),
+                               tags$p('Compute expected catch for each observation and zone. 
+                                      Function returns the expected catch or expected revenue data frame based on selected parameters along with three null functions: 
+                                      expected catch/revenue based on catch of the previous two day (short-term expected catch),
+                                      expected catch/revemnue based on catch for the previous seven days (medium-term expected catch), and 
+                                      expected catch/revenue based on catch in the previous year (long-term expected catch).
+                                      Output saved in fishset_db sqLite database. Previously saved expected catch/revenue output will be written over if the', 
+                                      tags$i('Replace previously saved'), 'box is unchecked. Checking this box will add new output to existing output.'),
+                               tags$br(), tags$br(),
+                               DTOutput('spars_table'),
+                               plotOutput('spars_plot')
+                             )
+                             )),
+                  #----
+                  #Model Parameters
+                  #----
+                   tabPanel("Run Models",
+                            tabsetPanel(
+                                tabPanel("Run model(s)",
+                           sidebarLayout(
+                             sidebarPanel(
+                               tags$button(
+                                 id = 'close',
+                                 type = "button",
+                                 style="color: #fff; background-color: #FF6347; border-color: #800000;",
+                                 class = "btn action-button",
+                                 onclick = "setTimeout(function(){window.close();},500);",  # close browser
+                                 "Close window"
+                               ),
+                               tags$br(),
+                               actionButton("addModel", "Save model and add new model", style="color: #fff; background-color: #337ab7; border-color: #800000;"),
+                               actionButton("resetModel", "Clear choices"),
+                               tags$br(),
+                               actionButton("submit", "Run model(s)", style="color: #fff; background-color: #6da363; border-color: #800000;"),
+                               tags$br(),tags$br(),
+                               tags$p(tags$strong("More information"), tags$br(),
+                                      "Model parameter table is editable. Double click a cell to edit."),
+                               textInput('notesModel', "Notes", value=NULL, 
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                               ##Inline scripting 
+                               textInput("exprM", label = "Enter an R expression",
+                                         value = "values$dataset"),
+                               actionButton("runM", "Run", class = "btn-success"),
+                               div(style = "margin-top: 2em;",
+                                   uiOutput('resultM')
+                               )
+                             ),
+                             mainPanel(
+                               div(id = "form",
+                                   h4('Alternative choice matrix parameters'),
+                                   selectInput("alternatives", label = "Create alternative choice matrix from",
+                                               choices = list("Loaded data" = 'loadedData', "Grid data" = "griddedData"),
+                                               selected = 'loadedData'),
+                                   uiOutput('latlonB'),
+                                   h4('Likelihood function'),
+                                   selectInput("model", label = "",
+                                               choices = list("Conditional logit" = 'logit_c', "Average catch" = "logit_avgcat", "Logit Dahl correction" = "logit_correction",
+                                                              'EPM normal'='epm_normal', 'EPM lognormal'='epm_lognormal', 'EPM Weibull'='epm_weibull'),
+                                               selected = 'logit_c'),
+                                   h4('Select variables to include in model'),
+                                   div(style="display: inline-block;vertical-align:top; width: 250px;", uiOutput('indvariables')),
+                                   div(style="display: inline-block;vertical-align:top; width: 250px;", uiOutput('gridvariables')),
+                                   uiOutput('catch_out'),
+                                   h3('Model parameters'),
+                                   
+                                   fluidRow(
+                                     h4("Optimization options"),
+                                     splitLayout(cellWidths = c("22%", "22%", "22%", "22%"),
+                                                 numericInput("mIter", "max iterations", value = 100000),
+                                                 numericInput("relTolX", "tolerance of x", value = 0.00000001),
+                                                 numericInput("reportfreq", "report frequency", value = 1),
+                                                 numericInput("detailreport", "detailed report", value = 1)
+                                     )
+                                   ),
+                                   fluidRow(
+                                     h4('Initial parameters'),
+                                     uiOutput("Inits")
+                                     #uiOutput("ui1")
+                                   ),
+                                   
+                                   DT::DTOutput('mod_param_table')
+                               )
+                             ))),
+                           tabPanel("Explore models",
+                                    sidebarLayout(
+                                      sidebarPanel(
+                                        tags$br(),tags$br(),
+                                        actionButton("delete_btn", "Delete row"),
+                                        h3(''),
+                                        actionButton("submit_ms", "Save table", style="color: #fff; background-color: #337ab7; border-color: #2e6da4;"),
+                                        tags$br(),tags$br(),
+                                        tags$button(
+                                          id = 'close',
+                                          type = "button",
+                                          style="color: #fff; background-color: #FF6347; border-color: #800000;",
+                                          class = "btn action-button",
+                                          onclick = "setTimeout(function(){window.close();},500);",  # close browser
+                                          "Close window"
+                                        ), width=2),
+                                      mainPanel(
+                                        h3('Model Output'),
+                                        h4("Measures of fit"),
+                                        DT::DTOutput("mytable"),
+                                        tags$script(HTML("Shiny.addCustomMessageHandler('unbind-DT', function(id) {
+                                                         Shiny.unbindAll($('#'+id).find('table').DataTable().table().node());})")),
+                                        tags$br(),
+                                        h4('Model output (convergence, SE, Hessian)'),
+                                        DT::DTOutput('modeltab'),
+                                        tags$br(),
+                                        h4('Error messages'),
+                                        DT::DTOutput('errortab'),
+                                        width=10
+                                        )
+                                      )  )
+                            )),
+                  #---- 
+                  #Bookmark
+                  #-----
+                  tabPanel('Bookmark Choices', value = "book",
+                           tags$br(),
+                           tags$button(
+                             id = 'closeB',
+                             type = "button",
+                             style="color: #fff; background-color: #FF6347; border-color: #800000;",
+                             class = "btn action-button",
+                             onclick = "setTimeout(function(){window.close();},500);",  # close browser
+                             "Close app"
+                           ),
+                           tags$br(),
+                           bookmarkButton(),
+                           tags$br(),
+                           textInput('notesBook', "Notes", value=NULL, placeholder = 'Paste bookmarked URL here. URl can be accessed in the StoredText file in the inst/output/ folder .'),
+                           actionButton('callTextDownloadBook','Save notes'),
+                           downloadLink("downloadTextBook", label=''),
+                           textInput('notesBook', "Notes", value=NULL, 
+                                     placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                           tags$br(),
+                           tags$p('This application can be reopened at a saved state by following the following steps:'),
+                           tags$ul('Saving current state:'),
+                           tags$ul(tags$ul(tags$li('Click bookmark button and copy and save url address'))),
+                           tags$ul(tags$ul(tags$li('Save url address in chosen location or in notes section of application'))),
+                           tags$ul('Reopen saved state:'),
+                           tags$ul(tags$ul(tags$li('Reopen the app'))),
+                           tags$ul(tags$ul(tags$li('Open a tab in a web browser'))),
+                           tags$ul(tags$ul(tags$li('Paste saved url in web browser. The saved application can then be used in the web browser.')))
+                    
+                  )
+
+                  
+                  
+      ))
+    }
     

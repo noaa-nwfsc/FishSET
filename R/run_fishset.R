@@ -21,44 +21,14 @@
 #' }
 
 
-run_fishset_gui <- function(dat, project){#
-  requireNamespace(shiny)
-  requireNamespace(ggplot2)
-  #----
-  #Helper functions
-  #----
+run_fishset_gui <- function(dat, project){
+
+#shiny app call
   if(!exists('loc')){
     loc = getwd()
   } else {
     loc = loc
   }
   
-  if(is.character(dat)==TRUE){
-    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
-    dataset <- table_view(dat)
-    DBI::dbDisconnect(fishset_db)
-  } else {
-    dataset <- dat  
-  }
-  
-  if(is.character(dat)==TRUE){
-    dat <- dat
-  } else {
-    dat <- deparse(substitute(dat))
-  }
-  # default global search value
-  if (!exists("default_search")) {default_search <- ""}
-  
-  # default column search values
-  if (!exists("default_search_columns")) {default_search_columns <- NULL}
-  
-  simpleCap <- function(x) {
-    s <- strsplit(x, " ")[[1]]
-    paste(toupper(substring(s, 1,1)), substring(s, 2),
-          sep="", collapse=" ")
-  }
-  
-#shiny app call
-
 shinyAppDir(paste0(loc, '/inst/ShinyFiles'))
 }
