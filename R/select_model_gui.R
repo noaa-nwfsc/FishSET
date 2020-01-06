@@ -1,8 +1,7 @@
 # select_model
 #' View and select models 
 #'
-#' @param table Name of table in database containing model measures of fit
-#' @param overwrite.table If FALSE, appends model selection to out.mod table. If true, overwrites new table with model selection columns. Set to TRUE if models are deleted or selected models are changed.
+#' @param project Name of project
 #' @importFrom DBI dbExistsTable dbDisconnect dbConnect dbRemoveTable dbExecute dbGetQuery 
 #' @importFrom DT DTOutput renderDT JS
 #' @import shiny
@@ -16,10 +15,10 @@
 #' reference of the preferred model. 
 #' @examples 
 #' \dontrun{
-#' select_model('out.mod', overwrite.table=FALSE)
+#' select_model('pollockmodelfit', overwrite.table=FALSE)
 #' }
 
-select_model <- function(table, overwrite.table=TRUE){
+select_model <- function(project){
   
   requireNamespace(shiny)
   
@@ -29,18 +28,16 @@ select_model <- function(table, overwrite.table=TRUE){
     loc = loc
   }
   
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite"))
-  out.mod <- DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), paste0("SELECT * FROM", paste0("'", noquote(table), "'")))
-  
   shinyApp(
     ui = fluidPage(
-      
+     
+      tabPanel('Select models', 
       sidebarLayout(
         sidebarPanel(
           tags$br(),tags$br(),
           actionButton("delete_btn", "Delete row"),
           h3(''),
-          actionButton("submit", "Save table", style="color: #fff; background-color: #337ab7; border-color: #2e6da4;"),
+          actionButton("submit_ms", "Save table", style="color: #fff; background-color: #337ab7; border-color: #2e6da4;"),
           tags$br(),tags$br(),
           tags$button(
             id = 'close',
@@ -56,10 +53,16 @@ select_model <- function(table, overwrite.table=TRUE){
           tags$script(HTML("Shiny.addCustomMessageHandler('unbind-DT', function(id) {
                            Shiny.unbindAll($('#'+id).find('table').DataTable().table().node());})"))
           )
-        )),
+        ))),
     
     server = function(input, output, session) {
       # helper function for making checkbox
+      
+      #out_mod <- reactive({
+          fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite"))
+     #     return(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), paste0("SELECT * FROM", paste0(project, "modelfit"))))
+     # })
+      
       shinyInput = function(FUN, len, id, ...) { 
         inputs = character(len) 
         for (i in seq_len(len)) { 
@@ -68,7 +71,7 @@ select_model <- function(table, overwrite.table=TRUE){
         inputs 
       } 
       
-      this_table <- reactiveVal(data.frame(t(out.mod)))#,Select=shinyInput(checkboxInput,nrow(t(out.mod)),"cbox_")))
+      this_table <- reactiveVal(data.frame(t(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), paste0("SELECT * FROM ", paste0(project, "modelfit"))))))#,Select=shinyInput(checkboxInput,nrow(t(out.mod)),"cbox_")))
       
       observeEvent(input$delete_btn, {
         
@@ -119,10 +122,10 @@ select_model <- function(table, overwrite.table=TRUE){
       
       
       # When the Submit button is clicked, save the form data
-      observeEvent(input$submit, {
+      observeEvent(input$submit_ms, {
         # Connect to the database
         fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite"))
-        if(overwrite.table==T){
+        if(overwrite_table==T){
           if(DBI::dbExistsTable(fishset_db, 'modelChosen')==TRUE){
             DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), 'modelChosen')
           }

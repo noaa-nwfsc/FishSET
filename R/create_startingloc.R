@@ -73,7 +73,7 @@ create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, st
   create_startingloc_function$kwargs <- c()
   create_startingloc_function$output <- c()
    
-  log.call(create_startingloc_function)
+  log_call(create_startingloc_function)
   
   return(startingloc)
 }                                                                                                                                                                                                                           

@@ -13,10 +13,14 @@ data_verification_call <- function(dat) {
   #' }
   
   #Call in datasets
+  if(table_exists(dat)) {
   out <- data_pull(dat)
   dat <- out$dat
   dataset <- out$dataset
-  
+  } else {
+    dataset <- dat
+    dat <- deparse(substitute(dat))
+  }
   
   tmp <- tempfile()
   cat("Data verification checks", file=tmp, append=TRUE)
@@ -76,6 +80,6 @@ data_verification_call <- function(dat) {
   rm(tmp)  
   
   if(check==1) {
-    stop('Data cannot be saved, at least one error exists')
+    warning('Data cannot be saved, at least one error exists')
   }
 }

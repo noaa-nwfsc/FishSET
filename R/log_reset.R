@@ -20,7 +20,7 @@ log_call <- function(fun.name){
   #' @param fun.name Function name
   #' @details uplodate log file
   #' @importFrom jsonlite read_json toJSON
-  #' 
+  #' @export
   
 if(!file_test("-f", paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))) { 
   logbody <- list()

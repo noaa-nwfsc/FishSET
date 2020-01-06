@@ -24,21 +24,24 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
                                lag.method, empty.catch, empty.expectation, dummy.exp){
   
   #Call in datasets
-  out <- data_pull(dat)
-  dat <- out$dat
-  dataset <- out$dataset
+  if(!exists('dataset')){
+    out <- data_pull(dat)
+    dat <- out$dat
+    dataset <- out$dataset
+  }
   
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
-  DBI::dbDisconnect(fishset_db)
-  
+  if(!exists('Alt')){
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+    Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
+   DBI::dbDisconnect(fishset_db)
+  }
   
   dataZoneTrue <- Alt[["dataZoneTrue"]]  # used for catch and other variables
   choice <- Alt[["choice"]]  # used for catch and other variables
   zoneRow <- Alt[["zoneRow"]]
   
   # check whether defining a group or using all fleet averaging 
-  if (is.null(defineGroup)) {
+  if (defineGroup=='none'|is.null(defineGroup)) {
     # just use an id=ones to get all info as one group
     numData <- data.frame(rep(1, dim(dataset)[1]))  #ones(size(data(1).dataColumn,1),1)
     # Define by group case u1hmP1
@@ -46,8 +49,8 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
     numData = as.integer(dataset[[defineGroup]])
   }
   
-  if(is.null(temp.var)){
-    temp.var <- grep("date", colnames(dataset), ignore.case=TRUE)[1]
+  if(temp.var=='none'|is.null(temp.var)){
+    temp.var <-  colnames(dataset)[grep("date", colnames(dataset), ignore.case=TRUE)[1]]
     if(length(grep("date", colnames(dataset), ignore.case=TRUE))>1){
       warning('More than one column matches argument. First column will be used to define temporal variable.')
     }
@@ -69,7 +72,7 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
     C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*"))  #C = row ID of those unique items
     
     catchData <- as.numeric(dataset[[catch]][which(dataZoneTrue == 1)])
-    if(!is.null(price)){
+    if(price!='none'&!is.null(price)){
       priceData <- as.numeric(dataset[[price]][which(dataZoneTrue == 1)])
       catchData <- catchData*priceData
     }
@@ -83,6 +86,10 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
         # case u1 # observation time line
         tiDataFloor <- tiData  # just keeping things consistent
         tLine <- data.frame(unique(tiData))  #unique(tiData) 
+      } else {
+        tiDataFloor <- lubridate::floor_date(as.Date(tiData), unit = "day")  # assume, we are talking day of for time
+        tLine <- sort(unique(tiDataFloor))  #min(tiDataFloor):max(tiDataFloor)
+        warning('Temporal time frame not specified. Using daily time line.')
       }
       
       timeRange <- 2
@@ -105,7 +112,7 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
        lagTime <- 0
        warning('Selected groups and choice data results in only single observations. Cannot use lag time for choosen group and choice data.
                Setting lag time to 0.')
-      } else if((length(which(duplicated(df2$ID)==TRUE))/length(df2$ID))<.25) {
+      } else if(length(which(duplicated(df2$ID)==TRUE))/length(df2$ID)<.25) {
         lagTime <- 0
         warning(paste0('Selected groups and choice data results in ', length(which(duplicated(df2$ID)==FALSE))/length(df2$ID)*100,
                         '% of observations with only single observations. Cannot use lag time for choosen group and choice data. Setting lag time to 0.'))
@@ -128,7 +135,7 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
       df2$ra <- mapply(myfunc_ave, df2$tiData, df2$ID)
       
       # #Replace empty values
-      if (is.null(empty.catch)) {
+      if (empty.catch=="NA"|is.null(empty.catch)) {
         myfunc_emp <- function(x){mean(df2[lubridate::year(df2$tiData) >= format(as.Date(x), format = "%Y") & 
                                          lubridate::year(df2$tiData) <  lubridate::year(x)+1, 'lag.value'], na.rm=TRUE)}
         df2$ra[which(is.na(df2$ra)==TRUE)] <- unlist(lapply(df2$tiData[which(is.na(df2$ra)==TRUE)], myfunc_emp))
@@ -206,7 +213,7 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
         newCatch[which(cit == cit[w]), col] <- meanCatch[C[w], bi[w]]  ## loop shouldn't be necessary but no loop results in out of memory issue
       }
       
-      if(is.null(empty.expectation)){
+      if(empty.expectation=='NA'|is.null(empty.expectation)){
         newCatch[is.na(newCatch)] = 0.0001
       } else if (empty.expectation == 0.0001) {
         newCatch[is.na(newCatch)] <- 0.0001
@@ -245,7 +252,7 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
         attach('newDumV', newDumVm, pos=1)
         
         #replaceEmptyExpAll=get(dp2V5,'String')# replace empty catch
-        if(is.null(empty.expectation)){
+        if(empty.expectation=='NA'|is.null(empty.expectation)){
           newCatch[is.na(newCatch)] = 0.0001 
         } else if(empty.expectation == 0.0001) {
           newCatch[is.na(newCatch)] <- 0.0001

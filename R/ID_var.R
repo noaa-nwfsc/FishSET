@@ -40,7 +40,7 @@ ID_var <- function(dat, newID, ...) {
   ID_var_function$args <- c(dat, newID)
   ID_var_function$kwargs <- list('argList'=idmaker)
   ID_var_function$output <- c('')
-  log.call(ID_var_function)
+  log_call(ID_var_function)
   return(int)
 }
 

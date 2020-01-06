@@ -43,7 +43,10 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
   
   #Call in datasets
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
+  x_temp <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
+
+  for(i in 1:length(x_temp)){
+    x <- x_temp[i]
   
   catch <- as.matrix(x[['catch']])
   choice <- x[['choice']]
@@ -249,6 +252,7 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
   DBI::dbDisconnect(fishset_db)
   }
   #### End looping through expectated catch cases
+  }#end looping through model choices
   
   #out.mod <<- out.mod
   ############################################################################# 
@@ -345,7 +349,7 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
     ))
     
 }
-  
+   
   ############################################################################# 
   discretefish_subroutine_function <- list()
   discretefish_subroutine_function$functionID <- 'discretefish_subroutine'
@@ -357,8 +361,8 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
   single_sql <- paste0(project, "modelOut", format(Sys.Date(), format="%Y%m%d"))
   if(table_exists(single_sql)){
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-  x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
-  return(x)
+  out <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
+  return(out)
   DBI::dbDisconnect(fishset_db)
   }
   }

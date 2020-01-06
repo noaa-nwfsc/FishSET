@@ -106,7 +106,7 @@ create_dist_between_for_gui <- function(dat, start, end, units, portTable=NULL, 
     create_dist_between_function$args <- c(dat, start, end, units)
     create_dist_between_function$kwargs <- c(portTable, deparse(substitute(gridfile)), lon.dat, lat.dat, cat, lon.grid, lat.grid)
 
-    log.call(create_dist_between_function)
+    log_call(create_dist_between_function)
     
     return(distBetween)
   }

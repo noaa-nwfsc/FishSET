@@ -42,12 +42,85 @@ cpue <- function(dat, xWeight, xTime, name='cpue') {
   create_var_cpue_function$kwargs <- list()
   create_var_cpue_function$output <- paste0(deparse(substitute(dat)),'$',name)
 
-  log.call(create_var_cpue_function)
+  log_call(create_var_cpue_function)
   return(cpue)
   }
 }
 
 ##---- Dummy  Variables ----##
+#dummy_num
+dummy_num <- function(dat, var, value, opts='more_less', name='dummy_num'){
+#' Create a dummy variable based on selected values
+#' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param var Variable in data frame to create dummy variable off of
+#' @param value The set value will depend whether the data is a date, facotr, or numeric. If date, value should be a year, if factor, value should be a level
+#' within the variable, if number value should be a single number or range of numbers [use c(1,5)]
+#' @param opts Choices are x_y and more_less. x_y sets the selected year, factor, or numeric value (single or range) to 0 and all other values to 1.
+#' more_less sets sets values before the set year or numberic value to 0 and all values greater than the year or value to 1. 
+#' Default is set to 'more_less'.
+#' @param name Name of created dummy variable. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
+#' @details This function creates a dummy variable. How the dummy variable is created depends upon whether the variable the dummy variable should be created
+#' from is a date, factor, or numeric variable. 
+#' For date variables, the dummy variable is defined by a date (year) and may be either this year versus all other years (x_y) or before vs after this year (more_less).
+#' Use this function to create a variable defining whether a not policy action had been implemented. 
+#' For example, to create an ammendment 80 variable you would type: `dummy_num('MainDataTable', 'Haul_date', 2008, 'more_less', 'ammend80')` 
+#' For factor variables, the only option is to compare selected levels against all others.
+#' For example, to set a variable specifying whether fishers targeted pollock or something else type: `dummy_num('MainDataTable', 'GF_TARGET_FT', c('Pollock - bottom', 'Pollock - midwater'), 'x_y', 'pollock_target')`
+#' For numeric variables, you can set a single value or a range of continuous values and contrast either the selected value(s) against all others (x_y) or less than the 
+#' selected value versus more than the selected value (more_less). For more_less, the mean is used as the critical value is a range of values is proviced.
+#' @export
+
+#notes - if date select year, 
+#                   x vs all others
+#                   before vs after
+#        if factor select level to set to 0
+#        if numeric set single or range of values
+#                   range set to 0
+#                   value vs all others
+#                   less < vs > than
+
+ 
+   #Pull in data
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset
+  
+  if(grepl('dat|year', var, ignore.case=TRUE)){
+        if(length(value==6)){
+          dataset[[var]] <- format(as.Date(dataset[[var]]), "%Y%m")
+        } else if(length(value==4)){
+          dataset[[var]] <- format(as.Date(dataset[[var]]), "%Y")
+        } else {
+          dataset[[var]] <- format(as.Date(dataset[[var]]), "%m")  
+        }
+        if(opts=='x_y'){
+          out <- ifelse(as.numeric(dataset[[var]])== value, 0, 1)
+          } else {
+          out <- ifelse(as.numeric(dataset[[var]])< value, 0, 1)
+          }
+  } else if(is.numeric(dataset[[var]])) {
+        if(opts=='x_y'){
+          out <- ifelse(dataset[[var]]>= min(value) & dataset[[var]] <= max(value), 0, 1)
+        } else {
+          out <- ifelse(dataset[[var]]< mean(value), 0, 1)
+        }
+  } else if(is.factor(dataset[[var]])|is.character(dataset[[var]])) {
+        out <- ifelse(trimws(dataset[[var]], 'both') == trimws(value, 'both'), 0, 1)
+  } else { 
+    (warning('variable is not recognized as being a date, factor, or numeric. Function not run.'))
+  }
+  
+  create_var_dummy_num_function <- list()
+  create_var_dummy_num_function$functionID <- 'dummy_num'
+  create_var_dummy_num_function$args <- c(dat, var, value, opts)
+  create_var_dummy_num_function$kwargs <- list()
+  create_var_dummy_num_function$output <- paste0(deparse(substitute(dat)),'$',name)
+  
+  log_call(create_var_dummy_num_function)
+  return(out)
+}
+
+
 #' Create new dummy variable
 dummy_var <- function(dat, DumFill = 'TRUE', name='dummy_var') {
   #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
@@ -73,7 +146,7 @@ dummy_var <- function(dat, DumFill = 'TRUE', name='dummy_var') {
   create_var_dummy_var_function$kwargs <- list()
   create_var_dummy_var_function$output <- paste0(deparse(substitute(dat)),'$',name)
  
-  log.call(create_var_dummy_var_function)
+  log_call(create_var_dummy_var_function)
   return(dummyvar)
 }
 
@@ -106,7 +179,7 @@ dummy_matrix <- function(dat, x) {
   create_var_dummy_matrix_function$args <- c(dat, x)
   create_var_dummy_matrix_function$kwargs <- list()
   create_var_dummy_matrix_function$output <- c('')
-  log.call(create_var_dummy_matrix_function)
+  log_call(create_var_dummy_matrix_function)
   return(int)
 }
 
@@ -158,7 +231,7 @@ if (quant.cat == 0.2) {
   create_var_set_quants_function$kwargs <- list()
   create_var_set_quants_function$output <- paste0(deparse(substitute(dat)),'$',name)
  
-  log.call(create_var_set_quants_function)
+  log_call(create_var_set_quants_function)
   return(var.name)
 }
 }
@@ -205,7 +278,7 @@ create_var_num <- function(dat, x, y, method, name='create_var_num') {
    create_var_num_function$args <- c(dat, x, y, method)
    create_var_num_function$kwargs <- list()
    create_var_num_function$output <- paste0(deparse(substitute(dat)),'$',name)
-   log.call(create_var_num_function)
+   log_call(create_var_num_function)
 
   return(name)
   }
@@ -256,13 +329,14 @@ create_mid_haul <- function(dat, start=c('lon', 'lat'), end=c('lon','lat'), name
   create_mid_haul_function$args <- c(dat, start, end)
   create_mid_haul_function$kwargs <- list()
   create_mid_haul_function$output <- paste0(dat,'$',name)
-  log.call(create_mid_haul_function)
+  log_call(create_mid_haul_function)
   
   return(out)
   }
 }
 
-##----trip centroid-----#
+create_trip_centroid <- function(dat, lon, lat, weight.var=NULL, ...) {
+  ##----trip centroid-----#
   #' Calculate centroid of each trip 
   #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
   #' @param lat Vector containing latitudinal data.
@@ -278,7 +352,7 @@ create_mid_haul <- function(dat, start=c('lon', 'lat'), end=c('lon','lat'), name
   #'                               'LonLat_START_LON', 'LonLat_START_LAT', 
   #'                               weight.var=NULL, 'DISEMBARKED_PORT','EMBARKED_PORT')
   #' }
-create_trip_centroid <- function(dat, lon, lat, weight.var=NULL, ...) {  
+  
   out <- data_pull(dat)
   dat <- out$dat
   dataset <- out$dataset
@@ -316,7 +390,7 @@ create_trip_centroid <- function(dat, lon, lat, weight.var=NULL, ...) {
   create_trip_centroid_function$functionID <- 'create_trip_centroid'
   create_trip_centroid_function$args <- c(dat, dat, lon, lat, weight.var, argList)
   create_trip_centroid_function$kwargs <- list()
-  log.call(create_trip_centroid_function)
+  log_call(create_trip_centroid_function)
 
   return(int)
 }
@@ -550,7 +624,7 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
   create_dist_between_function$args <- c(dat, start, end, units)
   create_dist_between_function$kwargs <- list(vars)
   
-  log.call(create_dist_between_function)
+  log_call(create_dist_between_function)
   return(distBetween)
   }
   }
@@ -601,7 +675,7 @@ create_duration <- function(dat, start, end, units = c("week", "day", "hour", "m
   create_var_temp_function$args <- c(dat, start, end, units)
   create_var_temp_function$kwargs <- list()
   create_var_temp_function$output <- paste0(deparse(substitute(dat)),'$',name)
-  log.call(create_var_temp_function)
+  log_call(create_var_temp_function)
   
  return(dur)
 }

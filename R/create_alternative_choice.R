@@ -6,7 +6,7 @@
 #' @param gridfile Spatial data. Shape, json, and csv formats are supported.
 #' @param case Centroid='Centroid of Zonal Assignment', Port, Other
 #' @param min.haul Minimum number of hauls. Removes zones with fewer hauls than min.haul. For instance, include only zones with at least 100 hauls.
-#' @param haul.trip Should data be at trip or haul level. Defaults to haul.
+# @param haul.trip Should data be at trip or haul level. Defaults to haul.
 #' @param hull.polygon Used in assignment_column function. Creates polygon using convex hull method.
 #' @param alt_var  Identifies how to find lat/lon for starting point (must have a lat/lon associated with it) 
 #' @param occasion  Identifies how to find lat/lon for alternative choices such as 'Centroid of Zonal Assignment' 
@@ -38,7 +38,7 @@
 #'         }
  
 create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port", "Other"), min.haul, 
-                                      haul.trip = c("Haul", "Trip"), alt_var, occasion, dist.unit='miles', lon.dat, lat.dat, lon.grid, lat.grid, 
+                                      alt_var, occasion, dist.unit='miles', lon.dat, lat.dat, lon.grid, lat.grid, 
                                       cat, hull.polygon = c(TRUE, FALSE), remove.na = FALSE, 
                                       closest.pt = FALSE, project, griddedDat=NULL, weight.var = NULL) {
   
@@ -81,9 +81,8 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
       warning(paste("No zone identified for", sum(is.na(int.data$ZoneID)), "observations. These observations will be removed in future analyses."))
     }
     
-#  browser()
     choice <- data.frame(int.data$ZoneID)
-    startingoc <- if(is.null(int.data$startingloc)) { rep(NA, nrow(int.data))} else { data.frame(int.data$startingloc)}
+    startingloc <- if(!'startingloc' %in% int.data) { rep(NA, nrow(int.data))} else { data.frame(int.data$startingloc)}
     
    if (is.null(choice)) {
     warning("Choice must be defined. Ensure that the zone or area assignment variable (cat parameter) is defined.")
@@ -222,7 +221,7 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
        create_alternative_choice_function$kwargs <- list('griddedDat'= griddedDat, 'weight.var'= weight.var)
        create_alternative_choice_function$output <- c()
        
-       log.call(create_alternative_choice_function)
+       log_call(create_alternative_choice_function)
     }
 }                                                                                                                                                                                                                           
    

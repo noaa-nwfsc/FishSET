@@ -111,6 +111,6 @@ check_model_data <- function(dat, dataindex, uniqueID, save.file = TRUE) {
   checkModelData_function$msg <- suppressWarnings(readLines(tmp))
   suppressWarnings(readLines(tmp))
   
-  log.call(checkModelData_function)
+  log_call(checkModelData_function)
   rm(tmp)
 }

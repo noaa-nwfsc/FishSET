@@ -211,13 +211,13 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write=
   print('Data saved to database')
   }
   
-   nan_filter_function <- list()
-  nan_filter_function$functionID <- 'na_filter'
-  nan_filter_function$args <-  c(dat,  deparse(substitute(x)), replace, remove, rep.value)
-  nan_filter_function$kwargs <- list()
-  nan_filter_function$output <-  c(deparse(substitute(dat)))
-  nan_filter_function$msg <- suppressWarnings(readLines(tmp))
-  log_call(nan_filter_function)
+   na_filter_function <- list()
+  na_filter_function$functionID <- 'na_filter'
+  na_filter_function$args <-  c(dat,  deparse(substitute(x)), replace, remove, rep.value)
+  na_filter_function$kwargs <- list()
+  na_filter_function$output <-  c(deparse(substitute(dat)))
+  na_filter_function$msg <- suppressWarnings(readLines(tmp))
+  log_call(na_filter_function)
   
   rm(tmp)
   
