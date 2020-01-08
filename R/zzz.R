@@ -4,3 +4,7 @@
 }
 
 
+.onLoad <- function(libname, pkgname) {
+  options(locdatabase=paste0(system.file(package='FishSET'), 'fishset_db.sqlite'))
+  
+}

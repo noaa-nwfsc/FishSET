@@ -121,7 +121,7 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write
   print(suppressWarnings(readLines(tmp)))  
   
   if(over_write==TRUE & any(is.nan(dataset)) == TRUE){
-  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase))
   DBI::dbWriteTable(fishset_db, deparse(substitute(dat)), int, overwrite=over_write)
   DBI::dbDisconnect(fishset_db)
   }
@@ -205,7 +205,7 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write=
   
   #Save the revised data set
   if(over_write==TRUE&any(is.na(dataset))==TRUE){
-  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase))
   DBI::dbWriteTable(fishset_db, deparse(substitute(dat)), int, overwrite=over_write)
   DBI::dbDisconnect(fishset_db)
   print('Data saved to database')

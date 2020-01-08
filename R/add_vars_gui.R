@@ -90,7 +90,7 @@ add_vars <- function(working_dat, raw_dat, project){
 ##  Beging SERVER functions  
     server = function(input, output, session) {
       col_show <- 1
-      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
+      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase))
       if(is.character(working_dat)==TRUE){
         if(is.null(working_dat)==TRUE | table_exists(working_dat)==FALSE){
           print(DBI::dbListTables(fishset_db))

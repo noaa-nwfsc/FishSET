@@ -57,7 +57,7 @@ fishset_compare <- function(x, y, compare=c(TRUE,FALSE)){
   #' If no previous versions of the data frame exist in the SQLite database or the analysis will not be rerun using saved function calls in the log file, set the `compare` parameter to FALSE.
   #'  No comparison will be made and the new file will be saved to the database.
 
-  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase))
   if(compare==TRUE){
     if(is.null(y)==TRUE | table_exists(y)==FALSE){
       print(DBI::dbListTables(fishset_db))
@@ -106,7 +106,7 @@ load_maindata <- function(dat, over_write=TRUE, project=NULL, compare=FALSE, y=N
   
    dataset <- dat 
      #Call in datasets
-  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase))
   if(compare==TRUE){
 
   fishset_compare(dataset,y,compare)
@@ -118,7 +118,7 @@ load_maindata <- function(dat, over_write=TRUE, project=NULL, compare=FALSE, y=N
   if (length(dataset[indx]) > 0) {
     cat("Pass: Latitude and longitude or fishing area included in the data frame")
   } else {
-    stop("Dataset must contain either latitude and longitude or fishing area designation.")
+    warning("Dataset must contain either latitude and longitude or fishing area designation.")
   }
   
   n <- which(grepl('DATE|TRIP_END|TRIP_START',colnames(dataset), ignore.case=TRUE))
@@ -213,7 +213,7 @@ main_mod <- function(dat, x, new.unit=NULL, new.type=NULL, new.class=NULL) {
   #' }
 
  #Call in data sets
-  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase))
   if(is.character(dat)==TRUE){
     if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
       print(DBI::dbListTables(fishset_db))
@@ -238,7 +238,7 @@ main_mod <- function(dat, x, new.unit=NULL, new.type=NULL, new.class=NULL) {
     dataset[dataset[['variable_name']]==x, new.class] <- 1
   }
   
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase)
   DBI::dbWriteTable(fishset_db, dataset, dataset, overwrite=TRUE)
   DBI::dbDisconnect(fishset_db)
   print('Data saved to database')
@@ -302,7 +302,7 @@ load_port <- function(dat, port_name, over_write=TRUE, project=NULL, compare=FAL
   }
   
   if(val==0){
-  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase))
   if(table_exists(paste0(project, 'PortTable'))==FALSE | over_write==TRUE){
     DBI::dbWriteTable(fishset_db, paste0(project, 'PortTable', format(Sys.Date(), format="%Y%m%d")), x, overwrite=over_write)
     DBI::dbWriteTable(fishset_db, paste0(project, 'PortTable'), x, overwrite=over_write)
@@ -343,7 +343,7 @@ load_aux <- function(dat, x, over_write=TRUE, project=NULL){
   #' }
   
   #Call in datasets
-  suppressWarnings( fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+  suppressWarnings( fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase))
   if(is.character(dat)==TRUE){
     if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
       print(DBI::dbListTables(fishset_db))
@@ -363,7 +363,7 @@ load_aux <- function(dat, x, over_write=TRUE, project=NULL){
   
   data_verification_call(x)
   
-  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase))
   if(table_exists(paste0(project, x))==FALSE | over_write==TRUE){
   DBI::dbWriteTable(fishset_db, paste0(project, x, format(Sys.Date(), format="%Y%m%d")), x, overwrite=over_write)
   DBI::dbWriteTable(fishset_db, paste0(project, x), x, overwrite=over_write)
@@ -396,7 +396,7 @@ load_grid <- function(dat, x, over_write=TRUE, project=NULL){
   #' load_grid(dataset='pcodMainDataTable', x=SeaSurfaceTemp, over_write=TRUE, project='pcod') 
   #' }
   
-  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase))
   if(is.character(dat)==TRUE){
     if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
       print(DBI::dbListTables(fishset_db))
@@ -415,7 +415,7 @@ load_grid <- function(dat, x, over_write=TRUE, project=NULL){
   
   data_verification_call(x)
   
-  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase))
   if(table_exists(paste0(project, x))==FALSE | over_write==TRUE){
     DBI::dbWriteTable(fishset_db, paste0(project, x), x, overwrite=over_write)
   print('Data saved to database')
@@ -445,7 +445,7 @@ dataindex_update <- function(dat, dataindex){
   #' dataindex_update(dat='pcodMainDataTable', dataindex='pcodMainDataTableInfo') 
   #' }
 
-  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase))
   if(is.character(dat)==TRUE){
     if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
       print(DBI::dbListTables(fishset_db))

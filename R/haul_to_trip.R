@@ -29,7 +29,7 @@ haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, ...)
   #Load in dataindex
   
   dataIndex <- dataindex_update(dataset, pull_info_data(project))
-#    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"))
+#    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase))
 #    single_sql <- paste("select * from ", dataindex, sep='')
 #    dataindex <- DBI::dbGetQuery(fishset_db,  single_sql)
 #    DBI::dbDisconnect(fishset_db)

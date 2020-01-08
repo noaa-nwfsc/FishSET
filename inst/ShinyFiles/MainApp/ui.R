@@ -1,10 +1,6 @@
-#2004	Central GOA Rockfish Cooperative
-#2008 Amendment 80 Alaska
-#1993	Pacific halibut and Sablefish IFQ Program	Alaska
-#1999	American Fisheries Act (AFA) Pollock Program Alaska
-
     ## USER INTERFACE    
-    ui = fluidPage(
+    ui = function(request){
+      fluidPage(
  
       #---- 
       #Formatting
@@ -38,21 +34,44 @@
                                  function(message) {
                                  eval(message.value);
                                  });'))),
+      #----
+      ##Inline scripting
+      #-----
+      # enable the <enter> key to press the [Run] button
+      tags$script(HTML(
+        '$(document).keyup(function(event) {
+        if (event.keyCode == 13) {
+        $("#run").click();
+        }
+    });'
+  )),
+  
 
       #----
       tabsetPanel(id = "tabs",
-
                   #Landing page
                   #----
                   tabPanel("Information",
                            tabsetPanel(
                              tabPanel("Background",
                                       fluidRow(
-                                        column(width = 6,
-                                               tags$div(tags$p(tags$br(), 'Background on FishSET'),
-                                                        tags$p('This page should be brief but visually appealing'),
-                                                        tags$p('Page should quickly explain the tabs on the page'),
-                                                        tags$p('Contact with questions'))
+                                        column(width = 10,
+                                               tags$div(tags$p(tags$br(), tags$h2('FishSET - Spatial Economic Toolbox for Fisheries', 
+                                                                                  style="color:darkblue; text-align:center; font-size: 32px;")),
+                                                        tags$div(style="display: inline-block; align:right", img(src="SandPoint_Boats.JPG", height='10%', width='100%', align='center')),
+                                                        tags$br(),tags$br(),
+                                                        tags$p('FishSET is a set of statistical programming 
+                                                              and data management tools developed to achieve the goals of 
+                                                               standardizing data management and organization,
+                                                               providing easily accessible tools to enable location choice models to provide input to the
+                                                               management of key fisheries, and
+                                                               organizing statistical code so that predictions of fisher behavior developed by the field’s leading
+                                                               innovators can be incorporated and transparent to all users.'),
+                                                        tags$p('The toolbox is divided into tabs to guide users through all steps from uploading data to
+                                                               developing and evaluating models. Tabs can be navigated in any order.'),
+                                                        tags$p('For questions and comments please contact:',
+                                                               tags$ul('Alan Haynie  alan.haynie@noaa.gov'),
+                                                               tags$ul('Melanie Harsch melanie.harsch@nooa.gov')))
                                         )
                                       )
                              ),
@@ -94,16 +113,21 @@
                            tags$style(type='text/css', "#uploadMain { width:100%; margin-top: 24px;margin-left:-20px;padding-left:2px; padding-right:5px}"),
                            
                            mainPanel(
-                             tags$br(), tags$br(),
                              #div(style="display:inline-block;vertical-align:bottom;",
-                             fluidRow(
-                               column(6,
-                                      fileInput("maindat", "Choose primary data file",
-                                                multiple = FALSE, placeholder = 'Required data')),
-                               column(3,
-                                      uiOutput('ui.action')
-                               )
+                             tags$button(
+                               id = 'closeDat',
+                               type = "button",
+                               style="color: #fff; background-color: #FF6347; border-color: #800000;",
+                               class = "btn action-button",
+                               onclick = "setTimeout(function(){window.close();},500);",  # close browser
+                               "Close app"
                              ),
+                             tags$br(), tags$br(),
+                             fluidRow(
+                               textInput('projectname', 'Name of project'),
+                               column(6, radioButtons('loadmainsource', "Source data from:", choices=c('FishSET database', 'Upload new file'), inline=TRUE)),
+                               uiOutput('main_upload')),
+                              
                              fluidRow( 
                                column(width = 8, offset = 2,
                                       uiOutput('ui.action2'))),
@@ -149,8 +173,6 @@
                                             actionButton('subsetData', 'Remove variable from data set')
                                           ),
                                           actionButton('saveData','Save data to fishset_db database'),
-                                          
-                                          tags$br(),tags$br(),
                                           tags$button(
                                             id = 'close',
                                             type = "button",
@@ -163,6 +185,9 @@
                                                        icon = icon("fa fa-refresh"),
                                                        style = "color: white; background-color: blue;" 
                                           ),
+                                          tags$br(), tags$br(),
+                                          textInput('notesExplore', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. 
+                                                    Text can be inserted into report later.'),
                                           selectInput('plot_table', 'View data table or plots', choices=c('Table','Plots'), selected='Table'),
                                           conditionalPanel(
                                             condition="input.plot_table=='Plots'",
@@ -182,9 +207,14 @@
                                             condition='input.plot_table=="Plots" & input.plot_type=="Spatial"',
                                             uiOutput("location_info_spatial")
                                           ),
-                                          textInput('notesExplore', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                                          
-                                          
+                                        
+                                          ##Inline scripting 
+                                          textInput("expr", label = "Enter an R expression",
+                                                   value = "values$dataset"),
+                                          actionButton("runI", "Run", class = "btn-success"),
+                                          div( style = "margin-top: 2em;",
+                                               uiOutput('resultI')
+                                          )
                              ),
                              mainPanel(width=10,
                                        tags$div(DT::DTOutput("output_table_exploration"), style = "font-size: 75%; width: 100%"),
@@ -239,7 +269,7 @@
                                           tags$br(),tags$br(),
                                           uiOutput('SaveButtons'),
                                           actionButton('saveDataQ','Save data to fishset_db database'),
-                                          tags$br(),tags$br(),
+                                          tags$br(),
                                           tags$button(
                                             id = 'close1',
                                             type = "button",
@@ -253,6 +283,9 @@
                                                        icon = icon("fa fa-refresh"),
                                                        style = "color: white; background-color: blue;" 
                                           ),
+                                          tags$br(), tags$br(),
+                                          textInput('notesQAQC', "Notes", value=NULL,
+                                                    placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
                                           h4('Select data validation check functions to run'),
                                           #Checkbox input widget  
                                           radioButtons("checks", "", choices = c('Summary table', 'Outliers', 'NAs', 'NaNs', 'Unique observations', 
@@ -285,7 +318,13 @@
                                             condition ='input.checks=="Lat_Lon units"',
                                             checkboxInput('LatLon_Filter', 'Convert lat/long to decimal degrees', value=FALSE)
                                           ),
-                                          textInput('notesQAQC', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                                          ##Inline scripting 
+                                          textInput("exprQA", label = "Enter an R expression",
+                                                    value = "values$dataset"),
+                                          actionButton("runQA", "Run", class = "btn-success"),
+                                          div(style = "margin-top: 2em;",
+                                               uiOutput('resultQA')
+                                          )
                              ),#END SIDEBAR LAYOUT             
                              mainPanel(width=9,
                                        tags$br(), tags$br(),
@@ -327,8 +366,18 @@
                                             style = "color: white; background-color: blue;" 
                                ),
                                tags$br(),tags$br(),
-                               selectInput('corr_reg','Show correlations or simple linear regression', choices=c('Correlation','Regression'), selected='Correlation'),
-                               textInput('notesAnal', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                               textInput('notesAnal', "Notes", value=NULL, 
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                               tags$br(),tags$br(),
+                               selectInput('corr_reg','Show correlations or simple linear regression', 
+                                           choices=c('Correlation','Regression'), selected='Correlation'),
+                               ##Inline scripting 
+                               textInput("exprA", label = "Enter an R expression",
+                                         value = "values$dataset"),
+                               actionButton("runA", "Run", class = "btn-success"),
+                               div(style = "margin-top: 2em;",
+                                   uiOutput('resultA')
+                               )
                              ),
                              mainPanel(
                                tags$br(),
@@ -354,12 +403,12 @@
                   #----
                   #Create New variables
                   #----
-                  tabPanel('Compute new variables', value='new',
+                  tabPanel('Compute New Variables', value='new',
                            sidebarLayout(
                              sidebarPanel(
                                uiOutput('SaveButtonsNew'),
                                actionButton('saveDataNew','Save data to fishset_db database'),
-                               tags$br(),tags$br(),
+                               tags$br(),
                                tags$button(
                                  id = 'closeNew',
                                  type = "button",
@@ -372,9 +421,10 @@
                                             icon = icon("fa fa-refresh"),
                                             style = "color: white; background-color: blue;"),
                                actionButton('runNew',"Run function",
-                                            icon=icon('fa fa-run'),
-                                            syle="color: white; background-color: green;"),
-                               textInput('notesNew', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                                            style="color: #fff; background-color: #6da363; border-color: #800000;"),
+                               tags$br(),tags$br(),                              
+                               textInput('notesNew', "Notes", value=NULL, 
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
                                selectInput('VarCreateTop', "Create variables based on", multiple=FALSE,  
                                            choices=c('Data transformations', 'Nominal ID', 'Arithmetic and temporal functions', 'Dummy variables', 'Spatial functions', 'Trip-level functions')),
                                
@@ -465,7 +515,14 @@
                                                                                          choices = c('min','mean','max','median'), selected = 'mean')),
                                uiOutput('input_IDVAR'),
                                uiOutput('input_trip_dist_vars'),
-                               uiOutput('input_tri_cent')
+                               uiOutput('input_tri_cent'),
+                               ##Inline scripting 
+                               textInput("exprN", label = "Enter an R expression",
+                                         value = "values$dataset"),
+                               actionButton("runN", "Run", class = "btn-success"),
+                               div(style = "margin-top: 2em;",
+                                   uiOutput('resultN')
+                               )
                              ),
                              mainPanel(
                                DT::DTOutput("output_table_create")
@@ -475,9 +532,21 @@
                   #-----
                   #Zonal definition
                   #-----
-                  tabPanel('Zonal definition',
+                  tabPanel('Zonal Definition',
                            sidebarLayout(
                              sidebarPanel(
+                               tags$button(
+                                 id = 'closeZ',
+                                 type = "button",
+                                 style="color: #fff; background-color: #FF6347; border-color: #800000;",
+                                 class = "btn action-button",
+                                 onclick = "setTimeout(function(){window.close();},500);",  # close browser
+                                 "Close app"
+                               ),
+                               actionButton("refreshZ", "Refresh data", 
+                                            icon = icon("fa fa-refresh"),
+                                            style = "color: white; background-color: blue;" 
+                               ),
                                #runcodeUI (code='', type='ace'),
                                # actionButton("eval", "Evaluate"),
                                radioButtons('choiceTab', '', choices=c('Select catch and price variables'='primary', #basic parameters to populate elsewhere like catch, price
@@ -487,7 +556,16 @@
                                conditionalPanel(condition="input.choiceTab=='zone'",  
                                                 actionButton('runCentroid','Assign observations to centroids', style = "color: white; background-color: green;")),
                                conditionalPanel(condition="input.choiceTab=='distm'",
-                                                actionButton('saveALT','Save choices', style = "color: white; background-color: green;"))
+                                                actionButton('saveALT','Save choices', style = "color: white; background-color: green;")),
+                               textInput('notesZone', "Notes", value=NULL, 
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                               ##Inline scripting 
+                               textInput("exprZ", label = "Enter an R expression",
+                                         value = "values$dataset"),
+                               actionButton("runZ", "Run", class = "btn-success"),
+                               div(style = "margin-top: 2em;",
+                                   uiOutput('resultZ')
+                               )
                              ),
                              mainPanel(
                                #We'll in in the choices here
@@ -518,8 +596,24 @@
                   tabPanel("Expected Catch/Revenue",
                            sidebarLayout(
                              sidebarPanel(
+                               tags$button(
+                                 id = 'closeEC',
+                                 type = "button",
+                                 style="color: #fff; background-color: #FF6347; border-color: #800000;",
+                                 class = "btn action-button",
+                                 onclick = "setTimeout(function(){window.close();},500);",  # close browser
+                                 "Close app"
+                               ),
+                               actionButton("refreshEC", "Refresh data", 
+                                            icon = icon("fa fa-refresh"),
+                                            style = "color: white; background-color: blue;" 
+                               ),
+                               tags$br(),
                                actionButton("submitE", "Run expected catch/revenue function", style="color: #fff; background-color: #6da363; border-color: #800000;"), 
-                               tags$br(),tags$br(),
+                               tags$br(),tags$br(),                               
+                               textInput('notesEC', "Notes", value=NULL, 
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+
                                uiOutput('selectcp'),
                                #h5('Compute expectations for the entire fleet or by defined groups'),
                                
@@ -564,7 +658,14 @@
                                #h6("Note: Na's removed when averaging"),
                                div(style = "margin-left:19px; font-size: 14px",
                                    checkboxInput('dummy_exp', 'Output dummy variable for originally missing values?', value=FALSE)),
-                               checkboxInput('replace_output', 'Replace previously saved expected catch output with new output', value=FALSE)
+                               checkboxInput('replace_output', 'Replace previously saved expected catch output with new output', value=FALSE),
+                               ##Inline scripting 
+                               textInput("exprEC", label = "Enter an R expression",
+                                         value = "values$dataset"),
+                               actionButton("runEC", "Run", class = "btn-success"),
+                               div(style = "margin-top: 2em;",
+                                   uiOutput('resultEC')
+                               )
                                ),
                              mainPanel(
                                tags$br(),tags$br(),
@@ -588,13 +689,6 @@
                                 tabPanel("Run model(s)",
                            sidebarLayout(
                              sidebarPanel(
-                               tags$br(),tags$br(),
-                               actionButton("addModel", "Save model and add new model", style="color: #fff; background-color: #337ab7; border-color: #800000;"),
-                               tags$br(),tags$br(),
-                               actionButton("resetModel", "Clear choices"),
-                               tags$br(),tags$br(),
-                               actionButton("submit", "Run model(s)", style="color: #fff; background-color: #6da363; border-color: #800000;"),
-                               tags$br(),tags$br(),
                                tags$button(
                                  id = 'close',
                                  type = "button",
@@ -603,9 +697,23 @@
                                  onclick = "setTimeout(function(){window.close();},500);",  # close browser
                                  "Close window"
                                ),
+                               tags$br(),
+                               actionButton("addModel", "Save model and add new model", style="color: #fff; background-color: #337ab7; border-color: #800000;"),
+                               actionButton("resetModel", "Clear choices"),
+                               tags$br(),
+                               actionButton("submit", "Run model(s)", style="color: #fff; background-color: #6da363; border-color: #800000;"),
                                tags$br(),tags$br(),
                                tags$p(tags$strong("More information"), tags$br(),
-                                      "Model parameter table is editable. Double click a cell to edit.")
+                                      "Model parameter table is editable. Double click a cell to edit."),
+                               textInput('notesModel', "Notes", value=NULL, 
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                               ##Inline scripting 
+                               textInput("exprM", label = "Enter an R expression",
+                                         value = "values$dataset"),
+                               actionButton("runM", "Run", class = "btn-success"),
+                               div(style = "margin-top: 2em;",
+                                   uiOutput('resultM')
+                               )
                              ),
                              mainPanel(
                                div(id = "form",
@@ -661,15 +769,55 @@
                                         ), width=2),
                                       mainPanel(
                                         h3('Model Output'),
+                                        h4("Measures of fit"),
                                         DT::DTOutput("mytable"),
                                         tags$script(HTML("Shiny.addCustomMessageHandler('unbind-DT', function(id) {
                                                          Shiny.unbindAll($('#'+id).find('table').DataTable().table().node());})")),
-                                        wdith=10
+                                        tags$br(),
+                                        h4('Model output (convergence, SE, Hessian)'),
+                                        DT::DTOutput('modeltab'),
+                                        tags$br(),
+                                        h4('Error messages'),
+                                        DT::DTOutput('errortab'),
+                                        width=10
                                         )
                                       )  )
-                            ))
-                  #----
+                            )),
+                  #---- 
+                  #Bookmark
+                  #-----
+                  tabPanel('Bookmark Choices', value = "book",
+                           tags$br(),
+                           tags$button(
+                             id = 'closeB',
+                             type = "button",
+                             style="color: #fff; background-color: #FF6347; border-color: #800000;",
+                             class = "btn action-button",
+                             onclick = "setTimeout(function(){window.close();},500);",  # close browser
+                             "Close app"
+                           ),
+                           tags$br(),
+                           bookmarkButton(),
+                           tags$br(),
+                           textInput('notesBook', "Notes", value=NULL, placeholder = 'Paste bookmarked URL here. URl can be accessed in the StoredText file in the inst/output/ folder .'),
+                           actionButton('callTextDownloadBook','Save notes'),
+                           downloadLink("downloadTextBook", label=''),
+                           textInput('notesBook', "Notes", value=NULL, 
+                                     placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                           tags$br(),
+                           tags$p('This application can be reopened at a saved state by following the following steps:'),
+                           tags$ul('Saving current state:'),
+                           tags$ul(tags$ul(tags$li('Click bookmark button and copy and save url address'))),
+                           tags$ul(tags$ul(tags$li('Save url address in chosen location or in notes section of application'))),
+                           tags$ul('Reopen saved state:'),
+                           tags$ul(tags$ul(tags$li('Reopen the app'))),
+                           tags$ul(tags$ul(tags$li('Open a tab in a web browser'))),
+                           tags$ul(tags$ul(tags$li('Paste saved url in web browser. The saved application can then be used in the web browser.')))
+                    
+                  )
+
                   
                   
-      ) )
+      ))
+    }
     

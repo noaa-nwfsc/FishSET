@@ -28,7 +28,7 @@ create_dist_between_for_gui <- function(dat, start, end, units, portTable=NULL, 
   if(start[1]==end[1]){
     warning('Starting and ending vectors are identical.')
   } else {
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase)
     
     #Call in datasets
     out <- data_pull(dat)

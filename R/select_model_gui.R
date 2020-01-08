@@ -59,7 +59,7 @@ select_model <- function(project){
       # helper function for making checkbox
       
       #out_mod <- reactive({
-          fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite"))
+          fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase)
      #     return(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), paste0("SELECT * FROM", paste0(project, "modelfit"))))
      # })
       
@@ -71,7 +71,7 @@ select_model <- function(project){
         inputs 
       } 
       
-      this_table <- reactiveVal(data.frame(t(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), paste0("SELECT * FROM ", paste0(project, "modelfit"))))))#,Select=shinyInput(checkboxInput,nrow(t(out.mod)),"cbox_")))
+      this_table <- reactiveVal(data.frame(t(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), locdatabase), paste0("SELECT * FROM ", paste0(project, "modelfit"))))))#,Select=shinyInput(checkboxInput,nrow(t(out.mod)),"cbox_")))
       
       observeEvent(input$delete_btn, {
         
@@ -124,10 +124,10 @@ select_model <- function(project){
       # When the Submit button is clicked, save the form data
       observeEvent(input$submit_ms, {
         # Connect to the database
-        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite"))
+        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase)
         if(overwrite_table==T){
           if(DBI::dbExistsTable(fishset_db, 'modelChosen')==TRUE){
-            DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), 'modelChosen')
+            DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase), 'modelChosen')
           }
         }
         

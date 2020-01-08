@@ -245,7 +245,7 @@ data_pull <- function(dat){
   #' Pull data from sqlite database
   #' @param dat Data table 
   #' @export data_pull 
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase)
   if(is.character(dat)==TRUE){
     if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
       print(DBI::dbListTables(fishset_db))

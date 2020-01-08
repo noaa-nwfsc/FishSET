@@ -1,23 +1,13 @@
-#requireNamespace(shiny)
-#requireNamespace(ggplot2)
+requireNamespace('shiny')
+requireNamespace('ggplot2')
+requireNamespace('shinyjs')
+requireNamespace('DT')
 #----
 #Helper functions
 #----
-if(grepl('ShinyFiles', getwd())){
-  setwd('..') 
-}
-if(grepl('inst', getwd())){
-  setwd('..')
-}
-if(!exists('loc')){
-  loc = getwd()
-} else {
-  loc = loc
-}
+enableBookmarking(store = "server")
 
-out <- data_pull(dat)
-dat <- out$dat
-dataset <- out$dataset
+
 
 # default global search value
 if (!exists("default_search")) {default_search <- ""}
@@ -32,4 +22,5 @@ simpleCap <- function(x) {
 }
 
 model_table <- data.frame('mod_name'='', 'likelihood'='', 'alternatives'='', 'optimOpts'='', 'inits'='', 
-                          'vars1'='','vars2'='', 'catch'='', 'lon'='', 'lat'='', 'project'='', 'price'='', 'startloc'='', 'polyn'='')#,
+                          'vars1'='','vars2'='', 'catch'='', 'lon'='', 'lat'='', 'project'='', 'price'='', 'startloc'='', 'polyn'='')
+
