@@ -1825,15 +1825,15 @@
       if (!exists("Alt")) {
         if (!exists('AltMatrixName')) {
           fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite"))
-          #Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
+          Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
           DBI::dbDisconnect(fishset_db)
           if (!exists("Alt")) {
             warning("Alternative Choice Matrix does not exist. Please run the createAlternativeChoice() function.")
           }
         }
       }
-      #choice <- Alt[["choice"]]
-      #alt <- dim(table(choice))
+      choice <- Alt[["choice"]]
+      alt <- dim(table(choice))
       
       drop <- reactive({grep('date|port|processor|gear|target|lon|lat|permit|ifq', colnames(values$dataset), ignore.case=TRUE)})
       
