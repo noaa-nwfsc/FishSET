@@ -93,7 +93,6 @@
                                                tags$div(tags$p(tags$br(),
                                                                'We can add more text here or not'),
                                                         tags$p('Relevant papers', tags$br(),
-                                                               #tags$iframe(style="height:600px; width:100%", src=paste0(loc, 'inst/www/FleetProfiles2012.pdf'))
                                                                tags$a('Fleet Profile', href='FleetProfiles2012.pdf', target="_blank")
                                                         ),
                                                         tags$p('Some links', tags$br(),
@@ -125,7 +124,7 @@
                              tags$br(), tags$br(),
                              fluidRow(
                                textInput('projectname', 'Name of project'),
-                               column(6, radioButtons('loadmainsource', "Source data from:", choices=c('FishSET database', 'Upload new file'), inline=TRUE)),
+                               column(6, radioButtons('loadmainsource', "Source data from:", choices=c( 'Upload new file','FishSET database'), selected='Upload new file', inline=TRUE)),
                                uiOutput('main_upload')),
                               
                              fluidRow( 
@@ -684,7 +683,7 @@
                   #----
                   #Model Parameters
                   #----
-                   tabPanel("Run Models",
+                   tabPanel("Models",
                             tabsetPanel(
                                 tabPanel("Run model(s)",
                            sidebarLayout(
@@ -751,7 +750,7 @@
                                    DT::DTOutput('mod_param_table')
                                )
                              ))),
-                           tabPanel("Explore models",
+                           tabPanel("Compare models",
                                     sidebarLayout(
                                       sidebarPanel(
                                         tags$br(),tags$br(),

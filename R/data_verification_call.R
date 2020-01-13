@@ -13,14 +13,14 @@ data_verification_call <- function(dat) {
   #' }
   
   #Call in datasets
-  if(table_exists(dat)) {
+  #if(table_exists(dat)) {
   out <- data_pull(dat)
   dat <- out$dat
   dataset <- out$dataset
-  } else {
-    dataset <- dat
-    dat <- deparse(substitute(dat))
-  }
+ # } else {
+#    dataset <- dat
+ #   dat <- deparse(substitute(dat))
+#  }
   
   tmp <- tempfile()
   cat("Data verification checks", file=tmp, append=TRUE)

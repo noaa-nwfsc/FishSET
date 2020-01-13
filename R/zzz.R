@@ -5,6 +5,11 @@
 
 
 .onLoad <- function(libname, pkgname) {
-  options(locdatabase=paste0(system.file(package='FishSET'), 'fishset_db.sqlite'))
+  options(locdatabase=paste0(system.file(package='FishSET'), '/fishset_db.sqlite'))
+  
+}
+
+.onLoad <- function(libname, pkgname) {
+  options(loclog=paste0(system.file(package='FishSET'), '/Logs/'))
   
 }

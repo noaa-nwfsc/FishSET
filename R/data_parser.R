@@ -103,7 +103,7 @@ load_maindata <- function(dat, over_write=TRUE, project=NULL, compare=FALSE, y=N
   #' load_maindata(dataset='MainDataTable', over_write=TRUE, project='', 
   #'               compare=TRUE, y='MainDataTable01012011') 
   #' }
-  
+
    dataset <- dat 
      #Call in datasets
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase))

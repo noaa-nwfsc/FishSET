@@ -287,7 +287,7 @@ outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plo
   #' @return Plot of the data
   
   
-  requireNamespace(ggplot2)
+  requireNamespace('ggplot2')
   
   dataset <- dat
   x.name <- x
@@ -380,7 +380,7 @@ outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plo
     data_quants <- stats::quantile(as.numeric(dataset[dataset$Points=='Kept',x]), quants,na.rm=TRUE)
     # create Q-Q plot
     temp <- data.frame(fit_quants, data_quants) 
-    p3 <- ot(temp, aes(x=fit_quants, y=data_quants)) + geom_point(shape=1) + geom_abline() +
+    p3 <- ggplot(temp, aes(x=fit_quants, y=data_quants)) + geom_point(shape=1) + geom_abline() +
       labs(x='Theoretical Quantiles', y='Sample Quantiles', title=paste('Q-Q plot of', x.dist, 'fit against data'))+
       mytheme
     

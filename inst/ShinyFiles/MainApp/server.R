@@ -185,19 +185,30 @@
       
       ##Pull data functions 
       values <- reactiveValues(
-        dataset = dataset
-        #req(!is.null(dataset)) 
-        #get(dataset)
+        dataset = data.frame('var1'=0, 'var2'=0)
+        #dataset = dataset
         )
+      
+      #Add in reactive values once data  call is is not empty
+      observeEvent(input$projectname, {
+        req(input$projectname)
+        if(input$loadmainsource=='FishSET database'){
+        values$dataset <- table_view(paste0(input$projectname, 'MainDataTable'))
+        } else {
+          values$dataset <- values$dataset
+        }
+      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
+      
+      observeEvent(input$uploadMain, {
+        req(input$projectname)
+        values$dataset <- table_view(paste0(input$projectname, 'MainDataTable'))
+      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
+      
       # refresh data
       observeEvent(c(input$refresh,input$refresh1,input$refresh2,input$refreshNew), {
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
-       # reactive({ 
-          values$dataset <- DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM", paste0("'", noquote(dat), "'")))# })#dataset# 
-        #print(head(wq()))
-        #values$dataset <- temp
-        DBI::dbDisconnect(fishset_db)
-      }, ignoreInit = F) 
+        req(input$projectname)
+        values$dataset <- table_view(paste0(input$projectname, 'MainDataTable'))
+      }, ignoreInit = TRUE, ignoreNULL=TRUE) 
       #    observeEvent(input$refresh1, {
       #      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
       #      values$dataset <- table_view(dat)
@@ -216,8 +227,6 @@
       
       output$main_upload <- renderUI({     
         tagList( 
-          conditionalPanel(condition="input.loadmainsource=='FishSET database'", 
-                           textInput('maindata', 'Choose primary data file', placeholder=paste0(input$projectname, 'MainDataTable'))),
           conditionalPanel(condition="input.loadmainsource=='Upload new file'", 
                            tagList(
                              fluidRow(
@@ -342,7 +351,7 @@
               }
             }
             
-            fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
+            fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase))
             DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'FilterTable'),  FilterTable, overwrite=TRUE)
             DBI::dbDisconnect(fishset_db)
           }      
@@ -350,7 +359,7 @@
       })
       
       observeEvent(input$saveDataNew,{
-        fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
+        fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase))
         DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'FilterTable'),  FilterTable, overwrite=TRUE)
         DBI::dbDisconnect(fishset_db)
       })
@@ -1824,7 +1833,7 @@
       ## Alternative choices
       if (!exists("Alt")) {
         if (!exists('AltMatrixName')) {
-          fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite"))
+          fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase)
           Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
           DBI::dbDisconnect(fishset_db)
           if (!exists("Alt")) {
@@ -1960,10 +1969,10 @@
         
         
         ###Now save table to sql database. Will overwrite each time we add a model
-        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite"))
+        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase)
         #First, remove any old instances of the table
         if(DBI::dbExistsTable(fishset_db, paste0(input$projectname,'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))==TRUE){
-          DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")), paste0(input$projectname, 'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))
+          DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase), paste0(input$projectname, 'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))
         }
         
         if(DBI::dbExistsTable(fishset_db, paste0(input$projectname, 'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))==FALSE){
@@ -2009,7 +2018,7 @@
       
     ## Explore models sections
       #out_mod <- reactive({
-      fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite"))
+      fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase)
       #     return(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), paste0("SELECT * FROM", paste0(project, "modelfit"))))
       # })
       
@@ -2022,11 +2031,16 @@
       } 
       
       temp <- isolate(paste0(input$projectname, "modelfit"))
-      this_table <- reactive(data.frame(t(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")), 
-                                                             paste0("SELECT * FROM ", paste0(input$projectname, "modelfit"))))))#,Select=shinyInput(checkboxInput,nrow(t(out.mod)),"cbox_")))
+      this_table <- reactive(
+        if(DBI::dbExistsTable(fishset_db, paste0(input$projectname, 'modelfit'))){
+          data.frame(t(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), locdatabase), 
+                                       paste0("SELECT * FROM ", paste0(input$projectname, "modelfit")))))
+        } else {
+          data.frame('X1'=NA, 'X2'=NA, 'X3'=NA, 'X4'=NA)
+        }
+        )#,Select=shinyInput(checkboxInput,nrow(t(out.mod)),"cbox_")))
       
       observeEvent(input$delete_btn, {
-        
         t = this_table()
         if (!is.null(input$mytable_rows_selected)) {
           t <- t[-as.numeric(input$mytable_rows_selected),]
@@ -2061,7 +2075,6 @@
         })) 
       }
       
-      
       checkedsave <- reactive(cbind(
         model = rownames(isolate(this_table())),#colnames(out.mod), 
         AIC=isolate(this_table()[,1]),
@@ -2076,10 +2089,10 @@
       # When the Submit button is clicked, save the form data
       observeEvent(input$submit_ms, {
         # Connect to the database
-        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite"))
+        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase)
         if(overwrite_table==T){
           if(DBI::dbExistsTable(fishset_db, 'modelChosen')==TRUE){
-            DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")), 'modelChosen')
+            DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase), 'modelChosen')
           }
         }
         
@@ -2102,43 +2115,38 @@
       
 ###--> HERE <- ####      
       #Add in two more tables for model evaulations
-      fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite"))
+      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase))
       mod_sum_out <- reactive({
-        if(table_exists(model_out_view(paste0(input$projectname, 'modelOut', format(Sys.Date(), format="%Y%m%d"))))){#pollockmodelOut20190610#))
-          return(model_out_view(paste0(input$projectname, 'modelOut', format(Sys.Date(), format="%Y%m%d"))))#pollockmodelOut20190610))#
+        if(DBI::dbExistsTable(fishset_db, paste0(input$projectname, 'modelOut', format(Sys.Date(), format="%Y%m%d")))){#pollockmodelOut20190610#))
+          model_out_view(paste0(input$projectname, 'modelOut', format(Sys.Date(), format="%Y%m%d")))#pollockmodelOut20190610))#
       } else {
-          return('')
+         data.frame('var1'=0, 'var2'=0)
       }
       })
       
       output$modeltab <- DT::renderDT({
-        if(mod_sum_out()==''){
-          return("")
-        } else {
         modeltab <- data.frame(Model_name=rep(NA, length(mod_sum_out())), covergence=rep(NA, length(mod_sum_out())), Stand_Errors=rep(NA, length(mod_sum_out())), Hessian=rep(NA, length(mod_sum_out())))
+        if(dim(mod_sum_out())[2]>2){
+          modeltab[i,1] <- mod_sum_out()[[i]]$name
         for(i in 1:length(mod_sum_out())){
           modeltab[i,1] <- mod_sum_out()[[i]]$name
           modeltab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
           modeltab[i,3] <- toString(round(mod_sum_out()[[i]]$seoutmat2,3))
           modeltab[i,4] <- toString(round(mod_sum_out()[[i]]$H1,5))
-        }
+        }}
         return(modeltab)
-        }
       })
       
       
       output$errortab <- DT::renderDT({
-        if(mod_sum_out()==''){
-          return("")
-        } else {
           error_out <- data.frame(Model_name=rep(NA, length(mod_sum_out())), Model_error=rep(NA, length(mod_sum_out())), Optimization_error=rep(NA, length(mod_sum_out())))
-            for(i in 1: length(mod_sum_out())){
+          if(dim(mod_sum_out())[2]>2){  
+          for(i in 1: length(mod_sum_out())){
               error_out[i,1] <- mod_sum_out()[[i]]$name
               error_out[i,2] <- ifelse(is.null(mod_sum_out()[[i]]$errorExplain), 'No error reported', toString(mod_sum_out()[[i]]$errorExplain))
               error_out[i,3] <- ifelse(is.null(mod_sum_out()[[i]]$optoutput$optim_message), 'No message reported', toString(mod_sum_out()[[i]]$optoutput$optim_message))
-            }
+            }}
           return(error_out)
-        }
       })
       
       #----      
@@ -2180,13 +2188,13 @@
       ##Save output       
       ###----      
       observeEvent(input$saveData, {
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(),paste0(loc,"/fishset_db.sqlite")))
+        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(),locdatabase))
         DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'MainDataTable'), values$dataset, overwrite=TRUE)
         DBI::dbDisconnect(fishset_db)
       })
       
       observeEvent(input$saveDataQ, {
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
+        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase))
         DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'MainDataTable'), values$dataset, overwrite=TRUE)
         DBI::dbDisconnect(fishset_db)
       })
@@ -2260,7 +2268,7 @@
       observeEvent(input$callTextDownloadUp, {
         output$downloadTextUp <- downloadHandler(
           filename = function() {
-            paste0(loc, '/inst/output/StoredText.txt')
+            paste0(system.file(package='FishSET'), '/output/StoredText.txt')
           },
           content = function(file) {
             writeLines(savedText$answers, file)
@@ -2273,7 +2281,7 @@
       observeEvent(input$callTextDownloadExplore, {
         output$downloadTextExplore <- downloadHandler(
           filename = function() {
-            paste0(loc, '/inst/output/StoredText.txt')
+            paste0(system.file(package='FishSET'), '/output/StoredText.txt')
           },
           content = function(file) {
             writeLines(savedText$answers, file)
@@ -2286,7 +2294,7 @@
       observeEvent(input$callTextDownloadAnal,{
         output$downloadTextAnal<- downloadHandler(
           filename = function() {
-            paste0(loc, '/inst/output/StoredText.txt')
+            paste0(system.file(package='FishSET'), '/output/StoredText.txt')
           },
           content = function(file) {
             writeLines(savedText$answers, file)
@@ -2299,7 +2307,7 @@
       observeEvent(input$callTextDownload,{
         output$downloadText <- downloadHandler(
           filename = function() {
-            paste0(loc, '/inst/output/StoredText.txt')
+            paste0(system.file(package='FishSET'), '/output/StoredText.txt')
           },
           content = function(file) {
             writeLines(savedText$answers, file)
@@ -2312,7 +2320,7 @@
       observeEvent(input$callTextDownloadNew, {
         output$downloadTextNew <- downloadHandler(
           filename = function() {
-            paste0(loc, '/inst/output/StoredText.txt')
+            paste0(system.file(package='FishSET'), '/output/StoredText.txt')
           },
           content = function(file) {
             writeLines(savedText$answers, file)
@@ -2325,7 +2333,7 @@
       observeEvent(input$callTextDownloadBook, {
         output$downloadTextBook <- downloadHandler(
           filename = function() {
-            paste0(loc, '/inst/output/StoredText.txt')
+            paste0(system.file(package='FishSET'), '/output/StoredText.txt')
           },
           content = function(file) {
             writeLines(savedText$answers, file)
@@ -2339,7 +2347,7 @@
       observeEvent(input$downloadplot, {
         output$downloadplotHIDE <<- downloadHandler(
           filename = function() {
-            paste0(loc, '/inst/output/',input$projectname,'Outlier.png')
+            paste0(system.file(package='FishSET'), '/output/', input$projectname, 'Outlier.png')
           },
           content = function(file) {
             ggplot2::ggsave(file, plot=outlier_plot(values$dataset, input$column_check, input$dat.remove, input$x.dist))
@@ -2352,9 +2360,9 @@
         output$downloadplotAnalHIDE <<- downloadHandler(
           filename = function() {
             if(input$corr_reg=='Correlation'){
-              paste0(loc, '/inst/output/', input$projectname,'CorrelationPlot.png')
+              paste0(system.file(package='FishSET'), '/output/', input$projectname, 'CorrelationPlot.png')
             } else {
-              paste0(loc, '/inst/output/',input$projectname,'RegressionPlot.png') 
+              paste0(system.file(package='FishSET'), '/output/', input$projectname,'RegressionPlot.png')
             }
           },
           content = function(file) {
@@ -2372,11 +2380,12 @@
         output$downloadplotEXPLOREHIDE <<- downloadHandler(
           filename = function() {
             if(input$plot_type=='Temporal'){
-              paste0(loc, '/inst/output/', input$projectname,'TemporalPlot.png')
+              
+              paste0(system.file(package='FishSET'), 'output/', input$projectname,'TemporalPlot.png')
             } else if(input$plot_type=='Spatial') {
-              paste0(loc, '/inst/output/', input$projectname,'SpatialPlot.png') 
+              paste0(system.file(package='FishSET'), 'output/', input$projectname,'SpatialPlot.png') 
             } else {
-              paste0(loc, '/inst/output/', input$projectname,'x-yPlot.png') 
+              paste0(system.file(package='FishSET'), 'output/', input$projectname,'x-yPlot.png') 
             }
           },
           content = function(file) {
@@ -2407,26 +2416,26 @@
       })
       
       observeEvent(input$downloadTableExplore, {
-        write.csv(gtmt_table(), paste0(loc,'/inst/output/', input$projectname,'GetisOrdMoransI.csv'))
+        write.csv(gtmt_table(), paste0(system.file(package='FishSET'), 'output/', input$projectname,'GetisOrdMoransI.csv'))
       })
       
       observeEvent(input$downloaddata, {
         if(input$checks=='Summary table'){
-          write.csv(tableInputSummary(), paste0(loc,'/inst/output/', input$projectname,'summary_table.csv'))
+          write.csv(tableInputSummary(), paste0(system.file(package='FishSET'), 'output/', input$projectname,'summary_table.csv'))
         } else if(input$checks=='Outliers'){
-          write.csv(tableInputOutlier(), paste0(loc, '/inst/output/', input$projectname,'outlier_table.csv'))
+          write.csv(tableInputOutlier(),paste0(system.file(package='FishSET'), 'output/', input$projectname,'outlier_table.csv'))
         }
       })
       
       observeEvent(input$downloaddataAnal, {
         if(length(input$corr_select)>2){
           output$downloaddataAnalHIDE <<- downloadHandler(
-            write.csv(tableInputCorr(), paste0(loc, '/inst/output/', input$projectname,'correlation_table.csv'))
+            write.csv(tableInputCorr(), paste0(system.file(package='FishSET'), 'output/', input$projectname,'correlation_table.csv'))
           )
         } else {
           output$downloaddataAnalHIDE <<- downloadHandler(
             filename = function() {
-              paste0(loc, '/inst/output/', input$projectname,'correlation_analysis.png')
+              paste0(system.file(package='FishSET'), 'output/', input$projectname,'correlation_analysis.png')
             },
             content = function(file) {
               png(file)

@@ -1,1 +1,1 @@
-shinyApp(ui, server, enableBookmarking = "server")
+shinyApp(ui, server, enableBookkmarking = "server")

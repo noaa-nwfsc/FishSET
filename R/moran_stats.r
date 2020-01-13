@@ -39,7 +39,7 @@ moran_stats <- function(dat, varofint, gridfile, lon.dat=NULL, lat.dat=NULL, cat
   #' }
   #'
   
-  requireNamespace(ggplot2)
+  requireNamespace('ggplot2')
   world <- map_data("world")
   
   #Call in datasets
