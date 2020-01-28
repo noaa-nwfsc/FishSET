@@ -33,7 +33,7 @@ filter_table <- function(dat, x, exp, project) {
     filterTable <- rbind(filterTable, c(deparse(substitute(dataset)), deparse(substitute(x)), exp))
   }
  
-  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc)))
+  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
   DBI::dbWriteTable(fishset_db, paste0(project, 'FilterTable'),  filterTable, overwrite=TRUE)
   DBI::dbDisconnect(fishset_db)
   cat('Table saved to fishset_db database')
@@ -77,7 +77,7 @@ filter_dat <- function(dat, exp, filterTable) {
   # NaNs only occurs on Numeric Variables
   if (!is.null(filterTable)) {
 
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc))
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
     DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM", paste0("'", noquote(filterTable), "'"))) 
     DBI::dbDisconnect(fishset_db)
 

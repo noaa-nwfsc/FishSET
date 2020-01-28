@@ -1,7 +1,6 @@
 #Define source location
-locdatabase <- function(loc=NULL){
+locdatabase <- function(){
 #' Returns the location of the database
-#' @param loc user defined folder location
 #' @details if loc is null then the default location is use
 #' @export
 #' @examples 
@@ -17,10 +16,9 @@ locdatabase <- function(loc=NULL){
   }
 }
 
-loclog <- function(loc2=NULL){
+loclog <- function(){
   #Define source location for log file
     #' Returns the location of the database
-    #' @param loc2 user defined folder location
     #' @details if loc is null then the default location is use
     #' @export
     #' @examples 
@@ -28,7 +26,7 @@ loclog <- function(loc2=NULL){
     #' loclog() # will return log folder location within the fishset package
     #' loclog(loc2=getwd()) #will return sqlite database location as within the working directory
     #' }
-    if(exists('loc2')) { loc2=loc2} else { loc=NULL}
+    if(exists('loc2')) { loc2=loc2} else { loc2=NULL}
     if(is.null(loc2)){
       paste0(system.file(package='FishSET'), '/Logs/')
       

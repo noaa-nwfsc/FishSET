@@ -24,7 +24,7 @@
 check_model_data <- function(dat, dataindex, uniqueID, save.file = TRUE) {
      x <- 0
    #Call in data sets
-  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc)))
+  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
   if(is.character(dat)==TRUE){
     if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
       print(DBI::dbListTables(fishset_db))
@@ -91,7 +91,7 @@ check_model_data <- function(dat, dataindex, uniqueID, save.file = TRUE) {
     if(x==0){
     if (save.file == TRUE) {
       cat(paste("\nModified data set saved to fishset_db database"), file=tmp, append=T)
-    fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc)))
+    fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
     if(DBI::dbExistsTable(fishset_db, deparse(substitute(dat)))==TRUE){
       single_sql <- paste0("raw", deparse(substitute(dat)))
       DBI::dbWriteTable(fishset_db, single_sql, dataset, overwrite=TRUE)

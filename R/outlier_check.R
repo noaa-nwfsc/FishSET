@@ -374,7 +374,7 @@ outlier_remove <- function(dat, x, dat.remove = "none", remove = T, over_write=F
       
       
       if(dat.remove!='none'& over_write=='TRUE'){
-      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc)))
+      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
       DBI::dbWriteTable(fishset_db, deparse(substitute(dat)), dataset, overwrite=over_write)
       DBI::dbDisconnect(fishset_db)
       }

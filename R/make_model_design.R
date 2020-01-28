@@ -127,7 +127,7 @@
 make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", "griddedData"), lon.dat, lat.dat, project, 
                                likelihood= NULL, vars1 = NULL, vars2 = NULL, priceCol = NULL, startloc=NULL, polyn=NULL) {#, vesselID=NULL
 
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc))  
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())  
       #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat

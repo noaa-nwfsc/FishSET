@@ -7,7 +7,8 @@
 #' @export data_check
 #' @details Prints summary stats for all variable in the main data frame. Checks for NaNs and NAs and prints column names that contain NaNs or NAs.
 #' Checks for outliers for specified data column. Further actions may be taken to further evaluate and remove NaNs and outliers.
-#' Checks that all column names in the data frame are unique, whether specialized variables have been identified in the index data set, whether any columns in the data frame are empty, if units are defined and recognized, whether each row is a unique choice occurrence at the haul or trip level, and that data for either lat/long or fishing area are included.
+#' Checks that all column names in the data frame are unique, whether specialized variables have been identified in the index data set, whether any columns in the data frame are empty, 
+#' if units are defined and recognized, whether each row is a unique choice occurrence at the haul or trip level, and that data for either lat/long or fishing area are included.
 #' The function is also called in other functions to check for common issues with data. 
 #' @examples
 #' \dontrun{
@@ -17,7 +18,7 @@
 
 data_check <- function(dat, x, dataindex) {
 #Call in data
-      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc)))
+      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
 
     #Call in main data set
   out <- data_pull(dat)

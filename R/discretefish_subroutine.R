@@ -42,7 +42,7 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
                                     select.model=FALSE,  name='discretefish_subroutine') {
   
   #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc))
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
   x_temp <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
 
   for(i in 1:length(x_temp)){
@@ -164,7 +164,7 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
     colnames(temp) = paste0(expname,mod.name)
   }
   
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc))
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
   
   if (DBI::dbExistsTable(fishset_db, paste0(project,"modelfit")) == FALSE) {
     DBI::dbWriteTable(fishset_db, paste0(project,"modelfit"), mod.out )
@@ -322,7 +322,7 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
         # When the Submit button is clicked, save the form data
         observeEvent(input$submit, {
           # Connect to the database
-          fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc))
+          fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
           single_sql <- paste0(project, "modelChosen")
           if(DBI::dbExistsTable(fishset_db, single_sql)==FALSE){
             DBI::dbExecute(fishset_db, paste0("CREATE TABLE ",single_sql,"(model TEXT, AIC TEXT, AICc TEXT, BIC TEXT, PseudoR2 TEXT, selected TEXT, Date TEXT)"))
@@ -360,7 +360,7 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
    ############################################################################# 
   single_sql <- paste0(project, "modelOut", format(Sys.Date(), format="%Y%m%d"))
   if(table_exists(single_sql)){
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc))
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(l))
   out <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
   return(out)
   DBI::dbDisconnect(fishset_db)

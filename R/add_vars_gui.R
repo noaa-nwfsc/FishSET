@@ -85,7 +85,7 @@ add_vars <- function(working_dat, raw_dat, project){
 ##  Beging SERVER functions  
     server = function(input, output, session) {
       col_show <- 1
-      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc)))
+      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
       if(is.character(working_dat)==TRUE){
         if(is.null(working_dat)==TRUE | table_exists(working_dat)==FALSE){
           print(DBI::dbListTables(fishset_db))
@@ -158,7 +158,7 @@ add_vars <- function(working_dat, raw_dat, project){
       # When the Submit button is clicked, save the form data
       observeEvent(input$submit, {
         # Connect to the database
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc)))
+        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
         DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable',  format(Sys.Date(), format="%Y%m%d")), data_table(), overwrite=TRUE)
         
         showNotification(paste0("Table saved to database as ", project, 'MainDataTable',  format(Sys.Date(), format="%Y%m%d"), ". Please close the window."))
