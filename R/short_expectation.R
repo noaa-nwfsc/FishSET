@@ -31,7 +31,7 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
   }
   
   if(!exists('Alt')){
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase)
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc))
     Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
    DBI::dbDisconnect(fishset_db)
   }

@@ -22,7 +22,7 @@ log_call <- function(fun.name){
   #' @importFrom jsonlite read_json toJSON
   #' @export
   
-if(!file_test("-f", paste(loclog, Sys.Date(), ".json", sep = ""))) { 
+if(!file_test("-f", paste0(loclog(loc2=loc2), Sys.Date(), ".json", sep = ""))) { 
   logbody <- list()
   infoBodyout <- list()
   functionBodyout <- list()
@@ -37,9 +37,9 @@ if(!file_test("-f", paste(loclog, Sys.Date(), ".json", sep = ""))) {
   functionBodyout$function_calls[[length(functionBodyout$function_calls)+1]] <- fun.name
   logbody$fishset_run <- list(infoBodyout, functionBodyout)
 } else {
-  logbody <- jsonlite::read_json(paste0(loclog, Sys.Date(), ".json", sep = ""))
+  logbody <- jsonlite::read_json(paste0(loclog(loc2=loc2), Sys.Date(), ".json", sep = ""))
   logbody$fishset_run[[2]]$function_calls[[length(logbody$fishset_run[[2]]$function_calls)+1]] <- fun.name
 }
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(loclog, Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE),paste(loclog(loc2=loc2), Sys.Date(), ".json", sep = ""))
   
 }

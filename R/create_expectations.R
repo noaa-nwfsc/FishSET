@@ -62,7 +62,7 @@ create_expectations <- function(dat, project, catch, price=NULL, defineGroup, te
    dataset <- out$dataset
   }
   
-      fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase)
+      fishset_db <- DBI::dbConnect(RSQLite::SQLite(),locdatabase(loc=loc))
       Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
       DBI::dbDisconnect(fishset_db)
 
@@ -360,7 +360,7 @@ long_exp <- long_expectations(dat=dat, project=project, catch=catch, price=price
      )
   #assign("ExpectedCatch", value = ExpectedCatch, pos = 1)
 
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase)
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc))
   single_sql <- paste0(project, 'ExpectedCatch')
   
   if(replace.output==TRUE){

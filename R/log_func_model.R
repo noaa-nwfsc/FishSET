@@ -20,5 +20,5 @@ log_func_model <- function(x) {
   user_function$msg <- args(x)
   log_call(user_function)
   
-  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(getwd(), "/inst/Logs/", Sys.Date(), ".json", sep = ""))
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste0(loclog(loc=loc), Sys.Date(), ".json", sep = ""))
 }

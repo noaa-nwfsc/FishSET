@@ -17,7 +17,7 @@
 
 data_check <- function(dat, x, dataindex) {
 #Call in data
-      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase))
+      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc)))
 
     #Call in main data set
   out <- data_pull(dat)

@@ -1,3 +1,43 @@
+#Define source location
+locdatabase <- function(loc=NULL){
+#' Returns the location of the database
+#' @param loc user defined folder location
+#' @details if loc is null then the default location is use
+#' @export
+#' @examples 
+#' \dontrun{
+#' locdatabase() # will return sqlite database location within the fishset package
+#' locdatabase(getwd()) #will return sqlite database location as within the working directory
+#' }
+ if(exists('loc')) { loc=loc} else { loc=NULL}
+  if(is.null(loc)){
+  paste0(system.file(package='FishSET'), '/fishset_db.sqlite') 
+  } else {
+    paste0(loc, '/fishset_db.sqlite')
+  }
+}
+
+loclog <- function(loc2=NULL){
+  #Define source location for log file
+    #' Returns the location of the database
+    #' @param loc2 user defined folder location
+    #' @details if loc is null then the default location is use
+    #' @export
+    #' @examples 
+    #' \dontrun{
+    #' loclog() # will return log folder location within the fishset package
+    #' loclog(loc2=getwd()) #will return sqlite database location as within the working directory
+    #' }
+    if(exists('loc2')) { loc2=loc2} else { loc=NULL}
+    if(is.null(loc2)){
+      paste0(system.file(package='FishSET'), '/Logs/')
+      
+    } else {
+      paste0(loc2, '/Logs/')
+    }
+  }
+
+  
 pull_info_data <- function(project){
 #' Pull the most recent data index file for given projet
 #' @param project Name of project, such as pollock
@@ -245,7 +285,7 @@ data_pull <- function(dat){
   #' Pull data from sqlite database
   #' @param dat Data table 
   #' @export data_pull 
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase)
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(system.file(package='FishSET'), '/fishset_db.sqlite'))
   if(is.character(dat)==TRUE){
     if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
       print(DBI::dbListTables(fishset_db))

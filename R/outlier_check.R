@@ -5,7 +5,8 @@ outlier_table <- function(dat, x) {
   #'
   #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
   #' @param x Column in data frame to check for outliers 
-  #' @importFrom stats quantile sd var na.pass
+  #' @importFrom stats quantile sd var na.pass model.matrix
+  #' @importFrom utils file_test
   #' @importFrom grDevices dev.off pdf 
   #' @keywords outliers
   #' @export outlier_table
@@ -172,7 +173,7 @@ outlier_plot <- function(dat, x, dat.remove, x.dist, output.screen=FALSE){
   #' outlier_plot(MainDataTable, 'Haul', dat.remove='mean_2SD', x.dist='normal', output.screen=TRUE)
   #' }
   
-  requireNamespace(ggplot2)
+  requireNamespace("ggplot2")
   
   #Call in datasets
   out <- data_pull(dat)
@@ -373,7 +374,7 @@ outlier_remove <- function(dat, x, dat.remove = "none", remove = T, over_write=F
       
       
       if(dat.remove!='none'& over_write=='TRUE'){
-      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase))
+      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc)))
       DBI::dbWriteTable(fishset_db, deparse(substitute(dat)), dataset, overwrite=over_write)
       DBI::dbDisconnect(fishset_db)
       }

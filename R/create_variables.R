@@ -407,7 +407,7 @@ spatial_hist <- function(dat, group){
 #' spatial_summary(MainDataTable, 'GEAR_TYPE')
 #' }
 
-  requireNamespace(ggplot2)
+  requireNamespace("ggplot2")
   
   dat <- dat[, c(grep(group, names(dat)), grep('lon|lat', names(dat), ignore.case=TRUE))]
   melt.dat <- reshape2::melt(dat)
@@ -527,7 +527,7 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
   if(start[1]==end[1]){
     warning('Starting and ending vectors are identical.')
   } else {
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase)
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc))
  
   #Call in datasets
   out <- data_pull(dat)

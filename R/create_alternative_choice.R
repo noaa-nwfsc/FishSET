@@ -46,7 +46,7 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
   stopanaly <- 0
   
   #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase)
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(),locdatabase(loc=loc))
   if(is.character(dat)==TRUE){
     if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
       print(DBI::dbListTables(fishset_db))
@@ -122,7 +122,7 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
   greaterNZ <-  which(zoneHist[,1] >= min.haul) # ifelse(!is.na(zoneHist[, 1]) & zoneHist[, 1] >= 0, 1, 0)
   numOfNecessary <- min.haul
   
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase)
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc))
   
         Alt <- list(
          dataZoneTrue = dataZoneTrue[,1], # array of logical values to identify which are to be used in model                                                                                              
