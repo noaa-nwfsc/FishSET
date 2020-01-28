@@ -7,7 +7,7 @@ requireNamespace('DT')
 #----
 enableBookmarking(store = "server")
 
-
+#locdatabase <- paste0(system.file(package='FishSET'), '/fishset_db.sqlite')
 
 # default global search value
 if (!exists("default_search")) {default_search <- ""}

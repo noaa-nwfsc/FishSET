@@ -1,7 +1,7 @@
 
     ### SERVER SIDE    
     server = function(input, output, session) {
-     
+      options(shiny.maxRequestSize = 8000*1024^2)
       ##inline scripting 
       #----
       r <- reactiveValues(done = 0, ok = TRUE, output = "")
@@ -351,7 +351,7 @@
               }
             }
             
-            fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase))
+            fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc)))
             DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'FilterTable'),  FilterTable, overwrite=TRUE)
             DBI::dbDisconnect(fishset_db)
           }      
@@ -359,7 +359,7 @@
       })
       
       observeEvent(input$saveDataNew,{
-        fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase))
+        fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc)))
         DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'FilterTable'),  FilterTable, overwrite=TRUE)
         DBI::dbDisconnect(fishset_db)
       })
@@ -755,9 +755,9 @@
         g <- read_dat(input$seasonal.dat$datapath, type)
         return(g)
       })
-      output$sp.col.select<- renderUI({
+      output$sp_col.select<- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Nominal ID'&input.ID=='create_seasonal_ID'",
-                         style = "margin-left:19px;",  selectInput('sp.col', "Column containing species names in table containing seasonal data", 
+                         style = "margin-left:19px;",  selectInput('sp_col', "Column containing species names in table containing seasonal data", 
                                                                    choices=names(seasonalData())
                                                                    , multiple = FALSE, selectize=TRUE))
       })
@@ -784,13 +784,13 @@
       output$dur_add <- renderUI({
         tagList(
           conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='cpue'&input.xTime=='Calculate duration'",
-                           style = "margin-left:19px;", selectInput('dur.start2', 'Variable indicating start of time period', 
+                           style = "margin-left:19px;", selectInput('dur_start2', 'Variable indicating start of time period', 
                                                                     choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]), selectize=TRUE)),
           conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='cpue'&input.xTime=='Calculate duration'",         
-                           style = "margin-left:19px;", selectInput('dur.end2', 'Variable indicating end of time period', 
+                           style = "margin-left:19px;", selectInput('dur_end2', 'Variable indicating end of time period', 
                                                                     choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]), selectize=TRUE)),
           conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='cpue'&input.xTime=='Calculate duration'",          
-                           style = "margin-left:19px;", selectInput('dur.units2', 'Unit of time for calculating duration', choices = c("week", "day", "hour", "minute")))
+                           style = "margin-left:19px;", selectInput('dur_units2', 'Unit of time for calculating duration', choices = c("week", "day", "hour", "minute")))
         )
       })
       output$dist_between_input <- renderUI({
@@ -811,20 +811,20 @@
           
           #port
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Port'",
-                           style = "margin-left:19px;", selectInput('port.start', 'Variable containing port name at starting location', 
+                           style = "margin-left:19px;", selectInput('port_start', 'Variable containing port name at starting location', 
                                                                     choices=names(values$dataset[,grep('port', names(values$dataset), ignore.case=T)]), selectize=TRUE)),
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Port'" ,
-                           style = "margin-left:19px;", selectInput('port.end', 'Variable containing port name at ending location', 
+                           style = "margin-left:19px;", selectInput('port_end', 'Variable containing port name at ending location', 
                                                                     choices=names(values$dataset[,grep('port', names(values$dataset), ignore.case=T)]), selectize=TRUE)),
           # fileInput("filePort", "Choose file containing port data",    
           #Zonal
           #coords
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Lat/lon coordinates'" ,
-                           style = "margin-left:19px;", selectizeInput('start.latlon', 'Select lat then lon for starting location', 
+                           style = "margin-left:19px;", selectizeInput('start_latlon', 'Select lat then lon for starting location', 
                                                                     choices=names(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=T)]), multiple=TRUE), 
                            options = list(maxItems = 2)),
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Lat/lon coordinates'" ,
-                           style = "margin-left:19px;", selectizeInput('end.latlon', 'Select lat then lon for ending location', 
+                           style = "margin-left:19px;", selectizeInput('end_latlon', 'Select lat then lon for ending location', 
                                                                     choices=names(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=T)]), 
                                                                     multiple=TRUE), options = list(maxItems = 2))
           
@@ -839,12 +839,12 @@
           if(any(class(griddata())=='sf')==FALSE){
             conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Zonal centroid'||
                              input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Zonal centroid'" , 
-                             style = "margin-left:19px;", selectizeInput('long.grid', 'Select vector containing latitude then longitude from spatial data set',
+                             style = "margin-left:19px;", selectizeInput('long_grid', 'Select vector containing latitude then longitude from spatial data set',
                                                                       choices=names(as.data.frame(griddata())), multiple=TRUE, options = list(maxItems = 2)))
           },
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Zonal centroid'||
                            input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Zonal centroid'" ,
-                           style = "margin-left:19px;",  selectizeInput('lon.dat', 'Select lat then lon from data set to assign observations to zone', 
+                           style = "margin-left:19px;",  selectizeInput('lon_dat', 'Select lat then lon from data set to assign observations to zone', 
                                                                      choices=names(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=T)]),
                                                                      multiple=TRUE, options = list(maxItems = 2)))
       )
@@ -858,24 +858,24 @@
       })
       output$start_mid_input <- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&&input.dist=='create_mid_haul'",
-                         style = "margin-left:19px;", selectizeInput('mid.start','Select Lat then Lat that define starting locations',multiple = TRUE,
+                         style = "margin-left:19px;", selectizeInput('mid_start','Select Lat then Lat that define starting locations',multiple = TRUE,
                                                                   choices = names(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=TRUE)]), 
                                                                   options = list(maxItems = 2)))
       })
       output$end_mid_input <- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_mid_haul'",
-                         style = "margin-left:19px;",  selectizeInput('mid.end','Select Lon then Lat that define ending locations',multiple = TRUE,
+                         style = "margin-left:19px;",  selectizeInput('mid_end','Select Lon then Lat that define ending locations',multiple = TRUE,
                                                                    choices = names(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=TRUE)]),
                                                                    options = list(maxItems = 2)))
       })
       output$input_dur_start <- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_duration'",
-                         style = "margin-left:19px;", selectInput('dur.start', 'Variable indicating start of time period', 
+                         style = "margin-left:19px;", selectInput('dur_start', 'Variable indicating start of time period', 
                                                                   choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]), selectize=TRUE))
       })
       output$input_dur_end <- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_duration'",
-                         style = "margin-left:19px;", selectInput('dur.end', 'Variable indicating end of time period', 
+                         style = "margin-left:19px;", selectInput('dur_end', 'Variable indicating end of time period', 
                                                                   choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]), selectize=TRUE))
       })
       GridFileData <- reactive({
@@ -896,10 +896,10 @@
                            style = "margin-left:19px;", selectInput('starting_port_SL',  "Variable in primary data set identifying port at start of trip", 
                                                                     choices=names(values$dataset[,grep('port',names(values$dataset), ignore.case = TRUE)]), selectize=TRUE)),
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
-                           style = "margin-left:19px;", selectInput('lon.dat_SL', "Longitude variable in primary data set", 
+                           style = "margin-left:19px;", selectInput('lon_dat_SL', "Longitude variable in primary data set", 
                                                                     choices= names(values$dataset[,grep("lon", names(values$dataset), ignore.case = TRUE)]), selectize=TRUE)), 
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
-                           style = "margin-left:19px;", selectInput('lat.dat_SL', "Latitude variable in primary data set", 
+                           style = "margin-left:19px;", selectInput('lat_dat_SL', "Latitude variable in primary data set", 
                                                                     choices= names(values$dataset[,grep("lat", names(values$dataset), ignore.case = TRUE)]), selectize=TRUE)),
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
                            style = "margin-left:19px;",  selectInput("port.dat", "Choose file from FishSET SQL database containing port data", 
@@ -912,7 +912,7 @@
         tagList(
           if(any(class(GridFileData())=='sf')==FALSE){
             conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
-                             style = "margin-left:19px;", selectInput('lat.grid_SL', 'Select vector containing latitude from spatial data set', choices= names(as.data.frame(GridFileData())), multiple=TRUE))
+                             style = "margin-left:19px;", selectInput('lat_grid_SL', 'Select vector containing latitude from spatial data set', choices= names(as.data.frame(GridFileData())), multiple=TRUE))
           },
           if(any(class(GridFileData())=='sf')==FALSE){
             conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
@@ -931,7 +931,7 @@
         tagList(
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Port'||
                            input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Port'" ,
-                           style = "margin-left:19px;", selectInput("port.dat.dist", "Choose file from FishSET SQL database containing port data", 
+                           style = "margin-left:19px;", selectInput("port_dat_dist", "Choose file from FishSET SQL database containing port data", 
                                                                     choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE)),
           #
           conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='trip_distance'",
@@ -1049,55 +1049,55 @@
         } else if(input$VarCreateTop=='Dummy variables'&input$dummyfunc=='From variable') {
           values$dataset[[input$varname]] <- dummy_num(values$dataset, var=input$dummyvarfunc, value=input$select.val, opts=input$dumsubselect)
         } else if(input$VarCreateTop=='Data transformations'&input$trans=='temp_mod') {
-          values$dataset[[input$varname]] <- temporal_mod(values$dataset, input$TimeVar, input$define.format) #!
+          values$dataset[[input$varname]] <- temporal_mod(values$dataset, input$TimeVar, input$define_format) #!
         } else if(input$VarCreateTop=='Data transformations'&input$trans=='set_quants'){
-          values$dataset[[input$varname]] <- set_quants(values$dataset, x=input$trans_var_name, quant.cat = input$quant.cat, name=input$varname) #!
+          values$dataset[[input$varname]] <- set_quants(values$dataset, x=input$trans_var_name, quant.cat = input$quant_cat, name=input$varname) #!
         } else if(input$VarCreateTop=='Nominal ID'&input$ID=='ID_var'){
           values$dataset <- ID_var(values$dataset, newID=input$varname, input$unique_identifier) 
         } else if(input$VarCreateTop=='Nominal ID'&input$ID=='create_seasonal_ID'){
-          values$dataset <- create_seasonal_ID(values$dataset, seasonal.dat=seasonalData(), use.location=input$use.location, 
-                                               use.geartype=input$use.geartype, sp.col=input$sp.col, target=input$target)
+          values$dataset <- create_seasonal_ID(values$dataset, seasonal.dat=seasonalData(), use.location=input$use_location, 
+                                               use.geartype=input$use_geartype, sp.col=input$sp_col, target=input$target)
         } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='create_var_num'){
-          values$dataset[[input$varname]] <- create_var_num(values$dataset, input$var_x, input$var_y, method=input$create.method, name=input$varname) 
+          values$dataset[[input$varname]] <- create_var_num(values$dataset, input$var_x, input$var_y, method=input$create_method, name=input$varname) 
         } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='cpue') {
           if(input$xTime!='Calculate duration'){
             values$dataset[[input$varname]] <- cpue(values$dataset, input$xWeight, input$xTime, name=input$varname)  
           } else {
-            values$dataset[['dur']] <- create_duration(values$dataset, input$dur.start2, input$dur.end2, input$dur.units2, name=NULL)
+            values$dataset[['dur']] <- create_duration(values$dataset, input$dur_start2, input$dur_end2, input$dur_units2, name=NULL)
             values$dataset[[input$varname]] <- cpue(values$dataset, input$xWeight, 'dur', name=input$varname)  
           }
         } else if(input$VarCreateTop=='Spatial functions' & input$dist=='create_dist_between'){
           
           #'Zonal centroid', 'Port', 'Lat/lon coordinates'
           if(input$start=='Lat/lon coordinates'){
-            start <-input$start.latlon
+            start <-input$start_latlon
           } else if(input$start=='Port'){
-            start <- input$port.start
+            start <- input$port_start
           } else {
             start <- 'centroid'
           }
           if(input$end=='Lat/lon coordinates'){
-            end <-input$end.latlon
+            end <-input$end_latlon
           } else if(input$end=='Port'){
-            end <- input$port.end
+            end <- input$port_end
           } else {
             end <- 'centroid'
           }
           values$dataset[[input$varname]] <- create_dist_between_for_gui(values$dataset, start=start, end=end, input$units,  portTable=input$filePort, 
-                                                                         gridfile=griddata(),lon.dat=input$lon.dat[2], lat.dat=input$lon.dat[1], 
-                                                                         input$cat, lon.grid=input$long.grid[2], lat.grid=input$long.grid[1]) 
+                                                                         gridfile=griddata(),lon.dat=input$lon_dat[2], lat.dat=input$lon_dat[1], 
+                                                                         input$cat, lon.grid=input$long_grid[2], lat.grid=input$long_grid[1]) 
         } else if(input$VarCreateTop=='Spatial functions' & input$dist=='create_mid_haul'){
-          values$dataset <- create_mid_haul(values$dataset, input$mid.start, input$mid.end, input$varname)
+          values$dataset <- create_mid_haul(values$dataset, input$mid_start, input$mid_end, input$varname)
         } else if(input$VarCreateTop=='Spatial functions'&input$dist=='create_duration'){
-          values$dataset[[input$varname]] <- create_duration(values$dataset, input$dur.start, input$dur.end, input$dur.units, name=NULL)
+          values$dataset[[input$varname]] <- create_duration(values$dataset, input$dur_start, input$dur_end, input$dur_units, name=NULL)
         } else if(input$VarCreateTop=='Spatial functions'&input$dist=='create_startingloc'){
           values$dataset[['startingloc']] <- create_startingloc(values$dataset,  gridfile=GridFileData(),  portTable=input$port.dat, 
                                                                 trip_id=input$trip_id_SL, haul_order=input$haul_order_SL, starting_port=input$starting_port_SL, 
-                                                                input$lon.dat_SL, input$lat.dat_SL, input$cat_SL, input$lon.grid_SL, input$lat.grid_SL)
+                                                                input$lon_dat_SL, input$lat_dat_SL, input$cat_SL, input$lon.grid_SL, input$lat_grid_SL)
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='haul_to_trip'){
-          values$dataset <- haul_to_trip(values$dataset, project=input$projectname, input$fun.numeric, input$fun.time, input$Haul_Trip_IDVar)
+          values$dataset <- haul_to_trip(values$dataset, project=input$projectname, input$fun_numeric, input$fun_time, input$Haul_Trip_IDVar)
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='trip_distance'){
-          values$dataset$TripDistance <- create_trip_distance(values$dataset, input$port.dat.dist, input$trip_ID, input$starting_port, 
+          values$dataset$TripDistance <- create_trip_distance(values$dataset, input$port_dat_dist, input$trip_ID, input$starting_port, 
                                                               c(input$starting_haul[2], input$starting_haul[1]), 
                                                               c(input$ending_haul[2],input$ending_haul[1]), input$ending_port, input$haul_order)
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='trip_centroid'){
@@ -1430,7 +1430,7 @@
           if(input$checks=='Outliers'){
             temp <- values$dataset
             temp$val <- 1:nrow(temp)
-            dat_sub <- suppressWarnings(outlier_plot_int(temp, input$column_check, input$dat.remove, input$x.dist, plot_type=1))
+            dat_sub <- suppressWarnings(outlier_plot_int(temp, input$column_check, input$dat.remove, input$x_dist, plot_type=1))
             suppressWarnings(ggplot() + geom_point(data=dat_sub, aes_string(x='val', y=input$column_check, color = 'Points', na.rm=TRUE)) +
                                scale_color_manual(breaks=c('Kept','Removed'),values=c('blue','red'))+
                                coord_cartesian(xlim = ranges1$x, ylim = ranges1$y, expand = FALSE)+
@@ -1450,8 +1450,8 @@
           if(input$checks=='Outliers'){
             temp <- values$dataset
             temp$val <- 1:nrow(temp)
-            dat_sub <- outlier_plot_int(temp, input$column_check, input$dat.remove, input$x.dist, plot_type=1)
-            arg.return <- outlier_plot_int(temp, input$column_check, input$dat.remove, input$x.dist, plot_type=2)
+            dat_sub <- outlier_plot_int(temp, input$column_check, input$dat.remove, input$x_dist, plot_type=1)
+            arg.return <- outlier_plot_int(temp, input$column_check, input$dat.remove, input$x_dist, plot_type=2)
             ggplot(dat_sub[dat_sub$Points=='Kept',], aes_string(input$column_check)) + 
               geom_histogram(aes(y = ..density..), na.rm=TRUE, bins=round(nrow(temp)/2)) + arg.return +
               coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)+
@@ -1470,9 +1470,9 @@
           if(input$checks=='Outliers'){
             temp <- values$dataset
             temp$val <- 1:nrow(temp)
-            temp <- outlier_plot_int(temp, input$column_check, input$dat.remove, input$x.dist, plot_type=3)
+            temp <- outlier_plot_int(temp, input$column_check, input$dat.remove, input$x_dist, plot_type=3)
             ggplot(temp, aes(x=fit_quants, y=data_quants)) + geom_point(shape=1) + geom_abline() +
-              labs(x='Theoretical Quantiles', y='Sample Quantiles', title=paste('Q-Q plot of', input$x.dist, 'fit against data'))+
+              labs(x='Theoretical Quantiles', y='Sample Quantiles', title=paste('Q-Q plot of', input$x_dist, 'fit against data'))+
               coord_cartesian(xlim = ranges3$x, ylim = ranges3$y, expand = FALSE)+
               theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
                     panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text=element_text(size=12),
@@ -1568,7 +1568,7 @@
       output$outlier_dist <- renderUI({
         conditionalPanel(
           condition="input.checks=='Outliers'",
-          selectInput('x.dist', 'Distribution', 
+          selectInput('x_dist', 'Distribution', 
                       choices=c('normal', 'lognormal', 'exponential', 'weibull', 'poisson', 'negative binomial'), selected='normal'))
       })
       ##----
@@ -1831,18 +1831,22 @@
       })
       # Data needed
       ## Alternative choices
-      if (!exists("Alt")) {
+      Alt <- reactive({
+        if (!exists("Alt")) {
         if (!exists('AltMatrixName')) {
-          fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase)
-          Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
-          DBI::dbDisconnect(fishset_db)
-          if (!exists("Alt")) {
-            warning("Alternative Choice Matrix does not exist. Please run the createAlternativeChoice() function.")
-          }
+          if(DBI::dbExistsTable( DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc)), paste0(input$projectname, 'altmatrix'))){
+          unserialize(DBI::dbGetQuery( DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc)), paste0("SELECT AlternativeMatrix FROM ", 
+                                                                                              input$projectname, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
+          } else {
+           data.frame('choice'=NA, 'X2'=NA, 'X3'=NA)
+           warning("Alternative Choice Matrix does not exist. Please run the createAlternativeChoice() function.")
         }
-      }
-      choice <- Alt[["choice"]]
-      alt <- dim(table(choice))
+          DBI::dbDisconnect( DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc)))
+        }}
+      })
+          
+      choice <- reactive({Alt()$choice})
+      alt <- reactive({dim(table(choice()))})
       
       drop <- reactive({grep('date|port|processor|gear|target|lon|lat|permit|ifq', colnames(values$dataset), ignore.case=TRUE)})
       
@@ -1874,14 +1878,14 @@
         if(input$model == 'logit_c'){
           numInits <- gridNum+intNum
         } else if(input$model == 'logit_avgcat') {
-          numInits <- gridNum*(alt-1)+intNum
+          numInits <- gridNum*(alt()-1)+intNum
         } else if(input$model == 'logit_correction'){
           numInits <- gridNum*4 + intNum + ((((polyn+1)*2)+2)*4) +1+1
         } else {
           if(input$lockk=='TRUE'){
-            numInits <- gridNum*alt+intNum+alt+1
+            numInits <- gridNum*alt()+intNum+alt+1
           } else {
-            numInits <- gridNum*alt+intNum+1+1
+            numInits <- gridNum*alt()+intNum+1+1
           }
         }
       })
@@ -1969,10 +1973,10 @@
         
         
         ###Now save table to sql database. Will overwrite each time we add a model
-        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase)
+        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc))
         #First, remove any old instances of the table
         if(DBI::dbExistsTable(fishset_db, paste0(input$projectname,'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))==TRUE){
-          DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase), paste0(input$projectname, 'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))
+          DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc)), paste0(input$projectname, 'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))
         }
         
         if(DBI::dbExistsTable(fishset_db, paste0(input$projectname, 'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))==FALSE){
@@ -2018,7 +2022,7 @@
       
     ## Explore models sections
       #out_mod <- reactive({
-      fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase)
+      fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc))
       #     return(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), paste0("SELECT * FROM", paste0(project, "modelfit"))))
       # })
       
@@ -2033,7 +2037,7 @@
       temp <- isolate(paste0(input$projectname, "modelfit"))
       this_table <- reactive(
         if(DBI::dbExistsTable(fishset_db, paste0(input$projectname, 'modelfit'))){
-          data.frame(t(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), locdatabase), 
+          data.frame(t(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc)), 
                                        paste0("SELECT * FROM ", paste0(input$projectname, "modelfit")))))
         } else {
           data.frame('X1'=NA, 'X2'=NA, 'X3'=NA, 'X4'=NA)
@@ -2089,10 +2093,10 @@
       # When the Submit button is clicked, save the form data
       observeEvent(input$submit_ms, {
         # Connect to the database
-        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase)
+        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc))
         if(overwrite_table==T){
           if(DBI::dbExistsTable(fishset_db, 'modelChosen')==TRUE){
-            DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase), 'modelChosen')
+            DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc)), 'modelChosen')
           }
         }
         
@@ -2113,9 +2117,9 @@
       })
       DBI::dbDisconnect(fishset_db)
       
-###--> HERE <- ####      
+    
       #Add in two more tables for model evaulations
-      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase))
+      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc)))
       mod_sum_out <- reactive({
         if(DBI::dbExistsTable(fishset_db, paste0(input$projectname, 'modelOut', format(Sys.Date(), format="%Y%m%d")))){#pollockmodelOut20190610#))
           model_out_view(paste0(input$projectname, 'modelOut', format(Sys.Date(), format="%Y%m%d")))#pollockmodelOut20190610))#
@@ -2188,13 +2192,13 @@
       ##Save output       
       ###----      
       observeEvent(input$saveData, {
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(),locdatabase))
+        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc)))
         DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'MainDataTable'), values$dataset, overwrite=TRUE)
         DBI::dbDisconnect(fishset_db)
       })
       
       observeEvent(input$saveDataQ, {
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase))
+        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc)))
         DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'MainDataTable'), values$dataset, overwrite=TRUE)
         DBI::dbDisconnect(fishset_db)
       })
@@ -2350,7 +2354,7 @@
             paste0(system.file(package='FishSET'), '/output/', input$projectname, 'Outlier.png')
           },
           content = function(file) {
-            ggplot2::ggsave(file, plot=outlier_plot(values$dataset, input$column_check, input$dat.remove, input$x.dist))
+            ggplot2::ggsave(file, plot=outlier_plot(values$dataset, input$column_check, input$dat.remove, input$x_dist))
           })
         jsinject <- "setTimeout(function(){window.open($('#downloadplotHIDE').attr('href'))}, 100);"
         session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
@@ -2462,6 +2466,168 @@
       observe({
         if (input$closeNew > 0) stopApp()
       })
+      
+      
+      ###----
+      # Update From Bookmarked state
+      
+      bookmarkedstate <- reactive({
+        req(input$uploadbookmark)
+        readRDS(input$uploadbookmark$datapath)
+      })
+      
+      observe({
+        req(input$uploadbookmark)
+        
+  ##----
+        updateSelectInput(session, "alternatives", selected = bookmarkedstate()$alternatives) 
+        updateSelectInput(session, "alt_var_ac", selected = bookmarkedstate()$alt_var_ac) 
+        updateSelectInput(session, "calc_method", selected = bookmarkedstate()$calc_method) 
+        updateSelectInput(session, "case_ac", selected = bookmarkedstate()$case_ac) 
+        updateSelectInput(session, "cat", selected = bookmarkedstate()$cat) 
+        updateSelectInput(session, "cat_altc", selected = bookmarkedstate()$cat_altc) 
+        updateSelectInput(session, "cat_SL", selected = bookmarkedstate()$cat_SL) 
+        updateSelectInput(session, "catch", selected = bookmarkedstate()$catch) 
+        updateSelectInput(session, "catche", selected = bookmarkedstate()$catche) 
+        updateRadioButtons(session, 'checks', selected = bookmarkedstate()$checks)
+        updateCheckboxInput(session, "closest_pt_ac", selected = bookmarkedstate()$closest_pt_ac) 
+        updateSelectInput(session, "column_check", selected = bookmarkedstate()$column_check) 
+        updateSelectInput(session, "corr_reg", selected = bookmarkedstate()$corr_reg) 
+        updateSelectInput(session, "create_method", selected = bookmarkedstate()$create_method)
+        updateSelectInput(session, "define_format", selected = bookmarkedstate()$define_format) 
+        updateNumericInput(session, "detailreport", selected = bookmarkedstate()$detailreport) 
+        updateSelectInput(session, "dist", selected = bookmarkedstate()$dist) 
+        updateSelectInput(session, "dist_ac", selected = bookmarkedstate()$dist_ac) 
+        updateSelectInput(session, "dummclosfunc", selected = bookmarkedstate()$dummclosfunc) 
+        updateCheckboxInput(session, "dummy_exp", selected = bookmarkedstate()$dummy_exp) 
+        updateSelectInput(session, "dummyfunc", selected = bookmarkedstate()$dummyfunc) 
+        updateSelectInput(session, "dummypolydate", selected = bookmarkedstate()$dummypolydate) 
+        updateSelectInput(session, "dummypolyfunc", selected = bookmarkedstate()$dummypolyfunc) 
+        updateSelectInput(session, "dummyvarfunc", selected = bookmarkedstate()$dummyvarfunc) 
+        updateSelectInput(session, "dur_end", selected = bookmarkedstate()$dur_end) 
+        updateSelectInput(session, "dur_end2", selected = bookmarkedstate()$dur_end2) 
+        updateSelectInput(session, "dur_start", selected = bookmarkedstate()$dur_start)
+        updateSelectInput(session, "dur_start2", selected = bookmarkedstate()$dur_start2) 
+        updateSelectInput(session, "dur_units", selected = bookmarkedstate()$dur_units) 
+        updateSelectInput(session, "empty_catch", selected = bookmarkedstate()$empty_catch) 
+        updateSelectInput(session, "empty_expectation", selected = bookmarkedstate()$empty_expectation) 
+        updateSelectInput(session, "end", selected = bookmarkedstate()$end) 
+        updateSelectInput(session, "end_latlon", selected = bookmarkedstate()$end_latlon) 
+        updateSelectInput(session, "ending_haul", selected = bookmarkedstate()$ending_haul) 
+        updateSelectInput(session, "ending_port", selected = bookmarkedstate()$ending_port) 
+        updateSelectInput(session, "fun_numeric", selected = bookmarkedstate()$fun_numeric) 
+        updateSelectInput(session, "fun_time", selected = bookmarkedstate()$fun_time) 
+        updateSelectInput(session, "group", selected = bookmarkedstate()$group) 
+        updateSelectInput(session, "Haul_Trip_IDVar", selected = bookmarkedstate()$Haul_Trip_IDVar) 
+        updateSelectInput(session, "haul_order", selected = bookmarkedstate()$haul_order) 
+        updateSelectInput(session, "haul_order_SL", selected = bookmarkedstate()$haul_order_SL) 
+        updateSelectInput(session, "ID", selected = bookmarkedstate()$ID) 
+        updateSelectInput(session, "indeVarsForModel", selected = bookmarkedstate()$indeVarsForModel) 
+        updateSelectInput(session, "lag_method", selected = bookmarkedstate()$lag_method) 
+        updateSelectInput(session, "lat", selected = bookmarkedstate()$lat) 
+        updateSelectInput(session, "lat_grid_SL", selected = bookmarkedstate()$lat_grid_SL) 
+        updateCheckboxInput(session, "LatLon_Filter", selected = bookmarkedstate()$LatLon_Filter) 
+        updateCheckboxInput(session, "lockk", selected = bookmarkedstate()$lockk) 
+        updateSelectInput(session, "lon", selected = bookmarkedstate()$lon) 
+        updateSelectInput(session, "lon_dat", selected = bookmarkedstate()$lon_dat) 
+        updateSelectInput(session, "lonBase", selected = bookmarkedstate()$lonBase) 
+        updateSelectInput(session, "long_grid_altc", selected = bookmarkedstate()$long_grid_altc)
+        updateSelectInput(session, "mid_start", selected = bookmarkedstate()$mid_start) 
+        updateNumericInput(session, "min_haul_ac", selected = bookmarkedstate()$min_haul_ac) 
+        updateNumericInput(session, "mIter", selected = bookmarkedstate()$mIter) 
+        updateSelectInput(session, "NA_Filter", selected = bookmarkedstate()$NA_Filter) 
+        updateSelectInput(session, "NAN_Filter", selected = bookmarkedstate()$NAN_Filter) 
+        updateSelectInput(session, "occasion_ac", selected = bookmarkedstate()$occasion_ac) 
+        updateSelectInput(session, "plot_table", selected = bookmarkedstate()$plot_table) 
+        updateNumericInput(session, "polyn", selected = bookmarkedstate()$polyn) 
+        updateSelectInput(session, "port_dat_dist", selected = bookmarkedstate()$port_dat_dist) 
+        updateSelectInput(session, "price", selected = bookmarkedstate()$price)
+        updateSelectInput(session, "priceBase", selected = bookmarkedstate()$priceBase) 
+        updateTextInput(session, 'projectname', selected = bookmarkedstate()$projectname)
+        updateSelectInput(session, "p2fun", selected = bookmarkedstate()$p2fun) 
+        updateSelectInput(session, "p3fun", selected = bookmarkedstate()$p3fun) 
+        updateNumericInput(session, "quant_cat", selected = bookmarkedstate()$quant_cat) 
+        updateNumericInput(session, "relTolX", selected = bookmarkedstate()$relTolX) 
+        updateNumericInput(session, "reportfreq", selected = bookmarkedstate()$reportfreq) 
+        updateSelectInput(session, "sp_col", selected = bookmarkedstate()$sp_col) 
+        updateSelectInput(session, "start", selected = bookmarkedstate()$start) 
+        updateSelectInput(session, "start_latlon", selected = bookmarkedstate()$start_latlon) 
+        updateSelectInput(session, "starting_haul", selected = bookmarkedstate()$starting_haul) 
+        updateSelectInput(session, "starting_port", selected = bookmarkedstate()$starting_port) 
+        updateSelectInput(session, "starting_port_SL", selected = bookmarkedstate()$starting_port_SL) 
+        updateTextInput(session, "target", selected = bookmarkedstate()$target) 
+        updateNumericInput(session, "temp_lag", selected = bookmarkedstate()$temp_lag) 
+        updateNumericInput(session, "temp_window", selected = bookmarkedstate()$temp_window) 
+        updateSelectInput(session, "temporal", selected = bookmarkedstate()$temporal) 
+        updateNumericInput(session, "temp_year", selected = bookmarkedstate()$temp_year) 
+        updateSelectInput(session, "TimeVar", selected = bookmarkedstate()$TimeVar) 
+        updateSelectInput(session, "trans", selected = bookmarkedstate()$trans)
+        updateSelectInput(session, "trans_var_name", selected = bookmarkedstate()$trans_var_name) 
+        updateSelectInput(session, "trip", selected = bookmarkedstate()$trip) 
+        updateSelectInput(session, "trip_cent_id", selected = bookmarkedstate()$trip_cent_id) 
+        updateSelectInput(session, "trip_cent_lat", selected = bookmarkedstate()$trip_cent_lat) 
+        updateSelectInput(session, "trip_cent_lon", selected = bookmarkedstate()$trip_cent_lon) 
+        updateSelectInput(session, "trip_cent_weight", selected = bookmarkedstate()$trip_cent_weight) 
+        updateSelectInput(session, "trip_ID", selected = bookmarkedstate()$trip_ID) 
+        updateCheckboxInput(session, "use_geartype", selected = bookmarkedstate()$use_geartype ) 
+        updateSelectInput(session, "units", selected = bookmarkedstate()$units) 
+        updateSelectInput(session, "unique_identifier", selected = bookmarkedstate()$unique_identifier) 
+        updateCheckboxInput(session, "use_location", selected = bookmarkedstate()$use_location) 
+        updateSelectInput(session, "var_x", selected = bookmarkedstate()$var_x) 
+        updateSelectInput(session, "var_y", selected = bookmarkedstate()$var_y) 
+        updateSelectInput(session, "weight_var_ac", selected = bookmarkedstate()$weight_var_ac) 
+        updateSelectInput(session, "xTime", selected = bookmarkedstate()$xTime) 
+         
+  #----
+        updateSelectInput(session, "lat_grid_altc",
+                          selected = bookmarkedstate()$lat_grid_altc) 
+        updateSelectInput(session, "latBase",
+                          selected = bookmarkedstate()$latBase) 
+        updateSelectInput(session, "lon_dat_ac",
+                          selected = bookmarkedstate()$lon_dat_ac) 
+        updateSelectInput(session, "long_grid",
+                          selected = bookmarkedstate()$long_grid) 
+        updateSelectInput(session, "lon_grid_SL",
+                          selected = bookmarkedstate()$lon_grid_SL) 
+        updateSelectInput(session, "mid_end",
+                          selected = bookmarkedstate()$mid_end) 
+        updateSelectInput(session, "numfunc",
+                          selected = bookmarkedstate()$numfunc) 
+        updateSelectInput(session, "lat_dat_ac",
+                          selected = bookmarkedstate()$lat_dat_ac) 
+        updateSelectInput(session, "port_end",
+                          selected = bookmarkedstate()$port_end) 
+        updateSelectInput(session, "VarCreateTop",
+                          selected = bookmarkedstate()$VarCreateTop) 
+        updateSelectInput(session, "port_start",
+                          selected = bookmarkedstate()$port_start) 
+        updateSelectInput(session, "lat_dat_SL",
+                          selected = bookmarkedstate()$lat_dat_SL) 
+        updateSelectInput(session, "plot_type",
+                          selected = bookmarkedstate()$plot_type) 
+        updateSelectInput(session, "lon_dat_SL",
+                          selected = bookmarkedstate()$lon_dat_SL) 
+        updateSelectInput(session, "startloc",
+                          selected = bookmarkedstate()$startloc) 
+        updateSelectInput(session, "trip_id_SL",
+                          selected = bookmarkedstate()$trip_id_SL) 
+        updateCheckboxInput(session, "hull_polygon_ac",
+                          selected = bookmarkedstate()$hull_polygon_ac) 
+        updateSelectInput(session, "temp_var",
+                          selected = bookmarkedstate()$temp_var) 
+        updateSelectInput(session, "catchBase",
+                          selected = bookmarkedstate()$catchBase) 
+        updateSelectInput(session, "x_dist",
+                          selected = bookmarkedstate()$x_dist) 
+        updateCheckboxInput(session, "Unique_Filter",
+                          selected = bookmarkedstate()$Unique_Filter) 
+        updateSelectInput(session, "gridVariablesInclude",
+                          selected = bookmarkedstate()$gridVariablesInclude) 
+        
+   
+        
+      })
+      ###----
       
     }
             
