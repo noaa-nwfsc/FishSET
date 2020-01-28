@@ -14,6 +14,13 @@ To install:
 	 library(devtools)
 	 install("PATH/TO/Directory/Containing/FishSET")
 
+Directories:
+FishSET function call files from the SQLIte database and save log files to a Log folder.
+The database and folder are assumed to be in the FishSET package folder. If they are not, 
+then the location needs to be specificed.
+Use loc to specify directory location of the database and loc2 to specify location of Log file.
+For exmaple, loc <- getwd();  loc2 <- paste0(getwd(), '/inst')
+
 # Libraries #
 ---
 
