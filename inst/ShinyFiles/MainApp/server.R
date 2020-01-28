@@ -186,7 +186,6 @@
       ##Pull data functions 
       values <- reactiveValues(
         dataset = data.frame('var1'=0, 'var2'=0)
-        #dataset = dataset
         )
       
       #Add in reactive values once data  call is is not empty
@@ -315,17 +314,21 @@
       ###----
       #1. TABLE
       output$output_table_exploration <- DT::renderDT(
+        if(colnames(values$dataset)[1] == 'var1') {
+          return(NULL)
+        } else {
         if (input$plot_table=='Table') { 
           c1 <- values$dataset
           colnames(c1)=gsub("_","-", colnames(c1))
           return(c1)
         } else {
           NULL
-        }, server = FALSE, editable=TRUE, filter='top', selection=list(target ='column'),
+        }}, server = FALSE, editable=TRUE, filter='top', selection=list(target ='column'),
         extensions = c("Buttons"), rownames=FALSE,
         options = list(autoWidth=TRUE, scrolly=T, responsive=TRUE, pageLength = 15,
                        searchCols = default_search_columns, buttons = c('csv'))
       )
+      
       observeEvent(c(input$saveData,input$saveDataQ),{
         # when it updates, save the search strings so they're not lost
         isolate({
@@ -436,6 +439,11 @@
       })
       
       plotInput_time <-  reactive({
+        if (is.null(values$dataset)) {
+          return(NULL)
+        } else if(colnames(values$dataset)[1] == 'var1') {
+          return(NULL)
+        } else {
         if(grepl('date', input$col_select[1], ignore.case=T)==TRUE){
           p1 <- ggplot(values$dataset, 
                        aes_string(x=as.Date(values$dataset[,grep('date',  colnames(values$dataset), ignore.case = TRUE)[1]], origin='01-01-1970'),
@@ -467,9 +475,7 @@
                   panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text=element_text(size=11),
                   axis.title=element_text(size=11))
         } 
-        if (is.null(values$dataset)) {
-          return(NULL)
-        } else {
+       
           # if(input$plot_table=='Plots'&input$plot_type=='Temporal'){
           #  return(NULL)
           # } else {
@@ -497,6 +503,8 @@
       output$plot_spatial <- renderPlot({#plotInput_spatial <-  reactive({
         if (is.null(values$dataset)) {
           return(NULL)
+        } else if(colnames(values$dataset)[1] == 'var1') {
+          return(NULL)
         } else {
           longitude <- which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1]
           latitude <- which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]
@@ -514,6 +522,8 @@
       })
       plotInput_kernel <- reactive ({
         if (is.null(values$dataset)) {
+          return(NULL)
+        } else if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
         } else {
           if(input$plot_table=='Plots'&input$plot_type=='Spatial'){
@@ -626,7 +636,9 @@
       plotInput_xy <- reactive({
         if (is.null(values$dataset)) {
           return(NULL)
-        }  else {
+        } else if(colnames(values$dataset)[1] == 'var1') {
+          return(NULL)
+        } else {
           ggplot(values$dataset, aes_string(x=values$dataset[[input$x_y_select1]],y=values$dataset[[input$x_y_select2]])) + geom_point()+
             labs(subtitle=paste(input$x_y_select1, 'by', input$x_y_select2), x=input$x_y_select1, y=input$x_y_select2) +
             theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
@@ -650,6 +662,7 @@
       
       
       tableInputCorr <- reactive({
+       
         if(length(input$corr_select)>2){
           c1 <- round(cor(values$dataset[,input$corr_select], use="complete.obs"), 2)
           colnames(c1)=gsub("_","-", colnames(c1))
@@ -664,14 +677,21 @@
                      scrollY = 'auto', scroller = TRUE, scrollX = T, pageLength = 25)
       )
       output$output_text_corr <- renderPrint(
-        if(length(input$corr_select)==2){
+        if(colnames(values$dataset)[1] == 'var1') {
+          return(NULL)
+        } else if(length(input$corr_select)==2){
           cor.test(values$dataset[[input$corr_select[1]]], values$dataset[[input$corr_select[2]]])
-        }# else if(length(input$corr_select)>2){
-        #  return(NULL)
-        # }
+        } else {
+          return(NULL)
+         }
       )
       
       plotInputcorr <- reactive({
+        if (is.null(values$dataset)) {
+          return(NULL)
+        } else if(colnames(values$dataset)[1] == 'var1') {
+          return(NULL)
+          } else {
         if(length(input$corr_select)==2){
           ggplot(values$dataset, aes_string(x=values$dataset[[input$corr_select[1]]], y=values$dataset[[input$corr_select[2]]])) + geom_point()+
             geom_smooth(method=lm)+labs(subtitle=paste(input$corr_select[1], 'by', input$corr_select[2]),x=input$corr_select[1],y=input$corr_select[2])+
@@ -684,6 +704,7 @@
                                  title = paste("Correlation matrix plot for", input$projectname, "data"),
                                  ggtheme=ggplot2::theme_minimal())
         } 
+        }
       })
       output$output_plot_corr <- renderPlot({
         plotInputcorr()
@@ -693,7 +714,6 @@
         selectInput('reg_resp_select', 'Select response variable', choices= names(values$dataset), 
                     selected= names(which(lapply(values$dataset, is.numeric)==TRUE))[1], multiple=FALSE, selectize=TRUE)
       })
-      
       output$reg_exp_out <- renderUI({
         selectInput('reg_exp_select', 'Select explanatory variable(s)', choices= names(values$dataset), 
                     selected= "", multiple=FALSE, selectize=TRUE)
@@ -706,7 +726,9 @@
       )
       
       plotInputreg <- reactive({
-        if(length(input$reg_exp_select)!=1){
+        if(colnames(values$dataset)[1] == 'var1') {
+          return(NULL)
+        } else if(length(input$reg_exp_select)!=1){
           return(NULL)
         } else {
           ggpubr::annotate_figure(ggpubr::ggarrange(ggplot(values$dataset, aes_string(x=input$reg_exp_select, y=input$reg_resp_select)) + geom_point()+
@@ -1107,7 +1129,11 @@
       })
       
       output$output_table_create <- DT::renderDT(
+        if(colnames(values$dataset)[1] == 'var1') {
+          return(NULL)
+        } else {
         head(values$dataset)
+        }
       )
       ###----
       
@@ -1378,12 +1404,14 @@
       ##Table output
       ##----
       tableInputSummary <- reactive({
-        if (input$checks=='Summary table') { 
+        if(colnames(values$dataset)[1] == 'var1') {
+          return(NULL)
+        } else if (input$checks=='Summary table') { 
           temp <- values$dataset
           stable <- summary_stats(temp) 
           nums <- unlist(lapply(temp, is.numeric))
           stable  <- apply(stable[nums], 2, function(x) gsub(".*:","", x))
-          rownames(stable)=c('Min', 'Median','Mean', 'Max','NAs','Unique Obs.', "No. 0's")
+          rownames(stable)=c('Min', 'Median','Mean', 'Max','Unique Obs.', "No. 0's")
           stable <- as.data.frame(as.matrix(stable))
           stable <- as.data.frame((t(stable)))
         } else {
@@ -1397,7 +1425,9 @@
       )
       
       tableInputOutlier <- reactive({
-        if (input$checks=='Outliers'){
+        if(colnames(values$dataset)[1] == 'var1') {
+          return(NULL)
+        } else if (input$checks=='Outliers'){
           table <- outlier_table(values$dataset, input$column_check)
           rownames(table)=table[,2]
           table <- table[,3:10]
@@ -1408,7 +1438,9 @@
       })
       
       output$output_table_outlier <- DT::renderDT(
-        if (input$checks=='Outliers'){
+        if(colnames(values$dataset)[1] == 'var1') {
+          return(NULL)
+        } else if (input$checks=='Outliers'){
           table <- outlier_table(values$dataset, input$column_check)
           rownames(table)=table[,2]
           table <- table[,3:10]
@@ -1425,6 +1457,8 @@
       #Plot output
       output$plot1 <- renderPlot(
         if (is.null(values$dataset)) {
+          return(NULL)
+        } else if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
         } else {
           if(input$checks=='Outliers'){
@@ -1446,6 +1480,8 @@
       output$plot2 <- renderPlot(
         if (is.null(values$dataset)) {
           return(NULL)
+        } else if(colnames(values$dataset)[1] == 'var1') {
+          return(NULL)
         } else {
           if(input$checks=='Outliers'){
             temp <- values$dataset
@@ -1465,6 +1501,8 @@
       
       output$plot3 <- renderPlot(
         if (is.null(values$dataset)) {
+          return(NULL)
+        } else if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
         } else {
           if(input$checks=='Outliers'){
