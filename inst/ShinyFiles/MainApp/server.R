@@ -1240,7 +1240,6 @@
       #DATA QUALITY FUNCTIONS
       ###-----      
       #Basic functions   
-      ##----
       RC <- isolate({sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), collapse = ", "))})
       RN <- isolate({sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE))], 2, 
                                                               function(x) length(which(is.na(x)==TRUE))), collapse=", "))})
@@ -1499,10 +1498,8 @@
           }
         }
       })
-      ##----
       
       ##Table output
-      ##----
       tableInputSummary <- reactive({
         if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
@@ -1511,7 +1508,7 @@
           stable <- summary_stats(temp) 
           nums <- unlist(lapply(temp, is.numeric))
           stable  <- apply(stable[nums], 2, function(x) gsub(".*:","", x))
-          rownames(stable)=c('Min', 'Median','Mean', 'Max','Unique Obs.', "No. 0's")
+          rownames(stable)=c('Min', 'Median','Mean', 'Max',"Missing",'Unique Obs.', "No. 0's")
           stable <- as.data.frame(as.matrix(stable))
           stable <- as.data.frame((t(stable)))
         } else {
@@ -1686,10 +1683,9 @@
           ranges3$y <- NULL
         }
       })
-      ##----        
+        
       
       ##Outlier options 
-      ##----        
       output$outlier_column <- renderUI({
         conditionalPanel(
           condition="input.checks=='Outliers'",
@@ -1709,10 +1705,8 @@
           selectInput('x_dist', 'Distribution', 
                       choices=c('normal', 'lognormal', 'exponential', 'weibull', 'poisson', 'negative binomial'), selected='normal'))
       })
-      ##----
       
       ##Filtering options
-      ##----
       #output_table())
       
       
