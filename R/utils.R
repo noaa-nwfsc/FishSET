@@ -1,12 +1,13 @@
 #Define source location
 locdatabase <- function(){
 #' Returns the location of the database
-#' @details if loc is null then the default location is use
+#' @details if loc is not in the working directory, then the default location is use
 #' @export
 #' @examples 
 #' \dontrun{
 #' locdatabase() # will return sqlite database location within the fishset package
-#' locdatabase(getwd()) #will return sqlite database location as within the working directory
+#' loc <- getwd()
+#' locdatabase() #will return sqlite database location as within the working directory
 #' }
  if(exists('loc')) { loc=loc} else { loc=NULL}
   if(is.null(loc)){
@@ -17,14 +18,15 @@ locdatabase <- function(){
 }
 
 loclog <- function(){
-  #Define source location for log file
-    #' Returns the location of the database
-    #' @details if loc is null then the default location is use
+  #Define source location for log folder
+    #' Returns the location of the log folder
+    #' @details if loc2 is not in the working environment, then the default location is use
     #' @export
     #' @examples 
     #' \dontrun{
     #' loclog() # will return log folder location within the fishset package
-    #' loclog(loc2=getwd()) #will return sqlite database location as within the working directory
+    #' loc2 <- getwd()
+    #' loclog() #will return log folder location as within the working directory
     #' }
     if(exists('loc2')) { loc2=loc2} else { loc2=NULL}
     if(is.null(loc2)){
@@ -35,7 +37,26 @@ loclog <- function(){
     }
   }
 
-  
+locoutput <- function(){
+  #Define source location for output folder
+  #' Returns the location of the output folder
+  #' @details if loc2 is not in the working environment, then the default location is use
+  #' @export
+  #' @examples 
+  #' \dontrun{
+  #' locoutput() # will return output folder location within the fishset package
+  #' loc2 <- getwd()
+  #' locoutput() #will return output folder location as within the working directory
+  #' }
+  if(exists('loc2')) { loc2=loc2} else { loc2=NULL}
+  if(is.null(loc2)){
+    paste0(system.file(package='FishSET'), '/output/')
+    
+  } else {
+    paste0(loc2, '/output/')
+  }
+}
+
 pull_info_data <- function(project){
 #' Pull the most recent data index file for given projet
 #' @param project Name of project, such as pollock
