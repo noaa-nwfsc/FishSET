@@ -183,7 +183,8 @@
       
    
       
-      ##Pull data functions 
+      ##Pull data functions
+      ##----
       values <- reactiveValues(
         dataset = data.frame('var1'=0, 'var2'=0)
         )
@@ -217,7 +218,47 @@
       #     suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
       #     values$dataset <- table_view(dat)
       #      DBI::dbDisconnect(fishset_db)
-      #    }, ignoreInit = F) 
+      #    }, ignoreInit = F)
+      #PORT
+      ptdat <- reactiveValues(
+        dataset = data.frame('var1'=0, 'var2'=0)
+      )
+      
+      observeEvent(input$portdattext, {
+        req(input$portdattext)
+        if(input$loadportsource=='FishSET database'){
+          ptdat$dataset <- table_view(paste0(input$projectname, input$portdattext))
+        } else {
+          ptdat$dataset <- ptdat$dataset
+        }
+      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
+      
+      #GRIDDED      
+      grddat <- reactiveValues(
+        dataset = data.frame('var1'=0, 'var2'=0)
+      )
+      observeEvent(input$griddattext, {
+        req(input$griddattext)
+        if(input$loadgridsource=='FishSET database'){
+          grddat$dataset <- table_view(paste0(input$projectname, input$griddattext))
+        } else {
+          grddat$dataset <- grddat$dataset
+        }
+      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
+
+      
+      
+      aux <- reactiveValues(
+        dataset = data.frame('var1'=0, 'var2'=0)
+      )
+      observeEvent(input$auxdattext, {
+        req(input$auxdattext)
+        if(input$loadauxsource=='FishSET database'){
+          aux$dataset <- table_view(paste0(input$projectname, input$auxdattext))
+        } else {
+          aux$dataset <- aux$dataset
+        }
+      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
       ##----     
       
@@ -229,9 +270,9 @@
           conditionalPanel(condition="input.loadmainsource=='Upload new file'", 
                            tagList(
                              fluidRow(
-                                 column(6, fileInput("maindat", "Choose primary data file",
+                                 column(3, fileInput("maindat", "Choose primary data file",
                                             multiple = FALSE, placeholder = 'Required data')),
-                                column(3, uiOutput('ui.action'))
+                                column(1, uiOutput('ui.action'))
                            ))
           ))
       })
@@ -240,6 +281,25 @@
         if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
         df_data <- FishSET::read_dat(input$maindat$datapath, type)
       }) 
+      
+      output$port_upload <- renderUI({     
+        tagList( 
+          conditionalPanel(condition="input.loadportsource=='Upload new file'", 
+                           tagList(
+                             fluidRow(
+                               column(3, fileInput("portdat", "Choose port data file",
+                                                   multiple = FALSE, placeholder = 'Required data')),
+                               column(1, uiOutput('ui.actionP'))
+                             ))
+          ),
+          conditionalPanel(condition="input.loadportsource!='Upload new file'", 
+                           tagList(
+                             fluidRow(
+                               column(3, textInput("portdattext", "Port data file name in database", placeholder = 'Optional data'))
+                             ))
+          ))
+      })
+      
       output$ui.action <- renderUI({
         if (is.null(input$maindat)) return()
         actionButton("uploadMain", label = "Save to database", 
@@ -250,16 +310,56 @@
         actionButton("uploadPort", label = "Save to database", 
                      style = "color: white; background-color: blue;", size = "extra-small")
       })
+      output$grid_upload <- renderUI({     
+        tagList( 
+          conditionalPanel(condition="input.loadgridsource=='Upload new file'", 
+                           tagList(
+                             fluidRow(
+                               column(3, fileInput("griddat", "Choose data file that varies over two dimensions (gridded)",
+                                                   multiple = FALSE, placeholder = 'Optional data')),
+                               column(1, uiOutput('ui.actionG'))
+                             ))
+          ),
+          conditionalPanel(condition="input.loadgridsource!='Upload new file'", 
+                           tagList(
+                             fluidRow(
+                               column(3, textInput("griddattext", "Gridded data file name in database", placeholder = 'Optional data'))
+                             ))
+          ))
+      })
+      
       output$ui.actionG <- renderUI({
         if (is.null(input$griddat)) return()
         actionButton("uploadGrid", label = "Save to database", 
                      style = "color: white; background-color: blue;", size = "extra-small")
       })
+      
+      
       output$ui.actionA <- renderUI({
         if (is.null(input$auxdat)) return()
         actionButton("uploadAux", label = "Save to database", 
                      style = "color: white; background-color: blue;", size = "extra-small")
       })
+      
+       output$aux_upload <- renderUI({     
+        tagList( 
+          conditionalPanel(condition="input.loadauxsource=='Upload new file'", 
+                           tagList(
+                             fluidRow(
+                               column(3, fileInput("auxdat", "Choose auxiliary data file that links to primary data",
+                                                   multiple = FALSE, placeholder = 'Optional data')),
+                               column(1, uiOutput('ui.actionA'))
+                             ))
+          ),
+          conditionalPanel(condition="input.loadauxsource!='Upload new file'", 
+                           tagList(
+                             fluidRow(
+                               column(3, textInput("auxdattext", "Auxiliary data file name in database", placeholder = 'Optional data'))
+                             ))
+          )
+          )
+      })
+    
       output$ui.action2 <- renderUI({
         if (is.null(input$maindat)) return()
         tagList(
@@ -2264,8 +2364,8 @@
         tagList(
           downloadLink('downloadplotEXPLOREHIDE', label=''),
           actionButton('downloadplotExplore', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
-          downloadLink('downloadTableEXPLOREHIDE', label=''),
-          actionButton('downloadTableExplore', label ='Save table to folder as csv'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
+          #downloadLink('downloadTableEXPLOREHIDE', label=''),
+          #actionButton('downloadTableExplore', label ='Save table to folder as csv'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
           downloadLink("downloadTextExplore", label=''),
           actionButton('callTextDownloadExplore','Save notes')
         )
