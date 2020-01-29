@@ -124,35 +124,27 @@
                              tags$br(), tags$br(),
                              fluidRow(
                                textInput('projectname', 'Name of project'),
-                               column(6, radioButtons('loadmainsource', "Source data from:", choices=c( 'Upload new file','FishSET database'), selected='Upload new file', inline=TRUE)),
+                               column(4, radioButtons('loadmainsource', "Source main data from:", choices=c( 'Upload new file','FishSET database'), selected='Upload new file', inline=TRUE)),
                                uiOutput('main_upload')),
-                              
                              fluidRow( 
                                column(width = 8, offset = 2,
                                       uiOutput('ui.action2'))),
-                             
                              fluidRow(
-                               column(6,
-                                      fileInput("portdat", "Choose port data file",
-                                                multiple = FALSE, placeholder = 'Required data')),
-                               column(3, uiOutput('ui.actionP'))
+                               column(4, radioButtons('loadportsource', "Source port data from:", choices=c( 'Upload new file','FishSET database'), selected='Upload new file', inline=TRUE)),
+                               uiOutput('port_upload')
                              ),
                              fluidRow(
                                column(width=8, offset=2,
                                       uiOutput('ui.actionP2'))
                              ),
-                             fluidRow( 
-                               column(6,
-                                      fileInput("griddat", "Choose data file that varies over two dimensions (gridded)",
-                                                multiple = FALSE, placeholder = 'Optional data')),
-                               column(3, uiOutput('ui.actionG'))
-                             ),
                              fluidRow(
-                               column(6, 
-                                      fileInput("auxdat", "Choose auxiliary data file that links to primary data",
-                                                multiple = FALSE, placeholder = 'Optional data')),
-                               column(3, uiOutput('ui.actionA'))
-                             ),
+                                 column(4, radioButtons('loadgridsource', "Source gridded data from:", choices=c( 'Upload new file','FishSET database'), selected='Upload new file', inline=TRUE)),
+                                 uiOutput('grid_upload')
+                               ),
+                             fluidRow(
+                               column(4, radioButtons('loadauxsource', "Source auxiliary data from:", choices=c( 'Upload new file','FishSET database'), selected='Upload new file', inline=TRUE)),
+                               uiOutput('aux_upload')
+                             ), 
                              uiOutput("SaveButtonsUpload"),
                              textInput('notesUp', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
                            )),
