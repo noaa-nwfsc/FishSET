@@ -417,7 +417,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
                           gridVaryingVariables = ExpectedCatch)
   
  
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc))
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
   single_sql <- paste0(project, 'modelinputdata')
   date_sql <- paste0(project, 'modelinputdata', format(Sys.Date(), format="%Y%m%d"))
   if(table_exists(single_sql)){

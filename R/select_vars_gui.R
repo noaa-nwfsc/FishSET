@@ -76,7 +76,7 @@ select_vars <- function(dat, project){
     
     server = function(input, output, session) {
       
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc)))
+        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
         if(is.character(dat)==TRUE){
           if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
             print(DBI::dbListTables(fishset_db))
@@ -115,7 +115,7 @@ select_vars <- function(dat, project){
       observeEvent(input$submit, {
         # Connect to the database
         print('Data table updated. ')
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(loc=loc)))
+        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
         DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable'), data_table(), overwrite=TRUE)
         
         showNotification(paste0("Table saved to database as ", project, 'MainDataTable.', ". 
