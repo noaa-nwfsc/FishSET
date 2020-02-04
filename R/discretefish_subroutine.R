@@ -360,7 +360,7 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
    ############################################################################# 
   single_sql <- paste0(project, "modelOut", format(Sys.Date(), format="%Y%m%d"))
   if(table_exists(single_sql)){
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(l))
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
   out <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
   return(out)
   DBI::dbDisconnect(fishset_db)

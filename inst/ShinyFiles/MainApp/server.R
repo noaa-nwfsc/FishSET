@@ -190,7 +190,7 @@
         )
       
       #Add in reactive values once data  call is is not empty
-      observeEvent(input$projectname, {
+      observeEvent(input$loadDat, {
         req(input$projectname)
         if(input$loadmainsource=='FishSET database'){
         values$dataset <- table_view(paste0(input$projectname, 'MainDataTable'))
@@ -224,7 +224,7 @@
         dataset = data.frame('var1'=0, 'var2'=0)
       )
       
-      observeEvent(input$portdattext, {
+      observeEvent(input$loadDat, {
         req(input$portdattext)
         if(input$loadportsource=='FishSET database'){
           ptdat$dataset <- table_view(paste0(input$projectname, input$portdattext))
@@ -237,7 +237,7 @@
       grddat <- reactiveValues(
         dataset = data.frame('var1'=0, 'var2'=0)
       )
-      observeEvent(input$griddattext, {
+      observeEvent(input$loadDat, {
         req(input$griddattext)
         if(input$loadgridsource=='FishSET database'){
           grddat$dataset <- table_view(paste0(input$projectname, input$griddattext))
@@ -251,7 +251,7 @@
       aux <- reactiveValues(
         dataset = data.frame('var1'=0, 'var2'=0)
       )
-      observeEvent(input$auxdattext, {
+      observeEvent(input$loadDat, {
         req(input$auxdattext)
         if(input$loadauxsource=='FishSET database'){
           aux$dataset <- table_view(paste0(input$projectname, input$auxdattext))
@@ -545,35 +545,35 @@
           return(NULL)
         } else {
         if(grepl('date', input$col_select[1], ignore.case=T)==TRUE){
-          p1 <- ggplot(values$dataset, 
-                       aes_string(x=as.Date(values$dataset[,grep('date',  colnames(values$dataset), ignore.case = TRUE)[1]], origin='01-01-1970'),
-                                  y=as.Date(values$dataset[[input$col_select]], origin='01-01-1970'))) + geom_point()+
-            labs(subtitle=paste(input$col_select, 'by Date'), x="Date", y=input$col_select) +
-            theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-                  panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text=element_text(size=11),
-                  axis.title=element_text(size=11)) 
+          p1 <- ggplot2::ggplot(values$dataset, 
+                       ggplot2::aes_string(x=as.Date(values$dataset[,grep('date',  colnames(values$dataset), ignore.case = TRUE)[1]], origin='01-01-1970'),
+                                  y=as.Date(values$dataset[[input$col_select]], origin='01-01-1970'))) + ggplot2::geom_point()+
+            ggplot2::labs(subtitle=paste(input$col_select, 'by Date'), x="Date", y=input$col_select) +
+            ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
+                  panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text=ggplot2::element_text(size=11),
+                  axis.title=ggplot2::element_text(size=11)) 
         } else {
-          p1 <- ggplot(values$dataset, 
-                       aes_string(x=as.Date(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]], origin='01-01-1970'),
-                                  y=input$col_select)) + geom_point()+
-            labs(subtitle=paste(input$col_select, 'by Date'), x="Date", y=input$col_select) +
-            theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-                  panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text=element_text(size=11),
-                  axis.title=element_text(size=11))
+          p1 <- ggplot2::ggplot(values$dataset, 
+                       ggplot2::aes_string(x=as.Date(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]], origin='01-01-1970'),
+                                  y=input$col_select)) + ggplot2::geom_point()+
+            ggplot2::labs(subtitle=paste(input$col_select, 'by Date'), x="Date", y=input$col_select) +
+            ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
+                  panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text=ggplot2::element_text(size=11),
+                  axis.title=ggplot2::element_text(size=11))
         }
-        p2 <- ggplot(df2l(), aes_string(x=df2l()[,1], y=df2l()[,2]))+ geom_bar(stat='identity')+
-          labs(subtitle=paste(input$p2fun, 'by', tolower(t2())), x=t2(),y='')+
-          theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-                panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text=element_text(size=11),
-                axis.title=element_text(size=11))
+        p2 <- ggplot2::ggplot(df2l(), ggplot2::aes_string(x=df2l()[,1], y=df2l()[,2]))+ ggplot2::geom_bar(stat='identity')+
+          ggplot2::labs(subtitle=paste(input$p2fun, 'by', tolower(t2())), x=t2(),y='')+
+          ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
+                panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text=ggplot2::element_text(size=11),
+                axis.title=ggplot2::element_text(size=11))
         if(!is.numeric(values$dataset[[input$col_select]])) {
           p3 <- NULL
         } else {
-          p3 <- ggplot(df2m(), aes_string(x=df2m()[,1], y=df2m()[,2]))+ geom_bar(stat='identity')+
-            labs(subtitle=paste(simpleCap(input$p3fun), 'of value by', tolower(t2())), x=t2(), y='')+
-            theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-                  panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text=element_text(size=11),
-                  axis.title=element_text(size=11))
+          p3 <- ggplot2::ggplot(df2m(), ggplot2::aes_string(x=df2m()[,1], y=df2m()[,2]))+ ggplot2::geom_bar(stat='identity')+
+            ggplot2::labs(subtitle=paste(simpleCap(input$p3fun), 'of value by', tolower(t2())), x=t2(), y='')+
+            ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
+                  panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text=ggplot2::element_text(size=11),
+                  axis.title=ggplot2::element_text(size=11))
         } 
        
           # if(input$plot_table=='Plots'&input$plot_type=='Temporal'){
@@ -608,16 +608,16 @@
         } else {
           longitude <- which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1]
           latitude <- which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]
-          cf <- coord_fixed()
+          cf <- ggplot2::coord_fixed()
           cf$default <- TRUE
-          ggplot(data = map_data("world"), mapping = aes(x = long, y = lat, group=group)) + 
-            geom_polygon(color = "black", fill = "gray") + 
-            geom_point(data = values$dataset, aes(x = values$dataset[,longitude], y = values$dataset[,latitude], group=rep(1, nrow(values$dataset))), color = "red", size = 1) +
-            cf + coord_fixed(xlim = ranges_spatial$x, ylim = ranges_spatial$y, ratio=1.3, expand = TRUE)+
-            labs(x='Longitude', y='Latitude', subtitle='Observed locations')+
-            theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-                  panel.background = element_blank(),  axis.text=element_text(size=12),
-                  axis.title=element_text(size=12),panel.border = element_rect(colour = "black", fill=NA, size=1) )
+          ggplot2::ggplot(data = ggplot2::map_data("world"), mapping = ggplot2::aes(x = long, y = lat, group=group)) + 
+            ggplot2::geom_polygon(color = "black", fill = "gray") + 
+            ggplot2::geom_point(data = values$dataset, ggplot2::aes(x = values$dataset[,longitude], y = values$dataset[,latitude], group=rep(1, nrow(values$dataset))), color = "red", size = 1) +
+            cf + ggplot2::coord_fixed(xlim = ranges_spatial$x, ylim = ranges_spatial$y, ratio=1.3, expand = TRUE)+
+            ggplot2::labs(x='Longitude', y='Latitude', subtitle='Observed locations')+
+            ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
+                  panel.background = ggplot2::element_blank(),  axis.text=ggplot2::element_text(size=12),
+                  axis.title=ggplot2::element_text(size=12),panel.border = ggplot2::element_rect(colour = "black", fill=NA, size=1) )
         } 
       })
       plotInput_kernel <- reactive ({
@@ -739,11 +739,12 @@
         } else if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
         } else {
-          ggplot(values$dataset, aes_string(x=values$dataset[[input$x_y_select1]],y=values$dataset[[input$x_y_select2]])) + geom_point()+
-            labs(subtitle=paste(input$x_y_select1, 'by', input$x_y_select2), x=input$x_y_select1, y=input$x_y_select2) +
-            theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-                  panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text=element_text(size=11),
-                  axis.title=element_text(size=11))
+          ggplot2::ggplot(values$dataset, ggplot2::aes_string(x=values$dataset[[input$x_y_select1]], y=values$dataset[[input$x_y_select2]])) + 
+            ggplot2::geom_point()+
+            ggplot2::labs(subtitle=paste(input$x_y_select1, 'by', input$x_y_select2), x=input$x_y_select1, y=input$x_y_select2) +
+            ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
+                  panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text = ggplot2::element_text(size=11),
+                  axis.title=ggplot2::element_text(size=11))
         } 
       })
       output$plot_xy <- renderPlot({
@@ -793,11 +794,12 @@
           return(NULL)
           } else {
         if(length(input$corr_select)==2){
-          ggplot(values$dataset, aes_string(x=values$dataset[[input$corr_select[1]]], y=values$dataset[[input$corr_select[2]]])) + geom_point()+
-            geom_smooth(method=lm)+labs(subtitle=paste(input$corr_select[1], 'by', input$corr_select[2]),x=input$corr_select[1],y=input$corr_select[2])+
-            theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-                  panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text=element_text(size=11),
-                  axis.title=element_text(size=11))
+          ggplot2::ggplot(values$dataset, ggplot2::aes_string(x=values$dataset[[input$corr_select[1]]], y=values$dataset[[input$corr_select[2]]])) + 
+            ggplot2::geom_point()+
+            ggplot2::geom_smooth(method=lm)+ggplot2::labs(subtitle=paste(input$corr_select[1], 'by', input$corr_select[2]), x=input$corr_select[1], y=input$corr_select[2])+
+            ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
+                  panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text=ggplot2::element_text(size=11),
+                  axis.title=ggplot2::element_text(size=11))
         } else if(length(input$corr_select)>2){
           ggcorrplot::ggcorrplot(round(cor(values$dataset[,input$corr_select], use="complete.obs"), 2), 
                                  type='lower',outline.color = 'white', hc.order=TRUE,show.diag=TRUE,
@@ -831,18 +833,19 @@
         } else if(length(input$reg_exp_select)!=1){
           return(NULL)
         } else {
-          ggpubr::annotate_figure(ggpubr::ggarrange(ggplot(values$dataset, aes_string(x=input$reg_exp_select, y=input$reg_resp_select)) + geom_point()+
-                                                      geom_smooth(method=lm)+
-                                                      labs(subtitle=paste(input$reg_resp_select, 'against', input$reg_exp_select), x=input$reg_exp_select, y=input$reg_resp_select)+
-                                                      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-                                                            panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text=element_text(size=11),
-                                                            axis.title=element_text(size=11)),
-                                                    ggplot(lm(values$dataset[[input$reg_resp_select]]~values$dataset[[input$reg_exp_select]])) + 
-                                                      geom_point(aes(x=.fitted, y=.resid)) + 
-                                                      labs(subtitle = 'Residuals against fitted values', x='Fitted',y='Residuals')+
-                                                      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-                                                            panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text=element_text(size=11),
-                                                            axis.title=element_text(size=11)),
+          ggpubr::annotate_figure(ggpubr::ggarrange(ggplot2::ggplot(values$dataset, ggplot2::aes_string(x=input$reg_exp_select, y=input$reg_resp_select)) + 
+                                                      ggplot2::geom_point()+ ggplot2::geom_smooth(method=lm)+
+                                                      ggplot2::labs(subtitle=paste(input$reg_resp_select, 'against', input$reg_exp_select), x=input$reg_exp_select, y=input$reg_resp_select)+
+                                                      ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
+                                                            panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text=ggplot2::element_text(size=11),
+                                                            axis.title = ggplot2::element_text(size=11)),
+                                                    ggplot2::ggplot(lm(values$dataset[[input$reg_resp_select]]~values$dataset[[input$reg_exp_select]])) + 
+                                                      ggplot2::geom_point(ggplot2::aes(x=.fitted, y=.resid)) + 
+                                                      ggplot2::labs(subtitle = 'Residuals against fitted values', x='Fitted',y='Residuals')+
+                                                      ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
+                                                            panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), 
+                                                            axis.text = ggplot2::element_text(size=11),
+                                                            axis.title=ggplot2::element_text(size=11)),
                                                     ncol=2, nrow=1), top=ggpubr::text_grob('Simple linear regression plots', size=14))
         }
       })
@@ -1038,7 +1041,7 @@
           },
           if(any(class(GridFileData())=='sf')==FALSE){
             conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
-                             style = "margin-left:19px;", selectInput('lon.grid_SL', 'Select vector containing longitude from spatial data set', 
+                             style = "margin-left:19px;", selectInput('lon_grid_SL', 'Select vector containing longitude from spatial data set', 
                                                                       choices= names(as.data.frame(GridFileData())), multiple=TRUE, selectize=TRUE))
           },
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
@@ -1215,7 +1218,7 @@
         } else if(input$VarCreateTop=='Spatial functions'&input$dist=='create_startingloc'){
           values$dataset[['startingloc']] <- create_startingloc(values$dataset,  gridfile=GridFileData(),  portTable=input$port.dat, 
                                                                 trip_id=input$trip_id_SL, haul_order=input$haul_order_SL, starting_port=input$starting_port_SL, 
-                                                                input$lon_dat_SL, input$lat_dat_SL, input$cat_SL, input$lon.grid_SL, input$lat_grid_SL)
+                                                                input$lon_dat_SL, input$lat_dat_SL, input$cat_SL, input$lon_grid_SL, input$lat_grid_SL)
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='haul_to_trip'){
           values$dataset <- haul_to_trip(values$dataset, project=input$projectname, input$fun_numeric, input$fun_time, input$Haul_Trip_IDVar)
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='trip_distance'){
@@ -1562,12 +1565,12 @@
             temp <- values$dataset
             temp$val <- 1:nrow(temp)
             dat_sub <- suppressWarnings(outlier_plot_int(temp, input$column_check, input$dat.remove, input$x_dist, plot_type=1))
-            suppressWarnings(ggplot() + geom_point(data=dat_sub, aes_string(x='val', y=input$column_check, color = 'Points', na.rm=TRUE)) +
-                               scale_color_manual(breaks=c('Kept','Removed'),values=c('blue','red'))+
-                               coord_cartesian(xlim = ranges1$x, ylim = ranges1$y, expand = FALSE)+
-                               labs(x='Data row')+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-                                                         panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text=element_text(size=12),
-                                                         axis.title=element_text(size=12)))  #+ 
+            suppressWarnings(ggplot2::ggplot() + ggplot2::geom_point(data=dat_sub, ggplot2::aes_string(x='val', y=input$column_check, color = 'Points', na.rm=TRUE)) +
+                               ggplot2::scale_color_manual(breaks=c('Kept','Removed'),values=c('blue','red'))+
+                               ggplot2::coord_cartesian(xlim = ranges1$x, ylim = ranges1$y, expand = FALSE)+
+                               ggplot2::labs(x='Data row')+ ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
+                                                         panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text=ggplot2::element_text(size=12),
+                                                         axis.title=ggplot2::element_text(size=12)))  #+ 
             #
           } else {
             NULL
@@ -1585,12 +1588,12 @@
             temp$val <- 1:nrow(temp)
             dat_sub <- outlier_plot_int(temp, input$column_check, input$dat.remove, input$x_dist, plot_type=1)
             arg.return <- outlier_plot_int(temp, input$column_check, input$dat.remove, input$x_dist, plot_type=2)
-            ggplot(dat_sub[dat_sub$Points=='Kept',], aes_string(input$column_check)) + 
-              geom_histogram(aes(y = ..density..), na.rm=TRUE, bins=round(nrow(temp)/2)) + arg.return +
-              coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)+
-              theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-                    panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text=element_text(size=12),
-                    axis.title=element_text(size=12))
+            ggplot2::ggplot(dat_sub[dat_sub$Points=='Kept',], ggplot2::aes_string(input$column_check)) + 
+              ggplot2::geom_histogram(ggplot2::aes(y = ..density..), na.rm=TRUE, bins=round(nrow(temp)/2)) + arg.return +
+              ggplot2::coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)+
+              ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
+                    panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text=ggplot2::element_text(size=12),
+                    axis.title=ggplot2::element_text(size=12))
           } else {
             NULL
           }}
@@ -1606,12 +1609,12 @@
             temp <- values$dataset
             temp$val <- 1:nrow(temp)
             temp <- outlier_plot_int(temp, input$column_check, input$dat.remove, input$x_dist, plot_type=3)
-            ggplot(temp, aes(x=fit_quants, y=data_quants)) + geom_point(shape=1) + geom_abline() +
-              labs(x='Theoretical Quantiles', y='Sample Quantiles', title=paste('Q-Q plot of', input$x_dist, 'fit against data'))+
-              coord_cartesian(xlim = ranges3$x, ylim = ranges3$y, expand = FALSE)+
-              theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-                    panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.text=element_text(size=12),
-                    axis.title=element_text(size=12))
+            ggplot2::ggplot(temp, ggplot2::aes(x=fit_quants, y=data_quants)) + ggplot2::geom_point(shape=1) + ggplot2::geom_abline() +
+              ggplot2::labs(x='Theoretical Quantiles', y='Sample Quantiles', title=paste('Q-Q plot of', input$x_dist, 'fit against data'))+
+              ggplot2::coord_cartesian(xlim = ranges3$x, ylim = ranges3$y, expand = FALSE)+
+              ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
+                    panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text=ggplot2::element_text(size=12),
+                    axis.title=ggplot2::element_text(size=12))
           } else {
             NULL
           }}
@@ -1770,7 +1773,6 @@
       })
       ##----        
       
-      
       #----
       #Zonal definition
       #----
@@ -1848,9 +1850,9 @@
           #warning('This step cannot be completed. Observations not assigned to zones.')
         } else {
           temp <- data.frame(table(values$dataset$ZoneID))
-          ggplot(values$dataset[which(values$dataset$ZoneID %in% temp[which(temp$Freq > input$min_haul_ac),1]), ], aes(x=ZoneID)) + geom_histogram() + 
-            theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-                               panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+          ggplot2::ggplot(values$dataset[which(values$dataset$ZoneID %in% temp[which(temp$Freq > input$min_haul_ac),1]), ], ggplot2::aes(x=ZoneID)) + ggplot2::geom_histogram() + 
+            ggplot2::theme_bw() + ggplot2::theme(panel.border = ggplot2::element_blank(), panel.grid.major = ggplot2::element_blank(),
+                               panel.grid.minor = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"))
         }
       })
       
@@ -2404,7 +2406,7 @@
       observeEvent(input$callTextDownloadUp, {
         output$downloadTextUp <- downloadHandler(
           filename = function() {
-            paste0(system.file(package='FishSET'), '/output/StoredText.txt')
+            paste0(locoutput(), 'StoredText.txt')
           },
           content = function(file) {
             writeLines(savedText$answers, file)
@@ -2417,7 +2419,7 @@
       observeEvent(input$callTextDownloadExplore, {
         output$downloadTextExplore <- downloadHandler(
           filename = function() {
-            paste0(system.file(package='FishSET'), '/output/StoredText.txt')
+            paste0(locoutput(), 'StoredText.txt')
           },
           content = function(file) {
             writeLines(savedText$answers, file)
@@ -2430,7 +2432,7 @@
       observeEvent(input$callTextDownloadAnal,{
         output$downloadTextAnal<- downloadHandler(
           filename = function() {
-            paste0(system.file(package='FishSET'), '/output/StoredText.txt')
+            paste0(locoutput(), 'StoredText.txt')
           },
           content = function(file) {
             writeLines(savedText$answers, file)
@@ -2443,7 +2445,7 @@
       observeEvent(input$callTextDownload,{
         output$downloadText <- downloadHandler(
           filename = function() {
-            paste0(system.file(package='FishSET'), '/output/StoredText.txt')
+            paste0(locoutput(), 'StoredText.txt')
           },
           content = function(file) {
             writeLines(savedText$answers, file)
@@ -2456,7 +2458,7 @@
       observeEvent(input$callTextDownloadNew, {
         output$downloadTextNew <- downloadHandler(
           filename = function() {
-            paste0(system.file(package='FishSET'), '/output/StoredText.txt')
+            paste0(locoutput(), 'StoredText.txt')
           },
           content = function(file) {
             writeLines(savedText$answers, file)
@@ -2469,7 +2471,7 @@
       observeEvent(input$callTextDownloadBook, {
         output$downloadTextBook <- downloadHandler(
           filename = function() {
-            paste0(system.file(package='FishSET'), '/output/StoredText.txt')
+            paste0(locoutput(), 'StoredText.txt')
           },
           content = function(file) {
             writeLines(savedText$answers, file)
@@ -2483,7 +2485,7 @@
       observeEvent(input$downloadplot, {
         output$downloadplotHIDE <<- downloadHandler(
           filename = function() {
-            paste0(system.file(package='FishSET'), '/output/', input$projectname, 'Outlier.png')
+            paste0(locoutput(), input$projectname, 'Outlier.png')
           },
           content = function(file) {
             ggplot2::ggsave(file, plot=outlier_plot(values$dataset, input$column_check, input$dat.remove, input$x_dist))
@@ -2496,9 +2498,9 @@
         output$downloadplotAnalHIDE <<- downloadHandler(
           filename = function() {
             if(input$corr_reg=='Correlation'){
-              paste0(system.file(package='FishSET'), '/output/', input$projectname, 'CorrelationPlot.png')
+              paste0(locoutput(), input$projectname, 'CorrelationPlot.png')
             } else {
-              paste0(system.file(package='FishSET'), '/output/', input$projectname,'RegressionPlot.png')
+              paste0(locoutput(), input$projectname,'RegressionPlot.png')
             }
           },
           content = function(file) {
@@ -2517,11 +2519,11 @@
           filename = function() {
             if(input$plot_type=='Temporal'){
               
-              paste0(system.file(package='FishSET'), 'output/', input$projectname,'TemporalPlot.png')
+              paste0(locoutput(), input$projectname,'TemporalPlot.png')
             } else if(input$plot_type=='Spatial') {
-              paste0(system.file(package='FishSET'), 'output/', input$projectname,'SpatialPlot.png') 
+              paste0(locoutput(), input$projectname,'SpatialPlot.png') 
             } else {
-              paste0(system.file(package='FishSET'), 'output/', input$projectname,'x-yPlot.png') 
+              paste0(locoutput(), input$projectname,'x-yPlot.png') 
             }
           },
           content = function(file) {
@@ -2530,16 +2532,16 @@
             } else if(input$plot_type=='Spatial'){
               longitude <- which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1]
               latitude <- which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]
-              cf <- coord_fixed()
+              cf <- ggplot2::coord_fixed()
               cf$default <- TRUE
-              p1 <- ggplot(data = map_data("world"), mapping = aes(x = long, y = lat, group=group)) + 
-                geom_polygon(color = "black", fill = "gray") + 
-                geom_point(data = values$dataset, aes(x = values$dataset[,longitude], y = values$dataset[,latitude], group=rep(1, nrow(values$dataset))), color = "red", size = 1) +
-                cf + coord_fixed(xlim = ranges_spatial$x, ylim = ranges_spatial$y, ratio=1.3, expand = TRUE)+
-                labs(x='Longitude', y='Latitude', subtitle='Observed locations')+
-                theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-                      panel.background = element_blank(),  axis.text=element_text(size=12),
-                      axis.title=element_text(size=12),panel.border = element_rect(colour = "black", fill=NA, size=1) )
+              p1 <- ggplot2::ggplot(data = ggplot2::map_data("world"), mapping = ggplot2::aes(x = long, y = lat, group=group)) + 
+                ggplot2::geom_polygon(color = "black", fill = "gray") + 
+                ggplot2::geom_point(data = values$dataset, ggplot2::aes(x = values$dataset[,longitude], y = values$dataset[,latitude], group=rep(1, nrow(values$dataset))), color = "red", size = 1) +
+                cf + ggplot2::coord_fixed(xlim = ranges_spatial$x, ylim = ranges_spatial$y, ratio=1.3, expand = TRUE)+
+                ggplot2::labs(x='Longitude', y='Latitude', subtitle='Observed locations')+
+                ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
+                      panel.background = ggplot2::element_blank(),  axis.text=ggplot2::element_text(size=12),
+                      axis.title=ggplot2::element_text(size=12),panel.border = ggplot2::element_rect(colour = "black", fill=NA, size=1) )
               
               ggplot2::ggsave(file, plot=suppressWarnings(ggpubr::ggarrange(p1, plotInput_kernel(),ncol =2, nrow = 1)), 
                               device=function(..., width, height) grDevices::png(..., width = 12, height = 4, res = 300, units = "in"))
@@ -2552,26 +2554,26 @@
       })
       
       observeEvent(input$downloadTableExplore, {
-        write.csv(gtmt_table(), paste0(system.file(package='FishSET'), 'output/', input$projectname,'GetisOrdMoransI.csv'))
+        write.csv(gtmt_table(), paste0(locoutput(), input$projectname,'GetisOrdMoransI.csv'))
       })
       
       observeEvent(input$downloaddata, {
         if(input$checks=='Summary table'){
-          write.csv(tableInputSummary(), paste0(system.file(package='FishSET'), 'output/', input$projectname,'summary_table.csv'))
+          write.csv(tableInputSummary(), paste0(locoutput(), input$projectname,'summary_table.csv'))
         } else if(input$checks=='Outliers'){
-          write.csv(tableInputOutlier(),paste0(system.file(package='FishSET'), 'output/', input$projectname,'outlier_table.csv'))
+          write.csv(tableInputOutlier(),paste0(locoutput(), input$projectname,'outlier_table.csv'))
         }
       })
       
       observeEvent(input$downloaddataAnal, {
         if(length(input$corr_select)>2){
           output$downloaddataAnalHIDE <<- downloadHandler(
-            write.csv(tableInputCorr(), paste0(system.file(package='FishSET'), 'output/', input$projectname,'correlation_table.csv'))
+            write.csv(tableInputCorr(), paste0(locoutput(), input$projectname,'correlation_table.csv'))
           )
         } else {
           output$downloaddataAnalHIDE <<- downloadHandler(
             filename = function() {
-              paste0(system.file(package='FishSET'), 'output/', input$projectname,'correlation_analysis.png')
+              paste0(locoutput(), input$projectname,'correlation_analysis.png')
             },
             content = function(file) {
               png(file)
@@ -2610,10 +2612,28 @@
       
       observe({
         req(input$uploadbookmark)
-        
-  ##----
-        updateSelectInput(session, "alternatives", selected = bookmarkedstate()$alternatives) 
+          req(bookmarkedstate()$loadDat==1)
+          if(bookmarkedstate()$loadmainsource=="FishSET database"){
+          updateTextInput(session, 'projectname', value = bookmarkedstate()$projectname)
+          #values$dataset <- table_view(paste0(input$projectname, 'MainDataTable'))
+          }
+      })
+      
+      observe({
+        req(input$uploadbookmark)
+        req(input$projectname)
+        req(bookmarkedstate()$loadDat==1)
+        if(bookmarkedstate()$loadmainsource=="FishSET database"){
+          values$dataset <- table_view(paste0(input$projectname, 'MainDataTable'))
+        }
+      })
+      
+      observeEvent(input$uploadbookmark, {
+        req(input$projectname)
+        if(colnames(values$dataset)[1]!='var1'){
+          #-----
         updateSelectInput(session, "alt_var_ac", selected = bookmarkedstate()$alt_var_ac) 
+        updateSelectInput(session, "alternatives", selected = bookmarkedstate()$alternatives) 
         updateSelectInput(session, "calc_method", selected = bookmarkedstate()$calc_method) 
         updateSelectInput(session, "case_ac", selected = bookmarkedstate()$case_ac) 
         updateSelectInput(session, "cat", selected = bookmarkedstate()$cat) 
@@ -2623,16 +2643,20 @@
         updateSelectInput(session, "catchBase", selected = bookmarkedstate()$catchBase) 
         updateSelectInput(session, "catche", selected = bookmarkedstate()$catche) 
         updateRadioButtons(session, 'checks', selected = bookmarkedstate()$checks)
-        updateCheckboxInput(session, "closest_pt_ac", selected = bookmarkedstate()$closest_pt_ac) 
+        updateRadioButtons(session, 'choiceTab', selected=bookmarkedstate()$choiceTab)
+        updateCheckboxInput(session, 'sp_colgeartype', value=bookmarkedstate()$sp_colgeartype)
+        updateCheckboxInput(session, 'sp_collocation', value=bookmarkedstate()$sp_collocation)
+        updateCheckboxInput(session, "closest_pt_ac", value = bookmarkedstate()$closest_pt_ac) 
         updateSelectInput(session, "column_check", selected = bookmarkedstate()$column_check) 
         updateSelectInput(session, "corr_reg", selected = bookmarkedstate()$corr_reg) 
+        updateSelectInput(session, "corr_select", selected = bookmarkedstate()$corr_select) 
         updateSelectInput(session, "create_method", selected = bookmarkedstate()$create_method)
         updateSelectInput(session, "define_format", selected = bookmarkedstate()$define_format) 
-        updateNumericInput(session, "detailreport", selected = bookmarkedstate()$detailreport) 
+        updateNumericInput(session, "detailreport", value = bookmarkedstate()$detailreport) 
         updateSelectInput(session, "dist", selected = bookmarkedstate()$dist) 
         updateSelectInput(session, "dist_ac", selected = bookmarkedstate()$dist_ac) 
         updateSelectInput(session, "dummclosfunc", selected = bookmarkedstate()$dummclosfunc) 
-        updateCheckboxInput(session, "dummy_exp", selected = bookmarkedstate()$dummy_exp) 
+        updateCheckboxInput(session, "dummy_exp", value = bookmarkedstate()$dummy_exp) 
         updateSelectInput(session, "dummyfunc", selected = bookmarkedstate()$dummyfunc) 
         updateSelectInput(session, "dummypolydate", selected = bookmarkedstate()$dummypolydate) 
         updateSelectInput(session, "dummypolyfunc", selected = bookmarkedstate()$dummypolyfunc) 
@@ -2652,21 +2676,21 @@
         updateSelectInput(session, "fun_time", selected = bookmarkedstate()$fun_time) 
         updateSelectInput(session, "gridVariablesInclude", selected = bookmarkedstate()$gridVariablesInclude) 
         updateSelectInput(session, "group", selected = bookmarkedstate()$group) 
-        updateSelectInput(session, "Haul_Trip_IDVar", selected = bookmarkedstate()$Haul_Trip_IDVar) 
         updateSelectInput(session, "haul_order", selected = bookmarkedstate()$haul_order) 
+        updateSelectInput(session, "Haul_Trip_IDVar", selected = bookmarkedstate()$Haul_Trip_IDVar) 
         updateSelectInput(session, "haul_order_SL", selected = bookmarkedstate()$haul_order_SL) 
-        updateCheckboxInput(session, "hull_polygon_ac", selected = bookmarkedstate()$hull_polygon_ac)
+        updateCheckboxInput(session, "hull_polygon_ac", value = bookmarkedstate()$hull_polygon_ac)
         updateSelectInput(session, "ID", selected = bookmarkedstate()$ID) 
         updateSelectInput(session, "indeVarsForModel", selected = bookmarkedstate()$indeVarsForModel) 
         updateSelectInput(session, "lag_method", selected = bookmarkedstate()$lag_method) 
         updateSelectInput(session, "lat", selected = bookmarkedstate()$lat) 
-        updateSelectInput(session, "lat_grid_altc", selected = bookmarkedstate()$lat_grid_altc) 
         updateSelectInput(session, "lat_dat_ac", selected = bookmarkedstate()$lat_dat_ac) 
         updateSelectInput(session, "lat_dat_SL", selected = bookmarkedstate()$lat_dat_SL) 
         updateSelectInput(session, "lat_grid_SL", selected = bookmarkedstate()$lat_grid_SL) 
+        updateSelectInput(session, "lat_grid_altc", selected = bookmarkedstate()$lat_grid_altc) 
         updateSelectInput(session, "latBase", selected = bookmarkedstate()$latBase) 
-        updateCheckboxInput(session, "LatLon_Filter", selected = bookmarkedstate()$LatLon_Filter) 
-        updateCheckboxInput(session, "lockk", selected = bookmarkedstate()$lockk) 
+        updateCheckboxInput(session, "LatLon_Filter", value = bookmarkedstate()$LatLon_Filter) 
+        updateCheckboxInput(session, "lockk", value = bookmarkedstate()$lockk) 
         updateSelectInput(session, "lon", selected = bookmarkedstate()$lon) 
         updateSelectInput(session, "lon_dat", selected = bookmarkedstate()$lon_dat) 
         updateSelectInput(session, "lon_dat_ac", selected = bookmarkedstate()$lon_dat_ac) 
@@ -2677,26 +2701,29 @@
         updateSelectInput(session, "long_grid_altc", selected = bookmarkedstate()$long_grid_altc)
         updateSelectInput(session, "mid_end", selected = bookmarkedstate()$mid_end) 
         updateSelectInput(session, "mid_start", selected = bookmarkedstate()$mid_start) 
-        updateNumericInput(session, "min_haul_ac", selected = bookmarkedstate()$min_haul_ac) 
-        updateNumericInput(session, "mIter", selected = bookmarkedstate()$mIter) 
+        updateNumericInput(session, "min_haul_ac", value = bookmarkedstate()$min_haul_ac) 
+        updateNumericInput(session, "mIter", value = bookmarkedstate()$mIter) 
+        updateSelectInput(session, "mtgtcat", selected = bookmarkedstate()$mtgtcat) 
+        updateSelectInput(session, "mtgtlonlat", selected = bookmarkedstate()$mtgtlonlat) 
         updateSelectInput(session, "NA_Filter", selected = bookmarkedstate()$NA_Filter) 
         updateSelectInput(session, "NAN_Filter", selected = bookmarkedstate()$NAN_Filter) 
         updateSelectInput(session, "numfunc", selected = bookmarkedstate()$numfunc) 
         updateSelectInput(session, "occasion_ac", selected = bookmarkedstate()$occasion_ac) 
         updateSelectInput(session, "plot_table", selected = bookmarkedstate()$plot_table) 
         updateSelectInput(session, "plot_type", selected = bookmarkedstate()$plot_type) 
-        updateNumericInput(session, "polyn", selected = bookmarkedstate()$polyn) 
+        updateTextInput(session, 'polyear', vaue=bookmarkedstate()$polyear)
+        updateNumericInput(session, "polyn", value = bookmarkedstate()$polyn) 
         updateSelectInput(session, "port_dat_dist", selected = bookmarkedstate()$port_dat_dist) 
         updateSelectInput(session, "port_end", selected = bookmarkedstate()$port_end) 
         updateSelectInput(session, "port_start", selected = bookmarkedstate()$port_start) 
         updateSelectInput(session, "price", selected = bookmarkedstate()$price)
         updateSelectInput(session, "priceBase", selected = bookmarkedstate()$priceBase) 
-        updateTextInput(session, 'projectname', selected = bookmarkedstate()$projectname)
+        updateTextInput(session, 'projectname', value = bookmarkedstate()$projectname)
         updateSelectInput(session, "p2fun", selected = bookmarkedstate()$p2fun) 
         updateSelectInput(session, "p3fun", selected = bookmarkedstate()$p3fun) 
-        updateNumericInput(session, "quant_cat", selected = bookmarkedstate()$quant_cat) 
-        updateNumericInput(session, "relTolX", selected = bookmarkedstate()$relTolX) 
-        updateNumericInput(session, "reportfreq", selected = bookmarkedstate()$reportfreq) 
+        updateNumericInput(session, "quant_cat", value = bookmarkedstate()$quant_cat) 
+        updateNumericInput(session, "relTolX", value = bookmarkedstate()$relTolX) 
+        updateNumericInput(session, "reportfreq", value = bookmarkedstate()$reportfreq) 
         updateSelectInput(session, "sp_col", selected = bookmarkedstate()$sp_col) 
         updateSelectInput(session, "start", selected = bookmarkedstate()$start) 
         updateSelectInput(session, "start_latlon", selected = bookmarkedstate()$start_latlon) 
@@ -2704,11 +2731,11 @@
         updateSelectInput(session, "starting_port", selected = bookmarkedstate()$starting_port) 
         updateSelectInput(session, "starting_port_SL", selected = bookmarkedstate()$starting_port_SL) 
         updateSelectInput(session, "startloc", selected = bookmarkedstate()$startloc) 
-        updateTextInput(session, "target", selected = bookmarkedstate()$target) 
-        updateNumericInput(session, "temp_lag", selected = bookmarkedstate()$temp_lag) 
-        updateNumericInput(session, "temp_window", selected = bookmarkedstate()$temp_window) 
+        updateTextInput(session, "target", value = bookmarkedstate()$target) 
+        updateNumericInput(session, "temp_lag", value = bookmarkedstate()$temp_lag) 
+        updateNumericInput(session, "temp_window", value = bookmarkedstate()$temp_window) 
         updateSelectInput(session, "temporal", selected = bookmarkedstate()$temporal) 
-        updateNumericInput(session, "temp_year", selected = bookmarkedstate()$temp_year) 
+        updateNumericInput(session, "temp_year", value = bookmarkedstate()$temp_year) 
         updateSelectInput(session, "temp_var", selected = bookmarkedstate()$temp_var) 
         updateSelectInput(session, "TimeVar", selected = bookmarkedstate()$TimeVar) 
         updateSelectInput(session, "trans", selected = bookmarkedstate()$trans)
@@ -2720,21 +2747,21 @@
         updateSelectInput(session, "trip_cent_weight", selected = bookmarkedstate()$trip_cent_weight) 
         updateSelectInput(session, "trip_ID", selected = bookmarkedstate()$trip_ID) 
         updateSelectInput(session, "trip_id_SL", selected = bookmarkedstate()$trip_id_SL) 
-        updateCheckboxInput(session, "use_geartype", selected = bookmarkedstate()$use_geartype ) 
+        updateCheckboxInput(session, "use_geartype", value = bookmarkedstate()$use_geartype ) 
         updateSelectInput(session, "units", selected = bookmarkedstate()$units) 
-        updateCheckboxInput(session, "Unique_Filter", selected = bookmarkedstate()$Unique_Filter) 
+        updateCheckboxInput(session, "Unique_Filter", value = bookmarkedstate()$Unique_Filter) 
         updateSelectInput(session, "unique_identifier", selected = bookmarkedstate()$unique_identifier) 
-        updateCheckboxInput(session, "use_location", selected = bookmarkedstate()$use_location) 
+        updateCheckboxInput(session, "use_location", value = bookmarkedstate()$use_location) 
         updateSelectInput(session, "var_x", selected = bookmarkedstate()$var_x) 
         updateSelectInput(session, "var_y", selected = bookmarkedstate()$var_y) 
         updateSelectInput(session, "VarCreateTop", selected = bookmarkedstate()$VarCreateTop) 
         updateSelectInput(session, "weight_var_ac", selected = bookmarkedstate()$weight_var_ac) 
         updateSelectInput(session, "xTime", selected = bookmarkedstate()$xTime) 
+        updateSelectInput(session, 'xWeight', selected = bookmarkedstate()$xWeight)
         updateSelectInput(session, "x_dist", selected = bookmarkedstate()$x_dist) 
-        
-  
-        
-      })
+        }
+#----
+        })
       ###----
       
     }

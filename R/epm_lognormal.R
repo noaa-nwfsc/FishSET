@@ -131,7 +131,7 @@ epm_lognormal <- function(starts3, dat, otherdat, alts, project, expname, mod.na
     
     gridmu <- (matrix(gridcoef, obsnum, alts * gridnum, byrow = TRUE) * griddat)
     dim(gridmu) <- c(nrow(gridmu), alts, gridnum)
-    gridmu <- rowSums(gridmu, dim = 2)
+    gridmu <- rowSums(gridmu, dims = 2)
     
     expgridcoef <- exp(gridmu + (0.5 * (matrix(sigmaa, obsnum, alts)^2)))
     
@@ -145,7 +145,7 @@ epm_lognormal <- function(starts3, dat, otherdat, alts, project, expname, mod.na
         dat[, 3:(dim(dat)[2])]
     dim(djztemp) <- c(nrow(djztemp), ncol(djztemp)/(alts + 1), alts + 1)
     
-    prof <- rowSums(djztemp, dim = 2)
+    prof <- rowSums(djztemp, dims = 2)
     profx <- prof - prof[, 1]
     
     exb <- exp(profx/matrix(sigmac, dim(prof)[1], dim(prof)[2]))

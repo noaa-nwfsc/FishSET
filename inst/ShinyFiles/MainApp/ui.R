@@ -121,6 +121,13 @@
                                onclick = "setTimeout(function(){window.close();},500);",  # close browser
                                "Close app"
                              ),
+                             tags$button(
+                               id = 'loadDat',
+                               type = "button",
+                               style = "color: white; background-color: blue;",
+                               class = "btn action-button",
+                               "Load data"
+                             ),
                              tags$br(), tags$br(),
                              fluidRow(
                                textInput('projectname', 'Name of project'),
@@ -666,7 +673,7 @@
                                       Output saved in fishset_db sqLite database. Previously saved expected catch/revenue output will be written over if the', 
                                       tags$i('Replace previously saved'), 'box is unchecked. Checking this box will add new output to existing output.'),
                                tags$br(), tags$br(),
-                               DTOutput('spars_table'),
+                               DT::DTOutput('spars_table'),
                                plotOutput('spars_plot')
                              )
                              )),

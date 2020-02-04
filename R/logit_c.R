@@ -99,7 +99,7 @@ logit_c <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
     gridbetas <- (matrix(rep(gridcoef, each = alts), obsnum, alts * gridnum,
         byrow = TRUE) * griddat)
     dim(gridbetas) <- c(nrow(gridbetas), alts, gridnum)
-    gridbetas <- rowSums(gridbetas, dim = 2)
+    gridbetas <- rowSums(gridbetas, dims = 2)
     
     intbetas <- .rowSums(intdat * matrix(intcoef, obsnum, intnum, byrow = TRUE),
         obsnum, intnum)
@@ -110,7 +110,7 @@ logit_c <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
         dat[, 3:(dim(dat)[2])]
     dim(djztemp) <- c(nrow(djztemp), ncol(djztemp)/(alts + 1), alts + 1)
     
-    prof <- rowSums(djztemp, dim = 2)
+    prof <- rowSums(djztemp, dims = 2)
     profx <- prof - prof[, 1]
     
     exb <- exp(profx)

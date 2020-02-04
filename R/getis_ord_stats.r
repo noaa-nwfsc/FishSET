@@ -12,7 +12,7 @@ getis_ord_stats <- function(dat, varofint, gridfile, lon.dat=NULL, lat.dat=NULL,
   #' @param lat.grid Latitude of points from gridfile.
   #' @param cat Variable defining the individual areas or zones.
   #' @details Calculates degree, within each zone, that high or low values of the varofint cluster in space. 
-  #' Function utilizes the localmoran and knearneigh functions from the spdep package. All parameters are set to NULL except the varofint and location variables.
+  #' Function utilizes the localG and knearneigh functions from the spdep package. All parameters are set to NULL except the varofint and location variables.
   #' The spatial input is a row-standardized spatial weights matrix for computed nearest neighbor matrix, which is the null setting for the nb2listw function.
   #' Requires A data frame with area as a factor, the lon/lat centroid for each area ("centroid_lon",
   #'     "centroidlat"), the path_lon/path_lat outlining each area

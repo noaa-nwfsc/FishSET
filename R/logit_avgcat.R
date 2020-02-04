@@ -97,7 +97,7 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
     gridbetas <- (matrix(gridcoef, obsnum, (alts - 1) * gridnum, byrow = TRUE) *
         griddat[, rep(1:gridnum, each = (alts - 1))])
     dim(gridbetas) <- c(nrow(gridbetas), (alts - 1), gridnum)
-    gridbetas <- rowSums(gridbetas, dim = 2)
+    gridbetas <- rowSums(gridbetas, dims = 2)
     
     intbetas <- .rowSums(intdat * matrix(intcoef, obsnum, intnum, byrow = TRUE), 
         obsnum, intnum)
@@ -109,7 +109,7 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
     dim(djztemp) <- c(nrow(djztemp), ncol(djztemp)/((alts - 1) + 1),
         (alts - 1) + 1)
     
-    prof <- rowSums(djztemp, dim = 2)
+    prof <- rowSums(djztemp, dims = 2)
     profx <- prof - prof[, 1]
     
     exb <- exp(profx)
