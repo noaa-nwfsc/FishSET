@@ -4,6 +4,7 @@
 #' 
 #' @param dat Main data frame over which to apply function. Table in fishset_db 
 #'   database should contain the string `MainDataTable`.
+#' @param project name of project.
 #' @param v vessel ID variable to count.
 #' @param t time variable containing dates to aggregate by.
 #' @param period Time period to count by. Options include "year", "year_abv", 
@@ -14,16 +15,12 @@
 #' @param position_grp Positioning of bar plot. Options include "stack", "dodge", 
 #'   and "fill". 
 #' @param output table or plot.
-#' @param projectname name of project.
 #' @param ... other arguments passed on to \code{\link{aggregate}}. 
 #' @return Table or plot of the number of unique vessels within a time period.
 #' @example 
 #' \dontrun{
-#' data(PollockData)
 #' 
-#' PollockData$VESSEL_ID <- sample(1:30, nrow(PollockData), replace = TRUE)
-#' 
-#' vessel_count(poldat, "VESSEL_ID", "DATE_FISHING_BEGAN", period = "month", 
+#' vessel_count('pollockMainDataTable', "VESSEL_ID", "DATE_FISHING_BEGAN", period = "month", 
 #'              group = "DISEMBARKED_PORT", position_grp = "dodge", output = "plot")
 #' }
 #' @export vessel_count
@@ -33,7 +30,7 @@
 
 
 
-vessel_count <- function(dat, v, t, period = "month", group = NULL, position_grp = "stack", output = c("table", "plot"), projectname, ...) {
+vessel_count <- function(dat, project, v, t, period = "month", group = NULL, position_grp = "stack", output = c("table", "plot"), ...) {
   
   #Call in datasets
   out <- data_pull(dat)
@@ -184,12 +181,12 @@ vessel_count <- function(dat, v, t, period = "month", group = NULL, position_grp
   
     vessel_count_function <- list()
     vessel_count_function$functionID <- "vessel_count"
-    vessel_count_function$args <- c(dat, v, t, period, group, position_grp, output, projectname)
+    vessel_count_function$args <- c(dat, project, v, t, period, group, position_grp, output)
     vessel_count_function$kwargs <- ""
     log_call(vessel_count_function)
   
   # Output folder
-    write.csv(count, paste0(locoutput(), vessel_count_function$args$projectname,'vessel_count', paste0(Sys.Date(), '.csv')))
+    write.csv(count, paste0(locoutput(), project,'_vessel_count', Sys.Date(), '.csv'))
     
-    ggplot2::ggsave(paste0(locoutput(), vessel_count_function$args$projectname,'vessel_count', paste0(Sys.Date(), '.png')))
+    ggplot2::ggsave(paste0(locoutput(), project,'_vessel_count', Sys.Date(), '.png'))
 }
