@@ -19,7 +19,6 @@
 #' @return Table or plot of the number of unique vessels within a time period.
 #' @example 
 #' \dontrun{
-# PollockData$VESSEL_ID <- sample(1:30, nrow(PollockData), replace = TRUE)
 #' 
 #' vessel_count('pollockMainDataTable', "VESSEL_ID", "DATE_FISHING_BEGAN", period = "month", 
 #'              group = "DISEMBARKED_PORT", position_grp = "dodge", output = "plot")
@@ -182,12 +181,12 @@ vessel_count <- function(dat, project, v, t, period = "month", group = NULL, pos
   
     vessel_count_function <- list()
     vessel_count_function$functionID <- "vessel_count"
-    vessel_count_function$args <- c(dat, v, t, period, group, position_grp, output, projectname)
+    vessel_count_function$args <- c(dat, project, v, t, period, group, position_grp, output)
     vessel_count_function$kwargs <- ""
     log_call(vessel_count_function)
   
   # Output folder
-    write.csv(count, paste0(locoutput(), project,'_vessel_count', paste0(Sys.Date(), '.csv')))
+    write.csv(count, paste0(locoutput(), project,'_vessel_count', Sys.Date(), '.csv'))
     
-    ggplot2::ggsave(paste0(locoutput(), project,'_vessel_count', paste0(Sys.Date(), '.png')))
+    ggplot2::ggsave(paste0(locoutput(), project,'_vessel_count', Sys.Date(), '.png'))
 }
