@@ -137,7 +137,7 @@ logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod
     gridbetas <- (matrix(gridcoef[1:(alts * gridnum), ], obsnum, alts * gridnum,
         byrow = TRUE) * griddat)
     dim(gridbetas) <- c(nrow(gridbetas), alts, gridnum)
-    gridbetas <- rowSums(gridbetas, dim = 2)
+    gridbetas <- rowSums(gridbetas, dims = 2)
     
     intbetas <- .rowSums(intdat * matrix(intcoef, obsnum, intnum, byrow = TRUE), 
         obsnum, intnum)
@@ -149,7 +149,7 @@ logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod
         dat[, 3:(dim(dat)[2])]
     dim(djztemp) <- c(nrow(djztemp), ncol(djztemp)/(alts + 1), alts + 1)
     
-    prof <- rowSums(djztemp, dim = 2)
+    prof <- rowSums(djztemp, dims = 2)
     profx <- prof - prof[, 1]
     
     exb <- exp(profx/matrix(sigmac, dim(prof)[1], dim(prof)[2]))
