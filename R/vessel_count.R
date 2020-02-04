@@ -2,15 +2,30 @@
 #' 
 #' Generates a table or plot of the number of unique vessels by time period
 #' 
-#' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param dat Main data frame over which to apply function. Table in fishset_db 
+#'   database should contain the string `MainDataTable`.
 #' @param v vessel ID variable to count.
 #' @param t time variable containing dates to aggregate by.
-#' @param period Time period to count by. Options include "year", "year_abv", "month", "month_abv", "month_num", "weeks", 
-#' "weekday", "weekday_abv", "weekday_num", "day", and "day_of_year".
-#' @param output table or plot
-#' @return Table or plot of the number of unique vessels within a time period
+#' @param period Time period to count by. Options include "year", "year_abv", 
+#'   "month", "month_abv", "month_num", "weeks" (weeks in the year), 
+#'   "weekday", "weekday_abv", "weekday_num", "day" (day of the month), 
+#'   and "day_of_year".
+#' @param group factor variable to group count by.
+#' @param position_grp Positioning of bar plot. Options include "stack", "dodge", 
+#'   and "fill". 
+#' @param output table or plot.
+#' @param projectname name of project.
+#' @param ... other arguments passed on to \code{\link{aggregate}}. 
+#' @return Table or plot of the number of unique vessels within a time period.
 #' @example 
+#' \dontrun{
+#' data(PollockData)
 #' 
+#' PollockData$VESSEL_ID <- sample(1:30, nrow(PollockData), replace = TRUE)
+#' 
+#' vessel_count(poldat, "VESSEL_ID", "DATE_FISHING_BEGAN", period = "month", 
+#'              group = "DISEMBARKED_PORT", position_grp = "dodge", output = "plot")
+#' }
 #' @export vessel_count
 #' @import ggplot2
 #' @importFrom stats aggregate
@@ -18,7 +33,7 @@
 
 
 
-vessel_count <- function(dat, v, t, period = "month", group = NULL, output = c("table", "plot"), ...) {
+vessel_count <- function(dat, v, t, period = "month", group = NULL, position_grp = "stack", output = c("table", "plot"), projectname, ...) {
   
   #Call in datasets
   out <- data_pull(dat)
@@ -51,6 +66,13 @@ vessel_count <- function(dat, v, t, period = "month", group = NULL, output = c("
     v_freq <- c("vessel_freq")
     
     colnames(count) <- c(t, v_freq)
+    
+    mytheme <- ggplot2::theme(panel.grid.major = ggplot2::element_blank(), 
+                              panel.grid.minor = ggplot2::element_blank(), 
+                              panel.background = ggplot2::element_blank(), 
+                              axis.line = ggplot2::element_line(colour = "black"), 
+                              axis.text = ggplot2::element_text(size = 11), 
+                              axis.title = ggplot2::element_text(size = 11))
     
   } else {
     
@@ -86,7 +108,8 @@ vessel_count <- function(dat, v, t, period = "month", group = NULL, output = c("
     } else {
       
       count[[t]] <- factor(count[[t]], 
-                           levels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"), 
+                           levels = c("Sunday", "Monday", "Tuesday", "Wednesday", 
+                                      "Thursday", "Friday", "Saturday"), 
                            ordered = T)
     }
     
@@ -98,18 +121,23 @@ vessel_count <- function(dat, v, t, period = "month", group = NULL, output = c("
       
       if (is.null(group)) {
         
-        ggplot2::ggplot(data = count, aes(x = count[[t]], y = count[[v_freq]])) + 
-                 geom_col() +
-                 labs(x = paste(t, paste0("(", period, ")")),
-                      y = v_freq)  
+        ggplot2::ggplot(data = count, ggplot2::aes(x = count[[t]], 
+                                                   y = count[[v_freq]])) + 
+          ggplot2::geom_col() + 
+          ggplot2::labs(x = paste(t, paste0("(", period, ")")), 
+                        y = v_freq) + 
+          mytheme  
         
       } else {
         
-        ggplot2::ggplot(data = count, aes(x = count[[t]], y = count[[v_freq]], fill = count[[group]])) + 
-                 geom_col() +
-                 labs(x = paste(t, paste0("(", period, ")")),
-                      y = v_freq) + 
-                 scale_fill_discrete(name = group)
+        ggplot2::ggplot(data = count, ggplot2::aes(x = count[[t]], 
+                                                   y = count[[v_freq]],
+                                                   fill = count[[group]])) + 
+          ggplot2::geom_col(position = position_grp) +
+          ggplot2::labs(x = paste(t, paste0("(", period, ")")),
+                        y = v_freq) + 
+          ggplot2::scale_fill_discrete(name = group) +
+          mytheme
       }
     } 
     
@@ -125,41 +153,43 @@ vessel_count <- function(dat, v, t, period = "month", group = NULL, output = c("
       
       if (is.null(group)) {
         
-        ggplot2::ggplot(data = count, aes(x = count[[t]], y = count[[v_freq]])) + 
-                 geom_col() + 
-                 labs(x = paste(t, paste0("(", period, ")")), 
-                      y = v_freq) +
-                 scale_x_continuous(breaks = seq(from = min(count[[t]]), 
-                                                 to = max(count[[t]]), 
-                                                 by = round(nrow(count) * .2)))
+        ggplot2::ggplot(data = count, ggplot2::aes(x = count[[t]], 
+                                                   y = count[[v_freq]])) + 
+          ggplot2::geom_col() + 
+          ggplot2::labs(x = paste(t, paste0("(", period, ")")), 
+                        y = v_freq) +
+          ggplot2::scale_x_continuous(breaks = seq(from = min(count[[t]]), 
+                                                   to = max(count[[t]]), 
+                                                   by = round(nrow(count) * .2))) +
+          mytheme
         
       } else {
         
-        ggplot2::ggplot(data = count, aes(x = count[[t]], y = count[[v_freq]], fill = count[[group]])) + 
-                 geom_col() + 
-                 labs(x = paste(t, paste0("(", period, ")")), 
-                      y = v_freq) +
-                 scale_x_continuous(breaks = seq(from = min(count[[t]]), 
-                                                 to = max(count[[t]]), 
-                                                 by = round(nrow(count) * .2))) +
-                 scale_fill_discrete(name = group)
+        ggplot2::ggplot(data = count, ggplot2::aes(x = count[[t]], 
+                                                   y = count[[v_freq]], 
+                                                   fill = count[[group]])) + 
+          ggplot2::geom_col(position = position_grp) + 
+          ggplot2::labs(x = paste(t, paste0("(", period, ")")), 
+                        y = v_freq) +
+          ggplot2::scale_x_continuous(breaks = seq(from = min(count[[t]]), 
+                                                   to = max(count[[t]]), 
+                                                   by = round(nrow(count) * .2))) +
+          ggplot2::scale_fill_discrete(name = group) +
+          mytheme
       }
     }
   }
 
   #Log the function 
-  if (output == "table") {
-    vessel_count_table_function <- list()
-    vessel_count_table_function$functionID <- "vessel_count"
-    vessel_count_table_function$args <- c(dat, v, t, period = "month", group = NULL, output = c("table", "plot"))
-    vessel_count_table_function$kwargs <- ""
-    log_call(vessel_count_table_function)
-  } else {
-    vessel_count_plot_function <- list()
-    vessel_count_plot_function$functionID <- "vessel_count"
-    vessel_count_plot_function$args <- c(dat, v, t, period = "month", group = NULL, output = c("table", "plot"))
-    vessel_count_plot_function$kwargs <- ""
-    log_call(vessel_count_plot_function)
-  }
   
+    vessel_count_function <- list()
+    vessel_count_function$functionID <- "vessel_count"
+    vessel_count_function$args <- c(dat, v, t, period, group, position_grp, output, projectname)
+    vessel_count_function$kwargs <- ""
+    log_call(vessel_count_function)
+  
+  # Output folder
+    write.csv(count, paste0(locoutput(), vessel_count_function$args$projectname,'vessel_count', paste0(Sys.Date(), '.csv')))
+    
+    ggplot2::ggsave(paste0(locoutput(), vessel_count_function$args$projectname,'vessel_count', paste0(Sys.Date(), '.png')))
 }
