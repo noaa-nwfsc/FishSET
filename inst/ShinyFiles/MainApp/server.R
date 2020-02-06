@@ -262,6 +262,164 @@
       
       ##----     
       
+      #Landing Page
+      ###----
+      output$AcrossTabsText <- renderUI({
+        if(input$AcrossTabs=='TRUE'){
+          tags$p(id='q1', 'All tabs have buttons to close the app and refresh the data. 
+                 Refreshing the data pulls the raw, unprocessed data from the FishSET database.', tags$br(),  tags$br(), 
+                 'Buttons to save plots and tables to the output folder are provided where appropriate.', tags$br(), tags$br(), 
+                 'Each tab has a space to write notes and a button to save notes to the output folder.', tags$br(),tags$br(), 
+                 'Each tab has a space where R script can be run. 
+                 Within the app, the primary dataset is called', tags$em('values$dataset'), 
+                 '.', tags$br(), 'To view the mean of the fifth column type',  tags$em('mean(values$dataset[,5])'), 
+                 'and click the', tags$em('Run'), 'button. To view summary details of 
+                 a column called Vessel_Length type', tags$em('summary(values$dataset$Vessel_Length)'), 
+                 'and push the', tags$em('Run'), 'button.', tags$br(),
+                 tags$div(style="display: inline-block; align:center", img(src="QuickStart1.png")))
+        }
+      })
+     
+      output$UploadTabsText <- renderUI({
+        if(input$UploadTab=='TRUE'){ 
+          p('Upload data sources (primary, port, gridded, auxiliary) from FishSET sqlite database or from source.', 
+            tags$br(), tags$br(),
+	          'To upload from a local file location select', tags$em('Upload new file'), 'and then browse to file location.', 
+            tags$br(),
+            'Fill in the project name.',
+            tags$br(),tags$br(),
+	          'To upload from the FishSET database, select', tags$em('FishSET database'), 'type in project name, and click the', tags$em('Load data'), 'button.'
+            #IMAGE
+            )
+        }
+      })
+      
+      output$ExploreTabsText <- renderUI({
+        if(input$ExplorTab=='TRUE'){ 
+          p('View and explore the primary data.',
+            tags$br(), tags$br(),
+         'From the table: Edit cells, remove variables from dataframe, filter table',
+         tags$br(),tags$br(),
+         'From plots: Observed location spatial plot can be zoomed in by double clicking a highlighted area.',
+         tags$br(), 'Click an individual point to identify the latitude and longitude of that point.',
+         #IMAGE
+         tags$br(),tags$br(),
+          "Make further selections on the left to display global Moran's I (measure of spatial autocorrelation) and
+          GetisOrd (measure of spatial clustering) statistics. These functions rely on the spdep package.  
+          All parameters are set to NULL except the variable to test for spatial autocorrelation and location variables. 
+          The spatial input is a row-standardized spatial weights matrix for computed nearest neighbor matrix, which is the null setting for the nb2listw function.
+            Both functions use the knearneigh function."
+          )
+        }
+      })
+      output$DQTabsText <- renderUI({
+        if(input$DQTab=='TRUE'){ 
+          p('View and correct for common data quality issues such as outliers and missing values.',
+            tags$br(),tags$br(),
+            'Options to remove or correct for data quality issues are displayed before the', tags$em('R expression'), 'box.',
+            tags$br(),
+            'To save modified data, click the', tags$em('save data to fishset_db database'), 'button.', 
+            tags$br(),tags$br(),
+          'The outlier plot is interactive.'
+          )
+        }
+      })
+      
+      output$AnalTabsText <- renderUI({
+        if(input$AnalTab=='TRUE'){ 
+          p('View correlation and simple linear regressions.', 
+            tags$br(),tags$br(),
+            'For correlations, variables can be removed from the', tags$em('select'), 'box by clicking on the variable and 
+            then hitting the backspace or delete button on your keyboard.',
+            tags$br(),
+            'Variables can be added by clicking an empty space in the', tags$em('select'), 'box.'
+            )
+        }
+      })
+      
+      output$NewVarsTabsText <- renderUI({
+        if(input$NewVarsTab=='TRUE'){ 
+          p('Modify or create new variables such as CPUE or trip mid-point.',
+            tags$br(),tags$br(),
+            'The first six rows of the dataset are displayed.',
+            tags$br(),
+            'After a function is created, by clicking the', tags$em('run function'), 'button, the new variable will be 
+            added as the last column of the data table.', 
+            tags$br(),
+            'The created function will be available for other analyses but will not be available for future use unless the', tags$em('save data'), 'button is pushed.',
+            tags$br(),tags$br(),
+            'Variable creation functions are grouped by type: Arithmetic and temporal, data transformations, dummy variables, nominal ID, spatial variables, and trip-level.',
+            tags$br(), tags$br(),
+            'Default variable names will be provided if the', tags$em('name of new variable'), 'box is left empty.'
+            )
+        }
+      })
+      
+      output$ZonalTabsText <- renderUI({
+        if(input$ZonalTab=='TRUE'){ 
+          p('Assign observations to zones and define alternative fishing choices.',
+            tags$br(), tags$br(),
+	         'There are three steps on this tab.',
+	         tags$br(), tags$br(),
+	         'The first step requires a spatial data set, such as a shape file, defining zones and calculates both the zone centroids and assigns observations to zones.',
+	         tags$br(),
+            'This step cannot be skipped.',
+	         tags$br(),
+	         'FishSET defaults to geographic centroids to define the center of each zone. 
+              To define the centroid weighted by a variable of your choice, select a variable in the weighted centroid box.',
+	          tags$br(),tags$br(),
+	          'The second step is to define the alternative fishing choices. These choices are used to develop the matrix of distances between alternative choices.',
+	         tags$br(),tags$br(),
+            'The last step, selecting catch and price variables, can be done in this tab or other tabs.'
+	         )
+        }
+      })
+      
+      output$ExpectedTabsText <- renderUI({
+        if(input$ExpectedTab=='TRUE'){ 
+          p('Define choices to calculate expectation of catch or revenue for alternative choices.',
+            tags$br(),tags$br(),
+            'Returns the expected catch or expected revenue data frame based on selected parameters along with three null outputs:', 
+            tags$br(),
+            'expected catch/revenue based on catch of the previous two day (short-term expected catch)', 
+            tags$br(),
+            'expected catch/revenue based on catch for the previous seven days (medium-term expected catch)', 
+            tags$br(),
+            'and expected catch/revenue based on catch in the previous year (long-term expected catch).'
+            )
+        }
+      })
+      
+      output$ModelTabsText <- renderUI({
+        if(input$ModelTab=='TRUE'){ 
+          p('Define likelihood function and model parameters before running models and comparing output.',
+            tags$br(),tags$br(),
+          'Click', tags$em('save model and add new model'), 'to save model choices and define another model.',
+          tags$br(), tags$br(),
+          'Defined models are shown in a table at the bottom of the screen.', 
+          tags$br(), tags$br(),
+          'Once all models have been defined, select ‘run models’ to run through all models.',
+          tags$br(), tags$br(),
+          'View and compare models in the ‘Compare models’ subtab')
+          #IMAGE
+        }
+      })
+      
+      output$BookmarkTabsText <- renderUI({
+        if(input$BookmarkTab=='TRUE'){ 
+          p('This tab allows users to save the current set of selections in a tab so that the application can be opened at the same state in the future.',
+            tags$br(), tags$br(),
+            'To bookmark the app, click the bookmark button. Push', tags$em('Dismiss'), 'in the popup message.',
+          #IMAGE
+            tags$br(), tags$br(),
+            'To reload the saved state, click browse, and then migrate to the input.rds file and push open.'
+          #IMAGE
+          #IMAGE
+            )
+        }
+      })
+      ###----
+      
       #DATA UPLOAD FUNCTIONS
       ###----
       

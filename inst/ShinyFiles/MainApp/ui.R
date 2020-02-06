@@ -1,7 +1,7 @@
     ## USER INTERFACE    
     ui = function(request){
       fluidPage(
- 
+      shinyjs::useShinyjs(),
       #---- 
       #Formatting
       #----
@@ -60,15 +60,14 @@
                                                                                   style="color:darkblue; text-align:center; font-size: 32px;")),
                                                         tags$div(style="display: inline-block; align:right", img(src="SandPoint_Boats.JPG", height='10%', width='100%', align='center')),
                                                         tags$br(),tags$br(),
-                                                        tags$p('FishSET is a set of statistical programming 
-                                                              and data management tools developed to achieve the goals of 
-                                                               standardizing data management and organization,
-                                                               providing easily accessible tools to enable location choice models to provide input to the
-                                                               management of key fisheries, and
-                                                               organizing statistical code so that predictions of fisher behavior developed by the field’s leading
-                                                               innovators can be incorporated and transparent to all users.'),
+                                                        tags$p('FishSET is a set of statistical programming and data management tools 
+                                                              developed to standardize data management and organization,
+                                                               enable use of location choice models to provide input to the management
+                                                                of key fisheries, and organize statistical code so that predictions
+                                                                of fisher behavior can be incorporated and transparent to all users.'),
                                                         tags$p('The toolbox is divided into tabs to guide users through all steps from uploading data to
-                                                               developing and evaluating models. Tabs can be navigated in any order.'),
+                                                               developing and evaluating models. Tabs can be navigated in any order.
+                                                               See the Quickstart Guide for further assistance.'),
                                                         tags$p('For questions and comments please contact:',
                                                                tags$ul('Alan Haynie  alan.haynie@noaa.gov'),
                                                                tags$ul('Melanie Harsch melanie.harsch@nooa.gov')))
@@ -76,9 +75,37 @@
                                       )
                              ),
                              tabPanel('Quickstart guide',
-                                      tags$div(
+
                                         tags$br(),
-                                        tags$p('Briefly describe how to use the app with some images'))
+                                  fluidRow(
+                                    column(3,
+                                      checkboxInput('AcrossTabs', tags$strong('Information across all tabs'), TRUE),
+                                      checkboxInput('AnalTab', tags$strong('Simple Analyses tab'), FALSE),
+                                      checkboxInput('ModelTab', tags$strong('Models tab'), FALSE)
+                                    ),
+                                    column(3,   
+                                           checkboxInput('UploadTab', tags$strong('Upload Data tab'), FALSE),
+                                           checkboxInput('NewVarsTab', tags$strong('Compute New Variables tab'), FALSE),
+                                           checkboxInput('BookmarkTab', tags$strong('Bookmark Choices tab'), FALSE)    
+                                    ),
+                                    column(3,   
+                                           checkboxInput('ExplorTab', tags$strong('Data Exploration tab'), FALSE),
+                                           checkboxInput('ZonalTab', tags$strong('Zonal Definition tab'), FALSE)
+                                      ),
+                                     column(3,  
+                                            checkboxInput('DQTab', tags$strong('Data Quality Evaluation tab'), FALSE),
+                                            checkboxInput('ExpectedTab', tags$strong('Expected Catch/Revenue tab'), FALSE)
+                                      )),
+                                      uiOutput('AcrossTabsText'), 
+                                      uiOutput('UploadTabsText'),
+                                      uiOutput('ExploreTabsText'),
+                                      uiOutput('DQTabsText'),
+                                      uiOutput('AnalTabsText'),
+                                      uiOutput('NewVarsTabsText'),
+                                      uiOutput('ZonalTabsText'),
+                                      uiOutput('ExpectedTabsText'),
+                                      uiOutput('ModelTabsText'),
+                                      uiOutput('BookmarkTabsText')
                              ),
                              tabPanel("AK catch and management data",
                                       fluidRow(
@@ -547,9 +574,10 @@
                                ),
                                #runcodeUI (code='', type='ace'),
                                # actionButton("eval", "Evaluate"),
-                               radioButtons('choiceTab', '', choices=c('Select catch and price variables'='primary', #basic parameters to populate elsewhere like catch, price
+                               radioButtons('choiceTab', '', choices=c( #basic parameters to populate elsewhere like catch, price
                                                                        'Calculate zonal centroid and assign observations to zones'='zone', #calculate zonal centroid
-                                                                       'Select variables that define alternative fishing choices'='distm')),#, #calculate distance matrix
+                                                                       'Select variables that define alternative fishing choices'='distm',
+                                                                       'Select catch and price variables'='primary')),#, #calculate distance matrix
                                #checkboxInput('ExpedCatch', 'Define variables to calculate expected catch', value=FALSE)
                                conditionalPanel(condition="input.choiceTab=='zone'",  
                                                 actionButton('runCentroid','Assign observations to centroids', style = "color: white; background-color: green;")),
@@ -566,10 +594,9 @@
                                )
                              ),
                              mainPanel(
-                               #We'll in in the choices here
                                #BASELINE
                                verbatimTextOutput("output"),
-                               uiOutput('conditionalInput1'),
+                              
                                #--------#
                                #CENTROID
                                uiOutput('conditionalInput2'),
@@ -581,8 +608,9 @@
                                div(style="display: inline-block;vertical-align:top; width: 500px;",
                                    conditionalPanel(condition="input.choiceTab=='distm'",plotOutput('zoneIDNumbers_plot'))),
                                div(style="display: inline-block;vertical-align:top; width: 160px;",
-                                   conditionalPanel(condition="input.choiceTab=='distm'",textOutput('zoneIDText')))
-                               #--------#
+                                   conditionalPanel(condition="input.choiceTab=='distm'",textOutput('zoneIDText'))),
+                               #--------# 
+                               uiOutput('conditionalInput1')
                                #EXPECTED CATCH
                              )
                            )),
@@ -668,7 +696,7 @@
                                tags$p('Compute expected catch for each observation and zone. 
                                       Function returns the expected catch or expected revenue data frame based on selected parameters along with three null functions: 
                                       expected catch/revenue based on catch of the previous two day (short-term expected catch),
-                                      expected catch/revemnue based on catch for the previous seven days (medium-term expected catch), and 
+                                      expected catch/revenue based on catch for the previous seven days (medium-term expected catch), and 
                                       expected catch/revenue based on catch in the previous year (long-term expected catch).
                                       Output saved in fishset_db sqLite database. Previously saved expected catch/revenue output will be written over if the', 
                                       tags$i('Replace previously saved'), 'box is unchecked. Checking this box will add new output to existing output.'),
