@@ -265,70 +265,111 @@
       #Landing Page
       ###----
       output$AcrossTabsText <- renderUI({
-        if(input$AcrossTabs=='TRUE'){
-          tags$p(id='q1', 'All tabs have buttons to close the app and refresh the data. 
+        if(input$QuickStartChoices=='AcrossTabs'){
+          tags$p(tags$br(), tags$br(),
+                'All tabs have buttons to close the app and refresh the data. 
                  Refreshing the data pulls the raw, unprocessed data from the FishSET database.', tags$br(),  tags$br(), 
                  'Buttons to save plots and tables to the output folder are provided where appropriate.', tags$br(), tags$br(), 
                  'Each tab has a space to write notes and a button to save notes to the output folder.', tags$br(),tags$br(), 
                  'Each tab has a space where R script can be run. 
-                 Within the app, the primary dataset is called', tags$em('values$dataset'), 
-                 '.', tags$br(), 'To view the mean of the fifth column type',  tags$em('mean(values$dataset[,5])'), 
-                 'and click the', tags$em('Run'), 'button. To view summary details of 
-                 a column called Vessel_Length type', tags$em('summary(values$dataset$Vessel_Length)'), 
-                 'and push the', tags$em('Run'), 'button.', tags$br(),
-                 tags$div(style="display: inline-block; align:center", img(src="QuickStart1.png")))
+                 Within the app, the primary data frame is called', tags$em('values$dataset'), '.', 
+                 tags$br(), 
+                 'Some examples. To view the mean of the fifth column type',  tags$em('mean(values$dataset[,5])'), 
+                 'and click the', tags$em('Run'), 'button.',
+                 tags$br(),
+                 'To view summary details of a column called Vessel_Length type', tags$em('summary(values$dataset$Vessel_Length)'), 
+                 'and push the', tags$em('Run'), 'button.', 
+                 tags$br(), tags$br(),
+                 tags$div(style="display: inline-block; align:left; ", img(src="QuickStart1.png",  height="75%", width="75%")))
         }
       })
      
       output$UploadTabsText <- renderUI({
-        if(input$UploadTab=='TRUE'){ 
-          p('Upload data sources (primary, port, gridded, auxiliary) from FishSET sqlite database or from source.', 
+        if(input$QuickStartChoices=='UploadTab'){ 
+          p(tags$br(), tags$br(),
+            'Upload data sources (primary, port, gridded, auxiliary) from FishSET sqlite database or from source.', 
             tags$br(), tags$br(),
-	          'To upload from a local file location select', tags$em('Upload new file'), 'and then browse to file location.', 
+	          'To upload from a local file location select', tags$em('Upload new file'), 'and then browse to file location (arrow 1).', 
             tags$br(),
-            'Fill in the project name.',
+            'Fill in the project name (arrow 2).',
             tags$br(),tags$br(),
-	          'To upload from the FishSET database, select', tags$em('FishSET database'), 'type in project name, and click the', tags$em('Load data'), 'button.'
-            #IMAGE
+	          'To upload from the FishSET database, select', tags$em('FishSET database'), ' (arrow 1) type in project name (arrow 2), and click the',
+            tags$em('Load data'), 'button (arrow 3).',
+            tags$br(), tags$br(),
+            tags$div(style="display: inline-block; align:center", img(src="upload.png",  height="75%", width="75%"))
             )
         }
       })
       
       output$ExploreTabsText <- renderUI({
-        if(input$ExplorTab=='TRUE'){ 
-          p('View and explore the primary data.',
+        if(input$QuickStartChoices=='ExplorTab'){ 
+          p(tags$br(), tags$br(),
+            'View and explore the primary data.',
+            tags$br(), 'Use the', tags$em('View data or plots'), 'dropdown box to select to view data as a table or plot.',
             tags$br(), tags$br(),
-         'From the table: Edit cells, remove variables from dataframe, filter table',
+         tags$h4('Table:'),
+          'Edit cells, remove variables from dataframe, filter table',
+         tags$br(),
+         'Edit cells by double-clicking a cell',
          tags$br(),tags$br(),
-         'From plots: Observed location spatial plot can be zoomed in by double clicking a highlighted area.',
-         tags$br(), 'Click an individual point to identify the latitude and longitude of that point.',
-         #IMAGE
-         tags$br(),tags$br(),
+         tags$div(style="display: inline-block; align:center", img(src="Correct.png", height="75%", width="75%")),
+         tags$br(),tags$br(), tags$br(),
+         'Remove variables by clicking on the column, then clicking the', tags$em('Remove variable'), 'button. The edited data frame will not be saved unless the', 
+         tags$em('Save data'), 'button is clicked. Press the', tags$em('Refresh data'), 'button to restore original, unprocessed data frame.',
+         tags$br(), tags$br(),
+         tags$div(style="display: inline-block; align:center", img(src="DeleteVar.png", height="75%", width="75%")),
+         tags$br(),tags$br(), tags$br(),
+         'Data can be filtered using the boxes below the variable name. Selected filters are saved when the', tags$em('Save data'), 'button is pushed.
+          Modified data is stored as project, MainDataTable, and date. Raw, unmodified data can be reloaded by pressing the ', tags$em('Refresh data'), 'button.',
+         tags$br(), tags$br(),
+         tags$div(style="display: inline-block; align:center", img(src="Filter.png", height="75%", width="75%")),
+         tags$br(),tags$br(),tags$br(), tags$br(),
+         tags$h4('Plots:'),
+          'Temporal, spatial, or x-y plots are provided.', 
+          tags$br(),tags$br(),
+          'The', tags$em('Observed location'), 'spatial plot can be zoomed in by double clicking a highlighted area.',
+         tags$br(), 
+         'Click an individual point to identify the latitude and longitude of that point.',
+         tags$br(), tags$br(),
+         tags$div(style="display: inline-block; align:center", img(src="MapZoom.png", height="75%", width="75%")),
+         tags$br(),tags$br(),tags$br(),
           "Make further selections on the left to display global Moran's I (measure of spatial autocorrelation) and
-          GetisOrd (measure of spatial clustering) statistics. These functions rely on the spdep package.  
-          All parameters are set to NULL except the variable to test for spatial autocorrelation and location variables. 
-          The spatial input is a row-standardized spatial weights matrix for computed nearest neighbor matrix, which is the null setting for the nb2listw function.
+          GetisOrd (measure of spatial clustering) statistics. These functions rely on the spdep package.",
+          tags$br(),
+          "All parameters are set to NULL except the variable to test for spatial autocorrelation and location variables.",
+         tags$br(),
+          "The spatial input is a row-standardized spatial weights matrix for computed nearest neighbor matrix, which is the null setting for the nb2listw function.
             Both functions use the knearneigh function."
           )
         }
       })
       output$DQTabsText <- renderUI({
-        if(input$DQTab=='TRUE'){ 
-          p('View and correct for common data quality issues such as outliers and missing values.',
+        if(input$QuickStartChoices=='DQTab'){ 
+          p(tags$br(), tags$br(),
+            'View and correct for common data quality issues such as outliers and missing values (arrow 1).',
             tags$br(),tags$br(),
-            'Options to remove or correct for data quality issues are displayed before the', tags$em('R expression'), 'box.',
-            tags$br(),
+            'Options to remove or correct for data quality issues are displayed before the', tags$em('R expression'), 'box (arrow 2).',
+            tags$br(), tags$br(),
+            tags$div(style="display: inline-block; align:center", img(src="dq.png", height="75%", width="75%")),
+            tags$br(), tags$br(),
             'To save modified data, click the', tags$em('save data to fishset_db database'), 'button.', 
+            tags$br(),
+            'The modified data will be saved to the Fishset database with a title based on the project, MainDataTable, and date.',
+            'Click on the Refresh data button to restore the data frame to the original, unmodified state.',
             tags$br(),tags$br(),
-          'The outlier plot is interactive.'
+          'The outlier plot is interactive. Click on individual points to get values, zoom in by double clicking a highlighted area, 
+            or click on the table to remove points on the plot that are outside the selected range.'
           )
         }
       })
       
       output$AnalTabsText <- renderUI({
-        if(input$AnalTab=='TRUE'){ 
-          p('View correlation and simple linear regressions.', 
+        if(input$QuickStartChoices=='AnalTab'){ 
+          p(tags$br(), tags$br(), 
+            'View correlation and simple linear regressions.', 
             tags$br(),tags$br(),
+            tags$div(style="display: inline-block; align:center", img(src="Corr.png", height="75%", width="75%")),
+            tags$br(), tags$br(),
             'For correlations, variables can be removed from the', tags$em('select'), 'box by clicking on the variable and 
             then hitting the backspace or delete button on your keyboard.',
             tags$br(),
@@ -338,28 +379,32 @@
       })
       
       output$NewVarsTabsText <- renderUI({
-        if(input$NewVarsTab=='TRUE'){ 
-          p('Modify or create new variables such as CPUE or trip mid-point.',
+        if(input$QuickStartChoices=='NewVarsTab'){ 
+          p(tags$br(), tags$br(),
+            'Modify or create new variables such as CPUE or trip mid-point.',
             tags$br(),tags$br(),
-            'The first six rows of the dataset are displayed.',
-            tags$br(),
-            'After a function is created, by clicking the', tags$em('run function'), 'button, the new variable will be 
-            added as the last column of the data table.', 
-            tags$br(),
-            'The created function will be available for other analyses but will not be available for future use unless the', tags$em('save data'), 'button is pushed.',
+            'After a function is created, by clicking the', tags$em('Run function'), 'button (arrow 1), the new variable will be 
+            added as the last column of the displayed data table (arrow 2).', 
             tags$br(),tags$br(),
-            'Variable creation functions are grouped by type: Arithmetic and temporal, data transformations, dummy variables, nominal ID, spatial variables, and trip-level.',
+            tags$div(style="display: inline-block; align:center", img(src="NewVar.png", height="75%", width="75%")),
             tags$br(), tags$br(),
-            'Default variable names will be provided if the', tags$em('name of new variable'), 'box is left empty.'
+            'The created variable will be available for other analyses while the app is open but will not be available for future use unless the', tags$em('save data'), 'button is pushed.',
+            tags$br(),tags$br(),
+            'Variable creation functions are grouped by type: Arithmetic and temporal, data transformations, dummy variables, nominal ID, spatial, and trip-level.',
+            tags$br(), tags$br(),
+            'Default variable names will be provided if the', tags$em('name of new variable'), 'box is left empty (arrow 3).'
             )
         }
       })
       
       output$ZonalTabsText <- renderUI({
-        if(input$ZonalTab=='TRUE'){ 
-          p('Assign observations to zones and define alternative fishing choices.',
+        if(input$QuickStartChoices=='ZonalTab'){ 
+          p(tags$br(), tags$br(),
+            'Assign observations to zones and define alternative fishing choices.',
             tags$br(), tags$br(),
 	         'There are three steps on this tab.',
+	         tags$br(), tags$br(),
+	         tags$div(style="display: inline-block; align:center", img(src="zonal.png", height="75%", width="75%")),
 	         tags$br(), tags$br(),
 	         'The first step requires a spatial data set, such as a shape file, defining zones and calculates both the zone centroids and assigns observations to zones.',
 	         tags$br(),
@@ -376,12 +421,13 @@
       })
       
       output$ExpectedTabsText <- renderUI({
-        if(input$ExpectedTab=='TRUE'){ 
-          p('Define choices to calculate expectation of catch or revenue for alternative choices.',
+        if(input$QuickStartChoices=='ExpectedTab'){ 
+          p(tags$br(), tags$br(),
+            'Define choices to calculate expectation of catch or revenue for alternative choices.',
             tags$br(),tags$br(),
             'Returns the expected catch or expected revenue data frame based on selected parameters along with three null outputs:', 
             tags$br(),
-            'expected catch/revenue based on catch of the previous two day (short-term expected catch)', 
+            'expected catch/revenue based on catch of the previous two days (short-term expected catch)', 
             tags$br(),
             'expected catch/revenue based on catch for the previous seven days (medium-term expected catch)', 
             tags$br(),
@@ -391,8 +437,9 @@
       })
       
       output$ModelTabsText <- renderUI({
-        if(input$ModelTab=='TRUE'){ 
-          p('Define likelihood function and model parameters before running models and comparing output.',
+        if(input$QuickStartChoices=='ModelTab'){ 
+          p(tags$br(),tags$br(),
+            'Define likelihood function and model parameters before running models and comparing output.',
             tags$br(),tags$br(),
           'Click', tags$em('save model and add new model'), 'to save model choices and define another model.',
           tags$br(), tags$br(),
@@ -400,21 +447,23 @@
           tags$br(), tags$br(),
           'Once all models have been defined, select ‘run models’ to run through all models.',
           tags$br(), tags$br(),
-          'View and compare models in the ‘Compare models’ subtab')
-          #IMAGE
+          'View and compare models in the ‘Compare models’ subtab',
+          tags$div(style="display: inline-block; align:center", img(src="CompareModels.png", height="75%", width="75%"))
+          )
         }
       })
       
       output$BookmarkTabsText <- renderUI({
-        if(input$BookmarkTab=='TRUE'){ 
-          p('This tab allows users to save the current set of selections in a tab so that the application can be opened at the same state in the future.',
+        if(input$QuickStartChoices=='BookmarkTab'){ 
+          p(tags$br(), tags$br(),
+            'Save the current set of selections and open the reopen application at the same state in the future.',
             tags$br(), tags$br(),
             'To bookmark the app, click the bookmark button. Push', tags$em('Dismiss'), 'in the popup message.',
-          #IMAGE
+            tags$div(style="display: inline-block; align:center", img(src="Dismiss.png", height="75%", width="75%")),
+            tags$br(), tags$br(),tags$br(),
+            'To reload the saved state, click browse, and then migrate to the input.rds file and push open.',
             tags$br(), tags$br(),
-            'To reload the saved state, click browse, and then migrate to the input.rds file and push open.'
-          #IMAGE
-          #IMAGE
+            tags$div(style="display: inline-block; align:center", img(src="Bookmark2.png", height="75%", width="75%"))
             )
         }
       })
@@ -851,7 +900,7 @@
                            style = "margin-left:19px;", selectizeInput('varofint', 'Variable to test for spatial autocorrelation',
                                                                     choices=colnames(values$dataset[,sapply(values$dataset,is.numeric)]))),
           conditionalPanel(condition="input.plot_table=='Plots'&input.plot_type=='Spatial'",
-                           style = "margin-left:19px;",  selectizeInput('gtmt_lonlat', 'Select lat then lon from data set to assign observations to zone', 
+                           style = "margin-left:19px;",  selectizeInput('gtmt_lonlat', 'Select lat then lon from data frame to assign observations to zone', 
                                                                      choices=c(NULL, names(values$dataset)[grep('lon|lat', names(values$dataset), ignore.case=TRUE)]), 
                                                                      multiple = TRUE, options = list(maxItems = 2))), 
           conditionalPanel(condition="input.plot_table=='Plots'&input.plot_type=='Spatial'",
@@ -871,7 +920,7 @@
                            style = "margin-left:19px;", selectInput('mtgtcat',  "Variable defining zones or areas", 
                                                                     choices= c('', names(as.data.frame(gtmtGridFileData()))), selected='')),
           conditionalPanel(condition="input.plot_table=='Plots'&input.plot_type=='Spatial'",
-                           style = "margin-left:19px;", selectizeInput('mtgtlonlat', 'Select vector containing latitude then longitude from spatial data set', 
+                           style = "margin-left:19px;", selectizeInput('mtgtlonlat', 'Select vector containing latitude then longitude from spatial data frame', 
                                                                     choices= c(NULL, names(as.data.frame(gtmtGridFileData()))), multiple=TRUE, options = list(maxItems = 2)))
         )
       })
@@ -1118,7 +1167,7 @@
         tagList(
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Zonal centroid'||
                            input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Zonal centroid'" ,
-                           style = "margin-left:19px;", selectInput('cat', 'Individual areas/zones from the spatial data set', choices=names(as.data.frame(griddata())))),
+                           style = "margin-left:19px;", selectInput('cat', 'Individual areas/zones from the spatial data drame', choices=names(as.data.frame(griddata())))),
           if(any(class(griddata())=='sf')==FALSE){
             conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Zonal centroid'||
                              input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Zonal centroid'" , 

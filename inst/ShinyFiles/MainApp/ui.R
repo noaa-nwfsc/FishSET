@@ -7,6 +7,7 @@
       #----
       tags$head(tags$style(HTML("
                                 .multicol { 
+                                  height: 150px;
                                 -webkit-column-count: 3; /* Chrome, Safari, Opera */ 
                                 -moz-column-count: 3;    /* Firefox */ 
                                 column-count: 3; 
@@ -24,12 +25,6 @@
                               .sidebar { height: 90vh; overflow-y: auto; }
                               .dataTables_wrapper { overflow-x: scroll; }
                     " )),
-                
-                
-                #  tags$style(HTML(
-                #    ".my_div .select_int .select-input label{
-                #                                            margin-left:17px;}")),
-                
                 tags$script(HTML('Shiny.addCustomMessageHandler("jsCode",
                                  function(message) {
                                  eval(message.value);
@@ -77,25 +72,20 @@
                              tabPanel('Quickstart guide',
 
                                         tags$br(),
-                                  fluidRow(
-                                    column(3,
-                                      checkboxInput('AcrossTabs', tags$strong('Information across all tabs'), TRUE),
-                                      checkboxInput('AnalTab', tags$strong('Simple Analyses tab'), FALSE),
-                                      checkboxInput('ModelTab', tags$strong('Models tab'), FALSE)
-                                    ),
-                                    column(3,   
-                                           checkboxInput('UploadTab', tags$strong('Upload Data tab'), FALSE),
-                                           checkboxInput('NewVarsTab', tags$strong('Compute New Variables tab'), FALSE),
-                                           checkboxInput('BookmarkTab', tags$strong('Bookmark Choices tab'), FALSE)    
-                                    ),
-                                    column(3,   
-                                           checkboxInput('ExplorTab', tags$strong('Data Exploration tab'), FALSE),
-                                           checkboxInput('ZonalTab', tags$strong('Zonal Definition tab'), FALSE)
+                                      
+                                      tags$div(
+                                      radioButtons('QuickStartChoices',"", choices = c('Information across all tabs'='AcrossTabs',
+                                                                                       'Upload Data tab'='UploadTab',
+                                                                                       'Data Exploration tab'='ExplorTab',
+                                                                                       'Data Quality Evaluation tab'='DQTab',
+                                                                                       'Simple Analyses tab'='AnalTab',
+                                                                                       'Compute New Variables tab'='NewVarsTab',
+                                                                                       'Zonal Definition tab'='ZonalTab',
+                                                                                       'Expected Catch/Revenue tab'='ExpectedTab',
+                                                                                       'Models tab'='ModelTab',
+                                                                                       'Bookmark Choices tab'='BookmarkTab'
+                                                                                       ), selected='AcrossTabs', inline = TRUE), style="font-size:115%; font-weight:bold;"
                                       ),
-                                     column(3,  
-                                            checkboxInput('DQTab', tags$strong('Data Quality Evaluation tab'), FALSE),
-                                            checkboxInput('ExpectedTab', tags$strong('Expected Catch/Revenue tab'), FALSE)
-                                      )),
                                       uiOutput('AcrossTabsText'), 
                                       uiOutput('UploadTabsText'),
                                       uiOutput('ExploreTabsText'),
