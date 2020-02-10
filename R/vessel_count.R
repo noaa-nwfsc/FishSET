@@ -19,7 +19,6 @@
 #' @return Table or plot of the number of unique vessels within a time period.
 #' @example 
 #' \dontrun{
-#' 
 #' vessel_count('pollockMainDataTable', "VESSEL_ID", "DATE_FISHING_BEGAN", period = "month", 
 #'              group = "DISEMBARKED_PORT", position_grp = "dodge", output = "plot")
 #' }
