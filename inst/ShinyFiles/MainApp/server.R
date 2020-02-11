@@ -199,26 +199,29 @@
         }
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
-      observeEvent(input$uploadMain, {
-        req(input$projectname)
-        values$dataset <- table_view(paste0(input$projectname, 'MainDataTable'))
-      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
+#      if (is.null(input$maindatabasedat)) {
+        # what ever you want to do
+#      }
+     
+      #Save to database 
+#      observeEvent(input$uploadMain, {
+#        req(input$projectname)
+#        fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+#        DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'MainDataTable'),  df_data, overwrite=TRUE)
+#        DBI::dbDisconnect(fishset_db)
+        #values$dataset <- table_view(paste0(input$projectname, 'MainDataTable'))
+#      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
       # refresh data
       observeEvent(c(input$refresh,input$refresh1,input$refresh2,input$refreshNew), {
         req(input$projectname)
-        values$dataset <- table_view(paste0(input$projectname, 'MainDataTable'))
+        temp <- tables_database()[grep(paste0(input$projectname, 'MainDataTable\\d+'), tables_database())][which(
+                      unlist(stringr::str_extract_all(tables_database()[grep(paste0(input$projectname, 'MainDataTable\\d+'), 
+                      tables_database())], "\\d+"))==max((unlist(stringr::str_extract_all(tables_database()[grep(paste0(input$projectname, 
+                      'MainDataTable\\d+'), tables_database())], "\\d+")))))]
+        values$dataset <- table_view(temp)
       }, ignoreInit = TRUE, ignoreNULL=TRUE) 
-      #    observeEvent(input$refresh1, {
-      #      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
-      #      values$dataset <- table_view(dat)
-      #      DBI::dbDisconnect(fishset_db)
-      #    }, ignoreInit = F) 
-      #   observeEvent(input$refresh2, {
-      #     suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(loc,"/fishset_db.sqlite")))
-      #     values$dataset <- table_view(dat)
-      #      DBI::dbDisconnect(fishset_db)
-      #    }, ignoreInit = F)
+     
       #PORT
       ptdat <- reactiveValues(
         dataset = data.frame('var1'=0, 'var2'=0)
@@ -481,13 +484,21 @@
                                             multiple = FALSE, placeholder = 'Required data')),
                                 column(1, uiOutput('ui.action'))
                            ))
+          ),     
+          conditionalPanel(condition="input.loadmainsource=='FishSET database'", 
+                             fluidRow(
+                               column(4, textInput("maindatabasedat", "Name of data frame in FishSET database",
+                                                   value='', placeholder = 'Optional. Use if loading modified data frame'))
+                               
+                             )
           ))
       })
-      observeEvent(input$maindat, {
-        type <- sub('.*\\.', '', input$maindat$name)
-        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-        df_data <- FishSET::read_dat(input$maindat$datapath, type)
-      }) 
+      
+ #     observeEvent(input$maindat, {
+ #       type <- sub('.*\\.', '', input$maindat$name)
+ #       if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
+ #       df_data <- FishSET::read_dat(input$maindat$datapath, type)
+ #     }) 
       
       output$port_upload <- renderUI({     
         tagList( 
@@ -630,7 +641,7 @@
           return(c1)
         } else {
           NULL
-        }}, server = FALSE, editable=TRUE, filter='top', selection=list(target ='column'),
+        }}, server = TRUE, editable=TRUE, filter='top', selection=list(target ='column'),
         extensions = c("Buttons"), rownames=FALSE,
         options = list(autoWidth=TRUE, scrolly=T, responsive=TRUE, pageLength = 15,
                        searchCols = default_search_columns, buttons = c('csv'))
@@ -652,11 +663,11 @@
             }
             for(i in 1:length(default_sub)){
               if( grepl("\\..\\.", default_search_columns[default_sub[i]])==TRUE){
-                FilterTable <- rbind(FilterTable, c(dat, (colnames(values$dataset[default_sub])[i]), 
+                FilterTable <- rbind(FilterTable, c(values$dataset, (colnames(values$dataset[default_sub])[i]), 
                                                     paste(colnames(values$dataset[default_sub])[i], '>', as.numeric(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), head, 1)), '&', 
                                                           colnames(values$dataset[default_sub])[i], '<', as.numeric(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), tail, 1)))))
               } else {
-                FilterTable <- rbind(FilterTable, c(dat, (colnames(values$dataset[default_sub])[i]), 
+                FilterTable <- rbind(FilterTable, c(values$dataset, (colnames(values$dataset[default_sub])[i]), 
                                                     paste0("grepl('", default_search_columns[default_sub[i]],"', ", colnames(values$dataset[default_sub])[i],")")))
               }
             }
@@ -980,7 +991,7 @@
         } 
       })
       output$output_table_corr <- DT::renderDT(
-        tableInputCorr(),  server=FALSE, extensions = list('Scroller'), 
+        tableInputCorr(),  server=TRUE, extensions = list('Scroller'), 
         options=list(autoWidth = TRUE, scrollX=TRUE, deferRender = T,
                      scrollY = 'auto', scroller = TRUE, scrollX = T, pageLength = 25)
       )
