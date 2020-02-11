@@ -61,7 +61,7 @@ fishset_compare <- function(x, y, compare=c(TRUE,FALSE)){
   if(compare==TRUE){
     if(is.null(y)==TRUE | table_exists(y)==FALSE){
       print(DBI::dbListTables(fishset_db))
-      stop(paste(y, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+      warning(paste(y, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
     } else {
       old <- table_view(y)
       new <- toupper(colnames(x))
@@ -73,7 +73,7 @@ fishset_compare <- function(x, y, compare=c(TRUE,FALSE)){
         cat(length(table(is.na(match(new,old)))[2]),'/',length(match(new,old)), ' mismatches', sep='')
         cat(noquote(paste(deparse(substitute(x)),'[',as.character(which(is.na(match(new,old))==TRUE)),']', sep='')),':', new[which(is.na(match(new,old))==TRUE)])
         cat(noquote(paste(deparse(substitute(y)),'[',as.character(which(is.na(match(new,old))==TRUE)),']', sep='')),':', old[which(is.na(match(new,old))==TRUE)])
-        stop('Column names did not match. Data set will not be uploaded to database')
+        warning('Column names did not match. Data set will not be uploaded to database')
         
       }
     }
