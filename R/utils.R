@@ -289,32 +289,51 @@ degree <- function(dat, lat=NULL, lon=NULL, latsign=FALSE, lonsign=FALSE){
   #' Changing the sign, transforms all values in the variable. 
   #' @examples 
   #' \dontrun{
-  #' dat <- degree(MainDataTable, 'LatLon_START_LAT', 'LatLon_START_LON')}
+  #' dat <- degree(MainDataTable, 'LatLon_START_LAT', 'LatLon_START_LON')
+  #' }
   #' 
-  if(!is.numeric(dat[[lat]])|!is.numeric(dat[[lon]])) {
-    temp <- apply(dat[1, c(lat, lon)], 2, function(x) stringr::str_replace(x, "\u00b0", ""))
-    temp <- apply(temp, 2, function(x) stringr::str_replace(x, "'", ""))
-    
-    for (i in 1:ncol(temp)){
-    temp[,i] <- sapply((strsplit(temp[,i], "[\u00b0\\.]")), as.numeric)[1,]+sapply((strsplit(temp[,i], "[\u00b0\\.]")), as.numeric)[2,]/60
-    }
-    dat[1, c(lat, lon)] <- temp
-  } else if(any(nchar(trunc(dat[[lat]]))>2|nchar(trunc(dat[[lon]]))>3)){
-    if(length(dat[[lat]]) > 6){
-    dat[[lat]] <- as.numeric(substr(dat[[lat]], start = 1, stop = 2)) + as.numeric(substr(dat[[lat]], start = 3, stop = 4))/60
-    } else {
-      dat[[lat]] <- as.numeric(substr(dat[[lat]], start = 1, stop = 2)) + as.numeric(substr(dat[[lat]], start = 3, stop = 4))/60 + as.numeric(substr(dat[[lat]], start = 5, stop = 6))/3600  
-    }
-    if(length(dat[[lon]]) > 7){
-      dat[[lon]] <- as.numeric(substr(dat[[lon]], start = 1, stop = 3)) + as.numeric(substr(dat[[lon]], start = 4, stop = 5))/60
-    } else {
-      dat[[lon]] <- as.numeric(substr(dat[[lon]], start = 1, stop = 3)) + as.numeric(substr(dat[[lon]], start = 4, stop = 5))/60 + as.numeric(substr(dat[[lon]], start = 7, stop = 8))/3600  
+  
+  if(!is.null(lat)){
+    #1. Dataframe - >> Will need a different system. Will need to identify all parts
+    #2. Numeric 
+    if(!is.numeric(dat[[lat]])) {
+      temp = gsub("°|'|\"", "", dat[, lat])
+      temp[lengths(gregexpr(" ", temp))==1&!is.na(temp)] <- paste(temp[lengths(gregexpr(" ", temp))==1&!is.na(temp)], '00')
+      dat[[lat]] <- as.numeric(sapply(strsplit(temp, "\\s+"), '[', 1))+ as.numeric(sapply(strsplit(temp, "\\s+"), '[', 2))/60+as.numeric(sapply(strsplit(temp, "\\s+"), '[', 3))/360
+      
+    }  else {
+      if(any(nchar(trunc(dat[[lat]]))>2)){
+        nm <- !is.na(dat[[lat]])&dat[[lat]] < 0
+        i <- nchar(abs(dat[[lat]]))<=4&!is.na(dat[[lat]])
+        dat[[lat]][i] <- paste0(dat[[lat]][i], '00')
+        dat[[lat]] <-  stringr::str_pad(abs(as.numeric(dat[[lat]])), 6, pad = "0")
+        dat[[lat]] <- as.numeric(substr(dat[[lat]], start = 1, stop = 2)) + as.numeric(substr(dat[[lat]], start = 3, stop = 4))/60 + as.numeric(substr(dat[[lat]], start = 5, stop = 6))/3600  
+        dat[[lat]][nm] <- dat[[lat]][nm]*-1
+      }
     }
   }
-  if(latsign==TRUE){
+  if(!is.null(lon)){
+    if(!is.numeric(dat[[lon]])) {
+      temp = gsub("°|'|\"", "", dat[, lon])
+      temp[lengths(gregexpr(" ", temp))==1&!is.na(temp)] <- paste(temp[lengths(gregexpr(" ", temp))==1&!is.na(temp)], '00')
+      dat[[lon]] <- as.numeric(sapply(strsplit(temp, "\\s+"), '[', 1))+ as.numeric(sapply(strsplit(temp, "\\s+"), '[', 2))/60+as.numeric(sapply(strsplit(temp, "\\s+"), '[', 3))/360
+      
+    } else {
+      if(any(nchar(trunc(as.numeric(dat[[lon]])))>3)){
+        nm <- !is.na(dat[[lon]])&as.numeric(dat[[lon]]) < 0
+        i <- nchar(abs(dat[[lon]]))<=5&!is.na(dat[[lon]])
+        dat[[lat]][i] <- paste0(dat[[lon]][i], '00')
+        dat[[lon]] <-  stringr::str_pad(abs(as.numeric(dat[[lon]])), 7, pad = "0")
+        dat[[lon]] <- as.numeric(substr(dat[[lon]], start = 1, stop = 3)) + as.numeric(substr(dat[[lon]], start = 4, stop = 5))/60 + as.numeric(substr(dat[[lon]], start = 6, stop = 7))/3600  
+        dat[[lon]][nm] <- dat[[lon]][nm]*-1
+      }
+    }
+    
+  }
+  if(latsign==TRUE&!is.null(lat)){
     dat[[lat]] <- -1*dat[[lat]]
   }
-  if(lonsign==TRUE){
+  if(lonsign==TRUE&!is.null(lon)){
     dat[[lon]] <- -1*dat[[lon]]
   }
   return(dat)
