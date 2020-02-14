@@ -128,9 +128,9 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write
   
   nan_filter_function <- list()
   nan_filter_function$functionID <- 'nan_filter'
-  nan_filter_function$args <-  c(dat,  deparse(substitute(x)), replace, remove, rep.value)
+  nan_filter_function$args <-  c(dat,  x, replace, remove, rep.value)
   nan_filter_function$kwargs <- list()
-  nan_filter_function$output <-  c(deparse(substitute(dat)))
+  nan_filter_function$output <-  c(dat)
   nan_filter_function$msg <- suppressWarnings(readLines(tmp))
   log_call(nan_filter_function)
   
@@ -148,7 +148,7 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write=
   #'  Function to return a modified dataframe where NAs have been replaced or removed.
   #'
   #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
-  #' @param x Column(s) in data framce in which to remove or replace NaNs. If multiple columns are passed use x=c().
+  #' @param x Column(s) in data framce in which to remove or replace NAs. If multiple columns are passed use x=c().
   #' @param replace TRUE/FALSE Replace NaNs in a vector? Defaults to FALSE.
   #' @param remove TRUE/FALSE Remove all remove the entire row of the dataframe where NaN is present in a specified column? Defaults to FALSE.
   #' @param rep.value Value to replace all NaNs in a column. Defaults to the mean value of the column.
@@ -204,18 +204,18 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write=
   print(suppressWarnings(readLines(tmp)))
   
   #Save the revised data set
-  if(over_write==TRUE&any(is.na(dataset))==TRUE){
+  if(over_write==TRUE & any(is.na(dataset))==TRUE){
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
   DBI::dbWriteTable(fishset_db, deparse(substitute(dat)), int, overwrite=over_write)
   DBI::dbDisconnect(fishset_db)
   print('Data saved to database')
   }
   
-   na_filter_function <- list()
+  na_filter_function <- list()
   na_filter_function$functionID <- 'na_filter'
-  na_filter_function$args <-  c(dat,  deparse(substitute(x)), replace, remove, rep.value)
+  na_filter_function$args <-  c(dat, x, replace, remove, rep.value)
   na_filter_function$kwargs <- list()
-  na_filter_function$output <-  c(deparse(substitute(dat)))
+  na_filter_function$output <-  c(dat)
   na_filter_function$msg <- suppressWarnings(readLines(tmp))
   log_call(na_filter_function)
   

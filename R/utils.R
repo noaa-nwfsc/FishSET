@@ -274,30 +274,50 @@ find_original_name <- function(fun) {
   }
 }
 
-degree <- function(dat, lat, lon){
+degree <- function(dat, lat=NULL, lon=NULL, latsign=FALSE, lonsign=FALSE){
   #' Convert lat/long coordinates to decimal degrees
   #' @param dat Data table containing latitude and longitude data
   #' @param lat Name of vector containing latitude data
   #' @param lon Name of vector containg longitude data
+  #' @param latsign If TRUE, transforms sign from positive from minus or minus from positive
+  #' @param lonsign If TRUE, transforms sign from positive from minus or minus from positive
   #' @export degree
   #' @importFrom OSMscale degree
   #' @importFrom stringr str_replace
   #' @details Uses the degree function to convert lat long coordinates to decimal degrees.
-  #' @return The original dataframe with the converted latitudes and longitudes
+  #' @return The original dataframe with the latitudes and longitudes converted to decimal degrees.
+  #' Changing the sign, transforms all values in the variable. 
   #' @examples 
   #' \dontrun{
   #' dat <- degree(MainDataTable, 'LatLon_START_LAT', 'LatLon_START_LON')}
   #' 
-  if(!is.numeric(lat)|!is.numeric(lon)) {
-    temp <- apply(dat[,which(grepl('lon', names(dat), ignore.case=TRUE))], 2, function(x) stringr::str_replace(x, "\u00b0", ""))
+  if(!is.numeric(dat[[lat]])|!is.numeric(dat[[lon]])) {
+    temp <- apply(dat[1, c(lat, lon)], 2, function(x) stringr::str_replace(x, "\u00b0", ""))
     temp <- apply(temp, 2, function(x) stringr::str_replace(x, "'", ""))
     
     for (i in 1:ncol(temp)){
     temp[,i] <- sapply((strsplit(temp[,i], "[\u00b0\\.]")), as.numeric)[1,]+sapply((strsplit(temp[,i], "[\u00b0\\.]")), as.numeric)[2,]/60
     }
-    dat[,which(grepl('lon', names(dat), ignore.case=TRUE))] <- temp
-   return(dat) 
+    dat[1, c(lat, lon)] <- temp
+  } else if(any(nchar(trunc(dat[[lat]]))>2|nchar(trunc(dat[[lon]]))>3)){
+    if(length(dat[[lat]]) > 6){
+    dat[[lat]] <- as.numeric(substr(dat[[lat]], start = 1, stop = 2)) + as.numeric(substr(dat[[lat]], start = 3, stop = 4))/60
+    } else {
+      dat[[lat]] <- as.numeric(substr(dat[[lat]], start = 1, stop = 2)) + as.numeric(substr(dat[[lat]], start = 3, stop = 4))/60 + as.numeric(substr(dat[[lat]], start = 5, stop = 6))/3600  
+    }
+    if(length(dat[[lon]]) > 7){
+      dat[[lon]] <- as.numeric(substr(dat[[lon]], start = 1, stop = 3)) + as.numeric(substr(dat[[lon]], start = 4, stop = 5))/60
+    } else {
+      dat[[lon]] <- as.numeric(substr(dat[[lon]], start = 1, stop = 3)) + as.numeric(substr(dat[[lon]], start = 4, stop = 5))/60 + as.numeric(substr(dat[[lon]], start = 7, stop = 8))/3600  
+    }
   }
+  if(latsign==TRUE){
+    dat[[lat]] <- -1*dat[[lat]]
+  }
+  if(lonsign==TRUE){
+    dat[[lon]] <- -1*dat[[lon]]
+  }
+  return(dat)
 }
 
 data_pull <- function(dat){

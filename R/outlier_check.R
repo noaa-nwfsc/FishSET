@@ -230,7 +230,8 @@ outlier_plot <- function(dat, x, dat.remove, x.dist, output.screen=FALSE){
     # Hist
     ##Plot 2!     
     p2 <- ggplot2::ggplot(dat_sub, aes_string(x)) + ggplot2::geom_histogram(ggplot2::aes(y = ..density..), na.rm=TRUE,
-                                                                            bins=round(nrow(dataset)/2)) + 
+                                                                            bins=if(nrow(dataset) < 500) {round(nrow(dataset)/2)
+                                                                              } else { 250}) + 
       mytheme  
     if (x.dist == "normal") {    
       p2 <- p2 + ggplot2::stat_function(fun = dnorm, colour = "blue", 

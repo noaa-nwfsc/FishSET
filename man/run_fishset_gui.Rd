@@ -6,12 +6,7 @@
 Runs functions associated with loading data, exploring data, checking for data quality issues, generating new variables, and basic data analyis function.
 run_fishset_gui}
 \usage{
-run_fishset_gui(dat, project)
-}
-\arguments{
-\item{dat}{Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.}
-
-\item{project}{Name of project. Parameter is used to generate meaningful table names in fishset_db database.}
+run_fishset_gui()
 }
 \description{
 Interactive tool to run FishSET functions 
