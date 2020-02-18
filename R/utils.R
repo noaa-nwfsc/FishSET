@@ -279,8 +279,8 @@ degree <- function(dat, lat=NULL, lon=NULL, latsign=FALSE, lonsign=FALSE){
   #' @param dat Data table containing latitude and longitude data
   #' @param lat Name of vector containing latitude data
   #' @param lon Name of vector containg longitude data
-  #' @param latsign If TRUE, transforms sign from positive from minus or minus from positive
-  #' @param lonsign If TRUE, transforms sign from positive from minus or minus from positive
+  #' @param latsign If TRUE, transforms sign from positive to minus or minus to positive
+  #' @param lonsign If TRUE, transforms sign from positive to minus or minus to positive
   #' @export degree
   #' @importFrom OSMscale degree
   #' @importFrom stringr str_replace
@@ -289,13 +289,11 @@ degree <- function(dat, lat=NULL, lon=NULL, latsign=FALSE, lonsign=FALSE){
   #' Changing the sign, transforms all values in the variable. 
   #' @examples 
   #' \dontrun{
-  #' dat <- degree(MainDataTable, 'LatLon_START_LAT', 'LatLon_START_LON')
+  #' dat <- degree(MainDataTable, 'LatLon_START_LAT', 'LatLon_START_LON', latsign=FALSE, lonsign=FALSE)
   #' }
   #' 
   
   if(!is.null(lat)){
-    #1. Dataframe - >> Will need a different system. Will need to identify all parts
-    #2. Numeric 
     if(!is.numeric(dat[[lat]])) {
       temp = gsub("°|'|\"", "", dat[, lat])
       temp[lengths(gregexpr(" ", temp))==1&!is.na(temp)] <- paste(temp[lengths(gregexpr(" ", temp))==1&!is.na(temp)], '00')
