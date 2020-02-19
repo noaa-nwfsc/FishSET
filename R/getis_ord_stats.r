@@ -120,9 +120,13 @@ getis_ord_stats <- function(dat, varofint, gridfile, lon.dat=NULL, lat.dat=NULL,
           legend.title=element_text(size=15)) + 
     xlab("Longitude") + 
     ylab("Latitude")
-  
-  
+
+
   return(list(getismap = getismap, 
               getistable = uniquedatatomap[,c("ZoneID", "GetisOrd")]))
   
+  
+  save_plot(project, "getis_ord_stats", getismap)
+  
+  save_table(uniquedatatomap, project, "getis_ord_stats")
 }

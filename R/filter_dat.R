@@ -45,6 +45,8 @@ filter_table <- function(dat, x, exp, project) {
     filter_data_function$output <- c('')
     filter_data_function$msg <- filterTable
     log_call(filter_data_function)
+    
+    save_table(dataset, project, "filter_table")
      
   print(filterTable)
 }
