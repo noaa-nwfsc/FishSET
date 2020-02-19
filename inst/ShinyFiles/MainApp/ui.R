@@ -329,9 +329,18 @@
                                             condition ='input.checks=="Empty variables"',
                                             checkboxInput('Empty_Filter', 'Remove empty variables', value=FALSE)
                                           ),
+                                           uiOutput('LatLonDir'),
                                           conditionalPanel(
                                             condition ='input.checks=="Lat_Lon units"',
                                             checkboxInput('LatLon_Filter', 'Convert lat/long to decimal degrees', value=FALSE)
+                                          ),
+                                          conditionalPanel(
+                                            condition ='input.checks=="Lat_Lon units"',
+                                            checkboxInput('LatLon_Filter_Lat', 'Change sign for latitude direction', value=FALSE)
+                                          ),
+                                          conditionalPanel(
+                                            condition ='input.checks=="Lat_Lon units"',
+                                            checkboxInput('LatLon_Filter_Lon', 'Change sign for longitude direction', value=FALSE)
                                           ),
                                           ##Inline scripting 
                                           textInput("exprQA", label = "Enter an R expression",
@@ -343,10 +352,11 @@
                              ),#END SIDEBAR LAYOUT             
                              mainPanel(width=9,
                                        tags$br(), tags$br(),
-                                       verbatimTextOutput("Case"),
+                                       htmlOutput("Case"),
                                        DT::DTOutput("output_table_summary"),
                                        DT::DTOutput("output_table_outlier"),
                                        tags$br(),tags$br(),
+                                       conditionalPanel(condition="input.checks=='Outliers'",
                                        splitLayout(cellWidths = c('33%','33%','33%'),
                                                    plotOutput('plot1',
                                                               hover = hoverOpts("plot1_hover", delay = 100, delayType = "debounce"),
@@ -359,8 +369,12 @@
                                                               hover = hoverOpts("plot3_hover", delay = 100, delayType = "debounce"),
                                                               dblclick = "plot3_dblclick", 
                                                               brush = brushOpts(id = "plot3_brush",resetOnNew = TRUE)
-                                                   )
-                                       )))),
+                                                   ))
+                                       ),
+                                      
+                                       DT::DTOutput('output_table_latlon')
+                                
+                                       ))),
                   #---- 
                   #BEGIN BASIC ANALYSIS TABSET PANEL 
                   #----
