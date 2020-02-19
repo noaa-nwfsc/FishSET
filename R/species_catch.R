@@ -28,7 +28,7 @@
 #' @export species_catch
 #' @import ggplot2
 #' @importFrom stats aggregate
-#' @importFrom reshape2 dcast, melt
+#' @importFrom reshape2 dcast melt
 #' @importFrom scales percent
 
 

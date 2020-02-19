@@ -1,4 +1,4 @@
-map_kernel <- function(type, latlon, group = NULL, facet = FALSE, minmax = NULL) {
+map_kernel <- function(type, project, latlon, group = NULL, facet = FALSE, minmax = NULL) {
     #' Wrapper function to map kernel densities
     #'
     #' Wrapper function to map kernel densities using ggplot2
@@ -6,6 +6,7 @@ map_kernel <- function(type, latlon, group = NULL, facet = FALSE, minmax = NULL)
     #' @param type Type of plot ("point", "contours", "gradient"). Note if you
     #' have a group, you must facet when choosing "gradient" (cannot overlap
     #' polygons clearly).
+    #' @param project Name of project.
     #' @param latlon A matrix of (# of observations) x 2 corresponding to 
     #' latitude/longitude pair coordinates in decimal degrees.
     #' @param group Optional group parameter if user maps based on a factor 

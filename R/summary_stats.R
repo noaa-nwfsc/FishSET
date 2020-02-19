@@ -1,6 +1,7 @@
 #' View summary statistics 
 #'
 #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param project Name of project.
 #' @param x Optional variable to apply function over.
 #' @keywords summary statistics
 #' @export summary_stats
@@ -12,7 +13,7 @@
 #' summary_stats(MainDataTable, x='HAUL')
 #' }
 
-summary_stats <- function(dat, x=NULL) {
+summary_stats <- function(dat, project, x=NULL) {
   
   
   #Call in datasets

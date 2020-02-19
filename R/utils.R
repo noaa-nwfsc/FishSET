@@ -429,6 +429,24 @@ date_factorize <- function(dataset, date_col, date_code) {
   dataset
 }
 
+text_filepath <- function(project, fun_name) {
+  #' Create a filepath for a .txt document in the output folder
+  #' @param project Name of project.
+  #' @param fun_name Name of function. 
+  #' @return Useful for saving messages generated in functions. 
+  #' @examples 
+  #' \dontrun{
+  #' 
+  #' cat("message", file = text_filepath("my_project", "qaqc_output"))
+  #' 
+  #' }
+  
+  paste0(locoutput(), project, "_", fun_name, Sys.Date(), ".txt")
+  
+}
+
+
+
 ##---------------------------##
 outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plot_type) {
   #' Evaluate outliers through plots

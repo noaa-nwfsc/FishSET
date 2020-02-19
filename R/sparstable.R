@@ -1,6 +1,7 @@
-sparsetable <- function(dat, timevar, zonevar, var){
+sparsetable <- function(dat, project, timevar, zonevar, var){
 #' Sparsity table
-#' @param dat Main data frame over which to apply function. 
+#' @param dat Main data frame over which to apply function.
+#' @param project Name of project. 
 #' @param timevar Variable containing temporal data 
 #' @param zonevar Variable containing zone observation assigned to
 #' @param var Variable containing catch data
@@ -50,9 +51,10 @@ save_table(sparstable, project, "sparstable")
 
 
 
-sparsplot <- function(x){
+sparsplot <- function(x, project){
 #' Sparsity plot
 #' @param x output from spartstable function
+#' @param project Name of project.
 #' @export
 #' @import ggplot2
 #' @importFrom stats lm

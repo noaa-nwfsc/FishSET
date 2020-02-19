@@ -23,13 +23,28 @@
 #' 
 
 
-density_plot <- function(dat, project = NULL, var, type = c("kde", "ecdf", "cdf"), 
-                         group = NULL, position = "identity") {
+density_plot <- function(dat, project, var, type = c("kde", "ecdf", "cdf"), 
+                         group = NULL, date = NULL, year = NULL, position = "identity") {
   
   out <- data_pull(dat)
   dat <- out$dat
   dataset <- out$dataset
   
+  
+  
+  if (lubridate::is.Date(dataset[[date]]) == FALSE) {
+    
+    warning("Date variable is not in correct format. Converting to date format.")
+    
+    dataset[[date]] <- date_parser(dataset[[date]])
+  
+  }
+  
+  if (!is.null(year)) {
+    
+    dataset <- subset(dataset, format(dataset[[date]], "%Y") == year)
+    
+  }
   
   if (!is.null(group) & !is.factor(group)) {
     
@@ -92,25 +107,3 @@ density_plot <- function(dat, project = NULL, var, type = c("kde", "ecdf", "cdf"
 }
 
 
-
-
-
-
-
-density_plot(poldat, var = "HAUL")
-
-density_plot(poldat, var = "HAUL", group = "DISEMBARKED_PORT")
-
-density_plot(poldat, var = "HAUL", type = "ecdf")
-
-density_plot(poldat, var = "HAUL", type = "cdf", group = "DISEMBARKED_PORT")
-
-density_plot(poldat, var = "HAUL", type = "cdf")
-
-
-density_plot(fs_na, var = "HAUL", type = "kde", group = "VESSEL_TYPE")
-
-
-
-
-# filter option for specifying time period? Facet by mutliple years?

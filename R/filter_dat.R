@@ -1,7 +1,8 @@
-filter_table <- function(dat, x, exp, project) {
+filter_table <- function(dat, project, x, exp, project) {
   #'  Define and store filter expressions
   #'
   #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
+  #' @param project Name of project.
   #' @param x Column in dataaframe over which filter will be applied
   #' @param exp Filter expression. Should take on the form of `x<100` or `is.na(x)==F`.
   #' @param project Name of project
@@ -40,7 +41,7 @@ filter_table <- function(dat, x, exp, project) {
   
     filter_data_function <- list()
     filter_data_function$functionID <- 'filter_table'
-    filter_data_function$args <- c(dat, x, exp, project)
+    filter_data_function$args <- c(dat, project, x, exp, project)
     filter_data_function$kwargs <- list()
     filter_data_function$output <- c('')
     filter_data_function$msg <- filterTable
