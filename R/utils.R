@@ -292,7 +292,7 @@ degree <- function(dat, lat=NULL, lon=NULL, latsign=FALSE, lonsign=FALSE){
   #' dat <- degree(MainDataTable, 'LatLon_START_LAT', 'LatLon_START_LON', latsign=FALSE, lonsign=FALSE)
   #' }
   #' 
-  
+
   if(!is.null(lat)){
     if(!is.numeric(dat[[lat]])) {
       temp = gsub("°|'|\"", "", dat[, lat])
@@ -309,6 +309,8 @@ degree <- function(dat, lat=NULL, lon=NULL, latsign=FALSE, lonsign=FALSE){
         dat[[lat]][nm] <- dat[[lat]][nm]*-1
       }
     }
+  } else {
+    dat <- dat
   }
   if(!is.null(lon)){
     if(!is.numeric(dat[[lon]])) {
@@ -320,19 +322,25 @@ degree <- function(dat, lat=NULL, lon=NULL, latsign=FALSE, lonsign=FALSE){
       if(any(nchar(trunc(as.numeric(dat[[lon]])))>3)){
         nm <- !is.na(dat[[lon]])&as.numeric(dat[[lon]]) < 0
         i <- nchar(abs(dat[[lon]]))<=5&!is.na(dat[[lon]])
-        dat[[lat]][i] <- paste0(dat[[lon]][i], '00')
+        dat[[lon]][i] <- paste0(dat[[lon]][i], '00')
         dat[[lon]] <-  stringr::str_pad(abs(as.numeric(dat[[lon]])), 7, pad = "0")
         dat[[lon]] <- as.numeric(substr(dat[[lon]], start = 1, stop = 3)) + as.numeric(substr(dat[[lon]], start = 4, stop = 5))/60 + as.numeric(substr(dat[[lon]], start = 6, stop = 7))/3600  
         dat[[lon]][nm] <- dat[[lon]][nm]*-1
       }
     }
     
+  } else {
+    dat <- dat
   }
   if(latsign==TRUE&!is.null(lat)){
     dat[[lat]] <- -1*dat[[lat]]
+  } else {
+    dat <- dat
   }
   if(lonsign==TRUE&!is.null(lon)){
     dat[[lon]] <- -1*dat[[lon]]
+  } else {
+    dat <- dat
   }
   return(dat)
 }
