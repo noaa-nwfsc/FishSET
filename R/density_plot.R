@@ -5,7 +5,7 @@
 #' @param dat Main data frame over which to apply function. Table in fishset_db 
 #'   database should contain the string `MainDataTable`.
 #' @param project name of project.
-#' @param var variable to compute a density estimate or cdf with.
+#' @param var variable used to compute density estimate or cdf.
 #' @param type Type of density plot. Options include "kde" (kernel density estimate),
 #'   "ecdf" (empirical cdf), or "cdf".
 #' @param group A grouping variable. 
@@ -26,7 +26,7 @@
 density_plot <- function(dat, project = NULL, var, type = c("kde", "ecdf", "cdf"), 
                          group = NULL, position = "identity") {
   
-  out <- FishSET:::data_pull(dat)
+  out <- data_pull(dat)
   dat <- out$dat
   dataset <- out$dataset
   
@@ -40,27 +40,27 @@ density_plot <- function(dat, project = NULL, var, type = c("kde", "ecdf", "cdf"
   if (type == "kde") {
     
     plot <- ggplot2::ggplot(dataset, ggplot2::aes_string(x = var, fill = if (is.null(group) == F) {
-              group} else {NULL})) + 
-              ggplot2::stat_density(position = position, color = "black", alpha = .7) +
-              labs(title = paste0("KDE of ", var)) + 
-              fishset_theme
+      group} else {NULL})) + 
+      ggplot2::stat_density(position = position, color = "black", alpha = .7) +
+      ggplot2::labs(title = paste0("KDE of ", var)) + 
+      fishset_theme
     
   } else if (type == "ecdf") {
     
     if (is.null(group)) {
       
       plot <- ggplot2::ggplot(dataset, ggplot2::aes_string(x = var)) + 
-                ggplot2::stat_ecdf(geom = "area", alpha = .7) +
-                ggplot2::stat_ecdf(geom = "step", alpha = .7) +
-                labs(title = paste0("ECDF of ", var)) + 
-                fishset_theme
+        ggplot2::stat_ecdf(geom = "area", alpha = .7) +
+        ggplot2::stat_ecdf(geom = "step", alpha = .7) +
+        ggplot2::labs(title = paste0("ECDF of ", var)) + 
+        fishset_theme
       
     } else {
       
       plot <- ggplot2::ggplot(dataset, ggplot2::aes_string(x = var, color = group)) +
-                ggplot2::stat_ecdf(geom = "step") +
-                labs(title = paste0("ECDF of ", var)) + 
-                fishset_theme
+        ggplot2::stat_ecdf(geom = "step") +
+        ggplot2::labs(title = paste0("ECDF of ", var)) + 
+        fishset_theme
       
     } 
     
@@ -71,9 +71,9 @@ density_plot <- function(dat, project = NULL, var, type = c("kde", "ecdf", "cdf"
                                 sd = sd(dataset[[var]]))
     
     plot <- ggplot2::ggplot(dataset, ggplot2::aes_string(var)) +
-              ggplot2::geom_area(ggplot2::aes(y = cdf), position = "identity", alpha = .7) +
-              labs(title = paste0("CDF of ", var)) + 
-              fishset_theme
+      ggplot2::geom_area(ggplot2::aes(y = cdf), position = "identity", alpha = .7) +
+      ggplot2::labs(title = paste0("CDF of ", var)) + 
+      fishset_theme
     
   }
   
@@ -113,5 +113,4 @@ density_plot(fs_na, var = "HAUL", type = "kde", group = "VESSEL_TYPE")
 
 
 
-# filter option for specifying time period? 
-
+# filter option for specifying time period? Facet by mutliple years?

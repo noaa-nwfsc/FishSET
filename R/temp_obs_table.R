@@ -47,4 +47,6 @@ cat('Number of observations by year and month')
  print(table(out$YEAR[out$ZoneID==unique(out$ZoneID)[i]], out$MONTH[out$ZoneID==unique(out$ZoneID)[i]]))
  }
  
+ save_table(out, project, "temp_obs_table")
+ 
 }
