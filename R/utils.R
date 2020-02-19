@@ -299,8 +299,7 @@ degree <- function(dat, lat=NULL, lon=NULL, latsign=FALSE, lonsign=FALSE){
       temp[lengths(gregexpr(" ", temp))==1&!is.na(temp)] <- paste(temp[lengths(gregexpr(" ", temp))==1&!is.na(temp)], '00')
       dat[[lat]] <- as.numeric(sapply(strsplit(temp, "\\s+"), '[', 1))+ as.numeric(sapply(strsplit(temp, "\\s+"), '[', 2))/60+as.numeric(sapply(strsplit(temp, "\\s+"), '[', 3))/360
       
-    }  else {
-      if(any(nchar(trunc(dat[[lat]]))>2)){
+    }  else if(any(nchar(trunc(dat[[lat]]))>2)){
         nm <- !is.na(dat[[lat]])&dat[[lat]] < 0
         i <- nchar(abs(dat[[lat]]))<=4&!is.na(dat[[lat]])
         dat[[lat]][i] <- paste0(dat[[lat]][i], '00')
@@ -308,9 +307,7 @@ degree <- function(dat, lat=NULL, lon=NULL, latsign=FALSE, lonsign=FALSE){
         dat[[lat]] <- as.numeric(substr(dat[[lat]], start = 1, stop = 2)) + as.numeric(substr(dat[[lat]], start = 3, stop = 4))/60 + as.numeric(substr(dat[[lat]], start = 5, stop = 6))/3600  
         dat[[lat]][nm] <- dat[[lat]][nm]*-1
       }
-    }
-  } else {
-    dat <- dat
+    
   }
   if(!is.null(lon)){
     if(!is.numeric(dat[[lon]])) {
@@ -318,8 +315,7 @@ degree <- function(dat, lat=NULL, lon=NULL, latsign=FALSE, lonsign=FALSE){
       temp[lengths(gregexpr(" ", temp))==1&!is.na(temp)] <- paste(temp[lengths(gregexpr(" ", temp))==1&!is.na(temp)], '00')
       dat[[lon]] <- as.numeric(sapply(strsplit(temp, "\\s+"), '[', 1))+ as.numeric(sapply(strsplit(temp, "\\s+"), '[', 2))/60+as.numeric(sapply(strsplit(temp, "\\s+"), '[', 3))/360
       
-    } else {
-      if(any(nchar(trunc(as.numeric(dat[[lon]])))>3)){
+    } else if(any(nchar(trunc(as.numeric(dat[[lon]])))>3)){
         nm <- !is.na(dat[[lon]])&as.numeric(dat[[lon]]) < 0
         i <- nchar(abs(dat[[lon]]))<=5&!is.na(dat[[lon]])
         dat[[lon]][i] <- paste0(dat[[lon]][i], '00')
@@ -328,10 +324,7 @@ degree <- function(dat, lat=NULL, lon=NULL, latsign=FALSE, lonsign=FALSE){
         dat[[lon]][nm] <- dat[[lon]][nm]*-1
       }
     }
-    
-  } else {
-    dat <- dat
-  }
+
   if(latsign==TRUE&!is.null(lat)){
     dat[[lat]] <- -1*dat[[lat]]
   } else {
@@ -369,89 +362,6 @@ data_pull <- function(dat){
   }
   return(list(dat=dat,dataset=dataset))
 
-}
-
-fishset_theme <- ggplot2::theme(panel.grid.major = ggplot2::element_blank(), 
-                       panel.grid.minor = ggplot2::element_blank(), 
-                       panel.background = ggplot2::element_blank(), 
-                       axis.line = ggplot2::element_line(colour = "black"), 
-                       axis.text = ggplot2::element_text(size=11), 
-                       axis.title = ggplot2::element_text(size=11))
-
-save_table <- function(table, project, func_name, ...) {
-  #' Save table to output folder
-  #' @param table table name.
-  #' @param project project name.
-  #' @param func_name function name.
-  #' @param ... addition arguments passsed to write.csv function. 
-  #' @export
-  #' @examples 
-  #' \dontrun {
-  #' 
-  #' save_table(count, project, "species_catch")
-  #' 
-  #' }   
-  write.csv(table, paste0(locoutput(), project, "_", func_name, "_", Sys.Date(), '.csv'))
-  
-}
-
-save_plot <- function(project, func_name, ...) {
-  #' Save table to output folder
-  #' @param project name of project.
-  #' @param func_name function name.
-  #' @param ... addition arguments passed to the ggsave function. 
-  #' @export
-  #' @examples 
-  #' \dontrun {
-  #' 
-  #' save_plot(project, "species_catch")
-  #' 
-  #' }
-  
-  ggplot2::ggsave(file = paste0(locoutput(), project, "_", func_name, "_", Sys.Date(), '.png'), ...)
-  
-}
-
-date_factorize <- function(dataset, date_col, date_code) {
-  #' Convert date variable of type character to ordered factor
-  #' @param dataset data frame containg date variable.
-  #' @param date_col date variable of type character to convert to ordered factor.
-  #' @param date_code date code used to format date variable.
-  
-  if (date_code %in% c("%a", "%A", "%b", "%B")) { 
-    
-    if (date_code == "%b") {
-      
-      dataset[[date_col]] <- factor(dataset[[date_col]], 
-                                    levels = month.abb, 
-                                    ordered = T)
-      
-    } else if (date_code == "%B") {
-      
-      dataset[[date_col]] <- factor(dataset[[date_col]], 
-                                    levels = month.name, 
-                                    ordered = T)
-      
-    } else if (date_code == "%a") {
-      
-      dataset[[date_col]] <- factor(dataset[[date_col]], 
-                                    levels = c("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"), 
-                                    ordered = T)
-      
-    } else {
-      
-      dataset[[date_col]] <- factor(dataset[[date_col]], 
-                                    levels = c("Sunday", "Monday", "Tuesday", "Wednesday", 
-                                               "Thursday", "Friday", "Saturday"), 
-                                    ordered = T)
-    }
-    
-  } else {
-    
-    stop("Date format is not character type")
-    
-  }
-  dataset
 }
 
 ##---------------------------##
