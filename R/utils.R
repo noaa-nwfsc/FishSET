@@ -58,7 +58,7 @@ locoutput <- function(){
 }
 
 pull_info_data <- function(project){
-#' Pull the most recent data index file for given projet
+#' Pull the most recent data index file for given project
 #' @param project Name of project, such as pollock
 #' @export
 
@@ -295,33 +295,38 @@ degree <- function(dat, lat=NULL, lon=NULL, latsign=FALSE, lonsign=FALSE){
 
   if(!is.null(lat)){
     if(!is.numeric(dat[[lat]])) {
-      temp = gsub("°|'|\"", "", dat[, lat])
+      temp = gsub("\u00b0|'|\"", "", dat[[lat]])
       temp[lengths(gregexpr(" ", temp))==1&!is.na(temp)] <- paste(temp[lengths(gregexpr(" ", temp))==1&!is.na(temp)], '00')
       dat[[lat]] <- as.numeric(sapply(strsplit(temp, "\\s+"), '[', 1))+ as.numeric(sapply(strsplit(temp, "\\s+"), '[', 2))/60+as.numeric(sapply(strsplit(temp, "\\s+"), '[', 3))/360
       
-    }  else if(any(nchar(trunc(dat[[lat]]))>2)){
+    }  else if(any(nchar(trunc(abs(dat[[lat]])))>2, na.rm=T)){
         nm <- !is.na(dat[[lat]])&dat[[lat]] < 0
+        dat[[lat]] <- abs(dat[[lat]])
         i <- nchar(abs(dat[[lat]]))<=4&!is.na(dat[[lat]])
         dat[[lat]][i] <- paste0(dat[[lat]][i], '00')
-        dat[[lat]] <-  stringr::str_pad(abs(as.numeric(dat[[lat]])), 6, pad = "0")
+        dat[[lat]] <-  format(as.numeric(stringr::str_pad(abs(as.numeric(dat[[lat]])), 6, pad = "0")), scientific=FALSE)
         dat[[lat]] <- as.numeric(substr(dat[[lat]], start = 1, stop = 2)) + as.numeric(substr(dat[[lat]], start = 3, stop = 4))/60 + as.numeric(substr(dat[[lat]], start = 5, stop = 6))/3600  
         dat[[lat]][nm] <- dat[[lat]][nm]*-1
+    } else {
+        dat <- dat
       }
-    
   }
   if(!is.null(lon)){
     if(!is.numeric(dat[[lon]])) {
-      temp = gsub("°|'|\"", "", dat[, lon])
+      temp = gsub("\u00b0|'|\"", "", dat[, lon])
       temp[lengths(gregexpr(" ", temp))==1&!is.na(temp)] <- paste(temp[lengths(gregexpr(" ", temp))==1&!is.na(temp)], '00')
       dat[[lon]] <- as.numeric(sapply(strsplit(temp, "\\s+"), '[', 1))+ as.numeric(sapply(strsplit(temp, "\\s+"), '[', 2))/60+as.numeric(sapply(strsplit(temp, "\\s+"), '[', 3))/360
       
-    } else if(any(nchar(trunc(as.numeric(dat[[lon]])))>3)){
+    } else if(any(nchar(trunc(abs(as.numeric(dat[[lon]]))))>3, na.rm=T)){
         nm <- !is.na(dat[[lon]])&as.numeric(dat[[lon]]) < 0
-        i <- nchar(abs(dat[[lon]]))<=5&!is.na(dat[[lon]])
+        dat[[lon]] <- abs(dat[[lon]])
+        i <- nchar(dat[[lon]])<=5&!is.na(dat[[lon]])
         dat[[lon]][i] <- paste0(dat[[lon]][i], '00')
-        dat[[lon]] <-  stringr::str_pad(abs(as.numeric(dat[[lon]])), 7, pad = "0")
+        dat[[lon]] <-  format(as.numeric(stringr::str_pad(as.numeric(dat[[lon]]), 7, pad = "0")), scientific=FALSE)
         dat[[lon]] <- as.numeric(substr(dat[[lon]], start = 1, stop = 3)) + as.numeric(substr(dat[[lon]], start = 4, stop = 5))/60 + as.numeric(substr(dat[[lon]], start = 6, stop = 7))/3600  
         dat[[lon]][nm] <- dat[[lon]][nm]*-1
+    } else {
+        dat <- dat
       }
     }
 

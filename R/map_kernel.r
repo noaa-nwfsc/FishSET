@@ -40,18 +40,19 @@ map_kernel <- function(type, latlon, group = NULL, facet = FALSE, minmax = NULL)
     
 ## currently outputs to FishSET not file (could include dirout as argument)
 requireNamespace('ggplot2')
-world <- map_data("world")
+world <- ggplot2::map_data("world")
   
 datatomap <- as.data.frame(latlon)
 colnames(datatomap) <- c("lat", "lon")
+datatomap <- datatomap[-which(is.na(datatomap$lon)==TRUE|is.na(datatomap$lat)==TRUE),]
 datatomap$groupv <- group
 
 if (is.null(minmax) == TRUE) {
 
-if (min(datatomap$lat < 0) & max(datatomap$lat) < 0) {
+if (min(datatomap$lat) < 0 & max(datatomap$lat) < 0) {
     minlat <- min(datatomap$lat)*1.001
     maxlat <- max(datatomap$lat)*0.999
-} else if (min(datatomap$lat > 0) & max(datatomap$lat) > 0) {
+} else if (min(datatomap$lat) > 0 & max(datatomap$lat) > 0) {
     minlat <- min(datatomap$lat,datatomap$lat)*0.999
     maxlat <- max(datatomap$lat,datatomap$lat)*1.001
 } else {
@@ -60,10 +61,10 @@ if (min(datatomap$lat < 0) & max(datatomap$lat) < 0) {
     warning( "User should specify own minmax lat" )
 }
 
-if (min(datatomap$lon < 0) & max(datatomap$lon) < 0) {
+if (min(datatomap$lon) < 0 & max(datatomap$lon) < 0) {
     minlon <- min(datatomap$lon)*1.001
     maxlon <- max(datatomap$lon)*0.999
-} else if (min(datatomap$lon > 0) & max(datatomap$lon) > 0) {
+} else if (min(datatomap$lon) > 0 & max(datatomap$lon) > 0) {
     minlon <- min(datatomap$lon,datatomap$lon)*0.999
     maxlon <- max(datatomap$lon,datatomap$lon)*1.001
 } else {

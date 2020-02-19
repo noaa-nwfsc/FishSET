@@ -15,8 +15,7 @@
 #' @export density_plot
 #' @examples 
 #' \dontrun{
-#' 
-#' 
+#' density_plot(dat, var = "HAUL", group = "DISEMBARKED_PORT")
 #' }
 #' @import ggplot2
 #' @importFrom stats pnorm
@@ -97,18 +96,18 @@ density_plot <- function(dat, project = NULL, var, type = c("kde", "ecdf", "cdf"
 
 
 
-density_plot(poldat, var = "HAUL")
+#density_plot(poldat, var = "HAUL")
 
-density_plot(poldat, var = "HAUL", group = "DISEMBARKED_PORT")
+#density_plot(poldat, var = "HAUL", group = "DISEMBARKED_PORT")
 
-density_plot(poldat, var = "HAUL", type = "ecdf")
+#density_plot(poldat, var = "HAUL", type = "ecdf")
 
-density_plot(poldat, var = "HAUL", type = "cdf", group = "DISEMBARKED_PORT")
+#density_plot(poldat, var = "HAUL", type = "cdf", group = "DISEMBARKED_PORT")
 
-density_plot(poldat, var = "HAUL", type = "cdf")
+#density_plot(poldat, var = "HAUL", type = "cdf")
 
 
-density_plot(fs_na, var = "HAUL", type = "kde", group = "VESSEL_TYPE")
+#density_plot(fs_na, var = "HAUL", type = "kde", group = "VESSEL_TYPE")
 
 
 
