@@ -37,13 +37,16 @@ summary_stats <- function(dat, x=NULL) {
   
   
   if(is_empty(x)){
-    as.data.frame(as.matrix(rbind(summary(dataset, digits=2), 
+   sum_table <-  as.data.frame(as.matrix(rbind(summary(dataset, digits=2), 
                                   apply(dataset, 2, function(x) paste("UniqueObs:", length(unique(x)))),
                                   apply(dataset, 2, function(x) paste("No. 0's:", length(which(x==0))))
                                   )), row.names=FALSE)[-c(2,5),]
   } else {
-    c(summary(dataset[[x]]), paste("UniqueObs:", length(unique(dataset[[x]]))), 
+    sum_table <- c(summary(dataset[[x]]), paste("UniqueObs:", length(unique(dataset[[x]]))), 
                             paste("No. 0's:", length(which(dataset[[x]]==0)))
       )[-c(2,5)]
   }
+  
+  save_table(sum_table, project, "summary_stats")
+  
 }

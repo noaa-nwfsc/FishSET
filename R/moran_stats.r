@@ -123,4 +123,9 @@ moran_stats <- function(dat, varofint, gridfile, lon.dat=NULL, lat.dat=NULL, cat
   return(list(moranmap = moranmap, 
               morantable = uniquedatatomap[,c("ZoneID", "Morans_I")]))
   
-}
+
+  save_plot(project, "moran_stats", moranmap)
+  
+  save_table(uniquedatatomap, project, "moran_stats")
+  
+  }

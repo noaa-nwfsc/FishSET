@@ -255,4 +255,6 @@ return(mapout)
 
 }
 
+save_plot(project, "map_kernel", mapout)
+
 }

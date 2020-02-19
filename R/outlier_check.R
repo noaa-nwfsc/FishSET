@@ -126,6 +126,9 @@ outlier_table <- function(dat, x) {
   } else {
     print("Data is not numeric.")
   }
+    
+    save_table(dat.table, project, "outlier_table")
+    
 }
 
 
@@ -304,7 +307,7 @@ outlier_plot <- function(dat, x, dat.remove, x.dist, output.screen=FALSE){
     plot(fig)
    # Close the pdf file
     if (output.screen == FALSE) {
-      ggplot2::ggsave(file="outlier_plot.png", path=paste0(getwd(),"/inst/output/"))
+      save_plot(project, "outlier_plot", fig)
       dev.off()
     }
     
@@ -312,6 +315,7 @@ outlier_plot <- function(dat, x, dat.remove, x.dist, output.screen=FALSE){
     # Actions to take if data is not numeric
     print("Data is not numeric. Plots not generated.")
   }
+
 }
 
 

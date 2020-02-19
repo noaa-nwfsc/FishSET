@@ -365,6 +365,89 @@ data_pull <- function(dat){
 
 }
 
+fishset_theme <- ggplot2::theme(panel.grid.major = ggplot2::element_blank(), 
+                       panel.grid.minor = ggplot2::element_blank(), 
+                       panel.background = ggplot2::element_blank(), 
+                       axis.line = ggplot2::element_line(colour = "black"), 
+                       axis.text = ggplot2::element_text(size=11), 
+                       axis.title = ggplot2::element_text(size=11))
+
+save_table <- function(table, project, func_name, ...) {
+  #' Save table to output folder
+  #' @param table table name.
+  #' @param project project name.
+  #' @param func_name function name.
+  #' @param ... addition arguments passsed to write.csv function. 
+  #' @export
+  #' @examples 
+  #' \dontrun {
+  #' 
+  #' save_table(count, project, "species_catch")
+  #' 
+  #' }   
+  write.csv(table, paste0(locoutput(), project, "_", func_name, "_", Sys.Date(), '.csv'))
+  
+}
+
+save_plot <- function(project, func_name, ...) {
+  #' Save table to output folder
+  #' @param project name of project.
+  #' @param func_name function name.
+  #' @param ... addition arguments passed to the ggsave function. 
+  #' @export
+  #' @examples 
+  #' \dontrun {
+  #' 
+  #' save_plot(project, "species_catch")
+  #' 
+  #' }
+  
+  ggplot2::ggsave(file = paste0(locoutput(), project, "_", func_name, "_", Sys.Date(), '.png'), ...)
+  
+}
+
+date_factorize <- function(dataset, date_col, date_code) {
+  #' Convert date variable of type character to ordered factor
+  #' @param dataset data frame containg date variable.
+  #' @param date_col date variable of type character to convert to ordered factor.
+  #' @param date_code date code used to format date variable.
+  
+  if (date_code %in% c("%a", "%A", "%b", "%B")) { 
+    
+    if (date_code == "%b") {
+      
+      dataset[[date_col]] <- factor(dataset[[date_col]], 
+                                    levels = month.abb, 
+                                    ordered = T)
+      
+    } else if (date_code == "%B") {
+      
+      dataset[[date_col]] <- factor(dataset[[date_col]], 
+                                    levels = month.name, 
+                                    ordered = T)
+      
+    } else if (date_code == "%a") {
+      
+      dataset[[date_col]] <- factor(dataset[[date_col]], 
+                                    levels = c("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"), 
+                                    ordered = T)
+      
+    } else {
+      
+      dataset[[date_col]] <- factor(dataset[[date_col]], 
+                                    levels = c("Sunday", "Monday", "Tuesday", "Wednesday", 
+                                               "Thursday", "Friday", "Saturday"), 
+                                    ordered = T)
+    }
+    
+  } else {
+    
+    stop("Date format is not character type")
+    
+  }
+  dataset
+}
+
 ##---------------------------##
 outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plot_type) {
   #' Evaluate outliers through plots
