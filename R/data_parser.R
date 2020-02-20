@@ -79,7 +79,6 @@ fishset_compare <- function(x, y, compare=c(TRUE,FALSE)){
     }
   } else {
     cat('')
-    #DBI::dbWriteTable(fishset_db, paste(deparse(substitute(x)), Sys.Date(), sep=''), deparse(substitute(x)))
   }
   DBI::dbDisconnect(fishset_db)
 }

@@ -1,8 +1,9 @@
-map_kernel <- function(type, latlon, group = NULL, facet = FALSE, minmax = NULL) {
+map_kernel <- function(project, type, latlon, group = NULL, facet = FALSE, minmax = NULL) {
     #' Wrapper function to map kernel densities
     #'
     #' Wrapper function to map kernel densities using ggplot2
     #'
+    #' @param project Name of project
     #' @param type Type of plot ("point", "contours", "gradient"). Note if you
     #' have a group, you must facet when choosing "gradient" (cannot overlap
     #' polygons clearly).
@@ -29,13 +30,13 @@ map_kernel <- function(type, latlon, group = NULL, facet = FALSE, minmax = NULL)
     #' minmax = c(50, max(datatomap.2001$lat,datatomap.2001$lat)*1.001,
     #'  min(datatomap.2001$lon,datatomap.2001$lon)*1.001 , -142.5)
     #' 
-    #' map_kernel(type,latlon,group=group,minmax=minmax)
+    #' map_kernel('project',type,latlon,group=group,minmax=minmax)
     #' 
     #' type <- "gradient"
-    #' map_kernel(type,latlon,group=group,facet=TRUE,minmax=minmax)
+    #' map_kernel('project',type,latlon,group=group,facet=TRUE,minmax=minmax)
     #' 
     #' type <- "point"
-    #' map_kernel(type,latlon)
+    #' map_kernel('project',type,latlon)
     #' }    
     
 ## currently outputs to FishSET not file (could include dirout as argument)
@@ -93,52 +94,52 @@ if (type == "point") {
 
 if (is.null(group) == FALSE & facet == FALSE) {
 
-mapout <- ggplot() +
-    geom_map(data=world, map=world, aes(x=long, y=lat, map_id=region),
+mapout <- ggplot2::ggplot() +
+  ggplot2::geom_map(data=world, map=world, ggplot2::aes(x=long, y=lat, map_id=region),
         fill="grey", color="black", size=0.375) +
-    geom_point(data=datatomap,aes(x=lon,y=lat, colour = groupv), 
+  ggplot2::geom_point(data=datatomap,ggplot2::aes(x=lon,y=lat, colour = groupv), 
         size=0.375, alpha = 0.25) +
-    xlim(minlon,maxlon) + ylim(minlat,maxlat) +
-    ggtitle("Points") + 
-    guides(colour = guide_legend(override.aes = list(size=10))) +
-    theme(text = element_text(size=12), axis.title.y=element_text(vjust=1.5),
-        legend.title=element_blank(), panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(), panel.background = element_blank(),
-        panel.border = element_rect(colour = "black", fill=NA, size=1)) + 
-        xlab("Longitude") + ylab("Latitude")
+  ggplot2::xlim(minlon,maxlon) + ggplot2::ylim(minlat,maxlat) +
+  ggplot2::ggtitle("Points") + 
+  ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=10))) +
+  ggplot2::theme(text = ggplot2::element_text(size=12), axis.title.y = ggplot2::element_text(vjust=1.5),
+        legend.title= ggplot2::element_blank(), panel.grid.major = ggplot2::element_blank(), 
+        panel.grid.minor = ggplot2::element_blank(), panel.background = ggplot2::element_blank(),
+        panel.border = ggplot2::element_rect(colour = "black", fill=NA, size=1)) + 
+  ggplot2::xlab("Longitude") + ggplot2::ylab("Latitude")
 
 return(mapout)
 
 } else if (is.null(group) == FALSE & facet == TRUE) {
 
-mapout <- ggplot() +
-    geom_map(data=world, map=world, aes(x=long, y=lat, map_id=region),
+mapout <- ggplot2::ggplot() +
+  ggplot2::geom_map(data=world, map=world, ggplot2::aes(x=long, y=lat, map_id=region),
         fill="grey", color="black", size=0.375) +
-    geom_point(data=datatomap,aes(x=lon,y=lat, colour = groupv), size=0.375) +
-    xlim(minlon,maxlon) + ylim(minlat,maxlat) +
-    ggtitle("Points") +
-    facet_wrap(.~groupv) +
-    theme(text = element_text(size=12), axis.title.y=element_text(vjust=1.5),
-        legend.position = "none", panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(), panel.background = element_blank(),
-        panel.border = element_rect(colour = "black", fill=NA, size=1)) + 
-        xlab("Longitude") + ylab("Latitude")
+  ggplot2::geom_point(data=datatomap, ggplot2::aes(x=lon,y=lat, colour = groupv), size=0.375) +
+  ggplot2::xlim(minlon,maxlon) + ggplot2::ylim(minlat,maxlat) +
+  ggplot2::ggtitle("Points") +
+  ggplot2::facet_wrap(.~groupv) +
+  ggplot2::theme(text = ggplot2::element_text(size=12), axis.title.y = ggplot2::element_text(vjust=1.5),
+        legend.position = "none", panel.grid.major = ggplot2::element_blank(), 
+        panel.grid.minor = ggplot2::element_blank(), panel.background = ggplot2::element_blank(),
+        panel.border = ggplot2::element_rect(colour = "black", fill=NA, size=1)) + 
+  ggplot2::xlab("Longitude") + ggplot2::ylab("Latitude")
 
 return(mapout)
 
 } else {
 
-mapout <- ggplot() +
-    geom_map(data=world, map=world, aes(x=long, y=lat, map_id=region),
+mapout <- ggplot2::ggplot() +
+  ggplot2::geom_map(data=world, map=world, ggplot2::aes(x=long, y=lat, map_id=region),
         fill="grey", color="black", size=0.375) +
-    geom_point(data=datatomap,aes(x=lon,y=lat), color="black", size=0.375) +
-    xlim(minlon,maxlon) + ylim(minlat,maxlat) +
-    ggtitle("Points") +
-    theme(text = element_text(size=12), axis.title.y=element_text(vjust=1.5),
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-        panel.background = element_blank(), 
-        panel.border = element_rect(colour = "black", fill=NA, size=1)) + 
-        xlab("Longitude") + ylab("Latitude")
+  ggplot2::geom_point(data=datatomap, ggplot2::aes(x=lon,y=lat), color="black", size=0.375) +
+  ggplot2::xlim(minlon,maxlon) + ggplot2::ylim(minlat,maxlat) +
+  ggplot2::ggtitle("Points") +
+  ggplot2::theme(text = ggplot2::element_text(size=12), axis.title.y = ggplot2::element_text(vjust=1.5),
+        panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
+        panel.background = ggplot2::element_blank(), 
+        panel.border = ggplot2::element_rect(colour = "black", fill=NA, size=1)) + 
+  ggplot2::xlab("Longitude") + ggplot2::ylab("Latitude")
 
 return(mapout)
 
@@ -149,55 +150,55 @@ return(mapout)
 
 if (is.null(group) == FALSE & facet == FALSE) {
 
-mapout <- ggplot() +
-    geom_map(data=world, map=world, aes(x=long, y=lat, map_id=region),
+mapout <- ggplot2::ggplot() +
+  ggplot2::geom_map(data=world, map=world, ggplot2::aes(x=long, y=lat, map_id=region),
         fill="grey", color="black", size=0.375) +
-    geom_point(data=datatomap,aes(x=lon,y=lat, colour = groupv), 
+  ggplot2::geom_point(data=datatomap, ggplot2::aes(x=lon,y=lat, colour = groupv), 
         color="black", size=0.375) +
-    geom_density_2d(data=datatomap,aes(x=lon,y=lat, colour = groupv)) +
-    xlim(minlon,maxlon) + ylim(minlat,maxlat)+
-    ggtitle("Spatial kernel (contours)") +
-    theme(text = element_text(size=12), axis.title.y=element_text(vjust=1.5),
-        legend.title=element_blank(), panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(), panel.background = element_blank(),
-        panel.border = element_rect(colour = "black", fill=NA, size=1)) + 
-        xlab("Longitude") + ylab("Latitude")
+  ggplot2::geom_density_2d(data=datatomap, ggplot2::aes(x=lon,y=lat, colour = groupv)) +
+  ggplot2::xlim(minlon,maxlon) + ggplot2::ylim(minlat,maxlat)+
+  ggplot2::ggtitle("Spatial kernel (contours)") +
+  ggplot2::theme(text = ggplot2::element_text(size=12), axis.title.y = ggplot2::element_text(vjust=1.5),
+        legend.title = ggplot2::element_blank(), panel.grid.major = ggplot2::element_blank(), 
+        panel.grid.minor = ggplot2::element_blank(), panel.background = ggplot2::element_blank(),
+        panel.border = ggplot2::element_rect(colour = "black", fill=NA, size=1)) + 
+  ggplot2::xlab("Longitude") + ggplot2::ylab("Latitude")
 
 return(mapout)
 
 } else if (is.null(group) == FALSE & facet == TRUE) {
 
-mapout <- ggplot() +
-    geom_map(data=world, map=world, aes(x=long, y=lat, map_id=region),
+mapout <- ggplot2::ggplot() +
+  ggplot2::geom_map(data=world, map=world, ggplot2::aes(x=long, y=lat, map_id=region),
         fill="grey", color="black", size=0.375) +
-    geom_point(data=datatomap,aes(x=lon,y=lat, colour = groupv), 
+  ggplot2::geom_point(data=datatomap, ggplot2::aes(x=lon,y=lat, colour = groupv), 
         color="black", size=0.375) +
-    geom_density_2d(data=datatomap,aes(x=lon,y=lat, colour = groupv)) +
-    xlim(minlon,maxlon) + ylim(minlat,maxlat)+
-    ggtitle("Spatial kernel (contours)") +
-    facet_wrap(.~groupv) +
-    theme(text = element_text(size=12), axis.title.y=element_text(vjust=1.5),
-        legend.position = "none", panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(), panel.background = element_blank(),
-        panel.border = element_rect(colour = "black", fill=NA, size=1)) + 
-        xlab("Longitude") + ylab("Latitude")
+  ggplot2::geom_density_2d(data=datatomap, ggplot2::aes(x=lon,y=lat, colour = groupv)) +
+  ggplot2::xlim(minlon,maxlon) + ggplot2::ylim(minlat,maxlat)+
+  ggplot2::ggtitle("Spatial kernel (contours)") +
+  ggplot2::facet_wrap(.~groupv) +
+  ggplot2::theme(text = ggplot2::element_text(size=12), axis.title.y = ggplot2::element_text(vjust=1.5),
+        legend.position = "none", panel.grid.major = ggplot2::element_blank(), 
+        panel.grid.minor = ggplot2::element_blank(), panel.background = ggplot2::element_blank(),
+        panel.border = ggplot2::element_rect(colour = "black", fill=NA, size=1)) + 
+  ggplot2::xlab("Longitude") + ggplot2::ylab("Latitude")
 
 return(mapout)
 
 } else {
 
-mapout <- ggplot() +
-    geom_map(data=world, map=world, aes(x=long, y=lat, map_id=region),
+mapout <- ggplot2::ggplot() +
+  ggplot2::geom_map(data=world, map=world, ggplot2::aes(x=long, y=lat, map_id=region),
         fill="grey", color="black", size=0.375) +
-    geom_point(data=datatomap,aes(x=lon,y=lat), color="black", size=0.375) +
-    geom_density_2d(data=datatomap,aes(x=lon,y=lat)) +
-    xlim(minlon,maxlon) + ylim(minlat,maxlat)+
-    ggtitle("Spatial kernel (contours)") +
-    theme(text = element_text(size=12), axis.title.y=element_text(vjust=1.5),
-        legend.title=element_blank(), panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(), panel.background = element_blank(),
-        panel.border = element_rect(colour = "black", fill=NA, size=1)) + 
-        xlab("Longitude") + ylab("Latitude")
+  ggplot2::geom_point(data=datatomap, ggplot2::aes(x=lon,y=lat), color="black", size=0.375) +
+  ggplot2::geom_density_2d(data=datatomap, ggplot2::aes(x=lon,y=lat)) +
+  ggplot2::xlim(minlon,maxlon) + ggplot2::ylim(minlat,maxlat)+
+  ggplot2::ggtitle("Spatial kernel (contours)") +
+  ggplot2::theme(text = ggplot2::element_text(size=12), axis.title.y = ggplot2::element_text(vjust=1.5),
+        legend.title = ggplot2::element_blank(), panel.grid.major = ggplot2::element_blank(), 
+        panel.grid.minor = ggplot2::element_blank(), panel.background = ggplot2::element_blank(),
+        panel.border = ggplot2::element_rect(colour = "black", fill=NA, size=1)) + 
+  ggplot2::xlab("Longitude") + ggplot2::ylab("Latitude")
 
 return(mapout)
 
@@ -214,41 +215,41 @@ stop("Cannot overlap gradients please facet or use contours")
 
 } else if (is.null(group) == FALSE & facet == TRUE) {
 
-mapout <- ggplot() +
-    geom_map(data=world, map=world, aes(x=long, y=lat, map_id=region),
+mapout <- ggplot2::ggplot() +
+  ggplot2::geom_map(data=world, map=world, ggplot2::aes(x=long, y=lat, map_id=region),
         fill="grey", color="black", size=0.375) +
-    geom_point(data=datatomap,aes(x=lon,y=lat, colour = groupv), color="black", 
+  ggplot2::geom_point(data=datatomap, ggplot2::aes(x=lon,y=lat, colour = groupv), color="black", 
         size=0.375) +
-    stat_density_2d(data=datatomap, aes(x=lon,y=lat, fill = stat(level)), 
+  ggplot2::stat_density_2d(data=datatomap, ggplot2::aes(x=lon,y=lat, fill = stat(level)), 
         geom = "polygon")+
-    xlim(minlon,maxlon) + ylim(minlat,maxlat)+
-    facet_wrap(.~groupv) +
-    scale_fill_gradient(name="Level\n(density)") +
-    ggtitle("Spatial kernel (gradient)") +
-    theme(text = element_text(size=12), axis.title.y=element_text(vjust=1.5),
-      panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-      panel.background = element_blank(),
-      panel.border = element_rect(colour = "black", fill=NA, size=1)) + 
-      xlab("Longitude") + ylab("Latitude")
+  ggplot2::xlim(minlon,maxlon) + ggplot2::ylim(minlat,maxlat)+
+  ggplot2::facet_wrap(.~groupv) +
+  ggplot2::scale_fill_gradient(name="Level\n(density)") +
+  ggplot2::ggtitle("Spatial kernel (gradient)") +
+  ggplot2::theme(text = ggplot2::element_text(size=12), axis.title.y = ggplot2::element_text(vjust=1.5),
+      panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
+      panel.background = ggplot2::element_blank(),
+      panel.border = ggplot2::element_rect(colour = "black", fill=NA, size=1)) + 
+  ggplot2::xlab("Longitude") + ggplot2::ylab("Latitude")
 
 return(mapout)
 
 } else {
 
-mapout <- ggplot() +
-    geom_map(data=world, map=world, aes(x=long, y=lat, map_id=region),
+mapout <- ggplot2::ggplot() +
+  ggplot2::geom_map(data=world, map=world, ggplot2::aes(x=long, y=lat, map_id=region),
         fill="grey", color="black", size=0.375) +
-    geom_point(data=datatomap,aes(x=lon,y=lat), color="black", size=0.375) +
-    stat_density_2d(data=datatomap, aes(x=lon,y=lat, fill = stat(level)), 
+  ggplot2::geom_point(data=datatomap, ggplot2::aes(x=lon,y=lat), color="black", size=0.375) +
+  ggplot2::stat_density_2d(data=datatomap, ggplot2::aes(x=lon,y=lat, fill = stat(level)), 
         geom = "polygon")+
-    xlim(minlon,maxlon) + ylim(minlat,maxlat)+
-    scale_fill_gradient(name="Level\n(density)") +
-    ggtitle("Spatial kernel (gradient)") +
-    theme(text = element_text(size=12), axis.title.y=element_text(vjust=1.5),
-      panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-      panel.background = element_blank(),
-      panel.border = element_rect(colour = "black", fill=NA, size=1) ) + 
-      xlab("Longitude") + ylab("Latitude")
+  ggplot2::xlim(minlon,maxlon) + ggplot2::ylim(minlat,maxlat)+
+  ggplot2::scale_fill_gradient(name="Level\n(density)") +
+  ggplot2::ggtitle("Spatial kernel (gradient)") +
+  ggplot2::theme(text = ggplot2::element_text(size=12), axis.title.y = ggplot2::element_text(vjust=1.5),
+      panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
+      panel.background = ggplot2::element_blank(),
+      panel.border = ggplot2::element_rect(colour = "black", fill=NA, size=1) ) + 
+  ggplot2::xlab("Longitude") + ggplot2::ylab("Latitude")
 
 return(mapout)
 

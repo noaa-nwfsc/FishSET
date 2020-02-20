@@ -1,6 +1,7 @@
 data_verification_call <- function(dat) {
   #' Checks for common issues with data
   #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @param project Name of project
   #' @return Returns statements as to whether issues in the data may exist
   #' @export data_verification_call
   #' @importFrom maps map
