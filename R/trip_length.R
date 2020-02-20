@@ -11,6 +11,7 @@
 #'   "days", or "weeks".
 #' @param catch Species catch variable for calculating catch per trip. 
 #' @param hauls Hauls variable for calculating hauls per trip.  
+#' @param output Output results at table or plot
 #' @param haul_to_trip Logical, whether to convert \code{dat} from haul level data to 
 #'   trip level. See \code{\link{haul_to_trip}} for details.
 #' @param ... Additional arguments passed to the haul_to_trip function. 
@@ -18,14 +19,12 @@
 #'   and then converts trip length to the desired unit of time (e.g. weeks, days, 
 #'   or hours), returning a table or histogram. There is also the option of 
 #'   including catch and hauls per trip. 
-#' @example 
+#' @examples 
 #' \dontrun{
-#' 
-#' trip_length("pollockMainDataTable", start = "FISHING_START_DATE", end = "HAUL_DATE",
+#' #' trip_length("pollockMainDataTable", start = "FISHING_START_DATE", end = "HAUL_DATE",
 #' units = "days", catch = "OFFICIAL_TOTAL_CATCH", hauls = "HAUL", output = "plot", 
 #' haul_to_trip = T, fun.numeric = sum, fun.time = min, "VESSEL", "FISHING_START_DATE")
-#' 
-#' }
+#' #' }
 #' @importFrom lubridate is.Date 
 #' @importFrom purrr map2
 #' @importFrom gridExtra arrangeGrob grid.arrange

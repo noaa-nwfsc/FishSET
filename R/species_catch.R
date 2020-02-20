@@ -19,11 +19,9 @@
 #' @return This function returns a table or plot of the total species catch by period.
 #' @examples 
 #' \dontrun{
-#' 
 #' species_catch("pollockMainDataTable", s = c("HAUL_LBS_270_POLLOCK_LBS", 
 #' "HAUL_LBS_110_PACIFIC_COD_LBS", "HAUL_LBS_OTHER_LBS"), t = "HAUL_DATE", 
 #' value = "count", period = "month_num", output = "plot", convert_to_tons = TRUE)
-#' 
 #' }
 #' @export species_catch
 #' @import ggplot2

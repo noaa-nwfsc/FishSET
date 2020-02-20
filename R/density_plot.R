@@ -15,8 +15,7 @@
 #' @export density_plot
 #' @examples 
 #' \dontrun{
-#' 
-#' 
+#' density_plot(dat, var = "HAUL", group = "DISEMBARKED_PORT")
 #' }
 #' @import ggplot2
 #' @importFrom stats pnorm

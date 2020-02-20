@@ -845,8 +845,10 @@
           return(NULL)
         } else {
           if(input$plot_table=='Plots'&input$plot_type=='Spatial'){
-            map_kernel('gradient', values$dataset[,c(which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1], 
-                                                     which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1])])
+            map_kernel('gradient', values$dataset[,c(which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', 
+                                                                                     ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1], 
+                                                     which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', 
+                                                                                     ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1])])
           } else {
             return(NULL)
           }
@@ -978,7 +980,6 @@
         selectInput('corr_select', 'Select variables to include in correlation test', choices= names(which(lapply(values$dataset, is.numeric)==TRUE)), 
                     selected= names(which(lapply(values$dataset, is.numeric)==TRUE)), multiple=TRUE, selectize=TRUE, width='90%')
       })
-      
       
       tableInputCorr <- reactive({
        
@@ -1461,50 +1462,65 @@
       #DATA QUALITY FUNCTIONS
       ###-----      
       #Basic functions   
-      RC <- isolate({sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), collapse = ", "))})
-      RN <- isolate({sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE))], 2, 
-                                                              function(x) length(which(is.na(x)==TRUE))), collapse=", "))})
-      RA <- isolate({length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
-                                                                                  function(x) any(is.na(x)))==TRUE))], 2, function(x) which(is.na(x)==TRUE)))))})
-      RM <- isolate({sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, 
-                                                                                                function(x) any(is.na(x)))==TRUE))],2, mean, na.rm=TRUE), collapse = ", "))})
-      na <- function(x) { 
+       na <- function(x) { 
         if(any(apply(x, 2, function(x) any(is.na(x))))==TRUE) {
           if(input$NA_Filter=='none'){
-            paste("The", RC,
-                  "variables contain", RN, "missing values, respectively.\nConsider using na_filter to replace or remove the", RA, "rows with missing values.") 
+            paste("The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), collapse = ", ")),
+                  "variables contain", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE))], 2, 
+                                                                                function(x) length(which(is.na(x)==TRUE))), collapse=", ")), 
+                  "missing values, respectively.<br>Consider using na_filter to replace or remove the", 
+                  length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
+                                                                               function(x) any(is.na(x)))==TRUE))], 2, function(x) which(is.na(x)==TRUE))))), 
+                  "rows with missing values.") 
           }} else {
             if(input$NA_Filter=='none'){
               paste("No columns in the data set contain missing values.")
             } else {
               if(input$NA_Filter=='Remove all'){
-                paste("The", RC, "variables contained", RN, "missing values.\n", RA, "rows containing missing values have been removed from the data set.")
+                HTML("The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), collapse = ", ")), 
+                     "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE))], 2, 
+                                                                                     function(x) length(which(is.na(x)==TRUE))), collapse=", ")), 
+                     "missing values.<br>", length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
+                                                                                                         function(x) any(is.na(x)))==TRUE))], 2, function(x) which(is.na(x)==TRUE))))),
+                     "rows containing missing values have been removed from the data set.")
               } else if(input$NA_Filter=='Replace with mean'){
-                paste("The", RC, "variables contained", RN, "missing values.\nMissing values have been replaced with the mean values of", RM, "respectively.")
+                HTML("The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), collapse = ", ")), 
+                     "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE))], 2, 
+                                                                                    function(x) length(which(is.na(x)==TRUE))), collapse=", ")),
+                     "missing values.<br>Missing values have been replaced with the mean values of",
+                     sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE))],2, mean, na.rm=TRUE), collapse = ", ")),
+                     "respectively.")
               }
             } 
           }}
       
-      RCN <- isolate({sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", "))})
-      RNN <- isolate({sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE))], 2, 
-                                                               function(x) length(which(is.nan(x)==TRUE))), collapse=", "))})
-      RAN <- isolate({length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
-                                                                                   function(x) any(is.nan(x)))==TRUE))], 2, function(x) which(is.nan(x)==TRUE)))))})
-      RMN <- isolate({sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, 
-                                                                                                 function(x) any(is.nan(x)))==TRUE))],2, mean, na.rm=TRUE), collapse = ", "))})               
       nan <- function(x) { 
         if(any(apply(x, 2, function(x) any(is.nan(x))))==TRUE) {
           if(input$NAN_Filter=='none'){
-            paste("The", RCN,
-                  "variables contain", RNN, "non-numbers, respectively.\nConsider using nan_filter to replace or remove the", RAN, "rows with non-numbers.") 
+            HTML("The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")),
+                  "variables contain", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE))], 2, 
+                                                                                function(x) length(which(is.nan(x)==TRUE))), collapse=", ")),
+                 "non-numbers, respectively.<br>Consider using nan_filter to replace or remove the", RAN, "rows with non-numbers.") 
           }} else {
             if(input$NAN_Filter=='none'){
               "No columns in the data set contain non-numbers."
             } else {
               if(input$NAN_Filter=='Remove all'){
-                paste("The", RC, "variables contained", RNN, "non-numbers.\n", RA, "rows containing non-numbers have been removed from the data set.")
+                HTML("The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")),
+                     "variables contained", 
+                     sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE))], 2, 
+                                                              function(x) length(which(is.nan(x)==TRUE))), collapse=", ")), "non-numbers.<br>", 
+                     length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
+                                                                                  function(x) any(is.nan(x)))==TRUE))], 2, function(x) which(is.nan(x)==TRUE))))), 
+                     "rows containing non-numbers have been removed from the data set.")
               } else if(input$NAN_Filter=='Replace with mean'){
-                paste("The", RCN, "variables contained", RNN, "non-numbers.\nNon-numbers have been replaced with the mean values of", RMN, "respectively.")
+                HTML("The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")), 
+                     "variables contained", 
+                     sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE))], 2, 
+                                                              function(x) length(which(is.nan(x)==TRUE))), collapse=", ")), 
+                     "non-numbers.<br>Non-numbers have been replaced with the mean values of", 
+                     sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, 
+                                                                                                function(x) any(is.nan(x)))==TRUE))],2, mean, na.rm=TRUE), collapse = ", ")), "respectively.")
               }
             } 
           }}
@@ -1514,7 +1530,7 @@
         "Each row is a unique choice occurrence. No further action required."
       } else {
         if(input$Unique_Filter=='FALSE'){
-          "Each row in data set is not a unique choice occurrence at haul or trip level. \nConsider removing non-unique rows."
+          HTML("Each row in data set is not a unique choice occurrence at haul or trip level. <br>Consider removing non-unique rows.")
         } else {
           "Duplicate choice occurrence at haul or trip level existed in the data set and have been removed."
         }
@@ -1538,25 +1554,52 @@
       lat_lon <- function(x) { 
         if(any(apply(values$dataset[,which(grepl('lat|lon', names(values$dataset), ignore.case=TRUE)==TRUE)], 2, function(x) !is.numeric(x))==TRUE)==TRUE){
           if(input$LatLon_Filter==FALSE){
-            'At least one latitude or longitude variable is not in decimal degrees. \nClick the button to the left to convert to decimal degrees.'
+            HTML('At least one latitude or longitude variable is not in decimal degrees. Select a lat and lon variable below and then 
+                  <br> select a conversion option on the the left to convert to decimal degrees.')
           } else {
-            'At least one latitude or longitude variable is not in decimal degrees. \nLatitude and longitude variables converted to decimal degrees.'
+            HTML('At least one latitude or longitude variable is not in decimal degrees. <br>Latitude and longitude variables converted to decimal degrees.')
+          }
+        } else if(any(apply(values$dataset[,which(grepl('lat|lon', names(values$dataset), ignore.case=TRUE)==TRUE)], 2, function(x) length(trunc(x)))>3)==TRUE){
+          if(input$LatLon_Filter==FALSE){
+            HTML('At least one latitude or longitude variable is not in decimal degrees. Select a lat and lon variable below and then 
+                  <br>select a conversion option on the the left to convert to decimal degrees.')
+          } else {
+            HTML('At least one latitude or longitude variable is not in decimal degrees. <br>Latitude and longitude variables converted to decimal degrees.')
           }
         } else {
-          'Latitude and longitude variables in decimal degrees. \nNo further action required.'
+          HTML('Latitude and longitude variables in decimal degrees. <br>No further action required.')
         }
       } 
+      output$LatLonDir <- renderUI ({
+        tagList(
+        conditionalPanel(condition="input.checks=='Lat_Lon units'",
+                         selectizeInput('LatDirection','Latitudinal variable', choices=c('None', colnames(values$dataset[,grep('lat', names(values$dataset), ignore.case=TRUE)])))),
+        conditionalPanel(condition="input.checks=='Lat_Lon units'",
+                         selectizeInput('LonDirection','Longitudinal variable', choices=c('None', colnames(values$dataset[,grep('lon', names(values$dataset), ignore.case=TRUE)]))))
+        )
+      })
+      
+      output$output_table_latlon <- DT::renderDT(
+        if(colnames(values$dataset)[1] == 'var1') {
+          return(NULL)
+        } else if (input$checks=='Lat_Lon units'){
+          table <- head(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=TRUE)])
+        } else {
+          NULL
+        }, server = TRUE, selection= list(target = 'column'), rownames=FALSE,
+        options = list(autoWidth=FALSE, scrollX=T,  responsive=TRUE, pageLength = 7)
+      )
       
       ##Output to main panel
-      output$Case<-renderPrint({
+      output$Case<-renderText({
         if(input$checks=='Summary table') {
-          "Summary table of NUMERIC variables in data set."
+          "Summary table of NUMERIC variables in data set.<br><br>"
         } else  if (input$checks=='Outliers'){
           if(input$dat.remove=='none'){
-            paste('Table to assess outliers.', input$column_check, "shown. \nZoom in by highlighting desired area and double clicking. \nDouble click again to reset plot.")
+            HTML('Table to assess outliers.', input$column_check, "shown. <br>Zoom in to plot by highlighting desired area and double clicking. <br>Double click again to reset plot.")
           } else {
-            paste('Table to assess outliers.', input$column_check, 'shown. \nZoom in by highlighting desired area and double clicking. \nDouble click again to reset plot. 
-                  \nExcluding points that fall outside the',  if(input$dat.remove=='5_95_quant'){
+            HTML('Table to assess outliers.', input$column_check, 'shown. <br>Zoom in to plot by highlighting desired area and double clicking. <br>Double click again to reset plot. 
+                  <br>Excluding points that fall outside the',  if(input$dat.remove=='5_95_quant'){
                     '5th and 95th quantiles'
           } else if(input$dat.remove=='25_75_quant') {
             '25th and 75th quantiles'
@@ -1687,7 +1730,7 @@
           if(input$corr_reg=='Correlation'){
             paste0("Viewed correlation matrix for ",  isolate({sub(",([^,]*)$", ", and\\1",paste(input$corr_select, collapse = ", "))}), '.\n')
           } else if(input$corr_reg=='Regression'){
-            paste0('Veiwed plot and linear regression test output for ',input$reg_exp_select, ' on ', input$reg_resp_select,'.\n') 
+            paste0('Viewed plot and linear regression test output for ',input$reg_exp_select, ' on ', input$reg_resp_select,'.\n') 
           } 
         }
         })
@@ -1981,14 +2024,17 @@
       
       observeEvent(input$LatLon_Filter, {
         if(input$LatLon_Filter=='TRUE'){
-          if(any(apply(values$dataset[,which(grepl('lat|lon', names(values$dataset), ignore.case=TRUE)==TRUE)], 2, function(x) !is.numeric(x))==TRUE)==TRUE){
-            values$dataset <- degree(values$dataset, colnames(values$dataset[,which(grepl('lat', names(values$dataset), ignore.case=TRUE))]) ,
-                                     colnames(values$dataset[,which(grepl('lon', names(values$dataset), ignore.case=TRUE))]) ) 
-          } else {
-            cat("All latitude and longitude variables are already in decimal degrees. Function not applied.")
-          }
+            values$dataset <- degree(values$dataset, 
+                                     if(input$LatDirection=='None') { NULL } else {input$LatDirection},
+                                     if(input$LonDirection=='None') { NULL } else { input$LonDirection},
+                                     latsign=input$LatLon_Filter_Lat, lonsign=input$LatLon_Filter_Lon
+                                      ) 
         }
       })
+      
+
+      
+      
       ##----        
       
       #----
