@@ -5,12 +5,16 @@
 #' @param dat Main data frame over which to apply function. Table in fishset_db 
 #'   database should contain the string `MainDataTable`.
 #' @param project name of project.
-#' @param var variable used to compute density estimate or cdf.
+#' @param var variable of interest, used to compute density estimate or cdf.
 #' @param type Type of density plot. Options include "kde" (kernel density estimate),
 #'   "ecdf" (empirical cdf), or "cdf".
 #' @param group A grouping variable. 
+#' @param date Date variable to subset or facet_wrap by.
+#' @param facet_year Logical value, wheter to facet_wrap the plot by all years in the
+#'   data table.
+#' @param year Numeric four digit value, the year(s) to subset or facet_wrap by.
 #' @param position The position of the grouped variable for kde plot. Options include 
-#'   "identity", "stacked", and "filled". 
+#'   "identity", "stack", and "fill". 
 #' @return 
 #' @export density_plot
 #' @examples 
@@ -23,25 +27,39 @@
 
 
 density_plot <- function(dat, project, var, type = c("kde", "ecdf", "cdf"), 
-                         group = NULL, date = NULL, year = NULL, position = "identity") {
+                         group = NULL, date = NULL, facet_year = FALSE, year = NULL, 
+                         position = c("identity", "stack", "fill")) {
   
   out <- data_pull(dat)
   dat <- out$dat
   dataset <- out$dataset
   
   
-  
-  if (lubridate::is.Date(dataset[[date]]) == FALSE) {
+  if (!is.null(date)) {
     
-    warning("Date variable is not in correct format. Converting to date format.")
+    if (lubridate::is.Date(dataset[[date]]) == FALSE) {
+      
+      warning("Date variable is not in correct format. Converting to date format.")
+      
+      dataset[[date]] <- date_parser(dataset[[date]])
+      
+    }
     
-    dataset[[date]] <- date_parser(dataset[[date]])
-  
+    dataset$Year <- format(dataset[[date]], "%Y")
+    
   }
   
-  if (!is.null(year)) {
+  if (!is.null(year) & facet_year == FALSE) {
     
-    dataset <- subset(dataset, format(dataset[[date]], "%Y") == year)
+    if (length(year) == 1) {
+      
+      dataset <- subset(dataset, Year == year)
+      
+    } else {
+      
+      dataset <- subset(dataset, Year %in% year)
+      
+    }
     
   }
   
@@ -56,8 +74,10 @@ density_plot <- function(dat, project, var, type = c("kde", "ecdf", "cdf"),
     plot <- ggplot2::ggplot(dataset, ggplot2::aes_string(x = var, fill = if (is.null(group) == F) {
       group} else {NULL})) + 
       ggplot2::stat_density(position = position, color = "black", alpha = .7) +
-      ggplot2::labs(title = paste0("KDE of ", var)) + 
-      fishset_theme
+      ggplot2::labs(title = paste("KDE of", var, if (!is.null(year) & length(year) == 1) year else NULL)) + 
+      fishset_theme + if (facet_year == TRUE | length(year) > 1) {
+        ggplot2::facet_wrap(~Year)} else {ggplot2::geom_blank()}
+    
     
   } else if (type == "ecdf") {
     
@@ -66,15 +86,17 @@ density_plot <- function(dat, project, var, type = c("kde", "ecdf", "cdf"),
       plot <- ggplot2::ggplot(dataset, ggplot2::aes_string(x = var)) + 
         ggplot2::stat_ecdf(geom = "area", alpha = .7) +
         ggplot2::stat_ecdf(geom = "step", alpha = .7) +
-        ggplot2::labs(title = paste0("ECDF of ", var)) + 
-        fishset_theme
+        ggplot2::labs(title = paste("ECDF of", var, if (!is.null(year) & length(year) == 1) year else NULL)) +  
+        fishset_theme + if (facet_year == TRUE | length(year) > 1) {
+          ggplot2::facet_wrap(~Year)} else {ggplot2::geom_blank()}
       
     } else {
       
       plot <- ggplot2::ggplot(dataset, ggplot2::aes_string(x = var, color = group)) +
         ggplot2::stat_ecdf(geom = "step") +
-        ggplot2::labs(title = paste0("ECDF of ", var)) + 
-        fishset_theme
+        ggplot2::labs(title = paste("ECDF of", var, if (!is.null(year) & length(year) == 1) year else NULL)) + 
+        fishset_theme + if (facet_year == TRUE | length(year) > 1) {
+          ggplot2::facet_wrap(~Year)} else {ggplot2::geom_blank()}
       
     } 
     
@@ -86,8 +108,9 @@ density_plot <- function(dat, project, var, type = c("kde", "ecdf", "cdf"),
     
     plot <- ggplot2::ggplot(dataset, ggplot2::aes_string(var)) +
       ggplot2::geom_area(ggplot2::aes(y = cdf), position = "identity", alpha = .7) +
-      ggplot2::labs(title = paste0("CDF of ", var)) + 
-      fishset_theme
+      ggplot2::labs(title = paste("KDE of", var, if (!is.null(year) & length(year) == 1) year else NULL)) + 
+      fishset_theme + if (facet_year == TRUE | length(year) > 1) {
+        ggplot2::facet_wrap(~Year)} else {ggplot2::geom_blank()}
     
   }
   
@@ -95,7 +118,7 @@ density_plot <- function(dat, project, var, type = c("kde", "ecdf", "cdf"),
   
   density_plot_function <- list()
   density_plot_function$functionID <- "density_plot"
-  density_plot_function$args <- c(dat, project, var, type, group, position)
+  density_plot_function$args <- c(dat, project, var, type, group, date, facet_year, year, position)
   log_call(density_plot_function)
   
   # Save output
