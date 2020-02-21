@@ -1,4 +1,4 @@
-data_verification_call <- function(dat) {
+data_verification_call <- function(dat, project) {
   #' Checks for common issues with data
   #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
   #' @param project Name of project

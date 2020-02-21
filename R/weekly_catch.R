@@ -1,20 +1,21 @@
-#' Weekly catch
+# Weekly catch
+weekly_catch <- function(dat, project, species, date, year = NULL, convert_to_tons, output = c("table", "plot")) {
 #' 
 #' Catch total by week
 #'
 #' @param dat Main data frame over which to apply function. Table in fishset_db 
 #'   database should contain the string `MainDataTable`.
 #' @param project name of project.
-#' @param species
-#' @param date
-#' @param year
+#' @param species Variable(s) containing species data
+#' @param date Dave Variable
+#' @param year Optional. If year is supplied then data is subset to that year
+#' @param convert_to_tons TRUE or FALSE
+#' @param output output as a table or plot
 #' @examples 
 #' \donrun{
-#' 
 #' weekly_catch("pollockMainDataTable", species = c("HAUL_LBS_270_POLLOCK_LBS", 
 #' "HAUL_LBS_110_PACIFIC_COD_LBS",  "HAUL_LBS_OTHER_LBS"), date = "DATE_FISHING_BEGAN", 
 #' convert_to_tons = T, year = NULL, output = "plot")
-#' 
 #' }
 #' @export weekly_catch
 #' @importFrom lubridate is.Date
@@ -22,9 +23,6 @@
 #' @importFrom reshape2 melt
 #' @import ggplot2
 #'
-
-
-weekly_catch <- function(dat, project, species, date, year = NULL, convert_to_tons, output = c("table", "plot")) {
   
   #Call in datasets
   out <- data_pull(dat)

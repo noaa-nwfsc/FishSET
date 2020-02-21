@@ -138,7 +138,7 @@ outlier_table <- function(dat, project, x) {
 outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen=FALSE){
   #' Evaluate outliers through plots
   #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
-  #' @param, project Name of project
+  #' @param project Name of project
   #' @param x Column in dataf rame to check for outliers
   #' @param dat.remove Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD
   #' @param x.dist Distribution of the data. Choices include: normal, lognormal, exponential, weibull, poisson, negative binomial

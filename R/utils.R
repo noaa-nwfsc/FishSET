@@ -506,6 +506,34 @@ outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plo
   }
 }
 
+save_table <- function(table, project, func_name, ...) {
+  #' Save table to output folder
+  #' @param table table name.
+  #' @param project project name.
+  #' @param func_name function name.
+  #' @param ... addition arguments passsed to write.csv function. 
+  #' @export
+  #' @examples 
+  #' \dontrun {
+  #' save_table(count, project, "species_catch")
+  #' }   
+  write.csv(table, paste0(locoutput(), project, "_", func_name, "_", Sys.Date(), '.csv'))
+}
+
+save_plot <- function(project, func_name, ...) {
+  #' Save table to output folder
+  #' @param project name of project.
+  #' @param func_name function name.
+  #' @param ... addition arguments passed to the ggsave function. 
+  #' @export
+  #' @examples 
+  #' \dontrun {
+  #' save_plot(project, "species_catch")
+  #' }
+  
+  ggplot2::ggsave(file = paste0(locoutput(), project, "_", func_name, "_", Sys.Date(), '.png'), ...)
+}
+
 #shiny_running = function () {
   # Look for `runApp` call somewhere in the call stack.
 #  frames = sys.frames()
@@ -532,39 +560,8 @@ fishset_theme <- ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
                                 axis.text = ggplot2::element_text(size=11), 
                                 axis.title = ggplot2::element_text(size=11))
 
-save_table <- function(table, project, func_name, ...) {
-  #' Save table to output folder
-  #' @param table table name.
-  #' @param project project name.
-  #' @param func_name function name.
-  #' @param ... addition arguments passsed to write.csv function. 
-  #' @export
-  #' @examples 
-  #' \dontrun {
-  #' 
-  #' save_table(count, project, "species_catch")
-  #' 
-  #' }   
-  write.csv(table, paste0(locoutput(), project, "_", func_name, "_", Sys.Date(), '.csv'))
-  
-}
 
-save_plot <- function(project, func_name, ...) {
-  #' Save table to output folder
-  #' @param project name of project.
-  #' @param func_name function name.
-  #' @param ... addition arguments passed to the ggsave function. 
-  #' @export
-  #' @examples 
-  #' \dontrun {
-  #' 
-  #' save_plot(project, "species_catch")
-  #' 
-  #' }
-  
-  ggplot2::ggsave(file = paste0(locoutput(), project, "_", func_name, "_", Sys.Date(), '.png'), ...)
-  
-}
+
 
 date_factorize <- function(dataset, date_col, date_code) {
   #' Convert date variable of type character to ordered factor
