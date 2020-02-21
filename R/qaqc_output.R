@@ -10,7 +10,7 @@
 #' occurrence at the haul or trip level, and that either latitude and longitude or fishing area are included.
 #' @examples 
 #' \dontrun{ 
-#' qaqc_output(MainDataTable)
+#' qaqc_output(MainDataTable, 'project')
 #' }
 #' 
 qaqc_output <- function(dat, project) {

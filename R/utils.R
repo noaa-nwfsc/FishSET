@@ -384,11 +384,7 @@ save_table <- function(table, project, func_name, ...) {
   #' @param ... addition arguments passsed to write.csv function. 
   #' @export
   #' @examples 
-  #' \dontrun {
-  #' 
-  #' save_table(count, project, "species_catch")
-  #' 
-  #' }   
+  #' \dontrun{ save_table(count, project, "species_catch")}   
   write.csv(table, paste0(locoutput(), project, "_", func_name, "_", Sys.Date(), '.csv'))
   
 }
@@ -400,11 +396,7 @@ save_plot <- function(project, func_name, ...) {
   #' @param ... addition arguments passed to the ggsave function. 
   #' @export
   #' @examples 
-  #' \dontrun {
-  #' 
-  #' save_plot(project, "species_catch")
-  #' 
-  #' }
+  #' \dontrun{save_plot(project, "species_catch")}
   
   ggplot2::ggsave(file = paste0(locoutput(), project, "_", func_name, "_", Sys.Date(), '.png'), ...)
   
@@ -459,9 +451,7 @@ text_filepath <- function(project, fun_name) {
   #' @return Useful for saving messages generated in functions. 
   #' @examples 
   #' \dontrun{
-  #' 
   #' cat("message", file = text_filepath("my_project", "qaqc_output"))
-  #' 
   #' }
   
   paste0(locoutput(), project, "_", fun_name, Sys.Date(), ".txt")
@@ -485,7 +475,6 @@ outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plo
   #'  x against row number. Red points are all the data without any points removed. The blue points are the subsetted data. If `dat.remove` is `none`, then only blue points will be shown. 
   #'  The probability plot is a histogram of the data with the fitted probability distribution based on `x.dist`. The Q-Q plot plots are
   #'  sampled quantiles against theoretical quantiles. 
-  #'  
   #' @export 
   #' @return Plot of the data
   
@@ -607,28 +596,28 @@ outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plo
   }
 }
 
-save_table <- function(table, project, func_name, ...) {
+save_table <- function(table, project, func_name, ...){
   #' Save table to output folder
-  #' @param table table name.
-  #' @param project project name.
-  #' @param func_name function name.
-  #' @param ... addition arguments passsed to write.csv function. 
+  #' @param table table name
+  #' @param project project name
+  #' @param func_name function name
+  #' @param ... additional arguments passsed to write.csv function 
   #' @export
-  #' @examples 
-  #' \dontrun {
+  #' @examples
+  #' \dontrun{
   #' save_table(count, project, "species_catch")
   #' }   
   write.csv(table, paste0(locoutput(), project, "_", func_name, "_", Sys.Date(), '.csv'))
 }
 
-save_plot <- function(project, func_name, ...) {
+save_plot <- function(project, func_name, ...){
   #' Save table to output folder
   #' @param project name of project.
   #' @param func_name function name.
-  #' @param ... addition arguments passed to the ggsave function. 
+  #' @param ... additional arguments passed to the ggsave function. 
   #' @export
   #' @examples 
-  #' \dontrun {
+  #' \dontrun{
   #' save_plot(project, "species_catch")
   #' }
   

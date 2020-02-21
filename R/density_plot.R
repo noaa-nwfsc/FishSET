@@ -15,7 +15,7 @@
 #' @param year Numeric four digit value, the year(s) to subset or facet_wrap by.
 #' @param position The position of the grouped variable for kde plot. Options include 
 #'   "identity", "stack", and "fill". 
-#' @return 
+#' @return Plot in viewer and in output folder
 #' @export density_plot
 #' @examples 
 #' \dontrun{
