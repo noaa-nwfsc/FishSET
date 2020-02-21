@@ -1,7 +1,7 @@
 #' Table of observations by year, month, and zone
 #' 
 #' @param dat Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
-#' @param project Name of project.
+#' @param project Name of project
 #' @param x Column in data containing date variable
 #' @param gridfile Spatial data. Shape, json, and csv formats are supported.
 #' @param lon.dat Column containing longitude data in main data frame.

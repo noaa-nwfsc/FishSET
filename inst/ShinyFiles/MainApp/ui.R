@@ -162,6 +162,10 @@
                                       uiOutput('ui.actionP2'))
                              ),
                              fluidRow(
+                               column(4, radioButtons('loadspatialsource', "Source spatial data from:", choices=c( 'Upload new file','FishSET database'), selected='Upload new file', inline=TRUE)),
+                               uiOutput('spatial_upload')
+                             ),
+                             fluidRow(
                                  column(4, radioButtons('loadgridsource', "Source gridded data from:", choices=c( 'Upload new file','FishSET database'), selected='Upload new file', inline=TRUE)),
                                  uiOutput('grid_upload')
                                ),
@@ -173,6 +177,105 @@
                              textInput('notesUp', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
                            )),
                   #-----
+                  #BEGIN DATA QUALITY EVALUATION TABSET PANEL  
+                  #----
+                  tabPanel("Data Quality Evaluation", value = "qaqc",
+                           sidebarLayout(
+                             sidebarPanel(width=3,
+                                          tags$br(),tags$br(),
+                                          uiOutput('SaveButtons'),
+                                          actionButton('saveDataQ','Save data to fishset_db database'),
+                                          tags$br(),
+                                          tags$button(
+                                            id = 'close1',
+                                            type = "button",
+                                            style="color: #fff; background-color: #FF6347; border-color: #800000;",
+                                            class = "btn action-button",
+                                            onclick = "setTimeout(function(){window.close();},500);",  # close browser
+                                            "Close app"
+                                          ),
+                                          
+                                          actionButton("refresh1", "Refresh data", 
+                                                       icon = icon("fa fa-refresh"),
+                                                       style = "color: white; background-color: blue;" 
+                                          ),
+                                          tags$br(), tags$br(),
+                                          textInput('notesQAQC', "Notes", value=NULL,
+                                                    placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                                          h4('Select data validation check functions to run'),
+                                          #Checkbox input widget  
+                                          radioButtons("checks", "", choices = c('Summary table', 'Outliers', 'NAs', 'NaNs', 'Unique observations', 
+                                                                                 'Empty variables', 'Lat_Lon units')),
+                                          uiOutput('outlier_column'),
+                                          uiOutput('outlier_subset'),
+                                          uiOutput('outlier_dist'),
+                                          conditionalPanel(
+                                            condition = "input.checks == 'NAs'",
+                                            radioButtons('NA_Filter', 'Filter NAs by', choices=c('none','Remove all','Replace with mean'), selected='none')
+                                          ),
+                                          conditionalPanel(
+                                            condition = "input.checks == 'NaNs'",
+                                            radioButtons('NAN_Filter', 'Filter NaNs by', choices=c('none','Remove all','Replace with mean'), selected='none')
+                                          ),
+                                          conditionalPanel(condition="input.checks=='Outliers'",
+                                                           checkboxInput('Outlier_Filter', 'Remove outliers', value=FALSE)),
+                                          conditionalPanel(
+                                            condition ='input.checks=="Outliers"',
+                                            uiOutput("hover_info1")),
+                                          conditionalPanel(
+                                            condition ='input.checks=="Unique observations"',
+                                            checkboxInput('Unique_Filter', 'Remove non-unique rows', value=FALSE)
+                                          ),
+                                          conditionalPanel(
+                                            condition ='input.checks=="Empty variables"',
+                                            checkboxInput('Empty_Filter', 'Remove empty variables', value=FALSE)
+                                          ),
+                                           uiOutput('LatLonDir'),
+                                          conditionalPanel(
+                                            condition ='input.checks=="Lat_Lon units"',
+                                            checkboxInput('LatLon_Filter', 'Convert lat/long to decimal degrees', value=FALSE)
+                                          ),
+                                          conditionalPanel(
+                                            condition ='input.checks=="Lat_Lon units"',
+                                            checkboxInput('LatLon_Filter_Lat', 'Change sign for latitude direction', value=FALSE)
+                                          ),
+                                          conditionalPanel(
+                                            condition ='input.checks=="Lat_Lon units"',
+                                            checkboxInput('LatLon_Filter_Lon', 'Change sign for longitude direction', value=FALSE)
+                                          ),
+                                          ##Inline scripting 
+                                          textInput("exprQA", label = "Enter an R expression",
+                                                    value = "values$dataset"),
+                                          actionButton("runQA", "Run", class = "btn-success"),
+                                          div(style = "margin-top: 2em;",
+                                               uiOutput('resultQA')
+                                          )
+                             ),#END SIDEBAR LAYOUT             
+                             mainPanel(width=9,
+                                       tags$br(), tags$br(),
+                                       htmlOutput("Case"),
+                                       DT::DTOutput("output_table_summary"),
+                                       DT::DTOutput("output_table_outlier"),
+                                       tags$br(),tags$br(),
+                                       conditionalPanel(condition="input.checks=='Outliers'",
+                                       splitLayout(cellWidths = c('33%','33%','33%'),
+                                                   plotOutput('plot1',
+                                                              hover = hoverOpts("plot1_hover", delay = 100, delayType = "debounce"),
+                                                              dblclick = "plot1_dblclick", 
+                                                              brush = brushOpts(id = "plot1_brush",resetOnNew = TRUE )
+                                                   ),
+                                                   plotOutput('plot2', dblclick = "plot2_dblclick", 
+                                                              brush = brushOpts(id = "plot2_brush",resetOnNew = TRUE)),
+                                                   plotOutput('plot3',
+                                                              hover = hoverOpts("plot3_hover", delay = 100, delayType = "debounce"),
+                                                              dblclick = "plot3_dblclick", 
+                                                              brush = brushOpts(id = "plot3_brush",resetOnNew = TRUE)
+                                                   ))
+                                       ),
+                                      
+                                       DT::DTOutput('output_table_latlon')
+                                
+                                       ))),
                   #---- 
                   #BEGIN DATA EXPLORATION TABSET PANEL 
                   #----
@@ -275,106 +378,6 @@
                              ))),
                   
                   
-                  #----
-                  #BEGIN DATA QUALITY EVALUATION TABSET PANEL  
-                  #----
-                  tabPanel("Data Quality Evaluation", value = "qaqc",
-                           sidebarLayout(
-                             sidebarPanel(width=3,
-                                          tags$br(),tags$br(),
-                                          uiOutput('SaveButtons'),
-                                          actionButton('saveDataQ','Save data to fishset_db database'),
-                                          tags$br(),
-                                          tags$button(
-                                            id = 'close1',
-                                            type = "button",
-                                            style="color: #fff; background-color: #FF6347; border-color: #800000;",
-                                            class = "btn action-button",
-                                            onclick = "setTimeout(function(){window.close();},500);",  # close browser
-                                            "Close app"
-                                          ),
-                                          
-                                          actionButton("refresh1", "Refresh data", 
-                                                       icon = icon("fa fa-refresh"),
-                                                       style = "color: white; background-color: blue;" 
-                                          ),
-                                          tags$br(), tags$br(),
-                                          textInput('notesQAQC', "Notes", value=NULL,
-                                                    placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
-                                          h4('Select data validation check functions to run'),
-                                          #Checkbox input widget  
-                                          radioButtons("checks", "", choices = c('Summary table', 'Outliers', 'NAs', 'NaNs', 'Unique observations', 
-                                                                                 'Empty variables', 'Lat_Lon units')),
-                                          uiOutput('outlier_column'),
-                                          uiOutput('outlier_subset'),
-                                          uiOutput('outlier_dist'),
-                                          conditionalPanel(
-                                            condition = "input.checks == 'NAs'",
-                                            radioButtons('NA_Filter', 'Filter NAs by', choices=c('none','Remove all','Replace with mean'), selected='none')
-                                          ),
-                                          conditionalPanel(
-                                            condition = "input.checks == 'NaNs'",
-                                            radioButtons('NAN_Filter', 'Filter NaNs by', choices=c('none','Remove all','Replace with mean'), selected='none')
-                                          ),
-                                          conditionalPanel(condition="input.checks=='Outliers'",
-                                                           checkboxInput('Outlier_Filter', 'Remove outliers', value=FALSE)),
-                                          conditionalPanel(
-                                            condition ='input.checks=="Outliers"',
-                                            uiOutput("hover_info1")),
-                                          conditionalPanel(
-                                            condition ='input.checks=="Unique observations"',
-                                            checkboxInput('Unique_Filter', 'Remove non-unique rows', value=FALSE)
-                                          ),
-                                          conditionalPanel(
-                                            condition ='input.checks=="Empty variables"',
-                                            checkboxInput('Empty_Filter', 'Remove empty variables', value=FALSE)
-                                          ),
-                                           uiOutput('LatLonDir'),
-                                          conditionalPanel(
-                                            condition ='input.checks=="Lat_Lon units"',
-                                            checkboxInput('LatLon_Filter', 'Convert lat/long to decimal degrees', value=FALSE)
-                                          ),
-                                          conditionalPanel(
-                                            condition ='input.checks=="Lat_Lon units"',
-                                            checkboxInput('LatLon_Filter_Lat', 'Change sign for latitude direction', value=FALSE)
-                                          ),
-                                          conditionalPanel(
-                                            condition ='input.checks=="Lat_Lon units"',
-                                            checkboxInput('LatLon_Filter_Lon', 'Change sign for longitude direction', value=FALSE)
-                                          ),
-                                          ##Inline scripting 
-                                          textInput("exprQA", label = "Enter an R expression",
-                                                    value = "values$dataset"),
-                                          actionButton("runQA", "Run", class = "btn-success"),
-                                          div(style = "margin-top: 2em;",
-                                               uiOutput('resultQA')
-                                          )
-                             ),#END SIDEBAR LAYOUT             
-                             mainPanel(width=9,
-                                       tags$br(), tags$br(),
-                                       htmlOutput("Case"),
-                                       DT::DTOutput("output_table_summary"),
-                                       DT::DTOutput("output_table_outlier"),
-                                       tags$br(),tags$br(),
-                                       conditionalPanel(condition="input.checks=='Outliers'",
-                                       splitLayout(cellWidths = c('33%','33%','33%'),
-                                                   plotOutput('plot1',
-                                                              hover = hoverOpts("plot1_hover", delay = 100, delayType = "debounce"),
-                                                              dblclick = "plot1_dblclick", 
-                                                              brush = brushOpts(id = "plot1_brush",resetOnNew = TRUE )
-                                                   ),
-                                                   plotOutput('plot2', dblclick = "plot2_dblclick", 
-                                                              brush = brushOpts(id = "plot2_brush",resetOnNew = TRUE)),
-                                                   plotOutput('plot3',
-                                                              hover = hoverOpts("plot3_hover", delay = 100, delayType = "debounce"),
-                                                              dblclick = "plot3_dblclick", 
-                                                              brush = brushOpts(id = "plot3_brush",resetOnNew = TRUE)
-                                                   ))
-                                       ),
-                                      
-                                       DT::DTOutput('output_table_latlon')
-                                
-                                       ))),
                   #---- 
                   #BEGIN BASIC ANALYSIS TABSET PANEL 
                   #----
@@ -558,7 +561,6 @@
                              )
                            )),
                   #----   
-                  #-----
                   #Zonal definition
                   #-----
                   tabPanel('Zonal Definition',

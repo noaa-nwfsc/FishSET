@@ -203,15 +203,6 @@
         # what ever you want to do
 #      }
      
-      #Save to database 
-#      observeEvent(input$uploadMain, {
-#        req(input$projectname)
-#        fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-#        DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'MainDataTable'),  df_data, overwrite=TRUE)
-#        DBI::dbDisconnect(fishset_db)
-        #values$dataset <- table_view(paste0(input$projectname, 'MainDataTable'))
-#      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
-      
       # refresh data
       observeEvent(c(input$refresh,input$refresh1,input$refresh2,input$refreshNew), {
         req(input$projectname)
@@ -233,6 +224,20 @@
           ptdat$dataset <- table_view(paste0(input$projectname, input$portdattext))
         } else {
           ptdat$dataset <- ptdat$dataset
+        }
+      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
+      
+      #SPATIAL
+      spatdat <- reactiveValues(
+        dataset = data.frame('var1'=0, 'var2'=0)
+      )
+      
+      observeEvent(input$loadDat, {
+        req(input$spatialdattext)
+        if(input$loadspatialsource=='FishSET database'){
+          spatdat$dataset <- table_view(input$spatialdattext)
+        } else {
+          spatdat$dataset <- spatdat$dataset
         }
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
@@ -494,6 +499,11 @@
           ))
       })
       
+      output$ui.action <- renderUI({
+        if (is.null(input$maindat)) return()
+        actionButton("uploadMain", label = "Save to database", 
+                     style = "color: white; background-color: blue;", size = "extra-small")
+      })
  #     observeEvent(input$maindat, {
  #       type <- sub('.*\\.', '', input$maindat$name)
  #       if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
@@ -518,16 +528,38 @@
           ))
       })
       
-      output$ui.action <- renderUI({
-        if (is.null(input$maindat)) return()
-        actionButton("uploadMain", label = "Save to database", 
-                     style = "color: white; background-color: blue;", size = "extra-small")
-      })
       output$ui.actionP <- renderUI({
         if (is.null(input$portdat)) return()
         actionButton("uploadPort", label = "Save to database", 
                      style = "color: white; background-color: blue;", size = "extra-small")
       })
+      
+ 
+      output$spatial_upload <- renderUI({     
+        tagList( 
+          conditionalPanel(condition="input.loadspatialsource=='Upload new file'", 
+                           tagList(
+                             fluidRow(
+                               column(3, fileInput("spatialdat", "Choose spatial data file",
+                                                   multiple = FALSE, placeholder = 'Suggested data')),
+                               column(1, uiOutput('ui.actionS'))
+                             ))
+          ),
+          conditionalPanel(condition="input.loadspatialsource!='Upload new file'", 
+                           tagList(
+                             fluidRow(
+                               column(3, textInput("spatialdattext", "Spatial data file name in database", placeholder = 'Suggested data'))
+                             ))
+          ))
+      })
+      
+      output$ui.actionS <- renderUI({
+        if (is.null(input$portdat)) return()
+        actionButton("uploadspatial", label = "Save to database", 
+                     style = "color: white; background-color: blue;", size = "extra-small")
+      })
+      
+      
       output$grid_upload <- renderUI({     
         tagList( 
           conditionalPanel(condition="input.loadgridsource=='Upload new file'", 
@@ -599,7 +631,7 @@
         )
       })
       
-      observeEvent(input$uploadMain, {
+         observeEvent(input$uploadMain, {
         type <- sub('.*\\.', '', input$maindat$name)
         if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
         df_data <- FishSET::read_dat(input$maindat$datapath, type)
@@ -613,6 +645,15 @@
         df_data <- FishSET::read_dat(input$portdat$datapath, type)
         load_port(df_data, input$port_name, over_write=TRUE, project=input$projectname, compare=FALSE, y=NULL)
       }) 
+      observeEvent(input$uploadspatial, {
+        type <- sub('.*\\.', '', input$spatialdat$name)
+        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
+        df_data <- FishSET::read_dat(input$spatialdat$datapath, type)
+        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+        DBI::dbWriteTable(fishset_db, input$spatialdat$name,  df_data, overwrite=TRUE) 
+        DBI::dbDisconnect(fishset_db)
+      }) 
+      
       observeEvent(input$uploadGrid, {
         type <- sub('.*\\.', '', input$griddat$name)
         if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
@@ -685,12 +726,11 @@
         DBI::dbDisconnect(fishset_db)
       })
       
-      
       observeEvent(input$subsetData,{
         values$dataset <- values$dataset[,-(input$output_table_exploration_columns_selected+1)]
       })
       
-      output$editText <- renderText('Edit cells: double click.\n\nFilter: Boxes at top.\nFilter functions saved to FilterTable in fishet_db database when "save data" button is pushed.\n\nRemove variables: Click on column cell then click "Remove Variable" button.\nVariables can be added back using the add_vars function.\n\nClick the "Save Data" button to save changes.')
+      output$editText <- renderText('Edit cells: double click.\n\nFilter: Boxes at top.\nFilter functions saved to fishet_db database \nas FilterTable when "save data" button is pushed.\n\nRemove variables: Click on column cell(s),\nthen click "Remove Variable" button.\nVariables can be added back using the add_vars function.\n\nClick the "Save Data" button to save changes.')
       
       #Subset by columns
       
@@ -845,7 +885,7 @@
           return(NULL)
         } else {
           if(input$plot_table=='Plots'&input$plot_type=='Spatial'){
-            map_kernel('gradient', values$dataset[,c(which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', 
+            map_kernel(input$projectname, 'gradient', values$dataset[,c(which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', 
                                                                                      ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1], 
                                                      which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', 
                                                                                      ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1])])
@@ -909,6 +949,7 @@
       
       output$mtgt_output <- renderUI({
         tagList( 
+          h4('Further options to display measures of spatial autocorrelation'),
           conditionalPanel(condition="input.plot_table=='Plots'&input.plot_type=='Spatial'",
                            style = "margin-left:19px;", selectizeInput('varofint', 'Variable to test for spatial autocorrelation',
                                                                     choices=colnames(values$dataset[,sapply(values$dataset,is.numeric)]))),
@@ -941,15 +982,15 @@
         if(input$mtgtcat==''){
           return( NULL)
         } else {
-          gt <- getis_ord_stats(values$dataset, input$varofint, gtmtGridFileData(), lon.dat=input$gtmt_lonlat[2], lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat, lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$getistable
-          mt <- moran_stats(values$dataset, input$varofint, gtmtGridFileData(), lon.dat=input$gtmt_lonlat[2], lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat, lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$morantable
+          gt <- getis_ord_stats(values$dataset, input$projectname, input$varofint, gtmtGridFileData(), lon.dat=input$gtmt_lonlat[2], lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat, lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$getistable
+          mt <- moran_stats(values$dataset, input$projectname, input$varofint, gtmtGridFileData(), lon.dat=input$gtmt_lonlat[2], lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat, lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$morantable
           print(gt)
           return(as.data.frame(merge(gt, mt)))
         }
       }) 
       
       output$output_table_gt_mt <- DT::renderDT(  
-        gtmt_table()
+        gtmt_table(), server=TRUE
       )
       
       #4. X VS. Y
@@ -1586,7 +1627,7 @@
           table <- head(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=TRUE)])
         } else {
           NULL
-        }, server = TRUE, selection= list(target = 'column'), rownames=FALSE,
+        }, server = TRUE, selection = list(target = 'column'), rownames=FALSE,
         options = list(autoWidth=FALSE, scrollX=T,  responsive=TRUE, pageLength = 7)
       )
       
@@ -1769,7 +1810,7 @@
           return(NULL)
         } else if (input$checks=='Summary table') { 
           temp <- values$dataset
-          stable <- summary_stats(temp) 
+          stable <- summary_stats(temp, input$projectname) 
           nums <- unlist(lapply(temp, is.numeric))
           stable  <- apply(stable[nums], 2, function(x) gsub(".*:","", x))
           rownames(stable)=c('Min', 'Median','Mean', 'Max',"Missing",'Unique Obs.', "No. 0's")
@@ -1781,7 +1822,7 @@
       })
       
       output$output_table_summary <- DT::renderDT(
-        tableInputSummary(), server = FALSE, rownames=TRUE,
+        tableInputSummary(), server = TRUE, rownames=TRUE,
         options = list(autoWidth=FALSE, scrollX=T, responsive=FALSE, pageLength = 25)
       )
       
@@ -1789,7 +1830,7 @@
         if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
         } else if (input$checks=='Outliers'){
-          table <- outlier_table(values$dataset, input$column_check)
+          table <- outlier_table(values$dataset, input$projectname, input$column_check)
           rownames(table)=table[,2]
           table <- table[,3:10]
           #table <<- table
@@ -1808,7 +1849,7 @@
           #table <<- table
         } else {
           NULL
-        }, server = FALSE, selection='single', rownames=TRUE,
+        }, server = TRUE, selection='single', rownames=TRUE,
         options = list(autoWidth=FALSE, scrollX=T,  responsive=TRUE, pageLength = 7)
       )
       
@@ -1825,7 +1866,7 @@
           if(input$checks=='Outliers'){
             temp <- values$dataset
             temp$val <- 1:nrow(temp)
-            dat_sub <- suppressWarnings(outlier_plot_int(temp, input$column_check, input$dat.remove, input$x_dist, plot_type=1))
+            dat_sub <- suppressWarnings(outlier_plot_int(temp, input$projectname, input$column_check, input$dat.remove, input$x_dist, plot_type=1))
             suppressWarnings(ggplot2::ggplot() + ggplot2::geom_point(data=dat_sub, ggplot2::aes_string(x='val', y=input$column_check, color = 'Points', na.rm=TRUE)) +
                                ggplot2::scale_color_manual(breaks=c('Kept','Removed'),values=c('blue','red'))+
                                ggplot2::coord_cartesian(xlim = ranges1$x, ylim = ranges1$y, expand = FALSE)+
@@ -2171,11 +2212,11 @@
         } else if(is.null(input$temp_var)){
           return()
         } else{
-          sparsetable(values$dataset, timevar=input$temp_var, zonevar='ZoneID', var=input$catche)
+          sparsetable(values$dataset, input$projectname, timevar=input$temp_var, zonevar='ZoneID', var=input$catche)
         }
       })
       
-      output$spars_table <- DT::renderDT(sparstable_dat())
+      output$spars_table <- DT::renderDT(sparstable_dat(), server=TRUE)
       output$spars_plot <- renderPlot({
         if(!any(colnames(values$dataset)=='ZoneID')){
           return()
@@ -2184,7 +2225,7 @@
         } else if(is.null(input$temp_var)){
           return()
         } else {
-          print(sparsplot(sparsetable(values$dataset, timevar=input$temp_var, zonevar='ZoneID', var=input$catche)))
+          print(sparsplot(sparsetable(values$dataset, input$projectname, timevar=input$temp_var, zonevar='ZoneID', var=input$catche), input$projectname))
         }
       })
       
@@ -2401,7 +2442,7 @@
       })
       
       output$mod_param_table <- DT::renderDT(
-        model_table(), editable = T
+        model_table(), editable = T, server=TRUE
       )
       # Save model and add new model shiny
       observe({
@@ -2454,7 +2495,7 @@
       # datatable with checkbox
       output$mytable <- DT::renderDT({
         data.frame(this_table(),Select=shinyInput(checkboxInput,nrow(this_table()),"cbox_"))
-      }, colnames=c('Model','AIC','AICc','BIC','PseudoR2','Selected'),  filter='top', server = FALSE, escape = FALSE, options = list( 
+      }, colnames=c('Model','AIC','AICc','BIC','PseudoR2','Selected'),  filter='top', server = TRUE, escape = FALSE, options = list( 
         dom = 't', paging=FALSE,
         preDrawCallback = DT::JS('function() { 
                                  Shiny.unbindAll(this.api().table().node()); }'), 
@@ -2868,7 +2909,7 @@
       
       ###----
       # Update From Bookmarked state
-      
+      ###----    
       bookmarkedstate <- reactive({
         req(input$uploadbookmark)
         readRDS(input$uploadbookmark$datapath)

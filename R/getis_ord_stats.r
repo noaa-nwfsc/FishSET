@@ -4,7 +4,7 @@ getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat=NULL, lat.
   #' Wrapper function to calculate global and local Getis-Ord by discrete area
   #'
   #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
-  #' @param project Name of project.
+  #' @param project Name of project
   #' @param varofint Numeric variable of interest to test for spatial high/low clustering. 
   #' @param gridfile Spatial data set. Can be shape file, data frame, or list.
   #' @param lon.dat Longitude of points from dataset.
