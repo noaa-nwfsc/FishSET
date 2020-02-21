@@ -4,6 +4,7 @@ outlier_table <- function(dat, project, x) {
   #' Evaluate outliers in a table output
   #'
   #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
+  #' @param project Name of project.
   #' @param x Column in data frame to check for outliers 
   #' @param project Name of project
   #' @importFrom stats quantile sd var na.pass model.matrix
