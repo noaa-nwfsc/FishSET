@@ -58,8 +58,8 @@ data_verification_call <- function(dat, project) {
   }
   
   if(any(grepl('lat|lon', names(dataset), ignore.case=TRUE))){
-    lat <- dataset[,which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)]
-    lon <- dataset[,which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)]
+    lat <- dataset[,grep('lat', names(dataset), ignore.case=TRUE)]
+    lon <- dataset[,grep('lon', names(dataset), ignore.case=TRUE)]
     
     if(is.factor(lat)) {
       lat <- as.numeric(as.character(lat))
@@ -71,8 +71,8 @@ data_verification_call <- function(dat, project) {
     #maps::map('world', ylim=c(min(lat, na.rm=TRUE), max(lat, na.rm=TRUE)), 
     #          xlim=c(min(lon, na.rm=TRUE), max(lon, na.rm=TRUE)))
     #pts <- sample(nrow(dataset), nrow(dataset)/10)
-    #points(as.numeric(as.character(dataset[pts, which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)[1]])), 
-    #       as.numeric(as.character(dataset[pts, which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)[1]])))
+    #points(as.numeric(as.character(dataset[pts, grep('lon', names(dataset), ignore.case=TRUE)[1]])), 
+    #       as.numeric(as.character(dataset[pts, grep('lat', names(dataset), ignore.case=TRUE)[1]])))
     #print('10% of samples plotted. Verify that points occur in correct geographic area.')
   }
   

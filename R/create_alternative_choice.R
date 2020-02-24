@@ -77,7 +77,7 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
   } else {
       int.data <- dataset
     }
-   if(any(is.na(int.data$ZoneID)==TRUE)==TRUE){
+   if(anyNA(int.data$ZoneID)==TRUE){
       warning(paste("No zone identified for", sum(is.na(int.data$ZoneID)), "observations. These observations will be removed in future analyses."))
     }
     
@@ -94,7 +94,7 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
     C <- match(int.data$ZoneID[!is.na(int.data$ZoneID)], unique(int.data$ZoneID[!is.na(int.data$ZoneID)]))  #  match(unlist(gridInfo['assignmentColumn',,]), unique(unlist(gridInfo['assignmentColumn',,])))
   
     } else {
-    a <- colnames(dataset)[which(grepl("zon|area", colnames(dataset), ignore.case = TRUE))] #find(zp)   #find data that is zonal type                                                                                                                                                                                            
+    a <- colnames(dataset)[grep("zon|area", colnames(dataset), ignore.case = TRUE)] #find(zp)   #find data that is zonal type                                                                                                                                                                                            
     
     # [B,I,C]=unique([gridInfo.assignmentColumn(~isnan(gridInfo.assignmentColumn)),
     # data(a(v)).dataColumn(~isnan(gridInfo.assignmentColumn),:) ],'rows');%FIXME check that the order of output zones is consistent
@@ -184,7 +184,7 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
           
           allMat <- gridVar[,-1][biD,biG]
         }
-         if (any(is.na(allMat[Alt[['dataZoneTrue']],]))) {
+         if(anyNA(allMat[Alt[['dataZoneTrue']],])) {
           stop('Problem with loaded matrix, NaN found.')
          }
         

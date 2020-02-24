@@ -42,8 +42,8 @@ qaqc_output <- function(dat, project) {
   }
   
   if(any(grepl('lat|lon', names(dataset), ignore.case=TRUE))){
-    lat <- dataset[,which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)]
-    lon <- dataset[,which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)]
+    lat <- dataset[,grep('lat', names(dataset), ignore.case=TRUE)]
+    lon <- dataset[,grep('lon', names(dataset), ignore.case=TRUE)]
     if(any(is.numeric(colnames(lat)))|any(is.numeric(colnames(lon)))==TRUE){
       cat('At least one lat/lon variable is not in degrees. Use the function degree() to convert to degrees.')
     } else {

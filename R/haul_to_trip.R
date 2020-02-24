@@ -54,10 +54,10 @@ haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, ...)
   
 
      drop <- 0
-    if (length(which(grepl('DUR', names(int[,c(which(as.data.frame(dataIndex[dataIndex[, 'variable_name'] == 
-                          colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Time"))]), ignore.case=T)==T)) != 0 ) {
-       drop <-  which(grepl('DUR', names(int[,c(which(as.data.frame(dataIndex[dataIndex[, 'variable_name'] == 
-                         colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Time"))]), ignore.case=T)==T)
+    if (length(grep('DUR', names(int[,c(which(as.data.frame(dataIndex[dataIndex[, 'variable_name'] == 
+                          colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Time"))]), ignore.case=T)) != 0 ) {
+       drop <-  grep('DUR', names(int[,c(which(as.data.frame(dataIndex[dataIndex[, 'variable_name'] == 
+                         colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Time"))]), ignore.case=T)
           }
   # Collapse data based on rowID and defined function
   out <- data.frame(drop=rep(0, length(unique(int$rowID))))

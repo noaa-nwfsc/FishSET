@@ -39,8 +39,8 @@ data_verification <- function(dat) {
   }
   
   if(any(grepl('lat|lon', names(dataset), ignore.case=TRUE))){
-    lat <- dataset[,which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)]
-    lon <- dataset[,which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)]
+    lat <- dataset[,grep('lat', names(dataset), ignore.case=TRUE)]
+    lon <- dataset[,grep('lon', names(dataset), ignore.case=TRUE)]
     if(any(sapply(lat, is.numeric)==FALSE)|any(sapply(lon, is.numeric)==FALSE)){
       cat('At least one lat/lon variable is not in decimal degrees. Use the function degree() to convert to decimal degrees.')
     } else if(any(nchar(abs(trunc(lat[,which(sapply(lat,  is.numeric))])))>2)|any(nchar(abs(trunc(lon[,which(sapply(lat,  is.numeric))])))>3)){

@@ -153,7 +153,7 @@ find_first <- function(y){
   #' Find earliest date
   #' @param y variable of interest
   #' @export
-  g <- y[which(grepl('date', names(y), ignore.case=TRUE) == TRUE)]
+  g <- y[grep('date', names(y), ignore.case=TRUE)]
   if(all(g=='')==TRUE||all(is_empty(g)==TRUE)==TRUE) {warning('All date variables are empty')}
   g2 <- date_parser(as.vector(unlist(c(g))))
   names(g)[which(g2==min(g2, na.rm=TRUE))[1]]
@@ -164,7 +164,7 @@ find_last <- function(y){
   #' @param y variable of interest
   #' @export
   
-  g <- y[which(grepl('date', names(y), ignore.case=TRUE) == TRUE)]
+  g <- y[grep('date', names(y), ignore.case=TRUE)]
   if(all(g=='')==TRUE||all(is_empty(g)==TRUE)==TRUE) {warning('All date variables are empty')}
   g2 <- date_parser(as.vector(unlist(c(g))))
   names(g)[which(g2==max(g2, na.rm=TRUE))[1]]

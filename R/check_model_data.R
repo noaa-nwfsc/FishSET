@@ -56,11 +56,11 @@ check_model_data <- function(dat, dataindex, uniqueID, save.file = TRUE) {
      x<- 1
   }
 
-    if (any(apply(dataset, 2, function(x) any(is.na(x)))==TRUE)) {
+    if (any(apply(dataset, 2, function(x) anyNA(x))==TRUE)) {
       cat(paste("\nNAs are present in", 
-                names(which(apply(dataset, 2, function(x) any(is.na(x)))==TRUE))), file=tmp, append=T)
+                names(which(apply(dataset, 2, function(x) anyNA(x))==TRUE))), file=tmp, append=T)
       cat("\nNAs are present in", 
-                 names(which(apply(dataset, 2, function(x) any(is.na(x)))==TRUE)))
+                 names(which(apply(dataset, 2, function(x) anyNA(x))==TRUE)))
       x <- 1
     }
     

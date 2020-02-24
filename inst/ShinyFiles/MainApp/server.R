@@ -1507,7 +1507,7 @@
         if(any(apply(x, 2, function(x) anyNA(x)))==TRUE) {
           if(input$NA_Filter=='none'){
             paste("The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), collapse = ", ")),
-                  "variables contain", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE))], 2, 
+                  "variables contain", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
                                                                                 function(x) length(which(is.na(x)==TRUE))), collapse=", ")), 
                   "missing values, respectively.<br>Consider using na_filter to replace or remove the", 
                   length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
@@ -1518,18 +1518,18 @@
               paste("No columns in the data set contain missing values.")
             } else {
               if(input$NA_Filter=='Remove all'){
-                HTML("The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), collapse = ", ")), 
-                     "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE))], 2, 
+                HTML("The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), collapse = ", ")), 
+                     "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
                                                                                      function(x) length(which(is.na(x)==TRUE))), collapse=", ")), 
                      "missing values.<br>", length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
-                                                                                                         function(x) any(is.na(x)))==TRUE))], 2, function(x) which(is.na(x)==TRUE))))),
+                                                                                                         function(x) anyNA(x))==TRUE))], 2, function(x) which(is.na(x)==TRUE))))),
                      "rows containing missing values have been removed from the data set.")
               } else if(input$NA_Filter=='Replace with mean'){
                 HTML("The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), collapse = ", ")), 
-                     "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE))], 2, 
+                     "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
                                                                                     function(x) length(which(is.na(x)==TRUE))), collapse=", ")),
                      "missing values.<br>Missing values have been replaced with the mean values of",
-                     sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE))],2, mean, na.rm=TRUE), collapse = ", ")),
+                     sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))],2, mean, na.rm=TRUE), collapse = ", ")),
                      "respectively.")
               }
             } 
@@ -1593,14 +1593,14 @@
       
       #Lat/Lon units
       lat_lon <- function(x) { 
-        if(any(apply(values$dataset[,which(grepl('lat|lon', names(values$dataset), ignore.case=TRUE)==TRUE)], 2, function(x) !is.numeric(x))==TRUE)==TRUE){
+        if(any(apply(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=TRUE)], 2, function(x) !is.numeric(x))==TRUE)==TRUE){
           if(input$LatLon_Filter==FALSE){
             HTML('At least one latitude or longitude variable is not in decimal degrees. Select a lat and lon variable below and then 
                   <br> select a conversion option on the the left to convert to decimal degrees.')
           } else {
             HTML('At least one latitude or longitude variable is not in decimal degrees. <br>Latitude and longitude variables converted to decimal degrees.')
           }
-        } else if(any(apply(values$dataset[,which(grepl('lat|lon', names(values$dataset), ignore.case=TRUE)==TRUE)], 2, function(x) length(trunc(x)))>3)==TRUE){
+        } else if(any(apply(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=TRUE)], 2, function(x) length(trunc(x)))>3)==TRUE){
           if(input$LatLon_Filter==FALSE){
             HTML('At least one latitude or longitude variable is not in decimal degrees. Select a lat and lon variable below and then 
                   <br>select a conversion option on the the left to convert to decimal degrees.')
@@ -1695,7 +1695,7 @@
                     }, "removed.\n")
             }
           } else if(input$checks=='NAs'){
-            if(any(apply(values$dataset, 2, function(x) any(is.na(x))))==TRUE) {
+            if(any(apply(values$dataset, 2, function(x) anyNA(x)))==TRUE) {
               if(input$NA_Filter=='none'){
                 paste("Occurrence of missing values checked. The", RC,
                       "variables contain", RN, "missing values, respectively.", RA, "rows have missing values. Missing values were not removed or replaced.\n") 
@@ -1748,7 +1748,7 @@
               "Occurrence of empty variables was checked and not found in the data set.\n"
             }
           } else if(input$checks=='Lat_Lon units'){
-            if(any(apply(values$dataset[,which(grepl('lat|lon', names(values$dataset), ignore.case=TRUE)==TRUE)], 2, function(x) !is.numeric(x))==TRUE)==TRUE){
+            if(any(apply(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=TRUE)], 2, function(x) !is.numeric(x))==TRUE)==TRUE){
               if(input$LatLon_Filter==FALSE){
                 'Latitude and longitude units were checked and are not in decimal degrees.\n'
               } else {
@@ -1843,7 +1843,7 @@
         if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
         } else if(input$checks=='Outliers'){
-          table <- outlier_table(values$dataset, input$column_check)
+          table <- outlier_table(values$dataset, input$projectname, input$column_check)
           rownames(table)=table[,2]
           table <- table[,3:10]
           #table <<- table
@@ -2017,14 +2017,14 @@
       
       observeEvent(input$NA_Filter,{
         if(input$NA_Filter=='Remove all'){
-          if(any(apply(values$dataset, 2, function(x) any(is.na(x))))==TRUE){
-            values$dataset <- na_filter(values$dataset, names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), replace = FALSE, remove = TRUE, over_write=FALSE)  
+          if(any(apply(values$dataset, 2, function(x) anyNA(x)))==TRUE){
+            values$dataset <- na_filter(values$dataset, names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), replace = FALSE, remove = TRUE, over_write=FALSE)  
           } else {
             cat('No missing values to remove')
           }
         }else if(input$NA_Filter=='Replace with mean') {
-          if(any(apply(values$dataset, 2, function(x) any(is.na(x))))==TRUE){
-            values$dataset <- na_filter(values$dataset,  names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), replace = TRUE, remove = FALSE, over_write=FALSE)
+          if(any(apply(values$dataset, 2, function(x) anyNA(x)))==TRUE){
+            values$dataset <- na_filter(values$dataset,  names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), replace = TRUE, remove = FALSE, over_write=FALSE)
           } else {
             cat('No missing values to remove')
           }}

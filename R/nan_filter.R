@@ -25,8 +25,8 @@ nan_identify <- function(dat){
   
    tmp <- tempfile()
    #Check for NAs
-  if (any(apply(dataset, 2, function(x) any(is.na(x)))==TRUE)) {
-    cat("The", names(which(apply(dataset, 2, function(x) any(is.na(x)))==TRUE)), "columns contain NAs. Consider using nan_filter to replace or remove NAs", file=tmp)
+  if (any(apply(dataset, 2, function(x) anyNA(x))==TRUE)) {
+    cat("The", names(which(apply(dataset, 2, function(x) anyNA(x))==TRUE)), "columns contain NAs. Consider using nan_filter to replace or remove NAs", file=tmp)
   
   } else {
     #cat("\nNo columns in the dataframe contain NaNs", file=paste(getwd(),'/Logs/InforMessage',Sys.Date(),'.txt', sep=''), append=TRUE)
@@ -175,7 +175,7 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write=
   tmp <- tempfile()
   for(i in 1:length(x)){
     x.name <- x[i]
-    if (any(is.na(int[, x.name])) == T) {
+    if (anyNA(int[, x.name]) == T) {
        cat(length(which(is.na(int[, x.name]) == T)), "NAs identified in variable",  x.name, file=tmp)
       
       # the identified rep.value (defaults to mean value)
@@ -204,7 +204,7 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write=
   print(suppressWarnings(readLines(tmp)))
   
   #Save the revised data set
-  if(over_write==TRUE & any(is.na(dataset))==TRUE){
+  if(over_write==TRUE & anyNA(dataset)==TRUE){
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
   DBI::dbWriteTable(fishset_db, deparse(substitute(dat)), int, overwrite=over_write)
   DBI::dbDisconnect(fishset_db)

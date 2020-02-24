@@ -90,7 +90,7 @@ create_trip_distance <- function(dat, PortTable, trip_id, starting_port, startin
   portToEnd <- geosphere::distGeo(cbind(portLLE[, 1], portLLE[, 2]), 
                                   cbind(dataset[[haulLocalEnd[1]]][portEndidx], dataset[[haulLocalEnd[2]]][portEndidx]), a = a, f = f)
   
-  if (any(is.na(match(haulLocalStart, haulLocalEnd))==TRUE)) {
+  if (anyNA(match(haulLocalStart, haulLocalEnd))){
     innerHaulDist <- geosphere::distGeo(cbind(dataset[[haulLocalStart[1]]], dataset[[haulLocalStart[2]]]), 
                                         cbind(dataset[[haulLocalEnd[1]]], dataset[[haulLocalEnd[2]]]), a = a, f = f)
   }
