@@ -483,7 +483,7 @@ outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plo
   
   dataset <- dat
   x.name <- x
-  if (is.numeric(dataset[, x]) == T) {
+  if (is.numeric(dataset[[x]]) == T) {
     # Begin outlier check
     dataset$val <- 1:nrow(dataset)
     if (dat.remove == "none") {

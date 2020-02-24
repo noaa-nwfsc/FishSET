@@ -20,9 +20,9 @@
         r$done <- r$done + 1
       })
       output$resultI <- renderUI({
-        if (r$done > 0 ) { 
+        if(r$done > 0 ) { 
           content <- paste(paste(">", isolate(input$expr)), r$output, sep = '\n')
-          if (r$ok) {
+          if(r$ok) {
             pre(content)
           } else {
             pre( style = "color: red; font-weight: bold;", content)
@@ -45,9 +45,9 @@
         r$done <- r$done + 1
       })
       output$resultQA <- renderUI({
-        if (r$done > 0 ) { 
+        if(r$done > 0 ) { 
           content <- paste(paste(">", isolate(input$exprQA)), r$output, sep = '\n')
-          if (r$ok) {
+          if(r$ok) {
             pre(content)
           } else {
             pre( style = "color: red; font-weight: bold;", content)
@@ -70,9 +70,9 @@
         r$done <- r$done + 1
       })
       output$resultA <- renderUI({
-        if (r$done > 0 ) { 
+        if(r$done > 0 ) { 
           content <- paste(paste(">", isolate(input$exprA)), r$output, sep = '\n')
-          if (r$ok) {
+          if(r$ok) {
             pre(content)
           } else {
             pre( style = "color: red; font-weight: bold;", content)
@@ -95,9 +95,9 @@
         r$done <- r$done + 1
       })
       output$resultN <- renderUI({
-        if (r$done > 0 ) { 
+        if(r$done > 0 ) { 
           content <- paste(paste(">", isolate(input$exprN)), r$output, sep = '\n')
-          if (r$ok) {
+          if(r$ok) {
             pre(content)
           } else {
             pre( style = "color: red; font-weight: bold;", content)
@@ -120,9 +120,9 @@
         r$done <- r$done + 1
       })
       output$resultZ <- renderUI({
-        if (r$done > 0 ) { 
+        if(r$done > 0 ) { 
           content <- paste(paste(">", isolate(input$exprZ)), r$output, sep = '\n')
-          if (r$ok) {
+          if(r$ok) {
             pre(content)
           } else {
             pre( style = "color: red; font-weight: bold;", content)
@@ -145,9 +145,9 @@
         r$done <- r$done + 1
       })
       output$resultEC <- renderUI({
-        if (r$done > 0 ) { 
+        if(r$done > 0 ) { 
           content <- paste(paste(">", isolate(input$exprEC)), r$output, sep = '\n')
-          if (r$ok) {
+          if(r$ok) {
             pre(content)
           } else {
             pre( style = "color: red; font-weight: bold;", content)
@@ -170,9 +170,9 @@
         r$done <- r$done + 1
       })
       output$resultM <- renderUI({
-        if (r$done > 0 ) { 
+        if(r$done > 0 ) { 
           content <- paste(paste(">", isolate(input$exprM)), r$output, sep = '\n')
-          if (r$ok) {
+          if(r$ok) {
             pre(content)
           } else {
             pre( style = "color: red; font-weight: bold;", content)
@@ -199,7 +199,7 @@
         }
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
-#      if (is.null(input$maindatabasedat)) {
+#      if(is.null(input$maindatabasedat)) {
         # what ever you want to do
 #      }
      
@@ -500,7 +500,7 @@
       })
       
       output$ui.action <- renderUI({
-        if (is.null(input$maindat)) return()
+        if(is.null(input$maindat)) return()
         actionButton("uploadMain", label = "Save to database", 
                      style = "color: white; background-color: blue;", size = "extra-small")
       })
@@ -529,7 +529,7 @@
       })
       
       output$ui.actionP <- renderUI({
-        if (is.null(input$portdat)) return()
+        if(is.null(input$portdat)) return()
         actionButton("uploadPort", label = "Save to database", 
                      style = "color: white; background-color: blue;", size = "extra-small")
       })
@@ -554,7 +554,7 @@
       })
       
       output$ui.actionS <- renderUI({
-        if (is.null(input$portdat)) return()
+        if(is.null(input$portdat)) return()
         actionButton("uploadspatial", label = "Save to database", 
                      style = "color: white; background-color: blue;", size = "extra-small")
       })
@@ -579,14 +579,14 @@
       })
       
       output$ui.actionG <- renderUI({
-        if (is.null(input$griddat)) return()
+        if(is.null(input$griddat)) return()
         actionButton("uploadGrid", label = "Save to database", 
                      style = "color: white; background-color: blue;", size = "extra-small")
       })
       
       
       output$ui.actionA <- renderUI({
-        if (is.null(input$auxdat)) return()
+        if(is.null(input$auxdat)) return()
         actionButton("uploadAux", label = "Save to database", 
                      style = "color: white; background-color: blue;", size = "extra-small")
       })
@@ -611,7 +611,7 @@
       })
     
       output$ui.action2 <- renderUI({
-        if (is.null(input$maindat)) return()
+        if(is.null(input$maindat)) return()
         tagList(
           textInput('compare', label=div(style = "font-size:14px;  font-weight: 400;", 'If comparing data to previous year, enter saved table name'), 
                     value='', placeholder = 'Saved table name in fishset_db database'),
@@ -619,7 +619,7 @@
         )
       })
       output$ui.actionP2 <- renderUI({
-        if (is.null(input$portdat)) return()
+        if(is.null(input$portdat)) return()
         tagList(
           selectInput('port_name', "Enter column name containing port names", 
                       choices=names(FishSET::read_dat(input$portdat$datapath, if(sub('.*\\.', '', input$portdat$name) == 'shp') { 
@@ -676,7 +676,7 @@
         if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
         } else {
-        if (input$plot_table=='Table') { 
+        if(input$plot_table=='Table') { 
           c1 <- values$dataset
           colnames(c1)=gsub("_","-", colnames(c1))
           return(c1)
@@ -697,7 +697,7 @@
           if(length(default_sub)==0){
             NULL
           } else {
-            if (table_exists(paste0(input$projectname, "FilterTable")) == F) {
+            if(table_exists(paste0(input$projectname, "FilterTable")) == F) {
               FilterTable <- data.frame(dataframe = NA, vector = NA, FilterFunction = NA)
             } else {
               FilterTable <- table_view(paste0(input$projectname, "FilterTable"))
@@ -797,7 +797,7 @@
       })
       
       plotInput_time <-  reactive({
-        if (is.null(values$dataset)) {
+        if(is.null(values$dataset)) {
           return(NULL)
         } else if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
@@ -859,7 +859,7 @@
                                     90, max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]], na.rm=TRUE)+abs(max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]], na.rm=TRUE)/10)))
       })
       output$plot_spatial <- renderPlot({#plotInput_spatial <-  reactive({
-        if (is.null(values$dataset)) {
+        if(is.null(values$dataset)) {
           return(NULL)
         } else if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
@@ -879,7 +879,7 @@
         } 
       })
       plotInput_kernel <- reactive ({
-        if (is.null(values$dataset)) {
+        if(is.null(values$dataset)) {
           return(NULL)
         } else if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
@@ -901,7 +901,7 @@
       #Location info       
       output$location_info_spatial <- renderUI({
         hover <- input$plot_spatial_click
-        if (is.null(hover)) return(NULL)
+        if(is.null(hover)) return(NULL)
         # calculate point position INSIDE the image as percent of total dimensions
         # from left (horizontal) and from top (vertical)
         left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
@@ -928,7 +928,7 @@
       # If so, zoom to the brush bounds; if not, reset the zoom.
       observeEvent(input$plot_spatial_dblclick, {
         brush <- input$plot_spatial_brush
-        if (!is.null(brush)) {
+        if(!is.null(brush)) {
           
           ranges_spatial$x <- c(brush$xmin, brush$xmax)
           ranges_spatial$y <- c(brush$ymin, brush$ymax)
@@ -995,7 +995,7 @@
       
       #4. X VS. Y
       plotInput_xy <- reactive({
-        if (is.null(values$dataset)) {
+        if(is.null(values$dataset)) {
           return(NULL)
         } else if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
@@ -1048,7 +1048,7 @@
       )
       
       plotInputcorr <- reactive({
-        if (is.null(values$dataset)) {
+        if(is.null(values$dataset)) {
           return(NULL)
         } else if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
@@ -1504,14 +1504,14 @@
       ###-----      
       #Basic functions   
        na <- function(x) { 
-        if(any(apply(x, 2, function(x) any(is.na(x))))==TRUE) {
+        if(any(apply(x, 2, function(x) anyNA(x)))==TRUE) {
           if(input$NA_Filter=='none'){
-            paste("The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), collapse = ", ")),
+            paste("The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), collapse = ", ")),
                   "variables contain", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE))], 2, 
                                                                                 function(x) length(which(is.na(x)==TRUE))), collapse=", ")), 
                   "missing values, respectively.<br>Consider using na_filter to replace or remove the", 
                   length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
-                                                                               function(x) any(is.na(x)))==TRUE))], 2, function(x) which(is.na(x)==TRUE))))), 
+                                                                               function(x) anyNA(x))==TRUE))], 2, function(x) which(is.na(x)==TRUE))))), 
                   "rows with missing values.") 
           }} else {
             if(input$NA_Filter=='none'){
@@ -1525,7 +1525,7 @@
                                                                                                          function(x) any(is.na(x)))==TRUE))], 2, function(x) which(is.na(x)==TRUE))))),
                      "rows containing missing values have been removed from the data set.")
               } else if(input$NA_Filter=='Replace with mean'){
-                HTML("The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), collapse = ", ")), 
+                HTML("The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), collapse = ", ")), 
                      "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE))], 2, 
                                                                                     function(x) length(which(is.na(x)==TRUE))), collapse=", ")),
                      "missing values.<br>Missing values have been replaced with the mean values of",
@@ -1567,7 +1567,7 @@
           }}
       
       #Unique observations
-      obs <- function(x) { if (dim(values$dataset)[1] == dim(unique(values$dataset))[1]) {
+      obs <- function(x) { if(dim(values$dataset)[1] == dim(unique(values$dataset))[1]) {
         "Each row is a unique choice occurrence. No further action required."
       } else {
         if(input$Unique_Filter=='FALSE'){
@@ -1579,7 +1579,7 @@
       }
       
       #Empty variables
-      empty <- function(x) { if (any(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)) {
+      empty <- function(x) { if(any(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)) {
         if(input$Empty_Filter=='FALSE'){
           paste(names(which(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)), "is empty. 
                 \nConsider removing the column from the data set.")
@@ -1623,7 +1623,7 @@
       output$output_table_latlon <- DT::renderDT(
         if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
-        } else if (input$checks=='Lat_Lon units'){
+        } else if(input$checks=='Lat_Lon units'){
           table <- head(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=TRUE)])
         } else {
           NULL
@@ -1635,7 +1635,7 @@
       output$Case<-renderText({
         if(input$checks=='Summary table') {
           "Summary table of NUMERIC variables in data set.<br><br>"
-        } else  if (input$checks=='Outliers'){
+        } else if(input$checks=='Outliers'){
           if(input$dat.remove=='none'){
             HTML('Table to assess outliers.', input$column_check, "shown. <br>Zoom in to plot by highlighting desired area and double clicking. <br>Double click again to reset plot.")
           } else {
@@ -1654,7 +1654,7 @@
             'median +/- 3SD'
           }, "results in removing", nrow(values$dataset)-tableInputOutlier()[which(rownames(tableInputOutlier())==input$dat.remove),1] ,"points from the data set.")
           }
-        } else  if (input$checks=='NAs'){
+        } else if(input$checks=='NAs'){
           na(values$dataset)
         } else if(input$checks=='NaNs') {
           nan(values$dataset)
@@ -1674,7 +1674,7 @@
         if(input$tabs=='qaqc'){
           if(input$checks=='Summary table') {
             "Summary table of numeric variables viewed.\n"
-          } else  if (input$checks=='Outliers'){
+          } else  if(input$checks=='Outliers'){
             if(input$dat.remove=='none'){
               paste0('Table and plots to assess outliers viewed for ', input$column_check, ".\n")
             } else {
@@ -1694,7 +1694,7 @@
                       'median +/- 3SD'
                     }, "removed.\n")
             }
-          } else if (input$checks=='NAs'){
+          } else if(input$checks=='NAs'){
             if(any(apply(values$dataset, 2, function(x) any(is.na(x))))==TRUE) {
               if(input$NA_Filter=='none'){
                 paste("Occurrence of missing values checked. The", RC,
@@ -1726,7 +1726,7 @@
                   }
                 } }
           } else if(input$checks=='Unique observations'){
-            if (dim(values$dataset)[1] == dim(unique(values$dataset))[1]) {
+            if(dim(values$dataset)[1] == dim(unique(values$dataset))[1]) {
               "Each row is a unique choice occurrence.\n"
             } else {
               if(input$Unique_Filter=='FALSE'){
@@ -1736,7 +1736,7 @@
               }
             }
           } else if(input$checks=='Empty variables'){
-            if (any(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)) {
+            if(any(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)) {
               if(input$Empty_Filter=='FALSE'){
                 paste('Occurrence of empty variables was checked and the', names(which(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)), 
                       "variable is empty. The varible was not removed from the data set.\n")
@@ -1808,7 +1808,7 @@
       tableInputSummary <- reactive({
         if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
-        } else if (input$checks=='Summary table') { 
+        } else if(input$checks=='Summary table') { 
           temp <- values$dataset
           stable <- summary_stats(temp, input$projectname) 
           nums <- unlist(lapply(temp, is.numeric))
@@ -1829,7 +1829,7 @@
       tableInputOutlier <- reactive({
         if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
-        } else if (input$checks=='Outliers'){
+        } else if(input$checks=='Outliers'){
           table <- outlier_table(values$dataset, input$projectname, input$column_check)
           rownames(table)=table[,2]
           table <- table[,3:10]
@@ -1842,7 +1842,7 @@
       output$output_table_outlier <- DT::renderDT(
         if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
-        } else if (input$checks=='Outliers'){
+        } else if(input$checks=='Outliers'){
           table <- outlier_table(values$dataset, input$column_check)
           rownames(table)=table[,2]
           table <- table[,3:10]
@@ -1858,7 +1858,7 @@
       ranges3 <- reactiveValues(x = NULL, y = NULL)
       #Plot output
       output$plot1 <- renderPlot(
-        if (is.null(values$dataset)) {
+        if(is.null(values$dataset)) {
           return(NULL)
         } else if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
@@ -1866,7 +1866,7 @@
           if(input$checks=='Outliers'){
             temp <- values$dataset
             temp$val <- 1:nrow(temp)
-            dat_sub <- suppressWarnings(outlier_plot_int(temp, input$projectname, input$column_check, input$dat.remove, input$x_dist, plot_type=1))
+            dat_sub <- suppressWarnings(outlier_plot_int(temp, input$column_check, input$dat.remove, input$x_dist, plot_type=1))
             suppressWarnings(ggplot2::ggplot() + ggplot2::geom_point(data=dat_sub, ggplot2::aes_string(x='val', y=input$column_check, color = 'Points', na.rm=TRUE)) +
                                ggplot2::scale_color_manual(breaks=c('Kept','Removed'),values=c('blue','red'))+
                                ggplot2::coord_cartesian(xlim = ranges1$x, ylim = ranges1$y, expand = FALSE)+
@@ -1880,7 +1880,7 @@
       )
       
       output$plot2 <- renderPlot(
-        if (is.null(values$dataset)) {
+        if(is.null(values$dataset)) {
           return(NULL)
         } else if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
@@ -1902,7 +1902,7 @@
       )
       
       output$plot3 <- renderPlot(
-        if (is.null(values$dataset)) {
+        if(is.null(values$dataset)) {
           return(NULL)
         } else if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
@@ -1928,7 +1928,7 @@
         temp$val <- 1:nrow(temp)
         hover <- input$plot1_hover
         point <- nearPoints(temp, input$plot1_hover,  threshold = 5, maxpoints = 1, addDist = FALSE)
-        if (nrow(point) == 0) return(NULL)
+        if(nrow(point) == 0) return(NULL)
         
         # calculate point position INSIDE the image as percent of total dimensions
         # from left (horizontal) and from top (vertical)
@@ -1955,7 +1955,7 @@
       # If so, zoom to the brush bounds; if not, reset the zoom.
       observeEvent(input$plot1_dblclick, {
         brush <- input$plot1_brush
-        if (!is.null(brush)) {
+        if(!is.null(brush)) {
           ranges1$x <- c(brush$xmin, brush$xmax)
           ranges1$y <- c(brush$ymin, brush$ymax)
           
@@ -1967,7 +1967,7 @@
       
       observeEvent(input$plot2_dblclick, {
         brush <- input$plot2_brush
-        if (!is.null(brush)) {
+        if(!is.null(brush)) {
           ranges2$x <- c(brush$xmin, brush$xmax)
           ranges2$y <- NULL
           
@@ -1979,7 +1979,7 @@
       
       observeEvent(input$plot3_dblclick, {
         brush <- input$plot3_brush
-        if (!is.null(brush)) {
+        if(!is.null(brush)) {
           ranges3$x <- c(brush$xmin, brush$xmax)
           ranges3$y <- c(brush$ymin, brush$ymax)
           
@@ -2271,8 +2271,8 @@
       # Data needed
       ## Alternative choices
       Alt <- reactive({
-        if (!exists("Alt")) {
-        if (!exists('AltMatrixName')) {
+        if(!exists("Alt")) {
+        if(!exists('AltMatrixName')) {
           if(DBI::dbExistsTable( DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0(input$projectname, 'altmatrix'))){
           unserialize(DBI::dbGetQuery( DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0("SELECT AlternativeMatrix FROM ", 
                                                                                               input$projectname, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
@@ -2350,7 +2350,7 @@
       # 'gridvariables'=input$gridVariablesInclude)
       # Save model and add new model shiny
       #observe({
-      #  if (input$addModel > 0) print('Save model, reset parameters')
+      #  if(input$addModel > 0) print('Save model, reset parameters')
       #  output$table <- renderDataTable(dat[1:3,1:3])
       #make_model_design()
       #})
@@ -2446,7 +2446,7 @@
       )
       # Save model and add new model shiny
       observe({
-        if (input$submit > 0) {
+        if(input$submit > 0) {
           print('call model design function, call discrete_subroutine file')
           times <- nrow(model_table())-1
           
@@ -2485,7 +2485,7 @@
       
       observeEvent(input$delete_btn, {
         t = this_table()
-        if (!is.null(input$mytable_rows_selected)) {
+        if(!is.null(input$mytable_rows_selected)) {
           t <- t[-as.numeric(input$mytable_rows_selected),]
         }
         this_table(t)
@@ -2508,7 +2508,7 @@
       shinyValue = function(id, len) { 
         unlist(lapply(seq_len(len), function(i) { 
           value = input[[paste0(id, i)]] 
-          if (is.null(value)) NA else value 
+          if(is.null(value)) NA else value 
         })) 
       } 
       
@@ -2894,16 +2894,16 @@
       ##----
       # stop shiny
       observe({
-        if (input$close > 0) stopApp()
+        if(input$close > 0) stopApp()
       })
       observe({
-        if (input$close1 > 0) stopApp()
+        if(input$close1 > 0) stopApp()
       })
       observe({
-        if (input$close2 > 0) stopApp()
+        if(input$close2 > 0) stopApp()
       })
       observe({
-        if (input$closeNew > 0) stopApp()
+        if(input$closeNew > 0) stopApp()
       })
       
       

@@ -50,5 +50,5 @@ summary_stats <- function(dat, project, x=NULL) {
   }
   
   save_table(sum_table, project, "summary_stats")
-  
+  return(sum_table)
 }

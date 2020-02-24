@@ -35,7 +35,7 @@
       # enable the <enter> key to press the [Run] button
       tags$script(HTML(
         '$(document).keyup(function(event) {
-        if (event.keyCode == 13) {
+        if(event.keyCode == 13) {
         $("#run").click();
         }
     });'

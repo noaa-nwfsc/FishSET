@@ -1,4 +1,4 @@
-map_kernel <- function(type, project, latlon, group = NULL, facet = FALSE, minmax = NULL) {
+map_kernel <- function(project, type, latlon, group = NULL, facet = FALSE, minmax = NULL) {
     #' Wrapper function to map kernel densities
     #'
     #' Wrapper function to map kernel densities using ggplot2
