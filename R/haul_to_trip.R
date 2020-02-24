@@ -98,9 +98,9 @@ haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, ...)
                     as.data.frame(
                       int[,c(which(as.data.frame(dataIndex[dataIndex[, 'variable_name'] %in% 
                                                  colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Time"))][-
-                                    which(grepl('dur', names(int[,c(which(as.data.frame(dataIndex[dataIndex[, 'variable_name'] %in% 
+                                    grep('dur', names(int[,c(which(as.data.frame(dataIndex[dataIndex[, 'variable_name'] %in% 
                                      colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Time"))]), 
-                                     ignore.case=T)==FALSE)]), rowID=int$rowID), list(int$rowID), match.fun(fun.numeric), na.rm = TRUE))[,-1])
+                                     ignore.case=T, invert=TRUE)]), rowID=int$rowID), list(int$rowID), match.fun(fun.numeric), na.rm = TRUE))[,-1])
       }
     #Other numeric  
     if(length(which(as.data.frame(

@@ -961,29 +961,29 @@
                            style = "margin-left:19px;", fileInput("gtmtfileGrid", "Choose file defining area/zone polygons", multiple = FALSE)) 
         )
       })    
-      gtmtGridFileData <- reactive({
-        if(is.null(input$gtmtfileGrid)){return()} 
-        type <- sub('.*\\.', '', input$gtmtfileGrid$name)
-        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-        g <- read_dat(input$gtmtfileGrid$datapath, type)
-        return(g)
-      })
+#      gtmtGridFileData <- reactive({
+#        if(is.null(input$gtmtfileGrid)){return()} 
+#        type <- sub('.*\\.', '', input$gtmtfileGrid$name)
+#        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
+#        g <- read_dat(input$gtmtfileGrid$datapath, type)
+#        return(g)
+#      })
       output$mtgt_out2 <- renderUI({
         tagList(
           conditionalPanel(condition="input.plot_table=='Plots'&input.plot_type=='Spatial'",
                            style = "margin-left:19px;", selectInput('mtgtcat',  "Variable defining zones or areas", 
-                                                                    choices= c('', names(as.data.frame(gtmtGridFileData()))), selected='')),
+                                                                    choices= c('', names(as.data.frame(spatdat$dataset))), selected='')),
           conditionalPanel(condition="input.plot_table=='Plots'&input.plot_type=='Spatial'",
                            style = "margin-left:19px;", selectizeInput('mtgtlonlat', 'Select vector containing latitude then longitude from spatial data frame', 
-                                                                    choices= c(NULL, names(as.data.frame(gtmtGridFileData()))), multiple=TRUE, options = list(maxItems = 2)))
+                                                                    choices= c(NULL, names(as.data.frame(spatdat$dataset))), multiple=TRUE, options = list(maxItems = 2)))
         )
       })
       gtmt_table <- reactive({
         if(input$mtgtcat==''){
           return( NULL)
         } else {
-          gt <- getis_ord_stats(values$dataset, input$projectname, input$varofint, gtmtGridFileData(), lon.dat=input$gtmt_lonlat[2], lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat, lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$getistable
-          mt <- moran_stats(values$dataset, input$projectname, input$varofint, gtmtGridFileData(), lon.dat=input$gtmt_lonlat[2], lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat, lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$morantable
+          gt <- getis_ord_stats(values$dataset, input$projectname, input$varofint, spatdat$dataset, lon.dat=input$gtmt_lonlat[2], lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat, lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$getistable
+          mt <- moran_stats(values$dataset, input$projectname, input$varofint, spatdat$dataset, lon.dat=input$gtmt_lonlat[2], lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat, lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$morantable
           print(gt)
           return(as.data.frame(merge(gt, mt)))
         }
@@ -1180,6 +1180,9 @@
       })
       output$dist_between_input <- renderUI({
         tagList(
+          if(names(spatdat$dataset)[1]=='var1'){
+            h4('Map file not loaded. Please load on Upload Data tab')
+          },
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'",
                            style = "margin-left:19px;", selectInput('start', 'Starting location',choices = c('Zonal centroid', 'Port', 'Lat/lon coordinates'))),
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'",
@@ -1190,10 +1193,10 @@
                            style = "margin-left:19px;", selectInput("filePort", "Choose file from FishSET SQL database containing port data", 
                                                                     choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE)),
           #Gridded dat
-          conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Zonal centroid'||
-                           input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Zonal centroid'",
-                           style = "margin-left:19px;", fileInput("fileGrid", "Choose file defining area/zone polygons", multiple = FALSE)),   
-          
+          #conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Zonal centroid'||
+           #                input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Zonal centroid'",
+          #                 style = "margin-left:19px;", fileInput("fileGrid", "Choose file defining area/zone polygons", multiple = FALSE)),   
+          #
           #port
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Port'",
                            style = "margin-left:19px;", selectInput('port_start', 'Variable containing port name at starting location', 
@@ -1220,12 +1223,12 @@
         tagList(
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Zonal centroid'||
                            input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Zonal centroid'" ,
-                           style = "margin-left:19px;", selectInput('cat', 'Individual areas/zones from the spatial data drame', choices=names(as.data.frame(griddata())))),
-          if(any(class(griddata())=='sf')==FALSE){
+                           style = "margin-left:19px;", selectInput('cat', 'Individual areas/zones from the spatial data drame', choices=names(as.data.frame(spatdat$dataset)))),
+          if(any(class(spatdat$dataset)=='sf')==FALSE){
             conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Zonal centroid'||
                              input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Zonal centroid'" , 
                              style = "margin-left:19px;", selectizeInput('long_grid', 'Select vector containing latitude then longitude from spatial data set',
-                                                                      choices=names(as.data.frame(griddata())), multiple=TRUE, options = list(maxItems = 2)))
+                                                                      choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE, options = list(maxItems = 2)))
           },
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Zonal centroid'||
                            input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Zonal centroid'" ,
@@ -1234,13 +1237,13 @@
                                                                      multiple=TRUE, options = list(maxItems = 2)))
       )
       })
-      griddata <- reactive({
-        if(is.null(input$fileGrid)){return()} 
-        type <- sub('.*\\.', '', input$fileGrid$name)
-        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-        g <- read_dat(input$fileGrid$datapath, type)
-        return(g)
-      })
+  #    griddata <- reactive({
+  #      if(is.null(input$fileGrid)){return()} 
+  #      type <- sub('.*\\.', '', input$fileGrid$name)
+  #      if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
+ #       g <- read_dat(input$fileGrid$datapath, type)
+ #       return(g)
+ #     })
       output$start_mid_input <- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&&input.dist=='create_mid_haul'",
                          style = "margin-left:19px;", selectizeInput('mid_start','Select Lat then Lat that define starting locations',multiple = TRUE,
@@ -1469,7 +1472,7 @@
             end <- 'centroid'
           }
           values$dataset[[input$varname]] <- create_dist_between_for_gui(values$dataset, start=start, end=end, input$units,  portTable=input$filePort, 
-                                                                         gridfile=griddata(),lon.dat=input$lon_dat[2], lat.dat=input$lon_dat[1], 
+                                                                         gridfile=spatdat$dataset,lon.dat=input$lon_dat[2], lat.dat=input$lon_dat[1], 
                                                                          input$cat, lon.grid=input$long_grid[2], lat.grid=input$long_grid[1]) 
         } else if(input$VarCreateTop=='Spatial functions' & input$dist=='create_mid_haul'){
           values$dataset <- create_mid_haul(values$dataset, input$mid_start, input$mid_end, input$varname)
@@ -2107,7 +2110,7 @@
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
                                selectizeInput('lon_dat_ac', '', choices=c(input$lonBase, names(values$dataset)[grep('lon', names(values$dataset), ignore.case=TRUE)]), 
                                               selected=c(input$lonBase))),
-                           selectInput('cat_altc', 'Individual areas/zones from the spatial data set', choices=names(as.data.frame(griddataExC()))),
+                           selectInput('cat_altc', 'Individual areas/zones from the spatial data set', choices=names(as.data.frame(spatdat$dataset))),
                            selectInput('weight_var_ac', 'If desired, variable for use in calculcating weighted centroids', choices=c('none'="", colnames(values$dataset))), #variable weighted centroids
                            checkboxInput('hull_polygon_ac', 'Use convex hull method to create polygon?', value=FALSE),
                            checkboxInput('closest_pt_ac', 'Use closest polygon to point?', value=FALSE) 
@@ -2116,13 +2119,13 @@
       
       output$cond2 <- renderUI({
         conditionalPanel(condition="input.choiceTab=='zone'",
-                         if(any(class(griddataExC())=='sf')==FALSE){
+                         if(any(class(spatdat$dataset)=='sf')==FALSE){
                            tagList(
                              h5(tags$b('Select vector containing latitude then longitude from spatial data set')),
                              div(style="display: inline-block;vertical-align:top; width: 200px;",
-                                 selectizeInput('lat_grid_altc', '', choices=names(as.data.frame(griddataExC())), multiple=TRUE)),
+                                 selectizeInput('lat_grid_altc', '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE)),
                              div(style="display: inline-block;vertical-align:top; width: 200px;",
-                                 selectizeInput('long_grid_altc',  '',choices=names(as.data.frame(griddataExC())), multiple=TRUE))
+                                 selectizeInput('long_grid_altc',  '',choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE))
                            )
                          }
         ) 
@@ -2173,13 +2176,13 @@
       
       output$zoneIDNumbers_plot <- renderPlot(zoneIDNumbers_dat())
       
-      griddataExC <- reactive({
-        if(is.null(input$fileGridExC)){return()} 
-        type <- sub('.*\\.', '', input$fileGridExC$name)
-        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-        g <- read_dat(input$fileGridExC$datapath, type)
-        return(g)
-      })
+#      griddataExC <- reactive({
+#        if(is.null(input$fileGridExC)){return()} 
+#        type <- sub('.*\\.', '', input$fileGridExC$name)
+#        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
+#        g <- read_dat(input$fileGridExC$datapath, type)
+#        return(g)
+#      })
       
       #-----
       
@@ -2598,7 +2601,7 @@
       # Run functions
       #-----
       observeEvent(input$saveALT, {
-        create_alternative_choice(dat=values$dataset, gridfile=griddataExC(), case=input$case_ac, min.haul=input$min_haul_ac,
+        create_alternative_choice(dat=values$dataset, gridfile=spatdat$dataset, case=input$case_ac, min.haul=input$min_haul_ac,
                                   alt_var=input$alt_var_ac, occasion=input$occassion_ac, dist.unit=input$dist_ac, lon.dat=input$lon_dat_ac,
                                   lat.dat=input$lat_dat_ac, lon.grid=input$long_grid_altc, lat.grid=input$lat_grid_altc, 
                                   cat=input$cat_altc, hull.polygon=input$hull_polygon_ac, remove.na=FALSE, 
