@@ -410,6 +410,12 @@ save_plot <- function(project, func_name, ...) {
   
 }
 
+periods_list <- list(month = month.name,
+                     month_abv = month.abb,
+                     weekday = c("Sunday", "Monday", "Tuesday", "Wednesday", 
+                                 "Thursday", "Friday", "Saturday"), 
+                     weekday_abv = c("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"))
+
 date_factorize <- function(dataset, date_col, date_code) {
   #' Convert date variable of type character to ordered factor
   #' @param dataset data frame containg date variable.
