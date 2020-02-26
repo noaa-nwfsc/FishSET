@@ -31,7 +31,7 @@
 
 
 species_catch <- function(dat, project, s, t, period = "year", convert_to_tons = TRUE, 
-                          value = c("count", "percent"), output = c("table", "plot")) {
+                          value = c("count", "percent"), output = c("table", "plot")){
   
   #Call in datasets
   out <- data_pull(dat)
@@ -57,7 +57,8 @@ species_catch <- function(dat, project, s, t, period = "year", convert_to_tons =
     
     count <- stats::aggregate(dataset[[s]], 
                               by = list(format(date_parser(dataset[[t]]), p)), 
-                              FUN = sum)
+                              FUN = sum,
+                              drop = FALSE)
     
     names(count) <- c("date", "catch")
     
@@ -77,28 +78,81 @@ species_catch <- function(dat, project, s, t, period = "year", convert_to_tons =
       
       count <- date_factorize(count, "date", p)
       
-    }
-    
-    if (output == "table") {
+      if (p == "%b") {
+        
+        ind <- periods_list$month_abv[which(!(periods_list$month_abv %in% unique(count$date)))]
+        
+      } else if (p == "%B") {
+        
+        ind <- periods_list$month[which(!(periods_list$month %in% unique(count$date)))]
+        
+      } else if (p == "%A") {
+        
+        ind <- periods_list$weekday[which(!(periods_list$weekday %in% unique(count$date)))]
+        
+      } else {
+        
+        ind <- periods_list$weekday_abv[which(!(periods_list$weekday_abv %in% unique(count$date)))]
+        
+      }
       
-      count
+      missing_periods <- data.frame(date = ind, catch = rep(0, length(ind)))
+      
+      count <- bind_rows(count, missing_periods)
+      
+      count <- date_factorize(count, "date", p)
       
     } else {
       
-      ggplot2::ggplot(data = count, ggplot2::aes(x = date, y = catch)) + 
-        ggplot2::geom_col() + 
-        ggplot2::labs(y = if (value == "count" & convert_to_tons == TRUE) "catch (tons)" else "catch") +
-        ggplot2::scale_y_continuous(labels = if (value == "percent") scales::percent else waiver()) +
-        fishset_theme
+      count$date <- as.integer(count$date)
+      
+      if (p == "%U") {
+        
+        ind <- which(!(1:52 %in% unique(count$date))) 
+        
+      } else if (p == "%j") {
+        
+        ind <- which(!(1:365 %in% unique(count$date)))
+        
+      } else if (p == "%d") {
+        
+        ind <- which(!(1:31 %in% unique(count$date)))
+        
+      } else if (p =="%m") {
+        
+        ind <- which(!(1:12 %in% unique(count$date)))
+        
+      } else {
+        
+        ind <- which(!(0:6 %in% unique(count$date)))
+        
+      }
+      
+      missing_periods <- data.frame(date = ind, catch = rep(0, length(ind)))
+      
+      count <- bind_rows(count, missing_periods)
+      
+      count <- count[order(count$date),]
       
     }
+    
+    plot <- ggplot2::ggplot(data = count, ggplot2::aes(x = date, y = catch)) + 
+      ggplot2::geom_col() + 
+      ggplot2::labs(y = if (value == "count" & convert_to_tons == TRUE) "catch (tons)" else "catch") +
+      ggplot2::scale_y_continuous(labels = if (value == "percent") scales::percent else waiver()) +
+      if (p %in% c("%a", "%A", "%b", "%B")) { ggplot2::scale_x_discrete(breaks = levels(count$date)) }
+    else {
+      ggplot2::scale_x_continuous(breaks = if (length(count$date) <= 12){seq(1,length(count$date), by = 1)} 
+                                  else { seq(1, length(count$date), by = round(length(count$date) * 0.08)) }) } +  
+      fishset_theme
     
   } else {
     
     count <- lapply(s, function(x) {
       stats::aggregate(dataset[[x]], 
                        by = list(format(date_parser(dataset[[t]]), p)), 
-                       FUN = sum)
+                       FUN = sum,
+                       drop = FALSE)
     })
     
     names(count) <- s
@@ -132,9 +186,9 @@ species_catch <- function(dat, project, s, t, period = "year", convert_to_tons =
       
     } else {
       
-      ggplot2::ggplot(data = count, ggplot2::aes(x = date, y = catch)) + 
+      plot <- ggplot2::ggplot(data = count, ggplot2::aes(x = date, y = catch)) + 
         ggplot2::geom_col() + 
-        ggplot2::facet_grid(species ~ .) +
+        ggplot2::facet_grid(species ~ ., scales = "free_y") +
         ggplot2::labs(y = if (value == "count" & convert_to_tons == TRUE) "catch (tons)" else "catch") +
         ggplot2::scale_y_continuous(labels = if (value == "percent") scales::percent else waiver()) +
         fishset_theme
