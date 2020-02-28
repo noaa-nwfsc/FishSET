@@ -11,7 +11,8 @@
 #'   "month", "month_abv", "month_num", "weeks" (weeks in the year), 
 #'   "weekday", "weekday_abv", "weekday_num", "day" (day of the month), 
 #'   and "day_of_year".
-#' @param group factor variable to group count by.
+#' @param group Up to two variables to group by. For plots, 
+#'   the first variable is passed to "fill" and second is passed to "facet_grid".
 #' @param position Positioning of bar plot. Options include "stack", "dodge", 
 #'   and "fill". 
 #' @param output table or plot.
@@ -51,76 +52,166 @@ vessel_count <- function(dat, project, v, t, period = "month", group = NULL,
                 "day" = "%d", "day_of_year" = "%j")
   }
   
+  if (!is.null(group)) {
+    
+    group1 <- group[1]
+    
+    if (length(group) == 2) {
+      
+      group2 <- group[2] 
+      
+    } else if (length(group) > 2) {
+      
+      warning("Too many grouping variables included, selecting first two.")
+      
+    }
+    
+  }
+  
+  v_freq <- c("vessel_freq")
+  
   if (is.null(group)) {
     
     count <- stats::aggregate(dataset[[v]], 
                               by = list(format(date_parser(dataset[[t]]), p)), 
-                              FUN = sum,
-                              ...)
+                              FUN = sum)
     
-    v_freq <- c("vessel_freq")
+    colnames(count) <- c("date", v_freq)
     
-    colnames(count) <- c(t, v_freq)
+  } else if (!is.null(group)) {
     
-  } else {
+    if (length(group) == 1) {
+      
+      count <- stats::aggregate(dataset[[v]], 
+                                by = list(format(date_parser(dataset[[t]]), p), 
+                                          dataset[[group1]]), 
+                                FUN = sum) 
+      
+      colnames(count) <- c("date", "group_1", v_freq)
+      
+    } else {
+      
+      count <- stats::aggregate(dataset[[v]], 
+                                by = list(format(date_parser(dataset[[t]]), p), 
+                                          dataset[[group1]],
+                                          dataset[[group2]]), 
+                                FUN = sum) 
+      
+      colnames(count) <- c("date", "group_1", "group_2", v_freq)  
+      
+    }
     
-    count <- stats::aggregate(dataset[[v]], 
-                              by = list(format(date_parser(dataset[[t]]), p), dataset[[group]]), 
-                              FUN = sum,
-                              ...) 
-    v_freq <- c("vessel_freq")
-    
-    colnames(count) <- c(t, group, v_freq)
   }
   
   if (p %in% c("%a", "%A", "%b", "%B")) { 
     
-    count <- date_factorize(count, t, p)
-    
-        plot <- ggplot2::ggplot(data = count, 
-                                ggplot2::aes_string(x = t, y = v_freq, fill = if (!is.null(group)) group else NULL)) + 
-                ggplot2::geom_col(position = position) +
-                ggplot2::labs(x = paste(t, paste0("(", period, ")")),
-                              y = "active vessels") + 
-                fishset_theme + if (!is.null(group)) { ggplot2::scale_fill_discrete(name = group) }
-                else { geom_blank() }
+    count <- date_factorize(count, "date", p)
     
   } else {
     
-    count[[t]] <- as.numeric(count[[t]])
-        
-        plot <- ggplot2::ggplot(data = count, 
-                                ggplot2::aes_string(x = t, y = v_freq, fill = if (!is.null(group)) group else NULL)) + 
-                ggplot2::geom_col(position = position) + 
-                ggplot2::labs(x = paste(t, paste0("(", period, ")")), 
-                              y = "active vessels") +
-                ggplot2::scale_x_continuous(breaks = seq(from = min(count[[t]]), 
-                                                         to = max(count[[t]]), 
-                                                         by = round(nrow(count) * .2))) +
-                fishset_theme + if (!is.null(group)) { ggplot2::scale_fill_discrete(name = group) }
-                else { geom_blank() }
+    count$date <- as.integer(count$date)
     
   }
-
+  
+  ind <- periods_list[[p]][which(!(periods_list[[p]] %in% unique(count$date)))]
+  
+  if (is.null(group)) {
+    
+    missing_periods <- data.frame(date = ind)
+    
+  } else if (!is.null(group) & length(group) == 1) {
+    
+    missing_periods <- expand.grid(date = ind, 
+                                   group_1 = unique(count$group_1))
+    
+    
+  } else if (!is.null(group) & length(group) > 1) {
+    
+    missing_periods <- expand.grid(date = ind, 
+                                   group_1 = unique(count$group_1), 
+                                   group_2 = unique(count$group_2))
+    
+  }
+  
+  missing_periods$vessel_freq <- 0
+  
+  count <- rbind(count, missing_periods)
+  
+  count <- count[order(count$date), ]
+  
+  
+  plot <- ggplot2::ggplot(data = count, 
+                          ggplot2::aes(x = date, y = vessel_freq, fill = if (!is.null(group)) group_1 else NULL)) + 
+    ggplot2::geom_col(position = if (position == "dodge") position_dodge2(preserve = "single") else position) +
+    ggplot2::labs(x = paste(t, paste0("(", period, ")")),
+                  y = "active vessels") + 
+    fishset_theme 
+  
+  if (!is.null(group)) {
+    
+    plot <- plot + ggplot2::guides(fill = ggplot2::guide_legend(title = group[1], 
+                                                                title.theme = ggplot2::element_text(
+                                                                  size = 10),
+                                                                label.theme = ggplot2::element_text(
+                                                                  size = 8))) +
+      ggplot2::theme(legend.position = "bottom")
+    
+  }
+  
+  if (!is.null(group) & length(group) == 2) {
+    
+    plot <- plot + ggplot2::facet_grid(group_2 ~ ., scales = "free_y")
+    
+  } 
+  
+  if (p %in% c("%a", "%A", "%b", "%B")) {
+    
+    plot <- plot + ggplot2::scale_x_discrete(breaks = levels(count$date))
+    
+  } else {
+    
+    plot <- plot + ggplot2::scale_x_continuous(breaks = if (length(unique(count$date)) <= 12){seq(1,length(unique(count$date)), by = 1)
+    } else {seq(1, length(unique(count$date)), by = round(length(unique(count$date)) * 0.08))})
+    
+  }
+  
   # Log the function 
   
-    vessel_count_function <- list()
-    vessel_count_function$functionID <- "vessel_count"
-    vessel_count_function$args <- c(dat, project, v, t, period, group, position, output)
-    vessel_count_function$kwargs <- ""
-    log_call(vessel_count_function)
+  vessel_count_function <- list()
+  vessel_count_function$functionID <- "vessel_count"
+  vessel_count_function$args <- c(dat, project, v, t, period, group, position, output)
+  vessel_count_function$kwargs <- ""
+  log_call(vessel_count_function)
   
   # Output folder
-    save_table(count, project, "vessel_count")
+  save_table(count, project, "vessel_count")
+  
+  save_plot(project, "vessel_count", plot)
+  
+  if (output == "table") {
     
-    save_plot(project, "vessel_count", plot)
-    
-    if (output == "table") {
+    if (is.null(group)) {
+      
+      count
+      
+    } else if (!is.null(group) & length(group) == 1) {
+      
+      names(count)[names(count) == "group_1"] <- group1
       
       count
       
     } else {
       
-      plot
+      names(count)[names(count) == "group_1"] <- group1
+      
+      names(count)[names(count) == "group_2"] <- group2
+      
+      count
+      
     }
+    
+  } else {
+    
+    plot
+  }
 }
