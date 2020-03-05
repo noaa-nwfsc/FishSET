@@ -48,7 +48,7 @@ world <- ggplot2::map_data("world")
 out <- data_pull(dat)
 dat <- out$dat
 dataset <- out$dataset
-#browser()
+
 datatomap <- as.data.frame(dataset[,c(latlon)])
 colnames(datatomap) <- c("lat", "lon")
 if(anyNA(datatomap)){
@@ -56,6 +56,20 @@ if(anyNA(datatomap)){
 }
 datatomap$groupv <- group
 
+
+x <- 0
+if (any(abs(datatomap$lon) > 180)) {
+  warning("Longitude is not valid (outside -180:180). Function not run.")
+  #stop("Longitude is not valid (outside -180:180.")
+  x <- 1
+}
+if (any(abs(datatomap$lat) > 90)) {
+  warning("Latitude is not valid (outside -90:90. Function not run.") 
+  x <-1    
+  # stop("Latitude is not valid (outside -90:90.")
+} 
+
+if(x==0){
 if (is.null(minmax) == TRUE) {
 
 if (min(datatomap$lat) < 0 & max(datatomap$lat) < 0) {
@@ -266,5 +280,5 @@ return(mapout)
 }
 
 save_plot(project, "map_kernel", mapout)
-
+}
 }

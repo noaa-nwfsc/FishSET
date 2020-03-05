@@ -39,14 +39,29 @@ create_trip_distance <- function(dat, PortTable, trip_id, starting_port, startin
   PortTable <- out$dat
   port.table <- out$dataset
   
+  x <- 0
+  
   if(!any(unique(trimws(dataset[[ending_port]])) %in% unique(port.table[,'Port_Name']))){
-    stop('Ending_port from the data set and port_name from the port table do not match.')
+    warning('Ending_port from the data set and port_name from the port table do not match. Function not run.')
+    x <- 1
   }
 
   if(!any(unique(trimws(dataset[[starting_port]])) %in% unique(port.table[,'Port_Name'])) == TRUE){
-    stop('starting_port from the data set and port_name from the port table do not match')
+    warning('starting_port from the data set and port_name from the port table do not match. Funciton not run.')
+    x <- 1
   }
 
+  if (any(abs(dataset[[starting_haul]][1]) > 180)|any(abs(dataset[[end_haul]][1]) > 180)) {
+    warning("Longitude is not valid (outside -180:180). Function not run.")
+    x <- 1
+  }
+  if (any(abs(dataset[[starting_haul]][2]) > 90)|any(abs(dataset[[ending_haul]][2]) > 90)) {
+    warning("Latitude is not valid (outside -90:90. Function not run.") 
+    x <- 1    
+  } 
+  
+  if(x==0){
+    
   tripsFound <- unique(dataset[[trip_id]])
   C <- match(dataset[[trip_id]], tripsFound)  #C = row ID of those unique items
   
@@ -131,4 +146,5 @@ create_trip_distance <- function(dat, PortTable, trip_id, starting_port, startin
   log_call(create_TD_function)
  
   return(haulLevelTripDist)
+  }
 }

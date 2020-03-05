@@ -35,7 +35,9 @@ create_dist_between_for_gui <- function(dat, start, end, units, portTable=NULL, 
     dat <- out$dat
     dataset <- out$dataset
  
-      if(start[1]=='centroid'|end[1]=='centroid'){
+       x <- 0      
+       
+       if(start[1]=='centroid'|end[1]=='centroid'){
         dat2 <- assignment_column(dat=dataset, gridfile=gridfile, hull.polygon=FALSE, lon.grid=lon.grid, lat.grid=lat.grid, 
                                    lon.dat = lon.dat, lat.dat=lat.dat, cat=cat, closest.pt = TRUE)
         int <- find_centroid(dat2, gridfile=gridfile, lon.grid==lon.grid, lat.grid==lat.grid, 
@@ -67,6 +69,19 @@ create_dist_between_for_gui <- function(dat, start, end, units, portTable=NULL, 
   if(grepl('lat|lon', start[1], ignore.case=TRUE)){
         start.long <- dataset[[start[2]]]
         start.lat <- dataset[[start[1]]]
+ 
+        if (any(abs(start.long) > 180)) {
+          warning("Longitude is not valid (outside -180:180). Function not run")
+          #stop("Longitude is not valid (outside -180:180.")
+          x <- 1
+        }
+        if (any(abs(start.lat) > 90)) {
+          warning("Latitude is not valid (outside -90:90. Function not run") 
+          x <-1    
+          # stop("Latitude is not valid (outside -90:90.")
+        } 
+        
+        
     }
     
     
@@ -83,8 +98,19 @@ create_dist_between_for_gui <- function(dat, start, end, units, portTable=NULL, 
     } else {
       end.lat <- dataset[[end[1]]]
       end.long <- dataset[[end[2]]]
+      if (any(abs(end.long) > 180)) {
+        warning("Longitude is not valid (outside -180:180). Function not run")
+        #stop("Longitude is not valid (outside -180:180.")
+        x <- 1
+      }
+      if (any(abs(end.lat) > 90)) {
+        warning("Latitude is not valid (outside -90:90. Function not run") 
+        x <-1    
+        # stop("Latitude is not valid (outside -90:90.")
+      } 
     }
     
+    if(x==1){
     # Get distance between points
     if(units=='midpoint'){
       distBetween <- geosphere::midPoint(cbind(start.long,start.lat), cbind(end.long,end.lat))
@@ -109,6 +135,7 @@ create_dist_between_for_gui <- function(dat, start, end, units, portTable=NULL, 
     log_call(create_dist_between_function)
     
     return(distBetween)
+    }
   }
 }
 

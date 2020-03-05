@@ -313,14 +313,24 @@ create_mid_haul <- function(dat, start=c('lon', 'lat'), end=c('lon','lat'), name
    warning('Starting and end locations must both be specified. Function not run.')
  }
 
-
-  if(dim(dataset[,start])[1] != dim(dataset[,end])[1]){
+  if(dim(dataset[[start]])[1] != dim(dataset[[end]])[1]){
     tmp <- 1
     warning('Starting and ending locations are of different lengths. Function not run.')
   }
 
+  if (any(abs(dataset[[start]][1]) > 180)|any(abs(dataset[[end]][1]) > 180)) {
+    warning("Longitude is not valid (outside -180:180). Function not run")
+    #stop("Longitude is not valid (outside -180:180.")
+    tmp <- 1
+  }
+  if (any(abs(dataset[[start]][2]) > 90)|any(abs(dataset[[end]][2]) > 90)) {
+    warning("Latitude is not valid (outside -90:90. Function not run") 
+    tmp <-1    
+    # stop("Latitude is not valid (outside -90:90.")
+  } 
+  
   if(tmp==0){
-  distBetween <- geosphere::midPoint(dataset[,start], dataset[,end])
+  distBetween <- geosphere::midPoint(dataset[[start]], dataset[[end]])
   colnames(distBetween)= c(paste0(name,'lon'), paste0(name,'lat'))
   out <- cbind(dataset, distBetween)
   
@@ -357,6 +367,19 @@ create_trip_centroid <- function(dat, lon, lat, weight.var=NULL, ...) {
   dat <- out$dat
   dataset <- out$dataset
   
+  x <- 0
+  if (any(abs(dataset[[lon]]) > 180)) {
+    warning("Longitude is not valid (outside -180:180). Function not run")
+    #stop("Longitude is not valid (outside -180:180.")
+    x <- 1
+  }
+  if (any(abs(dataset[[lat]]) > 90)) {
+    warning("Latitude is not valid (outside -90:90. Function not run") 
+    x <-1    
+    # stop("Latitude is not valid (outside -90:90.")
+  } 
+  
+  if(x==1){
   if(grepl('input', as.character(match.call(expand.dots = FALSE)$...)[1])==TRUE){
     argList <- eval(...) } else {
       argList <- (as.character(match.call(expand.dots = FALSE)$...))
@@ -393,6 +416,7 @@ create_trip_centroid <- function(dat, lon, lat, weight.var=NULL, ...) {
   log_call(create_trip_centroid_function)
 
   return(int)
+  }
 }
 
 #' Histogram of latitude and longitude by grouping variable
@@ -535,7 +559,6 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
   dat <- out$dat
   dataset <- out$dataset
   
-  browser()
   if(any(grepl('port', c(start[1],end[1]), ignore.case=TRUE))){
     #  in port table
     fun <- function(){
@@ -551,7 +574,9 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
       }
   }
   DBI::dbDisconnect(fishset_db)
-
+  
+    x <- 0
+    
   if(any(grepl('centroid', c(start[1],end[1]), ignore.case=TRUE))){
     fun <- function(){
      gridfile <- readline("What is the name of the spatial data set? Can be shape file, data frame, or list?")
@@ -586,6 +611,16 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
   } else {
     start.long <- dataset[[start[1]]]
     start.lat <- dataset[[start[2]]]
+
+    if (any(abs(start.long) > 180)) {
+      warning("Longitude is not valid (outside -180:180). Function not run")
+      x <- 1
+    }
+    if (any(abs(start.lat) > 90)) {
+      warning("Latitude is not valid (outside -90:90. Function not run") 
+      x <-1    
+    } 
+    
   }
   
    
@@ -602,8 +637,18 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
   } else {
     end.lat <- dataset[[end[2]]]
     end.long <- dataset[[end[1]]]
+    if (any(abs(end.long) > 180)) {
+      warning("Longitude is not valid (outside -180:180). Function not run")
+      x <- 1
+    }
+    if (any(abs(end.lat) > 90)) {
+      warning("Latitude is not valid (outside -90:90. Function not run") 
+      x <-1    
+    } 
+    
   }
 
+    if(x==1){
   # Get distance between points
   if(units=='midpoint'){
      distBetween <- geosphere::midPoint(cbind(start.long,start.lat), cbind(end.long,end.lat))
@@ -626,6 +671,7 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
   
   log_call(create_dist_between_function)
   return(distBetween)
+    }
   }
   }
 

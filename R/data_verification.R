@@ -138,7 +138,7 @@ unique_filter <- function(dat, remove=FALSE) {
 
 
 #EMPTY Vars
-empty_vars_filter <- function(x, remove=FALSE) {
+empty_vars_filter <- function(dat, remove=FALSE) {
   #' Check variables are not empty
   #'
   #' Function to return a modified dataframe where empty variables have been removed.

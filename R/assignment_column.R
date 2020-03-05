@@ -33,6 +33,19 @@ assignment_column <- function(dat, gridfile, lon.dat, lat.dat, cat, closest.pt =
   dataset[[lat.dat]] <- as.numeric(as.vector(dataset[[lat.dat]]))
   dataset[[lon.dat]] <- as.numeric(as.vector(dataset[[lon.dat]]))
   
+  x <- 0
+  if (any(abs(dataset[[lon.dat]]) > 180)) {
+    warning("Longitude is not valid (outside -180:180). Function not run")
+    #stop("Longitude is not valid (outside -180:180.")
+    x <- 1
+  }
+  if (any(abs(dataset[[lat.dat]]) > 90)) {
+    warning("Latitude is not valid (outside -90:90. Function not run") 
+    x <-1    
+    # stop("Latitude is not valid (outside -90:90.")
+  } 
+  
+  if(x==0){
   #For json and shape files
   if(any(class(gridfile)=='sf')) {
     #map2 <- sf::st_read('Z:/OLDFishSET/NMFS_RA.json') 
@@ -112,5 +125,6 @@ assignment_column <- function(dat, gridfile, lon.dat, lat.dat, cat, closest.pt =
 
   pts <- as.data.frame(pts)
   return(pts)
+  }
   }
 
