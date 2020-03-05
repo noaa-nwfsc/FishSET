@@ -42,7 +42,6 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
                                       cat, hull.polygon = c(TRUE, FALSE), closest.pt = FALSE, project, 
                                       griddedDat=NULL, weight.var = NULL) {
   
-  
   stopanaly <- 0
   
   #Call in datasets

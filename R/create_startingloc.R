@@ -37,8 +37,7 @@ create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, st
   port.table <- out$dataset
   
   
-  DBI::dbDisconnect(fishset_db)
-  
+#  DBI::dbDisconnect(fishset_db)
   port <- assignment_column(dat=port.table, gridfile = gridfile, hull.polygon = FALSE, 
                             lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = 'Port_Long', 
                             lat.dat = 'Port_Lat', cat = cat, closest.pt = TRUE)

@@ -84,7 +84,7 @@ fishset_compare <- function(x, y, compare=c(TRUE,FALSE)){
 }
 
 
-load_maindata <- function(dat, over_write=TRUE, project=NULL, compare=FALSE, y=NULL){
+load_maindata <- function(dat, over_write=TRUE, project, compare=FALSE, y=NULL){
   #' Load data into SQL database
   #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
   #' @param over_write TRUE/FALSE Save over data table previously saved in fishset_db database?
@@ -99,19 +99,19 @@ load_maindata <- function(dat, over_write=TRUE, project=NULL, compare=FALSE, y=N
   #' 
   #' @examples 
   #' \dontrun{  
-  #' load_maindata(dataset='MainDataTable', over_write=TRUE, project='', 
+  #' load_maindata(dataset='MainDataTable', over_write=TRUE, project='pollock', 
   #'               compare=TRUE, y='MainDataTable01012011') 
   #' }
 
    dataset <- dat 
      #Call in datasets
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-  if(compare==TRUE){
 
-  fishset_compare(dataset,y,compare)
+  if(compare==TRUE){
+    fishset_compare(dataset,y,compare)
   }
   ##-----------MainDataTable--------------------##
-  data_verification_call(dataset)
+  data_verification_call(dataset, project)
   # Check to see if lat/long or fish area is in dataset
   indx <- grepl("lat|lon|area", colnames(dataset), ignore.case = TRUE)
   if (length(dataset[indx]) > 0) {
@@ -294,7 +294,7 @@ load_port <- function(dat, port_name, over_write=TRUE, project=NULL, compare=FAL
   colnames(x)[grep('LON', colnames(x), ignore.case=TRUE)] <- "Port_Long"
   colnames(x)[grep('LAT', colnames(x), ignore.case=TRUE)] <- "Port_Lat"  
   
-  data_verification_call(x)
+  data_verification_call(x, project)
   
   if(compare==TRUE){
   fishset_compare(x,y,compare)
@@ -342,11 +342,14 @@ load_aux <- function(dat, x, over_write=TRUE, project=NULL){
   #' }
   
   #Call in datasets
+    val <- 0
+    
   suppressWarnings( fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
   if(is.character(dat)==TRUE){
     if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
       print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+      warning(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+      val <- 1
     } else {
       old <- table_view(dat)
     }
@@ -354,13 +357,14 @@ load_aux <- function(dat, x, over_write=TRUE, project=NULL){
     old <- dat  
   }
   DBI::dbDisconnect(fishset_db)
-  
 
-  if(any(colnames(x)==colnames(old))==FALSE) {
-     stop('No shared columns. Column names do not match between two data sets.')
+
+  if(any(colnams(x)==colnames(old))==FALSE) {
+     warning('No shared columns. Column names do not match between two data sets.')
+    val <- 1
   }
-  
-  data_verification_call(x)
+  if(val==0){
+  data_verification_call(x, project)
   
   fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
   if(table_exists(paste0(project, x))==FALSE | over_write==TRUE){
@@ -370,15 +374,16 @@ load_aux <- function(dat, x, over_write=TRUE, project=NULL){
   } else {
     warning(paste('Table not saved.', paste0(project, x), 'exists in database, and overwrite is FALSE.')) 
   }
+  
   DBI::dbDisconnect(fishset_db)
 
-   
  load_aux_function <- list()
   load_aux_function$functionID <- 'load_aux'
   load_aux_function$args <- c(deparse(substitute(dat)), deparse(substitute(x)), over_write, project)
   load_aux_function$kwargs <- list()
   load_aux_function$output <- c('')
   log_call(load_aux_function)
+  }
 }
 
 load_grid <- function(dat, x, over_write=TRUE, project=NULL){
@@ -394,12 +399,13 @@ load_grid <- function(dat, x, over_write=TRUE, project=NULL){
   #' \dontrun{  
   #' load_grid(dataset='pcodMainDataTable', x=SeaSurfaceTemp, over_write=TRUE, project='pcod') 
   #' }
-  
+  val <- 0
   fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
   if(is.character(dat)==TRUE){
     if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
       print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+      warning(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+      val <- 1
     } else {
       old <- table_view(dat)
     }
@@ -409,10 +415,12 @@ load_grid <- function(dat, x, over_write=TRUE, project=NULL){
   DBI::dbDisconnect(fishset_db)
   
   if(any(colnames(x)==colnames(old))==FALSE) {
-    stop('No shared columns. Column names do not match between two data sets.')
+    warning('No shared columns. Column names do not match between two data sets. Gridded data set not saved.')
+    val <- 1
   }
-  
-  data_verification_call(x)
+   
+  if(val == 0){
+  data_verification_call(x, project)
   
   fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
   if(table_exists(paste0(project, x))==FALSE | over_write==TRUE){
@@ -429,6 +437,7 @@ load_grid <- function(dat, x, over_write=TRUE, project=NULL){
   load_gridded_function$kwargs <- list()
   load_gridded_function$output <- c()
   log_call(load_gridded_function)
+  }
 }
 
 dataindex_update <- function(dat, dataindex){

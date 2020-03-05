@@ -84,6 +84,6 @@ data_verification_call <- function(dat, project) {
     warning('Data cannot be saved, at least one error exists')
   }
   
-  save_table(dataset, project, "data_verification_call")
+#  save_table(dataset, project, "data_verification_call")
   
 }

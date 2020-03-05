@@ -12,7 +12,7 @@ tables_database <- function() {
 #' tables_database() 
 #' }
   
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
   return(DBI::dbListTables(fishset_db))
   DBI::dbDisconnect(fishset_db)
   }
@@ -45,10 +45,14 @@ table_view <- function(table) {
   #' head(table_view('MainDataTable')) 
   #' }
   
+  if(table_exists(table)==FALSE){
+    return('Table not found. Check spelling.')
+  } else {
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
   return(DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM", paste0("'", noquote(table), "'")))) 
   DBI::dbDisconnect(fishset_db)
   }
+}
 
 table_remove <- function(table) { 
 #' Remove a table from the fishset_db database
@@ -92,11 +96,15 @@ model_out_view <- function(table){
   #' \dontrun{
   #' model_out_view('pcodmodelout20190604')
   #' }
+  #
+  if(table_exists(table)==FALSE){
+    return('Table not found. Check spelling.')
+  } else {
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(),locdatabase()))
   x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", table, " LIMIT 1"))$data[[1]])
   return(x)
   DBI::dbDisconnect(fishset_db)
-  
+  }
 }
 
 globalcheck_view <- function(table){
@@ -109,8 +117,12 @@ globalcheck_view <- function(table){
   #' globalcheck_view('pcodldglobalcheck20190604')
   #' }
  
+  if(table_exists(table)==FALSE){
+    return('Table not found. Check spelling.')
+  } else {
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
   x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", table , " LIMIT 1"))$data[[1]])
   return(x)
   DBI::dbDisconnect(fishset_db)
+  }
 }

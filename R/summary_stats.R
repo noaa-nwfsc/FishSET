@@ -15,7 +15,7 @@
 #' }
 
 summary_stats <- function(dat, project, x=NULL) {
-  
+
   
   #Call in datasets
   out <- data_pull(dat)

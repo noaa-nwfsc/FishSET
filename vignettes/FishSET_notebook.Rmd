@@ -87,7 +87,7 @@ Functions can call data tables from the fishset_db database or from the global e
 
 ```{r echo=TRUE}
 #Check for common data quality issues
-FishSET:::data_check('pcodMainDataTable', 'OFFICIAL_TOTAL_CATCH', 'pcodMainDataTableInfo')
+FishSET:::data_check('pcodMainDataTable','pcod','OFFICIAL_TOTAL_CATCH', 'pcodMainDataTableInfo')
 ```
 
 The data parser functions (*load_maindata*, *load_port*, *load_aux*, *load_gridd*) call the *data_verification* function. This function checks that each observation is a unique occurrence, that variable names are unique, and that no empty variables exist. The data will not be saved to the fishset_db database if any of these checks fail. The data should also be checked for presence of NAs, NaNs, outliers, and the distribution of location points. The *data_check* function runs these tests. The output states that NAs are present in the data. We can remove those using *na_filter*.
@@ -149,7 +149,7 @@ pcodMainDataTable <- FishSET:::haul_to_trip(pcodMainDataTable, 'pcodMainDataTabl
 If variables have been created or modified, the data set should be checked one more time before moving on to the modeling functions. This ensures that the data is compatible with the modeling functions. In addition, the modified data set will be saved to the fishset_db database.
 
 ```{r echo=TRUE} 
-FishSET:::heck_model_data(pcodMainDataTable, 'pcodMainDataTableInfo', uniqueID='rowID', save.file = TRUE)
+check_model_data(pcodMainDataTable, 'pcodMainDataTableInfo', uniqueID='rowID', save.file = TRUE)
 ```
 
 The output from the data check function indicates that NAs are present in the data. We need to remove these and then check the data again.

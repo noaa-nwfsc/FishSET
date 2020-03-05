@@ -82,3 +82,112 @@ data_verification <- function(dat) {
 
 }
 
+
+###Check that all observations are unique
+unique_filter <- function(dat, remove=FALSE) { 
+  #' Check all observations are unique
+  #'
+  #'  Function to return a modified dataframe where non-unique rows have been removed.
+  #'
+  #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @param remove TRUE/FALSE Remove non-unique rows? Defaults to FALSE.
+  #' @details Function to return a modified dataframe where NAs have been removed.
+  #' @keywords unique
+  #' @return Returns the modified dataframe
+  #' @export unique_filter
+  #' @examples 
+  #' \dontrun{
+  #' unique_filter(MainDataTable)
+  #' mod.dat <- unique_filter(MainDataTable, remove=TRUE) 
+  #' }
+  
+  #Call in datasets
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset
+  
+  tmp <- tempfile()
+  
+  
+  if(dim(dataset)[1] == dim(unique(dataset))[1]) {
+    cat("Each row is a unique choice occurrence. No further action required.", file=tmp)
+  } else {
+    if(remove==FALSE){
+      cat("Each row in data set is not a unique choice occurrence at haul or trip level. \nConsider removing non-unique rows.", file=tmp)
+    } else {
+      cat("Each row in data set is not a unique choice occurrence at haul or trip level. \nNon-unique rows removed.", file=tmp) 
+      dataset <- unique(dataset)
+    }
+  }
+  
+  print(suppressWarnings(readLines(tmp)))  
+
+  unique_filter_function <- list()
+  unique_filter_function$functionID <- 'unique_filter'
+  unique_filter_function$args <-  c(dat, remove)
+  unique_filter_function$output <-  c(dat)
+  unique_filter_function$msg <- suppressWarnings(readLines(tmp))
+  log_call(unique_filter_function)
+  
+  rm(tmp)
+  if(remove == TRUE){
+    return(dataset)
+  }
+  
+}
+
+
+#EMPTY Vars
+empty_vars_filter <- function(x, remove=FALSE) {
+  #' Check variables are not empty
+  #'
+  #' Function to return a modified dataframe where empty variables have been removed.
+  #'
+  #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @param remove TRUE/FALSE Remove empty variables? Defaults to FALSE.
+  #' @details Function to return a modified dataframe where empty variables have been removed. 
+  #' @keywords empty
+  #' @return Returns the modified dataframe
+  #' @export empty_vars_filter
+  #' @examples 
+  #' \dontrun{
+  #' empty_vars_filter(MainDataTable)
+  #' mod.dat <- empty_vars_filter(MainDataTable, remove=TRUE) 
+  #' }
+  
+  #Call in datasets
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset
+  
+  tmp <- tempfile()
+  
+if(any(apply(dataset, 2, function(x) all(is.na(x))) == TRUE)) {
+  cat(names(which(apply(dataset, 2, function(x) all(is.na(x))) == TRUE)), "is empty. 
+                \nConsider removing the column from the data set.", file=tmp)
+} else {
+  if(remove==TRUE){
+    dataset <- dataset[, names(dataset)!=names(which(apply(dataset, 2, function(x) all(is.na(x))) == TRUE))]
+    cat(names(which(apply(dataset, 2, function(x) all(is.na(x))) == TRUE)), "is empty and has been removed from the data set.", file=tmp)
+  } else {
+    cat(names(which(apply(dataset, 2, function(x) all(is.na(x))) == TRUE)), "is empty. Consider removing from the data set.", file=tmp) 
+  }
+}
+  
+  print(suppressWarnings(readLines(tmp)))  
+  
+  empty_vars_filter_function <- list()
+  empty_vars_filter_function$functionID <- 'empty_vars_filter'
+  empty_vars_filter_function$args <-  c(dat, remove)
+  empty_vars_filter_function$output <-  c(dat)
+  empty_vars_filter_function$msg <- suppressWarnings(readLines(tmp))
+  log_call(empty_vars_filter_function)
+  
+  rm(tmp)
+  if(remove == TRUE){
+    return(dataset)
+  }
+  
+  
+}
+

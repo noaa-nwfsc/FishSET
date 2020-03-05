@@ -80,8 +80,9 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write
   #' mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T) 
   #' mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T, rep.value=0) 
   #' mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', remove=T) 
-  #' }
-  
+  #' }#
+
+
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
@@ -89,12 +90,14 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write
   
     int <- dataset
     tmp <- tempfile()
-    for(i in 1:length(x)){
-    x.name <- x[i]
-    if (any(is.nan(int[, x.name])) == T) {
-      cat(length(which(is.nan(int[, x.name]) == T)), "NaNs identified in variable",  x.name, file=tmp)
-      
-      # the identified rep.value (defaults to mean value)
+  
+   if(any(apply(dataset, 2, function(x) any(is.nan(x)))==TRUE)){  
+         cat("The", names(which(apply(dataset, 2, function(x) any(is.nan(x)))==TRUE)), "columns contain NaNs. Consider using nan_filter to replace or remove NaNs", file=tmp)
+         x <- names(which(apply(dataset, 2, function(x) any(is.nan(x)))==TRUE))
+       for(i in 1:length(x)){
+       x.name <- x[i]
+ 
+             # the identified rep.value (defaults to mean value)
       if (replace == T) {
         if(is.nan(rep.value)==TRUE) {
           rep.value <- mean(int[, x.name], na.rm = T)
@@ -113,14 +116,15 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write
         cat("\nThe entire row will be removed from the dataframe.", file=tmp, append=T)
         int <- int[!is.nan(int[, x.name]), ]
       }
-    } else {
-      cat("\nNo NaNs present in variable", x.name, file=tmp)
     }
-    }  
+         } else {
+      cat("No NaNs present", file=tmp)
+    }
+  
     
   print(suppressWarnings(readLines(tmp)))  
   
-  if(over_write==TRUE & any(is.nan(dataset)) == TRUE){
+  if(over_write==TRUE & any(apply(dataset, 2, function(x) any(is.nan(x)))) == TRUE){
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
   DBI::dbWriteTable(fishset_db, deparse(substitute(dat)), int, overwrite=over_write)
   DBI::dbDisconnect(fishset_db)
@@ -135,12 +139,13 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write
   log_call(nan_filter_function)
   
   rm(tmp)
-  
+  if(remove == TRUE|replace == T){
   return(int)
+  }
 }
 
 
-
+####----
 # Replaces nans in the dataColumn with the choosen value or removes rows containing NaNs
 na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write=FALSE) {
   #' Filters NA's from variable
@@ -148,10 +153,10 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write=
   #'  Function to return a modified dataframe where NAs have been replaced or removed.
   #'
   #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
-  #' @param x Column(s) in data framce in which to remove or replace NAs. If multiple columns are passed use x=c().
-  #' @param replace TRUE/FALSE Replace NaNs in a vector? Defaults to FALSE.
-  #' @param remove TRUE/FALSE Remove all remove the entire row of the dataframe where NaN is present in a specified column? Defaults to FALSE.
-  #' @param rep.value Value to replace all NaNs in a column. Defaults to the mean value of the column.
+  #' @param x Column(s) in data frame in which to remove or replace NAs. If multiple columns are passed use x=c().
+  #' @param replace TRUE/FALSE Replace NAs in a vector? Defaults to FALSE.
+  #' @param remove TRUE/FALSE Remove all remove the entire row of the dataframe where NA is present in a specified column? Defaults to FALSE.
+  #' @param rep.value Value to replace all NAs in a column. Defaults to the mean value of the column.
   #' @param over_write Over_write modified data set in fishset_db database?
   #' @details Function to return a modified dataframe where NAs have been replaced or removed. Modified data frame saved to fishset_db database.
   #' @keywords NA
@@ -173,12 +178,16 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write=
   
   int <- dataset
   tmp <- tempfile()
+
+  
+  if(any(apply(dataset, 2, function(x) anyNA(x))==TRUE)){  
+    cat("The", names(which(apply(dataset, 2, function(x) anyNA(x))==TRUE)), "columns contain NAs. Consider using na_filter to replace or remove NAs", file=tmp)
+    x <- names(which(apply(dataset, 2, function(x) anyNA(x))==TRUE))
+    
   for(i in 1:length(x)){
     x.name <- x[i]
-    if (anyNA(int[, x.name]) == T) {
-       cat(length(which(is.na(int[, x.name]) == T)), "NAs identified in variable",  x.name, file=tmp)
-      
-      # the identified rep.value (defaults to mean value)
+  
+        # the identified rep.value (defaults to mean value)
       if (replace == T) {
         if(is.na(rep.value)==TRUE) {
           rep.value <- mean(int[, x.name], na.rm = T)
@@ -196,11 +205,11 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write=
       } else if (remove == T) {
         cat("\nThe entire row will be removed from the dataframe.", file=tmp, append=T)
         int <- int[!is.na(int[, x.name]), ]
-      }
+      }}
     } else {
       cat("\nNo NAs present in variable", x.name, file=tmp)
     }
-  }  
+    
   print(suppressWarnings(readLines(tmp)))
   
   #Save the revised data set
@@ -221,5 +230,7 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write=
   
   rm(tmp)
   
+  if(remove == TRUE|replace == T){
   return(int)
+  }
 }

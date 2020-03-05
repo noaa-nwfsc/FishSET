@@ -212,6 +212,7 @@ set_quants <- function(dat, x, quant.cat = c(0.2, 0.25, 0.4), name='set_quants')
     tmp <- 1
     warning('Variable must be numeric. Function not run.')
   }
+  
 if(tmp == 0){  
 if (quant.cat == 0.2) {
     prob.def = c(0, 0.2, 0.4, 0.6, 0.8, 1)
@@ -534,7 +535,7 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
   dat <- out$dat
   dataset <- out$dataset
   
-  
+  browser()
   if(any(grepl('port', c(start[1],end[1]), ignore.case=TRUE))){
     #  in port table
     fun <- function(){
