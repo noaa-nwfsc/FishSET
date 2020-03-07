@@ -1,10 +1,10 @@
 # SQL call functions
-# @description Functions call sql functions to view tables in the SQLite database. Functions allow users to view names of tables in the database, view fields of selected 
+# @description Functions call sql functions to view tables in the FishSET database. Functions allow users to view names of tables in the database, view fields of selected 
 # table, view the selected table, remove tables from the database, and check whether a specific table exists in the database.
 
 tables_database <- function() { 
-#' View names of tables in the fishset_db database
-#' @description Function utilizes sql functions to view names of tables in the SQLite fishset_db database. 
+#' View names of tables in the FishSET database
+#' @description Function utilizes sql functions to view names of tables in the FishSET database. 
 #' @export tables_database
 #' @importFrom DBI dbConnect dbRemoveTable dbListTables dbExistsTable dbGetQuery
 #' @examples 
@@ -18,10 +18,10 @@ tables_database <- function() {
   }
 
 table_fields <- function(table) { 
-#' Lists fields for the selected fishset_db table
-  #' @param table name of table in sql database
+#' Lists fields for the selected FishSET database table
+  #' @param table name of table in FishSET database
   #' @export table_fields
-  #' @description Function utilizes sql functions to view tables in the SQLite fishset_db database. View fields of selected table.
+  #' @description Function utilizes sql functions to view tables in the FishSET database. View fields of selected table.
   #' @importFrom DBI dbConnect dbDisconnect dbListFields  
   #' @examples 
   #' \dontrun{  
@@ -34,10 +34,10 @@ table_fields <- function(table) {
   }
 
 table_view <- function(table) { 
-#' View the selected fishset_db table 
-  #' @param table name of table in sql database
+#' View the selected FishSETn database table 
+  #' @param table name of table in FishSET database
   #' @export table_view
-  #' @description Function utilizes sql functions to view or call the selected table from the SQLite fishset_db database in a function. 
+  #' @description Function utilizes sql functions to view or call the selected table from the FishSET database in a function. 
   #' Use this function if you do not want the data loaded into the global environment. 
   #' @importFrom DBI dbConnect dbDisconnect  dbGetQuery
   #' @examples 
@@ -55,10 +55,10 @@ table_view <- function(table) {
 }
 
 table_remove <- function(table) { 
-#' Remove a table from the fishset_db database
-  #' @param table Name of table in sql database
+#' Remove a table from the FishSET database
+  #' @param table Name of table in FishSET database
   #' @export table_remove
-  #' @details Function utilizes sql functions to permanently remove a table from the SQLite fishset_db database.
+  #' @details Function utilizes sql functions to permanently remove a table from the FishSET database.
   #' @importFrom DBI dbConnect dbDisconnect dbRemoveTable 
   #' @examples 
   #' \dontrun{  
@@ -71,10 +71,10 @@ table_remove <- function(table) {
   }
 
 table_exists <- function(table) { 
-#' Check if table exists in the fishset_db database
-  #' @param table Name of table in fishset_db database
+#' Check if table exists in the FishSET database
+  #' @param table Name of table in FishSET database
   #' @export table_exists
-  #' @description Function utilizes sql functions to check if a table exists in the SQLite fishset_db database.
+  #' @description Function utilizes sql functions to check if a table exists in the FishSET database.
   #' @return True or False
   #' @importFrom DBI dbConnect dbDisconnect dbExistsTable   
   #' @examples 
@@ -89,9 +89,9 @@ table_exists <- function(table) {
 
 model_out_view <- function(table){
   #' View discrete choice model output
-  #' @param table  Table name in sqlite database. Should contain the phrase modelout.
+  #' @param table  Table name in FishSET database. Should contain the phrase modelout.
   #' @export
-  #' @description Returns output from running the discretefish_subroutine function. The table parameter must be the full name of the table name in the fishet_db database.
+  #' @description Returns output from running the discretefish_subroutine function. The table parameter must be the full name of the table name in the FishSET database.
   #' @examples 
   #' \dontrun{
   #' model_out_view('pcodmodelout20190604')
@@ -109,9 +109,9 @@ model_out_view <- function(table){
 
 globalcheck_view <- function(table){
   #' View error output from discrete choice model 
-  #' @param table  Table name in sqlite database. Should contain the phrase modelout.
+  #' @param table  Table name in FishSET database. Should contain the phrase modelout.
   #' @export
-  #' @description Returns error output from running the discretefish_subroutine function. The table parameter must be the full name of the table name in the fishet_db database.
+  #' @description Returns error output from running the discretefish_subroutine function. The table parameter must be the full name of the table name in the FishSET database.
   #' @examples 
   #' \dontrun{
   #' globalcheck_view('pcodldglobalcheck20190604')

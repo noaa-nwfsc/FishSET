@@ -1,8 +1,8 @@
 #' create_seasonal_ID
 #' Create season identifier  
 #'
-#' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
-#' @param seasonal.dat Name of table in fishset_db containing date of fishery season(s).
+#' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
+#' @param seasonal.dat Name of table containing date of fishery season(s). Can be pulled from FishSET database.
 #' @param use.location TRUE/FALSE If true, fishery season dates depend on fishery location. Column names containing location must match the two data sets.
 #' @param use.geartype TRUE/FALSE If true, fishery season dates depend on gear type. Column name containing gear type must match the two data sets.
 #' @param sp.col Column containing species names in seasonaldat. 
@@ -16,7 +16,7 @@
 #' SeasonID*fishery variables are a TRUE/FALSE seasonID vector for each fishery (labeled by seasonID and fishery) where TRUE indicates the dates for a given row in the main data table fall within the fishery dates for that fishery.
 #' @examples 
 #' \dontrun{ 
-#'  MainDataTable <- create_seasonal_ID(MainDataTable, seasonal, use.location = TRUE,  
+#'  pcodMainDataTable <- create_seasonal_ID('pcodMainDataTable', seasonal, use.location = TRUE,  
 #'  use.geartype = TRUE, sp.col = 'SPECIES', target = 'POLLOCK')
 #'  }
 #'

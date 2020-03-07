@@ -1,7 +1,7 @@
 #'  Assign observations to zone or area
 #'  
 #'
-#' @param dat Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param dat Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
 #' @param gridfile Spatial data. Shape, json, and csv formats are supported.
 #' @param hull.polygon T/F If TRUE, creates convex hull polygon. Use if spatial data creating polygon are sparse or irregular.
 #' @param lon.dat Column containing longitude data in main data frame.

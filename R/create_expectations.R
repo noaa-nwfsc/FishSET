@@ -1,6 +1,6 @@
 #' Expected catch/Expected Revenue
 
-#' @param dat  Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param dat  Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
 #' @param catch Variable containing catch data.
 #' @param price Variable containing price/value data. Used in calculating expected revenue. Leave null if calculating expected catch. Multiplied against catch to generated revenue.
 #' @param temporal Daily (Daily time line) or sequential (sequential order)
@@ -13,7 +13,7 @@
 #' @param temp.lag Temporal lag time in days.
 #' @param year.lag IF expected catch should be based on catch from previous year(s), set year.lag to the number of years to go back.
 #' @param dummy.exp T/F. Defaults to False. If false, no dummy variable is outputted. If true, output dummy variable for originally missing value.
-#' @param project Name of project. Used to pull working alternative choice matrix from fishset_db database.
+#' @param project Name of project. Used to pull working alternative choice matrix from FishSET database.
 #' @param defineGroup If empty, data is treated as a fleet
 #' @param replace.output Default is FALSE. If TRUE, replaces existing saved expected catch dataframe with new expected catch dataframe. 
 #' If FALSE, add new expected catch dataframes to previously saved expected catch dataframes.
@@ -42,7 +42,7 @@
 #' @return newGridVar,  newDumV
 #' @examples 
 #' \dontrun{
-#' create_expectations(MainDataTable, adfg, 'OFFICIAL_TOTAL_CATCH_MT',  price=NULL, temporal='daily', 
+#' create_expectations('pcodMainDataTable', adfg, 'OFFICIAL_TOTAL_CATCH_MT',  price=NULL, temporal='daily', 
 #'                      temp.var="DATE_FISHING_BEGAN", calc.method='standard average', 
 #'                      lag.method='simple',  empty.catch='all catch', empty.expectation= 0.0001, 
 #'                      temp.window=4, temp.lag=2, dummy.exp=FALSE, 
@@ -56,11 +56,9 @@ create_expectations <- function(dat, project, catch, price=NULL, defineGroup, te
                                 temp.window = 7, temp.lag = 0, year.lag=0, dummy.exp = FALSE, replace.output=FALSE) {
 
   #Call in datasets
-  if(!exists('dataset')){
    out <- data_pull(dat)
    dat <- out$dat
    dataset <- out$dataset
-  }
   
       fishset_db <- DBI::dbConnect(RSQLite::SQLite(),locdatabase())
       Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])

@@ -143,7 +143,7 @@ empty_vars_filter <- function(dat, remove=FALSE) {
   #'
   #' Function to return a modified dataframe where empty variables have been removed.
   #'
-  #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
   #' @param remove TRUE/FALSE Remove empty variables? Defaults to FALSE.
   #' @details Function to return a modified dataframe where empty variables have been removed. 
   #' @keywords empty
@@ -152,7 +152,7 @@ empty_vars_filter <- function(dat, remove=FALSE) {
   #' @examples 
   #' \dontrun{
   #' empty_vars_filter(MainDataTable)
-  #' mod.dat <- empty_vars_filter(MainDataTable, remove=TRUE) 
+  #' mod.dat <- empty_vars_filter('pollockMainDataTable', remove=TRUE) 
   #' }
   
   #Call in datasets

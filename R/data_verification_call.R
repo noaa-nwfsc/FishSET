@@ -1,6 +1,6 @@
 data_verification_call <- function(dat, project) {
   #' Checks for common issues with data
-  #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
   #' @param project Name of project
   #' @return Returns statements as to whether issues in the data may exist
   #' @export data_verification_call
@@ -10,18 +10,15 @@ data_verification_call <- function(dat, project) {
   #' Main data table is not saved to fishset_db database if any tests fail.
   #' @examples
   #' \dontrun{
-  #' data_verification_call(MainDataTable)
+  #' data_verification_call(pollockMainDataTable, 'pollock')
   #' }
   
+  
   #Call in datasets
-  #if(table_exists(dat)) {
   out <- data_pull(dat)
   dat <- out$dat
   dataset <- out$dataset
- # } else {
-#    dataset <- dat
- #   dat <- deparse(substitute(dat))
-#  }
+
   
   tmp <- tempfile()
   cat("Data verification checks", file=tmp, append=TRUE)

@@ -2,7 +2,7 @@
 #' 
 #' Creates a density or cdf plot of selected variable
 #' 
-#' @param dat Main data frame over which to apply function. Table in fishset_db 
+#' @param dat Main data frame over which to apply function. Table in FishSET 
 #'   database should contain the string `MainDataTable`.
 #' @param project name of project.
 #' @param var variable of interest, used to compute density estimate or cdf.
@@ -19,7 +19,7 @@
 #' @export density_plot
 #' @examples 
 #' \dontrun{
-#' density_plot(dat, var = "HAUL", group = "DISEMBARKED_PORT")
+#' density_plot(pollockMainDataTable, var = "HAUL", group = "DISEMBARKED_PORT")
 #' }
 #' @import ggplot2
 #' @importFrom stats pnorm

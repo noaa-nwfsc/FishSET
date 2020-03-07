@@ -1,6 +1,6 @@
 #' Collapse the dataframe from haul to trip.
 #'
-#' @param dat Data frame containing haul level data. In the fishset_db database, the table will contain the phrase `MainDataTable`
+#' @param dat Data frame containing haul level data. In the FishSET database, the table will contain the phrase `MainDataTable`
 #' @param project Name of project
 #' @param fun.time Numeric function defining how to collapse temporal data. For example, min, mean, max. Cannot be sum for temporal variables.
 #' @param fun.numeric Numeric function defining how to collapse numeric or temporal data. For example, min, mean, max, sum. Defaults to mean.
@@ -14,7 +14,7 @@
 #' 
 #' @examples
 #' \dontrun{
-#'  dat <- haul_to_trip(pollockMainDataTable, 'pollock',min,mean,'PERMIT','DISEMBARKED_PORT')
+#'  pollockMainDataTable <- haul_to_trip('pollockMainDataTable', 'pollock',min,mean,'PERMIT','DISEMBARKED_PORT')
 #'  }
 
 

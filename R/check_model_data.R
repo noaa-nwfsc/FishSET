@@ -1,10 +1,10 @@
 #' Check data table for data quality issues that will affect modeling functions. 
 #'
 
-#' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
-#' @param dataindex Data frame that contains information on each column of the main data frame. In fishset_db database the table will contain the phrase `MainDataTableInfo`
+#' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
+#' @param dataindex Data frame that contains information on each column of the main data frame. In FishSET database the table will contain the phrase `MainDataTableInfo`
 #' @param uniqueID Variable that identifies unique occurrences.
-#' @param save.file TRUE/FALSE Save to fishset_db SQLite database? Defaults to TRUE
+#' @param save.file TRUE/FALSE Save to FishSET database? Defaults to TRUE
 #' @return Returns statements as to data quality issues in the data may exist.
 #' @export check_model_data
 #' @details Checks data to be used for modeling for presence of NAs, NaNs and Inf and that each row is a unique choice occurrence. 

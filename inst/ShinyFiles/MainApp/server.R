@@ -193,13 +193,20 @@
       observeEvent(input$loadDat, {
         req(input$projectname)
         if(input$loadmainsource=='FishSET database'){
+          if(table_exists(paste0(input$projectname, 'MainDataTable'))==FALSE){
+            showNotification('Table not found in FishSET database. Check project spelling.', type='message', duration=15)
+          } else {
         values$dataset <- table_view(paste0(input$projectname, 'MainDataTable'))
+          }
         } else if(input$loadmainsource=='Upload new file' & !is.null(input$maindat)){
           type <- sub('.*\\.', '', input$maindat$name)
           if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
           values$dataset <- read_dat(input$maindat$datapath, type)
        }   else {
           values$dataset <- values$dataset
+       }
+        if(names(values$dataset)[1]!='var1'){
+          showNotification("Data loaded.", type='message', duration=10)
         }
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
@@ -212,10 +219,11 @@
         } else {
           values$dataset <- values$dataset
         }
+        if(names(values$dataset)[1]!='var1'){
+          showNotification("Data loaded.", type='message', duration=10)
+        }
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
-      
-     
       # refresh data
       observeEvent(c(input$refresh,input$refresh1,input$refresh2,input$refreshNew), {
         req(input$projectname)
@@ -224,6 +232,7 @@
                       tables_database())], "\\d+"))==max((unlist(stringr::str_extract_all(tables_database()[grep(paste0(input$projectname, 
                       'MainDataTable\\d+'), tables_database())], "\\d+")))))]
         values$dataset <- table_view(temp)
+        showNotification("Data refreshed", type='message', duration=10)
       }, ignoreInit = TRUE, ignoreNULL=TRUE) 
      
       #PORT
@@ -241,9 +250,11 @@
           ptdat$dataset <- read_dat(input$portdat$datapath, type)
           }else {
           ptdat$dataset <- ptdat$dataset
+          }
+        if(names(pdat$dataset)[1]!='var1'){
+          showNotification("Port data loaded.", type='message', duration=10)
         }
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
-      
       
       observeEvent(input$uploadPort, {
         if(input$loadportsource!='FishSET database'){
@@ -253,9 +264,10 @@
         } else {
           ptdat$dataset <- ptdat$dataset
         }
+        if(names(ptdat$dataset)[1]!='var1'){
+          showNotification("Port data loaded.", type='message', duration=10)
+        }
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
-      
-      
          
       #SPATIAL
       spatdat <- reactiveValues(
@@ -272,6 +284,9 @@
           spatdat$dataset <- read_dat(input$spatialdat$datapath, type)
           } else {
           spatdat$dataset <- spatdat$dataset
+          }
+        if(names(spatdat$dataset)[1]!='var1'){
+          showNotification("Map file loaded.", type='message', duration=10)
         }
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
@@ -283,6 +298,9 @@
        } else {
          spatdat$dataset <- spatdat$dataset
        }
+       if(names(spatdat$dataset)[1]!='var1'){
+           showNotification("Map file loaded.", type='message', duration=10)
+         }
     }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
       #GRIDDED      
@@ -300,6 +318,9 @@
         } else {
           grddat$dataset <- grddat$dataset
         }
+        if(names(grddat$dataset)[1]!='var1'){
+          showNotification("Gridded data loaded.", type='message', duration=10)
+        }
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
       observeEvent(input$uploadGrid, {
@@ -310,6 +331,9 @@
          } else {
            grddat$dataset <- grddat$dataset
          }
+        if(names(grddat$dataset)[1]!='var1'){
+          showNotification("Gridded data loaded.", type='message', duration=10)
+        }
     }, ignoreInit = TRUE, ignoreNULL = TRUE) 
          
      
@@ -327,6 +351,9 @@
           aux$dataset <-read_dat(input$auxdat$datapath, type)
           } else {
           aux$dataset <- aux$dataset
+          }
+        if(names(aux$dataset)[1]!='var1'){
+          showNotification("Auxiliary data loaded.", type='message', duration=10)
         }
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
        observeEvent(input$uploadAux, {
@@ -336,6 +363,9 @@
             aux$dataset <-read_dat(input$auxdat$datapath, type)
          } else {
            aux$dataset <- aux$dataset
+         }
+         if(names(aux$dataset)[1]!='var1'){
+           showNotification("Auxiliary data loaded.", type='message', duration=10)
          }
        }, ignoreInit = TRUE, ignoreNULL = TRUE) 
   
@@ -2069,12 +2099,19 @@
                                selectizeInput('lon_dat_ac', '', choices=c(input$lonBase, names(values$dataset)[grep('lon', names(values$dataset), ignore.case=TRUE)]), 
                                               selected=c(input$lonBase))),
                            selectInput('cat_altc', 'Individual areas/zones from the spatial data set', choices=names(as.data.frame(spatdat$dataset))),
-                           selectInput('weight_var_ac', 'If desired, variable for use in calculcating weighted centroids', choices=c('none'="", colnames(values$dataset))), #variable weighted centroids
+                           selectInput('weight_var_ac', 'If desired, variable for use in calculating weighted centroids', choices=c('none'="", colnames(values$dataset))), #variable weighted centroids
                            checkboxInput('hull_polygon_ac', 'Use convex hull method to create polygon?', value=FALSE),
                            checkboxInput('closest_pt_ac', 'Use closest polygon to point?', value=FALSE) 
                          ) )
-      })   
+      })  
       
+       observeEvent(input$runCentroid, {
+        values$dataset <-  assignment_column(dat=values$dataset, gridfile=spatdat$dataset, lon.dat=input$lon_dat_ac, lat.dat=input$lat_dat_ac, 
+                                             cat=input$cat_altc, closest.pt = input$closest_pt_ac, 
+                                    lon.grid=NULL, lat.grid=NULL, hull.polygon = input$hull_polygon_ac, epsg=NULL)
+        
+      })
+       
       output$cond2 <- renderUI({
         conditionalPanel(condition="input.choiceTab=='zone'",
                          if(any(class(spatdat$dataset)=='sf')==FALSE){
@@ -2101,15 +2138,15 @@
                                               choices=c('Centroid of zonal assignment'='centroid', names(values$dataset)[grep('lat|lon', names(values$dataset), ignore.case=TRUE)]), 
                                               selected='centroid', options = list(maxItems = 2))),
                            selectizeInput('dist_ac','Distance units', choices=c('miles','kilometers','meters'), selected='miles'),
-                           numericInput('min_haul_ac', 'Include zones with more hauls than', min=1, max=1000, value=1),
+                           numericInput('min_haul_ac', 'Include zones with more hauls than', min=1, max=1000, value=1)#,
                            #checkboxInput('morec', 'Show more choices', value=FALSE),
                            #Additional choices
-                           uiOutput('conditionalInput')
+                           #uiOutput('conditionalInput')
                          )
         )
       })
       
-      #input$min_haul_ac
+    #input$min_haul_ac
       zoneIDNumbers_dat <- reactive({
         if(!any(colnames(values$dataset)=='ZoneID')){
           return()
@@ -2134,13 +2171,6 @@
       
       output$zoneIDNumbers_plot <- renderPlot(zoneIDNumbers_dat())
       
-#      griddataExC <- reactive({
-#        if(is.null(input$fileGridExC)){return()} 
-#        type <- sub('.*\\.', '', input$fileGridExC$name)
-#        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-#        g <- read_dat(input$fileGridExC$datapath, type)
-#        return(g)
-#      })
       
       #-----
       
@@ -2201,7 +2231,6 @@
       }
       
       output$catch_out <- renderUI({
-        # browser()
         tagList(
           selectInput('catch','Variable containing catch data',
                       choices=c(input$catchBase, colnames(values$dataset[,grep('haul|mt|lb|metric|pounds|catch', colnames(values$dataset), ignore.case=TRUE)])), 

@@ -2,7 +2,7 @@
 #'
 #' Creates a list containing information on how alternative fishing choices should be defined. 
 #'
-#' @param dat  Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param dat  Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
 #' @param gridfile Spatial data. Shape, json, and csv formats are supported.
 #' @param case Centroid='Centroid of Zonal Assignment', Port, Other
 #' @param min.haul Minimum number of hauls. Removes zones with fewer hauls than min.haul. For instance, include only zones with at least 100 hauls.

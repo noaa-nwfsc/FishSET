@@ -1,5 +1,5 @@
 #' Interactive tool to run FishSET functions 
-#' Runs functions associated with loading data, exploring data, checking for data quality issues, generating new variables, and basic data analyis function.
+#' Runs functions associated with loading data, exploring data, checking for data quality issues, generating new variables, and basic data analysis function.
 
 #' run_fishset_gui
 #'

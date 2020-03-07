@@ -1,7 +1,7 @@
 
 ##2. Option 2 medium: group by fleet (all vessels in dataset) t -7
 #' Medium expectations
-#' @param dat  Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param dat  Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
 #' @param project Name of project. Used to pull working alternative choice matrix from fishset_db database.
 #' @param catch Variable containing catch data.
 #' @param price Variable containing price/value data. Used in calculating expected revenue. Leave null if calculating expected catch. Multiplied against catch to generated revenue.
@@ -25,11 +25,10 @@ medium_expectations <- function(dat, project, catch, price, defineGroup, temp.va
                                 lag.method, empty.catch, empty.expectation, dummy.exp){
   
   #Call in datasets
-  if(!exists('dataset')){
     out <- data_pull(dat)
     dat <- out$dat
     dataset <- out$dataset
-  }
+  
   
   if(!exists('Alt')){
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())

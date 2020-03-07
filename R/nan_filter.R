@@ -4,18 +4,18 @@
 nan_identify <- function(dat){
   #' Identify NaN's and NAs in data set
   #'
-  #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
   #' @keywords NaN, NA
   #' @description Check whether any columns in the data frame contain NAs or NaNs. Returns column names containing NAs or NaNs.
   #' @return Message with names of columns containing NAs or NaNs, if any.
   #' @export nan_identify
 #' @examples 
 #' \dontrun{
-#' nan_identify(MainDataTable)
-#' mod.dat <-nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT') 
-#' mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T) 
-#' mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T, rep.value=0) 
-#' mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', remove=T) 
+#' nan_identify(pcodMainDataTable)
+#' mod.dat <-nan_filter('pcodMainDataTable', 'OFFICIAL_TOTAL_CATCH_MT') 
+#' mod.dat <- nan_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T) 
+#' mod.dat <- nan_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T, rep.value=0) 
+#' mod.dat <- nan_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', remove=T) 
 #' }
 
   #Call in datasets
@@ -63,23 +63,23 @@ nan_identify <- function(dat){
 nan_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write=FALSE) {
   #' Filters NaN's from data frame
   #'
-  #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
   #' @param x Column(s) in data framce in which to remove or replace NaNs. If multiple columns are passed use x=c().
   #' @param replace TRUE/FALSE Replace NaNs in a vector? Defaults to FALSE.
   #' @param remove TRUE/FALSE Remove all remove the entire row of the dataframe where NaN is present in a specified column? Defaults to FALSE.
   #' @param rep.value Value to replace all NaNs in a column. Defaults to the mean value of the column.
-  #' @param over_write Over_write modified data set in fishset_db database?
-  #' @details Replaces nans in the data column with the chosen value or removes rows containing NaNs. Modified data frame saved to fishset_db database.
+  #' @param over_write Over_write modified data set in FishSET database?
+  #' @details Replaces nans in the data column with the chosen value or removes rows containing NaNs. Modified data frame saved to FishSET database.
   #' @keywords NaN
   #' @return Returns the modified data frame
   #' @export nan_filter
   #' @examples 
   #' \dontrun{
-  #' nan_identify(MainDataTable)
-  #' mod.dat <-nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT') 
-  #' mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T) 
-  #' mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T, rep.value=0) 
-  #' mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', remove=T) 
+  #' nan_identify(pcodMainDataTable)
+  #' mod.dat <-nan_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT') 
+  #' mod.dat <- nan_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T) 
+  #' mod.dat <- nan_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T, rep.value=0) 
+  #' mod.dat <- nan_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', remove=T) 
   #' }#
 
 
@@ -152,23 +152,23 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write=
   #'
   #'  Function to return a modified dataframe where NAs have been replaced or removed.
   #'
-  #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
   #' @param x Column(s) in data frame in which to remove or replace NAs. If multiple columns are passed use x=c().
   #' @param replace TRUE/FALSE Replace NAs in a vector? Defaults to FALSE.
   #' @param remove TRUE/FALSE Remove all remove the entire row of the dataframe where NA is present in a specified column? Defaults to FALSE.
   #' @param rep.value Value to replace all NAs in a column. Defaults to the mean value of the column.
-  #' @param over_write Over_write modified data set in fishset_db database?
-  #' @details Function to return a modified dataframe where NAs have been replaced or removed. Modified data frame saved to fishset_db database.
+  #' @param over_write Over_write modified data set in FishSET database?
+  #' @details Function to return a modified dataframe where NAs have been replaced or removed. Modified data frame saved to FishSET database.
   #' @keywords NA
   #' @return Returns the modified dataframe
   #' @export na_filter
   #' @examples 
   #' \dontrun{
-  #' nan_identify(MainDataTable)
-  #' mod.dat <- na_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT') 
-  #' mod.dat <- na_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T) 
-  #' mod.dat <- na_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T, rep.value=0) 
-  #' mod.dat <- na_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', remove=T) 
+  #' nan_identify(pcodMainDataTable)
+  #' mod.dat <- na_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT') 
+  #' mod.dat <- na_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T) 
+  #' mod.dat <- na_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T, rep.value=0) 
+  #' mod.dat <- na_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', remove=T) 
   #' }
   
   #Call in datasets

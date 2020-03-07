@@ -1,6 +1,6 @@
 #' View summary statistics 
 #'
-#' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
 #' @param project Name of project.
 #' @param x Optional variable to apply function over.
 #' @param project Name of project
@@ -10,8 +10,8 @@
 #' for that variable. Function is called in the \code{\link{data_check}} function.
 #' @examples
 #' \dontrun{
-#' summary_stats(MainDataTable, x='')
-#' summary_stats(MainDataTable, x='HAUL')
+#' summary_stats('pcodMainDataTable', x='')
+#' summary_stats('pcodMainDataTable', x='HAUL')
 #' }
 
 summary_stats <- function(dat, project, x=NULL) {

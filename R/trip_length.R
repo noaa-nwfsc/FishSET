@@ -2,7 +2,7 @@
 #' 
 #' Create a plot or table of vessel trip length
 #' 
-#' @param dat Main data frame over which to apply function. Table in fishset_db 
+#' @param dat Main data frame over which to apply function. Table in FishSET 
 #'   database should contain the string `MainDataTable`.
 #' @param project name of project.
 #' @param start Date variable containing the start of vessel trip.
