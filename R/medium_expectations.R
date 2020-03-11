@@ -18,7 +18,7 @@
 #' @importFrom DBI dbGetQuery
 #' @importFrom stats aggregate reshape coef lm
 #' @importFrom signal polyval
-#' @export create_expectations
+#' @export medium_expectations
 #' @return Expected catch matrix. Saved to database via create_expectations
 
 medium_expectations <- function(dat, project, catch, price, defineGroup, temp.var, temporal, calc.method,  
@@ -41,7 +41,7 @@ medium_expectations <- function(dat, project, catch, price, defineGroup, temp.va
   zoneRow <- Alt[["zoneRow"]]
   
   # check whether defining a group or using all fleet averaging 
-  if (defineGroup=='none'|is.null(defineGroup)) {
+  if (is_empty(defineGroup)) {
     # just use an id=ones to get all info as one group
     numData <- data.frame(rep(1, dim(dataset)[1]))  #ones(size(data(1).dataColumn,1),1)
     # Define by group case u1hmP1
@@ -50,7 +50,7 @@ medium_expectations <- function(dat, project, catch, price, defineGroup, temp.va
   }
   
  
-  if(temp.var=='none'|is.null(temp.var)){
+  if(temp.var=='none'|is_empty(temp.var)){
     temp.var <- colnames(dataset)[grep("date", colnames(dataset), ignore.case=TRUE)[1]]
   }
   
@@ -70,7 +70,7 @@ medium_expectations <- function(dat, project, catch, price, defineGroup, temp.va
   C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*"))  #C = row ID of those unique items
   
   catchData <- as.numeric(dataset[[catch]][which(dataZoneTrue == 1)])
-  if(price!='none'&!is.null(price)){
+  if(price=='none'|!is_empty(price)){
     priceData <- as.numeric(dataset[[price]][which(dataZoneTrue == 1)])
     catchData <- catchData*priceData
   }
@@ -132,7 +132,7 @@ medium_expectations <- function(dat, project, catch, price, defineGroup, temp.va
   df2$ra <- mapply(myfunc_ave, df2$tiData, df2$ID)
   
   # #Replace empty values
-  if (empty.catch=="NA"|is.null(empty.catch)) {
+  if (empty.catch=="NA"|is_empty(empty.catch)) {
     myfunc_emp <- function(x){mean(df2[lubridate::year(df2$tiData) >= format(as.Date(x), format = "%Y") & 
                                      lubridate::year(df2$tiData) <  lubridate::year(x)+1, 'lag.value'], na.rm=TRUE)}
     df2$ra[which(is.na(df2$ra)==TRUE)] <- unlist(lapply(df2$tiData[which(is.na(df2$ra)==TRUE)], myfunc_emp))
@@ -210,7 +210,7 @@ medium_expectations <- function(dat, project, catch, price, defineGroup, temp.va
     newCatch[which(cit == cit[w]), col] <- meanCatch[C[w], bi[w]]  ## loop shouldn't be necessary but no loop results in out of memory issue
   }
   
-  if(empty.expectation=='NA'|is.null(empty.expectation)){
+  if(is_empty(empty.expectation)){
     newCatch[is.na(newCatch)] = 0.0001 
   } else if (empty.expectation == 1e-04) {
     newCatch[is.na(newCatch)] <- 1e-04
@@ -249,7 +249,7 @@ medium_expectations <- function(dat, project, catch, price, defineGroup, temp.va
     attach('newDumV', newDumVm, pos=1)
     
     #replaceEmptyExpAll=get(dp2V5,'String')# replace empty catch
-    if(empty.expectation=='NA'|is.null(empty.expectation)){
+    if(empty.expectation=='NA'|is_empty(empty.expectation)){
       newCatch[is.na(newCatch)] = 0.0001 
     } else if(empty.expectation==0.0001) {
       newCatch[is.na(newCatch)] <- 0.0001

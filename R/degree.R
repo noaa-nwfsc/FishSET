@@ -18,21 +18,24 @@ degree <- function(dat, lat=NULL, lon=NULL, latsign=FALSE, lonsign=FALSE, replac
   #' }
   #' 
   
+  #Call in datasets
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset  
+  
   tmp <- tempfile()
   
     if(any(apply(dataset[,grep('lat|lon', names(dataset), ignore.case=TRUE)], 2, function(x) !is.numeric(x))==TRUE)==TRUE){
-      cat('At least one latitude or longitude variable is not in decimal degrees. Select a lat and lon variable below and then 
-                  \nselect a conversion option on the the left to convert to decimal degrees.', file=tmp)
-    } else if(any(apply(dataset[,grep('lat|lon', names(dataset), ignore.case=TRUE)], 2, function(x) length(trunc(x)))>3)==TRUE){
-      cat('At least one latitude or longitude variable is not in decimal degrees. Select a lat and lon variable below and then 
-                  \nselect a conversion option on the the left to convert to decimal degrees.', file=tmp)
+      cat('At least one latitude or longitude variable is not in decimal degrees. Select a lat and lon variable below and then select a conversion option on the the left to convert to decimal degrees.', file=tmp)
+    } else if(any(apply(dataset[,grep('lat|lon', names(dataset), ignore.case=TRUE)], 2, function(x) nchar(trunc(abs(x))))>3)==TRUE){
+      cat('At least one latitude or longitude variable is not in decimal degrees. Select a lat and lon variable below and then select a conversion option on the the left to convert to decimal degrees.', file=tmp)
     } else {
-      cat('Latitude and longitude variables in decimal degrees. \nNo further action required.', file=tmp)
+      cat('Latitude and longitude variables in decimal degrees. No further action required.', file=tmp)
     }
   
   
   print(suppressWarnings(readLines(tmp)))
-  rm(tmp)
+
   
   degree_function <- list()
   degree_function$functionID <- 'degree'
@@ -40,7 +43,7 @@ degree <- function(dat, lat=NULL, lon=NULL, latsign=FALSE, lonsign=FALSE, replac
   degree_function$output <-  c(dat)
   degree_function$msg <- suppressWarnings(readLines(tmp))
   log_call(degree_function)
-  
+
   if(replace==TRUE){
   if(!is.null(lat)){
     if(!is.numeric(dat[[lat]])) {
@@ -91,5 +94,5 @@ degree <- function(dat, lat=NULL, lon=NULL, latsign=FALSE, lonsign=FALSE, replac
   }
   return(dat) 
     }
- 
+  rm(tmp)
 }

@@ -720,8 +720,13 @@
                                       Output saved in fishset_db sqLite database. Previously saved expected catch/revenue output will be written over if the', 
                                       tags$i('Replace previously saved'), 'box is unchecked. Checking this box will add new output to existing output.'),
                                tags$br(), tags$br(),
-                               DT::DTOutput('spars_table'),
-                               plotOutput('spars_plot')
+                               conditionalPanel(condition="input.temp_var!='none'",
+                                                tagList(
+                                     h4('Sparsity of observations by time period and zone.'),
+                                     h5('Higher values indicate greater sparsity.'),
+                                    DT::DTOutput('spars_table'),
+                                    plotOutput('spars_plot')
+                                                ))
                              )
                              )),
                   #----

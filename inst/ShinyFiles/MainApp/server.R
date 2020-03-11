@@ -191,6 +191,9 @@
       
       #Add in reactive values once data  call is is not empty
       observeEvent(input$loadDat, {
+        if(input$projectname==''){
+          showNotification("Please enter a project name.", type='message', duration=10)
+        }
         req(input$projectname)
         if(input$loadmainsource=='FishSET database'){
           if(table_exists(paste0(input$projectname, 'MainDataTable'))==FALSE){
@@ -777,7 +780,7 @@
       ##Output to main panel
       output$Case<-renderPrint({
         if(input$checks=='Summary table') {
-          "Summary table of NUMERIC variables in data set.<br><br>"
+          "Summary table of NUMERIC variables in data set."
         } else if(input$checks=='Outliers'){
           if(input$dat.remove=='none'){
             HTML('Table to assess outliers.', input$column_check, "shown. <br>Zoom in to plot by highlighting desired area and double clicking. <br>Double click again to reset plot.")
@@ -799,9 +802,9 @@
           }
         } else if(input$checks=='NAs'){
           #na(values$dataset)
-          na_filter(values$dataset, names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), replace = FALSE, remove = FALSE, over_write=FALSE)
+          na_filter(values$dataset, names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), replace = FALSE, remove = FALSE, rep.value=NA, over_write=FALSE)
         } else if(input$checks=='NaNs') {
-          nan_filter(values$dataset, names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), replace = FALSE, remove = FALSE, over_write=FALSE)
+          nan_filter(values$dataset, names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), replace = FALSE, remove = FALSE, rep.value=NA,  over_write=FALSE)
         } else if(input$checks=='Unique observations'){
           unique_filter(values$dataset, remove=FALSE)
         } else if(input$checks=='Empty variables'){
@@ -981,8 +984,13 @@
       })
       
       output$missingtable <- DT::renderDT(
-        tableInputSummary()[which(!is.na(tableInputSummary()$Missing)),], server = TRUE, rownames=TRUE,
+        if(length(which(tableInputSummary()$Missing!=" 0" & !is.na(tableInputSummary()$Missing)))>0){
+        tableInputSummary()[which(tableInputSummary()$Missing!=" 0" & !is.na(tableInputSummary()$Missing)),]
+         } else {
+          return(NULL)
+        }  , server = TRUE, rownames=TRUE,
         options = list(autoWidth=FALSE, scrollX=T, responsive=FALSE, pageLength = 25)
+       
       )
       
       output$output_table_summary <- DT::renderDT(
@@ -1181,7 +1189,7 @@
       
       observeEvent(input$NA_Filter_all,{
           if(any(apply(values$dataset, 2, function(x) anyNA(x)))==TRUE){
-            values$dataset <- na_filter(values$dataset, names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), replace = FALSE, remove = TRUE, over_write=FALSE)  
+            values$dataset <- na_filter(values$dataset, names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), replace = FALSE, remove = TRUE, rep.value=NA, over_write=FALSE)  
           } else {
             values$dataset <- values$dataset
             cat('No missing values to remove')
@@ -1190,7 +1198,7 @@
       
       observeEvent(input$NA_Filter_mean,{
           if(any(apply(values$dataset, 2, function(x) anyNA(x)))==TRUE){
-            values$dataset <- na_filter(values$dataset,  names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), replace = TRUE, remove = FALSE, over_write=FALSE)
+            values$dataset <- na_filter(values$dataset,  names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), replace = TRUE, remove = FALSE, rep.value=NA, over_write=FALSE)
           } else {
             values$dataset <- values$dataset
             cat('No missing values to remove')
@@ -1199,7 +1207,7 @@
       
       observeEvent(input$NAN_Filter_all,{
           if(any(apply(values$dataset, 2, function(x) any(is.nan(x))))==TRUE){
-            values$dataset <- nan_filter(values$dataset, names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), replace = FALSE, remove = TRUE, over_write=FALSE)  
+            values$dataset <- nan_filter(values$dataset, names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), replace = FALSE, remove = TRUE, rep.value=NA, over_write=FALSE)  
           } else{
             values$dataset <- values$dataset
             print('No non-numbers to remove.')
@@ -1208,7 +1216,7 @@
       
       observeEvent(input$NAN_Filter_mean,{
           if(any(apply(values$dataset, 2, function(x) any(is.nan(x))))==TRUE){
-            values$dataset <- nan_filter(values$dataset,  names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), replace = TRUE, remove = FALSE, over_write=FALSE)
+            values$dataset <- nan_filter(values$dataset,  names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), replace = TRUE, remove = FALSE, rep.value=NA, over_write=FALSE)
           } else {
             values$dataset <- values$dataset
             print('No non-numbers to remove.')
@@ -2185,7 +2193,7 @@
           selectizeInput('price', 'If expected revenue is to be calculated, variable containing price or value data', 
                          choices=c(input$priceBase, "none", colnames(values$dataset[,grep('value|dollar', colnames(values$dataset), ignore.case=TRUE)]))),
           selectizeInput('group','Choose variable that defines groups',
-                         choices=c('none','Fleet (no group)', names(values$dataset[, !sapply(values$dataset, is.numeric)])))
+                         choices=c('Fleet (no group)', names(values$dataset[, !sapply(values$dataset, is.numeric)])))
         )
       })
       output$expcatch <-  renderUI({
@@ -2198,9 +2206,9 @@
       sparstable_dat <- reactive({
         if(!any(colnames(values$dataset)=='ZoneID')){
           return()
-        } else if(is.null(input$catche)){
+        } else if(is_empty(input$catche)){
           return()
-        } else if(is.null(input$temp_var)){
+        } else if(input$temp_var=='none'){
           return()
         } else{
           sparsetable(values$dataset, input$projectname, timevar=input$temp_var, zonevar='ZoneID', var=input$catche)
@@ -2211,12 +2219,12 @@
       output$spars_plot <- renderPlot({
         if(!any(colnames(values$dataset)=='ZoneID')){
           return()
-        } else if(is.null(input$catche)){
+        } else if(is_empty(input$catche)){
           return()
-        } else if(is.null(input$temp_var)){
+        } else if(input$temp_var=='none'){
           return()
         } else {
-          print(sparsplot(sparsetable(values$dataset, input$projectname, timevar=input$temp_var, zonevar='ZoneID', var=input$catche), input$projectname))
+          print(sparsplot(sparstable_dat(), input$projectname))
         }
       })
       
@@ -2601,7 +2609,8 @@
       
       observeEvent(input$submitE, {
         showNotification('Create expectation function called', type='message', duration=10)
-        create_expectations(values$dataset, input$projectname, input$catche, price=input$price, defineGroup=input$group, temp.var=input$temp_var, 
+        
+        create_expectations(values$dataset, input$projectname, input$catche, price=input$price, defineGroup=if(grepl('no group',input$group)){NULL} else {input$group}, temp.var=input$temp_var, 
                             temporal = input$temporal, calc.method = input$calc_method, lag.method = input$lag_method,
                             empty.catch = input$empty_catch, empty.expectation = input$empty_expectation,  
                             temp.window = input$temp_window, temp.lag = input$temp_lag, year.lag=input$temp_year, dummy.exp = input$dummy_exp)
@@ -2612,8 +2621,6 @@
       ##Resetting inputs
       observeEvent(input$refresh1,{
         updateCheckboxInput(session, 'Outlier_Filter', value=FALSE)
-        updateRadioButtons(session, 'NA_Filter', selected='none')
-        updateRadioButtons(session, 'NAN_Filter', selected='none')
       })
       ###----                
       
@@ -2669,7 +2676,7 @@
           actionButton('downloadplotAnal', label ='Save plot to folder'),#, title = "", filename = paste0(project,'_', input$corr_reg, '_plot'), filetype = "png"),
           actionButton('downloaddataAnal', label ='Save table to folder as csv'),
           downloadLink("downloadTextAnal", label=''),
-          actionButton('callTextDownloadAnal','Save notes.')
+          actionButton('callTextDownloadAnal','Save notes')
         )
       })
       
@@ -2678,7 +2685,7 @@
           downloadLink('downloadplotNew', label=''),
           actionButton('downloadplotNew', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
           downloadLink("downloadTextNew", label=''),
-          actionButton('callTextDownloadNew','Save notes.')
+          actionButton('callTextDownloadNew','Save notes')
         )
       })
       

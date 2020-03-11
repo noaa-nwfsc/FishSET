@@ -29,19 +29,19 @@ nan_identify <- function(dat){
     cat("The", names(which(apply(dataset, 2, function(x) anyNA(x))==TRUE)), "columns contain NAs. Consider using nan_filter to replace or remove NAs", file=tmp)
   
   } else {
-    #cat("\nNo columns in the dataframe contain NaNs", file=paste(getwd(),'/Logs/InforMessage',Sys.Date(),'.txt', sep=''), append=TRUE)
+    #cat("No columns in the dataframe contain NaNs", file=paste(getwd(),'/Logs/InforMessage',Sys.Date(),'.txt', sep=''), append=TRUE)
     cat("No columns in the dataframe contain NAs", file=tmp, append=TRUE)
   }
   
    #check for NaNs
    if (any(apply(dataset, 2, function(x) any(is.nan(x)))==TRUE)) {
-     #cat("\nThe", names(which(colSums(is.nan.data.frame(dataset)) != 0)), "columns contain", 
+     #cat("The", names(which(colSums(is.nan.data.frame(dataset)) != 0)), "columns contain", 
      #unname(which(colSums(is.nan.data.frame(dataset)) != 0)), "NaNs. Consider using nan.filter to replace or remove NaNs", 
      #file=paste(getwd(),'/Logs/InforMessage',Sys.Date(),'.txt', sep=''), append=TRUE)
      cat("The", names(which(apply(dataset, 2, function(x) any(is.nan(x)))==TRUE)), "columns contain NaNs. Consider using nan_filter to replace or remove NaNs", file=tmp, append=TRUE)
      
    } else {
-     #cat("\nNo columns in the dataframe contain NaNs", file=paste(getwd(),'/Logs/InforMessage',Sys.Date(),'.txt', sep=''), append=TRUE)
+     #cat("No columns in the dataframe contain NaNs", file=paste(getwd(),'/Logs/InforMessage',Sys.Date(),'.txt', sep=''), append=TRUE)
      cat("No columns in the dataframe contain NaNs", file=tmp, append=TRUE)
    }
    
@@ -105,7 +105,7 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write
           if (is.numeric(int[, x.name]) == T) {
           # Further actions are only taken if NaNs exist in the selected variable
         int[is.nan(int[, x.name]), x.name] = rep.value
-        cat("\nAll NaNs in", x.name, "have been replaced with", rep.value, file=tmp, append=T)
+        cat("All NaNs in", x.name, "have been replaced with", rep.value, file=tmp, append=T)
         } else {
           # Message returned if the selected variable is not numeric
           cat("Variable is not numeric. Function not applied", file=tmp, append=T)
@@ -113,7 +113,7 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write
    
         # If remove is true then row inwhich the NaN occurs for selected column will be removed.
       } else if (remove == T) {
-        cat("\nThe entire row will be removed from the dataframe.", file=tmp, append=T)
+        cat("The entire row will be removed from the dataframe.", file=tmp, append=T)
         int <- int[!is.nan(int[, x.name]), ]
       }
     }
@@ -178,11 +178,10 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write=
   
   int <- dataset
   tmp <- tempfile()
-
   
-  if(any(apply(dataset, 2, function(x) anyNA(x))==TRUE)){  
+  if((!is_empty(names(which(apply(dataset, 2, function(x) anyNA(x))==TRUE))) && any(apply(dataset, 2, function(x) anyNA(x))==TRUE))==TRUE){  
     cat("The", names(which(apply(dataset, 2, function(x) anyNA(x))==TRUE)), "columns contain NAs. Consider using na_filter to replace or remove NAs", file=tmp)
-    x <- names(which(apply(dataset, 2, function(x) anyNA(x))==TRUE))
+    #x <- names(which(apply(dataset, 2, function(x) anyNA(x))==TRUE))
     
   for(i in 1:length(x)){
     x.name <- x[i]
@@ -195,7 +194,7 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write=
         if (is.numeric(int[, x.name]) == T) {
           # Further actions are only taken if NAs exist in the selected variable
           int[is.na(int[, x.name]), x.name] = rep.value
-          cat("\nAll NAs in", x.name, "have been replaced with", rep.value, file=tmp, append=T)
+          cat("All NAs in", x.name, "have been replaced with", rep.value, file=tmp, append=T)
         } else {
           # Message returned if the selected variable is not numeric
           cat("Variable is not numeric. Function not applied", file=tmp, append=T)
@@ -203,11 +202,11 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write=
         
         # If remove is true then row inwhich the NaN occurs for selected column will be removed.
       } else if (remove == T) {
-        cat("\nThe entire row will be removed from the dataframe.", file=tmp, append=T)
+        cat("The entire row will be removed from the dataframe.", file=tmp, append=T)
         int <- int[!is.na(int[, x.name]), ]
       }}
     } else {
-      cat("\nNo NAs present in variable", x.name, file=tmp)
+      cat("No NAs present in selections", file=tmp)
     }
     
   print(suppressWarnings(readLines(tmp)))
@@ -234,3 +233,4 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value=NA, over_write=
   return(int)
   }
 }
+

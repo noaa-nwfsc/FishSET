@@ -300,20 +300,21 @@ data_pull <- function(dat){
 
 }
 
-save_table <- function(table, project, func_name, ...) {
+save_table <- function(table, project, func_name, ...){
   #' Save table to output folder
-  #' @param table table name.
-  #' @param project project name.
-  #' @param func_name function name.
-  #' @param ... addition arguments passsed to write.csv function. 
+  #' @param table table name
+  #' @param project project name
+  #' @param func_name function name
+  #' @param ... additional arguments passsed to write.csv function 
   #' @export
-  #' @examples 
-  #' \dontrun{ save_table(count, project, "species_catch")}   
+  #' @examples
+  #' \dontrun{
+  #' save_table(count, project, "species_catch")
+  #' }   
   write.csv(table, paste0(locoutput(), project, "_", func_name, "_", Sys.Date(), '.csv'))
-  
 }
 
-save_plot <- function(project, func_name, ...) {
+save_plot <- function(project, func_name, ...){
   #' Save table to output folder
   #' @param project name of project.
   #' @param func_name function name.
@@ -325,6 +326,7 @@ save_plot <- function(project, func_name, ...) {
   ggplot2::ggsave(file = paste0(locoutput(), project, "_", func_name, "_", Sys.Date(), '.png'), ...)
   
 }
+
 
 periods_list <- list("%B" = month.name,
                      "%b" = month.abb,
@@ -531,33 +533,6 @@ outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plo
   }
 }
 
-save_table <- function(table, project, func_name, ...){
-  #' Save table to output folder
-  #' @param table table name
-  #' @param project project name
-  #' @param func_name function name
-  #' @param ... additional arguments passsed to write.csv function 
-  #' @export
-  #' @examples
-  #' \dontrun{
-  #' save_table(count, project, "species_catch")
-  #' }   
-  write.csv(table, paste0(locoutput(), project, "_", func_name, "_", Sys.Date(), '.csv'))
-}
-
-save_plot <- function(project, func_name, ...){
-  #' Save table to output folder
-  #' @param project name of project.
-  #' @param func_name function name.
-  #' @param ... additional arguments passed to the ggsave function. 
-  #' @export
-  #' @examples 
-  #' \dontrun{
-  #' save_plot(project, "species_catch")
-  #' }
-  
-  ggplot2::ggsave(file = paste0(locoutput(), project, "_", func_name, "_", Sys.Date(), '.png'), ...)
-}
 
 #shiny_running = function () {
   # Look for `runApp` call somewhere in the call stack.

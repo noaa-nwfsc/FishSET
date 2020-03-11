@@ -158,20 +158,23 @@ empty_vars_filter <- function(dat, remove=FALSE) {
   #Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
-  dataset <- out$dataset
+  dataset <- out$dataset  
+  
   
   tmp <- tempfile()
   
 if(any(apply(dataset, 2, function(x) all(is.na(x))) == TRUE)) {
   cat(names(which(apply(dataset, 2, function(x) all(is.na(x))) == TRUE)), "is empty. 
                 \nConsider removing the column from the data set.", file=tmp)
-} else {
+
   if(remove==TRUE){
     dataset <- dataset[, names(dataset)!=names(which(apply(dataset, 2, function(x) all(is.na(x))) == TRUE))]
     cat(names(which(apply(dataset, 2, function(x) all(is.na(x))) == TRUE)), "is empty and has been removed from the data set.", file=tmp)
   } else {
     cat(names(which(apply(dataset, 2, function(x) all(is.na(x))) == TRUE)), "is empty. Consider removing from the data set.", file=tmp) 
   }
+} else {
+  cat("No empty variables identified.", file=tmp)
 }
   
   print(suppressWarnings(readLines(tmp)))  
