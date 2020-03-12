@@ -3,7 +3,7 @@
 outlier_table <- function(dat, project, x) {
   #' Evaluate outliers in a table output
   #'
-  #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
+  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
   #' @param project Name of project.
   #' @param x Column in data frame to check for outliers 
   #' @param project Name of project
@@ -138,9 +138,9 @@ outlier_table <- function(dat, project, x) {
 ##---------------------------##
 outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen=FALSE){
   #' Evaluate outliers through plots
-  #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
-  #' @param, project Name of project
-  #' @param x Column in dataf rame to check for outliers
+  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
+  #' @param project Name of project
+  #' @param x Column in data frame to check for outliers
   #' @param dat.remove Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD
   #' @param x.dist Distribution of the data. Choices include: normal, lognormal, exponential, weibull, poisson, negative binomial
   #' @param output.screen If true, return plots to the screen. If false, returns plot to the inst/output folder as png file.
@@ -326,7 +326,7 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen=FALS
 ##---------------------------##
 outlier_remove <- function(dat, x, dat.remove = "none", remove = T, over_write=FALSE) {
   #' Evaluate and edit outliers from variable
-  #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
+  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
   #' @param x Column in data frame containing potential outliers.
   #' @param dat.remove Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD
   #' @param remove Save data with outliers removed. If TRUE, the revised data table, with values removed outside the `dat.remove` expression, is returned.

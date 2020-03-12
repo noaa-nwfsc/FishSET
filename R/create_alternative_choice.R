@@ -2,7 +2,7 @@
 #'
 #' Creates a list containing information on how alternative fishing choices should be defined. 
 #'
-#' @param dat  Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param dat  Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
 #' @param gridfile Spatial data. Shape, json, and csv formats are supported.
 #' @param case Centroid='Centroid of Zonal Assignment', Port, Other
 #' @param min.haul Minimum number of hauls. Removes zones with fewer hauls than min.haul. For instance, include only zones with at least 100 hauls.
@@ -42,7 +42,6 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
                                       cat, hull.polygon = c(TRUE, FALSE), closest.pt = FALSE, project, 
                                       griddedDat=NULL, weight.var = NULL) {
   
-  
   stopanaly <- 0
   
   #Call in datasets
@@ -77,7 +76,7 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
   } else {
       int.data <- dataset
     }
-   if(any(is.na(int.data$ZoneID)==TRUE)==TRUE){
+   if(anyNA(int.data$ZoneID)==TRUE){
       warning(paste("No zone identified for", sum(is.na(int.data$ZoneID)), "observations. These observations will be removed in future analyses."))
     }
     
@@ -94,7 +93,7 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
     C <- match(int.data$ZoneID[!is.na(int.data$ZoneID)], unique(int.data$ZoneID[!is.na(int.data$ZoneID)]))  #  match(unlist(gridInfo['assignmentColumn',,]), unique(unlist(gridInfo['assignmentColumn',,])))
   
     } else {
-    a <- colnames(dataset)[which(grepl("zon|area", colnames(dataset), ignore.case = TRUE))] #find(zp)   #find data that is zonal type                                                                                                                                                                                            
+    a <- colnames(dataset)[grep("zon|area", colnames(dataset), ignore.case = TRUE)] #find(zp)   #find data that is zonal type                                                                                                                                                                                            
     
     # [B,I,C]=unique([gridInfo.assignmentColumn(~isnan(gridInfo.assignmentColumn)),
     # data(a(v)).dataColumn(~isnan(gridInfo.assignmentColumn),:) ],'rows');%FIXME check that the order of output zones is consistent
@@ -184,7 +183,7 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
           
           allMat <- gridVar[,-1][biD,biG]
         }
-         if (any(is.na(allMat[Alt[['dataZoneTrue']],]))) {
+         if(anyNA(allMat[Alt[['dataZoneTrue']],])) {
           stop('Problem with loaded matrix, NaN found.')
          }
         

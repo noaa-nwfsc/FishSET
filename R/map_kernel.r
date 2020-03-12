@@ -1,8 +1,9 @@
-map_kernel <- function(type, project, latlon, group = NULL, facet = FALSE, minmax = NULL) {
+map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE, minmax = NULL) {
     #' Wrapper function to map kernel densities
     #'
     #' Wrapper function to map kernel densities using ggplot2
     #'
+    #' @param dat Main data set
     #' @param project Name of project
     #' @param type Type of plot ("point", "contours", "gradient"). Note if you
     #' have a group, you must facet when choosing "gradient" (cannot overlap
@@ -43,12 +44,32 @@ map_kernel <- function(type, project, latlon, group = NULL, facet = FALSE, minma
 ## currently outputs to FishSET not file (could include dirout as argument)
 requireNamespace('ggplot2')
 world <- ggplot2::map_data("world")
-  
-datatomap <- as.data.frame(latlon)
+ 
+out <- data_pull(dat)
+dat <- out$dat
+dataset <- out$dataset
+
+datatomap <- as.data.frame(dataset[,c(latlon)])
 colnames(datatomap) <- c("lat", "lon")
-datatomap <- datatomap[-which(is.na(datatomap$lon)==TRUE|is.na(datatomap$lat)==TRUE),]
+if(anyNA(datatomap)){
+  datatomap <- datatomap[-which(is.na(datatomap$lon)==TRUE|is.na(datatomap$lat)==TRUE),]
+}
 datatomap$groupv <- group
 
+
+x <- 0
+if (any(abs(datatomap$lon) > 180)) {
+  warning("Longitude is not valid (outside -180:180). Function not run.")
+  #stop("Longitude is not valid (outside -180:180.")
+  x <- 1
+}
+if (any(abs(datatomap$lat) > 90)) {
+  warning("Latitude is not valid (outside -90:90. Function not run.") 
+  x <-1    
+  # stop("Latitude is not valid (outside -90:90.")
+} 
+
+if(x==0){
 if (is.null(minmax) == TRUE) {
 
 if (min(datatomap$lat) < 0 & max(datatomap$lat) < 0) {
@@ -259,5 +280,5 @@ return(mapout)
 }
 
 save_plot(project, "map_kernel", mapout)
-
+}
 }

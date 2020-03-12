@@ -1,6 +1,6 @@
 data_verification_call <- function(dat, project) {
   #' Checks for common issues with data
-  #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
   #' @param project Name of project
   #' @return Returns statements as to whether issues in the data may exist
   #' @export data_verification_call
@@ -10,18 +10,15 @@ data_verification_call <- function(dat, project) {
   #' Main data table is not saved to fishset_db database if any tests fail.
   #' @examples
   #' \dontrun{
-  #' data_verification_call(MainDataTable)
+  #' data_verification_call(pollockMainDataTable, 'pollock')
   #' }
   
+  
   #Call in datasets
-  #if(table_exists(dat)) {
   out <- data_pull(dat)
   dat <- out$dat
   dataset <- out$dataset
- # } else {
-#    dataset <- dat
- #   dat <- deparse(substitute(dat))
-#  }
+
   
   tmp <- tempfile()
   cat("Data verification checks", file=tmp, append=TRUE)
@@ -58,8 +55,8 @@ data_verification_call <- function(dat, project) {
   }
   
   if(any(grepl('lat|lon', names(dataset), ignore.case=TRUE))){
-    lat <- dataset[,which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)]
-    lon <- dataset[,which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)]
+    lat <- dataset[,grep('lat', names(dataset), ignore.case=TRUE)]
+    lon <- dataset[,grep('lon', names(dataset), ignore.case=TRUE)]
     
     if(is.factor(lat)) {
       lat <- as.numeric(as.character(lat))
@@ -71,8 +68,8 @@ data_verification_call <- function(dat, project) {
     #maps::map('world', ylim=c(min(lat, na.rm=TRUE), max(lat, na.rm=TRUE)), 
     #          xlim=c(min(lon, na.rm=TRUE), max(lon, na.rm=TRUE)))
     #pts <- sample(nrow(dataset), nrow(dataset)/10)
-    #points(as.numeric(as.character(dataset[pts, which(grepl('lon', names(dataset), ignore.case=TRUE)==TRUE)[1]])), 
-    #       as.numeric(as.character(dataset[pts, which(grepl('lat', names(dataset), ignore.case=TRUE)==TRUE)[1]])))
+    #points(as.numeric(as.character(dataset[pts, grep('lon', names(dataset), ignore.case=TRUE)[1]])), 
+    #       as.numeric(as.character(dataset[pts, grep('lat', names(dataset), ignore.case=TRUE)[1]])))
     #print('10% of samples plotted. Verify that points occur in correct geographic area.')
   }
   
@@ -84,6 +81,6 @@ data_verification_call <- function(dat, project) {
     warning('Data cannot be saved, at least one error exists')
   }
   
-  save_table(dataset, project, "data_verification_call")
+#  save_table(dataset, project, "data_verification_call")
   
 }

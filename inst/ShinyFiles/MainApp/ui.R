@@ -35,7 +35,7 @@
       # enable the <enter> key to press the [Run] button
       tags$script(HTML(
         '$(document).keyup(function(event) {
-        if (event.keyCode == 13) {
+        if(event.keyCode == 13) {
         $("#run").click();
         }
     });'
@@ -60,9 +60,11 @@
                                                                enable use of location choice models to provide input to the management
                                                                 of key fisheries, and organize statistical code so that predictions
                                                                 of fisher behavior can be incorporated and transparent to all users.'),
-                                                        tags$p('The toolbox is divided into tabs to guide users through all steps from uploading data to
-                                                               developing and evaluating models. Tabs can be navigated in any order.
-                                                               See the Quickstart Guide for further assistance.'),
+                                                        tags$p('The FishSET toolbox is provided as a set of R functions that can be run in an R console or an R Shiny application.'),
+                                                        tags$p('The FishSET Shiny application is divided into tabs to guide users through all steps from uploading data to developing 
+                                                               and evaluating models. Tabs can be navigated in any order. Data are saved in a FishSET database. Output, plots and tables, 
+                                                               are saved in an output folder within the FishSET R package. The', tags$em('Quickstart Guide'), 'provides further assistance on using the 
+                                                               FishSET Shiny application.'),
                                                         tags$p('For questions and comments please contact:',
                                                                tags$ul('Alan Haynie  alan.haynie@noaa.gov'),
                                                                tags$ul('Melanie Harsch melanie.harsch@nooa.gov')))
@@ -76,8 +78,8 @@
                                       tags$div(
                                       radioButtons('QuickStartChoices',"", choices = c('Information across all tabs'='AcrossTabs',
                                                                                        'Upload Data tab'='UploadTab',
-                                                                                       'Data Exploration tab'='ExplorTab',
                                                                                        'Data Quality Evaluation tab'='DQTab',
+                                                                                       'Data Exploration tab'='ExplorTab',
                                                                                        'Simple Analyses tab'='AnalTab',
                                                                                        'Compute New Variables tab'='NewVarsTab',
                                                                                        'Zonal Definition tab'='ZonalTab',
@@ -123,7 +125,7 @@
                            )),
                   #---
                   #----
-                  #UPLOAD DATA
+                  #UPLOAD DATA TABSET PANEL  
                   #-----
                   tabPanel("Upload Data", value = "upload",
                            tags$style(type='text/css', "#uploadMain { width:100%; margin-top: 24px;margin-left:-20px;padding-left:2px; padding-right:5px}"),
@@ -211,29 +213,37 @@
                                           uiOutput('outlier_dist'),
                                           conditionalPanel(
                                             condition = "input.checks == 'NAs'",
-                                            radioButtons('NA_Filter', 'Filter NAs by', choices=c('none','Remove all','Replace with mean'), selected='none')
+                                            actionButton('NA_Filter_all', 'Remove all NAs')
+                                          ),
+                                          conditionalPanel(
+                                            condition = "input.checks == 'NAs'",
+                                            actionButton('NA_Filter_mean', 'Replace NAs with mean value')
                                           ),
                                           conditionalPanel(
                                             condition = "input.checks == 'NaNs'",
-                                            radioButtons('NAN_Filter', 'Filter NaNs by', choices=c('none','Remove all','Replace with mean'), selected='none')
+                                            actionButton('NAN_Filter_all', 'Remove all NAs')
+                                          ),
+                                          conditionalPanel(
+                                            condition = "input.checks == 'NaNs'",
+                                            actionButton('NAN_Filter_mean', 'Replace NAs with mean value')
                                           ),
                                           conditionalPanel(condition="input.checks=='Outliers'",
-                                                           checkboxInput('Outlier_Filter', 'Remove outliers', value=FALSE)),
+                                                           actionButton('Outlier_Filter', 'Remove outliers')),
                                           conditionalPanel(
                                             condition ='input.checks=="Outliers"',
                                             uiOutput("hover_info1")),
                                           conditionalPanel(
                                             condition ='input.checks=="Unique observations"',
-                                            checkboxInput('Unique_Filter', 'Remove non-unique rows', value=FALSE)
+                                            actionButton('Unique_Filter', 'Remove non-unique rows')
                                           ),
                                           conditionalPanel(
                                             condition ='input.checks=="Empty variables"',
-                                            checkboxInput('Empty_Filter', 'Remove empty variables', value=FALSE)
+                                            actionButton('Empty_Filter', 'Remove empty variables')
                                           ),
                                            uiOutput('LatLonDir'),
                                           conditionalPanel(
                                             condition ='input.checks=="Lat_Lon units"',
-                                            checkboxInput('LatLon_Filter', 'Convert lat/long to decimal degrees', value=FALSE)
+                                            actionButton('LatLon_Filter', 'Convert lat/long to decimal degrees', value=FALSE)
                                           ),
                                           conditionalPanel(
                                             condition ='input.checks=="Lat_Lon units"',
@@ -254,7 +264,8 @@
                              mainPanel(width=9,
                                        tags$br(), tags$br(),
                                        htmlOutput("Case"),
-                                       DT::DTOutput("output_table_summary"),
+                                       conditionalPanel(condition="input.checks=='Summary table'",
+                                                        DT::DTOutput("output_table_summary")),
                                        DT::DTOutput("output_table_outlier"),
                                        tags$br(),tags$br(),
                                        conditionalPanel(condition="input.checks=='Outliers'",
@@ -272,7 +283,8 @@
                                                               brush = brushOpts(id = "plot3_brush",resetOnNew = TRUE)
                                                    ))
                                        ),
-                                      
+                                       conditionalPanel(condition="input.checks=='NAs'",
+                                                        DT::DTOutput('missingtable')),
                                        DT::DTOutput('output_table_latlon')
                                 
                                        ))),
@@ -290,6 +302,7 @@
                                             condition='input.plot_table=="Table"',
                                             actionButton('subsetData', 'Remove variable from data set')
                                           ),
+                                          actionButton('callTextDownloadExplore','Save notes'),
                                           actionButton('saveData','Save data to fishset_db database'),
                                           tags$button(
                                             id = 'close',
@@ -433,7 +446,7 @@
                            )),
                   
                   #----
-                  #Create New variables
+                  #Create New variables tabset panel
                   #----
                   tabPanel('Compute New Variables', value='new',
                            sidebarLayout(
@@ -495,7 +508,7 @@
                                uiOutput('trans_quant_name'),
                                conditionalPanel(condition="input.VarCreateTop=='Data transformations'&input.trans=='set_quants'",
                                                 style = "margin-left:19px;", selectInput('quant_cat','Quantile categories',
-                                                                                         choices=c('0%, 20%, 40%, 60%, 80%, 100%'='.2', '0%, 25%, 50%, 75%, 100%'='0.25', 
+                                                                                         choices=c('0%, 20%, 40%, 60%, 80%, 100%'='0.2', '0%, 25%, 50%, 75%, 100%'='0.25', 
                                                                                                    '0%, 10%, 50%, 90%, 100%'='0.4'))),
                                #More sub choices Nominal IDS  
                                uiOutput('unique_col_id'),
@@ -561,7 +574,7 @@
                              )
                            )),
                   #----   
-                  #Zonal definition
+                  #Zonal definition tabset panel
                   #-----
                   tabPanel('Zonal Definition',
                            sidebarLayout(
@@ -621,7 +634,7 @@
                              )
                            )),
                   #-----
-                  #Expected Catch
+                  #Expected Catch tabset panel
                   #----
                   tabPanel("Expected Catch/Revenue",
                            sidebarLayout(
@@ -707,12 +720,17 @@
                                       Output saved in fishset_db sqLite database. Previously saved expected catch/revenue output will be written over if the', 
                                       tags$i('Replace previously saved'), 'box is unchecked. Checking this box will add new output to existing output.'),
                                tags$br(), tags$br(),
-                               DT::DTOutput('spars_table'),
-                               plotOutput('spars_plot')
+                               conditionalPanel(condition="input.temp_var!='none'",
+                                                tagList(
+                                     h4('Sparsity of observations by time period and zone.'),
+                                     h5('Higher values indicate greater sparsity.'),
+                                    DT::DTOutput('spars_table'),
+                                    plotOutput('spars_plot')
+                                                ))
                              )
                              )),
                   #----
-                  #Model Parameters
+                  #Model Parameters tabset panel
                   #----
                    tabPanel("Models",
                             tabsetPanel(
@@ -814,7 +832,7 @@
                                       )  )
                             )),
                   #---- 
-                  #Bookmark
+                  #Bookmark tabset panel
                   #-----
                   tabPanel('Bookmark Choices', value = "book",
                            tags$br(),

@@ -28,8 +28,8 @@ spars <- function(x, dname){
       #print(head(x))
       return(colSums(x == 0)/nrow(x))
       }
-#browser()
-tmp <- suppressWarnings(reshape2::acast(dat[,c(zonevar,var,timevar)], dat[[timevar]]~dat[[zonevar]], value.var=var))
+
+tmp <- reshape2::acast(dat[,c(zonevar,var,timevar)], dat[[timevar]]~dat[[zonevar]], value.var=var)
 tmp <- cbind(tmp, All_zones = rowSums(tmp))
 
 sparstable <- matrix(nrow=6, ncol=length(colnames(tmp)))
@@ -44,9 +44,10 @@ sparstable[6,] <- spars(tmp, '%y')
 colnames(sparstable) = names(spars(tmp, '%y'))
 rownames(sparstable)=c('daily', 'weekly','biweekly','monthly', 'quarterly', 'yearly')
 sparstable <- round(sparstable,2)
-return(sparstable)
 
 save_table(sparstable, project, "sparstable")
+return(sparstable)
+
 }
 
 
@@ -66,22 +67,28 @@ toplot <- reshape2::melt(x, id.vars = c("time"), measure.vars = colnames(x)[-len
 toplot_sub <- data.frame(day=c(1,7,14,30,90,365), sparsity =apply(x, 1, mean))#x[,dim(x)[2]])
 fit = stats::lm(data = toplot_sub, sparsity ~ day)
 
-g <- ggplot2::ggplot(data=toplot, ggplot2::aes(Var1,value, color=Var2)) + ggplot2::geom_point( show.legend = FALSE) +
+g <- ggplot2::ggplot(data=toplot, ggplot2::aes(Var1,value, color=Var2)) + ggplot2::geom_point(show.legend = FALSE) +
   ggplot2::geom_smooth(ggplot2::aes(group=1, color='Mean of all zones'), method = "loess", size = 1, 
-                    linetype = "dashed", se = FALSE,show.legend = FALSE) +
+                    linetype = "dashed", se = FALSE, show.legend = FALSE) +
   ggplot2::stat_smooth(method = "nls", formula = "y ~ a*x^b",  
                 method.args = list(start=c(a=fit$coefficients[[1]], 
                                            b=fit$coefficients[[2]])), 
-                se = FALSE,show.legend = FALSE) +
+                se = FALSE, show.legend = FALSE) +
   ggplot2::xlab('Time') + ggplot2::ylab('Sparsity value') + 
   ggplot2::theme(legend.title = ggplot2::element_blank()) +
-  ggplot2::theme_bw(base_family = "Times") + 
-  ggplot2::theme(panel.border = ggplot2::element_blank(), panel.grid.major = ggplot2::element_blank(), 
-        panel.grid.minor = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black")) +
+  ggplot2::theme(panel.border = ggplot2::element_blank(), 
+                 panel.grid.major = ggplot2::element_blank(), 
+                 panel.grid.minor = ggplot2::element_blank(), 
+                 panel.background = ggplot2::element_blank(), 
+                 axis.line = ggplot2::element_line(colour = "black"),
+                 axis.text = ggplot2::element_text(size=11), 
+                 axis.title = ggplot2::element_text(size=11)) +
   ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(linetype = c(rep("blank", 5), "dashed", 'blank'))))
 
 save_plot(project, "sparsplot", g)
+return(g)
 }
+
 
 
 

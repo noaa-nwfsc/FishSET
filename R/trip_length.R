@@ -2,7 +2,7 @@
 #' 
 #' Create a plot or table of vessel trip length
 #' 
-#' @param dat Main data frame over which to apply function. Table in fishset_db 
+#' @param dat Main data frame over which to apply function. Table in FishSET 
 #'   database should contain the string `MainDataTable`.
 #' @param project name of project.
 #' @param start Date variable containing the start of vessel trip.
@@ -21,7 +21,7 @@
 #'   including catch and hauls per trip. 
 #' @examples 
 #' \dontrun{
-#' #' trip_length("pollockMainDataTable", start = "FISHING_START_DATE", end = "HAUL_DATE",
+#' trip_length("pollockMainDataTable", start = "FISHING_START_DATE", end = "HAUL_DATE",
 #' units = "days", catch = "OFFICIAL_TOTAL_CATCH", hauls = "HAUL", output = "plot", 
 #' haul_to_trip = T, fun.numeric = sum, fun.time = min, "VESSEL", "FISHING_START_DATE")
 #' #' }

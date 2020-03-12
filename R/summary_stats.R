@@ -1,6 +1,6 @@
 #' View summary statistics 
 #'
-#' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
 #' @param project Name of project.
 #' @param x Optional variable to apply function over.
 #' @param project Name of project
@@ -10,12 +10,12 @@
 #' for that variable. Function is called in the \code{\link{data_check}} function.
 #' @examples
 #' \dontrun{
-#' summary_stats(MainDataTable, x='')
-#' summary_stats(MainDataTable, x='HAUL')
+#' summary_stats('pcodMainDataTable', x='')
+#' summary_stats('pcodMainDataTable', x='HAUL')
 #' }
 
 summary_stats <- function(dat, project, x=NULL) {
-  
+
   
   #Call in datasets
   out <- data_pull(dat)
@@ -37,18 +37,40 @@ summary_stats <- function(dat, project, x=NULL) {
   #UniqueObs 
  #apply(dataset, 2, function(x) paste("UniqueObs:", length(unique(x))))
   
-  
+#all columns  
   if(is_empty(x)){
+    #No missing values in data set
+    if(anyNA(dataset)==FALSE){
    sum_table <-  as.data.frame(as.matrix(rbind(summary(dataset, digits=2), 
+                                  apply(dataset, 2, function(x) paste("NA's: 0")),
                                   apply(dataset, 2, function(x) paste("UniqueObs:", length(unique(x)))),
                                   apply(dataset, 2, function(x) paste("No. 0's:", length(which(x==0))))
                                   )), row.names=FALSE)[-c(2,5),]
+    } else {
+   #Missing data 
+      sum_table <-  as.data.frame(as.matrix(rbind(summary(dataset, digits=2), 
+                                                  apply(dataset, 2, function(x) paste("UniqueObs:", length(unique(x)))),
+                                                  apply(dataset, 2, function(x) paste("No. 0's:", length(which(x==0))))
+      )), row.names=FALSE)[-c(2,5),]
+    }
+
   } else {
-    sum_table <- c(summary(dataset[[x]]), paste("UniqueObs:", length(unique(dataset[[x]]))), 
+#specific column
+    #No missing data
+    if(anyNA(dataset[[x]])==FALSE){
+    sum_table <- c(summary(dataset[[x]]), 
+                   paste("NA's: 0"),
+                   paste("UniqueObs:", length(unique(dataset[[x]]))), 
                             paste("No. 0's:", length(which(dataset[[x]]==0)))
-      )[-c(2,5)]
+                    )[-c(2,5)]
+    } else {
+    #Missing data
+      sum_table <- c(summary(dataset[[x]]), paste("UniqueObs:", length(unique(dataset[[x]]))), 
+                     paste("No. 0's:", length(which(dataset[[x]]==0)))
+                      )[-c(2,5)]
+    }
   }
   
   save_table(sum_table, project, "summary_stats")
-  
+  return(sum_table)
 }

@@ -2,9 +2,9 @@
 #'
 #' Creates a vector containing zone/area location when choice of where to fish next was chosen. 
 #'
-#' @param dat  Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param dat  Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
 #' @param gridfile Spatial data. Shape, json, and csv formats are supported.
-#' @param portTable Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat. Table is generated using the load_port function and saved in the fishset_db database.
+#' @param portTable Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat. Table is generated using the load_port function and saved in the FishSET database.
 #' @param trip_id Variable in 'dat' to identify unique trips. 
 #' @param haul_order Variable in `dat` containing information on the order that hauls occur within a trip. Can be time, coded variable, etc.
 #' @param starting_port Variable in `dat` to identify port at start of trip
@@ -19,7 +19,7 @@
 #' port locations and haul locations to zones. The starting port is used to define the starting location at the start of the trip. 
 #' @examples
 #' \dontrun{
-#' MainDataTable$startloc <- create_startingloc(MainDataTable, map2, pollockPortTable, 
+#' pcodMainDataTable$startloc <- create_startingloc('pcodMainDataTable', map2, pollockPortTable, 
 #'                               'TRIP_SEQ','HAUL_SEQ','DISEMBARKED_PORT',
 #'                               "LonLat_START_LON","LonLat_START_LAT", 'NMFS_AREA', "","")
 #' }
@@ -37,8 +37,7 @@ create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, st
   port.table <- out$dataset
   
   
-  DBI::dbDisconnect(fishset_db)
-  
+#  DBI::dbDisconnect(fishset_db)
   port <- assignment_column(dat=port.table, gridfile = gridfile, hull.polygon = FALSE, 
                             lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = 'Port_Long', 
                             lat.dat = 'Port_Lat', cat = cat, closest.pt = TRUE)

@@ -2,7 +2,7 @@
 #' 
 #' Create a list containing likelihood function, parameters, and data to be pass to model call function
 #' 
-#' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
 #' @param catchID  Name of variable that contains catch data such as 'HAUL'
 #' @param alternativeMatrix Whether the alternative choice matrix should come from 'loaded data' or 'gridded data'
 #' @param lon.dat longitude Column containing longitude data

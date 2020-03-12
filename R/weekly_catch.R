@@ -2,7 +2,7 @@
 #' 
 #' Catch total by week
 #'
-#' @param dat Main data frame over which to apply function. Table in fishset_db 
+#' @param dat Main data frame over which to apply function. Table in FishSET 
 #'   database should contain the string `MainDataTable`.
 #' @param project name of project.
 #' @param species A variable containing the species catch or a vector
@@ -293,12 +293,46 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
       }
     }
     
+    count$week <- as.integer(count$week)
+    
+    ind <- periods_list[["%U"]][which(!(periods_list[["%U"]] %in% unique(count[[period]])))]
+    
+    if (is.null(group)) {
+      
+      missing_periods <- expand.grid(week = ind, 
+                                     years = unique(count$years),
+                                     species = unique(count$species))
+      
+    } else if (!is.null(group)) {
+      
+      if (length(group) == 1) {
+        
+        missing_periods <- expand.grid(week = ind, 
+                                       years = unique(count$years),
+                                       group1 = unique(count[[group1]]),
+                                       species = unique(count$species))
+        
+        missing_periods <- setNames(missing_periods, c("week", "years", group1, "species"))
+        
+      } else if (length(group) > 1) {
+        
+        missing_periods <- expand.grid(week = ind, 
+                                       years = unique(count$years),
+                                       group1 = unique(count[[group1]]),
+                                       group2 = unique(count[[group2]]),
+                                       species = unique(count$species))
+        
+        missing_periods <- setNames(missing_periods, c("week", "years", group1, group2, "species"))
+        
+      }
+    }
+    
     if (nrow(missing_periods) > 0) {
-    
-    missing_periods$catch <- 0
-    
-    count <- rbind(count, missing_periods)
-    
+      
+      missing_periods$catch <- 0
+      
+      count <- rbind(count, missing_periods)
+      
     }
     
     count <- count[order(count$years, count$week), ]

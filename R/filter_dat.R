@@ -1,11 +1,10 @@
-filter_table <- function(dat, project, x, exp, project) {
+filter_table <- function(dat, project, x, exp) {
   #'  Define and store filter expressions
   #'
-  #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
+  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
   #' @param project Name of project
   #' @param x Column in dataaframe over which filter will be applied
   #' @param exp Filter expression. Should take on the form of `x<100` or `is.na(x)==F`.
-  #' @param project Name of project
   #' @importFrom utils head read.csv write.csv 
   #' @importFrom DBI dbConnect dbWriteTable dbDisconnect
   #' @keywords filter, subset
@@ -14,10 +13,10 @@ filter_table <- function(dat, project, x, exp, project) {
   #' @details This function allows users to define and store data filter expressions which can then be applied to the data.  
   #' The filter table will be saved in the SQLite fishset_db  database under the project name (\emph{project}) and (\emph{filterTable}). 
   #' The new filter functions are added each time the function is run and the table is also automatically updated in the 
-  #' fishet_db database. The function call will be logged in the log file.
+  #' FishSET database. The function call will be logged in the log file.
   #' @examples 
   #' \dontrun{  
-  #' filter_table(MainDataTable, 'PERFORMANCE_Code','PERFORMANCE_Code==1', 'pcod') 
+  #' filter_table('pcodMainDataTable', 'pcod', 'PERFORMANCE_Code','PERFORMANCE_Code==1') 
   #' }
   #' 
 

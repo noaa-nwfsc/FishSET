@@ -1,6 +1,6 @@
 #'  Transform units of a date variable
 #'
-#' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
 #' @param x Time variable to modify 
 #' @param define.format Format of temporal data. Format can be user-defined or from pre-defined choices. 
 #' @keywords Date as.Date

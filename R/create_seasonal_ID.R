@@ -1,8 +1,8 @@
 #' create_seasonal_ID
 #' Create season identifier  
 #'
-#' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
-#' @param seasonal.dat Name of table in fishset_db containing date of fishery season(s).
+#' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
+#' @param seasonal.dat Name of table containing date of fishery season(s). Can be pulled from FishSET database.
 #' @param use.location TRUE/FALSE If true, fishery season dates depend on fishery location. Column names containing location must match the two data sets.
 #' @param use.geartype TRUE/FALSE If true, fishery season dates depend on gear type. Column name containing gear type must match the two data sets.
 #' @param sp.col Column containing species names in seasonaldat. 
@@ -16,7 +16,7 @@
 #' SeasonID*fishery variables are a TRUE/FALSE seasonID vector for each fishery (labeled by seasonID and fishery) where TRUE indicates the dates for a given row in the main data table fall within the fishery dates for that fishery.
 #' @examples 
 #' \dontrun{ 
-#'  MainDataTable <- create_seasonal_ID(MainDataTable, seasonal, use.location = TRUE,  
+#'  pcodMainDataTable <- create_seasonal_ID('pcodMainDataTable', seasonal, use.location = TRUE,  
 #'  use.geartype = TRUE, sp.col = 'SPECIES', target = 'POLLOCK')
 #'  }
 #'
@@ -48,13 +48,13 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
   
 # Test that location_data match
   if(use.location == TRUE){
-  if(!any(match(names(dataset)[which(grepl('area|zon', names(dataset), ignore.case=TRUE))], names(seasonaldat), nomatch=0)>0)){
+  if(!any(match(names(dataset)[grep('area|zon', names(dataset), ignore.case=TRUE)], names(seasonaldat), nomatch=0)>0)){
     stop('Area or zone must be defined and match in both the main dataset and the seasonal dataset. No match found.')
   } else {
     loc.name <-  names(seasonaldat)[
-                    match(names(dataset)[which(grepl('area|zon', names(dataset), ignore.case=TRUE))],
+                    match(names(dataset)[grep('area|zon', names(dataset), ignore.case=TRUE)],
                           names(seasonaldat), nomatch=0)[
-                                    which(match(names(dataset)[which(grepl('area|zon', names(dataset), ignore.case=TRUE))], 
+                                    which(match(names(dataset)[grep('area|zon', names(dataset), ignore.case=TRUE)], 
                                                 names(seasonaldat), nomatch=0)>0)
                                     ]
                     ]
@@ -62,13 +62,13 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
   }
   
   if(use.geartype == TRUE){
-    if(!any(match(names(dataset)[which(grepl('gear', names(dataset), ignore.case=TRUE))], names(seasonaldat), nomatch=0)>0)){
+    if(!any(match(names(dataset)[grep('gear', names(dataset), ignore.case=TRUE)], names(seasonaldat), nomatch=0)>0)){
       stop('Gear type must be defined and match in both the main dataset and the seasonal dataset. No match found.')
     }  else {
     gear.name <-  names(seasonaldat)[
-      match(names(dataset)[which(grepl('gear', names(dataset), ignore.case=TRUE))],
+      match(names(dataset)[grep('gear', names(dataset), ignore.case=TRUE)],
             names(seasonaldat), nomatch=0)[
-              which(match(names(dataset)[which(grepl('gear', names(dataset), ignore.case=TRUE))], 
+              which(match(names(dataset)[grep('gear', names(dataset), ignore.case=TRUE)], 
                           names(seasonaldat), nomatch=0)>0)
               ]
       ]
@@ -77,12 +77,12 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
   
   seasonaldat[,sp.col] <- gsub("(\\s+)|([[:punct:]])", "_", seasonaldat[,sp.col])
   sp.use <- unique(as.vector(seasonaldat[[sp.col]]))
-      sp.use[which(grepl("(\\s+)|([[:punct:]])",sp.use)==TRUE)] <- 
-        paste(strsplit(sp.use[which(grepl("(\\s+)|([[:punct:]])",sp.use)==TRUE)], "(\\s+)|([[:punct:]])")[[1]][1],'.*',
-               strsplit(sp.use[which(grepl("(\\s+)|([[:punct:]])",sp.use)==TRUE)], "(\\s+)|([[:punct:]])")[[1]][2], sep='')
+      sp.use[grep("(\\s+)|([[:punct:]])",sp.use)] <- 
+        paste(strsplit(sp.use[grep("(\\s+)|([[:punct:]])",sp.use)], "(\\s+)|([[:punct:]])")[[1]][1],'.*',
+               strsplit(sp.use[grep("(\\s+)|([[:punct:]])",sp.use)], "(\\s+)|([[:punct:]])")[[1]][2], sep='')
   
   
-  dat.temp <- dataset[which(grepl('date', names(dataset), ignore.case=TRUE) == TRUE)]#
+  dat.temp <- dataset[grep('date', names(dataset), ignore.case=TRUE)]#
   dat.start <- as.data.frame(apply(dat.temp, 1, function(x) find_first(x)))  
   dat.end <- as.data.frame(apply(dat.temp, 1, function(x) find_last(x)))  
   
@@ -96,7 +96,7 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
 
   #Get names of species that are match seasonal and the dataset
   spp <- unique(gsub(paste0("(",paste(sp.use, collapse="|"),")","(*SKIP)(*FAIL)|."), "", 
-                     names(dataset)[which(grepl(paste(sp.use, collapse="|"), colnames(dataset), ignore.case=TRUE)==TRUE)], 
+                     names(dataset)[grep(paste(sp.use, collapse="|"), colnames(dataset), ignore.case=TRUE)], 
                      perl = TRUE, ignore.case=TRUE))
  
  # for(i in 1:length(spp)){
@@ -107,14 +107,14 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
 ## --- Create season ID for target species --- ##
   dataset[['SeasonID']] <- NA
   if(is.null(target)==FALSE){
-    seasonsub <- seasonaldat[which(grepl(target, seasonaldat[[sp.col]], ignore.case=TRUE)==TRUE),]
+    seasonsub <- seasonaldat[grep(target, seasonaldat[[sp.col]], ignore.case=TRUE),]
     if(use.location==FALSE&use.geartype==FALSE){
       seasontemp <- seasonsub
       if(dim(seasontemp)[1] > 1){
         seasontemp <- seasontemp[1,]
         warning('More than one record exists. Only the first record will be used.')
       } 
-      if(all(seasontemp[which(grepl('date', names(seasontemp), ignore.case=TRUE) == TRUE)]=='')==TRUE){
+      if(all(seasontemp[grep('date', names(seasontemp), ignore.case=TRUE)]=='')==TRUE){
           dataset[['SeasonID']] <- NA
         } else {
            dataset[['SeasonID']] <-ifelse((dat.start > date_parser(seasontemp[[find_first(seasontemp)]][1])) %in%  
@@ -123,27 +123,27 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
       }
     } else {
       for(j in 1:length(loca)){
-        seasontemp <- seasonsub[which(grepl(as.character(loca[j]), gsub(',', '|', seasonsub[[loc.name]]))==TRUE),]
+        seasontemp <- seasonsub[grep(as.character(loca[j]), gsub(',', '|', seasonsub[[loc.name]])),]
         
       if(dim(seasontemp)[1] > 1) {
         if(use.geartype==TRUE){
           #If more than row of the species need to do something - use gear type?
           if(grepl('trawl', dataset[[gear.name]][1], ignore.case = TRUE) == TRUE) {
-            seasontemp <- seasontemp[which(grepl('trawl', seasontemp[[gear.name]], ignore.case = TRUE) == TRUE),]
+            seasontemp <- seasontemp[grep('trawl', seasontemp[[gear.name]], ignore.case = TRUE),]
           } else if(grepl('seine|gill', dataset[[gear.name]][1], ignore.case = TRUE) == TRUE) {
-            seasontemp <- seasontemp[which(grepl('seine|gill', seasontemp[[gear.name]], ignore.case = TRUE) == TRUE),]  
+            seasontemp <- seasontemp[grep('seine|gill', seasontemp[[gear.name]], ignore.case = TRUE),]  
           } else if(grepl('hook|line', dataset[[gear.name]][1], ignore.case = TRUE) == TRUE){
-            seasontemp <- seasontemp[which(grepl('hook|line', seasontemp[[gear.name]], ignore.case = TRUE) == TRUE),]  
+            seasontemp <- seasontemp[grep('hook|line', seasontemp[[gear.name]], ignore.case = TRUE),]  
           } else if(grepl('pot', dataset[[gear.name]][1], ignore.case = TRUE) == TRUE) {
-            seasontemp <- seasontemp[which(grepl('pot', seasontemp[[gear.name]], ignore.case = TRUE) == TRUE),]  
+            seasontemp <- seasontemp[grep('pot', seasontemp[[gear.name]], ignore.case = TRUE),]  
           }
         } else {
           seasontemp <- seasontemp[1,]
           warning('More than one record exists. Only the first record will be used.')
         }
       } 
-      if(dim(seasontemp[which(grepl('date', names(seasontemp), ignore.case=TRUE) == TRUE)])[1]==0||
-         all(seasontemp[which(grepl('date', names(seasontemp), ignore.case=TRUE) == TRUE)]=='')==TRUE){
+      if(dim(seasontemp[grep('date', names(seasontemp), ignore.case=TRUE)])[1]==0||
+         all(seasontemp[grep('date', names(seasontemp), ignore.case=TRUE)]=='')==TRUE){
         dataset[which(dataset[[loc.name]]==loca[j]),'SeasonID'] <- NA
       } else {
         dataset[which(dataset[[loc.name]]==loca[j]),'SeasonID'] <- 
@@ -155,9 +155,9 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
     }
   } else {
   ## -- No target species -- ##
-    seasonsub <- subset(seasonaldat, seasonaldat[which(grepl('date', names(seasonaldat), ignore.case=TRUE) == TRUE)[1]]!='' & 
-                          seasonaldat[which(grepl('date', names(seasonaldat), ignore.case=TRUE) == TRUE)[2]]!='')
-    if(use.location==FALSE&use.geartype==FALSE){
+    seasonsub <- subset(seasonaldat, seasonaldat[grep('date', names(seasonaldat), ignore.case=TRUE)[1]]!='' & 
+                          seasonaldat[grep('date', names(seasonaldat), ignore.case=TRUE)[2]]!='')
+    if(use.location==FALSE & use.geartype==FALSE){
       i <- 1
       while(all(is.na(dataset[['SeasonID']]))==TRUE){
           seasontemp <- seasonsub[i,]
@@ -173,7 +173,7 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
       j <- 1
       while(all(is.na(dataset[['SeasonID']]))==TRUE){ 
           seasontemp <- seasonsub[i,]
-            seasontemp <- seasontemp[which(grepl(as.character(loca[j]), gsub(',', '|', seasontemp[[loc.name]]))==TRUE),]
+            seasontemp <- seasontemp[grep(as.character(loca[j]), gsub(',', '|', seasontemp[[loc.name]])),]
             if(all(is_empty(seasontemp))==TRUE){
               next
             }
@@ -181,13 +181,13 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
             if(use.geartype==TRUE){
               #If more than row of the species need to do something - use gear type?
               if(grepl('trawl', dataset[[gear.name]][1], ignore.case = TRUE) == TRUE) {
-                seasontemp <- seasontemp[which(grepl('trawl', seasontemp[[gear.name]], ignore.case = TRUE) == TRUE),]
+                seasontemp <- seasontemp[grep('trawl', seasontemp[[gear.name]], ignore.case = TRUE),]
               } else if(grepl('seine|gill', dataset[[gear.name]][1], ignore.case = TRUE) == TRUE) {
-                seasontemp <- seasontemp[which(grepl('seine|gill', seasontemp[[gear.name]], ignore.case = TRUE) == TRUE),]  
+                seasontemp <- seasontemp[grep('seine|gill', seasontemp[[gear.name]], ignore.case = TRUE),]  
               } else if(grepl('hook|line', dataset[[gear.name]][1], ignore.case = TRUE) == TRUE){
-                seasontemp <- seasontemp[which(grepl('hook|line', seasontemp[[gear.name]], ignore.case = TRUE) == TRUE),]  
+                seasontemp <- seasontemp[grep('hook|line', seasontemp[[gear.name]], ignore.case = TRUE),]  
               } else if(grepl('pot', dataset[[gear.name]][1], ignore.case = TRUE) == TRUE) {
-                seasontemp <- seasontemp[which(grepl('pot', seasontemp[[gear.name]], ignore.case = TRUE) == TRUE),]  
+                seasontemp <- seasontemp[grep('pot', seasontemp[[gear.name]], ignore.case = TRUE),]  
               }
             } else {
               seasontemp <- seasontemp[1,]
@@ -195,8 +195,8 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
             }
           } 
             
-          if(dim(seasontemp[which(grepl('date', names(seasontemp), ignore.case=TRUE) == TRUE)])[1]==0||
-             all(seasontemp[which(grepl('date', names(seasontemp), ignore.case=TRUE) == TRUE)]=='')==TRUE){
+          if(dim(seasontemp[grep('date', names(seasontemp), ignore.case=TRUE)])[1]==0||
+             all(seasontemp[grep('date', names(seasontemp), ignore.case=TRUE)]=='')==TRUE){
             dataset[which(is.na(dataset$SeasonID)==TRUE) && which(dataset[[loc.name]]==loca[j]),'SeasonID'] <- NA
           } else {
             dataset[which(is.na(dataset$SeasonID)==TRUE) && which(dataset[[loc.name]]==loca[j]),'SeasonID'] <-
@@ -222,7 +222,7 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
     } else {
       seasontemp <- seasonsub[1,]
     }
-      if(all(seasontemp[which(grepl('date', names(seasontemp), ignore.case=TRUE) == TRUE)]=='')==TRUE){
+      if(all(seasontemp[grep('date', names(seasontemp), ignore.case=TRUE)]=='')==TRUE){
         dataset[[paste0('SeasonID',spp[i])]] <- FALSE
       } else {
         dataset[[paste0('SeasonID',spp[i])]] <- (dat.start > date_parser(seasontemp[[find_first(seasontemp)]][1])) %in%  
@@ -231,18 +231,18 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
   } else if(use.location==FALSE&use.geartype==TRUE){
     if(dim(seasontemp)[1] > 1){
       if(grepl('trawl', dataset[[gear.name]][1], ignore.case = TRUE) == TRUE) {
-        seasontemp <- seasontemp[which(grepl('trawl', seasontemp[[gear.name]], ignore.case = TRUE) == TRUE),]
+        seasontemp <- seasontemp[grep('trawl', seasontemp[[gear.name]], ignore.case = TRUE),]
       } else if(grepl('seine|gill', dataset[[gear.name]][1], ignore.case = TRUE) == TRUE) {
-        seasontemp <- seasontemp[which(grepl('seine|gill', seasontemp[[gear.name]], ignore.case = TRUE) == TRUE),]  
+        seasontemp <- seasontemp[grep('seine|gill', seasontemp[[gear.name]], ignore.case = TRUE),]  
       } else if(grepl('hook|line', dataset[[gear.name]][1], ignore.case = TRUE) == TRUE){
-        seasontemp <- seasontemp[which(grepl('hook|line', seasontemp[[gear.name]], ignore.case = TRUE) == TRUE),]  
+        seasontemp <- seasontemp[grep('hook|line', seasontemp[[gear.name]], ignore.case = TRUE),]  
       } else if(grepl('pot', dataset[[gear.name]][1], ignore.case = TRUE) == TRUE) {
-        seasontemp <- seasontemp[which(grepl('pot', seasontemp[[gear.name]], ignore.case = TRUE) == TRUE),]  
+        seasontemp <- seasontemp[grep('pot', seasontemp[[gear.name]], ignore.case = TRUE),]  
       }
     } else {
       seasontemp <- seasonsub[1,]
     }
-    if(all(seasontemp[which(grepl('date', names(seasontemp), ignore.case=TRUE) == TRUE)]=='')==TRUE){
+    if(all(seasontemp[grep('date', names(seasontemp), ignore.case=TRUE)]=='')==TRUE){
       dataset[[paste0('SeasonID',spp[i])]] <- FALSE
     } else {
       dataset[[paste0('SeasonID',spp[i])]] <- (dat.start > date_parser(seasontemp[[find_first(seasontemp)]][1])) %in%  
@@ -252,29 +252,29 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
   
   if(use.location==TRUE){
     for(j in 1:length(loca)){
-    seasontemp <- seasonsub[which(grepl(as.character(loca[j]), gsub(',', '|', seasonsub[[loc.name]]))==TRUE),]
+    seasontemp <- seasonsub[grep(as.character(loca[j]), gsub(',', '|', seasonsub[[loc.name]])),]
 
   
   if(dim(seasontemp)[1] > 1) {
     if(use.geartype==TRUE){
       #If more than row of the species need to do something - use gear type?
       if(grepl('trawl', dataset[[gear.name]][1], ignore.case = TRUE) == TRUE) {
-        seasontemp <- seasontemp[which(grepl('trawl', seasontemp[[gear.name]], ignore.case = TRUE) == TRUE),]
+        seasontemp <- seasontemp[grep('trawl', seasontemp[[gear.name]], ignore.case = TRUE),]
       } else if(grepl('seine|gill', dataset[[gear.name]][1], ignore.case = TRUE) == TRUE) {
-        seasontemp <- seasontemp[which(grepl('seine|gill', seasontemp[[gear.name]], ignore.case = TRUE) == TRUE),]  
+        seasontemp <- seasontemp[grep('seine|gill', seasontemp[[gear.name]], ignore.case = TRUE),]  
       } else if(grepl('hook|line', dataset[[gear.name]][1], ignore.case = TRUE) == TRUE){
-        seasontemp <- seasontemp[which(grepl('hook|line', seasontemp[[gear.name]], ignore.case = TRUE) == TRUE),]  
+        seasontemp <- seasontemp[grep('hook|line', seasontemp[[gear.name]], ignore.case = TRUE),]  
       } else if(grepl('pot', dataset[[gear.name]][1], ignore.case = TRUE) == TRUE) {
-        seasontemp <- seasontemp[which(grepl('pot', seasontemp[[gear.name]], ignore.case = TRUE) == TRUE),]  
+        seasontemp <- seasontemp[grep('pot', seasontemp[[gear.name]], ignore.case = TRUE),]  
       }
     } else {
       seasontemp <- seasontemp[1,]
       warning('More than one record exists. Only the first record will be used.')
     }
   } 
-   if(dim(seasontemp[which(grepl('date', names(seasontemp), ignore.case=TRUE) == TRUE)])[1]==0||
-          all(seasontemp[which(grepl('date', names(seasontemp), ignore.case=TRUE) == TRUE)]=='')==TRUE){
-     dataset[which(dataset[[loc.name]]==loca[j]),paste0('SeasonID',spp[i])] <- FALSE
+   if(dim(seasontemp[grep('date', names(seasontemp), ignore.case = TRUE)])[1] == 0||
+          all(seasontemp[grep('date', names(seasontemp), ignore.case = TRUE)] == '') == TRUE){
+     dataset[which(dataset[[loc.name]] == loca[j]), paste0('SeasonID', spp[i])] <- FALSE
    } else {
      dataset[which(dataset[[loc.name]]==loca[j]),paste0('SeasonID',spp[i])] <- 
        (dat.start[which(dataset[[loc.name]]==loca[j])] > date_parser(seasontemp[[find_first(seasontemp)]][1])) %in%  

@@ -1,6 +1,6 @@
 #' Collapse the dataframe from haul to trip.
 #'
-#' @param dat Data frame containing haul level data. In the fishset_db database, the table will contain the phrase `MainDataTable`
+#' @param dat Data frame containing haul level data. In the FishSET database, the table will contain the phrase `MainDataTable`
 #' @param project Name of project
 #' @param fun.time Numeric function defining how to collapse temporal data. For example, min, mean, max. Cannot be sum for temporal variables.
 #' @param fun.numeric Numeric function defining how to collapse numeric or temporal data. For example, min, mean, max, sum. Defaults to mean.
@@ -14,7 +14,7 @@
 #' 
 #' @examples
 #' \dontrun{
-#'  dat <- haul_to_trip(pollockMainDataTable, 'pollock',min,mean,'PERMIT','DISEMBARKED_PORT')
+#'  pollockMainDataTable <- haul_to_trip('pollockMainDataTable', 'pollock',min,mean,'PERMIT','DISEMBARKED_PORT')
 #'  }
 
 
@@ -54,10 +54,10 @@ haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, ...)
   
 
      drop <- 0
-    if (length(which(grepl('DUR', names(int[,c(which(as.data.frame(dataIndex[dataIndex[, 'variable_name'] == 
-                          colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Time"))]), ignore.case=T)==T)) != 0 ) {
-       drop <-  which(grepl('DUR', names(int[,c(which(as.data.frame(dataIndex[dataIndex[, 'variable_name'] == 
-                         colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Time"))]), ignore.case=T)==T)
+    if (length(grep('DUR', names(int[,c(which(as.data.frame(dataIndex[dataIndex[, 'variable_name'] == 
+                          colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Time"))]), ignore.case=T)) != 0 ) {
+       drop <-  grep('DUR', names(int[,c(which(as.data.frame(dataIndex[dataIndex[, 'variable_name'] == 
+                         colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Time"))]), ignore.case=T)
           }
   # Collapse data based on rowID and defined function
   out <- data.frame(drop=rep(0, length(unique(int$rowID))))
@@ -98,9 +98,9 @@ haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, ...)
                     as.data.frame(
                       int[,c(which(as.data.frame(dataIndex[dataIndex[, 'variable_name'] %in% 
                                                  colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Time"))][-
-                                    which(grepl('dur', names(int[,c(which(as.data.frame(dataIndex[dataIndex[, 'variable_name'] %in% 
+                                    grep('dur', names(int[,c(which(as.data.frame(dataIndex[dataIndex[, 'variable_name'] %in% 
                                      colnames(int[,-which(colnames(int)=='rowID')]), 'generalType']) == "Time"))]), 
-                                     ignore.case=T)==FALSE)]), rowID=int$rowID), list(int$rowID), match.fun(fun.numeric), na.rm = TRUE))[,-1])
+                                     ignore.case=T, invert=TRUE)]), rowID=int$rowID), list(int$rowID), match.fun(fun.numeric), na.rm = TRUE))[,-1])
       }
     #Other numeric  
     if(length(which(as.data.frame(

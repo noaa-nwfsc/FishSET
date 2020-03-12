@@ -1,6 +1,6 @@
 #'  Generate centroid of polygon of zone or area
 
-#' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
+#' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
 #' @param gridfile Spatial data set. Can be shape file, data frame, or list.
 #' @param lon.dat Longitude of points from dataset.
 #' @param lat.dat Latitude of points from dataset.

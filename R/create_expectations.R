@@ -1,6 +1,6 @@
 #' Expected catch/Expected Revenue
 
-#' @param dat  Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param dat  Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
 #' @param catch Variable containing catch data.
 #' @param price Variable containing price/value data. Used in calculating expected revenue. Leave null if calculating expected catch. Multiplied against catch to generated revenue.
 #' @param temporal Daily (Daily time line) or sequential (sequential order)
@@ -13,7 +13,7 @@
 #' @param temp.lag Temporal lag time in days.
 #' @param year.lag IF expected catch should be based on catch from previous year(s), set year.lag to the number of years to go back.
 #' @param dummy.exp T/F. Defaults to False. If false, no dummy variable is outputted. If true, output dummy variable for originally missing value.
-#' @param project Name of project. Used to pull working alternative choice matrix from fishset_db database.
+#' @param project Name of project. Used to pull working alternative choice matrix from FishSET database.
 #' @param defineGroup If empty, data is treated as a fleet
 #' @param replace.output Default is FALSE. If TRUE, replaces existing saved expected catch dataframe with new expected catch dataframe. 
 #' If FALSE, add new expected catch dataframes to previously saved expected catch dataframes.
@@ -42,7 +42,7 @@
 #' @return newGridVar,  newDumV
 #' @examples 
 #' \dontrun{
-#' create_expectations(MainDataTable, adfg, 'OFFICIAL_TOTAL_CATCH_MT',  price=NULL, temporal='daily', 
+#' create_expectations('pcodMainDataTable', adfg, 'OFFICIAL_TOTAL_CATCH_MT',  price=NULL, temporal='daily', 
 #'                      temp.var="DATE_FISHING_BEGAN", calc.method='standard average', 
 #'                      lag.method='simple',  empty.catch='all catch', empty.expectation= 0.0001, 
 #'                      temp.window=4, temp.lag=2, dummy.exp=FALSE, 
@@ -50,17 +50,15 @@
 #' }
 
 
-create_expectations <- function(dat, project, catch, price=NULL, defineGroup, temp.var=NULL, temporal = c("daily", "sequential"), 
+create_expectations <- function(dat, project, catch, price=NULL, defineGroup=NULL, temp.var=NULL, temporal = c("daily", "sequential"), 
                                 calc.method = c("standardAverage", "simpleLag", "weights"), lag.method = c("simple", "grouped"),
                                 empty.catch = c(NULL, 0, "allCatch", "groupedCatch"), empty.expectation = c(NULL, 1e-04, 0),  
                                 temp.window = 7, temp.lag = 0, year.lag=0, dummy.exp = FALSE, replace.output=FALSE) {
 
   #Call in datasets
-  if(!exists('dataset')){
    out <- data_pull(dat)
    dat <- out$dat
    dataset <- out$dataset
-  }
   
       fishset_db <- DBI::dbConnect(RSQLite::SQLite(),locdatabase())
       Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
@@ -78,28 +76,28 @@ create_expectations <- function(dat, project, catch, price=NULL, defineGroup, te
   }
 
   # Check that define group is either empty of an actual variable in the dataset
-  if (defineGroup!='none'&!is_empty(defineGroup)) {
+  if (!is_empty(defineGroup)) {
     if (any(is.null(dataset[[defineGroup]]))) {
       stop("defineGroup not recognized. Check that parameter is correctly defined")
     }
   }
 
  ##1. Option 1. Short-term, individual grouping t - 2 (window)
-short_exp <- short_expectations(dat=dat, project=project, catch=catch, price=price, defineGroup=defineGroup, temp.var=temp.var, 
+short_exp <- short_expectations(dat=dataset, project=project, catch=catch, price=price, defineGroup=defineGroup, temp.var=temp.var, 
                                 temporal=temporal, calc.method=calc.method, lag.method=lag.method, empty.catch=empty.catch, 
                                 empty.expectation=empty.expectation, dummy.exp = FALSE)
 ##2. Option 2 medium: group by fleet (all vessels in dataset) t -7
-med_exp <- medium_expectations(dat=dat, project=project, catch=catch, price=price, defineGroup=defineGroup, temp.var=temp.var, 
+med_exp <- medium_expectations(dat=dataset, project=project, catch=catch, price=price, defineGroup=defineGroup, temp.var=temp.var, 
                                 temporal=temporal, calc.method=calc.method, lag.method=lag.method, empty.catch=empty.catch, 
                                 empty.expectation=empty.expectation, dummy.exp = FALSE)
 ##3. option 3  last year, group by fleet t-7
-long_exp <- long_expectations(dat=dat, project=project, catch=catch, price=price, defineGroup=defineGroup, temp.var=temp.var, 
+long_exp <- long_expectations(dat=dataset, project=project, catch=catch, price=price, defineGroup=defineGroup, temp.var=temp.var, 
                                 temporal=temporal, calc.method=calc.method, lag.method=lag.method, empty.catch=empty.catch, 
                                 empty.expectation=empty.expectation, dummy.exp = FALSE)
 
  
   # check whether defining a group or using all fleet averaging 
-  if (defineGroup=='none'|is.null(defineGroup)) {
+  if (is_empty(defineGroup)) {
     # just use an id=ones to get all info as one group
     numData <- data.frame(rep(1, dim(dataset)[1]))  #ones(size(data(1).dataColumn,1),1)
     # Define by group case u1hmP1
@@ -125,13 +123,14 @@ long_exp <- long_expectations(dat=dat, project=project, catch=catch, price=price
   C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*"))  #C = row ID of those unique items
   
   catchData <- as.numeric(dataset[[catch]][which(dataZoneTrue == 1)])
-  if(price!='none'&!is.null(price)){
-  priceData <- as.numeric(dataset[[price]][which(dataZoneTrue == 1)])
-  catchData <- catchData*priceData
+  if(!is_empty(price)){
+    priceData <- as.numeric(dataset[[price]][which(dataZoneTrue == 1)])
+     catchData <- catchData*priceData
   }
+  
   # Time variable not chosen if temp.var is empty
   #NOTE currently doesn't allow dummy or other options if no time detected
-  if (temp.var=='none'|is_empty(temp.var)) {
+  if (is_empty(temp.var)) {
     
     allCatch = stats::aggregate(catchData, list(C), mean, na.rm = T)  #accumarray(C,catchData,[],@nanmean)# currently no replacement for nans
     # Above line is grouping by the alternatives through the C above
@@ -208,7 +207,7 @@ long_exp <- long_expectations(dat=dat, project=project, catch=catch, price=price
     df2$ra <- mapply(myfunc_ave, df2$tiData, df2$ID)
     
  # #Replace empty values
-    if (empty.catch=="NA"|is.null(empty.catch)) {
+    if (empty.catch=="NA"|is_empty(empty.catch)) {
       myfunc_emp <- function(x){mean(df2[lubridate::year(df2$tiData) >= format(as.Date(x), format = "%Y") & 
                                        lubridate::year(df2$tiData) <  lubridate::year(x)+1, 'lag.value'], na.rm=TRUE)}
       df2$ra[which(is.na(df2$ra)==TRUE)] <- unlist(lapply(df2$tiData[which(is.na(df2$ra)==TRUE)], myfunc_emp))
@@ -286,7 +285,7 @@ long_exp <- long_expectations(dat=dat, project=project, catch=catch, price=price
         newCatch[which(cit == cit[w]), col] <- meanCatch[C[w], bi[w]]  ## loop shouldn't be necessary but no loop results in out of memory issue
       }
       
-      if(empty.expectation=='NA'|is.null(empty.expectation)){
+      if(is_empty(empty.expectation)){
         newCatch[is.na(newCatch)] = 0.0001
       } else if (empty.expectation == 1e-04) {
         newCatch[is.na(newCatch)] <- 1e-04
@@ -325,7 +324,7 @@ long_exp <- long_expectations(dat=dat, project=project, catch=catch, price=price
   attach('newDumV', newDumVm, pos=1)
   
   #replaceEmptyExpAll=get(dp2V5,'String')# replace empty catch
-  if(is.null(empty.expectation)){
+  if(is_empty(empty.expectation)){
     newCatch[is.na(newCatch)] = 0.0001 
   } else if(empty.expectation==0.0001) {
      newCatch[is.na(newCatch)] <- 0.0001
@@ -384,13 +383,11 @@ long_exp <- long_expectations(dat=dat, project=project, catch=catch, price=price
   create_expectations_function <- list()
   create_expectations_function$functionID <- 'create_expectations'
   create_expectations_function$args <- c(dat, project, catch, price, temporal, temp.var, calc.method, lag.method, 
-                                    empty.catch, empty.expectation, temp.window, temp.lag, lag.year, dummy.exp)
+                                    empty.catch, empty.expectation, temp.window, temp.lag, year.lag, dummy.exp)
   create_expectations_function$kwargs <- list('defineGroup'=defineGroup)
   create_expectations_function$output <- c()
  
   log_call(create_expectations_function)
   
 }
-
- 
 
