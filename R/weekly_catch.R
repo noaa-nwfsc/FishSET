@@ -178,11 +178,11 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
       
       if (is.null(year) | (!is.null(year) & length(year) == 1)) {
         
-        plot <- plot + ggplot2::facet_grid(reformulate(".", group2), scales = "free_y")
+        plot <- plot + ggplot2::facet_grid(stats::reformulate(".", group2), scales = "free_y")
         
       } else if (!is.null(year) & length(year) > 1) {
         
-        plot <- plot + ggplot2::facet_grid(reformulate(".", paste("years +", group2)), scales = "free_y")
+        plot <- plot + ggplot2::facet_grid(stats::reformulate(".", paste("years +", group2)), scales = "free_y")
         
       } 
       
