@@ -68,6 +68,8 @@ vessel_count <- function(dat, project, v, t, period = "month", group = NULL,
   if (!is.null(group)) {
     
     group1 <- group[1]
+  
+    dataset[[group1]] <- as.factor(dataset[[group1]])
     
     dataset[[group1]] <- as.factor(dataset[[group1]])
     

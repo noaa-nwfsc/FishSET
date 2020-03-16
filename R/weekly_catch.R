@@ -147,11 +147,11 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
     }
     
     if (nrow(missing_periods) > 0) {
-      
-      missing_periods$catch <- 0
-      
-      count <- rbind(count, missing_periods)
-      
+    
+    missing_periods$catch <- 0
+    
+    count <- rbind(count, missing_periods)
+    
     }
     
     count <- count[order(count$years, count$week), ]
@@ -178,11 +178,11 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
       
       if (is.null(year) | (!is.null(year) & length(year) == 1)) {
         
-        plot <- plot + ggplot2::facet_grid(reformulate(".", group2), scales = "free_y")
+        plot <- plot + ggplot2::facet_grid(stats::reformulate(".", group2), scales = "free_y")
         
       } else if (!is.null(year) & length(year) > 1) {
         
-        plot <- plot + ggplot2::facet_grid(reformulate(".", paste("years +", group2)), scales = "free_y")
+        plot <- plot + ggplot2::facet_grid(stats::reformulate(".", paste("years +", group2)), scales = "free_y")
         
       } 
       
@@ -257,6 +257,40 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
         
       }
       
+    }
+    
+    count$week <- as.integer(count$week)
+    
+    ind <- periods_list[["%U"]][which(!(periods_list[["%U"]] %in% unique(count[[period]])))]
+    
+    if (is.null(group)) {
+      
+      missing_periods <- expand.grid(week = ind, 
+                                     years = unique(count$years),
+                                     species = unique(count$species))
+      
+    } else if (!is.null(group)) {
+      
+      if (length(group) == 1) {
+        
+        missing_periods <- expand.grid(week = ind, 
+                                       years = unique(count$years),
+                                       group1 = unique(count[[group1]]),
+                                       species = unique(count$species))
+       
+        missing_periods <- setNames(missing_periods, c("week", "years", group1, "species"))
+         
+      } else if (length(group) > 1) {
+        
+        missing_periods <- expand.grid(week = ind, 
+                                       years = unique(count$years),
+                                       group1 = unique(count[[group1]]),
+                                       group2 = unique(count[[group2]]),
+                                       species = unique(count$species))
+       
+        missing_periods <- setNames(missing_periods, c("week", "years", group1, group2, "species"))
+         
+      }
     }
     
     count$week <- as.integer(count$week)
