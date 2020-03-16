@@ -23,7 +23,7 @@
 #' @param format_tab How table output should be formated. Options include "wide" 
 #'   (the default) and "long".  
 #' @examples 
-#' \donrun{
+#' \dontrun{
 #' weekly_catch("pollockMainDataTable", species = c("HAUL_LBS_270_POLLOCK_LBS", 
 #' "HAUL_LBS_110_PACIFIC_COD_LBS",  "HAUL_LBS_OTHER_LBS"), date = "DATE_FISHING_BEGAN", 
 #' convert_to_tons = T, year = 2012, output = "plot")

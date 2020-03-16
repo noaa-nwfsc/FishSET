@@ -133,6 +133,8 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   dat <- out$dat
   dataset <- out$dataset
   
+  x0 <- 0
+  
 #Script necessary to ensure paramers generated in shiny app are in correct format
   if (vars1=='none') { indeVarsForModel <- NULL } else { indeVarsForModel=vars1}
   if (vars2=='none') { gridVariablesInclude <- NULL } else { gridVariablesInclude=vars2}
@@ -143,6 +145,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   
   if(lon.dat==lat.dat){
     warning('Longitude and Latitude variables are identical.')
+    x0 <- 1
   }
   #indeVarsForModel = vars1
   #gridVariablesInclude=vars2
@@ -152,7 +155,8 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
 
       Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
       if (!exists("Alt")) {
-        stop("Alternative Choice Matrix does not exist. Please run the createAlternativeChoice() function.")
+        warning("Alternative Choice Matrix does not exist. Please run the createAlternativeChoice() function.")
+        x0 <- 1
       }
     }
   }
@@ -163,6 +167,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   if (!exists("ExpectedCatch")) {
     ExpectedCatch=''
     warning("Expected Catch Matrix does not exist. Please run the create_expectations function if expected catch will be included in the model.")
+    x0 <- 1
   }  
   
   alt_var <- Alt[["alt_var"]]
@@ -177,11 +182,13 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
     gridVariablesInclude = as.data.frame(matrix(1, nrow=nrow(choice), ncol=max(as.numeric(as.factor(unlist(choice))))))
    } else {
     gridVariablesInclude
-  }
-  if (!exists("newDumV")) {
+   }
+  
+  browser()
+  if (!exists("Alt$newDumV")) {
     newDumV <- 1
   } else {
-    newDumV <- newDumV
+    newDumV <- Alt[['newDumV']]
     #bCHeader <- list(bCHeader, newDumV)
   }
   # 
@@ -243,7 +250,8 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
       if (any(grepl("Port", alt_var, ignore.case = TRUE) == T)) {
         if (is.data.frame(dataset)) {
           if (any(is_empty(dataset[[alt_var]]))) {
-            stop("alt_var does not exist in dataset")
+            warning("alt_var does not exist in dataset")
+            x0 <- 1
           }
           
           toXYa <- data.frame(dataset[[alt_var]][which(dataZoneTrue == 1)])  #  data[[altToLocal1]]data(v1).dataColumn(dataZoneTrue,:)      #subset data to when dataZoneTrue==1                                                                                                                                                              
@@ -301,14 +309,17 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
     } else {
       if (is.data.frame(dataset)) {
         if (length(occasion) < 2) {
-          stop("Define both lat and long in occasion variable.")
+          warning("Please define both lat and long in occasion variable.")
+          x0 <- 1
         }
         
         if (any(is_empty(dataset[[occasion[1]]]))) {
-          stop("occasion does not exist in dataset")
+          warning("Occasion does not exist in dataset")
+          x0 <- 1
         }
         if (any(is_empty(dataset[[occasion[2]]]))) {
-          stop("occasion does not exist in dataset")
+          warning("Occasion does not exist in dataset")
+          x0 <- 1
         }
         toXY2 <- data.frame(dataset[[occasion[1]]][which(dataZoneTrue == 1)], 
                             dataset[[occasion[2]]][which(dataZoneTrue == 1)])
@@ -331,11 +342,15 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   ##------ Generate Distance Matrix ----##       
   # Test for potential issues with data
   if (any(do.call(cbind, lapply(toXY1, is.nan)))) {
-    stop(paste("NaN found in ", altToLocal1, ". Design file aborted."))
+    warning(paste("NaN found in ", altToLocal1, ". Design file aborted."))
+    x0 <- 1
   }
   if (any(do.call(cbind, lapply(centersZone, is.nan)))) {
-    stop(paste("NaN found in ", altToLocal2, ". Design file aborted."))
+    warning(paste("NaN found in ", altToLocal2, ". Design file aborted."))
+    x0 <- 1
   }
+  
+  if(x0 == 0){
   # Generate distances using distm function [distAll,!,!] <-
   # #m_idist(toXY1[q,1],toXY1[q,2], centersZone[,1], centersZone[,2])
   if (dim(toXY1)[2] > 2) {
@@ -452,6 +467,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   make_model_design_function$kwargs <- list('indeVarsForModel'=indeVarsForModel, 'gridVariablesInclude'=gridVariablesInclude, 'priceCol'=priceCol)
   make_model_design_function$output <- c('')
   log_call(make_model_design_function)
-   
+  
+  } 
   # assign('modelInputData', modelInputData, pos=1)
 }

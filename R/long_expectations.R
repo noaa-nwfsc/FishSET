@@ -46,7 +46,7 @@ long_expectations <- function(dat, project, catch, price, defineGroup, temp.var,
     numData <- data.frame(rep(1, dim(dataset)[1]))  #ones(size(data(1).dataColumn,1),1)
     # Define by group case u1hmP1
   } else {
-    numData = as.integer(dataset[[defineGroup]])
+    numData = as.integer(as.factor(dataset[[defineGroup]]))
   }
   
   
@@ -71,7 +71,7 @@ long_expectations <- function(dat, project, catch, price, defineGroup, temp.var,
   C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*"))  #C = row ID of those unique items
   
   catchData <- as.numeric(dataset[[catch]][which(dataZoneTrue == 1)])
-  if(price=='none'|!is_empty(price)){
+  if(price!='none'&!is_empty(price)){
     priceData <- as.numeric(dataset[[price]][which(dataZoneTrue == 1)])
     catchData <- catchData*priceData
   }
@@ -166,6 +166,7 @@ long_expectations <- function(dat, project, catch, price, defineGroup, temp.var,
     # need to multiply polys by constant
     
     if (lag.method == "simple") {
+                meanCatch <- matrix(NA, nrow=nrow(meanCatchSimple), ncol=ncol(meanCatchSimple)-2)
       #        polys <- data.frame(matrix(NA, nrow = nrow(meanCatchSimple), ncol = 2))  #nan(size(meanCatchSimple,1),2)
       for (q in 1:nrow(meanCatchSimple)) {
         meanCatch[q, ] <- signal::polyval(stats::coef(stats::lm(as.numeric(meanCatchSimple[q, 3:(ncol(meanCatchSimple) - 1)]) ~
@@ -188,7 +189,7 @@ long_expectations <- function(dat, project, catch, price, defineGroup, temp.var,
   }
   
   
-  bi <- match(tiDataFloor, tLine, nomatch = 0)  # [~,bi]=ismember(tiDataFloor,tLine)
+  bi <- match(tiDataFloor, unique(tiData), nomatch = 0)  # [~,bi]=ismember(tiDataFloor,tLine)
   
   # this is the time for each alternative ('occurence level')
   # #[bit,~,cit]=unique([numData, tiDataFloor],'rows','Stable')
@@ -245,7 +246,7 @@ long_expectations <- function(dat, project, catch, price, defineGroup, temp.var,
       units = 'T/F'
       # file = []
     )
-    attach('newDumV', newDumVm, pos=1)
+    
     
     #replaceEmptyExpAll=get(dp2V5,'String')# replace empty catch
     if(empty.expectation=='NA'|is_empty(empty.expectation)){
@@ -259,6 +260,8 @@ long_expectations <- function(dat, project, catch, price, defineGroup, temp.var,
       newCatch[is.na(newCatch)] = 0.0001
     }
     
+  } else {
+    newDumV <- list()
   } #end dummy.exp==TRUE
   
   
@@ -266,6 +269,6 @@ long_expectations <- function(dat, project, catch, price, defineGroup, temp.var,
   r <- nchar(sub('\\.[0-9]+', '', mean(as.matrix(newCatch),na.rm=T))) #regexp(num2str(nanmax(nanmax(newCatch))),'\.','split')
   sscale <- 10^(r-1)  
   
-  LongExpectedCatch <- newCatch
+  LongExpectedCatch <- list(newCatch, newDumV)
   return(LongExpectedCatch)
 }  

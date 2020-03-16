@@ -1,0 +1,15 @@
+{
+  "mapbox_token":"pk.eyJ1IjoibWhhcnNjaDEyNSIsImEiOiJjazZ2NXh6dXUwZ25vM25wYXJ6bHFpOGc1In0.nAdb9QQybVd9ESgtr0fjZg",
+  "choosen_scatter":"HAUL",
+  "area_variable_column":"NMFS_AREA",
+  "area_variable_map":"NMFS_AREA",
+  "numeric_vars" :["HAUL"],
+  "temporal_vars":["DEPLOYMENT_DATE","HAUL_DATE","FISHING_START_DATE"],
+  "id_vars":["GEAR_TYPE","VESSEL"],
+  "longitude_start":"LONDD_START",
+  "latitude_start":"LATDD_START",
+  "longitude_end":"LONDD_END",
+  "latitude_end":"LATDD_END",
+  "uniqueID":"ROW",
+  "grid_file":"nmfs_manage_simple.geojson"
+}

@@ -668,7 +668,7 @@
                                   shifted to the past by the defined number of days (lag). For example, a window of 3 days and lag of 1 day means we take the 
                                   average catch of the three days priors to the given date.'),
                                div(style = "margin-left:19px;font-size: 12px", 
-                                   selectInput('temporal', 'Method to sort time:', c('Entire record of catch (no time)', 'Daily timeline', 'Sequential order'))),
+                                   selectInput('temporal', 'Method to sort time:', c('Entire record of catch (no time)', 'Daily timeline'='daily', 'Sequential order'='sequential'))),
                                uiOutput('expcatch'),
                                conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'",
                                                 style = "margin-left:19px;font-size: 12px",
