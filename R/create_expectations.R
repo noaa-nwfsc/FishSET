@@ -123,15 +123,17 @@ long_exp <- long_expectations(dat=dataset, project=project, catch=catch, price=p
   C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*"))  #C = row ID of those unique items
   
   catchData <- as.numeric(dataset[[catch]][which(dataZoneTrue == 1)])
-  if(!is_empty(price)){
+  if(price!='none'&!is_empty(price)){
     priceData <- as.numeric(dataset[[price]][which(dataZoneTrue == 1)])
      catchData <- catchData*priceData
   }
   
   # Time variable not chosen if temp.var is empty
   #NOTE currently doesn't allow dummy or other options if no time detected
-  if (is_empty(temp.var)) {
-    
+  if (temp.var=='none'|is_empty(temp.var)) {
+    #temp.var <-  colnames(dataset)[grep("date", colnames(dataset), ignore.case=TRUE)[1]]
+#  }
+  
     allCatch = stats::aggregate(catchData, list(C), mean, na.rm = T)  #accumarray(C,catchData,[],@nanmean)# currently no replacement for nans
     # Above line is grouping by the alternatives through the C above
     # [bi,~,ci]=unique([numData],'rows','Stable')
@@ -145,11 +147,11 @@ long_exp <- long_expectations(dat=dataset, project=project, catch=catch, price=p
       col <- B[C[w], 2]
       newCatch[which(ci == ci[w]), col] <- allCatch[C[w], 2]
     }
-    
+    newDumV <- list()
     # End No time variable temp.var
   } else {
     tiData <- as.Date(dataset[[temp.var]][which(dataZoneTrue == 1)], origin='1970-01-01')  #(ti(get(mp3V1,'Value'))).dataColumn(Alt.dataZoneTrue,:) # this part involves time which is more complicated
-    
+
     if (temporal == "daily") {
       # daily time line
       tiDataFloor <- lubridate::floor_date(as.Date(tiData), unit = "day")  # assume, we are talking day of for time
@@ -242,6 +244,7 @@ long_exp <- long_expectations(dat=dataset, project=project, catch=catch, price=p
       # need to multiply polys by constant
       
       if (lag.method == "simple") {
+         meanCatch <- matrix(NA, nrow=nrow(meanCatchSimple), ncol=ncol(meanCatchSimple)-2)
 #        polys <- data.frame(matrix(NA, nrow = nrow(meanCatchSimple), ncol = 2))  #nan(size(meanCatchSimple,1),2)
         for (q in 1:nrow(meanCatchSimple)) {
           meanCatch[q, ] <- signal::polyval(stats::coef(stats::lm(as.numeric(meanCatchSimple[q, 3:(ncol(meanCatchSimple) - 1)]) ~
@@ -264,7 +267,7 @@ long_exp <- long_expectations(dat=dataset, project=project, catch=catch, price=p
     }
     
     
-    bi <- match(tiDataFloor, tLine, nomatch = 0)  # [~,bi]=ismember(tiDataFloor,tLine)
+    bi <- match(tiDataFloor, unique(tiData), nomatch = 0)  # [~,bi]=ismember(tiDataFloor,tLine)
     
     # this is the time for each alternative ('occurence level')
     # #[bit,~,cit]=unique([numData, tiDataFloor],'rows','Stable')
@@ -298,12 +301,12 @@ long_exp <- long_expectations(dat=dataset, project=project, catch=catch, price=p
         newCatch[is.na(newCatch)] = 0.0001
       }
       
-      
+
     if (dummy.exp == TRUE) {
       
       dv <- as.data.frame(matrix(1, dim(meanCatch)[1], dim(meanCatch)[2]))  #length(ones(size(meanCatch))
       # dv(~emptyCellsCatch)=1% non empty=1 deprecated
-      dv[is.na(dummyTrack), ] <- 0  #
+      dv[is.na(dummyTrack)] <- 0  #
       # Mis.Dum, takes a value of one whenever the expected location- and haul-specific
       # estimates of revenues and bycatch are not empty NOTE: currently doesn't include catch==0
       dummyV <- as.data.frame(matrix(0, dim(newCatch)[1], dim(newCatch)[2]))  #zeros(size(newCatch))
@@ -321,7 +324,7 @@ long_exp <- long_expectations(dat=dataset, project=project, catch=catch, price=p
     units = 'T/F'
   # file = []
    )
-  attach('newDumV', newDumVm, pos=1)
+ # attach('newDumV', newDumVm, pos=1)
   
   #replaceEmptyExpAll=get(dp2V5,'String')# replace empty catch
   if(is_empty(empty.expectation)){
@@ -335,6 +338,8 @@ long_exp <- long_expectations(dat=dataset, project=project, catch=catch, price=p
     newCatch[is.na(newCatch)] = 0.0001 
   }
 
+  } else {
+    newDumV <- list() 
   } #end dummy.exp==TRUE
 
 
@@ -349,11 +354,15 @@ long_exp <- long_expectations(dat=dataset, project=project, catch=catch, price=p
  #     paste(emp.window, temp.lag, year.lag, sep="_")
   #    }
   ExpectedCatch <- list(
-     short_exp= short_exp,#, g( price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation), '2', '0', '0', sep='_') 
-     med_exp= med_exp,#, g(catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation), '7', '0', '0', sep='_') 
-     long_exp= long_exp,#, g(catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation), '7', '0', '1', sep='_') 
+     short_exp= short_exp$newCatch,#, g( price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation), '2', '0', '0', sep='_') 
+     short_exp_newDumV = short_exp$newDumV , 
+     med_exp= med_exp$newCatch,#, g(catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation), '7', '0', '0', sep='_') 
+     med_exp_newDumV = med_exp$newDumV,
+     long_exp= long_exp$newCatch,#, g(catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation), '7', '0', '1', sep='_') 
+     long__exp_newDumv = long_exp$newDumV,
      user_defined_exp= newCatch,#, g(catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation), h(temp.window, temp.lag, year.lag), sep='_') ,
      scale = sscale,
+     newDumV = newDumV,
      units = ifelse(grepl('lbs|pounds', catch, ignore.case = T)==T, 'LBS', 'MTS') #units of catch data
      #newGridVar.file=[]
      )

@@ -46,7 +46,7 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
     numData <- data.frame(rep(1, dim(dataset)[1]))  #ones(size(data(1).dataColumn,1),1)
     # Define by group case u1hmP1
   } else {
-    numData = as.integer(dataset[[defineGroup]])
+    numData = as.integer(as.factor(dataset[[defineGroup]]))
   }
   
   if(temp.var=='none'|is_empty(temp.var)){
@@ -76,6 +76,7 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
       priceData <- as.numeric(dataset[[price]][which(dataZoneTrue == 1)])
       catchData <- catchData*priceData
     }
+
     # Time variable not chosen if temp.var is empty
       tiData <- as.Date(dataset[[temp.var]][which(dataZoneTrue == 1)], origin='1970-01-01')  #(ti(get(mp3V1,'Value'))).dataColumn(Alt.dataZoneTrue,:) # this part involves time which is more complicated
       if (temporal == "daily") {
@@ -118,7 +119,6 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
                         '% of observations with only single observations. Cannot use lag time for choosen group and choice data. Setting lag time to 0.'))
       }
       
-
      if(lagTime>0){
       df2$lag.value <- c(rep(NA, lagTime), df2$catchData[-c(1:lagTime)])
       df2$lag.value[which(!duplicated(df2$ID))] <- NA
@@ -159,7 +159,6 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
                                         idvar = c("numData", "spData"), timevar = "tiData", direction = "wide")
       dummyTrack <- meanCatchSimple[, -c(1, 2)]  # preallocate for tracking no value
       
-      
       if (calc.method == "standardAverage") {
         meanCatch <- meanCatchSimple[, -c(1, 2)]
       } else if (calc.method == "simpleLag") {
@@ -168,8 +167,10 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
         # need to multiply polys by constant
         
         if (lag.method == "simple") {
+            meanCatch <- matrix(NA, nrow=nrow(meanCatchSimple), ncol=ncol(meanCatchSimple)-2)
           #        polys <- data.frame(matrix(NA, nrow = nrow(meanCatchSimple), ncol = 2))  #nan(size(meanCatchSimple,1),2)
           for (q in 1:nrow(meanCatchSimple)) {
+            
             meanCatch[q, ] <- signal::polyval(stats::coef(stats::lm(as.numeric(meanCatchSimple[q, 3:(ncol(meanCatchSimple) - 1)]) ~
                                                                       as.numeric(meanCatchSimple[q, 4:ncol(meanCatchSimple)])  
             )), 
@@ -189,23 +190,19 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
         meanCatch <- meanCatchSimple[, -c(1, 2)]
       }
       
-      
-      
-      
-      bi <- match(tiDataFloor, tLine, nomatch = 0)  # [~,bi]=ismember(tiDataFloor,tLine)
-      
+      bi <- match(tiDataFloor, unique(tiData), nomatch = 0)  # [~,bi]=ismember(tiDataFloor,tLine)
+ 
       # this is the time for each alternative ('occurence level')
       # #[bit,~,cit]=unique([numData, tiDataFloor],'rows','Stable')
       temp <- cbind(numData, tiDataFloor)
       bit <- unique(cbind(numData, tiDataFloor))
       cit <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(bit[, 1], bit[, 2], sep = "*"))
       
-      
       # dummyChoiceOut=get(dp2V4,'String') no dummy variable
-      
+
       newCatch <- data.frame(matrix(NA, nrow = length(bi), ncol = length(unique(B[, 2]))))
       colnames(newCatch) = names(table(B[, 2]))
-      
+
       for (w in 1:length(bi)) {
         # if ~isinf(B(C(w),end))
         col <- B[C[w], 2]
@@ -249,7 +246,7 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
           units = 'T/F'
           # file = []
         )
-        attach('newDumV', newDumVm, pos=1)
+       
         
         #replaceEmptyExpAll=get(dp2V5,'String')# replace empty catch
         if(empty.expectation=='NA'|is_empty(empty.expectation)){
@@ -263,6 +260,8 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
           newCatch[is.na(newCatch)] = 0.0001 
         }
         
+      }  else {
+        newDumV <- list()
       } #end dummy.exp==TRUE
       
       
@@ -270,7 +269,7 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
     r <- nchar(sub('\\.[0-9]+', '', mean(as.matrix(newCatch),na.rm=T))) #regexp(num2str(nanmax(nanmax(newCatch))),'\.','split')
     sscale <- 10^(r-1)  
     
-    ShortExpectedCatch <- newCatch
+    ShortExpectedCatch <- list(newCatch, newDumV)
      
       #newGridVar.file=[]
     

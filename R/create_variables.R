@@ -293,35 +293,35 @@ create_mid_haul <- function(dat, start=c('lon', 'lat'), end=c('lon','lat'), name
 #'                  name='mid_haul') 
 #' }
 #
-  
+
   out <- data_pull(dat)
   dat <- out$dat
   dataset <- out$dataset
   tmp <- 0
-  
- if(is_empty(start)||is_empty(end)) {
+
+ if(is_empty(start)|is_empty(end)) {
    tmp <- 1
    warning('Starting and end locations must both be specified. Function not run.')
  }
 
-  if(dim(dataset[[start]])[1] != dim(dataset[[end]])[1]){
+  if(dim(dataset[,c(start)])[1] != dim(dataset[,c(end)])[1]){
     tmp <- 1
     warning('Starting and ending locations are of different lengths. Function not run.')
   }
 
-  if (any(abs(dataset[[start]][1]) > 180)|any(abs(dataset[[end]][1]) > 180)) {
+  if (any(abs(dataset[,c(start)][1]) > 180)|any(abs(dataset[,c(end)][1]) > 180)) {
     warning("Longitude is not valid (outside -180:180). Function not run")
     #stop("Longitude is not valid (outside -180:180.")
     tmp <- 1
   }
-  if (any(abs(dataset[[start]][2]) > 90)|any(abs(dataset[[end]][2]) > 90)) {
+  if (any(abs(dataset[,c(start)][2]) > 90)|any(abs(dataset[,c(end)][2]) > 90)) {
     warning("Latitude is not valid (outside -90:90. Function not run") 
     tmp <-1    
     # stop("Latitude is not valid (outside -90:90.")
   } 
   
   if(tmp==0){
-  distBetween <- geosphere::midPoint(dataset[[start]], dataset[[end]])
+  distBetween <- geosphere::midPoint(dataset[,c(start)], dataset[,c(end)])
   colnames(distBetween)= c(paste0(name,'lon'), paste0(name,'lat'))
   out <- cbind(dataset, distBetween)
   

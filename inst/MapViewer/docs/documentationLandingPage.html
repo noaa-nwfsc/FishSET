@@ -1,0 +1,135 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <style type="text/css">
+        header {
+         background-color: #106eda;
+        color:white;
+        padding: 10px;}
+        h1{ color: white; }
+        .title {font-weight: bold;}
+        .list{ list-style-type: lower-alpha;  }
+    </style>
+</head>
+<body>
+    <header>
+    <h1>FishSET-Map-Viewer</h1>
+    <p> author: Corinne Bassin, NOAA National Modeling Team</p>
+    <p> developed as part of the Spatial Economics Toolbox for Fisheries</p>
+    <p>
+    Devleopment Documentation
+    <button> <a href="./codeDocs/index.html">Code Documentation</a></button>
+    </p>
+    </header>
+    <h2>Simple Description<h2>
+    <h2>Using the Map</h2>
+     <ul>
+        <li class ="title">Dropdown Menus</li>
+        <pre>
+        The two dropdown menus on the left panel control which
+        (a) variable is coloring the lines showns and
+        (b) the method for summarizing the variable by grid.
+
+        The legend for each dropdown menu is dependant on the choices in the dropdowns and the colors are changed on the map and the lower bar graph accordingly.
+        the second dropdown (b) controls the bar graph and the grid.
+        </pre>
+        <li class ="title"> Hover Options</li>
+        Hovering over the linear features will bring up the row-wise data associated with the specific line, and shown as a JSON in the right panel.  The line will become larger and darker for identification.
+        <li class ="title" > Mouse Click</li>
+        Clicking on individual zones will bring up a popup with any information associated with the properties of the polygon in the GeoJson which was used to create the grid.
+
+
+
+     </ul>
+    <h2>Set Up</h2>
+    <ul class ="list">
+        <li>Download or clone this project into a new directory "./newDir"</li>
+        <li>Create necessary data files, "Gridded Date File,"CSV Data File", "Config File"</li>
+        <li>Copy files into your folder "./newDir" </li>
+        <li>cd "./newDir" and start a <a href="#localhost">localhost</a></li>
+    </ul>
+    <h3>Data Files</h3>
+    <p> Two generated data files are expected and one configuration file
+        <ul>
+            <li class ="title"> Gridded Data File</li> This GeoJson file contains the grid that will be drawn on the map and used for spatial summaries of the data.  GeoJson files can be created from shapefiles if needed.  The GeoJson must contain a minimum of the coordinates that make up the polygons and at least one property value that gives that polygon a unique Identifier.  That property value will be used to link the data in the CSV data file. Other properties may be in the GeoJson for informational purposes.
+            The filename will be stored in the map_config.json as "grid_file"
+            <li class ="title"> CSV Data File</li> The CSV data file contains columns of variable where each row of data in unique.  Column variables may consist of numeric ( including temporal)  or categorical data. One column variable included must contain the ID to the polygon that row of data is associated with in the Gridded Data File.  The name does not need to be the same as it will need to be listed in the configuration file.
+            The filename for this CSV file should be datafile.csv.  If you would like to change this, you can have the filename directly in the index.html file but unless necessary just use a file with the standard name.
+
+            <!-- need to change start and end to variables -->
+        </ul>
+    </p>
+    <h3> Configuration File</h3>
+    <p> The configurations file, map_config.js is a JSON of variables and filesnames necessary for the map to run.
+        <ul>
+            <li>mapbox_token - The is a private token that allow usage of the Mapbox base layers. Go to <a href="www.mapbox.com" target="_blank" >Mapbox</a>  and create a free account for a token</li>
+            <li>choosen_scatter - the name of the variable in the csv file that </li>
+            <li>area_variable_column - the name of the variable in the csv data file that gives the unique ID associated to the polygon that data value is associated to</li>
+            <li>area_variable_map - the name of the property in the GeoJson file that identifies the polygon to cross reference to the CSV file</li>
+            <li>numeric_vars - a list of string varaibale ["","",""], which name all variables in the csv file that you would like to include for analysis on the map and are considered numeric</li>
+            <li>id_vars - a list of string varaibale ["","",""], which name all variables in the csv file that you would like to include for analysis on the map and are considered categorical variables or strings</li>
+
+            <li>longitude_start - the name of the variable in csv file that identifies the starting longitude  ( decimal degrees) of the line to plot </li>
+            <li>latitude_start - the name of the variable in csv file that identifies the starting latitude ( decimal degrees) of the line to plot</li>
+            <li>longitude_end - the name of the variable in csv file that identifies the ending longitude  ( decimal degrees) of the line to plot</li>
+            <li>latitude-end - the name of the variable in csv file that identifies the ending latitude ( decimal degrees) of the line to plot</li>
+            <li>uniqueID - the name of the variable in the CSV file that identifies a unique identification ( decimal degrees) to the row of the data. Essentially a row identifier</li>
+            <li>grid_file - the name of the geojson file that contains the geographic infrmation associate to the gridfile</li>
+
+
+        </ul>
+        Example Config
+        <pre>
+        <code>
+        {
+            "mapbox_token":"fakeTokenID",
+            "choosen_scatter":  "HAUL_FISHNAME1",
+            "area_variable_column": "THE_GRIDID",
+            "area_variable_map":"GRID_AREA",
+            "numeric_vars" :["HAUL_FISHNAME1","HAUL_FISHNAME2","HAUL_LBS_OTHER_LBS"],
+            "temporal_vars":["DATE_FISHING_BEGAN","DATE_LANDED"],
+            "id_vars": ["GEAR_TYPE","PERFORMANCE"],
+            "longitude_start":"START_LON",
+            "latitude_start":"START_LAT",
+            "longitude_end":"END_LON",
+            "latitude_end":"END_LAT",
+            "uniqueID":"uniqueID",
+            "grid_file":"GriddedStatisticalAreas.json"
+        }
+        </code>
+        </pre>
+
+
+
+    </p>
+    <h3><a name="localhost"></a> Turning on a localhost</h3>
+    <p>You will need to create a localhost to serve the Javascript files.  This can be accomplished a number of ways. Here are two ways depending on if you have R or python on your computer</p>
+    <UL>
+        <li> using python3 and above, at the command line in the directory of choice
+        <pre>
+         <code>python -m http.server </code>
+        </pre>
+        </li>
+        <li> using R: go to https://github.com/yihui/servr
+        </li>
+        <pre>
+        <code>
+            install.packages('servr')
+
+            //in an interactive R session:
+            servr::httd()
+
+            //or at the cmd line
+
+             Rscript -e 'servr::httd()' -b
+        </code>
+        </pre>
+         </li>
+    </UL>
+
+
+
+</body>
+</html>

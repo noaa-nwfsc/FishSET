@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>Style circles with a data-driven property</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.49.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.49.0/mapbox-gl.css' rel='stylesheet' />
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="http://d3-legend.susielu.com/d3-legend.min.js"></script>
+    <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
+    <script src="http://d3js.org/queue.v1.min.js"></script>
+    <script type="text/javascript" src="d3-drawing-functions.js"></script>
+    <link href="interactive.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+
+<div id='map'></div>
+
+<pre id='info'></pre>
+<div id = "allinfo">Hover on Haul Lines for Data
+    </div>
+<div class='map-overlay top'>
+    <div class='map-overlay-inner'>
+        <div class ='spacing'>
+                <label><b>Select property</b></label>
+                <select id='prop' name='prop'>
+                </select>
+
+        </div>
+        <div class = 'scatterLegend'></div>
+        <div class ='spacing'>
+             <label><b>Select Grid Bin Type</b></label>
+            <select id='gridType' name='gridType'>
+            </select>
+
+
+        </div>
+        <div class = 'zoneLegend'>
+        </div>
+
+
+
+
+    </div>
+    <div id='viz'> <svg width="700" height="200"></svg></div>
+</div>
+<!-- <div id="chart" ></div> -->
+
+
+<!-- <svg id='lower' width="960" height="200"></svg> -->
+
+
+<!-- <script type="text/javascript" src= "https://unpkg.com/simple-statistics@6.1.0/dist/simple-statistics.min.js"></script> -->
+
+<script>
+
+
+var map;  // global map variable for mapbox
+
+queue()
+    .defer(d3.json, 'map_config.json') //loads a file and waits
+    .defer(d3.csv, 'datafile.csv') // loads file and waits
+    .await(loadConfig); // runs loadCOnfig once two above files are loaded fully
+
+
+
+var zoneObject = {};
+var zoneHistInfo ={};
+var hoveredStateId =  null;
+
+
+
+
+
+</script>
+
+</body>
+</html>

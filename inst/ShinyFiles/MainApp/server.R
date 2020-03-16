@@ -2608,7 +2608,7 @@
       
       
       observeEvent(input$submitE, {
-        showNotification('Create expectation function called', type='message', duration=10)
+        showNotification('Create expectated catch function called', type='message', duration=10)
         
         create_expectations(values$dataset, input$projectname, input$catche, price=input$price, defineGroup=if(grepl('no group',input$group)){NULL} else {input$group}, temp.var=input$temp_var, 
                             temporal = input$temporal, calc.method = input$calc_method, lag.method = input$lag_method,
