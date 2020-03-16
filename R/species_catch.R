@@ -339,7 +339,7 @@ species_catch <- function(dat, project, s, t, period = "month_abv", group = NULL
       
       missing_periods <- setNames(missing_periods, c(period, "years", "species"))
       
-    } else if (!is.null(group) & length(group) == 1) {
+        missing_periods <- setNames(missing_periods, c(period, "years", "species"))
       
       missing_periods <- expand.grid(period = ind, 
                                      years = unique(count$years),
