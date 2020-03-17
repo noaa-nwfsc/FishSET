@@ -227,6 +227,45 @@ if (quant.cat == 0.2) {
 }
 }
 
+bin_var <- function(dat, project, var, br = NULL, labs = NULL, ...){
+  #'
+  #' Wrapper for \code{\link{cut}}
+  #'
+  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
+  #' @param project name of project.
+  #' @param var A numeric variable to bin into a factor.
+  #' @param br Numeric. If a single number, the range of var is divided into 
+  #'   n even groups. If two or more values are given var is divided into intervals.
+  #' @param labs A character string of category labels. 
+  #' @param ... Additional arguments passed to \code{\link{cut}}.
+  
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset
+  
+  tmp <- 0
+  
+  if (!is.numeric(dataset[[var]])) {
+    
+    tmp <- 1
+    Warning("Variable must be numeric.")
+  }
+  
+  if (tmp = 0) {
+    
+    bin <- cut(dataset[[var]], breaks = br, labels = labs, ...)
+    
+    # Log function
+    bin_var_function <- list()
+    bin_var_function$functionID <- "bin_var"
+    bin_var_function$args <- c(dat, project, var, project, br, labs)
+    bin_var_function$kwargs <- ""
+    log_call(bin_var_function)
+    
+    bin
+  }
+}
+
 ##---- Numeric  Variables ----##
 #' Create numeric variables using arithmetic expression
 create_var_num <- function(dat, x, y, method, name='create_var_num') {

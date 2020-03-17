@@ -60,7 +60,7 @@ port <- FishSET:::read_dat('./data/port.RData', data.type = 'R')
 ```
 
 
-FishSET requires a primary data file that contains the main data for the model, such as haul locations and total catch. Port data, containing the latitude and longitude of ports should also be included. To load the primary data use *load_maindata*. In this example, we set the parameters `compare` to FALSE and `y` to NULL as there is no previous version of the data compare against. 
+FishSET requires a primary data file that contains the main data for the model, such as haul locations and total catch. Port data, containing the latitude and longitude of ports should also be included. To load the primary data use *load_maindata*. In this example, we set the parameters `compare` to FALSE and `y` to NULL as there is no previous version of the data to compare against. 
 
 ```{r load-data, echo=TRUE}
 #Load main data into fishset_db database
@@ -69,7 +69,7 @@ FishSET:::load_maindata(ExpData, over_write = TRUE, project= 'pcod', compare = F
 FishSET:::load_port(port, port_name='PORT', over_write = TRUE, project = 'pcod', compare = FALSE, y = NULL)
 ```
 
-Now if we look at the fishset_db database there should be six data tables, raw and working copies of the main data table and an information table that was created by the *load_maindata* function and raw and working copies of the port data created by the *load_port* function.
+Now if we look at the fishset_db database there should be six data tables: raw and working copies of the main data table, an information table that was created by the *load_maindata* function, and raw and working copies of the port data created by the *load_port* function.
 
 ```{r echo=TRUE}
 FishSET:::tables_database()
@@ -79,7 +79,7 @@ Other data can be loaded into the fishset_db database using *load_aux* and *load
 
 The data set is very large with many variables that may be redundant. To subset the data set to only variables that are required for analysis and modeling, use `select_vars` function. To add variables back into the data set at a later date use `add_vars`.
 ```{r echo=TRUE}
-select_vars('pcodMainDataTable', 'pcod')
+FishSET:::select_vars('pcodMainDataTable', 'pcod')
 ```
 
 ## Checking and cleaning data
@@ -87,10 +87,11 @@ Functions can call data tables from the fishset_db database or from the global e
 
 ```{r echo=TRUE}
 #Check for common data quality issues
-FishSET:::data_check('pcodMainDataTable','pcod','OFFICIAL_TOTAL_CATCH', 'pcodMainDataTableInfo')
+# data_check is missing 'project' argument, summary_stats creates error.
+FishSET:::data_check(dat = 'pcodMainDataTable', 'pcod', x = 'OFFICIAL_TOTAL_CATCH', dataindex = 'pcodMainDataTableInfo')
 ```
 
-The data parser functions (*load_maindata*, *load_port*, *load_aux*, *load_gridd*) call the *data_verification* function. This function checks that each observation is a unique occurrence, that variable names are unique, and that no empty variables exist. The data will not be saved to the fishset_db database if any of these checks fail. The data should also be checked for presence of NAs, NaNs, outliers, and the distribution of location points. The *data_check* function runs these tests. The output states that NAs are present in the data. We can remove those using *na_filter*.
+The data parser functions (*load_maindata*, *load_port*, *load_aux*, *load_grid*) call the *data_verification* function. This function checks that each observation is a unique occurrence, that variable names are unique, and that no empty variables exist. The data will not be saved to the fishset_db database if any of these checks fail. The data should also be checked for presence of NAs, NaNs, outliers, and the distribution of location points. The *data_check* function runs these tests. The output states that NAs are present in the data. We can remove those using *na_filter*.
 
 ```{r echo=TRUE}
 pcodMainDataTable <- FishSET:::na_filter('pcodMainDataTable', c('DEPLOY_LATITUDE','DEPLOY_LONGITUDE'), replace = F, remove = T)
@@ -205,7 +206,7 @@ map2 <- FishSET:::read_dat('inst/extdata/nmfs_manage_simple.json', 'shape')
 ###CREATE MODEL DESIGN FUNCTIONS
 The following functions creates a list containing information on how alternative fishing choices should be defined *create_alternative_choice*, calculate the expectation of catch for alternative choices *create_expectations*, and the model design matrix *make_model_design*. The model design matrix is a list containing actual zonal catch, actual zonal choice, the distance matrix (distance from starting point to alternative choice), price data (if needed), and other data such as independent variables and interaction terms. The output from these functions is saved to the fishset_db database. See package documentation for further information on the parameters for these functions.
 
-Use the tembs_obs_table to check for sparsity. Zones with sparse data can be filterd from the data by setting a minimum haul value (min.haul parameter) in the create_alternative_choice function.
+Use the *temp_obs_table* to check for sparsity. Zones with sparse data can be filterd from the data by setting a minimum haul value (min.haul parameter) in the *create_alternative_choice* function.
 ```{r echo=TRUE}
 FishSET:::temp_obs_table(pcodMainDataTable, map2, "DATE_FISHING_BEGAN", lon.grid='', lat.grid='', lon.dat='DEPLOY_LONGITUDE', lat.dat='DEPLOY_LATITUDE', cat='NMFS_AREA')
 ```

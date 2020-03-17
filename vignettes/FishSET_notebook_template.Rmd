@@ -72,7 +72,7 @@ knitr::include_graphics(paste0(getwd(), '/inst/output/Test_Outliers_plot.png'))
 Please delete from the 'Please Read' to here before knitting the document.
 <!-- END PLEASE READ --->
 
-##Interactive functions
+## Interactive functions
 <!-- Load data to database, explore data, run basic data quality checks, run basic analyses -->
 ```{r, echo=FALSE } 
 if(update=='TRUE'){
@@ -81,7 +81,7 @@ FishSET:::select_checks_gui("testMainDataTable", 'test')
 ```
 
 
-##Introduction
+## Introduction
  What are your main questions? 
  
  Who do you want to study?
@@ -90,18 +90,19 @@ FishSET:::select_checks_gui("testMainDataTable", 'test')
  
  Why are you conducting this analysis?
 
-##Data verification
+## Data verification
 Questions to ask:
-  What data are needed? 
-      * Pull data into R using the `read_dat` function
-      * Parse data file and save to RSqlite database using the `load_maindata`, `load_port`, `load_aux`, and `load_grid` functions.
-  Which variables do you need to explore your questions? 
-      * Use `select_vars` function to subset data to these desired variables. The `add_vars` function can be used to add variables from the raw data table to the working data table.
-      * Check variables for outliers, NaNs, and NAs using the data_check function. Further checks on outliers can be accomplished using the `outlier_table` and          `outlier_plot` functions.
-      * Create variables that are needed such as CPUE using the data creation functions outlined in the FishSET vignette.
-  Which model(s) do you plan to use. Models have differing data requirements.
-      * Before modeling, check for potential errors in existing and created variables using the `check_model_data` function.
-      *NEED MORE HERE
+
+* What data are needed? 
+  + Pull data into R using the `read_dat` function
+  + Parse data file and save to RSqlite database using the `load_maindata`, `load_port`, `load_aux`, and `load_grid` functions.
+* Which variables do you need to explore your questions? 
+  + Use `select_vars` function to subset data to these desired variables. The `add_vars` function can be used to add variables from the raw data table to the working data table.
+  + Check variables for outliers, NaNs, and NAs using the data_check function. Further checks on outliers can be accomplished using the `outlier_table` and `outlier_plot` functions.
+  + Create variables that are needed such as CPUE using the data creation functions outlined in the FishSET vignette.
+* Which model(s) do you plan to use? Models have differing data requirements.
+  + Before modeling, check for potential errors in existing and created variables using the `check_model_data` function.
+  + NEED MORE HERE
 
 
 ## Spatial stuff
@@ -110,7 +111,7 @@ Questions to ask:
 3) View zones
 4) table output option
 
-##Generate necessary variables
+## Generate necessary variables
 1) Dynamic GUI? How to organize data creation functions
    Most likely, split by type, temporal, numeric, spatial
    
