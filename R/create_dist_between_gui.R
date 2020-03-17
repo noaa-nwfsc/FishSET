@@ -1,7 +1,7 @@
 #' Distance between two points
 create_dist_between_for_gui <- function(dat, start, end, units, portTable=NULL, gridfile=NULL,
                                         lon.dat=NULL, lat.dat=NULL, cat=NULL, lon.grid=NULL, lat.grid=NULL){
-  #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
   #' @param start  Starting location. Should be a port, lat/long location, or the centroid of zonal assignment. 
   #' @param end  Ending location. Should be a port, lat/long location, or the centroid of the fishing zone or area. 
   #' @param units Unit of distance (miles, kilometers)
@@ -19,7 +19,7 @@ create_dist_between_for_gui <- function(dat, start, end, units, portTable=NULL, 
   #' If the start or ending points are from a port or the center of a fishing zone or area, 
   #' then a prompt will appear asking for further parameters to be specified. 
   #' If the starting or ending points are a port, then latitude and longitude are extracted from the port table 
-  #' stored in the fishset_db database.  In this case, PortTable must be specified.  If the starting or ending points 
+  #' stored in the FishSET database.  In this case, PortTable must be specified.  If the starting or ending points 
   #' are the center of the fishing zone or area, then the assignment_column function will be called to assign each observation
   #'  to a zone. The find_centroid function will then be called to determine the centroid of each zone. Distance measurements will be between these centroids. 
 
@@ -35,7 +35,9 @@ create_dist_between_for_gui <- function(dat, start, end, units, portTable=NULL, 
     dat <- out$dat
     dataset <- out$dataset
  
-      if(start[1]=='centroid'|end[1]=='centroid'){
+       x <- 0      
+       
+       if(start[1]=='centroid'|end[1]=='centroid'){
         dat2 <- assignment_column(dat=dataset, gridfile=gridfile, hull.polygon=FALSE, lon.grid=lon.grid, lat.grid=lat.grid, 
                                    lon.dat = lon.dat, lat.dat=lat.dat, cat=cat, closest.pt = TRUE)
         int <- find_centroid(dat2, gridfile=gridfile, lon.grid==lon.grid, lat.grid==lat.grid, 
@@ -67,6 +69,19 @@ create_dist_between_for_gui <- function(dat, start, end, units, portTable=NULL, 
   if(grepl('lat|lon', start[1], ignore.case=TRUE)){
         start.long <- dataset[[start[2]]]
         start.lat <- dataset[[start[1]]]
+ 
+        if (any(abs(start.long) > 180)) {
+          warning("Longitude is not valid (outside -180:180). Function not run")
+          #stop("Longitude is not valid (outside -180:180.")
+          x <- 1
+        }
+        if (any(abs(start.lat) > 90)) {
+          warning("Latitude is not valid (outside -90:90. Function not run") 
+          x <-1    
+          # stop("Latitude is not valid (outside -90:90.")
+        } 
+        
+        
     }
     
     
@@ -83,8 +98,19 @@ create_dist_between_for_gui <- function(dat, start, end, units, portTable=NULL, 
     } else {
       end.lat <- dataset[[end[1]]]
       end.long <- dataset[[end[2]]]
+      if (any(abs(end.long) > 180)) {
+        warning("Longitude is not valid (outside -180:180). Function not run")
+        #stop("Longitude is not valid (outside -180:180.")
+        x <- 1
+      }
+      if (any(abs(end.lat) > 90)) {
+        warning("Latitude is not valid (outside -90:90. Function not run") 
+        x <-1    
+        # stop("Latitude is not valid (outside -90:90.")
+      } 
     }
     
+    if(x==1){
     # Get distance between points
     if(units=='midpoint'){
       distBetween <- geosphere::midPoint(cbind(start.long,start.lat), cbind(end.long,end.lat))
@@ -109,6 +135,7 @@ create_dist_between_for_gui <- function(dat, start, end, units, portTable=NULL, 
     log_call(create_dist_between_function)
     
     return(distBetween)
+    }
   }
 }
 

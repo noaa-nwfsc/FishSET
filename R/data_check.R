@@ -1,9 +1,9 @@
 #' Guided steps to cleaning data frame
 
-#' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
 #' @param x Column in data frame to check for outliers.
-#' @param dataindex MainDataTableInfo table from fishet_db database that is associated with the data set. This table contains information on each column of the data frame.
-#'  Must be in quotes if called from the fishset_db database.
+#' @param dataindex MainDataTableInfo table from FishSET database that is associated with the data set. This table contains information on each column of the data frame.
+#'  Must be in quotes if called from the FishSET database.
 #' @export data_check
 #' @details Prints summary stats for all variable in the main data frame. Checks for NaNs and NAs and prints column names that contain NaNs or NAs.
 #' Checks for outliers for specified data column. Further actions may be taken to further evaluate and remove NaNs and outliers.
@@ -12,7 +12,7 @@
 #' The function is also called in other functions to check for common issues with data. 
 #' @examples
 #' \dontrun{
-#' data_check(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', 'MainDataTableInfo')
+#' data_check('pcodMainDataTable', 'OFFICIAL_TOTAL_CATCH_MT', 'MainDataTableInfo')
 #' }
 #'
 
@@ -37,8 +37,8 @@ data_check <- function(dat, x, dataindex) {
 #Run checks
     print(summary_stats(dataset))
      cat('\nNA checks\n')
-          if (any(apply(dataset, 2, function(x) any(is.na(x))))==TRUE) {
-            cat("The", names(which(apply(dataset, 2, function(x) any(is.na(x)))==TRUE)), "columns contain NAs. Consider using na_filter to replace or remove NAs")
+          if (any(apply(dataset, 2, function(x) anyNA(x)))==TRUE) {
+            cat("The", names(which(apply(dataset, 2, function(x) anyNA(x))==TRUE)), "columns contain NAs. Consider using na_filter to replace or remove NAs")
           } else {
             cat("No columns in the dataframe contain NAs")
           }

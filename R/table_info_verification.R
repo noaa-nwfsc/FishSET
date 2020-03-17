@@ -1,17 +1,17 @@
 table_info_verification <- function(dataindex) {
   #' Check for common data issues
-  #' @param dataindex Data table saved in fishset_db database that contains information on each column of the main dataset. 
+  #' @param dataindex Data table saved in FishSET database that contains information on each column of the main dataset. 
   #' Table name should contain the phrase `MainDataTableInfo`.
-  #' Can be called from the global environment or the fishset_db database.
+  #' Can be called from the global environment or the FishSET database.
   #' @return Returns statements as to whether issues in the `dataindex` table may exist
   #' @export table_info_verification
   #' @details Checks whether specialized variables have been identified in the `dataindex` table and if units are defined and recognized.
   #' @examples 
   #' \dontrun{
   #' #Table loaded from fishet_db database
-  #'    table_info_verification('MainDataTableInfo') 
+  #'    table_info_verification('pcodMainDataTableInfo') 
   #' #Table loaded from the global environment.
-  #'    table_info_verification(MainDataTableInfo) 
+  #'    table_info_verification(pcodMainDataTableInfo) 
   #' }
   
     tmp <- tempfile()

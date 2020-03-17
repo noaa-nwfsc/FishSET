@@ -2,7 +2,7 @@
 #' 
 #' Generates a table or plot of the number of unique vessels by time period
 #' 
-#' @param dat Main data frame over which to apply function. Table in fishset_db 
+#' @param dat Main data frame over which to apply function. Table in FishSET 
 #'   database should contain the string `MainDataTable`.
 #' @param project name of project.
 #' @param v vessel ID variable to count.
@@ -69,6 +69,8 @@ vessel_count <- function(dat, project, v, t, period = "month", group = NULL,
     
     group1 <- group[1]
   
+    dataset[[group1]] <- as.factor(dataset[[group1]])
+    
     dataset[[group1]] <- as.factor(dataset[[group1]])
     
     if (length(group) == 2) {
@@ -161,11 +163,11 @@ vessel_count <- function(dat, project, v, t, period = "month", group = NULL,
   }
   
   if (nrow(missing_periods) > 0) {
-  
+    
     missing_periods$vessel_freq <- 0
-  
+    
     count <- rbind(count, missing_periods)
-
+    
   }
   
   count <- count[order(count$years, count[[period]]), ]
@@ -244,7 +246,7 @@ vessel_count <- function(dat, project, v, t, period = "month", group = NULL,
   if (output == "table") {
     
     count
-     
+    
   } else {
     
     plot

@@ -3,7 +3,7 @@
 ##--- CPUE ----##
 #' Create catch per unit effort 
 cpue <- function(dat, xWeight, xTime, name='cpue') {
-  #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
   #' @param xWeight Weight variable
   #' @param xTime Time variable. Must be weeks, days, hours, or minutes.
   #' @param name Name of created variable. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
@@ -11,7 +11,7 @@ cpue <- function(dat, xWeight, xTime, name='cpue') {
   #' @details Creates the catch per unit effort variable. Catch variable must be in weight (lbs, mts). Effort variable should be a measurement of duration in time.
   #' @examples 
   #' \dontrun{
-  #' MainDataTable$cpue <- cpue(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', 'DURATION_IN_MIN') 
+  #' pcodMainDataTable$cpue <- cpue('pcodMainDataTable', 'OFFICIAL_TOTAL_CATCH_MT', 'DURATION_IN_MIN') 
   #' }  
 
   #Call in datasets
@@ -51,9 +51,9 @@ cpue <- function(dat, xWeight, xTime, name='cpue') {
 #dummy_num
 dummy_num <- function(dat, var, value, opts='more_less', name='dummy_num'){
 #' Create a dummy variable based on selected values
-#' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
 #' @param var Variable in data frame to create dummy variable off of
-#' @param value The set value will depend whether the data is a date, facotr, or numeric. If date, value should be a year, if factor, value should be a level
+#' @param value The set value will depend whether the data is a date, factor, or numeric. If date, value should be a year, if factor, value should be a level
 #' within the variable, if number value should be a single number or range of numbers [use c(1,5)]
 #' @param opts Choices are x_y and more_less. x_y sets the selected year, factor, or numeric value (single or range) to 0 and all other values to 1.
 #' more_less sets sets values before the set year or numberic value to 0 and all values greater than the year or value to 1. 
@@ -69,15 +69,6 @@ dummy_num <- function(dat, var, value, opts='more_less', name='dummy_num'){
 #' For numeric variables, you can set a single value or a range of continuous values and contrast either the selected value(s) against all others (x_y) or less than the 
 #' selected value versus more than the selected value (more_less). For more_less, the mean is used as the critical value is a range of values is proviced.
 #' @export
-
-#notes - if date select year, 
-#                   x vs all others
-#                   before vs after
-#        if factor select level to set to 0
-#        if numeric set single or range of values
-#                   range set to 0
-#                   value vs all others
-#                   less < vs > than
 
  
    #Pull in data
@@ -122,7 +113,7 @@ dummy_num <- function(dat, var, value, opts='more_less', name='dummy_num'){
 
 #' Create new dummy variable
 dummy_var <- function(dat, DumFill = 'TRUE', name='dummy_var') {
-  #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
   #' @param DumFill Fill the dummy variable with TRUE or FALSE
   #' @param name Name of created dummy variable. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
   #' @export dummy_var
@@ -151,7 +142,7 @@ dummy_var <- function(dat, DumFill = 'TRUE', name='dummy_var') {
 
 #' Create dummy matrix from a coded ID variable
 dummy_matrix <- function(dat, x) {
-  #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
   #' @param x Variable in dataset used to generate dummy matrix
   #' @export dummy_matrix
   #' @details Creates a dummy matrix of TRUE/FALSE with dimensions \emph{(number of observations in dataset) x (number of factors in x)} where each column is a unique factor level. Values are TRUE if the value in the column matches the column factor level and FALSE otherwise.
@@ -185,7 +176,7 @@ dummy_matrix <- function(dat, x) {
 ##---- Coded variables ----##
 #' Create quantile variable
 set_quants <- function(dat, x, quant.cat = c(0.2, 0.25, 0.4), name='set_quants') {
-  #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
   #' @param x Variable to transform into quantiles
   #' @param quant.cat Quantile categories. Includes 0.2, 0.25, and 0.4.
   #' @param name Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
@@ -212,6 +203,7 @@ set_quants <- function(dat, x, quant.cat = c(0.2, 0.25, 0.4), name='set_quants')
     tmp <- 1
     warning('Variable must be numeric. Function not run.')
   }
+  
 if(tmp == 0){  
 if (quant.cat == 0.2) {
     prob.def = c(0, 0.2, 0.4, 0.6, 0.8, 1)
@@ -238,7 +230,7 @@ if (quant.cat == 0.2) {
 ##---- Numeric  Variables ----##
 #' Create numeric variables using arithmetic expression
 create_var_num <- function(dat, x, y, method, name='create_var_num') {
-  #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
   #' @param x variable  Variable will be the numerator if `method` is division. 
   #' @param y variable  Variable will be the denominator if `method` is division.
   #' @param method Arithmetic expression. Options include: sum, addition, subtraction, multiplication, and division.
@@ -286,7 +278,7 @@ create_var_num <- function(dat, x, y, method, name='create_var_num') {
 ##---- Spatial  Variables ----##
 #' Calculate latitude and longitude of haul midpoint 
 create_mid_haul <- function(dat, start=c('lon', 'lat'), end=c('lon','lat'), name='mid_haul') {
-#' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
 #' @param start Starting location of haul. Must be specificied as vector containing longitudinal data and vector containing latitudinal data separated by comma.
 #' @param end Ending location of haul. Must be specificied as vector containing longitudinal data and vector containing latitudinal data separated by comma.
 #' @param name Name of new variable. Defaults to `mid_haul`
@@ -312,14 +304,24 @@ create_mid_haul <- function(dat, start=c('lon', 'lat'), end=c('lon','lat'), name
    warning('Starting and end locations must both be specified. Function not run.')
  }
 
-
-  if(dim(dataset[,start])[1] != dim(dataset[,end])[1]){
+  if(dim(dataset[[start]])[1] != dim(dataset[[end]])[1]){
     tmp <- 1
     warning('Starting and ending locations are of different lengths. Function not run.')
   }
 
+  if (any(abs(dataset[[start]][1]) > 180)|any(abs(dataset[[end]][1]) > 180)) {
+    warning("Longitude is not valid (outside -180:180). Function not run")
+    #stop("Longitude is not valid (outside -180:180.")
+    tmp <- 1
+  }
+  if (any(abs(dataset[[start]][2]) > 90)|any(abs(dataset[[end]][2]) > 90)) {
+    warning("Latitude is not valid (outside -90:90. Function not run") 
+    tmp <-1    
+    # stop("Latitude is not valid (outside -90:90.")
+  } 
+  
   if(tmp==0){
-  distBetween <- geosphere::midPoint(dataset[,start], dataset[,end])
+  distBetween <- geosphere::midPoint(dataset[[start]], dataset[[end]])
   colnames(distBetween)= c(paste0(name,'lon'), paste0(name,'lat'))
   out <- cbind(dataset, distBetween)
   
@@ -337,7 +339,7 @@ create_mid_haul <- function(dat, start=c('lon', 'lat'), end=c('lon','lat'), name
 create_trip_centroid <- function(dat, lon, lat, weight.var=NULL, ...) {
   ##----trip centroid-----#
   #' Calculate centroid of each trip 
-  #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
   #' @param lat Vector containing latitudinal data.
   #' @param lon Vector containing longitudinal data.
   #' @param weight.var Variable for weighted average.
@@ -356,6 +358,19 @@ create_trip_centroid <- function(dat, lon, lat, weight.var=NULL, ...) {
   dat <- out$dat
   dataset <- out$dataset
   
+  x <- 0
+  if (any(abs(dataset[[lon]]) > 180)) {
+    warning("Longitude is not valid (outside -180:180). Function not run")
+    #stop("Longitude is not valid (outside -180:180.")
+    x <- 1
+  }
+  if (any(abs(dataset[[lat]]) > 90)) {
+    warning("Latitude is not valid (outside -90:90. Function not run") 
+    x <-1    
+    # stop("Latitude is not valid (outside -90:90.")
+  } 
+  
+  if(x==1){
   if(grepl('input', as.character(match.call(expand.dots = FALSE)$...)[1])==TRUE){
     argList <- eval(...) } else {
       argList <- (as.character(match.call(expand.dots = FALSE)$...))
@@ -392,11 +407,12 @@ create_trip_centroid <- function(dat, lon, lat, weight.var=NULL, ...) {
   log_call(create_trip_centroid_function)
 
   return(int)
+  }
 }
 
 #' Histogram of latitude and longitude by grouping variable
 spatial_hist <- function(dat, group){
-#' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
 #' @param group Vector containing grouping categories
 #' @import ggplot2
 #' @importFrom reshape2 melt
@@ -421,7 +437,7 @@ spatial_hist <- function(dat, group){
 #'spatial summary statistics
 spatial_summary <- function(dat, stat.var=c('length','no_unique_obs','perc_total','mean','median','min','max','sum'), 
                variable, gridfile, lon.grid, lat.grid, lon.dat, lat.dat, cat){
-  #' @param dat Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @param dat Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
   #' @param stat.var Options are length, no_unique_obs, perc_total, mean, median, min, max, and sum
   #' @param gridfile Spatial data. Shape, json, and csv formats are supported.
   #' @param variable Vector to summarize over date and zone
@@ -490,16 +506,16 @@ spatial_summary <- function(dat, stat.var=c('length','no_unique_obs','perc_total
 
 #' Distance between two points
 create_dist_between <- function(dat, start, end, units=c('miles','meters','km','midpoint')){
- #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+ #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
  #' @param start  Starting location. Should be a port, lat/long location, or the centroid of zonal assignment. If port is desired, start should be the vector name containing the port name. Latitude and longitude for the port are extracted from the port table. If a lat, long location is desired then start should be specified as c(name of lon vector, name of lat vector). The order must be lon, lat. If the center point of the fishing zone or area is to be used then start should be 'centroid'.
  #' @param end  Ending location. Should be a port, lat/long location, or the centroid of the fishing zone or area. If port is desired, end should be the vector name containing the port name. Latitude and longitude for the port are extracted from the port table. If a lat, long location is desired then end should be specified as c(name of lat vector, name of lon vector). If the center point of the fishing zone or area is to be used then end should be 'centroid'.
  #' @param units  Unit of measurement for calculated distance between start and ending points. Can be in miles, meters, kilometers, or midpoint location
  #' @export
  #' @importFrom geosphere distGeo midPoint
- #' @description   Creates a vector of distance between two points. The start and end points must be different vectors. If the start or ending points are from a port or the center of a fishing zone or area, then a prompt will appear asking for further parameters to be specified. If the starting or ending points are a port, then latitude and longitude are extracted from the port table stored in the fishset_db database.  In this case, PortTable must be specified.  If the starting or ending points are the center of the fishing zone or area, then the assignment_column function will be called to assign each observation to a zone. The find_centroid function will then be called to determine the centroid of each zone. Distance measurements will be between these centroids. 
+ #' @description   Creates a vector of distance between two points. The start and end points must be different vectors. If the start or ending points are from a port or the center of a fishing zone or area, then a prompt will appear asking for further parameters to be specified. If the starting or ending points are a port, then latitude and longitude are extracted from the port table stored in the FishSET database.  In this case, PortTable must be specified.  If the starting or ending points are the center of the fishing zone or area, then the assignment_column function will be called to assign each observation to a zone. The find_centroid function will then be called to determine the centroid of each zone. Distance measurements will be between these centroids. 
  #' @details 
   #' \tabular{rlll}{
-  #' portTable: \tab Port table from fishset_db database. Required if start or end is a port vector. \cr
+  #' portTable: \tab Port table from FishSET database. Required if start or end is a port vector. \cr
   #' gridfile: \tab patial data set Can be shape file data frame or list. Required if start or end is centroid. \cr 
   #' lon.dat: \tab Longitude of points from dataset. Required if start or end is centroid. \cr 
   #' lat.dat: \tab Latitude of points from dataset. Required if start or end is centroid. \cr
@@ -534,7 +550,6 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
   dat <- out$dat
   dataset <- out$dataset
   
-  
   if(any(grepl('port', c(start[1],end[1]), ignore.case=TRUE))){
     #  in port table
     fun <- function(){
@@ -550,7 +565,9 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
       }
   }
   DBI::dbDisconnect(fishset_db)
-
+  
+    x <- 0
+    
   if(any(grepl('centroid', c(start[1],end[1]), ignore.case=TRUE))){
     fun <- function(){
      gridfile <- readline("What is the name of the spatial data set? Can be shape file, data frame, or list?")
@@ -585,6 +602,16 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
   } else {
     start.long <- dataset[[start[1]]]
     start.lat <- dataset[[start[2]]]
+
+    if (any(abs(start.long) > 180)) {
+      warning("Longitude is not valid (outside -180:180). Function not run")
+      x <- 1
+    }
+    if (any(abs(start.lat) > 90)) {
+      warning("Latitude is not valid (outside -90:90. Function not run") 
+      x <-1    
+    } 
+    
   }
   
    
@@ -601,8 +628,18 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
   } else {
     end.lat <- dataset[[end[2]]]
     end.long <- dataset[[end[1]]]
+    if (any(abs(end.long) > 180)) {
+      warning("Longitude is not valid (outside -180:180). Function not run")
+      x <- 1
+    }
+    if (any(abs(end.lat) > 90)) {
+      warning("Latitude is not valid (outside -90:90. Function not run") 
+      x <-1    
+    } 
+    
   }
 
+    if(x==1){
   # Get distance between points
   if(units=='midpoint'){
      distBetween <- geosphere::midPoint(cbind(start.long,start.lat), cbind(end.long,end.lat))
@@ -625,6 +662,7 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
   
   log_call(create_dist_between_function)
   return(distBetween)
+    }
   }
   }
 
@@ -632,7 +670,7 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
 ##---- Temporal  Variables ----##
 #' Create duration of time variable
 create_duration <- function(dat, start, end, units = c("week", "day", "hour", "minute"), name='create_duration') {
-  #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
   #' @param start Variable indicating start of time period
   #' @param end Variable indicating end of time period
   #' @param units Unit of time for calculating duration. Must be weeks, days, hours, or minutes.

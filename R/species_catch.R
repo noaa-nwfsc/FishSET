@@ -2,7 +2,7 @@
 #'
 #' Creates a table or plot of total species catch by period
 #' 
-#' @param dat Main data frame over which to apply function. Table in fishset_db 
+#' @param dat Main data frame over which to apply function. Table in FishSET 
 #'   database should contain the string `MainDataTable`.
 #' @param project name of project.
 #' @param s A variable containing the species catch or a vector
@@ -331,32 +331,32 @@ species_catch <- function(dat, project, s, t, period = "month_abv", group = NULL
     
     ind <- periods_list[[p]][which(!(periods_list[[p]] %in% unique(count[[period]])))]
     
-      if (is.null(group)) {
+    if (is.null(group)) {
       
-        missing_periods <- expand.grid(period = ind, 
-                                       years = unique(count$years), 
-                                       species = unique(count$species))
+      missing_periods <- expand.grid(period = ind, 
+                                     years = unique(count$years), 
+                                     species = unique(count$species))
+      
+      missing_periods <- setNames(missing_periods, c(period, "years", "species"))
       
         missing_periods <- setNames(missing_periods, c(period, "years", "species"))
       
-      } else if (!is.null(group) & length(group) == 1) {
+      missing_periods <- expand.grid(period = ind, 
+                                     years = unique(count$years),
+                                     group1 = unique(count[[group1]]),
+                                     species = unique(count$species))
       
-        missing_periods <- expand.grid(period = ind, 
-                                       years = unique(count$years),
-                                       group1 = unique(count[[group1]]),
-                                       species = unique(count$species))
+      missing_periods <- setNames(missing_periods, c(period, "years", group1, "species"))
       
-        missing_periods <- setNames(missing_periods, c(period, "years", group1, "species"))
+    } else if (!is.null(group) & length(group) > 1) {
       
-      } else if (!is.null(group) & length(group) > 1) {
+      missing_periods <- expand.grid(period = ind, 
+                                     years = unique(count$years),
+                                     group1 = unique(count[[group1]]), 
+                                     group2 =  unique(count[[group2]]),
+                                     species = unique(count$species))
       
-        missing_periods <- expand.grid(period = ind, 
-                                       years = unique(count$years),
-                                       group1 = unique(count[[group1]]), 
-                                       group2 =  unique(count[[group2]]),
-                                       species = unique(count$species))
-      
-        missing_periods <- setNames(missing_periods, c(period, "years", group1, group2, "species"))
+      missing_periods <- setNames(missing_periods, c(period, "years", group1, group2, "species"))
       
     }
     

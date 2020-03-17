@@ -4,14 +4,14 @@
 # add_vars
 #' View and select which variables to add to working data set
 #'
-#' @param working_dat Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param working_dat Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
 #' @param raw_dat Main raw (unmodified data frame)
-#' @param project Name of project. Parameter is used to generate meaningful table names in fishset_db database.
+#' @param project Name of project. Parameter is used to generate meaningful table names in FishSET database.
 #' @importFrom DBI  dbDisconnect dbConnect dbListTables dbWriteTable 
 #' @import shiny
 #' @export add_vars
 #' @details Opens an interactive table that allows uses to select which variables to included by clicking check boxes. 
-#' Data should be loaded into the fishset_db database before running this function. Select variables that will be used to generate further variables, such as rates or cpue, and variables to be included in models.
+#' Data should be loaded into the FishSET database before running this function. Select variables that will be used to generate further variables, such as rates or cpue, and variables to be included in models.
 #' @examples 
 #' \dontrun{
 #' select_vars('pcodMainDataTable')

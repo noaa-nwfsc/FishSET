@@ -3,7 +3,7 @@ moran_stats <- function(dat, project, varofint, gridfile, lon.dat=NULL, lat.dat=
   #'
   #' Wrapper function to calculate global and local Moran's I by discrete area
   #'
-  #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
+  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
   #' @param project Name of project
   #' @param varofint Numeric variable of interest to test for spatial autocorrelation.
   #' @param gridfile Spatial data set. Can be shape file, data frame, or list.
@@ -48,6 +48,19 @@ moran_stats <- function(dat, project, varofint, gridfile, lon.dat=NULL, lat.dat=
   dat <- out$dat
   dataset <- out$dataset
   
+  x <- 0
+  if (any(abs(dataset[[lon.dat]]) > 180)) {
+    warning("Longitude is not valid (outside -180:180). Function not run")
+    #stop("Longitude is not valid (outside -180:180.")
+    x <- 1
+  }
+  if (any(abs(dataset[[lat.dat]]) > 90)) {
+    warning("Latitude is not valid (outside -90:90. Function not run") 
+    x <-1    
+    # stop("Latitude is not valid (outside -90:90.")
+  } 
+  
+  if(x==0){
   #Assign data to zone
   if(!is.null(cat)){
     dataset <- assignment_column(dataset, gridfile, hull.polygon = TRUE, lon.dat, lat.dat, cat, closest.pt = TRUE,
@@ -128,5 +141,5 @@ moran_stats <- function(dat, project, varofint, gridfile, lon.dat=NULL, lat.dat=
   save_plot(project, "moran_stats", moranmap)
   
   save_table(uniquedatatomap, project, "moran_stats")
-  
+  }
   }
