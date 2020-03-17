@@ -78,7 +78,7 @@ In the regular R terminal, you will need to the Jupyter notebook. Follow [these 
 FishSET is designed for reproducibility. All data is stored in a SQL database called fishset_db and all function calls are logged in a log file. 
 Both the database and log folder are created in the working directory when the FishSET package is first loaded. The purpose of saving data and function calls is to allow users to rerun previous steps with the saved data or with updated data. 
 
-All FishSET function calls are saved in dated log files. These log files are useful for documenting which functions were run and the parameter choices. They are also useful for rerunning analyes with updated data. Note that new log files will be saved each day FishSET functions are run however the list of saved functions to be logged will not reset between days if the FishSET package is not closed between days. This allows work completed over multiple days to be saved in the same file. To reset the list of saved function calls run `log_reset()`. 
+All FishSET function calls are saved in dated log files. These log files are useful for documenting which functions were run and the parameter choices. They are also useful for rerunning analyes with updated data. Note that new log files will be saved each day FishSET functions are run. However, the list of saved functions to be logged will not reset between days if the FishSET package is not closed between days. This allows work completed over multiple days to be saved in the same file. To reset the list of saved function calls run `log_reset()`. 
 
 ```{r figLog, echo=FALSE, , out.width = '1%'}
 knitr::include_graphics('C:/Users/melanie.harsch/Pictures/Screenshots/LogFolder.png')
@@ -95,7 +95,7 @@ In this example, the user must provide the `project` parameter in the function c
 
 When data is loaded into R using the data import functions (see below), a raw and working table is saved (`pcodMainDataTable20190419`, `pcodMainDataTable`). Any cleaning and analysis to the data are done on the working table. Tables associated with model runs are also created, including the model design file and model output tables. Again, these are saved with the project name preceding the default table name followed by the date it was created.
 
-Function calls are saved in dated files in the log folder. The log files saves the function name, the parameter values, including input data, and output. It is important to use the naming convention for tables saved to the SQL database. For instance,  use `pcodMainDataTable` rather than ambiguous names such as *dat*. Using the database naming conventions allows for easier recognition of the data and project along with ability to rerun the function using the log file. Note that the list of function calls is reset when either the FishSET library is closed or the R session is closed. Thus, although a new log file will be created each day that FishSET functions are called, the new function calls will be added to the list of function called and saved the previous day. This is useful if the users is working on a project over multiple days but wants to keep all function calls within a single file. To reset the function list saved to the log file, use `log_reset()`.
+Function calls are saved in dated files in the log folder. The log files saves the function name, the parameter values, including input data, and output. It is important to use the naming convention for tables saved to the SQL database. For instance,  use `pcodMainDataTable` rather than ambiguous names such as *dat*. Using the database naming conventions allows for easier recognition of the data and project along with ability to rerun the function using the log file. Note that the list of function calls is reset when either the FishSET library is closed or the R session is closed. Thus, although a new log file will be created each day that FishSET functions are called, the new function calls will be added to the list of functions called and saved the previous day. This is useful if the users is working on a project over multiple days but wants to keep all function calls within a single file. To reset the function list saved to the log file, use `log_reset()`.
 
 ## Data
 There are five types of data files that can be imported into FishSET. All optional data files must be able to be linked to the primary data file.
@@ -249,6 +249,7 @@ Several functions exist that allow users to modify or create vectors and matrice
 
      haul_to_trip   Collapse the data table from haul to trip.
      trip_distance  Summed distance across trip defined by start and end ports and hauls in between.
+     trip_length    Trip duration defined by trip start and end date or date-time variables. Can also create hauls per trip and cpue.
 
 FishSET is not limited to the pre-defined functions. Users can create their own functions and then save them to the log file.
 
@@ -257,6 +258,17 @@ Log user-created functions:
     log_func_model   Saves the user-created function in the log file.
 
 Before moving on, it is recommended that users run the `check_model_data` function to check for potential issues in variables created using the data creation functions.
+
+## Data analysis and visualization functions
+Several functions are available for summarizing and visualizing fleet and species level data. These functions create tables and/or plots and allow users to select grouping variables, filter by year, and aggregate by time period. 
+  
+    vessel_count    Counts the total number of unique vessels active within a specified period.
+    species_catch   Aggregates total catch for one or more species. 
+    weekly_catch    Calculates weekly catch for one or more species.
+    weekly_effort   Generates the average CPUE by week. 
+    density_plot    Plots the KDE, CDF, or empirical CDF of variable.
+
+All tables and plots generated are saved to the output folder, logged, and printed to the plot pane or console. 
 
 ## Mapping functions
 
@@ -321,7 +333,7 @@ Often it is desirable to compare output from different likelihood functions and/
 ## Model design file details
 
 ## Model run details
-The discretefish_subroutine function runs the selected model based on the selected data, parameters, and likelihood function. The function will run loop through each of the expected case tables. Three output tables are generated, a table containing information for assessing errors and why the model did not converge, a table containing model fit and model comparison mesaures, and a table containing the model output for models that converged. Each table contains output from each expected catch table and are labeled by the expected catch case (short_exp, med_exp, long_exp, user_defined_exp) and an identifier for the model.
+The discretefish_subroutine function runs the selected model based on the selected data, parameters, and likelihood function. The function will run through each of the expected case tables. Three output tables are generated, a table containing information for assessing errors and why the model did not converge, a table containing model fit and model comparison mesaures, and a table containing the model output for models that converged. Each table contains output from each expected catch table and are labeled by the expected catch case (short_exp, med_exp, long_exp, user_defined_exp) and an identifier for the model.
 
 ### Data
 User supplies all necessary data via the model design file. This data includes `catch`, `choice`, and `distance` data, plus any other data `otherdat` they need to run their chosen likelihood. The data `catch` and `choice` should be data frames with dimensions *(number of observations) x 1*. The data `otherdat` can include predicted catch, interactions, and gridded data.
@@ -338,8 +350,7 @@ within `griddat` and `intdat` have no naming restrictions. Also note that `gridd
 *(number of observations) x (number of alternatives)*, while `intdat` variables are dimension *(number of observations) x 1*,
 to be interacted with the distance to each alternative. Again, grid-varying variables and interactive variables should be defined in the model design files using the `make_model_design` function.
 
-If there are no other data, then `griddat` is set as ones with dimension *(number of observations) x (number of alternatives)* and `intdat` 
-variables as ones with dimension *(number of observations) x 1*. Finally, users can write their own likelihoods and save these likelihoods using the `log_func_model` function.
+If there are no other data, then `griddat` is set as ones with dimension *(number of observations) x (number of alternatives)* and `intdat` variables as ones with dimension *(number of observations) x 1*. Finally, users can write their own likelihoods and save these likelihoods using the `log_func_model` function.
 
 ### Run models 
 To run models, call the `discretefish_subroutine` function. All data are stored in a table in the SQLite database using the `make_model_design` function. The user also supplies initial parameters, optimization options, and the likelihood function name, for a total of 7 total inputs.
