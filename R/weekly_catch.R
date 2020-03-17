@@ -16,14 +16,15 @@
 #'   variable is passed to "fill" and the first group variable is faceted row-wise 
 #'   and the second group variable (if entered) column-wise. If multiple years are 
 #'   entered, plots are faceted row-wise by year as well.
-#' @param position Positioning of bar plot. Options include "stack", "dodge", 
+#' @param fun Name of function to aggregate by. Defaults to \code{\link{sum}}. 
+#' @param position Bar positioning for plot. Options include "stack", "dodge", 
 #'   and "fill". 
 #' @param convert_to_tons Whether to convert catch weight to tons. 
 #' @param output Whether a table or plot should be generated.
 #' @param format_tab How table output should be formated. Options include "wide" 
 #'   (the default) and "long".  
 #' @examples 
-#' \donrun{
+#' \dontrun{
 #' weekly_catch("pollockMainDataTable", species = c("HAUL_LBS_270_POLLOCK_LBS", 
 #' "HAUL_LBS_110_PACIFIC_COD_LBS",  "HAUL_LBS_OTHER_LBS"), date = "DATE_FISHING_BEGAN", 
 #' convert_to_tons = T, year = 2012, output = "plot")
@@ -35,8 +36,8 @@
 #' @import ggplot2
 
 
-weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL, position = "stack",
-                         convert_to_tons = FALSE, output = c("plot", "table"), format_tab = "wide"){
+weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL, fun = "sum", position = "stack",
+                         convert_to_tons = FALSE, value = c("count", "percent"), output = c("plot", "table"), format_tab = "wide"){
   
   # Call in datasets
   out <- data_pull(dat)
@@ -79,7 +80,6 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
       warning("Too many grouping variables included, selecting first two.")
       
     }
-    
   }
   
   if (length(species) == 1) {
@@ -95,7 +95,7 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
       count <- stats::aggregate(dataset[[species]], by = list(dataset$years, 
                                                               dataset$week,
                                                               dataset[[group1]]), 
-                                FUN = sum)
+                                FUN = match.fun(fun))
       
       count <- setNames(count, c("years", "week", group1, "catch"))
       
@@ -105,7 +105,7 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
                                                               dataset$week,
                                                               dataset[[group1]],
                                                               dataset[[group2]]), 
-                                FUN = sum)
+                                FUN = match.fun(fun))
       
       count <- setNames(count, c("years", "week", group1, group2, "catch"))
       
@@ -114,6 +114,12 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
     if (convert_to_tons == TRUE) {
       
       count$catch <- count$catch/2000
+      
+    }
+    
+    if (value == "percent") {
+      
+      count$catch <- count$catch / sum(count$catch)
       
     }
     
@@ -159,9 +165,10 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
     plot <- ggplot2::ggplot(count, ggplot2::aes_string("week", "catch", fill = if (!is.null(group)) group1 else NULL)) + 
       ggplot2::geom_col(position = position) +
       fishset_theme + 
-      ggplot2::labs(title = if (!is.null(year) & length(year) == 1) paste(year) else NULL) +
+      ggplot2::labs(title = if (!is.null(year) & length(year) == 1) paste(year) else NULL,
+                    y = paste(fun, catch)) +
       ggplot2::theme(plot.title = element_text(hjust = 0.5)) +
-      ggplot2::scale_x_continuous(breaks = seq(1, 52, by = 4))
+      ggplot2::scale_x_continuous(breaks = seq(0, 50, by = 10))
     
     if (!is.null(group)) {
       
@@ -178,11 +185,11 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
       
       if (is.null(year) | (!is.null(year) & length(year) == 1)) {
         
-        plot <- plot + ggplot2::facet_grid(reformulate(".", group2), scales = "free_y")
+        plot <- plot + ggplot2::facet_grid(stats::reformulate(".", group2), scales = "free_y")
         
       } else if (!is.null(year) & length(year) > 1) {
         
-        plot <- plot + ggplot2::facet_grid(reformulate(".", paste("years +", group2)), scales = "free_y")
+        plot <- plot + ggplot2::facet_grid(stats::reformulate(".", paste("years +", group2)), scales = "free_y")
         
       } 
       
@@ -197,7 +204,6 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
         plot <- plot + ggplot2::facet_grid(years ~ ., scales = "free_y")
         
       }
-      
     } 
     
   } else if (length(species) > 1) {
@@ -207,8 +213,7 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
       count <- lapply(species, function(x) {
         stats::aggregate(dataset[[x]], by = list(dataset$years,
                                                  dataset$week),
-                         FUN = sum,
-        ) 
+                         FUN = match.fun(fun)) 
       })
       
     } else if (!is.null(group)) {
@@ -219,9 +224,8 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
           stats::aggregate(dataset[[x]], by = list(dataset$years,
                                                    dataset$week,
                                                    dataset[[group1]]),
-                           FUN = sum) 
+                           FUN = match.fun(fun)) 
         })
-        
         
       } else if (length(group) > 1) {
         
@@ -230,11 +234,10 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
                                                    dataset$week,
                                                    dataset[[group1]],
                                                    dataset[[group2]]),
-                           FUN = sum) 
+                           FUN = match.fun(fun)) 
         })
         
       }
-      
     }
     
     names(count) <- species
@@ -256,12 +259,11 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
         count <- setNames(count, c("years", "week", group1, group2, "catch", "species"))
         
       }
-      
     }
     
     count$week <- as.integer(count$week)
     
-    ind <- periods_list[["%U"]][which(!(periods_list[["%U"]] %in% unique(count[[period]])))]
+    ind <- periods_list[["%U"]][which(!(periods_list[["%U"]] %in% unique(count$week)))]
     
     if (is.null(group)) {
       
@@ -313,13 +315,20 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
       
     }
     
+    if (value == "percent") {
+      
+      count$catch <- count$catch / sum(count$catch)
+      
+    }
+    
     plot <- ggplot2::ggplot(count, ggplot2::aes(week, catch, fill = species)) + 
       ggplot2::geom_col(position = if (position == "dodge") ggplot2::position_dodge2(preserve = "single") else position,
                         col = "black") +
       fishset_theme + 
-      ggplot2::labs(title = if (!is.null(year) & length(year) == 1) paste(year) else NULL) +
+      ggplot2::labs(title = if (!is.null(year) & length(year) == 1) paste(year) else NULL,
+                    y = paste(fun, catch)) +
       ggplot2::theme(plot.title = element_text(hjust = 0.5)) +
-      ggplot2::scale_x_continuous(breaks = seq(1, 52, by = 4)) +
+      ggplot2::scale_x_continuous(breaks = seq(0, 50, by = 10)) +
       ggplot2::theme(legend.position = "bottom", 
                      legend.box.background = ggplot2::element_rect(color = "black", 
                                                                    size = 1, 
@@ -349,12 +358,12 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
       if (is.null(year) | (!is.null(year) & length(year) == 1)) {
         
         plot <- plot + ggplot2::facet_grid(stats::reformulate(group2, group1), scales = "free_y",
-                                           labeller = labeller(.cols = label_both))
+                                           labeller = ggplot2::labeller(.cols = label_both))
         
       } else if (!is.null(year) & length(year) > 1) {
         
         plot <- plot + ggplot2::facet_grid(stats::reformulate(group2, paste("years +", group1)), scales = "free_y",  
-                                           labeller = labeller(.cols = label_both))
+                                           labeller = ggplot2::labeller(.cols = label_both))
         
       } 
       
@@ -374,7 +383,7 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
   
   weekly_catch_function <- list()
   weekly_catch_function$functionID <- "weekly_catch"
-  weekly_catch_function$args <- c(dat, project, species, date, year, group, position, convert_to_tons, output, format_tab)
+  weekly_catch_function$args <- c(dat, project, species, date, year, group, fun, position, convert_to_tons, output, format_tab)
   log_call(weekly_catch_function)
   
   # Save plot
@@ -393,7 +402,7 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
       if (format_tab == "wide") {
         
         count <- reshape2::dcast(count, ... ~ species, value.var = "catch", 
-                                 fill = 0, fun.aggregate = sum)
+                                 fill = 0, fun.aggregate = match.fun(fun))
         
       }
     }
