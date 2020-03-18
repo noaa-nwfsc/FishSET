@@ -20,6 +20,7 @@
 #' @param position Bar positioning for plot. Options include "stack", "dodge", 
 #'   and "fill". 
 #' @param convert_to_tons Whether to convert catch weight to tons. 
+#' @param value Count or percent
 #' @param output Whether a table or plot should be generated.
 #' @param format_tab How table output should be formated. Options include "wide" 
 #'   (the default) and "long".  

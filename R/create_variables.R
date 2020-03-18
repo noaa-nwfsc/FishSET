@@ -245,13 +245,13 @@ bin_var <- function(dat, project, var, br = NULL, labs = NULL, ...){
   
   tmp <- 0
   
-  if (!is.numeric(dataset[[var]])) {
+  if(!is.numeric(dataset[[var]])){
     
     tmp <- 1
     Warning("Variable must be numeric.")
   }
   
-  if (tmp = 0) {
+  if(tmp == 0){
     
     bin <- cut(dataset[[var]], breaks = br, labels = labs, ...)
     
@@ -292,7 +292,7 @@ create_var_num <- function(dat, x, y, method, name='create_var_num') {
     warning("Variables must be numeric")
    }
   
-  if(tmp==0){
+  if(tmp == 0){
   if (grepl("add|sum", method, ignore.case = TRUE)) {
     name <- dataset[[x]] + dataset[[y]]
   } else if (grepl("sub", method, ignore.case = TRUE)) {
@@ -359,7 +359,7 @@ create_mid_haul <- function(dat, start=c('lon', 'lat'), end=c('lon','lat'), name
     # stop("Latitude is not valid (outside -90:90.")
   } 
   
-  if(tmp==0){
+  if(tmp == 0){
   distBetween <- geosphere::midPoint(dataset[,c(start)], dataset[,c(end)])
   colnames(distBetween)= c(paste0(name,'lon'), paste0(name,'lat'))
   out <- cbind(dataset, distBetween)
@@ -409,7 +409,7 @@ create_trip_centroid <- function(dat, lon, lat, weight.var=NULL, ...) {
     # stop("Latitude is not valid (outside -90:90.")
   } 
   
-  if(x==1){
+  if(x == 1){
   if(grepl('input', as.character(match.call(expand.dots = FALSE)$...)[1])==TRUE){
     argList <- eval(...) } else {
       argList <- (as.character(match.call(expand.dots = FALSE)$...))

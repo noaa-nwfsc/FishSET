@@ -33,10 +33,8 @@ degree <- function(dat, lat=NULL, lon=NULL, latsign=FALSE, lonsign=FALSE, replac
       cat('Latitude and longitude variables in decimal degrees. No further action required.', file=tmp)
     }
   
-  
   print(suppressWarnings(readLines(tmp)))
 
-  
   degree_function <- list()
   degree_function$functionID <- 'degree'
   degree_function$args <-  c(dat, lat, lon, latsign, lonsign)
