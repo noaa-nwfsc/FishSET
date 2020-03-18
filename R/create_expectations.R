@@ -353,13 +353,15 @@ long_exp <- long_expectations(dat=dataset, project=project, catch=catch, price=p
 #    h <- function(emp.window, temp.lag, year.lag){
  #     paste(emp.window, temp.lag, year.lag, sep="_")
   #    }
+
+  
   ExpectedCatch <- list(
-     short_exp= short_exp$newCatch,#, g( price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation), '2', '0', '0', sep='_') 
-     short_exp_newDumV = short_exp$newDumV , 
-     med_exp= med_exp$newCatch,#, g(catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation), '7', '0', '0', sep='_') 
-     med_exp_newDumV = med_exp$newDumV,
-     long_exp= long_exp$newCatch,#, g(catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation), '7', '0', '1', sep='_') 
-     long__exp_newDumv = long_exp$newDumV,
+     short_exp= short_exp[1],#, g( p[1rice, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation), '2', '0', '0', sep='_') 
+     short_exp_newDumV = short_exp[2] , 
+     med_exp= med_exp[1],#, g(catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation), '7', '0', '0', sep='_') 
+     med_exp_newDumV = med_exp[2],
+     long_exp= long_exp[1],#, g(catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation), '7', '0', '1', sep='_') 
+     long__exp_newDumv = long_exp[2],
      user_defined_exp= newCatch,#, g(catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation), h(temp.window, temp.lag, year.lag), sep='_') ,
      scale = sscale,
      newDumV = newDumV,

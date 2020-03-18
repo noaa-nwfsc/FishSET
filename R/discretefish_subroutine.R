@@ -31,8 +31,8 @@
 #' \dontrun{
 #' results <- discretefish_subroutine('pcod', initparams= c(0.5, -2.8), 
 #'                                    optimOpt=c(100000,1.00000000000000e-08,1,1),
-#'                                    func=logit_c, methodname="BFGS", 'newlogit4', 
-#'                                    select.model=TRUE, project='projectName')
+#'                                    methodname="BFGS", mod.name='newlogit4', 
+#'                                    select.model=TRUE, name='discretefish_subroutine')
 #' }
 
 
@@ -40,18 +40,18 @@
 
 discretefish_subroutine <- function(project, initparams, optimOpt, methodname, mod.name, 
                                     select.model=FALSE,  name='discretefish_subroutine') {
-  
+
   #Call in datasets
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
   x_temp <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
-
+browser()
   for(i in 1:length(x_temp)){
     x <- x_temp[i]
   
-  catch <- as.matrix(x[['catch']])
-  choice <- x[['choice']]
-  distance <- x[['distance']]
-  startingloc <- x[['startingloc']]
+  catch <- as.matrix(x_temp[[i]]['catch'])
+  choice <- x_temp[[i]]['choice']
+  distance <- x_temp[[i]]['distance']
+  startingloc <- x_temp[[i]]['startingloc']
   #otherdat <- list(griddat=list(griddatfin=x[['gridVaryingVariables']][['matrix']]), intdat=list(x[['bCHeader']][[-1]]), pricedata=list(epmDefaultPrice))
   
   choice.table <- as.matrix(choice, as.numeric(factor(choice)))
@@ -65,6 +65,16 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
   MCM <- NULL
   H1 <- NULL
   fr <- x[['likelihood']]#func  #e.g. logit_c
+  opt <- if(is.factor(optimOpt)){
+    return(optimOpt[i])
+  } else {
+    return(optimOpt)
+  }
+ inits <- if(is.factor(initparams)){
+   return(initparams[i])
+ } else {
+   return(initparams)
+ } 
   
   if(fr=='logit_correction' & all(is.na(startingloc))){
     'Stop. Startingloc parameter is not specified. Rerun the create_alternative_choice function'
@@ -73,7 +83,7 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
   
   d <- shift_sort_x(dataCompile, choice, catch, distance, max(choice), ab)
   
-  starts2 <- initparams
+  starts2 <- inits
 
   ### Data needs will vary by the likelihood function ###
   if(grepl('epm', find_original_name(fr))){
@@ -113,12 +123,12 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
   }
   
   ############################################################################# 
-  mIter <- optimOpt[1] #should add something to default options here if not specified
-  relTolX <- optimOpt[2]
-  reportfreq <- optimOpt[3]
-  detailreport <- optimOpt[4]
+  mIter <- optim[1] #should add something to default options here if not specified
+  relTolX <- optim[2]
+  reportfreq <- optim[3]
+  detailreport <- optim[4]
   
-  controlin <- list(trace=detailreport,maxit=mIter,reltol=relTolX,REPORT=reportfreq)
+  controlin <- list(trace=detailreport, maxit=mIter, reltol=relTolX, REPORT=reportfreq)
   
   res <- tryCatch({
     
@@ -233,7 +243,7 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
   }
   
   #if(H1[1]!="Error, singular, check 'ldglobalcheck'") next
-  
+
   if(exists('modelOut')) {
      modelOut[[length(modelOut)+1]] <- list(name=expname,errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
                      seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table=choice.table)

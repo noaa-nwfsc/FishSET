@@ -2073,7 +2073,6 @@
       )
       ###----
       
-      
       #----
       #Zonal definition
       #----
@@ -2229,6 +2228,7 @@
       })
       
       
+     
       #----
       #Model Parameters
       #----
@@ -2268,21 +2268,23 @@
       })
       # Data needed
       ## Alternative choices
-      Alt <- reactive({
+      Alt_vars <- reactive({
         if(!exists("Alt")) {
         if(!exists('AltMatrixName')) {
           if(DBI::dbExistsTable( DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0(input$projectname, 'altmatrix'))){
-          unserialize(DBI::dbGetQuery( DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0("SELECT AlternativeMatrix FROM ", 
-                                                                                              input$projectname, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
+          return(unserialize(DBI::dbGetQuery( DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0("SELECT AlternativeMatrix FROM ", 
+                                                                                              input$projectname, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]]))
           } else {
-           data.frame('choice'=NA, 'X2'=NA, 'X3'=NA)
-           warning("Alternative Choice Matrix does not exist. Please run the createAlternativeChoice() function.")
+            warning("Alternative Choice Matrix does not exist. Please run the createAlternativeChoice() function.")
+            return(data.frame('choice'=NA, 'X2'=NA, 'X3'=NA))
         }
           DBI::dbDisconnect( DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-        }}
+        }} else {
+        return(Alt)
+        }
       })
           
-      choice <- reactive({Alt()$choice})
+      choice <- reactive({Alt_vars()$choice})
       alt <- reactive({dim(table(choice()))})
       
       drop <- reactive({grep('date|port|processor|gear|target|lon|lat|permit|ifq', colnames(values$dataset), ignore.case=TRUE)})
@@ -2453,6 +2455,8 @@
                               lat.dat= model_table()$lat[i], project=model_table()$project[i], likelihood=model_table()$likelihood[i], vars1=model_table()$vars1[i],
                               vars2=model_table()$vars2[i], priceCol=model_table()$price[i], startloc=model_table()$startloc[i], polyn=model_table()$polyn[i])
           }
+          discretefish_subroutine(input$projectname, initparams=model_table()$initparams, optimOpt=model_table()$optimOpt,  
+                                  methodname='BFGS', mod.name, select.model=FALSE, name='discretefish_subroutine')
         }
       })
       
@@ -2597,7 +2601,7 @@
       #-----
       observeEvent(input$saveALT, {
         create_alternative_choice(dat=values$dataset, gridfile=spatdat$dataset, case=input$case_ac, min.haul=input$min_haul_ac,
-                                  alt_var=input$alt_var_ac, occasion=input$occassion_ac, dist.unit=input$dist_ac, lon.dat=input$lon_dat_ac,
+                                  alt_var=input$alt_var_ac, occasion=input$occasion_ac, dist.unit=input$dist_ac, lon.dat=input$lon_dat_ac,
                                   lat.dat=input$lat_dat_ac, lon.grid=input$long_grid_altc, lat.grid=input$lat_grid_altc, 
                                   cat=input$cat_altc, hull.polygon=input$hull_polygon_ac, 
                                   closest.pt=input$closest_pt_ac, project=input$projectname, griddedDat=NULL, weight.var=input$weight_var_ac) 

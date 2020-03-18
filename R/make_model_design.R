@@ -121,8 +121,6 @@
 #'                   'LonLat_START_LON', 'LonLat_START_LAT', project = 'pcod')
 #' }
 
-#project <- 'pollock'
-#dat <- 'pollockMainDataTable'
 
 make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", "griddedData"), lon.dat, lat.dat, project, 
                                likelihood= NULL, vars1 = NULL, vars2 = NULL, priceCol = NULL, startloc=NULL, polyn=NULL) {#, vesselID=NULL
@@ -136,10 +134,10 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   x0 <- 0
   
 #Script necessary to ensure paramers generated in shiny app are in correct format
-  if (vars1=='none') { indeVarsForModel <- NULL } else { indeVarsForModel=vars1}
-  if (vars2=='none') { gridVariablesInclude <- NULL } else { gridVariablesInclude=vars2}
-  if (priceCol=='none') { priceCol <- NULL } else { priceCol = priceCol }
-  if (startloc=='none') { startloc <- NULL } else { startloc = startloc }
+  if (is_empty(vars1)||vars1=='none') { indeVarsForModel <- NULL } else { indeVarsForModel=vars1}
+  if (is_empty(vars2)||vars2=='none') { gridVariablesInclude <- NULL } else { gridVariablesInclude=vars2}
+  if (is_empty(priceCol)||priceCol=='none') { priceCol <- NULL } else { priceCol = priceCol }
+  if (is_empty(startloc)||startloc=='none') { startloc <- NULL } else { startloc = startloc }
   lon.dat <- as.character(lon.dat)
   lat.dat <- as.character(lat.dat)
   
@@ -184,11 +182,10 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
     gridVariablesInclude
    }
   
-  browser()
-  if (!exists("Alt$newDumV")) {
+  if (is_empty(ExpectedCatch$newDumV)) {
     newDumV <- 1
   } else {
-    newDumV <- Alt[['newDumV']]
+    newDumV <- ExpectedCatch[['newDumV']]
     #bCHeader <- list(bCHeader, newDumV)
   }
   # 
@@ -234,7 +231,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   } else {
     
     # steps if alternative matrix comes from loaded data (expectations)
-    
+
     #####---Begin Alt Var--###
     if (any(grepl("zon", alt_var, ignore.case = T))) {
       # (alt_var==c('Zonal centroid')){ #(v1==0){ #Zonal centroid toXY1 <-
@@ -338,7 +335,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   }
   ##-End Occasion Var--##
   # End From loaded data
-  
+
   ##------ Generate Distance Matrix ----##       
   # Test for potential issues with data
   if (any(do.call(cbind, lapply(toXY1, is.nan)))) {
@@ -349,7 +346,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
     warning(paste("NaN found in ", altToLocal2, ". Design file aborted."))
     x0 <- 1
   }
-  
+
   if(x0 == 0){
   # Generate distances using distm function [distAll,!,!] <-
   # #m_idist(toXY1[q,1],toXY1[q,2], centersZone[,1], centersZone[,2])
@@ -376,7 +373,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   
   
   ### ---- add special terms: ----### add only for EPM model
-  catch <- dataset[which(dataZoneTrue == 1), catchID]
+  catch <- dataset[which(dataZoneTrue == 1), as.vector(catchID)]
   r <- nchar(sub("\\.[0-9]+", "", max(catch, na.rm = T)))
   yscale <- 10^(r - 1)
   
@@ -393,7 +390,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
  # }
 
   # Some models need price data
-  if (is.null(priceCol)) {
+  if (is_empty(priceCol)||is.null(priceCol)||priceCol=="") {
     epmDefaultPrice <- ""
   } else {
     epmDefaultPrice <- dataset[which(dataZoneTrue == 1), priceCol]
@@ -412,7 +409,7 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
   modelInputData_tosave <- list(likelihood=likelihood,
                           catch = catch, 
                           choice = choice[which(dataZoneTrue == 1), ], 
-                          startingloc = startingloc[which(dataZoneTrue ==1), ],
+                          startingloc = startingloc[which(dataZoneTrue ==1)],
                           scales = c(catch = yscale, zonal = mscale, data = dscale), 
                           distance = X, 
                           instances = dim(X)[1], 
@@ -431,7 +428,6 @@ make_model_design <- function(dat, catchID, alternativeMatrix = c("loadedData", 
                           polyn = polyn,
                           gridVaryingVariables = ExpectedCatch)
   
- 
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
   single_sql <- paste0(project, 'modelinputdata')
   date_sql <- paste0(project, 'modelinputdata', format(Sys.Date(), format="%Y%m%d"))
