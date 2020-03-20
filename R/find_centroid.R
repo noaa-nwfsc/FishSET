@@ -33,6 +33,18 @@ find_centroid <- function(dat, gridfile, lon.dat=NULL, lat.dat=NULL, cat, lon.gr
   tmp <- tempfile()
   cat("", file=tmp, append=TRUE)
   x <- 0
+  
+  if(any(class(gridfile)=='sp')) {
+    if(is_empty(lon.grid)|is_empty(lat.grid)){
+      warning('lat.grid and lon.grid must be supplied to convert sp object to a sf object.')
+      x <- 1
+    } else {
+    #map2 <- sf::st_read('Z:/OLDFishSET/NMFS_RA.json') 
+    gridfile <- sf::st_as_sf(x =gridfile, 
+                            coords = c(lon.grid, lat.grid),
+                            crs = "+proj=longlat +datum=WGS84")
+    }
+  }
   #For json and shape files
   if(any(class(gridfile)=='sf')) {
     if (is_empty(weight.var)) {
@@ -119,9 +131,9 @@ find_centroid <- function(dat, gridfile, lon.dat=NULL, lat.dat=NULL, cat, lon.gr
           int$cent.lat <- stats::ave(int[c(lat, weight.var)], int[[cat]], 
                             FUN = function(x) stats::weighted.mean(x[[lat]], x[[weight.var]]))[[1]]
         }
-      } else {
-        int$cent <- spatialEco::wt.centroid(int, weight.var, sp = TRUE)
-      }
+      }# else {
+      #  int$cent <- spatialEco::wt.centroid(int, weight.var, sp = TRUE)
+     # }
     }
     }
   
