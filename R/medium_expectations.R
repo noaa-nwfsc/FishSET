@@ -257,7 +257,7 @@ medium_expectations <- function(dat, project, catch, price, defineGroup, temp.va
     }
     
   } else {
-    newDumV <- list()
+    newDumV <- NULL
     }#end dummy.exp==TRUE
   
   

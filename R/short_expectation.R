@@ -261,7 +261,7 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
         }
         
       }  else {
-        newDumV <- list()
+        newDumV <- NULL
       } #end dummy.exp==TRUE
       
       
