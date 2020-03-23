@@ -339,7 +339,7 @@ long_exp <- long_expectations(dat=dataset, project=project, catch=catch, price=p
   }
 
   } else {
-    newDumV <- list() 
+    newDumV <- NULL 
   } #end dummy.exp==TRUE
 
 
