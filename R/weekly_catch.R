@@ -85,7 +85,7 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
   
   if (length(species) == 1) {
     
-    if (is.null(group)){
+    if (is.null(group)) {
       
       count <- stats::aggregate(dataset[[species]], by = list(dataset$years, dataset$week), FUN = sum)
       
@@ -167,7 +167,7 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
       ggplot2::geom_col(position = position) +
       fishset_theme + 
       ggplot2::labs(title = if (!is.null(year) & length(year) == 1) paste(year) else NULL,
-                    y = paste(fun, catch)) +
+                    y = paste(fun, "catch")) +
       ggplot2::theme(plot.title = element_text(hjust = 0.5)) +
       ggplot2::scale_x_continuous(breaks = seq(0, 50, by = 10))
     
@@ -298,7 +298,7 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
     
     count$week <- as.integer(count$week)
     
-    ind <- periods_list[["%U"]][which(!(periods_list[["%U"]] %in% unique(count[[period]])))]
+    ind <- periods_list[["%U"]][which(!(periods_list[["%U"]] %in% unique(count$week)))]
     
     if (is.null(group)) {
       
@@ -361,7 +361,7 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
                         col = "black") +
       fishset_theme + 
       ggplot2::labs(title = if (!is.null(year) & length(year) == 1) paste(year) else NULL,
-                    y = paste(fun, catch)) +
+                    y = paste(fun, "catch")) +
       ggplot2::theme(plot.title = element_text(hjust = 0.5)) +
       ggplot2::scale_x_continuous(breaks = seq(0, 50, by = 10)) +
       ggplot2::theme(legend.position = "bottom", 
