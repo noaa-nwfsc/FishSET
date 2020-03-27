@@ -338,7 +338,7 @@ create_mid_haul <- function(dat, start=c('lon', 'lat'), end=c('lon','lat'), name
   dataset <- out$dataset
   tmp <- 0
 
- if(is_empty(start)|is_empty(end)) {
+ if(is_empty(start)||is_empty(end)) {
    tmp <- 1
    warning('Starting and end locations must both be specified. Function not run.')
  }
@@ -361,7 +361,7 @@ create_mid_haul <- function(dat, start=c('lon', 'lat'), end=c('lon','lat'), name
   
   if(tmp == 0){
   distBetween <- geosphere::midPoint(dataset[,c(start)], dataset[,c(end)])
-  colnames(distBetween)= c(paste0(name,'lon'), paste0(name,'lat'))
+  colnames(distBetween)= c(paste0(name,'Lon'), paste0(name,'Lat'))
   out <- cbind(dataset, distBetween)
   
   create_mid_haul_function <- list()

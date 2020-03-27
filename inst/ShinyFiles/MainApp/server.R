@@ -2310,6 +2310,11 @@
                     choices = gridvariables, selected = '')
       })
       
+      output$portmd <- renderUI ({
+      selectInput("port.datMD", "Choose file from FishSET SQL database containing port data", 
+                                                                 choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE)#,
+      })
+      
       numInits <- reactive({
         polyn <- input$polyn
         gridNum <- as.integer(as.factor(length(input$gridVariablesInclude)))
@@ -2449,14 +2454,20 @@
         if(input$submit > 0) {
           print('call model design function, call discrete_subroutine file')
           times <- nrow(model_table())-1
+          i <- 1
+          make_model_design(values$dataset, project=model_table()$project[i], catchID=model_table()$catch[i], alternativeMatrix = model_table()$alternatives[i], 
+                            replace=TRUE, lonlat= c(as.vector(model_table()$lon[i]), as.vector(model_table()$lat[i])), PortTable = input$port.datMD, likelihood=model_table()$likelihood[i], vars1=model_table()$vars1[i],
+                            vars2=model_table()$vars2[i], priceCol=model_table()$price[i], startloc=model_table()$startloc[i], polyn=model_table()$polyn[i])
           
-          for(i in 1:times){
-            make_model_design(values$dataset, catchID=model_table()$catch[i], alternativeMatrix = model_table()$alternatives[i], lon.dat= model_table()$lon[i], 
-                              lat.dat= model_table()$lat[i], project=model_table()$project[i], likelihood=model_table()$likelihood[i], vars1=model_table()$vars1[i],
+          if(times>1){
+          for(i in 2:times){
+            make_model_design(values$dataset, project=model_table()$project[i], catchID=model_table()$catch[i], alternativeMatrix = model_table()$alternatives[i], 
+                              replace=FALSE, lonlat=c(as.vector(model_table()$lon[i]), as.vector(model_table()$lat[i])), PortTable = input$port.datMD, likelihood=model_table()$likelihood[i], vars1=model_table()$vars1[i],
                               vars2=model_table()$vars2[i], priceCol=model_table()$price[i], startloc=model_table()$startloc[i], polyn=model_table()$polyn[i])
           }
-          discretefish_subroutine(input$projectname, initparams=model_table()$initparams, optimOpt=model_table()$optimOpt,  
-                                  methodname='BFGS', mod.name, select.model=FALSE, name='discretefish_subroutine')
+          }
+          discretefish_subroutine(input$projectname, initparams=model_table()$inits, optimOpt=model_table()$optimOpt,  
+                                  methodname='BFGS', mod.name=model_table()$mod_name, select.model=FALSE, name='discretefish_subroutine')
         }
       })
       
@@ -2571,26 +2582,26 @@
       
       output$modeltab <- DT::renderDT({
         modeltab <- data.frame(Model_name=rep(NA, length(mod_sum_out())), covergence=rep(NA, length(mod_sum_out())), Stand_Errors=rep(NA, length(mod_sum_out())), Hessian=rep(NA, length(mod_sum_out())))
-        if(dim(mod_sum_out())[2]>2){
-          modeltab[i,1] <- mod_sum_out()[[i]]$name
+        #if(dim(mod_sum_out())[2]>2){
+        #  modeltab[i,1] <- mod_sum_out()[[i]]$name
         for(i in 1:length(mod_sum_out())){
           modeltab[i,1] <- mod_sum_out()[[i]]$name
           modeltab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
           modeltab[i,3] <- toString(round(mod_sum_out()[[i]]$seoutmat2,3))
           modeltab[i,4] <- toString(round(mod_sum_out()[[i]]$H1,5))
-        }}
+        }#}
         return(modeltab)
       })
       
       
       output$errortab <- DT::renderDT({
           error_out <- data.frame(Model_name=rep(NA, length(mod_sum_out())), Model_error=rep(NA, length(mod_sum_out())), Optimization_error=rep(NA, length(mod_sum_out())))
-          if(dim(mod_sum_out())[2]>2){  
+          #if(dim(mod_sum_out())[2]>2){  
           for(i in 1: length(mod_sum_out())){
               error_out[i,1] <- mod_sum_out()[[i]]$name
               error_out[i,2] <- ifelse(is.null(mod_sum_out()[[i]]$errorExplain), 'No error reported', toString(mod_sum_out()[[i]]$errorExplain))
               error_out[i,3] <- ifelse(is.null(mod_sum_out()[[i]]$optoutput$optim_message), 'No message reported', toString(mod_sum_out()[[i]]$optoutput$optim_message))
-            }}
+            }#}
           return(error_out)
       })
       
@@ -2617,7 +2628,7 @@
         create_expectations(values$dataset, input$projectname, input$catche, price=input$price, defineGroup=if(grepl('no group',input$group)){NULL} else {input$group}, temp.var=input$temp_var, 
                             temporal = input$temporal, calc.method = input$calc_method, lag.method = input$lag_method,
                             empty.catch = input$empty_catch, empty.expectation = input$empty_expectation,  
-                            temp.window = input$temp_window, temp.lag = input$temp_lag, year.lag=input$temp_year, dummy.exp = input$dummy_exp)
+                            temp.window = input$temp_window, temp.lag = input$temp_lag, year.lag=input$temp_year, dummy.exp = input$dummy_exp, replace.output = TRUE)
       }) 
       
       

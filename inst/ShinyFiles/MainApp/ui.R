@@ -743,7 +743,7 @@
                                  style="color: #fff; background-color: #FF6347; border-color: #800000;",
                                  class = "btn action-button",
                                  onclick = "setTimeout(function(){window.close();},500);",  # close browser
-                                 "Close window"
+                                 "Close app"
                                ),
                                tags$br(),
                                actionButton("addModel", "Save model and add new model", style="color: #fff; background-color: #337ab7; border-color: #800000;"),
@@ -770,6 +770,7 @@
                                                choices = list("Loaded data" = 'loadedData', "Grid data" = "griddedData"),
                                                selected = 'loadedData'),
                                    uiOutput('latlonB'),
+                                   uiOutput('portmd'),
                                    h4('Likelihood function'),
                                    selectInput("model", label = "",
                                                choices = list("Conditional logit" = 'logit_c', "Average catch" = "logit_avgcat", "Logit Dahl correction" = "logit_correction",

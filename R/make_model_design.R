@@ -6,6 +6,7 @@
 #' @param project Name of project. For name of output table saved in FishSET database
 #' @param catchID  Name of variable that contains catch data such as 'HAUL'
 #' @param alternativeMatrix Whether the alternative choice matrix should come from 'loaded data' or 'gridded data'
+#' @param replace TRUE/FALSE. If TRUE replaces model design file. If false, appends to existing model design file. Defaults to TRUE.
 #' @param lonlat longitude and latitue. Define if alt_var is lat/long. Column containing longitude and latitude data. Must be specified as c('lonVar', 'latVar')
 #' @param PortTable Name. Define if alt_var is Port. Dataframe in FishSET database containing the Port table with lat lon for each port.
 #' @param likelihood Name of likelihood function. Current choices are logit_c, logit_avgcat, logit_correction, epm_normal, epm_weibull, epm_ognormal.
@@ -122,7 +123,7 @@
 #' }
 
 
-make_model_design <- function(dat, project, catchID, alternativeMatrix = c("loadedData", "griddedData"), lonlat=NULL, PortTable=NULL,  
+make_model_design <- function(dat, project, catchID, alternativeMatrix = c("loadedData", "griddedData"), replace=TRUE, lonlat=NULL, PortTable=NULL,  
                                likelihood= NULL, vars1 = NULL, vars2 = NULL, priceCol = NULL, startloc=NULL, polyn=NULL) {#, vesselID=NULL
 
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())  
@@ -182,7 +183,10 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
   pt <- data_pull(PortTable)
   ptname <- pt$dat
   port <- pt$dataset
-  } 
+  } else {
+    ptname <- NULL
+    port <- NULL
+  }
   
    if (is_empty(gridVariablesInclude)) {
     gridVariablesInclude = as.data.frame(matrix(1, nrow=nrow(choice), ncol=max(as.numeric(as.factor(unlist(choice))))))
@@ -239,7 +243,6 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
   } else {
     
     # steps if alternative matrix comes from loaded data (expectations)
-browser()
     #####---Begin Alt Var--###
     if (any(grepl("zon", alt_var, ignore.case = T))) {
       # (alt_var==c('Zonal centroid')){ #(v1==0){ #Zonal centroid toXY1 <-
@@ -271,20 +274,20 @@ browser()
           
           # portLL <- data[[alt_var]].codeID[,2] # Extract lat long for selected port variable,
           # cell2mat(data(v1).codeID(:,2)) # convert cell array to an ordinary array
-         if(all(unique(toXYa$DISEMBARKED_PORT) %in% unique(port$DISEMBARKED_PORT)==FALSE)){
-           if(is_empty(lonlat)){
-              warning('Port names do not match. Model design file aborted.')
-              x0 <- 1
-            } else {
-              warning('At least one port not included in PortTable. Using lonlat to calculate mean lat/lon of undefined ports.')  
-              dataset[[alt_var]] <- trimws(dataset[[alt_var]])
-              temp <- data.frame(unique(dataset[[alt_var]]), tapply(dataset[[lonlat[1]]], dataset[[alt_var]], mean), 
-                              tapply(dataset[[lonlat[2]]], dataset[[alt_var]], mean))
-              colnames(temp) = c(alt_var, "LON", "LAT")
-              
-           return(port)
-         }
-        }
+  #       if(all(unique(toXYa$DISEMBARKED_PORT) %in% unique(port$DISEMBARKED_PORT)==FALSE)){
+  #         if(all(is_empty(lonlat))){
+  #            warning('Port names do not match. Model design file aborted.')
+  #            x0 <- 1
+  #          } else {
+  #            warning('At least one port not included in PortTable. Using lonlat to calculate mean lat/lon of undefined ports.')  
+  #            dataset[[alt_var]] <- trimws(dataset[[alt_var]])
+  #            temp <- data.frame(unique(dataset[[alt_var]]), tapply(dataset[[lonlat[1]]], dataset[[alt_var]], mean), 
+  #                            tapply(dataset[[lonlat[2]]], dataset[[alt_var]], mean))
+  #            colnames(temp) = c(alt_var, "LON", "LAT")
+  #            port <- rbind(port, temp)
+           #return(port)
+  #       }
+  #      }
          
           if(any(unique(toXYa$DISEMBARKED_PORT) %in% unique(port$DISEMBARKED_PORT)==FALSE)){
             if(any(is_empty(lonlat))){
@@ -300,7 +303,7 @@ browser()
                                  tapply(temp[[lonlat[2]]], temp[[alt_var]], mean))
               colnames(temp) = colnames(port)
               port <- rbind(port, temp)
-              return(port)
+             # return(port)
             }
           }
           
@@ -478,18 +481,17 @@ browser()
                           startloc = startloc,
                           polyn = polyn,
                           gridVaryingVariables = ExpectedCatch)
-  
 
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
   single_sql <- paste0(project, 'modelinputdata')
   date_sql <- paste0(project, 'modelinputdata', format(Sys.Date(), format="%Y%m%d"))
-  if(table_exists(single_sql)){
+  if(table_exists(single_sql)&replace==FALSE){
     #modelInputData <- table_view()
     modelInputData <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
     modelInputData[[length(modelInputData)+1]] <- modelInputData_tosave
   } else {
-    modelInputData <-  list()
-    modelInputData[[length(modelInputData)+1]] <- modelInputData_tosave
+      modelInputData <-  list()
+      modelInputData[[length(modelInputData)+1]] <- modelInputData_tosave
   }
 
   single_sql <- paste0(project, 'modelinputdata')
