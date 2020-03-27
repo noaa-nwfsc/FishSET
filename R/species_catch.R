@@ -12,6 +12,7 @@
 #'   "month", "month_abv", "month_num", "weeks" (weeks in the year), 
 #'   "weekday", "weekday_abv", "weekday_num", "day" (day of the month), 
 #'   and "day_of_year".
+#' @param fun Name of function to aggregate by. Defaults to \code{\link{sum}}. 
 #' @param group Up to two categorical variables to group by. For plots, if only one 
 #'   species is entered the first group variable is passed to "fill" and second is 
 #'   passed to "facet_grid". If multiple species are entered the species variable 
@@ -41,7 +42,7 @@
 #' @importFrom scales percent
 
 
-species_catch <- function(dat, project, s, t, period = "month_abv", group = NULL, year = NULL, 
+species_catch <- function(dat, project, s, t, period = "month_abv", fun = "sum", group = NULL, year = NULL, 
                           convert_to_tons = TRUE, value = c("count", "percent"), 
                           output = c("table", "plot"), position = "stack", format_tab = c("wide", "long")){
   
@@ -101,7 +102,7 @@ species_catch <- function(dat, project, s, t, period = "month_abv", group = NULL
       count <- stats::aggregate(dataset[[s]], 
                                 by = list(dataset$years, 
                                           format(date_parser(dataset[[t]]), p)), 
-                                FUN = sum)
+                                FUN = match.fun(fun))
       
       names(count) <- c("years", period, "catch")
       
@@ -113,7 +114,7 @@ species_catch <- function(dat, project, s, t, period = "month_abv", group = NULL
                                   by = list(dataset$years, 
                                             format(date_parser(dataset[[t]]), p), 
                                             dataset[[group1]]), 
-                                  FUN = sum)
+                                  FUN = match.fun(fun))
         
         names(count) <- c("years", period, group1, "catch")
         
@@ -124,7 +125,7 @@ species_catch <- function(dat, project, s, t, period = "month_abv", group = NULL
                                             format(date_parser(dataset[[t]]), p), 
                                             dataset[[group1]],
                                             dataset[[group2]]), 
-                                  FUN = sum)
+                                  FUN = match.fun(fun))
         
         names(count) <- c("years", period, group1, group2, "catch")
         
@@ -197,7 +198,7 @@ species_catch <- function(dat, project, s, t, period = "month_abv", group = NULL
       fishset_theme +
       ggplot2::labs(title = if (!is.null(year) & length(year) == 1) paste(year) else NULL,
                     x = paste0(t," ", "(", period, ")"),
-                    y = if (value == "count" & convert_to_tons == TRUE) "catch (tons)" else "catch (lbs)") +
+                    y = if (value == "count" & convert_to_tons == TRUE) paste(fun, "catch (tons)") else paste(fun, "catch (lbs)")) +
       ggplot2::theme(plot.title = element_text(hjust = 0.5)) 
     
     if (!is.null(group)) {
@@ -254,7 +255,7 @@ species_catch <- function(dat, project, s, t, period = "month_abv", group = NULL
         stats::aggregate(dataset[[x]], 
                          by = list(dataset$years,
                                    format(date_parser(dataset[[t]]), p)), 
-                         FUN = sum)
+                         FUN = match.fun(fun))
       })
       
     } else if (!is.null(group)) {
@@ -266,7 +267,7 @@ species_catch <- function(dat, project, s, t, period = "month_abv", group = NULL
                            by = list(dataset$years,
                                      format(date_parser(dataset[[t]]), p),
                                      dataset[[group1]]), 
-                           FUN = sum)
+                           FUN = match.fun(fun))
         })
         
       } else {
@@ -277,7 +278,7 @@ species_catch <- function(dat, project, s, t, period = "month_abv", group = NULL
                                      format(date_parser(dataset[[t]]), p),
                                      dataset[[group1]],
                                      dataset[[group2]]), 
-                           FUN = sum)
+                           FUN = match.fun(fun))
         })
       }
     }
@@ -377,7 +378,7 @@ species_catch <- function(dat, project, s, t, period = "month_abv", group = NULL
       fishset_theme +
       ggplot2::labs(title = if (!is.null(year) & length(year) == 1) paste(year) else NULL,
                     x = paste0(t," ", "(", period, ")"),
-                    y = if (value == "count" & convert_to_tons == TRUE) "catch (tons)" else "catch (lbs)") +
+                    y = if (value == "count" & convert_to_tons == TRUE) paste(fun, "catch (tons)") else paste(fun, "catch (lbs)")) +
       ggplot2::theme(plot.title = element_text(hjust = 0.5))
     
     if (!is.null(group)) {
@@ -444,7 +445,7 @@ species_catch <- function(dat, project, s, t, period = "month_abv", group = NULL
   
   species_catch_function <- list()
   species_catch_function$functionID <- "species_catch"
-  species_catch_function$args <- c(dat, project, s, t, period, group, year, convert_to_tons, value, output, position, format_tab)
+  species_catch_function$args <- c(dat, project, s, t, period, fun, group, year, convert_to_tons, value, output, position, format_tab)
   log_call(species_catch_function)
   
   # Save output
@@ -459,7 +460,7 @@ species_catch <- function(dat, project, s, t, period = "month_abv", group = NULL
       if (format_tab == "wide") {
         
         count <- reshape2::dcast(count, ... ~ species, value.var = "catch", fill = 0, 
-                                 fun.aggregate = sum)
+                                 fun.aggregate = match.fun(fun))
         
       }
     }
