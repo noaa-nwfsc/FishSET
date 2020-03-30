@@ -12,7 +12,7 @@
 #'   "month", "month_abv", "month_num", "weeks" (weeks in the year), 
 #'   "weekday", "weekday_abv", "weekday_num", "day" (day of the month), 
 #'   and "day_of_year".
-#' @param fun Name of function to aggregate by. Defaults to \code{\link{sum}}. 
+#' @param fun Name of function to aggregate by. Defaults to \code{\link[base]{sum}}. 
 #' @param group Up to two categorical variables to group by. For plots, if only one 
 #'   species is entered the first group variable is passed to "fill" and second is 
 #'   passed to "facet_grid". If multiple species are entered the species variable 
@@ -340,7 +340,7 @@ species_catch <- function(dat, project, s, t, period = "month_abv", fun = "sum",
       
       missing_periods <- setNames(missing_periods, c(period, "years", "species"))
       
-        missing_periods <- setNames(missing_periods, c(period, "years", "species"))
+    } else if (!is.null(group) & length(group) == 1) {
       
       missing_periods <- expand.grid(period = ind, 
                                      years = unique(count$years),

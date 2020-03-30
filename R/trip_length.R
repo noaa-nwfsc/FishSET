@@ -20,6 +20,7 @@
 #'   and then converts trip length to the desired unit of time (e.g. weeks, days, 
 #'   or hours), returning a table or histogram. There is also the option of 
 #'   including catch and hauls per trip. 
+#' @export trip_length
 #' @examples 
 #' \dontrun{
 #' trip_length("pollockMainDataTable", start = "FISHING_START_DATE", end = "HAUL_DATE",
