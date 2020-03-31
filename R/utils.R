@@ -392,6 +392,7 @@ date_factorize <- function(dataset, date_col, date_code) {
   #' @param dataset data frame containg date variable.
   #' @param date_col date variable of type character to convert to ordered factor.
   #' @param date_code date code used to format date variable.
+  #' @export
   
   if (date_code %in% c("%a", "%A", "%b", "%B")) { 
     
@@ -434,6 +435,7 @@ text_filepath <- function(project, fun_name) {
   #' @param project Name of project.
   #' @param fun_name Name of function. 
   #' @return Useful for saving messages generated in functions. 
+  #' @export
   #' @examples 
   #' \dontrun{
   #' cat("message", file = text_filepath("my_project", "qaqc_output"))
