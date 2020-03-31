@@ -66,6 +66,7 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
   H1 <- NULL
   fr <- x_temp[[i]][['likelihood']]#func  #e.g. logit_c
   fr.name <- match.fun(find_original_name(match.fun(as.character(fr))))
+  
 if(is.factor(optimOpt)){
     opt <- as.numeric(unlist(strsplit(as.character(optimOpt[i]), " ")))
   } else {
@@ -83,7 +84,7 @@ if(is.factor(optimOpt)){
   x_temp[[i]][['gridVaryingVariables']] <- x_temp[[i]][['gridVaryingVariables']][names(x_temp[[i]][['gridVaryingVariables']]) != "scale"]  
   
   if(fr=='logit_correction' & all(is.na(startingloc))){
-    'Stop. Startingloc parameter is not specified. Rerun the create_alternative_choice function'
+    warning('Startingloc parameter is not specified. Rerun the create_alternative_choice function')
   }
   dataCompile <- create_logit_input(choice)
   

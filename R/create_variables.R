@@ -705,7 +705,6 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
   }
   }
 
-
 ##---- Temporal  Variables ----##
 #' Create duration of time variable
 create_duration <- function(dat, start, end, units = c("week", "day", "hour", "minute"), name='create_duration') {

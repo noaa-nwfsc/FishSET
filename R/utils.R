@@ -2,7 +2,6 @@
 locdatabase <- function(){
 #' Returns the location of the database
 #' @details if loc is not in the working directory, then the default location is use
-#' @export
 #' @examples 
 #' \dontrun{
 #' locdatabase() # will return sqlite database location within the fishset package
@@ -599,5 +598,3 @@ outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plo
 #  namespace_frame = parent.env(target_frame)
 #  isNamespace(namespace_frame) && environmentName(namespace_frame) == 'shiny'
 #}
-
-
