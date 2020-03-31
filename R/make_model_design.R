@@ -189,7 +189,7 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
   }
   
    if (is_empty(gridVariablesInclude)) {
-    gridVariablesInclude = as.data.frame(matrix(1, nrow=nrow(choice), ncol=max(as.numeric(as.factor(unlist(choice))))))
+    gridVariablesInclude = as.data.frame(matrix(1, nrow=nrow(choice), ncol=1))#max(as.numeric(as.factor(unlist(choice))))))
    } else {
     gridVariablesInclude
    }
@@ -447,7 +447,7 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
   if (is_empty(priceCol)||is.null(priceCol)||priceCol=="") {
     epmDefaultPrice <- ""
   } else {
-    epmDefaultPrice <- dataset[which(dataZoneTrue == 1), priceCol]
+    epmDefaultPrice <- dataset[which(dataZoneTrue == 1), as.character(priceCol)]
   }
   
   # scales zonal

@@ -2,7 +2,8 @@
     ### SERVER SIDE    
     server = function(input, output, session) {
       options(shiny.maxRequestSize = 8000*1024^2)
-      ##inline scripting 
+      
+      #inline scripting 
       #----
       r <- reactiveValues(done = 0, ok = TRUE, output = "")
       observeEvent(input$runI, {
@@ -2360,7 +2361,14 @@
       #make_model_design()
       #})
       counter <- reactiveValues(countervalue = 0) # Defining & initializing the reactiveValues object
-      model_table <- reactiveVal(model_table)
+      rv <- reactiveValues(
+        data = model_table,
+        deletedRows = NULL,
+        deletedRowIndices = list()
+      )
+      
+      
+      #model_table <- reactiveVal(model_table)
       
       
       #access variable int outside of observer
@@ -2380,7 +2388,7 @@
         counter$countervalue <- counter$countervalue + 1
         
         if(is.null(input$gridVariablesInclude)|is.null(input$indeVarsForModel)) {
-          t <- rbind(data.frame('mod_name'='', 
+          rv$data <- rbind(data.frame('mod_name'='', 
                                 'likelihood'='',
                                 'alternatives'='',
                                 'optimOpts'='',
@@ -2394,9 +2402,9 @@
                                 'price'='',
                                 'startloc'='',
                                 'polyn'='')
-                     , model_table())
+                     , rv$data)#model_table())
         } else {
-          t = rbind(data.frame('mod_name'=paste0('mod',counter$countervalue), 
+          rv$data = rbind(data.frame('mod_name'=paste0('mod',counter$countervalue), 
                                'likelihood'=input$model, 
                                'alternatives'=input$alternatives,
                                'optimOpts'=paste(input$mIter,input$relTolX, input$reportfreq, input$detailreport),
@@ -2410,10 +2418,10 @@
                                'price'=input$price,
                                'startloc'=input$startloc, 
                                'polyn'=input$polyn)
-                    , model_table())
-          print(t)
+                    , rv$data)#model_table())
+          print(rv$data)
         }
-        model_table(t)
+      #  rv$data(t)#model_table(t)
         
         
         ###Now save table to sql database. Will overwrite each time we add a model
@@ -2432,8 +2440,10 @@
         query <- sprintf(
           "INSERT INTO %s (%s) VALUES %s",
           paste0(input$projectname,'modelDesignTable', format(Sys.Date(), format="%Y%m%d")),
-          paste(names(data.frame(as.data.frame(isolate(model_table())))), collapse = ", "),
-          paste0("('", matrix(apply(as.data.frame(isolate(model_table())), 1, paste, collapse="','"), ncol=1), collapse=',', "')")
+          paste(names(data.frame(as.data.frame(isolate(rv$data #model_table()
+                                                       )))), collapse = ", "),
+          paste0("('", matrix(apply(as.data.frame(isolate(rv$data #model_table()
+                                                          )), 1, paste, collapse="','"), ncol=1), collapse=',', "')")
         )
         # Submit the update query and disconnect
         DBI::dbGetQuery(fishset_db, query)
@@ -2442,14 +2452,57 @@
         
       })
       
-      observeEvent(input$resetModel, {
-        shinyjs::reset("form")
+#      observeEvent(input$resetModel, {
+#        shinyjs::reset("form")
+#      })
+      
+      
+      observeEvent(input$deletePressed, {
+        rowNum <- parseDeleteEvent(input$deletePressed)
+        dataRow <- rv$data[rowNum,]
+        
+        # Put the deleted row into a data frame so we can undo
+        # Last item deleted is in position 1
+        rv$deletedRows <- rbind(dataRow, rv$deletedRows)
+        rv$deletedRowIndices <- append(rv$deletedRowIndices, rowNum, after = 0)
+        
+        # Delete the row from the data frame
+        rv$data <- rv$data[-rowNum,]
       })
       
-      output$mod_param_table <- DT::renderDT(
-        model_table(), editable = T, server=TRUE
+      observeEvent(input$undo, {
+        if(nrow(rv$deletedRows) > 0) {
+          row <- rv$deletedRows[1, ]
+          rv$data <- addRowAt(rv$data, row, rv$deletedRowIndices[[1]])
+          
+          # Remove row
+          rv$deletedRows <- rv$deletedRows[-1,]
+          # Remove index
+          rv$deletedRowIndices <- rv$deletedRowIndices[-1]
+        }
+      })
+      
+      
+      # Disable the undo button if we have not deleted anything
+      output$undoUI <- renderUI({
+        if(!is.null(rv$deletedRows) && nrow(rv$deletedRows) > 0) {
+          actionButton('undo', label = 'Undo delete', icon('undo'))
+        } else {
+          actionButton('undo', label = 'Undo delete', icon('undo'), disabled = TRUE)
+        }
+      })
+      
+      output$mod_param_table <- DT::renderDataTable(
+        # Add the delete button column
+        deleteButtonColumn(rv$data, 'delete_button')
       )
-      # Save model and add new model shiny
+    
+#         output$mod_param_table <- DT::renderDT(
+#        model_table(), editable = T, server=TRUE
+#      )
+ 
+  
+      # Run models shiny
       observe({
         if(input$submit > 0) {
           print('call model design function, call discrete_subroutine file')
@@ -2584,25 +2637,31 @@
         modeltab <- data.frame(Model_name=rep(NA, length(mod_sum_out())), covergence=rep(NA, length(mod_sum_out())), Stand_Errors=rep(NA, length(mod_sum_out())), Hessian=rep(NA, length(mod_sum_out())))
         #if(dim(mod_sum_out())[2]>2){
         #  modeltab[i,1] <- mod_sum_out()[[i]]$name
+        if(is.data.frame(mod_sum_out())){
+          modeltab <- modeltab
+        } else {
         for(i in 1:length(mod_sum_out())){
           modeltab[i,1] <- mod_sum_out()[[i]]$name
           modeltab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
           modeltab[i,3] <- toString(round(mod_sum_out()[[i]]$seoutmat2,3))
           modeltab[i,4] <- toString(round(mod_sum_out()[[i]]$H1,5))
-        }#}
-        return(modeltab)
+        }}
+        #return(modeltab)
       })
       
       
       output$errortab <- DT::renderDT({
           error_out <- data.frame(Model_name=rep(NA, length(mod_sum_out())), Model_error=rep(NA, length(mod_sum_out())), Optimization_error=rep(NA, length(mod_sum_out())))
-          #if(dim(mod_sum_out())[2]>2){  
+          #if(dim(mod_sum_out())[2]>2){ 
+          if(colnames(mod_sum_out())[1]=='var1'){
+            error_out <- error_out
+          } else {
           for(i in 1: length(mod_sum_out())){
               error_out[i,1] <- mod_sum_out()[[i]]$name
               error_out[i,2] <- ifelse(is.null(mod_sum_out()[[i]]$errorExplain), 'No error reported', toString(mod_sum_out()[[i]]$errorExplain))
               error_out[i,3] <- ifelse(is.null(mod_sum_out()[[i]]$optoutput$optim_message), 'No message reported', toString(mod_sum_out()[[i]]$optoutput$optim_message))
-            }#}
-          return(error_out)
+            }}
+          #return(error_out)
       })
       
       #----      

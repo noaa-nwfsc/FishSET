@@ -747,7 +747,7 @@
                                ),
                                tags$br(),
                                actionButton("addModel", "Save model and add new model", style="color: #fff; background-color: #337ab7; border-color: #800000;"),
-                               actionButton("resetModel", "Clear choices"),
+                               actionButton("resetModel", "Remove Model"),
                                tags$br(),
                                actionButton("submit", "Run model(s)", style="color: #fff; background-color: #6da363; border-color: #800000;"),
                                tags$br(),tags$br(),
