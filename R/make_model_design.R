@@ -119,7 +119,8 @@
 #' @examples
 #' \dontrun{
 #' make_model_design(MainDataTable, catchID = 'HAUL', alternativeMatrix = "loadedData", 
-#'                   lonlat=c('LonLat_START_LON', 'LonLat_START_LAT'), PortTable=NULL, project = 'pcod')
+#'                   lonlat=c('LonLat_START_LON', 'LonLat_START_LAT'), 
+#'                   PortTable=NULL, project = 'pcod')
 #' }
 
 

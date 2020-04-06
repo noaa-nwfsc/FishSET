@@ -14,7 +14,8 @@ degree <- function(dat, lat=NULL, lon=NULL, latsign=FALSE, lonsign=FALSE, replac
   #' Changing the sign, transforms all values in the variable. 
   #' @examples 
   #' \dontrun{
-  #' dat <- degree(MainDataTable, 'LatLon_START_LAT', 'LatLon_START_LON', latsign=FALSE, lonsign=FALSE, replace=TRUE)
+  #' dat <- degree(MainDataTable, 'LatLon_START_LAT', 'LatLon_START_LON', 
+  #'            latsign=FALSE, lonsign=FALSE, replace=TRUE)
   #' }
   #' 
   

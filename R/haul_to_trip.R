@@ -14,7 +14,8 @@
 #' 
 #' @examples
 #' \dontrun{
-#'  pollockMainDataTable <- haul_to_trip('pollockMainDataTable', 'pollock',min,mean,'PERMIT','DISEMBARKED_PORT')
+#'  pollockMainDataTable <- haul_to_trip('pollockMainDataTable', 'pollock',
+#'                                      min,mean,'PERMIT','DISEMBARKED_PORT')
 #'  }
 
 

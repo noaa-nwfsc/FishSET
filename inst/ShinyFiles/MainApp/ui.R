@@ -2,6 +2,7 @@
     ui = function(request){
       fluidPage(
       shinyjs::useShinyjs(),
+      pre(id = "console"),
       #---- 
       #Formatting
       #----
@@ -28,7 +29,20 @@
                 tags$script(HTML('Shiny.addCustomMessageHandler("jsCode",
                                  function(message) {
                                  eval(message.value);
-                                 });'))),
+                                 });')),
+                tags$style(HTML("#shiny-notification-panel {
+                                position: fixed;
+                                bottom: 350px;
+                                right: 250px;
+                              }
+                              .shiny-notification {
+                                position:relative;
+                                top: calc(50% - 150px);
+                                left: calc(50% - 150px);
+                                width: 500px;
+                              }
+                               "))
+                ), #  position:fixed;
       #----
       ##Inline scripting
       #-----
@@ -542,7 +556,7 @@
                                uiOutput('dist_between_input'),
                                uiOutput('dist_betwn_opts'),
                                conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'",
-                                                style = "margin-left:19px;", selectInput('units', 'Distance unit',choices = c('miles','meters','km','midpoint'))),
+                                                style = "margin-left:19px;", selectInput('units', 'Distance unit',choices = c('miles','meters','km'))),
                                uiOutput('start_mid_input'),
                                uiOutput('end_mid_input'),
                                uiOutput('input_dur_start'),
@@ -747,7 +761,6 @@
                                ),
                                tags$br(),
                                actionButton("addModel", "Save model and add new model", style="color: #fff; background-color: #337ab7; border-color: #800000;"),
-                               actionButton("resetModel", "Remove Model"),
                                tags$br(),
                                actionButton("submit", "Run model(s)", style="color: #fff; background-color: #6da363; border-color: #800000;"),
                                tags$br(),tags$br(),

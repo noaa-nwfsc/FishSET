@@ -24,21 +24,7 @@ simpleCap <- function(x) {
 model_table <- data.frame('mod_name'='', 'likelihood'='', 'alternatives'='', 'optimOpts'='', 'inits'='', 
                           'vars1'='','vars2'='', 'catch'='', 'lon'='', 'lat'='', 'project'='', 'price'='', 'startloc'='', 'polyn'='')
 
-#' Adds a row at a specified index
-#'
-#' @param df a data frame
-#' @param row a row with the same columns as \code{df}
-#' @param i the index we want to add row at.
-#' @return the data frame with \code{row} added to \code{df} at index \code{i}
-addRowAt <- function(df, row, i) {
-  # Slow but easy to understand
-  if (i > 1) {
-    rbind(df[1:(i - 1), ], row, df[-(1:(i - 1)), ])
-  } else {
-    rbind(row, df)
-  }
-  
-}
+
 
 #' A column of delete buttons for each row in the data frame for the first column
 #'
