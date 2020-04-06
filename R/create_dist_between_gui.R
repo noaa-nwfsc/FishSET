@@ -1,3 +1,6 @@
+
+
+
 #' Distance between two points
 create_dist_between_for_gui <- function(dat, start, end, units, portTable=NULL, gridfile=NULL,
                                         lon.dat=NULL, lat.dat=NULL, cat=NULL, lon.grid=NULL, lat.grid=NULL){
@@ -24,7 +27,7 @@ create_dist_between_for_gui <- function(dat, start, end, units, portTable=NULL, 
   #'  to a zone. The find_centroid function will then be called to determine the centroid of each zone. Distance measurements will be between these centroids. 
 
   
-  #Call in datasets
+    #Call in datasets
   if(start[1]==end[1]){
     warning('Starting and ending vectors are identical.')
   } else {
@@ -35,16 +38,22 @@ create_dist_between_for_gui <- function(dat, start, end, units, portTable=NULL, 
     dat <- out$dat
     dataset <- out$dataset
  
-       x <- 0      
+
+#Get location data for centroid or port
+         x <- 0      
        
-       if(start[1]=='centroid'|end[1]=='centroid'){
+       if(grepl('centroid', start[1], ignore.case=TRUE)|grepl('centroid', end[1], ignore.case=TRUE)){
         dat2 <- assignment_column(dat=dataset, gridfile=gridfile, hull.polygon=FALSE, lon.grid=lon.grid, lat.grid=lat.grid, 
                                    lon.dat = lon.dat, lat.dat=lat.dat, cat=cat, closest.pt = TRUE)
         int <- find_centroid(dat2, gridfile=gridfile, lon.grid==lon.grid, lat.grid==lat.grid, 
                            lon.dat=lon.dat, lat.dat=lat.dat, cat=cat, weight.var=NULL)
-      }
+       }
+         
+     
     if((grepl('port', start[1], ignore.case=TRUE)|grepl('port', end[1], ignore.case=TRUE))==TRUE){
-       port.table <- table_view(portTable)
+       #port.table <- table_view(portTable)
+       temp <- data_pull(portTable)
+       port.table <- temp$dataset
       }
   
 #  start.long <- c()
@@ -58,14 +67,14 @@ create_dist_between_for_gui <- function(dat, start, end, units, portTable=NULL, 
       start.long <- as.numeric(sapply(trimws(dataset[[start]]), 
                                       function(x) port.table[which(port.table[['Port_Name']] == x), "Port_Long"]))
     }   
-   if(start[1]=='centroid'){
+   if(grepl('centroid', start[1], ignore.case=TRUE)){
       start.lat <- as.numeric(sapply(trimws(dat2[['ZoneID']]), 
                                      function(x) int[which(int[['ZoneID']] == x), "cent.lat"]))
       start.long <- as.numeric(sapply(trimws(dat2[['ZoneID']]), 
                                       function(x) int[which(int[['ZoneID']] == x), "cent.lon"]))
    }
       
-      
+
   if(grepl('lat|lon', start[1], ignore.case=TRUE)){
         start.long <- dataset[[start[2]]]
         start.lat <- dataset[[start[1]]]
@@ -81,7 +90,6 @@ create_dist_between_for_gui <- function(dat, start, end, units, portTable=NULL, 
           # stop("Latitude is not valid (outside -90:90.")
         } 
         
-        
     }
     
     
@@ -90,7 +98,7 @@ create_dist_between_for_gui <- function(dat, start, end, units, portTable=NULL, 
                                    function(x) port.table[which(port.table[['Port_Name']] == x), "Port_Lat"]))
       end.long <- as.numeric(sapply(trimws(dataset[[end]]), 
                                     function(x) port.table[which(port.table[['Port_Name']] == x), "Port_Long"]))
-    } else if(end[1]=='centroid'){
+    } else if(grepl('centroid', end[1], ignore.case=TRUE)){
       end.lat <- as.numeric(sapply(trimws(dat2[['ZoneID']]), 
                                    function(x) int[which(int[['ZoneID']] == x), "cent.lat"]))
       end.long <- as.numeric(sapply(trimws(dat2[['ZoneID']]), 
@@ -110,7 +118,7 @@ create_dist_between_for_gui <- function(dat, start, end, units, portTable=NULL, 
       } 
     }
     
-    if(x==1){
+    if(x==0){
     # Get distance between points
     if(units=='midpoint'){
       distBetween <- geosphere::midPoint(cbind(start.long,start.lat), cbind(end.long,end.lat))
@@ -124,7 +132,6 @@ create_dist_between_for_gui <- function(dat, start, end, units, portTable=NULL, 
     } else if(units=='kilometers'){
       distBetween <- distBetween/1000
     } 
-    
 
     #Log the function     
     create_dist_between_function <- list()

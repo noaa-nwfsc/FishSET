@@ -12,7 +12,7 @@ License: GPL (>= 2)
 URL: to provide
 BugReports: https://pkgname.bugtracker.url
 devtools: :use_data(MainDataTable)
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
 Encoding: UTF-8
 Suggests: 
     testthat,
