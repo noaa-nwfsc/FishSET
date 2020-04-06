@@ -1270,7 +1270,6 @@
       
       observeEvent(input$saveData,{
         # when it updates, save the search strings so they're not lost
-        isolate({
           # update global search and column search strings
           default_search_columns <- c("", input$output_table_exploration_search_columns)
           default_sub <- which(default_search_columns!='')
@@ -1282,7 +1281,6 @@
             } else {
               FilterTable <- table_view(paste0(input$projectname, "FilterTable"))
             }
-
             for(i in 1:length(default_sub)){
               if( grepl("\\..\\.", default_search_columns[default_sub[i]])==TRUE){
                 FilterTable <- rbind(FilterTable, c(paste0(input$projectname, 'MainDataTable'), (colnames(values$dataset[default_sub])[i]), 
@@ -1294,11 +1292,20 @@
               }
             }
             
+            showNotification('Filter table saved to FishSET database', type='message', duration=10)
+            
+            filter_data_function <- list()
+            filter_data_function$functionID <- 'filter_table'
+            filter_data_function$args <- c(dat, project, x, exp, project)
+            filter_data_function$kwargs <- list()
+            filter_data_function$output <- c('')
+            filter_data_function$msg <- filterTable
+            log_call(filter_data_function)
+            
             fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
             DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'FilterTable'),  FilterTable, overwrite=TRUE)
             DBI::dbDisconnect(fishset_db)
-          }      
-        })
+          }  
       })
       
       observeEvent(input$saveDataNew,{
@@ -2297,12 +2304,50 @@
             checkboxInput('lockk', 'Location-specific catch parameter', value=FALSE)),
           conditionalPanel(condition="input.model=='epm_normal' || input.model=='epm_lognormal' || input.model=='epm_weibull'",
             selectInput('price', 'Price variable', choices=c(input$priceBase,'none', colnames(values$dataset[,grep('dollar|val|euro|price|cost|earn', colnames(values$dataset), ignore.case=TRUE)])), 
-                        selected='none', multiple=FALSE)
-          ),
+                        selected='none', multiple=FALSE)),
           conditionalPanel(condition="input.model=='logit_correction'",
             numericInput('polyn', 'Correction polynomial degree', value=2)),
           conditionalPanel(condition="input.model=='logit_correction'",
-            selectInput('startloc', 'Initial location during choice occassion', choices=c('none', colnames(values$dataset)), selected='none', multiple=FALSE) 
+                           checkboxInput('startlocdefined', 'Initial location during choice occassion variable exists in dataset', value=TRUE)),
+          conditionalPanel(condition="input.model=='logit_correction'&input.startlocdefined=='TRUE'",
+            selectInput('startloc', 'Initial location during choice occassion', choices=colnames(values$dataset), 
+                        selected=if(exists(values$dataset$startingloc)) {'startingloc'} else {NULL}, multiple=FALSE)),
+          tagList(
+            conditionalPanel(condition="input.model=='logit_correction'&input.startlocdefined=='FALSE'",
+                              if(names(spatdat$dataset)[1]=='var1'){
+                                                 tags$div(h4('Map file not loaded. Please load on Upload Data tab', style="color:red"))
+                              }),
+            conditionalPanel(condition="input.model=='logit_correction'&input.startlocdefined=='FALSE'",
+                             selectInput('trip_id_SL', 'Variable in primary data set to identify unique trips', choices=c('',names(values$dataset)), selectize=TRUE)),
+            conditionalPanel(condition="input.model=='logit_correction'&input.startlocdefined=='FALSE'",
+                             selectInput('haul_order_SL', 'Variable in primary data set defining haul order within a trip. Can be time, coded variable, etc.',
+                                            choices=c('', names(values$dataset)), selectize=TRUE)),
+            conditionalPanel(condition="input.model=='logit_correction'&input.startlocdefined=='FALSE'",
+                             selectInput('starting_port_SL',  "Variable in primary data set identifying port at start of trip", 
+                                            choices=names(values$dataset[,grep('port',names(values$dataset), ignore.case = TRUE)]), selectize=TRUE)),
+            conditionalPanel(condition="input.model=='logit_correction'&input.startlocdefined=='FALSE'",
+                             selectInput('lon_dat_SL', "Longitude variable in primary data set", 
+                                            choices= names(values$dataset[,grep("lon", names(values$dataset), ignore.case = TRUE)]), selectize=TRUE)), 
+            conditionalPanel(condition="input.model=='logit_correction'&input.startlocdefined=='FALSE'",
+                             selectInput('lat_dat_SL', "Latitude variable in primary data set", 
+                                            choices= names(values$dataset[,grep("lat", names(values$dataset), ignore.case = TRUE)]), selectize=TRUE)),
+            conditionalPanel(condition="input.model=='logit_correction'&input.startlocdefined=='FALSE'",
+                             selectInput("port.dat", "Choose file from FishSET SQL database containing port data", 
+                                             choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE)),
+            conditionalPanel(condition="input.model=='logit_correction'&input.startlocdefined=='FALSE'",
+                             if(any(class(spatdat$dataset)=='sf')==FALSE){
+                                                selectInput('lat_grid_SL', 'Select vector containing latitude from spatial data set',
+                                                            choices= names(as.data.frame(spatdat$dataset)), multiple=TRUE)
+                              }),
+            conditionalPanel(condition="input.model=='logit_correction'&input.startlocdefined=='FALSE'",
+                             if(any(class(spatdat$dataset)=='sf')==FALSE){
+                                selectInput('lon_grid_SL', 'Select vector containing longitude from spatial data set', 
+                                                             choices= names(as.data.frame(spatdat$dataset)), multiple=TRUE, selectize=TRUE)
+                              }),
+            conditionalPanel(condition="input.model=='logit_correction'&input.startlocdefined=='FALSE'",
+                             selectInput('cat_SL', "Variable defining zones or areas", choices= names(as.data.frame(spatdat$dataset)), selectize=TRUE)
+                         # dat, gridfile, portTable, trip_id, haul_order, starting_port, lon.dat, lat.dat, cat, lon.grid=NULL, lat.grid=NULL
+                        )
           )
         )
       })
