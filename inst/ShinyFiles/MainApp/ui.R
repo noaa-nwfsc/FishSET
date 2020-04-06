@@ -762,7 +762,9 @@
                                tags$br(),
                                actionButton("addModel", "Save model and add new model", style="color: #fff; background-color: #337ab7; border-color: #800000;"),
                                tags$br(),
-                               actionButton("submit", "Run model(s)", style="color: #fff; background-color: #6da363; border-color: #800000;"),
+                               conditionalPanel(condition='input.addModel>0',
+                                   actionButton("submit", "Run model(s)", style="color: #fff; background-color: #6da363; border-color: #800000;")
+                               ),
                                tags$br(),tags$br(),
                                tags$p(tags$strong("More information"), tags$br(),
                                       "Model parameter table is editable. Double click a cell to edit."),
