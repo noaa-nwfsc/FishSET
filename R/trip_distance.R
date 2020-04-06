@@ -21,9 +21,11 @@
 #'  \url{https://cran.r-project.org/web/packages/geosphere/geosphere.pdf}.
 #' @examples
 #' \dontrun{
-#'  pcodMainDataTable$TripDistance <- create_trip_distance('pcodMainDataTable', 'pollockPortTable', 'TRIP_SEQ', 
-#'                                'DISEMBARKED_PORT', c("LonLat_START_LON","LonLat_START_LAT"),
-#'                                c("LonLat_END_LON","LonLat_END_LAT"), 'EMBARKED_PORT', 'HAUL_SEQ')
+#'  pcodMainDataTable$TripDistance <- create_trip_distance('pcodMainDataTable', 
+#'                                'pollockPortTable', 'TRIP_SEQ', 'DISEMBARKED_PORT',
+#'                                 c("LonLat_START_LON","LonLat_START_LAT"),
+#'                                 c("LonLat_END_LON","LonLat_END_LAT"), 'EMBARKED_PORT',
+#'                                  'HAUL_SEQ')
 #'  }
 
 # 

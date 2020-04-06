@@ -2,6 +2,7 @@
 locdatabase <- function(){
 #' Returns the location of the database
 #' @details if loc is not in the working directory, then the default location is use
+#' @export
 #' @examples 
 #' \dontrun{
 #' locdatabase() # will return sqlite database location within the fishset package

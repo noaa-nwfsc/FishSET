@@ -42,10 +42,10 @@
 #' @return newGridVar,  newDumV
 #' @examples 
 #' \dontrun{
-#' create_expectations('pcodMainDataTable', adfg, 'OFFICIAL_TOTAL_CATCH_MT',  price=NULL, temporal='daily', 
-#'                      temp.var="DATE_FISHING_BEGAN", calc.method='standard average', 
-#'                      lag.method='simple',  empty.catch='all catch', empty.expectation= 0.0001, 
-#'                      temp.window=4, temp.lag=2, dummy.exp=FALSE, 
+#' create_expectations('pcodMainDataTable', adfg, 'OFFICIAL_TOTAL_CATCH_MT',  price=NULL,  
+#'                      temporal='daily', temp.var="DATE_FISHING_BEGAN",  
+#'                      calc.method='standard average', lag.method='simple', empty.catch='all catch', 
+#'                      empty.expectation= 0.0001, temp.window=4, temp.lag=2, dummy.exp=FALSE, 
 #'                      AltMatrixName='pcodaltmatrix20110101', defineGroup=NULL)
 #' }
 
