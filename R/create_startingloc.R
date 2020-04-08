@@ -19,7 +19,7 @@
 #' port locations and haul locations to zones. The starting port is used to define the starting location at the start of the trip. 
 #' @examples
 #' \dontrun{
-#' pcodMainDataTable$startloc <- create_startingloc('pcodMainDataTable', map2, pollockPortTable, 
+#' pcodMainDataTable$startingloc <- create_startingloc('pcodMainDataTable', map2, pollockPortTable, 
 #'                               'TRIP_SEQ','HAUL_SEQ','DISEMBARKED_PORT',
 #'                               "LonLat_START_LON","LonLat_START_LAT", 'NMFS_AREA', "","")
 #' }
@@ -35,7 +35,6 @@ create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, st
   out <- data_pull(portTable)
   PortTable <- out$dat
   port.table <- out$dataset
-  
   
 #  DBI::dbDisconnect(fishset_db)
   port <- assignment_column(dat=port.table, gridfile = gridfile, hull.polygon = FALSE, 

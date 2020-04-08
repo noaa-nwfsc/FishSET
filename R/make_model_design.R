@@ -16,7 +16,8 @@
 #'     the user chooses, so please see the Detail section for how to specify for each likelihood function.
 #' @param priceCol NULL If required, specify which variable contains price data.
 #' @param startloc Vector required for logit_correction likelihood. startloc is a matrix of dimension (number of observations) 
-#'     by (unity), that corresponds to the starting location when the agent decides between alternatives. 
+#'     by (unity), that corresponds to the starting location when the agent decides between alternatives. Use the
+#'     `create_startingloc` function to create the starting loc vector.
 #' @param polyn Vector required for logit_correction likelihood. Correction polynomial degree.  
 #' @importFrom geosphere distm
 #' @importFrom DBI dbGetQuery dbExecute dbListTables
@@ -135,6 +136,7 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
   
   x0 <- 0
   
+  browser()
 #Script necessary to ensure paramers generated in shiny app are in correct format
   if (is_empty(vars1)||vars1=='none') { indeVarsForModel <- NULL } else { indeVarsForModel=vars1}
   if (is_empty(vars2)||vars2=='none') { gridVariablesInclude <- NULL } else { gridVariablesInclude=vars2}
@@ -177,7 +179,7 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
   dataZoneTrue <- Alt[["dataZoneTrue"]]  
   int <- Alt[["int"]]
   choice <- Alt[["choice"]]
-  startingloc <- Alt[['startingloc']]
+  startingloc <-  if(!is.null(startloc) &  all(is.na(Alt$startingloc))) {dataset[[startloc]]} else {Alt[['startingloc']]}
   units <- Alt[["altChoiceUnits"]]
   
   if(any(grepl("Port", alt_var, ignore.case = TRUE) == T)){

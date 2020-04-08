@@ -2305,50 +2305,51 @@
           conditionalPanel(condition="input.model=='epm_normal' || input.model=='epm_lognormal' || input.model=='epm_weibull'",
             selectInput('price', 'Price variable', choices=c(input$priceBase,'none', colnames(values$dataset[,grep('dollar|val|euro|price|cost|earn', colnames(values$dataset), ignore.case=TRUE)])), 
                         selected='none', multiple=FALSE)),
+        #logit correction
           conditionalPanel(condition="input.model=='logit_correction'",
             numericInput('polyn', 'Correction polynomial degree', value=2)),
           conditionalPanel(condition="input.model=='logit_correction'",
-                           checkboxInput('startlocdefined', 'Initial location during choice occassion variable exists in dataset', value=TRUE)),
-          conditionalPanel(condition="input.model=='logit_correction'&input.startlocdefined=='TRUE'",
-            selectInput('startloc', 'Initial location during choice occassion', choices=colnames(values$dataset), 
-                        selected=if(exists(values$dataset$startingloc)) {'startingloc'} else {NULL}, multiple=FALSE)),
+                           radioButtons('startlocdefined', 'Starting location variable', choices=c('Exists in data set'='exists', 'Create variable'='create'))
+        ))
+        })
+        output$logit_correction_extra <- renderUI({
           tagList(
-            conditionalPanel(condition="input.model=='logit_correction'&input.startlocdefined=='FALSE'",
+          conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='exists'",
+            selectInput('startloc_mod', 'Initial location during choice occassion', choices=names(values$dataset), 
+                        selected='startingloc', 
+                        multiple=FALSE)),
+            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
                               if(names(spatdat$dataset)[1]=='var1'){
                                                  tags$div(h4('Map file not loaded. Please load on Upload Data tab', style="color:red"))
                               }),
-            conditionalPanel(condition="input.model=='logit_correction'&input.startlocdefined=='FALSE'",
-                             selectInput('trip_id_SL', 'Variable in primary data set to identify unique trips', choices=c('',names(values$dataset)), selectize=TRUE)),
-            conditionalPanel(condition="input.model=='logit_correction'&input.startlocdefined=='FALSE'",
-                             selectInput('haul_order_SL', 'Variable in primary data set defining haul order within a trip. Can be time, coded variable, etc.',
+            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
+                             selectInput('trip_id_SL_mod', 'Variable in primary data set to identify unique trips', choices=c('',names(values$dataset)), selectize=TRUE)),
+            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
+                             selectInput('haul_order_SL_mod', 'Variable in primary data set defining haul order within a trip. Can be time, coded variable, etc.',
                                             choices=c('', names(values$dataset)), selectize=TRUE)),
-            conditionalPanel(condition="input.model=='logit_correction'&input.startlocdefined=='FALSE'",
-                             selectInput('starting_port_SL',  "Variable in primary data set identifying port at start of trip", 
+            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
+                             selectInput('starting_port_SL_mod',  "Variable in primary data set identifying port at start of trip", 
                                             choices=names(values$dataset[,grep('port',names(values$dataset), ignore.case = TRUE)]), selectize=TRUE)),
-            conditionalPanel(condition="input.model=='logit_correction'&input.startlocdefined=='FALSE'",
-                             selectInput('lon_dat_SL', "Longitude variable in primary data set", 
+            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
+                             selectInput('lon_dat_SL_mod', "Longitude variable in primary data set", 
                                             choices= names(values$dataset[,grep("lon", names(values$dataset), ignore.case = TRUE)]), selectize=TRUE)), 
-            conditionalPanel(condition="input.model=='logit_correction'&input.startlocdefined=='FALSE'",
-                             selectInput('lat_dat_SL', "Latitude variable in primary data set", 
+            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
+                             selectInput('lat_dat_SL_mod', "Latitude variable in primary data set", 
                                             choices= names(values$dataset[,grep("lat", names(values$dataset), ignore.case = TRUE)]), selectize=TRUE)),
-            conditionalPanel(condition="input.model=='logit_correction'&input.startlocdefined=='FALSE'",
-                             selectInput("port.dat", "Choose file from FishSET SQL database containing port data", 
-                                             choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE)),
-            conditionalPanel(condition="input.model=='logit_correction'&input.startlocdefined=='FALSE'",
-                             if(any(class(spatdat$dataset)=='sf')==FALSE){
-                                                selectInput('lat_grid_SL', 'Select vector containing latitude from spatial data set',
+            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
+                           if(any(class(spatdat$dataset)=='sf')==FALSE){
+                                                selectInput('lat_grid_SL_mod', 'Select vector containing latitude from spatial data set',
                                                             choices= names(as.data.frame(spatdat$dataset)), multiple=TRUE)
                               }),
-            conditionalPanel(condition="input.model=='logit_correction'&input.startlocdefined=='FALSE'",
+            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
                              if(any(class(spatdat$dataset)=='sf')==FALSE){
-                                selectInput('lon_grid_SL', 'Select vector containing longitude from spatial data set', 
+                                selectInput('lon_grid_SL_mod', 'Select vector containing longitude from spatial data set', 
                                                              choices= names(as.data.frame(spatdat$dataset)), multiple=TRUE, selectize=TRUE)
                               }),
-            conditionalPanel(condition="input.model=='logit_correction'&input.startlocdefined=='FALSE'",
-                             selectInput('cat_SL', "Variable defining zones or areas", choices= names(as.data.frame(spatdat$dataset)), selectize=TRUE)
-                         # dat, gridfile, portTable, trip_id, haul_order, starting_port, lon.dat, lat.dat, cat, lon.grid=NULL, lat.grid=NULL
+            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
+                             selectInput('cat_SL_mod', "Variable defining zones or areas", choices= names(as.data.frame(spatdat$dataset)), selectize=TRUE)
+                         
                         )
-          )
         )
       })
       output$latlonB <- renderUI({
@@ -2462,8 +2463,7 @@
       
       
       #model_table <- reactiveVal(model_table)
-      
-      
+                     
       #access variable int outside of observer
       int_name <- reactive({
         paste(lapply(1:numInits(), function(i) {
@@ -2478,6 +2478,14 @@
         } else {
           showNotification("Selected model parameters saved.", type='message', duration=10)
         }
+       
+
+        if(input$model=='logit_correction' & input$startlocdefined =='create'){
+          values$dataset$startingloc <- create_startingloc(dat=values$dataset, gridfile=spatdat$dataset, portTable=input$port.datMD, 
+                                            trip_id=input$trip_id_SL_mod, haul_order=input$haul_order_SL_mod, starting_port=input$starting_port_SL_mod, 
+                                            lon.dat=input$lon_dat_SL_mod, lat.dat=input$lat_dat_SL_mod, cat=input$cat_SL_mod, 
+                                            lon.grid==input$lat_grid_SL, lat.grid==input$lat_grid_SL_mod)
+        } 
         counter$countervalue <- counter$countervalue + 1
         
         if(is.null(input$gridVariablesInclude)|is.null(input$indeVarsForModel)) {
@@ -2509,7 +2517,7 @@
                                'lat'=input$lat,
                                'project'=input$projectname, 
                                'price'=input$price,
-                               'startloc'=input$startloc, 
+                               'startloc'=if(input$startlocdefined=='exists'){input$startloc_mod} else {'startingloc'}, 
                                'polyn'=input$polyn)
                     , rv$data)#model_table())
           print(rv$data)
