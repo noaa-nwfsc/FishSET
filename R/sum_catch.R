@@ -19,6 +19,7 @@
 #'   "table" returns a summary table. 
 #' @importFrom stats aggregate reformulate
 #' @importFrom dplyr left_join
+#' @export sum_catch
 #' @return A summary table or vector of logical values based on the \code{exp} argument.
 #' @examples 
 #' \dontrun{

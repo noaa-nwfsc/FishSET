@@ -25,7 +25,6 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
   #'   the date is appended to the table name. See \code{\link{table_remove}} to delete a table. 
   #' @importFrom DBI dbConnect dbWriteTable dbDisconnect
   #' @importFrom SQLite SQLite
-  #' @keywords 
   #' @export fleet_table
   #' @return A table of fleet conditions that is saved to the FishSET database with the name 
   #'   "projectFleetTable". 
@@ -204,6 +203,7 @@ fleet_assign <- function(dat, project, fleet_tab, overlap = FALSE, format_tab = 
 #' @importFrom DBI dbConnect dbGetQuery dbDisconnect
 #' @importFrom RSQLite SQLite
 #' @importFrom reshape2 melt
+#' @export fleet_assign
 #' @return The main dataframe with added fleet column(s).
 #' @examples 
 #' \dontrun{
