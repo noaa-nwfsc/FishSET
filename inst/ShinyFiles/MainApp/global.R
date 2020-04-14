@@ -2,6 +2,7 @@ requireNamespace('shiny')
 requireNamespace('ggplot2')
 requireNamespace('shinyjs')
 requireNamespace('DT')
+library(shinycssloaders)
 #----
 #Helper functions
 #----
@@ -58,3 +59,4 @@ parseDeleteEvent <- function(idstr) {
   res <- as.integer(sub(".*_([0-9]+)", "\\1", idstr))
   if (! is.na(res)) res
 }
+

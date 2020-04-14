@@ -3,6 +3,15 @@
     server = function(input, output, session) {
       options(shiny.maxRequestSize = 8000*1024^2)
       
+      #Disable buttons
+      toggle_inputs <- function(input_list,enable_inputs=T){
+        # Toggle elements
+        for(x in names(input_list))
+          if(enable_inputs){
+            shinyjs::enable(x)} else {
+              shinyjs::disable(x) }
+      }
+      
       #inline scripting 
       #----
       r <- reactiveValues(done = 0, ok = TRUE, output = "")
@@ -20,6 +29,7 @@
         )
         r$done <- r$done + 1
       })
+      
       output$resultI <- renderUI({
         if(r$done > 0 ) { 
           content <- paste(paste(">", isolate(input$expr)), r$output, sep = '\n')
@@ -2585,27 +2595,34 @@
       # Run models shiny
       observe({
         if(input$submit > 0) {
+          input_list <- reactiveValuesToList(input)
+          toggle_inputs(input_list,F)
           #print('call model design function, call discrete_subroutine file')
-          times <- nrow(model_table())-1
+          times <- nrow(rv$data)-1
           i <- 1
           showNotification(paste('1 of', times, 'model design files created.'), type='message', duration=10)
-          make_model_design(values$dataset, project=model_table()$project[i], catchID=model_table()$catch[i], alternativeMatrix = model_table()$alternatives[i], 
-                            replace=TRUE, lonlat= c(as.vector(model_table()$lon[i]), as.vector(model_table()$lat[i])), PortTable = input$port.datMD, likelihood=model_table()$likelihood[i], vars1=model_table()$vars1[i],
-                            vars2=model_table()$vars2[i], priceCol=model_table()$price[i], startloc=model_table()$startloc[i], polyn=model_table()$polyn[i])
+          make_model_design(values$dataset, project=rv$data$project[i], catchID=rv$data$catch[i], alternativeMatrix = rv$data$alternatives[i], 
+                            replace=TRUE, lonlat= c(as.vector(rv$data$lon[i]), as.vector(rv$data$lat[i])), PortTable = input$port.datMD, likelihood=rv$data$likelihood[i], vars1=rv$data$vars1[i],
+                            vars2=rv$data$vars2[i], priceCol=rv$data$price[i], startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
           
           if(times>1){
           for(i in 2:times){
-            make_model_design(values$dataset, project=model_table()$project[i], catchID=model_table()$catch[i], alternativeMatrix = model_table()$alternatives[i], 
-                              replace=FALSE, lonlat=c(as.vector(model_table()$lon[i]), as.vector(model_table()$lat[i])), PortTable = input$port.datMD, likelihood=model_table()$likelihood[i], vars1=model_table()$vars1[i],
-                              vars2=model_table()$vars2[i], priceCol=model_table()$price[i], startloc=model_table()$startloc[i], polyn=model_table()$polyn[i])
+            make_model_design(values$dataset, project=rv$data$project[i], catchID=rv$data$catch[i], alternativeMatrix = rv$data$alternatives[i], 
+                              replace=FALSE, lonlat=c(as.vector(rv$data$lon[i]), as.vector(rv$data$lat[i])), PortTable = input$port.datMD, likelihood=rv$data$likelihood[i], vars1=rv$data$vars1[i],
+                              vars2=rv$data$vars2[i], priceCol=rv$data$price[i], startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
             showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
           }
           }
-          showNotification(
-            capture.output(
-                discretefish_subroutine(input$projectname, initparams=model_table()$inits, optimOpt=model_table()$optimOpt,  
-                                  methodname='BFGS', mod.name=model_table()$mod_name, select.model=FALSE, name='discretefish_subroutine')              
-            ), type='message', duration=10)
+         # showNotification(
+         #   capture.output(
+                showNotification('Model is running. Models can take 30 minutes.
+                                  All buttons are inactive while model function is running.
+                                  Check R console for progress.', type='message', duration=30)
+                discretefish_subroutine(input$projectname, initparams=rv$data$inits, optimOpt=rv$data$optimOpt,  
+                                  methodname='BFGS', mod.name=rv$data$mod_name, select.model=FALSE, name='discretefish_subroutine')              
+        #    ), type='message', duration=10)
+                showMessage('Model run is complete. Check the `Compare Models` subtab to view output', type='message', duration=10)
+          toggle_inputs(input_list,T)
         }
       })
       
@@ -2736,6 +2753,7 @@
       
       
       output$errortab <- DT::renderDT({
+
           error_out <- data.frame(Model_name=rep(NA, length(mod_sum_out())), Model_error=rep(NA, length(mod_sum_out())), Optimization_error=rep(NA, length(mod_sum_out())))
           #if(dim(mod_sum_out())[2]>2){ 
           if(colnames(mod_sum_out())[1]=='var1'){

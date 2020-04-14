@@ -136,7 +136,6 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
   
   x0 <- 0
   
-  browser()
 #Script necessary to ensure paramers generated in shiny app are in correct format
   if (is_empty(vars1)||vars1=='none') { indeVarsForModel <- NULL } else { indeVarsForModel=vars1}
   if (is_empty(vars2)||vars2=='none') { gridVariablesInclude <- NULL } else { gridVariablesInclude=vars2}
@@ -297,7 +296,8 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
             warning('At least one port not included in PortTable. Specify starting lat/lon in lonlat variable to use mean lat/lon.')
               x0 <- 1
             } else {
-              warning('At least one port not included in PortTable. Using lonlat to calculate mean lat/lon of undefined ports.')  
+              warning('At least one port not included in PortTable. 
+                      Using vessel lon/lat at', alt_var, 'to calculate mean lon/lat of undefined ports.')  
               unport <- unique(toXYa[[alt_var]])[which(unique(toXYa[[alt_var]]) %in% unique(port[[alt_var]])==FALSE)]
               dataset[[alt_var]] <- trimws(dataset[[alt_var]])
               temp <- dataset[dataset[[alt_var]] %in% unport,]

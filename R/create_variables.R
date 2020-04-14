@@ -52,7 +52,7 @@ cpue <- function(dat, xWeight, xTime, name='cpue') {
 dummy_num <- function(dat, var, value, opts='more_less', name='dummy_num'){
 #' Create a dummy variable based on selected values
 #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-#' @param var Variable in data frame to create dummy variable off of
+#' @param var Variable in data frame to create dummy variable from
 #' @param value The set value will depend whether the data is a date, factor, or numeric. If date, value should be a year, if factor, value should be a level
 #' within the variable, if number value should be a single number or range of numbers [use c(1,5)]
 #' @param opts Choices are x_y and more_less. x_y sets the selected year, factor, or numeric value (single or range) to 0 and all other values to 1.
