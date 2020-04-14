@@ -24,7 +24,7 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
   #'   Tables are saved in the format of "projectFleetTable". If a table with the same name exists 
   #'   the date is appended to the table name. See \code{\link{table_remove}} to delete a table. 
   #' @importFrom DBI dbConnect dbWriteTable dbDisconnect
-  #' @importFrom SQLite SQLite
+  #' @importFrom RSQLite SQLite
   #' @export fleet_table
   #' @return A table of fleet conditions that is saved to the FishSET database with the name 
   #'   "projectFleetTable". 
@@ -37,24 +37,24 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
   #'   "GEAR == 8 & species == 'pollock'". When multiple condition columns exist the function 
   #'   uses the "&" operator when combining expressions. 
   #' \tabular{lllll}{
-  #' condition               \tab fleet\cr
-  #' "GEAR == 8"             \tab "A"\cr
-  #' "species == 'cod'"      \tab "B"\cr
-  #' "area %in% c(640, 620)" \tab "C"\cr
-  #' NA                      \tab "Other"
+  #' condition                 \tab fleet\cr
+  #' "GEAR == 8"               \tab "A"\cr
+  #' "species == 'cod'"        \tab "B"\cr
+  #' "area \%in\% c(640, 620)" \tab "C"\cr
+  #' NA                        \tab "Other"
   #' }
   #' 
-  #' \code{fleet_table} can also be paired with \code{link{sum_catch}} to aggregate total 
+  #' \code{fleet_table} can also be paired with \code{\link{sum_catch}} to aggregate total 
   #' catch by unique vessel without the need to create an additional variable in advance:
   #' 
-  #' \tabluar{ll}{
+  #' \tabular{ll}{
   #' condition                                                                                             \tab fleet\cr
   #' "sum_catch('MainDataTable', 'myProject', catch = 'COD' v_id = "v_id", exp = 'COD >= 3', val = 'raw')" \tab "Cod"\cr
   #' }
   #' 
   #' It may be useful to run \dontrun{subset(df, eval(parse(text = "exp")))} to test that
   #' expressions have been formatted correctly. 
-  #' @seealso \code{\link{fleet_assign}} \code{link{sum_catch}}
+  #' @seealso \code{\link{fleet_assign}} \code{\link{sum_catch}}
   #' @examples 
   #' \dontrun{
   #' fleet_table('MainDataTable', "myProject", 
