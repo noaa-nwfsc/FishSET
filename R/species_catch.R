@@ -4,10 +4,10 @@
 #' 
 #' @param dat Main data frame over which to apply function. Table in FishSET 
 #'   database should contain the string `MainDataTable`.
-#' @param project name of project.
-#' @param s A variable containing the species catch or a vector
+#' @param project Name of project.
+#' @param species A variable containing the species catch or a vector
 #'   of species variables (in pounds).
-#' @param t time variable containing dates to aggregate by.
+#' @param date Variable containing dates to aggregate by.
 #' @param period Time period to count by. Options include "year", "year_abv", 
 #'   "month", "month_abv", "month_num", "weeks" (weeks in the year), 
 #'   "weekday", "weekday_abv", "weekday_num", "day" (day of the month), 
@@ -23,7 +23,7 @@
 #' @param convert_to_tons A logical value indicating whether catch variable should 
 #'   be converted to tons.
 #' @param value Whether to return raw count or percentage of catch. 
-#' @param output table or plot.
+#' @param output Whether function should create a table or plot.
 #' @param position Positioning of bar plot. Options include "stack", "dodge", 
 #'   and "fill". 
 #' @param format_tab How table output should be formated. Options include "wide" 
@@ -31,8 +31,8 @@
 #' @return Returns a table or plot of the total species catch by period.
 #' @examples 
 #' \dontrun{
-#' species_catch("pollockMainDataTable", s = c("HAUL_LBS_270_POLLOCK_LBS", 
-#' "HAUL_LBS_110_PACIFIC_COD_LBS", "HAUL_LBS_OTHER_LBS"), t = "HAUL_DATE", 
+#' species_catch("pollockMainDataTable", species = c("HAUL_LBS_270_POLLOCK_LBS", 
+#' "HAUL_LBS_110_PACIFIC_COD_LBS", "HAUL_LBS_OTHER_LBS"), date = "HAUL_DATE", 
 #' value = "count", period = "month_num", output = "plot", year = 2011, convert_to_tons = TRUE)
 #' }
 #' @export species_catch
@@ -42,7 +42,7 @@
 #' @importFrom scales percent
 
 
-species_catch <- function(dat, project, s, t, period = "month_abv", fun = "sum", group = NULL, year = NULL, 
+species_catch <- function(dat, project, species, date, period = "month_abv", fun = "sum", group = NULL, year = NULL, 
                           convert_to_tons = TRUE, value = c("count", "percent"), 
                           output = c("table", "plot"), position = "stack", format_tab = c("wide", "long")){
   
@@ -66,23 +66,21 @@ species_catch <- function(dat, project, s, t, period = "month_abv", fun = "sum",
                 "day" = "%d", "day_of_year" = "%j")
   }
   
-  dataset$years <- format(dataset[[t]], "%Y")
-  
+  dataset$Year <- format(dataset[[date]], "%Y")
   y_val <- year
   
   if (!is.null(year)) { 
     
-    dataset <- subset(dataset, years %in% y_val)
-    
+    dataset <- subset(dataset, Year %in% y_val)
   }
   
-  if (!is.null(group)){
+  if (!is.null(group)) {
     
     group1 <- group[1]
     
     dataset[[group1]] <- as.factor(dataset[[group1]])
     
-    if (length(group) == 2){
+    if (length(group) == 2) {
       
       group2 <- group[2] 
       
@@ -91,113 +89,152 @@ species_catch <- function(dat, project, s, t, period = "month_abv", fun = "sum",
     } else if (length(group) > 2) {
       
       warning("Too many grouping variables included, selecting first two.")
-      
     }
   }
   
-  if (length(s) == 1) {
+  if (is.null(group)) {
     
-    if (is.null(group)) {
+    count <- stats::aggregate(dataset[species], 
+                              by = list(dataset$Year, 
+                                        format(date_parser(dataset[[date]]), p)), 
+                              FUN = match.fun(fun))
+    
+    names(count) <- c("Year", period, species)
+    
+  } else if (!is.null(group)) {
+    
+    if (length(group) == 1) {
       
-      count <- stats::aggregate(dataset[[s]], 
-                                by = list(dataset$years, 
-                                          format(date_parser(dataset[[t]]), p)), 
+      count <- stats::aggregate(dataset[species], 
+                                by = list(dataset$Year, 
+                                          format(date_parser(dataset[[date]]), p), 
+                                          dataset[[group1]]), 
                                 FUN = match.fun(fun))
       
-      names(count) <- c("years", period, "catch")
-      
-    } else if (!is.null(group)) {
-      
-      if(length(group) == 1) {
-        
-        count <- stats::aggregate(dataset[[s]], 
-                                  by = list(dataset$years, 
-                                            format(date_parser(dataset[[t]]), p), 
-                                            dataset[[group1]]), 
-                                  FUN = match.fun(fun))
-        
-        names(count) <- c("years", period, group1, "catch")
-        
-      } else {
-        
-        count <- stats::aggregate(dataset[[s]], 
-                                  by = list(dataset$years, 
-                                            format(date_parser(dataset[[t]]), p), 
-                                            dataset[[group1]],
-                                            dataset[[group2]]), 
-                                  FUN = match.fun(fun))
-        
-        names(count) <- c("years", period, group1, group2, "catch")
-        
-      }
-    }
-    
-    if (convert_to_tons == TRUE) {
-      
-      count$catch <- count$catch/2000
-      
-    }
-    
-    if (value == "percent") {
-      
-      count$catch <- count$catch / sum(count$catch)
-      
-    }
-    
-    if (p %in% c("%a", "%A", "%b", "%B")) { 
-      
-      count <- date_factorize(count, period, p)
+      names(count) <- c("Year", period, group1, species)
       
     } else {
       
-      count[[period]] <- as.integer(count[[period]])
+      count <- stats::aggregate(dataset[species], 
+                                by = list(dataset$Year, 
+                                          format(date_parser(dataset[[date]]), p), 
+                                          dataset[[group1]],
+                                          dataset[[group2]]), 
+                                FUN = match.fun(fun))
       
+      names(count) <- c("Year", period, group1, group2, species)
+    }
+  }
+  
+  if (length(species) > 1) {
+    
+    count <- reshape2::melt(count, measure.vars = species, variable.name = "species", value.name = "catch")
+    
+    count$species <- factor(count$species, 
+                            levels = unique(count$species[order(count$catch, count$Year, count$species)]), 
+                            ordered = TRUE)
+  } else {
+    
+    names(count)[names(count) == species] <- "catch"
+  }
+  
+  if (convert_to_tons == TRUE) {
+    
+    count$catch <- count$catch/2000
+  }
+  
+  if (value == "percent") {
+    
+    count$catch <- count$catch / sum(count$catch)
+  }
+  
+  if (p %in% c("%a", "%A", "%b", "%B")) { 
+    
+    count <- date_factorize(count, period, p)
+    
+  } else {
+    
+    count[[period]] <- as.integer(count[[period]])
+  }
+  
+  ind <- periods_list[[p]][which(!(periods_list[[p]] %in% unique(count[[period]])))]
+  
+  if (is.null(group)) {
+    
+    if (length(species) == 1) {
+      
+      missing_periods <- expand.grid(period = ind, Year = unique(count$Year))
+      names(missing_periods)[names(missing_periods) == "period"] <- period
+      
+    } else {
+      
+      missing_periods <- expand.grid(period = ind, 
+                                     Year = unique(count$Year),
+                                     species = unique(count$species))
+      
+      names(missing_periods)[names(missing_periods) == "period"] <- period
     }
     
-    ind <- periods_list[[p]][which(!(periods_list[[p]] %in% unique(count[[period]])))]
+  } else if (!is.null(group) & length(group) == 1) {
     
-    if (is.null(group)) {
-      
-      missing_periods <- expand.grid(period = ind, years = unique(count$years))
-      
-      missing_periods <- setNames(missing_periods, c(period, "years"))
-      
-    } else if (!is.null(group) & length(group) == 1) {
+    if (length(species) == 1) {
       
       missing_periods <- expand.grid(period = ind,
-                                     years = unique(count$years),
+                                     Year = unique(count$Year),
                                      group1 = unique(count[[group1]]))
       
-      missing_periods <- setNames(missing_periods, c(period, "years", group1))
+      missing_periods <- setNames(missing_periods, c(period, "Year", group1))
       
-    } else if (!is.null(group) & length(group) > 1) {
+    } else {
+      
+      missing_periods <- expand.grid(period = ind, 
+                                     Year = unique(count$Year),
+                                     group1 = unique(count[[group1]]),
+                                     species = unique(count$species))
+      
+      missing_periods <- setNames(missing_periods, c(period, "Year", group1, "species"))
+    }
+    
+  } else if (!is.null(group) & length(group) > 1) {
+    
+    if (length(species) == 1) {
       
       missing_periods <- expand.grid(period = ind,
-                                     years = unique(count$years),
+                                     Year = unique(count$Year),
                                      group1 = unique(count[[group1]]), 
-                                     group2 =  unique(count[[group2]]))
+                                     group2 = unique(count[[group2]]))
       
-      missing_periods <- setNames(missing_periods, c(period, "years", group1, group2))
+      missing_periods <- setNames(missing_periods, c(period, "Year", group1, group2))
       
+    } else {
+      
+      missing_periods <- expand.grid(period = ind, 
+                                     Year = unique(count$Year),
+                                     group1 = unique(count[[group1]]),
+                                     group2 = unique(count[[group2]]),
+                                     species = unique(count$species))
+      
+      missing_periods <- setNames(missing_periods, c(period, "Year", group1, group2, "species"))
     }
+  }
+  
+  if (nrow(missing_periods) > 0) {
     
-    if (nrow(missing_periods) > 0) {
-      
-      missing_periods$catch <- 0
-      
-      count <- rbind(count, missing_periods)
-      
-    }
+    missing_periods$catch <- 0
     
-    count <- count[order(count$years, count[[period]]), ]
-    
+    count <- rbind(count, missing_periods)
+  }
+  
+  count <- count[order(count$Year, count[[period]]), ]
+  
+  if (length(species) == 1) {
     
     plot <- ggplot2::ggplot(data = count, ggplot2::aes_string(x = period, y = "catch", fill = if (!is.null(group)) group1 else NULL )) + 
       ggplot2::geom_col(position = position) + 
       ggplot2::scale_y_continuous(labels = if (value == "percent") scales::percent else waiver()) +
       fishset_theme +
       ggplot2::labs(title = if (!is.null(year) & length(year) == 1) paste(year) else NULL,
-                    x = paste0(t," ", "(", period, ")"),
+                    x = paste0(date," ", "(", period, ")"),
                     y = if (value == "count" & convert_to_tons == TRUE) paste(fun, "catch (tons)") else paste(fun, "catch (lbs)")) +
       ggplot2::theme(plot.title = element_text(hjust = 0.5)) 
     
@@ -209,7 +246,6 @@ species_catch <- function(dat, project, s, t, period = "month_abv", fun = "sum",
                                                                   label.theme = ggplot2::element_text(
                                                                     size = 8))) +
         ggplot2::theme(legend.position = "bottom")
-      
     }
     
     if (!is.null(group) & length(group) > 1) {
@@ -220,8 +256,7 @@ species_catch <- function(dat, project, s, t, period = "month_abv", fun = "sum",
         
       } else if (!is.null(year) & length(year) > 1) {
         
-        plot <- plot + ggplot2::facet_grid(stats::reformulate(".", paste("years +", group2)), scales = "free_y")
-        
+        plot <- plot + ggplot2::facet_grid(stats::reformulate(".", paste("Year +", group2)), scales = "free_y")
       } 
       
     } else {
@@ -232,8 +267,7 @@ species_catch <- function(dat, project, s, t, period = "month_abv", fun = "sum",
         
       } else if (length(year) > 1) {
         
-        plot <- plot + ggplot2::facet_grid(years ~ ., scales = "free_y")
-        
+        plot <- plot + ggplot2::facet_grid(Year ~ ., scales = "free_y")
       }
     } 
     
@@ -247,137 +281,14 @@ species_catch <- function(dat, project, s, t, period = "month_abv", fun = "sum",
       } else {seq(1, length(unique(count[[period]])), by = round(length(unique(count[[period]])) * 0.08))})
     }
     
-  } else if (length(s) > 1) {
-    
-    if (is.null(group)) {
-      
-      count <- lapply(s, function(x) {
-        stats::aggregate(dataset[[x]], 
-                         by = list(dataset$years,
-                                   format(date_parser(dataset[[t]]), p)), 
-                         FUN = match.fun(fun))
-      })
-      
-    } else if (!is.null(group)) {
-      
-      if (length(group) == 1) {
-        
-        count <- lapply(s, function(x) {
-          stats::aggregate(dataset[[x]], 
-                           by = list(dataset$years,
-                                     format(date_parser(dataset[[t]]), p),
-                                     dataset[[group1]]), 
-                           FUN = match.fun(fun))
-        })
-        
-      } else {
-        
-        count <- lapply(s, function(x) {
-          stats::aggregate(dataset[[x]], 
-                           by = list(dataset$years,
-                                     format(date_parser(dataset[[t]]), p),
-                                     dataset[[group1]],
-                                     dataset[[group2]]), 
-                           FUN = match.fun(fun))
-        })
-      }
-    }
-    
-    names(count) <- s
-    
-    count <- reshape2::melt(count,  id.vars = names(count[[1]]))
-    
-    count$variable <- NULL
-    
-    if (is.null(group)) {
-      
-      colnames(count) <- c("years", period, "catch", "species")
-      
-    }
-    
-    if (!is.null(group)) {
-      
-      if (length(group) == 1) {
-        
-        colnames(count) <- c("years", period, group1, "catch", "species")
-        
-      } else {
-        
-        colnames(count) <- c("years", period, group1, group2, "catch", "species")
-        
-      }
-    }
-    
-    if (convert_to_tons == TRUE) {
-      
-      count$catch <- count$catch/2000
-      
-    }
-    
-    if (value == "percent") {
-      
-      count$catch <- count$catch / sum(count$catch)
-      
-    }
-    
-    if (p %in% c("%a", "%A", "%b", "%B")) { 
-      
-      count <- date_factorize(count, period, p)
-      
-    } else {
-      
-      count[[period]] <- as.integer(count[[period]])  
-      
-    }
-    
-    ind <- periods_list[[p]][which(!(periods_list[[p]] %in% unique(count[[period]])))]
-    
-    if (is.null(group)) {
-      
-      missing_periods <- expand.grid(period = ind, 
-                                     years = unique(count$years), 
-                                     species = unique(count$species))
-      
-      missing_periods <- setNames(missing_periods, c(period, "years", "species"))
-      
-    } else if (!is.null(group) & length(group) == 1) {
-      
-      missing_periods <- expand.grid(period = ind, 
-                                     years = unique(count$years),
-                                     group1 = unique(count[[group1]]),
-                                     species = unique(count$species))
-      
-      missing_periods <- setNames(missing_periods, c(period, "years", group1, "species"))
-      
-    } else if (!is.null(group) & length(group) > 1) {
-      
-      missing_periods <- expand.grid(period = ind, 
-                                     years = unique(count$years),
-                                     group1 = unique(count[[group1]]), 
-                                     group2 =  unique(count[[group2]]),
-                                     species = unique(count$species))
-      
-      missing_periods <- setNames(missing_periods, c(period, "years", group1, group2, "species"))
-      
-    }
-    
-    if (nrow(missing_periods) > 0) {
-      
-      missing_periods$catch <- 0
-      
-      count <- rbind(count, missing_periods)
-      
-    }
-    
-    count <- count[order(count$years, count[[period]]), ]
-    
+  } else if (length(species) > 1) {
     
     plot <- ggplot2::ggplot(data = count, ggplot2::aes_string(x = period, y = "catch", fill = if (!is.null(group)) group1 else NULL )) + 
       ggplot2::geom_col(position = if (position == "dodge") ggplot2::position_dodge2(preserve = "single") else position) + 
       ggplot2::scale_y_continuous(labels = if (value == "percent") scales::percent else waiver()) + 
       fishset_theme +
       ggplot2::labs(title = if (!is.null(year) & length(year) == 1) paste(year) else NULL,
-                    x = paste0(t," ", "(", period, ")"),
+                    x = paste0(date," ", "(", period, ")"),
                     y = if (value == "count" & convert_to_tons == TRUE) paste(fun, "catch (tons)") else paste(fun, "catch (lbs)")) +
       ggplot2::theme(plot.title = element_text(hjust = 0.5))
     
@@ -387,7 +298,6 @@ species_catch <- function(dat, project, s, t, period = "month_abv", fun = "sum",
                                                                   title.theme = ggplot2::element_text(size = 10),
                                                                   label.theme = ggplot2::element_text(size = 8))) + 
         ggplot2::theme(legend.position = "bottom")
-      
     }
     
     if (!is.null(group) & length(group) == 1) {
@@ -398,8 +308,7 @@ species_catch <- function(dat, project, s, t, period = "month_abv", fun = "sum",
         
       } else if (!is.null(year) & length(year) > 1) {
         
-        plot <- plot + ggplot2::facet_grid(years + species ~ ., scales = "free_y")
-        
+        plot <- plot + ggplot2::facet_grid(Year + species ~ ., scales = "free_y")
       } 
       
     } else if (!is.null(group) & length(group) > 1) {
@@ -411,23 +320,20 @@ species_catch <- function(dat, project, s, t, period = "month_abv", fun = "sum",
         
       } else if (!is.null(year) & length(year) > 1) {
         
-        plot <- plot + ggplot2::facet_grid(stats::reformulate(group2, "species + years"), scales = "free_y", 
+        plot <- plot + ggplot2::facet_grid(stats::reformulate(group2, "species + Year"), scales = "free_y", 
                                            labeller = labeller(.cols = label_both))
-        
-      } 
+      }
       
-    } else {
+    } else if (is.null(group)) {
       
       if (is.null(year) | (!is.null(year) & length(year) == 1)) {
         
-        plot <- plot 
+        plot <- plot + ggplot2::facet_grid(species ~ ., scales = "free_y")
         
       } else if (length(year) > 1) {
         
-        plot <- plot + ggplot2::facet_grid(years + species ~ ., scales = "free_y")
-        
+        plot <- plot + ggplot2::facet_grid(Year + species ~ ., scales = "free_y")
       }
-      
     } 
     
     if (p %in% c("%a", "%A", "%b", "%B")) { 
@@ -438,30 +344,26 @@ species_catch <- function(dat, project, s, t, period = "month_abv", fun = "sum",
       
       plot <- plot + ggplot2::scale_x_continuous(breaks = if (length(unique(count[[period]])) <= 12){seq(1, length(unique(count[[period]])), by = 1)} 
                                                  else {seq(1, length(unique(count[[period]])), by = round(length(unique(count[[period]])) * 0.08))}) }
-    
   }
-  
   #Log the function 
-  
   species_catch_function <- list()
   species_catch_function$functionID <- "species_catch"
-  species_catch_function$args <- c(dat, project, s, t, period, fun, group, year, convert_to_tons, value, output, position, format_tab)
+  species_catch_function$args <- c(dat, project, species, date, period, fun, group, year, convert_to_tons, value, output, position, format_tab)
   log_call(species_catch_function)
   
   # Save output
   save_plot(project, "species_catch")
   
-  names(count)[names(count) == "years"] <- "year"
+  names(count)[names(count) == "Year"] <- "year"
   
   if (output == "table") {
     
-    if (length(s) > 1) {
+    if (length(species) > 1) {
       
       if (format_tab == "wide") {
         
         count <- reshape2::dcast(count, ... ~ species, value.var = "catch", fill = 0, 
                                  fun.aggregate = match.fun(fun))
-        
       }
     }
     # Save table
