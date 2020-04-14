@@ -2,7 +2,6 @@
     ui = function(request){
       fluidPage(
       shinyjs::useShinyjs(),
-      pre(id = "console"),
       #---- 
       #Formatting
       #----
@@ -44,17 +43,6 @@
                                "))
                 ), #  position:fixed;
       #----
-      ##Inline scripting
-      #-----
-      # enable the <enter> key to press the [Run] button
-      tags$script(HTML(
-        '$(document).keyup(function(event) {
-        if(event.keyCode == 13) {
-        $("#run").click();
-        }
-    });'
-  )),
-  
 
       #----
       tabsetPanel(id = "tabs",
@@ -280,22 +268,22 @@
                                        htmlOutput("Case"),
                                        conditionalPanel(condition="input.checks=='Summary table'",
                                                         DT::DTOutput("output_table_summary")),
-                                       DT::DTOutput("output_table_outlier"),
+                                       withSpinner(DT::DTOutput("output_table_outlier")),
                                        tags$br(),tags$br(),
                                        conditionalPanel(condition="input.checks=='Outliers'",
                                        splitLayout(cellWidths = c('33%','33%','33%'),
-                                                   plotOutput('plot1',
+                                                   withSpinner(plotOutput('plot1',
                                                               hover = hoverOpts("plot1_hover", delay = 100, delayType = "debounce"),
                                                               dblclick = "plot1_dblclick", 
                                                               brush = brushOpts(id = "plot1_brush",resetOnNew = TRUE )
-                                                   ),
-                                                   plotOutput('plot2', dblclick = "plot2_dblclick", 
-                                                              brush = brushOpts(id = "plot2_brush",resetOnNew = TRUE)),
-                                                   plotOutput('plot3',
+                                                   )),
+                                                   withSpinner(plotOutput('plot2', dblclick = "plot2_dblclick", 
+                                                              brush = brushOpts(id = "plot2_brush",resetOnNew = TRUE))),
+                                                   withSpinner(plotOutput('plot3',
                                                               hover = hoverOpts("plot3_hover", delay = 100, delayType = "debounce"),
                                                               dblclick = "plot3_dblclick", 
                                                               brush = brushOpts(id = "plot3_brush",resetOnNew = TRUE)
-                                                   ))
+                                                   )))
                                        ),
                                        conditionalPanel(condition="input.checks=='NAs'",
                                                         DT::DTOutput('missingtable')),
@@ -362,7 +350,7 @@
                                           )
                              ),
                              mainPanel(width=10,
-                                       tags$div(DT::DTOutput("output_table_exploration"), style = "font-size: 75%; width: 100%"),
+                                       tags$div(withSpinner(DT::DTOutput("output_table_exploration")), style = "font-size: 75%; width: 100%"),
                                        conditionalPanel(
                                          condition='input.plot_table=="Plots" && input.plot_type=="Temporal"', 
                                          uiOutput('column_select')),
@@ -385,23 +373,23 @@
                                        ),
                                        conditionalPanel(
                                          condition='input.plot_table=="Plots" & input.plot_type=="Temporal"',
-                                         plotOutput('plot_time')
+                                         withSpinner(plotOutput('plot_time'))
                                        ),
                                        conditionalPanel(
                                          condition='input.plot_table=="Plots" & input.plot_type=="Spatial"',
-                                         column(plotOutput('plot_spatial',
+                                         column(withSpinner(plotOutput('plot_spatial',
                                                            click = "plot_spatial_click",
                                                            dblclick = "plot_spatial_dblclick", 
-                                                           brush = brushOpts(id = "plot_spatial_brush",resetOnNew = FALSE )), width=7)),
+                                                           brush = brushOpts(id = "plot_spatial_brush",resetOnNew = FALSE ))), width=7)),
                                        conditionalPanel(
                                          condition='input.plot_table=="Plots" & input.plot_type=="Spatial"',
-                                         column(plotOutput('map_kernel'), width=7)),
+                                         column(withSpinner(plotOutput('map_kernel')), width=7)),
                                        conditionalPanel(
                                          condition='input.plot_table=="Plots" & input.plot_type=="Spatial"',
                                          column(DT::DTOutput('output_table_gt_mt'), width=6)),
                                        conditionalPanel(
                                          condition='input.plot_table=="Plots" && input.plot_type=="x-y plot"',   
-                                         plotOutput('plot_xy'))
+                                         withSpinner(plotOutput('plot_xy')))
                              ))),
                   
                   
@@ -447,7 +435,7 @@
                                    verbatimTextOutput('output_text_corr'),
                                    div(DT::DTOutput('output_table_corr'), style = "font-size: 75%; width: 100%"),
                                    tags$br(), tags$br(),
-                                   plotOutput('output_plot_corr', width='100%', height = "600px")
+                                   withSpinner(plotOutput('output_plot_corr', width='100%', height = "600px"))
                                  )),
                                conditionalPanel(
                                  condition="input.corr_reg=='Regression'",
@@ -455,7 +443,7 @@
                                    uiOutput('reg_resp_out'),
                                    uiOutput('reg_exp_out'),
                                    verbatimTextOutput('output_text_reg'),
-                                   plotOutput('output_plot_reg')
+                                   withSpinner(plotOutput('output_plot_reg'))
                                  ))  )
                            )),
                   
@@ -739,7 +727,7 @@
                                      h4('Sparsity of observations by time period and zone.'),
                                      h5('Higher values indicate greater sparsity.'),
                                     DT::DTOutput('spars_table'),
-                                    plotOutput('spars_plot')
+                                    withSpinner(plotOutput('spars_plot'))
                                                 ))
                              )
                              )),
@@ -774,9 +762,7 @@
                                textInput("exprM", label = "Enter an R expression",
                                          value = "values$dataset"),
                                actionButton("runM", "Run", class = "btn-success"),
-                               div(style = "margin-top: 2em;",
-                                   uiOutput('resultM')
-                               )
+                               div(style = "margin-top: 2em;", uiOutput('resultM'))
                              ),
                              mainPanel(
                                div(id = "form",
