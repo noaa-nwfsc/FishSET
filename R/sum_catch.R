@@ -29,13 +29,13 @@
 #' 
 
 sum_catch <- function(dat, project, catch, v_id, species = NULL, exp, val = c("raw", "per"), 
-                      out = c("logical", "table")){
-
+                      output = c("logical", "table")){
+  
   out <- data_pull(dat)
   dat <- out$dat
   dataset <- out$dataset
   
-  dataset$temp_row_id <- 1:nrow(dat)
+  dataset$temp_row_id <- 1:nrow(dataset)
   
   if (is.null(species)) {
     
@@ -54,7 +54,7 @@ sum_catch <- function(dat, project, catch, v_id, species = NULL, exp, val = c("r
                               value.name = "catch")
       
       ag_per <- stats::aggregate(stats::reformulate(paste(v_id), "catch"), data = ag_per, 
-                          function(x) x/sum(x))
+                                 function(x) x/sum(x))
       
       sc <- as.data.frame(ag_per[["catch"]])
       
@@ -95,7 +95,7 @@ sum_catch <- function(dat, project, catch, v_id, species = NULL, exp, val = c("r
       names(ag_per)[names(ag_per) == "v_id"] <- v_id
       
       ag_per <- reshape2::melt(ag_per, id.vars = v_id, variable.name = species, 
-                     value.name = catch)
+                               value.name = catch)
       
       ag_per$value <- ifelse(with(ag_per, eval(parse(text = exp))), TRUE, FALSE) 
       
@@ -108,16 +108,10 @@ sum_catch <- function(dat, project, catch, v_id, species = NULL, exp, val = c("r
   
   sum_catch_function <- list()
   sum_catch_function$functionID <- 'sum_catch'
-  sum_catch_function$args <- c(dat, project, v_id, catch, species, val, out)
-  sum_catch_function$output <- c('')
+  sum_catch_function$args <- c(dat, project, v_id, catch, species, val, output)
   log_call(sum_catch_function)
   
-  if (out == "logical") {
-  
-    save_table(ag_df$value, project, "sum_catch")
-    ag_df$value
-  
-  } else if (out == "table") {
+  if (output == "table") {
     
     if (val == "raw") {
       
@@ -129,5 +123,10 @@ sum_catch <- function(dat, project, catch, v_id, species = NULL, exp, val = c("r
       save_table(ag_per, project, "sum_catch")
       ag_per
     }
-  }
+    
+  } else if (output == "logical") {
+    
+    save_table(ag_df, project, "sum_catch")
+    ag_df$value
+  } 
 }
