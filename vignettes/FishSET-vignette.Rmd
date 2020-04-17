@@ -230,6 +230,8 @@ Several functions exist that allow users to modify or create vectors and matrice
   
      ID_var                Generates a nominal variable to indicate distinct hauls or trips.
      create_seasonal_ID    Generates a fishery season identifier (TRUE/FALSE).
+     fleet_table           Creates a table of fleet conditions for fleet assignment and saves to FishSET Database
+     fleet_assign          Creates a nominal or dummy variable of fleet assignments based on fleet_table
 
   Create variables based on:
   
@@ -249,7 +251,7 @@ Several functions exist that allow users to modify or create vectors and matrice
 
      haul_to_trip   Collapse the data table from haul to trip.
      trip_distance  Summed distance across trip defined by start and end ports and hauls in between.
-     trip_length    Trip duration defined by trip start and end date or date-time variables. Can also create hauls per trip and cpue.
+     trip_length    Computes trip duration defined by trip start and end dates. Can also create hauls per trip and cpue.
 
 FishSET is not limited to the pre-defined functions. Users can create their own functions and then save them to the log file.
 
@@ -259,7 +261,7 @@ Log user-created functions:
 
 Before moving on, it is recommended that users run the `check_model_data` function to check for potential issues in variables created using the data creation functions.
 
-## Data analysis and visualization functions
+## Data Exploration functions
 Several functions are available for summarizing and visualizing fleet and species level data. These functions create tables and/or plots and allow users to select grouping variables, filter by year, and aggregate by time period. 
   
     vessel_count    Counts the total number of unique vessels active within a specified period.
@@ -267,6 +269,7 @@ Several functions are available for summarizing and visualizing fleet and specie
     weekly_catch    Calculates weekly catch for one or more species.
     weekly_effort   Generates the average CPUE by week. 
     density_plot    Plots the KDE, CDF, or empirical CDF of variable.
+    bycatch         Compares mean CPUE and share of total catch (or raw count) by specified time period
 
 All tables and plots generated are saved to the output folder, logged, and printed to the plot pane or console. 
 
