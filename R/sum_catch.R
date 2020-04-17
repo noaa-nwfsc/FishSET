@@ -50,7 +50,7 @@ sum_catch <- function(dat, project, catch, v_id, species = NULL, exp, val = c("r
       
     } else if (val == "per") {
       
-      ag_per <- reshap2::melt(ag_sum, id.vars = v_id, variable.name = "species", 
+      ag_per <- reshape2::melt(ag_sum, id.vars = v_id, variable.name = "species", 
                               value.name = "catch")
       
       ag_per <- stats::aggregate(stats::reformulate(paste(v_id), "catch"), data = ag_per, 
