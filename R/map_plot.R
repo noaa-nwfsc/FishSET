@@ -96,7 +96,7 @@ map_plot <- function(dat, lat, lon, minmax=NULL, percshown=NULL){
     gptitle <- paste0('Observed locations. ', percshown, '% of points shown.')
   }
 
-  mapout <- ggplot2::ggplot() +
+  plot <- ggplot2::ggplot() +
     ggplot2::geom_map(data=world, map=world, ggplot2::aes(x=long, y=lat, map_id=region),
                       fill="grey", color="black", size=0.375) +
     ggplot2::geom_point(data=datatomap,ggplot2::aes(x=lon,y=lat), 
@@ -122,7 +122,7 @@ map_plot <- function(dat, lat, lon, minmax=NULL, percshown=NULL){
   
   save_plot(project, "map_plot")
   
-  mapout
+  plot
 
   
 }
