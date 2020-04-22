@@ -262,7 +262,7 @@ if(is.factor(optimOpt)){
                      seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table=choice.table)
     } else {
       modelOut <-  list()
-      modelOut[[length(modelOut)+1]] <- list(name=expname,errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
+      modelOut[[length(modelOut)+1]] <- list(name=expname, errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
                    seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table=choice.table)
     }
   single_sql <- paste0(project, "modelOut", format(Sys.Date(), format="%Y%m%d"))
