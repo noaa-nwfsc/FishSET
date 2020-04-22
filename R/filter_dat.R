@@ -41,7 +41,7 @@ filter_table <- function(dat, project, x, exp) {
   
     filter_data_function <- list()
     filter_data_function$functionID <- 'filter_table'
-    filter_data_function$args <- c(dat, project, x, exp, project)
+    filter_data_function$args <- c(dat, project, x, exp)
     filter_data_function$kwargs <- list()
     filter_data_function$output <- c('')
     filter_data_function$msg <- filterTable

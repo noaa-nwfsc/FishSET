@@ -192,8 +192,6 @@
       })
       #----
       
-   
-      
       ##Pull data functions
       ##----
       values <- reactiveValues(

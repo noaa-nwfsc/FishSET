@@ -15,7 +15,7 @@
 #' @details Opens an interactive page that allows users to select which functions to run by clicking check boxes. 
 #' @examples
 #' \dontrun{
-#' run_fishset_gui(pcodMainDataTable, 'pcod')
+#' run_fishset_gui()
 #' }
 
 
