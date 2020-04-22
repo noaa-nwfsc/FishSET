@@ -232,13 +232,13 @@ fleet_assign <- function(dat, project, fleet_tab, overlap = FALSE, format_tab = 
     
     nm <- names(f_tab)[grep("^cond", names(f_tab))]
     
-    if (any(apply(f_tab, 2, FUN = function(x) grepl("fleet_helper", x)))) {
+    if (any(apply(f_tab, 2, FUN = function(x) grepl("sum_catch", x)))) {
       
-      htemp <- apply(f_tab, 2, FUN = function(x) grepl("fleet_helper", x))
+      htemp <- apply(f_tab, 2, FUN = function(x) grepl("sum_catch", x))
       
       hd <- data.frame(exp = f_tab[htemp], row = row(htemp)[htemp == TRUE])
       
-      f_tab[apply(f_tab, 2, FUN = function(x) grepl("fleet_helper", x))] <- NA
+      f_tab[apply(f_tab, 2, FUN = function(x) grepl("sum_catch", x))] <- NA
     }
     
     nm2 <- which(apply(f_tab[nm], 1, function(x) !is.na(x)))
@@ -348,11 +348,18 @@ fleet_assign <- function(dat, project, fleet_tab, overlap = FALSE, format_tab = 
       
       cond_tab <- apply(cond_tab, 2, as.numeric)
       
+      if (any(colnames(cond_tab) %in% colnames(dataset))) {
+        
+        colnames(cond_tab)[colnames(cond_tab) %in% colnames(dataset)] <- 
+          toupper(colnames(cond_tab)[colnames(cond_tab) %in% colnames(dataset)])
+      }
+      
       dataset <- cbind(dataset, cond_tab)
       
       if (format_tab == "long") {
         
-        dataset <- reshape2::melt(dataset, measure.vars = f_tab$fleet, variable.name = "fleet")
+        dataset <- reshape2::melt(dataset, measure.vars = colnames(cond_tab), 
+                                  variable.name = "fleet")
         
         dataset <- subset(dataset, value > 0) 
         
