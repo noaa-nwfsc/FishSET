@@ -109,7 +109,7 @@ View the spatial (`map_plot`) and temporal (`temp_plot`) distribution of data an
 #Temporal Plots
   temp_plot()
 #x-y plots
-  ##! PLOT DOESNT EXIST AS A FUNCTION !##  
+  xy_plot(dat, project, var1, var2, regress = FALSE) 
   density_plot()
 
 ```
@@ -127,12 +127,12 @@ trip_length()
 
   
 ##Simple Analyses	  	
- View and quantify relationship betwden variables. 
+ View and quantify relationship between variables. The correlation function, `corr_out` returns a plot and table of correlations values between all numberic variables supplied. The regression function, `xy_plot', returns a plot with fitted simple linear regression line and test statitistics whne regress is set to TRUE. When `regress` is set to FALSE, points are plotted without a best fit line.
 ```{r  eval=FALSE}
 #correlation
-    ##! DOESN'T EXIST AS A FUNCTION  ##!
-    ##! DOESN'T EXIST AS A FUNCTION ##!
+  corr_out(dat, project, variables='all')
 #regression
+  xy_plot(dat, project, var1, var2, regress = TRUE)
 ```
   
 ##Compute New Variables 	
