@@ -1,8 +1,9 @@
-map_plot <- function(dat, lat, lon, minmax=NULL, percshown=NULL){
+map_plot <- function(dat, project, lat, lon, minmax=NULL, percshown=NULL){
   #' Plot observed locations on map
   #'
   #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
   # @param gridfile
+  #' @param project Project name
   #' @param lat Variable in dat that defines latitude, in decimal degrees
   #' @param lon Variable in dat that defines longitude, in decimal degrees
   #' @param minmax Optional map extent parameter, a vector (num) of length 4 
@@ -17,7 +18,7 @@ map_plot <- function(dat, lat, lon, minmax=NULL, percshown=NULL){
   #' @export
   #' @examples
   #' \dontrun{
-  #' map_plot('pollockMainDataTable', 'LonLat_START_LAT', 'LonLat_START_LON', percshown=10)
+  #' map_plot('pollockMainDataTable', 'pollock', LonLat_START_LAT', 'LonLat_START_LON', percshown=10)
   #' }
   
   requireNamespace('ggplot2')
