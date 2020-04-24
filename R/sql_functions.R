@@ -131,7 +131,7 @@ model_fit <- function(project){
   #' View model comparison metrics from all models run for a project
   #' @param project Name of project
   #' @export
-  #' @example 
+  #' @examples 
   #' \dontrun{
   #' model_fit('pollock')
   #' }

@@ -58,9 +58,8 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
   #' @examples 
   #' \dontrun{
   #' fleet_table('MainDataTable', "myProject", 
-  #' cond = c("GEAR == 8", "species == 'cod'", "area %in% c(640, 620)", NA),
-  #' fleet_val = c("A", "B", "C", "Other"),
-  #' save = TRUE)
+  #'   cond = c("GEAR == 8", "species == 'cod'", "area %in% c(640, 620)", NA),
+  #'   fleet_val = c("A", "B", "C", "Other"), save = TRUE)
   #' }
    
   out <- data_pull(dat)
