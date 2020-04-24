@@ -40,9 +40,14 @@ head(table_view('projectMainDataTable'))
 ```
 
 Additional codes for working within the FishSET database:
-`table_exists()`      Check whether a table exists in the database.
-`table_remove()`      Remove a table from the database.
-`table_fields()`      View column names of data table.
+```{r eval=FALSE}
+#Check whether a table exists in the database.
+  table_exists()      
+#Remove a table from the database.
+ table_remove()     
+table_fields()      View column names of data table.
+```
+
 
 
 ##Data Quality 
@@ -115,14 +120,32 @@ View the spatial (`map_plot`) and temporal (`temp_plot`) distribution of data an
 ```
   
 ##Fleet Analyses
+Fleet functions focus on functions that allow users to assign vessels to fleet and view fleet characteristics (vessel count) and fleet effort (trip length, weekly effort), and catch as a fleet (species catch, by catch, weekly catch). All functions return output as plots and/or tables that are output to the R console and saved to the `output` folder.
 ```{r  eval=FALSE}
-fleet_assign()
-vessel_count()
-species_catch()
-bycatch()
-weekly_catch()
-weekly_effort()
-trip_length()
+#Define and store fleet expressions 
+  fleet_assign(dat, project, cond = NULL, fleet_val = NULL, table = NULL, save = TRUE)
+#Number of unique vessels by time period
+  vessel_count(dat, project, v, t, period = "month", group = NULL, 
+                         year = NULL, position = "stack", output = c("table", "plot"))
+#Total species catch by period
+  species_catch(dat, project, species, date, period = "month_abv", fun = "sum", group = NULL, year = NULL, 
+                          convert_to_tons = TRUE, value = c("count", "percent"), 
+                          output = c("table", "plot"), position = "stack", format_tab = c("wide", "long"))
+#Compare bycatch to other species caught
+  bycatch(dat, project, cpue, catch = NULL , date, names = NULL, group = NULL, 
+                    year = NULL, period = "year", value = c("count", "stc"), 
+                    output = c("table", "plot"), format_tab = "wide")
+#Aggregate species catch by unique vessel ID
+  sum_catch("MainDataTable", "myProject", "catch", "species == 'cod' & catch > .5", val = "per", out = "logical")
+#Catch total by week
+  weekly_catch(dat, project, species, date, year = NULL, group = NULL, fun = "sum", position = "stack",
+                         convert_to_tons = FALSE, value ="percent", output = c("plot", "table"))
+#Average CPUE by week
+  weekly_effort(dat, project, cpue, date, group = NULL, year = NULL, plot_type = "line_point", 
+                          output = c("plot", "table"), format_tab = "wide")
+#Create a plot or table of vessel trip length
+  trip_length(dat, project, start, end, units = "days", catch = NULL, 
+                        hauls = NULL, output = c("table", "plot"), haul_to_trip = FALSE)
 ```
 
   
