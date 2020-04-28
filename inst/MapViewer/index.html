@@ -4,8 +4,8 @@
     <meta charset='utf-8' />
     <title>Style circles with a data-driven property</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
-    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.49.0/mapbox-gl.js'></script>
-    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.49.0/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.9.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.9.0/mapbox-gl.css' rel='stylesheet' />
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="http://d3-legend.susielu.com/d3-legend.min.js"></script>
     <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
@@ -57,12 +57,13 @@
 <script>
 
 
-var map;  // global map variable for mapbox
+var map;  // gloabl map variable for mapbox
 
 queue()
     .defer(d3.json, 'map_config.json') //loads a file and waits
-    .defer(d3.csv, 'datafile.csv') // loads file and waits
-    .await(loadConfig); // runs loadCOnfig once two above files are loaded fully
+    // .defer(d3.csv, 'fake_data_combined.csv') // lods file and waits
+    .defer(d3.csv, 'datafile.csv') // lods file and waits
+    .await(loadConfig); // runs loadCOnfig ince two above files are loaded fully
 
 
 

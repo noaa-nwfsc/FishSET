@@ -64,7 +64,7 @@ function loadConfig(error, config, data){
     data.forEach(function(d){
 
        // scatterData.push(turf.lineString([[Number(d['LonLat_START_LON']),Number(d['LonLat_START_LAT'])],[Number(d['LonLat_END_LON']),Number(d['LonLat_END_LAT'])]], {UID: d['uniqueID'],'scatterValue':Number(d[choosen_scatter]),'scatterColor': quantileScaleScatter(Number(d[choosen_scatter]))}))
-        scatterData.push(turf.lineString([[Number(d[longitude_start]),Number(d[latitude_start])],[Number(d[longitude_end]),Number(d[latitude_end])]], {UID: d[uniqueID]},{id:d[uniqueID]}));
+        scatterData.push(turf.lineString([[Number(d[longitude_start]),Number(d[latitude_start])],[Number(d[longitude_end]),Number(d[latitude_end])]], {UID: Number(d[uniqueID])},{id:Number(d[uniqueID])}));
     })
     allScatterData =  turf.featureCollection(scatterData);
 
@@ -95,7 +95,7 @@ function loadConfig(error, config, data){
 
                     map.setFeatureState({source: 'scatterLayer', id: hoveredStateId}, { hover: false});
                     scatter_left_info = data.filter(function(d){
-                    return d.uniqueID == hoveredStateId
+                    return d[uniqueID] == hoveredStateId
                    })
                 }
                 hoveredStateId = e.features[0].id;
@@ -115,7 +115,7 @@ function loadConfig(error, config, data){
                 // }
 
                 var description = e.features[0].properties;
-                console.log(JSON.stringify(description) )
+
                 new mapboxgl.Popup()
                     .setLngLat(e.lngLat)
                     .setHTML(JSON.stringify(description))
@@ -395,13 +395,26 @@ function makeTheMap(grid_file, allScatterData){
     map.on('load', function () {
         map.addSource('statsArea', {
             'type': 'geojson',
-             'data':grid_file
+             'data':grid_file,
+             'tolerance':1.0,
+             'buffer':0
         });
+
+        // map.addSource('statsArea', {
+
+        //           "type": "vector",
+        //           "tiles": ["http://localhost:8080/data/Groundfish_Statistical_Areas_2001/{z}/{x}/{y}.pbf"],
+        //           'minzoom': 1,
+        //             'maxzoom': 17
+
+
+        // });
 
         map.addLayer({
             "id":'GridLayer',
             "type":"fill",
             "source":'statsArea',
+            // "source-layer":'Groundfish_Statistical_Areas_2001',
             "layout": {},
             "paint": {
                 "fill-outline-color": "rgba(100,100,100,1)",
@@ -415,6 +428,7 @@ function makeTheMap(grid_file, allScatterData){
             "id":'GridLayerColor',
             "type":"fill",
             "source":'statsArea',
+            // "source-layer":'Groundfish_Statistical_Areas_2001',
             "layout": {},
             "paint": {
                 "fill-outline-color": "rgba(1,1,1,0)",
@@ -439,7 +453,8 @@ function makeTheMap(grid_file, allScatterData){
 
         map.addSource('10m-bathymetry-81bsvj', {
             type: 'vector',
-            url: 'mapbox://mapbox.9tm8dx88'
+            url: 'mapbox://mapbox.9tm8dx88',
+            'buffer':0
         });
 
         map.addLayer({
@@ -464,7 +479,33 @@ function makeTheMap(grid_file, allScatterData){
         }, 'barrier_line-land-polygon');
 
 
+            // map.addSource('scatterLayer', {
 
+            //       "type": "vector",
+            //       "tiles": ["http://localhost:8080/data/scatter/{z}/{x}/{y}.pbf"],
+            //       'minzoom': 1,
+            //         'maxzoom': 17
+            //     })
+            // map.addLayer({
+            //     'id': 'scatterLayer',
+            //     'type': 'line',
+            //     'source': 'scatterLayer',
+            //     'source-layer':'scatterLayer',
+            //     "layout": {
+            //         "line-cap": "square"
+            //     },
+            //     'paint': {
+            //         'line-color':'white',
+            //         "line-width": ["case",
+            //         ["boolean", ["feature-state", "hover"], false],
+            //         5,
+            //         0.5
+            //         ]
+            //            }
+            //     // },
+            //     //  'tolerance':1.0,
+            //     //  'buffer':0
+            // });
 
             map.addLayer({
                 'id': 'scatterLayer',
@@ -491,9 +532,9 @@ function makeTheMap(grid_file, allScatterData){
                     5,
                     0.5
                     ]
-
-
-                }
+                },
+                 'tolerance':1.0,
+                 'buffer':0
             });
             //show location of cursur in lower map corner
             map.on('mousemove', function (e) {
