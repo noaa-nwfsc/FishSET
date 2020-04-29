@@ -1,10 +1,9 @@
 ---
 title: "Introduction to FishSET"
-author: "Melanie Harsch"
+author: "ESSR"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
-  
-vignette: |
+vignette: >
   %\VignetteIndexEntry{FishSET Vignette} 
   %\VignetteEngine{knitr::rmarkdown}  
   %\VignetteEncoding{UTF-8}

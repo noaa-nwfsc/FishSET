@@ -1,12 +1,17 @@
 ---
 title: "FishSET R package functions"
 output:
-  word_document: default
-  html_notebook: default
-  pdf_document: default
-  html_document:
-    df_print: paged
+   rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{FishSET R packagte functions} 
+  %\VignetteEngine{knitr::rmarkdown}  
+  %\VignetteEncoding{UTF-8}  
 ---
+<!--  pdf_document: default -->
+<!--  html_notebook: default-->
+<!--  word_document: default-->
+<!--  html_document:-->
+<!--    df_print: paged-->
 
 ##Getting started
 The FishSET R package includes functions that can be used in the R console or that can be run through the FishSET app (a guided user interface built u sing the Shiny R package). Calling function through the R console allows for greater flexibility and ease in troubleshooting but requires knowledge of R and the FishSET R package. The FishSET app is meant to allow for users to use functions and models with limited knowledge of R. The FishSET app is opened by typing `run_fishset()` in the R console. This tutorial does not use the FishSET app but walks through examples of FishSET R package functions in the R console. 
