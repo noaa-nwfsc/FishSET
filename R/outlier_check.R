@@ -309,7 +309,6 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen=FALS
    # Close the pdf file
     if (output.screen == FALSE) {
       save_plot(project, "outlier_plot", fig)
-      dev.off()
     }
     
   } else {

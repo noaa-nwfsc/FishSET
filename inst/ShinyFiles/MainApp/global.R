@@ -2,7 +2,7 @@ requireNamespace('shiny')
 requireNamespace('ggplot2')
 requireNamespace('shinyjs')
 requireNamespace('DT')
-library(shinycssloaders)
+#requireNamespace('shinycssloaders')
 #----
 #Helper functions
 #----

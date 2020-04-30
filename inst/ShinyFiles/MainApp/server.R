@@ -2017,44 +2017,44 @@
       })                  
       observeEvent(input$runNew, {
         if(input$VarCreateTop=='Dummy variables'&input$dummyfunc=='From policy dates') {
-          ShowNotification(
+          showNotification(
             capture.output(
               values$dataset[[input$varname]] <- dummy_num(values$dataset, var=input$dummypolydate, value=dum_pol_year(), opts='more_less')),
             type='message', duration=10)
         } else if(input$VarCreateTop=='Dummy variables'&input$dummyfunc=='From variable') {
-          ShowNotification(
+          showNotification(
             capture.output(
               values$dataset[[input$varname]] <- dummy_num(values$dataset, var=input$dummyvarfunc, value=input$select.val, opts=input$dumsubselect)),
             type='message', duration=10)
         } else if(input$VarCreateTop=='Data transformations'&input$trans=='temp_mod') {
-          ShowNotification(
+          showNotification(
             capture.output(
               values$dataset[[input$varname]] <- temporal_mod(values$dataset, input$TimeVar, input$define_format)),
             type='message', duration=10) #!
         } else if(input$VarCreateTop=='Data transformations'&input$trans=='set_quants'){
-          ShowNotification(
+          showNotification(
             capture.output(
               values$dataset[[input$varname]] <- set_quants(values$dataset, x=input$trans_var_name, quant.cat = input$quant_cat, name=input$varname)),
             type='message', duration=10) #!
         } else if(input$VarCreateTop=='Nominal ID'&input$ID=='ID_var'){
-          ShowNotification(
+          showNotification(
             capture.output(
               values$dataset <- ID_var(values$dataset, newID=input$varname, input$unique_identifier)),
             type='message', duration=10) 
         } else if(input$VarCreateTop=='Nominal ID'&input$ID=='create_seasonal_ID'){
-          ShowNotification(
+          showNotification(
             capture.output(
               values$dataset <- create_seasonal_ID(values$dataset, seasonal.dat=seasonalData(), use.location=input$use_location, 
                                                use.geartype=input$use_geartype, sp.col=input$sp_col, target=input$target)),
             type='message', duration=10)
         } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='create_var_num'){
-          ShowNotification(
+          showNotification(
             capture.output(
               values$dataset[[input$varname]] <- create_var_num(values$dataset, input$var_x, input$var_y, method=input$create_method, name=input$varname)),
             type='message', duration=10) 
         } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='cpue') {
           if(input$xTime!='Calculate duration'){
-            ShowNotification(
+            showNotification(
               capture.output(
                 values$dataset[[input$varname]] <- cpue(values$dataset, input$xWeight, input$xTime, name=input$varname)),
               type='message', duration=10)   
@@ -2293,6 +2293,7 @@
       
       
      
+      
       #----
       #Model Parameters
       #----
@@ -3187,7 +3188,7 @@
         updateSelectInput(session, "occasion_ac", selected = bookmarkedstate()$occasion_ac) 
         updateSelectInput(session, "plot_table", selected = bookmarkedstate()$plot_table) 
         updateSelectInput(session, "plot_type", selected = bookmarkedstate()$plot_type) 
-        updateTextInput(session, 'polyear', vaue=bookmarkedstate()$polyear)
+        updateTextInput(session, 'polyear', value = bookmarkedstate()$polyear)
         updateNumericInput(session, "polyn", value = bookmarkedstate()$polyn) 
         updateSelectInput(session, "port_dat_dist", selected = bookmarkedstate()$port_dat_dist) 
         updateSelectInput(session, "port_end", selected = bookmarkedstate()$port_end) 
