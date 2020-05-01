@@ -27,7 +27,7 @@
 #' @return Returns a plot or table of bycatch to other species caught
 #' @examples 
 #' \dontrun{
-#' bycatch(fish_htp, "test", cpue = c("f1_cpue", "f2_cpue", "f3_cpue", "f4_cpue"),
+#' bycatch("MainDataTable", "myProject", cpue = c("f1_cpue", "f2_cpue", "f3_cpue", "f4_cpue"),
 #' catch = c("f1", "f2", "f3", "f4"), date = "FISHING_START_DATE", 
 #' names = c("fish_1", "fish_2", "fish_3", "fish_4"), period = "month_abv", 
 #' year = 2011, value = "stc", output = "table")
@@ -36,7 +36,7 @@
 #' @import ggplot2
 #' @importFrom stats aggregate reformulate
 #' @importFrom purrr pmap
-#' @importFrom gridExtra grid.arrange
+#' @importFrom gridExtra grid.arrange arrangeGrob
 #' @importFrom reshape2 melt dcast
 
 
@@ -212,7 +212,7 @@ bycatch <- function(dat, project, cpue, catch = NULL , date, names = NULL, group
                                 data = count, FUN = function(x) x/sum(x))
       
       count <- cbind(count[, 1:2], data.frame(count$total))
-      count <- setNames(count, c("Year", period, catch))
+      count <- stats::setNames(count, c("Year", period, catch))
       
     } else if (!is.null(group) & length(group) == 1) {
       
@@ -220,7 +220,7 @@ bycatch <- function(dat, project, cpue, catch = NULL , date, names = NULL, group
                                 data = count, FUN = function(x) x/sum(x))
       
       count <- cbind(count[, 1:3], data.frame(count$total))
-      count <- setNames(count, c("Year", period, group1, catch))
+      count <- stats::setNames(count, c("Year", period, group1, catch))
       
     } else if (!is.null(group) & length(group) > 1) {
       
@@ -228,7 +228,7 @@ bycatch <- function(dat, project, cpue, catch = NULL , date, names = NULL, group
                                 data = count, FUN = function(x) x/sum(x))
       
       count <- cbind(count[, 1:4], data.frame(count$total))
-      count <- setNames(count, c("Year", period, group1, group2, catch))
+      count <- stats::setNames(count, c("Year", period, group1, group2, catch))
     }
     
     count <- reshape2::melt(count, variable.name = "species_count", value.name = "stc")
@@ -272,9 +272,12 @@ bycatch <- function(dat, project, cpue, catch = NULL , date, names = NULL, group
     missing_periods <- expand.grid(period = ind, 
                                    Year = unique(bycatch$Year), 
                                    species = unique(bycatch$species),
+                                   species_count = unique(bycatch$species_count),
+                                   species_cpue = unique(bycatch$species_cpue),
                                    measure = unique(bycatch$measure))
     
-    missing_periods <- setNames(missing_periods, c(period, "Year", "species", "measure"))
+    missing_periods <- stats::setNames(missing_periods, c(period, "Year", "species", 
+                                                          "species_count", "species_cpue", "measure"))
     
   } else if (!is.null(group) & length(group) == 1) {
     
@@ -282,9 +285,12 @@ bycatch <- function(dat, project, cpue, catch = NULL , date, names = NULL, group
                                    Year = unique(bycatch$Year),
                                    group1 = unique(bycatch[[group1]]),
                                    species = unique(bycatch$species),
+                                   species_count = unique(bycatch$species_count),
+                                   species_cpue = unique(bycatch$species_cpue),
                                    measure = unique(bycatch$measure))
     
-    missing_periods <- setNames(missing_periods, c(period, "Year", group1, "species", "measure"))
+    missing_periods <- stats::setNames(missing_periods, c(period, "Year", group1, "species",
+                                                          "species_count", "species_cpue", "measure"))
     
   } else if (!is.null(group) & length(group) > 1) {
     
@@ -293,9 +299,12 @@ bycatch <- function(dat, project, cpue, catch = NULL , date, names = NULL, group
                                    group1 = unique(bycatch[[group1]]), 
                                    group2 =  unique(bycatch[[group2]]),
                                    species = unique(bycatch$species),
+                                   species_count = unique(bycatch$species_count),
+                                   species_cpue = unique(bycatch$species_cpue),
                                    measure = unique(bycatch$measure))
     
-    missing_periods <- setNames(missing_periods, c(period, "Year", group1, group2, "species", "measure"))
+    missing_periods <- stats::setNames(missing_periods, c(period, "Year", group1, group2, "species",
+                                                          "species_count", "species_cpue", "measure"))
   }
   
   if (nrow(missing_periods) > 0) {
@@ -311,13 +320,16 @@ bycatch <- function(dat, project, cpue, catch = NULL , date, names = NULL, group
     
     by_dat <- subset(bycatch, species == x & measure == "avg_cpue")
     
-    ggplot2::ggplot(by_dat, ggplot2::aes_string(period, "value", group = 1)) + 
+    ggplot2::ggplot(by_dat, ggplot2::aes_string(period, "value", group = 1, 
+                                                color = if (!is.null(group)) group1 else NULL )) + 
       ggplot2::geom_point(size = 1.5) + ggplot2::geom_line(size = .65) + 
       ggplot2::labs(title = "CPUE",
                     y = "average CPUE (tns/day)") +
       fishset_theme +
-      ggplot2::theme(plot.title = element_text(hjust = 0.5, size = 9),
-                     axis.title = ggplot2::element_text(size = 7))
+      ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, size = 9),
+                     axis.title = ggplot2::element_text(size = 7),
+                     axis.text = ggplot2::element_text(size = 7),
+                     legend.position = "none")
   })
   
   catch_plots <- lapply(names, function(x) {
@@ -331,23 +343,40 @@ bycatch <- function(dat, project, cpue, catch = NULL , date, names = NULL, group
       by_dat <- subset(bycatch, species == x & measure == "stc")
     }
     
-    ggplot2::ggplot(by_dat, ggplot2::aes_string(period, "value", group = 1)) + 
+    ggplot2::ggplot(by_dat, ggplot2::aes_string(period, "value", group = 1, 
+                                                color = if (!is.null(group)) group1 else NULL )) + 
       ggplot2::geom_point(size = 1.5) + ggplot2::geom_line(size = .65) + 
       ggplot2::labs(title = if (value == "total") "Total" else "STC",
                     y = if (value == "total") "total catch (tns)" else "share of catch") +
       fishset_theme +
-      ggplot2::theme(plot.title = element_text(hjust = 0.5, size = 9),
-                     axis.title = ggplot2::element_text(size = 7))
+      ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, size = 9),
+                     axis.title = ggplot2::element_text(size = 7),
+                     axis.text = ggplot2::element_text(size = 7),
+                     legend.position = "none")
   })
   
   plot_list <- purrr::pmap(list(x = cpue_plots, y = catch_plots, n = names), function(x, y, n) {
     
-    gridExtra::grid.arrange(x, y, nrow = 1, top = n)
+    gridExtra::arrangeGrob(x, y, nrow = 1, top = n)
   })
   
-  do.call(gridExtra::grid.arrange, c(plot_list, ncol = 1))
+  if (!is.null(group)) {
+    # add grouping var
+    grp <- ggplot2::ggplot(bycatch, ggplot2::aes_string(0, 0, color = group1)) + 
+      ggplot2::geom_point() +
+      ggplot2::theme(legend.position = "bottom")
+    
+    # extract legend
+    tmp <- ggplot2::ggplot_gtable(ggplot2::ggplot_build(grp))
+    leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+    legend <- tmp$grobs[[leg]]
+    
+    plot_list[["legend"]] <- legend
+  }
   
-  save_plot(project, "bycatch")
+  by_plot <- do.call(gridExtra::grid.arrange, c(plot_list, ncol = 1))
+  
+  save_plot(project, "bycatch", by_plot)
   
   # Log Function
   bycatch_function <- list()
@@ -360,7 +389,7 @@ bycatch <- function(dat, project, cpue, catch = NULL , date, names = NULL, group
   
   if (output == "plot") {
     
-    do.call(gridExtra::grid.arrange, c(plot_list, ncol = 1))
+    by_plot
     
   } else if (output == "table") {
     
