@@ -359,7 +359,7 @@ load_aux <- function(dat, x, over_write=TRUE, project=NULL){
   DBI::dbDisconnect(fishset_db)
 
 
-  if(any(colnams(x)==colnames(old))==FALSE) {
+  if(any(colnames(x)==colnames(old))==FALSE) {
      warning('No shared columns. Column names do not match between two data sets.')
     val <- 1
   }
