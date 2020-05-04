@@ -13,10 +13,10 @@
 #'   on the value argument. The order of the catch variable string must match those 
 #'   of the \code{names} and \code{cpue} arguments.  
 #' @param date A time variable containing dates to aggregate by.
-#' @param names A string of species names that will be used to match the cpue and catch
+#' @param names A string of species names that will be used to match the \code{cpue} and \code{catch}
 #'   variables.
-#' @param group Up to two categorical variables to group by.
-#' @param year A year or vector of years to subset the data by. If NULL, all years
+#' @param group A categorical variable to group by.
+#' @param year A year or vector of years to subset the data by. If \code{NULL}, all years
 #'   are included.
 #' @param period Time period to aggregate by. Options include "year", "year_abv", 
 #'   "month", "month_abv", "month_num", and "weeks".
@@ -24,7 +24,8 @@
 #' @param output Options include "table" or "plot".
 #' @param format_tab How table output should be formated. Options include "wide" 
 #'   (the default) and "long".
-#' @return Returns a plot or table of bycatch to other species caught
+#' @return Returns a plot or table of bycatch to other species caught. For optimal 
+#' plot size in a R Notebook/Markdown document, use the chunk option \code{fig.asp = 1}. 
 #' @examples 
 #' \dontrun{
 #' bycatch("MainDataTable", "myProject", cpue = c("f1_cpue", "f2_cpue", "f3_cpue", "f4_cpue"),
@@ -34,7 +35,7 @@
 #' }
 #' @export bycatch
 #' @import ggplot2
-#' @importFrom stats aggregate reformulate
+#' @importFrom stats aggregate reformulate setNames
 #' @importFrom purrr pmap
 #' @importFrom gridExtra grid.arrange arrangeGrob
 #' @importFrom reshape2 melt dcast
@@ -374,7 +375,7 @@ bycatch <- function(dat, project, cpue, catch = NULL , date, names = NULL, group
     plot_list[["legend"]] <- legend
   }
   
-  by_plot <- do.call(gridExtra::grid.arrange, c(plot_list, ncol = 1))
+  by_plot <- do.call(gridExtra::arrangeGrob, c(plot_list, ncol = 1))
   
   save_plot(project, "bycatch", by_plot)
   
@@ -389,7 +390,7 @@ bycatch <- function(dat, project, cpue, catch = NULL , date, names = NULL, group
   
   if (output == "plot") {
     
-    by_plot
+    grid.arrange(by_plot, ncol = 1)
     
   } else if (output == "table") {
     
