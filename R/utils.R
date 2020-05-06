@@ -446,6 +446,81 @@ text_filepath <- function(project, fun_name) {
   
 }
 
+date_title <- function(plot, filter_date, filter_value) {
+  #' Add date to ggplot title
+  #'
+  #' @param plot ggplot2 plot object to add new title to.
+  #' @param filter_date The \code{filter_date} parameter in function.
+  #' @param filter_value The values used to filter the data table used in plot.
+  #' @return A plot with the year, month, or year-month included in tittle. 
+  #' @export
+  
+  fv_len <- length(filter_value)
+  
+  if (filter_date == "year") {
+    
+    if (fv_len == 1) {
+      
+      plot$labels$title <- paste0(plot$labels$title, " Year: ", filter_value)
+      
+    } else {
+      
+      plot$labels$title <- paste0(plot$labels$title, " Year: ", 
+                                  filter_value[1], "-", filter_value[fv_len])
+    }
+    
+  } else if (filter_date == "month") {
+    
+    if (fv_len == 1) {
+      
+      plot$labels$title <- paste0(plot$labels$title, " Month: ", filter_value)
+      
+    } else {
+      
+      plot$labels$title <- paste0(plot$labels$title, " Month: ", 
+                                  filter_value[1], "-", filter_value[fv_len])
+    }
+    
+  } else if (filter_date == "year-month") {
+    
+    y_len <- length(filter_value[[1]])
+    m_len <- length(filter_value[[2]])
+    
+    if (y_len == 1 & m_len == 1) {
+      
+      plot$labels$title <- paste0(plot$labels$title, " Year: ", filter_value,
+                                  " Month: ", filter_value)
+      
+    } else if (y_len > 1 & m_len == 1) {
+      
+      plot$labels$title <- paste0(plot$labels$title, " Year: ", 
+                                  filter_value[[1]], "-", filter_value[[1]][y_len],
+                                  " Month: ", filter_value)
+      
+    } else if (y_len == 1 & m_len > 1) {
+      
+      plot$labels$title <- paste0(plot$labels$title, " Year: ", filter_value,
+                                  " Month: ", filter_value[[2]][1], "-", filter_value[[2]][m_len])
+      
+    } else if (y_len > 1 & m_len > 1) {
+      
+      plot$labels$title <- paste0(plot$labels$title, " Year: ", 
+                                  filter_value[[1]], "-", filter_value[[1]][y_len],
+                                  " Month: ", filter_value[[2]][1], "-", filter_value[[2]][m_len])
+      
+    } else {
+      
+      warning("Invalid year-month length.")
+    }
+  }
+  
+  plot
+}
+
+
+
+
+
 ##---------------------------##
 outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plot_type) {
   #' Evaluate outliers through plots
