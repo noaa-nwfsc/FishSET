@@ -94,7 +94,7 @@ epm_weibull <- function(starts3, dat, otherdat, alts, project, expname, mod.name
     #' }
     #'
         
-    obsnum <- dim(griddat)[1]
+    obsnum <- dim(as.data.frame(otherdat$griddat))[1]
 
     griddat <- as.matrix(do.call(cbind, otherdat$griddat))
     gridnum <- dim(griddat)[2]

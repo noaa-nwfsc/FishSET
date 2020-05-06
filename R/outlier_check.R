@@ -133,8 +133,6 @@ outlier_table <- function(dat, project, x) {
     
 }
 
-
-
 ##---------------------------##
 outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen=FALSE){
   #' Evaluate outliers through plots
@@ -311,7 +309,6 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen=FALS
    # Close the pdf file
     if (output.screen == FALSE) {
       save_plot(project, "outlier_plot", fig)
-      dev.off()
     }
     
   } else {
@@ -320,8 +317,6 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen=FALS
   }
 
 }
-
-
 
 ##---------------------------##
 outlier_remove <- function(dat, x, dat.remove = "none", remove = T, over_write=FALSE) {

@@ -2,7 +2,6 @@
 locdatabase <- function(){
 #' Returns the location of the database
 #' @details if loc is not in the working directory, then the default location is use
-#' @export
 #' @examples 
 #' \dontrun{
 #' locdatabase() # will return sqlite database location within the fishset package
@@ -21,7 +20,6 @@ loclog <- function(){
   #Define source location for log folder
     #' Returns the location of the log folder
     #' @details if loc2 is not in the working environment, then the default location is use
-    #' @export
     #' @examples 
     #' \dontrun{
     #' loclog() # will return log folder location within the fishset package
@@ -41,7 +39,6 @@ locoutput <- function(){
   #Define source location for output folder
   #' Returns the location of the output folder
   #' @details if loc2 is not in the working environment, then the default location is use
-  #' @export
   #' @examples 
   #' \dontrun{
   #' locoutput() # will return output folder location within the fishset package
@@ -60,7 +57,7 @@ locoutput <- function(){
 pull_info_data <- function(project){
 #' Pull the most recent data index file for given project
 #' @param project Name of project, such as pollock
-#' @export
+
 
 g <- tables_database()
 g <- g[grep(paste0('Info.*',project,'|',project,'.*Info'), g)]
@@ -71,7 +68,6 @@ paste0(project,'MainDataTableInfo',g)
 table_format <- function(x) {
 #' Import and format saved tables to notebook file
 #' @param x Name of table saved in inst/output
-#' @export
 #' @importFrom pander panderOptions pander 
 
 tab_int <- read.csv(paste0(getwd(),'/inst/output/', x, '.csv'))
@@ -93,7 +89,6 @@ plot_format <- function(x){
   #' Import and format plots to notebook file
   #' @param x Name of plot saved in inst/output
   #' @importFrom knitr include_graphics
-  #' @export
   knitr::include_graphics(paste0(getwd(), '/inst/output/',x,'.png'))
 }
 
@@ -103,7 +98,6 @@ vgsub <- function(pattern, replacement, x, ...) {
   #' @param replacement replacement
   #' @param x x
   #' @param ... Additional arguments
-  #' @export
   for (i in 1:length(pattern)) x <- gsub(pattern[i], replacement[i], x, ...)
   x
   return(x)
@@ -115,7 +109,6 @@ trim_space <- function(x, what = c("both", "leading", "trailing", "none"), space
   #' @param what Choices are both, leading, trailing, none
   #' @param space.regex Default set to [:space:]
   #' @param ... Additional arguments
-  #' @export
   if (missing(x)) 
     stop("nothing to trim spaces to =(")
   re <- switch(match.arg(what), both = sprintf("^[%s]+|[%s]+$", space.regex, space.regex), 
@@ -131,7 +124,6 @@ is_empty <- function(x, trim = TRUE, ...) {
   #' @param x x
   #' @param trim defaults to true
   #' @param ... Additional arguments
-  #' @export
   if (length(x) <= 1) {
     if (is.null(x)) 
       return(TRUE)
@@ -152,7 +144,6 @@ is_empty <- function(x, trim = TRUE, ...) {
 find_first <- function(y){
   #' Find earliest date
   #' @param y variable of interest
-  #' @export
   g <- y[which(grepl('date', names(y), ignore.case=TRUE) == TRUE)]
   if(all(g=='')==TRUE||all(is_empty(g)==TRUE)==TRUE) {warning('All date variables are empty')}
   g2 <- date_parser(as.vector(unlist(c(g))))
@@ -162,7 +153,6 @@ find_first <- function(y){
 find_last <- function(y){
   #' Find latest date
   #' @param y variable of interest
-  #' @export
   
   g <- y[which(grepl('date', names(y), ignore.case=TRUE) == TRUE)]
   if(all(g=='')==TRUE||all(is_empty(g)==TRUE)==TRUE) {warning('All date variables are empty')}
@@ -177,7 +167,6 @@ accumarray <- function(subs, val, sz = NULL, func = sum, fillval = 0) {
   #' @param sz sz
   #' @param func set to sum
   #' @param fillval set to 0
-  #' @export
   
   stopifnot(is.numeric(subs), is.numeric(val))
   subs <- floor(subs)
@@ -224,7 +213,7 @@ skewness <- function(x, na.rm=FALSE) {
   #' Calculate skewness
   #' @param x variable of interest
   #' @param na.rm set to FALSE
-  #' @export
+
   if(na.rm==TRUE){
     x = x[is.na(x)==FALSE]
   } else {
@@ -241,7 +230,7 @@ date_parser <- function(dates){
   #' Parse date variable
   #' @param dates Variable containing dates
   #' @importFrom lubridate dym ymd myd ydm dmy mdy
-  #' @export
+
   
   dates <- trimws(dates)
   dates <- sub(' .*','\\1',dates)
@@ -266,7 +255,6 @@ date_time_parser <- function(dates){
   #' Parse date-time variable
   #' @param dates Variable containing date-times
   #' @importFrom lubridate mdy_hms mdy_hm dmy_hms dmy_hm ymd_hms ymd_hm ydm_hms ydm_hm
-  #' @export
   
   dates <- trimws(dates)
   
@@ -305,7 +293,6 @@ date_time_parser <- function(dates){
 find_original_name <- function(fun) {
   #' find original name
   #' @param fun function
-  #' @export
   objects <- ls(envir = environment(fun))
   for (i in objects) {
     if (identical(fun, get(i, envir = environment(fun)))) {
@@ -317,7 +304,7 @@ find_original_name <- function(fun) {
 data_pull <- function(dat){
   #' Pull data from sqlite database
   #' @param dat Data table 
-  #' @export data_pull 
+
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
   if(is.character(dat)==TRUE){
     if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
@@ -353,7 +340,6 @@ save_table <- function(table, project, func_name, ...) {
   #' @param project project name.
   #' @param func_name function name.
   #' @param ... addition arguments passsed to write.csv function. 
-  #' @export
   #' @examples 
   #' \dontrun{
   #' save_table(count, project, "species_catch")
@@ -367,7 +353,6 @@ save_plot <- function(project, func_name, ...) {
   #' @param project name of project.
   #' @param func_name function name.
   #' @param ... addition arguments passed to the ggsave function. 
-  #' @export
   #' @examples 
   #' \dontrun{
   #' save_plot(project, "species_catch")
@@ -393,7 +378,6 @@ date_factorize <- function(dataset, date_col, date_code) {
   #' @param dataset data frame containg date variable.
   #' @param date_col date variable of type character to convert to ordered factor.
   #' @param date_code date code used to format date variable.
-  #' @export
   
   if (date_code %in% c("%a", "%A", "%b", "%B")) { 
     
@@ -436,7 +420,6 @@ text_filepath <- function(project, fun_name) {
   #' @param project Name of project.
   #' @param fun_name Name of function. 
   #' @return Useful for saving messages generated in functions. 
-  #' @export
   #' @examples 
   #' \dontrun{
   #' cat("message", file = text_filepath("my_project", "qaqc_output"))
@@ -537,7 +520,6 @@ outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plo
   #'  The probability plot is a histogram of the data with the fitted probability distribution based on `x.dist`. The Q-Q plot plots are
   #'  sampled quantiles against theoretical quantiles. 
   #'  
-  #' @export 
   #' @return Plot of the data
   
   
@@ -676,5 +658,3 @@ outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plo
 #  namespace_frame = parent.env(target_frame)
 #  isNamespace(namespace_frame) && environmentName(namespace_frame) == 'shiny'
 #}
-
-

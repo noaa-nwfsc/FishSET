@@ -267,7 +267,8 @@ load_port <- function(dat, port_name, over_write=TRUE, project=NULL, compare=FAL
   #' Date is also attached to the name for the raw data. 
   #' @examples 
   #' \dontrun{  
-  #' load_port(dataset='PortTable', over_write=TRUE, project='pollock', compare=TRUE, y='pollockPortTable01012011') 
+  #' load_port(dataset='PortTable', over_write=TRUE, project='pollock', 
+  #'            compare=TRUE, y='pollockPortTable01012011') 
   #' }
   
   val <- 0

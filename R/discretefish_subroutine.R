@@ -44,18 +44,18 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
   #Call in datasets
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
   x_temp <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
-browser()
+
   for(i in 1:length(x_temp)){
     x <- x_temp[i]
   
-  catch <- as.matrix(x_temp[[i]]['catch'])
-  choice <- x_temp[[i]]['choice']
-  distance <- x_temp[[i]]['distance']
-  startingloc <- x_temp[[i]]['startingloc']
+  catch <- data.frame(as.matrix(x_temp[[i]][['catch']]))
+  choice <- x_temp[[i]][['choice']]
+  distance <- data.frame(x_temp[[i]][['distance']])
+  startingloc <- x_temp[[i]][['startingloc']]
   #otherdat <- list(griddat=list(griddatfin=x[['gridVaryingVariables']][['matrix']]), intdat=list(x[['bCHeader']][[-1]]), pricedata=list(epmDefaultPrice))
-  
+
   choice.table <- as.matrix(choice, as.numeric(factor(choice)))
-  choice <- as.matrix(as.numeric(factor(choice)))
+  choice <- data.frame(as.matrix(as.numeric(factor(choice))))
   ab <- max(choice) + 1  #no interactions in create_logit_input - interact distances in likelihood function instead
   
   errorExplain <- NULL
@@ -64,56 +64,66 @@ browser()
   seoutmat2 <- NULL
   MCM <- NULL
   H1 <- NULL
-  fr <- x[['likelihood']]#func  #e.g. logit_c
-  opt <- if(is.factor(optimOpt)){
-    return(optimOpt[i])
+  fr <- x_temp[[i]][['likelihood']]#func  #e.g. logit_c
+  fr.name <- match.fun(find_original_name(match.fun(as.character(fr))))
+  
+if(is.factor(optimOpt)){
+    opt <- as.numeric(unlist(strsplit(as.character(optimOpt[i]), " ")))
   } else {
-    return(optimOpt)
+    opt <- as.numeric(unlist(strsplit(as.character(optimOpt), " ")))
   }
- inits <- if(is.factor(initparams)){
-   return(initparams[i])
+ if(is.factor(initparams)){
+   inits <- initparams[i]
  } else {
-   return(initparams)
+   inits <- initparams
  } 
+
+  #remove unnecessary lists  
+  x_temp[[i]][['gridVaryingVariables']] <- Filter(Negate(function(x) is.null(unlist(x))), x_temp[[i]][['gridVaryingVariables']])
+  x_temp[[i]][['gridVaryingVariables']] <- x_temp[[i]][['gridVaryingVariables']][names(x_temp[[i]][['gridVaryingVariables']]) != "units"]  
+  x_temp[[i]][['gridVaryingVariables']] <- x_temp[[i]][['gridVaryingVariables']][names(x_temp[[i]][['gridVaryingVariables']]) != "scale"]  
   
   if(fr=='logit_correction' & all(is.na(startingloc))){
-    'Stop. Startingloc parameter is not specified. Rerun the create_alternative_choice function'
+    warning('Startingloc parameter is not specified. Rerun the create_alternative_choice function')
   }
   dataCompile <- create_logit_input(choice)
   
   d <- shift_sort_x(dataCompile, choice, catch, distance, max(choice), ab)
   
-  starts2 <- inits
+  starts2 <-as.numeric(unlist(strsplit(as.character(inits), ",")))#inits
 
   ### Data needs will vary by the likelihood function ###
-  if(grepl('epm', find_original_name(fr))){
-    otherdat <- list(griddat=list(griddatfin=x[['bCHeader']][['gridVariablesInclude']]), intdat=list(x[['bCHeader']][['indeVarsForModel']]), pricedat=x[['epmDefaultPrice']])
+  if(grepl('epm', find_original_name(match.fun(as.character(fr))))){
+    otherdat <- list(griddat=list(griddatfin=as.data.frame(x_temp[[i]][['bCHeader']][['gridVariablesInclude']])), 
+                     intdat=list(as.data.frame(x_temp[[i]][['bCHeader']][['indeVarsForModel']])), 
+                     pricedat=as.data.frame(x_temp[[i]][['epmDefaultPrice']]))
     nexpcatch <- 1
-    expname <-  find_original_name(fr)
-  }  else if(find_original_name(fr)=='logit_correction'){
+    expname <-  find_original_name(match.fun(as.character(fr)))
+  }  else if(find_original_name(match.fun(as.character(fr)))=='logit_correction'){
     otherdat <- list(griddat=list(griddatfin=data.frame(rep(1, nrow(choice)))),#x[['bCHeader']][['gridVariablesInclude']]), 
-                     intdat=list(x[['bCHeader']][['indeVarsForModel']]),
-                     startloc=x[['startloc']],
-                     polyn=x[['polyn']])  
+                     intdat=list(as.data.frame(x_temp[[i]][['bCHeader']][['indeVarsForModel']])),
+                     startloc=as.data.frame(x_temp[[i]][['startloc']]),
+                     polyn=as.data.frame(x_temp[[i]][['polyn']]))
     nexpcatch <- 1
-    expname <-  find_original_name(fr)
-    } else if(find_original_name(fr)=='logit_avgcat'){
+    expname <-  find_original_name(match.fun(as.character(fr)))
+    } else if(find_original_name(match.fun(as.character(fr)))=='logit_avgcat'){
     otherdat <- list(griddat=list(griddatfin=data.frame(rep(1, nrow(choice)))),#x[['bCHeader']][['gridVariablesInclude']]), 
-                                  intdat=list(x[['bCHeader']][['indeVarsForModel']]))  
+                                  intdat=list(as.data.frame(x_temp[[i]][['bCHeader']][['indeVarsForModel']])))
     nexpcatch <- 1
-    expname <-  find_original_name(fr)
-  } else if(find_original_name(fr)=='logit_c'){
-    nexpcatch <- length(names(x[['gridVaryingVariables']]))-2
+    expname <-  find_original_name(match.fun(as.character(fr)))
+  } else if(find_original_name(match.fun(as.character(fr)))=='logit_c'){
+    nexpcatch <- length(names(x_temp[[i]][['gridVaryingVariables']]))
   }
   #Begin loop  
-  for(i in 1:nexpcatch){
-    if(find_original_name(fr)=='logit_c'){
-    expname <- paste0(names(x[['gridVaryingVariables']])[i],'_', find_original_name(fr))
-    otherdat <- list(griddat=list(griddatfin=x[['gridVaryingVariables']][[names(x[['gridVaryingVariables']])[i]]]),intdat=list(x[['bCHeader']][['indeVarsForModel']]))
+  for(j in 1:nexpcatch){
+    if(find_original_name(match.fun(as.character(fr)))=='logit_c'){
+    expname <- paste0(names(x_temp[[i]][['gridVaryingVariables']])[j],'_', find_original_name(match.fun(as.character(fr))))
+    otherdat <- list(griddat=list(griddatfin=as.data.frame(x_temp[[i]][['gridVaryingVariables']][[names(x_temp[[i]][['gridVaryingVariables']])[j]]])),
+                     intdat=list(as.data.frame(x_temp[[i]][['bCHeader']][['indeVarsForModel']])))
     }
 
-  
-  LL_start <- fr(starts2, d, otherdat, max(choice), project, expname, mod.name)
+
+  LL_start <- fr.name(starts2, d, otherdat, max(choice), project, expname, as.character(mod.name[i]))
   
   if (is.null(LL_start) || is.nan(LL_start) || is.infinite(LL_start)) {
     # haven't checked what happens when error yet
@@ -122,18 +132,19 @@ browser()
     next
   }
   
+
   ############################################################################# 
-  mIter <- optim[1] #should add something to default options here if not specified
-  relTolX <- optim[2]
-  reportfreq <- optim[3]
-  detailreport <- optim[4]
+  mIter <- opt[1] #should add something to default options here if not specified
+  relTolX <- opt[2]
+  reportfreq <- opt[3]
+  detailreport <- opt[4]
   
   controlin <- list(trace=detailreport, maxit=mIter, reltol=relTolX, REPORT=reportfreq)
   
   res <- tryCatch({
     
-    stats::optim(starts2, fr, dat = d, otherdat = otherdat, alts = max(choice), method = methodname, 
-                 control = controlin, hessian = TRUE, project=project, expname=expname, mod.name=mod.name)
+    stats::optim(starts2, fr.name, dat = d, otherdat = otherdat, alts = max(choice), method = methodname, 
+                 control = controlin, hessian = TRUE, project=project, expname=expname, mod.name=as.character(mod.name[i]))
     
   }, error = function(e) {
     
@@ -143,7 +154,7 @@ browser()
   
   if (res[[1]][1] == "Optimization error, check 'ldglobalcheck'") {
     
-    print(list(name=names(x[['gridVaryingVariables']])[i], errorExplain = res, OutLogit = OutLogit, optoutput = optoutput, 
+    print(list(name=names(x_temp[[i]][['gridVaryingVariables']])[i], errorExplain = res, OutLogit = OutLogit, optoutput = optoutput, 
                 seoutmat2 = seoutmat2, MCM = MCM, H1 = H1))
     next
   }
@@ -168,15 +179,16 @@ browser()
     mod.out <- data.frame(matrix(NA, nrow = 4, ncol = 1))
     mod.out[, 1] = c(AIC, AICc, BIC, PseudoR2)
     rownames(mod.out) = c("AIC", "AICc", "BIC", "PseudoR2")
-    colnames(mod.out) = paste0(expname,mod.name)
+    colnames(mod.out) = paste0(expname, mod.name[i])
   } else {
     temp <- data.frame(c(AIC, AICc, BIC, PseudoR2))
-    colnames(temp) = paste0(expname,mod.name)
+    colnames(temp) = paste0(expname, mod.name[i])
   }
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
   
-  if (DBI::dbExistsTable(fishset_db, paste0(project,"modelfit")) == FALSE) {
+  if(i == 1){
+    table_remove(paste0(project,"modelfit"))
     DBI::dbWriteTable(fishset_db, paste0(project,"modelfit"), mod.out )
   } else {
     out.mod <- DBI::dbReadTable(fishset_db, paste0(project, "modelfit"))
@@ -187,10 +199,11 @@ browser()
     }
     
     if (any(duplicated(colnames(out.mod))) == T) {
-      warning("Duplicate columns names. Please define a unique column name for the model output.")
+      warning("Duplicate columns names. Adding numeric identifer to make colnames unique.")
+      colnames(out.mod) = paste0(colnames(out.mod), 1:length(colnames(out.mod)))
     }
     DBI::dbWriteTable(fishset_db, paste0(project, "modelfit"), out.mod, overwrite = T)
-  }
+ }
   
   ### Full model output
   MCM <- list(AIC = AIC, AICc = AICc, BIC = BIC, PseudoR2 = PseudoR2)
@@ -249,7 +262,7 @@ browser()
                      seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table=choice.table)
     } else {
       modelOut <-  list()
-      modelOut[[length(modelOut)+1]] <- list(name=expname,errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
+      modelOut[[length(modelOut)+1]] <- list(name=expname, errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput, 
                    seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table=choice.table)
     }
   single_sql <- paste0(project, "modelOut", format(Sys.Date(), format="%Y%m%d"))
@@ -363,16 +376,18 @@ browser()
   ############################################################################# 
   discretefish_subroutine_function <- list()
   discretefish_subroutine_function$functionID <- 'discretefish_subroutine'
-  discretefish_subroutine_function$args <- c(project, initparams, optimOpt, deparse(substitute(func)), methodname, mod.name)
+  discretefish_subroutine_function$args <- c(project, initparams, optimOpt,  methodname, as.character(mod.name))
   discretefish_subroutine_function$kwargs <- list()
-  discretefish_subroutine_function$output <- c(name)
+ # discretefish_subroutine_function$output <- c(name)
   log_call(discretefish_subroutine_function)
    ############################################################################# 
   single_sql <- paste0(project, "modelOut", format(Sys.Date(), format="%Y%m%d"))
   if(table_exists(single_sql)){
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
   out <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
-  return(out)
+  #return(out)
   DBI::dbDisconnect(fishset_db)
   }
   }
+
+  

@@ -28,19 +28,21 @@
                 tags$script(HTML('Shiny.addCustomMessageHandler("jsCode",
                                  function(message) {
                                  eval(message.value);
-                                 });'))),
+                                 });')),
+                tags$style(HTML("#shiny-notification-panel {
+                                position: fixed;
+                                bottom: 350px;
+                                right: 250px;
+                              }
+                              .shiny-notification {
+                                position:relative;
+                                top: calc(50% - 150px);
+                                left: calc(50% - 150px);
+                                width: 500px;
+                              }
+                               "))
+                ), #  position:fixed;
       #----
-      ##Inline scripting
-      #-----
-      # enable the <enter> key to press the [Run] button
-      tags$script(HTML(
-        '$(document).keyup(function(event) {
-        if(event.keyCode == 13) {
-        $("#run").click();
-        }
-    });'
-  )),
-  
 
       #----
       tabsetPanel(id = "tabs",
@@ -266,22 +268,22 @@
                                        htmlOutput("Case"),
                                        conditionalPanel(condition="input.checks=='Summary table'",
                                                         DT::DTOutput("output_table_summary")),
-                                       DT::DTOutput("output_table_outlier"),
+                                       shinycssloaders::withSpinner(DT::DTOutput("output_table_outlier")),
                                        tags$br(),tags$br(),
                                        conditionalPanel(condition="input.checks=='Outliers'",
                                        splitLayout(cellWidths = c('33%','33%','33%'),
-                                                   plotOutput('plot1',
+                                                   shinycssloaders::withSpinner(plotOutput('plot1',
                                                               hover = hoverOpts("plot1_hover", delay = 100, delayType = "debounce"),
                                                               dblclick = "plot1_dblclick", 
                                                               brush = brushOpts(id = "plot1_brush",resetOnNew = TRUE )
-                                                   ),
-                                                   plotOutput('plot2', dblclick = "plot2_dblclick", 
-                                                              brush = brushOpts(id = "plot2_brush",resetOnNew = TRUE)),
-                                                   plotOutput('plot3',
+                                                   )),
+                                                   shinycssloaders::withSpinner(plotOutput('plot2', dblclick = "plot2_dblclick", 
+                                                              brush = brushOpts(id = "plot2_brush",resetOnNew = TRUE))),
+                                                   shinycssloaders::withSpinner(plotOutput('plot3',
                                                               hover = hoverOpts("plot3_hover", delay = 100, delayType = "debounce"),
                                                               dblclick = "plot3_dblclick", 
                                                               brush = brushOpts(id = "plot3_brush",resetOnNew = TRUE)
-                                                   ))
+                                                   )))
                                        ),
                                        conditionalPanel(condition="input.checks=='NAs'",
                                                         DT::DTOutput('missingtable')),
@@ -348,7 +350,7 @@
                                           )
                              ),
                              mainPanel(width=10,
-                                       tags$div(DT::DTOutput("output_table_exploration"), style = "font-size: 75%; width: 100%"),
+                                       tags$div(shinycssloaders::withSpinner(DT::DTOutput("output_table_exploration")), style = "font-size: 75%; width: 100%"),
                                        conditionalPanel(
                                          condition='input.plot_table=="Plots" && input.plot_type=="Temporal"', 
                                          uiOutput('column_select')),
@@ -371,23 +373,23 @@
                                        ),
                                        conditionalPanel(
                                          condition='input.plot_table=="Plots" & input.plot_type=="Temporal"',
-                                         plotOutput('plot_time')
+                                         shinycssloaders::withSpinner(plotOutput('plot_time'))
                                        ),
                                        conditionalPanel(
                                          condition='input.plot_table=="Plots" & input.plot_type=="Spatial"',
-                                         column(plotOutput('plot_spatial',
+                                         column(shinycssloaders::withSpinner(plotOutput('plot_spatial',
                                                            click = "plot_spatial_click",
                                                            dblclick = "plot_spatial_dblclick", 
-                                                           brush = brushOpts(id = "plot_spatial_brush",resetOnNew = FALSE )), width=7)),
+                                                           brush = brushOpts(id = "plot_spatial_brush",resetOnNew = FALSE ))), width=7)),
                                        conditionalPanel(
                                          condition='input.plot_table=="Plots" & input.plot_type=="Spatial"',
-                                         column(plotOutput('map_kernel'), width=7)),
+                                         column(shinycssloaders::withSpinner(plotOutput('map_kernel')), width=7)),
                                        conditionalPanel(
                                          condition='input.plot_table=="Plots" & input.plot_type=="Spatial"',
                                          column(DT::DTOutput('output_table_gt_mt'), width=6)),
                                        conditionalPanel(
                                          condition='input.plot_table=="Plots" && input.plot_type=="x-y plot"',   
-                                         plotOutput('plot_xy'))
+                                         shinycssloaders::withSpinner(plotOutput('plot_xy')))
                              ))),
                   
                   
@@ -433,7 +435,7 @@
                                    verbatimTextOutput('output_text_corr'),
                                    div(DT::DTOutput('output_table_corr'), style = "font-size: 75%; width: 100%"),
                                    tags$br(), tags$br(),
-                                   plotOutput('output_plot_corr', width='100%', height = "600px")
+                                   shinycssloaders::withSpinner(plotOutput('output_plot_corr', width='100%', height = "600px"))
                                  )),
                                conditionalPanel(
                                  condition="input.corr_reg=='Regression'",
@@ -441,7 +443,7 @@
                                    uiOutput('reg_resp_out'),
                                    uiOutput('reg_exp_out'),
                                    verbatimTextOutput('output_text_reg'),
-                                   plotOutput('output_plot_reg')
+                                   shinycssloaders::withSpinner(plotOutput('output_plot_reg'))
                                  ))  )
                            )),
                   
@@ -542,7 +544,7 @@
                                uiOutput('dist_between_input'),
                                uiOutput('dist_betwn_opts'),
                                conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'",
-                                                style = "margin-left:19px;", selectInput('units', 'Distance unit',choices = c('miles','meters','km','midpoint'))),
+                                                style = "margin-left:19px;", selectInput('units', 'Distance unit',choices = c('miles','meters','km'))),
                                uiOutput('start_mid_input'),
                                uiOutput('end_mid_input'),
                                uiOutput('input_dur_start'),
@@ -725,7 +727,7 @@
                                      h4('Sparsity of observations by time period and zone.'),
                                      h5('Higher values indicate greater sparsity.'),
                                     DT::DTOutput('spars_table'),
-                                    plotOutput('spars_plot')
+                                    shinycssloaders::withSpinner(plotOutput('spars_plot'))
                                                 ))
                              )
                              )),
@@ -743,13 +745,14 @@
                                  style="color: #fff; background-color: #FF6347; border-color: #800000;",
                                  class = "btn action-button",
                                  onclick = "setTimeout(function(){window.close();},500);",  # close browser
-                                 "Close window"
+                                 "Close app"
                                ),
                                tags$br(),
                                actionButton("addModel", "Save model and add new model", style="color: #fff; background-color: #337ab7; border-color: #800000;"),
-                               actionButton("resetModel", "Clear choices"),
                                tags$br(),
-                               actionButton("submit", "Run model(s)", style="color: #fff; background-color: #6da363; border-color: #800000;"),
+                               conditionalPanel(condition='input.addModel>0',
+                                   actionButton("submit", "Run model(s)", style="color: #fff; background-color: #6da363; border-color: #800000;")
+                               ),
                                tags$br(),tags$br(),
                                tags$p(tags$strong("More information"), tags$br(),
                                       "Model parameter table is editable. Double click a cell to edit."),
@@ -759,9 +762,7 @@
                                textInput("exprM", label = "Enter an R expression",
                                          value = "values$dataset"),
                                actionButton("runM", "Run", class = "btn-success"),
-                               div(style = "margin-top: 2em;",
-                                   uiOutput('resultM')
-                               )
+                               div(style = "margin-top: 2em;", uiOutput('resultM'))
                              ),
                              mainPanel(
                                div(id = "form",
@@ -770,6 +771,7 @@
                                                choices = list("Loaded data" = 'loadedData', "Grid data" = "griddedData"),
                                                selected = 'loadedData'),
                                    uiOutput('latlonB'),
+                                   uiOutput('portmd'),
                                    h4('Likelihood function'),
                                    selectInput("model", label = "",
                                                choices = list("Conditional logit" = 'logit_c', "Average catch" = "logit_avgcat", "Logit Dahl correction" = "logit_correction",
@@ -779,6 +781,7 @@
                                    div(style="display: inline-block;vertical-align:top; width: 250px;", uiOutput('indvariables')),
                                    div(style="display: inline-block;vertical-align:top; width: 250px;", uiOutput('gridvariables')),
                                    uiOutput('catch_out'),
+                                   uiOutput('logit_correction_extra'),
                                    h3('Model parameters'),
                                    
                                    fluidRow(

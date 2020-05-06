@@ -52,16 +52,15 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
   #' "sum_catch('MainDataTable', 'myProject', catch = 'COD' v_id = "v_id", exp = 'COD >= 3', val = 'raw')" \tab "Cod"\cr
   #' }
   #' 
-  #' It may be useful to run \dontrun{subset(df, eval(parse(text = "exp")))} to test that
-  #' expressions have been formatted correctly. 
-  #' @seealso \code{\link{fleet_assign}} \code{\link{sum_catch}}
-  #' @examples 
-  #' \dontrun{
-  #' fleet_table('MainDataTable', "myProject", 
-  #' cond = c("GEAR == 8", "species == 'cod'", "area %in% c(640, 620)", NA),
-  #' fleet_val = c("A", "B", "C", "Other"),
-  #' save = TRUE)
-  #' }
+  # It may be useful to run \dontrun{subset(df, eval(parse(text = "exp")))} to test that
+  # expressions have been formatted correctly. 
+  # @seealso \code{\link{fleet_assign}} \code{\link{sum_catch}}
+ # @examples 
+  # \dontrun{
+  # fleet_table('MainDataTable', "myProject", nb/';-==#'  
+  #   cond = c("GEAR == 8", "species == 'cod'", "area %in% c(640, 620)", NA),
+  #   fleet_val = c("A", "B", "C", "Other"), save = TRUE)
+  # }
    
   out <- data_pull(dat)
   dat <- out$dat
@@ -181,6 +180,10 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
     }
   }
 }
+ 
+
+   
+
 
 
 
