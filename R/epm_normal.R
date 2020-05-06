@@ -89,9 +89,10 @@ epm_normal <- function(starts3, dat, otherdat, alts, project, expname, mod.name)
     #' \figure{epm_normal_sigma.png}{options: width="40\%" 
     #' alt="Figure: epm_normal_sigma.png"}
     #' }
-    #'
-        
-    obsnum <- dim(griddat)[1]
+
+  
+  
+    obsnum <- dim(as.data.frame(otherdat$griddat))[1]
 
     griddat <- as.matrix(do.call(cbind, otherdat$griddat))
     gridnum <- dim(griddat)[2]

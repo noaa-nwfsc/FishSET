@@ -126,3 +126,17 @@ globalcheck_view <- function(table){
   DBI::dbDisconnect(fishset_db)
   }
 }
+
+model_fit <- function(project){
+  #' View model comparison metrics from all models run for a project
+  #' @param project Name of project
+  #' @export
+  #' @examples 
+  #' \dontrun{
+  #' model_fit('pollock')
+  #' }
+  
+  return(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), locdatabase()), 
+                   paste0("SELECT * FROM ", paste0(project, "modelfit"))))
+  DBI::dbDisconnect(fishset_db)
+}

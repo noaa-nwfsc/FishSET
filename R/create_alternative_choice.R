@@ -8,8 +8,8 @@
 #' @param min.haul Minimum number of hauls. Removes zones with fewer hauls than min.haul. For instance, include only zones with at least 100 hauls.
 # @param haul.trip Should data be at trip or haul level. Defaults to haul.
 #' @param hull.polygon Used in assignment_column function. Creates polygon using convex hull method.
-#' @param alt_var  Identifies how to find lat/lon for starting point (must have a lat/lon associated with it) 
-#' @param occasion  Identifies how to find lat/lon for alternative choices such as 'Centroid of Zonal Assignment' 
+#' @param alt_var Identifies how to find lat/lon for starting point (must have a lat/lon associated with it) 
+#' @param occasion Identifies how to find lat/lon for alternative choices such as 'Centroid of Zonal Assignment' 
 #' @param dist.unit Distance returned as meters, kilometers, or miles. Defaults to miles.
 #' @param lon.dat Longitude variable in dataset
 #' @param lat.dat Latitude variable in dataset

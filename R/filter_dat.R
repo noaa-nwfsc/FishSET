@@ -27,12 +27,13 @@ filter_table <- function(dat, project, x, exp) {
 
   if (table_exists(paste0(project, "FilterTable")) == F) {
     filterTable <- data.frame(dataframe = NA, vector = NA, FilterFunction = NA)
-    filterTable[1, ] <- c(deparse(substitute(dataset)), deparse(substitute(x)), exp)
+    filterTable[1, ] <- c(dat, x, exp)
   } else {
     filterTable <- table_view(paste0(project, "FilterTable"))
-    filterTable <- rbind(filterTable, c(deparse(substitute(dataset)), deparse(substitute(x)), exp))
+    filterTable <- rbind(filterTable, c(dat, x, exp))
   }
- 
+
+  
   fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
   DBI::dbWriteTable(fishset_db, paste0(project, 'FilterTable'),  filterTable, overwrite=TRUE)
   DBI::dbDisconnect(fishset_db)
@@ -40,7 +41,7 @@ filter_table <- function(dat, project, x, exp) {
   
     filter_data_function <- list()
     filter_data_function$functionID <- 'filter_table'
-    filter_data_function$args <- c(dat, project, x, exp, project)
+    filter_data_function$args <- c(dat, project, x, exp)
     filter_data_function$kwargs <- list()
     filter_data_function$output <- c('')
     filter_data_function$msg <- filterTable

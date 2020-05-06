@@ -4,6 +4,8 @@ editor_options:
 output:
   word_document: default
   html_document: default
+vignette: >
+<!-  %\VignetteEngine{knitr::rmarkdown} ->
 ---
 <!-- pdf_document: inst/doc -->
 ---

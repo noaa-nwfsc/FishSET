@@ -11,11 +11,12 @@
 #' @importFrom DBI  dbDisconnect dbConnect dbListTables dbWriteTable 
 # @importFrom gridExtra grid.table
 #' @importFrom stringi stri_count_regex
+#' @importFrom shinycssloaders withSpinner
 #' @export run_fishset_gui
 #' @details Opens an interactive page that allows users to select which functions to run by clicking check boxes. 
 #' @examples
 #' \dontrun{
-#' run_fishset_gui(pcodMainDataTable, 'pcod')
+#' run_fishset_gui()
 #' }
 
 

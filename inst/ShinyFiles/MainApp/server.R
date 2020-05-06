@@ -2,7 +2,17 @@
     ### SERVER SIDE    
     server = function(input, output, session) {
       options(shiny.maxRequestSize = 8000*1024^2)
-      ##inline scripting 
+      
+      #Disable buttons
+      toggle_inputs <- function(input_list,enable_inputs=T){
+        # Toggle elements
+        for(x in names(input_list))
+          if(enable_inputs){
+            shinyjs::enable(x)} else {
+              shinyjs::disable(x) }
+      }
+      
+      #inline scripting 
       #----
       r <- reactiveValues(done = 0, ok = TRUE, output = "")
       observeEvent(input$runI, {
@@ -19,6 +29,7 @@
         )
         r$done <- r$done + 1
       })
+      
       output$resultI <- renderUI({
         if(r$done > 0 ) { 
           content <- paste(paste(">", isolate(input$expr)), r$output, sep = '\n')
@@ -180,8 +191,6 @@
         }
       })
       #----
-      
-   
       
       ##Pull data functions
       ##----
@@ -1269,7 +1278,6 @@
       
       observeEvent(input$saveData,{
         # when it updates, save the search strings so they're not lost
-        isolate({
           # update global search and column search strings
           default_search_columns <- c("", input$output_table_exploration_search_columns)
           default_sub <- which(default_search_columns!='')
@@ -1281,7 +1289,6 @@
             } else {
               FilterTable <- table_view(paste0(input$projectname, "FilterTable"))
             }
-
             for(i in 1:length(default_sub)){
               if( grepl("\\..\\.", default_search_columns[default_sub[i]])==TRUE){
                 FilterTable <- rbind(FilterTable, c(paste0(input$projectname, 'MainDataTable'), (colnames(values$dataset[default_sub])[i]), 
@@ -1293,11 +1300,20 @@
               }
             }
             
+            showNotification('Filter table saved to FishSET database', type='message', duration=10)
+            
+            filter_data_function <- list()
+            filter_data_function$functionID <- 'filter_table'
+            filter_data_function$args <- c(dat, project, x, exp, project)
+            filter_data_function$kwargs <- list()
+            filter_data_function$output <- c('')
+            filter_data_function$msg <- filterTable
+            log_call(filter_data_function)
+            
             fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
             DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'FilterTable'),  FilterTable, overwrite=TRUE)
             DBI::dbDisconnect(fishset_db)
-          }      
-        })
+          }  
       })
       
       observeEvent(input$saveDataNew,{
@@ -1839,7 +1855,6 @@
                          style = "margin-left:19px;", selectInput('dur_end', 'Variable indicating end of time period', 
                                                                   choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]), selectize=TRUE))
       })
-
       output$input_startingloc <- renderUI({
         tagList(
           if(names(spatdat$dataset)[1]=='var1'){
@@ -2000,67 +2015,113 @@
           
         } 
       })                  
-                               
       observeEvent(input$runNew, {
         if(input$VarCreateTop=='Dummy variables'&input$dummyfunc=='From policy dates') {
-          values$dataset[[input$varname]] <- dummy_num(values$dataset, var=input$dummypolydate, value=dum_pol_year(), opts='more_less')
+          showNotification(
+            capture.output(
+              values$dataset[[input$varname]] <- dummy_num(values$dataset, var=input$dummypolydate, value=dum_pol_year(), opts='more_less')),
+            type='message', duration=10)
         } else if(input$VarCreateTop=='Dummy variables'&input$dummyfunc=='From variable') {
-          values$dataset[[input$varname]] <- dummy_num(values$dataset, var=input$dummyvarfunc, value=input$select.val, opts=input$dumsubselect)
+          showNotification(
+            capture.output(
+              values$dataset[[input$varname]] <- dummy_num(values$dataset, var=input$dummyvarfunc, value=input$select.val, opts=input$dumsubselect)),
+            type='message', duration=10)
         } else if(input$VarCreateTop=='Data transformations'&input$trans=='temp_mod') {
-          values$dataset[[input$varname]] <- temporal_mod(values$dataset, input$TimeVar, input$define_format) #!
+          showNotification(
+            capture.output(
+              values$dataset[[input$varname]] <- temporal_mod(values$dataset, input$TimeVar, input$define_format)),
+            type='message', duration=10) #!
         } else if(input$VarCreateTop=='Data transformations'&input$trans=='set_quants'){
-          values$dataset[[input$varname]] <- set_quants(values$dataset, x=input$trans_var_name, quant.cat = input$quant_cat, name=input$varname) #!
+          showNotification(
+            capture.output(
+              values$dataset[[input$varname]] <- set_quants(values$dataset, x=input$trans_var_name, quant.cat = input$quant_cat, name=input$varname)),
+            type='message', duration=10) #!
         } else if(input$VarCreateTop=='Nominal ID'&input$ID=='ID_var'){
-          values$dataset <- ID_var(values$dataset, newID=input$varname, input$unique_identifier) 
+          showNotification(
+            capture.output(
+              values$dataset <- ID_var(values$dataset, newID=input$varname, input$unique_identifier)),
+            type='message', duration=10) 
         } else if(input$VarCreateTop=='Nominal ID'&input$ID=='create_seasonal_ID'){
-          values$dataset <- create_seasonal_ID(values$dataset, seasonal.dat=seasonalData(), use.location=input$use_location, 
-                                               use.geartype=input$use_geartype, sp.col=input$sp_col, target=input$target)
+          showNotification(
+            capture.output(
+              values$dataset <- create_seasonal_ID(values$dataset, seasonal.dat=seasonalData(), use.location=input$use_location, 
+                                               use.geartype=input$use_geartype, sp.col=input$sp_col, target=input$target)),
+            type='message', duration=10)
         } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='create_var_num'){
-          values$dataset[[input$varname]] <- create_var_num(values$dataset, input$var_x, input$var_y, method=input$create_method, name=input$varname) 
+          showNotification(
+            capture.output(
+              values$dataset[[input$varname]] <- create_var_num(values$dataset, input$var_x, input$var_y, method=input$create_method, name=input$varname)),
+            type='message', duration=10) 
         } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='cpue') {
           if(input$xTime!='Calculate duration'){
-            values$dataset[[input$varname]] <- cpue(values$dataset, input$xWeight, input$xTime, name=input$varname)  
+            showNotification(
+              capture.output(
+                values$dataset[[input$varname]] <- cpue(values$dataset, input$xWeight, input$xTime, name=input$varname)),
+              type='message', duration=10)   
           } else {
             values$dataset[['dur']] <- create_duration(values$dataset, input$dur_start2, input$dur_end2, input$dur_units2, name=NULL)
-            values$dataset[[input$varname]] <- cpue(values$dataset, input$xWeight, 'dur', name=input$varname)  
+            showNotification(
+              capture.output(
+                values$dataset[[input$varname]] <- cpue(values$dataset, input$xWeight, 'dur', name=input$varname)),
+                type='message', duration=10)  
           }
         } else if(input$VarCreateTop=='Spatial functions' & input$dist=='create_dist_between'){
-          
           #'Zonal centroid', 'Port', 'Lat/lon coordinates'
           if(input$start=='Lat/lon coordinates'){
-            start <-input$start_latlon
+            startdist <-input$start_latlon
           } else if(input$start=='Port'){
-            start <- input$port_start
+            startdist <- input$port_start
           } else {
-            start <- 'centroid'
+            startdist <- 'centroid'
           }
           if(input$end=='Lat/lon coordinates'){
-            end <-input$end_latlon
+            enddist <-input$end_latlon
           } else if(input$end=='Port'){
-            end <- input$port_end
+            enddist <- input$port_end
           } else {
-            end <- 'centroid'
+            enddist <- 'centroid'
           }
-          values$dataset[[input$varname]] <- create_dist_between_for_gui(values$dataset, start=start, end=end, input$units,  portTable=input$filePort, 
+          showNotification(
+            capture.output(
+           values$dataset[[input$varname]] <- create_dist_between_for_gui(values$dataset, start=startdist, end=enddist, input$units,  portTable=input$filePort, 
                                                                          gridfile=spatdat$dataset,lon.dat=input$lon_dat[2], lat.dat=input$lon_dat[1], 
-                                                                         input$cat, lon.grid=input$long_grid[2], lat.grid=input$long_grid[1]) 
-        } else if(input$VarCreateTop=='Spatial functions' & input$dist=='create_mid_haul'){
-          values$dataset <- create_mid_haul(values$dataset, c(input$mid_start[2],input$mid_start[1]), c(input$mid_end[2],input$mid_end[1]), input$varname)
+                                                                         input$cat, lon.grid=input$long_grid[2], lat.grid=input$long_grid[1])),
+           type='message', duration=10)
+           } else if(input$VarCreateTop=='Spatial functions' & input$dist=='create_mid_haul'){
+             showNotification(
+               capture.output(
+                 values$dataset <- create_mid_haul(values$dataset, c(input$mid_start[2],input$mid_start[1]), c(input$mid_end[2],input$mid_end[1]), input$varname)),
+               type='message', duration=10)
         } else if(input$VarCreateTop=='Spatial functions'&input$dist=='create_duration'){
-          values$dataset[[input$varname]] <- create_duration(values$dataset, input$dur_start, input$dur_end, input$dur_units, name=NULL)
+          showNotification(
+            capture.output(
+              values$dataset[[input$varname]] <- create_duration(values$dataset, input$dur_start, input$dur_end, input$dur_units, name=NULL)),
+            type='message', duration=10)
         } else if(input$VarCreateTop=='Spatial functions'&input$dist=='create_startingloc'){
-          values$dataset[['startingloc']] <- create_startingloc(values$dataset,  gridfile=spatdat$dataset,  portTable=input$port.dat, 
+          showNotification(
+            capture.output(
+              values$dataset[['startingloc']] <- create_startingloc(values$dataset,  gridfile=spatdat$dataset,  portTable=input$port.dat, 
                                                                 trip_id=input$trip_id_SL, haul_order=input$haul_order_SL, starting_port=input$starting_port_SL, 
-                                                                input$lon_dat_SL, input$lat_dat_SL, input$cat_SL, input$lon_grid_SL, input$lat_grid_SL)
+                                                                input$lon_dat_SL, input$lat_dat_SL, input$cat_SL, input$lon_grid_SL, input$lat_grid_SL)),
+            type='message', duration=10)
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='haul_to_trip'){
-          values$dataset <- haul_to_trip(values$dataset, project=input$projectname, input$fun_numeric, input$fun_time, input$Haul_Trip_IDVar)
+          showNotification(
+            capture.output(
+              values$dataset <- haul_to_trip(values$dataset, project=input$projectname, input$fun_numeric, input$fun_time, input$Haul_Trip_IDVar)),
+            type='message', duration=10)
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='trip_distance'){
-          values$dataset$TripDistance <- create_trip_distance(values$dataset, input$port_dat_dist, input$trip_ID, input$starting_port, 
+          showNotification(
+            capture.output(
+              values$dataset$TripDistance <- create_trip_distance(values$dataset, input$port_dat_dist, input$trip_ID, input$starting_port, 
                                                               c(input$starting_haul[2], input$starting_haul[1]), 
-                                                              c(input$ending_haul[2],input$ending_haul[1]), input$ending_port, input$haul_order)
+                                                              c(input$ending_haul[2],input$ending_haul[1]), input$ending_port, input$haul_order)),
+            type='message', duration=10)
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='trip_centroid'){
-          values$dataset <- create_trip_centroid(values$dataset, lon=input$trip_cent_lon, lat=input$trip_cent_lat, weight.var=input$trip_cent_weight, 
-                                                 input$trip_cent_id)
+          showNotification(
+            capture.output(
+              values$dataset <- create_trip_centroid(values$dataset, lon=input$trip_cent_lon, lat=input$trip_cent_lat, weight.var=input$trip_cent_weight, 
+                                                 input$trip_cent_id)),
+            type='message', duration=10)
         }
       })
       
@@ -2113,9 +2174,12 @@
       })  
       
        observeEvent(input$runCentroid, {
-        values$dataset <-  assignment_column(dat=values$dataset, gridfile=spatdat$dataset, lon.dat=input$lon_dat_ac, lat.dat=input$lat_dat_ac, 
-                                             cat=input$cat_altc, closest.pt = input$closest_pt_ac, 
-                                    lon.grid=NULL, lat.grid=NULL, hull.polygon = input$hull_polygon_ac, epsg=NULL)
+         showNotification(
+           capture.output(
+              values$dataset <-  assignment_column(dat=values$dataset, gridfile=spatdat$dataset, lon.dat=input$lon_dat_ac, lat.dat=input$lat_dat_ac, 
+                                             cat=input$cat_altc, closest.pt = input$closest_pt_ac, lon.grid=NULL,
+                                              lat.grid=NULL, hull.polygon = input$hull_polygon_ac, epsg=NULL)),
+           type='message', duration=10)
         
       })
        
@@ -2229,6 +2293,7 @@
       
       
      
+      
       #----
       #Model Parameters
       #----
@@ -2248,13 +2313,52 @@
             checkboxInput('lockk', 'Location-specific catch parameter', value=FALSE)),
           conditionalPanel(condition="input.model=='epm_normal' || input.model=='epm_lognormal' || input.model=='epm_weibull'",
             selectInput('price', 'Price variable', choices=c(input$priceBase,'none', colnames(values$dataset[,grep('dollar|val|euro|price|cost|earn', colnames(values$dataset), ignore.case=TRUE)])), 
-                        selected='none', multiple=FALSE)
-          ),
+                        selected='none', multiple=FALSE)),
+        #logit correction
           conditionalPanel(condition="input.model=='logit_correction'",
             numericInput('polyn', 'Correction polynomial degree', value=2)),
           conditionalPanel(condition="input.model=='logit_correction'",
-            selectInput('startloc', 'Initial location during choice occassion', choices=c('none', colnames(values$dataset)), selected='none', multiple=FALSE) 
-          )
+                           radioButtons('startlocdefined', 'Starting location variable', choices=c('Exists in data set'='exists', 'Create variable'='create'))
+        ))
+        })
+        output$logit_correction_extra <- renderUI({
+          tagList(
+          conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='exists'",
+            selectInput('startloc_mod', 'Initial location during choice occassion', choices=names(values$dataset), 
+                        selected='startingloc', 
+                        multiple=FALSE)),
+            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
+                              if(names(spatdat$dataset)[1]=='var1'){
+                                                 tags$div(h4('Map file not loaded. Please load on Upload Data tab', style="color:red"))
+                              }),
+            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
+                             selectInput('trip_id_SL_mod', 'Variable in primary data set to identify unique trips', choices=c('',names(values$dataset)), selectize=TRUE)),
+            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
+                             selectInput('haul_order_SL_mod', 'Variable in primary data set defining haul order within a trip. Can be time, coded variable, etc.',
+                                            choices=c('', names(values$dataset)), selectize=TRUE)),
+            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
+                             selectInput('starting_port_SL_mod',  "Variable in primary data set identifying port at start of trip", 
+                                            choices=names(values$dataset[,grep('port',names(values$dataset), ignore.case = TRUE)]), selectize=TRUE)),
+            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
+                             selectInput('lon_dat_SL_mod', "Longitude variable in primary data set", 
+                                            choices= names(values$dataset[,grep("lon", names(values$dataset), ignore.case = TRUE)]), selectize=TRUE)), 
+            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
+                             selectInput('lat_dat_SL_mod', "Latitude variable in primary data set", 
+                                            choices= names(values$dataset[,grep("lat", names(values$dataset), ignore.case = TRUE)]), selectize=TRUE)),
+            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
+                           if(any(class(spatdat$dataset)=='sf')==FALSE){
+                                                selectInput('lat_grid_SL_mod', 'Select vector containing latitude from spatial data set',
+                                                            choices= names(as.data.frame(spatdat$dataset)), multiple=TRUE)
+                              }),
+            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
+                             if(any(class(spatdat$dataset)=='sf')==FALSE){
+                                selectInput('lon_grid_SL_mod', 'Select vector containing longitude from spatial data set', 
+                                                             choices= names(as.data.frame(spatdat$dataset)), multiple=TRUE, selectize=TRUE)
+                              }),
+            conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
+                             selectInput('cat_SL_mod', "Variable defining zones or areas", choices= names(as.data.frame(spatdat$dataset)), selectize=TRUE)
+                         
+                        )
         )
       })
       output$latlonB <- renderUI({
@@ -2310,6 +2414,11 @@
                     choices = gridvariables, selected = '')
       })
       
+      output$portmd <- renderUI ({
+      selectInput("port.datMD", "Choose file from FishSET SQL database containing port data", 
+                                                                 choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE)#,
+      })
+      
       numInits <- reactive({
         polyn <- input$polyn
         gridNum <- as.integer(as.factor(length(input$gridVariablesInclude)))
@@ -2355,9 +2464,15 @@
       #make_model_design()
       #})
       counter <- reactiveValues(countervalue = 0) # Defining & initializing the reactiveValues object
-      model_table <- reactiveVal(model_table)
+      rv <- reactiveValues(
+        data = model_table,
+        deletedRows = NULL,
+        deletedRowIndices = list()
+      )
       
       
+      #model_table <- reactiveVal(model_table)
+                     
       #access variable int outside of observer
       int_name <- reactive({
         paste(lapply(1:numInits(), function(i) {
@@ -2372,10 +2487,18 @@
         } else {
           showNotification("Selected model parameters saved.", type='message', duration=10)
         }
+       
+
+        if(input$model=='logit_correction' & input$startlocdefined =='create'){
+          values$dataset$startingloc <- create_startingloc(dat=values$dataset, gridfile=spatdat$dataset, portTable=input$port.datMD, 
+                                            trip_id=input$trip_id_SL_mod, haul_order=input$haul_order_SL_mod, starting_port=input$starting_port_SL_mod, 
+                                            lon.dat=input$lon_dat_SL_mod, lat.dat=input$lat_dat_SL_mod, cat=input$cat_SL_mod, 
+                                            lon.grid==input$lat_grid_SL, lat.grid==input$lat_grid_SL_mod)
+        } 
         counter$countervalue <- counter$countervalue + 1
         
         if(is.null(input$gridVariablesInclude)|is.null(input$indeVarsForModel)) {
-          t <- rbind(data.frame('mod_name'='', 
+          rv$data <- rbind(data.frame('mod_name'='', 
                                 'likelihood'='',
                                 'alternatives'='',
                                 'optimOpts'='',
@@ -2389,9 +2512,9 @@
                                 'price'='',
                                 'startloc'='',
                                 'polyn'='')
-                     , model_table())
+                     , rv$data)#model_table())
         } else {
-          t = rbind(data.frame('mod_name'=paste0('mod',counter$countervalue), 
+          rv$data = rbind(data.frame('mod_name'=paste0('mod',counter$countervalue), 
                                'likelihood'=input$model, 
                                'alternatives'=input$alternatives,
                                'optimOpts'=paste(input$mIter,input$relTolX, input$reportfreq, input$detailreport),
@@ -2403,12 +2526,12 @@
                                'lat'=input$lat,
                                'project'=input$projectname, 
                                'price'=input$price,
-                               'startloc'=input$startloc, 
+                               'startloc'=if(input$startlocdefined=='exists'){input$startloc_mod} else {'startingloc'}, 
                                'polyn'=input$polyn)
-                    , model_table())
-          print(t)
+                    , rv$data)#model_table())
+          print(rv$data)
         }
-        model_table(t)
+      #  rv$data(t)#model_table(t)
         
         
         ###Now save table to sql database. Will overwrite each time we add a model
@@ -2427,8 +2550,10 @@
         query <- sprintf(
           "INSERT INTO %s (%s) VALUES %s",
           paste0(input$projectname,'modelDesignTable', format(Sys.Date(), format="%Y%m%d")),
-          paste(names(data.frame(as.data.frame(isolate(model_table())))), collapse = ", "),
-          paste0("('", matrix(apply(as.data.frame(isolate(model_table())), 1, paste, collapse="','"), ncol=1), collapse=',', "')")
+          paste(names(data.frame(as.data.frame(isolate(rv$data #model_table()
+                                                       )))), collapse = ", "),
+          paste0("('", matrix(apply(as.data.frame(isolate(rv$data #model_table()
+                                                          )), 1, paste, collapse="','"), ncol=1), collapse=',', "')")
         )
         # Submit the update query and disconnect
         DBI::dbGetQuery(fishset_db, query)
@@ -2437,26 +2562,66 @@
         
       })
       
-      observeEvent(input$resetModel, {
-        shinyjs::reset("form")
+#      observeEvent(input$resetModel, {
+#        shinyjs::reset("form")
+#      })
+      
+      
+      observeEvent(input$deletePressed, {
+        rowNum <- parseDeleteEvent(input$deletePressed)
+        dataRow <- rv$data[rowNum,]
+        
+        # Put the deleted row into a data frame so we can undo
+        # Last item deleted is in position 1
+        rv$deletedRows <- rbind(dataRow, rv$deletedRows)
+        rv$deletedRowIndices <- append(rv$deletedRowIndices, rowNum, after = 0)
+        
+        # Delete the row from the data frame
+        rv$data <- rv$data[-rowNum,]
       })
       
-      output$mod_param_table <- DT::renderDT(
-        model_table(), editable = T, server=TRUE
+      
+      output$mod_param_table <- DT::renderDataTable(
+        # Add the delete button column
+        deleteButtonColumn(rv$data, 'delete_button')
       )
-      # Save model and add new model shiny
+    
+#         output$mod_param_table <- DT::renderDT(
+#        model_table(), editable = T, server=TRUE
+#      )
+ 
+  
+      # Run models shiny
       observe({
         if(input$submit > 0) {
-          print('call model design function, call discrete_subroutine file')
-          times <- nrow(model_table())-1
+          input_list <- reactiveValuesToList(input)
+          toggle_inputs(input_list,F)
+          #print('call model design function, call discrete_subroutine file')
+          times <- nrow(rv$data)-1
+          i <- 1
+          showNotification(paste('1 of', times, 'model design files created.'), type='message', duration=10)
+          make_model_design(values$dataset, project=rv$data$project[i], catchID=rv$data$catch[i], alternativeMatrix = rv$data$alternatives[i], 
+                            replace=TRUE, lonlat= c(as.vector(rv$data$lon[i]), as.vector(rv$data$lat[i])), PortTable = input$port.datMD, likelihood=rv$data$likelihood[i], vars1=rv$data$vars1[i],
+                            vars2=rv$data$vars2[i], priceCol=rv$data$price[i], startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
           
-          for(i in 1:times){
-            make_model_design(values$dataset, catchID=model_table()$catch[i], alternativeMatrix = model_table()$alternatives[i], lon.dat= model_table()$lon[i], 
-                              lat.dat= model_table()$lat[i], project=model_table()$project[i], likelihood=model_table()$likelihood[i], vars1=model_table()$vars1[i],
-                              vars2=model_table()$vars2[i], priceCol=model_table()$price[i], startloc=model_table()$startloc[i], polyn=model_table()$polyn[i])
+          if(times>1){
+          for(i in 2:times){
+            make_model_design(values$dataset, project=rv$data$project[i], catchID=rv$data$catch[i], alternativeMatrix = rv$data$alternatives[i], 
+                              replace=FALSE, lonlat=c(as.vector(rv$data$lon[i]), as.vector(rv$data$lat[i])), PortTable = input$port.datMD, likelihood=rv$data$likelihood[i], vars1=rv$data$vars1[i],
+                              vars2=rv$data$vars2[i], priceCol=rv$data$price[i], startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
+            showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
           }
-          discretefish_subroutine(input$projectname, initparams=model_table()$initparams, optimOpt=model_table()$optimOpt,  
-                                  methodname='BFGS', mod.name, select.model=FALSE, name='discretefish_subroutine')
+          }
+         # showNotification(
+         #   capture.output(
+                showNotification('Model is running. Models can take 30 minutes.
+                                  All buttons are inactive while model function is running.
+                                  Check R console for progress.', type='message', duration=30)
+                discretefish_subroutine(input$projectname, initparams=rv$data$inits, optimOpt=rv$data$optimOpt,  
+                                  methodname='BFGS', mod.name=rv$data$mod_name, select.model=FALSE, name='discretefish_subroutine')              
+        #    ), type='message', duration=10)
+                showMessage('Model run is complete. Check the `Compare Models` subtab to view output', type='message', duration=10)
+          toggle_inputs(input_list,T)
         }
       })
       
@@ -2571,27 +2736,34 @@
       
       output$modeltab <- DT::renderDT({
         modeltab <- data.frame(Model_name=rep(NA, length(mod_sum_out())), covergence=rep(NA, length(mod_sum_out())), Stand_Errors=rep(NA, length(mod_sum_out())), Hessian=rep(NA, length(mod_sum_out())))
-        if(dim(mod_sum_out())[2]>2){
-          modeltab[i,1] <- mod_sum_out()[[i]]$name
+        #if(dim(mod_sum_out())[2]>2){
+        #  modeltab[i,1] <- mod_sum_out()[[i]]$name
+        if(is.data.frame(mod_sum_out())){
+          modeltab <- modeltab
+        } else {
         for(i in 1:length(mod_sum_out())){
           modeltab[i,1] <- mod_sum_out()[[i]]$name
           modeltab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
           modeltab[i,3] <- toString(round(mod_sum_out()[[i]]$seoutmat2,3))
           modeltab[i,4] <- toString(round(mod_sum_out()[[i]]$H1,5))
         }}
-        return(modeltab)
+        #return(modeltab)
       })
       
       
       output$errortab <- DT::renderDT({
+
           error_out <- data.frame(Model_name=rep(NA, length(mod_sum_out())), Model_error=rep(NA, length(mod_sum_out())), Optimization_error=rep(NA, length(mod_sum_out())))
-          if(dim(mod_sum_out())[2]>2){  
+          #if(dim(mod_sum_out())[2]>2){ 
+          if(colnames(mod_sum_out())[1]=='var1'){
+            error_out <- error_out
+          } else {
           for(i in 1: length(mod_sum_out())){
               error_out[i,1] <- mod_sum_out()[[i]]$name
               error_out[i,2] <- ifelse(is.null(mod_sum_out()[[i]]$errorExplain), 'No error reported', toString(mod_sum_out()[[i]]$errorExplain))
               error_out[i,3] <- ifelse(is.null(mod_sum_out()[[i]]$optoutput$optim_message), 'No message reported', toString(mod_sum_out()[[i]]$optoutput$optim_message))
             }}
-          return(error_out)
+          #return(error_out)
       })
       
       #----      
@@ -2600,24 +2772,29 @@
       # Run functions
       #-----
       observeEvent(input$saveALT, {
-        create_alternative_choice(dat=values$dataset, gridfile=spatdat$dataset, case=input$case_ac, min.haul=input$min_haul_ac,
+         showNotification('Alternative choice matrix updated', type='message', duration=10)
+        showNotification(
+          capture.output(
+              create_alternative_choice(dat=values$dataset, gridfile=spatdat$dataset, case=input$case_ac, min.haul=input$min_haul_ac,
                                   alt_var=input$alt_var_ac, occasion=input$occasion_ac, dist.unit=input$dist_ac, lon.dat=input$lon_dat_ac,
                                   lat.dat=input$lat_dat_ac, lon.grid=input$long_grid_altc, lat.grid=input$lat_grid_altc, 
                                   cat=input$cat_altc, hull.polygon=input$hull_polygon_ac, 
-                                  closest.pt=input$closest_pt_ac, project=input$projectname, griddedDat=NULL, weight.var=input$weight_var_ac) 
-        
-        showNotification('Alternative choice matrix updated', type='message', duration=10)
+                                  closest.pt=input$closest_pt_ac, project=input$projectname, griddedDat=NULL, weight.var=input$weight_var_ac)),
+          type='message', duration=10)
+
       }, ignoreInit = F) 
       
       
       
       observeEvent(input$submitE, {
         showNotification('Create expectated catch function called', type='message', duration=10)
-        
-        create_expectations(values$dataset, input$projectname, input$catche, price=input$price, defineGroup=if(grepl('no group',input$group)){NULL} else {input$group}, temp.var=input$temp_var, 
+        showNotification(
+          capture.output(
+                create_expectations(values$dataset, input$projectname, input$catche, price=input$price, defineGroup=if(grepl('no group',input$group)){NULL} else {input$group}, temp.var=input$temp_var, 
                             temporal = input$temporal, calc.method = input$calc_method, lag.method = input$lag_method,
                             empty.catch = input$empty_catch, empty.expectation = input$empty_expectation,  
-                            temp.window = input$temp_window, temp.lag = input$temp_lag, year.lag=input$temp_year, dummy.exp = input$dummy_exp)
+                            temp.window = input$temp_window, temp.lag = input$temp_lag, year.lag=input$temp_year, dummy.exp = input$dummy_exp, replace.output = TRUE)),
+          type='message', duration=10)
       }) 
       
       
@@ -3011,7 +3188,7 @@
         updateSelectInput(session, "occasion_ac", selected = bookmarkedstate()$occasion_ac) 
         updateSelectInput(session, "plot_table", selected = bookmarkedstate()$plot_table) 
         updateSelectInput(session, "plot_type", selected = bookmarkedstate()$plot_type) 
-        updateTextInput(session, 'polyear', vaue=bookmarkedstate()$polyear)
+        updateTextInput(session, 'polyear', value = bookmarkedstate()$polyear)
         updateNumericInput(session, "polyn", value = bookmarkedstate()$polyn) 
         updateSelectInput(session, "port_dat_dist", selected = bookmarkedstate()$port_dat_dist) 
         updateSelectInput(session, "port_end", selected = bookmarkedstate()$port_end) 

@@ -3,9 +3,9 @@ title: "FishSET Notebook"
 date: "`r Sys.Date()`"
 always_allow_html: yes
 output:
+  pdf_document: default
   html_document:
     df_print: paged
-  pdf_document: default
   word_document: default
 Author: Your Name
 #params: update <- FALSE

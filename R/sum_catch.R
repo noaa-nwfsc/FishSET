@@ -14,7 +14,7 @@
 #' @param val Whether to output raw count ("raw") or proportion ("per") of catch. If data frame
 #'   is in wide format, the proportion of catch is calculated based on the variables provided
 #'   to the \code{catch} argument. 
-#' @param out Output; if "logical" function returns a vector of logical values based on 
+#' @param output Output; if "logical" function returns a vector of logical values based on 
 #'   the \code{exp} argument. This can be used for subsetting tables or assigning values.
 #'   "table" returns a summary table. 
 #' @importFrom stats aggregate reformulate
@@ -23,8 +23,10 @@
 #' @return A summary table or vector of logical values based on the \code{exp} argument.
 #' @examples 
 #' \dontrun{
-#' sum_catch("MainDataTable", "myProject", "LBS_270_POLLOCK_LBS", "LBS_270_POLLOCK_LBS > 3000", val = "raw", out = "table")
-#' sum_catch("MainDataTable", "myProject", "catch", "species == 'cod' & catch > .5", val = "per", out = "logical")
+#' sum_catch("MainDataTable", "myProject", "LBS_270_POLLOCK_LBS",
+#'      "LBS_270_POLLOCK_LBS > 3000", val = "raw", out = "table")
+#' sum_catch("MainDataTable", "myProject", "catch", 
+#'     "species == 'cod' & catch > .5", val = "per", out = "logical")
 #' }
 #' 
 

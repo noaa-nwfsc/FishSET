@@ -52,7 +52,7 @@ cpue <- function(dat, xWeight, xTime, name='cpue') {
 dummy_num <- function(dat, var, value, opts='more_less', name='dummy_num'){
 #' Create a dummy variable based on selected values
 #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-#' @param var Variable in data frame to create dummy variable off of
+#' @param var Variable in data frame to create dummy variable from
 #' @param value The set value will depend whether the data is a date, factor, or numeric. If date, value should be a year, if factor, value should be a level
 #' within the variable, if number value should be a single number or range of numbers [use c(1,5)]
 #' @param opts Choices are x_y and more_less. x_y sets the selected year, factor, or numeric value (single or range) to 0 and all other values to 1.
@@ -338,7 +338,7 @@ create_mid_haul <- function(dat, start=c('lon', 'lat'), end=c('lon','lat'), name
   dataset <- out$dataset
   tmp <- 0
 
- if(is_empty(start)|is_empty(end)) {
+ if(is_empty(start)||is_empty(end)) {
    tmp <- 1
    warning('Starting and end locations must both be specified. Function not run.')
  }
@@ -361,7 +361,7 @@ create_mid_haul <- function(dat, start=c('lon', 'lat'), end=c('lon','lat'), name
   
   if(tmp == 0){
   distBetween <- geosphere::midPoint(dataset[,c(start)], dataset[,c(end)])
-  colnames(distBetween)= c(paste0(name,'lon'), paste0(name,'lat'))
+  colnames(distBetween)= c(paste0(name,'Lon'), paste0(name,'Lat'))
   out <- cbind(dataset, distBetween)
   
   create_mid_haul_function <- list()
@@ -704,7 +704,6 @@ create_dist_between <- function(dat, start, end, units=c('miles','meters','km','
     }
   }
   }
-
 
 ##---- Temporal  Variables ----##
 #' Create duration of time variable
