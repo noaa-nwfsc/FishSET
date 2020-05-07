@@ -54,6 +54,25 @@ locoutput <- function(){
   }
 }
 
+loc_map <- function(){
+    #Define source location for MapViewer folder
+    #' Returns the location of the MapViewer folder
+    #' @details if loc2 is not in the working environment, then the default location is use
+    #' @examples 
+    #' \dontrun{
+    #' loc_map() # will return output folder location within the fishset package
+    #' loc2 <- getwd()
+    #' loc_map() #will return output folder location as within the working directory
+    #' }
+    if(exists('loc2')) { loc2=loc2} else { loc2=NULL}
+    if(is.null(loc2)){
+      paste0(system.file(package='FishSET'), '/MapViewer/')
+      
+    } else {
+      paste0(loc2, '/MapViewer/')
+    } 
+}
+
 pull_info_data <- function(project){
 #' Pull the most recent data index file for given project
 #' @param project Name of project, such as pollock
