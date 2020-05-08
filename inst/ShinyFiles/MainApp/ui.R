@@ -127,7 +127,7 @@
                            )),
                   #---
                   #----
-                  #UPLOAD DATA TABSET PANEL  
+                  #Upload data tabset panel   
                   #-----
                   tabPanel("Upload Data", value = "upload",
                            tags$style(type='text/css', "#uploadMain { width:100%; margin-top: 24px;margin-left:-20px;padding-left:2px; padding-right:5px}"),
@@ -181,7 +181,7 @@
                              textInput('notesUp', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
                            )),
                   #-----
-                  #BEGIN DATA QUALITY EVALUATION TABSET PANEL  
+                  #Data quality evaluation tabset panel   
                   #----
                   tabPanel("Data Quality Evaluation", value = "qaqc",
                            sidebarLayout(
@@ -291,7 +291,7 @@
                                 
                                        ))),
                   #---- 
-                  #BEGIN DATA EXPLORATION TABSET PANEL 
+                  #Data exploration tabset panel 
                   #----
                   tabPanel("Data Exploration", value = "explore",
                            sidebarLayout(
@@ -394,7 +394,7 @@
                   
                   
                   #---- 
-                  #BEGIN BASIC ANALYSIS TABSET PANEL 
+                  #Basic analysis tabset panel 
                   #----
                   tabPanel("Simple Analyses", value = "analysis",
                            sidebarLayout(
@@ -732,7 +732,7 @@
                              )
                              )),
                   #----
-                  #Model Parameters tabset panel
+                  #Model Design and Run tabset panel
                   #----
                    tabPanel("Models",
                             tabsetPanel(
@@ -777,6 +777,8 @@
                                                choices = list("Conditional logit" = 'logit_c', "Average catch" = "logit_avgcat", "Logit Dahl correction" = "logit_correction",
                                                               'EPM normal'='epm_normal', 'EPM lognormal'='epm_lognormal', 'EPM Weibull'='epm_weibull'),
                                                selected = 'logit_c'),
+                                   selectInput('optmeth', 'Optimization method', 
+                                               choices=c("Nelder-Mead", "BFGS", "CG", "L-BFGS-B", "SANN", "Brent"), selected='BFGS'),
                                    h4('Select variables to include in model'),
                                    div(style="display: inline-block;vertical-align:top; width: 250px;", uiOutput('indvariables')),
                                    div(style="display: inline-block;vertical-align:top; width: 250px;", uiOutput('gridvariables')),
