@@ -81,11 +81,11 @@ filter_dat <- function(dat, exp, filterTable) {
   if (!is.null(filterTable)) {
 
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
-    DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM", paste0("'", noquote(filterTable), "'"))) 
+    f_tab <- DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM", paste0("'", noquote(filterTable), "'"))) 
     DBI::dbDisconnect(fishset_db)
 
      cat("The entire row will be removed from the dataframe.")
-    dataset <- subset(dataset, eval(parse(text = filterTable[exp, 3])))
+    dataset <- subset(dataset, eval(parse(text = f_tab[exp, 3])))
     
     
      } else {
