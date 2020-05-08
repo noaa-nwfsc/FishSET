@@ -2618,7 +2618,7 @@
                                   All buttons are inactive while model function is running.
                                   Check R console for progress.', type='message', duration=30)
                 discretefish_subroutine(input$projectname, initparams=rv$data$inits, optimOpt=rv$data$optimOpt,  
-                                  methodname='BFGS', mod.name=rv$data$mod_name, select.model=FALSE, name='discretefish_subroutine')              
+                                  methodname=input$optmeth, mod.name=rv$data$mod_name, select.model=FALSE, name='discretefish_subroutine')              
         #    ), type='message', duration=10)
                 showMessage('Model run is complete. Check the `Compare Models` subtab to view output', type='message', duration=10)
           toggle_inputs(input_list,T)
@@ -2629,8 +2629,6 @@
     ## Explore models sections
       #out_mod <- reactive({
       fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
-      #     return(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite"), paste0("SELECT * FROM", paste0(project, "modelfit"))))
-      # })
       
       shinyInput = function(FUN, len, id, ...) { 
         inputs = character(len) 
