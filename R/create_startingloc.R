@@ -21,60 +21,57 @@
 #' \dontrun{
 #' pcodMainDataTable$startingloc <- create_startingloc('pcodMainDataTable', map2, pollockPortTable, 
 #'                               'TRIP_SEQ','HAUL_SEQ','DISEMBARKED_PORT',
-#'                               "LonLat_START_LON","LonLat_START_LAT", 'NMFS_AREA', "","")
+#'                               'LonLat_START_LON','LonLat_START_LAT', 'NMFS_AREA', '','')
 #' }
 
-create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, starting_port, lon.dat, lat.dat, cat, lon.grid=NULL, lat.grid=NULL) {
-  #Call in datasets
-  out <- data_pull(dat)
-  dat <- out$dat
-  dataset <- out$dataset
-  
-  
-  #  in port table
-  out <- data_pull(portTable)
-  PortTable <- out$dat
-  port.table <- out$dataset
-  
-#  DBI::dbDisconnect(fishset_db)
-  port <- assignment_column(dat=port.table, gridfile = gridfile, hull.polygon = FALSE, 
-                            lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = 'Port_Long', 
-                            lat.dat = 'Port_Lat', cat = cat, closest.pt = TRUE)
-  
-  int.data <- assignment_column(dat=dataset, gridfile = gridfile, hull.polygon = FALSE, 
-                                lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat, 
-                                lat.dat = lat.dat, cat = cat, closest.pt = TRUE)
- 
-#Create starting loc variable  
-  if(is.null(trip_id)){
-    int.data <- int.data[order(int.data[[haul_order]]),]
-  } else {
-  int.data <- int.data[order(int.data[[trip_id]], int.data[[haul_order]]),]
-  }
-  startingloc <- rep(NA, nrow(int.data))
-  startingloc[2:nrow(int.data)] <- int.data$ZoneID[1:(nrow(int.data)-1)]
-
-  #Make starting of trips set to zone of starting port  
-  if(!is.null(trip_id)){
-       rownumbers <- match(trimws(int.data[tapply(seq_along(int.data[[trip_id]]), int.data[[trip_id]], min), starting_port]), port$Port_Name)
-      startingloc[tapply(seq_along(int.data[[trip_id]]), int.data[[trip_id]], min)] <- port[rownumbers, 'ZoneID']
-  } else {
-    rownumbers <- match(trimws(int.data[1, starting_port]), port$PORT)
-    startingloc[1] <- port[rownumbers, 'ZoneID']
-  }
-  
-
-  create_startingloc_function <- list()
-  create_startingloc_function$functionID <- 'create_startingloc'
-  create_startingloc_function$args <- c(dat, deparse(substitute(gridfile)), portTable, trip_id, 
-                                        haul_order, lon.dat, lat.dat, lon.grid, lat.grid, cat)
-  create_startingloc_function$kwargs <- c()
-  create_startingloc_function$output <- c()
-   
-  log_call(create_startingloc_function)
-  
-  return(startingloc)
-}                                                                                                                                                                                                                           
+create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, starting_port, lon.dat, lat.dat, cat, lon.grid = NULL, lat.grid = NULL) {
+    # Call in datasets
+    out <- data_pull(dat)
+    dat <- out$dat
+    dataset <- out$dataset
+    
+    
+    # in port table
+    out <- data_pull(portTable)
+    PortTable <- out$dat
+    port.table <- out$dataset
+    
+    # DBI::dbDisconnect(fishset_db)
+    port <- assignment_column(dat = port.table, gridfile = gridfile, hull.polygon = FALSE, lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = "Port_Long", 
+        lat.dat = "Port_Lat", cat = cat, closest.pt = TRUE)
+    
+    int.data <- assignment_column(dat = dataset, gridfile = gridfile, hull.polygon = FALSE, lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat, 
+        lat.dat = lat.dat, cat = cat, closest.pt = TRUE)
+    
+    # Create starting loc variable
+    if (is.null(trip_id)) {
+        int.data <- int.data[order(int.data[[haul_order]]), ]
+    } else {
+        int.data <- int.data[order(int.data[[trip_id]], int.data[[haul_order]]), ]
+    }
+    startingloc <- rep(NA, nrow(int.data))
+    startingloc[2:nrow(int.data)] <- int.data$ZoneID[1:(nrow(int.data) - 1)]
+    
+    # Make starting of trips set to zone of starting port
+    if (!is.null(trip_id)) {
+        rownumbers <- match(trimws(int.data[tapply(seq_along(int.data[[trip_id]]), int.data[[trip_id]], min), starting_port]), port$Port_Name)
+        startingloc[tapply(seq_along(int.data[[trip_id]]), int.data[[trip_id]], min)] <- port[rownumbers, "ZoneID"]
+    } else {
+        rownumbers <- match(trimws(int.data[1, starting_port]), port$PORT)
+        startingloc[1] <- port[rownumbers, "ZoneID"]
+    }
+    
+    
+    create_startingloc_function <- list()
+    create_startingloc_function$functionID <- "create_startingloc"
+    create_startingloc_function$args <- c(dat, deparse(substitute(gridfile)), portTable, trip_id, haul_order, lon.dat, lat.dat, lon.grid, lat.grid, cat)
+    create_startingloc_function$kwargs <- c()
+    create_startingloc_function$output <- c()
+    
+    log_call(create_startingloc_function)
+    
+    return(startingloc)
+}
 
 
 
