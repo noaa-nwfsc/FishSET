@@ -75,10 +75,9 @@ filter_dat <- function(dat, exp, filterTable) {
     out <- data_pull(dat)
     dat <- out$dat
     dataset <- out$dataset
-    
-    
-    # NaNs only occurs on Numeric Variables
-    if (!is.null(filterTable)) {
+
+  # NaNs only occurs on Numeric Variables
+     if (!is.null(filterTable)) {
         
         fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
         DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM", paste0("'", noquote(filterTable), "'")))

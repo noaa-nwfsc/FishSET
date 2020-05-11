@@ -457,7 +457,8 @@ date_title <- function(plot, filter_date, filter_value) {
   #' @param filter_date The \code{filter_date} parameter in function.
   #' @param filter_value The values used to filter the data table used in plot.
   #' @return A plot with the year, month, or year-month included in tittle. 
-  #' @export
+  #' @importFrom dplyr case_when
+ 
   
   fv_len <- length(filter_value)
   
@@ -465,52 +466,74 @@ date_title <- function(plot, filter_date, filter_value) {
     
     if (fv_len == 1) {
       
-      plot$labels$title <- paste0(plot$labels$title, " Year: ", filter_value)
+      plot$labels$subtitle <- paste0("Year: ", filter_value)
       
     } else {
       
-      plot$labels$title <- paste0(plot$labels$title, " Year: ", 
-                                  filter_value[1], "-", filter_value[fv_len])
+      plot$labels$subtitle <- paste0("Year: ", 
+                                     filter_value[1], "-", filter_value[fv_len])
     }
     
   } else if (filter_date == "month") {
     
+    month <- dplyr::case_when(filter_value == 1 ~ "Jan",
+                              filter_value == 2 ~ "Feb",
+                              filter_value == 3 ~ "Mar",
+                              filter_value == 4 ~ "Apr",
+                              filter_value == 5 ~ "May",
+                              filter_value == 6 ~ "Jun",
+                              filter_value == 7 ~ "Jul",
+                              filter_value == 8 ~ "Aug",
+                              filter_value == 9 ~ "Sep",
+                              filter_value == 10 ~ "Oct",
+                              filter_value == 11 ~ "Nov",
+                              filter_value == 12 ~ "Dec")
+    
     if (fv_len == 1) {
       
-      plot$labels$title <- paste0(plot$labels$title, " Month: ", filter_value)
+      plot$labels$subtitle <- paste0(month)
       
     } else {
       
-      plot$labels$title <- paste0(plot$labels$title, " Month: ", 
-                                  filter_value[1], "-", filter_value[fv_len])
+      plot$labels$subtitle <- paste0(month[1], "-", month[fv_len])
     }
     
   } else if (filter_date == "year-month") {
     
-    y_len <- length(filter_value[[1]])
-    m_len <- length(filter_value[[2]])
+    y_num <- filter_value[[1]]
+    m_num <- filter_value[[2]]
+    y_len <- length(y_num)
+    m_len <- length(m_num)
+    
+    month <- dplyr::case_when(m_num == 1 ~ "Jan",
+                              m_num == 2 ~ "Feb",
+                              m_num == 3 ~ "Mar",
+                              m_num == 4 ~ "Apr",
+                              m_num == 5 ~ "May",
+                              m_num == 6 ~ "Jun",
+                              m_num == 7 ~ "Jul",
+                              m_num == 8 ~ "Aug",
+                              m_num == 9 ~ "Sep",
+                              m_num == 10 ~ "Oct",
+                              m_num == 11 ~ "Nov",
+                              m_num == 12 ~ "Dec")
     
     if (y_len == 1 & m_len == 1) {
       
-      plot$labels$title <- paste0(plot$labels$title, " Year: ", filter_value,
-                                  " Month: ", filter_value)
+      plot$labels$subtitle <- paste(month, y_num)
       
     } else if (y_len > 1 & m_len == 1) {
       
-      plot$labels$title <- paste0(plot$labels$title, " Year: ", 
-                                  filter_value[[1]], "-", filter_value[[1]][y_len],
-                                  " Month: ", filter_value)
+      plot$labels$subtitle <- paste0(month, " ", y_num[1], "-", y_num[y_len])
       
     } else if (y_len == 1 & m_len > 1) {
       
-      plot$labels$title <- paste0(plot$labels$title, " Year: ", filter_value,
-                                  " Month: ", filter_value[[2]][1], "-", filter_value[[2]][m_len])
+      plot$labels$subtitle <- paste0(month[1], "-", month[m_len], " ", y_num)
       
     } else if (y_len > 1 & m_len > 1) {
       
-      plot$labels$title <- paste0(plot$labels$title, " Year: ", 
-                                  filter_value[[1]], "-", filter_value[[1]][y_len],
-                                  " Month: ", filter_value[[2]][1], "-", filter_value[[2]][m_len])
+      plot$labels$subtitle <- paste0(month[1], "-", month[m_len], " ",
+                                     y_num[1], "-", y_num[y_len])
       
     } else {
       
