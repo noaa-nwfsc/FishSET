@@ -18,36 +18,36 @@
 #' @export
 #' @examples 
 #' \dontrun{
-#' temp_obs_table('pollockMainDataTable', gridfile=map2, x="DATE_FISHING_BEGAN", 
-#'                 lon.grid="", lat.grid="", lon.dat="LonLat_START_LON", 
-#'                 lat.dat="LonLat_START_LAT", cat="NMFS_AREA")
+#' temp_obs_table('pollockMainDataTable', gridfile=map2, x='DATE_FISHING_BEGAN', 
+#'                 lon.grid='', lat.grid='', lon.dat='LonLat_START_LON', 
+#'                 lat.dat='LonLat_START_LAT', cat='NMFS_AREA')
 #' }
 
-temp_obs_table <- function(dat, project, gridfile, x, lon.grid, lat.grid, lon.dat, lat.dat, cat){
-  
-  #Call in datasets
-  out <- data_pull(dat)
-  dat <- out$dat
-  dataset <- out$dataset
-
- out <- assignment_column(dataset, gridfile=gridfile, lon.grid=long.grid, lat.grid=lat.dat, lon.dat=lon.dat, lat.dat=lat.dat,  
-                          cat=cat, closest.pt =FALSE, hull.polygon = TRUE, epsg=NULL)
- 
- out$YEAR <- temporal_mod(dataset, x, 'year') 
- out$MONTH <- temporal_mod(dataset, x, '%m') 
- 
- cat('Number of observations by year') 
- print(table(out$YEAR))
-  cat('Number of observations by year and Zone') 
- print(table(out$YEAR, out$ZoneID))
-cat('Number of observations by year and month') 
- print(table(out$YEAR, out$MONTH))
- cat('Number of observations by year and month split by Zone') 
- for(i in 1:length(unique(out$ZoneID))){
-   cat('Zone', unique(out$ZoneID)[i])
- print(table(out$YEAR[out$ZoneID==unique(out$ZoneID)[i]], out$MONTH[out$ZoneID==unique(out$ZoneID)[i]]))
- }
- 
- save_table(out, project, "temp_obs_table")
- 
+temp_obs_table <- function(dat, project, gridfile, x, lon.grid, lat.grid, lon.dat, lat.dat, cat) {
+    
+    # Call in datasets
+    out <- data_pull(dat)
+    dat <- out$dat
+    dataset <- out$dataset
+    
+    out <- assignment_column(dataset, gridfile = gridfile, lon.grid = long.grid, lat.grid = lat.dat, lon.dat = lon.dat, lat.dat = lat.dat, cat = cat, 
+        closest.pt = FALSE, hull.polygon = TRUE, epsg = NULL)
+    
+    out$YEAR <- temporal_mod(dataset, x, "year")
+    out$MONTH <- temporal_mod(dataset, x, "%m")
+    
+    cat("Number of observations by year")
+    print(table(out$YEAR))
+    cat("Number of observations by year and Zone")
+    print(table(out$YEAR, out$ZoneID))
+    cat("Number of observations by year and month")
+    print(table(out$YEAR, out$MONTH))
+    cat("Number of observations by year and month split by Zone")
+    for (i in 1:length(unique(out$ZoneID))) {
+        cat("Zone", unique(out$ZoneID)[i])
+        print(table(out$YEAR[out$ZoneID == unique(out$ZoneID)[i]], out$MONTH[out$ZoneID == unique(out$ZoneID)[i]]))
+    }
+    
+    save_table(out, project, "temp_obs_table")
+    
 }

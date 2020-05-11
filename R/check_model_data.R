@@ -22,95 +22,89 @@
 
 
 check_model_data <- function(dat, dataindex, uniqueID, save.file = TRUE) {
-     x <- 0
-   #Call in data sets
-  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
+    x <- 0
+    # Call in data sets
+    fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+    if (is.character(dat) == TRUE) {
+        if (is.null(dat) == TRUE | table_exists(dat) == FALSE) {
+            print(DBI::dbListTables(fishset_db))
+            stop(paste(dat, "not defined or does not exist. Consider using one of the tables listed above that exist in the database."))
+        } else {
+            dataset <- table_view(dat)
+        }
     } else {
-      dataset <- table_view(dat)
+        dataset <- dat
     }
-  } else {
-    dataset <- dat  
-  }
-  DBI::dbDisconnect(fishset_db)
-  
-  if(is.character(dat)==TRUE){
-    dat <- dat
-  } else {
-    dat <- deparse(substitute(dat))
-  }
-  
-  #update dataindex
-  dataindex_update(dataset, dataindex)
-  
+    DBI::dbDisconnect(fishset_db)
+    
+    if (is.character(dat) == TRUE) {
+        dat <- dat
+    } else {
+        dat <- deparse(substitute(dat))
+    }
+    
+    # update dataindex
+    dataindex_update(dataset, dataindex)
+    
     tmp <- tempfile()
-
-    if (any(apply(dataset, 2, function(x) any(is.nan(x)))==TRUE)) {
-    cat("\nNaNs are present in", 
-              names(which(apply(dataset, 2, function(x) any(is.nan(x)))==TRUE)), file=tmp, append=T)
-    cat("\nNaNs are present in", 
-               names(which(apply(dataset, 2, function(x) any(is.nan(x)))==TRUE)))
-     x<- 1
-  }
-
-    if (any(apply(dataset, 2, function(x) anyNA(x))==TRUE)) {
-      cat(paste("\nNAs are present in", 
-                names(which(apply(dataset, 2, function(x) anyNA(x))==TRUE))), file=tmp, append=T)
-      cat("\nNAs are present in", 
-                 names(which(apply(dataset, 2, function(x) anyNA(x))==TRUE)))
-      x <- 1
+    
+    if (any(apply(dataset, 2, function(x) any(is.nan(x))) == TRUE)) {
+        cat("\nNaNs are present in", names(which(apply(dataset, 2, function(x) any(is.nan(x))) == TRUE)), file = tmp, append = T)
+        cat("\nNaNs are present in", names(which(apply(dataset, 2, function(x) any(is.nan(x))) == TRUE)))
+        x <- 1
     }
     
-
-  # is.inf
-  if (any(apply(dataset, 2, function(x) any(is.infinite(x)))==TRUE)) {
-    cat(paste("\nInfinite values are present in",
-              names(which(apply(dataset, 2, function(x) any(is.infinite(x)))==TRUE))), file=tmp, append=T)
+    if (any(apply(dataset, 2, function(x) anyNA(x)) == TRUE)) {
+        cat(paste("\nNAs are present in", names(which(apply(dataset, 2, function(x) anyNA(x)) == TRUE))), file = tmp, append = T)
+        cat("\nNAs are present in", names(which(apply(dataset, 2, function(x) anyNA(x)) == TRUE)))
+        x <- 1
+    }
     
-    cat("\nInfinite values are present in",
-               names(which(apply(dataset, 2, function(x) any(is.infinite(x)))==TRUE)))
-    x <- 1
-  }
+    
+    # is.inf
+    if (any(apply(dataset, 2, function(x) any(is.infinite(x))) == TRUE)) {
+        cat(paste("\nInfinite values are present in", names(which(apply(dataset, 2, function(x) any(is.infinite(x))) == TRUE))), file = tmp, append = T)
+        
+        cat("\nInfinite values are present in", names(which(apply(dataset, 2, function(x) any(is.infinite(x))) == TRUE)))
+        x <- 1
+    }
     
     if (length(dataset[[uniqueID]]) != length(unique(dataset[[uniqueID]]))) {
-      cat("\nThe uniqueID variable should define the length of unique occurrences in the dataset. Use the haul_to_trip function to collapse data.",
-          file=tmp, append=T)
-      
-     cat("\nThe uniqueID variable should define the length of unique occurrences in the dataset. 
+        cat("\nThe uniqueID variable should define the length of unique occurrences in the dataset. Use the haul_to_trip function to collapse data.", 
+            file = tmp, append = T)
+        
+        cat("\nThe uniqueID variable should define the length of unique occurrences in the dataset. 
          Use the haul_to_trip function to collapse data.")
-     x <- 1
-  }
-
-    if(x == 1) {
-      suppressWarnings(readLines(tmp))
-         warning('At least one test did not pass. Data set will not be saved.')
+        x <- 1
     }
-    if(x==0){
-    if (save.file == TRUE) {
-      cat(paste("\nModified data set saved to fishset_db database"), file=tmp, append=T)
-    fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-    if(DBI::dbExistsTable(fishset_db, deparse(substitute(dat)))==TRUE){
-      single_sql <- paste0("raw", deparse(substitute(dat)))
-      DBI::dbWriteTable(fishset_db, single_sql, dataset, overwrite=TRUE)
+    
+    if (x == 1) {
+        suppressWarnings(readLines(tmp))
+        warning("At least one test did not pass. Data set will not be saved.")
     }
-    single_sql <- deparse(substitute(dat))
-    DBI::dbWriteTable(fishset_db, single_sql, dataset, overwrite=TRUE)
-    DBI::dbDisconnect(fishset_db)
-    # logging function information
+    if (x == 0) {
+        if (save.file == TRUE) {
+            cat(paste("\nModified data set saved to fishset_db database"), file = tmp, append = T)
+            fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+            if (DBI::dbExistsTable(fishset_db, deparse(substitute(dat))) == TRUE) {
+                single_sql <- paste0("raw", deparse(substitute(dat)))
+                DBI::dbWriteTable(fishset_db, single_sql, dataset, overwrite = TRUE)
+            }
+            single_sql <- deparse(substitute(dat))
+            DBI::dbWriteTable(fishset_db, single_sql, dataset, overwrite = TRUE)
+            DBI::dbDisconnect(fishset_db)
+            # logging function information
+        }
     }
-    }
-  
-  checkModelData_function <- list()
-  checkModelData_function$functionID <- 'check_model_data'
-  checkModelData_function$args <- c(dat, dataindex, uniqueID, save.file)
-  checkModelData_function$kwargs <- list()
-  checkModelData_function$output <-  c('')
-  checkModelData_function$msg <- suppressWarnings(readLines(tmp))
-  suppressWarnings(readLines(tmp))
-  
-  log_call(checkModelData_function)
-  rm(tmp)
+    
+    checkModelData_function <- list()
+    checkModelData_function$functionID <- "check_model_data"
+    checkModelData_function$args <- c(dat, dataindex, uniqueID, save.file)
+    checkModelData_function$kwargs <- list()
+    checkModelData_function$output <- c("")
+    checkModelData_function$msg <- suppressWarnings(readLines(tmp))
+    suppressWarnings(readLines(tmp))
+    
+    log_call(checkModelData_function)
+    rm(tmp)
 }

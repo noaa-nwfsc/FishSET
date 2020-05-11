@@ -91,23 +91,22 @@ logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod
     #' }
     #' @section Graphical examples: 
     #' \if{html}{
-    #' \figure{logit_correction_grid.png}{options: width="40\%" 
-    #' alt="Figure: logit_correction_grid.png"}
+    #' \figure{logit_correction_grid.png}{options: width='40\%' 
+    #' alt='Figure: logit_correction_grid.png'}
     #' \cr
-    #' \figure{logit_correction_travel.png}{options: width="40\%" 
-    #' alt="Figure: logit_correction_travel.png"}
+    #' \figure{logit_correction_travel.png}{options: width='40\%' 
+    #' alt='Figure: logit_correction_travel.png'}
     #' \cr
-    #' \figure{logit_correction_poly.png}{options: width="40\%" 
-    #' alt="Figure: logit_correction_poly.png"}
+    #' \figure{logit_correction_poly.png}{options: width='40\%' 
+    #' alt='Figure: logit_correction_poly.png'}
     #' }
     #'
-        
+    
     obsnum <- dim(as.data.frame(otherdat$griddat))[1]
-
+    
     griddat <- as.matrix(do.call(cbind, otherdat$griddat))
     gridnum <- dim(griddat)[2]
-    griddat <- matrix(apply(griddat, 2, function(x) rep(x,times=alts)), obsnum,
-        gridnum*alts)
+    griddat <- matrix(apply(griddat, 2, function(x) rep(x, times = alts)), obsnum, gridnum * alts)
     intdat <- as.matrix(do.call(cbind, otherdat$intdat))
     intnum <- dim(intdat)[2]
     
@@ -126,27 +125,22 @@ logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod
     
     signum <- 1
     
-    intcoef <- as.numeric(starts3[(1 + 1 + gridlength):((1 + 1 + gridlength) +
-        intnum - 1), ])
+    intcoef <- as.numeric(starts3[(1 + 1 + gridlength):((1 + 1 + gridlength) + intnum - 1), ])
     
     sigmac <- (1)
     
     sigmaa <- as.matrix(starts3[((1 + 1 + gridlength + intnum - 1) + 1), ])
     # end of vector
     
-    gridbetas <- (matrix(gridcoef[1:(alts * gridnum), ], obsnum, alts * gridnum,
-        byrow = TRUE) * griddat)
+    gridbetas <- (matrix(gridcoef[1:(alts * gridnum), ], obsnum, alts * gridnum, byrow = TRUE) * griddat)
     dim(gridbetas) <- c(nrow(gridbetas), alts, gridnum)
     gridbetas <- rowSums(gridbetas, dims = 2)
     
-    intbetas <- .rowSums(intdat * matrix(intcoef, obsnum, intnum, byrow = TRUE), 
-        obsnum, intnum)
+    intbetas <- .rowSums(intdat * matrix(intcoef, obsnum, intnum, byrow = TRUE), obsnum, intnum)
     
-    betas <- matrix(c((gridbetas * matrix(revcoef, obsnum, alts)), intbetas),
-        obsnum, (alts + 1))
+    betas <- matrix(c((gridbetas * matrix(revcoef, obsnum, alts)), intbetas), obsnum, (alts + 1))
     
-    djztemp <- betas[1:obsnum, rep(1:ncol(betas), each = alts)] *
-        dat[, 3:(dim(dat)[2])]
+    djztemp <- betas[1:obsnum, rep(1:ncol(betas), each = alts)] * dat[, 3:(dim(dat)[2])]
     dim(djztemp) <- c(nrow(djztemp), ncol(djztemp)/(alts + 1), alts + 1)
     
     prof <- rowSums(djztemp, dims = 2)
@@ -178,28 +172,20 @@ logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod
     
     intpoly <- 2
     
-    movemat <- matrix(c(locmove, (matrix(probmove, obsnum, alts * polyn)^
-        matrix(rep(1:polyn, each = alts), obsnum, alts * polyn, byrow = TRUE)),
-        (matrix(probmove, obsnum, alts * intpoly) * matrix(rowSums(probstay),
-        obsnum, alts * intpoly))^matrix(rep(1:intpoly, each = alts), obsnum,
-        alts * intpoly, byrow = TRUE)), obsnum, alts * (polyn + 1 + intpoly)) *
-        matrix(!(startloc == cj), obsnum, alts * (polyn + 1 + intpoly))
+    movemat <- matrix(c(locmove, (matrix(probmove, obsnum, alts * polyn)^matrix(rep(1:polyn, each = alts), obsnum, alts * polyn, byrow = TRUE)), (matrix(probmove, 
+        obsnum, alts * intpoly) * matrix(rowSums(probstay), obsnum, alts * intpoly))^matrix(rep(1:intpoly, each = alts), obsnum, alts * intpoly, byrow = TRUE)), 
+        obsnum, alts * (polyn + 1 + intpoly)) * matrix(!(startloc == cj), obsnum, alts * (polyn + 1 + intpoly))
     # 1 is for constant
     
-    staymat <- matrix(c(locstay, (matrix(probstay, obsnum, alts * polyn)^
-        matrix(rep(1:polyn, each = alts), obsnum, alts * polyn, byrow = TRUE))),
-        obsnum, alts * (polyn + 1)) * matrix((startloc == cj), obsnum,
-        alts * (polyn + 1))
+    staymat <- matrix(c(locstay, (matrix(probstay, obsnum, alts * polyn)^matrix(rep(1:polyn, each = alts), obsnum, alts * polyn, byrow = TRUE))), obsnum, 
+        alts * (polyn + 1)) * matrix((startloc == cj), obsnum, alts * (polyn + 1))
     # 1 is for constant
     
-    Xvar <- matrix(c(griddat * matrix(locmove, obsnum, gridnum * alts), staymat, 
-        movemat), obsnum, dim(gridcoef)[1])
+    Xvar <- matrix(c(griddat * matrix(locmove, obsnum, gridnum * alts), staymat, movemat), obsnum, dim(gridcoef)[1])
     
     empcatches <- Xvar %*% gridcoef
     
-    ldcatch <- matrix((-(0.5) * log(2 * pi)), obsnum) + (-(0.5) *
-        log(matrix(sigmaa, obsnum)^2)) + (-(0.5) * (((yj - empcatches)/
-        (matrix(sigmaa, obsnum)))^2))
+    ldcatch <- matrix((-(0.5) * log(2 * pi)), obsnum) + (-(0.5) * log(matrix(sigmaa, obsnum)^2)) + (-(0.5) * (((yj - empcatches)/(matrix(sigmaa, obsnum)))^2))
     
     ld1 <- ldcatch + ldchoice
     
@@ -209,28 +195,26 @@ logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod
         ld <- .Machine$double.xmax
     }
     
-	ldsumglobalcheck <- ld
+    ldsumglobalcheck <- ld
     paramsglobalcheck <- starts3
     ldglobalcheck <- unlist(as.matrix(ld1))
     
-    ldglobalcheck <- list(model=paste0(project, expname, mod.name), ldsumglobalcheck=ldsumglobalcheck,
-                          paramsglobalcheck=paramsglobalcheck, ldglobalcheck=ldglobalcheck)
+    ldglobalcheck <- list(model = paste0(project, expname, mod.name), ldsumglobalcheck = ldsumglobalcheck, paramsglobalcheck = paramsglobalcheck, ldglobalcheck = ldglobalcheck)
     
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(),locdatabase())
-    single_sql <- paste0(project, "ldglobalcheck", format(Sys.Date(), format="%Y%m%d"))
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+    single_sql <- paste0(project, "ldglobalcheck", format(Sys.Date(), format = "%Y%m%d"))
     second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
     
-    if(table_exists(single_sql)==TRUE){
-      x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
-      table_remove(single_sql)
-      ldglobalcheck <- c(x, ldglobalcheck)
+    if (table_exists(single_sql) == TRUE) {
+        x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
+        table_remove(single_sql)
+        ldglobalcheck <- c(x, ldglobalcheck)
     }
     
-    DBI::dbExecute(fishset_db, paste0("CREATE TABLE IF NOT EXISTS ", project, "ldglobalcheck", 
-                                      format(Sys.Date(), format="%Y%m%d"), "(data ldglobalcheck)"))
+    DBI::dbExecute(fishset_db, paste0("CREATE TABLE IF NOT EXISTS ", project, "ldglobalcheck", format(Sys.Date(), format = "%Y%m%d"), "(data ldglobalcheck)"))
     DBI::dbExecute(fishset_db, second_sql, params = list(data = list(serialize(ldglobalcheck, NULL))))
     DBI::dbDisconnect(fishset_db)
-
+    
     return(ld)
     
 }
