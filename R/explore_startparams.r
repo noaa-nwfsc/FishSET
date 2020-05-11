@@ -1,5 +1,4 @@
-explore_startparams <- function(space, startsr, dev, func, catch, choice,
-    distance, otherdat) {
+explore_startparams <- function(space, startsr, dev, func, catch, choice, distance, otherdat) {
     #' Function to explore starting value parameter space
     #'
     #' Shotgun method to find better starting values by exploring starting value
@@ -67,8 +66,7 @@ explore_startparams <- function(space, startsr, dev, func, catch, choice,
     # e.g. clogit
     
     ab <- max(choice) + 1
-    # no interactions in create_logit_input - interact distances in likelihood
-        # function instead
+    # no interactions in create_logit_input - interact distances in likelihood function instead
     dataCompile <- create_logit_input(choice)
     
     d <- shift_sort_x(dataCompile, choice, catch, distance, max(choice), ab)
@@ -89,7 +87,6 @@ explore_startparams <- function(space, startsr, dev, func, catch, choice,
     minindex <- which.min(unlist(saveLLstarts))
     newstart <- savestarts[[minindex]]
     
-    return(list(newstart = newstart, saveLLstarts = saveLLstarts,
-        savestarts = savestarts))
+    return(list(newstart = newstart, saveLLstarts = saveLLstarts, savestarts = savestarts))
     
 }
