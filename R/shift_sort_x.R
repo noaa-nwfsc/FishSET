@@ -26,14 +26,12 @@ shift_sort_x <- function(x, ch, y, distance, alts, ab) {
         if (ch0[j, ] == 0) {
             
             xsorted <- t(as.matrix(x[j, ]))
-            # need to 'as.matrix' again because subsetting turns into named num
-                # (one dim). Is there a not stupid way to do this?
+            # need to 'as.matrix' again because subsetting turns into named num (one dim). Is there a not stupid way to do this?
             
         } else {
             
             xj <- as.matrix(x[j, ])
-            #need to 'as.matrix' again because subsetting turns into named num
-                #(one dim). Is there a not stupid way to do this?
+            # need to 'as.matrix' again because subsetting turns into named num (one dim). Is there a not stupid way to do this?
             xj <- (matrix(xj, alts, ab))
             xj <- t(xj)
             
