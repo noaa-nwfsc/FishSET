@@ -7,7 +7,10 @@
 #' @param use.geartype TRUE/FALSE If true, fishery season dates depend on gear type. Column name containing gear type must match the two data sets.
 #' @param sp.col Column containing species names in seasonaldat. 
 #' @param target Name of target species. If `target` is NULL, runs through fisheries in order listed in seasonal.dat
+#' @export create_seasonal_ID
 #' @return  The input dataset with variables SeasonID, and seasonID*fishery (`seasonIDChinook`). 
+#' @importFrom DBI dbConnect
+#' @importFrom RSQLite SQLite
 #' @details Uses a table of season dates for fisheries to create season ID variables. 
 #' Output is a SeasonID variable and multiple SeasonID*fishery variables.
 #' The seasonID variable is a vector where each row is the fishery season based on dates of the observation. 
@@ -21,20 +24,19 @@
 #'  }
 #'
 
-create_seasonal_ID <- function(dat, seasonal.dat, use.location = c(TRUE, FALSE), use.geartype = c(TRUE, FALSE), sp.col, target = NULL) {
-    
-    # Call in datasets
-    out <- data_pull(dat)
-    dat <- out$dat
-    dataset <- out$dataset
-    
-    if (is.character(seasonal.dat) == TRUE) {
-        if (is.null(seasonal.dat) == TRUE | table_exists(seasonal.dat) == FALSE) {
-            print(DBI::dbListTables(fishset_db))
-            stop(paste(seasonal.dat, "not defined or does not exist. Consider using one of the tables listed above that exist in the database."))
-        } else {
-            seasonaldat <- table_view(seasonal.dat)
-        }
+create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), use.geartype=c(TRUE,FALSE), sp.col, target=NULL){
+
+  #Call in datasets
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset
+  
+  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+  
+  if(is.character(seasonal.dat)==TRUE){
+    if(is.null(seasonal.dat)==TRUE | table_exists(seasonal.dat)==FALSE){
+      print(tables_database())
+      stop(paste(seasonal.dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
     } else {
         seasonaldat <- seasonal.dat
     }
