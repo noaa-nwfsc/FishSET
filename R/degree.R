@@ -45,10 +45,12 @@ degree <- function(dat, lat = NULL, lon = NULL, latsign = FALSE, lonsign = FALSE
     degree_function$msg <- suppressWarnings(readLines(tmp))
     log_call(degree_function)
     
+    browser()
+    
     if (replace == TRUE) {
         if (!is.null(lat)) {
             if (!is.numeric(dat[[lat]])) {
-                temp = gsub("°|'|\"", "", dat[[lat]])
+                temp = gsub("?|'|\"", "", dat[[lat]])
                 temp[lengths(gregexpr(" ", temp)) == 1 & !is.na(temp)] <- paste(temp[lengths(gregexpr(" ", temp)) == 1 & !is.na(temp)], "00")
                 dat[[lat]] <- as.numeric(sapply(strsplit(temp, "\\s+"), "[", 1)) + as.numeric(sapply(strsplit(temp, "\\s+"), "[", 2))/60 + as.numeric(sapply(strsplit(temp, 
                   "\\s+"), "[", 3))/360
@@ -68,7 +70,7 @@ degree <- function(dat, lat = NULL, lon = NULL, latsign = FALSE, lonsign = FALSE
         }
         if (!is.null(lon)) {
             if (!is.numeric(dat[[lon]])) {
-                temp = gsub("°|'|\"", "", dat[, lon])
+                temp = gsub("?|'|\"", "", dat[, lon])
                 temp[lengths(gregexpr(" ", temp)) == 1 & !is.na(temp)] <- paste(temp[lengths(gregexpr(" ", temp)) == 1 & !is.na(temp)], "00")
                 dat[[lon]] <- as.numeric(sapply(strsplit(temp, "\\s+"), "[", 1)) + as.numeric(sapply(strsplit(temp, "\\s+"), "[", 2))/60 + as.numeric(sapply(strsplit(temp, 
                   "\\s+"), "[", 3))/360
