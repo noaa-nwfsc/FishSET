@@ -111,6 +111,120 @@ plot_format <- function(x){
   knitr::include_graphics(paste0(getwd(), '/inst/output/',x,'.png'))
 }
 
+pull_table <- function(project, table) {
+  #' Retrieve name of the most recent table from a project
+  #' 
+  #' @param project Name of project.
+  #' @param table Name of table, e.g. "MainDataTable". 
+  
+  tab <- tables_database()
+  
+  tab <- grep(paste0(project, table), tab, value = TRUE)
+  
+  if (table == "MainDataTable") {
+    
+    tab <- tab[!grepl("Info", tab)]
+    
+  } else if (table == "MainDataTableInfo") {
+    
+    tab <- grep("Info", tab, value = TRUE)
+  }
+  
+  tab <- gsub("[^0-9\\.]", "", tab)
+  
+  tab <- tab[tab == max(tab)]
+  
+  tab <- paste0(project, table, tab)
+  
+  if (table_exists(tab)) {
+    
+    tab
+    
+  } else {
+    
+    warning(tab, " does not exist.")
+  }
+}
+
+
+model_out_summary <- function(project) {
+  #' Retrieve most recent summary of model output  
+  #' 
+  #' @param project Name of project
+  
+  p_mod <- pull_table(project, "modelOut")
+  
+  results <- model_out_view(p_mod)
+  
+  modeltab <- data.frame(Model_name = rep(NA, length(results)), 
+                         covergence = rep(NA, length(results)), 
+                         Stand_Errors = rep(NA, length(results)), 
+                         Hessian = rep(NA, length(results)))
+  
+  for (i in seq_along(results)) {
+    
+    modeltab[i, 1] <- results[[i]]$name
+    modeltab[i, 2] <- results[[i]]$optoutput$convergence
+    modeltab[i, 3] <- toString(round(results[[i]]$seoutmat2, 3))
+    modeltab[i, 4] <- toString(round(results[[i]]$H1, 5))
+  }
+  
+  modeltab
+}
+
+
+model_error_summary <- function(project) {
+  #' Retrieve most recent summary of model error  
+  #' 
+  #' @param project Name of project
+  
+  p_mod <- pull_table(project, "modelOut")
+  
+  results <- model_out_view(p_mod)
+  
+  error_out <- data.frame(Model_name = rep(NA, length(results)), 
+                          Model_error = rep(NA, length(results)), 
+                          Optimization_error = rep(NA, length(results)))
+
+  for (i in seq_along(results)) {
+    
+    error_out[i, 1] <- results[[i]]$name
+    error_out[i, 2] <- ifelse(is.null(results[[i]]$errorExplain), 'No error reported', 
+                              toString(results[[i]]$errorExplain))
+    error_out[i, 3] <- ifelse(is.null(results[[i]]$optoutput$optim_message), 'No message reported', 
+                              toString(results[[i]]$optoutput$optim_message))
+  }
+  
+  error_out
+}
+
+
+model_fit_summary <- function(project) {
+  #' Retrieve most recent summary of model fit  
+  #' 
+  #' @param project Name of project
+  
+  p_mod <- pull_table(project, "modelOut")
+  
+  results <- model_out_view(p_mod)
+  
+  fit_tab <- data.frame(Model_name = rep(NA, length(results)), 
+                        AIC = rep(NA, length(results)), AICc = rep(NA, length(results)),
+                        BIC = rep(NA, length(results)), PseudoR2 = rep(NA, length(results)))
+  
+  for (i in seq_along(results)) {
+    
+    fit_tab[i, 1] <- results[[i]]$name
+    fit_tab[i, 2] <- results[[i]]$MCM$AIC
+    fit_tab[i, 3] <- results[[i]]$MCM$AICc
+    fit_tab[i, 4] <- results[[i]]$MCM$BIC
+    fit_tab[i, 5] <- results[[i]]$MCM$PseudoR2
+  }
+  
+  fit_tab
+}
+
+
 vgsub <- function(pattern, replacement, x, ...) {
   #' vgsub function
   #' @param pattern pattern
