@@ -77,9 +77,9 @@ dummy_num <- function(dat, var, value, opts='more_less', name='dummy_num'){
   dataset <- out$dataset
   
   if(grepl('dat|year', var, ignore.case=TRUE)){
-        if(length(value==6)){
+        if(length(value)==6){
           dataset[[var]] <- format(as.Date(dataset[[var]]), "%Y%m")
-        } else if(length(value==4)){
+        } else if(length(value)==4){
           dataset[[var]] <- format(as.Date(dataset[[var]]), "%Y")
         } else {
           dataset[[var]] <- format(as.Date(dataset[[var]]), "%m")  
@@ -248,7 +248,7 @@ bin_var <- function(dat, project, var, br = NULL, labs = NULL, ...){
   if(!is.numeric(dataset[[var]])){
     
     tmp <- 1
-    Warning("Variable must be numeric.")
+    warning("Variable must be numeric.")
   }
   
   if(tmp == 0){
