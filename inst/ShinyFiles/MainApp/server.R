@@ -1630,8 +1630,9 @@
       #DATA ANALYSIS FUNCTIONS
       ###----
       output$corr_out <- renderUI({
-        selectInput('corr_select', 'Select variables to include in correlation test', choices= names(which(lapply(values$dataset, is.numeric)==TRUE)), 
-                    selected= names(which(lapply(values$dataset, is.numeric)==TRUE)), multiple=TRUE, selectize=TRUE, width='90%')
+        selectInput('corr_select', 'Select variables to include in correlation test', 
+                    choices= names(which(lapply(values$dataset[,which(lapply(values$dataset, is.numeric)==TRUE)], var, na.rm=TRUE)>0)), 
+                    selected= names(which(lapply(values$dataset[,which(lapply(values$dataset, is.numeric)==TRUE)], var, na.rm=TRUE)>0)), multiple=TRUE, selectize=TRUE, width='90%')
       })
       
       tableInputCorr <- reactive({
@@ -2806,12 +2807,15 @@
         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
         DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'MainDataTable'), values$dataset, overwrite=TRUE)
         DBI::dbDisconnect(fishset_db)
+        showNotification('Data saved to FishSET database', type='message', duration=10)
       })
       
       observeEvent(input$saveDataQ, {
         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
         DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'MainDataTable'), values$dataset, overwrite=TRUE)
-        DBI::dbDisconnect(fishset_db)
+        DBI::dbDisconnect(fishset_db) 
+        showNotification('Data saved to FishSET database', type='message', duration=10)
+        
       })
       
       output$SaveButtons <- renderUI({
@@ -3055,6 +3059,7 @@
             sink()
         }
       })
+      
       
       
       ##----
