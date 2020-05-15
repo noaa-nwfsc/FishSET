@@ -647,8 +647,8 @@
                            tagList(
                              fluidRow(
                                column(3, fileInput("spatialdat", "Choose spatial data file",
-                                                   multiple = FALSE, placeholder = 'Suggested data')),
-                               column(1, uiOutput('ui.actionS'))
+                                                   multiple = FALSE, placeholder = 'Suggested data'))#,
+                              # column(1, uiOutput('ui.actionS'))
                              ))
           ),
           conditionalPanel(condition="input.loadspatialsource!='Upload new file'", 
@@ -658,11 +658,11 @@
                              ))
           ))
       })
-      output$ui.actionS <- renderUI({
-        if(is.null(input$spatialdat)) return()
-        actionButton("uploadspatial", label = "Save to database", 
-                     style = "color: white; background-color: blue;", size = "extra-small")
-      })
+#      output$ui.actionS <- renderUI({
+#        if(is.null(input$spatialdat)) return()
+#        actionButton("uploadspatial", label = "Save to database", 
+#                     style = "color: white; background-color: blue;", size = "extra-small")
+#      })
       
       output$grid_upload <- renderUI({     
         tagList( 
@@ -738,13 +738,15 @@
         df_data <- FishSET::read_dat(input$maindat$datapath, type)
         df_y <- input$compare
         df_compare <- ifelse(nchar(input$compare)>0, TRUE, FALSE)
-        load_maindata(df_data, over_write=input$over_write, project=input$projectname, compare=df_compare, y=df_y)
+        q_test <- quietly_test(load_maindata)
+        q_test(df_data, over_write=input$over_write, project=input$projectname, compare=df_compare, y=df_y)
       })
       observeEvent(input$uploadPort, {
         type <- sub('.*\\.', '', input$portdat$name)
         if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
         df_data <- FishSET::read_dat(input$portdat$datapath, type)
-        load_port(df_data, input$port_name, over_write=TRUE, project=input$projectname, compare=FALSE, y=NULL)
+        q_test <- quietly_test(load_port)
+        q_test(df_data, input$port_name, over_write=TRUE, project=input$projectname, compare=FALSE, y=NULL)
       }) 
       observeEvent(input$uploadspatial, {
         type <- sub('.*\\.', '', input$spatialdat$name)
@@ -758,13 +760,15 @@
         type <- sub('.*\\.', '', input$griddat$name)
         if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
         df_data <- FishSET::read_dat(input$griddat$datapath, type)
-        load_grid(paste0(input$projectname, 'MainDataTable'), df_data, over_write=TRUE, project=input$projectname)
+        q_test <- quietly_test(load_grid)
+        q_test(paste0(input$projectname, 'MainDataTable'), df_data, over_write=TRUE, project=input$projectname)
       }) 
       observeEvent(input$uploadAux, {
         type <- sub('.*\\.', '', input$auxdat$name)
         if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
         df_data <- FishSET::read_dat(input$auxdat$datapath, type)
-        load_aux(paste0(input$projectname, 'MainDataTable'), df_data, over_write=TRUE, project=input$projectname)
+        q_test <- quietly_test(load_aux)
+        q_test(paste0(input$projectname, 'MainDataTable'), df_data, over_write=TRUE, project=input$projectname)
       }) 
       
       ###----
@@ -775,9 +779,13 @@
       output$LatLonDir <- renderUI ({
         tagList(
         conditionalPanel(condition="input.checks=='Lat_Lon units'",
-                         selectizeInput('LatDirection','Latitudinal variable', choices=c('None', colnames(values$dataset[,grep('lat', names(values$dataset), ignore.case=TRUE)])))),
+                         selectizeInput('LatDirection','Latitudinal variable', 
+                                        choices=c('None', colnames(values$dataset[,grep('lat', names(values$dataset), ignore.case=TRUE)])),
+                                        options = list(create = TRUE, placeholder='Select or type variable name'))),
         conditionalPanel(condition="input.checks=='Lat_Lon units'",
-                         selectizeInput('LonDirection','Longitudinal variable', choices=c('None', colnames(values$dataset[,grep('lon', names(values$dataset), ignore.case=TRUE)]))))
+                         selectizeInput('LonDirection','Longitudinal variable', 
+                                        choices=c('None', colnames(values$dataset[,grep('lon', names(values$dataset), ignore.case=TRUE)])),
+                                        options = list(create = TRUE, placeholder='Select or type variable name')))
         )
       })
       
@@ -798,7 +806,7 @@
           "Summary table of NUMERIC variables in data set."
         } else if(input$checks=='Outliers'){
           if(input$dat.remove=='none'){
-            HTML('Table to assess outliers.', input$column_check, "shown. <br>Zoom in to plot by highlighting desired area and double clicking. <br>Double click again to reset plot.")
+            HTML('Table to assess outliers.', input$column_check, "shown. <br>Zoom in to plot by highlighting desired area and double clicking. <br>Double click again to reset plot. <br>")
           } else {
             HTML('Table to assess outliers.', input$column_check, 'shown. <br>Zoom in to plot by highlighting desired area and double clicking. <br>Double click again to reset plot. 
                   <br>Excluding points that fall outside the',  if(input$dat.remove=='5_95_quant'){
@@ -1253,7 +1261,7 @@
       observeEvent(input$LatLon_Filter, {
             values$dataset <- degree(values$dataset, 
                                      if(input$LatDirection=='None') { NULL } else {input$LatDirection},
-                                     if(input$LonDirection=='None') { NULL } else { input$LonDirection},
+                                     if(input$LonDirection=='None') { NULL } else {input$LonDirection},
                                      latsign=input$LatLon_Filter_Lat, lonsign=input$LatLon_Filter_Lon, replace=TRUE
                                       ) 
       })
@@ -1392,7 +1400,7 @@
         }
       })
       
-      df2m=reactive({
+      df2m = reactive({
         if(length(unique(lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]]))))>1){
           aggregate(values$dataset[[input$col_select]]~
                       lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=input$p3fun, na.rm=T)
@@ -1566,7 +1574,7 @@
           conditionalPanel(condition="input.plot_table=='Plots'&input.plot_type=='Spatial'",
                            style = "margin-left:19px;",  selectizeInput('gtmt_lonlat', 'Select lat then lon from data frame to assign observations to zone', 
                                                                      choices=c(NULL, names(values$dataset)[grep('lon|lat', names(values$dataset), ignore.case=TRUE)]), 
-                                                                     multiple = TRUE, options = list(maxItems = 2)))#, 
+                                                                     multiple = TRUE, options = list(maxItems = 2, create = TRUE, placeholder='Select or type variable name')))#, 
         #  conditionalPanel(condition="input.plot_table=='Plots'&input.plot_type=='Spatial'",
         #                   style = "margin-left:19px;", fileInput("gtmtfileGrid", "Choose file defining area/zone polygons", multiple = FALSE)) 
         )
@@ -1578,7 +1586,8 @@
                                                                     choices= c('', names(as.data.frame(spatdat$dataset))), selected='')),
           conditionalPanel(condition="input.plot_table=='Plots'&input.plot_type=='Spatial'",
                            style = "margin-left:19px;", selectizeInput('mtgtlonlat', 'Select vector containing latitude then longitude from spatial data frame', 
-                                                                    choices= c(NULL, names(as.data.frame(spatdat$dataset))), multiple=TRUE, options = list(maxItems = 2)))
+                                                                    choices= c(NULL, names(as.data.frame(spatdat$dataset))), multiple=TRUE,
+                                                                    options = list(maxItems = 2,create = TRUE, placeholder='Select or type variable name')))
         )
       })
       gtmt_table <- reactive({
@@ -1676,11 +1685,10 @@
       })
       
       output$reg_resp_out <- renderUI({
-        selectInput('reg_resp_select', 'Select response variable', choices= names(values$dataset), 
-                    selected= names(which(lapply(values$dataset, is.numeric)==TRUE))[1], multiple=FALSE, selectize=TRUE)
+        varSelectInput('reg_resp_select', 'Select response variable', data = values$dataset, multiple = FALSE, selectize = TRUE)
       })
       output$reg_exp_out <- renderUI({
-        selectInput('reg_exp_select', 'Select explanatory variable(s)', choices= names(values$dataset), 
+        varSelectInput('reg_exp_select', 'Select explanatory variable(s)', data= values$dataset, 
                     selected= "", multiple=FALSE, selectize=TRUE)
       })
       
@@ -1724,8 +1732,9 @@
       #Transformations 
       output$trans_time_out <- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Data transformations'&input.trans=='temp_mod'",
-                         style = "margin-left:19px;", selectInput('TimeVar','Select variable',
-                                                                  choices=c(colnames(values$dataset)[grep('date|hour|time|year', colnames(values$dataset), ignore.case=TRUE)]), selectize=TRUE))
+                         style = "margin-left:19px;", selectizeInput('TimeVar','Select variable',
+                                                                  choices=c(colnames(values$dataset)[grep('date|hour|time|year', colnames(values$dataset), ignore.case=TRUE)]), 
+                                                                  options=list(create=TRUE, placeholder='Select or type input')))
       })
       output$trans_quant_name <-  renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Data transformations'&input.trans=='set_quants'",
@@ -1762,22 +1771,25 @@
       })
       output$input_xWeight <- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='cpue'",
-                         style = "margin-left:19px;", selectInput('xWeight','Weight variable', 
-                                                                  choices=names(values$dataset[,grep("mt|lb|ton|pound|weight|metric|kilo|mass", names(values$dataset), ignore.case = TRUE)]), selectize=TRUE))
+                         style = "margin-left:19px;", selectizeInput('xWeight','Weight variable', 
+                                                                  choices=names(values$dataset[,grep("mt|lb|ton|pound|weight|metric|kilo|mass", names(values$dataset), ignore.case = TRUE)]),
+                                                                  options = list(create = TRUE, placeholder='Select or type variable name')))
       })
       output$input_xTime <- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='cpue'",
-                         style = "margin-left:19px;", selectInput('xTime','Duration. Select Calculate Duration to define and calculate duration.', 
+                         style = "margin-left:19px;", selectInput('xTime','Duration. To calculate duration, select the Calculate Duration option.', 
                                                                   choices=c('Calculate duration', names(values$dataset[,unlist(lapply(values$dataset, is.numeric))])), selectize=TRUE))
       })
       output$dur_add <- renderUI({
         tagList(
           conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='cpue'&input.xTime=='Calculate duration'",
-                           style = "margin-left:19px;", selectInput('dur_start2', 'Variable indicating start of time period', 
-                                                                    choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]), selectize=TRUE)),
+                           style = "margin-left:19px;", selectizeInput('dur_start2', 'Variable indicating start of time period', 
+                                                                    choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]),
+                                                                    options = list(create = TRUE, placeholder='Select or type variable name'))),
           conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='cpue'&input.xTime=='Calculate duration'",         
-                           style = "margin-left:19px;", selectInput('dur_end2', 'Variable indicating end of time period', 
-                                                                    choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]), selectize=TRUE)),
+                           style = "margin-left:19px;", selectizeInput('dur_end2', 'Variable indicating end of time period', 
+                                                                    choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]),
+                                                                    options = list(create = TRUE, placeholder='Select or type variable name'))),
           conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='cpue'&input.xTime=='Calculate duration'",          
                            style = "margin-left:19px;", selectInput('dur_units2', 'Unit of time for calculating duration', choices = c("week", "day", "hour", "minute")))
         )
@@ -1809,12 +1821,12 @@
           #coords
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Lat/lon coordinates'" ,
                            style = "margin-left:19px;", selectizeInput('start_latlon', 'Select lat then lon for starting location', 
-                                                                    choices=names(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=T)]), multiple=TRUE), 
-                           options = list(maxItems = 2)),
+                                                                    choices=names(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=T)]), 
+                                                                    multiple=TRUE, options = list(maxItems = 2, create = TRUE, placeholder='Select or type variable name'))), 
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Lat/lon coordinates'" ,
                            style = "margin-left:19px;", selectizeInput('end_latlon', 'Select lat then lon for ending location', 
                                                                     choices=names(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=T)]), 
-                                                                    multiple=TRUE), options = list(maxItems = 2))
+                                                                    multiple=TRUE, options = list(maxItems = 2, create = TRUE, placeholder='Select or type variable name')))
           
           
         )#)  
@@ -1825,7 +1837,7 @@
                            (input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Zonal centroid')" ,
                            style = "margin-left:19px;",  selectizeInput('lon_dat', 'Select lat then lon from data set to assign observations to zone', 
                                                                      choices=names(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=T)]),
-                                                                     multiple=TRUE, options = list(maxItems = 2))),
+                                                                     multiple=TRUE, options = list(maxItems = 2, create = TRUE, placeholder='Select or type variable name'))),
             conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Zonal centroid'||
                            input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Zonal centroid'" ,
                            style = "margin-left:19px;", selectInput('cat', 'Individual areas/zones from the spatial data drame', choices=names(as.data.frame(spatdat$dataset)))),
@@ -1833,33 +1845,35 @@
             conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Zonal centroid'||
                              input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Zonal centroid'" , 
                              style = "margin-left:19px;", selectizeInput('long_grid', 'Select vector containing latitude then longitude from spatial data set',
-                                                                      choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE, options = list(maxItems = 2)))
+                                                                      choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE, 
+                                                                      options = list(maxItems = 2,create = TRUE, placeholder='Select or type variable name')))
           }
          
       )
       })
-
       output$start_mid_input <- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&&input.dist=='create_mid_haul'",
                          style = "margin-left:19px;", selectizeInput('mid_start','Select Lat then Lon that define starting locations',multiple = TRUE,
                                                                   choices = names(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=TRUE)]), 
-                                                                  options = list(maxItems = 2)))
+                                                                  options = list(maxItems = 2, create = TRUE, placeholder='Select or type variable name')))
       })
       output$end_mid_input <- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_mid_haul'",
                          style = "margin-left:19px;",  selectizeInput('mid_end','Select Lat then Lon that define ending locations',multiple = TRUE,
                                                                    choices = names(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=TRUE)]),
-                                                                   options = list(maxItems = 2)))
+                                                                   options = list(maxItems = 2, create = TRUE, placeholder='Select or type variable name')))
       })
       output$input_dur_start <- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_duration'",
-                         style = "margin-left:19px;", selectInput('dur_start', 'Variable indicating start of time period', 
-                                                                  choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]), selectize=TRUE))
+                         style = "margin-left:19px;", selectizeInput('dur_start', 'Variable indicating start of time period', 
+                                                                  choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]), 
+                                                                  options = list(create = TRUE, placeholder='Select or type variable name')))
       })
       output$input_dur_end <- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_duration'",
-                         style = "margin-left:19px;", selectInput('dur_end', 'Variable indicating end of time period', 
-                                                                  choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]), selectize=TRUE))
+                         style = "margin-left:19px;", selectizeInput('dur_end', 'Variable indicating end of time period', 
+                                                                  choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]),
+                                                                  options = list(create = TRUE, placeholder='Select or type variable name')))
       })
       output$input_startingloc <- renderUI({
         tagList(
@@ -1873,14 +1887,17 @@
                            style = "margin-left:19px;", selectInput('haul_order_SL', 'Variable in primary data set defining haul order within a trip. Can be time, coded variable, etc.',
                                                                     choices=c('', names(values$dataset)), selectize=TRUE)),
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
-                           style = "margin-left:19px;", selectInput('starting_port_SL',  "Variable in primary data set identifying port at start of trip", 
-                                                                    choices=names(values$dataset[,grep('port',names(values$dataset), ignore.case = TRUE)]), selectize=TRUE)),
+                           style = "margin-left:19px;", selectizeInput('starting_port_SL',  "Variable in primary data set identifying port at start of trip", 
+                                                                    choices=names(values$dataset[,grep('port',names(values$dataset), ignore.case = TRUE)]), 
+                                                                    options = list(create = TRUE, placeholder='Select or type variable name'))),
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
-                           style = "margin-left:19px;", selectInput('lon_dat_SL', "Longitude variable in primary data set", 
-                                                                    choices= names(values$dataset[,grep("lon", names(values$dataset), ignore.case = TRUE)]), selectize=TRUE)), 
+                           style = "margin-left:19px;", selectizeInput('lon_dat_SL', "Longitude variable in primary data set", 
+                                                                    choices= names(values$dataset[,grep("lon", names(values$dataset), ignore.case = TRUE)]), 
+                                                                    options = list(create = TRUE, placeholder='Select or type variable name'))), 
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
-                           style = "margin-left:19px;", selectInput('lat_dat_SL', "Latitude variable in primary data set", 
-                                                                    choices= names(values$dataset[,grep("lat", names(values$dataset), ignore.case = TRUE)]), selectize=TRUE)),
+                           style = "margin-left:19px;", selectizeInput('lat_dat_SL', "Latitude variable in primary data set", 
+                                                                    choices= names(values$dataset[,grep("lat", names(values$dataset), ignore.case = TRUE)]),
+                                                                    options = list(create = TRUE, placeholder='Select or type variable name'))),
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
                            style = "margin-left:19px;",  selectInput("port.dat", "Choose file from FishSET SQL database containing port data", 
                                                                      choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE))#,
@@ -1892,7 +1909,8 @@
         tagList(
           if(any(class(spatdat$dataset)=='sf')==FALSE){
             conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
-                             style = "margin-left:19px;", selectInput('lat_grid_SL', 'Select vector containing latitude from spatial data set', choices= names(as.data.frame(spatdat$dataset)), multiple=TRUE))
+                             style = "margin-left:19px;", selectInput('lat_grid_SL', 'Select vector containing latitude from spatial data set', 
+                                                                      choices= names(as.data.frame(spatdat$dataset)), multiple=TRUE))
           },
           if(any(class(spatdat$dataset)=='sf')==FALSE){
             conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
@@ -1905,7 +1923,8 @@
       })
       output$input_IDVAR <- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='haul_to_trip'",
-                         style = "margin-left:19px;", selectInput("Haul_Trip_IDVar", "Variable(s) that define unique trips", choices=names(values$dataset), multiple=TRUE, selectize=TRUE))
+                         style = "margin-left:19px;", varSelectInput("Haul_Trip_IDVar", "Variable(s) that define unique trips",
+                                                                 data = values$dataset, multiple=TRUE))
       })
       output$input_trip_dist_vars <- renderUI({
         tagList(
@@ -1914,49 +1933,52 @@
                                                                     choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE)),
           #
           conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='trip_distance'",
-                           style = "margin-left:19px;", selectInput('trip_ID','Variable in data file to identify unique trips', multiple = FALSE, 
-                                                                    choices = names(values$dataset), selectize=TRUE)),
+                           style = "margin-left:19px;", varSelectInput('trip_ID','Variable in data file to identify unique trips', data = values$dataset,
+                                                                       multiple = FALSE)),
           conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='trip_distance'",
                            style = "margin-left:19px;", selectInput('starting_port','Variable in data file to identify port at START of trip',multiple = FALSE, 
                                                                     choices = names(values$dataset)[grep('port', names(values$dataset), ignore.case=TRUE)], selectize=TRUE)),
           conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='trip_distance'",
                            style = "margin-left:19px;", selectizeInput('starting_haul','Select variables containing LAT the LON at START of haul',multiple = TRUE, 
                                                                     choices = names(values$dataset)[grep('lat|long', names(values$dataset), ignore.case=TRUE)], 
-                                                                    options = list(maxItems = 2))),
+                                                                    options = list(maxItems = 2,create = TRUE, placeholder='Select or type variable name'))),
           conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='trip_distance'",
                            style = "margin-left:19px;", selectizeInput('ending_haul','Select variables containing LAT then LON at END of haul',multiple = TRUE, 
                                                                     choices = names(values$dataset)[grep('lat|long', names(values$dataset), ignore.case=TRUE)],
-                                                                    options = list(maxItems = 2))),
+                                                                    options = list(maxItems = 2, create = TRUE, placeholder='Select or type variable name'))),
           conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='trip_distance'",
                            style = "margin-left:19px;", selectizeInput('ending_port','Variable in data file to identify port at END of trip',multiple = FALSE, 
-                                                                    choices = names(values$dataset)[grep('port', names(values$dataset), ignore.case=TRUE)])),
+                                                                    choices = names(values$dataset)[grep('port', names(values$dataset), ignore.case=TRUE)],
+                                                                    options = list(create = TRUE, placeholder='Select or type variable name'))),
           conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='trip_distance'",
-                           style = "margin-left:19px;", selectizeInput('haul_order','Variable in data file containing information on the order that hauls occur within a trip.',
-                                                                    multiple = FALSE, choices = names(values$dataset)))
+                           style = "margin-left:19px;", varSelectizeInput('haul_order','Variable in data file containing information on the order that hauls occur within a trip.',
+                                                                    data = values$dataset, multiple = FALSE))
         )
       })
       output$input_tri_cent <-  renderUI({
         tagList(
           conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='trip_centroid'",
-                           style = "margin-left:19px;", selectInput('trip_cent_lon','Vector containing longitudinal data', 
-                                                                    choices =names(values$dataset)[grep('lon|lat', names(values$dataset), ignore.case=TRUE)], multiple = FALSE, selectize=TRUE)),
+                           style = "margin-left:19px;", selectizeInput('trip_cent_lon','Vector containing longitudinal data', 
+                                                                    choices =names(values$dataset)[grep('lon|lat', names(values$dataset), ignore.case=TRUE)], 
+                                                                    multiple = FALSE,  options = list(create = TRUE, placeholder='Select or type variable name'))),
           conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='trip_centroid'",
-                           style = "margin-left:19px;", selectInput('trip_cent_lat', 'Vector containing latitudinal data', 
-                                                                    choices =names(values$dataset)[grep('lon|lat', names(values$dataset), ignore.case=TRUE)], multiple = FALSE, selectize=TRUE)),
+                           style = "margin-left:19px;", selectizeInput('trip_cent_lat', 'Vector containing latitudinal data', 
+                                                                    choices =names(values$dataset)[grep('lon|lat', names(values$dataset), ignore.case=TRUE)], 
+                                                                    multiple = FALSE,  options = list(create = TRUE, placeholder='Select or type variable name'))),
           conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='trip_centroid'",
                            style = "margin-left:19px;", selectInput('trip_cent_weight','Variable for weighted average', multiple = FALSE, 
                                                                     choices=c('', names(values$dataset)), selected='', selectize=TRUE)),
           conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='trip_centroid'",
-                           style = "margin-left:19px;", selectInput('trip_cent_id','Column(s) that identify the individual trip', multiple = TRUE, 
-                                                                    choices = names(values$dataset), selectize=TRUE))
+                           style = "margin-left:19px;", varSelectInput('trip_cent_id','Column(s) that identify the individual trip', data = values$dataset,
+                                                                       multiple = TRUE))
         )
       })
       output$dummy_select <- renderUI({
         tagList(
           conditionalPanel(condition="input.VarCreateTop=='Dummy variables'&input.dummyfunc=='From variable'",
-                           style = "margin-left:19px;",selectInput('dummyvarfunc','Select variable', multiple=FALSE, choices=c(NULL, names(values$dataset)), selectize=TRUE)),
+                           style = "margin-left:19px;", selectInput('dummyvarfunc','Select variable', multiple=FALSE, choices=c(NULL, names(values$dataset)), selectize=TRUE)),
           conditionalPanel(condition="input.VarCreateTop=='Dummy variables'&input.dummyfunc=='From policy dates'",
-                           style = "margin-left:19px;",selectInput('dummypolyfunc','Select policy', multiple=FALSE, 
+                           style = "margin-left:19px;", selectInput('dummypolyfunc','Select policy', multiple=FALSE, 
                                                                    choices=c('User defined', 'Central GOA Rockfish Cooperative (2004)'='Rockfish', 'Amendment 80 Alaska (2008)'='Amen80' ,
                                                                    "Pacific halibut and Sablefish IFQ Program	Alaska (1993)"="halsab", 
                                                                    "American Fisheries Act Pollock Program Alaska (1999)"="AFA"))),
@@ -2023,53 +2045,35 @@
       })                  
       observeEvent(input$runNew, {
         if(input$VarCreateTop=='Dummy variables'&input$dummyfunc=='From policy dates') {
-          showNotification(
-            capture.output(
-              values$dataset[[input$varname]] <- dummy_num(values$dataset, var=input$dummypolydate, value=dum_pol_year(), opts='more_less')),
-            type='message', duration=10)
+              q_test <- quietly_test(dummy_num)
+              values$dataset[[input$varname]] <- q_test(values$dataset, var=input$dummypolydate, value=dum_pol_year(), opts='more_less')
         } else if(input$VarCreateTop=='Dummy variables'&input$dummyfunc=='From variable') {
-          showNotification(
-            capture.output(
-              values$dataset[[input$varname]] <- dummy_num(values$dataset, var=input$dummyvarfunc, value=input$select.val, opts=input$dumsubselect)),
-            type='message', duration=10)
+              q_test <- quietly_test(dummy_num)
+              values$dataset[[input$varname]] <- q_test(values$dataset, var=input$dummyvarfunc, value=input$select.val, opts=input$dumsubselect)
         } else if(input$VarCreateTop=='Data transformations'&input$trans=='temp_mod') {
-          showNotification(
-            capture.output(
-              values$dataset[[input$varname]] <- temporal_mod(values$dataset, input$TimeVar, input$define_format)),
-            type='message', duration=10) #!
+              q_test <- quietly_test(temporal_mod)
+              values$dataset[[input$varname]] <- q_test(values$dataset, input$TimeVar, input$define_format)
         } else if(input$VarCreateTop=='Data transformations'&input$trans=='set_quants'){
-          showNotification(
-            capture.output(
-              values$dataset[[input$varname]] <- set_quants(values$dataset, x=input$trans_var_name, quant.cat = input$quant_cat, name=input$varname)),
-            type='message', duration=10) #!
+              q_test <- quietly_test(set_quants)
+              values$dataset[[input$varname]] <- q_test(values$dataset, x=input$trans_var_name, quant.cat = input$quant_cat, name=input$varname)
         } else if(input$VarCreateTop=='Nominal ID'&input$ID=='ID_var'){
-          showNotification(
-            capture.output(
-              values$dataset <- ID_var(values$dataset, newID=input$varname, input$unique_identifier)),
-            type='message', duration=10) 
+              q_test <- quietly_test(ID_var)
+              values$dataset <- q_test(values$dataset, newID=input$varname, input$unique_identifier)
         } else if(input$VarCreateTop=='Nominal ID'&input$ID=='create_seasonal_ID'){
-          showNotification(
-            capture.output(
-              values$dataset <- create_seasonal_ID(values$dataset, seasonal.dat=seasonalData(), use.location=input$use_location, 
-                                               use.geartype=input$use_geartype, sp.col=input$sp_col, target=input$target)),
-            type='message', duration=10)
+              q_test <- quietly_test(create_seasonal_ID)
+              values$dataset <- q_test(values$dataset, seasonal.dat=seasonalData(), use.location=input$use_location, 
+                                               use.geartype=input$use_geartype, sp.col=input$sp_col, target=input$target)
         } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='create_var_num'){
-          showNotification(
-            capture.output(
-              values$dataset[[input$varname]] <- create_var_num(values$dataset, input$var_x, input$var_y, method=input$create_method, name=input$varname)),
-            type='message', duration=10) 
+              q_test <- quietly_test(create_var_num)
+              values$dataset[[input$varname]] <- q_test(values$dataset, input$var_x, input$var_y, method=input$create_method, name=input$varname)
         } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='cpue') {
           if(input$xTime!='Calculate duration'){
-            showNotification(
-              capture.output(
-                values$dataset[[input$varname]] <- cpue(values$dataset, input$xWeight, input$xTime, name=input$varname)),
-              type='message', duration=10)   
+              q_test <- quietly_test(cpue)
+              values$dataset[[input$varname]] <- q_test(values$dataset, input$xWeight, input$xTime, name=input$varname)
           } else {
+            q_test <- quietly_test(cpue)
             values$dataset[['dur']] <- create_duration(values$dataset, input$dur_start2, input$dur_end2, input$dur_units2, name=NULL)
-            showNotification(
-              capture.output(
-                values$dataset[[input$varname]] <- cpue(values$dataset, input$xWeight, 'dur', name=input$varname)),
-                type='message', duration=10)  
+            values$dataset[[input$varname]] <- q_test(values$dataset, input$xWeight, 'dur', name=input$varname)
           }
         } else if(input$VarCreateTop=='Spatial functions' & input$dist=='create_dist_between'){
           #'Zonal centroid', 'Port', 'Lat/lon coordinates'
@@ -2087,47 +2091,33 @@
           } else {
             enddist <- 'centroid'
           }
-          showNotification(
-            capture.output(
-           values$dataset[[input$varname]] <- create_dist_between_for_gui(values$dataset, start=startdist, end=enddist, input$units,  portTable=input$filePort, 
+            q_test <- quietly_test(create_dist_between_for_gui)
+            values$dataset[[input$varname]] <- q_test(values$dataset, start=startdist, end=enddist, input$units,  portTable=input$filePort, 
                                                                          gridfile=spatdat$dataset,lon.dat=input$lon_dat[2], lat.dat=input$lon_dat[1], 
-                                                                         input$cat, lon.grid=input$long_grid[2], lat.grid=input$long_grid[1])),
-           type='message', duration=10)
+                                                                         input$cat, lon.grid=input$long_grid[2], lat.grid=input$long_grid[1])
            } else if(input$VarCreateTop=='Spatial functions' & input$dist=='create_mid_haul'){
-             showNotification(
-               capture.output(
-                 values$dataset <- create_mid_haul(values$dataset, c(input$mid_start[2],input$mid_start[1]), c(input$mid_end[2],input$mid_end[1]), input$varname)),
-               type='message', duration=10)
+              q_test <- quietly_test(create_mid_haul)
+              values$dataset <- q_test(values$dataset, c(input$mid_start[2],input$mid_start[1]), c(input$mid_end[2],input$mid_end[1]), input$varname)
         } else if(input$VarCreateTop=='Spatial functions'&input$dist=='create_duration'){
-          showNotification(
-            capture.output(
-              values$dataset[[input$varname]] <- create_duration(values$dataset, input$dur_start, input$dur_end, input$dur_units, name=NULL)),
-            type='message', duration=10)
+              q_test <- quietly_test(create_duration)
+              values$dataset[[input$varname]] <- q_test(values$dataset, input$dur_start, input$dur_end, input$dur_units, name=NULL)
         } else if(input$VarCreateTop=='Spatial functions'&input$dist=='create_startingloc'){
-          showNotification(
-            capture.output(
-              values$dataset[['startingloc']] <- create_startingloc(values$dataset,  gridfile=spatdat$dataset,  portTable=input$port.dat, 
-                                                                trip_id=input$trip_id_SL, haul_order=input$haul_order_SL, starting_port=input$starting_port_SL, 
-                                                                input$lon_dat_SL, input$lat_dat_SL, input$cat_SL, input$lon_grid_SL, input$lat_grid_SL)),
-            type='message', duration=10)
+              q_test <- quietly_test(create_startingloc)
+              values$dataset[['startingloc']] <- q_test(values$dataset,  gridfile=spatdat$dataset,  portTable=input$port.dat,  trip_id=input$trip_id_SL,
+                                                                haul_order=input$haul_order_SL, starting_port=input$starting_port_SL, input$lon_dat_SL, 
+                                                                input$lat_dat_SL, input$cat_SL, input$lon_grid_SL, input$lat_grid_SL)
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='haul_to_trip'){
-          showNotification(
-            capture.output(
-              values$dataset <- haul_to_trip(values$dataset, project=input$projectname, input$fun_numeric, input$fun_time, input$Haul_Trip_IDVar)),
-            type='message', duration=10)
+              q_test <- quietly_test(haul_to_trip)
+              values$dataset <- q_test(values$dataset, project=input$projectname, input$fun_numeric, input$fun_time, input$Haul_Trip_IDVar)
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='trip_distance'){
-          showNotification(
-            capture.output(
-              values$dataset$TripDistance <- create_trip_distance(values$dataset, input$port_dat_dist, input$trip_ID, input$starting_port, 
+              q_test <- quietly_test(create_trip_distance)
+              values$dataset$TripDistance <- q_test(values$dataset, input$port_dat_dist, input$trip_ID, input$starting_port, 
                                                               c(input$starting_haul[2], input$starting_haul[1]), 
-                                                              c(input$ending_haul[2],input$ending_haul[1]), input$ending_port, input$haul_order)),
-            type='message', duration=10)
+                                                              c(input$ending_haul[2],input$ending_haul[1]), input$ending_port, input$haul_order)
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='trip_centroid'){
-          showNotification(
-            capture.output(
-              values$dataset <- create_trip_centroid(values$dataset, lon=input$trip_cent_lon, lat=input$trip_cent_lat, weight.var=input$trip_cent_weight, 
-                                                 input$trip_cent_id)),
-            type='message', duration=10)
+              q_test <- quietly_test(create_trip_centroid)
+              values$dataset <- q_test(values$dataset, lon=input$trip_cent_lon, lat=input$trip_cent_lat, weight.var=input$trip_cent_weight, 
+                                                 input$trip_cent_id)
         }
       })
       
@@ -2138,7 +2128,7 @@
         head(values$dataset)
         }
       )
-      ###----
+      
       
       #----
       #Zonal definition
@@ -2147,13 +2137,17 @@
         conditionalPanel(condition="input.choiceTab=='primary'",
                          tagList(
                            selectizeInput('catchBase','Variable containing catch data',
-                                          choices=colnames(values$dataset[,grep('haul|mt|lb|metric|pounds|catch', colnames(values$dataset), ignore.case=TRUE)])),
+                                          choices=colnames(values$dataset[,grep('haul|mt|lb|metric|pounds|catch', colnames(values$dataset), ignore.case=TRUE)]),
+                                          options = list(create = TRUE, placeholder='Select or type variable name')),
                            selectizeInput('priceBase', 'Variable containing price or value data', 
-                                          choices=c('none selected'='none', colnames(values$dataset[,grep('value|dollar', colnames(values$dataset), ignore.case=TRUE)])), selected='none'),
+                                          choices=c('none selected'='none', colnames(values$dataset[,grep('value|dollar', colnames(values$dataset), ignore.case=TRUE)])),
+                                          selected='none', options = list(create = TRUE, placeholder='Select or type variable name')),
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
-                               selectInput('latBase', 'Occurrence latitude', choices=c('',colnames(values$dataset[,grep('lat', colnames(values$dataset), ignore.case=TRUE)])), selected='')),
+                               selectizeInput('latBase', 'Occurrence latitude', choices=c('',colnames(values$dataset[,grep('lat', colnames(values$dataset), ignore.case=TRUE)])), 
+                                           selected='', options = list(create = TRUE, placeholder='Select or type variable name'))),
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
-                               selectInput('lonBase', 'Occurrence longitude', choices=c('',colnames(values$dataset[,grep('lon', colnames(values$dataset), ignore.case=TRUE)])), selected=''))
+                               selectizeInput('lonBase', 'Occurrence longitude', choices=c('',colnames(values$dataset[,grep('lon', colnames(values$dataset), ignore.case=TRUE)])),
+                                              selected='', options = list(create = TRUE, placeholder='Select or type variable name')))
                          ))
       })
       output$conditionalInput2 <- renderUI({
@@ -2168,25 +2162,23 @@
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
                                selectizeInput('lat_dat_ac', '',
                                               choices=c(input$latBase, names(values$dataset)[grep('lat', names(values$dataset), ignore.case=TRUE)]), 
-                                              selected=c(input$latBase))),
+                                              selected=c(input$latBase)), options = list(create = TRUE, placeholder='Select or type variable name')),
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
                                selectizeInput('lon_dat_ac', '', choices=c(input$lonBase, names(values$dataset)[grep('lon', names(values$dataset), ignore.case=TRUE)]), 
-                                              selected=c(input$lonBase))),
+                                              selected=c(input$lonBase), options = list(create = TRUE, placeholder='Select or type variable name'))),
                            selectInput('cat_altc', 'Individual areas/zones from the spatial data set', choices=names(as.data.frame(spatdat$dataset))),
-                           selectInput('weight_var_ac', 'If desired, variable for use in calculating weighted centroids', choices=c('none'="", colnames(values$dataset))), #variable weighted centroids
+                           selectInput('weight_var_ac', 'If desired, variable for use in calculating weighted centroids', 
+                                       choices=c('none'="", colnames(values$dataset))), #variable weighted centroids
                            checkboxInput('hull_polygon_ac', 'Use convex hull method to create polygon?', value=FALSE),
                            checkboxInput('closest_pt_ac', 'Use closest polygon to point?', value=FALSE) 
                          ) )
       })  
       
        observeEvent(input$runCentroid, {
-         showNotification(
-           capture.output(
-              values$dataset <-  assignment_column(dat=values$dataset, gridfile=spatdat$dataset, lon.dat=input$lon_dat_ac, lat.dat=input$lat_dat_ac, 
+              q_test <- quietly_test(assignment_column)
+              values$dataset <-  q_test(dat=values$dataset, gridfile=spatdat$dataset, lon.dat=input$lon_dat_ac, lat.dat=input$lat_dat_ac, 
                                              cat=input$cat_altc, closest.pt = input$closest_pt_ac, lon.grid=NULL,
-                                              lat.grid=NULL, hull.polygon = input$hull_polygon_ac, epsg=NULL)),
-           type='message', duration=10)
-        
+                                              lat.grid=NULL, hull.polygon = input$hull_polygon_ac, epsg=NULL)
       })
        
       output$cond2 <- renderUI({
@@ -2197,7 +2189,7 @@
                              div(style="display: inline-block;vertical-align:top; width: 200px;",
                                  selectizeInput('lat_grid_altc', '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE)),
                              div(style="display: inline-block;vertical-align:top; width: 200px;",
-                                 selectizeInput('long_grid_altc',  '',choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE))
+                                 selectizeInput('long_grid_altc',  '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE))
                            )
                          }
         ) 
@@ -2249,9 +2241,8 @@
       output$zoneIDNumbers_plot <- renderPlot(zoneIDNumbers_dat())
       
       
-      #-----
-      
-      #----
+     
+       #----
       #Expected Catch      
       #----
       output$selectcp <- renderUI({
@@ -2260,7 +2251,8 @@
                       choices=c(input$catchBase, colnames(values$dataset[,grep('haul|mt|lb|metric|pounds|catch', colnames(values$dataset), ignore.case=TRUE)])),
                       selected=input$catchBase),
           selectizeInput('price', 'If expected revenue is to be calculated, variable containing price or value data', 
-                         choices=c(input$priceBase, "none", colnames(values$dataset[,grep('value|dollar', colnames(values$dataset), ignore.case=TRUE)]))),
+                         choices=c(input$priceBase, "none", colnames(values$dataset[,grep('value|dollar', colnames(values$dataset), ignore.case=TRUE)]),
+                                   options = list(create = TRUE, placeholder='Select or type variable name'))),
           selectizeInput('group','Choose variable that defines groups',
                          choices=c('Fleet (no group)', names(values$dataset[, !sapply(values$dataset, is.numeric)])))
         )
@@ -2268,9 +2260,9 @@
       output$expcatch <-  renderUI({
         conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'",
                          style = "margin-left:19px;font-size: 12px", 
-                         selectInput('temp_var', 'Temporal variable for averaging', 
+                         selectizeInput('temp_var', 'Temporal variable for averaging', 
                                      choices=c('none', names(values$dataset)[grep('date|year|hour|day', colnames(values$dataset), ignore.case = TRUE)]),
-                                     selected='none'))
+                                     selected='none', options = list(create = TRUE, placeholder='Select or type variable name')))
       })
       sparstable_dat <- reactive({
         if(!any(colnames(values$dataset)=='ZoneID')){
@@ -2297,8 +2289,6 @@
         }
       })
       
-      
-     
       
       #----
       #Model Parameters
@@ -2343,14 +2333,17 @@
                              selectInput('haul_order_SL_mod', 'Variable in primary data set defining haul order within a trip. Can be time, coded variable, etc.',
                                             choices=c('', names(values$dataset)), selectize=TRUE)),
             conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             selectInput('starting_port_SL_mod',  "Variable in primary data set identifying port at start of trip", 
-                                            choices=names(values$dataset[,grep('port',names(values$dataset), ignore.case = TRUE)]), selectize=TRUE)),
+                             selectizeInput('starting_port_SL_mod',  "Variable in primary data set identifying port at start of trip", 
+                                            choices=names(values$dataset[,grep('port',names(values$dataset), ignore.case = TRUE)]), 
+                                            options = list(create = TRUE, placeholder='Select or type variable name'))),
             conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             selectInput('lon_dat_SL_mod', "Longitude variable in primary data set", 
-                                            choices= names(values$dataset[,grep("lon", names(values$dataset), ignore.case = TRUE)]), selectize=TRUE)), 
+                             selectizeInput('lon_dat_SL_mod', "Longitude variable in primary data set", 
+                                            choices= names(values$dataset[,grep("lon", names(values$dataset), ignore.case = TRUE)]), 
+                                            options = list(create = TRUE, placeholder='Select or type variable name'))), 
             conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             selectInput('lat_dat_SL_mod', "Latitude variable in primary data set", 
-                                            choices= names(values$dataset[,grep("lat", names(values$dataset), ignore.case = TRUE)]), selectize=TRUE)),
+                             selectizeInput('lat_dat_SL_mod', "Latitude variable in primary data set", 
+                                            choices= names(values$dataset[,grep("lat", names(values$dataset), ignore.case = TRUE)]), 
+                                            options = list(create = TRUE, placeholder='Select or type variable name'))),
             conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
                            if(any(class(spatdat$dataset)=='sf')==FALSE){
                                                 selectInput('lat_grid_SL_mod', 'Select vector containing latitude from spatial data set',
@@ -2371,9 +2364,11 @@
         conditionalPanel(
           condition="input.alternatives=='loadedData'",
           div(style="display: inline-block;vertical-align:top; width: 200px;",
-              selectInput('lat', 'Occurrence latitude', choices=c(input$latBase, colnames(values$dataset[,grep('lat', colnames(values$dataset), ignore.case=TRUE)])), selected='')),
+              selectizeInput('lat', 'Occurrence latitude', choices=c(input$latBase, colnames(values$dataset[,grep('lat', colnames(values$dataset), ignore.case=TRUE)])), 
+                          selected='', options = list(create = TRUE, placeholder='Select or type variable name'))),
           div(style="display: inline-block;vertical-align:top; width: 200px;",
-              selectInput('lon', 'Occurrence longitude', choices=c(input$lonBase, colnames(values$dataset[,grep('lon', colnames(values$dataset), ignore.case=TRUE)])), selected=''))
+              selectizeInput('lon', 'Occurrence longitude', choices=c(input$lonBase, colnames(values$dataset[,grep('lon', colnames(values$dataset), ignore.case=TRUE)])), 
+                          selected='', options = list(create = TRUE, placeholder='Select or type variable name')))
         )
       })
       # Data needed
@@ -2603,16 +2598,17 @@
           input_list <- reactiveValuesToList(input)
           toggle_inputs(input_list,F)
           #print('call model design function, call discrete_subroutine file')
+          q_test <- quietly_test(make_model_design)
           times <- nrow(rv$data)-1
           i <- 1
           showNotification(paste('1 of', times, 'model design files created.'), type='message', duration=10)
-          make_model_design(values$dataset, project=rv$data$project[i], catchID=rv$data$catch[i], alternativeMatrix = rv$data$alternatives[i], 
+          q_test(values$dataset, project=rv$data$project[i], catchID=rv$data$catch[i], alternativeMatrix = rv$data$alternatives[i], 
                             replace=TRUE, lonlat= c(as.vector(rv$data$lon[i]), as.vector(rv$data$lat[i])), PortTable = input$port.datMD, likelihood=rv$data$likelihood[i], vars1=rv$data$vars1[i],
                             vars2=rv$data$vars2[i], priceCol=rv$data$price[i], startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
           
           if(times>1){
           for(i in 2:times){
-            make_model_design(values$dataset, project=rv$data$project[i], catchID=rv$data$catch[i], alternativeMatrix = rv$data$alternatives[i], 
+            q_test(values$dataset, project=rv$data$project[i], catchID=rv$data$catch[i], alternativeMatrix = rv$data$alternatives[i], 
                               replace=FALSE, lonlat=c(as.vector(rv$data$lon[i]), as.vector(rv$data$lat[i])), PortTable = input$port.datMD, likelihood=rv$data$likelihood[i], vars1=rv$data$vars1[i],
                               vars2=rv$data$vars2[i], priceCol=rv$data$price[i], startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
             showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
@@ -2626,7 +2622,7 @@
                 discretefish_subroutine(input$projectname, initparams=rv$data$inits, optimOpt=rv$data$optimOpt,  
                                   methodname=input$optmeth, mod.name=rv$data$mod_name, select.model=FALSE, name='discretefish_subroutine')              
         #    ), type='message', duration=10)
-                showMessage('Model run is complete. Check the `Compare Models` subtab to view output', type='message', duration=10)
+                showNotification('Model run is complete. Check the `Compare Models` subtab to view output', type='message', duration=10)
           toggle_inputs(input_list,T)
         }
       })
@@ -2770,39 +2766,33 @@
           #return(error_out)
       })
       
-      #----      
+      
       
       #----
       # Run functions
       #-----
       observeEvent(input$saveALT, {
-         showNotification('Alternative choice matrix updated', type='message', duration=10)
-        showNotification(
-          capture.output(
-              create_alternative_choice(dat=values$dataset, gridfile=spatdat$dataset, case=input$case_ac, min.haul=input$min_haul_ac,
+              q_test <- quietly_test(create_alternative_choice)
+              q_test(dat=values$dataset, gridfile=spatdat$dataset, case=input$case_ac, min.haul=input$min_haul_ac,
                                   alt_var=input$alt_var_ac, occasion=input$occasion_ac, dist.unit=input$dist_ac, lon.dat=input$lon_dat_ac,
                                   lat.dat=input$lat_dat_ac, lon.grid=input$long_grid_altc, lat.grid=input$lat_grid_altc, 
                                   cat=input$cat_altc, hull.polygon=input$hull_polygon_ac, 
-                                  closest.pt=input$closest_pt_ac, project=input$projectname, griddedDat=NULL, weight.var=input$weight_var_ac)),
-          type='message', duration=10)
-
+                                  closest.pt=input$closest_pt_ac, project=input$projectname, griddedDat=NULL, weight.var=input$weight_var_ac) 
+              showNotification('Alternative choice matrix updated', type='message', duration=10)
       }, ignoreInit = F) 
       
-      
-      
       observeEvent(input$submitE, {
+                q_test <- quietly_test(create_expectations)
+                q_test(values$dataset, input$projectname, input$catche, price=input$price, 
+                                    defineGroup=if(grepl('no group',input$group)){NULL} else {input$group},  
+                            temp.var=input$temp_var, temporal = input$temporal, calc.method = input$calc_method, lag.method = input$lag_method,
+                            empty.catch = input$empty_catch, empty.expectation = input$empty_expectation, temp.window = input$temp_window,  
+                            temp.lag = input$temp_lag, year.lag=input$temp_year, dummy.exp = input$dummy_exp, replace.output = TRUE)
         showNotification('Create expectated catch function called', type='message', duration=10)
-        showNotification(
-          capture.output(
-                create_expectations(values$dataset, input$projectname, input$catche, price=input$price, defineGroup=if(grepl('no group',input$group)){NULL} else {input$group}, temp.var=input$temp_var, 
-                            temporal = input$temporal, calc.method = input$calc_method, lag.method = input$lag_method,
-                            empty.catch = input$empty_catch, empty.expectation = input$empty_expectation,  
-                            temp.window = input$temp_window, temp.lag = input$temp_lag, year.lag=input$temp_year, dummy.exp = input$dummy_exp, replace.output = TRUE)),
-          type='message', duration=10)
       }) 
       
-      
-      ####----
+     
+       ####----
       ##Resetting inputs
       observeEvent(input$refresh1,{
         updateCheckboxInput(session, 'Outlier_Filter', value=FALSE)
@@ -2875,7 +2865,6 @@
       })
       
       
-      ###----        
       
       ##Downloads      
       ##----
@@ -3067,8 +3056,10 @@
         }
       })
       
+      
       ##----
       # stop shiny
+      ##----
       observe({
         if(input$close > 0) stopApp()
       })
@@ -3083,7 +3074,8 @@
       })
       
       
-      ###----
+     
+       ###----
       # Update From Bookmarked state
       ###----    
       bookmarkedstate <- reactive({
