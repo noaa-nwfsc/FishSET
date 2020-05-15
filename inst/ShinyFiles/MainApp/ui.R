@@ -166,7 +166,8 @@
                                       uiOutput('ui.actionP2'))
                              ),
                              fluidRow(
-                               column(4, radioButtons('loadspatialsource', "Source spatial data from:", choices=c( 'Upload new file','FishSET database'), selected='Upload new file', inline=TRUE)),
+                               column(4, radioButtons('loadspatialsource', "Source spatial data from:", choices=c( 'Upload new file'), selected='Upload new file', inline=TRUE)),
+                                                      #,'FishSET database')
                                uiOutput('spatial_upload')
                              ),
                              fluidRow(
@@ -243,10 +244,7 @@
                                             actionButton('Empty_Filter', 'Remove empty variables')
                                           ),
                                            uiOutput('LatLonDir'),
-                                          conditionalPanel(
-                                            condition ='input.checks=="Lat_Lon units"',
-                                            actionButton('LatLon_Filter', 'Convert lat/long to decimal degrees', value=FALSE)
-                                          ),
+                                          
                                           conditionalPanel(
                                             condition ='input.checks=="Lat_Lon units"',
                                             checkboxInput('LatLon_Filter_Lat', 'Change sign for latitude direction', value=FALSE)
@@ -255,6 +253,12 @@
                                             condition ='input.checks=="Lat_Lon units"',
                                             checkboxInput('LatLon_Filter_Lon', 'Change sign for longitude direction', value=FALSE)
                                           ),
+                                          conditionalPanel(
+                                            condition ='input.checks=="Lat_Lon units"',
+                                            actionButton('LatLon_Filter', 'Convert lat/long to decimal degrees', 
+                                                         value=FALSE, style = "color: white; background-color: #0073e6;" )
+                                          ),
+                                          tags$br(),
                                           ##Inline scripting 
                                           textInput("exprQA", label = "Enter an R expression",
                                                     value = "values$dataset"),

@@ -40,10 +40,9 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
     } else {
         seasonaldat <- seasonal.dat
     }
-    if (is.character(seasonal.dat) == TRUE) {
-        seasonal.dat <- seasonal.dat
-    } else {
-        deparse(substitute(seasonal.dat))
+  } else {
+    seasonal.dat <- seasonal.dat
+     deparse(substitute(seasonal.dat))
     }
     DBI::dbDisconnect(fishset_db)
     

@@ -14,7 +14,7 @@ degree <- function(dat, lat = NULL, lon = NULL, latsign = FALSE, lonsign = FALSE
     #' Changing the sign, transforms all values in the variable. 
     #' @examples 
     #' \dontrun{
-    #' dat <- degree(MainDataTable, 'LatLon_START_LAT', 'LatLon_START_LON', 
+    #' MainDataTable <- degree(MainDataTable, 'LatLon_START_LAT', 'LatLon_START_LON', 
     #'            latsign=FALSE, lonsign=FALSE, replace=TRUE)
     #' }
     #' 
@@ -23,7 +23,7 @@ degree <- function(dat, lat = NULL, lon = NULL, latsign = FALSE, lonsign = FALSE
     out <- data_pull(dat)
     dat <- out$dat
     dataset <- out$dataset
-    
+ 
     tmp <- tempfile()
     
     if (any(apply(dataset[, grep("lat|lon", names(dataset), ignore.case = TRUE)], 2, function(x) !is.numeric(x)) == TRUE) == TRUE) {
@@ -45,61 +45,60 @@ degree <- function(dat, lat = NULL, lon = NULL, latsign = FALSE, lonsign = FALSE
     degree_function$msg <- suppressWarnings(readLines(tmp))
     log_call(degree_function)
     
-    browser()
     
     if (replace == TRUE) {
         if (!is.null(lat)) {
-            if (!is.numeric(dat[[lat]])) {
-                temp = gsub("?|'|\"", "", dat[[lat]])
+            if (!is.numeric(dataset[[lat]])) {
+                temp = gsub("?|'|\"", "", dataset[[lat]])
                 temp[lengths(gregexpr(" ", temp)) == 1 & !is.na(temp)] <- paste(temp[lengths(gregexpr(" ", temp)) == 1 & !is.na(temp)], "00")
-                dat[[lat]] <- as.numeric(sapply(strsplit(temp, "\\s+"), "[", 1)) + as.numeric(sapply(strsplit(temp, "\\s+"), "[", 2))/60 + as.numeric(sapply(strsplit(temp, 
+                dataset[[lat]] <- as.numeric(sapply(strsplit(temp, "\\s+"), "[", 1)) + as.numeric(sapply(strsplit(temp, "\\s+"), "[", 2))/60 + as.numeric(sapply(strsplit(temp, 
                   "\\s+"), "[", 3))/360
                 
-            } else if (any(nchar(trunc(abs(dat[[lat]]))) > 2, na.rm = T)) {
-                nm <- !is.na(dat[[lat]]) & dat[[lat]] < 0
-                dat[[lat]] <- abs(dat[[lat]])
-                i <- nchar(abs(dat[[lat]])) <= 4 & !is.na(dat[[lat]])
-                dat[[lat]][i] <- paste0(dat[[lat]][i], "00")
-                dat[[lat]] <- format(as.numeric(stringr::str_pad(abs(as.numeric(dat[[lat]])), 6, pad = "0")), scientific = FALSE)
-                dat[[lat]] <- as.numeric(substr(dat[[lat]], start = 1, stop = 2)) + as.numeric(substr(dat[[lat]], start = 3, stop = 4))/60 + as.numeric(substr(dat[[lat]], 
+            } else if (any(nchar(trunc(abs(dataset[[lat]]))) > 2, na.rm = T)) {
+                nm <- !is.na(dataset[[lat]]) & dataset[[lat]] < 0
+                dataset[[lat]] <- abs(dataset[[lat]])
+                i <- nchar(abs(dataset[[lat]])) <= 4 & !is.na(dataset[[lat]])
+                dataset[[lat]][i] <- paste0(dataset[[lat]][i], "00")
+                dataset[[lat]] <- format(as.numeric(stringr::str_pad(abs(as.numeric(dataset[[lat]])), 6, pad = "0")), scientific = FALSE)
+                dataset[[lat]] <- as.numeric(substr(dataset[[lat]], start = 1, stop = 2)) + as.numeric(substr(dataset[[lat]], start = 3, stop = 4))/60 + as.numeric(substr(dataset[[lat]], 
                   start = 5, stop = 6))/3600
-                dat[[lat]][nm] <- dat[[lat]][nm] * -1
+                dataset[[lat]][nm] <- dataset[[lat]][nm] * -1
             } else {
-                dat <- dat
+              dataset <- dataset
             }
         }
         if (!is.null(lon)) {
-            if (!is.numeric(dat[[lon]])) {
-                temp = gsub("?|'|\"", "", dat[, lon])
+            if (!is.numeric(dataset[[lon]])) {
+                temp = gsub("?|'|\"", "", dataset[, lon])
                 temp[lengths(gregexpr(" ", temp)) == 1 & !is.na(temp)] <- paste(temp[lengths(gregexpr(" ", temp)) == 1 & !is.na(temp)], "00")
-                dat[[lon]] <- as.numeric(sapply(strsplit(temp, "\\s+"), "[", 1)) + as.numeric(sapply(strsplit(temp, "\\s+"), "[", 2))/60 + as.numeric(sapply(strsplit(temp, 
+                dataset[[lon]] <- as.numeric(sapply(strsplit(temp, "\\s+"), "[", 1)) + as.numeric(sapply(strsplit(temp, "\\s+"), "[", 2))/60 + as.numeric(sapply(strsplit(temp, 
                   "\\s+"), "[", 3))/360
                 
-            } else if (any(nchar(trunc(abs(as.numeric(dat[[lon]])))) > 3, na.rm = T)) {
-                nm <- !is.na(dat[[lon]]) & as.numeric(dat[[lon]]) < 0
-                dat[[lon]] <- abs(dat[[lon]])
-                i <- nchar(dat[[lon]]) <= 5 & !is.na(dat[[lon]])
-                dat[[lon]][i] <- paste0(dat[[lon]][i], "00")
-                dat[[lon]] <- format(as.numeric(stringr::str_pad(as.numeric(dat[[lon]]), 7, pad = "0")), scientific = FALSE)
-                dat[[lon]] <- as.numeric(substr(dat[[lon]], start = 1, stop = 3)) + as.numeric(substr(dat[[lon]], start = 4, stop = 5))/60 + as.numeric(substr(dat[[lon]], 
+            } else if (any(nchar(trunc(abs(as.numeric(dataset[[lon]])))) > 3, na.rm = T)) {
+                nm <- !is.na(dataset[[lon]]) & as.numeric(dataset[[lon]]) < 0
+                dataset[[lon]] <- abs(dataset[[lon]])
+                i <- nchar(dataset[[lon]]) <= 5 & !is.na(dataset[[lon]])
+                dataset[[lon]][i] <- paste0(dataset[[lon]][i], "00")
+                dataset[[lon]] <- format(as.numeric(stringr::str_pad(as.numeric(dataset[[lon]]), 7, pad = "0")), scientific = FALSE)
+                dataset[[lon]] <- as.numeric(substr(dataset[[lon]], start = 1, stop = 3)) + as.numeric(substr(dataset[[lon]], start = 4, stop = 5))/60 + as.numeric(substr(dataset[[lon]], 
                   start = 6, stop = 7))/3600
-                dat[[lon]][nm] <- dat[[lon]][nm] * -1
+                dataset[[lon]][nm] <- dataset[[lon]][nm] * -1
             } else {
-                dat <- dat
+              dataset <- dataset
             }
         }
         
         if (latsign == TRUE & !is.null(lat)) {
-            dat[[lat]] <- -1 * dat[[lat]]
+          dataset[[lat]] <- -1 * dataset[[lat]]
         } else {
-            dat <- dat
+          dataset <- dataset
         }
         if (lonsign == TRUE & !is.null(lon)) {
-            dat[[lon]] <- -1 * dat[[lon]]
+          dataset[[lon]] <- -1 * dataset[[lon]]
         } else {
-            dat <- dat
+          dataset <- dataset
         }
-        return(dat)
+        return(dataset)
     }
     rm(tmp)
 }

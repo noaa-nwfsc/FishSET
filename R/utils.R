@@ -32,6 +32,7 @@ loclog <- function(){
   }
 
 locoutput <- function(){
+  #' Output location
   #' @keywords internal
   #' @export
   if(exists('loc2')) { loc2=loc2} else { loc2=NULL}
@@ -713,6 +714,31 @@ outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plo
   } else {
     # Actions to take if data is not numeric
     print("Data is not numeric. Plots not generated.")
+  }
+}
+
+#' quietly_test
+#' capture messages if exist and print to shiny app
+#' @param .f function name
+#' @export
+#' @keywords internal
+#' @importFrom purrr quietly safely
+#
+quietly_test <- function(.f) {
+  fun1 <- purrr::quietly(.f ) 
+  fun <- purrr::safely(fun1)
+  function(...) {
+    res <- fun(...)
+    
+    if(!is.null(res$error)) {  # safely output
+      showNotification(res$error$message, duration = 10, type="error")
+      return(res$result)
+    }
+    res <- res$result # quietly output
+    if(!is.null(res$warnings) && length(res$warnings) > 0) {
+      lapply(unique(res$warnings), showNotification, duration = 10, type="warning")
+    }
+    return(res$result)
   }
 }
 
