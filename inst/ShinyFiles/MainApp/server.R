@@ -253,9 +253,16 @@
       )
       
       observeEvent(input$loadDat, {
-        req(input$portdattext)
+        if(input$projectname==''){
+          showNotification("Please enter a project name.", type='message', duration=10)
+        }
+        req(input$projectname)
         if(input$loadportsource=='FishSET database'){
-          ptdat$dataset <- table_view(paste0(input$projectname, input$portdattext))
+          if(table_exists(paste0(input$projectname, 'PortTable'))==FALSE){
+            showNotification('Table not found in FishSET database. Check project spelling.', type='message', duration=15)
+          } else {
+          ptdat$dataset <- table_view(paste0(input$projectname, 'PortTable'))
+          }
         } else if(input$loadportsource=='Upload new file' & !is.null(input$portdat)){
           type <- sub('.*\\.', '', input$portdat$name)
           if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
@@ -263,7 +270,7 @@
           }else {
           ptdat$dataset <- ptdat$dataset
           }
-        if(names(pdat$dataset)[1]!='var1'){
+        if(names(ptdat$dataset)[1]!='var1'){
           showNotification("Port data loaded.", type='message', duration=10)
         }
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
@@ -287,7 +294,6 @@
       )
       
       observeEvent(input$loadDat, {
-        #req(input$spatialdattext)
         if(input$loadspatialsource=='FishSET database'){
           spatdat$dataset <- table_view(input$spatialdattext)
         } else if(input$loadspatialsource=='Upload new file' & !is.null(input$spatialdat)){

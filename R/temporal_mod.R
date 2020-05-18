@@ -28,43 +28,43 @@
 
 # Change to Year, month, day, minutes
 temporal_mod <- function(dat, x, define.format) {
-  
-  #Call in datasets
-  out <- data_pull(dat)
-  dat <- out$dat
-  dataset <- out$dataset
-  
-  
-  if (!define.format %in% c("year","month","day","hour", "minute")) {
-    # User defines the format of the time variable
-    int <- format(date_parser(dataset[[x]]), format = define.format)
-    # Extract specific time unit
-  } else {
-    if (define.format == "month") {
-      # Month:
-      int <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m")
-    } else if (define.format == "year") {
-      # Year:
-      int <- format(as.Date(date_parser(dataset[[x]])), format = "%Y")
-    } else if (define.format == "day") {
-      # Month/day
-      int <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m/%d")
-    } else if(define.format == "hour") {
-      int <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m/%d %H")
-    }else if(define.format == "minute") {
-      int <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m/%d %H:%M")
-      }else {
-      warning("define.format is not recognized. Pre-formatted choices include, year, month, day, hour, minute")
+    
+    # Call in datasets
+    out <- data_pull(dat)
+    dat <- out$dat
+    dataset <- out$dataset
+    
+    
+    if (!define.format %in% c("year", "month", "day", "hour", "minute")) {
+        # User defines the format of the time variable
+        int <- format(date_parser(dataset[[x]]), format = define.format)
+        # Extract specific time unit
+    } else {
+        if (define.format == "month") {
+            # Month:
+            int <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m")
+        } else if (define.format == "year") {
+            # Year:
+            int <- format(as.Date(date_parser(dataset[[x]])), format = "%Y")
+        } else if (define.format == "day") {
+            # Month/day
+            int <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m/%d")
+        } else if (define.format == "hour") {
+            int <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m/%d %H")
+        } else if (define.format == "minute") {
+            int <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m/%d %H:%M")
+        } else {
+            warning("define.format is not recognized. Pre-formatted choices include, year, month, day, hour, minute")
+        }
     }
-  }
-  
-  temp_mod_function <- list()
-  temp_mod_function$functionID <- 'temp_mod'
-  temp_mod_function$args <- c(dat, x, define.format)
-  temp_mod_function$kwargs <- list()
-  temp_mod_function$output <- c('')
-  log_call(temp_mod_function)
-  
-  return(int)
-  
+    
+    temp_mod_function <- list()
+    temp_mod_function$functionID <- "temp_mod"
+    temp_mod_function$args <- c(dat, x, define.format)
+    temp_mod_function$kwargs <- list()
+    temp_mod_function$output <- c("")
+    log_call(temp_mod_function)
+    
+    return(int)
+    
 }

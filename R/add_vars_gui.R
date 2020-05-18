@@ -27,7 +27,7 @@ add_vars <- function(working_dat, raw_dat, project){
 
   shinyApp(
     ui = fluidPage(
-      # tweaks, a list object to set up multicols for checkboxGroupInput
+      # Style formatting
       tags$head(tags$style(HTML("
                                 .multicol { 
                                 -webkit-column-count: 2; /* Chrome, Safari, Opera */ 

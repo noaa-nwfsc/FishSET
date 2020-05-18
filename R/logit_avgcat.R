@@ -13,12 +13,12 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
     #'     distance.
     #' @param otherdat Other data used in model (as a list containing objects
     #'     `intdat` and `griddat`). \cr \cr
-    #'     For this likelihood, `intdat` are "travel-distance variables", which
+    #'     For this likelihood, `intdat` are 'travel-distance variables', which
     #'     are alternative-invariant variables that are interacted with travel
     #'     distance to form the cost portion of the likelihood. Each variable
     #'     name therefore corresponds to data with dimensions (number of
     #'     observations) by (unity), and returns a single parameter. \cr \cr
-    #'     In `griddat` are "average-catch variables" that do not vary across
+    #'     In `griddat` are 'average-catch variables' that do not vary across
     #'     alternatives, e.g. vessel gross tonnage. Each variable name therefore
     #'     corresponds to data with dimensions (number of observations) by
     #'     (unity), and returns (k-1) parameters where (k) equals the number of
@@ -27,11 +27,11 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
     #'     first alternative. \cr \cr
     #'     For both objects any number of variables are allowed, as a list of
     #'     matrices. Note the variables (each as a matrix) within `griddat` and
-    #'     `intdat` have no naming restrictions. "Average-catch variables"
+    #'     `intdat` have no naming restrictions. 'Average-catch variables'
     #'     may correspond to variables that impact average catches by location,
-    #'     or "travel-distance variables" may be vessel characteristics that
+    #'     or 'travel-distance variables' may be vessel characteristics that
     #'     affect how much disutility is suffered by traveling a greater
-    #'     distance. Note in this likelihood the "average-catch variables" vary
+    #'     distance. Note in this likelihood the 'average-catch variables' vary
     #'     across observations but not for each location: they are allowed to
     #'     affect alternatives differently due to the location-specific
     #'     coefficients. \cr \cr
@@ -72,14 +72,14 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
     #' }
     #' @section Graphical examples: 
     #' \if{html}{
-    #' \figure{logit_avgcat_grid.png}{options: width="40\%" 
-    #' alt="Figure: logit_avgcat_grid.png"}
+    #' \figure{logit_avgcat_grid.png}{options: width='40\%' 
+    #' alt='Figure: logit_avgcat_grid.png'}
     #' \cr
-    #' \figure{logit_avgcat_travel.png}{options: width="40\%" 
-    #' alt="Figure: logit_avgcat_travel.png"}
+    #' \figure{logit_avgcat_travel.png}{options: width='40\%' 
+    #' alt='Figure: logit_avgcat_travel.png'}
     #' }
     #'
-        
+    
     griddat <- as.matrix(do.call(cbind, otherdat$griddat))
     intdat <- as.matrix(do.call(cbind, otherdat$intdat))
     
@@ -91,23 +91,18 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
     
     starts3 <- as.matrix(starts3)
     gridcoef <- as.matrix(starts3[1:(gridnum * (alts - 1)), ])
-    intcoef <- as.matrix(starts3[((gridnum * (alts - 1)) + 1):
-        (((gridnum * (alts - 1))) + intnum), ])
+    intcoef <- as.matrix(starts3[((gridnum * (alts - 1)) + 1):(((gridnum * (alts - 1))) + intnum), ])
     
-    gridbetas <- (matrix(gridcoef, obsnum, (alts - 1) * gridnum, byrow = TRUE) *
-        griddat[, rep(1:gridnum, each = (alts - 1))])
+    gridbetas <- (matrix(gridcoef, obsnum, (alts - 1) * gridnum, byrow = TRUE) * griddat[, rep(1:gridnum, each = (alts - 1))])
     dim(gridbetas) <- c(nrow(gridbetas), (alts - 1), gridnum)
     gridbetas <- rowSums(gridbetas, dims = 2)
     
-    intbetas <- .rowSums(intdat * matrix(intcoef, obsnum, intnum, byrow = TRUE), 
-        obsnum, intnum)
+    intbetas <- .rowSums(intdat * matrix(intcoef, obsnum, intnum, byrow = TRUE), obsnum, intnum)
     
     betas <- matrix(c(gridbetas, intbetas), obsnum, (alts - 1 + 1))
     
-    djztemp <- betas[1:obsnum, rep(1:ncol(betas), each = (alts))] *
-        dat[, (alts + 3):(dim(dat)[2])]
-    dim(djztemp) <- c(nrow(djztemp), ncol(djztemp)/((alts - 1) + 1),
-        (alts - 1) + 1)
+    djztemp <- betas[1:obsnum, rep(1:ncol(betas), each = (alts))] * dat[, (alts + 3):(dim(dat)[2])]
+    dim(djztemp) <- c(nrow(djztemp), ncol(djztemp)/((alts - 1) + 1), (alts - 1) + 1)
     
     prof <- rowSums(djztemp, dims = 2)
     profx <- prof - prof[, 1]
@@ -126,24 +121,22 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
     paramsglobalcheck <- starts3
     ldglobalcheck <- unlist(as.matrix(ldchoice))
     
-    ldglobalcheck <- list(model=paste0(project, expname, mod.name), ldsumglobalcheck=ldsumglobalcheck,
-                          paramsglobalcheck=paramsglobalcheck, ldglobalcheck=ldglobalcheck)
+    ldglobalcheck <- list(model = paste0(project, expname, mod.name), ldsumglobalcheck = ldsumglobalcheck, paramsglobalcheck = paramsglobalcheck, ldglobalcheck = ldglobalcheck)
     
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(),locdatabase())
-    single_sql <- paste0(project, "ldglobalcheck", format(Sys.Date(), format="%Y%m%d"))
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+    single_sql <- paste0(project, "ldglobalcheck", format(Sys.Date(), format = "%Y%m%d"))
     second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
     
-    if(table_exists(single_sql)==TRUE){
-      x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
-      table_remove(single_sql)
-      ldglobalcheck <- c(x, ldglobalcheck)
+    if (table_exists(single_sql) == TRUE) {
+        x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
+        table_remove(single_sql)
+        ldglobalcheck <- c(x, ldglobalcheck)
     }
     
-    DBI::dbExecute(fishset_db, paste0("CREATE TABLE IF NOT EXISTS ", project, "ldglobalcheck", 
-                                      format(Sys.Date(), format="%Y%m%d"), "(data ldglobalcheck)"))
+    DBI::dbExecute(fishset_db, paste0("CREATE TABLE IF NOT EXISTS ", project, "ldglobalcheck", format(Sys.Date(), format = "%Y%m%d"), "(data ldglobalcheck)"))
     DBI::dbExecute(fishset_db, second_sql, params = list(data = list(serialize(ldglobalcheck, NULL))))
     DBI::dbDisconnect(fishset_db)
-
+    
     return(ld)
     
 }

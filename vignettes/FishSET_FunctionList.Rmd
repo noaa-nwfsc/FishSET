@@ -21,7 +21,7 @@ The FishSET R package includes functions that can be used in the R console or th
 ```{r eval=FALSE}
 install.packages('devtools')
 library(devtools)
-install("PATH/TO/Directory/Containing/FishSET")
+install.packages("PATH/TO/Directory/Containing/FishSET", repos=NULL, type='source')
 library(FishSET)
 ```
 

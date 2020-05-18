@@ -22,109 +22,102 @@
 #' @export 
 
 
-assignment_column <- function(dat, gridfile, lon.dat, lat.dat, cat, closest.pt = c(TRUE, FALSE), 
-                              lon.grid=NULL, lat.grid=NULL, hull.polygon = c(TRUE, FALSE), epsg=NULL) {
-  
-  #Call in data sets
-  out <- data_pull(dat)
-  dat <- out$dat
-  dataset <- out$dataset
-  
-  dataset[[lat.dat]] <- as.numeric(as.vector(dataset[[lat.dat]]))
-  dataset[[lon.dat]] <- as.numeric(as.vector(dataset[[lon.dat]]))
-  
-  x <- 0
-  if (any(abs(dataset[[lon.dat]]) > 180)) {
-    warning("Longitude is not valid (outside -180:180). Function not run")
-    #stop("Longitude is not valid (outside -180:180.")
-    x <- 1
-  }
-  if (any(abs(dataset[[lat.dat]]) > 90)) {
-    warning("Latitude is not valid (outside -90:90. Function not run") 
-    x <-1    
-    # stop("Latitude is not valid (outside -90:90.")
-  } 
-  
-  if(x==0){
-  #For json and shape files
-  if(any(class(gridfile)=='sf')||any(class(gridfile)=='sp')) {
-    #map2 <- sf::st_read('Z:/OLDFishSET/NMFS_RA.json') 
-    dat_sub <- sf::st_as_sf(x = dataset, 
-                            coords = c(lon.dat, lat.dat),
-                            crs = "+proj=longlat +datum=WGS84")
+assignment_column <- function(dat, gridfile, lon.dat, lat.dat, cat, closest.pt = c(TRUE, FALSE), lon.grid = NULL, lat.grid = NULL, hull.polygon = c(TRUE, 
+    FALSE), epsg = NULL) {
     
-    if(raster::projection(gridfile) != raster::projection(dat_sub)) {
-      warning('Projection does not match. Consider transforming data to same epsg.')
+    # Call in data sets
+    out <- data_pull(dat)
+    dat <- out$dat
+    dataset <- out$dataset
+    
+    dataset[[lat.dat]] <- as.numeric(as.vector(dataset[[lat.dat]]))
+    dataset[[lon.dat]] <- as.numeric(as.vector(dataset[[lon.dat]]))
+    
+    x <- 0
+    if (any(abs(dataset[[lon.dat]]) > 180)) {
+        warning("Longitude is not valid (outside -180:180). Function not run")
+        # stop('Longitude is not valid (outside -180:180.')
+        x <- 1
     }
-    if(!is.null(epsg)){
-      dat_sub <- sf::st_transform(dat_sub, epsg)
-      gridfile <- sf::st_transform(gridfile, epsg)
+    if (any(abs(dataset[[lat.dat]]) > 90)) {
+        warning("Latitude is not valid (outside -90:90. Function not run")
+        x <- 1
+        # stop('Latitude is not valid (outside -90:90.')
     }
-    pts <- as.data.frame(as.numeric(sf::st_intersects(dat_sub, gridfile)))
-    colnames(pts)='col.id'
-    pts$ID <- gridfile[[cat]][pts$col.id]
-  } 
-    else {
-      # sort data
-  gridfile <- as.data.frame(gridfile)
-  gridfile <- gridfile[order(gridfile[, cat], gridfile[, lon.grid], gridfile[, lat.grid]), ]
-  
-  # Create spatial polygon dataframe from grid data make a list
-  map_list <- split(gridfile[, c(lon.grid, lat.grid, cat)], gridfile[[cat]])
-  # only want lon-lats in the list, not the names
-  map_list <- lapply(map_list, function(x) {
-    x[cat] <- NULL
-    x
-  })
-  
-  if (hull.polygon == T) {
-    ps <- lapply(map_list, function(x) x[c(grDevices::chull(x), grDevices::chull(x)[1]), ])
-    p1 <- lapply(seq_along(ps), function(i) sp::Polygons(list(sp::Polygon(ps[[i]])), ID = names(map_list)[i]))
-  } else {
-      # add id variable
-      ps <- suppressWarnings(lapply(map_list, sp::Polygon))
-      p1 <- lapply(seq_along(ps), function(i) sp::Polygons(list(ps[[i]]), ID = names(map_list)[i]))
+    
+    if (x == 0) {
+        # For json and shape files
+        if (any(class(gridfile) == "sf") || any(class(gridfile) == "sp")) {
+            # map2 <- sf::st_read('Z:/OLDFishSET/NMFS_RA.json')
+            dat_sub <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), crs = "+proj=longlat +datum=WGS84")
+            
+            if (raster::projection(gridfile) != raster::projection(dat_sub)) {
+                warning("Projection does not match. Consider transforming data to same epsg.")
+            }
+            if (!is.null(epsg)) {
+                dat_sub <- sf::st_transform(dat_sub, epsg)
+                gridfile <- sf::st_transform(gridfile, epsg)
+            }
+            pts <- as.data.frame(as.numeric(sf::st_intersects(dat_sub, gridfile)))
+            colnames(pts) = "col.id"
+            pts$ID <- gridfile[[cat]][pts$col.id]
+        } else {
+            # sort data
+            gridfile <- as.data.frame(gridfile)
+            gridfile <- gridfile[order(gridfile[, cat], gridfile[, lon.grid], gridfile[, lat.grid]), ]
+            
+            # Create spatial polygon dataframe from grid data make a list
+            map_list <- split(gridfile[, c(lon.grid, lat.grid, cat)], gridfile[[cat]])
+            # only want lon-lats in the list, not the names
+            map_list <- lapply(map_list, function(x) {
+                x[cat] <- NULL
+                x
+            })
+            
+            if (hull.polygon == T) {
+                ps <- lapply(map_list, function(x) x[c(grDevices::chull(x), grDevices::chull(x)[1]), ])
+                p1 <- lapply(seq_along(ps), function(i) sp::Polygons(list(sp::Polygon(ps[[i]])), ID = names(map_list)[i]))
+            } else {
+                # add id variable
+                ps <- suppressWarnings(lapply(map_list, sp::Polygon))
+                p1 <- lapply(seq_along(ps), function(i) sp::Polygons(list(ps[[i]]), ID = names(map_list)[i]))
+            }
+            
+            my_spatial_polys <- sp::SpatialPolygons(p1, proj4string = sp::CRS("+proj=longlat +datum=WGS84"))
+            
+            # Change to spatial polygon dataframe
+            srdf <- sp::SpatialPolygonsDataFrame(my_spatial_polys, data.frame(row.names = c(names(map_list)), ID = names(map_list)))
+            
+            # Assign zone to data set based on lat and long
+            dat_sub <- dataset
+            # Assignment modified according
+            sp::coordinates(dat_sub) <- c(lon.dat, lat.dat)
+            
+            # Set the projection of the SpatialPointsDataFrame using the projection of the shapefile
+            sp::proj4string(dat_sub) <- sp::CRS("+proj=longlat +datum=WGS84")  #proj4string(sodo)
+            # identify intersections of points in data set with polygons in grid file
+            pts <- sp::over(dat_sub, srdf, duplicate = F)
+            
+            
+            if (closest.pt == TRUE) {
+                closest <- data.frame(matrix(NA, nrow = length(which(is.na(pts$ID) == TRUE)), ncol = 1))
+                for (i in 1:length(which(is.na(pts$ID) == TRUE))) {
+                  closest[i, 1] <- names(which(rgeos::gDistance(dat_sub[which(is.na(pts$ID) == TRUE), ][i, ], as(srdf, "SpatialLines"), byid = TRUE)[, 
+                    1] == min(rgeos::gDistance(dat_sub[which(is.na(pts$ID) == TRUE), ][i, ], as(srdf, "SpatialLines"), byid = TRUE))))
+                }
+                pts[which(is.na(pts$ID) == TRUE), ] <- closest
+            }
+            
+            # if (anyNA(pts$ID)) { drop.points <- dataset[is.na(pts$ID)==TRUE, c(lon.dat, lat.dat)] warning('Zone ID not identified for at least one point.
+            # Consider plotting points against before dropping points by assigning remove.na to TRUE or assigning these points to closest zone by setting closest
+            # to TRUE. Undefined points are recorded in the log file') }
+        }
+        
+        pts <- cbind(dataset, ZoneID = pts$ID)
+        
+        
+        pts <- as.data.frame(pts)
+        return(pts)
     }
-  
-    my_spatial_polys <- sp::SpatialPolygons(p1, proj4string = sp::CRS("+proj=longlat +datum=WGS84"))
-  
-    # Change to spatial polygon dataframe
-    srdf <- sp::SpatialPolygonsDataFrame(my_spatial_polys, data.frame(row.names = c(names(map_list)), 
-                                                                    ID = names(map_list)))
-  
-    # Assign zone to data set based on lat and long
-    dat_sub <- dataset
-    # Assignment modified according
-    sp::coordinates(dat_sub) <- c(lon.dat, lat.dat)
-  
-    # Set the projection of the SpatialPointsDataFrame using the projection of the shapefile
-    sp::proj4string(dat_sub) <- sp::CRS("+proj=longlat +datum=WGS84")  #proj4string(sodo)
-    # identify intersections of points in data set with polygons in grid file
-    pts <- sp::over(dat_sub, srdf, duplicate = F)
-
-   
-  if (closest.pt == TRUE) {
-    closest <- data.frame(matrix(NA, nrow = length(which(is.na(pts$ID) == TRUE)), ncol = 1))
-    for (i in 1:length(which(is.na(pts$ID) == TRUE))) {
-      closest[i, 1] <- names(which(rgeos::gDistance(dat_sub[which(is.na(pts$ID) == TRUE), ][i, ], 
-                                                    as(srdf, "SpatialLines"), byid = TRUE)[, 1] == 
-                                     min(rgeos::gDistance(dat_sub[which(is.na(pts$ID) == TRUE), ][i, ], as(srdf, "SpatialLines"), byid = TRUE))))
-    }
-    pts[which(is.na(pts$ID) == TRUE), ] <- closest
-  }
-  
-#  if (anyNA(pts$ID)) {
-#    drop.points <- dataset[is.na(pts$ID)==TRUE, c(lon.dat, lat.dat)]
-#    warning("Zone ID not identified for at least one point. Consider plotting points against before dropping points by assigning remove.na to TRUE or 
-#         assigning these points to closest zone by setting closest to TRUE. Undefined points are recorded in the log file")
-#  }
-  }
-  
-  pts <- cbind(dataset, ZoneID=pts$ID)
-  
-
-  pts <- as.data.frame(pts)
-  return(pts)
-  }
-  }
+}
 
