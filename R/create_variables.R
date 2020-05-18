@@ -48,6 +48,41 @@ cpue <- function(dat, xWeight, xTime, name = "cpue") {
 }
 
 ##---- Dummy  Variables ----##
+<<<<<<< HEAD
+#dummy_num
+dummy_num <- function(dat, var, value, opts='more_less', name='dummy_num'){
+#' Create a dummy variable based on selected values
+#' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
+#' @param var Variable in data frame to create dummy variable from
+#' @param value The set value will depend whether the data is a date, factor, or numeric. If date, value should be a year, if factor, value should be a level
+#' within the variable, if number value should be a single number or range of numbers [use c(1,5)]
+#' @param opts Choices are x_y and more_less. x_y sets the selected year, factor, or numeric value (single or range) to 0 and all other values to 1.
+#' more_less sets sets values before the set year or numberic value to 0 and all values greater than the year or value to 1. 
+#' Default is set to 'more_less'.
+#' @param name Name of created dummy variable. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
+#' @details This function creates a dummy variable. How the dummy variable is created depends upon whether the variable the dummy variable should be created
+#' from is a date, factor, or numeric variable. 
+#' For date variables, the dummy variable is defined by a date (year) and may be either this year versus all other years (x_y) or before vs after this year (more_less).
+#' Use this function to create a variable defining whether a not policy action had been implemented. 
+#' For example, to create an ammendment 80 variable you would type: `dummy_num('MainDataTable', 'Haul_date', 2008, 'more_less', 'ammend80')` 
+#' For factor variables, the only option is to compare selected levels against all others.
+#' For example, to set a variable specifying whether fishers targeted pollock or something else type: `dummy_num('MainDataTable', 'GF_TARGET_FT', c('Pollock - bottom', 'Pollock - midwater'), 'x_y', 'pollock_target')`
+#' For numeric variables, you can set a single value or a range of continuous values and contrast either the selected value(s) against all others (x_y) or less than the 
+#' selected value versus more than the selected value (more_less). For more_less, the mean is used as the critical value is a range of values is proviced.
+#' @export
+
+ 
+   #Pull in data
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset
+  
+  if(grepl('dat|year', var, ignore.case=TRUE)){
+        if(length(value)==6){
+          dataset[[var]] <- format(as.Date(dataset[[var]]), "%Y%m")
+        } else if(length(value)==4){
+          dataset[[var]] <- format(as.Date(dataset[[var]]), "%Y")
+=======
 # dummy_num
 dummy_num <- function(dat, var, value, opts = "more_less", name = "dummy_num") {
     #' Create a dummy variable based on selected values
@@ -86,6 +121,7 @@ dummy_num <- function(dat, var, value, opts = "more_less", name = "dummy_num") {
         }
         if (opts == "x_y") {
             out <- ifelse(as.numeric(dataset[[var]]) == value, 0, 1)
+>>>>>>> 8274f39fcd87342eab8f8848df9de5aa602cba4b
         } else {
             out <- ifelse(as.numeric(dataset[[var]]) < value, 0, 1)
         }
@@ -226,6 +262,45 @@ set_quants <- function(dat, x, quant.cat = c(0.2, 0.25, 0.4), name = "set_quants
     }
 }
 
+<<<<<<< HEAD
+bin_var <- function(dat, project, var, br = NULL, labs = NULL, ...){
+  #'
+  #' Wrapper for \code{\link{cut}}
+  #'
+  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
+  #' @param project name of project.
+  #' @param var A numeric variable to bin into a factor.
+  #' @param br Numeric. If a single number, the range of var is divided into 
+  #'   n even groups. If two or more values are given var is divided into intervals.
+  #' @param labs A character string of category labels. 
+  #' @param ... Additional arguments passed to \code{\link{cut}}.
+  
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset
+  
+  tmp <- 0
+  
+  if(!is.numeric(dataset[[var]])){
+    
+    tmp <- 1
+    warning("Variable must be numeric.")
+  }
+  
+  if(tmp == 0){
+    
+    bin <- cut(dataset[[var]], breaks = br, labels = labs, ...)
+    
+    # Log function
+    bin_var_function <- list()
+    bin_var_function$functionID <- "bin_var"
+    bin_var_function$args <- c(dat, project, var, project, br, labs)
+    bin_var_function$kwargs <- ""
+    log_call(bin_var_function)
+    
+    bin
+  }
+=======
 bin_var <- function(dat, project, var, br = NULL, labs = NULL, ...) {
     #'
     #' Wrapper for \code{\link{cut}}
@@ -263,6 +338,7 @@ bin_var <- function(dat, project, var, br = NULL, labs = NULL, ...) {
         
         bin
     }
+>>>>>>> 8274f39fcd87342eab8f8848df9de5aa602cba4b
 }
 
 ##---- Numeric  Variables ----##
