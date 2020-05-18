@@ -16,25 +16,25 @@ epm_normal <- function(starts3, dat, otherdat, alts, project, expname, mod.name)
     #'     distance.
     #' @param otherdat Other data used in model (as a list containing objects
     #'     `intdat`, `griddat`, and `prices`). \cr \cr
-    #'     For this likelihood, `intdat` are "travel-distance variables", which
+    #'     For this likelihood, `intdat` are 'travel-distance variables', which
     #'     are alternative-invariant variables that are interacted with travel
     #'     distance to form the cost portion of the likelihood. Each variable
     #'     name therefore corresponds to data with dimensions (number of
     #'     observations) by (unity), and returns a single parameter. \cr \cr
-    #'     In `griddat` are "catch-function variables" that are
+    #'     In `griddat` are 'catch-function variables' that are
     #'     alternative-invariant variables that are interacted with zonal
     #'     constants to form the catch portion of the likelihood. Each variable
     #'     name therefore corresponds to data with dimensions (number of
     #'     observations) by (unity), and returns (k) parameters where (k) equals
     #'     the number of alternatives. \cr \cr
-    #'     For "catch-function variables" `griddat` and "travel-distance
-    #'     variables" `intdat`, any number of variables are allowed, as a list
+    #'     For 'catch-function variables' `griddat` and 'travel-distance
+    #'     variables' `intdat`, any number of variables are allowed, as a list
     #'     of matrices. Note the variables (each as a matrix) within `griddat`
-    #'     `intdat` have no naming restrictions. "Catch-function variables" may
+    #'     `intdat` have no naming restrictions. 'Catch-function variables' may
     #'     correspond to variables that impact catches by location, or
     #'     interaction variables may be vessel characteristics that affect how
     #'     much disutility is suffered by traveling a greater distance. Note in
-    #'     this likelihood the "catch-function variables" vary across
+    #'     this likelihood the 'catch-function variables' vary across
     #'     observations but not for each location: they are allowed to impact
     #'     catches differently across alternatives due to the location-specific
     #'     coefficients. If there are no other data, the user can set `griddat`
@@ -80,24 +80,23 @@ epm_normal <- function(starts3, dat, otherdat, alts, project, expname, mod.name)
     #'}
     #' @section Graphical examples: 
     #' \if{html}{
-    #' \figure{epm_normal_grid.png}{options: width="40\%" 
-    #' alt="Figure: epm_normal_grid.png"}
+    #' \figure{epm_normal_grid.png}{options: width='40\%' 
+    #' alt='Figure: epm_normal_grid.png'}
     #' \cr
-    #' \figure{epm_normal_travel.png}{options: width="40\%" 
-    #' alt="Figure: epm_normal_travel.png"}
+    #' \figure{epm_normal_travel.png}{options: width='40\%' 
+    #' alt='Figure: epm_normal_travel.png'}
     #' \cr
-    #' \figure{epm_normal_sigma.png}{options: width="40\%" 
-    #' alt="Figure: epm_normal_sigma.png"}
+    #' \figure{epm_normal_sigma.png}{options: width='40\%' 
+    #' alt='Figure: epm_normal_sigma.png'}
     #' }
-
-  
-  
+    
+    
+    
     obsnum <- dim(as.data.frame(otherdat$griddat))[1]
-
+    
     griddat <- as.matrix(do.call(cbind, otherdat$griddat))
     gridnum <- dim(griddat)[2]
-    griddat <- matrix(apply(griddat, 2, function(x) rep(x,times=alts)), obsnum,
-        gridnum*alts)
+    griddat <- matrix(apply(griddat, 2, function(x) rep(x, times = alts)), obsnum, gridnum * alts)
     intdat <- as.matrix(do.call(cbind, otherdat$intdat))
     intnum <- dim(intdat)[2]
     
@@ -106,38 +105,32 @@ epm_normal <- function(starts3, dat, otherdat, alts, project, expname, mod.name)
     starts3 <- as.matrix(starts3)
     gridcoef <- as.matrix(starts3[1:(gridnum * alts), ])
     
-    intcoef <- as.matrix(starts3[(((gridnum * alts) + intnum) - intnum + 1):
-        ((gridnum * alts) + intnum), ])
+    intcoef <- as.matrix(starts3[(((gridnum * alts) + intnum) - intnum + 1):((gridnum * alts) + intnum), ])
     
     if ((dim(starts3)[1] - ((gridnum * alts) + intnum + 1)) == alts) {
-    
-        sigmaa <- as.matrix(starts3[((gridnum * alts) + intnum + 1):((gridnum *
-            alts) + intnum + alts), ])
+        
+        sigmaa <- as.matrix(starts3[((gridnum * alts) + intnum + 1):((gridnum * alts) + intnum + alts), ])
         signum <- alts
-    
+        
     } else {
-    
+        
         sigmaa <- as.matrix(starts3[((gridnum * alts) + intnum + 1), ])
         signum <- 1
-    
+        
     }
     
     sigmac <- as.matrix(starts3[((gridnum * alts) + intnum + 1 + signum), ])
     # end of vector
     
-    gridbetas <- (matrix(gridcoef, obsnum, alts * gridnum, byrow = TRUE) *
-        griddat)
+    gridbetas <- (matrix(gridcoef, obsnum, alts * gridnum, byrow = TRUE) * griddat)
     dim(gridbetas) <- c(nrow(gridbetas), alts, gridnum)
     gridbetas <- rowSums(gridbetas, dims = 2)
     
-    intbetas <- .rowSums(intdat * matrix(intcoef, obsnum, intnum, byrow = TRUE),
-        obsnum, intnum)
+    intbetas <- .rowSums(intdat * matrix(intcoef, obsnum, intnum, byrow = TRUE), obsnum, intnum)
     
-    betas <- matrix(c((gridbetas * matrix(pricedat, obsnum, alts)), intbetas),
-        obsnum, (alts + 1))
+    betas <- matrix(c((gridbetas * matrix(pricedat, obsnum, alts)), intbetas), obsnum, (alts + 1))
     
-    djztemp <- betas[1:obsnum, rep(1:ncol(betas), each = alts)] *
-        dat[, 3:(dim(dat)[2])]
+    djztemp <- betas[1:obsnum, rep(1:ncol(betas), each = alts)] * dat[, 3:(dim(dat)[2])]
     dim(djztemp) <- c(nrow(djztemp), ncol(djztemp)/(alts + 1), alts + 1)
     
     prof <- rowSums(djztemp, dims = 2)
@@ -162,13 +155,11 @@ epm_normal <- function(starts3, dat, otherdat, alts, project, expname, mod.name)
     empgriddat <- griddat
     dim(empgriddat) <- c(nrow(empgriddat), alts, gridnum)
     
-    empcatches <- .rowSums(empgridbetas[, cj, ] * empgriddat[, 1, ], obsnum,
-        gridnum)
+    empcatches <- .rowSums(empgridbetas[, cj, ] * empgriddat[, 1, ], obsnum, gridnum)
     # note grid data same across all alternatives
     
-    ldcatch <- (matrix((-(0.5) * log(2 * pi)), obsnum)) + (-(0.5) *
-        log(matrix(empsigmaa, obsnum)^2)) + (-(0.5) * (((yj - empcatches)/
-        (matrix(empsigmaa, obsnum)))^2))
+    ldcatch <- (matrix((-(0.5) * log(2 * pi)), obsnum)) + (-(0.5) * log(matrix(empsigmaa, obsnum)^2)) + (-(0.5) * (((yj - empcatches)/(matrix(empsigmaa, 
+        obsnum)))^2))
     
     ld1 <- ldcatch + ldchoice
     
@@ -182,21 +173,19 @@ epm_normal <- function(starts3, dat, otherdat, alts, project, expname, mod.name)
     paramsglobalcheck <- starts3
     ldglobalcheck <- unlist(as.matrix(ld1))
     
-    ldglobalcheck <- list(model=paste0(project, expname, mod.name), ldsumglobalcheck=ldsumglobalcheck,
-                          paramsglobalcheck=paramsglobalcheck, ldglobalcheck=ldglobalcheck)
+    ldglobalcheck <- list(model = paste0(project, expname, mod.name), ldsumglobalcheck = ldsumglobalcheck, paramsglobalcheck = paramsglobalcheck, ldglobalcheck = ldglobalcheck)
     
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
-    single_sql <- paste0(project, "ldglobalcheck", format(Sys.Date(), format="%Y%m%d"))
+    single_sql <- paste0(project, "ldglobalcheck", format(Sys.Date(), format = "%Y%m%d"))
     second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
     
-    if(table_exists(single_sql)==TRUE){
-      x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
-      table_remove(single_sql)
-      ldglobalcheck <- c(x, ldglobalcheck)
+    if (table_exists(single_sql) == TRUE) {
+        x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
+        table_remove(single_sql)
+        ldglobalcheck <- c(x, ldglobalcheck)
     }
     
-    DBI::dbExecute(fishset_db, paste0("CREATE TABLE IF NOT EXISTS ", project, "ldglobalcheck", 
-                                      format(Sys.Date(), format="%Y%m%d"), "(data ldglobalcheck)"))
+    DBI::dbExecute(fishset_db, paste0("CREATE TABLE IF NOT EXISTS ", project, "ldglobalcheck", format(Sys.Date(), format = "%Y%m%d"), "(data ldglobalcheck)"))
     DBI::dbExecute(fishset_db, second_sql, params = list(data = list(serialize(ldglobalcheck, NULL))))
     DBI::dbDisconnect(fishset_db)
     

@@ -1,3 +1,4 @@
+
 #Define source location
 locdatabase <- function(){
 #' Returns the location of the database
@@ -37,14 +38,15 @@ loclog <- function(){
 
 locoutput <- function(){
   #Define source location for output folder
-  #' Returns the location of the output folder
-  #' @details if loc2 is not in the working environment, then the default location is use
-  #' @examples 
-  #' \dontrun{
-  #' locoutput() # will return output folder location within the fishset package
-  #' loc2 <- getwd()
-  #' locoutput() #will return output folder location as within the working directory
-  #' }
+  # Returns the location of the output folder
+  # @details if loc2 is not in the working environment, then the default location is use
+  # @exp
+  # @examples 
+  # \dontrun{
+  # locoutput() # will return output folder location within the fishset package
+  # loc2 <- getwd()
+  # locoutput() #will return output folder location as within the working directory
+  # }
   if(exists('loc2')) { loc2=loc2} else { loc2=NULL}
   if(is.null(loc2)){
     paste0(system.file(package='FishSET'), '/output/')
