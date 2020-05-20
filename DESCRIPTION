@@ -6,7 +6,7 @@ Title: Spatial Economics Toolbox for Fisheries (FishSET)
 Authors@R: c(person("Melanie Harsch", "Developer", role = c("aut", "cre"), email = "melanie.harsch@noaa.gov"), person("Alan", "Haynie", role = "ctb"), person('Bryce', "McManus", role='ctb'))
 Maintainer: Melanie Harsch <melanie.harsch@noaa.gov>
 Depends: R (>= 3.5.0), shiny
-Imports: RSQLite,  DBI, dplyr, DT, ff, foreign, formattable, geojsonio, geosphere, ggcorrplot, ggplot2, ggpubr, gridExtra, jsonlite, knitr, lubridate, maps, methods, OSMscale, pander, purrr, raster, reshape2, rgeos, R.matlab, scales,servr, sf, shiny, shinyjs, shinycssloaders, signal, sp, spdep, stringi, stringr, zoo
+Imports: RSQLite,  DBI, dplyr, DT, ff, foreign, formattable, geojsonio, geosphere, ggcorrplot, ggplot2, ggpubr, gridExtra, jsonlite, knitr, lubridate, maps, methods, OSMscale, pander, purrr, raster, reshape2, rgeos, R.matlab, scales,servr, sf, shiny, shinyjs, shinycssloaders, signal, sp, spdep, stringi, stringr, tibble, zoo
 Description: The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools for organizing data; developing, improving and disseminating modeling best practices.
 License: GPL (>= 2)
 URL: to provide

@@ -110,6 +110,51 @@ plot_format <- function(x){
   knitr::include_graphics(paste0(getwd(), '/inst/output/',x,'.png'))
 }
 
+current_log <- function() {
+  #' Lists most recent log file
+  #' @keywords internal
+  #' @export
+  #' @details Prints the name of the most recent log file, but not the filepath.
+  
+  logs <- list.files(loclog())
+  
+  g <- gsub("[^0-9]", "", logs)
+  
+  log <- logs[which(g == max(g))]
+  
+  log
+}
+
+summary_table <- function(project) {
+  #' Display dataset summary table
+  #'
+  #'@param project Name of project.
+  #'@export
+  #'@importFrom tibble rownames_to_column 
+  #'@details Displays the most recent table created by \code{\link{summary_stats}} 
+  #'as a dataframe. Can be used in console or notebook. 
+  
+  date <- gsub(".json", "", current_log())
+  
+  sum_tab <- read.csv(paste0(locoutput(), project, "_summary_stats_", date, ".csv"), 
+                      strip.white = TRUE, check.names = FALSE)
+  
+  rownames(sum_tab) <- c("Min", "Median", "Mean", "Max", "Missing", 
+                         "Unique Obs.", "No. 0's")
+  
+  sum_tab <- apply(sum_tab, 2, function(x) gsub(".*:", "", x))
+  
+  sum_tab <- apply(sum_tab, 2, function(x) trimws(x))
+  
+  sum_tab <- as.data.frame(t(sum_tab))
+  
+  sum_tab <- tibble::rownames_to_column(sum_tab, "Variable")
+  
+  sum_tab <- sum_tab[-1, ]
+  
+  sum_tab
+}
+
 pull_table <- function(project, table) {
   #' Retrieve name of the most recent table from a project
   #' 
