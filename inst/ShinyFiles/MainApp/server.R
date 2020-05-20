@@ -2047,13 +2047,13 @@
       observeEvent(input$runNew, {
         if(input$VarCreateTop=='Dummy variables'&input$dummyfunc=='From policy dates') {
               q_test <- quietly_test(dummy_num)
-              values$dataset[[input$varname]] <- q_test(values$dataset, var=input$dummypolydate, value=dum_pol_year(), opts='more_less')
+              values$dataset[[input$varname]] <- q_test(values$dataset, var=input$dummypolydate, value=dum_pol_year(), opts='more_less', name=input$varname)
         } else if(input$VarCreateTop=='Dummy variables'&input$dummyfunc=='From variable') {
               q_test <- quietly_test(dummy_num)
-              values$dataset[[input$varname]] <- q_test(values$dataset, var=input$dummyvarfunc, value=input$select.val, opts=input$dumsubselect)
+              values$dataset[[input$varname]] <- q_test(values$dataset, var=input$dummyvarfunc, value=input$select.val, opts=input$dumsubselect, name=input$varname)
         } else if(input$VarCreateTop=='Data transformations'&input$trans=='temp_mod') {
               q_test <- quietly_test(temporal_mod)
-              values$dataset[[input$varname]] <- q_test(values$dataset, input$TimeVar, input$define_format)
+              values$dataset[[input$varname]] <- q_test(values$dataset, input$TimeVar, input$define_format, name=input$varname)
         } else if(input$VarCreateTop=='Data transformations'&input$trans=='set_quants'){
               q_test <- quietly_test(set_quants)
               values$dataset[[input$varname]] <- q_test(values$dataset, x=input$trans_var_name, quant.cat = input$quant_cat, name=input$varname)
@@ -2073,7 +2073,7 @@
               values$dataset[[input$varname]] <- q_test(values$dataset, input$xWeight, input$xTime, name=input$varname)
           } else {
             q_test <- quietly_test(cpue)
-            values$dataset[['dur']] <- create_duration(values$dataset, input$dur_start2, input$dur_end2, input$dur_units2, name=NULL)
+            values$dataset[['dur']] <- create_duration(values$dataset, input$dur_start2, input$dur_end2, input$dur_units2, name='dur')
             values$dataset[[input$varname]] <- q_test(values$dataset, input$xWeight, 'dur', name=input$varname)
           }
         } else if(input$VarCreateTop=='Spatial functions' & input$dist=='create_dist_between'){
@@ -2101,7 +2101,7 @@
               values$dataset <- q_test(values$dataset, c(input$mid_start[2],input$mid_start[1]), c(input$mid_end[2],input$mid_end[1]), input$varname)
         } else if(input$VarCreateTop=='Spatial functions'&input$dist=='create_duration'){
               q_test <- quietly_test(create_duration)
-              values$dataset[[input$varname]] <- q_test(values$dataset, input$dur_start, input$dur_end, input$dur_units, name=NULL)
+              values$dataset[[input$varname]] <- q_test(values$dataset, input$dur_start, input$dur_end, input$dur_units, name=input$varname)
         } else if(input$VarCreateTop=='Spatial functions'&input$dist=='create_startingloc'){
               q_test <- quietly_test(create_startingloc)
               values$dataset[['startingloc']] <- q_test(values$dataset,  gridfile=spatdat$dataset,  portTable=input$port.dat,  trip_id=input$trip_id_SL,
