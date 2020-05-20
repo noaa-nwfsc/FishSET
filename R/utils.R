@@ -1,8 +1,9 @@
 
+locdatabase <- function(){
 #' Define source location
 #' @keywords internal
 #' @export
-locdatabase <- function(){
+
  if(exists('loc')) { loc=loc} else { loc=NULL}
   if(is.null(loc)){
   paste0(system.file(package='FishSET'), '/fishset_db.sqlite') 
