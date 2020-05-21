@@ -2,8 +2,8 @@
 
 
 #' Distance between two points
-create_dist_between_for_gui <- function(dat, start, end, units, portTable = NULL, gridfile = NULL, lon.dat = NULL, lat.dat = NULL, cat = NULL, lon.grid = NULL, 
-    lat.grid = NULL) {
+create_dist_between_for_gui <- function(dat, start, end, units, name = 'DistBetwen', portTable = NULL, gridfile = NULL, 
+                                        lon.dat = NULL, lat.dat = NULL, cat = NULL, lon.grid = NULL, lat.grid = NULL) {
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
     #' @param start  Starting location. Should be a port, lat/long location, or the centroid of zonal assignment. 
     #' @param end  Ending location. Should be a port, lat/long location, or the centroid of the fishing zone or area. 
@@ -12,6 +12,7 @@ create_dist_between_for_gui <- function(dat, start, end, units, portTable = NULL
     #' @param gridfile Grid file
     #' @param lon.dat Variable containing longitude from main dataset
     #' @param lat.dat Variable containing latitude from main dataset
+    #' @param name Name of new variable. Defaults to `DistBetween`.
     #' @param lon.grid Variable containing longitude from main grid file
     #' @param lat.grid Variable containing latitude from main grid file
     #' @param cat Variable in grid file designating column containing zones or areas.
@@ -112,27 +113,27 @@ create_dist_between_for_gui <- function(dat, start, end, units, portTable = NULL
         if (x == 0) {
             # Get distance between points
             if (units == "midpoint") {
-                distBetween <- geosphere::midPoint(cbind(start.long, start.lat), cbind(end.long, end.lat))
+                name <- geosphere::midPoint(cbind(start.long, start.lat), cbind(end.long, end.lat))
             } else {
-                distBetween <- geosphere::distGeo(cbind(start.long, start.lat), cbind(end.long, end.lat), a = 6378137, f = 1/298.257223563)
+                name <- geosphere::distGeo(cbind(start.long, start.lat), cbind(end.long, end.lat), a = 6378137, f = 1/298.257223563)
             }
             
             if (units == "miles") {
-                distBetween <- distBetween * 0.000621371192237334
+                name <- name * 0.000621371192237334
             } else if (units == "kilometers") {
-                distBetween <- distBetween/1000
+                name <- name/1000
             }
             
             # Log the function
             create_dist_between_function <- list()
             create_dist_between_function$functionID <- "create_dist_between"
-            create_dist_between_function$args <- c(dat, start, end, units)
+            create_dist_between_function$args <- c(dat, start, end, units, name)
             create_dist_between_function$kwargs <- c(portTable, deparse(substitute(gridfile)), lon.dat, lat.dat, cat, lon.grid, lat.grid)
             
             log_call(create_dist_between_function)
             
-            return(distBetween)
-        }
+            return(cbind(dataset, name))
+            }
     }
 }
 

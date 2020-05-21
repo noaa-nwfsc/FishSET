@@ -34,16 +34,16 @@ cpue <- function(dat, xWeight, xTime, name = "cpue") {
             warning("xWeight must a measurement of mass. CPUE calculated.")
         }
         
-        cpue <- dataset[[xWeight]]/dataset[[xTime]]
+        name <- dataset[[xWeight]]/dataset[[xTime]]
         
         create_var_cpue_function <- list()
         create_var_cpue_function$functionID <- "cpue"
         create_var_cpue_function$args <- c(dat, xWeight, xTime, name)
         create_var_cpue_function$kwargs <- list()
-        create_var_cpue_function$output <- paste0(deparse(substitute(dat)), "$", name)
+        create_var_cpue_function$output <- c(dat)
         
         log_call(create_var_cpue_function)
-        return(cpue)
+        return(cbind(dataset, name))
     }
 }
 
@@ -69,6 +69,10 @@ dummy_num <- function(dat, var, value, opts='more_less', name='dummy_num'){
 #' For numeric variables, you can set a single value or a range of continuous values and contrast either the selected value(s) against all others (x_y) or less than the 
 #' selected value versus more than the selected value (more_less). For more_less, the mean is used as the critical value is a range of values is proviced.
 #' @export
+#' @examples
+#' \dontrun{
+#' MainDataTable <- dummy_num('MainDataTable', 'Haul_date', 2008, 'more_less', 'ammend80')
+#' }
 
  
    #Pull in data
@@ -86,12 +90,12 @@ dummy_num <- function(dat, var, value, opts='more_less', name='dummy_num'){
         }
     } else if (is.numeric(dataset[[var]])) {
         if (opts == "x_y") {
-            out <- ifelse(dataset[[var]] >= min(value) & dataset[[var]] <= max(value), 0, 1)
+            name <- ifelse(dataset[[var]] >= min(value) & dataset[[var]] <= max(value), 0, 1)
         } else {
-            out <- ifelse(dataset[[var]] < mean(value), 0, 1)
+            name <- ifelse(dataset[[var]] < mean(value), 0, 1)
         }
     } else if (is.factor(dataset[[var]]) | is.character(dataset[[var]])) {
-        out <- ifelse(trimws(dataset[[var]], "both") == trimws(value, "both"), 0, 1)
+        name <- ifelse(trimws(dataset[[var]], "both") == trimws(value, "both"), 0, 1)
     } else {
         (warning("variable is not recognized as being a date, factor, or numeric. Function not run."))
     }
@@ -100,10 +104,10 @@ dummy_num <- function(dat, var, value, opts='more_less', name='dummy_num'){
     create_var_dummy_num_function$functionID <- "dummy_num"
     create_var_dummy_num_function$args <- c(dat, var, value, opts, name)
     create_var_dummy_num_function$kwargs <- list()
-    create_var_dummy_num_function$output <- paste0(deparse(substitute(dat)), "$", name)
+    create_var_dummy_num_function$output <- c(dat)
     
     log_call(create_var_dummy_num_function)
-    return(out)
+    return(cbind(dataset, name))
 }
 
 #' Create new dummy variable
@@ -115,7 +119,7 @@ dummy_var <- function(dat, DumFill = "TRUE", name = "dummy_var") {
     #' @details Creates a dummy variable of either FALSE or TRUE with length of the number of rows of the data set. 
     #' @examples 
     #' \dontrun{
-    #' MainDataTable$dummyvar <- dummy_var(MainDataTable, DumFill=TRUE)
+    #' MainDataTable <- dummy_var(MainDataTable, DumFill=TRUE, dummyvar)
     #' }
     
     # Pull in data
@@ -123,16 +127,16 @@ dummy_var <- function(dat, DumFill = "TRUE", name = "dummy_var") {
     dat <- out$dat
     dataset <- out$dataset
     
-    dummyvar <- as.vector(rep(DumFill, nrow(dataset)))
+    name <- as.vector(rep(DumFill, nrow(dataset)))
     
     create_var_dummy_var_function <- list()
     create_var_dummy_var_function$functionID <- "dummy_var"
     create_var_dummy_var_function$args <- c(dat, DumFill, name)
     create_var_dummy_var_function$kwargs <- list()
-    create_var_dummy_var_function$output <- paste0(deparse(substitute(dat)), "$", name)
+    create_var_dummy_var_function$output <- c(dat)
     
     log_call(create_var_dummy_var_function)
-    return(dummyvar)
+    return(cbind(dataset, name))
 }
 
 #' Create dummy matrix from a coded ID variable
@@ -185,7 +189,7 @@ set_quants <- function(dat, x, quant.cat = c(0.2, 0.25, 0.4), name = "set_quants
     #'   }
     #' @examples 
     #' \dontrun{
-    #' MainDataTable$haul.quant <- set_quants(MainDataTable, 'HAUL', quant.cat=.2)
+    #' MainDataTable <- set_quants(MainDataTable, 'HAUL', quant.cat=.2, 'haul.quant')
     #' }
     # 
     
@@ -208,21 +212,21 @@ set_quants <- function(dat, x, quant.cat = c(0.2, 0.25, 0.4), name = "set_quants
             prob.def = c(0, 0.1, 0.5, 0.9, 1)
         }
         # var.name <- paste('TRIP_OTC_MT', 'quantile', sep = '.')
-        var.name <- as.integer(cut(dataset[[x]], quantile(dataset[[x]], probs = prob.def), include.lowest = TRUE))
+        name <- as.integer(cut(dataset[[x]], quantile(dataset[[x]], probs = prob.def), include.lowest = TRUE))
         
         create_var_set_quants_function <- list()
         create_var_set_quants_function$functionID <- "set_quants"
         create_var_set_quants_function$args <- c(dat, x, quant.cat, name)
         create_var_set_quants_function$kwargs <- list()
-        create_var_set_quants_function$output <- paste0(deparse(substitute(dat)), "$", name)
+        create_var_set_quants_function$output <- paste0(dat)
         
         log_call(create_var_set_quants_function)
-        return(var.name)
+        return(cbind(dataset, name))
     }
 }
 
 
-bin_var <- function(dat, project, var, br = NULL, labs = NULL, ...){
+bin_var <- function(dat, project, var, br, name,  labs = NULL, ...){
   #'
   #' Wrapper for \code{\link{cut}}
   #'
@@ -230,9 +234,17 @@ bin_var <- function(dat, project, var, br = NULL, labs = NULL, ...){
   #' @param project name of project.
   #' @param var A numeric variable to bin into a factor.
   #' @param br Numeric. If a single number, the range of var is divided into 
+  #' @param name Variable name to return. Defaults to `bin`.
   #'   n even groups. If two or more values are given var is divided into intervals.
   #' @param labs A character string of category labels. 
   #' @param ... Additional arguments passed to \code{\link{cut}}.
+  #' @details Function creates a new categorical variable. 
+  #' @export
+  #' @output Main data frame with binned variable added
+  #' @examples 
+  #' \dontrun{
+  #'  pollockMainDataTable <- bin_var('pollockMainDataTable', 'pollock', 'HAUL', 10, 'HAULCAT')
+  #' }
   
   out <- data_pull(dat)
   dat <- out$dat
@@ -248,16 +260,16 @@ bin_var <- function(dat, project, var, br = NULL, labs = NULL, ...){
   
   if(tmp == 0){
     
-    bin <- cut(dataset[[var]], breaks = br, labels = labs, ...)
+    name <- cut(dataset[[var]], breaks = br, labels = labs, ...)
     
     # Log function
     bin_var_function <- list()
     bin_var_function$functionID <- "bin_var"
-    bin_var_function$args <- c(dat, project, var, project, br, labs)
+    bin_var_function$args <- c(dat, project, var, project, br, name, labs)
     bin_var_function$kwargs <- ""
     log_call(bin_var_function)
     
-    bin
+    return(cbind(dataset, name))
   }
 }
 
@@ -274,8 +286,8 @@ create_var_num <- function(dat, x, y, method, name = "create_var_num") {
     #' @details Creates a new numeric variable based on defined arithmetic expression `method`. New variable is added to the data set.
     #' @examples 
     #' \dontrun{
-    #' MainDataTable$tot_salmon <- create_var_num(MainDataTable, 'HAUL_CHINOOK', 'HAUL_CHUM',
-    #'                                             'sum',' TimeChange')
+    #' MainDataTable <- create_var_num(MainDataTable, x='HAUL_CHINOOK', y='HAUL_CHUM',
+    #'                                             method='sum','tot_salmon')
     #' }
     
     out <- data_pull(dat)
@@ -303,10 +315,10 @@ create_var_num <- function(dat, x, y, method, name = "create_var_num") {
         create_var_num_function$functionID <- "create_var_num"
         create_var_num_function$args <- c(dat, x, y, method, name)
         create_var_num_function$kwargs <- list()
-        create_var_num_function$output <- paste0(deparse(substitute(dat)), "$", name)
+        create_var_num_function$output <- c(dat)
         log_call(create_var_num_function)
         
-        return(name)
+        return(cbind(dataset, name))
     }
 }
 
@@ -364,7 +376,7 @@ create_mid_haul <- function(dat, start = c("lon", "lat"), end = c("lon", "lat"),
         create_mid_haul_function$functionID <- "create_mid_haul"
         create_mid_haul_function$args <- c(dat, start, end, name)
         create_mid_haul_function$kwargs <- list()
-        create_mid_haul_function$output <- paste0(dat, "$", name)
+        create_mid_haul_function$output <- c(dat)
         log_call(create_mid_haul_function)
         
         return(out)
@@ -438,6 +450,7 @@ create_trip_centroid <- function(dat, lon, lat, weight.var = NULL, ...) {
         create_trip_centroid_function$functionID <- "create_trip_centroid"
         create_trip_centroid_function$args <- c(dat, dat, lon, lat, weight.var, argList)
         create_trip_centroid_function$kwargs <- list()
+        create_trip_centroid_function$output <- c(dat)
         log_call(create_trip_centroid_function)
         
         return(int)
@@ -445,16 +458,19 @@ create_trip_centroid <- function(dat, lon, lat, weight.var = NULL, ...) {
 }
 
 #' Histogram of latitude and longitude by grouping variable
-spatial_hist <- function(dat, group) {
+spatial_hist <- function(dat, project, group) {
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
+    #' @param project Name of project
     #' @param group Vector containing grouping categories
     #' @import ggplot2
     #' @importFrom reshape2 melt
     #' @return histogram of latitude and longitude by grouping variable
+    #' @details Returns a histogram plot to the output folder and screen of observed lat/long split by the selected
+    #' grouping variable. Function is useful for assessing spatial variance/clumping of selected grouping variable. 
     #' @export
     #' @examples 
     #' \dontrun{
-    #' spatial_summary(MainDataTable, 'GEAR_TYPE')
+    #' spatial_summary('pollockMainDataTable', 'pollock', 'GEAR_TYPE')
     #' }
     
     requireNamespace("ggplot2")
@@ -465,9 +481,20 @@ spatial_hist <- function(dat, group) {
   
   dataset <- dataset[, c(dataset[[group]], grep("lon|lat", names(dataset), ignore.case = TRUE))]
     melt.dat <- reshape2::melt(dataset)
-    ggplot(melt.dat, aes(value, group = group, fill = group)) + 
-      geom_histogram(position = "identity", alpha = 0.5, binwidth = 0.25) + facet_wrap(~variable, 
-        scales = "free") + scale_color_grey() + scale_fill_grey() + theme_classic()
+   plot <- ggplot(melt.dat, aes(value, group = group, fill = group)) + 
+                  geom_histogram(position = "identity", alpha = 0.5, binwidth = 0.25) + 
+                  facet_wrap(~variable, scales = "free") + scale_color_grey() + scale_fill_grey() + theme_classic()
+    
+    spatial_summary_function <- list()
+    spatial_summary_function$functionID <- "spatial_summary"
+    spatial_summary_function$args <- c(dat, project, group)
+    spatial_summary_function$kwargs <- list()
+    spatial_summary_function$output <- c()
+    log_call(spatial_summary_function)
+    
+    save_plot(project, "spatial_summary")
+    
+    plot
 }
 
 #'spatial summary statistics
@@ -502,8 +529,8 @@ spatial_summary <- function(dat, stat.var = c("length", "no_unique_obs", "perc_t
     dataset <- out$dataset
     
     
-    dataset <- assignment_column(dat = dataset, gridfile = gridfile, hull.polygon = TRUE, lon.grid, lat.grid, lon.dat, lat.dat, cat, closest.pt = TRUE, 
-        epsg = NULL)
+    dataset <- assignment_column(dat = dataset, gridfile = gridfile, hull.polygon = TRUE, lon.grid, lat.grid, 
+                                 lon.dat, lat.dat, cat, closest.pt = TRUE, epsg = NULL)
     date.var <- grep("date", names(dataset), ignore.case = TRUE)[1]
     var <- grep(variable, names(dataset), ignore.case = TRUE)[1]
     
@@ -542,14 +569,17 @@ spatial_summary <- function(dat, stat.var = c("length", "no_unique_obs", "perc_t
         plot(aggregate(dataset[[variable]], by = list(as.factor(dataset$ZoneID)), stat.var), type = "l", ylab = lab, xlab = "Zone")
         lines(aggregate(dataset[[variable]], by = list(as.factor(dataset$ZoneID)), stat.var))
     }
+    
+    
 }
 
 #' Distance between two points
-create_dist_between <- function(dat, start, end, units = c("miles", "meters", "km", "midpoint")) {
+create_dist_between <- function(dat, start, end, units = c("miles", "meters", "km", "midpoint"), name='distBetween') {
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
     #' @param start  Starting location. Should be a port, lat/long location, or the centroid of zonal assignment. If port is desired, start should be the vector name containing the port name. Latitude and longitude for the port are extracted from the port table. If a lat, long location is desired then start should be specified as c(name of lon vector, name of lat vector). The order must be lon, lat. If the center point of the fishing zone or area is to be used then start should be 'centroid'.
     #' @param end  Ending location. Should be a port, lat/long location, or the centroid of the fishing zone or area. If port is desired, end should be the vector name containing the port name. Latitude and longitude for the port are extracted from the port table. If a lat, long location is desired then end should be specified as c(name of lat vector, name of lon vector). If the center point of the fishing zone or area is to be used then end should be 'centroid'.
     #' @param units  Unit of measurement for calculated distance between start and ending points. Can be in miles, meters, kilometers, or midpoint location
+    #' @param name Output variable name. Defaults to `distBetween`.
     #' @export
     #' @importFrom geosphere distGeo midPoint
     #' @description   Creates a vector of distance between two points. The start and end points must be different vectors. If the start or ending points are from a port or the center of a fishing zone or area, then a prompt will appear asking for further parameters to be specified. If the starting or ending points are a port, then latitude and longitude are extracted from the port table stored in the FishSET database.  In this case, PortTable must be specified.  If the starting or ending points are the center of the fishing zone or area, then the assignment_column function will be called to assign each observation to a zone. The find_centroid function will then be called to determine the centroid of each zone. Distance measurements will be between these centroids. 
@@ -565,12 +595,12 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
     #' }
     #' @examples 
     #' \dontrun{
-    #' MainDataTable$DistCentPort <- create_dist_between(MainDataTable,'centroid','EMBARKED_PORT', 
-    #'                                                  units='miles')
-    #' MainDataTable$DistLocLock <- create_dist_between(MainDataTable,c('LonLat_START_LON',
-    #'                   'LonLat_START_LAT'),c('LonLat_END_LON','LonLat_END_LAT'), units='midpoint')
-    #' MainDataTable$DistPortPort <- create_dist_between(MainDataTable,'DISEMBARKED_PORT',
-    #'                                      'EMBARKED_PORT', units='meters')
+    #' MainDataTable <- create_dist_between(MainDataTable,'centroid','EMBARKED_PORT', 
+    #'                                                  units='miles', 'DistCentPort')
+    #' MainDataTable <- create_dist_between(MainDataTable,c('LonLat_START_LON',
+    #'                   'LonLat_START_LAT'),c('LonLat_END_LON','LonLat_END_LAT'), units='midpoint', 'DistLocLock')
+    #' MainDataTable <- create_dist_between(MainDataTable,'DISEMBARKED_PORT',
+    #'                                      'EMBARKED_PORT', units='meters', 'DistPortPort')
     #' }
     
     # \tabular{AddPromptparams}{
@@ -677,25 +707,26 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
         if (x == 1) {
             # Get distance between points
             if (units == "midpoint") {
-                distBetween <- geosphere::midPoint(cbind(start.long, start.lat), cbind(end.long, end.lat))
+                name <- geosphere::midPoint(cbind(start.long, start.lat), cbind(end.long, end.lat))
             } else {
-                distBetween <- geosphere::distGeo(cbind(start.long, start.lat), cbind(end.long, end.lat), a = 6378137, f = 1/298.257223563)
+                name <- geosphere::distGeo(cbind(start.long, start.lat), cbind(end.long, end.lat), a = 6378137, f = 1/298.257223563)
             }
             
             if (units == "miles") {
-                distBetween <- distBetween * 0.000621371192237334
+                name <- name * 0.000621371192237334
             } else if (units == "kilometers") {
-                distBetween <- distBetween/1000
+                name <- name/1000
             }
             
             # Log the function
             create_dist_between_function <- list()
             create_dist_between_function$functionID <- "create_dist_between"
-            create_dist_between_function$args <- c(dat, start, end, units)
+            create_dist_between_function$args <- c(dat, start, end, units, name)
             create_dist_between_function$kwargs <- list(vars)
+            create_dist_between_function$output <- c(dat)
             
-            log_call(create_dist_between_function)
-            return(distBetween)
+            log_call(create_dist_between_function) 
+            return(cbind(dataset, name))
         }
     }
 }
@@ -713,7 +744,8 @@ create_duration <- function(dat, start, end, units = c("week", "day", "hour", "m
     #' @details Calculates the duration of time between two temporal variables based on defined unit. The new variable is added to the dataset. 
     #' @examples 
     #' \dontrun{
-    #' MainDataTable$TripDur <- create_duration(MainDataTable, 'TRIP_START', 'TRIP_END',  units='minute')
+    #' MainDataTable <- create_duration(MainDataTable, 'TRIP_START', 'TRIP_END', 
+    #'  units='minute', name='TripDur')
     #' }
     
     # Call in datasets
@@ -731,21 +763,21 @@ create_duration <- function(dat, start, end, units = c("week", "day", "hour", "m
     
     elapsed.time <- lubridate::interval(date_parser(dataset[[start]]), date_parser(dataset[[end]]))
     if (units == "week") {
-        dur <- lubridate::as.duration(elapsed.time)/lubridate::dweeks(1)
+        name <- lubridate::as.duration(elapsed.time)/lubridate::dweeks(1)
     } else if (units == "day") {
-        dur <- lubridate::as.duration(elapsed.time)/lubridate::ddays(1)
+        name <- lubridate::as.duration(elapsed.time)/lubridate::ddays(1)
     } else if (units == "hour") {
-        dur <- lubridate::as.duration(elapsed.time)/lubridate::dhours(1)
+        name <- lubridate::as.duration(elapsed.time)/lubridate::dhours(1)
     } else if (units == "minute") {
-        dur <- lubridate::as.duration(elapsed.time)/lubridate::dminutes(1)
+        name <- lubridate::as.duration(elapsed.time)/lubridate::dminutes(1)
     }
     
     create_var_temp_function <- list()
     create_var_temp_function$functionID <- "create_duration"
     create_var_temp_function$args <- c(dat, start, end, units, name)
     create_var_temp_function$kwargs <- list()
-    create_var_temp_function$output <- paste0(deparse(substitute(dat)), "$", name)
+    create_var_temp_function$output <- c(dat)
     log_call(create_var_temp_function)
     
-    return(dur)
+    return(cbind(dataset, name))
 }

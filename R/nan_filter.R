@@ -11,11 +11,11 @@ nan_identify <- function(dat) {
     #' @export nan_identify
     #' @examples 
     #' \dontrun{
-    #' nan_identify(pcodMainDataTable)
-    #' mod.dat <-nan_filter('pcodMainDataTable', 'OFFICIAL_TOTAL_CATCH_MT') 
-    #' mod.dat <- nan_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T) 
-    #' mod.dat <- nan_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T, rep.value=0) 
-    #' mod.dat <- nan_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', remove=T) 
+    #' nan_identify('pcodMainDataTable')
+    #' mod.dat <- nan_filter('pcodMainDataTable', 'OFFICIAL_TOTAL_CATCH_MT') 
+    #' mod.dat <- nan_filter('pcodMainDataTable', 'OFFICIAL_TOTAL_CATCH_MT', replace=T) 
+    #' mod.dat <- nan_filter('pcodMainDataTable', 'OFFICIAL_TOTAL_CATCH_MT', replace=T, rep.value=0) 
+    #' mod.dat <- nan_filter('pcodMainDataTable', 'OFFICIAL_TOTAL_CATCH_MT', remove=T) 
     #' }
     
     # Call in datasets
@@ -126,15 +126,15 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value = NA, over_wri
     
     print(suppressWarnings(readLines(tmp)))
     
-    if (over_write == TRUE & any(apply(dataset, 2, function(x) any(is.nan(x)))) == TRUE) {
+    if (over_write == TRUE) {
         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-        DBI::dbWriteTable(fishset_db, deparse(substitute(dat)), int, overwrite = over_write)
+        DBI::dbWriteTable(fishset_db, dat, int, overwrite = over_write)
         DBI::dbDisconnect(fishset_db)
     }
     
     nan_filter_function <- list()
     nan_filter_function$functionID <- "nan_filter"
-    nan_filter_function$args <- c(dat, x, replace, remove, rep.value)
+    nan_filter_function$args <- c(dat, x, replace, remove, rep.value, over_write)
     nan_filter_function$kwargs <- list()
     nan_filter_function$output <- c(dat)
     nan_filter_function$msg <- suppressWarnings(readLines(tmp))
@@ -216,16 +216,16 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value = NA, over_writ
     print(suppressWarnings(readLines(tmp)))
     
     # Save the revised data set
-    if (over_write == TRUE & anyNA(dataset) == TRUE) {
+    if (over_write == TRUE) {
         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-        DBI::dbWriteTable(fishset_db, deparse(substitute(dat)), int, overwrite = over_write)
+        DBI::dbWriteTable(fishset_db, dat, int, overwrite = over_write)
         DBI::dbDisconnect(fishset_db)
         print("Data saved to database")
     }
     
     na_filter_function <- list()
     na_filter_function$functionID <- "na_filter"
-    na_filter_function$args <- c(dat, x, replace, remove, rep.value)
+    na_filter_function$args <- c(dat, x, replace, remove, rep.value, over_write)
     na_filter_function$kwargs <- list()
     na_filter_function$output <- c(dat)
     na_filter_function$msg <- suppressWarnings(readLines(tmp))

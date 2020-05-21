@@ -8,6 +8,7 @@
 #' @param ending_haul lat/long Variables in `dat` containing lat/long at end of haul. Should contain two vectors.
 #' @param ending_port Variable in `dat` to identify port at end of trip
 #' @param haul_order Variable in `dat` containing information on the order that hauls occur within a trip. Can be time, coded variable, etc.
+#' @param name Name of created variable. Defaults to `TripDistance`.
 #' @param a  Major (equatorial) radius of the ellipsoid. The default value is for WGS84 ellipsoid.
 #' @param f  Ellipsoid flattening. The default value is for WGS84 ellipsoid.
 #' @importFrom geosphere distGeo
@@ -21,16 +22,16 @@
 #'  \url{https://cran.r-project.org/web/packages/geosphere/geosphere.pdf}.
 #' @examples
 #' \dontrun{
-#'  pcodMainDataTable$TripDistance <- create_trip_distance('pcodMainDataTable', 
+#'  pcodMainDataTable <- create_trip_distance('pcodMainDataTable', 
 #'                                'pollockPortTable', 'TRIP_SEQ', 'DISEMBARKED_PORT',
 #'                                 c('LonLat_START_LON','LonLat_START_LAT'),
 #'                                 c('LonLat_END_LON','LonLat_END_LAT'), 'EMBARKED_PORT',
-#'                                  'HAUL_SEQ')
+#'                                  'HAUL_SEQ', 'TripDistance')
 #'  }
 
 # 
-create_trip_distance <- function(dat, PortTable, trip_id, starting_port, starting_haul = c("Lon", "Lat"), ending_haul = c("Lon", "Lat"), ending_port, 
-    haul_order, a = 6378137, f = 1/298.257223563) {
+create_trip_distance <- function(dat, PortTable, trip_id, starting_port, starting_haul = c("Lon", "Lat"), ending_haul = c("Lon", "Lat"), 
+                                 ending_port, haul_order, name ='TripDistance', a = 6378137, f = 1/298.257223563) {
     
     # Call in datasets
     out <- data_pull(dat)
@@ -133,13 +134,15 @@ create_trip_distance <- function(dat, PortTable, trip_id, starting_port, startin
             tripDist <- rowSums(cbind(sumToHaul, sumInnerDist, portToEnd), na.rm = T)
             
         }
-        haulLevelTripDist = tripDist[C]
+        
+        name = tripDist[C]
+        haulLevelTripDist = cbind(dataset, name)
         
         create_TD_function <- list()
         create_TD_function$functionID <- "create_TD"
-        create_TD_function$args <- c(dat, PortTable, trip_id, starting_port, starting_haul, ending_haul, ending_port, haul_order)
+        create_TD_function$args <- c(dat, PortTable, trip_id, starting_port, starting_haul, ending_haul, ending_port, haul_order, name)
         create_TD_function$kwargs <- list(a = a, f = f)
-        create_TD_function$output <- c("")
+        create_TD_function$output <- c(dat)
         log_call(create_TD_function)
         
         return(haulLevelTripDist)
