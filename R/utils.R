@@ -190,7 +190,6 @@ pull_table <- function(project, table) {
   }
 }
 
-
 model_out_summary <- function(project) {
   #' Retrieve most recent summary of model output  
   #' 
@@ -215,7 +214,6 @@ model_out_summary <- function(project) {
   
   modeltab
 }
-
 
 model_error_summary <- function(project) {
   #' Retrieve most recent summary of model error  
@@ -242,7 +240,6 @@ model_error_summary <- function(project) {
   error_out
 }
 
-
 model_fit_summary <- function(project) {
   #' Retrieve most recent summary of model fit  
   #' 
@@ -267,7 +264,6 @@ model_fit_summary <- function(project) {
   
   fit_tab
 }
-
 
 vgsub <- function(pattern, replacement, x, ...) {
   #' vgsub function
@@ -736,10 +732,7 @@ date_title <- function(plot, filter_date, filter_value) {
 }
 
 
-
-
-
-##---------------------------##
+##----Shiny util functions-----
 outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plot_type) {
   #' Evaluate outliers through plots
   #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
@@ -877,14 +870,15 @@ outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plo
   }
 }
 
+quietly_test <- function(.f) {
 #' quietly_test
-#' capture messages if exist and print to shiny app
+#' capture console messages if exist and print to shiny app
 #' @param .f function name
 #' @export
 #' @keywords internal
 #' @importFrom purrr quietly safely
 #
-quietly_test <- function(.f) {
+
   fun1 <- purrr::quietly(.f ) 
   fun <- purrr::safely(fun1)
   function(...) {
