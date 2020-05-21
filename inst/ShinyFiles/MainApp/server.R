@@ -2047,16 +2047,16 @@
       observeEvent(input$runNew, {
         if(input$VarCreateTop=='Dummy variables'&input$dummyfunc=='From policy dates') {
               q_test <- quietly_test(dummy_num)
-              values$dataset[[input$varname]] <- q_test(values$dataset, var=input$dummypolydate, value=dum_pol_year(), opts='more_less', name=input$varname)
+              values$dataset <- q_test(values$dataset, var=input$dummypolydate, value=dum_pol_year(), opts='more_less', name=input$varname)
         } else if(input$VarCreateTop=='Dummy variables'&input$dummyfunc=='From variable') {
               q_test <- quietly_test(dummy_num)
-              values$dataset[[input$varname]] <- q_test(values$dataset, var=input$dummyvarfunc, value=input$select.val, opts=input$dumsubselect, name=input$varname)
+              values$dataset <- q_test(values$dataset, var=input$dummyvarfunc, value=input$select.val, opts=input$dumsubselect, name=input$varname)
         } else if(input$VarCreateTop=='Data transformations'&input$trans=='temp_mod') {
               q_test <- quietly_test(temporal_mod)
-              values$dataset[[input$varname]] <- q_test(values$dataset, input$TimeVar, input$define_format, name=input$varname)
+              values$dataset <- q_test(values$dataset, input$TimeVar, input$define_format, name=input$varname)
         } else if(input$VarCreateTop=='Data transformations'&input$trans=='set_quants'){
               q_test <- quietly_test(set_quants)
-              values$dataset[[input$varname]] <- q_test(values$dataset, x=input$trans_var_name, quant.cat = input$quant_cat, name=input$varname)
+              values$dataset <- q_test(values$dataset, x=input$trans_var_name, quant.cat = input$quant_cat, name=input$varname)
         } else if(input$VarCreateTop=='Nominal ID'&input$ID=='ID_var'){
               q_test <- quietly_test(ID_var)
               values$dataset <- q_test(values$dataset, newID=input$varname, input$unique_identifier)
@@ -2066,15 +2066,15 @@
                                                use.geartype=input$use_geartype, sp.col=input$sp_col, target=input$target)
         } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='create_var_num'){
               q_test <- quietly_test(create_var_num)
-              values$dataset[[input$varname]] <- q_test(values$dataset, input$var_x, input$var_y, method=input$create_method, name=input$varname)
+              values$dataset <- q_test(values$dataset, input$var_x, input$var_y, method=input$create_method, name=input$varname)
         } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='cpue') {
           if(input$xTime!='Calculate duration'){
               q_test <- quietly_test(cpue)
-              values$dataset[[input$varname]] <- q_test(values$dataset, input$xWeight, input$xTime, name=input$varname)
+              values$dataset <- q_test(values$dataset, input$xWeight, input$xTime, name=input$varname)
           } else {
             q_test <- quietly_test(cpue)
-            values$dataset[['dur']] <- create_duration(values$dataset, input$dur_start2, input$dur_end2, input$dur_units2, name='dur')
-            values$dataset[[input$varname]] <- q_test(values$dataset, input$xWeight, 'dur', name=input$varname)
+            values$dataset <- create_duration(values$dataset, input$dur_start2, input$dur_end2, input$dur_units2, name='dur')
+            values$dataset <- q_test(values$dataset, input$xWeight, 'dur', name=input$varname)
           }
         } else if(input$VarCreateTop=='Spatial functions' & input$dist=='create_dist_between'){
           #'Zonal centroid', 'Port', 'Lat/lon coordinates'
@@ -2093,7 +2093,7 @@
             enddist <- 'centroid'
           }
             q_test <- quietly_test(create_dist_between_for_gui)
-            values$dataset[[input$varname]] <- q_test(values$dataset, start=startdist, end=enddist, input$units,  portTable=input$filePort, 
+            values$dataset <- q_test(values$dataset, start=startdist, end=enddist, input$units,  input$varname, portTable=input$filePort, 
                                                                          gridfile=spatdat$dataset,lon.dat=input$lon_dat[2], lat.dat=input$lon_dat[1], 
                                                                          input$cat, lon.grid=input$long_grid[2], lat.grid=input$long_grid[1])
            } else if(input$VarCreateTop=='Spatial functions' & input$dist=='create_mid_haul'){
@@ -2101,20 +2101,21 @@
               values$dataset <- q_test(values$dataset, c(input$mid_start[2],input$mid_start[1]), c(input$mid_end[2],input$mid_end[1]), input$varname)
         } else if(input$VarCreateTop=='Spatial functions'&input$dist=='create_duration'){
               q_test <- quietly_test(create_duration)
-              values$dataset[[input$varname]] <- q_test(values$dataset, input$dur_start, input$dur_end, input$dur_units, name=input$varname)
+              values$datase <- q_test(values$dataset, input$dur_start, input$dur_end, input$dur_units, name=input$varname)
         } else if(input$VarCreateTop=='Spatial functions'&input$dist=='create_startingloc'){
               q_test <- quietly_test(create_startingloc)
-              values$dataset[['startingloc']] <- q_test(values$dataset,  gridfile=spatdat$dataset,  portTable=input$port.dat,  trip_id=input$trip_id_SL,
+              values$dataset <- q_test(values$dataset,  gridfile=spatdat$dataset,  portTable=input$port.dat,  trip_id=input$trip_id_SL,
                                                                 haul_order=input$haul_order_SL, starting_port=input$starting_port_SL, input$lon_dat_SL, 
-                                                                input$lat_dat_SL, input$cat_SL, input$lon_grid_SL, input$lat_grid_SL)
+                                                                input$lat_dat_SL, input$cat_SL, input$varname, input$lon_grid_SL, input$lat_grid_SL)
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='haul_to_trip'){
               q_test <- quietly_test(haul_to_trip)
               values$dataset <- q_test(values$dataset, project=input$projectname, input$fun_numeric, input$fun_time, input$Haul_Trip_IDVar)
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='trip_distance'){
               q_test <- quietly_test(create_trip_distance)
-              values$dataset$TripDistance <- q_test(values$dataset, input$port_dat_dist, input$trip_ID, input$starting_port, 
+              values$dataset <- q_test(values$dataset, input$port_dat_dist, input$trip_ID, input$starting_port, 
                                                               c(input$starting_haul[2], input$starting_haul[1]), 
-                                                              c(input$ending_haul[2],input$ending_haul[1]), input$ending_port, input$haul_order)
+                                                              c(input$ending_haul[2],input$ending_haul[1]), input$ending_port, input$haul_order,
+                                                    input$varname)
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='trip_centroid'){
               q_test <- quietly_test(create_trip_centroid)
               values$dataset <- q_test(values$dataset, lon=input$trip_cent_lon, lat=input$trip_cent_lat, weight.var=input$trip_cent_weight, 

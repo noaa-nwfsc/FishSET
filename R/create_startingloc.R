@@ -10,21 +10,23 @@
 #' @param starting_port Variable in `dat` to identify port at start of trip
 #' @param lon.dat Longitude variable in dataset
 #' @param lat.dat Latitude variable in dataset
+#' @param cat Variable defining zones or areas. Must be defined for dataset or gridfile.
+#' @param name Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
 #' @param lon.grid Longitude variable in gridfile
 #' @param lat.grid Latitude variable in gridfile
-#' @param cat Variable defining zones or areas. Must be defined for dataset or gridfile.
 #' @importFrom DBI dbExecute
 #' @export create_startingloc
 #' @details Function creates the startloc vector that is needed for the logit_correction function. The assignment_column function is called to assign 
 #' port locations and haul locations to zones. The starting port is used to define the starting location at the start of the trip. 
 #' @examples
 #' \dontrun{
-#' pcodMainDataTable$startingloc <- create_startingloc('pcodMainDataTable', map2, pollockPortTable, 
+#' pcodMainDataTable <- create_startingloc('pcodMainDataTable', map2, pollockPortTable, 
 #'                               'TRIP_SEQ','HAUL_SEQ','DISEMBARKED_PORT',
-#'                               'LonLat_START_LON','LonLat_START_LAT', 'NMFS_AREA', '','')
+#'                               'LonLat_START_LON','LonLat_START_LAT', 'NMFS_AREA', 'STARTING_LOC','','')
 #' }
 
-create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, starting_port, lon.dat, lat.dat, cat, lon.grid = NULL, lat.grid = NULL) {
+create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, starting_port, lon.dat, lat.dat, 
+                               cat, name= 'startingloc', lon.grid = NULL, lat.grid = NULL) {
     # Call in datasets
     out <- data_pull(dat)
     dat <- out$dat
@@ -49,30 +51,30 @@ create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, st
     } else {
         int.data <- int.data[order(int.data[[trip_id]], int.data[[haul_order]]), ]
     }
-    startingloc <- rep(NA, nrow(int.data))
-    startingloc[2:nrow(int.data)] <- int.data$ZoneID[1:(nrow(int.data) - 1)]
+    name <- rep(NA, nrow(int.data))
+    name[2:nrow(int.data)] <- int.data$ZoneID[1:(nrow(int.data) - 1)]
     
     # Make starting of trips set to zone of starting port
     if (!is.null(trip_id)) {
         rownumbers <- match(trimws(int.data[tapply(seq_along(int.data[[trip_id]]), int.data[[trip_id]], min), starting_port]), port$Port_Name)
-        startingloc[tapply(seq_along(int.data[[trip_id]]), int.data[[trip_id]], min)] <- port[rownumbers, "ZoneID"]
+        name[tapply(seq_along(int.data[[trip_id]]), int.data[[trip_id]], min)] <- port[rownumbers, "ZoneID"]
     } else {
         rownumbers <- match(trimws(int.data[1, starting_port]), port$PORT)
-        startingloc[1] <- port[rownumbers, "ZoneID"]
+        name[1] <- port[rownumbers, "ZoneID"]
     }
     
     
     create_startingloc_function <- list()
     create_startingloc_function$functionID <- "create_startingloc"
-    create_startingloc_function$args <- c(dat, deparse(substitute(gridfile)), portTable, trip_id, haul_order, lon.dat, lat.dat, lon.grid, lat.grid, cat)
-    create_startingloc_function$kwargs <- c()
-    create_startingloc_function$output <- c()
+    create_startingloc_function$args <- c(dat, deparse(substitute(gridfile)), portTable, trip_id, haul_order, starting_port,
+                                          lon.dat, lat.dat, cat, name)
+    create_startingloc_function$kwargs <- c(lon.grid, lat.grid)
+    create_startingloc_function$output <- c(dat)
     
     log_call(create_startingloc_function)
     
-    return(startingloc)
+    return(cbind(dataset, name))
 }
-
 
 
 

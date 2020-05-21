@@ -452,7 +452,7 @@
                            )),
                   
                   #----
-                  #Create New variables tabset panel
+                  #Create new variables tabset panel
                   #----
                   tabPanel('Compute New Variables', value='new',
                            sidebarLayout(
@@ -504,7 +504,7 @@
                                                 selectInput('trip','Functions',multiple = FALSE, 
                                                             choices = c('Collapse haul to trip'='haul_to_trip','Calculate trip distance'='trip_distance',
                                                                         'Calculate trip centroid'='trip_centroid'))),
-                               conditionalPanel(condition="input.VarCreateTop!='Trip-level functions'", 
+                               conditionalPanel(condition="input.trip!='haul_to_trip'|input.trip!='trip_centroid'", 
                                                 textInput('varname','Name of new variable', value='', placeholder = '')),
                                
                                #More sub choices Data Transformations     
@@ -640,7 +640,7 @@
                              )
                            )),
                   #-----
-                  #Expected Catch tabset panel
+                  #Expected catch tabset panel
                   #----
                   tabPanel("Expected Catch/Revenue",
                            sidebarLayout(
@@ -736,7 +736,7 @@
                              )
                              )),
                   #----
-                  #Model Design and Run tabset panel
+                  #Model design and Run tabset panel
                   #----
                    tabPanel("Models",
                             tabsetPanel(
