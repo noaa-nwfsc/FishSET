@@ -42,6 +42,69 @@ read_dat <- function(x, data.type) {
     }
 }
 
+#Load main data tabble
+load_data <- function(project, name=NULL){
+#' Load data from FishSET database
+#' @param project Required parameter. Name of project.
+#' @param name Optional. Name of table in FishSET database. Use this parameter if pulling raw or dated table (not the working table).
+#' @details Loads saved table from the FishSET datatbase. Load the working table or a earlier saved version (raw/data). 
+#' @export
+#' @return Primary data set
+#' @examples 
+#' \dontrun{
+#' load_data('pollock')
+#' load_data('pollock', 'pollockMainDataTable20190101')
+#' }
+  
+  if(is.null(name)){
+    if(table_exists(paste0(project, 'MainDataTable'))==FALSE){
+      warning('Table not found')
+      tables_database()
+    } else {
+      dat <-  table_view(paste0(project, 'MainDataTable'))
+    }
+  } else {
+    if(table_exists(paste0(name))==FALSE){
+      warning('Table not found')
+      tables_database()
+    } else {
+      dat <-  table_view(name)
+    }
+  }
+  
+  
+  #Log the function
+  load_data_function <- list()
+  load_data_function$functionID <- "load_data"
+  load_data_function$args <- c(project, name)
+  load_data_function$output <- 
+  load_data_function$kwargs <- ""
+  
+  log_call(load_data_function)
+  
+  return(dat)
+}
+
+#Save modified data to FishSET database
+save_dat <- function(dat, project){
+#' Save modified primay data table
+#' @param dat Name of data frame in working environment to save to FishSET database
+#' @param project Name of project
+#' @details Use function to save modified data to the FishSET database. 
+#' @importFrom DBI dbWriteTable dbDisconnect
+#' @export  
+#' @examples 
+#' \dontrun{
+#' save_dat(pollockMainDataTable, 'pollock')
+#' }
+  
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+  DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable'), dat, overwrite=TRUE)
+  DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable_mod', format(Sys.Date(), format = "%Y%m%d")), dat, overwrite=TRUE)
+  DBI::dbDisconnect(fishset_db)
+  
+}
+
 
 fishset_compare <- function(x, y, compare = c(TRUE, FALSE)) {
     #' Compare column names of new data frame to previously saved version
