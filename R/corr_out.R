@@ -11,16 +11,11 @@ corr_out <- function(dat, project, variables) {
     #' \dontrun{
     #' corr_out('pollockMainDataTable', 'pollock', 'all')
     #' }
-    
-    
-    requireNamespace("ggplot2")
+
     
     # Call in datasets
-    out <- data_pull(dat)
-    dat <- out$dat
-    dataset <- out$dataset
-    
-    browser()
+  dataset <- dat
+  dat <- deparse(substitute(dat))
     
     if (variables == "all") {
         variables <- colnames(dataset)
@@ -51,7 +46,7 @@ corr_out <- function(dat, project, variables) {
         
         corr_out_function <- list()
         corr_out_function$functionID <- "corr_out"
-        corr_out_function$args <- c(dat, variables)
+        corr_out_function$args <- c(dat, project, variables)
         log_call(corr_out_function)
         
         # Save output

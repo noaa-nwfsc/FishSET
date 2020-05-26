@@ -746,7 +746,7 @@
         if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
         df_data <- FishSET::read_dat(input$portdat$datapath, type)
         q_test <- quietly_test(load_port)
-        q_test(df_data, input$port_name, over_write=TRUE, project=input$projectname, compare=FALSE, y=NULL)
+        q_test(df_data, port_name=input$port_name, over_write=TRUE, project=input$projectname, compare=FALSE, y=NULL)
       }) 
       observeEvent(input$uploadspatial, {
         type <- sub('.*\\.', '', input$spatialdat$name)
@@ -761,14 +761,14 @@
         if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
         df_data <- FishSET::read_dat(input$griddat$datapath, type)
         q_test <- quietly_test(load_grid)
-        q_test(paste0(input$projectname, 'MainDataTable'), df_data, over_write=TRUE, project=input$projectname)
+        q_test(paste0(input$projectname, 'MainDataTable'), x=df_data, over_write=TRUE, project=input$projectname)
       }) 
       observeEvent(input$uploadAux, {
         type <- sub('.*\\.', '', input$auxdat$name)
         if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
         df_data <- FishSET::read_dat(input$auxdat$datapath, type)
         q_test <- quietly_test(load_aux)
-        q_test(paste0(input$projectname, 'MainDataTable'), df_data, over_write=TRUE, project=input$projectname)
+        q_test(paste0(input$projectname, 'MainDataTable'), x=df_data, over_write=TRUE, project=input$projectname)
       }) 
       
       ###----
@@ -825,15 +825,17 @@
           }
         } else if(input$checks=='NAs'){
           #na(values$dataset)
-          na_filter(values$dataset, names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), replace = FALSE, remove = FALSE, rep.value=NA, over_write=FALSE)
+          na_filter(values$dataset, x=names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), 
+                    replace = FALSE, remove = FALSE, rep.value=NA, over_write=FALSE)
         } else if(input$checks=='NaNs') {
-          nan_filter(values$dataset, names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), replace = FALSE, remove = FALSE, rep.value=NA,  over_write=FALSE)
+          nan_filter(values$dataset, x=names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), 
+                     replace = FALSE, remove = FALSE, rep.value=NA,  over_write=FALSE)
         } else if(input$checks=='Unique observations'){
           unique_filter(values$dataset, remove=FALSE)
         } else if(input$checks=='Empty variables'){
           empty_vars_filter(values$dataset, remove=FALSE)
         } else if(input$checks=='Lat_Lon units'){
-          degree(values$dataset,lat=NULL, lon=NULL, latsign=FALSE, lonsign=FALSE, replace=FALSE)
+          degree(values$dataset, lat=NULL, lon=NULL, latsign=FALSE, lonsign=FALSE, replace=FALSE)
         } else {
           'Make a selection in the left hand column'
         } 
@@ -1025,7 +1027,7 @@
         if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
         } else if(input$checks=='Outliers'){
-          table <- outlier_table(values$dataset, input$projectname, input$column_check)
+          table <- outlier_table(values$dataset, project=input$projectname, x=input$column_check)
           rownames(table)=table[,2]
           table <- table[,3:10]
           #table <<- table
@@ -1038,7 +1040,7 @@
         if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
         } else if(input$checks=='Outliers'){
-          table <- outlier_table(values$dataset, input$projectname, input$column_check)
+          table <- outlier_table(values$dataset, project=input$projectname, x=input$column_check)
           rownames(table)=table[,2]
           table <- table[,3:10]
           #table <<- table
@@ -1212,7 +1214,8 @@
       
       observeEvent(input$NA_Filter_all,{
           if(any(apply(values$dataset, 2, function(x) anyNA(x)))==TRUE){
-            values$dataset <- na_filter(values$dataset, names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), replace = FALSE, remove = TRUE, rep.value=NA, over_write=FALSE)  
+            values$dataset <- na_filter(values$dataset, x=names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), 
+                                        replace = FALSE, remove = TRUE, rep.value=NA, over_write=FALSE)  
           } else {
             values$dataset <- values$dataset
             cat('No missing values to remove')
@@ -1221,7 +1224,8 @@
       
       observeEvent(input$NA_Filter_mean,{
           if(any(apply(values$dataset, 2, function(x) anyNA(x)))==TRUE){
-            values$dataset <- na_filter(values$dataset,  names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), replace = TRUE, remove = FALSE, rep.value=NA, over_write=FALSE)
+            values$dataset <- na_filter(values$dataset,  x=names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), 
+                                        replace = TRUE, remove = FALSE, rep.value=NA, over_write=FALSE)
           } else {
             values$dataset <- values$dataset
             cat('No missing values to remove')
@@ -1230,7 +1234,8 @@
       
       observeEvent(input$NAN_Filter_all,{
           if(any(apply(values$dataset, 2, function(x) any(is.nan(x))))==TRUE){
-            values$dataset <- nan_filter(values$dataset, names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), replace = FALSE, remove = TRUE, rep.value=NA, over_write=FALSE)  
+            values$dataset <- nan_filter(values$dataset, x=names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), 
+                                         replace = FALSE, remove = TRUE, rep.value=NA, over_write=FALSE)  
           } else{
             values$dataset <- values$dataset
             print('No non-numbers to remove.')
@@ -1239,7 +1244,8 @@
       
       observeEvent(input$NAN_Filter_mean,{
           if(any(apply(values$dataset, 2, function(x) any(is.nan(x))))==TRUE){
-            values$dataset <- nan_filter(values$dataset,  names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), replace = TRUE, remove = FALSE, rep.value=NA, over_write=FALSE)
+            values$dataset <- nan_filter(values$dataset, x=names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), 
+                                         replace = TRUE, remove = FALSE, rep.value=NA, over_write=FALSE)
           } else {
             values$dataset <- values$dataset
             print('No non-numbers to remove.')
@@ -1247,7 +1253,7 @@
       })
       
       observeEvent(input$Outlier_Filter,{
-          values$dataset <- FishSET::outlier_remove(values$dataset, input$column_check, dat.remove = input$dat.remove, remove = T, over_write=FALSE)
+          values$dataset <- outlier_remove(values$dataset, x=input$column_check, dat.remove = input$dat.remove, remove = T, over_write=FALSE)
       })
       
       observeEvent(input$Unique_Filter,{
@@ -1260,8 +1266,8 @@
       
       observeEvent(input$LatLon_Filter, {
             values$dataset <- degree(values$dataset, 
-                                     if(input$LatDirection=='None') { NULL } else {input$LatDirection},
-                                     if(input$LonDirection=='None') { NULL } else {input$LonDirection},
+                                     if(input$LatDirection=='None') { lat=NULL } else { lat=input$LatDirection},
+                                     if(input$LonDirection=='None') { lon=NULL } else { lon=input$LonDirection},
                                      latsign=input$LatLon_Filter_Lat, lonsign=input$LatLon_Filter_Lon, replace=TRUE
                                       ) 
       })
@@ -1318,7 +1324,7 @@
             
             filter_data_function <- list()
             filter_data_function$functionID <- 'filter_table'
-            filter_data_function$args <- c(dat, project, x, exp, project)
+            filter_data_function$args <- c(dat, project, x, exp)
             filter_data_function$kwargs <- list()
             filter_data_function$output <- c('')
             filter_data_function$msg <- filterTable
@@ -1376,26 +1382,26 @@
         if(input$p2fun=='No. observations'){
           if(length(unique(lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]]))))>1){
             aggregate(values$dataset[[input$col_select]]~
-                        lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=length)
+                        lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])), FUN=length)
           } else {
             aggregate(values$dataset[[input$col_select]]~
-                        lubridate::month(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=length)
+                        lubridate::month(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])), FUN=length)
           }
         } else if(input$p2fun=='No. unique observations'){
           if(length(unique(lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]]))))>1){
             aggregate(values$dataset[[input$col_select]]~
-                        lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=function(x) length(unique(x)))
+                        lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])), FUN=function(x) length(unique(x)))
           } else {
             aggregate(values$dataset[[input$col_select]]~
-                        lubridate::month(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=function(x) length(unique(x)))
+                        lubridate::month(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])), FUN=function(x) length(unique(x)))
           }
         } else {
           if(length(unique(lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]]))))>1){
             aggregate(values$dataset[[input$col_select]]~
-                        lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=function(x) round(length(x)/nrow(values$dataset)*100,2))
+                        lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])), FUN=function(x) round(length(x)/nrow(values$dataset)*100,2))
           } else {
             aggregate(values$dataset[[input$col_select]]~
-                        lubridate::month(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=function(x) round(length(x)/nrow(values$dataset)*100,2))
+                        lubridate::month(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])), FUN=function(x) round(length(x)/nrow(values$dataset)*100,2))
           }
         }
       })
@@ -1403,10 +1409,10 @@
       df2m = reactive({
         if(length(unique(lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]]))))>1){
           aggregate(values$dataset[[input$col_select]]~
-                      lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=input$p3fun, na.rm=T)
+                      lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])), FUN=input$p3fun, na.rm=T)
         } else {
           aggregate(values$dataset[[input$col_select]]~
-                      lubridate::month(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])),FUN=input$p3fun,na.rm=T)
+                      lubridate::month(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])), FUN=input$p3fun, na.rm=T)
         }
       })
       
@@ -1594,8 +1600,10 @@
         if(input$mtgtcat==''){
           return( NULL)
         } else {
-          gt <- getis_ord_stats(values$dataset, input$projectname, input$varofint, spatdat$dataset, lon.dat=input$gtmt_lonlat[2], lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat, lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$getistable
-          mt <- moran_stats(values$dataset, input$projectname, input$varofint, spatdat$dataset, lon.dat=input$gtmt_lonlat[2], lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat, lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$morantable
+          gt <- getis_ord_stats(values$dataset, project=input$projectname, varofint=input$varofint, gridfile=spatdat$dataset, 
+                                lon.dat=input$gtmt_lonlat[2], lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat, lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$getistable
+          mt <- moran_stats(values$dataset, project=input$projectname, varofint=input$varofint, gridfle=spatdat$dataset, 
+                            lon.dat=input$gtmt_lonlat[2], lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat, lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$morantable
           print(gt)
           return(as.data.frame(merge(gt, mt)))
         }
@@ -2053,7 +2061,7 @@
               values$dataset <- q_test(values$dataset, var=input$dummyvarfunc, value=input$select.val, opts=input$dumsubselect, name=input$varname)
         } else if(input$VarCreateTop=='Data transformations'&input$trans=='temp_mod') {
               q_test <- quietly_test(temporal_mod)
-              values$dataset <- q_test(values$dataset, input$TimeVar, input$define_format, name=input$varname)
+              values$dataset <- q_test(values$dataset, x=input$TimeVar, define.format=input$define_format, name=input$varname)
         } else if(input$VarCreateTop=='Data transformations'&input$trans=='set_quants'){
               q_test <- quietly_test(set_quants)
               values$dataset <- q_test(values$dataset, x=input$trans_var_name, quant.cat = input$quant_cat, name=input$varname)
@@ -2066,15 +2074,15 @@
                                                use.geartype=input$use_geartype, sp.col=input$sp_col, target=input$target)
         } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='create_var_num'){
               q_test <- quietly_test(create_var_num)
-              values$dataset <- q_test(values$dataset, input$var_x, input$var_y, method=input$create_method, name=input$varname)
+              values$dataset <- q_test(values$dataset, x=input$var_x, y=input$var_y, method=input$create_method, name=input$varname)
         } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='cpue') {
           if(input$xTime!='Calculate duration'){
               q_test <- quietly_test(cpue)
-              values$dataset <- q_test(values$dataset, input$xWeight, input$xTime, name=input$varname)
+              values$dataset <- q_test(values$dataset, xWeight=input$xWeight, xTime=input$xTime, name=input$varname)
           } else {
             q_test <- quietly_test(cpue)
-            values$dataset <- create_duration(values$dataset, input$dur_start2, input$dur_end2, input$dur_units2, name='dur')
-            values$dataset <- q_test(values$dataset, input$xWeight, 'dur', name=input$varname)
+            values$dataset <- create_duration(values$dataset, start=input$dur_start2, end=input$dur_end2, units=input$dur_units2, name='dur')
+            values$dataset <- q_test(values$dataset, xWeight=input$xWeight, xTime='dur', name=input$varname)
           }
         } else if(input$VarCreateTop=='Spatial functions' & input$dist=='create_dist_between'){
           #'Zonal centroid', 'Port', 'Lat/lon coordinates'
@@ -2093,15 +2101,16 @@
             enddist <- 'centroid'
           }
             q_test <- quietly_test(create_dist_between_for_gui)
-            values$dataset <- q_test(values$dataset, start=startdist, end=enddist, input$units,  input$varname, portTable=input$filePort, 
+            values$dataset <- q_test(values$dataset, start=startdist, end=enddist, units$input$units,  name=input$varname, portTable=input$filePort, 
                                                                          gridfile=spatdat$dataset,lon.dat=input$lon_dat[2], lat.dat=input$lon_dat[1], 
                                                                          input$cat, lon.grid=input$long_grid[2], lat.grid=input$long_grid[1])
            } else if(input$VarCreateTop=='Spatial functions' & input$dist=='create_mid_haul'){
               q_test <- quietly_test(create_mid_haul)
-              values$dataset <- q_test(values$dataset, c(input$mid_start[2],input$mid_start[1]), c(input$mid_end[2],input$mid_end[1]), input$varname)
+              values$dataset <- q_test(values$dataset, start=c(input$mid_start[2], input$mid_start[1]), 
+                                       end=c(input$mid_end[2], input$mid_end[1]), name=input$varname)
         } else if(input$VarCreateTop=='Spatial functions'&input$dist=='create_duration'){
               q_test <- quietly_test(create_duration)
-              values$datase <- q_test(values$dataset, input$dur_start, input$dur_end, input$dur_units, name=input$varname)
+              values$datase <- q_test(values$dataset, start=input$dur_start, end=input$dur_end, units=input$dur_units, name=input$varname)
         } else if(input$VarCreateTop=='Spatial functions'&input$dist=='create_startingloc'){
               q_test <- quietly_test(create_startingloc)
               values$dataset <- q_test(values$dataset,  gridfile=spatdat$dataset,  portTable=input$port.dat,  trip_id=input$trip_id_SL,
@@ -2112,10 +2121,10 @@
               values$dataset <- q_test(values$dataset, project=input$projectname, input$fun_numeric, input$fun_time, input$Haul_Trip_IDVar)
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='trip_distance'){
               q_test <- quietly_test(create_trip_distance)
-              values$dataset <- q_test(values$dataset, input$port_dat_dist, input$trip_ID, input$starting_port, 
-                                                              c(input$starting_haul[2], input$starting_haul[1]), 
-                                                              c(input$ending_haul[2],input$ending_haul[1]), input$ending_port, input$haul_order,
-                                                    input$varname)
+              values$dataset <- q_test(values$dataset, PortTable = input$port_dat_dist, trip_id = input$trip_ID, 
+                                       staring_port = input$starting_port, starting_haul = c(input$starting_haul[2], input$starting_haul[1]), 
+                                      ending_haul = c(input$ending_haul[2],input$ending_haul[1]), ending_port = input$ending_port, 
+                                       haul_order = input$haul_order, name = input$varname)
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='trip_centroid'){
               q_test <- quietly_test(create_trip_centroid)
               values$dataset <- q_test(values$dataset, lon=input$trip_cent_lon, lat=input$trip_cent_lat, weight.var=input$trip_cent_weight, 
@@ -2133,6 +2142,7 @@
       
       
       #----
+      
       #Zonal definition
       #----
       output$conditionalInput1 <- renderUI({
@@ -2245,6 +2255,7 @@
       
      
        #----
+      
       #Expected Catch      
       #----
       output$selectcp <- renderUI({
@@ -2274,7 +2285,7 @@
         } else if(input$temp_var=='none'){
           return()
         } else{
-          sparsetable(values$dataset, input$projectname, timevar=input$temp_var, zonevar='ZoneID', var=input$catche)
+          sparsetable(values$dataset, project=input$projectname, timevar=input$temp_var, zonevar='ZoneID', var=input$catche)
         }
       })
       
@@ -2293,6 +2304,7 @@
       
       
       #----
+      
       #Model Parameters
       #----
       # helper function for making checkbox
@@ -2419,7 +2431,7 @@
       
       output$portmd <- renderUI ({
       selectInput("port.datMD", "Choose file from FishSET SQL database containing port data", 
-                                                                 choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE)#,
+                                       choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE)#,
       })
       
       numInits <- reactive({
@@ -2496,7 +2508,7 @@
           values$dataset$startingloc <- create_startingloc(dat=values$dataset, gridfile=spatdat$dataset, portTable=input$port.datMD, 
                                             trip_id=input$trip_id_SL_mod, haul_order=input$haul_order_SL_mod, starting_port=input$starting_port_SL_mod, 
                                             lon.dat=input$lon_dat_SL_mod, lat.dat=input$lat_dat_SL_mod, cat=input$cat_SL_mod, 
-                                            lon.grid==input$lat_grid_SL, lat.grid==input$lat_grid_SL_mod)
+                                            lon.grid=input$lat_grid_SL, lat.grid=input$lat_grid_SL_mod)
         } 
         counter$countervalue <- counter$countervalue + 1
         
@@ -2897,6 +2909,7 @@
         jsinject <- "setTimeout(function(){window.open($('#downloadTextUp').attr('href'))}, 100);"
         session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
       })
+      
       observeEvent(input$callTextDownloadExplore, {
         output$downloadTextExplore <- downloadHandler(
           filename = function() {
@@ -2910,6 +2923,7 @@
         jsinject <- "setTimeout(function(){window.open($('#downloadTextExplore').attr('href'))}, 100);"
         session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
       })
+      
       observeEvent(input$callTextDownloadAnal,{
         output$downloadTextAnal<- downloadHandler(
           filename = function() {
@@ -2923,6 +2937,7 @@
         jsinject <- "setTimeout(function(){window.open($('#downloadTextAnal').attr('href'))}, 100);"
         session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
       })
+     
       observeEvent(input$callTextDownload,{
         output$downloadText <- downloadHandler(
           filename = function() {
@@ -2936,6 +2951,7 @@
         jsinject <- "setTimeout(function(){window.open($('#downloadText').attr('href'))}, 100);"
         session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
       })
+     
       observeEvent(input$callTextDownloadNew, {
         output$downloadTextNew <- downloadHandler(
           filename = function() {
@@ -2949,6 +2965,7 @@
         jsinject <- "setTimeout(function(){window.open($('#downloadTextNew').attr('href'))}, 100);"
         session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
       })
+     
       observeEvent(input$callTextDownloadBook, {
         output$downloadTextBook <- downloadHandler(
           filename = function() {
@@ -3064,6 +3081,7 @@
       
       
       ##----
+      
       # stop shiny
       ##----
       observe({
@@ -3082,7 +3100,8 @@
       
      
        ###----
-      # Update From Bookmarked state
+     
+       # Update From Bookmarked state
       ###----    
       bookmarkedstate <- reactive({
         req(input$uploadbookmark)
