@@ -45,11 +45,10 @@ bycatch <- function(dat, project, cpue, catch = NULL, date, names = NULL, group 
     "plot"), format_tab = "wide") {
     
     # Call in datasets
-    out <- data_pull(dat)
-    dat <- out$dat
-    dataset <- out$dataset
-    
-    periods <- c("year", "year_abv", "month", "month_abv", "month_num", "weeks")
+  dataset <- dat
+  dat <- deparse(substitute(dat))
+  
+     periods <- c("year", "year_abv", "month", "month_abv", "month_num", "weeks")
     
     if (period %in% periods == FALSE) {
         

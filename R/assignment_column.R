@@ -1,5 +1,4 @@
 #'  Assign observations to zone or area
-#'  
 #'
 #' @param dat Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
 #' @param gridfile Spatial data. Shape, json, and csv formats are supported.
@@ -26,10 +25,9 @@ assignment_column <- function(dat, gridfile, lon.dat, lat.dat, cat, closest.pt =
     FALSE), epsg = NULL) {
     
     # Call in data sets
-    out <- data_pull(dat)
-    dat <- out$dat
-    dataset <- out$dataset
-    
+    dataset <- dat
+    dat <- deparse(substitute(dat))
+   
     dataset[[lat.dat]] <- as.numeric(as.vector(dataset[[lat.dat]]))
     dataset[[lon.dat]] <- as.numeric(as.vector(dataset[[lon.dat]]))
     

@@ -17,31 +17,16 @@
 
 #' @examples 
 #' \dontrun{ 
-#' check_model_data('MainDataTable', 'MainDataTableInfo', uniqueID='uniqueID_Code', save.file=TRUE)
+#' check_model_data(MainDataTable, 'MainDataTableInfo', uniqueID='uniqueID_Code', save.file=TRUE)
 #' }
 
 
 check_model_data <- function(dat, dataindex, uniqueID, save.file = TRUE) {
     x <- 0
-    # Call in data sets
-    fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-    if (is.character(dat) == TRUE) {
-        if (is.null(dat) == TRUE | table_exists(dat) == FALSE) {
-            print(DBI::dbListTables(fishset_db))
-            stop(paste(dat, "not defined or does not exist. Consider using one of the tables listed above that exist in the database."))
-        } else {
-            dataset <- table_view(dat)
-        }
-    } else {
-        dataset <- dat
-    }
-    DBI::dbDisconnect(fishset_db)
     
-    if (is.character(dat) == TRUE) {
-        dat <- dat
-    } else {
+    # Call in data sets
+        dataset <- dat
         dat <- deparse(substitute(dat))
-    }
     
     # update dataindex
     dataindex_update(dataset, dataindex)
@@ -103,8 +88,10 @@ check_model_data <- function(dat, dataindex, uniqueID, save.file = TRUE) {
     checkModelData_function$kwargs <- list()
     checkModelData_function$output <- c("")
     checkModelData_function$msg <- suppressWarnings(readLines(tmp))
-    suppressWarnings(readLines(tmp))
     
+    suppressWarnings(readLines(tmp))
+
     log_call(checkModelData_function)
+    
     rm(tmp)
 }

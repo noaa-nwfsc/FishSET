@@ -35,9 +35,8 @@ create_dist_between_for_gui <- function(dat, start, end, units, name = 'DistBetw
         fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
         
         # Call in datasets
-        out <- data_pull(dat)
-        dat <- out$dat
-        dataset <- out$dataset
+        dataset <- dat
+        dat <- deparse(substitute(dat))
         
         
         # Get location data for centroid or port
@@ -129,6 +128,7 @@ create_dist_between_for_gui <- function(dat, start, end, units, name = 'DistBetw
             create_dist_between_function$functionID <- "create_dist_between"
             create_dist_between_function$args <- c(dat, start, end, units, name)
             create_dist_between_function$kwargs <- c(portTable, deparse(substitute(gridfile)), lon.dat, lat.dat, cat, lon.grid, lat.grid)
+            create_dist_between_function$output <- c(dat)
             
             log_call(create_dist_between_function)
             
