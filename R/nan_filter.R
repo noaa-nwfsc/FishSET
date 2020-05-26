@@ -35,10 +35,10 @@ nan_identify <- function(dat) {
     }
     
     # check for NaNs
-    if (any(apply(dataset, 2, function(x) any(is.nan(x))) == TRUE)) {
+    if (any(unlist(lapply(dataset, function(x) any(is.nan(x))))) == TRUE) {
         # cat('The', names(which(colSums(is.nan.data.frame(dataset)) != 0)), 'columns contain', unname(which(colSums(is.nan.data.frame(dataset)) != 0)),
         # 'NaNs. Consider using nan.filter to replace or remove NaNs', file=paste(getwd(),'/Logs/InforMessage',Sys.Date(),'.txt', sep=''), append=TRUE)
-        cat("The", names(which(apply(dataset, 2, function(x) any(is.nan(x))) == TRUE)), "columns contain NaNs. Consider using nan_filter to replace or remove NaNs", 
+        cat("The", names(which(unlist(lapply(dataset, function(x) any(is.nan(x)))) == TRUE)), "columns contain NaNs. Consider using nan_filter to replace or remove NaNs", 
             file = tmp, append = TRUE)
         
     } else {
@@ -92,16 +92,16 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value = NA, over_wri
     int <- dataset
     tmp <- tempfile()
     
-    if (any(apply(dataset, 2, function(x) any(is.nan(x))) == TRUE)) {
-        cat("The", names(which(apply(dataset, 2, function(x) any(is.nan(x))) == TRUE)), "columns contain NaNs. Consider using nan_filter to replace or remove NaNs", 
+    if (any(unlist(lapply(dataset, function(x) any(is.nan(x))))) == TRUE) {
+        cat("The", names(which(unlist(lapply(dataset, function(x) any(is.nan(x)))) == TRUE)), "columns contain NaNs. Consider using nan_filter to replace or remove NaNs", 
             file = tmp)
-        x <- names(which(apply(dataset, 2, function(x) any(is.nan(x))) == TRUE))
+        x <- names(which(unlist(lapply(dataset, function(x) any(is.nan(x)))) == TRUE))
         for (i in 1:length(x)) {
             x.name <- x[i]
             
             # the identified rep.value (defaults to mean value)
             if (replace == T) {
-                if (is.nan(rep.value) == TRUE) {
+                if (is.na(rep.value) == TRUE) {
                   rep.value <- mean(int[, x.name], na.rm = T)
                 }
                 if (is.numeric(int[, x.name]) == T) {
