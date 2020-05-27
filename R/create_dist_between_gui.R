@@ -16,16 +16,20 @@ create_dist_between_for_gui <- function(dat, start, end, units, name = 'DistBetw
     #' @param lon.grid Variable containing longitude from main grid file
     #' @param lat.grid Variable containing latitude from main grid file
     #' @param cat Variable in grid file designating column containing zones or areas.
+    #' @return Main data set with distance between points variable added. 
     #' @export
     #' @importFrom geosphere distGeo midPoint
     #' @importFrom jsonlite  toJSON
-    #' @description   Creates a vector of distance between two points. The start and end points must be different vectors. 
-    #' If the start or ending points are from a port or the center of a fishing zone or area, 
-    #' then a prompt will appear asking for further parameters to be specified. 
-    #' If the starting or ending points are a port, then latitude and longitude are extracted from the port table 
-    #' stored in the FishSET database.  In this case, PortTable must be specified.  If the starting or ending points 
-    #' are the center of the fishing zone or area, then the assignment_column function will be called to assign each observation
-    #'  to a zone. The find_centroid function will then be called to determine the centroid of each zone. Distance measurements will be between these centroids. 
+    #' @description   Creates a vector of distance between two points. There are two versions of this function. 
+    #' The difference between the two versions is how additional parameters specific to start and end locations are added. 
+    #' This version requires all necessary additional parameters to be specified before running and is
+    #' best used in a non-interactive session. 
+    #' The `create_dist_between` function requires only five parameters to be specified before running. Additional necessary parameters are
+    #' added through prompts. This function is designed for an interactive session. 
+    #' Both versions of the distance between function requires that the start and end points be different vectors. 
+    #' If the start or ending points are from a port then `PortTable` must be specified to obtain lat/lons.
+    #' If the start or ending points are the center of a fishing zone or area, `gridfile`,`lon.dat`, `lat.dat`, `cat`, `lon.grid`, and `lat.grid` 
+    #' must be specified to obtain lat/lons.
     
     
     # Call in datasets
@@ -126,9 +130,9 @@ create_dist_between_for_gui <- function(dat, start, end, units, name = 'DistBetw
             # Log the function
             create_dist_between_function <- list()
             create_dist_between_function$functionID <- "create_dist_between"
-            create_dist_between_function$args <- c(dat, start, end, units, name)
-            create_dist_between_function$kwargs <- c(portTable, deparse(substitute(gridfile)), lon.dat, lat.dat, cat, lon.grid, lat.grid)
-            create_dist_between_function$output <- c(dat)
+            create_dist_between_function$args <- list(dat, start, end, units, deparse(substitute(name)))
+            create_dist_between_function$kwargs <- list(portTable, deparse(substitute(gridfile)), lon.dat, lat.dat, cat, lon.grid, lat.grid)
+            create_dist_between_function$output <- list(dat)
             
             log_call(create_dist_between_function)
             

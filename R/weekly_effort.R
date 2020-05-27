@@ -25,7 +25,8 @@
 #' @importFrom stats aggregate reformulate
 
 
-weekly_effort <- function(dat, project, cpue, date, group = NULL, year = NULL, plot_type = "line_point", output = c("plot", "table"), format_tab = "wide") {
+weekly_effort <- function(dat, project, cpue, date, group = NULL, year = NULL, plot_type = "line_point", 
+                          output = c("plot", "table"), format_tab = "wide") {
     
     # Call in datasets
     out <- data_pull(dat)
@@ -283,7 +284,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, year = NULL, p
     # Log function
     weekly_effort_function <- list()
     weekly_effort_function$functionID <- "weekly_effort"
-    weekly_effort_function$args <- c(dat, project, cpue, date, group, year, plot_type, output, format_tab)
+    weekly_effort_function$args <- list(dat, project, cpue, date, group, year, plot_type, output, format_tab)
     log_call(weekly_effort_function)
     
     # Save plot

@@ -109,7 +109,7 @@ map_plot <- function(dat, project, lat, lon, minmax = NULL, percshown = NULL) {
     
     map_plot_function <- list()
     map_plot_function$functionID <- "map_plot"
-    map_plot_function$args <- c(dat, lat, lon, minmax, percshown)
+    map_plot_function$args <- list(dat, project, lat, lon, minmax, percshown)
     log_call(map_plot_function)
     
     # Save output

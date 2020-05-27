@@ -6,7 +6,6 @@ outlier_table <- function(dat, project, x) {
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
     #' @param project Name of project.
     #' @param x Column in data frame to check for outliers 
-    #' @param project Name of project
     #' @importFrom stats quantile sd var na.pass model.matrix
     #' @importFrom utils file_test
     #' @importFrom grDevices dev.off pdf 
@@ -97,6 +96,12 @@ outlier_table <- function(dat, project, x) {
         print("Data is not numeric.")
     }
     
+    outlier_table_function <- list()
+    outlier_table_function$functionID <- "outlier_table"
+    outlier_table_function$args <- list(dat, project, x)
+
+    log_call(outlier_table_function)
+    
     save_table(dat.table, project, "outlier_table")
     
 }
@@ -145,15 +150,12 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FA
     #' outlier_plot(MainDataTable, 'Haul', dat.remove='mean_2SD', x.dist='normal', output.screen=TRUE)
     #' }
     
-    requireNamespace("ggplot2")
-    
+  
     # Call in datasets
     out <- data_pull(dat)
     dat <- out$dat
     dataset <- out$dataset
     
-    
-    x.name <- x
     if (is.numeric(dataset[, x]) == T) {
         # Begin outlier check
         dataset$y <- 1:length(dataset[, x])
@@ -162,23 +164,23 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FA
             dat_sub <- dataset
         } else {
             if (dat.remove == "5_95_quant") {
-                dat_sub <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.95, na.rm = TRUE) & dataset[, x] > stats::quantile(dataset[, x], 0.05, 
-                  na.rm = TRUE), ]
+                dat_sub <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.95, na.rm = TRUE) & 
+                                     dataset[, x] > stats::quantile(dataset[, x], 0.05, na.rm = TRUE), ]
             } else if (dat.remove == "25_75_quant") {
-                dat_sub <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.75, na.rm = TRUE) & dataset[, x] > stats::quantile(dataset[, x], 0.25, 
-                  na.rm = TRUE), ]
+                dat_sub <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.75, na.rm = TRUE) & 
+                                     dataset[, x] > stats::quantile(dataset[, x], 0.25, na.rm = TRUE), ]
             } else if (dat.remove == "mean_2SD") {
-                dat_sub <- dataset[dataset[, x] < (mean(dataset[, x], na.rm = T) + 2 * stats::sd(dataset[, x], na.rm = T)) & dataset[, x] > (mean(dataset[, 
-                  x], na.rm = T) - 2 * stats::sd(dataset[, x], na.rm = T)), ]
+                dat_sub <- dataset[dataset[, x] < (mean(dataset[, x], na.rm = T) + 2 * stats::sd(dataset[, x], na.rm = T)) & 
+                                     dataset[, x] > (mean(dataset[, x], na.rm = T) - 2 * stats::sd(dataset[, x], na.rm = T)), ]
             } else if (dat.remove == "median_2SD") {
-                dat_sub <- dataset[dataset[, x] < (stats::median(dataset[, x], na.rm = T) + 2 * stats::sd(dataset[, x], na.rm = T)) & dataset[, x] > (stats::median(dataset[, 
-                  x], na.rm = T) - 2 * stats::sd(dataset[, x], na.rm = T)), ]
+                dat_sub <- dataset[dataset[, x] < (stats::median(dataset[, x], na.rm = T) + 2 * stats::sd(dataset[, x], na.rm = T)) & 
+                                     dataset[, x] > (stats::median(dataset[, x], na.rm = T) - 2 * stats::sd(dataset[, x], na.rm = T)), ]
             } else if (dat.remove == "mean_3SD") {
-                dat_sub <- dataset[dataset[, x] < (mean(dataset[, x], na.rm = T) + 3 * stats::sd(dataset[, x], na.rm = T)) & dataset[, x] > (mean(dataset[, 
-                  x], na.rm = T) - 3 * stats::sd(dataset[, x], na.rm = T)), ]
+                dat_sub <- dataset[dataset[, x] < (mean(dataset[, x], na.rm = T) + 3 * stats::sd(dataset[, x], na.rm = T)) & 
+                                     dataset[, x] > (mean(dataset[, x], na.rm = T) - 3 * stats::sd(dataset[, x], na.rm = T)), ]
             } else if (dat.remove == "median_3SD") {
-                dat_sub <- dataset[dataset[, x] < (stats::median(dataset[, x], na.rm = T) + 3 * stats::sd(dataset[, x], na.rm = T)) & dataset[, x] > (stats::median(dataset[, 
-                  x], na.rm = T) - 3 * stats::sd(dataset[, x], na.rm = T)), ]
+                dat_sub <- dataset[dataset[, x] < (stats::median(dataset[, x], na.rm = T) + 3 * stats::sd(dataset[, x], na.rm = T)) & 
+                                     dataset[, x] > (stats::median(dataset[, x], na.rm = T) - 3 * stats::sd(dataset[, x], na.rm = T)), ]
             }
         }  #End Outlier mod
         
@@ -196,15 +198,13 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FA
         
         
         # Hist Plot 2!
-        p2 <- ggplot2::ggplot(dat_sub, aes_string(x)) + ggplot2::geom_histogram(ggplot2::aes(y = ..density..), na.rm = TRUE, bins = if (nrow(dataset) < 
-            500) {
-            round(nrow(dataset)/2)
-        } else {
-            250
-        }) + mytheme
+        p2 <- ggplot2::ggplot(dat_sub, aes_string(x)) + 
+              ggplot2::geom_histogram(ggplot2::aes(y = ..density..), na.rm = TRUE, 
+                                      bins = if (nrow(dataset) < 500) {round(nrow(dataset)/2)} else {250}) + 
+          mytheme
         if (x.dist == "normal") {
-            p2 <- p2 + ggplot2::stat_function(fun = dnorm, colour = "blue", args = list(mean = mean(dat_sub[, x], na.rm = TRUE), sd = sd(dat_sub[, x], 
-                na.rm = TRUE)))
+            p2 <- p2 + ggplot2::stat_function(fun = dnorm, colour = "blue", 
+                                              args = list(mean = mean(dat_sub[, x], na.rm = TRUE), sd = sd(dat_sub[, x], na.rm = TRUE)))
         } else if (x.dist == "lognormal") {
             # lognormal
             p2 <- p2 + ggplot2::stat_function(fun = dlnorm, colour = "blue", args = list(mean = mean(log(dat_sub[, x]), na.rm = TRUE), sd = sd(log(dat_sub[, 
@@ -238,8 +238,8 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FA
             fit_quants <- stats::qexp(quants, rate = 1/mean(dat_sub[, x], na.rm = TRUE))
         } else if (x.dist == "weibull") {
             # Weibull
-            fit_quants <- stats::qweibull(quants, shape = 1.2/sqrt(var(log(dat_sub[, x]), na.rm = TRUE)), scale = mean(dat_sub[, x], na.rm = TRUE) + 0.572/(1.2/sqrt(var(log(dat_sub[, 
-                x]), na.rm = TRUE))))
+            fit_quants <- stats::qweibull(quants, shape = 1.2/sqrt(var(log(dat_sub[, x]), na.rm = TRUE)), 
+                                          scale = mean(dat_sub[, x], na.rm = TRUE) + 0.572/(1.2/sqrt(var(log(dat_sub[, x]), na.rm = TRUE))))
         } else if (x.dist == "poisson") {
             # Poisson
             fit_quants <- stats::qpois(quants, lambda = mean(dat_sub[, x], na.rm = TRUE))
@@ -252,14 +252,22 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FA
         data_quants <- stats::quantile(as.numeric(dat_sub[, x]), quants, na.rm = TRUE)
         # create Q-Q plot
         temp <- data.frame(fit_quants, data_quants)
-        p3 <- ggplot2::ggplot(temp, ggplot2::aes(x = fit_quants, y = data_quants)) + ggplot2::geom_point(shape = 1) + ggplot2::geom_abline() + ggplot2::labs(x = "Theoretical Quantiles", 
-            y = "Sample Quantiles", title = paste("Q-Q plot of", x.dist, "fit against data")) + mytheme
+        p3 <- ggplot2::ggplot(temp, ggplot2::aes(x = fit_quants, y = data_quants)) + 
+              ggplot2::geom_point(shape = 1) + ggplot2::geom_abline() + 
+              ggplot2::labs(x = "Theoretical Quantiles", y = "Sample Quantiles", title = paste("Q-Q plot of", x.dist, "fit against data")) + mytheme
         
         # Put it all together
         fig <- suppressWarnings(ggpubr::ggarrange(p1, p2, p3, ncol = 2, nrow = 2))
         # labels = c('A', 'B', 'C'),
         fig <- ggpubr::annotate_figure(fig, top = ggpubr::text_grob(paste("Plots for ", x, " with ", x.dist, " distribution and data removed based on '", 
             dat.remove, "'. \nBlue: included points   Red: removed points"), size = 10))
+        
+        #Log function
+        outlier_plot_function <- list()
+        outlier_plot_function$functionID <- "outlier_plot"
+        outlier_plot_function$args <- list(dat, project, x, dat.remove, x.dist, output.screen)
+        log_call(outlier_plot_function)
+        
         
         plot(fig)
         # Close the pdf file
@@ -355,6 +363,12 @@ outlier_remove <- function(dat, x, dat.remove = "none", remove = T, over_write =
             print("No modifications made.")
         }
     } else {
+      
+      outlier_remove_function <- list()
+      outlier_remove_function$functionID <- "outlier_remove"
+      outlier_remove_function$args <- list(dat, x, dat.remove, remove, over_write)
+      
+      log_call(outlier_remove_function)
         # Actions to take if data is not numeric
         print("Data is not numeric. Outliers cannot be checked.")
     }

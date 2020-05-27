@@ -48,11 +48,10 @@ nan_identify <- function(dat) {
     
     
     print(suppressWarnings(readLines(tmp)))
+    
     nan_identify_function <- list()
     nan_identify_function$functionID <- "nan_identify"
-    nan_identify_function$args <- c(dat)
-    nan_identify_function$kwargs <- list()
-    nan_identify_function$output <- c("")
+    nan_identify_function$args <- list(dat)
     nan_identify_function$msg <- suppressWarnings(readLines(tmp))
     log_call(nan_identify_function)
     
@@ -123,7 +122,6 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value = NA, over_wri
         cat("No NaNs present", file = tmp)
     }
     
-    
     print(suppressWarnings(readLines(tmp)))
     
     if (over_write == TRUE) {
@@ -134,9 +132,8 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value = NA, over_wri
     
     nan_filter_function <- list()
     nan_filter_function$functionID <- "nan_filter"
-    nan_filter_function$args <- c(dat, x, replace, remove, rep.value, over_write)
-    nan_filter_function$kwargs <- list()
-    nan_filter_function$output <- c(dat)
+    nan_filter_function$args <- list(dat, x, replace, remove, rep.value, over_write)
+    nan_filter_function$output <- list(dat)
     nan_filter_function$msg <- suppressWarnings(readLines(tmp))
     log_call(nan_filter_function)
     
@@ -225,9 +222,8 @@ na_filter <- function(dat, x, replace = F, remove = F, rep.value = NA, over_writ
     
     na_filter_function <- list()
     na_filter_function$functionID <- "na_filter"
-    na_filter_function$args <- c(dat, x, replace, remove, rep.value, over_write)
-    na_filter_function$kwargs <- list()
-    na_filter_function$output <- c(dat)
+    na_filter_function$args <- list(dat, x, replace, remove, rep.value, over_write)
+    na_filter_function$output <- list(dat)
     na_filter_function$msg <- suppressWarnings(readLines(tmp))
     log_call(na_filter_function)
     

@@ -36,9 +36,10 @@ ID_var <- function(dat, newID, ...) {
     
     ID_var_function <- list()
     ID_var_function$functionID <- "ID_var"
-    ID_var_function$args <- c(dat, newID)
+    ID_var_function$args <- list(dat, newID)
     ID_var_function$kwargs <- list(argList = idmaker)
-    ID_var_function$output <- c("")
+    ID_var_function$ouput <- list(dat)
+
     log_call(ID_var_function)
     return(int)
 }

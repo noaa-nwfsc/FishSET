@@ -36,9 +36,8 @@
 #' @importFrom reshape2 melt dcast
 #' @import ggplot2
 
-
-weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL, fun = "sum", position = "stack", convert_to_tons = FALSE, value = c("count", 
-    "percent"), output = c("plot", "table"), format_tab = "wide") {
+weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL, fun = "sum", position = "stack", convert_to_tons = FALSE, 
+                         value = c("count", "percent"), output = c("plot", "table"), format_tab = "wide") {
     
     # Call in datasets
     out <- data_pull(dat)
@@ -178,10 +177,11 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
     
     if (length(species) == 1) {
         
-        plot <- ggplot2::ggplot(count, ggplot2::aes_string("week", "catch", fill = if (!is.null(group)) 
-            group1 else NULL)) + ggplot2::geom_col(position = position) + fishset_theme + ggplot2::labs(title = if (!is.null(year) & length(year) == 1) 
-            paste(year) else NULL, y = paste(fun, "catch")) + ggplot2::theme(plot.title = element_text(hjust = 0.5)) + ggplot2::scale_x_continuous(breaks = seq(0, 50, 
-            by = 10))
+        plot <- ggplot2::ggplot(count, ggplot2::aes_string("week", "catch", fill = if (!is.null(group)) group1 else NULL)) + 
+                ggplot2::geom_col(position = position) + fishset_theme + 
+                ggplot2::labs(title = if (!is.null(year) & length(year) == 1) paste(year) else NULL, y = paste(fun, "catch")) + 
+                ggplot2::theme(plot.title = element_text(hjust = 0.5)) + 
+                ggplot2::scale_x_continuous(breaks = seq(0, 50, by = 10))
         
         if (!is.null(group)) {
             
@@ -214,12 +214,15 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
         
     } else if (length(species) > 1) {
         
-        plot <- ggplot2::ggplot(count, ggplot2::aes(week, catch, fill = species)) + ggplot2::geom_col(position = if (position == "dodge") 
-            ggplot2::position_dodge2(preserve = "single") else position, col = "black") + fishset_theme + ggplot2::labs(title = if (!is.null(year) & length(year) == 1) 
-            paste(year) else NULL, y = paste(fun, "catch")) + ggplot2::theme(plot.title = element_text(hjust = 0.5)) + ggplot2::scale_x_continuous(breaks = seq(0, 50, 
-            by = 10)) + ggplot2::theme(legend.position = "bottom", legend.box.background = ggplot2::element_rect(color = "black", size = 1, linetype = 1)) + 
-            ggplot2::guides(fill = ggplot2::guide_legend(title = NULL, title.theme = ggplot2::element_text(size = 10), label.theme = ggplot2::element_text(size = 8))) + 
-            ggplot2::theme(legend.position = "bottom")
+        plot <- ggplot2::ggplot(count, ggplot2::aes(week, catch, fill = species)) + 
+                ggplot2::geom_col(position = if (position == "dodge") 
+                ggplot2::position_dodge2(preserve = "single") else position, col = "black") + fishset_theme + 
+                ggplot2::labs(title = if (!is.null(year) & length(year) == 1) paste(year) else NULL, y = paste(fun, "catch")) + 
+                ggplot2::theme(plot.title = element_text(hjust = 0.5)) + 
+                ggplot2::scale_x_continuous(breaks = seq(0, 50, by = 10)) + 
+                ggplot2::theme(legend.position = "bottom", legend.box.background = ggplot2::element_rect(color = "black", size = 1, linetype = 1)) + 
+                ggplot2::guides(fill = ggplot2::guide_legend(title = NULL, title.theme = ggplot2::element_text(size = 10), label.theme = ggplot2::element_text(size = 8))) + 
+                ggplot2::theme(legend.position = "bottom")
         
         if (!is.null(group) & length(group) == 1) {
             
@@ -258,7 +261,7 @@ weekly_catch <- function(dat, project, species, date, year = NULL, group = NULL,
     
     weekly_catch_function <- list()
     weekly_catch_function$functionID <- "weekly_catch"
-    weekly_catch_function$args <- c(dat, project, species, date, year, group, fun, position, convert_to_tons, output, format_tab)
+    weekly_catch_function$args <- list(dat, project, species, date, year, group, fun, position, convert_to_tons, value, output, format_tab)
     log_call(weekly_catch_function)
     
     # Save plot

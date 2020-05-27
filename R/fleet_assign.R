@@ -163,8 +163,7 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
             
             fleet_table_function <- list()
             fleet_table_function$functionID <- "fleet_table"
-            fleet_table_function$args <- c(dat, project, cond, fleet_val, table, save)
-            fleet_table_function$output <- c("")
+            fleet_table_function$args <- list(dat, project, cond, fleet_val, table, save)
             fleet_table_function$msg <- f_tab
             log_call(fleet_table_function)
             
@@ -174,7 +173,6 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
         }
     }
 }
-
 
 
 
@@ -371,8 +369,7 @@ fleet_assign <- function(dat, project, fleet_tab, overlap = FALSE, format_tab = 
             
             fleet_assign_function <- list()
             fleet_assign_function$functionID <- "fleet_assign"
-            fleet_assign_function$args <- c(dat, project, fleet_tab, overlap, format_tab)
-            fleet_assign_function$output <- c("")
+            fleet_assign_function$args <- list(dat, project, fleet_tab, overlap, format_tab)
             log_call(fleet_assign_function)
             
             save_table(f_tab, project, "fleet_assign")

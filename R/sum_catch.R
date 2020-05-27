@@ -102,9 +102,9 @@ sum_catch <- function(dat, project, catch, v_id, species = NULL, exp, val = c("r
     
     sum_catch_function <- list()
     sum_catch_function$functionID <- "sum_catch"
-    sum_catch_function$args <- c(dat, project, v_id, catch, species, val, output)
+    sum_catch_function$args <- list(dat, project, catch, v_id, species, exp, val, output)
     log_call(sum_catch_function)
-    
+
     if (output == "table") {
         
         if (val == "raw") {

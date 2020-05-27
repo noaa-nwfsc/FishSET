@@ -126,7 +126,7 @@
 
 
 make_model_design <- function(dat, project, catchID, alternativeMatrix = c("loadedData", "griddedData"), replace=TRUE, lonlat=NULL, PortTable=NULL,  
-                               likelihood= NULL, vars1 = NULL, vars2 = NULL, priceCol = NULL, startloc=NULL, polyn=NULL) {#, vesselID=NULL
+                               likelihood= NULL, vars1 = NULL, vars2 = NULL, priceCol = NULL, startloc=NULL, polyn=NULL) {
 
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())  
       #Call in datasets
@@ -274,22 +274,7 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
           colnames(port)[1] = alt_var
           port[[alt_var]] <- trimws(port[[alt_var]])
           
-          # portLL <- data[[alt_var]].codeID[,2] # Extract lat long for selected port variable,
-          # cell2mat(data(v1).codeID(:,2)) # convert cell array to an ordinary array
-  #       if(all(unique(toXYa$DISEMBARKED_PORT) %in% unique(port$DISEMBARKED_PORT)==FALSE)){
-  #         if(all(is_empty(lonlat))){
-  #            warning('Port names do not match. Model design file aborted.')
-  #            x0 <- 1
-  #          } else {
-  #            warning('At least one port not included in PortTable. Using lonlat to calculate mean lat/lon of undefined ports.')  
-  #            dataset[[alt_var]] <- trimws(dataset[[alt_var]])
-  #            temp <- data.frame(unique(dataset[[alt_var]]), tapply(dataset[[lonlat[1]]], dataset[[alt_var]], mean), 
-  #                            tapply(dataset[[lonlat[2]]], dataset[[alt_var]], mean))
-  #            colnames(temp) = c(alt_var, "LON", "LAT")
-  #            port <- rbind(port, temp)
-           #return(port)
-  #       }
-  #      }
+
          
           if(any(unique(toXYa$DISEMBARKED_PORT) %in% unique(port$DISEMBARKED_PORT)==FALSE)){
             if(any(is_empty(lonlat))){
@@ -306,7 +291,6 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
                                  tapply(temp[[lonlat[2]]], temp[[alt_var]], mean))
               colnames(temp) = colnames(port)
               port <- rbind(port, temp)
-             # return(port)
             }
           }
           
@@ -434,17 +418,6 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
   r <- nchar(sub("\\.[0-9]+", "", max(catch, na.rm = T)))
   yscale <- 10^(r - 1)
   
-  
-  # some models need vessel ID } !isfield(data,'vesselID')){
- # if (is.null(vesselID) & any(grepl("vesselID", names(dataset), ignore.case = T)) == F) {
- #   warning("ModelInputData matrix generated but Vessel ID not found. Rerun if Vessel ID is needed for models.")
- # } else {
- #   if (!is.null(vesselID)) {
- #     vesselID <- dataset[which(dataZoneTrue == 1), vesselID]
- #   } else {
- #     vesselID <- dataset[which(dataZoneTrue == 1), "vesselID"]  #data([data.vesselID]).dataColumn(dataZoneTrue)   
- #   }
- # }
 
   # Some models need price data
   if (is_empty(priceCol)||is.null(priceCol)||priceCol=="") {
@@ -479,8 +452,6 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
                           altToLocal1 = altToLocal1, 
                           altToLocal2 = altToLocal2, 
                           bCHeader = bCHeader, 
-                          #bColumnsWant = bColumnsWant, 
-                         # bInterAct = bInterAct, 
                           startloc = startloc,
                           polyn = polyn,
                           gridVaryingVariables = ExpectedCatch)
@@ -516,11 +487,12 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
 
   make_model_design_function <- list()
   make_model_design_function$functionID <- 'make_model_design'
-  make_model_design_function$args <- c(dat, project, catchID, alternativeMatrix, lonlat, ptname)
-  make_model_design_function$kwargs <- list('indeVarsForModel'=indeVarsForModel, 'gridVariablesInclude'=gridVariablesInclude, 'priceCol'=priceCol)
-  make_model_design_function$output <- c('')
+  make_model_design_function$args <- list(dat, project, catchID, alternativeMatrix, replace, lonlat, ptname, likelihood, 
+                                       vars1, vars2, priceCol, startloc, polyn)
+  make_model_design_function$kwargs <- list()
+  
   log_call(make_model_design_function)
   
   } 
-  # assign('modelInputData', modelInputData, pos=1)
+  
 }

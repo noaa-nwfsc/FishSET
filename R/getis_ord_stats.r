@@ -114,7 +114,13 @@ getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, la
             round(globalgetis$p.value, 2)), parse = FALSE, size = annotatesize, color = "black", hjust = 0) + theme(text = element_text(size = 20), axis.title.y = element_text(vjust = 1.5), 
             legend.position = c(0.875, 0.7), legend.text = element_text(size = 15), legend.title = element_text(size = 15)) + xlab("Longitude") + ylab("Latitude")
         
-        
+        getis_ord_stats_function <- list()
+        getis_ord_stats_function$functionID <- 'getis_ord_stats'
+        getis_ord_stats_function$args <- list(dat, project, varofint, gridfile, lon.dat, lat.dat, cat)
+        getis_ord_stats_function$kwargs <- list(lon.grid, lat.grid)
+
+        log_call(getis_ord_stats_function)
+
         return(list(getismap = getismap, getistable = uniquedatatomap[, c("ZoneID", "GetisOrd")]))
         
         

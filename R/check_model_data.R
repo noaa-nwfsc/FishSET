@@ -1,18 +1,16 @@
-#' Check data table for data quality issues that will affect modeling functions. 
+#' Check data table for common data quality issues that may affect modeling functions. 
 #'
-
 #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
 #' @param dataindex Data frame that contains information on each column of the main data frame. In FishSET database the table will contain the phrase `MainDataTableInfo`
 #' @param uniqueID Variable that identifies unique occurrences.
 #' @param save.file TRUE/FALSE Save to FishSET database? Defaults to TRUE
-#' @return Returns statements as to data quality issues in the data may exist.
+#' @return Returns statements of data quality issues in the data.
 #' @export check_model_data
-#' @details Checks data to be used for modeling for presence of NAs, NaNs and Inf and that each row is a unique choice occurrence. 
+#' @details Checks data to be used for modeling for presence of NAs, NaNs and Inf, and that each row is a unique choice occurrence. 
 #'    Model functions may fail or return inaccurate results if any of these issues exist.
 #'    The verified data will not save if any of these issues are in the data set. 
-#'    If data passes all tests, the verified data will  then be saved as SQL table. 
-#'    When saving to SQL, the modified table will be saved and the previous, unmodified version of the table 
-#'    (if it exists), will be saved with the prefix 'raw'.
+#'    If data passes all tests, the verified data will then be saved in the FishSET database. 
+#'    The unmodified version of the table in the FishSET database (if it exists), will be saved with the prefix 'raw'.
 #'    The data index table will also be updated and saved.
 
 #' @examples 
@@ -84,9 +82,7 @@ check_model_data <- function(dat, dataindex, uniqueID, save.file = TRUE) {
     
     checkModelData_function <- list()
     checkModelData_function$functionID <- "check_model_data"
-    checkModelData_function$args <- c(dat, dataindex, uniqueID, save.file)
-    checkModelData_function$kwargs <- list()
-    checkModelData_function$output <- c("")
+    checkModelData_function$args <- list(dat, dataindex, uniqueID, save.file)
     checkModelData_function$msg <- suppressWarnings(readLines(tmp))
     
     suppressWarnings(readLines(tmp))

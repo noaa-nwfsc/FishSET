@@ -15,10 +15,8 @@ log_func_model <- function(x) {
     user_function <- list()
     user_function$functionID <- deparse(substitute(x))
     user_function$args <- names(dput(formals(x)))
-    user_function$kwargs <- list()
-    user_function$output <- c("")
     user_function$msg <- args(x)
     log_call(user_function)
     
-    write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste0(loclog(), Sys.Date(), ".json", sep = ""))
+   
 }

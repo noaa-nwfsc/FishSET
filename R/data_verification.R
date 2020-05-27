@@ -2,23 +2,29 @@
 #'
 #' Function tests for common data quality issues.
 #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+#' @param project Name of project
 #' @return Statements as to whether data quality issues may exist.
 #' @importFrom stringi stri_count_regex
 #' @export data_verification
-#' @details Checks that all columnn names in the data frame are unique, whether any columns in the data frame are empty, whether each row is a unique choice 
-#' occurrence at the haul or trip level, and that either latitude and longitude or fishing area are included.
+#' @details Checks that all columnn names in the data frame are unique, whether any columns in the data frame are empty, 
+#' whether each row is a unique choice occurrence at the haul or trip level, and that either latitude and longitude or 
+#' fishing area are included.
 #' @examples 
 #' \dontrun{ 
 #' data_verification(MainDataTable)
 #' }
 
-data_verification <- function(dat) {
+data_verification <- function(dat, project) {
     
     # Call in datasets Call in datasets
     out <- data_pull(dat)
     dat <- out$dat
     dataset <- out$dataset
     
+    check <- 0
+    
+    tmp <- tempfile()
+    cat("Data verification checks for", project, 'project using', dat, 'dataset on', format(Sys.Date(), format = "%Y%m%d"), file = tmp, append = TRUE)
     
     # check each row of data is a unique choice occurrence at haul or trip level
     if (dim(dataset)[1] == dim(unique(dataset))[1]) {
@@ -69,9 +75,8 @@ data_verification <- function(dat) {
     
     data_verification_function <- list()
     data_verification_function$functionID <- "data_verification"
-    data_verification_function$args <- c(dat, project)
+    data_verification_function$args <- list(dat, project)
     data_verification_function$kwargs <- list()
-    data_verification_function$output <- c("")
     data_verification_function$msg <- suppressWarnings(readLines(tmp))
     log_call(data_verification_function)
     rm(tmp)
@@ -85,12 +90,13 @@ data_verification <- function(dat) {
 
 
 ### Check that all observations are unique
-unique_filter <- function(dat, remove = FALSE) {
+unique_filter <- function(dat, project, remove = FALSE) {
     #' Check all observations are unique
     #'
     #'  Function to return a modified dataframe where non-unique rows have been removed.
     #'
     #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
+    #' @param project Name of project.
     #' @param remove TRUE/FALSE Remove non-unique rows? Defaults to FALSE.
     #' @details Function to return a modified dataframe where NAs have been removed.
     #' @keywords unique
@@ -108,6 +114,7 @@ unique_filter <- function(dat, remove = FALSE) {
     dataset <- out$dataset
     
     tmp <- tempfile()
+    cat("Unique filter checks for", project, 'project using', dat, 'dataset on', format(Sys.Date(), format = "%Y%m%d"), file = tmp, append = TRUE)
     
     
     if (dim(dataset)[1] == dim(unique(dataset))[1]) {
@@ -125,7 +132,7 @@ unique_filter <- function(dat, remove = FALSE) {
     
     unique_filter_function <- list()
     unique_filter_function$functionID <- "unique_filter"
-    unique_filter_function$args <- c(dat, remove)
+    unique_filter_function$args <- list(dat, project, remove)
     unique_filter_function$output <- c(dat)
     unique_filter_function$msg <- suppressWarnings(readLines(tmp))
     log_call(unique_filter_function)
@@ -139,12 +146,13 @@ unique_filter <- function(dat, remove = FALSE) {
 
 
 # EMPTY Vars
-empty_vars_filter <- function(dat, remove = FALSE) {
+empty_vars_filter <- function(dat, project, remove = FALSE) {
     #' Check variables are not empty
     #'
     #' Function to return a modified dataframe where empty variables have been removed.
     #'
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
+    #' @param project Name of project
     #' @param remove TRUE/FALSE Remove empty variables? Defaults to FALSE.
     #' @details Function to return a modified dataframe where empty variables have been removed. 
     #' @keywords empty
@@ -153,7 +161,7 @@ empty_vars_filter <- function(dat, remove = FALSE) {
     #' @examples 
     #' \dontrun{
     #' empty_vars_filter(MainDataTable)
-    #' mod.dat <- empty_vars_filter('pollockMainDataTable', remove=TRUE) 
+    #' mod.dat <- empty_vars_filter('pollockMainDataTable', 'pollock', remove=TRUE) 
     #' }
     
     # Call in datasets
@@ -163,6 +171,7 @@ empty_vars_filter <- function(dat, remove = FALSE) {
     
     
     tmp <- tempfile()
+    cat("Empty vars checks for", project, 'project using', dat, 'dataset on', format(Sys.Date(), format = "%Y%m%d"), file = tmp, append = TRUE)
     
     if (any(apply(dataset, 2, function(x) all(is.na(x))) == TRUE)) {
         cat(names(which(apply(dataset, 2, function(x) all(is.na(x))) == TRUE)), "is empty. 
@@ -183,8 +192,8 @@ empty_vars_filter <- function(dat, remove = FALSE) {
     
     empty_vars_filter_function <- list()
     empty_vars_filter_function$functionID <- "empty_vars_filter"
-    empty_vars_filter_function$args <- c(dat, remove)
-    empty_vars_filter_function$output <- c(dat)
+    empty_vars_filter_function$args <- list(dat, project, remove)
+    empty_vars_filter_function$output <- list(dat)
     empty_vars_filter_function$msg <- suppressWarnings(readLines(tmp))
     log_call(empty_vars_filter_function)
     

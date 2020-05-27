@@ -601,9 +601,16 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
     #' @export
     #' @return Returns main data frame with distance between variable.
     #' @importFrom geosphere distGeo midPoint
-    #' @description   Creates a vector of distance between two points. The start and end points must be different vectors.
-    #' Additional parameters are required to obtain lat/lon of ports or the center of a fishing zone. Interactive prompts will
-    #' appear to enter additional parameters if required. Distance can be returned as miles, meters, kilometer of the latitude and longitude of the midpoint.
+    #' @description   Creates a vector of distance between two points. There are two versions of this function. 
+    #' The difference between the two versions is how additional parameters specific to start and end locations are added. 
+    #' This version requires only five parameters to be specified before running. Additional necessary parameters are
+    #' added through prompts. This function is designed for an interactive session. 
+    #' The `create_dist_between_for_gui` function requires all necessary additional parameters to be specified before running and is
+    #' best used in a non-interactive session.
+    #' Both versions of the distance between function requires that the start and end points be different vectors. 
+    #' If the start or ending points are from a port then `PortTable` must be specified to obtain lat/lons.
+    #' If the start or ending points are the center of a fishing zone or area, `gridfile`,`lon.dat`, `lat.dat`, `cat`, `lon.grid`, and `lat.grid` 
+    #' must be specified to obtain lat/lons.
     #' @details 
     #' \tabular{rlll}{
     #' portTable: \tab Port table from FishSET database. Required if start or end is a port vector. \cr

@@ -140,9 +140,9 @@ create_trip_distance <- function(dat, PortTable, trip_id, starting_port, startin
         
         create_TD_function <- list()
         create_TD_function$functionID <- "create_TD"
-        create_TD_function$args <- c(dat, PortTable, trip_id, starting_port, starting_haul, ending_haul, ending_port, haul_order, name)
+        create_TD_function$args <- list(dat, PortTable, trip_id, starting_port, starting_haul, ending_haul, ending_port, haul_order, name)
         create_TD_function$kwargs <- list(a = a, f = f)
-        create_TD_function$output <- c(dat)
+        create_TD_function$output <- list(dat)
         log_call(create_TD_function)
         
         return(haulLevelTripDist)

@@ -1,7 +1,8 @@
-temp_plot <- function(dat, var.select, len.fun = c("length", "unique", "percent"), agg.fun = c("mean", "median", "min", "max", "sum"), date.var = NULL) {
+temp_plot <- function(dat, project, var.select, len.fun = c("length", "unique", "percent"), agg.fun = c("mean", "median", "min", "max", "sum"), date.var = NULL) {
     #' Plot observed locations on map
     #'
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
+    #' @param project Name of project.
     #' @param var.select Variable in dat to plot against a date variable.
     #' @param len.fun Method. 'length' returns the number of observations, 'unique' returns the number of unique observations',
     #' 'percent' returns the percentage of total observations.
@@ -29,11 +30,9 @@ temp_plot <- function(dat, var.select, len.fun = c("length", "unique", "percent"
     dat <- out$dat
     dataset <- out$dataset
     
-    browser()
-    
     # Date var - NULL or use the first one
     if (is.null(date.var)) {
-        date.y.var <- colname(dataset)[grep("date", colnames(dataset), ignore.case = TRUE)[1]]
+        date.y.var <- colnames(dataset)[grep("date", colnames(dataset), ignore.case = TRUE)[1]]
     } else {
         date.y.var <- date.var
     }
@@ -104,7 +103,7 @@ temp_plot <- function(dat, var.select, len.fun = c("length", "unique", "percent"
     
     temp_plot_function <- list()
     temp_plot_function$functionID <- "temp_plot"
-    temp_plot_function$args <- c(dat, var.select, len.fun, agg.fun, date.var)
+    temp_plot_function$args <- list(dat, project, var.select, len.fun, agg.fun, date.var)
     log_call(temp_plot_function)
     
     # Save output

@@ -16,13 +16,15 @@
 #' @param lat.grid Latitude variable in gridfile
 #' @importFrom DBI dbExecute
 #' @export create_startingloc
+#' @return Main data frame with starting location variable added.
 #' @details Function creates the startloc vector that is needed for the logit_correction function. The assignment_column function is called to assign 
 #' port locations and haul locations to zones. The starting port is used to define the starting location at the start of the trip. 
+#' Starting location is required for the full information model with Dahl's correction function (`logit_correction`).
 #' @examples
 #' \dontrun{
-#' pcodMainDataTable <- create_startingloc('pcodMainDataTable', map2, pollockPortTable, 
+#' pcodMainDataTable <- create_startingloc('pcodMainDataTable', map2, 'pollockPortTable', 
 #'                               'TRIP_SEQ','HAUL_SEQ','DISEMBARKED_PORT',
-#'                               'LonLat_START_LON','LonLat_START_LAT', 'NMFS_AREA', 'STARTING_LOC','','')
+#'                               'LonLat_START_LON','LonLat_START_LAT', 'NMFS_AREA', 'STARTING_LOC')
 #' }
 
 create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, starting_port, lon.dat, lat.dat, 
@@ -64,16 +66,15 @@ create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, st
     
     create_startingloc_function <- list()
     create_startingloc_function$functionID <- "create_startingloc"
-    create_startingloc_function$args <- c(dat, deparse(substitute(gridfile)), portTable, trip_id, haul_order, starting_port,
+    create_startingloc_function$args <- list(dat, deparse(substitute(gridfile)), portTable, trip_id, haul_order, starting_port,
                                           lon.dat, lat.dat, cat, name)
-    create_startingloc_function$kwargs <- c(lon.grid, lat.grid)
-    create_startingloc_function$output <- c(dat)
+    create_startingloc_function$kwargs <- list('lon.grid'=lon.grid, 'lat.grid'=lat.grid)
+    create_startingloc_function$output <- list(dat)
     
     log_call(create_startingloc_function)
     
     return(cbind(dataset, name))
 }
-
 
 
 

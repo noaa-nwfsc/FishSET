@@ -76,9 +76,7 @@ load_data <- function(project, name=NULL){
   #Log the function
   load_data_function <- list()
   load_data_function$functionID <- "load_data"
-  load_data_function$args <- c(project, name)
-  load_data_function$output <- 
-  load_data_function$kwargs <- ""
+  load_data_function$args <- list(project, name)
   
   log_call(load_data_function)
   
@@ -230,9 +228,8 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
     # log function
     load_maindata_function <- list()
     load_maindata_function$functionID <- "load_maindata"
-    load_maindata_function$args <- c(deparse(substitute(dat)), over_write, project, compare, y)
-    load_maindata_function$kwargs <- list()
-    load_maindata_function$output <- c("")
+    load_maindata_function$args <- list(deparse(substitute(dat)), over_write, project, compare, y)
+
     log_call(load_maindata_function)
     
     assign(paste0(project, "MainDataTable"), value = dataset, pos = 1)
@@ -291,9 +288,8 @@ main_mod <- function(dat, x, new.unit = NULL, new.type = NULL, new.class = NULL)
     # log function
     main_mod_function <- list()
     main_mod_function$functionID <- "main_mod"
-    main_mod_function$args <- c(deparse(substitute(dat)), deparse(substitute(x)), new.unit, new.type, old.class, new.class)
-    main_mod_function$kwargs <- list()
-    main_mod_function$output <- c("")
+    main_mod_function$args <- list(deparse(substitute(dat)), deparse(substitute(x)), new.unit, new.type, new.class)
+
     log_call(main_mod_function)
     return(dataset)
 }
@@ -360,7 +356,7 @@ load_port <- function(dat, port_name, over_write = TRUE, project = NULL, compare
         
         load_port_function <- list()
         load_port_function$functionID <- "load_port"
-        load_port_function$args <- c(deparse(substitute(dat)), deparse(substitute(port_name)), over_write, project, compare, deparse(substitute(y)))
+        load_port_function$args <- list(deparse(substitute(dat)), deparse(substitute(port_name)), over_write, project, compare, deparse(substitute(y)))
         load_port_function$kwargs <- list()
         load_port_function$output <- c("")
         log_call(load_port_function)
@@ -422,9 +418,7 @@ load_aux <- function(dat, x, over_write = TRUE, project = NULL) {
         
         load_aux_function <- list()
         load_aux_function$functionID <- "load_aux"
-        load_aux_function$args <- c(deparse(substitute(dat)), deparse(substitute(x)), over_write, project)
-        load_aux_function$kwargs <- list()
-        load_aux_function$output <- c("")
+        load_aux_function$args <- list(deparse(substitute(dat)), deparse(substitute(x)), over_write, project)
         log_call(load_aux_function)
     }
 }
@@ -476,9 +470,7 @@ load_grid <- function(dat, x, over_write = TRUE, project = NULL) {
         
         load_gridded_function <- list()
         load_gridded_function$functionID <- "load_gridded"
-        load_gridded_function$args <- c(deparse(substitute(dataset)), over_write, project)
-        load_gridded_function$kwargs <- list()
-        load_gridded_function$output <- c()
+        load_gridded_function$args <- list(deparse(substitute(dataset)), deparse(substitute(x)), over_write, project)
         log_call(load_gridded_function)
     }
 }

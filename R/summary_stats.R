@@ -50,6 +50,11 @@ summary_stats <- function(dat, project, x = NULL) {
         }
     }
     
+    summary_stats_function <- list()
+    summary_stats_function$functionID <- "summary_stats"
+    summary_stats_function$args <- list(dat, project, x)
+    log_call(summary_stats_function)
+    
     save_table(sum_table, project, "summary_stats")
     return(sum_table)
 }

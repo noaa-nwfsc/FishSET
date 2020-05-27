@@ -1,10 +1,10 @@
 # correlation
 corr_out <- function(dat, project, variables) {
-    #' View correlation table and plot
+    #' View correlation between variables as a table and plot.
     #' 
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
     #' @param project Project name
-    #' @param variables Variables to include. Defaults to all. TO specify specific variables use variables=c('var1', 'var2', 'var3', ...)
+    #' @param variables Variables to include. Defaults to all. To specify variables use variables=c('var1', 'var2', 'var3', ...)
     #' @export
     #' @details Returns a correlation plot and table. Output saved to output folder.
     #' @examples 
@@ -46,7 +46,7 @@ corr_out <- function(dat, project, variables) {
         
         corr_out_function <- list()
         corr_out_function$functionID <- "corr_out"
-        corr_out_function$args <- c(dat, project, variables)
+        corr_out_function$args <- list(dat, project, variables)
         log_call(corr_out_function)
         
         # Save output

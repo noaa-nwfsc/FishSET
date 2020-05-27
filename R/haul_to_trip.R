@@ -137,9 +137,9 @@ haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, ...)
     
     haul_to_trip_function <- list()
     haul_to_trip_function$functionID <- "haul_to_trip"
-    haul_to_trip_function$args <- c(dat, deparse(substitute(dataindex)))
-    haul_to_trip_function$kwargs <- list(deparse(substitute(fun.numeric)), ...)
-    haul_to_trip_function$output <- c(dat)
+    haul_to_trip_function$args <- list(dat, project, deparse(substitute(fun.numeric)), deparse(substitute(fun.time)))
+    haul_to_trip_function$kwargs <- list(argList)
+    haul_to_trip_function$output <- list(dat)
     log_call(haul_to_trip_function)
     
     return(out)
