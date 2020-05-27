@@ -13,9 +13,9 @@
 #' @param dist.unit Distance returned as meters, kilometers, or miles. Defaults to miles.
 #' @param lon.dat Longitude variable in dataset
 #' @param lat.dat Latitude variable in dataset
+#' @param cat Variable defining zones or areas. Must be defined for dataset or gridfile.
 #' @param lon.grid Longitude variable in gridfile
 #' @param lat.grid Latitude variable in gridfile
-#' @param cat Variable defining zones or areas. Must be defined for dataset or gridfile.
 #' @param weight.var variable weighted centroids
 #' @param closest.pt  TRUE/FALSE If true, zone ID identified as the closest polygon to the point. Called in assignment_column function.
 #' @param project Name of project. Used for naming table saved to database
@@ -37,33 +37,16 @@
 #'         int: \tab Centroid for each zone. Generated from find_centroid function
 #'         }
  
-create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port", "Other"), min.haul, 
-                                      alt_var, occasion, dist.unit='miles', lon.dat, lat.dat, lon.grid, lat.grid, 
-                                      cat, hull.polygon = c(TRUE, FALSE), closest.pt = FALSE, project, 
+create_alternative_choice <- function(dat, project, gridfile, case = c("Centroid", "Port", "Other"), min.haul, 
+                                      alt_var, occasion, dist.unit='miles', lon.dat, lat.dat, cat, 
+                                      hull.polygon = c(TRUE, FALSE), closest.pt = FALSE, lon.grid, lat.grid,  
                                       griddedDat=NULL, weight.var = NULL) {
   
   stopanaly <- 0
   
   #Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(),locdatabase())
-  if(is.character(dat)==TRUE){
-    if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat  
-  }
-  DBI::dbDisconnect(fishset_db)
-
-  
-  if(is.character(dat)==TRUE){
-    dat <- dat
-  } else {
+    dataset <- dat
     dat <- deparse(substitute(dat))
-  }
   
   int <- find_centroid(dat=dataset, gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.grid, 
                        lat.dat = lat.dat, lon.dat = lon.dat, cat = cat, weight.var = weight.var)
@@ -214,9 +197,9 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
      
        create_alternative_choice_function <- list()
        create_alternative_choice_function$functionID <- 'create_alternative_choice'
-       create_alternative_choice_function$args <- c(dat, deparse(substitute(gridfile)), case, min.haul,
-                                                   alt_var, occasion, lon.dat, lat.dat, lon.grid,  lat.grid, cat,  
-                                                   hull.polygon, closest.pt, project)
+       create_alternative_choice_function$args <- c(dat, project, deparse(substitute(gridfile)), case, min.haul,
+                                                   alt_var, occasion, dist.unit, lon.dat, lat.dat, cat,  
+                                                   hull.polygon, closest.pt, lon.grid,  lat.grid)
        create_alternative_choice_function$kwargs <- list('griddedDat'= griddedDat, 'weight.var'= weight.var)
        create_alternative_choice_function$output <- c()
        
@@ -225,6 +208,3 @@ create_alternative_choice <- function(dat, gridfile, case = c("Centroid", "Port"
 }                                                                                                                                                                                                                           
    
 
-
-
-    

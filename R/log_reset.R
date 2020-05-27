@@ -40,6 +40,6 @@ log_call <- function(fun.name) {
         logbody <- jsonlite::read_json(paste0(loclog(), Sys.Date(), ".json", sep = ""))
         logbody$fishset_run[[2]]$function_calls[[length(logbody$fishset_run[[2]]$function_calls) + 1]] <- fun.name
     }
-    write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE), paste(loclog(), Sys.Date(), ".json", sep = ""))
+    write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE, null='null', na='string'), paste(loclog(), Sys.Date(), ".json", sep = ""))
     
 }

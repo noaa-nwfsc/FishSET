@@ -2798,7 +2798,7 @@
       observeEvent(input$submitE, {
                 q_test <- quietly_test(create_expectations)
                 q_test(values$dataset, input$projectname, input$catche, price=input$price, 
-                                    defineGroup=if(grepl('no group',input$group)){NULL} else {input$group},  
+                                    defineGroup=if(grepl('no group',input$group)){'fleet'} else {input$group},  
                             temp.var=input$temp_var, temporal = input$temporal, calc.method = input$calc_method, lag.method = input$lag_method,
                             empty.catch = input$empty_catch, empty.expectation = input$empty_expectation, temp.window = input$temp_window,  
                             temp.lag = input$temp_lag, year.lag=input$temp_year, dummy.exp = input$dummy_exp, replace.output = TRUE)

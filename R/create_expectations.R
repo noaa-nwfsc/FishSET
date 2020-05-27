@@ -2,9 +2,10 @@
 
 #' @param dat  Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
 #' @param catch Variable containing catch data.
-#' @param price Variable containing price/value data. Used in calculating expected revenue. Leave null if calculating expected catch. Multiplied against catch to generated revenue.
+#' @param price Optional. Defaults to NULL. Define if calculated expected revenue.
+#' Variable containing price/value data. Multiplied against catch to generated revenue.
 #' @param temporal Daily (Daily time line) or sequential (sequential order)
-#' @param temp.var Variable containing temporal data
+#' @param temp.var Optional variable. Temporal variable . Defaults to NULL. 
 #' @param calc.method Select standard average (standardAverage), simple lag regression of means (simpleLag), or weights of regressed groups (weights)
 #' @param lag.method  Use regression over entire group (simple) or for grouped time periods (grouped)
 #' @param empty.catch Replace empty catch with NA, 0, mean of all catch (allCatch), or mean of grouped catch(groupCatch) 
@@ -14,7 +15,7 @@
 #' @param year.lag IF expected catch should be based on catch from previous year(s), set year.lag to the number of years to go back.
 #' @param dummy.exp T/F. Defaults to False. If false, no dummy variable is outputted. If true, output dummy variable for originally missing value.
 #' @param project Name of project. Used to pull working alternative choice matrix from FishSET database.
-#' @param defineGroup If empty, data is treated as a fleet
+#' @param defineGroup Optional. Defaults to treating data as a fleet
 #' @param replace.output Default is FALSE. If TRUE, replaces existing saved expected catch dataframe with new expected catch dataframe. 
 #' If FALSE, add new expected catch dataframes to previously saved expected catch dataframes.
 #' @importFrom lubridate floor_date
@@ -23,13 +24,16 @@
 #' @importFrom stats aggregate reshape coef lm
 #' @importFrom signal polyval
 #' @export create_expectations
-#' @return newGridVar dataframe. Saved to the global environment. Dataframe called in make_model_design
+#' @return newGridVar dataframe. Saved to the FishSET database. Dataframe called in make_model_design
 #' @details Used during model creation to create an expectation of catch or revenue for alternative choices that are added to the model design file.
-#' IMPORTANT: Use the temp_obs_table function before using this function to assess the availability of data for desired temporal moving window size. Sparse data is not suited for shorter moving window sizes. 
-#' The expectations created have several options and are created based on the group and time averaging choices of the user.
-#' The spatial alternatives are built in to the function and come from the structure Alt. 
-#' The primary choices are whether to treat data as a fleet or to group the data (defineGroup) and the time frame of catch data for calculating expected catch.
-#' Values must be provided for `defineGroup` and `temporal` parameters. If data should be treated as a fleet, set defineGroup to NULL. If the entire record of catch data is to be used, set temporal to NULL.
+#' IMPORTANT: Use the temp_obs_table function before using this function to assess the availability of data for desired temporal moving window size. 
+#' Sparse data is not suited for shorter moving window sizes. 
+#' Users can define how to group vessles (fleet or by other category) and time averaging choices.
+#' The spatial alternatives are built into the function and come from the structure Alt. 
+#' The primary choices are whether to treat data as a fleet or to group the data (defineGroup) and the time frame of catch data for calculating 
+#' expected catch. Catch is average along a daily or sequential timeline (`temporal`) using the 
+#' Values must be provided for `defineGroup` and `temporal` parameters. If data should be treated as a fleet, set defineGroup to `fleet`.
+#'  If the entire record of catch data is to be used, set temporal to NULL.
 #' Empty catch values are considered to be times of no fishing activity whereas values of 0 in the catch variable 
 #' are considered fishing activity with no catch and so those are included in the averaging and dummy creation as a point in time when fishing occurred.
 #' Three default expected catch cases will be run:
@@ -42,23 +46,23 @@
 #' @return newGridVar,  newDumV
 #' @examples 
 #' \dontrun{
-#' create_expectations('pcodMainDataTable', adfg, 'OFFICIAL_TOTAL_CATCH_MT',  price=NULL,  
-#'                      temporal='daily', temp.var="DATE_FISHING_BEGAN",  
+#' create_expectations('pcodMainDataTable', 'adfg', 'OFFICIAL_TOTAL_CATCH_MT', temporal='daily',  
 #'                      calc.method='standard average', lag.method='simple', empty.catch='all catch', 
-#'                      empty.expectation= 0.0001, temp.window=4, temp.lag=2, dummy.exp=FALSE, 
-#'                      AltMatrixName='pcodaltmatrix20110101', defineGroup=NULL)
+#'                      empty.expectation= 0.0001, temp.window=4, temp.lag=2,  year.lag=0, dummy.exp=FALSE, 
+#'                       replace.output=FALSE, price=NULL, defineGroup=NULL, temp.var="DATE_FISHING_BEGAN")
 #' }
 
 
-create_expectations <- function(dat, project, catch, price=NULL, defineGroup=NULL, temp.var=NULL, temporal = c("daily", "sequential"), 
+create_expectations <- function(dat, project, catch, temporal = c("daily", "sequential"), 
                                 calc.method = c("standardAverage", "simpleLag", "weights"), lag.method = c("simple", "grouped"),
                                 empty.catch = c(NULL, 0, "allCatch", "groupedCatch"), empty.expectation = c(NULL, 1e-04, 0),  
-                                temp.window = 7, temp.lag = 0, year.lag=0, dummy.exp = FALSE, replace.output=FALSE) {
+                                defineGroup='fleet', price=NULL,  temp.var=NULL,
+                                temp.window = 7, temp.lag = 0, year.lag=0, dummy.exp = FALSE, replace.output=FALSE,
+                                ) {
 
   #Call in datasets
-   out <- data_pull(dat)
-   dat <- out$dat
-   dataset <- out$dataset
+   dataset <- dat
+   dat <- deparse(substitute(dat))
   
       fishset_db <- DBI::dbConnect(RSQLite::SQLite(),locdatabase())
       Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
@@ -76,7 +80,7 @@ create_expectations <- function(dat, project, catch, price=NULL, defineGroup=NUL
   }
 
   # Check that define group is either empty of an actual variable in the dataset
-  if (!is_empty(defineGroup)) {
+  if (defineGroup!='fleet') {
     if (any(is.null(dataset[[defineGroup]]))) {
       stop("defineGroup not recognized. Check that parameter is correctly defined")
     }
@@ -97,10 +101,10 @@ long_exp <- long_expectations(dat=dataset, project=project, catch=catch, price=p
 
  
   # check whether defining a group or using all fleet averaging 
-  if (is_empty(defineGroup)) {
+  if (defineGroup=='fleet') {
     # just use an id=ones to get all info as one group
     numData <- data.frame(rep(1, dim(dataset)[1]))  #ones(size(data(1).dataColumn,1),1)
-    # Define by group case u1hmP1
+    # Define by group case 
   } else {
     numData = as.integer(as.factor(dataset[[defineGroup]]))
   }

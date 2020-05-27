@@ -41,7 +41,7 @@ medium_expectations <- function(dat, project, catch, price, defineGroup, temp.va
   zoneRow <- Alt[["zoneRow"]]
   
   # check whether defining a group or using all fleet averaging 
-  if (is_empty(defineGroup)) {
+  if (defineGroup=='fleet') {
     # just use an id=ones to get all info as one group
     numData <- data.frame(rep(1, dim(dataset)[1]))  #ones(size(data(1).dataColumn,1),1)
     # Define by group case u1hmP1

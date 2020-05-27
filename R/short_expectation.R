@@ -1,4 +1,3 @@
-##1. Option 1. Short-term, individual grouping t - 2 (window)
 #' Short expectations
 #' @param dat  Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
 #' @param project Name of project. Used to pull working alternative choice matrix from FishSET database.
@@ -41,7 +40,7 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
   
 
   # check whether defining a group or using all fleet averaging 
-  if (is_empty(defineGroup)) {
+  if (defineGroup=='fleet') {
     # just use an id=ones to get all info as one group
     numData <- data.frame(rep(1, dim(dataset)[1]))  #ones(size(data(1).dataColumn,1),1)
     # Define by group case u1hmP1

@@ -27,9 +27,8 @@
 create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), use.geartype=c(TRUE,FALSE), sp.col, target=NULL){
 
   #Call in datasets
-  out <- data_pull(dat)
-  dat <- out$dat
-  dataset <- out$dataset
+  dataset <- dat
+  dat <- deparse(substitute(dat))
   
   fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
   

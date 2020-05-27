@@ -313,7 +313,7 @@ bycatch <- function(dat, project, cpue, catch = NULL, date, names = NULL, group 
     # Log Function
     bycatch_function <- list()
     bycatch_function$functionID <- "bycatch"
-    bycatch_function$args <- c(dat, project, cpue, catch, date, names, group, year, period, value, output, format_tab)
+    bycatch_function$args <- list(dat, project, cpue, catch, date, names, group, year, period, value, output, format_tab)
     log_call(bycatch_function)
     
     bycatch[, c("species_count", "species_cpue")] <- NULL
