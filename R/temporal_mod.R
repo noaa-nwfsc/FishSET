@@ -61,9 +61,8 @@ temporal_mod <- function(dat, x, define.format, name) {
     
     temp_mod_function <- list()
     temp_mod_function$functionID <- "temp_mod"
-    temp_mod_function$args <- c(dat, x, define.format, name)
-    temp_mod_function$kwargs <- list()
-    temp_mod_function$output <- c(dat)
+    temp_mod_function$args <- list(dat, x, define.format, deparse(substitute(name)))
+    temp_mod_function$output <- list(dat)
     log_call(temp_mod_function)
     
     return(cbind(dataset, name))

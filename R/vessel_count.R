@@ -214,7 +214,7 @@ vessel_count <- function(dat, project, v, t, period = "month", group = NULL, yea
     
     vessel_count_function <- list()
     vessel_count_function$functionID <- "vessel_count"
-    vessel_count_function$args <- c(dat, project, v, t, period, group, year, position, output)
+    vessel_count_function$args <- list(dat, project, v, t, period, group, year, position, output)
     log_call(vessel_count_function)
     
     # Output folder

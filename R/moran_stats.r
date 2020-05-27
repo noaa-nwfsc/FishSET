@@ -115,6 +115,13 @@ moran_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, lat.da
             xlab("Longitude") + ylab("Latitude")
         
         colnames(uniquedatatomap)[which(colnames(uniquedatatomap) == "Moran")] <- "Morans_I"
+        
+        moran_stats_function <- list()
+        moran_stats_function$functionID <- 'moran_stats'
+        moran_stats_function$args <- list(dat, project, varofint, gridfile, lon.dat, lat.dat, cat)
+        moran_stats_function$kwargs <- list(lon.grid, lat.grid)
+        log_call(moran_stats_function)
+        
         return(list(moranmap = moranmap, morantable = uniquedatatomap[, c("ZoneID", "Morans_I")]))
         
         

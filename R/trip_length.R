@@ -219,8 +219,8 @@ trip_length <- function(dat, project, start, end, units = "days", catch = NULL, 
     # Log function
     trip_length_function <- list()
     trip_length_function$functionID <- "trip_length"
-    trip_length_function$args <- c(dat, project, start, end, units, catch, hauls, haul_to_trip, output)
-    trip_length_function$kwargs <- ""
+    trip_length_function$args <- list(dat, project, start, end, units, catch, hauls, output, haul_to_trip)
+
     
     log_call(trip_length_function)
     

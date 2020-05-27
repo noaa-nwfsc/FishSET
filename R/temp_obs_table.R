@@ -19,11 +19,11 @@
 #' @examples 
 #' \dontrun{
 #' temp_obs_table('pollockMainDataTable', gridfile=map2, x='DATE_FISHING_BEGAN', 
-#'                 lon.grid='', lat.grid='', lon.dat='LonLat_START_LON', 
-#'                 lat.dat='LonLat_START_LAT', cat='NMFS_AREA')
+#'                 lon.dat='LonLat_START_LON', lat.dat='LonLat_START_LAT', cat='NMFS_AREA',
+#'                 lon.grid='', lat.grid='')
 #' }
-
-temp_obs_table <- function(dat, project, gridfile, x, lon.grid, lat.grid, lon.dat, lat.dat, cat) {
+ 
+temp_obs_table <- function(dat, project, gridfile, x, lon.dat, lat.dat, cat, lon.grid=NULL, lat.grid=NULL) {
     
     # Call in datasets
     out <- data_pull(dat)
@@ -47,6 +47,14 @@ temp_obs_table <- function(dat, project, gridfile, x, lon.grid, lat.grid, lon.da
         cat("Zone", unique(out$ZoneID)[i])
         print(table(out$YEAR[out$ZoneID == unique(out$ZoneID)[i]], out$MONTH[out$ZoneID == unique(out$ZoneID)[i]]))
     }
+    
+    # Log the function
+    
+    temp_obs_table_function <- list()
+    temp_obs_table_function$functionID <- "temp_obs_table"
+    temp_obs_table_function$args <- list(dat, project, gridfile, x, lon.dat, lat.dat, cat, lon.grid, lat.grid)
+    log_call(temp_obs_table_function)
+    
     
     save_table(out, project, "temp_obs_table")
     

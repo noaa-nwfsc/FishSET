@@ -4,7 +4,7 @@
 #' 
 #' @param dat Main data frame over which to apply function. Table in FishSET 
 #'   database should contain the string `MainDataTable`.
-#' @param project name of project.
+#' @param project Name of project.
 #' @param var Name of variable to plot.
 #' @param type Type of density plot. Options include "kde" (kernel density estimate),
 #'   "ecdf" (empirical cdf), or "cdf".
@@ -188,7 +188,7 @@ density_plot <- function(dat, project, var, type = c("kde", "ecdf", "cdf"),
   
     density_plot_function <- list()
     density_plot_function$functionID <- "density_plot"
-    density_plot_function$args <- c(dat, project, var, type, group, date, facet_date, 
+    density_plot_function$args <- list(dat, project, var, type, group, date, facet_date, 
                                     filter_date, filter_value, trans, bw, position)
     log_call(density_plot_function)
   

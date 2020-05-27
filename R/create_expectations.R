@@ -46,19 +46,17 @@
 #' @return newGridVar,  newDumV
 #' @examples 
 #' \dontrun{
-#' create_expectations('pcodMainDataTable', 'adfg', 'OFFICIAL_TOTAL_CATCH_MT', temporal='daily',  
-#'                      calc.method='standard average', lag.method='simple', empty.catch='all catch', 
-#'                      empty.expectation= 0.0001, temp.window=4, temp.lag=2,  year.lag=0, dummy.exp=FALSE, 
-#'                       replace.output=FALSE, price=NULL, defineGroup=NULL, temp.var="DATE_FISHING_BEGAN")
+#' create_expectations('pcodMainDataTable', 'adfg', 'OFFICIAL_TOTAL_CATCH_MT', price=NULL, defineGroup='fleet', 
+#'                       temp.var="DATE_FISHING_BEGAN", temporal='daily',  calc.method='standard average', 
+#'                      lag.method='simple', empty.catch='all catch', empty.expectation= 0.0001, 
+#'                      temp.window=4, temp.lag=2,  year.lag=0, dummy.exp=FALSE,replace.output=FALSE, )
 #' }
 
 
-create_expectations <- function(dat, project, catch, temporal = c("daily", "sequential"), 
-                                calc.method = c("standardAverage", "simpleLag", "weights"), lag.method = c("simple", "grouped"),
-                                empty.catch = c(NULL, 0, "allCatch", "groupedCatch"), empty.expectation = c(NULL, 1e-04, 0),  
-                                defineGroup='fleet', price=NULL,  temp.var=NULL,
-                                temp.window = 7, temp.lag = 0, year.lag=0, dummy.exp = FALSE, replace.output=FALSE,
-                                ) {
+create_expectations <- function(dat, project, catch, price=NULL,  defineGroup='fleet', temp.var=NULL, temporal = c("daily", "sequential"),
+                                calc.method = c("standardAverage", "simpleLag", "weights"), lag.method = c("simple", "grouped"), 
+                                empty.catch = c(NULL, 0, "allCatch", "groupedCatch"),  empty.expectation = c(NULL, 1e-04, 0), 
+                                temp.window = 7, temp.lag = 0, year.lag=0, dummy.exp = FALSE, replace.output=FALSE) {
 
   #Call in datasets
    dataset <- dat
@@ -397,10 +395,9 @@ long_exp <- long_expectations(dat=dataset, project=project, catch=catch, price=p
    
   create_expectations_function <- list()
   create_expectations_function$functionID <- 'create_expectations'
-  create_expectations_function$args <- c(dat, project, catch, price, temporal, temp.var, calc.method, lag.method, 
-                                    empty.catch, empty.expectation, temp.window, temp.lag, year.lag, dummy.exp)
-  create_expectations_function$kwargs <- list('defineGroup'=defineGroup)
-  create_expectations_function$output <- c()
+  create_expectations_function$args <- list(dat, project, catch, price, defineGroup, temp.var, temporal,  calc.method, lag.method, 
+                                    empty.catch, empty.expectation, temp.window, temp.lag, year.lag, dummy.exp,replace.output)
+  create_expectations_function$kwargs <- list()
  
   log_call(create_expectations_function)
   

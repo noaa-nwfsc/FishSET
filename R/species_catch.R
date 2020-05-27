@@ -312,9 +312,9 @@ species_catch <- function(dat, project, species, date, period = "month_abv", fun
     # Log the function
     species_catch_function <- list()
     species_catch_function$functionID <- "species_catch"
-    species_catch_function$args <- c(dat, project, species, date, period, fun, group, year, convert_to_tons, value, output, position, format_tab)
+    species_catch_function$args <- list(dat, project, species, date, period, fun, group, year, convert_to_tons, value, output, position, format_tab)
     log_call(species_catch_function)
-    
+   
     # Save output
     save_plot(project, "species_catch")
     

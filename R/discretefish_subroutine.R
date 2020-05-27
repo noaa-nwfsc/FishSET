@@ -5,11 +5,9 @@
 #' Working modelInputData table (table without date) will be pulled from fishset_db database.
 #' @param initparams  Initial parameter estimates for revenue/location-specific covariates then cost/distance
 #' @param optimOpt  Optimization options [max function evaluations, max iterations, (reltol) tolerance of x, trace]
-# @param func Name of likelihood function
 #' @param methodname Optimization method (see optim options)
 #' @param mod.name Name of model run for model result output table
 #' @param select.model Return an interactive data table that allows users to select and save table of best models based on measures of fit 
-#' @param name Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
 #' @export discretefish_subroutine
 #' @importFrom DT DTOutput
 #' @importFrom DBI dbExecute dbWriteTable dbExistsTable dbReadTable dbGetQuery dbDisconnect
@@ -32,14 +30,14 @@
 #' results <- discretefish_subroutine('pcod', initparams= c(0.5, -2.8), 
 #'                                    optimOpt=c(100000,1.00000000000000e-08,1,1),
 #'                                    methodname="BFGS", mod.name='newlogit4', 
-#'                                    select.model=TRUE, name='discretefish_subroutine')
+#'                                    select.model=TRUE)
 #' }
 
 
 
 
 discretefish_subroutine <- function(project, initparams, optimOpt, methodname, mod.name, 
-                                    select.model=FALSE,  name='discretefish_subroutine') {
+                                    select.model=FALSE) {
 
   #Call in datasets
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
@@ -367,7 +365,6 @@ if(is.factor(optimOpt)){
           if (input$close > 0) stopApp()                             
         })
         
-        
   }
     ))
     
@@ -376,9 +373,8 @@ if(is.factor(optimOpt)){
   ############################################################################# 
   discretefish_subroutine_function <- list()
   discretefish_subroutine_function$functionID <- 'discretefish_subroutine'
-  discretefish_subroutine_function$args <- c(project, initparams, optimOpt,  methodname, as.character(mod.name))
+  discretefish_subroutine_function$args <- list(project, initparams, optimOpt,  methodname, as.character(mod.name), select.model)
   discretefish_subroutine_function$kwargs <- list()
- # discretefish_subroutine_function$output <- c(name)
   log_call(discretefish_subroutine_function)
    ############################################################################# 
   single_sql <- paste0(project, "modelOut", format(Sys.Date(), format="%Y%m%d"))
@@ -389,5 +385,3 @@ if(is.factor(optimOpt)){
   DBI::dbDisconnect(fishset_db)
   }
   }
-
-  

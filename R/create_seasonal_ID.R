@@ -8,18 +8,18 @@
 #' @param sp.col Column containing species names in seasonaldat. 
 #' @param target Name of target species. If `target` is NULL, runs through fisheries in order listed in seasonal.dat
 #' @export create_seasonal_ID
-#' @return  The input dataset with variables SeasonID, and seasonID*fishery (`seasonIDChinook`). 
+#' @return  The main data frame with variables SeasonID, and seasonID*fishery (`seasonIDChinook`). 
 #' @importFrom DBI dbConnect
 #' @importFrom RSQLite SQLite
-#' @details Uses a table of season dates for fisheries to create season ID variables. 
+#' @details Uses a table of fishery season dates to create season ID variables. 
 #' Output is a SeasonID variable and multiple SeasonID*fishery variables.
 #' The seasonID variable is a vector where each row is the fishery season based on dates of the observation. 
-#' If target fishery `target` is defined then the function returns SeasonID as vector of the target fishery `target` or `Other`.
+#' If `target` fishery is defined, the function returns SeasonID as vector of the target fishery `target` or `other`.
 #'  If `target` is not defined, then, for each row, SeasonID is the first fishery listed in seasonal.dat for which fishery season date encompasses the dates for that row in the main data table. 
 #' SeasonID*fishery variables are a TRUE/FALSE seasonID vector for each fishery (labeled by seasonID and fishery) where TRUE indicates the dates for a given row in the main data table fall within the fishery dates for that fishery.
 #' @examples 
 #' \dontrun{ 
-#'  pcodMainDataTable <- create_seasonal_ID('pcodMainDataTable', seasonal, use.location = TRUE,  
+#'  pcodMainDataTable <- create_seasonal_ID('pcodMainDataTable', seasonal_dat, use.location = TRUE,  
 #'  use.geartype = TRUE, sp.col = 'SPECIES', target = 'POLLOCK')
 #'  }
 #'
@@ -265,10 +265,11 @@ create_seasonal_ID <- function (dat, seasonal.dat, use.location=c(TRUE,FALSE), u
     
     create_seaonal_ID_function <- list()
     create_seaonal_ID_function$functionID <- "create_seaonal_ID"
-    create_seaonal_ID_function$args <- c(dat, seasonal.dat, use.location, use.geartype, sp.col)
+    create_seaonal_ID_function$args <- list(dat, seasonal.dat, use.location, use.geartype, sp.col)
     create_seaonal_ID_function$kwargs <- list(target = target)
-    create_seaonal_ID_function$output <- deparse(substitute(dataset))
+    create_seaonal_ID_function$output <- dat
     log_call(create_seaonal_ID_function)
     
     return(dataset)
 }
+

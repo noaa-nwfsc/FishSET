@@ -40,11 +40,10 @@ degree <- function(dat, lat = NULL, lon = NULL, latsign = FALSE, lonsign = FALSE
     
     degree_function <- list()
     degree_function$functionID <- "degree"
-    degree_function$args <- c(dat, lat, lon, latsign, lonsign)
-    degree_function$output <- c(dat)
+    degree_function$args <- list(dat, lat, lon, latsign, lonsign, replace)
+    degree_function$output <- list(dat)
     degree_function$msg <- suppressWarnings(readLines(tmp))
     log_call(degree_function)
-    
     
     if (replace == TRUE) {
         if (!is.null(lat)) {

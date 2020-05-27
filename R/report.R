@@ -61,6 +61,7 @@ pull_table <- function(project, table) {
   #' @param project Name of project.
   #' @param table Name of table, e.g. "MainDataTable". 
   #' @export
+  #' @keywords internal
   
   tab <- tables_database()
   
@@ -130,11 +131,12 @@ summary_table <- function(project) {
   #' 
   #' Display dataset summary table
   #'
-  #'@param project Name of project.
-  #'@export
-  #'@importFrom tibble rownames_to_column 
-  #'@details Displays the most recent table created by \code{\link{summary_stats}} 
-  #'as a dataframe. Can be used in console or notebook. 
+  #' @param project Name of project.
+  #' @export
+  #' @keywords internal
+  #' @importFrom tibble rownames_to_column 
+  #' @details Displays the most recent table created by \code{\link{summary_stats}} 
+  #' as a dataframe. Can be used in console or notebook. 
   
   date <- gsub(".json", "", current_log())
   
@@ -170,6 +172,7 @@ dat_create_summary <- function(date = NULL, show = "all"){
   #' @details Displays a list of data creation functions and their arguments ran by date. 
   #'   If no date is entered the most recent log file is pulled. 
   #' @export
+  #' @keywords internal
   #' @seealso \code{\link{filter_summary}}
   #' @examples 
   #' \dontrun{
@@ -323,18 +326,19 @@ filter_summary <- function(sum_tab, filter_list) {
   #' 
   #' Select function calls to display
   #'
-  #'@param sum_tab Summary table to filter.
-  #'@param filter_list A named list of integers. Each list entry should 
+  #' @param sum_tab Summary table to filter.
+  #' @param filter_list A named list of integers. Each list entry should 
   #'  contain the name of the function and the row number(s) to filter by. 
   #'  For example, \code{list(temporal_mod = 2)} will display the second row of 
-  #'  the temporal_mod dataframe in a summary list. 
-  #'@export
-  #'@seealso \code{\link{dat_create_summary}}
-  #'@examples
-  #'\dontrun{
-  #'filter_summary(dat_create_summary(), 
+  #'   the temporal_mod dataframe in a summary list. 
+  #' @export
+  #' @keywords internal
+  #' @seealso \code{\link{dat_create_summary}}
+  #' @examples
+  #' \dontrun{
+  #' filter_summary(dat_create_summary(), 
   #'               filter_list = list(set_quants = 2, temporal_mod = 2))
-  #'}
+  #' }
  
   
   for (i in names(filter_list)) {
@@ -352,6 +356,7 @@ model_out_summary <- function(project) {
   #' 
   #' @param project Name of project
   #' @export
+  #' @keywords internal
   #' @examples 
   #' \dontrun{
   #' model_out_summary("pollock")
@@ -384,6 +389,7 @@ model_error_summary <- function(project) {
   #' 
   #' @param project Name of project
   #' @export
+  #' @keywords internal
   #' @examples 
   #' \dontrun{
   #' model_error_summary("pollock")
@@ -416,6 +422,7 @@ model_fit_summary <- function(project) {
   #' 
   #' @param project Name of project
   #' @export
+  #' @keywords internal
   #' @examples 
   #' \dontrun{
   #' model_fit_summary("pollock")

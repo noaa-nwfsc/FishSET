@@ -50,11 +50,10 @@ table_info_verification <- function(dataindex) {
         # warning(paste('The units are not recognized for the following variables:', which(colSums(sapply(unitsAvailable, grepl, colnames(dataindex))) == 0)))
     }
     print(suppressWarnings(readLines(tmp)))
+    
     table_info_verification_function <- list()
     table_info_verification_function$functionID <- "table_info_verification"
-    table_info_verification_function$args <- c(dataindex)
-    table_info_verification_function$kwargs <- list()
-    table_info_verification_function$output <- c("")
+    table_info_verification_function$args <- list(dataindex)
     table_info_verification_function$msg <- suppressWarnings(readLines(tmp))
     log_call(table_info_verification_function)
     

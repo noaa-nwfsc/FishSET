@@ -1,6 +1,7 @@
 #' Guided steps to cleaning data frame
 
 #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
+#' @param project Name of project.
 #' @param x Column in data frame to check for outliers.
 #' @param dataindex MainDataTableInfo table from FishSET database that is associated with the data set. This table contains information on each column of the data frame.
 #'  Must be in quotes if called from the FishSET database.
@@ -16,10 +17,8 @@
 #' }
 #'
 
-data_check <- function(dat, x, dataindex) {
-    # Call in data
-    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-    
+data_check <- function(dat, project, x, dataindex) {
+     
     # Call in main data set
     out <- data_pull(dat)
     dat <- out$dat
@@ -30,11 +29,8 @@ data_check <- function(dat, x, dataindex) {
     dataindex <- out$dat
     dataindex2 <- out$dataset
     
-    # single_sql <- paste('select * from ', dataindex, sep='') dataindex2 <- DBI::dbGetQuery(fishset_db, single_sql)
-    DBI::dbDisconnect(fishset_db)
-    
     # Run checks
-    print(summary_stats(dataset))
+    print(summary_stats(dataset, project))
     cat("\nNA checks\n")
     if (any(apply(dataset, 2, function(x) anyNA(x))) == TRUE) {
         cat("The", names(which(apply(dataset, 2, function(x) anyNA(x)) == TRUE)), "columns contain NAs. Consider using na_filter to replace or remove NAs")
@@ -54,17 +50,17 @@ data_check <- function(dat, x, dataindex) {
     cat("\n Use the table and plot printed below to assess whether whether outlying points may exist in the selected variable.\n
          If further checking is needed use the outlier_plot function to assess the impact of removing points.")
     print("The outlier table shows basic summary statistics for subsets of the selected variable.")
-    print(outlier_table(dataset, x))
+    print(outlier_table(dataset, project, x))
     cat("\n")
     cat("\n")
-    outlier_plot(dataset, x)
+    outlier_plot(dataset, project, x, dat.remove='none', x.dist='normal', output.screen=TRUE)
     cat("The plot shows the data with no adjustments (distribution specified or points removed). 
          If potential outliers are visible on the null plot, consider further visualizing the data with outlier_plot. 
          Start by using the outlier_plot function ans subsetting the data using the most conservative method: outlier_plot(dataset, x, dat.remove = \"5_95_quant\"). 
          If outliers are present, remove with the outlier_remove function.")
     cat("\n")
     cat("\nData verification checks.\n")
-    data_verification(dataset)
+    data_verification(dataset, project)
     # Table_verification_function
     allNecFields = c("name", "units", "general", "XY", "ID", "Time", "Catch", "Effort", "CPUE", "Lat", "Value", "Area", "Port", "Price", "Trip", "Haul", 
         "Other")
@@ -92,9 +88,9 @@ data_check <- function(dat, x, dataindex) {
     
     data_check_function <- list()
     data_check_function$functionID <- "data_check"
-    data_check_function$args <- c(dat, x, dataindex)
+    data_check_function$args <- list(dat, project, x, dataindex)
     data_check_function$kwargs <- list()
-    data_check_function$output <- c("")
+    data_check_function$output <- list()
     log_call(data_check_function)
     
 }

@@ -81,7 +81,7 @@ map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars, lo
     # log function
     map_viewer_function <- list()
     map_viewer_function$functionID <- "map_viewer"
-    map_viewer_function$args <- c(dat, spatname, avd, avm, num_vars, temp_vars, id_vars, lon_start, lat_start, lon_end, lat_end)
+    map_viewer_function$args <- list(dat, spatname, avd, avm, num_vars, temp_vars, id_vars, lon_start, lat_start, lon_end, lat_end)
     log_call(map_viewer_function)
     
     # working directory

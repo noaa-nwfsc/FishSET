@@ -21,7 +21,8 @@ data_verification_call <- function(dat, project) {
     
     
     tmp <- tempfile()
-    cat("Data verification checks", file = tmp, append = TRUE)
+    
+    cat("Data verification checks for", project, 'using', dat, 'dataset on', format(Sys.Date(), format = "%Y%m%d"), file = tmp, append = TRUE)
     check <- 0
     # check that names are unique in dataset
     x <- colnames(dataset)

@@ -258,7 +258,7 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE, 
         
         map_kernel_function <- list()
         map_kernel_function$functionID <- "map_kernel"
-        map_kernel_function$args <- c(dat, project, type, latlon, group, facet, date, filter_date, filter_value, minmax)
+        map_kernel_function$args <- list(dat, project, type, latlon, group, facet, date, filter_date, filter_value, minmax)
         log_call(map_kernel_function)
         
         save_plot(project, "map_kernel", mapout)

@@ -6,7 +6,6 @@
 #' @param gridfile Spatial data. Shape, json, and csv formats are supported.
 #' @param case Centroid='Centroid of Zonal Assignment', Port, Other
 #' @param min.haul Minimum number of hauls. Removes zones with fewer hauls than min.haul. For instance, include only zones with at least 100 hauls.
-# @param haul.trip Should data be at trip or haul level. Defaults to haul.
 #' @param hull.polygon Used in assignment_column function. Creates polygon using convex hull method.
 #' @param alt_var Identifies how to find lat/lon for starting point (must have a lat/lon associated with it) 
 #' @param occasion Identifies how to find lat/lon for alternative choices such as 'Centroid of Zonal Assignment' 
@@ -39,7 +38,7 @@
  
 create_alternative_choice <- function(dat, project, gridfile, case = c("Centroid", "Port", "Other"), min.haul, 
                                       alt_var, occasion, dist.unit='miles', lon.dat, lat.dat, cat, 
-                                      hull.polygon = c(TRUE, FALSE), closest.pt = FALSE, lon.grid, lat.grid,  
+                                      hull.polygon = c(TRUE, FALSE), closest.pt = FALSE, lon.grid=NULL, lat.grid=NULL,  
                                       griddedDat=NULL, weight.var = NULL) {
   
   stopanaly <- 0
@@ -197,14 +196,13 @@ create_alternative_choice <- function(dat, project, gridfile, case = c("Centroid
      
        create_alternative_choice_function <- list()
        create_alternative_choice_function$functionID <- 'create_alternative_choice'
-       create_alternative_choice_function$args <- c(dat, project, deparse(substitute(gridfile)), case, min.haul,
+       create_alternative_choice_function$args <- list(dat, project, deparse(substitute(gridfile)), case, min.haul,
                                                    alt_var, occasion, dist.unit, lon.dat, lat.dat, cat,  
-                                                   hull.polygon, closest.pt, lon.grid,  lat.grid)
-       create_alternative_choice_function$kwargs <- list('griddedDat'= griddedDat, 'weight.var'= weight.var)
-       create_alternative_choice_function$output <- c()
+                                                   hull.polygon, closest.pt)
+       create_alternative_choice_function$kwargs <- list('lon.grid'=lon.grid, 'lat.grid'=lat.grid, 'griddedDat'= griddedDat, 'weight.var'= weight.var)
+       create_alternative_choice_function$output <- list()
        
        log_call(create_alternative_choice_function)
     }
 }                                                                                                                                                                                                                           
    
-

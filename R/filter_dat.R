@@ -9,7 +9,7 @@ filter_table <- function(dat, project, x, exp) {
     #' @importFrom DBI dbConnect dbWriteTable dbDisconnect
     #' @keywords filter, subset
     #' @export filter_table
-    #' @return  Filter expressions saved as a table into the global environment. 
+    #' @return  Filter expressions saved as a table to FishSET database. 
     #' @details This function allows users to define and store data filter expressions which can then be applied to the data.  
     #' The filter table will be saved in the SQLite fishset_db  database under the project name (\emph{project}) and (\emph{filterTable}). 
     #' The new filter functions are added each time the function is run and the table is also automatically updated in the 
@@ -41,9 +41,7 @@ filter_table <- function(dat, project, x, exp) {
     
     filter_data_function <- list()
     filter_data_function$functionID <- "filter_table"
-    filter_data_function$args <- c(dat, project, x, exp)
-    filter_data_function$kwargs <- list()
-    filter_data_function$output <- c("")
+    filter_data_function$args <- list(dat, project, x, exp)
     filter_data_function$msg <- filterTable
     log_call(filter_data_function)
     
@@ -93,8 +91,7 @@ filter_dat <- function(dat, exp, filterTable) {
     
     filter_dat_function <- list()
     filter_dat_function$functionID <- "filter_dat"
-    filter_dat_function$args <- c(dat, exp, filterTable)
-    filter_dat_function$kwargs <- list()
+    filter_dat_function$args <- list(dat, exp, filterTable)
     filter_dat_function$output <- deparse(substitute(dataset))
     filter_dat_function$msg <- paste("Rows have been removed based on", exp)
     log_call(filter_dat_function)
