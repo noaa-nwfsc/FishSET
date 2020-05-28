@@ -1,5 +1,5 @@
 map_plot <- function(dat, project, lat, lon, minmax = NULL, percshown = NULL) {
-    #' Plot observed locations on map
+    #' Map observed vessel locations 
     #'
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
     # @param gridfile

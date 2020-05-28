@@ -1,7 +1,7 @@
 # Outlier check functions.
 
 outlier_table <- function(dat, project, x) {
-    #' Evaluate outliers in a table output
+    #' Evaluate outliers in a table format
     #'
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
     #' @param project Name of project.
@@ -108,7 +108,7 @@ outlier_table <- function(dat, project, x) {
 
 ##---------------------------##
 outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FALSE) {
-    #' Evaluate outliers through plots
+    #' Visualize spread of data and impact of outlier removal options
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
     #' @param project Name of project
     #' @param x Column in data frame to check for outliers
@@ -284,7 +284,7 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FA
 
 ##---------------------------##
 outlier_remove <- function(dat, x, dat.remove = "none", remove = T, over_write = FALSE) {
-    #' Evaluate and edit outliers from variable
+    #' Remove outliers from vector
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
     #' @param x Column in data frame containing potential outliers.
     #' @param dat.remove Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD

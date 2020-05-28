@@ -1,6 +1,6 @@
-#' Vessel count
+# Vessel count
 #' 
-#' Generates a table or plot of the number of unique vessels by time period
+#' View number of unique vessels by time period
 #' 
 #' @param dat Main data frame over which to apply function. Table in FishSET 
 #'   database should contain the string `MainDataTable`.

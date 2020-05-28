@@ -2,7 +2,7 @@
 
 
 nan_identify <- function(dat) {
-    #' Identify NaN's and NAs in data set
+    #' Identify NaNs and NAs in data frame
     #'
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
     #' @keywords NaN, NA
@@ -61,7 +61,7 @@ nan_identify <- function(dat) {
 
 # Replaces nans in the data column with the choosen value or removes rows containing NaNs
 nan_filter <- function(dat, x, replace = F, remove = F, rep.value = NA, over_write = FALSE) {
-    #' Filters NaN's from data frame
+    #' Filter NaNs from vector
     #'
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
     #' @param x Column(s) in data framce in which to remove or replace NaNs. If multiple columns are passed use x=c().
@@ -147,7 +147,7 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value = NA, over_wri
 ####----
 # Replaces nans in the dataColumn with the choosen value or removes rows containing NaNs
 na_filter <- function(dat, x, replace = F, remove = F, rep.value = NA, over_write = FALSE) {
-    #' Filters NA's from variable
+    #' Filters NAs from vector
     #'
     #'  Function to return a modified dataframe where NAs have been replaced or removed.
     #'

@@ -34,7 +34,7 @@ table_fields <- function(table) {
 }
 
 table_view <- function(table) {
-    #' View the selected FishSETn database table 
+    #' View the selected FishSET database table 
     #' @param table name of table in FishSET database
     #' @export table_view
     #' @description Function utilizes sql functions to view or call the selected table from the FishSET database in a function. 

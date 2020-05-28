@@ -1,4 +1,4 @@
-#' Generate haul level trip distance 
+#' Create haul level trip distance vector
 #'
 #' @param dat Main data frame. In FishSET database, table name contains phrase `MainDataTable`.
 #' @param PortTable Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat. Table is generated using the load_port function and saved in the FishSET database.

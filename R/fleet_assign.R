@@ -180,7 +180,7 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
 
 
 fleet_assign <- function(dat, project, fleet_tab, overlap = FALSE, format_tab = "long") {
-    #' Create Fleet variable 
+    #' Create fleet vector based on stored fleet expressions
     #'
     #'
     #' @description \code{fleet_assign} creates a fleet variable using a fleet table from
