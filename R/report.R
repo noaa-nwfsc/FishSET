@@ -160,32 +160,57 @@ summary_table <- function(project) {
 }
 
 
-dat_create_summary <- function(date = NULL, show = "all"){
+function_summary <- function(date = NULL, type = "dat_load", show = "all"){
   #' 
-  #' Display summary of data creation function calls
+  #' Display summary of function calls
   #'
   #' @param date Character string; the date of the log file ("%Y-%m-%d" format) to 
   #'   retrieve. If \code{NULL} the most recent log is pulled. 
   #' @param show Whether to display \code{"all"} calls, the \code{"last"} (most recent) call, or 
   #' the \code{"first"} (oldest) function call from the log file.  
   #' @importFrom dplyr bind_rows
-  #' @details Displays a list of data creation functions and their arguments ran by date. 
+  #' @details Displays a list of functions by type and their arguments from a log file. 
   #'   If no date is entered the most recent log file is pulled. 
   #' @export
   #' @keywords internal
   #' @seealso \code{\link{filter_summary}}
   #' @examples 
   #' \dontrun{
-  #' dat_create_summary()
+  #' function_summary()
   #' }
   
-  fun_vector <- c("temp_mod", "ID_var", "create_seasonal_ID", "cpue", "dummy_var",
+  dat_load <- c("load_data", "load_maindata", "main_mod", "load_port", "load_aux",
+                "load_gridded")
+  
+  dat_quality <- c("data_verification", "data_check", "nan_identify", "nan_filter", "na_filter", 
+                   "outlier_table", "outlier_plot", "outlier_remove", "degree", "unique_filter", 
+                   "empty_vars_filter", "check_model_data", "filter_table", "filter_dat",
+                   "add_vars")
+  
+  dat_create <- c("temp_mod", "ID_var", "create_seasonal_ID", "cpue", "dummy_var",
                   "dummy_num", "dummy_matrix", "set_quants", "bin_var", "create_var_num",
                   "create_mid_haul", "create_trip_centroid", "create_dist_between", 
-                  "create_duration")
+                  "create_duration", "create_startingloc", "haul_to_trip", "create_TD")
+  
+  dat_exploration <- c("map_plot", "map_kernel", "getis_ord_stats", "moran_stats", "temp_plot",
+                       "density_plot", "xy_plot", "corr_out")
+  
+  fleet <- c("fleet_table", "density_plot", "fleet_assign", "vessel_count", "species_catch", "bycatch",
+             "sum_catch", "weekly_catch", "weekly_effort", "trip_length")
+  
+  zonal_def <- c("create_alternative_choice", "find_centroid", "assignment_column")
+  
+  model <- c("sparsetable", "sparsplot", "create_expectations", "make_model_design",
+             "discretefish_subroutine")
+  
+  fun_vector <- switch(type, "dat_load" = dat_load, "dat_quality" = dat_quality, 
+                       "dat_create" = dat_create, "dat_exploration" = dat_exploration,
+                       "fleet" = fleet, "zonal_def" = zonal_def, "model" = model)
+  
   
   log <- pull_log(log_date = date)
   log_date <- log[[1]][[1]]$info[[1]]$rundate
+  
   
   # grab all function calls
   fun_calls <- lapply(seq_along(log$fishset_run[[2]]$function_calls), 
@@ -197,7 +222,7 @@ dat_create_summary <- function(date = NULL, show = "all"){
   
   if (length(ind) == 0) {
     
-    cat("No data creation function found in log.")
+    cat("No functions of type", type, "found in log.")
     
   }  else if (length(ind) > 0) {
     
@@ -217,51 +242,55 @@ dat_create_summary <- function(date = NULL, show = "all"){
     names(fun_list) <- c_vars
     
     # determine if all function args are present in log   
-    args <- lapply(c_vars, function(x) names(formals(x)))
+    args <- lapply(c_vars, function(x) names(formals(x))[names(formals(x)) != "..."])
     
     arg_len <- lapply(args, length)
     
     names(arg_len) <- c_vars 
     
-    arg_match <- lapply(names(arg_len), function(x) {
+    arg_match <- sapply(names(arg_len), function(x) {
       
-      lapply(seq_along(fun_list[[x]]), function(i) {
+      sapply(seq_along(fun_list[[x]]), function(i) {
         
         arg_len[x] == length(fun_list[[x]][[i]]$args) 
-      })
-    })
+      }, USE.NAMES = TRUE, simplify = FALSE)
+    }, USE.NAMES = TRUE, simplify = FALSE)
     
-    if (all(unlist(arg_match)) == TRUE) { # update 
+    if (all(unlist(arg_match)) == TRUE) {  
       
-      for (i in names(fun_list)) {
+      for (n in names(fun_list)) {
         
-        for (k in seq_along(fun_list[[i]])) {
+        for (i in seq_along(fun_list[[n]])) {
           
-          names(fun_list[[i]][[k]]$args) <- names(formals(i))
+          names(fun_list[[n]][[i]]$args) <- names(formals(n))[names(formals(n)) != "..."]
         }
       }  
       
     } else {
       
-      match <- suppressWarnings(which(unlist(lapply(arg_match, any))))
-      no_match <- suppressWarnings(which(!unlist(lapply(arg_match, any))))
+      arg_match <- sapply(arg_match, unlist, USE.NAMES = TRUE, simplify = FALSE)
       
-      if (length(match) > 0) {
+      match <- sapply(arg_match, which, USE.NAMES = TRUE, simplify = FALSE)
+      
+      no_match <- sapply(arg_match, function(x) which(x == FALSE), 
+                         USE.NAMES = TRUE, simplify = FALSE)
+      
+      if (length(unlist(match)) > 0) {
         
-        for (i in match) {
+        for (n in names(match)) {
           
-          for (k in seq_along(fun_list[[i]])) {
+          for (i in match[[n]]) {
             
-            names(fun_list[[i]][[k]]$args) <- names(formals(c_vars[i]))
+            names(fun_list[[n]][[i]]$args) <- names(formals(n))[names(formals(n)) != "..."]
           } 
         }
       }
-      
-      for (i in no_match) {
+      # create generic names for unmatched arguments
+      for (n in names(no_match)) {
         
-        for (k in seq_along(fun_list[[i]])) {
+        for (i in no_match[[n]]) {
           
-          names(fun_list[[i]][[k]]$args) <- sapply(seq_along(fun_list[[i]][[k]]$args), function(x) {
+          names(fun_list[[n]][[i]]$args) <- sapply(seq_along(fun_list[[n]][[i]]$args), function(x) {
             
             paste("arg", x, sep = "_")
           })
@@ -269,15 +298,55 @@ dat_create_summary <- function(date = NULL, show = "all"){
       }
     }
     
+    # replace NULLs with string 
+    for (n in names(fun_list)) {
+      
+      for (i in seq_along(fun_list[[n]])) {
+        
+        for (a in seq_along(fun_list[[n]][[i]]$args)) {
+          
+          if (is.null(fun_list[[n]][[i]]$args[[a]])) {
+            
+            fun_list[[n]][[i]]$args[[a]] <- "NULL"
+            
+          } else {
+            
+            fun_list[[n]][[i]]$args[[a]] <- fun_list[[n]][[i]]$args[[a]]
+          }
+        }
+      }
+    }
+    
+    # Collaspe vectors, lists, and tables
+    for (n in names(fun_list)) {
+      
+      for (i in seq_along(fun_list[[n]])) {
+        
+        for (a in seq_along(fun_list[[n]][[i]]$args)) {
+          
+          if (length(fun_list[[n]][[i]]$args[[a]]) > 1) {
+            
+            fun_list[[n]][[i]]$args[[a]] <- paste(fun_list[[n]][[i]]$args[[a]], 
+                                                  collapse = ", ")
+            
+          } else {
+            
+            fun_list[[n]][[i]]$args[[a]] <- fun_list[[n]][[i]]$args[[a]]
+          }
+        }
+      }
+    }
+    
+    # create list of dataframes  
     df_list <- list()
     
-    for (i in names(fun_list)) {
+    for (n in names(fun_list)) {
       
-      for (k in seq_along(fun_list[[i]])) {
+      for (i in seq_along(fun_list[[n]])) {
         
-        df_list[[i]][[k]] <- as.data.frame(fun_list[[i]][[k]]$args) 
+        df_list[[n]][[i]] <- as.data.frame(fun_list[[n]][[i]]$args) 
         
-        df_list[[i]][[k]]$function_name <- i
+        df_list[[n]][[i]]$function_name <- n
       }
     }
     
@@ -289,7 +358,9 @@ dat_create_summary <- function(date = NULL, show = "all"){
       
       n <- colnames(df_list2[[i]])[colnames(df_list2[[i]]) != "function_name"]
       
-      df_list2[[i]] <- df_list2[[i]][ , c("function_name", n)]
+      df_list2[[i]][["id"]] <- 1:nrow(df_list2[[i]])
+      
+      df_list2[[i]] <- df_list2[[i]][ , c("id", "function_name", n)]
     }
     
     if (show == "first") {
