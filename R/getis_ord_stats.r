@@ -1,5 +1,5 @@
 getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, lat.dat = NULL, cat = NULL, lon.grid = NULL, lat.grid = NULL) {
-    #' Wrapper function to calculate Getis-Ord statistics
+    #' Calculate and view Getis-Ord statistica
     #'
     #' Wrapper function to calculate global and local Getis-Ord by discrete area
     #'

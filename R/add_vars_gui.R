@@ -2,7 +2,7 @@
 # Add variables from raw data set back into the working data set.
 
 # add_vars
-#' View and select which variables to add to working data set
+#' Add removed data variables back into working data set
 #'
 #' @param working_dat Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
 #' @param raw_dat Main raw (unmodified data frame)

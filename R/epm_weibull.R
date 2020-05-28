@@ -1,7 +1,5 @@
 epm_weibull <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
-    #' Expected profit model weibull catch function
-    #'
-    #' Expected profit model weibull catch function
+    #' Expected profit model Weibull catch function
     #'
     #' @param starts3 Starting values as a vector (num). For this likelihood,
     #'     the order takes: c([catch-function parameters], [travel-distance
