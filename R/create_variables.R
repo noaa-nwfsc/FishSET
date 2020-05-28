@@ -1,7 +1,7 @@
 # Create variables or matrix.
 
 ##--- CPUE ----##
-#' Create catch per unit effort 
+#' Create catch per unit effort vector
 cpue <- function(dat, xWeight, xTime, name = "cpue") {
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
     #' @param xWeight Weight variable
@@ -51,7 +51,7 @@ cpue <- function(dat, xWeight, xTime, name = "cpue") {
 ##---- Dummy  Variables ----##
 #dummy_num
 dummy_num <- function(dat, var, value, opts='more_less', name='dummy_num'){
-#' Create a dummy variable based on selected values
+#' Create a dummy vector from numeric characterization of variable
 #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
 #' @param var Variable in data frame to create dummy variable from
 #' @param value The set value will depend whether the data is a date, factor, or numeric. If date, value should be a year, if factor, value should be a level
@@ -111,7 +111,7 @@ dummy_num <- function(dat, var, value, opts='more_less', name='dummy_num'){
     return(cbind(dataset, name))
 }
 
-#' Create new dummy variable
+#' Create dummy vector
 dummy_var <- function(dat, DumFill = "TRUE", name = "dummy_var") {
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
     #' @param DumFill Fill the dummy variable with TRUE or FALSE
@@ -176,7 +176,7 @@ dummy_matrix <- function(dat, x) {
 }
 
 ##---- Coded variables ----##
-#' Create quantile variable
+#' Create categorical vector based on quantiles of variable
 set_quants <- function(dat, x, quant.cat = c(0.2, 0.25, 0.4), name = "set_quants") {
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
     #' @param x Variable to transform into quantiles
@@ -279,7 +279,7 @@ bin_var <- function(dat, project, var, br, name,  labs = NULL, ...){
 
 
 ##---- Numeric  Variables ----##
-#' Create numeric variables using arithmetic expression
+#' Create numeric vector using arithmetic expression
 create_var_num <- function(dat, x, y, method, name = "create_var_num") {
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
     #' @param x variable  Variable will be the numerator if `method` is division. 
@@ -390,7 +390,7 @@ create_mid_haul <- function(dat, start = c("lon", "lat"), end = c("lon", "lat"),
 
 create_trip_centroid <- function(dat, lon, lat, weight.var = NULL, ...) {
     ##----trip centroid-----#
-    #' Calculate centroid of each trip 
+    #' Create centroid of each trip vector 
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
     #' @param lat Vector containing latitudinal data.
     #' @param lon Vector containing longitudinal data.
@@ -504,7 +504,7 @@ spatial_hist <- function(dat, project, group) {
     plot_out
 }
 
-#'spatial summary statistics
+#' View summary statistics of vector against data and time
 spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs", "perc_total", "mean", "median", "min", "max", "sum"), 
                             variable, gridfile, lon.grid, lat.grid, lon.dat, lat.dat, cat) {
     #' @param dat Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
@@ -515,7 +515,7 @@ spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs"
     #' @param lon.dat Column containing longitude data in main data frame.
     #' @param lat.dat Column containing latitude data in main data frame.
     #' @param lon.grid Column containing longitude data in gridfile.
-    #' @param lat.grid lColumn containing latitude data in gridfile.
+    #' @param lat.grid Column containing latitude data in gridfile.
     #' @param cat  Column in gridfile that identifies the individual areas or zones. If gridfile is class sf, `cat` should be name of list containing information on zones. 
     #' @importFrom graphics par lines plot
     #' @export
@@ -591,7 +591,7 @@ spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs"
 }
 
 
-#' Distance between two points
+#' Create vector of distance between points
 create_dist_between <- function(dat, start, end, units = c("miles", "meters", "km", "midpoint"), name='distBetween') {
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
     #' @param start  Starting location. Should be a port, lat/long location, or the centroid of zonal assignment. If port is desired, start should be the vector name containing the port name. Latitude and longitude for the port are extracted from the port table. If a lat, long location is desired then start should be specified as c(name of lon vector, name of lat vector). The order must be lon, lat. If the center point of the fishing zone or area is to be used then start should be 'centroid'.
@@ -758,7 +758,7 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
 }
 
 ##---- Temporal  Variables ----##
-#' Create duration of time variable
+#' Create vector of duration of time 
 create_duration <- function(dat, start, end, units = c("week", "day", "hour", "minute"), name = "create_duration") {
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
     #' @param start Variable indicating start of time period

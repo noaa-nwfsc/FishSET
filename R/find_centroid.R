@@ -1,4 +1,4 @@
-#'  Generate centroid of polygon of zone or area
+#'  Identify centroid of fishery management or regulatory zone 
 
 #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
 #' @param gridfile Spatial data set. Can be shape file, data frame, or list.

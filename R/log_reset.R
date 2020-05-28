@@ -1,5 +1,5 @@
 log_reset <- function() {
-    #' Reset function calls saved in log file
+    #' Reset log file
     #' @details Removes the three log file lists from the working directory
     #' @export log_reset
     #' @examples 
@@ -21,6 +21,7 @@ log_call <- function(fun.name) {
     #' @details uplodate log file
     #' @importFrom jsonlite read_json toJSON
     #' @export
+    #' @keywords internal
     
     if (!file_test("-f", paste0(loclog(), Sys.Date(), ".json", sep = ""))) {
         logbody <- list()
