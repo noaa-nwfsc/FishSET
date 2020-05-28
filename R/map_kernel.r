@@ -1,6 +1,6 @@
 map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE, date = NULL, filter_date = NULL, filter_value = NULL, minmax = NULL) {
     #'
-    #' Wrapper function to map kernel densities using ggplot2
+    #' Map kernel densities 
     #'
     #' @param dat Main data frame over which to apply function. Table in FishSET 
     #'   database should contain the string `MainDataTable`.

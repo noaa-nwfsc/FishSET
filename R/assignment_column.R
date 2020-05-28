@@ -1,4 +1,4 @@
-#'  Assign observations to zone or area
+#'  Assign observations to fishery management or regulatory zone 
 #'
 #' @param dat Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
 #' @param gridfile Spatial data. Shape, json, and csv formats are supported.

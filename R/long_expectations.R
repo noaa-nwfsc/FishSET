@@ -19,6 +19,7 @@
 #' @importFrom stats aggregate reshape coef lm
 #' @importFrom signal polyval
 #' @export long_expectations
+#' @keywords internal
 #' @return Expected catch matrix. Saved to database via create_expectations
 
 long_expectations <- function(dat, project, catch, price, defineGroup, temp.var, temporal, calc.method,  

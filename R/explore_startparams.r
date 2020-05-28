@@ -1,5 +1,5 @@
 explore_startparams <- function(space, startsr, dev, func, catch, choice, distance, otherdat) {
-    #' Function to explore starting value parameter space
+    #' Explore starting value parameter space
     #'
     #' Shotgun method to find better starting values by exploring starting value
     #'      parameter space
