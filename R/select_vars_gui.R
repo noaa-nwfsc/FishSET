@@ -2,7 +2,7 @@
 # Select which variables to include in the further analyses and modeling.
 
 # select_vars
-#' View and select which variables to include
+#' Interactive app to select variables to include in main data table
 #'
 #' @param dat Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
 #' @param project Name of project. Parameter is used to generate meaningful table names in FishSET database.

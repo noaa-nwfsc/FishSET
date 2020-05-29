@@ -1,4 +1,4 @@
-#' View summary statistics 
+#' View summary statistics for all variables in data table 
 #'
 #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
 #' @param project Name of project.

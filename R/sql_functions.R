@@ -88,7 +88,7 @@ table_exists <- function(table) {
 }
 
 model_out_view <- function(table) {
-    #' View discrete choice model output
+    #' Load discrete choice model output to console
     #' @param table  Table name in FishSET database. Should contain the phrase modelout.
     #' @export
     #' @description Returns output from running the discretefish_subroutine function. The table parameter must be the full name of the table name in the FishSET database.
@@ -108,7 +108,7 @@ model_out_view <- function(table) {
 }
 
 globalcheck_view <- function(table) {
-    #' View error output from discrete choice model 
+    #' Load error output from discrete choice model to console
     #' @param table  Table name in FishSET database. Should contain the phrase modelout.
     #' @export
     #' @description Returns error output from running the discretefish_subroutine function. The table parameter must be the full name of the table name in the FishSET database.
@@ -128,7 +128,7 @@ globalcheck_view <- function(table) {
 }
 
 model_fit <- function(project) {
-    #' View model comparison metrics from all models run for a project
+    #' Load comparison metrics to console
     #' @param project Name of project
     #' @export
     #' @examples 
