@@ -1,4 +1,4 @@
-#' Check data table for common data quality issues that may affect modeling functions. 
+#' Check data table for common data quality issues that may affect modeling functions
 #'
 #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
 #' @param dataindex Data frame that contains information on each column of the main data frame. In FishSET database the table will contain the phrase `MainDataTableInfo`

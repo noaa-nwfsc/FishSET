@@ -4,6 +4,7 @@
 #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
 #' @param project Name of project
 #' @return Statements as to whether data quality issues may exist.
+#' @keywords internal
 #' @importFrom stringi stri_count_regex
 #' @export data_verification
 #' @details Checks that all columnn names in the data frame are unique, whether any columns in the data frame are empty, 
