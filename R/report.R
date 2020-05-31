@@ -54,6 +54,84 @@ pull_log <- function(log_date = NULL) {
 }
 
 
+current_out <- function() {
+  #'
+  #' Lists most recent output files
+  #'
+  #' @keywords internal
+  #' @export
+  #' @importFrom stringr str_extract_all
+  #' @details Prints the name of the most recent output files.
+  #' @examples
+  #' \dontrun{
+  #' current_out() 
+  #' }
+  
+  outs <- list.files(locoutput())
+  
+  c <- stringr::str_extract_all(outs, "\\d{4}-\\d{2}-\\d{2}", simplify = TRUE)
+  
+  c <- gsub("[^0-9]", "", c)
+  
+  outs <- outs[which(c == max(c))]
+  
+  outs
+}
+
+
+pull_output <- function(project, fun, date = NULL, type = "plot") {
+  #'
+  #' Retrieve output file name by project, function, and type.
+  #' 
+  #' @param project Name of project
+  #' @param fun Name of function.
+  #' @param date Output file date in "%Y-%m-%d" format to retrieve. If \code{NULL} 
+  #'   the most recent output file is pulled.
+  #' @param type Whether to return the \code{"plot"} (.png), \code{"table"} (.csv),
+  #'   or \code{"all"} files matching the project name, function, and date.
+  #' @export
+  #' @examples 
+  #' \dontrun{
+  #' pull_output("pollock", "species_catch", type = "plot")
+  #' }
+  
+  if (is.null(date)) {
+    
+    out <- current_out()
+    
+  } else {
+    
+    outs <- list.files(locoutput())
+    
+    out <- grep(date, outs, value = TRUE)
+  }
+  
+  out <- grep(paste0(project, "_", fun), out, value = TRUE)
+  
+  if (type == "plot") {
+    
+    out <- grep(".png$", out, value = TRUE)
+    
+  } else if (type == "table") {
+    
+    out <- grep(".csv$", out, value = TRUE)
+    
+  } else if (type == "all") {
+    
+    out <- out
+  }
+  
+  if (length(out) > 0) {
+    
+    out
+    
+  } else {
+    
+    warning("No match found")
+  }
+}
+
+
 pull_table <- function(project, table) {
   #' 
   #' Retrieve name of the most recent table from a project
@@ -98,9 +176,15 @@ table_format <- function(x) {
   #' @param x Name of table saved in inst/output
   #' @keywords internal
   #' @export
-  #' @importFrom pander panderOptions pander 
+  #' @importFrom pander panderOptions pander
+  #' @seealso \code{\link{pull_output}}
+  #' @examples 
+  #' \dontrun{
+  #' table_format("pollock_species_catch_2020-05-29.csv")
+  #' table_format(pull_output("pollock", "species_catch", type = "table"))
+  #' } 
   
-  tab_int <- read.csv(paste0(getwd(),'/inst/output/', x, '.csv'))
+  tab_int <- read.csv(paste0(locoutput(), x))
   pander::panderOptions('table.alignment.default', function(df)
     ifelse(sapply(df, is.numeric), 'right', 'left'))
   pander::panderOptions('table.emphasize.rownames',TRUE)
@@ -122,8 +206,12 @@ plot_format <- function(x){
   #' @keywords internal
   #' @export
   #' @importFrom knitr include_graphics
-  #' 
-  knitr::include_graphics(paste0(getwd(), '/inst/output/',x,'.png'))
+  #' @examples 
+  #' \dontrun{
+  #' plot_format("pollock_species_catch_2020-05-29.png")
+  #' plot_format(pull_output("pollock", "species_catch", type = "plot"))
+  #' }
+  knitr::include_graphics(paste0(locoutput(), x))
 }
 
 
