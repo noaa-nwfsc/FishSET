@@ -1,5 +1,5 @@
 #' Guided user interface for FishSET functions 
-#' Runs functions associated with loading data, exploring data, checking for data quality issues, generating new variables, and basic data analysis function.
+#' 
 
 #' run_fishset_gui
 #'
@@ -13,7 +13,8 @@
 #' @importFrom stringi stri_count_regex
 #' @importFrom shinycssloaders withSpinner
 #' @export run_fishset_gui
-#' @details Opens an interactive page that allows users to select which functions to run by clicking check boxes. 
+#' @details Opens an interactive page to run functions associated with loading data, exploring data, checking for data quality issues, generating new variables, 
+#' and basic data analysis function.
 #' @examples
 #' \dontrun{
 #' run_fishset_gui()
