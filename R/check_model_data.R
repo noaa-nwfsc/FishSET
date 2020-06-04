@@ -69,13 +69,9 @@ check_model_data <- function(dat, dataindex, uniqueID, save.file = TRUE) {
         if (save.file == TRUE) {
             cat(paste("\nModified data set saved to fishset_db database"), file = tmp, append = T)
             fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-            if (DBI::dbExistsTable(fishset_db, deparse(substitute(dat))) == TRUE) {
-                single_sql <- paste0("raw", deparse(substitute(dat)))
+                single_sql <- paste0("final_", deparse(substitute(dat)))
                 DBI::dbWriteTable(fishset_db, single_sql, dataset, overwrite = TRUE)
-            }
-            single_sql <- deparse(substitute(dat))
-            DBI::dbWriteTable(fishset_db, single_sql, dataset, overwrite = TRUE)
-            DBI::dbDisconnect(fishset_db)
+                DBI::dbDisconnect(fishset_db)
             # logging function information
         }
     }

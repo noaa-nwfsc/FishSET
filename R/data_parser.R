@@ -225,6 +225,7 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
         warning(paste("Table not saved.", paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d")), "exists in database, and overwrite is FALSE."))
     }
     if (table_exists(paste0(project, "MainDataTable")) == FALSE | over_write == TRUE) {
+        DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable_raw"), dataset, overwrite = over_write)
         DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable"), dataset, overwrite = over_write)
         DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTableInfo"), MainDataTableInfo, overwrite = over_write)
     } else {
