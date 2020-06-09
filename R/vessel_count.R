@@ -1,25 +1,50 @@
 #' Vessel count
 #' 
-#' Generates a table or plot of the number of unique vessels by time period
+#'  Active vessels by time period
 #' 
 #' @param dat Main data frame over which to apply function. Table in FishSET 
 #'   database should contain the string `MainDataTable`.
 #' @param project name of project.
-#' @param v vessel ID variable to count.
-#' @param t time variable containing dates to aggregate by.
-#' @param period Time period to count by. Options include 'year', 'year_abv', 
-#'   'month', 'month_abv', 'month_num', 'weeks' (weeks in the year), 
-#'   'weekday', 'weekday_abv', 'weekday_num', 'day' (day of the month), 
+#' @param v_id vessel ID variable to count.
+#' @param date Date variable to aggregate by.
+#' @param period Time period to aggregate by. Options include 'year', month', 'weeks' 
+#'   (weeks in the year), 'weekday', 'weekday_abv', 'weekday_num', 'day' (day of the month), 
 #'   and 'day_of_year'.
-#' @param group Up to two variables to group by. For plots, 
-#'   the first variable is passed to 'fill' and second is passed to 'facet_grid'.
-#'   If multiple years are entered, plots are faceted row-wise by year as well.
-#' @param year A year or vector of years, in the form of a four digit integer, to 
-#'   subset the data by. Plot output is faceted by year if multiple years are given.
+#' @param group Names of grouping variables. For lineplots two grouping variables 
+#'   can be entered, the first is passsed to "color" and second to "linetype". Only one 
+#'   grouping variable can be used for barplots, which is passed to "fill". When \code{combine = TRUE} 
+#'   all variables in \code{group} will be joined. 
+#' @param filter_date Whether to filter data table by \code{"year"}, \code{"month"}, or 
+#'   \code{"year-month"}. \code{filter_value} must be provided.
+#' @param filter_value Integer (4 digits if year, 1-2 if month). The year, month,
+#'   or year-month to filter data table by. Use a list if using "year-month"
+#'   with the format: \code{list(year(s), month(s))}. For example, \code{list(2011:2013, 5:7)} 
+#'   will filter the data table from May to July for years 2011-2013.
+#' @param facet_by Variable name to facet by. This can be a variable that exists in 
+#'   the dataset, or a variable created by \code{vessel_count()} such as \code{"year"}, 
+#'   \code{"month"}.  
+#' @param combine Whether to combine variables listed in \code{group}. This is passed
+#'   to the "fill" or "color" aesthetic for plots. 
 #' @param position Positioning of bar plot. Options include 'stack', 'dodge', 
-#'   and 'fill'. 
-#' @param output table or plot. 
-#' @return Table or plot of the number of unique vessels within a time period.
+#'   and 'fill'.
+#' @param convr Convert to \code{"percent"}. Defaults to \code{FALSE}. 
+#' @param type Plot type, options include \code{"bar"} (the default) and \code{"line"}. 
+#' @param scale Scale argument passed to \code{\link{facet_grid}}. 
+#'   Options include \code{"free"}, \code{"free_x"}, \code{"free_y"}. Defaults to 
+#'   \code{"fixed"}. 
+#' @param output Whether to display \code{"plot"}, \code{"table"}. Defaults 
+#'   to both (\code{"tab_plot"}). 
+#' @return \code{vessel_count} aggregates the number (or percent) of active vessels
+#'   by time period using a column of unique vessel IDs. The data can be filter using 
+#'   two arguments: \code{filter_date} amd \code{filter_value}. \code{filter_date}
+#'   specifies how the data should be filtered--by year, month, or year-month. 
+#'   \code{filter_value} should contain the years or months (as integers) to filter
+#'   the data by. Up to two grouping variables can be entered. Grouping variables can 
+#'   be merged into one variable using \code{combine}; in this case any number of 
+#'   variables can be joined, but no more than three is reccomended. For faceting,
+#'   any variable (including ones listed in \code{group}) can be used, but "year" and
+#'   "month" are also available. Currently, combined variables cannot be faceted.
+#'   A list containing a table and plot are printed to the console and viewer by default. 
 #' @examples 
 #' \dontrun{
 #' vessel_count('pollockMainDataTable', 'VESSEL_ID', 'DATE_FISHING_BEGAN', period = 'month', 
@@ -27,19 +52,21 @@
 #' }
 #' @export vessel_count
 #' @import ggplot2
-#' @importFrom stats aggregate
+#' @importFrom stats aggregate reformulate
 
 
-
-vessel_count <- function(dat, project, v, t, period = "month", group = NULL, year = NULL, position = "stack", output = c("table", "plot")) {
+vessel_count <- function(dat, project, v_id, date, period = "month", group = NULL, 
+                         filter_date = NULL, filter_value = NULL, facet_by = NULL,
+                         combine = FALSE, position = "stack", convr = FALSE, type = "bar", 
+                         scale = "fixed", output = "tab_plot") {
     
     # Call in datasets
     out <- data_pull(dat)
     dat <- out$dat
     dataset <- out$dataset
     
-    
-    periods <- c("year", "year_abv", "month", "month_abv", "month_num", "weeks", "weekday", "weekday_abv", "weekday_num", "day", "day_of_year")
+    periods <- c("year",  "month", "weeks", "weekday", "weekday_abv", "weekday_num", 
+                 "day", "day_of_year")
     
     if (period %in% periods == FALSE) {
         
@@ -47,25 +74,46 @@ vessel_count <- function(dat, project, v, t, period = "month", group = NULL, yea
         
     } else {
         
-        p <- switch(period, year = "%Y", year_abv = "%y", month = "%B", month_abv = "%b", month_num = "%m", weeks = "%U", weekday = "%A", weekday_abv = "%a", 
-            weekday_num = "%w", day = "%d", day_of_year = "%j")
+        p <- switch(period, year = "%Y", year_abv = "%y", month = "%b", weeks = "%U", 
+                    weekday = "%A", weekday_abv = "%a", weekday_num = "%w", day = "%d", 
+                    day_of_year = "%j")
     }
     
-    dataset$years <- format(dataset[[t]], "%Y")
-    
-    y_val <- year
-    
-    if (!is.null(year)) {
+    if (!is.null(facet_by)) {
         
-        dataset <- subset(dataset, years %in% y_val)
+        if (!(facet_by %in% names(dataset))) {
+            
+            if (!(facet_by %in% c("year", "month"))) {
+                
+                warning("Invalid facet variable.")
+                
+            } else {
+                
+                facet <- facet_by
+                
+                facet_by <- NULL
+            }
+            
+        } else {
+            
+            facet <- facet_by
+        }
         
+    } else {
+        
+        facet <- NULL
     }
     
     if (!is.null(group)) {
         
-        group1 <- group[1]
+        if (combine == TRUE) {
+            
+            dataset[[paste(group, collapse = "_")]] <- apply(dataset[group], 1, paste, collapse = " ")
+            group <- paste(group, collapse = "_")
+            group2 <- NULL
+        }
         
-        dataset[[group1]] <- as.factor(dataset[[group1]])
+        group1 <- group[1]
         
         dataset[[group1]] <- as.factor(dataset[[group1]])
         
@@ -78,158 +126,190 @@ vessel_count <- function(dat, project, v, t, period = "month", group = NULL, yea
         } else if (length(group) > 2) {
             
             warning("Too many grouping variables included, selecting first two.")
-            
         }
+        
+    } else {
+        
+        group1 <- NULL
+        group2 <- NULL
     }
     
-    v_freq <- c("vessel_freq")
+    dataset[[date]] <- date_parser(dataset[[date]])
     
-    if (is.null(group)) {
+    nm1 <- c(date, group, facet_by)
+    
+    l1 <- lapply(nm1, function(x) dataset[[x]])
+    
+    names(l1) <- nm1
+    
+    count <- stats::aggregate(dataset[v_id], by = l1, FUN = function(x) length(unique(x)))
+    
+    full_dates <- seq.Date(from = min(dataset[[date]], na.rm = TRUE), 
+                           to = max(dataset[[date]], na.rm = TRUE), 
+                           by = "day")
+    
+    grp_fct <- c(group, facet_by)
+    
+    missing <- lapply(count[grp_fct], function(x) unique(x))
+    
+    missing[[date]] <- full_dates[!(full_dates %in% count[[date]])]
+    
+    missing <- do.call(expand.grid, list(missing))
+    
+      if (nrow(missing) > 0) {
         
-        count <- stats::aggregate(dataset[[v]], by = list(dataset$years, format(date_parser(dataset[[t]]), p)), FUN = function(x) {
-            length(unique(x))
-        })
+          missing[[v_id]] <- 0
         
-        colnames(count) <- c("years", period, v_freq)
+          count <- rbind(count, missing)
+      }
+    
+      if (period != "year") {
+         
+          count$year <- as.integer(format(count[[date]], "%Y"))
+      }
+    
+    count[[period]] <- format(count[[date]], p)
+    
+    if (((!is.null(facet) && any(facet %in% c("month", "year-month"))) | 
+         (!is.null(filter_date) && any(filter_date %in% c("month", "year-month"))))) {
         
-    } else if (!is.null(group)) {
-        
-        if (length(group) == 1) {
+        if (period != "month") {
             
-            count <- stats::aggregate(dataset[[v]], by = list(dataset$years, format(date_parser(dataset[[t]]), p), dataset[[group1]]), FUN = function(x) {
-                length(unique(x))
-            })
-            
-            colnames(count) <- c("years", period, group1, v_freq)
+            count$month <- as.integer(format(count[[date]], "%m"))
+            nm2 <- unique(c("year", "month", period, group, facet_by))
             
         } else {
             
-            count <- stats::aggregate(dataset[[v]], by = list(dataset$years, format(date_parser(dataset[[t]]), p), dataset[[group1]], dataset[[group2]]), 
-                FUN = function(x) {
-                  length(unique(x))
-                })
-            
-            colnames(count) <- c("years", period, group1, group2, v_freq)
-            
+            nm2 <- unique(c("year", period, group, facet_by))
         }
+        
+    } else {
+        
+        nm2 <- unique(c("year", period, group, facet_by))
     }
     
-    if (p %in% c("%a", "%A", "%b", "%B")) {
+    l2 <- lapply(nm2, function(x) count[[x]])
+    
+    names(l2) <- nm2
+    
+    if (period != "day_of_year") {
+        
+        count[[date]] <- NULL
+        
+        count <- stats::aggregate(stats::reformulate(".", v_id), count, FUN = sum)
+    }
+    
+    if (convr == "percent") {
+        
+        count <- stats::aggregate(stats::reformulate(period, v_id), count, FUN = function(x) x/sum(x))
+    }
+    
+    
+    if (p %in% c("%a", "%A", "%b")) {
         
         count <- date_factorize(count, period, p)
         
     } else {
         
         count[[period]] <- as.integer(count[[period]])
-        
-        count$years <- as.integer(count$years)
-        
     }
     
-    ind <- periods_list[[p]][which(!(periods_list[[p]] %in% unique(count[[period]])))]
-    
-    if (is.null(group)) {
+    if (!is.null(filter_date)) {
         
-        missing_periods <- expand.grid(period = ind, years = unique(count$years))
-        
-        names(missing_periods)[names(missing_periods) == "period"] <- period
-        
-    } else if (!is.null(group) & length(group) == 1) {
-        
-        missing_periods <- expand.grid(period = ind, years = unique(count$years), group1 = unique(count[[group1]]))
-        
-        missing_periods <- setNames(missing_periods, c(period, "years", group1))
-        
-    } else if (!is.null(group) & length(group) > 1) {
-        
-        missing_periods <- expand.grid(period = ind, years = unique(count$years), group1 = unique(count[[group1]]), group2 = unique(count[[group2]]))
-        
-        missing_periods <- setNames(missing_periods, c(period, "years", group1, group2))
-        
-    }
-    
-    if (nrow(missing_periods) > 0) {
-        
-        missing_periods$vessel_freq <- 0
-        
-        count <- rbind(count, missing_periods)
-        
-    }
-    
-    count <- count[order(count$years, count[[period]]), ]
-    
-    
-    plot <- ggplot2::ggplot(data = count, ggplot2::aes_string(x = period, y = "vessel_freq", fill = if (!is.null(group)) 
-        group1 else NULL)) + ggplot2::geom_col(position = if (position == "dodge") 
-        ggplot2::position_dodge2(preserve = "single") else position) + ggplot2::labs(title = if (!is.null(year) & length(year) == 1) 
-        paste(year) else NULL, x = paste0(t, " ", "(", period, ")"), y = "active vessels") + ggplot2::theme(plot.title = element_text(hjust = 0.5)) + fishset_theme
-    
-    if (!is.null(group)) {
-        
-        plot <- plot + ggplot2::guides(fill = ggplot2::guide_legend(title = group[1], title.theme = ggplot2::element_text(size = 10), label.theme = ggplot2::element_text(size = 8))) + 
-            ggplot2::theme(legend.position = "bottom")
-        
-    }
-    
-    if (!is.null(group) & length(group) == 2) {
-        
-        if (is.null(year) | (!is.null(year) & length(year) == 1)) {
+        if (filter_date == "year-month") {
             
-            plot <- plot + ggplot2::facet_grid(stats::reformulate(".", group2), scales = "free_y")
+            count <- subset(count, (year %in% filter_value[[1]]) & 
+                                (as.integer(month) %in% filter_value[[2]]))
             
-        } else if (!is.null(year) & length(year) > 1) {
+        } else if (filter_date == "year") {
             
-            plot <- plot + ggplot2::facet_grid(stats::reformulate(".", paste("years +", group2)), scales = "free_y")
+            count <- subset(count, year %in% filter_value)
             
-        }
-        
-    } else {
-        
-        if (is.null(year) | (!is.null(year) & length(year) == 1)) {
+        } else if (filter_date == "month") {
             
-            plot <- plot
+            count <- subset(count, as.integer(month) %in% filter_value)
             
-        } else if (length(year) > 1) {
-            
-            plot <- plot + ggplot2::facet_grid(years ~ ., scales = "free_y")
-            
-        }
-    }
-    
-    if (p %in% c("%a", "%A", "%b", "%B")) {
-        
-        plot <- plot + ggplot2::scale_x_discrete(breaks = levels(count[[period]]))
-        
-    } else {
-        
-        plot <- plot + ggplot2::scale_x_continuous(breaks = if (length(unique(count[[period]])) <= 12) {
-            seq(1, length(unique(count[[period]])), by = 1)
         } else {
-            seq(1, length(unique(count[[period]])), by = round(length(unique(count[[period]])) * 0.08))
-        })
+            
+            warning("Invalid filter type. Available options are 'year-month', 'year', and 'month'.")
+            x <- 1
+        }
         
+        if (nrow(count) == 0) {
+            
+            warning("Filtered data table has zero rows. Check filter parameters.")
+            x <- 1
+        }
     }
     
-    # Log the function
+    count <- count[order(count$year, count[[period]]), ]
     
+    
+    v_plot <- ggplot2::ggplot(data = count, ggplot2::aes_string(x = period, y = v_id)) +
+        fishset_theme +
+        ggplot2::theme(legend.position = "bottom")
+    
+    if (type == "bar") {
+        
+        if (position == "dodge") position <- ggplot2::position_dodge2(preserve = "single")
+        
+        v_plot <- v_plot + ggplot2::geom_col(ggplot2::aes_string(fill = group1), position = position)
+        
+    } else if (type == "line") {
+        
+        v_plot <- v_plot + ggplot2::geom_line(ggplot2::aes_string(group = group1, color = group1, 
+                                                                  linetype = group2)) +
+            ggplot2::geom_point(ggplot2::aes_string(group = group1, color = group1))
+    }
+    
+    if (!is.null(facet)) {
+        
+        if (length(facet) == 1) {
+            
+            fm <- stats::reformulate(".", facet)
+            
+        } else if (length(facet) == 2) {
+            
+            fm <- paste(facet, sep = " ~ ")
+        }
+        
+        v_plot <- v_plot + ggplot2::facet_grid(fm, scales = scale)
+    }
+    
+    v_plot <- v_plot + ggplot2::labs(y = "active vessels")
+    
+    if (!(p %in% c("%a", "%A", "%b"))) {
+        
+        v_plot <- v_plot + scale_x_continuous(n.breaks = n_breaks(count[[period]]))
+    }
+    
+    # Log function
     vessel_count_function <- list()
     vessel_count_function$functionID <- "vessel_count"
-    vessel_count_function$args <- list(dat, project, v, t, period, group, year, position, output)
+    vessel_count_function$args <- list(dat, project, v_id, date, period, group, filter_date,
+                                       filter_value, facet_by, combine, position, convr, 
+                                       type, scale, output)
     log_call(vessel_count_function)
     
     # Output folder
     save_table(count, project, "vessel_count")
+    save_plot(project, "vessel_count", v_plot)
     
-    save_plot(project, "vessel_count", plot)
-    
-    names(count)[names(count) == "years"] <- "year"
     
     if (output == "table") {
         
         count
         
+    } else if (output == "plot") {
+        
+        v_plot
+        
     } else {
         
-        plot
+        out_list <- list(table = count,
+                         plot = v_plot)
+        
+        out_list
     }
 }
+
