@@ -1,8 +1,8 @@
 # Data selection tool
 # Add variables from raw data set back into the working data set.
 
-# add_vars
-#' View and select which variables to add to working data set
+# add_vars_gui
+#' Add removed data variables back into working data set
 #'
 #' @param working_dat Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
 #' @param raw_dat Main raw (unmodified data frame)
@@ -10,21 +10,28 @@
 #' @importFrom DBI  dbDisconnect dbConnect dbListTables dbWriteTable 
 #' @import shiny
 #' @export add_vars
-#' @details Opens an interactive table that allows uses to select which variables to included by clicking check boxes. 
-#' Data should be loaded into the FishSET database before running this function. Select variables that will be used to generate further variables, such as rates or cpue, and variables to be included in models.
+#' @details Opens an interactive table that allows users to select which variables to included by clicking check boxes. 
+#' Data should be loaded into the FishSET database before running this function. 
+#' Select variables that will be used to generate further variables, such as rates or cpue, and variables to be included in models.
 #' @examples 
 #' \dontrun{
-#' select_vars('pcodMainDataTable')
+#' add_vars_gui(pcodMainDataTable, 'pcodMainDataTable20200410', 'pollock')
 #' }
 
 #Selectbox is column names in raw data that are not in working data
 #Show top five rows of working data
 #Drop rows that are not in linkID
 
-add_vars <- function(working_dat, raw_dat, project){
-  requireNamespace("shiny")
+add_vars_gui <- function(working_dat, raw_dat, project){
   
-
+  
+  #Pull in data
+  out <- data_pull(working_dat)
+   working_dat <- out$dataset
+  
+  out <- data_pull(raw_dat)
+  raw_dat <- out$dataset
+  
   shinyApp(
     ui = fluidPage(
       # Style formatting
@@ -85,30 +92,7 @@ add_vars <- function(working_dat, raw_dat, project){
 ##  Beging SERVER functions  
     server = function(input, output, session) {
       col_show <- 1
-      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-      if(is.character(working_dat)==TRUE){
-        if(is.null(working_dat)==TRUE | table_exists(working_dat)==FALSE){
-          print(DBI::dbListTables(fishset_db))
-          stop(paste(working_dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-        } else {
-          working_dat <- table_view(working_dat)
-        }
-      } else {
-        working_dat <- working_dat  
-      }
-      if(is.character(raw_dat)==TRUE){
-        if(is.null(raw_dat)==TRUE | table_exists(raw_dat)==FALSE){
-          print(DBI::dbListTables(fishset_db))
-          stop(paste(raw_dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-        } else {
-          raw_dat <- table_view(raw_dat)
-        }
-      } else {
-        raw_dat <- raw_dat  
-      }
       
-      DBI::dbDisconnect(fishset_db)
-  
       col_show <- colnames(raw_dat)[-which(names(raw_dat) %in% names(working_dat))]
       #dcol_show <- recactive({
       #  col_show
@@ -121,7 +105,7 @@ add_vars <- function(working_dat, raw_dat, project){
         working_dat
       })
       
-      data_table_raw <- reactive({
+      data_table_update <- reactive({
         # If missing input, return to avoid error later in function
         if(is.null(raw_dat))
           return(NULL)
@@ -135,31 +119,14 @@ add_vars <- function(working_dat, raw_dat, project){
       })
       
       
-      dInput <- reactive({
-        working_dat
-      })
-      
-      data_table_working <- reactive({
-        # If missing input, return to avoid error later in function
-        if(is.null(working_dat))
-          return(NULL)
-        
-        # Get the data set
-        dataset_working <- dInputworking()
-        
-        # Keep the selected columns
-        #dataset[, c(input$columns, linkID), drop = FALSE]
-        
-      })
-      
-      output$data_table <- renderTable(head(data_table_working()))
+      output$data_table <- renderTable(head(data_table_update()))
       
       
       # When the Submit button is clicked, save the form data
       observeEvent(input$submit, {
         # Connect to the database
         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-        DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable',  format(Sys.Date(), format="%Y%m%d")), data_table(), overwrite=TRUE)
+        DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable',  format(Sys.Date(), format="%Y%m%d")), data_table_update(), overwrite=TRUE)
         
         showNotification(paste0("Table saved to database as ", project, 'MainDataTable',  format(Sys.Date(), format="%Y%m%d"), ". Please close the window."))
         DBI::dbDisconnect(fishset_db)

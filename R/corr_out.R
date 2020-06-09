@@ -1,6 +1,6 @@
 # correlation
 corr_out <- function(dat, project, variables) {
-    #' View correlation between variables as a table and plot.
+    #' View correlation between variables as a table and plot
     #' 
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
     #' @param project Project name

@@ -1,7 +1,7 @@
 
 # map viewer
 map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars, lon_start, lat_start, lon_end, lat_end) {
-    #' Create files necessary for map viewer call
+    #' View vessel locations and fishery zones on interactive map
     #' @param dat Main data.frame over which to apply function. Can be dataset in working environnment or character name
     #' of table in FishSET database. Character name should contain the string `MainDataTable` and must be quoted.
     #' and must 

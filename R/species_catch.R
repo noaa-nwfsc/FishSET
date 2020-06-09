@@ -1,4 +1,4 @@
-#' Catch by Species
+#'Catch by Species
 #'
 #' Creates a table or plot of total species catch by period
 #' 

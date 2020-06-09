@@ -1,5 +1,5 @@
 xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
-    #' Plot observed locations on map
+    #' Evaluate relationship of two vectors in a plot format
     #'
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
     #' @param project Project name

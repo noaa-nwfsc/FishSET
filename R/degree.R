@@ -1,5 +1,5 @@
 degree <- function(dat, lat = NULL, lon = NULL, latsign = FALSE, lonsign = FALSE, replace = TRUE) {
-    #' Convert lat/long coordinates to decimal degrees
+    #' Check and correct lat/lon format
     #' @param dat Data table containing latitude and longitude data
     #' @param lat Name of vector containing latitude data
     #' @param lon Name of vector containg longitude data
