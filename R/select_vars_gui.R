@@ -2,7 +2,7 @@
 # Select which variables to include in the further analyses and modeling.
 
 # select_vars
-#' View and select which variables to include
+#' Interactive app to select variables to include in main data table
 #'
 #' @param dat Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
 #' @param project Name of project. Parameter is used to generate meaningful table names in FishSET database.
@@ -76,18 +76,6 @@ select_vars <- function(dat, project){
     
     server = function(input, output, session) {
       
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-        if(is.character(dat)==TRUE){
-          if(is.null(dat)==TRUE | table_exists(dat)==FALSE){
-            print(DBI::dbListTables(fishset_db))
-            stop(paste(dat, 'not defined or does not exist. Consider using one of the tables listed above that exist in the database.'))
-          } else {
-           dataset <- table_view(dat)
-          }
-        } else {
-          dataset <- dat  
-        }
-        DBI::dbDisconnect(fishset_db)
         #dataset$linkID <- seq_along(dataset[,1])  
       dInput <- reactive({
         dataset
@@ -95,7 +83,7 @@ select_vars <- function(dat, project){
       #values <- reactiveValues(dataset=dataset)   
       
      data_table <- reactive({
-     # If missing input, return to avoid error later in function
+     # If missing input, return NULL to avoid error later in function
          if(is.null(dInput()))
             return(NULL)
                            
@@ -119,8 +107,8 @@ select_vars <- function(dat, project){
         DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable'), data_table(), overwrite=TRUE)
         
         showNotification(paste0("Table saved to database as ", project, 'MainDataTable.', ". 
-                                Enter", paste0('"',project, 'MainDataTable"'), "as the dat parameter in future function calls or
-                                load the updated data using", paste0('table_view("',project, 'MainDataTable")'), ". 
+                                Enter", paste0('"', project, 'MainDataTable"'), "as the dat parameter in future function calls or
+                                load the updated data using", paste0('table_view("', project, 'MainDataTable")'), ". 
                                 The app window can be closed."))
         DBI::dbDisconnect(fishset_db)
       })

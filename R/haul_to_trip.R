@@ -1,4 +1,4 @@
-#' Collapse the dataframe from haul to trip.
+#' Collapse data frame from haul to trip
 #'
 #' @param dat Data frame containing haul level data. In the FishSET database, the table will contain the phrase `MainDataTable`
 #' @param project Name of project

@@ -1,4 +1,4 @@
-#' Table of observations by year, month, and zone
+#' Examine the number of observations by year, month, and zone in table format
 #' 
 #' @param dat Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
 #' @param project Name of project

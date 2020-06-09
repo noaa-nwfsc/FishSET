@@ -1,4 +1,4 @@
-#' Trip length
+# Trip length
 #' 
 #' Create a plot or table of vessel trip length
 #' 

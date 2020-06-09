@@ -1,4 +1,4 @@
-#' Density Plot
+# Density Plot
 #' 
 #' Creates a density or cdf plot of selected variable
 #' 

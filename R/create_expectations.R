@@ -1,4 +1,4 @@
-#' Expected catch/Expected Revenue
+#' Create expected catch/expected revenue matrix
 
 #' @param dat  Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
 #' @param catch Variable containing catch data.

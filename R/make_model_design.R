@@ -1,4 +1,4 @@
-#' Make model design
+#' Make model design file
 #' 
 #' Create a list containing likelihood function, parameters, and data to be pass to model call function
 #' 

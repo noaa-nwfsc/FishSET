@@ -1,5 +1,5 @@
 sparsetable <- function(dat, project, timevar, zonevar, var) {
-    #' Sparsity table
+    #' Evaluate sparsity in data over time in table format
     #' @param dat Main data frame over which to apply function. 
     #' @param project Name of project
     #' @param timevar Variable containing temporal data 
@@ -62,7 +62,7 @@ sparsetable <- function(dat, project, timevar, zonevar, var) {
 
 
 sparsplot <- function(x, project) {
-    #' Sparsity plot
+    #' Evaluate sparsity in data over time in plot format
     #' @param x output from spartstable function
     #' @param project Name of project
     #' @export

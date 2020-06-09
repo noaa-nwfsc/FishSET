@@ -1,4 +1,4 @@
-#' Create Starting location vector
+#' Create starting location vector
 #'
 #' Creates a vector containing zone/area location when choice of where to fish next was chosen. 
 #'
