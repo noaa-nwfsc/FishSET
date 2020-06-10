@@ -1,4 +1,4 @@
-#' Bycatch
+# Bycatch
 #'
 #' Compare bycatch to other species caught
 #'

@@ -1,5 +1,5 @@
-#' create_seasonal_ID
-#' Create season identifier  
+# create_seasonal_ID
+#' Create fishery season identifier  
 #'
 #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
 #' @param seasonal.dat Name of table containing date of fishery season(s). Can be pulled from FishSET database.

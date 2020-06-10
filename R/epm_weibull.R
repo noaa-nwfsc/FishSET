@@ -1,7 +1,5 @@
 epm_weibull <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
-    #' Expected profit model weibull catch function
-    #'
-    #' Expected profit model weibull catch function
+    #' Expected profit model Weibull catch function
     #'
     #' @param starts3 Starting values as a vector (num). For this likelihood,
     #'     the order takes: c([catch-function parameters], [travel-distance
@@ -50,6 +48,7 @@ epm_weibull <- function(starts3, dat, otherdat, alts, project, expname, mod.name
     #' @param mod.name Name of model run for model result output table
     #' @return ld: negative log likelihood
     #' @export
+    #' @keywords internal
     #' @examples
     #' \dontrun{
     #' data(zi)

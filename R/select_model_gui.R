@@ -1,5 +1,5 @@
 # select_model
-#' View and select models 
+#' Interactive app to view model metrics and record best model
 #'
 #' @param project Name of project
 #' @importFrom DBI dbExistsTable dbDisconnect dbConnect dbRemoveTable dbExecute dbGetQuery 

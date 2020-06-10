@@ -1,4 +1,4 @@
-#' Guided steps to cleaning data frame
+#' Check data table for common data quality issues
 
 #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
 #' @param project Name of project.

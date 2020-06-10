@@ -4,8 +4,9 @@ data_verification_call <- function(dat, project) {
     #' @param project Name of project
     #' @return Returns statements as to whether issues in the data may exist
     #' @export data_verification_call
+    #' @keywords internal
     #' @importFrom maps map
-    #' @details  Contains one function checks that all columnn names in the dataset are unique, whether any columns in the dataset are empty, 
+    #' @details  Contains one function that checks all columnn names in the dataset are unique, whether any columns in the dataset are empty, 
     #' whether each row is a unique choice occurrence at the haul or trip level, and that data for either lat/long or fishing area are included.
     #' Main data table is not saved to fishset_db database if any tests fail.
     #' @examples
