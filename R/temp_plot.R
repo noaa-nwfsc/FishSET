@@ -1,5 +1,5 @@
 temp_plot <- function(dat, project, var.select, len.fun = c("length", "unique", "percent"), agg.fun = c("mean", "median", "min", "max", "sum"), date.var = NULL) {
-    #' Plot observed locations on map
+    #'  View temporal patterns of vector in plot format
     #'
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
     #' @param project Name of project.

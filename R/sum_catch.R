@@ -1,4 +1,4 @@
-#' Aggregate species catch by unique vessel ID
+#' Aggregate species catch by vessel ID
 #' 
 #' @description \code{sum_catch} aggregates species catch by vessel ID and will output
 #'   a logical vector or table.

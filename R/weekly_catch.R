@@ -1,6 +1,6 @@
-#' Weekly catch
+# Weekly catch
 #' 
-#' Catch total by week
+#' View catch total by week in plot and table format
 #'
 #' @param dat Main data frame over which to apply function. Table in FishSET 
 #'   database should contain the string `MainDataTable`.

@@ -1,6 +1,6 @@
-#' Weekly Effort
+# Weekly Effort
 #' 
-#' Average CPUE by week
+#' View average CPUE by week in plot and table format
 #' 
 #' @param dat Main data frame over which to apply function. Table in fishset_db 
 #'   database should contain the string `MainDataTable`.

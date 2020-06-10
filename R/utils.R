@@ -161,7 +161,7 @@ find_last <- function(y){
 }
 
 accumarray <- function(subs, val, sz = NULL, func = sum, fillval = 0) {
-  #' Accumarray fucntion
+  #' Accumarray function
   #' @param subs subs
   #' @param val val
   #' @param sz sz
