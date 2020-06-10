@@ -346,6 +346,24 @@ fishset_theme <- ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
                        axis.text = ggplot2::element_text(size=11), 
                        axis.title = ggplot2::element_text(size=11))
 
+
+n_breaks <- function(x) {
+#'
+#'Plot breaks
+#'
+#'@param x Value to determine breaks
+#'@export
+  
+  i <- unique(x)
+  len <- length(i)
+  if (len <= 15) {
+    breaks <- len
+  } else {
+    breaks <- 10
+  }
+  breaks
+}
+
 save_table <- function(table, project, func_name, ...) {
   #' Save table to output folder
   #' @param table table name.
