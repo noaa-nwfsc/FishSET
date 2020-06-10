@@ -53,7 +53,7 @@
 #' @export vessel_count
 #' @import ggplot2
 #' @importFrom stats aggregate reformulate
-
+#' @importFrom dplyr anti_join
 
 vessel_count <- function(dat, project, v_id, date, period = "month", group = NULL, 
                          filter_date = NULL, filter_value = NULL, facet_by = NULL,
@@ -79,19 +79,30 @@ vessel_count <- function(dat, project, v_id, date, period = "month", group = NUL
                     day_of_year = "%j")
     }
     
+    facet_ym <- FALSE
+    
     if (!is.null(facet_by)) {
         
-        if (!(facet_by %in% names(dataset))) {
+        facet_spec <- ifelse(any(!(facet_by %in% names(dataset))), TRUE, FALSE)
+        facet_ym <- ifelse(any(!(facet_by %in% c("year", "month"))), TRUE, FALSE)
+        
+        if (facet_spec == TRUE) {
             
-            if (!(facet_by %in% c("year", "month"))) {
+            facet_s_id <- facet_by[!(facet_by %in% names(dataset))]
+            
+            if (all(facet_s_id %in% c("year", "month")) == FALSE) {
                 
                 warning("Invalid facet variable.")
                 
             } else {
                 
                 facet <- facet_by
+                facet_by <- facet_by[facet_by %in% names(dataset)]
                 
-                facet_by <- NULL
+                if (length(facet_by) == 0) {
+                    
+                    facet_by <- NULL
+                }
             }
             
         } else {
@@ -126,6 +137,10 @@ vessel_count <- function(dat, project, v_id, date, period = "month", group = NUL
         } else if (length(group) > 2) {
             
             warning("Too many grouping variables included, selecting first two.")
+            
+        } else {
+            
+            group2 <- NULL
         }
         
     } else {
@@ -152,26 +167,28 @@ vessel_count <- function(dat, project, v_id, date, period = "month", group = NUL
     
     missing <- lapply(count[grp_fct], function(x) unique(x))
     
-    missing[[date]] <- full_dates[!(full_dates %in% count[[date]])]
+    missing[[date]] <- full_dates
     
     missing <- do.call(expand.grid, list(missing))
     
-      if (nrow(missing) > 0) {
-        
-          missing[[v_id]] <- 0
-        
-          count <- rbind(count, missing)
-      }
+    missing <- dplyr::anti_join(missing, count[!(names(count) == v_id)])
     
-      if (period != "year") {
-         
-          count$year <- as.integer(format(count[[date]], "%Y"))
-      }
+    if (nrow(missing) > 0) {
+        
+        missing[[v_id]] <- 0
+        
+        count <- rbind(count, missing)
+    }
+    
+    if (period != "year") {
+        
+        count$year <- as.integer(format(count[[date]], "%Y"))
+    }
     
     count[[period]] <- format(count[[date]], p)
     
-    if (((!is.null(facet) && any(facet %in% c("month", "year-month"))) | 
-         (!is.null(filter_date) && any(filter_date %in% c("month", "year-month"))))) {
+    if (facet_ym == TRUE | 
+        (!is.null(filter_date) && any(filter_date %in% c("month", "year-month")))) {
         
         if (period != "month") {
             
@@ -188,10 +205,6 @@ vessel_count <- function(dat, project, v_id, date, period = "month", group = NUL
         nm2 <- unique(c("year", period, group, facet_by))
     }
     
-    l2 <- lapply(nm2, function(x) count[[x]])
-    
-    names(l2) <- nm2
-    
     if (period != "day_of_year") {
         
         count[[date]] <- NULL
@@ -203,7 +216,6 @@ vessel_count <- function(dat, project, v_id, date, period = "month", group = NUL
         
         count <- stats::aggregate(stats::reformulate(period, v_id), count, FUN = function(x) x/sum(x))
     }
-    
     
     if (p %in% c("%a", "%A", "%b")) {
         
@@ -295,7 +307,6 @@ vessel_count <- function(dat, project, v_id, date, period = "month", group = NUL
     save_table(count, project, "vessel_count")
     save_plot(project, "vessel_count", v_plot)
     
-    
     if (output == "table") {
         
         count
@@ -308,7 +319,6 @@ vessel_count <- function(dat, project, v_id, date, period = "month", group = NUL
         
         out_list <- list(table = count,
                          plot = v_plot)
-        
         out_list
     }
 }
