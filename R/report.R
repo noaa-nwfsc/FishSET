@@ -492,7 +492,7 @@ filter_summary <- function(sum_tab, filter_list) {
   #'   the temporal_mod dataframe in a summary list. 
   #' @export
   #' @keywords internal
-  #' @seealso \code{\link{dat_create_summary}}
+  #' @seealso \code{\link{function_summary}}
   #' @examples
   #' \dontrun{
   #' filter_summary(dat_create_summary(), 
