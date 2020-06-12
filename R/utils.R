@@ -407,6 +407,34 @@ periods_list <- list("%B" = month.name,
                      "%j" = 1:365,
                      "%U" = 1:52)
 
+order_factor <- function(dat, fac, val, rev = FALSE) {
+ #'
+ #' Order variable
+ #'  
+ #'@param dat dataframe containing variable to order.
+ #'@param fac variable name to order.
+ #'@param val value variable to order by.
+ #'@param rev logical, reverse order. 
+ #'@return Returns entire dataframe with ordered factor.  
+ #'@importFrom stats aggregate reformulate
+ #'@export
+ #'
+  agg <- stats::aggregate(stats::reformulate(fac, val), dat, FUN = sum)
+  
+  ord <- unique(agg[[fac]][order(agg[[val]])])
+  
+  if (rev == TRUE) {
+    
+    ord <- rev(ord)
+  }
+  
+  dat[[fac]] <- factor(dat[[fac]], levels = ord)
+  
+  dat
+}
+
+
+
 date_factorize <- function(dataset, date_col, date_code) {
   #' Convert date variable of type character to ordered factor
   #' @keywords internal

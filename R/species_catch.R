@@ -12,16 +12,20 @@
 #' (weeks in the year),'weekday', 'weekday_abv', 'weekday_num', 'day' (day of the month), 
 #'   and 'day_of_year'.
 #' @param fun Name of function to aggregate by. Defaults to \code{\link[base]{sum}}. 
-#' @param group Up to two categorical variables to group by. For plots, if only one 
-#'   species is entered the first group variable is passed to 'fill' and second is 
-#'   passed to 'facet_grid'. If multiple species are entered the species variable 
-#'   is faceted row-wise and the second group variable column-wise. If multiple 
-#'   years are entered, plots are faceted row-wise by year as well.
-#' @param filter_date Whether to filter data table by \code{"year"}, \code{"month"}, or 
-#'   \code{"year-month"}. \code{filter_value} must be provided.
-#' @param filter_value Integer (4 digits if year, 1-2 if month). The year, month,
-#'   or year-month to filter data table by. Use a list if using "year-month"
-#'   with the format: \code{list(year(s), month(s))}. For example, \code{list(2011:2013, 5:7)} 
+#' @param group Grouping variable names(s). Up to two grouping variables are available for 
+#'   line plots and one for bar plots. For bar plots, if only one species is entered the first 
+#'   group variable is passed to 'fill'. If multiple species are entered, species is passed to 
+#'   "fill" and the grouping variable is dropped. An exception occurs when facetting by species, 
+#'   then the grouping variable is passed to "fill". For line plots, the first grouping variable 
+#'   is passed to "fill" and the second to "linetype" if a single species column is entered or if 
+#'   facetting by species. Otherwise, species is passed to "fill", the first group variable to 
+#'   "linetype", and second is dropped. 
+#' @param filter_date The type of filter to apply to table. Options include \code{"year-period"}, 
+#'   \code{"year-month"}, \code{"year"}, \code{"month"}, or \code{"period"}. The 
+#'   argument \code{filter_value} must be provided. 
+#' @param filter_value Integer (4 digits if year, 1-3 if month or period). A vector or list
+#'   of values to filter data table by. Use a list if using a two-part filter, e.g."year-month",
+#'   with the format: \code{list(year, period}. For example, \code{list(2011:2013, 5:7)} 
 #'   will filter the data table from May to July for years 2011-2013.
 #' @param facet_by Variable name to facet by. This can be a variable that exists in 
 #'   the dataset, or a variable created by \code{species_catch()} such as \code{"year"}, 
@@ -39,17 +43,18 @@
 #'   to both (\code{"tab_plot"}).
 #' @param format_tab How table output should be formated. Options include 'wide' 
 #'   (the default) and 'long'.
-#' @return \code{species_catch()} aggregates catch (or percent) 
+#' @return  \code{species_catch()} aggregates catch (or percent) 
 #'   by time period using one or more columns of catch data. The data can be filter using 
 #'   two arguments: \code{filter_date} amd \code{filter_value}. \code{filter_date}
-#'   specifies how the data should be filtered--by year, month, or year-month. 
-#'   \code{filter_value} should contain the years or months (as integers) to filter
-#'   the data by. Up to two grouping variables can be entered. Grouping variables can 
+#'   specifies how the data should be filtered--by year, period (see \code{period}), or year-period. 
+#'   \code{filter_value} should contain the values (as integers) to filter
+#'   the data by. It is often useful to facet by year when using \code{filter_date}.
+#'   Up to two grouping variables can be entered. Grouping variables can 
 #'   be merged into one variable using \code{combine = TRUE}. Any number of 
 #'   variables can be combined, but no more than three is reccomended. For faceting,
 #'   any variable (including ones listed in \code{group}) can be used, but "year" and
 #'   "month" are also available. Currently, combined variables cannot be faceted.
-#'   A list containing a table and plot are printed to the console and viewer by default. 
+#'   A list containing a table and plot are printed to the console and viewer by default.  
 #' @examples 
 #' \dontrun{
 #' species_catch('pollockMainDataTable', species = c('HAUL_LBS_270_POLLOCK_LBS', 
@@ -161,25 +166,19 @@ species_catch <- function(dat, project, species, date, period = "month", fun = "
     
     nm1 <- c(date, group, facet_by)
     
-    l1 <- lapply(nm1, function(x) dataset[[x]])
-    
-    names(l1) <- nm1
-    
-    count <- stats::aggregate(dataset[species], by = l1, FUN = sum) 
-    
     full_dates <- seq.Date(from = min(dataset[[date]], na.rm = TRUE), 
                            to = max(dataset[[date]], na.rm = TRUE), 
                            by = "day")
     
     grp_fct <- c(group, facet_by)
     
-    missing <- lapply(count[grp_fct], function(x) unique(x))
+    missing <- lapply(dataset[grp_fct], function(x) unique(x))
     
     missing[[date]] <- full_dates
     
     missing <- do.call(expand.grid, list(missing))
     
-    missing <- dplyr::anti_join(missing, count[!(names(count) %in% species)])
+    missing <- dplyr::anti_join(missing, dataset[nm1])
     
     if (nrow(missing) > 0) {
         
@@ -191,11 +190,11 @@ species_catch <- function(dat, project, species, date, period = "month", fun = "
             
             sl <- lapply(species, function(x) 0)
             names(sl) <- species 
-            sc <- as.data.frame(sl)
-            missing <- cbind(sc, missing)
+            sd <- as.data.frame(sl)
+            missing <- cbind(sd, missing)
         }
         
-        count <- rbind(count, missing)
+        count <- rbind(dataset[c(nm1, species)], missing)
     }
     
     if (period != "year") {
@@ -220,27 +219,23 @@ species_catch <- function(dat, project, species, date, period = "month", fun = "
         
     } else {
         
-        nm2 <- unique(c("year", period, group, facet_by))
+      nm2 <- unique(c("year", period, group, facet_by))
     }
     
-    if (period != "day_of_year") {
-        
-        count[[date]] <- NULL
-        
-        l2 <- lapply(nm2, function(x) count[[x]])
-        names(l2) <- nm2
-        
-        count <- stats::aggregate(count[species], by = l2, FUN = fun)
-    }
+    count[[date]] <- NULL
+    
+    agg_list <- lapply(nm2, function(x) count[[x]])
+    names(agg_list) <- nm2
+    
+    count <- stats::aggregate(count[species], by = agg_list, FUN = fun)
     
     if (length(species) > 1) {
         
         count <- reshape2::melt(count, measure.vars = species, variable.name = "species", 
                                 value.name = "catch")
         
-        count$species <- factor(count$species, 
-                                levels = unique(count$species[order(count$catch)]), 
-                                ordered = TRUE)
+        rev <- ifelse(position == "dodge", TRUE, FALSE)
+        count <- order_factor(count, "species", "catch", rev = rev)
     }
     
     if (p %in% c("%a", "%A", "%b")) {
@@ -254,7 +249,12 @@ species_catch <- function(dat, project, species, date, period = "month", fun = "
     
     if (!is.null(filter_date)) {
         
-        if (filter_date == "year-month") {
+        if (filter_date == "year-period") {
+            
+            count <- subset(count, (year %in% filter_value[[1]]) & 
+                                (as.integer(count[[period]]) %in% filter_value[[2]])) 
+            
+        } else if (filter_date == "year-month") {
             
             count <- subset(count, (year %in% filter_value[[1]]) & 
                                 (as.integer(month) %in% filter_value[[2]]))
@@ -266,7 +266,11 @@ species_catch <- function(dat, project, species, date, period = "month", fun = "
         } else if (filter_date == "month") {
             
             count <- subset(count, as.integer(month) %in% filter_value)
+        
+        } else if (filter_date == "period") {
             
+            count <- subset(count, as.integer(count[[period]]) %in% filter_value)
+  
         } else {
             
             warning("Invalid filter type. Available options are 'year-month', 'year', and 'month'.")
@@ -355,7 +359,7 @@ species_catch <- function(dat, project, species, date, period = "month", fun = "
     
     if (!(p %in% c("%a", "%A", "%b"))) {
         
-        s_plot <- s_plot + scale_x_continuous(n.breaks = n_breaks(count[[period]]))
+        s_plot <- s_plot + ggplot2::scale_x_continuous(n.breaks = n_breaks(count[[period]]))
     }
     
     # Log the function
@@ -370,8 +374,7 @@ species_catch <- function(dat, project, species, date, period = "month", fun = "
         
         if (length(species) > 1) {
             
-            count <- reshape2::dcast(count, ... ~ species, value.var = "catch", fill = 0, 
-                                     fun.aggregate = match.fun(fun))
+            count <- reshape2::dcast(count, ... ~ species, value.var = "catch", fill = 0)
         }
     }
     
