@@ -166,17 +166,7 @@ weekly_catch <- function(dat, project, species, date, fun = "sum",
   
   if (nrow(missing) > 0) {
     
-    if (length(species) == 1) {
-      
-      missing[[species]] <- 0
-      
-    } else {
-      
-      sl <- lapply(species, function(x) 0)
-      names(sl) <- species 
-      sd <- as.data.frame(sl)
-      missing <- cbind(sd, missing)
-    }
+    missing[species] <- 0
     
     count <- rbind(dataset[c(nm1, species)], missing)
   }
@@ -294,7 +284,7 @@ weekly_catch <- function(dat, project, species, date, fun = "sum",
     ggplot2::theme(legend.position = "bottom") +
     ggplot2::scale_y_continuous(labels = if (value == "percent") scales::percent else ggplot2::waiver())
   
-  if (!is.null(filter_date) & filter_date != "year") {
+  if (!is.null(filter_date) && filter_date != "year") {
     
     w_plot <- w_plot + ggplot2::scale_x_continuous(n.breaks = n_breaks(count$week))
     
