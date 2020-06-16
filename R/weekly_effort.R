@@ -150,17 +150,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = 
     
     if (nrow(missing) > 0) {
         
-        if (length(cpue) == 1) {
-            
-            missing[[cpue]] <- 0
-            
-        } else {
-            
-            cl <- lapply(cpue, function(x) 0)
-            names(cl) <- cpue 
-            cd <- as.data.frame(cl)
-            missing <- cbind(cd, missing)
-        }
+        missing[cpue] <- 0
         
         count <- rbind(dataset[c(nm1, cpue)], missing)
     }
@@ -198,7 +188,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = 
         count <- reshape2::melt(count, measure.vars = cpue, variable.name = "species", 
                                 value.name = "mean_cpue")
         
-        count <- order_factor(count, "species", "catch")
+        count <- order_factor(count, "species", "mean_cpue")
     }
     
     if (!is.null(filter_date)) {
@@ -276,7 +266,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = 
         ggplot2::theme(legend.position = "bottom") +
         FishSET:::fishset_theme
     
-    if (!is.null(filter_date) & filter_date != "year") {
+    if (!is.null(filter_date) && filter_date != "year") {
         
         e_plot <- e_plot + ggplot2::scale_x_continuous(n.breaks = n_breaks(count$week))
         
