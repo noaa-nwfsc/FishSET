@@ -181,20 +181,10 @@ species_catch <- function(dat, project, species, date, period = "month", fun = "
     missing <- dplyr::anti_join(missing, dataset[nm1])
     
     if (nrow(missing) > 0) {
-        
-        if (length(species) == 1) {
-            
-            missing[[species]] <- 0
-            
-        } else {
-            
-            sl <- lapply(species, function(x) 0)
-            names(sl) <- species 
-            sd <- as.data.frame(sl)
-            missing <- cbind(sd, missing)
-        }
-        
-        count <- rbind(dataset[c(nm1, species)], missing)
+      
+      missing[species] <- 0
+      
+      count <- rbind(dataset[c(nm1, species)], missing)
     }
     
     if (period != "year") {
