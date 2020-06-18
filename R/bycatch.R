@@ -2,11 +2,6 @@
 #'
 #' Compare bycatch to other species caught
 #'
-dat, project, cpue, catch, date, period, names , 
-                    group, filter_date, filter_value, facet_by, 
-                    value, combine, scale, output, 
-                    format_tab 
-					
 #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
 #' @param project String, name of project.
 #' @param cpue A character string of \code{\link{cpue}}variable names. The order of variable string must match  
