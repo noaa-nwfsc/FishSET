@@ -1,6 +1,6 @@
 #' Create alternative choice matrix
 #'
-#' Required step. Creates a list containing information on how alternative fishing choices should be defined.  Output is called by \code{\link{create_model_design}}. See function details for more information on output. Run this function before running models.  Output is saved to the FishSET database. 
+#' Required step. Creates a list containing information on how alternative fishing choices should be defined.  Output is called by \code{\link{make_model_design}}. See function details for more information on output. Run this function before running models.  Output is saved to the FishSET database. 
 #'
 #' @param dat  Main data frame containing data on hauls or trips. 
 #' Table in FishSET database should contain the string `MainDataTable`.

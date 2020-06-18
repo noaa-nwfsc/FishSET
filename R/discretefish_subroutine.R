@@ -335,7 +335,7 @@ if(is.factor(optimOpt)){
   if(select.model==TRUE){
     #  rownames(out.mod)=c("AIC", "AICc", "BIC", "PseudoR2")
     #   print(DT::datatable(t(round(out.mod, 5)), filter='top'))
-    requireNamespace(shiny)
+    
     shiny::runApp(list(
       ui = shiny::basicPage(
         
