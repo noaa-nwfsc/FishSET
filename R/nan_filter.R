@@ -2,9 +2,9 @@
 
 
 nan_identify <- function(dat) {
-    #' Identify NaNs and NAs in data frame
+    #' Check whether any columns in the primary dataset contain NAs or NaNs. Returns column names containing NAs or NaNs.
     #'
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
+    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
     #' @keywords NaN, NA
     #' @description Check whether any columns in the data frame contain NAs or NaNs. Returns column names containing NAs or NaNs.
     #' @return Message with names of columns containing NAs or NaNs, if any.
@@ -61,17 +61,19 @@ nan_identify <- function(dat) {
 
 # Replaces nans in the data column with the choosen value or removes rows containing NaNs
 nan_filter <- function(dat, x, replace = F, remove = F, rep.value = NA, over_write = FALSE) {
-    #' Filter NaNs from vector
+    #' Remove NaNs 
+    #' Remove or replace NaNs in primary dataset.
     #'
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param x Column(s) in data framce in which to remove or replace NaNs. If multiple columns are passed use x=c().
-    #' @param replace TRUE/FALSE Replace NaNs in a vector? Defaults to FALSE.
-    #' @param remove TRUE/FALSE Remove all remove the entire row of the dataframe where NaN is present in a specified column? Defaults to FALSE.
+    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param x  Character string of variables to remove or replace NaNs.
+    #' @param replace Logical, If TRUE, NaNs are replaced. Defaults to FALSE.
+    #' @param remove  Logical, if TRUE, removes the entire row of the dataset where NaN is present? Defaults to FALSE.
     #' @param rep.value Value to replace all NaNs in a column. Defaults to the mean value of the column.
-    #' @param over_write Over_write modified data set in FishSET database?
-    #' @details Replaces nans in the data column with the chosen value or removes rows containing NaNs. Modified data frame saved to FishSET database.
+    #' @param over_write Logical, If TRUE, saves data over previously saved data table in the FishSET database.
+    #' @details Replaces NaNs in \code{x} with \code{rep.value} or remove all rows from \code{dat} containing NaNs. 
+    #' Modified data frame saved to FishSET database.
     #' @keywords NaN
-    #' @return Returns the modified data frame
+    #' @return Returns the modified primary dataset.
     #' @export nan_filter
     #' @examples 
     #' \dontrun{
@@ -147,19 +149,20 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value = NA, over_wri
 ####----
 # Replaces nans in the dataColumn with the choosen value or removes rows containing NaNs
 na_filter <- function(dat, x, replace = F, remove = F, rep.value = NA, over_write = FALSE) {
-    #' Filters NAs from vector
+    #' Remove NAs
     #'
-    #'  Function to return a modified dataframe where NAs have been replaced or removed.
+    #' Remove or replace NAs in \code{dat}
     #'
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param x Column(s) in data frame in which to remove or replace NAs. If multiple columns are passed use x=c().
-    #' @param replace TRUE/FALSE Replace NAs in a vector? Defaults to FALSE.
-    #' @param remove TRUE/FALSE Remove all remove the entire row of the dataframe where NA is present in a specified column? Defaults to FALSE.
+    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param x Character string. Column(s) in dataset in which to remove or replace NAs.
+    #' @param replace Logical, if TRUE, replaces NAs in a vector with \code{rep.value}. Defaults to FALSE.
+    #' @param remove Logical, if TRUE removes the entire row of the \code{dat} where NA is present in a \code{dat}. Defaults to FALSE.
     #' @param rep.value Value to replace all NAs in a column. Defaults to the mean value of the column.
-    #' @param over_write Over_write modified data set in FishSET database?
-    #' @details Function to return a modified dataframe where NAs have been replaced or removed. Modified data frame saved to FishSET database.
+    #' @param over_write Logical, If TRUE, saves data over previously saved data table in the FishSET database.
+    #' @details Function to return modified dataset where NAs have been replaced or removed. If \code{remove} is TRUE, the entire row of 
+    #' the dataset will be removed. If \code{remove} is FALSE and rep.value is not defined, then NAs are replaced with mean value. Modified dataset saved to FishSET database.
     #' @keywords NA
-    #' @return Returns the modified dataframe
+    #' @return Returns the modified primary dataset.
     #' @export na_filter
     #' @examples 
     #' \dontrun{

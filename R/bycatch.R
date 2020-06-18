@@ -2,33 +2,33 @@
 #'
 #' Compare bycatch to other species caught
 #'
-#' @param dat Main data frame over which to apply function. Table in FishSET 
-#'   database should contain the string `MainDataTable`.
-#' @param project name of project.
-#' @param cpue A characteric string of CPUE variable names. The function outputs 
-#'   the mean CPUE by period. The variable names must match the order of variable 
+#' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+#' @param project String, name of project.
+#' @param cpue A character string of \code{\link{cpue}}variable names. The order of variable string must match  
 #'   names in \code{catch} and \code{names} arguments.    
-#' @param catch A character string of names of catch variables to aggregate. The 
-#'   function outputs the total catch or share of total catch by period depending 
-#'   on the value argument. The order of the catch variable string must match those 
-#'   of the \code{names} and \code{cpue} arguments.  
+#' @param catch A character string of names of catch variables to aggregate. The order of the catch variable string must match those of the \code{names} and \code{cpue} arguments.
 #' @param date A time variable containing dates to aggregate by.
 #' @param names A string of species names that will be used to match the \code{cpue} and \code{catch}
 #'   variables.
-#' @param group A categorical variable to group by.
+#' @param group A categorical variable in \code{dat} to group by.
 #' @param year A year or vector of years to subset the data by. If \code{NULL}, all years
 #'   are included.
 #' @param period Time period to aggregate by. Options include 'year', 'year_abv', 
 #'   'month', 'month_abv', 'month_num', and 'weeks'.
-#' @param value Whether to return raw count or share of total catch ('stc'). 
-#' @param output Options include 'table' or 'plot'.
-#' @param format_tab How table output should be formated. Options include 'wide' 
+#' @param value Return value. Options include ('raw') raw count or ('stc') share of total catch. 
+#' @param output Output type. Options include 'table' or 'plot'.
+#' @param format_tab How table output should be formatted. Options include 'wide' 
 #'   (the default) and 'long'.
-#' @return Returns a plot or table of bycatch to other species caught. For optimal 
-#' plot size in a R Notebook/Markdown document, use the chunk option \code{fig.asp = 1}. 
+#'  @details Returns a plot or table of the mean CPUE and share of total catch or raw count for each species entered. 
+#'  For optimal plot size in an R Notebook/Markdown document, we recommend including no more than four species. 
+#'  The order of variables in the \code{cpue} and \code{catch} arguments must be in the same order as in the \code{names} argument. 
+#'  The \code{names} argument is used to join the \code{catch} and \code{cpue} variables together. 
+#'  @return Returns a plot or table of bycatch to other species caught. Output saved to Output folder. For optimal 
+#' plot size in a R Notebook/Markdown document, using the chunk option \code{fig.asp = 1}.
 #' @examples 
 #' \dontrun{
-#' bycatch('MainDataTable', 'myProject', cpue = c('f1_cpue', 'f2_cpue', 'f3_cpue', 'f4_cpue'),
+#' cpue(pollockMainDataTable, ‘myproject’, xWeight=’f1Weight’ , xTime=’Hour’ , ‘f1_cpue’)
+#' bycatch(pollockMainDataTable, 'myProject', cpue = c('f1_cpue', 'f2_cpue', 'f3_cpue', 'f4_cpue'),
 #' catch = c('f1', 'f2', 'f3', 'f4'), date = 'FISHING_START_DATE', 
 #' names = c('fish_1', 'fish_2', 'fish_3', 'fish_4'), period = 'month_abv', 
 #' year = 2011, value = 'stc', output = 'table')

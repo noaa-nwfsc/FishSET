@@ -1,14 +1,14 @@
 xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
-    #' Evaluate relationship of two vectors in a plot format
-    #'
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param project Project name
-    #' @param var1 Variable in dat 
-    #' @param var2 Variable in dat 
-    #' @param regress Defaults to FALSE. If TRUE, returns plot with fitted linear regression line.
+    #' Evaluate relationship of two variables in a plot format
+    #' Evaluate relationship of two variabls in a plot format. Plots first variable against second variable.
+    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param project String, name of project.
+    #' @param var1 First variable in \code{dat}.
+    #' @param var2 Second variable in \code{dat}.
+    #' @param regress Logical, if TRUE, returns plot with fitted linear regression line. Defaults to FALSE.
     #' @keywords xy plot
     #' @description Plot of var1 against var 2
-    #' @return ggplot2 object
+    #' @return Returns plot output to R console and saves plot to Output folder. 
     #' @import ggplot2
     #' @export
     #' @examples

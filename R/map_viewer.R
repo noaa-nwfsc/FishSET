@@ -1,20 +1,19 @@
 
 # map viewer
 map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars, lon_start, lat_start, lon_end, lat_end) {
+    #' Interactive vessel locations and fishery zones map
     #' View vessel locations and fishery zones on interactive map
-    #' @param dat Main data.frame over which to apply function. Can be dataset in working environnment or character name
-    #' of table in FishSET database. Character name should contain the string `MainDataTable` and must be quoted.
-    #' and must 
-    #' @param gridfile Spatial dataset. Must dataset in working environment or character name in FishSET database. 
+    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param gridfile Spatial data containing information on fishery management or regulatory zones. Shape, json, geojson, and csv formats are supported. 
     #' @param avd Variable name in \code{dat} that gives the unique ID associated to the polygon.
-    #' @param avm The name of the property in the GeoJson file that identifies the polygon to cross reference to \code{dat}.
-    #' @param num_vars List  Numeric variables in \code{dat} to include for plotting.
-    #' @param temp_vars List Temporal variables in \code{dat} to include for plotting.
-    #' @param id_vars List Categorical variables in \code{dat} to group by. 
-    #' @param lon_start Character Variable in \code{dat} that identifies starting longitude (decimal degrees).
-    #' @param lat_start Character  Variable in \code{dat} that identifies staring latitude (decimal degrees).
-    #' @param lon_end Character  Variable in \code{dat} that identifies endng longitude (decimal degrees).
-    #' @param lat_end Character  Variable in \code{dat} that identifies endng latitude (decimal degrees).
+    #' @param avm The name of the property in the GeoJson file that identifies the polygon to cross reference to \code{dat}. Often a list of zones.
+    #' @param num_vars List, name of numeric variable(s) in \code{dat} to include for plotting.
+    #' @param temp_vars List, name of temporal variable(s) in \code{dat} to include for plotting.
+    #' @param id_vars List, name of categorical variable(s) in \code{dat} to group by. 
+    #' @param lon_start String, variable in \code{dat} that identifies starting longitude decimal degrees.
+    #' @param lat_start String, variable in \code{dat} that identifies staring latitude decimal degrees.
+    #' @param lon_end String, variable in \code{dat} that identifies endng longitude decimal degrees.
+    #' @param lat_end String, variable in \code{dat} that identifies endng latitude decimal degrees.
     #' @importFrom geojsonio geojson_write
     #' @importFrom jsonlite toJSON 
     #' @importFrom servr httd

@@ -1,17 +1,20 @@
 temp_plot <- function(dat, project, var.select, len.fun = c("length", "unique", "percent"), agg.fun = c("mean", "median", "min", "max", "sum"), date.var = NULL) {
-    #'  View temporal patterns of vector in plot format
-    #'
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param project Name of project.
-    #' @param var.select Variable in dat to plot against a date variable.
-    #' @param len.fun Method. 'length' returns the number of observations, 'unique' returns the number of unique observations',
+    #'  Returns three different plots of variable by month/year
+    #' Returns three plots showing the variable of interest against time (as month or month/year). Plots are raw points by time, number of observations by time, and aggregated variable of interest by time.
+    #' @param dat Primary data containing information on hauls or trips. 
+    #' Table in FishSET database contains the string 'MainDataTable'.
+    #' @param project String, name of project.
+    #' @param var.select Variable in \code{dat} to plot against a date variable.
+    #' @param len.fun Method,'length' returns the number of observations, 'unique' returns the number of unique observations',
     #' 'percent' returns the percentage of total observations.
-    #' @param agg.fun Method. Aggregate selected variable by date using mean, median, minimum (min), maximum (max), or summation (sum).
-    #' @param date.var Variable. Date variable defining x-axis. Defaults to first date variable in data set if not defined.
+    #' @param agg.fun Method to aggregate \code{var.select} by date. Choices are 'mean', 'median', 'min', 'max', or 'sum.'
+    #' @param date.var Date variable in \code{dat}. 
+    #' Defaults to first date variable in \code{dat} set if not defined.
     #' @keywords plot, temporal, exploration
-    #' @description Returns three plots showing the variable of interest against time (as month or month/year).; Plots are raw points by date, 
-    #' number of observations by date, and measures of a representative observation by date.
-    #' @return ggplot output
+    #' @description Returns three plots showing the variable of interest against time (as month or month/year). 
+    #' Plots are raw points by date, number of observations by date, and measures of a representative observation 
+    #' by date.
+    #' @return Returns plot to R console and saves output to the Output folder.
     #' @import ggplot2
     #' @export
     #' @examples

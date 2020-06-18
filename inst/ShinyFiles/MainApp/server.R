@@ -2209,7 +2209,7 @@
       output$conditionalInput3 <- renderUI({
         conditionalPanel(condition="input.choiceTab=='distm'",
                          tagList(
-                           h5(tags$b('Define how alternative fishing choices calculated.')),
+                          h5(tags$b('Define how alternative fishing choices calculated.')),
                            selectInput('case_ac', 'Variable which creates alternative choice:', choices=c("Centroid of zonal assignment")),#"Port", "Other"
                            div(style="display: inline-block;vertical-align:top; width: 160px;",
                                selectInput('alt_var_ac', 'between occurrence:', choices=c('Centroid of zonal assignment'='centroid', 
@@ -2787,7 +2787,7 @@
       #-----
       observeEvent(input$saveALT, {
               q_test <- quietly_test(create_alternative_choice)
-              q_test(dat=values$dataset, gridfile=spatdat$dataset, case=input$case_ac, min.haul=input$min_haul_ac,
+              q_test(dat=values$dataset, gridfile=spatdat$dataset, min.haul=input$min_haul_ac,
                                   alt_var=input$alt_var_ac, occasion=input$occasion_ac, dist.unit=input$dist_ac, lon.dat=input$lon_dat_ac,
                                   lat.dat=input$lat_dat_ac, lon.grid=input$long_grid_altc, lat.grid=input$lat_grid_altc, 
                                   cat=input$cat_altc, hull.polygon=input$hull_polygon_ac, 
@@ -3133,7 +3133,6 @@
         updateSelectInput(session, "alt_var_ac", selected = bookmarkedstate()$alt_var_ac) 
         updateSelectInput(session, "alternatives", selected = bookmarkedstate()$alternatives) 
         updateSelectInput(session, "calc_method", selected = bookmarkedstate()$calc_method) 
-        updateSelectInput(session, "case_ac", selected = bookmarkedstate()$case_ac) 
         updateSelectInput(session, "cat", selected = bookmarkedstate()$cat) 
         updateSelectInput(session, "cat_altc", selected = bookmarkedstate()$cat_altc) 
         updateSelectInput(session, "cat_SL", selected = bookmarkedstate()$cat_SL) 

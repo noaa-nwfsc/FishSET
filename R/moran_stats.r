@@ -1,29 +1,23 @@
 moran_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, lat.dat = NULL, cat = NULL, lon.grid = NULL, lat.grid = NULL) {
     #' Calculate and view Moran's I
     #'
-    #' Wrapper function to calculate global and local Moran's I by discrete area
+    #' Wrapper function to calculate global and local Moran's I by discrete area.
     #'
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param project Name of project
-    #' @param varofint Numeric variable of interest to test for spatial autocorrelation.
-    #' @param gridfile Spatial data set. Can be shape file, data frame, or list.
-    #' @param lon.dat Longitude of points from dataset.
-    #' @param lat.dat Latitude of points from dataset.
-    #' @param lon.grid Longitude of points from gridfile.
-    #' @param lat.grid Latitude of points from gridfile.
-    #' @param cat Variable defining the individual areas or zones.
-    #' @details Measure degree of spatial autocorrelation.
-    #' Function utilizes the localmoran and knearneigh functions from the spdep package. All parameters are set to NULL except the varofint and location variables.
-    #' The spatial input is a row-standardized spatial weights matrix for computed nearest neighbor matrix, which is the null setting for the nb2listw function.
-    #' The function requires A data frame with area as a factor, the lon/lat centroid for each area ('centroid_lon',
-    #'     'centroidlat'), the path_lon/path_lat outlining each area
-    #'     ('path_lon', 'path_lat'), and the variable of interest ('varofint') or 
-    #'  a map file with lat/lon defining boundaries of area/zones and variable of interest for weighting.
-    #' Also required is the lat/lon defining the center of a zone/area. If the centroid is not included in the map file, 
-    #' then the find_centorid function can be called to calculate the centroid of each zone. If the varible of interest is not
-    #' associated with a area/zone than the assignement_column function can be used to assign each observation to a zone.  
-    #' Parameters to identify centroid and assign variable of interest to area/zone are optional and default to NULL.
-    #' @return moranmap: ggplot2 object; morantable: table of statistics
+    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MaindataTable'.
+    #' @param project String, name of project.
+    #' @param varofint Numeric variable from \code{dat} to test for spatial autocorrelation.
+    #' @param gridfile Spatial data containing information on fishery management or regulatory zones. Shape, json, geojson, and csv formats are supported.
+    #' @param lon.dat Longitude variable from \code{dat}.
+    #' @param lat.dat Latitude variable from \code{dat}.
+    #' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
+    #' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
+    #' @param cat Variable or list in \code{gridfile} that identifies the individual areas or zones. If \code{gridfile} is class sf, \code{cat} should be name of list containing information on zones.
+    #' @details Measure degree of spatial autocorrelation. Function utilizes the \code{\link[spdep]{localmoran}} and \code{\link[spdep]{knearneigh}} functions from the spdep package. The spatial input 
+    #' is a row-standardized spatial weights matrix for computed nearest neighbor matrix, which is the null setting for the \code{link[spdep]{nb2listw}} function. The function requires a map file with 
+    #' lat/lon defining boundaries of area/zones and variable of interest for to test for spatial autocorrelation. If zonal centroid is not included in the map file, then the \code{\linkfind_centroid}} 
+    #' function is called to calculate the centroid of each zone. If the variable of interest is not associated with an area/zone than \code{\link{assignment_column}} is called to assign each observation 
+    #' to a zone. Arguments to identify centroid and assign variable of interest to area/zone are optional and default to NULL.
+    #' @return Returns a plot and map of moran’s I. Output is saved to the Output folder. 
     #' @import ggplot2
     #' @importFrom maps map
     #' @importFrom spdep knn2nb knearneigh nb2listw localmoran moran.test

@@ -2,20 +2,21 @@
 # Add variables from raw data set back into the working data set.
 
 # add_vars_gui
-#' Add removed data variables back into working data set
+#' Add removed variables back into dataset
+#' Add columns that have been removed from the primary dataset back into the primary dataset. 
 #'
-#' @param working_dat Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
-#' @param raw_dat Main raw (unmodified data frame)
-#' @param project Name of project. Parameter is used to generate meaningful table names in FishSET database.
+#' @param working_dat Primary datacontaining information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+#' @param raw_dat Unmodified raw version of the primary dataset. Should be a character specifying a table from the FishSET database containing the string ‘MainDataTable’ and date table was created.
+#' @param project String, name of project. 
 #' @importFrom DBI  dbDisconnect dbConnect dbListTables dbWriteTable 
 #' @import shiny
 #' @export add_vars
-#' @details Opens an interactive table that allows users to select which variables to included by clicking check boxes. 
-#' Data should be loaded into the FishSET database before running this function. 
-#' Select variables that will be used to generate further variables, such as rates or cpue, and variables to be included in models.
+#' @details Opens an interactive table that allows users to select which variables to be added back into the working dataset. \cr
+#' The removed variables are obtained from the \code{raw_dat} and merged into the working data based on a row identifier. The row identifier is created when the variable is removed using the \code{\link{select_vars}} function. The row identifier is used to match the raw data variables to \code{working_dat}.
 #' @examples 
 #' \dontrun{
-#' add_vars_gui(pcodMainDataTable, 'pcodMainDataTable20200410', 'pollock')
+#' select_vars_gui('pcodMainDataTable')
+#' add_vars_gui(pcodMainDataTable, ‘pcodMainDataTable20100101’, ‘pcod’)
 #' }
 
 #Selectbox is column names in raw data that are not in working data

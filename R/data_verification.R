@@ -1,8 +1,9 @@
 #' Check for common data quality issues that may be present in the data set.
 #'
 #' Function tests for common data quality issues.
-#' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
-#' @param project Name of project
+#' @param dat Primary data containing information on hauls or trips. 
+#' Table in FishSET database contains the string 'MainDataTable'.
+#' @param project String, name of project.
 #' @return Statements as to whether data quality issues may exist.
 #' @keywords internal
 #' @importFrom stringi stri_count_regex
@@ -92,16 +93,19 @@ data_verification <- function(dat, project) {
 
 ### Check that all observations are unique
 unique_filter <- function(dat, project, remove = FALSE) {
-    #' Check all observations are unique
+    #' Check rows are unique
     #'
-    #'  Function to return a modified dataframe where non-unique rows have been removed.
+    #' Check for and remove non-unique rows from primary dataset.
     #'
-    #' @param dat Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.
-    #' @param project Name of project.
-    #' @param remove TRUE/FALSE Remove non-unique rows? Defaults to FALSE.
-    #' @details Function to return a modified dataframe where NAs have been removed.
+    #' @param dat Primary data containing information on hauls or trips. 
+    #' Table in FishSET database contains the string 'MainDataTable'.
+    #' @param project Sring, name of project.
+    #' @param remove Logical, if TRUE removes non-unique rows. Defaults to FALSE.
+    #' @details Output is determined by \code{remove}. If \code{remove} is TRUE then 
+    #' non-unique rows are removed. If \code{remove} is FALSE then only a statement is 
+    #' returned regarding the number of rows that are not unique. 
     #' @keywords unique
-    #' @return Returns the modified dataframe
+    #' @return Returns the modified primary dataset with non-unique rows removed if \code{remove} is TRUE. 
     #' @export unique_filter
     #' @examples 
     #' \dontrun{
@@ -150,14 +154,14 @@ unique_filter <- function(dat, project, remove = FALSE) {
 empty_vars_filter <- function(dat, project, remove = FALSE) {
     #' Check variables are not empty
     #'
-    #' Function to return a modified dataframe where empty variables have been removed.
+    #' Check for and remove empty variables 
     #'
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param project Name of project
-    #' @param remove TRUE/FALSE Remove empty variables? Defaults to FALSE.
-    #' @details Function to return a modified dataframe where empty variables have been removed. 
+    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param project String, name of project.
+    #' @param remove Logical, remove empty variables? Defaults to FALSE.
+    #' @details Function checks for empty variables and prints an outcome message to the console. If empty variables are present and \cod{remove} = TRUE then empty variables will be removed from the dataset. 
     #' @keywords empty
-    #' @return Returns the modified dataframe
+    #' @return Returns the dataset with empty variables removed if \code{remove} is TRUE.
     #' @export empty_vars_filter
     #' @examples 
     #' \dontrun{

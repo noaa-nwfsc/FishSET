@@ -3,27 +3,30 @@ getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, la
     #'
     #' Wrapper function to calculate global and local Getis-Ord by discrete area
     #'
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param project Name of project
-    #' @param varofint Numeric variable of interest to test for spatial high/low clustering. 
-    #' @param gridfile Spatial data set. Can be shape file, data frame, or list.
-    #' @param lon.dat Longitude of points from dataset.
-    #' @param lat.dat Latitude of points from dataset.
-    #' @param lon.grid Longitude of points from gridfile.
-    #' @param lat.grid Latitude of points from gridfile.
+    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param project String, name of project.
+    #' @param varofint Numeric variable in \code{dat} to test for spatial high/low clustering. 
+    #' @param gridfile Spatial data containing information on fishery management or regulatory zones.
+    #'  Can be shape file, json, geojson, data frame, or list.
+    #' @param lon.dat Longitude variable in \code{dat}.
+    #' @param lat.dat Latitude variable in \code{dat}.
+    #' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required for csv files. 
+    #' Leave as NULL if \code{gridfile} is a shape or json file.
+    #' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files. 
+    #' Leave as NULL if \code{gridfile} is a shape or json file.
     #' @param cat Variable defining the individual areas or zones.
-    #' @details Calculates degree, within each zone, that high or low values of the varofint cluster in space. 
-    #' Function utilizes the localG and knearneigh functions from the spdep package. All parameters are set to NULL except the varofint and location variables.
-    #' The spatial input is a row-standardized spatial weights matrix for computed nearest neighbor matrix, which is the null setting for the nb2listw function.
-    #' Requires A data frame with area as a factor, the lon/lat centroid for each area ('centroid_lon',
-    #'     'centroidlat'), the path_lon/path_lat outlining each area
-    #'     ('path_lon', 'path_lat'), and the variable of interest ('varofint') or 
-    #'  a map file with lat/lon defining boundaries of area/zones and variable of interest for weighting.
-    #' Also required is the lat/lon defining the center of a zone/area. If the centroid is not included in the map file, 
-    #' then the find_centorid function can be called to calculate the centroid of each zone. If the varible of interest is not
-    #' associated with a area/zone than the assignement_column function can be used to assign each observation to a zone.  
-    #' Parameters to identify centroid and assign variable of interest to area/zone are optional and default to NULL.
-    #' @return moranmap: ggplot2 object; morantable: table of statistics
+    #' @details Calculates degree, within each zone, that high or low values of the \code{varofint} cluster in space. 
+    #' Function utilizes the \code{\link[spdep]{localG}} and \code{\link[spdep]{knearneigh}} functions from the spdep package.
+    #'  The spatial input is a row-standardized spatial weights matrix for computed nearest neighbor matrix, 
+    #'  which is the null setting for the \code{link[spdep]{nb2listw}} function. Requires a data frame with
+    #'   area as a factor, the lon/lat centroid for each area, the lat/lon outlining each area, and the variable of 
+    #'   interest (\code{varofint}) or a map file with lat/lon defining boundaries of area/zones and variable of interest 
+    #'   for weighting. Also required is the lat/lon defining the center of a zone/area. If the centroid is not included in 
+    #'   the map file, then \code{\link{find_centorid}} can be called to calculate the centroid of each zone. If the 
+    #'   variable of interest is not associated with an area/zone than the assignment_column function can be used to 
+    #'   assign each observation to a zone. Arguments to identify centroid and assign variable of interest to area/zone are optional and default to NULL.
+    #' @return Returns a plot and table. Both are saved to the output folder. 
+    #' @alias moranmap: ggplot2 object; morantable: table of statistics
     #' @import ggplot2
     #' @importFrom maps map
     #' @importFrom spdep knn2nb knearneigh nb2listw localG globalG.test
@@ -31,13 +34,9 @@ getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, la
     #' @export
     #' @examples
     #' \dontrun{
-    #' names(datatomap)[1] <- 'path_lon'
-    #' names(datatomap)[2] <- 'path_lat'
-    #' names(datatomap)[3] <- 'centroid_lon'
-    #' names(datatomap)[4] <- 'centroid_lat'
-    #' names(datatomap)[5] <- 'ADFGstat6'
-    #' names(datatomap)[6] <- 'varofint'
-    #' getis_ord_stats(datatomap)
+    #' getis_ord_stats(pcodMainDataTable, project=’pcod’, 
+    #' varofint=‘OFFICIAL_MT_TONS’,gridfile=spatdat, lon.dat=’LonLat_START_LON’, 
+    #' lat.dat = ‘LonLat_START_LAT’, cat=’NMFS_AREA)
     #' }
     #'
     

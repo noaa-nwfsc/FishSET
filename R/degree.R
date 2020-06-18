@@ -1,17 +1,16 @@
 degree <- function(dat, lat = NULL, lon = NULL, latsign = FALSE, lonsign = FALSE, replace = TRUE) {
     #' Check and correct lat/lon format
-    #' @param dat Data table containing latitude and longitude data
-    #' @param lat Name of vector containing latitude data
-    #' @param lon Name of vector containg longitude data
-    #' @param latsign If TRUE, transforms sign from positive to minus or minus to positive
-    #' @param lonsign If TRUE, transforms sign from positive to minus or minus to positive
-    #' @param replace Defaults to TRUE. Set to FALSE if only checking for errors
+    #' @param dat Dataset containing latitude and longitude data
+    #' @param lat Variable containing latitude data.
+    #' @param lon Variable containing longitude data.
+    #' @param latsign Logical, should the sign value of latitude be changed? 
+    #' @param lonsign Logical, should the sign value of longitude be changed?
+    #' @param replace Logical, should \code{lat} and \code{lon} be modified in \code{dat}. Defaults to TRUE. Set to FALSE if only checking for errors.
     #' @export degree
     #' @importFrom OSMscale degree
     #' @importFrom stringr str_replace
-    #' @details Uses the degree function to convert lat long coordinates to decimal degrees.
-    #' @return The original dataframe with the latitudes and longitudes converted to decimal degrees.
-    #' Changing the sign, transforms all values in the variable. 
+    #' @details Uses the degree function to convert latitude and longitude coordinates to decimal degrees. Set \code{replace} to FALSE to first check lat/lon format and sign. FishSET requires latitude and longitude be in decimal degrees.
+    #' @return Returns the primary dataset with the latitudes and longitudes converted to decimal degrees. Changing the sign, transforms all values in the variable.
     #' @examples 
     #' \dontrun{
     #' MainDataTable <- degree(MainDataTable, 'LatLon_START_LAT', 'LatLon_START_LON', 

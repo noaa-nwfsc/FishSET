@@ -1,17 +1,17 @@
-#'Catch by Species
+#' Catch by Species
 #'
-#' Total species catch by period
+#' Creates a table or plot of total species catch by period
 #' 
-#' @param dat Main data frame over which to apply function. Table in FishSET 
-#'   database should contain the string `MainDataTable`.
-#' @param project Name of project.
-#' @param species A variable containing the species catch or a vector
-#'   of species variables.
-#' @param date Variable containing dates to aggregate by.
+#' @param dat Primary data containing information on hauls or trips. 
+#' Table in FishSET database contains the string 'MainDataTable'..
+#' @param project String, name of project.
+#' @param species Variable in \code{dat} containing the species catch 
+#' or a vector of species variables (in pounds).
+#' @param date Variable in \code{dat} containing dates to aggregate by.
 #' @param period Time period to count by. Options include 'year', 'month', 'weeks' 
 #' (weeks in the year),'weekday', 'weekday_abv', 'weekday_num', 'day' (day of the month), 
 #'   and 'day_of_year'.
-#' @param fun Name of function to aggregate by. Defaults to \code{\link[base]{sum}}. 
+#' @param fun String, name of function to aggregate by. Defaults to \code{\link[base]{sum}}. 
 #' @param group Grouping variable names(s). Up to two grouping variables are available for 
 #'   line plots and one for bar plots. For bar plots, if only one species is entered the first 
 #'   group variable is passed to 'fill'. If multiple species are entered, species is passed to 
@@ -32,16 +32,16 @@
 #'   \code{"month"}, or \code{"species"}.  
 #' @param type Plot type, options include \code{"bar"} (the default) and \code{"line"}. 
 #' @param conv Convert catch variable to \code{"tons"}, \code{"metric_tons"}, or 
-#'   by using a function entered as a string. Defaults to \code{FALSE}.
+#'   by using a function entered as a string. Defaults to \code{FALSE}, no conversion.
 #' @param value Whether to calculate raw \code{"count"} or \code{"percent"} of total catch. 
 #' @param position Positioning of bar plot. Options include 'stack', 'dodge', 
 #'   and 'fill'. 
 #' @param combine Whether to combine variables listed in \code{group}. This is passed
 #'   to the "fill" or "color" aesthetic for plots. 
 #' @param scale Scale argument passed to \code{\link{facet_grid}}. Defaults to \code{"fixed"}.
-#' @param output Whether to display \code{"plot"}, \code{"table"}. Defaults 
+#' @param output Output a \code{"plot"} or \code{"table"}. Defaults 
 #'   to both (\code{"tab_plot"}).
-#' @param format_tab How table output should be formated. Options include 'wide' 
+#' @param format_tab How table output should be formatted. Options include 'wide' 
 #'   (the default) and 'long'.
 #' @return  \code{species_catch()} aggregates catch (or percent) 
 #'   by time period using one or more columns of catch data. The data can be filter using 

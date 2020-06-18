@@ -1,22 +1,23 @@
 # create_seasonal_ID
 #' Create fishery season identifier  
+#' 
+#' Creates a fishery season identifier variable
 #'
-#' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
+#' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
 #' @param seasonal.dat Name of table containing date of fishery season(s). Can be pulled from FishSET database.
-#' @param use.location TRUE/FALSE If true, fishery season dates depend on fishery location. Column names containing location must match the two data sets.
-#' @param use.geartype TRUE/FALSE If true, fishery season dates depend on gear type. Column name containing gear type must match the two data sets.
-#' @param sp.col Column containing species names in seasonaldat. 
+#' @param use.location  Logical, should fishery season dates depend on fishery location? Column names containing location in \code{dat} and \code{seasonal.dat} must match.
+#' @param use.geartype Logical, should fishery season dates depend on gear type. Column name containing gear type in \code{dat} and \code{seasonal.dat} must match.
+#' @param sp.col Variable in \code{seasonaldat} containing species names. 
 #' @param target Name of target species. If `target` is NULL, runs through fisheries in order listed in seasonal.dat
 #' @export create_seasonal_ID
-#' @return  The main data frame with variables SeasonID, and seasonID*fishery (`seasonIDChinook`). 
+#' @return  Returns the primary dataset with the variable SeasonID, or a series of variables identifying by the individual fisheries included (seasonID*fishery). 
 #' @importFrom DBI dbConnect
 #' @importFrom RSQLite SQLite
-#' @details Uses a table of fishery season dates to create season ID variables. 
-#' Output is a SeasonID variable and multiple SeasonID*fishery variables.
-#' The seasonID variable is a vector where each row is the fishery season based on dates of the observation. 
-#' If `target` fishery is defined, the function returns SeasonID as vector of the target fishery `target` or `other`.
-#'  If `target` is not defined, then, for each row, SeasonID is the first fishery listed in seasonal.dat for which fishery season date encompasses the dates for that row in the main data table. 
+#' @details Uses a table of fishery season dates to create fishery season identifier variables. Output is a SeasonID variable and/or multiple SeasonID*fishery variables. If fishery season dates vary by location or geartype, then \code{use.location} and \code{use.geartype} should be TRUE. \cr
+#'The function matchers fishery season dates provided in \code{seasonal.dat} to the first date variable in the primary dataset. The seasonID variable is a vector of fisheries whereas the SeasonID*fishery variables are TRUE/FALSE indicating whether the fishery was open on the observed date. \cr
+#' If \code{target} is not defined, then each row of seasonID is defined as the first fishery listed in \code{seasonal.dat} for which fishery season date encompasses the date variable in the primary dataset. If \code{target} fishery is defined, then SeasonID is defined by whether the target fishery is open on the date in the primary dataset or a different fishery. The vector is filled with 'target' or 'other'.\cr 
 #' SeasonID*fishery variables are a TRUE/FALSE seasonID vector for each fishery (labeled by seasonID and fishery) where TRUE indicates the dates for a given row in the main data table fall within the fishery dates for that fishery.
+
 #' @examples 
 #' \dontrun{ 
 #'  pcodMainDataTable <- create_seasonal_ID('pcodMainDataTable', seasonal_dat, use.location = TRUE,  

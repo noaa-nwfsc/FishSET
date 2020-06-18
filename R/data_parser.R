@@ -12,7 +12,7 @@
 read_dat <- function(x, data.type) {
     #' Import data into R
     #' @param x Name and directory of data frame to be read in. For example, `nmfs_manage_simple.shp`.
-    #' @param data.type csv, mat, json, shape, txt, spss, stata, R)
+    #' @param data.type csv, mat, json, shape, txt, spss, stata, R
     #' @importFrom sf read_sf
     #' @importFrom R.matlab readMat
     #' @importFrom jsonlite fromJSON
@@ -46,15 +46,18 @@ read_dat <- function(x, data.type) {
 #Load main data table
 load_data <- function(project, name=NULL){
 #' Load data from FishSET database into working environment
-#' @param project Required parameter. Name of project.
-#' @param name Optional. Name of table in FishSET database. Use this parameter if pulling raw or dated table (not the working table).
+#' @param project String, name of project.
+#' @param name Optional, name of table in FishSET database. Use this argument
+#'  if pulling raw or dated table (not the working table).
 #' @details Loads saved table from the FishSET datatbase. Load the working table or a earlier saved version (raw/data). 
 #' @export
-#' @return Primary data table saved to working environment as project and MainDataTable.
-#' @details Pulls the primary data table from the FishSET database and loads into
-  #' into the working environment as the project and MainDataTable. For example,
-  #' if the project was pollock, then data would be saved to the working enviornment
-  #' as pollockMainDataTable. 
+#' @return Loads the primary dataset to working environment. Data is named as the project and ‘MainDataTable’.
+#' @details 
+#' Loads saved table from the FishSET data base. Load the working table or an earlier saved version (raw/data).
+#' Pulls the primary data table from the FishSET database and loads 
+#' into the working environment as the project and MainDataTable. For example,
+#' if the project was pollock, then data would be saved to the working environment
+#' as 'pollockMainDataTable'. 
 #' @examples 
 #' \dontrun{
 #' load_data('pollock')
@@ -92,9 +95,12 @@ load_data <- function(project, name=NULL){
 #Save modified data to FishSET database
 save_dat <- function(dat, project){
 #' Save modified primary data table to FishSET database
-#' @param dat Name of data frame in working environment to save to FishSET database
-#' @param project Name of project
-#' @details Use function to save modified data to the FishSET database. 
+#' @param dat Name of data frame in working environment to save to FishSET database.
+#' @param project String, name of project.
+#' @details Use function to save modified data to the FishSET database. The primary data is only saved automatically in data upload 
+#' and data check functions. It is therefore, advisable to save the modified data to the database before moving on to modeling functions. 
+#' Users should use primary data in the working environment for assessing data quality issues, modifying the data, and generating new variables. 
+#' Pulling the primary data from the FishSET database on each function without manually saving will result in a loss of changes.  
 #' @importFrom DBI dbWriteTable dbDisconnect
 #' @export  
 #' @examples 
@@ -111,18 +117,19 @@ save_dat <- function(dat, project){
 
 
 fishset_compare <- function(x, y, compare = c(TRUE, FALSE)) {
-    #' Compare uploaded data table to previously saved version of data table
-    #' @param x Updated data frame to be saved
-    #' @param y Previously saved version of data frame
-    #' @param compare TRUE/FALSE Compare new data frame to previously saved data frame before saving data frame `x` to SQLite database.
+    #' Compare loaded data table to previously saved version of data table
+    #' @param x Updated data table to be saved.
+    #' @param y Previously saved version of data table.
+    #' @param compare Logical, if TRUE, compares \code{x} to \code{y} before saving \code{x} to FishSET database.
     #' @export
     #' @importFrom DBI dbConnect dbDisconnect dbListTables
-    #' @details This function is called indirectly by the data import functions (\code{\link{load_maindata}}, \code{\link{load_port}}, \code{\link{load_aux}}, 
+    #' @details This function is called by the data import functions (\code{\link{load_maindata}}, \code{\link{load_port}}, \code{\link{load_aux}}, 
     #' \code{\link{load_grid}}). The function is designed to check for consistency between versions of the same data frame so that the logged functions can be used to rerun the previous analysis on the updated data. 
     #' To use the logged functions to rerun code after data has been updated (i.e., new year of data), the column names, including spelling and capitalization, must match the previous version.
-    #' Set the `compare` parameter to TRUE to compare column names of the new and previously saved data frames. The new data frame will be saved to the SQLite database if column names match.
-    #' If no previous versions of the data frame exist in the SQLite database or the analysis will not be rerun using saved function calls in the log file, set the `compare` parameter to FALSE.
-    #'  No comparison will be made and the new file will be saved to the database.
+    #' Set the \code{compare} argument to TRUE to compare column names of the new and previously saved data tables. 
+    #' The new data tables will be saved to the FishSET database if column names match. Set the \code{compare} argument 
+    #' to FALSE if no previous versions of the data table exist in the FishSET database.
+    #' No comparison will be made and the new file will be saved to the database.
     
     fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
     if (compare == TRUE) {
@@ -155,17 +162,21 @@ fishset_compare <- function(x, y, compare = c(TRUE, FALSE)) {
 
 load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = NULL) {
     #' Load, parse, and save data into FishSET database
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param over_write TRUE/FALSE Save over data table previously saved in FishSET database?
-    #' @param project Name of project. Parameter is used to generate meaningful table names in FishSET database.
-    #' @param compare TRUE/FALSE If TRUE, compares new data frame to previously saved data frame `y`.
-    #' @param y Name of previously saved table in FishSET database. y must be defined if `compare==TRUE`.
+    #' Load, parse, and save primary dataset into FishSET database. 
+    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param over_write Logical, If TRUE, saves data over previously saved data table in the FishSET database.
+    #' @param project String, name of project. 
+    #' @param compare Logical, whether to compare new data frame to previously saved data frame \code{y}.
+    #' @param y Name of previously saved table in FishSET database. \code{y} must be defined if \code{compare} is TRUE.
     #' @importFrom jsonlite toJSON
     #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
-    #' @details Runs the fishset_compare function if `compare` is TRUE.  Then checks the data for common data issues using the \code{\link{data_verification}} function and that latitude and longitude are defined. 
-    #' The index table that contains information for each variable on units, data format, and specialized variable is then generated. Finally, the data sets (main and index tables) are saved 
-    #' in the FishSET database as raw and working tables. In both cases, the table name is the `project` and the table type, `MainDataTable` or `MainDataTableInfo`. Date is also attached to the name for the raw data. 
-    #' The main data is also loaded into the working environment.
+    #' @details Runs the \code{fishset_compare} function if \code{compare}is TRUE, calls the 
+    #'  \code{\link{data_verification}} function to check for common data issues and that latitude 
+    #'  and longitude are defined. The index table that contains information for each variable on units, 
+    #'  data format, and specialized variable is then generated. Finally, the datasets (main and index tables) 
+    #'  are saved in the FishSET database as raw and working tables. In both cases, the table name is the \code{project} 
+    #'  and the table type, 'MainDataTable' or 'MainDataTableInfo'. Date is also attached to the name for the 
+    #'  raw data. The main data is also loaded into the working environment as ‘projectMainDataTable’.
     #' 
     #' @examples 
     #' \dontrun{  
@@ -248,15 +259,17 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
   }
 
 main_mod <- function(dat, x, new.unit = NULL, new.type = NULL, new.class = NULL) {
-    #' Modify the dataindex (MainDataTableInfo) table
-    #' @param dat MainDataTableInfo table. Table in FishSET database should contain the string `MainDataTableInfo`.
+    #' Modify the data index table
+    #' Modify the data index (MainDataTableInfo) table
+    #' @param dat Table containing information on variables in the primary dataset. Table in FishSET database should contain the string 'MainDataTableInfo'.
     #' @param x Name of variable in the MainDataTableInfo table that is to be modified.
-    #' @param new.unit Units. Current units include fathoms, decimal degrees, dollars, lbs, metric tons, min, numeric, percent, WK, 'Y/N', yyyymmdd.
-    #' @param new.type General type. Current categories include Time, Flag, Code, Latitude, Code String, Other Numeric, Code Numeric
-    #' @param new.class New specialized variable category. For example, isCPUE, isLon, isLat, isValue, isZoneArea, isPort.
-    #' @details Modify the units `new.unit`, data format `new.type`, and specialized variable from old category `old.class` to new category `new.class` of the MainDataTableInfo table.
-    #' Updated MainDataTableInfo file is saved to the FishSET database. It is advisable to use the working table and not the raw table as the modifications will automatically be saved over the input table name.
-    #' 
+    #' @param new.unit Units. Categories include fathoms, decimal degrees, dollars, lbs, metric tons, min, numeric, percent, WK, 'Y/N', yyyymmdd.
+    #' @param new.type General type. Categories include Time, Flag, Code, Latitude, Code String, Other Numeric, Code Numeric.
+    #' @param new.class Specialized variable category. Standard categories include: isCPUE, isLon, isLat, isValue, isZoneArea, isPort.
+    #' @details  Modify the units \code{new.unit}, data format \code{new.type}, and specialized variable class \code{new.class} of 
+    #' the MainDataTableInfo table. Updated MainDataTableInfo file is saved to the FishSET database. It is advisable to use the working 
+    #' table and not the raw table as the modifications will automatically be saved over the input table name.
+    #'  
     #' @examples 
     #' \dontrun{  
     #' main_mod(dataset='pollockMainDataTableInfo01012011', x='DISEMBARKED_PORT', 
@@ -305,12 +318,13 @@ main_mod <- function(dat, x, new.unit = NULL, new.type = NULL, new.class = NULL)
 
 load_port <- function(dat, port_name, over_write = TRUE, project = NULL, compare = FALSE, y = NULL) {
     #' Load, parse, and save port data to FishSET database
-    #' @param dat Data frame to be saved to FishSET database.
-    #' @param port_name Column name or number containing port names. Names should match port names in main data set.
-    #' @param over_write TRUE/FALSE Save over data table previously saved in FishSET database?
-    #' @param project Name of project. Parameter is used to generate meaningful table names in FishSET database.
-    #' @param compare TRUE/FALSE If TRUE, compare new data frame to previously saved data frame `y`.
-    #' @param y Name of previously saved table in fishset_db database. y must be defined if `compare==TRUE`.
+    #' the primary dataset, and the latitude and longitude of the ports.
+    #' @param dat Dataset containing port data. At a minimum, must include three columns, the port names, and the latitude and longitude of ports.
+    #' @param port_name Variale containing port names. Names should match port names in primary dataset.
+    #' @param over_write Logical, if TRUE, saves over data table previously saved in FishSET database.
+    #' @param project String, name of project.
+    #' @param compare Logical, should new data be compared to previously saved data frame \code{y}.
+    #' @param y Name of previously saved table in FishSET database. \code{y} must be defined if \code{compare} is TRUE.
     #' @importFrom jsonlite toJSON
     #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
     #' @details Runs a series of checks on the port data. If checks pass, runs the fishset_compare function and saves the new data frame to the FishSET database.  
@@ -374,19 +388,27 @@ load_port <- function(dat, port_name, over_write = TRUE, project = NULL, compare
 
 load_aux <- function(dat, x, over_write = TRUE, project = NULL) {
     #' Load, parse, and save auxiliary data to FishSET database
-    #' @param dat Main data frame. Table in FishSET database should contain the string `MainDataTable`.
+    #' Auxiliary data is additional data that connects the primay dataset. 
+    #' Function pulls the data, parses it, and then and saves the data to FishSET database.
+    #' @param dat Primary data containing information on hauls or trips. 
+    #' Table in FishSET database contains the string 'MainDataTable'.
     #' @param x Name of auxiliary data frame to be saved.
-    #' @param over_write TRUE/FALSE Save over previously saved file or not.
-    #' @param project Name of project for attaching to name of the table.
+    #' @param over_write Logical, If TRUE, saves data over previously 
+    #' saved data table in the FishSET database.
+    #' @param project String, name of project.
     #' @importFrom jsonlite toJSON
     #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
-    #' @details Auxiliary data is any additional data required beyond the main data and the port data. Auxiliary data can be anything you want to merge with the main data frame (ex. prices by date, vessel characteristics, or fishery season).
-    #' The auxiliary data does not have to be at a haul or trip level but must contain a variable to connect the auxiliary data to the main data.
-    #' The function checks that at least one column name of the auxiliary data matches a column name in the main data table.  Further checks are run using the data_verification_call function before saving the new data frame to the FishSET database.
-    #' The data is saved in the FishSET database as the raw data and the working data. In both cases, the table name is the `project` and the file name `x`. Date is also to the name for the raw data. 
+    #' @details Auxiliary data is any additional data required beyond the primary data and the port data. 
+    #' Auxiliary data can be any data than can be merged with the primary dataset (ex. prices by date, vessel 
+    #' characteristics, or fishery season). The auxiliary data does not have to be at a haul or trip level 
+    #' but must contain a variable to connect the auxiliary data to the primary dataset. The function checks
+    #'  that at least one column name of the auxiliary data matches a column name in the primary dataset. Further 
+    #'  checks are run using the \code{\link{data_verification_call}} function before saving the new data frame to 
+    #'  the FishSET database. The data is saved in the FishSET database as the raw data and the working data. In 
+    #'  both cases, the table name is the \code{project} and the file name \code{x}. Date is also added to the name for the raw data.
     #' @examples 
     #' \dontrun{  
-    #' load_aux(dataset='pcodMainDataTable', x=FisherySeason, over_write=TRUE, project='pcod') 
+    #' load_aux(dat=pcodMainDataTable, x=FisherySeason, over_write=TRUE, project='pcod') 
     #' }
     
     # Call in datasets
@@ -434,13 +456,19 @@ load_aux <- function(dat, x, over_write = TRUE, project = NULL) {
 
 load_grid <- function(dat, x, over_write = TRUE, project = NULL) {
     #' Load, parse, and save gridded data to FishSET database
-    #' @param dat Main data frame. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param x Name of gridded data frame to be saved
-    #' @param over_write TRUE/FALSE Save over previously saved file or not.
-    #' @param project Name of project for attaching to name of the table.
-    #' @details Grid data is an optional data frame that contains a variable that varies by the map grid (ex. sea surface temperature, wind speed). It can also vary by a second dimension (e.g., date/time). Both dimensions in the gridded data file need to be variables included in the main data frame. 
-    #' The grid locations (zones) must define the columns and the optional second dimension defines the rows. The row variable must have the exact name as the variable 
-    #' in the main data frame that it will be linked to. The data is saved in the FishSET database as the raw data and the working data. In both cases, the table name is the `project` and the file name `x`. Date is attached to the name for the raw data. 
+    #' Gridded data is data that varies by two dimensions. Column names must be zone names. Load, parse, and save gridded data to FishSET database
+    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param x Name of gridded data frame to be saved.
+    #' @param over_write Logical, If TRUE, saves dat over previously saved data table in the FishSET database.
+    #' @param project String, name of project.
+    #' @details Grid data is an optional data frame that contains a variable that varies by the map grid (ex. 
+    #' sea surface temperature, wind speed). Data can also vary by a second dimension (e.g., date/time). Both 
+    #' dimensions in the gridded data file need to be variables included in the primary dataset. 
+    #' The grid locations (zones) must define the columns and the optional second dimension defines the rows. 
+    #' The row variable must have the exact name as the variable 
+    #' in the main data frame that it will be linked to. The data is saved in the FishSET database as the raw 
+    #' data and the working data. In both cases, the table name is the \code{project} and the file name \code{x}. 
+    #' Date is attached to the name for the raw data. 
     #' @examples 
     #' \dontrun{  
     #' load_grid(dataset='pcodMainDataTable', x=SeaSurfaceTemp, over_write=TRUE, project='pcod') 
@@ -485,12 +513,14 @@ load_grid <- function(dat, x, over_write = TRUE, project = NULL) {
 }
 
 dataindex_update <- function(dat, dataindex) {
-    #' Automate updating dataindex (MainDataTableInfo) table after modifying the main data table
-    #' @param  dat Main data frame. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param dataindex Name dataindex file should be saved as in database. Table name should exist in the FishSET database. Name must be in quotes.
+    #' Automate updating MainDataTableInfo 
+    #' Automate updating the dataindex (MainDataTableInfo) table saved to the FishSET database after modifying the primary dataset. Function should be run after variables have been added or removed from the primary dataset. 
+    #' 
+    #' @param  dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param dataindex String, dataindex table name in the FishSET database. Table name is usually the project and ‘MainDataTableInfo’. Name must be in quotes.
     #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
     #' @details The MainDataTableInfo table is first created when the MainDataTable is loaded and saved to the FishSET database. However, this table may not match the variables in 
-    #' the main data table after the FishSET variable creation functions have been run. It may be necessary to update the MainDataTableInfo table in the FishSET database. 
+    #' \code{dat} after the FishSET variable creation functions have been run. It may be necessary to update the MainDataTableInfo table in the FishSET database. 
     #' Running this function adds information on variables created using the FishSET data creation functions. 
     #' @examples
     #' \dontrun{  
