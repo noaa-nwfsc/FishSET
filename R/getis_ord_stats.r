@@ -26,7 +26,7 @@ getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, la
     #'   variable of interest is not associated with an area/zone than the assignment_column function can be used to 
     #'   assign each observation to a zone. Arguments to identify centroid and assign variable of interest to area/zone are optional and default to NULL.
     #' @return Returns a plot and table. Both are saved to the output folder. 
-    #' @alias moranmap: ggplot2 object; morantable: table of statistics
+    #' @aliases  moranmap: ggplot2 object; morantable: table of statistics
     #' @import ggplot2
     #' @importFrom maps map
     #' @importFrom spdep knn2nb knearneigh nb2listw localG globalG.test

@@ -2,26 +2,59 @@
 #'
 #' Required step. Creates a list containing information on how alternative fishing choices should be defined.  Output is called by \code{\link{create_model_design}}. See function details for more information on output. Run this function before running models.  Output is saved to the FishSET database. 
 #'
-#' @param dat  Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
-#' @param gridfile Spatial data containing information on fishery management or regulatory zones. Shape, json, geojson, and csv formats are supported. \code{gridfile} should be NULL if \code{cat} is a variable in the primary dataset.
+#' @param dat  Main data frame containing data on hauls or trips. 
+#' Table in FishSET database should contain the string `MainDataTable`.
+#' @param gridfile Spatial data containing information on fishery management or regulatory zones. 
+#' Shape, json, geojson, and csv formats are supported. \code{gridfile} should be NULL if \code{cat} 
+#' is a variable in the primary dataset.
 # @param case Centroid='Centroid of Zonal Assignment', Port, Other
-#' @param min.haul Numeric, minimum number of hauls. Zones with fewer hauls than the \code{min.haul} value will not be included in model data.
-#' @param hull.polygon Used in \code{\link{assignment_column}} function. Creates polygon using convex hull method. Required if zonal assignments for observations in \code{dat} should be identified and \code{gridfile} is not NULL.
-#' @param alt_var String, identifies how to find lat/lon for starting point (must have a lat/lon associated with it). \code{alt_var} maybe the ‘centroid of zonal assignment’, a port variable or a lat/lon variable in the primary dataset. If a port variable is defined, a corresponding port table must exist which contains the port name and the latitude and longitude of each port. 
-#' @param occasion Identifies how to find lat/lon for alternative choices. Occasion maybe the ‘centroid of zonal assignment’, a port variable or a lat/lon variable in the primary dataset. If a port variable is defined, a corresponding port table must exist which contains the port name and the latitude and longitude of each port.
-#' @param dist.unit String, how distance measure should be returned. Choices are ’meters’ or ‘M’, ‘kilometers’ or ‘KM’, or ‘miles’. Defaults to miles.
-#' @param lon.dat Longitude variable from \code{dat}. Required if zonal assignments for observations in \code{dat} should be identified and \code{gridfile} is not NULL.
-#' @param lat.dat Latitude variable from \code{dat}. Required if zonal assignments for observations in \code{dat} should be identified and \code{gridfile} is not NULL.
-#' @param cat Variable in either code\{dat} or \code{gridfile} that identifies the individual areas or zones. If \code{cat} is a variable of assigned zones for each occurrence records, set \code{gridfile} to NULL. Otherwise, if \code{gridfile} is class sf, `cat` should be name of list containing information on zones. 
-#' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file, Required if zonal assignments for observations in \code{dat} should be identified and \code{gridfile} is not NULL.
-#' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file, Required if zonal assignments for observations in \code{dat} should be identified and \code{gridfile} is not NULL.
-#' @param weight.var Variable for calculating weighted centroids. Required if zonal assignments for observations in \code{dat} should be identified and \code{gridfile} is not NULL.
-#' @param closest.pt Logical, if true, zone ID identified as the closest polygon to the point. Called in \code{\link{assignment_column}}. Required if zonal assignments for observations in \code{dat} should be identified and \code{gridfile} is not NULL.
+#' @param min.haul Numeric, minimum number of hauls. Zones with fewer hauls than the \code{min.haul} 
+#' value will not be included in model data.
+#' @param hull.polygon Used in \code{\link{assignment_column}} function. Creates polygon using convex 
+#' hull method. Required if zonal assignments for observations in \code{dat} should be identified 
+#' and \code{gridfile} is not NULL.
+#' @param alt_var String, identifies how to find lat/lon for starting point (must have a lat/lon associated with it). 
+#' \code{alt_var} maybe the ‘centroid of zonal assignment’, a port variable or a lat/lon variable in the primary dataset. 
+#' If a port variable is defined, a corresponding port table must exist which contains the port name and the latitude and 
+#' longitude of each port. 
+#' @param occasion Identifies how to find lat/lon for alternative choices. Occasion maybe the ‘centroid of zonal assignment’,
+#'  a port variable or a lat/lon variable in the primary dataset. If a port variable is defined, a corresponding port table
+#'   must exist which contains the port name and the latitude and longitude of each port.
+#' @param dist.unit String, how distance measure should be returned. 
+#' Choices are 'meters’ or ‘M’, ‘kilometers’ or ‘KM’, or ‘miles’. Defaults to miles.
+#' @param lon.dat Longitude variable from \code{dat}. Required if zonal assignments for observations in \code{dat} 
+#' should be identified and \code{gridfile} is not NULL.
+#' @param lat.dat Latitude variable from \code{dat}. Required if zonal assignments for observations in \code{dat} 
+#' should be identified and \code{gridfile} is not NULL.
+#' @param cat Variable in either \code{dat} or \code{gridfile} that identifies the individual areas or zones.
+#'  If \code{cat} is a variable of assigned zones for each occurrence records, set \code{gridfile} to NULL. 
+#'  Otherwise, if \code{gridfile} is class sf, `cat` should be name of list containing information on zones. 
+#' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required for csv files.
+#'  Leave as NULL if \code{gridfile} is a shape or json file, Required if zonal assignments for observations 
+#'  in \code{dat} should be identified and \code{gridfile} is not NULL.
+#' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files. 
+#' Leave as NULL if \code{gridfile} is a shape or json file, Required if zonal assignments for observations 
+#' in \code{dat} should be identified and \code{gridfile} is not NULL.
+#' @param weight.var Variable for calculating weighted centroids. Required if zonal assignments for observations 
+#' in \code{dat} should be identified and \code{gridfile} is not NULL.
+#' @param closest.pt Logical, if true, zone ID identified as the closest polygon to the point. 
+#' Called in \code{\link{assignment_column}}. Required if zonal assignments for observations in \code{dat} 
+#' should be identified and \code{gridfile} is not NULL.
 #' @param project String, name of project.  
-#' @param griddedDat Optional data frame. Data must contain a variable that varies by the spatial dataset \code{gridfile}. First variable in \code{griddedDat} should match a column in \code{dat}. The remaining columns should match the zone IDs in the \code{gridfile}.
+#' @param griddedDat Optional data frame. Data must contain a variable that varies by the spatial dataset \code{gridfile}.
+#'  First variable in \code{griddedDat} should match a column in \code{dat}. The remaining columns should match the 
+#'  zone IDs in the \code{gridfile}.
 #' @importFrom DBI dbExecute
 #' @export create_alternative_choice
-#' @details Functions returns alternative choice matrix and saves the output to the FishSET database. The matrix is pulled by \code{\link{create_expectations}}, \code{link{make_model_design}}, and the model run function (\code{\link{discretefish_subroutine}}). Function assigns each observation to a zone and identifies which zones are to be included based on a minimum number of hauls per trip within a zone. Functions that call the alternative choice matrix will exclude observations in zones that do meet the minimum haul criteria. Function defines how start and end points for calculating the distance matrix in \code{link{make_model_design}}. Note that if the alternative choice matrix is modified, the \code{\link{create_expectations}} and \code{link{make_model_design}} functions should also be updated before rerunning the model run function (\code{\link{discretefish_subroutine}}).
+#' @details Functions returns alternative choice matrix and saves the output to the FishSET database. The matrix is 
+#' pulled by \code{\link{create_expectations}}, \code{\link{make_model_design}}, and the model run 
+#' function (\code{\link{discretefish_subroutine}}). Function assigns each observation to a zone and identifies 
+#' which zones are to be included based on a minimum number of hauls per trip within a zone. Functions that call the 
+#' alternative choice matrix will exclude observations in zones that do meet the minimum haul criteria. Function defines 
+#' how start and end points for calculating the distance matrix in \code{\link{make_model_design}}. 
+#' Note that if the alternative choice matrix is modified, the \code{\link{create_expectations}} 
+#' and \code{\link{make_model_design}} functions should also be updated before rerunning the model run 
+#' function (\code{\link{discretefish_subroutine}}).
 #' @return Saves the alternative choice matrix to the FishSET database as a list.
 #' Output includes: \cr
 #' \tabular{rlll}{                                                                                                                                                                                                           
