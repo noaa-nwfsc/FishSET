@@ -496,7 +496,7 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
     #' and is best used in a non-interactive session. Both versions of the distance between function require that the start 
     #' and end points be different vectors. If the start or ending points are from a port then \code{PortTable} must be specified 
     #' to obtain lat/lons. If the start or ending points are the center of a fishing zone or area then \code{gridfile}, \code{lon.dat}, 
-    #' \code{lat.dat}, \code{cat}, \code{lon.grid}, and \code{lat.grid'} must be specified to obtain latitude and longitude.
+    #' \code{lat.dat}, \code{cat}, \code{lon.grid}, and \code{lat.grid} must be specified to obtain latitude and longitude.
     #' @details
     #' Additional arguments. \cr
     #' Further arguments are required to identify the latitude and longitude of the starting or ending location if \code{start} or \code{end} 
@@ -504,7 +504,7 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
     #' Prompts will appear asking for required arguments. \cr\cr
     #' Port arguments required: 
     #' \tabular{rlll}{
-    #' portTable: \tab Port table from FishSET database. Required if start or end is a port vector. \cr
+    #' portTable: \tab Port table from FishSET database. Required if start or end is a port vector. 
     #' }
     #' \cr\cr
     #' Centroids arguments required:
@@ -514,7 +514,7 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
     #' lat.dat: \tab Latitude variable from \code{dat}. \cr
     #' lon.grid: \tab Variable or list from \code{gridfile} containing longitude data. Required if start or end is centroid. Leave as NULL if \code{gridfile} is a shape or json file. \cr 
     #' lat.grid: \tab Variable or list from \code{gridfile} containing latitude data. Required if start or end is centroid. Leave as NULL if \code{gridfile} is a shape or json file. \cr
-    #' cat: \tab Variable or list in \code{gridfile} that identifies the individual areas or zones. If \code{gridfile} is class sf, \code{cat} should be the name of list containing information on zones. \cr 
+    #' cat: \tab Variable or list in \code{gridfile} that identifies the individual areas or zones. If \code{gridfile} is class sf, \code{cat} should be the name of list containing information on zones.
     #' }
     #' @examples 
     #' \dontrun{
