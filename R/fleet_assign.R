@@ -8,17 +8,16 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
     #'   assign observations to fleets. A table can be created with the \code{cond} and \code{fleet_val} 
     #'   arguments, or by uploading an existing table that matches the format requirements. See 'Details' 
     #'   below for examples of how table can be formatted.
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should 
-    #'   contain the string `MainDataTable`.
-    #' @param project Name of project. 
+    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param project String, name of project. 
     #' @param cond String; use a vector if creating a single condition column or a
-    #'   list if creating multiple condtion columns. Must be used with the \code{fleet_val} argument. 
+    #'   list if creating multiple condition columns. Must be used with the \code{fleet_val} argument. 
     #'   Each expression should be in quotes (double or single) with nested quotes indicated
     #'   with escaped quotes (\') or with the opposite quote used to contain the expression. For example,
     #'   'species == 'cod'' and 'species == \'cod\'' are both valid. 
     #' @param fleet_val String; a vector of fleet names to be assigned. Must be used with the
     #'   \code{cond} argument. 
-    #' @param table A dataframe that has at least one condition column and one fleet column. See
+    #' @param table A data frame that has at least one condition column and one fleet column. See
     #'   'Details' for table formatting. 
     #' @param save Logical; whether to save fleet_table to the FishSET database. Defaults to TRUE.
     #'   Tables are saved in the format of 'projectFleetTable'. If a table with the same name exists 
@@ -26,7 +25,7 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
     #' @importFrom DBI dbConnect dbWriteTable dbDisconnect
     #' @importFrom RSQLite SQLite
     #' @export fleet_table
-    #' @return A table of fleet conditions that is saved to the FishSET database with the name 
+    #' @return Returns a table of fleet conditions that is saved to the FishSET database with the name 
     #'   'projectFleetTable'. 
     #' @details 
     #'   Below is a simple example of a fleet table. For a fleet table to be created, it must contain 
@@ -180,16 +179,14 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
 
 
 fleet_assign <- function(dat, project, fleet_tab, overlap = FALSE, format_tab = "long") {
-    #' Create fleet vector based on stored fleet expressions
+    #' Create fleet variable based on stored fleet expressions
+    #' 
+    #' Creates a fleet variable using a fleet table from the FishSET database.
     #'
-    #'
-    #' @description \code{fleet_assign} creates a fleet variable using a fleet table from
-    #'   the FishSET database. 
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should 
-    #'   contain the string `MainDataTable`.
-    #' @param project Name of project.
-    #' @param fleet_tab Name of the fleet table stored in FIshSET database. Should contain the
-    #'   the string `FleetTable`. 
+    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param project String, name of project.
+    #' @param fleet_tab String, name of the fleet table stored in FishSET database. Should contain the
+    #'    string `FleetTable`. 
     #' @param overlap Logical; whether overlapping fleet assignments are allowed. Defaults to
     #'   FALSE. 
     #' @param format_tab String; 'long' outputs a single 'fleet' column. If overlap = TRUE, 
@@ -199,7 +196,7 @@ fleet_assign <- function(dat, project, fleet_tab, overlap = FALSE, format_tab = 
     #' @importFrom RSQLite SQLite
     #' @importFrom reshape2 melt
     #' @export fleet_assign
-    #' @return The main dataframe with added fleet column(s).
+    #' @return Returns the primary dataset with added fleet variable(s).
     #' @examples 
     #' \dontrun{
     #' fleet_assign('MainDataTable', 'myProject', fleet_tab = 'myProjectFleetTable', overlap = TRUE)

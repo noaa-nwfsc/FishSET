@@ -80,10 +80,11 @@ medium_expectations <- function(dat, project, catch, price, defineGroup, temp.va
     # daily time line
     tiDataFloor <- lubridate::floor_date(as.Date(tiData), unit = "day")  # assume, we are talking day of for time
     tLine <- sort(unique(tiDataFloor))  #min(tiDataFloor):max(tiDataFloor)
+    tLine <- data.frame(as.Date(min(tLine):max(tLine), origin='1970-01-01'))
   } else if (temporal == 'sequential') {
     # case u1 # observation time line
     tiDataFloor <- tiData  # just keeping things consistent
-    tLine <- data.frame(unique(tiData))  #unique(tiData) 
+    tLine <- data.frame(sort(unique(tiData)))  #unique(tiData) 
   } else {
     tiDataFloor <- lubridate::floor_date(as.Date(tiData), unit = "day")  # assume, we are talking day of for time
     tLine <- sort(unique(tiDataFloor))  #min(tiDataFloor):max(tiDataFloor)

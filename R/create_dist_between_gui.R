@@ -1,35 +1,31 @@
 
 
 
-#' Create distance between points vector
+#' Create distance between points variable - non-interactive version
 create_dist_between_for_gui <- function(dat, start, end, units, name = 'DistBetwen', portTable = NULL, gridfile = NULL, 
                                         lon.dat = NULL, lat.dat = NULL, cat = NULL, lon.grid = NULL, lat.grid = NULL) {
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param start  Starting location. Should be a port, lat/long location, or the centroid of zonal assignment. 
-    #' @param end  Ending location. Should be a port, lat/long location, or the centroid of the fishing zone or area. 
-    #' @param units Unit of distance (miles, kilometers)
-    #' @param portTable Data table containing port data
-    #' @param gridfile Grid file
-    #' @param lon.dat Variable containing longitude from main dataset
-    #' @param lat.dat Variable containing latitude from main dataset
-    #' @param name Name of new variable. Defaults to `DistBetween`.
-    #' @param lon.grid Variable containing longitude from main grid file
-    #' @param lat.grid Variable containing latitude from main grid file
-    #' @param cat Variable in grid file designating column containing zones or areas.
-    #' @return Main data set with distance between points variable added. 
+    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param start Starting location. Should be a port, lat/lon location, or the centroid of fishing zone or area. If port is desired, start should be the column name in the \code{dat} containing the port names. Latitude and longitude for the port are extracted from the port table. If a lat, lon location is desired then start should bea character string of column names from the primary dataset. The order must be lon, lat. If the centroidof the fishing zone or area is to be used then start should be 'centroid' and \code{\link{find_centroid}} and \code{\link{assignment_column}} will be called to identify the latitude and longitude.
+    #' @param end Ending location. Should be a port, lat/lon location, or the centroid of the fishing zone or area. If port is desired, end should be the column name in the \code{dat} containing the port names. Latitude and longitude for the port are extracted from the port table. If a lat, long location is desired then end should be a character string of column names specifying first longitude then latitude. If the centroid of the fishing zone or area is to be used then end should be 'centroid' and \code{\link{find_centroid}} and \code{\link{assignment_column}} will be called to identify the latitude and longitude. 
+    #' @param units Unit of distance (miles, kilometers).
+    #' @param portTable Data table containing port data. Required if \code{start} or \code{end} are a vector from the \code{dat} containing port names.
+    #' @param gridfile Spatial data containing information on fishery management or regulatory zones. Shape, json, geojson, and csv formats are supported. Required if \code{start} or \code{end} are ‘centroid’.
+    #' @param lon.dat Longitude variable from \code{dat}. Required if \code{start} or \code{end} are ‘centroid’.
+    #' @param lat.dat Latitude variable from \code{dat}. Required if \code{start} or \code{end} are ‘centroid’.
+    #' @param name String, name of new variable. Defaults to `DistBetween`.
+    #' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file, Required if \code{start} or \code{end} are ‘centroid’.
+    #' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file, Required if \code{start} or \code{end} are ‘centroid’.
+    #' @param cat Variable or list in \code{gridfile} that identifies the individual areas or zones. If \code{gridfile} is class sf, \code{cat} should be name of list containing information on zones. Required if \code{start} or \code{end} are ‘centroid’.
+    #' @return Primary dataset with distance between points variable added. 
     #' @export
     #' @importFrom geosphere distGeo midPoint
     #' @importFrom jsonlite  toJSON
-    #' @description   Creates a vector of distance between two points. There are two versions of this function. 
-    #' The difference between the two versions is how additional parameters specific to start and end locations are added. 
-    #' This version requires all necessary additional parameters to be specified before running and is
-    #' best used in a non-interactive session. 
-    #' The `create_dist_between` function requires only five parameters to be specified before running. Additional necessary parameters are
-    #' added through prompts. This function is designed for an interactive session. 
-    #' Both versions of the distance between function requires that the start and end points be different vectors. 
-    #' If the start or ending points are from a port then `PortTable` must be specified to obtain lat/lons.
-    #' If the start or ending points are the center of a fishing zone or area, `gridfile`,`lon.dat`, `lat.dat`, `cat`, `lon.grid`, and `lat.grid` 
-    #' must be specified to obtain lat/lons.
+    #' @description Adds distance between two points to the primary dataset. There are two versions of this function. The difference between the two versions is how additional arguments specific to start and end locations are added. This 
+    #' version requires all necessary arguments to be specified before running and is best used in a non-interactive session.
+    #' The \code{create_distance_between} version requires only five arguments to be specified before running. Additional arguments 
+    #' specific to identifying the lat/long of start or end points are added through prompts. This function is designed for an 
+    #' interactive session. Both versions of the distance between function require that the start and end points be different vectors. 
+    #' If the start or ending points are from a port then \code{PortTable} must be specified to obtain lat/lons. If the start or ending points are the center of a fishing zone or area then \code{gridfile}, \code{lon.dat}, \code{lat.dat}, \code{cat}, \code{lon.grid}, and \code{lat.grid} must be specified to obtain latitude and longitude.
     
     
     # Call in datasets

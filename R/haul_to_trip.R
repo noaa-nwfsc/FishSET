@@ -1,16 +1,19 @@
 #' Collapse data frame from haul to trip
 #'
-#' @param dat Data frame containing haul level data. In the FishSET database, the table will contain the phrase `MainDataTable`
-#' @param project Name of project
-#' @param fun.time Numeric function defining how to collapse temporal data. For example, min, mean, max. Cannot be sum for temporal variables.
-#' @param fun.numeric Numeric function defining how to collapse numeric or temporal data. For example, min, mean, max, sum. Defaults to mean.
+#' @param dat Primary data containing information on hauls or trips. 
+#' Table in FishSET database contains the string 'MainDataTable'.
+#' @param project String, name of project.
+#' @param fun.time Hw to collapse temporal data. For example, min, mean, max. Cannot be sum for temporal variables.
+#' @param fun.numeric How to collapse numeric or temporal data. For example, min, mean, max, sum. Defaults to mean.
 #' @param ... Column(s) that identify the individual trip.
 #' @export haul_to_trip
-#' @return Data frame with each row representing a trip or haul
-#' @details Collapses the main data table from haul to trip level. Requires the MainDataTableInfo table associated with the main data table. The MainDataTableInfo table is first updated
-#' using the dataindex_update function. Unique trips are defined based on selected column(s). For example, landing permit number and disembarked port.
-#'  This id column is used to collapse the data to trip level. Users can define how time and numeric variables with multiple observations for a trip are collapsed.
-#' For instance, the mean value of the numeric observations. For non-numeric and non-time variables, the first observation is used.
+#' @return Returns the primary dataset where each row is a trip.
+#' @details Collapses primary dataset from haul to trip level. Requires the MainDataTableInfo 
+#' table associated with the primary dataset. Unique trips are defined based on selected column(s). 
+#' For example, landing permit number and disembarked port. This id column is used to collapse the 
+#' data to trip level. \code{fun.numeric} and \code{fun.time} how multiple observations for a trip 
+#' are collapsed. For variables that are not numeric or dates, the first observation is used. The 
+#' MainDataTableInfo table is updated using the \code{\link{dataindex_update}} function.
 #' 
 #' @examples
 #' \dontrun{

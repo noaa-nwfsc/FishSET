@@ -1,7 +1,7 @@
 #' Log user-created functions or models
 #'
-#' @param x Name of function
-#' @details Logs names of the function, parameters in function, and function call in the log file. Use this function to log user-defined likelihood functions.
+#' @param x Name of function.
+#' @details  Logs function name, arguments, and, call. Use this function to log user-defined likelihood functions.
 #' @export log_func_model
 #' @examples 
 #' \dontrun{

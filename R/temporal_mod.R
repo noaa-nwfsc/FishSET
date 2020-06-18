@@ -1,14 +1,15 @@
-#'  Transform units of a date variable
-#'
-#' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-#' @param x Time variable to modify 
-#' @param define.format Format of temporal data. Format can be user-defined or from pre-defined choices. 
-#' @param name Name of created variables. Defaults to `TempMod`.
+#'  Transform units of date variables
+#' Creates a new temporal variable by extraciting temporal unit, such as year, month, or day from a date variable. 
+#' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+#' @param x Time variable to modify from \code{dat}.
+#' @param define.format Format of temporal data. Format can be user-defined or from pre-defined choices.  Format follows as.Date format. 
+#' See Details for more information.  
+#' @param name String, name of created variables. Defaults to `TempMod`.
 #' @keywords Date as.Date
-#' @return Variable with modified time units
-#' @details Converts a date variable to desired units using \code{\link[base]{as.Date}}. The FishSET date_parse function is 
-#' also called to ensure the date variable is in a format that can be used by the \code{\link[base]{as.Date}} function.
-#'  `define.format` defines the format that the variable should take on. Examples include `\%Y\%m\%d`, `\%Y-\%m-\%d \%H:\%M:\%S`. Users can define their own format or use one of the predefined ones.
+#' @return Primary dataset with new variable added.
+#' @details Converts a date variable to desired units using \code{\link[base]{as.Date}}. \code{\link{date_parse}} is 
+#' also called to ensure the date variable is in an acceptable format for \code{\link[base]{as.Date}}.
+#'  \code{define.format} defines the format that the variable should take on. Examples include `\%Y\%m\%d`, `\%Y-\%m-\%d \%H:\%M:\%S`. Users can define their own format or use one of the predefined ones.
 
 #' \itemize{
 #' Predefined formats
@@ -22,8 +23,8 @@
 #' @export temporal_mod
 #' @examples  
 #' \dontrun{
-#' Date_Landed_YMD <- temporal_mod(MainDataTable, 'DATE_LANDED', define.format = '%Y%m%d') 
-#' Date_Landed_year <- temporal_mod(MainDataTable, 'DATE_LANDED', define.format = 'year')
+#' pcodMainDataTable <- temporal_mod(pcodMainDataTable, 'DATE_LANDED', define.format = '%Y%m%d') 
+#' pcodMainDataTable <- temporal_mod(pcodMainDataTable, 'DATE_LANDED', define.format = 'year')
 #' }
 
 

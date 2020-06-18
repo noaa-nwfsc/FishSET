@@ -1,13 +1,13 @@
-#' View summary statistics for all variables in data table 
-#'
-#' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-#' @param project Name of project.
-#' @param x Optional variable to apply function over.
+#' View summary statistics  
+#' View summary statistics in table format for all variables in primary dataset.
+#' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+#' @param project String, name of project.
+#' @param x Optional. Variable in \code{dat} to apply function over. If not defined, summary stats are displayed for all columns in the dataset.
 #' @param project Name of project
 #' @keywords summary statistics
 #' @export summary_stats
-#' @details Prints summary statistics for each variable in the data set. If `x` is specified, summary stats will be returned only
-#' for that variable. Function is called in the \code{\link{data_check}} function.
+#' @details Prints summary statistics for each variable in the data set. If \code{x} is specified, summary stats will be returned only for that variable. 
+#' Function is called in the \code{\link{data_check}} function.
 #' @examples
 #' \dontrun{
 #' summary_stats('pcodMainDataTable', x='')

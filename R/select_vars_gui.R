@@ -2,18 +2,22 @@
 # Select which variables to include in the further analyses and modeling.
 
 # select_vars
-#' Interactive app to select variables to include in main data table
-#'
-#' @param dat Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
-#' @param project Name of project. Parameter is used to generate meaningful table names in FishSET database.
+#' Interactive app to select variables to include/exclude in primary dataset
+#' Opens an R Shiny web application. With the application select on 
+#' variables in the primary dataset that should be retained. 
+#' @param dat Primary data containing information on hauls or trips. 
+#' Table in FishSET database contains the string 'MainDataTable'.
+#' @param project String, name of project. 
 #' @importFrom DBI  dbDisconnect dbConnect dbListTables dbWriteTable 
 #' @import shiny
 #' @export select_vars
-#' @details Opens an interactive table that allows uses to select which variables to included by clicking check boxes. 
-#' Data should be loaded into the FishSET database before running this function. Select variables that will be used to generate further variables, such as rates or cpue, and variables to be included in models.
+#' @details Opens an interactive table that allows uses to select which variables to be included by clicking check boxes. 
+#' Data should be loaded into the FishSET database before running this function. Select variables that will be used to 
+#' generate further variables, such as rates or cpue, and variables to be included in models.
+#' Removed variables can be added back into the dataset at a later date using the \code{\link{add_vars}} function.
 #' @examples 
 #' \dontrun{
-#' select_vars('pcodMainDataTable', pcod)
+#' select_vars('pcodMainDataTable', 'pcod')
 #' }
 
 select_vars <- function(dat, project){

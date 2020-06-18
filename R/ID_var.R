@@ -1,15 +1,18 @@
+#' Create ID variable
+#' 
 #' Create ID variable from one or more variables
 #'
-#' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-#' @param newID name of new ID column
-#' @param ... Column(s) in main data frame that define unique observations.
+#' @param dat Primary data containing information on hauls or trips. 
+#' Table in FishSET database contains the string 'MainDataTable'.
+#' @param newID String, name of new ID column.
+#' @param ... Additional column(s) in \code{dat} that define unique observations.
 #' @export ID_var
 #' @return Data frame with `newID` ID variable included.
-#' @details Function is used to create a variable that indicates distinct hauls or trips.
+#' @details ID variable can be based on a single or multiple variables.
 #' 
 #' @examples 
 #' \dontrun{
-#' pcidMainDataTable <- ID_var('pcodMainDataTable', newID='PermitID','GEAR_TYPE','TRIP_SEQ')
+#' pcodMainDataTable <- ID_var(pcodMainDataTable, newID='PermitID','GEAR_TYPE','TRIP_SEQ')
 #' }
 
 

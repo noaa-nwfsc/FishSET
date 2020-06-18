@@ -1,10 +1,12 @@
 # correlation
 corr_out <- function(dat, project, variables) {
-    #' View correlation between variables as a table and plot
+    #' View correlations between variables 
     #' 
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param project Project name
-    #' @param variables Variables to include. Defaults to all. To specify variables use variables=c('var1', 'var2', 'var3', ...)
+    #' Correlations can be displayed between all numeric variables or selected numeric variables. Both a plot and table output are generated and saved to the `output` folder. Correlation plot is output using ggcorplot. 
+    #' 
+    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param project String, project name.
+    #' @param variables A character string of variables to include. Defaults to all numeric variables. 
     #' @export
     #' @details Returns a correlation plot and table. Output saved to output folder.
     #' @examples 

@@ -3,9 +3,10 @@
 outlier_table <- function(dat, project, x) {
     #' Evaluate outliers in a table format
     #'
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param project Name of project.
-    #' @param x Column in data frame to check for outliers 
+    #' @param dat Primary data containing information on hauls or trips. 
+    #' Table in FishSET database contains the string 'MainDataTable'.
+    #' @param project String, name of project.
+    #' @param x Variable in \code{dat} to check for outliers. 
     #' @importFrom stats quantile sd var na.pass model.matrix
     #' @importFrom utils file_test
     #' @importFrom grDevices dev.off pdf 
@@ -108,13 +109,15 @@ outlier_table <- function(dat, project, x) {
 
 ##---------------------------##
 outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FALSE) {
+    #' Evaluate outliers
     #' Visualize spread of data and impact of outlier removal options
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param project Name of project
-    #' @param x Column in data frame to check for outliers
-    #' @param dat.remove Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD
-    #' @param x.dist Distribution of the data. Choices include: normal, lognormal, exponential, weibull, poisson, negative binomial
-    #' @param output.screen If true, return plots to the screen. If false, returns plot to the inst/output folder as png file.
+    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param project String, name of project.
+    #' @param x Varaible in \code{dat} to check for outliers.
+    #' @param dat.remove Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD. 
+    #' See the Details sections for more information.
+    #' @param x.dist Distribution of the data. Choices include: normal, lognormal, exponential, Weibull, Poisson, negative binomial.
+    #' @param output.screen Logical, if true, return plots to the screen. If false, returns plot to the inst/output folder as a png file.
     #' @keywords outlier
     #' @importFrom graphics points
     #' @importFrom stats dnorm dpois dweibull rnorm dbinom dlnorm dexp dnbinom
@@ -124,7 +127,7 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FA
     #'  x against row number. Red points are all the data without any points removed. The blue points are the subsetted data. If `dat.remove` is `none`, then only blue points will be shown. 
     #'  The probability plot is a histogram of the data with the fitted probability distribution based on `x.dist`. The Q-Q plot plots are
     #'  sampled quantiles against theoretical quantiles. 
-    #'  The dat.remove choices are
+    #'  The \code{dat.remove} choices are:
     #'  \itemize{
     #'  \item{none: No data points are removed}
     #'  \item{5_95_quant: Removes data points outside the 5th and 95th quantiles}
@@ -139,8 +142,8 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FA
     #'   \item{normal}
     #'    \item{lognormal}
     #'    \item{exponential}
-    #'    \item{weibull}
-    #'    \item{poisson}
+    #'    \item{Weibull}
+    #'    \item{Poisson}
     #'    \item{negative binomial}
     #'  }
     #' @export outlier_plot
@@ -284,14 +287,17 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FA
 
 ##---------------------------##
 outlier_remove <- function(dat, x, dat.remove = "none", remove = T, over_write = FALSE) {
-    #' Remove outliers from vector
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param x Column in data frame containing potential outliers.
-    #' @param dat.remove Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD
-    #' @param remove Save data with outliers removed. If TRUE, the revised data table, with values removed outside the `dat.remove` expression, is returned.
-    #' @param over_write Save over previous file
+    #' Remove outliers from dataset
+    #' Remove outliers based on method.
+    #' @param dat Primary data containing information on hauls or trips. 
+    #' Table in FishSET database contains the string 'MainDataTable'.
+    #' @param x Variable in \code{dat} containing potential outliers.
+    #' @param dat.remove Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD.
+    #' @param remove Save data with outliers removed. If TRUE, the revised data table, 
+    #' with values removed outside the \code{dat.remove} expression, is returned.
+    #' @param over_write Logical, If TRUE, saves data over previously saved data table in the FishSET database.
     #' @export outlier_remove
-    #' @return Returns the modified dataframe. MOdified dataframe will be saved to fishset_db database.
+    #' @return Returns the modified primary dataset. Modified dataset will be saved to FishSET database.
     #' @details   The dat.remove choices are
     #'  \itemize{
     #'  \item{none: No data points are removed}

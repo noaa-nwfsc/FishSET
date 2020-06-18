@@ -1,18 +1,23 @@
 # Create variables or matrix.
 
 ##--- CPUE ----##
-#' Create catch per unit effort vector
+#' Create catch per unit effort varaiable
+#' 
+#' Add catch per unit effort variable to the primary dataset. Catch should be a weight variable but can be a count. Effort should be in a duration of time, such as days, hours, or minutes. 
+#' 
 cpue <- function(dat, xWeight, xTime, name = "cpue") {
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param xWeight Weight variable
-    #' @param xTime Time variable. Must be weeks, days, hours, or minutes.
-    #' @param name Name of created variable. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
+    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param xWeight Catch variable in \code{dat}. Variable should be a measure of weight (pounds, metric tons, etc) but can also be count.
+    #' @param xTime Duration of time variable in \code{dat} representing effort, such as weeks, days, hours, or minutes.
+    #' @param name String, name of created variable. Defaults to name of the function if not defined.
     #' @export cpue 
-    #' @details Creates the catch per unit effort variable. Catch variable must be in weight (lbs, mts). 
-    #' Effort variable should be a measurement of duration in time.
+    #' @details Creates the catch per unit effort variable. Catch variable should be in weight (lbs, mts). Effort variable should be a measurement of duration in time. 
+    #' New variable is added to the primary dataset with the column name defined by the \code{name} argument. CPUE for individual species should be 
+    #' calculated separately.
+    #' @return Returns primary dataset with CPUE variable added.
     #' @examples 
     #' \dontrun{
-    #' pcodMainDataTable$cpue <- cpue('pcodMainDataTable', 'OFFICIAL_TOTAL_CATCH_MT', 'DURATION_IN_MIN') 
+    #' pollockMainDataTable <- cpue(pollockMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', 'DURATION_IN_MIN', 'cpue') 
     #' }  
     
     # Call in datasets
@@ -52,24 +57,16 @@ cpue <- function(dat, xWeight, xTime, name = "cpue") {
 #dummy_num
 dummy_num <- function(dat, var, value, opts='more_less', name='dummy_num'){
 #' Create a dummy vector from numeric characterization of variable
-#' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-#' @param var Variable in data frame to create dummy variable from
-#' @param value The set value will depend whether the data is a date, factor, or numeric. If date, value should be a year, if factor, value should be a level
-#' within the variable, if number value should be a single number or range of numbers [use c(1,5)]
-#' @param opts Choices are x_y and more_less. x_y sets the selected year, factor, or numeric value (single or range) to 0 and all other values to 1.
-#' more_less sets sets values before the set year or numberic value to 0 and all values greater than the year or value to 1. 
-#' Default is set to 'more_less'.
-#' @param name Name of created dummy variable. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
-#' @details This function creates a dummy variable. How the dummy variable is created depends upon whether the variable the dummy variable should be created
-#' from is a date, factor, or numeric variable. 
-#' For date variables, the dummy variable is defined by a date (year) and may be either this year versus all other years (x_y) or before vs after this year (more_less).
-#' Use this function to create a variable defining whether a not policy action had been implemented. 
-#' For example, to create an ammendment 80 variable you would type: `dummy_num('MainDataTable', 'Haul_date', 2008, 'more_less', 'ammend80')` 
-#' For factor variables, the only option is to compare selected levels against all others.
-#' For example, to set a variable specifying whether fishers targeted pollock or something else type: `dummy_num('MainDataTable', 'GF_TARGET_FT', c('Pollock - bottom', 'Pollock - midwater'), 'x_y', 'pollock_target')`
-#' For numeric variables, you can set a single value or a range of continuous values and contrast either the selected value(s) against all others (x_y) or less than the 
-#' selected value versus more than the selected value (more_less). For more_less, the mean is used as the critical value is a range of values is proviced.
-#' @return Main data frame with variable added.
+#' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+#' @param var Variable in \code{dat} to create dummy variable from.
+#' @param value String, value to set dummy variable by. If \code{var} is a date date, value should be a year, If \code{var} is a factor, value should be a factor level. If \code{var} is numeric, value should be a single number or range of numbers [use c(1,5)].
+#' @param opts String, how dummy variable should be defined. Choices are ‘x_y’ and ‘more_less’. For ‘x_y’, each element of \code{var} is set to 1 if the elemant matches \code{value}, otherwise 0.
+#' For ‘more_less’, each element of \code{var} less than \code{value} is set to 0 and all elements greater than \code{varlue} set to 1. If \code{var} is a factor, then elements that match value will be set to 1 and all other elements set to 0. Default is set to 'more_less'.
+#' @param name String, name of created dummy variable. Defaults to name of the function if not defined.
+#' @details For date variables, the dummy variable is defined by a date (year) and may be either year x versus all other years (x_y) or before vs after year x (more_less). Use this function to create a variable defining whether or not policy action had been implemented. For example, to create an ammendment 80 variable you would type: ‘dummy_num(’MainDataTable', 'Haul_date', 2008, 'more_less', 'ammend80')'.
+#'  For factor variables, both choices in \code{opts} compare selected levels against all others. For example, to set a variable specifying whether fishers targeted pollock or something else type: ‘dummy_num(’MainDataTable', 'GF_TARGET_FT', c('Pollock - bottom', 'Pollock - midwater'), 'x_y', 'pollock_target')' 
+#'  For numeric variables, \code{value} can be a single number or a range of numbers. The dummy variable is the selected value(s) against all others (x_y) or less than the selected value versus more than the selected value (more_less). For more_less, the mean is used as the critical value is a range of values is provided.
+#' @return Returns primary dataset with dummy variable added.
 #' @export
 #' @examples
 #' \dontrun{
@@ -111,12 +108,12 @@ dummy_num <- function(dat, var, value, opts='more_less', name='dummy_num'){
     return(cbind(dataset, name))
 }
 
-#' Create dummy vector
+#' Create dummy variable
 dummy_var <- function(dat, DumFill = "TRUE", name = "dummy_var") {
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
+    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
     #' @param DumFill Fill the dummy variable with TRUE or FALSE
-    #' @param name Name of created dummy variable. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
-    #' @return Main data frame with dummy variable added.
+    #' @param name String, name of created dummy variable. Defaults to name of the function if not defined.
+    #' @return Primary dataset with dummy variable added.
     #' @export dummy_var
     #' @details Creates a dummy variable of either FALSE or TRUE with length of the number of rows of the data set. 
     #' @examples 
@@ -143,10 +140,10 @@ dummy_var <- function(dat, DumFill = "TRUE", name = "dummy_var") {
 
 #' Create dummy matrix from a coded ID variable
 dummy_matrix <- function(dat, x) {
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param x Variable in dataset used to generate dummy matrix
+    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param x Variable in \code{dat} used to generate dummy matrix.
     #' @export dummy_matrix
-    #' @details Creates a dummy matrix of TRUE/FALSE with dimensions \emph{(number of observations in dataset) x (number of factors in x)} where each column is a unique factor level. Values are TRUE if the value in the column matches the column factor level and FALSE otherwise.
+    #' @details Creates a dummy matrix of TRUE/FALSE with dimensions \emph{((number of observations in dataset) x ((number of factors in x)} where each column is a unique factor level. Values are TRUE if the value in the column matches the column factor level and FALSE otherwise.
     #' @examples 
     #' \dontrun{
     #' PortMatrix <- dummy_matrix(MainDataTable, 'PORT_CODE')
@@ -176,24 +173,25 @@ dummy_matrix <- function(dat, x) {
 }
 
 ##---- Coded variables ----##
-#' Create categorical vector based on quantiles of variable
+#' Create factor variable from quantiles
+#' Create a factor variable from numeric data.  Numeric variable is split into categories based on qualitile categories. 
+#' 
 set_quants <- function(dat, x, quant.cat = c(0.2, 0.25, 0.4), name = "set_quants") {
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param x Variable to transform into quantiles
-    #' @param quant.cat Quantile categories. Includes 0.2, 0.25, and 0.4.
-    #' @param name Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
-    #' @return Main data frame with quantile variable added.
-    #' @export set_quants
-    #' @details Creates a coded variable of 5-6 levels based on the quantiles of x. 
-    #' Quantile options are: 
+    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param x Variable to transform into quantiles.
+    #' @param quant.cat Quantile opions: '0.2', '0.25', and '0.4.'
     #' \itemize{
     #'   \item{.2:  (0\%, 20\%, 40\%, 60\%, 80\%, 100\%)}
     #'   \item{.25: (0\%, 25\%, 50\%, 75\%, 100\%)}
     #'   \item{.4:  (0\%, 10\%, 50\%, 90\%, 100\%)}
     #'   }
+    #' @param name String, name of created vector. Defaults to name of the function if not defined.
+    #' @return Primary dataset with quantile variable added.
+    #' @export set_quants
+    #' 
     #' @examples 
     #' \dontrun{
-    #' MainDataTable <- set_quants(MainDataTable, 'HAUL', quant.cat=.2, 'haul.quant')
+    #' pollockMainDataTable <- set_quants(pollockMainDataTable, 'HAUL', quant.cat=.2, 'haul.quant')
     #' }
     # 
     
@@ -234,20 +232,20 @@ bin_var <- function(dat, project, var, br, name,  labs = NULL, ...){
   #'
   #' Wrapper for \code{\link{cut}}
   #'
-  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-  #' @param project name of project.
-  #' @param var A numeric variable to bin into a factor.
-  #' @param br Numeric. If a single number, the range of var is divided into 
+  #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+  #' @param project String, name of project.
+  #' @param var Numeric variable in \code{dat} to bin into a factor.
+  #' @param br Numeric vector. If a single number, the range of \code{var} is divided into \code{br} even groups. If two or more values are given, \code{var} is divided into intervals. 
   #' @param name Variable name to return. Defaults to `bin`.
-  #'   n even groups. If two or more values are given var is divided into intervals.
   #' @param labs A character string of category labels. 
   #' @param ... Additional arguments passed to \code{\link{cut}}.
-  #' @details Function creates a new categorical variable. 
+  #' @details Function adds a new factor variable, labeled by name, to the primary dataset. The numeric variable is divided into equal sized groups if the length of \code{br} is one and into intervals if the length of \code{br} is greater than one.
   #' @export
-  #' @return Main data frame with binned variable added
+  #' @return Returns the primary dataset with binned variable added.
   #' @examples 
   #' \dontrun{
-  #'  pollockMainDataTable <- bin_var('pollockMainDataTable', 'pollock', 'HAUL', 10, 'HAULCAT')
+  #'  pollockMainDataTable <- bin_var(pollockMainDataTable, 'pollock', 'HAUL', 10, 'HAULCAT')
+  #'  pollockMainDataTable <- bin_var(pollockMainDataTable, 'pollock', 'HAUL', c(5,10), 'HAULCAT')
   #' }
   
   dataset <- dat
@@ -279,21 +277,22 @@ bin_var <- function(dat, project, var, br, name,  labs = NULL, ...){
 
 
 ##---- Numeric  Variables ----##
-#' Create numeric vector using arithmetic expression
+#' Create numeric variable using arithmetic expression
 create_var_num <- function(dat, x, y, method, name = "create_var_num") {
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param x variable  Variable will be the numerator if `method` is division. 
-    #' @param y variable  Variable will be the denominator if `method` is division.
-    #' @param method Arithmetic expression. Options include: sum, addition, subtraction, multiplication, and division.
-    #' @param name Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
-    #' @export create_var_num
-    #' @details Creates a new numeric variable based on defined arithmetic expression `method`. New variable is added to the data set.
-    #' @return Returns main data frame with new variable added.
-    #' @examples 
-    #' \dontrun{
-    #' MainDataTable <- create_var_num(MainDataTable, x='HAUL_CHINOOK', y='HAUL_CHUM',
-    #'                                method='sum','tot_salmon')
-    #' }
+  #' Creates a new variable based on the arithmetic operation between two variables.  Function is useful for creating rate variables or the summation of two related variables.
+  #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
+  #' @param x Variable in \code{dat}. Variable will be the numerator if \code{method} is division. 
+  #' @param y Variable  in \code{dat}. Variable will be the denominator if \code{method} is division.
+  #' @param method String, arithmetic expression. Options include: sum, addition, subtraction, multiplication, and division.
+  #' @param name String, name of created vector. Defaults to name of the function if not defined.
+  #' @export create_var_num
+  #' @details Creates a new numeric variable based on defined arithmetic expression \code{method}. New variable is added to the primary dataset.
+  #' @return Returns primary dataset with new variable added.
+  #' @examples 
+  #' \dontrun{
+  #' MainDataTable <- create_var_num(MainDataTable, x='HAUL_CHINOOK', y='HAUL_CHUM',
+  #'method='sum','tot_salmon')
+  #' }
     
   dataset <- dat
   dat <- deparse(substitute(dat))
@@ -328,14 +327,16 @@ create_var_num <- function(dat, x, y, method, name = "create_var_num") {
 }
 
 ##---- Spatial  Variables ----##
-#' Calculate latitude and longitude of haul midpoint 
+#' Calculate haul midpoint latitude and longitude variables
 create_mid_haul <- function(dat, start = c("lon", "lat"), end = c("lon", "lat"), name = "mid_haul") {
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param start Starting location of haul. Must be specificied as vector containing longitudinal data and vector containing latitudinal data separated by comma.
-    #' @param end Ending location of haul. Must be specificied as vector containing longitudinal data and vector containing latitudinal data separated by comma.
-    #' @param name Name of new variable. Defaults to `mid_haul`
-    #' @details Returns midpoint of each haul. Each row of data must be a unique haul. Requires a start and end point for each observations.
-    #' @return Main data frame with two new variables added, lat and lon of midpoint.
+    #' Calculate latitude and longitude of the haul midpoint and adds two variables to the primary dataset, the midpoint latitude and the midpoint longitude.
+    #' 
+    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.    
+    #' @param start Character string, variables in \code{dat} defining the longitude and latitude of the starting location of haul. Must be in decimal degrees.
+    #' @param end Character string, variables in \code{dat} defining the longitude and latitude of the ending location of haul.  Must be in decimal degrees.
+    #' @param name String name of new variable. Defaults to `mid_haul`.
+    #' @details Each row of data must be a unique haul. Requires a start and end point for each observations.
+    #' @return Returns primary dataset with two new variables added, latitude and longitude of haul midpoint.
     #' @importFrom geosphere distGeo midPoint
     #' @export
     #' @examples 
@@ -390,15 +391,17 @@ create_mid_haul <- function(dat, start = c("lon", "lat"), end = c("lon", "lat"),
 
 create_trip_centroid <- function(dat, lon, lat, weight.var = NULL, ...) {
     ##----trip centroid-----#
-    #' Create centroid of each trip vector 
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param lat Vector containing latitudinal data.
-    #' @param lon Vector containing longitudinal data.
-    #' @param weight.var Variable for weighted average.
-    #' @param ... Column(s) that identify the individual trip.
-    #' @details Function returns the centroid of each trip. Centroid can be weighted using the `weight.var`.  
-    #' Additional parameter(s) can be added that define unique trips. 
-    #' @return Main data frame with centroid of each trip added.
+    #' Create trip centroid variable
+    #' Create latitude and longitude variables containing the centroid of each trip 
+    #'   
+    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param lat Variable in \code{dat} containing latitudinal data.
+    #' @param lon Variable in \code{dat} containing longitudinal data.
+    #' @param weight.var Variable in \code{dat} for computing the weighted average.
+    #' @param ... Optional, one or more variable in \code{dat} that identify individual trips. If not defined, each row is treated as a unique trip.
+    #' @details Computes the average longitude and latitude for each trip. Centroid can be weighted using the \code{weight.var}. 
+    #' Additional arguments can be added that define unique trips. If no additional arguments are added, each row will be treated as a unique trip. 
+    #' @return Returns the primary dataset with centroid latitude and centroid longitude variables added.
     #' @importFrom geosphere distGeo midPoint
     #' @export 
     #' @examples 
@@ -464,162 +467,54 @@ create_trip_centroid <- function(dat, lon, lat, weight.var = NULL, ...) {
     }
 }
 
-#' Histogram of latitude and longitude by grouping variable
-spatial_hist <- function(dat, project, group) {
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param project Name of project
-    #' @param group Vector containing grouping categories
-    #' @import ggplot2
-    #' @importFrom reshape2 melt
-    #' @return histogram of latitude and longitude by grouping variable
-    #' @details Returns a histogram plot to the output folder and screen of observed lat/long split by the selected
-    #' grouping variable. Function is useful for assessing spatial variance/clumping of selected grouping variable. 
-    #' @export
-    #' @examples 
-    #' \dontrun{
-    #' spatial_hist('pollockMainDataTable', 'pollock', 'GEAR_TYPE')
-    #' }
-    
-    requireNamespace("ggplot2")
-    
-  dataset <- dat
-  dat <- deparse(substitute(dat))
-  
-  
-  dataset <- dataset[, c(dataset[[group]], grep("lon|lat", names(dataset), ignore.case = TRUE))]
-    melt.dat <- reshape2::melt(dataset)
-   plot_out <- ggplot(melt.dat, aes(value, group = group, fill = group)) + 
-                  geom_histogram(position = "identity", alpha = 0.5, binwidth = 0.25) + 
-                  facet_wrap(~variable, scales = "free") + scale_color_grey() + scale_fill_grey() + theme_classic()
-    
-    spatial_hist_function <- list()
-    spatial_hist_function$functionID <- "spatial_hist"
-    spatial_hist_function$args <- list(dat, project, group)
-    spatial_hist_function$kwargs <- list()
-    spatial_hist_function$output <- c()
-    log_call(spatial_hist_function)
-    
-    save_plot(project, "spatial_hist")
-    
-    plot_out
-}
 
-#' View summary statistics of vector against data and time
-spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs", "perc_total", "mean", "median", "min", "max", "sum"), 
-                            variable, gridfile, lon.grid, lat.grid, lon.dat, lat.dat, cat) {
-    #' @param dat Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param project Name of project. Used to save output
-    #' @param stat.var Options are length, no_unique_obs, perc_total, mean, median, min, max, and sum
-    #' @param gridfile Spatial data. Shape, json, and csv formats are supported.
-    #' @param variable Vector to summarize over date and zone
-    #' @param lon.dat Column containing longitude data in main data frame.
-    #' @param lat.dat Column containing latitude data in main data frame.
-    #' @param lon.grid Column containing longitude data in gridfile.
-    #' @param lat.grid Column containing latitude data in gridfile.
-    #' @param cat  Column in gridfile that identifies the individual areas or zones. If gridfile is class sf, `cat` should be name of list containing information on zones. 
-    #' @importFrom graphics par lines plot
-    #' @export
-    #' @description Returns plot of selected variable against date and zone.
-    #' @details
-    #' \tabular{rlll}{
-    #' length: \tab Number of observations \cr
-    #' no_unique_obs: \tab Number of unique observations \cr 
-    #' perc_total: \tab Percent of total observations \cr 
-    #' mean: \tab Mean \cr
-    #' median: \tab  Median \cr 
-    #' min: \tab  Minimum\cr
-    #' max: \tab Maximum \cr
-    #' sum: \tab Sum \cr
-    #' }
-    #' 
-    
-    dataset <- dat
-    dat <- deparse(substitute(dat))
-    
-    
-    dataset <- assignment_column(dat = dataset, gridfile = gridfile, hull.polygon = TRUE, lon.grid, lat.grid, 
-                                 lon.dat, lat.dat, cat, closest.pt = TRUE, epsg = NULL)
-    date.var <- grep("date", names(dataset), ignore.case = TRUE)[1]
-    var <- grep(variable, names(dataset), ignore.case = TRUE)[1]
-    
-    if (stat.var == "mean") {
-        lab <- paste("mean", names(dataset)[var])
-    } else if (stat.var == "median") {
-        lab <- paste("median", names(dataset)[var])
-    } else if (stat.var == "min") {
-        lab <- paste("min", names(dataset)[var])
-    } else if (stat.var == "max") {
-        lab <- paste("max", names(dataset)[var])
-    } else if (stat.var == "sum") {
-        lab <- paste("sum", names(dataset)[var])
-    } else if (stat.var == "length") {
-        lab <- paste("No. observations", names(dataset)[var])
-    }
-    graphics::par(mfrow = c(1, 2))
-    
-    if (stat.var == "no_unique_obs") {
-     plotout <-    graphics::plot(aggregate(dataset[[variable]], by = list(dataset[, date.var]), function(x) length(unique(x))), type = "l", lty = 1, ylab = paste("No. unique obs", 
-            names(dataset)[var], "per day"), xlab = "datasete")
-        graphics::lines(aggregate(dataset[[variable]], by = list(dataset[, date.var]), function(x) length(unique(x))))
-        graphics::plot(aggregate(dataset[[variable]], by = list(as.factor(dataset$ZoneID)), function(x) length(unique(x))), type = "l", lty = 1, ylab = paste("No. unique obs", 
-            names(dataset)[var]), xlab = "Zone")
-        lines(aggregate(dataset[[variable]], by = list(as.factor(dataset$ZoneID)), function(x) length(unique(x))))
-    } else if (stat.var == "perc_total") {
-      plotout <-     plot(aggregate(dataset[[variable]], by = list(dataset[, date.var]), function(x) length((x))/length(dataset[[variable]]) * 100), type = "l", lty = 1, 
-            ylab = paste("Percent total", names(dataset)[var], "per day"), xlab = "datasete")
-        lines(aggregate(dataset[[variable]], by = list(dataset[, date.var]), function(x) length((x))/length(dataset[[variable]]) * 100))
-        plot(aggregate(dataset[[variable]], by = list(as.factor(dataset$ZoneID)), function(x) length((x))/length(dataset[[variable]]) * 100), type = "l", 
-            lty = 1, ylab = paste("Percent total", names(dataset)[var]), xlab = "Zone")
-        lines(aggregate(dataset[[variable]], by = list(as.factor(dataset$ZoneID)), function(x) length((x))/length(dataset[[variable]]) * 100))
-    } else {
-      plotout <-      plot(aggregate(dataset[[variable]], by = list(dataset[, date.var]), stat.var), type = "l", lty = 1, ylab = paste(lab, "per day"), xlab = "datasete")
-        lines(aggregate(dataset[[variable]], by = list(dataset[, date.var]), stat.var))
-        plot(aggregate(dataset[[variable]], by = list(as.factor(dataset$ZoneID)), stat.var), type = "l", ylab = lab, xlab = "Zone")
-        lines(aggregate(dataset[[variable]], by = list(as.factor(dataset$ZoneID)), stat.var))
-    }
-    
-    spatial_summary_function <- list()
-    spatial_summary_function$functionID <- "spatial_summary"
-    spatial_summary_function$args <- list(dat, project, stat.var, variable, gridfile, lon.dat, lat.dat, cat, lon.grid, lat.grid )
-    spatial_summary_function$kwargs <- list()
-    spatial_summary_function$output <- c()
-    log_call(spatial_summary_function)
-    
-    save_plot(project, "spatial_summary")
-    plotout
-    
-}
-
-
-#' Create vector of distance between points
+#' Create distance between points variable - interactive version
 create_dist_between <- function(dat, start, end, units = c("miles", "meters", "km", "midpoint"), name='distBetween') {
     #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param start  Starting location. Should be a port, lat/long location, or the centroid of zonal assignment. If port is desired, start should be the vector name containing the port name. Latitude and longitude for the port are extracted from the port table. If a lat, long location is desired then start should be specified as c(name of lon vector, name of lat vector). The order must be lon, lat. If the center point of the fishing zone or area is to be used then start should be 'centroid'.
-    #' @param end  Ending location. Should be a port, lat/long location, or the centroid of the fishing zone or area. If port is desired, end should be the vector name containing the port name. Latitude and longitude for the port are extracted from the port table. If a lat, long location is desired then end should be specified as c(name of lat vector, name of lon vector). If the center point of the fishing zone or area is to be used then end should be 'centroid'.
-    #' @param units  Unit of measurement for calculated distance between start and ending points. Can be in miles, meters, kilometers, or midpoint location
-    #' @param name Output variable name. Defaults to `distBetween`.
+    #' @param start Starting location. Should be a port, lat/lon location, or the centroid of fishing zone or area. 
+    #' If port is desired, start should be the column name in the \code{dat} containing the port names. Latitude 
+    #' and longitude for the port are extracted from the port table. If a lat/lon location is desired then start should 
+    #' be a character string of column names from \code{dat}. The order must be lon, lat. If the centroid of the 
+    #' fishing zone or area is to be used then start should be 'centroid' and \code{\link{find_centroid}} and \code{\link{assignment_column}} 
+    #' will be called to identify the latitude and longitude.
+    #' @param end Ending location. Should be a port, lat/lon location, or the centroid of the fishing zone or area. 
+    #' If port is desired, end should be a variable in \code{dat} containing the port names. Latitude 
+    #' and longitude for the port are extracted from the port table. If a lat, long location is desired then end should 
+    #' be a character string of column names specifying first longitude then latitude. If the centroid of the fishing zone 
+    #' or area is to be used then end should be 'centroid' and \code{\link{find_centroid}} and \code{\link{assignment_column}} 
+    #' will be called to identify the latitude and longitude. 
+    #' @param units  Unit of measurement for calculated distance between start and ending points. Can be in miles, meters, kilometers, or midpoint location.
+    #' @param name String, output variable name. Defaults to `distBetween`.
     #' @export
-    #' @return Returns main data frame with distance between variable.
+    #' @return Returns primary dataset with distance between variable.
     #' @importFrom geosphere distGeo midPoint
-    #' @description   Creates a vector of distance between two points. There are two versions of this function. 
-    #' The difference between the two versions is how additional parameters specific to start and end locations are added. 
-    #' This version requires only five parameters to be specified before running. Additional necessary parameters are
-    #' added through prompts. This function is designed for an interactive session. 
-    #' The `create_dist_between_for_gui` function requires all necessary additional parameters to be specified before running and is
-    #' best used in a non-interactive session.
-    #' Both versions of the distance between function requires that the start and end points be different vectors. 
-    #' If the start or ending points are from a port then `PortTable` must be specified to obtain lat/lons.
-    #' If the start or ending points are the center of a fishing zone or area, `gridfile`,`lon.dat`, `lat.dat`, `cat`, `lon.grid`, and `lat.grid` 
-    #' must be specified to obtain lat/lons.
-    #' @details 
+    #' @description Adds distance between two points variable to the primary dataset. There are two versions of this function. 
+    #' The difference between the two versions is how additional arguments specific to start and end locations are added. 
+    #' This version requires only five arguments to be specified before running. Additional arguments specific to identifying 
+    #' the lat/lon of start or end points are added through prompts. This function is designed for an interactive session. 
+    #' The \code{\link{create_dist_between_for_gui}} function requires all necessary arguments to be specified before running 
+    #' and is best used in a non-interactive session. Both versions of the distance between function require that the start 
+    #' and end points be different vectors. If the start or ending points are from a port then \code{PortTable} must be specified 
+    #' to obtain lat/lons. If the start or ending points are the center of a fishing zone or area then \code{gridfile}, \code{lon.dat}, 
+    #' \code{lat.dat}, \code{cat}, \code{lon.grid}, and \code{lat.grid'} must be specified to obtain latitude and longitude.
+    #' @details
+    #' Additional arguments. \cr
+    #' Further arguments are required to identify the latitude and longitude of the starting or ending location if \code{start} or \code{end} 
+    #' is defined as zonal centroid or a column from primary dataset containing port information, such as departing or embarking port. 
+    #' Prompts will appear asking for required arguments. \cr\cr
+    #' Port arguments required: 
     #' \tabular{rlll}{
     #' portTable: \tab Port table from FishSET database. Required if start or end is a port vector. \cr
-    #' gridfile: \tab patial data set Can be shape file data frame or list. Required if start or end is centroid. \cr 
-    #' lon.dat: \tab Longitude of points from dataset. Required if start or end is centroid. \cr 
-    #' lat.dat: \tab Latitude of points from dataset. Required if start or end is centroid. \cr
-    #' lon.grid: \tab Longitude of points from gridfile. Required if start or end is centroid. \cr 
-    #' lat.grid: \tab Longitude of points from gridfile. Required if start or end is centroid. \cr
-    #' cat: \tab Variable defining the individual areas or zones. Required if start or end is centroid. \cr 
+    #' }
+    #' \cr\cr
+    #' Centroids arguments required:
+    #' \tabular{rlll}{
+    #' gridfile: \tab Spatial data set containing information on fishery management or regulatory zones. Can be shape file, json, geojson, data frame, or list data frame or list. Required if start or end is centroid. \cr 
+    #' lon.dat: \tab Longitude variable from \code{dat}. \cr 
+    #' lat.dat: \tab Latitude variable from \code{dat}. \cr
+    #' lon.grid: \tab Variable or list from \code{gridfile} containing longitude data. Required if start or end is centroid. Leave as NULL if \code{gridfile} is a shape or json file. \cr 
+    #' lat.grid: \tab Variable or list from \code{gridfile} containing latitude data. Required if start or end is centroid. Leave as NULL if \code{gridfile} is a shape or json file. \cr
+    #' cat: \tab Variable or list in \code{gridfile} that identifies the individual areas or zones. If \code{gridfile} is class sf, \code{cat} should be the name of list containing information on zones. \cr 
     #' }
     #' @examples 
     #' \dontrun{
@@ -760,14 +655,18 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
 ##---- Temporal  Variables ----##
 #' Create vector of duration of time 
 create_duration <- function(dat, start, end, units = c("week", "day", "hour", "minute"), name = "create_duration") {
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param start Variable indicating start of time period
-    #' @param end Variable indicating end of time period
-    #' @param units Unit of time for calculating duration. Must be weeks, days, hours, or minutes.
-    #' @param name Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
+    #' Create vector of duration of time based on start and ending dates in desired temporal units.
+    #' 
+    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param start Date variable from \code{dat} indicating start of time period.
+    #' @param end Date variable from \code{dat} indicating end of time period.
+    #' @param units String, unit of time for calculating duration. Must be ‘week’, ‘day’, ‘hour’, or ‘minute’.
+    #' @param name String, name of created vector. Defaults to name of the function if not defined.
     #' @importFrom lubridate interval as.duration dweeks ddays dhours dminutes
     #' @export create_duration 
+    #' @return Returns primary dataset with duration of time variable added.
     #' @details Calculates the duration of time between two temporal variables based on defined time unit. The new variable is added to the dataset. 
+    #' A duration of time variable is required for other functions, such as \code{\link{cpue}}.
     #' @examples 
     #' \dontrun{
     #' MainDataTable <- create_duration(MainDataTable, 'TRIP_START', 'TRIP_END', 

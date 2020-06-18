@@ -1,9 +1,12 @@
 table_info_verification <- function(dataindex) {
-    #' Checks for errors in the dataindex (MainDataTableInfo) table 
+    #' Checks for errors in dataindex table 
+    #' 
+    #' Checks for errors in the dataindex (MainDataTableInfo) table.
+    #' 
     #' @param dataindex Data table saved in FishSET database that contains information on each column of the main dataset. 
     #' Table name should contain the phrase `MainDataTableInfo`.
     #' Can be called from the global environment or the FishSET database.
-    #' @return Returns statements as to whether issues in the `dataindex` table may exist
+    #' @return Returns statements as to whether issues in the `dataindex` table may exist.
     #' @export table_info_verification
     #' @details Checks whether specialized variables have been identified in the `dataindex` table and if units are defined and recognized.
     #' @examples 

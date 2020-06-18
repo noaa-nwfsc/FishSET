@@ -1,38 +1,39 @@
 # Density Plot
 #' 
-#' Creates a density or cdf plot of selected variable
+#' Creates a density plot
 #' 
-#' @param dat Main data frame over which to apply function. Table in FishSET 
-#'   database should contain the string `MainDataTable`.
-#' @param project Name of project.
-#' @param var Name of variable to plot.
-#' @param type Type of density plot. Options include "kde" (kernel density estimate),
+#' Creates a kernel density estimate, empirical cumulative distribution function or cumulative distribution function.plot of selected variable.
+#' 
+#' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+#' @param project String, name of project.
+#' @param var String, name of variable to plot.
+#' @param type String, type of density plot. Options include "kde" (kernel density estimate),
 #'   "ecdf" (empirical cdf), or "cdf".
 #' @param group A grouping variable. 
-#' @param date Date variable to subset and/or facet by.
-#' @param facet_date Logical; whether to facet the plot by date. If \code{filter_date = "year"} 
-#'   or \code{"month"}, plot is passed to \code{facet_wrap()}. \code{filter_date = "year-month"} 
+#' @param date Date variable from \code{dat} to subset and/or facet by.
+#' @param facet_date Logical; whether to facet the plot by date. If \code{filter_date = "year"}  
+#'   or \code{"month"}, plot is passed to \code{facet_wrap()}. \code{filter_date = "year-month"}  
 #'   is passed to \code{facet_grid()} with year faceted by row and month by column. 
-#'   If \code{facet_date = FALSE}, the month(s) and/or year(s) used to filter the data
+#'   If \code{facet_date = FALSE}, the month(s) and/or year(s) used to filter the data 
 #'   are added to the plot's subtitle. 
 #' @param filter_date Whether to filter data table by "year", "month", or 
 #'   "year-month". \code{date} and \code{filter_value} must be provided. 
-#' @param filter_value Integer (4 digits if year, 1-2 if month). The year, month,
-#'   or year-month to filter data table by. Use a list if using "year-month"
-#'   with the format: \code{list(year(s), month(s))}. For example, \code{list(2011:2013, 5:7)} 
-#'   will filter the data table from May to July for years 2011-2013.
+#' @param filter_value Integer (4 digits if year, 1-2 if month). The year, month, 
+#'   or year-month to filter data table by. Use a list if using "year-month" 
+#'   with the format: \code{list(year(s), month(s))}. For example, \code{list(2011:2013, 5:7)}  
+#'   will filter the data table from May to July for years 2011-2013. 
 #' @param trans String; name of function to transform variable, for example "log" or 
 #'   "sqrt".  
 #' @param bw Adjusts KDE bandwidth. Defaults to 1. 
 #' @param position The position of the grouped variable for KDE plot. Options include 
 #'   "identity", "stack", and "fill". 
-#' @return \code{density_plot} returns a KDE, emperical CDF, or CDF of a selected variable.
-#'   the \code{group} and \code{trans} arguments are not applied to the CDF plot.
+#' @return Returns a KDE, empirical CDF, or CDF of a selected variable. 
+#'   The \code{group} and \code{trans} arguments are not applied to the CDF plot. 
 #' @export density_plot
 #' @examples 
 #' \dontrun{
 #' density_plot("pollockMainDataTable", "pollock", var = "OFFICIAL_TOTAL_CATCH_MT", 
-#' "kde", date = "FISHING_START_DATE", filter_date = "year-month",
+#' "kde", date = "FISHING_START_DATE", filter_date = "year-month", 
 #' filter_value = list(2011, 9:11), trans = "log", facet_date = TRUE, 
 #' group = "GEAR_TYPE")
 #' }

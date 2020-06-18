@@ -2,10 +2,10 @@
 #' 
 #'  Active vessels by time period
 #' 
-#' @param dat Main data frame over which to apply function. Table in FishSET 
-#'   database should contain the string `MainDataTable`.
-#' @param project name of project.
-#' @param v_id vessel ID variable to count.
+#' @param dat Primary data containing information on hauls or trips. 
+#' Table in FishSET database contains the string 'MainDataTable'.
+#' @param project String, name of project.
+#' @param v_id Variable in \code{dat} containing vessel identifier to count.
 #' @param date Date variable to aggregate by.
 #' @param period Time period to aggregate by. Options include 'year', month', 'weeks' 
 #'   (weeks in the year), 'weekday', 'weekday_abv', 'day' (day of the month), 
@@ -34,7 +34,7 @@
 #' @param scale Scale argument passed to \code{\link{facet_grid}}. 
 #'   Options include \code{"free"}, \code{"free_x"}, \code{"free_y"}. Defaults to 
 #'   \code{"fixed"}. 
-#' @param output Whether to display \code{"plot"}, \code{"table"}. Defaults 
+#' @param output Output as \code{"plot"}, \code{"table"}, or both \code{"tab_plot"}. Defaults 
 #'   to both (\code{"tab_plot"}). 
 #' @return \code{vessel_count} aggregates the number (or percent) of active vessels
 #'   by time period using a column of unique vessel IDs. The data can be filter using 

@@ -1,6 +1,6 @@
 log_reset <- function() {
     #' Reset log file
-    #' @details Removes the three log file lists from the working directory
+    #' @details Calls to log functions are automatically appended to the existing log file. Resetting the log file to an empty file requires restarting the R sessions or running log_reset().   
     #' @export log_reset
     #' @examples 
     #' \dontrun{ 

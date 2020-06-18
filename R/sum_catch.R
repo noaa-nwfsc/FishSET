@@ -1,22 +1,22 @@
 #' Aggregate species catch by vessel ID
 #' 
-#' @description \code{sum_catch} aggregates species catch by vessel ID and will output
+#' @description \code{sum_catch} aggregates species catch by vessel ID and outputs
 #'   a logical vector or table.
-#' @param dat Main data frame over which to apply function. Table in FishSET database should 
-#'   contain the string `MainDataTable`.
-#' @param project Name of project.
+#' @param dat Primary data containing information on hauls or trips. 
+#' Table in FishSET database contains the string 'MainDataTable'.
+#' @param project String, name of project.
 #' @param catch Variable name containing catch weight. A vector of variable names can be given 
-#'   if data frame is in wide format (i.e. each species has it's own catch weight column). 
-#' @param v_id Variable name containing unique vessel ID. 
+#'   if data frame is in wide format (i.e. each species has its own catch weight column). 
+#' @param v_id Variable name containing unique vessel identifier. 
 #' @param species Variable name containing species name if data frame is in long format.
 #' @param exp An expression wrapped in quotes which will be evaluated after the summary
 #'   table has been created.   
 #' @param val Whether to output raw count ('raw') or proportion ('per') of catch. If data frame
 #'   is in wide format, the proportion of catch is calculated based on the variables provided
 #'   to the \code{catch} argument. 
-#' @param output Output; if 'logical' function returns a vector of logical values based on 
+#' @param output String, options are ‘logical’ and ‘table’. If 'logical', function returns a vector of logical values based on 
 #'   the \code{exp} argument. This can be used for subsetting tables or assigning values.
-#'   'table' returns a summary table. 
+#'   The option 'table' returns a summary table. 
 #' @importFrom stats aggregate reformulate
 #' @importFrom dplyr left_join
 #' @export sum_catch

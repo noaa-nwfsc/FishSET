@@ -1,18 +1,17 @@
-#' Check data table for common data quality issues that may affect modeling functions
+#' Check for common data quality issues affecting modeling functions
 #'
-#' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-#' @param dataindex Data frame that contains information on each column of the main data frame. In FishSET database the table will contain the phrase `MainDataTableInfo`
-#' @param uniqueID Variable that identifies unique occurrences.
-#' @param save.file TRUE/FALSE Save to FishSET database? Defaults to TRUE
-#' @return Returns statements of data quality issues in the data.
+#' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+#' @param dataindex Data table that contains information on each column of the main data frame. In the FishSET database the table will contain the phrase `MainDataTableInfo`
+#' @param uniqueID Variable in \code{dat} containing unique occurrence identifier.
+#' @param save.file Logical, if TRUE and no data issues are identified, the dataset is saved to the FishSET database. Defaults to TRUE.
+#' @return Returns statements of data quality issues in the data. Saves table to FishSET database.
 #' @export check_model_data
-#' @details Checks data to be used for modeling for presence of NAs, NaNs and Inf, and that each row is a unique choice occurrence. 
-#'    Model functions may fail or return inaccurate results if any of these issues exist.
-#'    The verified data will not save if any of these issues are in the data set. 
-#'    If data passes all tests, the verified data will then be saved in the FishSET database. 
-#'    The unmodified version of the table in the FishSET database (if it exists), will be saved with the prefix 'raw'.
-#'    The data index table will also be updated and saved.
-
+#' @description Check the primary dataset for NAs, NaNs, Inf, and that each row is a unique choice occurrence 
+#' @details It is best to check the data for NAs, NaNs and Inf, and that each row is a unique choice occurrence after data creation functions 
+#' have been run but before making the model design file (\code{make_model_design}), even if the data passed earlier data verification checks 
+#' as data quality issues can arise in the creation or modification of data. Model functions may fail or return inaccurate results if data 
+#' quality issues exist. The integrated data will not save if any of these issues are in the dataset. If data passes all tests, the data 
+#' will then be saved in the FishSET database with the prefix ‘final’. The data index table will also be updated and saved.
 #' @examples 
 #' \dontrun{ 
 #' check_model_data(MainDataTable, 'MainDataTableInfo', uniqueID='uniqueID_Code', save.file=TRUE)

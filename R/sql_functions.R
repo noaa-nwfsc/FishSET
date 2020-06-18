@@ -4,7 +4,7 @@
 
 tables_database <- function() {
     #' View names of tables in the FishSET database
-    #' @description Function utilizes sql functions to view names of tables in the FishSET database. 
+    #' Wrapper for \code{\link[DBI] dbListTables}}. View names of tables in the FishSET database.
     #' @export tables_database
     #' @importFrom DBI dbConnect dbRemoveTable dbListTables dbExistsTable dbGetQuery
     #' @examples 
@@ -18,14 +18,14 @@ tables_database <- function() {
 }
 
 table_fields <- function(table) {
-    #' Lists fields for the selected FishSET database table
-    #' @param table name of table in FishSET database
+    #' Lists fields for FishSET database table
+    #' @param table String, name of table in FishSET database.
     #' @export table_fields
-    #' @description Function utilizes sql functions to view tables in the FishSET database. View fields of selected table.
+    #' @description Wrapper for \code{\link[DBI]{dbListFields}}.  View fields of selected table.
     #' @importFrom DBI dbConnect dbDisconnect dbListFields  
     #' @examples 
     #' \dontrun{  
-    #' table_fields('MainDataTable') 
+    #' table_fields('pollockMainDataTable') 
     #' }
     
     suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
@@ -34,11 +34,10 @@ table_fields <- function(table) {
 }
 
 table_view <- function(table) {
-    #' View the selected FishSET database table 
-    #' @param table name of table in FishSET database
+    #' View FishSET database table 
+    #' @param table String, name of table in FishSET database.
     #' @export table_view
-    #' @description Function utilizes sql functions to view or call the selected table from the FishSET database in a function. 
-    #' Use this function if you do not want the data loaded into the global environment. 
+    #' @description Wrapper for \code{\link[DBI]{dbGetQuery}}. View or call the selected table from the FishSET database. 
     #' @importFrom DBI dbConnect dbDisconnect  dbGetQuery
     #' @examples 
     #' \dontrun{  
@@ -55,8 +54,9 @@ table_view <- function(table) {
 }
 
 table_remove <- function(table) {
-    #' Remove a table from the FishSET database
-    #' @param table Name of table in FishSET database
+    #' Remove table from FishSET database
+    #' Wrapper for \code{\lilnk[DBI]{dbRemoveTable}}. Remove a table from the FishSET database.
+    #' @param table String, ame of table in FishSET database.
     #' @export table_remove
     #' @details Function utilizes sql functions to permanently remove a table from the FishSET database.
     #' @importFrom DBI dbConnect dbDisconnect dbRemoveTable 
@@ -74,8 +74,8 @@ table_exists <- function(table) {
     #' Check if table exists in the FishSET database
     #' @param table Name of table in FishSET database
     #' @export table_exists
-    #' @description Function utilizes sql functions to check if a table exists in the FishSET database.
-    #' @return True or False
+    #' @description Wrapper for \code{l\link[DBI]{dbExistsTable}}. Check if a table exists in the FishSET database.
+    #' @return Returns a logical statement of table existence. 
     #' @importFrom DBI dbConnect dbDisconnect dbExistsTable   
     #' @examples 
     #' \dontrun{  
@@ -88,8 +88,9 @@ table_exists <- function(table) {
 }
 
 model_out_view <- function(table) {
-    #' Load discrete choice model output to console
-    #' @param table  Table name in FishSET database. Should contain the phrase modelout.
+    #' Load model output to console
+    #' Returns output from running \code{discretefish_subroutine}. The table argument must be the full name of the table name in the FishSET database. Output includes information on model convergence, standard errors, t-stats, etc.
+    #' @param table  Table name in FishSET database. Should contain the phrase 'modelout'.
     #' @export
     #' @description Returns output from running the discretefish_subroutine function. The table parameter must be the full name of the table name in the FishSET database.
     #' @examples 
@@ -108,10 +109,13 @@ model_out_view <- function(table) {
 }
 
 globalcheck_view <- function(table) {
-    #' Load error output from discrete choice model to console
+    #' View model error output
+    #' 
+    #' Returns error output from running the discretefish_subroutine function. 
+    #' The table argument must be the full name of the table name in the FishSET database.
+    #' 
     #' @param table  Table name in FishSET database. Should contain the phrase modelout.
     #' @export
-    #' @description Returns error output from running the discretefish_subroutine function. The table parameter must be the full name of the table name in the FishSET database.
     #' @examples 
     #' \dontrun{
     #' globalcheck_view('pcodldglobalcheck20190604')
@@ -128,8 +132,9 @@ globalcheck_view <- function(table) {
 }
 
 model_fit <- function(project) {
-    #' Load comparison metrics to console
-    #' @param project Name of project
+    #' Load model comparison metrics to console
+    #' Load model comparison metrics to console. Metrics are displayed for each model that was fun. Metrics produced by \code{\link{discretefish_subroutine}}.
+    #' @param project String, name of project.
     #' @export
     #' @examples 
     #' \dontrun{

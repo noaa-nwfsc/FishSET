@@ -1,12 +1,12 @@
 # Weekly Effort
 #' 
-#' Average CPUE by week
+#' Average CPUE by View average CPUE by week in plot and table format
 #' 
-#' @param dat Main data frame over which to apply function. Table in fishset_db 
-#'   database should contain the string `MainDataTable`.
-#' @param project Name of project.
-#' @param cpue Variable name(s) containing cpue. 
-#' @param date A variable containing dates to aggregate by.
+#' @param dat Primary data containing information on hauls or trips. 
+#'    Table in FishSET database contains the string 'MainDataTable'.
+#' @param project String, name of project.
+#' @param cpue A variable in \code{dat} containing catch per unit effort. 
+#' @param date A variable in \code{dat} containing dates to aggregate by.
 #' @param group Grouping variable name(s). Up to two grouping variables are available.
 #'   The first grouping variable is passed to "fill" and the second to "linetype" if 
 #'   a single species column is entered or if facetting by species. Otherwise, species 
@@ -26,9 +26,9 @@
 #' @param combine Whether to combine variables listed in \code{group}. This is passed
 #'   to the "fill" or "color" aesthetic for plots. 
 #' @param scale Scale argument passed to \code{\link{facet_grid}}. Defaults to \code{"fixed"}.
-#' @param output Whether to display \code{"plot"}, \code{"table"}. Defaults 
+#' @param output Return output as \code{"plot"}, \code{"table"}, or both \code{"tab_plot"}. Defaults 
 #'   to both (\code{"tab_plot"}).
-#' @param format_tab How table output should be formated. Options include 'wide' 
+#' @param format_tab How table output should be formatted. Options include 'wide' 
 #'   (the default) and 'long'.
 #' @return \code{weekly_effort()} calculates mean CPUE by week. The data can be filter using 
 #'   two arguments: \code{filter_date} amd \code{filter_value}. \code{filter_date}

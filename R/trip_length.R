@@ -2,16 +2,18 @@
 #' 
 #' Create a plot or table of vessel trip length
 #' 
-#' @param dat Main data frame over which to apply function. Table in FishSET 
-#'   database should contain the string `MainDataTable`.
-#' @param project name of project.
+#' @param dat Primary data containing information on hauls or trips. 
+#' Table in FishSET database contains the string 'MainDataTable'.
+#' @param project String, name of project.
 #' @param start Date variable containing the start of vessel trip.
 #' @param end Date variable containing the end of vessel trip.
-#' @param units Defaults to 'days'. Options include 'secs', 'mins', 'hours', 
+#' @param units String, defaults to 'days'. Options include 'secs', 'mins', 'hours', 
 #'   'days', or 'weeks'.
-#' @param catch Species catch variable for calculating catch per trip. 
-#' @param hauls Hauls variable for calculating hauls per trip.  
-#' @param output Output results at table or plot
+#' @param catch Optional, variable in \code{dat} containg catch. 
+#' Used to calculate catch per trip. 
+#' @param hauls Optional, Hauls variable in \code{dat} containing haul identifier. 
+#' Used to calculate hauls per trip. 
+#' @param output Output results astable or plot.
 #' @param haul_to_trip Logical, whether to convert \code{dat} from haul level data to 
 #'   trip level. See \code{\link{haul_to_trip}} for details.
 #' @param ... Additional arguments passed to the haul_to_trip function. These should

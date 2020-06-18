@@ -1,28 +1,26 @@
-#' Create starting location vector
+#' Create starting location variable
 #'
-#' Creates a vector containing zone/area location when choice of where to fish next was chosen. 
+#' Creates a variable containing zone/area location when choice of where to fish next was chosen. This variable is required for the full information model with Dahl's correction \code{\link{logit_correction}}. 
 #'
-#' @param dat  Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.
-#' @param gridfile Spatial data. Shape, json, and csv formats are supported.
-#' @param portTable Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat. Table is generated using the load_port function and saved in the FishSET database.
-#' @param trip_id Variable in 'dat' to identify unique trips. 
-#' @param haul_order Variable in `dat` containing information on the order that hauls occur within a trip. Can be time, coded variable, etc.
-#' @param starting_port Variable in `dat` to identify port at start of trip
-#' @param lon.dat Longitude variable in dataset
-#' @param lat.dat Latitude variable in dataset
-#' @param cat Variable defining zones or areas. Must be defined for dataset or gridfile.
-#' @param name Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.
-#' @param lon.grid Longitude variable in gridfile
-#' @param lat.grid Latitude variable in gridfile
+#' @param dat  Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+#' @param gridfile Spatial data. Shape, json, geojson, and csv formats are supported.
+#' @param portTable Port data. Contains columns: Port_Name, Port_Long, Port_Lat. Table is generated using the load_port function and saved in the FishSET database as the project and PortTable, for example 'pollockPortTable'.
+#' @param trip_id Variable in \code{dat} that identifies unique trips.
+#' @param haul_order Variable in \code{dat} containing information on the order that hauls occur within a trip. Can be time, coded variable, etc.
+#' @param starting_port Variable in \code{dat} to identify port at start of trip.
+#' @param lon.dat Longitude variable from \code{dat}.
+#' @param lat.dat Latitude variable from \code{dat}.
+#' @param cat Variable or list in \code{gridfile} that identifies the individual areas or zones. If \code{gridfile} is class sf, \code{cat} should be name of list containing information on zones.
+#' @param name String, name of created vector. Defaults to name of the function if not defined.
+#' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
+#' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
 #' @importFrom DBI dbExecute
 #' @export create_startingloc
-#' @return Main data frame with starting location variable added.
-#' @details Function creates the startloc vector that is needed for the logit_correction function. The assignment_column function is called to assign 
-#' port locations and haul locations to zones. The starting port is used to define the starting location at the start of the trip. 
-#' Starting location is required for the full information model with Dahl's correction function (`logit_correction`).
+#' @return Primary dataset with starting location variable added.
+#' @details Function creates the startloc vector that is required for the full information model with Dahl's correction \code{\link{logit_correction}}. The vector is the zone location of where to fish next was chosen. The first zone of a trip is generally the departure port.The \code{assignment_column} function is called to assign starting port locations and haul locations to zones. The starting port the location at the start of the trip.
 #' @examples
 #' \dontrun{
-#' pcodMainDataTable <- create_startingloc('pcodMainDataTable', map2, 'pollockPortTable', 
+#' pcodMainDataTable <- create_startingloc(pcodMainDataTable, map2, 'pollockPortTable', 
 #'                               'TRIP_SEQ','HAUL_SEQ','DISEMBARKED_PORT',
 #'                               'LonLat_START_LON','LonLat_START_LAT', 'NMFS_AREA', 'STARTING_LOC')
 #' }

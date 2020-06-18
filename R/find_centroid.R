@@ -1,23 +1,23 @@
 #'  Identify centroid of fishery management or regulatory zone 
 
-#' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-#' @param gridfile Spatial data set. Can be shape file, data frame, or list.
-#' @param lon.dat Longitude of points from dataset.
-#' @param lat.dat Latitude of points from dataset.
-#' @param lon.grid Longitude of points from gridfile.
-#' @param lat.grid Latitude of points from gridfile.
-#' @param cat Variable defining the individual areas or zones.
-#' @param weight.var Variable for weighted average.
+#' @param dat  Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+#' @param gridfile Spatial data containing information on fishery management or regulatory zones. Can be shape file, json, geojson, data frame, or list.
+#' @param lon.dat Longitude variable in \code{dat}.
+#' @param lat.dat Latitude variable in \code{dat}.
+#' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
+#' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
+#' @param cat Variable or list in \code{gridfile} that identifies the individual areas or zones. If \code{gridfile} is class sf, \code{cat} should be name of list containing information on zones.
+#' @param weight.var Variable from \code{dat} for weighted average.
 #' @keywords centroid, zone, polygon
 #' @importFrom sf st_centroid  st_as_sf
 #' @importFrom rgeos gCentroid
 #' @importFrom stats ave weighted.mean
 #' @importFrom methods as
-#' @return Data frame where each row is a unique zone and columns are the latitude and longitude defining the centroid of each zone.
+#' @return Returns a data frame where each row is a unique zone and columns are the zone ID, and latitude and longitude defining the centroid of each zone.
 #' @export find_centroid
-#' @details Functions returns the center of a zone or area based on set of latitude and longitudes. Zone centroids are used in calculating distance matrices.
-#'  Function can also return a weighted centroid. Code works for data frames and shape files. Lists can also be used as long as inputs are a list of 
-#'  latitudes, longitudes, and areas or zones. Calls \code{\link{assignment_column}} function. 
+#' @details Zonal centroids are required for many functions. Functions that require zonal centroids call this function. 
+#' The default setting is to return the fishing centroid. The \code{weight.var} is used to calculate weighted centroid. 
+#' Calls \code{\link{assignment_column}} function. 
 
 
 

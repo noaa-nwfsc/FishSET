@@ -1,24 +1,22 @@
-#' Create haul level trip distance vector
+#' Create haul level trip distance variale
 #'
-#' @param dat Main data frame. In FishSET database, table name contains phrase `MainDataTable`.
-#' @param PortTable Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat. Table is generated using the load_port function and saved in the FishSET database.
-#' @param trip_id Variable in 'dat' to identify unique trips. 
-#' @param starting_port Variable in `dat` to identify port at start of trip
-#' @param starting_haul lat/long Variables in `dat` containing lat/long at start of haul. Should contain two vectors.
-#' @param ending_haul lat/long Variables in `dat` containing lat/long at end of haul. Should contain two vectors.
-#' @param ending_port Variable in `dat` to identify port at end of trip
-#' @param haul_order Variable in `dat` containing information on the order that hauls occur within a trip. Can be time, coded variable, etc.
-#' @param name Name of created variable. Defaults to `TripDistance`.
-#' @param a  Major (equatorial) radius of the ellipsoid. The default value is for WGS84 ellipsoid.
-#' @param f  Ellipsoid flattening. The default value is for WGS84 ellipsoid.
+#' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+#' @param PortTable Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat. Table is generated using the load_port function and saved in the FishSET database as the project and PortTable, for example 'pollockPortTable'.
+#' @param trip_id Unique trip identifier in \code{dat}.
+#' @param starting_port Variable in \code{dat} containing port at start of trip.
+#' @param starting_haul Character string, variables containing latitude and longitude at start of haul in \code{dat}.
+#' @param ending_haul Character string, variables containing latitude and longitude at end of haul in \code{dat}.
+#' @param ending_port Variable in \code{dat} containing port at end of trip.
+#' @param haul_order Variable in \code{dat} that identifies haul order within a trip. Can be time, coded variable, etc.
+#' @param name String, name of created variable. Defaults to `TripDistance`.
+#' @param a  Numeric, major (equatorial) radius of the ellipsoid. The default value is for WGS84 ellipsoid.
+#' @param f  Numeric, ellipsoid flattening. The default value is for WGS84 ellipsoid.
 #' @importFrom geosphere distGeo
 #' @export create_trip_distance
-#' @return Vector of trip distance
-#' @details Summation of distance across a trip based on choices by the user for starting and ending ports, and hauls in between.
-#'  Uses longitude and latitude to calculate the distance between hauls within a trip and returns as a new variable. 
-#'  Utilizes the \code{\link[geosphere]{distGeo}} function from the geosphere package to calculate distances between hauls.
-#'   Inputs are the main data table containing information on trips, ports, etc., and a port data table containing latitude and longitude of ports.
-#'  The ellipsoid parameters `a` and `f` are numeric and can be changed if an ellipsoid other than WGS84 is appropriate. See the geosphere R package for more details 
+#' @return Returns the primary dataset with a trip distance variable added.
+#' @details Summation of distance across a trip based on starting and ending ports, and hauls in between. The functions uses \code{\link[geosphere]{distGeo}} 
+#'  from the geosphere package to calculate distances between hauls. Inputs are the trips, ports, and hauls from the primary dataset, and the latitude and 
+#'  longitude of ports from the \code{PortTable}. The ellipsoid arguments, \code{a} and \code{f}, are numeric and can be changed if an ellipsoid other than WGS84 is appropriate.  See the geosphere R package for more details 
 #'  \url{https://cran.r-project.org/web/packages/geosphere/geosphere.pdf}.
 #' @examples
 #' \dontrun{

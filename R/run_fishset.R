@@ -1,7 +1,6 @@
+# run_fishset_gui
 #' Guided user interface for FishSET functions 
-#' 
-
-#' run_fishset_gui
+#' Runs functions associated with loading data, exploring data, checking for data quality issues, generating new variables, and basic data analysis function. 
 #'
 #' @import shiny
 #' @import ggplot2
@@ -13,8 +12,9 @@
 #' @importFrom stringi stri_count_regex
 #' @importFrom shinycssloaders withSpinner
 #' @export run_fishset_gui
-#' @details Opens an interactive page to run functions associated with loading data, exploring data, checking for data quality issues, generating new variables, 
-#' and basic data analysis function.
+#' @details 
+#' Opens an interactive page that allows users to select which functions to run by clicking check boxes.
+#' Data can be modified and saved. Plot and table output are saved to the output folder. Functions calls are logged in the log file.
 #' @examples
 #' \dontrun{
 #' run_fishset_gui()
