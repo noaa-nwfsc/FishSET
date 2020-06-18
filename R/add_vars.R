@@ -8,6 +8,7 @@
 #' @param working_dat Primary data containing information on hauls or trips. Table in FishSET database contains the string `MainDataTable`.
 #' @param raw_dat Unmodified raw version of the primary dataset. Should be a character specifying a table from the FishSET database 
 #' containing the string ‘MainDataTable’ and date table was created.
+#' @param vars Character string, variables from \code{raw_dat} to add back into \code{working_dat}.
 #' @param project Character, name of project. Parameter is used to generate meaningful table names in FishSET database.
 #' @importFrom DBI  dbDisconnect dbConnect dbListTables dbWriteTable 
 #' @import shiny

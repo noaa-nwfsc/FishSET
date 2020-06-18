@@ -50,7 +50,8 @@
 #'   \code{fig.asp = 1}. 
 #' @examples 
 #' \dontrun{
-#' cpue(pollockMainDataTable, ‘myproject’, xWeight=’f1Weight’ , xTime=’Hour’ , ‘f1_cpue’)
+#' cpue(pollockMainDataTable, ‘myproject’, xWeight=’f1Weight’ , 
+#' xTime=’Hour’ , ‘f1_cpue’)
 #' bycatch(pollockMainDataTable, 'myProject', cpue = c('f1_cpue', 'f2_cpue', 'f3_cpue', 'f4_cpue'),
 #' catch = c('f1', 'f2', 'f3', 'f4'), date = 'FISHING_START_DATE', 
 #' names = c('fish_1', 'fish_2', 'fish_3', 'fish_4'), period = 'month', 

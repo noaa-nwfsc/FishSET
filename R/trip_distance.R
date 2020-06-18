@@ -1,7 +1,10 @@
 #' Create haul level trip distance variale
 #'
-#' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
-#' @param PortTable Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat. Table is generated using the load_port function and saved in the FishSET database as the project and PortTable, for example 'pollockPortTable'.
+#' @param dat Primary data containing information on hauls or trips. 
+#' Table in FishSET database contains the string 'MainDataTable'.
+#' @param PortTable Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat. 
+#' Table is generated using the load_port function and saved in the FishSET database as the project and PortTable, 
+#' for example 'pollockPortTable'.
 #' @param trip_id Unique trip identifier in \code{dat}.
 #' @param starting_port Variable in \code{dat} containing port at start of trip.
 #' @param starting_haul Character string, variables containing latitude and longitude at start of haul in \code{dat}.
@@ -14,9 +17,11 @@
 #' @importFrom geosphere distGeo
 #' @export create_trip_distance
 #' @return Returns the primary dataset with a trip distance variable added.
-#' @details Summation of distance across a trip based on starting and ending ports, and hauls in between. The functions uses \code{\link[geosphere]{distGeo}} 
-#'  from the geosphere package to calculate distances between hauls. Inputs are the trips, ports, and hauls from the primary dataset, and the latitude and 
-#'  longitude of ports from the \code{PortTable}. The ellipsoid arguments, \code{a} and \code{f}, are numeric and can be changed if an ellipsoid other than WGS84 is appropriate.  See the geosphere R package for more details 
+#' @details Summation of distance across a trip based on starting and ending ports, and hauls in between. 
+#' The functions uses \code{\link[geosphere]{distGeo}} from the geosphere package to calculate distances 
+#'  between hauls. Inputs are the trips, ports, and hauls from the primary dataset, and the latitude and 
+#'  longitude of ports from the \code{PortTable}. The ellipsoid arguments, \code{a} and \code{f}, are numeric 
+#'  and can be changed if an ellipsoid other than WGS84 is appropriate. See the geosphere R package for more details 
 #'  \url{https://cran.r-project.org/web/packages/geosphere/geosphere.pdf}.
 #' @examples
 #' \dontrun{

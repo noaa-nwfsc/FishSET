@@ -6,18 +6,23 @@
 #' Add catch per unit effort variable to the primary dataset. Catch should be a weight variable but can be a count. Effort should be in a duration of time, such as days, hours, or minutes. 
 #' 
 cpue <- function(dat, xWeight, xTime, name = "cpue") {
-    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
-    #' @param xWeight Catch variable in \code{dat}. Variable should be a measure of weight (pounds, metric tons, etc) but can also be count.
-    #' @param xTime Duration of time variable in \code{dat} representing effort, such as weeks, days, hours, or minutes.
+    #' @param dat Primary data containing information on hauls or trips. 
+    #' Table in FishSET database contains the string 'MainDataTable'.
+    #' @param xWeight Catch variable in \code{dat}. Variable should be a measure of weight (pounds, metric tons, etc)
+    #'  but can also be count.
+    #' @param xTime Duration of time variable in \code{dat} representing effort, such as 
+    #' weeks, days, hours, or minutes.
     #' @param name String, name of created variable. Defaults to name of the function if not defined.
     #' @export cpue 
-    #' @details Creates the catch per unit effort variable. Catch variable should be in weight (lbs, mts). Effort variable should be a measurement of duration in time. 
-    #' New variable is added to the primary dataset with the column name defined by the \code{name} argument. CPUE for individual species should be 
+    #' @details Creates the catch per unit effort variable. Catch variable should be in weight (lbs, mts). 
+    #' Effort variable should be a measurement of duration in time. New variable is added to the primary dataset 
+    #' with the column name defined by the \code{name} argument. CPUE for individual species should be 
     #' calculated separately.
     #' @return Returns primary dataset with CPUE variable added.
     #' @examples 
     #' \dontrun{
-    #' pollockMainDataTable <- cpue(pollockMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', 'DURATION_IN_MIN', 'cpue') 
+    #' pollockMainDataTable <- cpue(pollockMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', 
+    #' 'DURATION_IN_MIN', 'cpue') 
     #' }  
     
     # Call in datasets
@@ -57,15 +62,28 @@ cpue <- function(dat, xWeight, xTime, name = "cpue") {
 #dummy_num
 dummy_num <- function(dat, var, value, opts='more_less', name='dummy_num'){
 #' Create a dummy vector from numeric characterization of variable
-#' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+#' @param dat Primary data containing information on hauls or trips. 
+#' Table in FishSET database contains the string 'MainDataTable'.
 #' @param var Variable in \code{dat} to create dummy variable from.
-#' @param value String, value to set dummy variable by. If \code{var} is a date date, value should be a year, If \code{var} is a factor, value should be a factor level. If \code{var} is numeric, value should be a single number or range of numbers [use c(1,5)].
-#' @param opts String, how dummy variable should be defined. Choices are ‘x_y’ and ‘more_less’. For ‘x_y’, each element of \code{var} is set to 1 if the elemant matches \code{value}, otherwise 0.
-#' For ‘more_less’, each element of \code{var} less than \code{value} is set to 0 and all elements greater than \code{varlue} set to 1. If \code{var} is a factor, then elements that match value will be set to 1 and all other elements set to 0. Default is set to 'more_less'.
+#' @param value String, value to set dummy variable by. If \code{var} is a date date, value should be a year, 
+#' If \code{var} is a factor, value should be a factor level. If \code{var} is numeric, value should be a single 
+#' number or range of numbers [use c(1,5)].
+#' @param opts String, how dummy variable should be defined. Choices are ‘x_y’ and ‘more_less’. For ‘x_y’, each 
+#' element of \code{var} is set to 1 if the elemant matches \code{value}, otherwise 0.
+#' For ‘more_less’, each element of \code{var} less than \code{value} is set to 0 and all elements greater than 
+#' \code{varlue} set to 1. If \code{var} is a factor, then elements that match value will be set to 1 and all other
+#'  elements set to 0. Default is set to 'more_less'.
 #' @param name String, name of created dummy variable. Defaults to name of the function if not defined.
-#' @details For date variables, the dummy variable is defined by a date (year) and may be either year x versus all other years (x_y) or before vs after year x (more_less). Use this function to create a variable defining whether or not policy action had been implemented. For example, to create an ammendment 80 variable you would type: ‘dummy_num(’MainDataTable', 'Haul_date', 2008, 'more_less', 'ammend80')'.
-#'  For factor variables, both choices in \code{opts} compare selected levels against all others. For example, to set a variable specifying whether fishers targeted pollock or something else type: ‘dummy_num(’MainDataTable', 'GF_TARGET_FT', c('Pollock - bottom', 'Pollock - midwater'), 'x_y', 'pollock_target')' 
-#'  For numeric variables, \code{value} can be a single number or a range of numbers. The dummy variable is the selected value(s) against all others (x_y) or less than the selected value versus more than the selected value (more_less). For more_less, the mean is used as the critical value is a range of values is provided.
+#' @details For date variables, the dummy variable is defined by a date (year) and may be either year x versus all 
+#' other years (x_y) or before vs after year x (more_less). Use this function to create a variable defining whether 
+#' or not policy action had been implemented. For example, to create an ammendment 80 variable you would type: 
+#' ‘dummy_num(’MainDataTable', 'Haul_date', 2008, 'more_less', 'ammend80')'.
+#'  For factor variables, both choices in \code{opts} compare selected levels against all others. For example, to 
+#'  set a variable specifying whether fishers targeted pollock or something else type: ‘dummy_num(’MainDataTable', 
+#'  'GF_TARGET_FT', c('Pollock - bottom', 'Pollock - midwater'), 'x_y', 'pollock_target')' 
+#'  For numeric variables, \code{value} can be a single number or a range of numbers. The dummy variable is the 
+#'  selected value(s) against all others (x_y) or less than the selected value versus more than the selected value 
+#'  (more_less). For more_less, the mean is used as the critical value is a range of values is provided.
 #' @return Returns primary dataset with dummy variable added.
 #' @export
 #' @examples
@@ -110,7 +128,8 @@ dummy_num <- function(dat, var, value, opts='more_less', name='dummy_num'){
 
 #' Create dummy variable
 dummy_var <- function(dat, DumFill = "TRUE", name = "dummy_var") {
-    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param dat Primary data containing information on hauls or trips. 
+    #' Table in FishSET database contains the string 'MainDataTable'.
     #' @param DumFill Fill the dummy variable with TRUE or FALSE
     #' @param name String, name of created dummy variable. Defaults to name of the function if not defined.
     #' @return Primary dataset with dummy variable added.
@@ -140,10 +159,13 @@ dummy_var <- function(dat, DumFill = "TRUE", name = "dummy_var") {
 
 #' Create dummy matrix from a coded ID variable
 dummy_matrix <- function(dat, x) {
-    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param dat Primary data containing information on hauls or trips. 
+    #' Table in FishSET database contains the string 'MainDataTable'.
     #' @param x Variable in \code{dat} used to generate dummy matrix.
     #' @export dummy_matrix
-    #' @details Creates a dummy matrix of TRUE/FALSE with dimensions \emph{((number of observations in dataset) x ((number of factors in x)} where each column is a unique factor level. Values are TRUE if the value in the column matches the column factor level and FALSE otherwise.
+    #' @details Creates a dummy matrix of TRUE/FALSE with dimensions \emph{((number of observations in dataset) x 
+    #' ((number of factors in x)} where each column is a unique factor level. Values are TRUE if the value in the 
+    #' column matches the column factor level and FALSE otherwise.
     #' @examples 
     #' \dontrun{
     #' PortMatrix <- dummy_matrix(MainDataTable, 'PORT_CODE')
@@ -177,7 +199,8 @@ dummy_matrix <- function(dat, x) {
 #' Create a factor variable from numeric data.  Numeric variable is split into categories based on qualitile categories. 
 #' 
 set_quants <- function(dat, x, quant.cat = c(0.2, 0.25, 0.4), name = "set_quants") {
-    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param dat Primary data containing information on hauls or trips. 
+    #' Table in FishSET database contains the string 'MainDataTable'.
     #' @param x Variable to transform into quantiles.
     #' @param quant.cat Quantile opions: '0.2', '0.25', and '0.4.'
     #' \itemize{
@@ -342,8 +365,7 @@ create_mid_haul <- function(dat, start = c("lon", "lat"), end = c("lon", "lat"),
     #' @examples 
     #' \dontrun{
     #' MainDataTable <- create_mid_haul(MainDataTable, start = c('LonLat_START_LON', 
-    #'                 'LonLat_START_LAT'), end = c('LonLat_END_LON', 'LonLat_END_LAT'),
-    #'                  name='mid_haul') 
+    #' 'LonLat_START_LAT'), end = c('LonLat_END_LON', 'LonLat_END_LAT'), name='mid_haul') 
     #' }
     # 
     
@@ -407,8 +429,8 @@ create_trip_centroid <- function(dat, lon, lat, weight.var = NULL, ...) {
     #' @examples 
     #' \dontrun{
     #' pollockMainDataTable <- create_trip_centroid('pollockMainDataTable', 
-    #'                               'LonLat_START_LON', 'LonLat_START_LAT', 
-    #'                               weight.var=NULL, 'DISEMBARKED_PORT','EMBARKED_PORT')
+    #' 'LonLat_START_LON', 'LonLat_START_LAT',  weight.var=NULL, 
+    #' 'DISEMBARKED_PORT','EMBARKED_PORT')
     #' }
     
   dataset <- dat
@@ -470,26 +492,28 @@ create_trip_centroid <- function(dat, lon, lat, weight.var = NULL, ...) {
 
 #' Create distance between points variable - interactive version
 create_dist_between <- function(dat, start, end, units = c("miles", "meters", "km", "midpoint"), name='distBetween') {
-    #' @param dat Main data frame over which to apply function. Table in FishSET database should contain the string `MainDataTable`.
-    #' @param start Starting location. Should be a port, lat/lon location, or the centroid of fishing zone or area. 
-    #' If port is desired, start should be the column name in the \code{dat} containing the port names. Latitude 
-    #' and longitude for the port are extracted from the port table. If a lat/lon location is desired then start should 
-    #' be a character string of column names from \code{dat}. The order must be lon, lat. If the centroid of the 
-    #' fishing zone or area is to be used then start should be 'centroid' and \code{\link{find_centroid}} and \code{\link{assignment_column}} 
-    #' will be called to identify the latitude and longitude.
+    #' @param dat Main data frame over which to apply function.
+    #' Table in FishSET database should contain the string `MainDataTable`.
+    #' @param start Starting location. Should be a port, lat/lon location, or the centroid of fishing zone 
+    #' or area. If port is desired, start should be the column name in the \code{dat} containing the port 
+    #' names. Latitude and longitude for the port are extracted from the port table. If a lat/lon location is 
+    #' desired then start should be a character string of column names from \code{dat}. The order must be lon, 
+    #' lat. If the centroid of the fishing zone or area is to be used then start should be 'centroid' and 
+    #' \code{\link{find_centroid}} and \code{\link{assignment_column}} will be called to identify the latitude and longitude.
     #' @param end Ending location. Should be a port, lat/lon location, or the centroid of the fishing zone or area. 
     #' If port is desired, end should be a variable in \code{dat} containing the port names. Latitude 
-    #' and longitude for the port are extracted from the port table. If a lat, long location is desired then end should 
-    #' be a character string of column names specifying first longitude then latitude. If the centroid of the fishing zone 
-    #' or area is to be used then end should be 'centroid' and \code{\link{find_centroid}} and \code{\link{assignment_column}} 
-    #' will be called to identify the latitude and longitude. 
-    #' @param units  Unit of measurement for calculated distance between start and ending points. Can be in miles, meters, kilometers, or midpoint location.
+    #' and longitude for the port are extracted from the port table. If a lat, long location is desired then end 
+    #' should be a character string of column names specifying first longitude then latitude. If the centroid of the 
+    #' fishing zone or area is to be used then end should be 'centroid' and \code{\link{find_centroid}} and 
+    #' \code{\link{assignment_column}} will be called to identify the latitude and longitude. 
+    #' @param units  Unit of measurement for calculated distance between start and ending points. 
+    #' Can be in miles, meters, kilometers, or midpoint location.
     #' @param name String, output variable name. Defaults to `distBetween`.
     #' @export
     #' @return Returns primary dataset with distance between variable.
     #' @importFrom geosphere distGeo midPoint
-    #' @description Adds distance between two points variable to the primary dataset. There are two versions of this function. 
-    #' The difference between the two versions is how additional arguments specific to start and end locations are added. 
+    #' @description Adds distance between two points variable to the primary dataset. There are two versions of this 
+    #' function. The difference between the two versions is how additional arguments specific to start and end locations are added. 
     #' This version requires only five arguments to be specified before running. Additional arguments specific to identifying 
     #' the lat/lon of start or end points are added through prompts. This function is designed for an interactive session. 
     #' The \code{\link{create_dist_between_for_gui}} function requires all necessary arguments to be specified before running 
@@ -509,7 +533,8 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
     #' \cr\cr
     #' Centroids arguments required:
     #' \tabular{rlll}{
-    #' gridfile: \tab Spatial data set containing information on fishery management or regulatory zones. Can be shape file, json, geojson, data frame, or list data frame or list. Required if start or end is centroid. \cr 
+    #' gridfile: \tab Spatial data set containing information on fishery management or regulatory zones. 
+    #' Can be shape file, json, geojson, data frame, or list data frame or list. Required if start or end is centroid. \cr 
     #' lon.dat: \tab Longitude variable from \code{dat}. \cr 
     #' lat.dat: \tab Latitude variable from \code{dat}. \cr
     #' lon.grid: \tab Variable or list from \code{gridfile} containing longitude data. Required if start or end is centroid. Leave as NULL if \code{gridfile} is a shape or json file. \cr 
@@ -519,11 +544,11 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
     #' @examples 
     #' \dontrun{
     #' MainDataTable <- create_dist_between(MainDataTable,'centroid','EMBARKED_PORT', 
-    #'                                                  units='miles', 'DistCentPort')
+    #'   units='miles', 'DistCentPort')
     #' MainDataTable <- create_dist_between(MainDataTable,c('LonLat_START_LON',
-    #'                   'LonLat_START_LAT'),c('LonLat_END_LON','LonLat_END_LAT'), units='midpoint', 'DistLocLock')
+    #'  'LonLat_START_LAT'),c('LonLat_END_LON','LonLat_END_LAT'), units='midpoint', 'DistLocLock')
     #' MainDataTable <- create_dist_between(MainDataTable,'DISEMBARKED_PORT',
-    #'                                      'EMBARKED_PORT', units='meters', 'DistPortPort')
+    #'   EMBARKED_PORT', units='meters', 'DistPortPort')
     #' }
     
     # \tabular{AddPromptparams}{

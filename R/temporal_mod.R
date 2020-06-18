@@ -7,7 +7,7 @@
 #' @param name String, name of created variables. Defaults to `TempMod`.
 #' @keywords Date as.Date
 #' @return Primary dataset with new variable added.
-#' @details Converts a date variable to desired units using \code{\link[base]{as.Date}}. \code{\link{date_parse}} is 
+#' @details Converts a date variable to desired units using \code{\link[base]{as.Date}}. \code{\link{date_parser}} is 
 #' also called to ensure the date variable is in an acceptable format for \code{\link[base]{as.Date}}.
 #'  \code{define.format} defines the format that the variable should take on. Examples include `\%Y\%m\%d`, `\%Y-\%m-\%d \%H:\%M:\%S`. Users can define their own format or use one of the predefined ones.
 
