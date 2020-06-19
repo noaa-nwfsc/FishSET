@@ -298,6 +298,47 @@ date_time_parser <- function(dates){
   }
 }
 
+date_check <- function(dat, date) {
+  #' Parse date/date-time variable
+  #'@param dat Dataframe containing variable to convert to date/date-time.
+  #'@param date Date variable name to convert.
+  #'@keywords internal 
+  #'@returns Checks whether variable can be converted to date or date-time. Returns 
+  #'  dataframe with converted variable.
+  #'@importFrom lubridate is.POSIXt is.Date
+  #'@export 
+  
+  end <- FALSE
+  
+  if (lubridate::is.POSIXt(dat[[date]])) {
+    
+    dat[[date]] <- dat[[date]]
+    
+  } else if (lubridate::is.Date(dat[[date]])) {
+    
+    dat[[date]] <- dat[[date]]
+    
+  } else if (all(grepl("^.*\\s\\d{2}:\\d{2}:\\d{2}$", dat[[date]])) | 
+             all(grepl("^.*\\s\\d{2}:\\d{2}$", dat[[date]]))) {
+    
+    dat[[date]] <- date_time_parser(dat[[date]])
+    
+  } else if (all(grepl("^\\d{4}-\\d{2}-\\d{2}$", dat[[date]]))) {
+    
+    dat[[date]] <- date_parser(dat[[date]])
+    
+  } else {
+    
+    warning("Start date format not recognized.")
+    end <- TRUE
+  }
+  
+  if (end == FALSE) {
+    
+    dat
+  }
+}
+
 find_original_name <- function(fun) {
   #' find original name
   #' @param fun function
