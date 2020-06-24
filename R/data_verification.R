@@ -159,7 +159,7 @@ empty_vars_filter <- function(dat, project, remove = FALSE) {
     #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
     #' @param project String, name of project.
     #' @param remove Logical, remove empty variables? Defaults to FALSE.
-    #' @details Function checks for empty variables and prints an outcome message to the console. If empty variables are present and \cod{remove} = TRUE then empty variables will be removed from the dataset. 
+    #' @details Function checks for empty variables and prints an outcome message to the console. If empty variables are present and \code{remove} = TRUE then empty variables will be removed from the dataset. 
     #' @keywords empty
     #' @return Returns the dataset with empty variables removed if \code{remove} is TRUE.
     #' @export empty_vars_filter

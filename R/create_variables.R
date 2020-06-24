@@ -496,7 +496,7 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
     #' and is best used in a non-interactive session. Both versions of the distance between function require that the start 
     #' and end points be different vectors. If the start or ending points are from a port then \code{PortTable} must be specified 
     #' to obtain lat/lons. If the start or ending points are the center of a fishing zone or area then \code{gridfile}, \code{lon.dat}, 
-    #' \code{lat.dat}, \code{cat}, \code{lon.grid}, and \code{lat.grid'} must be specified to obtain latitude and longitude.
+    #' \code{lat.dat}, \code{cat}, \code{lon.grid}, and \code{lat.grid} must be specified to obtain latitude and longitude.
     #' @details
     #' Additional arguments. \cr
     #' Further arguments are required to identify the latitude and longitude of the starting or ending location if \code{start} or \code{end} 
@@ -545,7 +545,7 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
         if (any(grepl("port", c(start[1], end[1]), ignore.case = TRUE))) {
             # in port table
             fun <- function() {
-                readline("What is the table name in fishset_db containing port data?  ")
+                readline("What is the table name in fishset_db containing port data?")
                 # return(PortTable)
             }
             vars <- if (interactive()) 
