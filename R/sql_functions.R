@@ -75,7 +75,7 @@ table_exists <- function(table) {
     #' Check if table exists in the FishSET database
     #' @param table Name of table in FishSET database
     #' @export table_exists
-    #' @description Wrapper for \code{l\link[DBI]{dbExistsTable}}. Check if a table exists in the FishSET database.
+    #' @description Wrapper for \code{\link[DBI]{dbExistsTable}}. Check if a table exists in the FishSET database.
     #' @return Returns a logical statement of table existence. 
     #' @importFrom DBI dbConnect dbDisconnect dbExistsTable   
     #' @examples 
@@ -93,7 +93,8 @@ model_out_view <- function(table) {
     #' Returns output from running \code{discretefish_subroutine}. The table argument must be the full name of the table name in the FishSET database. Output includes information on model convergence, standard errors, t-stats, etc.
     #' @param table  Table name in FishSET database. Should contain the phrase 'modelout'.
     #' @export
-    #' @description Returns output from running the discretefish_subroutine function. The table parameter must be the full name of the table name in the FishSET database.
+    #' @description Returns output from running the discretefish_subroutine function. 
+    #' The table parameter must be the full name of the table name in the FishSET database.
     #' @examples 
     #' \dontrun{
     #' model_out_view('pcodmodelout20190604')
@@ -141,7 +142,7 @@ model_fit <- function(project) {
     #' \dontrun{
     #' model_fit('pollock')
     #' }
-    
+    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
     return(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0("SELECT * FROM ", paste0(project, "modelfit"))))
     DBI::dbDisconnect(fishset_db)
 }

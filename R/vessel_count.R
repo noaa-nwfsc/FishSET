@@ -30,6 +30,7 @@
 #' @param position Positioning of bar plot. Options include 'stack', 'dodge', 
 #'   and 'fill'.
 #' @param conv Convert to \code{"percent"}. Defaults to \code{FALSE}. 
+#' @param value Return value. Choices are \code{"count"} and \code{"percent"}. Defaults to \code{"count"}.
 #' @param type Plot type, options include \code{"bar"} (the default) and \code{"line"}. 
 #' @param scale Scale argument passed to \code{\link{facet_grid}}. 
 #'   Options include \code{"free"}, \code{"free_x"}, \code{"free_y"}. Defaults to 
