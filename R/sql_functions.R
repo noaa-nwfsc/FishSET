@@ -4,7 +4,8 @@
 
 tables_database <- function() {
     #' View names of tables in the FishSET database
-    #' Wrapper for \code{\link[DBI] dbListTables}}. View names of tables in the FishSET database.
+    #' 
+    #' Wrapper for \code{\link[DBI]{dbListTables}}. View names of tables in the FishSET database.
     #' @export tables_database
     #' @importFrom DBI dbConnect dbRemoveTable dbListTables dbExistsTable dbGetQuery
     #' @examples 
@@ -55,7 +56,7 @@ table_view <- function(table) {
 
 table_remove <- function(table) {
     #' Remove table from FishSET database
-    #' Wrapper for \code{\lilnk[DBI]{dbRemoveTable}}. Remove a table from the FishSET database.
+    #' Wrapper for \code{\link[DBI]{dbRemoveTable}}. Remove a table from the FishSET database.
     #' @param table String, ame of table in FishSET database.
     #' @export table_remove
     #' @details Function utilizes sql functions to permanently remove a table from the FishSET database.
