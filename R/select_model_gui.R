@@ -20,7 +20,7 @@
 
 select_model <- function(project){
   
-  requireNamespace("shiny")
+#  requireNamespace("shiny")
   
 
   shinyApp(
