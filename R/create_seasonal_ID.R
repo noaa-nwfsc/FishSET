@@ -3,20 +3,32 @@
 #' 
 #' Creates a fishery season identifier variable
 #'
-#' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+#' @param dat Primary data containing information on hauls or trips. 
+#' Table in FishSET database contains the string 'MainDataTable'.
 #' @param seasonal.dat Name of table containing date of fishery season(s). Can be pulled from FishSET database.
-#' @param use.location  Logical, should fishery season dates depend on fishery location? Column names containing location in \code{dat} and \code{seasonal.dat} must match.
-#' @param use.geartype Logical, should fishery season dates depend on gear type. Column name containing gear type in \code{dat} and \code{seasonal.dat} must match.
-#' @param sp.col Variable in \code{seasonaldat} containing species names. 
-#' @param target Name of target species. If `target` is NULL, runs through fisheries in order listed in seasonal.dat
+#' @param use.location  Logical, should fishery season dates depend on fishery location? Column names containing
+#' location in \code{dat} and \code{seasonal.dat} must match.
+#' @param use.geartype Logical, should fishery season dates depend on gear type. Column name containing gear 
+#' type in \code{dat} and \code{seasonal.dat} must match.
+#' @param sp.col Variable in \code{seasonal.dat} containing species names. 
+#' @param target Name of target species. If \code{target} is NULL, runs through fisheries in order listed in \code{seasonal.dat}
 #' @export create_seasonal_ID
-#' @return  Returns the primary dataset with the variable SeasonID, or a series of variables identifying by the individual fisheries included (seasonID*fishery). 
+#' @return  Returns the primary dataset with the variable SeasonID, or a series of variables identifying by the individual 
+#' fisheries included (seasonID*fishery). 
 #' @importFrom DBI dbConnect
 #' @importFrom RSQLite SQLite
-#' @details Uses a table of fishery season dates to create fishery season identifier variables. Output is a SeasonID variable and/or multiple SeasonID*fishery variables. If fishery season dates vary by location or geartype, then \code{use.location} and \code{use.geartype} should be TRUE. \cr
-#'The function matchers fishery season dates provided in \code{seasonal.dat} to the first date variable in the primary dataset. The seasonID variable is a vector of fisheries whereas the SeasonID*fishery variables are TRUE/FALSE indicating whether the fishery was open on the observed date. \cr
-#' If \code{target} is not defined, then each row of seasonID is defined as the first fishery listed in \code{seasonal.dat} for which fishery season date encompasses the date variable in the primary dataset. If \code{target} fishery is defined, then SeasonID is defined by whether the target fishery is open on the date in the primary dataset or a different fishery. The vector is filled with 'target' or 'other'.\cr 
-#' SeasonID*fishery variables are a TRUE/FALSE seasonID vector for each fishery (labeled by seasonID and fishery) where TRUE indicates the dates for a given row in the main data table fall within the fishery dates for that fishery.
+#' @details Uses a table of fishery season dates to create fishery season identifier variables. Output is a SeasonID 
+#' variable and/or multiple SeasonID*fishery variables. If fishery season dates vary by location or geartype, 
+#' then \code{use.location} and \code{use.geartype} should be TRUE. \cr\cr
+#' The function matchers fishery season dates provided in \code{seasonal.dat} to the first date variable in the primary dataset. 
+#' The seasonID variable is a vector of fisheries whereas the SeasonID*fishery variables are TRUE/FALSE indicating whether the 
+#' fishery was open on the observed date. \cr\cr
+#' If \code{target} is not defined, then each row of seasonID is defined as the first fishery listed in \code{seasonal.dat} for 
+#' which fishery season date encompasses the date variable in the primary dataset. If \code{target} fishery is defined, then 
+#' SeasonID is defined by whether the target fishery is open on the date in the primary dataset or a different fishery. The 
+#' vector is filled with 'target' or 'other'.\cr\cr
+#' SeasonID*fishery variables are a TRUE/FALSE seasonID vector for each fishery (labeled by seasonID and fishery) where TRUE 
+#' indicates the dates for a given row in the main data table fall within the fishery dates for that fishery.
 
 #' @examples 
 #' \dontrun{ 

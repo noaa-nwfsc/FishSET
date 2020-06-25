@@ -1,5 +1,7 @@
 degree <- function(dat, lat = NULL, lon = NULL, latsign = FALSE, lonsign = FALSE, replace = TRUE) {
     #' Check and correct lat/lon format
+    #' 
+    #' Check latitude and longitude are in decimal degrees and variable sign. Correct lat/lon if required.
     #' @param dat Dataset containing latitude and longitude data
     #' @param lat Variable containing latitude data.
     #' @param lon Variable containing longitude data.

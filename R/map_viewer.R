@@ -2,7 +2,8 @@
 # map viewer
 map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars, lon_start, lat_start, lon_end, lat_end) {
     #' Interactive vessel locations and fishery zones map
-    #' View vessel locations and fishery zones on interactive map
+    #' 
+    #' View vessel locations and fishery zones on interactive map.
     #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
     #' @param gridfile Spatial data containing information on fishery management or regulatory zones. Shape, json, geojson, and csv formats are supported. 
     #' @param avd Variable name in \code{dat} that gives the unique ID associated to the polygon.
@@ -27,7 +28,7 @@ map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars, lo
     #' At this time, the map can only be saved by taking a screen shot.
     #' @examples 
     #' \dontrun{
-    #' map_viewer(dat='pollockMainDataTable', gridfile='spatdat', area_variable_column='NMFS_AREA', 
+    #' map_viewer(pollockMainDataTable, gridfile=spatdat, area_variable_column='NMFS_AREA', 
     #' area_variable_map='NMFS_AREA', num_vars=c('HAUL','OFFICIAL_TOTAL_CATCH'), 
     #' temp_vars='HAUL_DATE', id_vars=c('GEAR_TYPE', 'PORT'))
     #' }

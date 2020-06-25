@@ -3,7 +3,8 @@ getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, la
     #'
     #' Wrapper function to calculate global and local Getis-Ord by discrete area
     #'
-    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param dat Primary data containing information on hauls or trips. 
+    #'   Table in FishSET database contains the string 'MainDataTable'.
     #' @param project String, name of project.
     #' @param varofint Numeric variable in \code{dat} to test for spatial high/low clustering. 
     #' @param gridfile Spatial data containing information on fishery management or regulatory zones.
@@ -11,22 +12,22 @@ getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, la
     #' @param lon.dat Longitude variable in \code{dat}.
     #' @param lat.dat Latitude variable in \code{dat}.
     #' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required for csv files. 
-    #' Leave as NULL if \code{gridfile} is a shape or json file.
+    #'   Leave as NULL if \code{gridfile} is a shape or json file.
     #' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files. 
-    #' Leave as NULL if \code{gridfile} is a shape or json file.
+    #'   Leave as NULL if \code{gridfile} is a shape or json file.
     #' @param cat Variable defining the individual areas or zones.
     #' @details Calculates degree, within each zone, that high or low values of the \code{varofint} cluster in space. 
-    #' Function utilizes the \code{\link[spdep]{localG}} and \code{\link[spdep]{knearneigh}} functions from the spdep package.
-    #'  The spatial input is a row-standardized spatial weights matrix for computed nearest neighbor matrix, 
-    #'  which is the null setting for the \code{link[spdep]{nb2listw}} function. Requires a data frame with
+    #'   Function utilizes the \code{\link[spdep]{localG}} and \code{\link[spdep]{knearneigh}} functions from the spdep package.
+    #'   The spatial input is a row-standardized spatial weights matrix for computed nearest neighbor matrix, 
+    #'   which is the null setting for the \code{\link[spdep]{nb2listw}} function. Requires a data frame with
     #'   area as a factor, the lon/lat centroid for each area, the lat/lon outlining each area, and the variable of 
     #'   interest (\code{varofint}) or a map file with lat/lon defining boundaries of area/zones and variable of interest 
     #'   for weighting. Also required is the lat/lon defining the center of a zone/area. If the centroid is not included in 
     #'   the map file, then \code{\link{find_centroid}} can be called to calculate the centroid of each zone. If the 
-    #'   variable of interest is not associated with an area/zone than the assignment_column function can be used to 
+    #'   variable of interest is not associated with an area/zone then the \code{\link{assignment_column}} function can be used to 
     #'   assign each observation to a zone. Arguments to identify centroid and assign variable of interest to area/zone are optional and default to NULL.
     #' @return Returns a plot and table. Both are saved to the output folder. 
-    #' @aliases  moranmap: ggplot2 object; morantable: table of statistics
+    # @aliases  moranmap: ggplot2 object; morantable: table of statistics
     #' @import ggplot2
     #' @importFrom maps map
     #' @importFrom spdep knn2nb knearneigh nb2listw localG globalG.test
@@ -34,14 +35,12 @@ getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, la
     #' @export
     #' @examples
     #' \dontrun{
-    #' getis_ord_stats(pcodMainDataTable, project=’pcod’, 
-    #' varofint=‘OFFICIAL_MT_TONS’, gridfile=spatdat, 
-    #' lon.dat=’LonLat_START_LON’, lat.dat = ‘LonLat_START_LAT’,
-    #'  cat=’NMFS_AREA)
+    #' getis_ord_stats(pcodMainDataTable, project='pcod', varofint='OFFICIAL_MT_TONS', 
+    #' gridfile=spatdat, lon.dat='LonLat_START_LON', lat.dat ='LonLat_START_LAT', cat='NMFS_AREA')
     #' }
     #'
     
-    requireNamespace("ggplot2")
+    #requireNamespace("ggplot2")
     world <- map_data("world")
     
     # Call in datasets

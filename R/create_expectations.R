@@ -7,7 +7,7 @@
 #' @param catch Variable from \code{dat} containing catch data.
 #' @param price Optional, variable from \code{dat} containing price/value data.  Price is multiplied against 
 #' \code{catch} to generated revenue. Defaults to NULL.
-#' @param temporal String, choices are ‘daily’ or ‘sequential’. Should time, if \code{temp.var} is defined, 
+#' @param temporal String, choices are \code{"daily"} or \code{"sequential"}. Should time, if \code{temp.var} is defined, 
 #' be included as a daily timeline or sequential order of recorded dates.  For daily, catch on dates with no record 
 #' are filled with NA. The choice affects how the rolling average is calculated. If temporal is daily then the window 
 #' size for average and the temporal lag are in days. If sequential, then averaging will occur over the specified 
@@ -15,14 +15,14 @@
 #' @param temp.var Optional, temporal variable from \code{dat}. Set to NULL if temporal patterns in 
 #' catch should not be considered. 
 #' @param calc.method String, how catch values are average over window size. Select standard average 
-#' (standardAverage), simple lag regression of means (simpleLag), or weights of regressed groups (weights)
-#' @param lag.method  String, use regression over entire group (simple) or for grouped time periods (grouped).
-#' @param empty.catch String, replace empty catch with 'NA', '0', mean of all catch ('allCatch'), 
-#' or mean of grouped catch ('groupCatch').
+#' (\code{"standardAverage"}), simple lag regression of means (\code{"simpleLag"}), or weights of regressed groups (\code{"weights"})
+#' @param lag.method  String, use regression over entire group (\code{"simple"}) or for grouped time periods (\code{"grouped"}).
+#' @param empty.catch String, replace empty catch with \code{NA}, \code{"0"}, mean of all catch (\code{"allCatch"}), 
+#' or mean of grouped catch (\code{"groupCatch"}).
 #' @param empty.expectation Numeric, how to treat empty expectation values. Choices are to not replace (NULL) 
 #' or replace with 0.0001 or 0.
 #' @param temp.window Numeric, temporal window size. If \code{temp.var} is not NULL, set the window size to
-#'  average catch over. Defaults to 14 (14 days if \code{temporal} is ‘daily’).
+#'  average catch over. Defaults to 14 (14 days if \code{temporal} is \code{"daily"}).
 #' @param temp.lag Numeric, temporal lag time. If \code{temp.var} is not NULL, how far back to lag \code{temp.window}.
 #' @param year.lag If expected catch should be based on catch from previous year(s), set year.lag to the number 
 #' of years to go back.
@@ -67,12 +67,12 @@
 #' @return newGridVar,  newDumV
 #' @examples 
 #' \dontrun{
-#' create_expectations(pcodMainDataTable, 'adfg', 'OFFICIAL_TOTAL_CATCH_MT', price=NULL,  
-#' defineGroup='fleet', temp.var='DATE_FISHING_BEGAN', temporal='daily', 
-#' calc.method='standard average', lag.method='simple', empty.catch='all catch',
-#'  empty.expectation= 0.0001, temp.window=4, temp.lag=2, year.lag=0,
-#'  dummy.exp=FALSE,replace.output=FALSE)
-#' }
+#' create_expectations(pcodMainDataTable, 'adfg', 'OFFICIAL_TOTAL_CATCH_MT',  
+#' price = NULL, defineGroup ='fleet', temp.var ='DATE_FISHING_BEGAN',  
+#' temporal ='daily',calc.method ='stanard average', lag.method ='simple', 
+#' empty.catch = 'all catch', empty.expectation = 0.0001, temp.window = 4, 
+#' temp.lag = 2, year.lag = 0, dummy.exp = FALSE, replace.output = FALSE)
+#'  }
 
 
 create_expectations <- function(dat, project, catch, price=NULL,  defineGroup='fleet', temp.var=NULL, temporal = c("daily", "sequential"),

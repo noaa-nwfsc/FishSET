@@ -390,10 +390,11 @@ fishset_theme <- ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
 
 n_breaks <- function(x) {
 #'
-#'Plot breaks
+#' Plot breaks
 #'
-#'@param x Value to determine breaks
-#'@export
+#' @param x Value to determine breaks
+#' @export
+#' @keywords internal
   
   i <- unique(x)
   len <- length(i)
@@ -452,13 +453,14 @@ order_factor <- function(dat, fac, val, rev = FALSE) {
  #'
  #' Order variable
  #'  
- #'@param dat dataframe containing variable to order.
- #'@param fac variable name to order.
- #'@param val value variable to order by.
- #'@param rev logical, reverse order. 
- #'@return Returns entire dataframe with ordered factor.  
- #'@importFrom stats aggregate reformulate
- #'@export
+ #' @param dat dataframe containing variable to order.
+ #' @param fac variable name to order.
+ #' @param val value variable to order by.
+ #' @param rev logical, reverse order. 
+ #' @return Returns entire dataframe with ordered factor.  
+ #' @importFrom stats aggregate reformulate
+ #' @export
+ #' @keywords internal
  #'
   agg <- stats::aggregate(stats::reformulate(fac, val), dat, FUN = sum)
   

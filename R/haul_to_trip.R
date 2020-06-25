@@ -11,7 +11,7 @@
 #' @details Collapses primary dataset from haul to trip level. Requires the MainDataTableInfo 
 #' table associated with the primary dataset. Unique trips are defined based on selected column(s). 
 #' For example, landing permit number and disembarked port. This id column is used to collapse the 
-#' data to trip level. \code{fun.numeric} and \code{fun.time} how multiple observations for a trip 
+#' data to trip level.  \code{fun.numeric} and \code{fun.time} define how multiple observations for a trip 
 #' are collapsed. For variables that are not numeric or dates, the first observation is used. The 
 #' MainDataTableInfo table is updated using the \code{\link{dataindex_update}} function.
 #' 

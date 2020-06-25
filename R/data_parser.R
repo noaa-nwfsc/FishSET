@@ -43,12 +43,10 @@ load_data <- function(project, name=NULL){
 #' @param project String, name of project.
 #' @param name Optional, name of table in FishSET database. Use this argument
 #'  if pulling raw or dated table (not the working table).
-#' @details Loads saved table from the FishSET datatbase. Load the working table or a earlier saved version (raw/data). 
 #' @export
-#' @return Loads the primary dataset to working environment. Data is named as the project and ‘MainDataTable’.
+#' @return Data loaded ot working evironment as the project and ‘MainDataTable’.
 #' @details 
-#' Loads saved table from the FishSET data base. Load the working table or an earlier saved version (raw/data).
-#' Pulls the primary data table from the FishSET database and loads 
+#' Pulls the primary data table from the FishSET database and loads it
 #' into the working environment as the project and MainDataTable. For example,
 #' if the project was pollock, then data would be saved to the working environment
 #' as 'pollockMainDataTable'. 
@@ -110,7 +108,6 @@ save_dat <- function(dat, project){
   
 }
 
-
 fishset_compare <- function(x, y, compare = c(TRUE, FALSE)) {
     #' Compare loaded data table to previously saved version of data table
     #' @param x Updated data table to be saved.
@@ -118,12 +115,13 @@ fishset_compare <- function(x, y, compare = c(TRUE, FALSE)) {
     #' @param compare Logical, if TRUE, compares \code{x} to \code{y} before saving \code{x} to FishSET database.
     #' @export
     #' @importFrom DBI dbConnect dbDisconnect dbListTables
-    #' @details This function is called by the data import functions (\code{\link{load_maindata}}, 
-    #' \code{\link{load_port}}, \code{\link{load_aux}}, \code{\link{load_grid}}). The function is designed 
-    #' to check for consistency between versions of the same data frame so that the logged functions can be used to 
-    #' rerun the previous analysis on the updated data. To use the logged functions to rerun code after 
-    #' data has been updated (i.e., new year of data), the column names, including spelling and capitalization, 
-    #' must match the previous version. Set the \code{compare} argument to TRUE to compare column names of the new and 
+    #' @details Function is optional. It is designed to check for consistency between versions of the same data frame 
+    #' so that the logged functions can be used to rerun the previous analysis on the updated data.
+    #' The column names, including spelling and capitalization, must match the previous version 
+    #' to use the logged functions to rerun code after data has been updated (i.e., new year of data). 
+    #' The function is called by the data import functions (\code{\link{load_maindata}}, 
+    #' \code{\link{load_port}}, \code{\link{load_aux}}, \code{\link{load_grid}}). 
+    #'  Set the \code{compare} argument to TRUE to compare column names of the new and 
     #' previously saved data tables. The new data tables will be saved to the FishSET database if column names match. 
     #' Set the \code{compare} argument to FALSE if no previous versions of the data table exist in the FishSET database.
     #' No comparison will be made and the new file will be saved to the database.
@@ -156,9 +154,9 @@ fishset_compare <- function(x, y, compare = c(TRUE, FALSE)) {
     DBI::dbDisconnect(fishset_db)
 }
 
-
 load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = NULL) {
     #' Load, parse, and save data into FishSET database
+    #' 
     #' Load, parse, and save primary dataset into FishSET database. 
     #' @param dat Primary data containing information on hauls or trips. 
     #' Table in FishSET database contains the string 'MainDataTable'.
@@ -259,16 +257,17 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
 
 main_mod <- function(dat, x, new.unit = NULL, new.type = NULL, new.class = NULL) {
     #' Modify the data index table
+    #' 
     #' Modify the data index (MainDataTableInfo) table
     #' @param dat Table containing information on variables in the primary dataset. 
-    #' Table in FishSET database should contain the string 'MainDataTableInfo'.
+    #'   Table in FishSET database should contain the string 'MainDataTableInfo'.
     #' @param x Name of variable in the MainDataTableInfo table that is to be modified.
-    #' @param new.unit Units. Categories include fathoms, decimal degrees, dollars, lbs, metric tons, 
-    #' min, numeric, percent, WK, 'Y/N', yyyymmdd.
-    #' @param new.type General type. Categories include Time, Flag, Code, Latitude, Code String, Other Numeric, 
-    #' Code Numeric.
-    #' @param new.class Specialized variable category. Standard categories include: isCPUE, isLon, isLat, 
-    #' isValue, isZoneArea, isPort.
+    #' @param new.unit Units. Categories include \code{"fathoms"}, \code{"decimal degrees"}, \code{"dollars"}, \code{"lbs"}, \code{"metric tons"}, 
+    #'   \code{"min"}, \code{"numeric"}, \code{"percent"}, \code{"WK"}, \code{"Y/N"}, \code{"yyyymmdd"}.
+    #' @param new.type General type. Categories include \code{""Time"}, \code{"Flag"}, \code{"Code"}, \code{"Latitude"}, \code{"Code String"}, \code{"Other Numeric"}, 
+    #'   \code{"Code Numeric"}.
+    #' @param new.class Specialized variable category. Standard categories include: \code{"isCPUE"}, \code{"isLon"}, \code{"isLat"}, 
+    #'   \code{"isValue"}, \code{"isZoneArea"}, \code{"isPort"}.
     #' @details  Modify the units \code{new.unit}, data format \code{new.type}, and specialized variable 
     #' class \code{new.class} of the MainDataTableInfo table. Updated MainDataTableInfo file is saved to the 
     #' FishSET database. It is advisable to use the working table and not the raw table as the 
@@ -322,7 +321,7 @@ main_mod <- function(dat, x, new.unit = NULL, new.type = NULL, new.class = NULL)
 
 load_port <- function(dat, port_name, over_write = TRUE, project = NULL, compare = FALSE, y = NULL) {
     #' Load, parse, and save port data to FishSET database
-    #' the primary dataset, and the latitude and longitude of the ports.
+    #' 
     #' @param dat Dataset containing port data. At a minimum, must include three columns, the port names, and the latitude and longitude of ports.
     #' @param port_name Variale containing port names. Names should match port names in primary dataset.
     #' @param over_write Logical, if TRUE, saves over data table previously saved in FishSET database.
@@ -394,7 +393,8 @@ load_port <- function(dat, port_name, over_write = TRUE, project = NULL, compare
 
 load_aux <- function(dat, x, over_write = TRUE, project = NULL) {
     #' Load, parse, and save auxiliary data to FishSET database
-    #' Auxiliary data is additional data that connects the primay dataset. 
+    #' 
+    #' uxiliary data is additional data that connects the primay dataset. 
     #' Function pulls the data, parses it, and then and saves the data to FishSET database.
     #' @param dat Primary data containing information on hauls or trips. 
     #' Table in FishSET database contains the string 'MainDataTable'.
@@ -463,6 +463,7 @@ load_aux <- function(dat, x, over_write = TRUE, project = NULL) {
 
 load_grid <- function(dat, x, over_write = TRUE, project = NULL) {
     #' Load, parse, and save gridded data to FishSET database
+    #' 
     #' Gridded data is data that varies by two dimensions. Column names must be zone names. Load, parse, and save gridded data to FishSET database
     #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
     #' @param x Name of gridded data frame to be saved.
@@ -522,6 +523,7 @@ load_grid <- function(dat, x, over_write = TRUE, project = NULL) {
 
 dataindex_update <- function(dat, dataindex) {
     #' Automate updating MainDataTableInfo 
+    #' 
     #' Automate updating the dataindex (MainDataTableInfo) table saved to the FishSET database after modifying the primary dataset. Function should be run after variables have been added or removed from the primary dataset. 
     #' 
     #' @param  dat Primary data containing information on hauls or trips. 

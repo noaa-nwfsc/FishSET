@@ -19,7 +19,7 @@ moran_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, lat.da
     #' If \code{gridfile} is class sf, \code{cat} should be name of list containing information on zones.
     #' @details Measure degree of spatial autocorrelation. Function utilizes the \code{\link[spdep]{localmoran}} 
     #' and \code{\link[spdep]{knearneigh}} functions from the spdep package. The spatial input is a row-standardized spatial 
-    #' weights matrix for computed nearest neighbor matrix, which is the null setting for the \code{link[spdep]{nb2listw}} 
+    #' weights matrix for computed nearest neighbor matrix, which is the null setting for the \code{\link[spdep]{nb2listw}} 
     #' function. The function requires a map file with lat/lon defining boundaries of area/zones and variable of interest 
     #' for to test for spatial autocorrelation. If zonal centroid is not included in the map file, then the \code{\link{find_centroid}} 
     #' function is called to calculate the centroid of each zone. If the variable of interest is not associated with an 
@@ -32,17 +32,12 @@ moran_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, lat.da
     #' @export
     #' @examples
     #' \dontrun{
-    #' names(datatomap)[1] <- 'path_lon'
-    #' names(datatomap)[2] <- 'path_lat'
-    #' names(datatomap)[3] <- 'centroid_lon'
-    #' names(datatomap)[4] <- 'centroid_lat'
-    #' names(datatomap)[5] <- 'ADFGstat6'
-    #' names(datatomap)[5] <- 'varofint'
-    #' moran_stats(datatomap)
+    #' moran_stats(pcodMainDataTable, project='pcod', varofint='OFFICIAL_MT_TONS', 
+    #' gridfile=spatdat, lon.dat='LonLat_START_LON', lat.dat ='LonLat_START_LAT', cat='NMFS_AREA')
     #' }
     #'
     
-    requireNamespace("ggplot2")
+    #requireNamespace("ggplot2")
     world <- map_data("world")
     
     # Call in datasets

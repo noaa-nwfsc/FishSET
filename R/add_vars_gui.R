@@ -16,7 +16,7 @@
 #' @examples 
 #' \dontrun{
 #' select_vars_gui('pcodMainDataTable')
-#' add_vars_gui(pcodMainDataTable, ‘pcodMainDataTable20100101’, ‘pcod’)
+#' add_vars_gui(pcodMainDataTable, 'pcodMainDataTable20100101', ‘pcod’)
 #' }
 
 #Selectbox is column names in raw data that are not in working data

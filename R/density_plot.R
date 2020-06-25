@@ -2,13 +2,15 @@
 #' 
 #' Creates a density plot
 #' 
-#' Creates a kernel density estimate, empirical cumulative distribution function or cumulative distribution function.plot of selected variable.
+#' Creates a kernel density estimate, empirical cumulative distribution function or cumulative distribution 
+#' functionplot of selected variable.
 #' 
-#' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+#' @param dat Primary data containing information on hauls or trips. 
+#' Table in FishSET database contains the string 'MainDataTable'.
 #' @param project String, name of project.
 #' @param var String, name of variable to plot.
-#' @param type String, type of density plot. Options include "kde" (kernel density estimate),
-#'   "ecdf" (empirical cdf), or "cdf".
+#' @param type String, type of density plot. Options include \code{"kde"} (kernel density estimate),
+#'   \code{"ecdf"} (empirical cdf), or \code{"cdf"}.
 #' @param group A grouping variable. 
 #' @param date Date variable from \code{dat} to subset and/or facet by.
 #' @param facet_date Logical; whether to facet the plot by date. If \code{filter_date = "year"}  
@@ -26,16 +28,16 @@
 #'   "sqrt".  
 #' @param bw Adjusts KDE bandwidth. Defaults to 1. 
 #' @param position The position of the grouped variable for KDE plot. Options include 
-#'   "identity", "stack", and "fill". 
+#'   \code{"identity"}, \code{"stack"}, and \code{"fill"}. 
 #' @return Returns a KDE, empirical CDF, or CDF of a selected variable. 
 #'   The \code{group} and \code{trans} arguments are not applied to the CDF plot. 
 #' @export density_plot
 #' @examples 
 #' \dontrun{
-#' density_plot("pollockMainDataTable", "pollock", var = "OFFICIAL_TOTAL_CATCH_MT", 
-#' "kde", date = "FISHING_START_DATE", filter_date = "year-month", 
-#' filter_value = list(2011, 9:11), trans = "log", facet_date = TRUE, 
-#' group = "GEAR_TYPE")
+#' density_plot(pollockMainDataTable, "pollock", var = "OFFICIAL_TOTAL_CATCH_MT", 
+#'   "kde", date = "FISHING_START_DATE", filter_date = "year-month", 
+#'   filter_value = list(2011, 9:11), trans = "log", facet_date = TRUE, 
+#'   group = "GEAR_TYPE")
 #' }
 #' @import ggplot2
 #' @importFrom stats pnorm

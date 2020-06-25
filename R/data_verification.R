@@ -13,7 +13,7 @@
 #' fishing area are included.
 #' @examples 
 #' \dontrun{ 
-#' data_verification(MainDataTable)
+#' data_verification(pollockMainDataTable)
 #' }
 
 data_verification <- function(dat, project) {
@@ -110,7 +110,7 @@ unique_filter <- function(dat, project, remove = FALSE) {
     #' @examples 
     #' \dontrun{
     #' unique_filter(MainDataTable)
-    #' mod.dat <- unique_filter(MainDataTable, remove=TRUE) 
+    #' mod.dat <- unique_filter(pollockMainDataTable, remove=TRUE) 
     #' }
     
     # Call in datasets
@@ -159,7 +159,7 @@ empty_vars_filter <- function(dat, project, remove = FALSE) {
     #' @param dat Primary data containing information on hauls or trips. 
     #' Table in FishSET database contains the string 'MainDataTable'.
     #' @param project String, name of project.
-    #' @param remove Logical, remove empty variables? Defaults to FALSE.
+    #' @param remove Logical, whether to remove empty variables. Defaults to FALSE.
     #' @details Function checks for empty variables and prints an outcome message to the console. If empty variables are present and \code{remove} = TRUE then empty variables will be removed from the dataset. 
     #' @keywords empty
     #' @return Returns the dataset with empty variables removed if \code{remove} is TRUE.
@@ -167,7 +167,7 @@ empty_vars_filter <- function(dat, project, remove = FALSE) {
     #' @examples 
     #' \dontrun{
     #' empty_vars_filter(MainDataTable)
-    #' mod.dat <- empty_vars_filter('pollockMainDataTable', 'pollock', remove=TRUE) 
+    #' mod.dat <- empty_vars_filter(pollockMainDataTable, 'pollock', remove=TRUE) 
     #' }
     
     # Call in datasets
