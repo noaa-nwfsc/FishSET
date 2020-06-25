@@ -570,7 +570,7 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
         if (any(grepl("port", c(start[1], end[1]), ignore.case = TRUE))) {
             # in port table
             fun <- function() {
-                readline("What is the table name in fishset_db containing port data?  ")
+                readline("What is the table name in fishset_db containing port data?")
                 # return(PortTable)
             }
             vars <- if (interactive()) 
