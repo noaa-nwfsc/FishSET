@@ -1,17 +1,19 @@
 #' Create starting location variable
 #'
-#' Creates a variable containing zone/area location when choice of where to fish next was chosen. This variable is required for the full information model with Dahl's correction \code{\link{logit_correction}}. 
+#' Creates a variable containing zone/area location when choice of where to fish next was chosen. This variable is required for the full information model with Dahl's correction (\code{\link{logit_correction}}). 
 #'
-#' @param dat  Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+#' @param dat  Primary data containing information on hauls or trips. 
+#' Table in FishSET database contains the string 'MainDataTable'.
 #' @param gridfile Spatial data. Shape, json, geojson, and csv formats are supported.
-#' @param portTable Port data. Contains columns: Port_Name, Port_Long, Port_Lat. Table is generated using the load_port function and saved in the FishSET database as the project and PortTable, for example 'pollockPortTable'.
+#' @param portTable Port data. Contains columns: Port_Name, Port_Long, Port_Lat. Table is generated using 
+#' the load_port function and saved in the FishSET database as the project and PortTable, for example pollockPortTable'.
 #' @param trip_id Variable in \code{dat} that identifies unique trips.
 #' @param haul_order Variable in \code{dat} containing information on the order that hauls occur within a trip. Can be time, coded variable, etc.
 #' @param starting_port Variable in \code{dat} to identify port at start of trip.
 #' @param lon.dat Longitude variable from \code{dat}.
 #' @param lat.dat Latitude variable from \code{dat}.
 #' @param cat Variable or list in \code{gridfile} that identifies the individual areas or zones. If \code{gridfile} is class sf, \code{cat} should be name of list containing information on zones.
-#' @param name String, name of created vector. Defaults to name of the function if not defined.
+#' @param name String, name of created variable. Defaults to name of the function if not defined.
 #' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
 #' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
 #' @importFrom DBI dbExecute
@@ -21,8 +23,8 @@
 #' @examples
 #' \dontrun{
 #' pcodMainDataTable <- create_startingloc(pcodMainDataTable, map2, 'pollockPortTable', 
-#'                               'TRIP_SEQ','HAUL_SEQ','DISEMBARKED_PORT',
-#'                               'LonLat_START_LON','LonLat_START_LAT', 'NMFS_AREA', 'STARTING_LOC')
+#'                      'TRIP_SEQ','HAUL_SEQ','DISEMBARKED_PORT', 'LonLat_START_LON', 
+#'                      'LonLat_START_LAT', 'NMFS_AREA', 'STARTING_LOC')
 #' }
 
 create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, starting_port, lon.dat, lat.dat, 

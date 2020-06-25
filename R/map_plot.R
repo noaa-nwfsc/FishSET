@@ -18,7 +18,7 @@ map_plot <- function(dat, project, lat, lon, minmax = NULL, percshown = NULL) {
     #' @export
     #' @examples
     #' \dontrun{
-    #' map_plot('pollockMainDataTable', 'pollock', 'LonLat_START_LAT', 'LonLat_START_LON', percshown=10)
+    #' map_plot(pollockMainDataTable, 'pollock', 'LonLat_START_LAT', 'LonLat_START_LON', percshown=10)
     #' }
     
     requireNamespace("ggplot2")

@@ -5,25 +5,27 @@
 #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
 #' @param project String, name of project.
 #' @param catchID  String, variable from \code{dat} that contains catch data.
-#' @param alternativeMatrix Whether the alternative choice matrix should come from 'loaded data' or 'gridded data'.
+#' @param alternativeMatrix Whether the alternative choice matrix should come from \code{"loaded data"} or \code{"gridded data"}.
 #' @param replace Logical, should the model design file be replaced? If false, appends to existing model design file. Defaults to TRUE.
 #' @param lonlat Variable from \code{dat} containing longitude and latitude data. Define if \code{alt_var} from \code{\link{create_alternative_choice}} 
-#' is lat/lon or port. Must be specified as c(lon, lat). \code{lonlat} is used to to estimate port location if not defined in PortTable.
-#' @param PortTable String, name of data table in FishSET database containing the Port table with lat/lon for each port. Define if alt_var is a port. 
-#' @param likelihood String, name of likelihood function. Details on likelihood specifific initial parameter specification can be found in \code{\link{discretefish_subroutine}} documentation.
+#' is lat/lon or port. Must be specified as longitude then latitude. \code{lonlat} is used to to estimate port location if not defined in PortTable.
+#' @param PortTable String, name of data table in FishSET database containing the port table with lat/lon for each port. Define if \code{alt_var} is a port. 
+#' @param likelihood String, name of likelihood function. Details on likelihood specific initial parameter specification can be found in \code{\link{discretefish_subroutine}} documentation.
 #' \tabular{rlll}{
 #'  logit_c: \tab  Conditional logit likelihood  \cr
 #'  logit_avgcat: \tab Average catch multinomial logit procedure \cr
 #'  logit_correction: \tab Full information model with Dahl's correction function  \cr 
 #'  epm_norma:  \tab  Expected profit model with normal catch function \cr 
-#'  epm_weibull: \tab Expected profit model with Weibull catch function \cr, 
+#'  epm_weibull: \tab Expected profit model with Weibull catch function \cr
 #'  epm_lognormal: \tab  Expected profit model with lognormal catch function  \cr
 #'  }
 
-#' @param vars1  Character string, additional ‘travel-distance’ variables to include in the model. These depend on the likelihood.See the Details section for how to specify for each likelihood function.
-#' @param vars2 Character string, additional variables to include in the model. These depend on the likelihood. See the Details section for how to specify for each likelihood function.
+#' @param vars1  Character string, additional ‘travel-distance’ variables to include in the model. These depend on the likelihood. See the Details section for how to specify for each likelihood function.
+#' @param vars2 Character string, additional variables to include in the model. These depend on the likelihood. 
+#'   See the Details section for how to specify for each likelihood function.
 #' @param priceCol Variable in \code{dat} containing price information. Required if specifying an expected profit model for the likelihood (epm_normal, epm_weibull, epm_lognormal).
-#' @param startloc Variable in \code{dat} identifying the location when choice of where to fish next was made. Required for logit_correction likelihoodUse the \code{\link{create_startingloc}} function to create the starting loc vector.
+#' @param startloc Variable in \code{dat} identifying the location when choice of where to fish next was made. Required for logit_correction likelihood. 
+#'   Use the \code{\link{create_startingloc}} function to create the starting loc vector.
 #' @param polyn Numeric, correction polynomial degree.  Required for logit_correction likelihood. 
 #' @importFrom geosphere distm
 #' @importFrom DBI dbGetQuery dbExecute dbListTables
@@ -33,83 +35,112 @@
 #' \code{\link{discretefish_subroutine}}. Alternative fishing options come from the 
 #' Alternative Choice list, generated from the \code{\link{create_alternative_choice}} function, 
 #' and the expected catch matrices from the \code{\link{create_expectations}} function. 
-#' The distance from the starting point to alternative choices is calculated. \cr
+#' The distance from the starting point to alternative choices is calculated. \cr\cr
 #' Variable names details: \cr
 #' \tabular{lllllll}{
 #' \tab \tab \strong{vars1} \tab \tab \strong{vars2} \tab \cr \cr
 #' \strong{logit_c}: \tab \tab
-#'     \preformatted{"travel-distance variables" are alternative-invariant
-#'     variables that are interacted with travel distance to form the cost
-#'     portion of the likelihood. Each variable name therefore corresponds to
-#'     data with dimensions (number of observations) by (unity), and returns a
-#'     single parameter.} \tab \tab
-#'     \preformatted{"alternative-specific variables" vary across alternatives,
-#'     e.g. catch rates. Each variable name therefore corresponds to data with
-#'     dimensions (number of observations) by (number of alternatives), and
-#'     returns a single parameter for each variable (e.g. the marginal utility
-#'     from catch).} \cr \cr
+#'     \preformatted{"travel-distance variables" are 
+#'     alternative-invariant variables that are 
+#'     interacted with travel distance to form the cost
+#'     portion of the likelihood. Each variable name 
+#'     therefore corresponds to data with dimensions 
+#'     (number of observations) by (unity), and returns 
+#'     a single parameter.} \tab \tab
+#'     \preformatted{"alternative-specific variables" 
+#'     vary across alternatives, e.g. catch rates. 
+#'     Each variable name therefore corresponds to data 
+#'     with dimensions (number of observations) by 
+#'     (number of alternatives), and returns a single 
+#'     parameter for each variable (e.g. the marginal 
+#'     utility from catch).} \cr \cr
 #' \strong{logit_avgcat}: \tab \tab
-#'     \preformatted{"travel-distance variables" are alternative-invariant
-#'     variables that are interacted with travel distance to form the cost
-#'     portion of the likelihood. Each variable name therefore corresponds to
-#'     data with dimensions (number of observations) by (unity), and returns a
-#'     single parameter.} \tab \tab
-#'     \preformatted{"average-catch variables" are alternative-invariant
-#'     variables, e.g. vessel gross tonnage. Each variable name therefore
-#'     corresponds to data with dimensions (number of observations) by (unity),
-#'     and returns (k-1) parameters where (k) equals the number of alternatives,
-#'     as a normalization of parameters is needed as the probabilities sum to
-#'     one. Interpretation is therefore relative to the first
-#'     alternative.} \cr \cr
+#'     \preformatted{"travel-distance variables" are 
+#'     alternative-invariant variables that are 
+#'     interacted with travel distance to form the cost
+#'     portion of the likelihood. Each variable name 
+#'     therefore corresponds to data with dimensions 
+#'     (number of observations) by (unity), and returns 
+#'     a single parameter.} \tab \tab
+#'     \preformatted{"average-catch variables" are 
+#'     alternative-invariant variables, e.g. vessel 
+#'     gross tonnage. Each variable name therefore
+#'     corresponds to data with dimensions (number of 
+#'     observations) by (unity), and returns (k-1) 
+#'     parameters where (k) equals the number of 
+#'     alternatives, as a normalization of parameters 
+#'     is needed as the probabilities sum to one. 
+#'     Interpretation is therefore relative to the 
+#'     first alternative.} \cr \cr
 #' \strong{epm_normal}: \tab \tab
-#'     \preformatted{"travel-distance variables" are alternative-invariant
-#'     variables that are interacted with travel distance to form the cost
-#'     portion of the likelihood. Each variable name therefore corresponds to
-#'     data with dimensions (number of observations) by (unity), and returns a
-#'     single parameter.} \tab \tab
-#'     \preformatted{"catch-function variables" are alternative-invariant
-#'     variables that are interacted with zonal constants to form the catch
-#'     portion of the likelihood. Each variable name therefore corresponds to
-#'     data with dimensions (number of observations) by (unity), and returns (k)
-#'     parameters where (k) equals the number of alternatives.} \cr \cr
-#' \strong{epm_lognormal}: \tab \tab
-#'     \preformatted{"travel-distance variables" are alternative-invariant
-#'     variables that are interacted with travel distance to form the cost
-#'     portion of the likelihood. Each variable name therefore corresponds to
-#'     data with dimensions (number of observations) by (unity), and returns a
-#'     single parameter.} \tab \tab
-#'     \preformatted{"catch-function variables" are alternative-invariant
-#'     variables that are interacted with zonal constants to form the catch
-#'     portion of the likelihood. Each variable name therefore corresponds to
-#'     data with dimensions (number of observations) by (unity), and returns (k)
-#'     parameters where (k) equals the number of alternatives.} \cr \cr
+#'     \preformatted{"travel-distance variables" are 
+#'     alternative-invariant variables that are  
+#'     interacted with travel distance to form the 
+#'     cost portion of the likelihood. Each variable 
+#'     name therefore corresponds to
+#'     data with dimensions (number of observations) 
+#'     by (unity), and returns a single parameter.} \tab \tab
+#'     \preformatted{"catch-function variables" are 
+#'     alternative-invariant variables that are 
+#'     interacted with zonal constants to form the 
+#'     catch portion of the likelihood. Each variable 
+#'     name therefore corresponds to data with 
+#'     dimensions (number of observations) by (unity), 
+#'     and returns (k) parameters where (k) equals 
+#'     the number of alternatives.} \cr \cr
+#' \strong{epm_lognormal}: \tab \
+#'     \preformatted{"travel-distance variables" are 
+#'     alternative-invariant variables that are  
+#'     interacted with travel distance to form the 
+#'     cost portion of the likelihood. Each variable 
+#'     name therefore corresponds to data with 
+#'     dimensions (number of observations) by (unity), 
+#'     and returns a single parameter.} \tab \tab
+#'     \preformatted{"catch-function variables" are 
+#'     alternative-invariant variables that are 
+#'     interacted with zonal constants to form the 
+#'     catch portion of the likelihood. Each variable 
+#'     name therefore corresponds to data with 
+#'     dimensions (number of observations) by (unity), 
+#'     and returns (k) parameters where (k) equals 
+#'     the number of alternatives.} \cr \cr
 #' \strong{epm_weibull}: \tab \tab
-#'     \preformatted{"travel-distance variables" are alternative-invariant
-#'     variables that are interacted with travel distance to form the cost
-#'     portion of the likelihood. Each variable name therefore corresponds to
-#'     data with dimensions (number of observations) by (unity), and returns a
-#'     single parameter.} \tab \tab
-#'     \preformatted{"catch-function variables" are alternative-invariant
-#'     variables that are interacted with zonal constants to form the catch
-#'     portion of the likelihood. Each variable name therefore corresponds to
-#'     data with dimensions (number of observations) by (unity), and returns (k)
-#'     parameters where (k) equals the number of alternatives.} \cr \cr
+#'     \preformatted{"travel-distance variables" are 
+#'     alternative-invariant variables that are 
+#'     interacted with travel distance to form the cost
+#'     portion of the likelihood. Each variable name 
+#'     therefore corresponds to data with dimensions 
+#'     (number of observations) by (unity), and returns 
+#'     a single parameter.} \tab \tab
+#'     \preformatted{"catch-function variables" are 
+#'     alternative-invariant variables that are 
+#'     interacted with zonal constants to form the catch
+#'     portion of the likelihood. Each variable name 
+#'     therefore corresponds to data with dimensions 
+#'     (number of observations) by (unity), and returns 
+#'     (k) parameters where (k) equals the number of 
+#'     alternatives.} \cr \cr
 #' \strong{logit_correction}: \tab \tab
-#'     \preformatted{"travel-distance variables" are alternative-invariant
-#'     variables that are interacted with travel distance to form the cost
-#'     portion of the likelihood. Each variable name therefore corresponds to
-#'     data with dimensions (number of observations) by (unity), and returns a
-#'     single parameter.} \tab \tab
-#'     \preformatted{"catch-function variables" are alternative-invariant
-#'     variables that are interacted with zonal constants to form the catch
-#'     portion of the likelihood. Each variable name therefore corresponds to
-#'     data with dimensions (number of observations) by (unity), and returns (k)
-#'     parameters where (k) equals the number of alternatives.} \cr \cr
+#'     \preformatted{"travel-distance variables" are 
+#'     alternative-invariant variables that are 
+#'     interacted with travel distance to form the cost
+#'     portion of the likelihood. Each variable name 
+#'     therefore corresponds to data with dimensions 
+#'     (number of observations) by (unity), and returns 
+#'     a single parameter.} \tab \tab
+#'     \preformatted{"catch-function variables" are 
+#'     alternative-invariant variables that are 
+#'     interacted with zonal constants to form the catch
+#'     portion of the likelihood. Each variable name 
+#'     therefore corresponds to data with dimensions 
+#'     (number of observations) by (unity), and returns 
+#'     (k) parameters where (k) equals the number of 
+#'     alternatives.} \cr \cr
 #' }
 #' @return 
 #' Function creates the model matrix list that contains the data and modeling choices. The model design list is saved to the FishSET database and called by the \code{\link{discretefish_subroutine}}. 
 #' Alternative fishing options come from the Alternative Choice list, generated from the \code{\link{create_alternative_choice}} function, and the expected catch matrices from the \code{\link{create_expectations}} 
-#' function. The distance from the starting point to alternative choices is calculated. \cr
+#' function. The distance from the starting point to alternative choices is calculated. \cr\cr
 #'   Model design list: \cr
 #'   \tabular{rlll}{
 #'     likelihood: \tab Name of likelihood function\cr
@@ -120,7 +151,7 @@
 #'     instances: \tab Number of observations\cr 
 #'     alt: \tab Number of alternative zones\cr
 #'     epmDefaultPrice: \tab Price data\cr 
-#'     dataZoneTrue: \tab Vector of 0/1 indicating whether the data from that zone is to be included based on teh minimum number of hauls.\cr 
+#'     dataZoneTrue: \tab Vector of 0/1 indicating whether the data from that zone is to be included based on the minimum number of hauls.\cr 
 #'     numOfNecessary: \tab Minimum number of hauls/trips per zone for data from that zone to be included\cr
 #'     typeOfNecessary: \tab Whether data is at haul or trip level\cr
 #'     altChoiceType: \tab Function choice. Set to distance\cr
@@ -132,7 +163,7 @@
 #'   }
 #' @examples
 #' \dontrun{
-#' make_model_design(MainDataTable, catchID = 'HAUL', alternativeMatrix = "loadedData", 
+#' make_model_design(pollockMainDataTable, catchID = 'HAUL', alternativeMatrix = "loadedData", 
 #'                   lonlat=c('LonLat_START_LON', 'LonLat_START_LAT'), 
 #'                   PortTable=NULL, project = 'pcod')
 #' }

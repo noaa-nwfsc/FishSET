@@ -2,7 +2,7 @@
 fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NULL, save = TRUE) {
     #' Define and store fleet expressions 
     #'
-    #' @description \code{fleet_table} saves a table of fleet expression to the fishSET database which
+    #' @description \code{fleet_table} saves a table of fleet expression to the FishSET database which
     #'   can then be applied to a dataset with fleet_assign. The table must contain a 'condition'
     #'   and 'fleet' column with each row corresponding to a set of expressions that will be used to 
     #'   assign observations to fleets. A table can be created with the \code{cond} and \code{fleet_val} 
@@ -14,7 +14,7 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
     #'   list if creating multiple condition columns. Must be used with the \code{fleet_val} argument. 
     #'   Each expression should be in quotes (double or single) with nested quotes indicated
     #'   with escaped quotes (\') or with the opposite quote used to contain the expression. For example,
-    #'   'species == 'cod'' and 'species == \'cod\'' are both valid. 
+    #'   "species == 'cod'" and "species == \'cod\'" are both valid. 
     #' @param fleet_val String; a vector of fleet names to be assigned. Must be used with the
     #'   \code{cond} argument. 
     #' @param table A data frame that has at least one condition column and one fleet column. See
@@ -33,7 +33,7 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
     #'   indicated with an NA in the condition column. Users can add as many condition columns
     #'   as they like, and each condition column can have as many expressions as needed. For 
     #'   example, the first expression in the condition column example could also be 
-    #'   'GEAR == 8 & species == 'pollock''. When multiple condition columns exist the function 
+    #'   \code{"GEAR == 8 & species == 'pollock'"}. When multiple condition columns exist the function 
     #'   uses the '&' operator when combining expressions. 
     #' \tabular{lllll}{
     #' condition                 \tab fleet\cr
@@ -48,7 +48,7 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
     #' 
     #' \tabular{ll}{
     #' condition                                                                                             \tab fleet\cr
-    #' 'sum_catch('MainDataTable', 'myProject', catch = 'COD' v_id = 'v_id', exp = 'COD >= 3', val = 'raw')' \tab 'Cod'\cr
+    #' 'sum_catch(pollockMainDataTable, 'myProject', catch = 'COD' v_id = 'v_id', exp = 'COD >= 3', val = 'raw')' \tab 'Cod'\cr
     #' }
     #' 
     # It may be useful to run \dontrun{subset(df, eval(parse(text = 'exp')))} to test that expressions have been formatted correctly.  @seealso
@@ -176,8 +176,6 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
 
 
 
-
-
 fleet_assign <- function(dat, project, fleet_tab, overlap = FALSE, format_tab = "long") {
     #' Create fleet variable based on stored fleet expressions
     #' 
@@ -189,8 +187,8 @@ fleet_assign <- function(dat, project, fleet_tab, overlap = FALSE, format_tab = 
     #'    string `FleetTable`. 
     #' @param overlap Logical; whether overlapping fleet assignments are allowed. Defaults to
     #'   FALSE. 
-    #' @param format_tab String; 'long' outputs a single 'fleet' column. If overlap = TRUE, 
-    #'   observations with multiple fleet assignments are duplicated. 'wide' outputs a column 
+    #' @param format_tab String; \code{"long"} outputs a single 'fleet' column. If overlap = TRUE, 
+    #'   observations with multiple fleet assignments are duplicated. \code{"wide"} outputs a column 
     #'   for each fleet in the fleet table. 
     #' @importFrom DBI dbConnect dbGetQuery dbDisconnect
     #' @importFrom RSQLite SQLite
@@ -199,7 +197,7 @@ fleet_assign <- function(dat, project, fleet_tab, overlap = FALSE, format_tab = 
     #' @return Returns the primary dataset with added fleet variable(s).
     #' @examples 
     #' \dontrun{
-    #' fleet_assign('MainDataTable', 'myProject', fleet_tab = 'myProjectFleetTable', overlap = TRUE)
+    #' fleet_assign(pollockMainDataTable, 'myProject', fleet_tab = 'myProjectFleetTable', overlap = TRUE)
     #' }
     #' @seealso \code{\link{fleet_table}}
     

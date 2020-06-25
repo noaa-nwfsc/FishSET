@@ -13,7 +13,7 @@
 #' @importFrom rgeos gCentroid
 #' @importFrom stats ave weighted.mean
 #' @importFrom methods as
-#' @return Returns a data frame where each row is a unique zone and columns are the zone ID, and latitude and longitude defining the centroid of each zone.
+#' @return Returns a data frame where each row is a unique zone and columns are the zone ID and the latitude and longitude defining the centroid of each zone.
 #' @export find_centroid
 #' @details Zonal centroids are required for many functions. Functions that require zonal centroids call this function. 
 #' The default setting is to return the fishing centroid. The \code{weight.var} is used to calculate weighted centroid. 

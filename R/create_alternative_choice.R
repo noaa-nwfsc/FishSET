@@ -11,29 +11,29 @@
 #' @param min.haul Numeric, minimum number of hauls. Zones with fewer hauls than the \code{min.haul} 
 #' value will not be included in model data.
 #' @param hull.polygon Used in \code{\link{assignment_column}} function. Creates polygon using convex 
-#' hull method. Required if zonal assignments for observations in \code{dat} should be identified 
+#' hull method. Required if zonal assignments in \code{dat} should be identified 
 #' and \code{gridfile} is not NULL.
 #' @param alt_var String, identifies how to find lat/lon for starting point (must have a lat/lon associated with it). 
 #' \code{alt_var} maybe the ‘centroid of zonal assignment’, a port variable or a lat/lon variable in the primary dataset. 
 #' If a port variable is defined, a corresponding port table must exist which contains the port name and the latitude and 
 #' longitude of each port. 
-#' @param occasion Identifies how to find lat/lon for alternative choices. Occasion maybe the ‘centroid of zonal assignment’,
+#' @param occasion Identifies how to find lat/lon for alternative choices. Occasion may be the centroid of zonal assignment \code{"Centroid"},
 #'  a port variable or a lat/lon variable in the primary dataset. If a port variable is defined, a corresponding port table
 #'   must exist which contains the port name and the latitude and longitude of each port.
 #' @param dist.unit String, how distance measure should be returned. 
-#' Choices are 'meters’ or ‘M’, ‘kilometers’ or ‘KM’, or ‘miles’. Defaults to miles.
-#' @param lon.dat Longitude variable from \code{dat}. Required if zonal assignments for observations in \code{dat} 
+#' Choices are \code{"meters"} or \code{"M"}, \code{"kilometers"} or \code{"KM"}, or \code{"miles"}. Defaults to miles.
+#' @param lon.dat Longitude variable from \code{dat}. Required if zonal assignments in \code{dat} 
 #' should be identified and \code{gridfile} is not NULL.
-#' @param lat.dat Latitude variable from \code{dat}. Required if zonal assignments for observations in \code{dat} 
+#' @param lat.dat Latitude variable from \code{dat}. Required if zonal assignments in \code{dat} 
 #' should be identified and \code{gridfile} is not NULL.
 #' @param cat Variable in either \code{dat} or \code{gridfile} that identifies the individual areas or zones.
-#'  If \code{cat} is a variable of assigned zones for each occurrence records, set \code{gridfile} to NULL. 
+#'  If \code{cat} is a variable in \code{dat} that identifies zone assignments for each occurrence record, set \code{gridfile} to NULL. 
 #'  Otherwise, if \code{gridfile} is class sf, `cat` should be name of list containing information on zones. 
 #' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required for csv files.
-#'  Leave as NULL if \code{gridfile} is a shape or json file, Required if zonal assignments for observations 
+#'  Leave as NULL if \code{gridfile} is a shape or json file, Required if zonal assignments  
 #'  in \code{dat} should be identified and \code{gridfile} is not NULL.
 #' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files. 
-#' Leave as NULL if \code{gridfile} is a shape or json file, Required if zonal assignments for observations 
+#' Leave as NULL if \code{gridfile} is a shape or json file, Required if zonal assignments 
 #' in \code{dat} should be identified and \code{gridfile} is not NULL.
 #' @param weight.var Variable for calculating weighted centroids. Required if zonal assignments for observations 
 #' in \code{dat} should be identified and \code{gridfile} is not NULL.

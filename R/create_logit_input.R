@@ -6,7 +6,7 @@ create_logit_input <- function(choice) {
     #' @return dataCompile - a data matrix
     #' @details Called in the discrete_fish_subroutine function
     #' @export
-    #'
+    #' @internal
     
     # x9 <- diag(max(choice)) # makes matrix of choice possibilites x8 <- matrix(diag(max(choice)), 1, max(choice) * max(choice)) x7 <-
     # matrix(rep(diag(max(choice)), each = dim(choice)[1]), nrow = dim(choice)[1])

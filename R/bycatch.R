@@ -4,14 +4,14 @@
 #'
 #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
 #' @param project String, name of project.
-#' @param cpue A character string of \code{\link{cpue}}variable names. The order of variable string must match  
+#' @param cpue A character string of \code{\link{cpue}} variable names. The order of variable string must match  
 #'   names in \code{catch} and \code{names} arguments.    
 #' @param catch A character string of names of catch variables to aggregate. The order of the catch variable string must match those of the \code{names} and \code{cpue} arguments.
 #' @param date A time variable containing dates to aggregate by.
 #' @param period Time period to aggregate by. Options include 'year', 'year_abv', 
 #'   'month', 'month_abv', 'month_num', and 'weeks'.
 #' @param names An optional string of species names that will be used in the plot. If
-#'   \code{NULL} then species names from \code{catch} will be used. 
+#'   \code{NULL}, then species names from \code{catch} will be used. 
 #' @param group A categorical variable in \code{dat} to group by.
 #' @param filter_date The type of filter to apply to table. Options include \code{"year-week"}, 
 #'   \code{"year-month"}, \code{"year"}, \code{"month"}, or \code{"week"}. The 
@@ -28,9 +28,9 @@
 #' @param scale Scale argument passed to \code{\link{facet_grid}}. Defaults to \code{"fixed"}.
 #'   Other options include \code{"free_y"}, \code{"free_x"}, and \code{"free_xy"}. 
 #' @param output Output type. Options include 'table' or 'plot'.
-#' @param format_tab How table output should be formatted. Options include 'wide' 
-#'   (the default) and 'long'.
-#'  @details Returns a plot or table of the mean CPUE and share of total catch or raw count for each species entered. 
+#' @param format_tab How table output should be formatted. Options include \code{'wide'} 
+#'   (the default) and \code{'long'}.
+#' @details Returns a plot or table of the mean CPUE and share of total catch or raw count for each species entered. 
 #'  For optimal plot size in an R Notebook/Markdown document, we recommend including no more than four species. 
 #'  The order of variables in the \code{cpue} and \code{catch} arguments must be in the same order as in the \code{names} argument. 
 #'  The \code{names} argument is used to join the \code{catch} and \code{cpue} variables together. 
@@ -42,7 +42,7 @@
 #'   the data by. It is often useful to facet by year when using \code{filter_date}.
 #'   Only one groupig variable will be displayed; however, Any number of 
 #'   variables can be combined by using \code{combine = TRUE}, but no more than 
-#'   three is reccomended. For faceting, any variable in the dataset can be used, 
+#'   three is recommended. For faceting, any variable in the dataset can be used, 
 #'   but "year" and "month" are also available. Generally, no more than four species 
 #'   should be compared, and even fewer when facetting due to limited plot space.
 #'   A list containing a table and plot are printed to the console and viewer by default. 
@@ -50,9 +50,11 @@
 #'   \code{fig.asp = 1}. 
 #' @examples 
 #' \dontrun{
-#' cpue(pollockMainDataTable, ‘myproject’, xWeight=’f1Weight’ , 
-#' xTime=’Hour’ , ‘f1_cpue’)
-#' bycatch(pollockMainDataTable, 'myProject', cpue = c('f1_cpue', 'f2_cpue', 'f3_cpue', 'f4_cpue'),
+#' cpue(pollockMainDataTable, 'myproject', xWeight='f1Weight', 
+#' xTime='Hour' , 'f1_cpue')
+#' 
+#' bycatch(pollockMainDataTable, 'myProject', 
+#' cpue = c('f1_cpue', 'f2_cpue', 'f3_cpue', 'f4_cpue'),
 #' catch = c('f1', 'f2', 'f3', 'f4'), date = 'FISHING_START_DATE', 
 #' names = c('fish_1', 'fish_2', 'fish_3', 'fish_4'), period = 'month', 
 #' year = 2011, value = 'stc', output = 'table')

@@ -6,7 +6,7 @@ corr_out <- function(dat, project, variables) {
     #' 
     #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
     #' @param project String, project name.
-    #' @param variables A character string of variables to include. Defaults to all numeric variables. 
+    #' @param variables A character string of variables to include. Defaults to \code{"all"} numeric variables. 
     #' @export
     #' @details Returns a correlation plot and table. Output saved to output folder.
     #' @examples 

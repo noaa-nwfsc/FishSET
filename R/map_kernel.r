@@ -1,36 +1,39 @@
 map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE, date = NULL, filter_date = NULL, filter_value = NULL, minmax = NULL) {
     #'
-    #' Map kernel densities 
+    #' Map kernel density plots
     #'
-    #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+    #' @param dat Primary data containing information on hauls or trips. 
+    #' Table in FishSET database contains the string 'MainDataTable'.
     #' @param project String, name of project.
-    #' @param type String, plot type. Choices are 'point', 'contours', or 'gradient'. Note if you have a group, you must facet when choosing 'gradient' (cannot overlap polygons clearly).
+    #' @param type String, plot type. Choices are \code{"point"}, \code{"contours"}, or 
+    #' \code{"gradient"}. Note if you have a group, you must facet when choosing \code{"gradient"} 
+    #' (cannot overlap polygons clearly).
     #' @param latlon Character string, specified as latitude then longitude, in decimal degrees.
     #' @param group Optional group argument. Should be a factor with length of (# of observations), 
     #' where each observation corresponds to the latlon coordinate of the same 
     #' index. Recall that the legend will output the names of
     #' factor levels as you have named them (see \code{?factor}).
     #' @param facet Optional facet parameter. TRUE if mapping each group as a 
-    #' separate facet. Defaults to 'FALSE'.
+    #' separate facet. Defaults to FALSE.
     #' @param date Optional date variable to filter data by.
-    #' @param filter_date Whether to filter data table by 'year', 'month', or 
-    #'   'year-month'. \code{date} and \code{filter_value} must be provided. 
+    #' @param filter_date Whether to filter data table by \code{"year"}, \code{"month"}, or 
+    #'   \code{"year-month"}. \code{date} and \code{filter_value} must be provided. 
     #'   Defaults to \code{NULL}. 
     #' @param filter_value Integer (4 digits if year, 1-2 if month). The year, month,
-    #'   or year-month to filter data table by. Use a list if using 'year-month',
+    #'   or year-month to filter data table by. Use a list if using \code{"year-month"},
     #'   with the format: list(year(s), month(s)). For example, \code{list(2011:2013, 5:7)} 
     #'   will filter the data table from May to July, 2011-2013.
     #' @param minmax Optional map extent argument, a vector (num) of length 4 
     #' corresponding to c(minlat, maxlat, minlon, maxlon).
-    #' @return mReturns ggplot2 object. Map plot saved to Output folder
+    #' @return Returns ggplot2 object. Map plot saved to Output folder.
     #' @import ggplot2
     #' @importFrom maps map
     #' @export
     #' @examples
     #' \dontrun{
     #' map_kernel(pollockMainDataTable, project = 'pollock', type = 'contours', 
-    #' latlon = c('LonLat_START_LAT', 'LonLat_START_LON'), 
-    #' group = 'PORT_CODE', facet = TRUE, minmax = NULL, date = 'FISHING_START_DATE',
+    #' latlon = c('LonLat_START_LAT', 'LonLat_START_LON'), group = 'PORT_CODE', 
+    #' facet = TRUE, minmax = NULL, date = 'FISHING_START_DATE',
     #' filter_date = 'year-month', filter_value = list(2011, 2:4))
     #' }    
     

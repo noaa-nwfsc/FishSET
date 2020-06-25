@@ -3,7 +3,7 @@
 #' @param dat Primary data containing information on hauls or trips. 
 #' Table in FishSET database contains the string 'MainDataTable'.
 #' @param PortTable Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat. 
-#' Table is generated using the load_port function and saved in the FishSET database as the project and PortTable, 
+#' Table is generated using the \code{\link{load_port}} function and saved in the FishSET database as the project and PortTable, 
 #' for example 'pollockPortTable'.
 #' @param trip_id Unique trip identifier in \code{dat}.
 #' @param starting_port Variable in \code{dat} containing port at start of trip.
@@ -25,11 +25,9 @@
 #'  \url{https://cran.r-project.org/web/packages/geosphere/geosphere.pdf}.
 #' @examples
 #' \dontrun{
-#'  pcodMainDataTable <- create_trip_distance('pcodMainDataTable', 
-#'                                'pollockPortTable', 'TRIP_SEQ', 'DISEMBARKED_PORT',
-#'                                 c('LonLat_START_LON','LonLat_START_LAT'),
-#'                                 c('LonLat_END_LON','LonLat_END_LAT'), 'EMBARKED_PORT',
-#'                                  'HAUL_SEQ', 'TripDistance')
+#'  pcodMainDataTable <- create_trip_distance(pcodMainDataTable, 
+#'    'pollockPortTable', 'TRIP_SEQ', 'DISEMBARKED_PORT', c('LonLat_START_LON','LonLat_START_LAT'),
+#'    c('LonLat_END_LON','LonLat_END_LAT'), 'EMBARKED_PORT','HAUL_SEQ', 'TripDistance')
 #'  }
 
 # 

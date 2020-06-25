@@ -89,6 +89,7 @@ table_exists <- function(table) {
 
 model_out_view <- function(table) {
     #' Load model output to console
+    #' 
     #' Returns output from running \code{discretefish_subroutine}. The table argument must be the full name of the table name in the FishSET database. Output includes information on model convergence, standard errors, t-stats, etc.
     #' @param table  Table name in FishSET database. Should contain the phrase 'modelout'.
     #' @export
@@ -134,6 +135,7 @@ globalcheck_view <- function(table) {
 
 model_fit <- function(project) {
     #' Load model comparison metrics to console
+    #' 
     #' Load model comparison metrics to console. Metrics are displayed for each model that was fun. Metrics produced by \code{\link{discretefish_subroutine}}.
     #' @param project String, name of project.
     #' @export

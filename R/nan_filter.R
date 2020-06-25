@@ -2,20 +2,18 @@
 
 
 nan_identify <- function(dat) {
+    #' Check whether any columns in the primary dataset contain NAs or NaNs.
+
     #' Check whether any columns in the primary dataset contain NAs or NaNs. Returns column names containing NAs or NaNs.
     #'
     #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
     #' @keywords NaN, NA
     #' @description Check whether any columns in the data frame contain NAs or NaNs. Returns column names containing NAs or NaNs.
-    #' @return Message with names of columns containing NAs or NaNs, if any.
+    #' @return Returns names of columns containing NAs or NaNs, if any.
     #' @export nan_identify
     #' @examples 
     #' \dontrun{
-    #' nan_identify('pcodMainDataTable')
-    #' mod.dat <- nan_filter('pcodMainDataTable', 'OFFICIAL_TOTAL_CATCH_MT') 
-    #' mod.dat <- nan_filter('pcodMainDataTable', 'OFFICIAL_TOTAL_CATCH_MT', replace=T) 
-    #' mod.dat <- nan_filter('pcodMainDataTable', 'OFFICIAL_TOTAL_CATCH_MT', replace=T, rep.value=0) 
-    #' mod.dat <- nan_filter('pcodMainDataTable', 'OFFICIAL_TOTAL_CATCH_MT', remove=T) 
+    #' nan_identify(pcodMainDataTable)
     #' }
     
     # Call in datasets
@@ -62,6 +60,7 @@ nan_identify <- function(dat) {
 # Replaces nans in the data column with the choosen value or removes rows containing NaNs
 nan_filter <- function(dat, x, replace = F, remove = F, rep.value = NA, over_write = FALSE) {
     #' Remove NaNs 
+    #' 
     #' Remove or replace NaNs in primary dataset.
     #'
     #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
@@ -78,7 +77,7 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value = NA, over_wri
     #' @examples 
     #' \dontrun{
     #' nan_identify(pcodMainDataTable)
-    #' mod.dat <-nan_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT') 
+    #' mod.dat <- nan_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT') 
     #' mod.dat <- nan_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T) 
     #' mod.dat <- nan_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T, rep.value=0) 
     #' mod.dat <- nan_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', remove=T) 
