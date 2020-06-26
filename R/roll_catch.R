@@ -238,7 +238,7 @@ roll_catch <- function(dat, project, catch, date, group = NULL, k = 10,
       }
       
       plot <- ggplot2::ggplot(rz, ggplot2::aes_string("day", f_catch())) +
-        FishSET:::fishset_theme + 
+        fishset_theme + 
         ggplot2::theme(legend.position = "bottom") + 
         ggplot2::scale_x_continuous(labels = function(x) date_lab(x)) +
         ggplot2::facet_grid(stats::reformulate( ".", facet), scales = scale)
@@ -246,7 +246,7 @@ roll_catch <- function(dat, project, catch, date, group = NULL, k = 10,
     } else {
       
       plot <- ggplot2::ggplot(rz, ggplot2::aes_string(date, f_catch())) +
-        FishSET:::fishset_theme +
+        fishset_theme +
         ggplot2::theme(legend.position = "bottom") +
         ggplot2::facet_grid(reformulate(".", facet), scales = scale)
     }
@@ -254,7 +254,7 @@ roll_catch <- function(dat, project, catch, date, group = NULL, k = 10,
   } else {
     
     plot <- ggplot2::ggplot(rz, ggplot2::aes_string(date, f_catch())) +
-      FishSET:::fishset_theme +
+      fishset_theme +
       ggplot2::theme(legend.position = "bottom")
   }
   

@@ -264,7 +264,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = 
         ggplot2::geom_line(ggplot2::aes_string(color = f_group1(), linetype = f_group2())) +
         ggplot2::geom_point(ggplot2::aes_string(color = f_group1()), size = 1) +
         ggplot2::theme(legend.position = "bottom") +
-        FishSET:::fishset_theme
+        fishset_theme
     
     if (!is.null(filter_date) && filter_date != "year") {
         
