@@ -194,7 +194,7 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, date = N
                               adjust = bw) +
         ggplot2::labs(title = paste("KDE of", var),
                       x = if (tran != "identity") paste0(var, " (", tran, ")") else var ,
-                      caption = paste("kernel bandwidth:", bw)) + 
+                      caption = paste("kernel bindwidth:", bw)) + 
         fishset_theme + 
         ggplot2::theme(legend.position = "bottom") 
       
