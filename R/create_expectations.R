@@ -2,22 +2,38 @@
 #' 
 #' Create expected catch or expected revenue matrix. The matrix is required for the logit_c model. 
 
-#' @param dat  Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+#' @param dat  Primary data containing information on hauls or trips. 
+#' Table in FishSET database contains the string 'MainDataTable'.
 #' @param catch Variable from \code{dat} containing catch data.
-#' @param price Optional, variable from \code{dat} containing price/value data.  Price is multiplied against \code{catch} to generated revenue. Defaults to NULL.
-#' @param temporal String, choices are ‘daily’ or ‘sequential’. Should time, if \code{temp.var} is defined, be included as a daily timeline or sequential order of recorded dates.  For daily, catch on dates with no record are filled with NA. The choice affects how the rolling average is calculated. If temporal is daily then the window size for average and the temporal lag are in days. If sequential, then averaging will occur over the specified number of observations, regardless of how many days they represent.
-#' @param temp.var Optional, temporal variable from \code{dat}. Set to NULL if temporal patterns in catch should not be considered. 
-#' @param calc.method String, how catch values are average over window size. Select standard average (standardAverage), simple lag regression of means (simpleLag), or weights of regressed groups (weights)
+#' @param price Optional, variable from \code{dat} containing price/value data.  Price is multiplied against 
+#' \code{catch} to generated revenue. Defaults to NULL.
+#' @param temporal String, choices are ‘daily’ or ‘sequential’. Should time, if \code{temp.var} is defined, 
+#' be included as a daily timeline or sequential order of recorded dates.  For daily, catch on dates with no record 
+#' are filled with NA. The choice affects how the rolling average is calculated. If temporal is daily then the window 
+#' size for average and the temporal lag are in days. If sequential, then averaging will occur over the specified 
+#' number of observations, regardless of how many days they represent.
+#' @param temp.var Optional, temporal variable from \code{dat}. Set to NULL if temporal patterns in 
+#' catch should not be considered. 
+#' @param calc.method String, how catch values are average over window size. Select standard average 
+#' (standardAverage), simple lag regression of means (simpleLag), or weights of regressed groups (weights)
 #' @param lag.method  String, use regression over entire group (simple) or for grouped time periods (grouped).
-#' @param empty.catch String, replace empty catch with 'NA', '0', mean of all catch ('allCatch'), or mean of grouped catch ('groupCatch').
-#' @param empty.expectation Numeric, how to treat empty expectation values. Choices are to not replace (NULL) or replace with 0.0001 or 0.
-#' @param temp.window Numeric, temporal window size. If \code{temp.var} is not NULL, set the window size to average catch over. Defaults to 14 (14 days if \code{temporal} is ‘daily’).
+#' @param empty.catch String, replace empty catch with 'NA', '0', mean of all catch ('allCatch'), 
+#' or mean of grouped catch ('groupCatch').
+#' @param empty.expectation Numeric, how to treat empty expectation values. Choices are to not replace (NULL) 
+#' or replace with 0.0001 or 0.
+#' @param temp.window Numeric, temporal window size. If \code{temp.var} is not NULL, set the window size to
+#'  average catch over. Defaults to 14 (14 days if \code{temporal} is ‘daily’).
 #' @param temp.lag Numeric, temporal lag time. If \code{temp.var} is not NULL, how far back to lag \code{temp.window}.
-#' @param year.lag If expected catch should be based on catch from previous year(s), set year.lag to the number of years to go back.
-#' @param dummy.exp Logical, should a dummy variable be created? If true, output dummy variable for originally missing value. If false, no dummy variable is outputted. Defaults to False. 
+#' @param year.lag If expected catch should be based on catch from previous year(s), set year.lag to the number 
+#' of years to go back.
+#' @param dummy.exp Logical, should a dummy variable be created? If true, output dummy variable for originally 
+#' missing value. If false, no dummy variable is outputted. Defaults to False. 
 #' @param project String, name of project. 
-#' @param defineGroup Optional, variable from \code{dat} that defines how to split the fleet. Defaults to treating data as a fleet.
-#' @param replace.output Logical, replace existing saved expected catch data frame with new expected catch data frame? If FALSE, new expected catch data frames appended to previously saved expected catch data frames. Default is FALSE.
+#' @param defineGroup Optional, variable from \code{dat} that defines how to split the fleet. Defaults to 
+#' treating data as a fleet.
+#' @param replace.output Logical, replace existing saved expected catch data frame with new expected catch data 
+#' frame? If FALSE, new expected catch data frames appended to previously saved expected catch data frames. 
+#' Default is FALSE.
 #' @importFrom lubridate floor_date
 #' @importFrom zoo rollapply
 #' @importFrom DBI dbGetQuery
@@ -25,23 +41,37 @@
 #' @importFrom signal polyval
 #' @export create_expectations
 #' @return Function returns a list of expected catch data frames. The list includes the expected catch matrix from the user-defined choices, the near-term, the medium-term, and the long-term expected catch matrices.  Additional expected catch cases can be added to the list by specifying \code{replace.output} to FALSE. The model run function will the model through each expected catch case provided. The list is automatically saved to the FishSET database and is called in \code{\link{make_model_design}}. The expected catch output does not need to be loaded when defining or running the model.
-#' @details Function creates an expectation of catch or revenue for alternative choices. The output is saved to FishSET database and called by the \code{\link{make_model_design}} function. The spatial alternatives are built into the function and come from the structure Alt that was created in \code{\link{create_alternative_choice}}.\cr
-#' The primary choices are whether to treat data as a fleet or to group the data (\code{defineGroup}) and the time frame of catch data for calculating expected catch. Catch is averaged along a daily or sequential timeline (\code{temporal}) using a rolling average. \code{temp.window} and \code{temp.lat} determine the window size and temporal lag of the window for averaging. Use \code{\link{temp_obs_table}} before using this function to assess the availability of data for desired temporal moving window size. Sparse data is not suited for shorter moving window sizes. For very sparse data, consider setting \code{temp.var} to NULL and excluding temporal patterns in catch. \cr
-#' Empty catch values are considered to be times of no fishing activity whereas values of 0 in the catch variable are considered times where fishing activity occurred but with no catch and so those are included in the averaging and dummy creation as a point in time when fishing occurred. \cr
+#' @details Function creates an expectation of catch or revenue for alternative choices. The output is saved to 
+#' FishSET database and called by the \code{\link{make_model_design}} function. The spatial alternatives are built 
+#' into the function and come from the structure Alt that was created in \code{\link{create_alternative_choice}}.\cr
+#' The primary choices are whether to treat data as a fleet or to group the data (\code{defineGroup}) and the time 
+#' frame of catch data for calculating expected catch. Catch is averaged along a daily or sequential timeline 
+#' (\code{temporal}) using a rolling average. \code{temp.window} and \code{temp.lat} determine the window size and 
+#' temporal lag of the window for averaging. Use \code{\link{temp_obs_table}} before using this function to assess 
+#' the availability of data for desired temporal moving window size. Sparse data is not suited for shorter moving 
+#' window sizes. For very sparse data, consider setting \code{temp.var} to NULL and excluding temporal patterns in 
+#' catch. \cr
+#' Empty catch values are considered to be times of no fishing activity whereas values of 0 in the catch variable 
+#' are considered times where fishing activity occurred but with no catch and so those are included in the averaging 
+#' and dummy creation as a point in time when fishing occurred. \cr
 #'  Three default expected catch cases will be run:
 #' \itemize{
-#' \item{Near-term: Moving window size of two days. In this case, vessels are grouped based on \code{defineGroup} argument.}
-#' \item{Medium-term: Moving window size of seven days. In this case, there is no grouping and catch for entire fleet is used.}
-#' \item{Long-term: Moving window size of seven days from the previous year. In this case, there is no grouping and catch for entire fleet is used.}
+#' \item{Near-term: Moving window size of two days. In this case, vessels are grouped based on \code{defineGroup} 
+#' argument.}
+#' \item{Medium-term: Moving window size of seven days. In this case, 
+#' there is no grouping and catch for entire fleet is used.}
+#' \item{Long-term: Moving window size of seven days from the previous year. In this case, 
+#' there is no grouping and catch for entire fleet is used.}
 #' }
 
 #' @return newGridVar,  newDumV
 #' @examples 
 #' \dontrun{
-#' create_expectations(pcodMainDataTable, 'adfg', 'OFFICIAL_TOTAL_CATCH_MT', price=NULL, defineGroup='fleet', 
-#'                       temp.var='DATE_FISHING_BEGAN', temporal='daily', calc.method='standard average', 
-#'                      lag.method='simple', empty.catch='all catch', empty.expectation= 0.0001, 
-#'                      temp.window=4, temp.lag=2, year.lag=0, dummy.exp=FALSE,replace.output=FALSE)
+#' create_expectations(pcodMainDataTable, 'adfg', 'OFFICIAL_TOTAL_CATCH_MT', price=NULL,  
+#' defineGroup='fleet', temp.var='DATE_FISHING_BEGAN', temporal='daily', 
+#' calc.method='standard average', lag.method='simple', empty.catch='all catch',
+#'  empty.expectation= 0.0001, temp.window=4, temp.lag=2, year.lag=0,
+#'  dummy.exp=FALSE,replace.output=FALSE)
 #' }
 
 

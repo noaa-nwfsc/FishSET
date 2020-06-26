@@ -67,7 +67,7 @@ spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs"
   #' sum: \tab Sum \cr
   #' }
   #' @return Returns two plots, the variable variable aggregated by \code{stat.var} plotted against date and against zone.
-  #'  @examples 
+  #' @examples 
   #' \dontrun{
   #' Example where ZoneID exists in dataset
   #' spatial_summary(pcodMainDataTable, project='pcod', stat.var = "no_unique_obs",

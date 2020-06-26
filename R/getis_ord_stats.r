@@ -22,11 +22,11 @@ getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, la
     #'   area as a factor, the lon/lat centroid for each area, the lat/lon outlining each area, and the variable of 
     #'   interest (\code{varofint}) or a map file with lat/lon defining boundaries of area/zones and variable of interest 
     #'   for weighting. Also required is the lat/lon defining the center of a zone/area. If the centroid is not included in 
-    #'   the map file, then \code{\link{find_centorid}} can be called to calculate the centroid of each zone. If the 
+    #'   the map file, then \code{\link{find_centroid}} can be called to calculate the centroid of each zone. If the 
     #'   variable of interest is not associated with an area/zone than the assignment_column function can be used to 
     #'   assign each observation to a zone. Arguments to identify centroid and assign variable of interest to area/zone are optional and default to NULL.
     #' @return Returns a plot and table. Both are saved to the output folder. 
-    #' @alias moranmap: ggplot2 object; morantable: table of statistics
+    #' @aliases  moranmap: ggplot2 object; morantable: table of statistics
     #' @import ggplot2
     #' @importFrom maps map
     #' @importFrom spdep knn2nb knearneigh nb2listw localG globalG.test
@@ -35,8 +35,9 @@ getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, la
     #' @examples
     #' \dontrun{
     #' getis_ord_stats(pcodMainDataTable, project=’pcod’, 
-    #' varofint=‘OFFICIAL_MT_TONS’,gridfile=spatdat, lon.dat=’LonLat_START_LON’, 
-    #' lat.dat = ‘LonLat_START_LAT’, cat=’NMFS_AREA)
+    #' varofint=‘OFFICIAL_MT_TONS’, gridfile=spatdat, 
+    #' lon.dat=’LonLat_START_LON’, lat.dat = ‘LonLat_START_LAT’,
+    #'  cat=’NMFS_AREA)
     #' }
     #'
     

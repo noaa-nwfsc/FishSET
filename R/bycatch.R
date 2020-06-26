@@ -2,11 +2,6 @@
 #'
 #' Compare bycatch to other species caught
 #'
-dat, project, cpue, catch, date, period, names , 
-                    group, filter_date, filter_value, facet_by, 
-                    value, combine, scale, output, 
-                    format_tab 
-					
 #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
 #' @param project String, name of project.
 #' @param cpue A character string of \code{\link{cpue}}variable names. The order of variable string must match  
@@ -55,7 +50,8 @@ dat, project, cpue, catch, date, period, names ,
 #'   \code{fig.asp = 1}. 
 #' @examples 
 #' \dontrun{
-#' cpue(pollockMainDataTable, ‘myproject’, xWeight=’f1Weight’ , xTime=’Hour’ , ‘f1_cpue’)
+#' cpue(pollockMainDataTable, ‘myproject’, xWeight=’f1Weight’ , 
+#' xTime=’Hour’ , ‘f1_cpue’)
 #' bycatch(pollockMainDataTable, 'myProject', cpue = c('f1_cpue', 'f2_cpue', 'f3_cpue', 'f4_cpue'),
 #' catch = c('f1', 'f2', 'f3', 'f4'), date = 'FISHING_START_DATE', 
 #' names = c('fish_1', 'fish_2', 'fish_3', 'fish_4'), period = 'month', 
