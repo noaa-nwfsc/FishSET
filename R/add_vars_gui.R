@@ -15,8 +15,8 @@
 #' The removed variables are obtained from the \code{raw_dat} and merged into the working data based on a row identifier. The row identifier is created when the variable is removed using the \code{\link{select_vars}} function. The row identifier is used to match the raw data variables to \code{working_dat}.
 #' @examples 
 #' \dontrun{
-#' select_vars_gui('pcodMainDataTable')
-#' add_vars_gui(pcodMainDataTable, 'pcodMainDataTable20100101', ‘pcod’)
+#' select_vars_gui(pcodMainDataTable)
+#' add_vars_gui(pcodMainDataTable, 'pcodMainDataTable20100101', 'pcod')
 #' }
 
 #Selectbox is column names in raw data that are not in working data

@@ -3,13 +3,13 @@
 #'  Active vessels by time period
 #' 
 #' @param dat Primary data containing information on hauls or trips. 
-#' Table in FishSET database contains the string 'MainDataTable'.
+#'   Table in FishSET database contains the string 'MainDataTable'.
 #' @param project String, name of project.
 #' @param v_id Variable in \code{dat} containing vessel identifier to count.
 #' @param date Date variable to aggregate by.
-#' @param period Time period to aggregate by. Options include 'year', month', 'weeks' 
-#'   (weeks in the year), 'weekday', 'weekday_abv', 'day' (day of the month), 
-#'   and 'day_of_year'.
+#' @param period Time period to aggregate by. Options include \code{"year"}, \code{"month"}, \code{"weeks"} 
+#'   (weeks in the year), \code{"weekday"}, \code{"weekday_abv"}, \code{"day"} (day of the month), 
+#'   and \code{"day_of_year"}.
 #' @param group Names of grouping variables. For lineplots two grouping variables 
 #'   can be entered, the first is passsed to "color" and second to "linetype". Only one 
 #'   grouping variable can be used for barplots, which is passed to "fill". When \code{combine = TRUE} 
@@ -50,7 +50,7 @@
 #'   A list containing a table and plot are printed to the console and viewer by default. 
 #' @examples 
 #' \dontrun{
-#' vessel_count('pollockMainDataTable', 'VESSEL_ID', 'DATE_FISHING_BEGAN', period = 'month', 
+#' vessel_count(pollockMainDataTable, 'VESSEL_ID', 'DATE_FISHING_BEGAN', period = 'month', 
 #'              group = 'DISEMBARKED_PORT', position = 'dodge', year = 2011, output = 'plot')
 #' }
 #' @export vessel_count

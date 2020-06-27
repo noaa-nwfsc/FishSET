@@ -3,148 +3,149 @@
 # in the database.
 
 tables_database <- function() {
-    #' View names of tables in the FishSET database
-    #' 
-    #' Wrapper for \code{\link[DBI]{dbListTables}}. View names of tables in the FishSET database.
-    #' @export tables_database
-    #' @importFrom DBI dbConnect dbRemoveTable dbListTables dbExistsTable dbGetQuery
-    #' @examples 
-    #' \dontrun{  
-    #' tables_database() 
-    #' }
-    
-    fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-    return(DBI::dbListTables(fishset_db))
-    DBI::dbDisconnect(fishset_db)
+  #' View names of tables in the FishSET database
+  #'
+  #' Wrapper for \code{\link[DBI]{dbListTables}}. View names of tables in the FishSET database.
+  #' @export tables_database
+  #' @importFrom DBI dbConnect dbRemoveTable dbListTables dbExistsTable dbGetQuery
+  #' @examples
+  #' \dontrun{
+  #' tables_database()
+  #' }
+
+  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+  return(DBI::dbListTables(fishset_db))
+  DBI::dbDisconnect(fishset_db)
 }
 
 table_fields <- function(table) {
-    #' Lists fields for FishSET database table
-    #' @param table String, name of table in FishSET database.
-    #' @export table_fields
-    #' @description Wrapper for \code{\link[DBI]{dbListFields}}.  View fields of selected table.
-    #' @importFrom DBI dbConnect dbDisconnect dbListFields  
-    #' @examples 
-    #' \dontrun{  
-    #' table_fields('pollockMainDataTable') 
-    #' }
-    
-    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-    return(DBI::dbListFields(fishset_db, table))
-    DBI::dbDisconnect(fishset_db)
+  #' Lists fields for FishSET database table
+  #' @param table String, name of table in FishSET database.
+  #' @export table_fields
+  #' @description Wrapper for \code{\link[DBI]{dbListFields}}.  View fields of selected table.
+  #' @importFrom DBI dbConnect dbDisconnect dbListFields
+  #' @examples
+  #' \dontrun{
+  #' table_fields('pollockMainDataTable')
+  #' }
+
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+  return(DBI::dbListFields(fishset_db, table))
+  DBI::dbDisconnect(fishset_db)
 }
 
 table_view <- function(table) {
-    #' View FishSET database table 
-    #' @param table String, name of table in FishSET database.
-    #' @export table_view
-    #' @description Wrapper for \code{\link[DBI]{dbGetQuery}}. View or call the selected table from the FishSET database. 
-    #' @importFrom DBI dbConnect dbDisconnect  dbGetQuery
-    #' @examples 
-    #' \dontrun{  
-    #' head(table_view('MainDataTable')) 
-    #' }
-    
-    if (table_exists(table) == FALSE) {
-        return("Table not found. Check spelling.")
-    } else {
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-        return(DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM", paste0("'", noquote(table), "'"))))
-        DBI::dbDisconnect(fishset_db)
-    }
+  #' View FishSET database table
+  #' @param table String, name of table in FishSET database.
+  #' @export table_view
+  #' @description Wrapper for \code{\link[DBI]{dbGetQuery}}. View or call the selected table from the FishSET database.
+  #' @importFrom DBI dbConnect dbDisconnect  dbGetQuery
+  #' @examples
+  #' \dontrun{
+  #' head(table_view('MainDataTable'))
+  #' }
+
+  if (table_exists(table) == FALSE) {
+    return("Table not found. Check spelling.")
+  } else {
+    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+    return(DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM", paste0("'", noquote(table), "'"))))
+    DBI::dbDisconnect(fishset_db)
+  }
 }
 
 table_remove <- function(table) {
-    #' Remove table from FishSET database
-    #' Wrapper for \code{\link[DBI]{dbRemoveTable}}. Remove a table from the FishSET database.
-    #' @param table String, ame of table in FishSET database.
-    #' @export table_remove
-    #' @details Function utilizes sql functions to permanently remove a table from the FishSET database.
-    #' @importFrom DBI dbConnect dbDisconnect dbRemoveTable 
-    #' @examples 
-    #' \dontrun{  
-    #' table_remove('MainDataTable') 
-    #' }
-    
-    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-    DBI::dbRemoveTable(fishset_db, table)
-    DBI::dbDisconnect(fishset_db)
+  #' Remove table from FishSET database
+  #'
+  #' Wrapper for \code{\link[DBI]{dbRemoveTable}}. Remove a table from the FishSET database.
+  #' @param table String,name of table in FishSET database.
+  #' @export table_remove
+  #' @details Function utilizes sql functions to remove tables from the FishSET database.
+  #' @importFrom DBI dbConnect dbDisconnect dbRemoveTable
+  #' @examples
+  #' \dontrun{
+  #' table_remove('pollockMainDataTable')
+  #' }
+
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+  DBI::dbRemoveTable(fishset_db, table)
+  DBI::dbDisconnect(fishset_db)
 }
 
 table_exists <- function(table) {
-    #' Check if table exists in the FishSET database
-    #' @param table Name of table in FishSET database
-    #' @export table_exists
-    #' @description Wrapper for \code{\link[DBI]{dbExistsTable}}. Check if a table exists in the FishSET database.
-    #' @return Returns a logical statement of table existence. 
-    #' @importFrom DBI dbConnect dbDisconnect dbExistsTable   
-    #' @examples 
-    #' \dontrun{  
-    #' table_exists('MainDataTable') 
-    #' }
-    
-    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-    return(DBI::dbExistsTable(fishset_db, table))
-    DBI::dbDisconnect(fishset_db)
+  #' Check if table exists in the FishSET database
+  #' @param table Name of table in FishSET database.
+  #' @export table_exists
+  #' @description Wrapper for \code{\link[DBI]{dbExistsTable}}. Check if a table exists in the FishSET database.
+  #' @return Returns a logical statement of table existence.
+  #' @importFrom DBI dbConnect dbDisconnect dbExistsTable
+  #' @examples
+  #' \dontrun{
+  #' table_exists('pollockMainDataTable')
+  #' }
+
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+  return(DBI::dbExistsTable(fishset_db, table))
+  DBI::dbDisconnect(fishset_db)
 }
 
 model_out_view <- function(table) {
-    #' Load model output to console
-    #' 
-    #' Returns output from running \code{discretefish_subroutine}. The table argument must be the full name of the table name in the FishSET database. Output includes information on model convergence, standard errors, t-stats, etc.
-    #' @param table  Table name in FishSET database. Should contain the phrase 'modelout'.
-    #' @export
-    #' @description Returns output from running the discretefish_subroutine function. 
-    #' The table parameter must be the full name of the table name in the FishSET database.
-    #' @examples 
-    #' \dontrun{
-    #' model_out_view('pcodmodelout20190604')
-    #' }
-    # 
-    if (table_exists(table) == FALSE) {
-        return("Table not found. Check spelling.")
-    } else {
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-        x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", table, " LIMIT 1"))$data[[1]])
-        return(x)
-        DBI::dbDisconnect(fishset_db)
-    }
+  #' Load model output to console
+  #'
+  #' Returns output from running \code{discretefish_subroutine}. The table argument must be the full name of the table name in the FishSET database. Output includes information on model convergence, standard errors, t-stats, etc.
+  #' @param table  Table name in FishSET database. Should contain the phrase 'modelout'.
+  #' @export
+  #' @description Returns output from running the discretefish_subroutine function.
+  #' The table parameter must be the full name of the table name in the FishSET database.
+  #' @examples
+  #' \dontrun{
+  #' model_out_view('pcodmodelout20190604')
+  #' }
+  #
+  if (table_exists(table) == FALSE) {
+    return("Table not found. Check spelling.")
+  } else {
+    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+    x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", table, " LIMIT 1"))$data[[1]])
+    return(x)
+    DBI::dbDisconnect(fishset_db)
+  }
 }
 
 globalcheck_view <- function(table) {
-    #' View model error output
-    #' 
-    #' Returns error output from running the discretefish_subroutine function. 
-    #' The table argument must be the full name of the table name in the FishSET database.
-    #' 
-    #' @param table  Table name in FishSET database. Should contain the phrase modelout.
-    #' @export
-    #' @examples 
-    #' \dontrun{
-    #' globalcheck_view('pcodldglobalcheck20190604')
-    #' }
-    
-    if (table_exists(table) == FALSE) {
-        return("Table not found. Check spelling.")
-    } else {
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-        x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", table, " LIMIT 1"))$data[[1]])
-        return(x)
-        DBI::dbDisconnect(fishset_db)
-    }
+  #' View model error output
+  #'
+  #' Returns error output from running the discretefish_subroutine function.
+  #' The table argument must be the full name of the table name in the FishSET database.
+  #'
+  #' @param table  Table name in FishSET database. Should contain the phrase modelout.
+  #' @export
+  #' @examples
+  #' \dontrun{
+  #' globalcheck_view('pcodldglobalcheck20190604')
+  #' }
+
+  if (table_exists(table) == FALSE) {
+    return("Table not found. Check spelling.")
+  } else {
+    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+    x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", table, " LIMIT 1"))$data[[1]])
+    return(x)
+    DBI::dbDisconnect(fishset_db)
+  }
 }
 
 model_fit <- function(project) {
-    #' Load model comparison metrics to console
-    #' 
-    #' Load model comparison metrics to console. Metrics are displayed for each model that was fun. Metrics produced by \code{\link{discretefish_subroutine}}.
-    #' @param project String, name of project.
-    #' @export
-    #' @examples 
-    #' \dontrun{
-    #' model_fit('pollock')
-    #' }
-    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-    return(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0("SELECT * FROM ", paste0(project, "modelfit"))))
-    DBI::dbDisconnect(fishset_db)
+  #' Load model comparison metrics to console
+  #'
+  #' Load model comparison metrics to console. Metrics are displayed for each model that was fun. Metrics produced by \code{\link{discretefish_subroutine}}.
+  #' @param project String, name of project.
+  #' @export
+  #' @examples
+  #' \dontrun{
+  #' model_fit('pollock')
+  #' }
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+  return(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0("SELECT * FROM ", paste0(project, "modelfit"))))
+  DBI::dbDisconnect(fishset_db)
 }
