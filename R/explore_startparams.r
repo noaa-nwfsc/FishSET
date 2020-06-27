@@ -1,139 +1,148 @@
-explore_startparams <- function(project, space, startsr, dev){
-                                #func, catch, choice, distance, otherdat) {
-    #' Explore starting value parameter space
-    #'
-    #' Shotgun method to find better parameter starting values by exploring starting value
-    #'      parameter space.
-    #'
-    #' @param project String, name of project.
-    #' @param space List of length 1 or length equal to the number of models to be evaluated. 
-    #'   \code{space} is the number of starting value permutations to test (the size of 
-    #'   the space to explore). The greater the \code{dev} argument the larger the 
-    #'   \code{space} argument should be.
-    #' @param startsr List, average starting value parameters for
-    #'     revenue/location-specific covariates then cost/distance. The best
-    #'     guess at what the starting value parameters should be (e.g. all
-    #'     ones). Should correspond to the likelihood and data that you want to
-    #'     test. Include starting values parameters for each model. 
-    #' @param dev List of length 1 or length equal to the number of models to be evaluated. 
-    #'   \code{dev} refers to how far to deviate from the average parameter values when 
-    #'   exploring (random normal deviates). The less certain the average parameters are, 
-    #'   the greater the \code{dev} argument should be.
-    # @param func Name of likelihood function to test.
-    # @param choice Data corresponding to actual zonal choice.
-    # @param catch Data corresponding to actual catch.
-    # @param distance Data corresponding to distance.
-    # @param otherdat Other data (as a list, corresponding to the likelihood
-    #'     function you want to test).
-    #' @details Function is used to identify better starting parameters when 
-    #'   convergence is an issue. For more details on the liklihood functions or data see \code{\link{make_model_design}}.
-    #'   Function calls the model design file and should be used after the \code{\link{make_model_design}} 
-    #'   function is called. \cr
-    #'   If more than one model is defined in the model design file, then starting parameters 
-    #'   must be defined for each model.
-    #' @return
-    #' Returns three data frames. \cr
-    #'  \tabular{rlll}{
-    #' newstart: \tab Chosen starting values with smallest likelihood \cr
-    #' saveLLstarts: \tab Likelihood values for each starting value permutation \cr
-    #' savestarts: \tab Starting value permutations (corresponding to each saved
-    #'     likelihood value) \cr
-    #'     }
-    #' @export
-    #' @examples
-    #' \dontrun{
-    #' Example with only one model specified
-    #' results <- explore_startparams(project, 15, rep(1,17), 3) 
-    #'
-    #' Example with three models specified
-    #' results <- explore_startparams(space = list(15,10,100),
-    #' startsr=list(c(1,2,3), c(1,0, -1), c(0,0,.5)), dev=list(3,3,1))
-    #'
-    #' View results
-    #' results$startsOut
-    # min(unlist(results$saveLLstarts))
-    # match(min(unlist(results$saveLLstarts)),unlist(results$saveLLstarts))
-    #'}
-    
-  #Call in datasets
+explore_startparams <- function(project, space, startsr, dev) {
+  # func, catch, choice, distance, otherdat) {
+  #' Explore starting value parameter space
+  #'
+  #' Shotgun method to find better parameter starting values by exploring starting value
+  #'      parameter space.
+  #'
+  #' @param project String, name of project.
+  #' @param space List of length 1 or length equal to the number of models to be evaluated.
+  #'   \code{space} is the number of starting value permutations to test (the size of
+  #'   the space to explore). The greater the \code{dev} argument the larger the
+  #'   \code{space} argument should be.
+  #' @param startsr List, average starting value parameters for
+  #'     revenue/location-specific covariates then cost/distance. The best
+  #'     guess at what the starting value parameters should be (e.g. all
+  #'     ones). Should correspond to the likelihood and data that you want to
+  #'     test. Include starting values parameters for each model.
+  #' @param dev List of length 1 or length equal to the number of models to be evaluated.
+  #'   \code{dev} refers to how far to deviate from the average parameter values when
+  #'   exploring (random normal deviates). The less certain the average parameters are,
+  #'   the greater the \code{dev} argument should be.
+  # @param func Name of likelihood function to test.
+  # @param choice Data corresponding to actual zonal choice.
+  # @param catch Data corresponding to actual catch.
+  # @param distance Data corresponding to distance.
+  # @param otherdat Other data (as a list, corresponding to the likelihood
+  #'     function you want to test).
+  #' @details Function is used to identify better starting parameters when
+  #'   convergence is an issue. For more details on the liklihood functions or data see \code{\link{make_model_design}}.
+  #'   Function calls the model design file and should be used after the \code{\link{make_model_design}}
+  #'   function is called. \cr
+  #'   If more than one model is defined in the model design file, then starting parameters
+  #'   must be defined for each model.
+  #' @return
+  #' Returns three data frames. \cr
+  #'  \tabular{rlll}{
+  #' newstart: \tab Chosen starting values with smallest likelihood \cr
+  #' saveLLstarts: \tab Likelihood values for each starting value permutation \cr
+  #' savestarts: \tab Starting value permutations (corresponding to each saved
+  #'     likelihood value) \cr
+  #'     }
+  #' @export
+  #' @examples
+  #' \dontrun{
+  #' Example with only one model specified
+  #' results <- explore_startparams(project, 15, rep(1,17), 3)
+  #'
+  #' Example with three models specified
+  #' results <- explore_startparams(space = list(15,10,100),
+  #' startsr=list(c(1,2,3), c(1,0, -1), c(0,0,.5)), dev=list(3,3,1))
+  #'
+  #' View results
+  #' results$startsOut
+  # min(unlist(results$saveLLstarts))
+  # match(min(unlist(results$saveLLstarts)),unlist(results$saveLLstarts))
+  #' }
+
+  # Call in datasets
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
   x_temp <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
-  
-  for(i in 1:length(x_temp)){
+
+  for (i in 1:length(x_temp)) {
     x <- x_temp[i]
-    
-    catch <- data.frame(as.matrix(x_temp[[i]][['catch']]))
-    choice <- x_temp[[i]][['choice']]
-    distance <- data.frame(x_temp[[i]][['distance']])
+
+    catch <- data.frame(as.matrix(x_temp[[i]][["catch"]]))
+    choice <- x_temp[[i]][["choice"]]
+    distance <- data.frame(x_temp[[i]][["distance"]])
     choice <- data.frame(as.matrix(as.numeric(factor(choice))))
-    ab <- max(choice) + 1  #no interactions in create_logit_input - interact distances in likelihood function instead
-    fr <- x_temp[[i]][['likelihood']]#func  #e.g. logit_c
+    ab <- max(choice) + 1 # no interactions in create_logit_input - interact distances in likelihood function instead
+    fr <- x_temp[[i]][["likelihood"]] # func  #e.g. logit_c
     fr.name <- match.fun(find_original_name(match.fun(as.character(fr))))
-    
+
     dataCompile <- create_logit_input(choice)
-    
+
     d <- shift_sort_x(dataCompile, choice, catch, distance, max(choice), ab)
-   
-    
-    #remove unnecessary lists  
-    x_temp[[i]][['gridVaryingVariables']] <- Filter(Negate(function(x) is.null(unlist(x))), x_temp[[i]][['gridVaryingVariables']])
-    x_temp[[i]][['gridVaryingVariables']] <- x_temp[[i]][['gridVaryingVariables']][names(x_temp[[i]][['gridVaryingVariables']]) != "units"]  
-    x_temp[[i]][['gridVaryingVariables']] <- x_temp[[i]][['gridVaryingVariables']][names(x_temp[[i]][['gridVaryingVariables']]) != "scale"]  
-    
-    
-    
+
+
+    # remove unnecessary lists
+    x_temp[[i]][["gridVaryingVariables"]] <- Filter(Negate(function(x) is.null(unlist(x))), x_temp[[i]][["gridVaryingVariables"]])
+    x_temp[[i]][["gridVaryingVariables"]] <- x_temp[[i]][["gridVaryingVariables"]][names(x_temp[[i]][["gridVaryingVariables"]]) != "units"]
+    x_temp[[i]][["gridVaryingVariables"]] <- x_temp[[i]][["gridVaryingVariables"]][names(x_temp[[i]][["gridVaryingVariables"]]) != "scale"]
+
+
+
     ### Data needs will vary by the likelihood function ###
-    if(grepl('epm', find_original_name(match.fun(as.character(fr))))){
-      otherdat <- list(griddat=list(griddatfin=as.data.frame(x_temp[[i]][['bCHeader']][['gridVariablesInclude']])), 
-                       intdat=list(as.data.frame(x_temp[[i]][['bCHeader']][['indeVarsForModel']])), 
-                       pricedat=as.data.frame(x_temp[[i]][['epmDefaultPrice']]))
+    if (grepl("epm", find_original_name(match.fun(as.character(fr))))) {
+      otherdat <- list(
+        griddat = list(griddatfin = as.data.frame(x_temp[[i]][["bCHeader"]][["gridVariablesInclude"]])),
+        intdat = list(as.data.frame(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]])),
+        pricedat = as.data.frame(x_temp[[i]][["epmDefaultPrice"]])
+      )
       nexpcatch <- 1
-      expname <-  find_original_name(match.fun(as.character(fr)))
-    }  else if(find_original_name(match.fun(as.character(fr)))=='logit_correction'){
-      otherdat <- list(griddat=list(griddatfin=data.frame(rep(1, nrow(choice)))),#x[['bCHeader']][['gridVariablesInclude']]), 
-                       intdat=list(as.data.frame(x_temp[[i]][['bCHeader']][['indeVarsForModel']])),
-                       startloc=as.data.frame(x_temp[[i]][['startloc']]),
-                       polyn=as.data.frame(x_temp[[i]][['polyn']]))
+      expname <- find_original_name(match.fun(as.character(fr)))
+    } else if (find_original_name(match.fun(as.character(fr))) == "logit_correction") {
+      otherdat <- list(
+        griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))), # x[['bCHeader']][['gridVariablesInclude']]),
+        intdat = list(as.data.frame(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]])),
+        startloc = as.data.frame(x_temp[[i]][["startloc"]]),
+        polyn = as.data.frame(x_temp[[i]][["polyn"]])
+      )
       nexpcatch <- 1
-      expname <-  find_original_name(match.fun(as.character(fr)))
-    } else if(find_original_name(match.fun(as.character(fr)))=='logit_avgcat'){
-      otherdat <- list(griddat=list(griddatfin=data.frame(rep(1, nrow(choice)))),#x[['bCHeader']][['gridVariablesInclude']]), 
-                       intdat=list(as.data.frame(x_temp[[i]][['bCHeader']][['indeVarsForModel']])))
+      expname <- find_original_name(match.fun(as.character(fr)))
+    } else if (find_original_name(match.fun(as.character(fr))) == "logit_avgcat") {
+      otherdat <- list(
+        griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))), # x[['bCHeader']][['gridVariablesInclude']]),
+        intdat = list(as.data.frame(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]]))
+      )
       nexpcatch <- 1
-      expname <-  find_original_name(match.fun(as.character(fr)))
-    } else if(find_original_name(match.fun(as.character(fr)))=='logit_c'){
-      nexpcatch <- length(names(x_temp[[i]][['gridVaryingVariables']]))
+      expname <- find_original_name(match.fun(as.character(fr)))
+    } else if (find_original_name(match.fun(as.character(fr))) == "logit_c") {
+      nexpcatch <- length(names(x_temp[[i]][["gridVaryingVariables"]]))
     }
-    #Begin loop  
-    for(j in 1:nexpcatch){
-      if(find_original_name(match.fun(as.character(fr)))=='logit_c'){
-        expname <- paste0(names(x_temp[[i]][['gridVaryingVariables']])[j],'_', find_original_name(match.fun(as.character(fr))))
-        otherdat <- list(griddat=list(griddatfin=as.data.frame(x_temp[[i]][['gridVaryingVariables']][[names(x_temp[[i]][['gridVaryingVariables']])[j]]])),
-                         intdat=list(as.data.frame(x_temp[[i]][['bCHeader']][['indeVarsForModel']])))
+    # Begin loop
+    for (j in 1:nexpcatch) {
+      if (find_original_name(match.fun(as.character(fr))) == "logit_c") {
+        expname <- paste0(names(x_temp[[i]][["gridVaryingVariables"]])[j], "_", find_original_name(match.fun(as.character(fr))))
+        otherdat <- list(
+          griddat = list(griddatfin = as.data.frame(x_temp[[i]][["gridVaryingVariables"]][[names(x_temp[[i]][["gridVaryingVariables"]])[j]]])),
+          intdat = list(as.data.frame(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]]))
+        )
       }
-    
-    #fr <- func
-    # e.g. clogit
-    
-    #ab <- max(choice) + 1
-    # no interactions in create_logit_input - interact distances in likelihood function instead
-    
-    savestarts <- list()
-    saveLLstarts <- list()
-    
-    savestarts[[1]] <- startsr[[i]]
-    saveLLstarts[[1]] <- fr.name(startsr[[i]], d, otherdat, max(choice))
-    
-    for (k in 2:space[[i]]) {
+
+      # fr <- func
+      # e.g. clogit
+
+      # ab <- max(choice) + 1
+      # no interactions in create_logit_input - interact distances in likelihood function instead
+
+      savestarts <- list()
+      saveLLstarts <- list()
+
+      savestarts[[1]] <- startsr[[i]]
+      saveLLstarts[[1]] <- fr.name(startsr[[i]], d, otherdat, max(choice))
+
+      for (k in 2:space[[i]]) {
         savestarts[[k]] <- rnorm(length(startsr[[i]]), startsr[[i]], dev[[i]])
         saveLLstarts[[k]] <- fr.name(savestarts[[k]], d, otherdat, max(choice))
+      }
+
+      minindex <- which.min(unlist(saveLLstarts))
+      newstart <- savestarts[[minindex]]
+
+      startsOut <- list()
+      startsOut[[length(startsOut) + 1]] <- list(name = expname, newstart = newstart, saveLLstarts = saveLLstarts, savestarts = savestarts)
     }
-    
-    minindex <- which.min(unlist(saveLLstarts))
-    newstart <- savestarts[[minindex]]
-    
-    startsOut <-  list()
-    startsOut[[length(startsOut)+1]] <- list(name=expname, newstart = newstart, saveLLstarts = saveLLstarts, savestarts = savestarts)
-  }}
-return(startsOut)
+  }
+  return(startsOut)
 }
