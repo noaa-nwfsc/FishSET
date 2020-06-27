@@ -4,6 +4,7 @@
 
 tables_database <- function() {
     #' View names of tables in the FishSET database
+    #' 
     #' Wrapper for \code{\link[DBI]{dbListTables}}. View names of tables in the FishSET database.
     #' @export tables_database
     #' @importFrom DBI dbConnect dbRemoveTable dbListTables dbExistsTable dbGetQuery

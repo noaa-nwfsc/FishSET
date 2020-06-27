@@ -24,7 +24,7 @@
 #'   \code{"month"}, or \code{"week"}. 
 #' @param combine Logical, whether to combine variables listed in \code{group}.
 #' @param type The type of plot. Options include histogram (\code{"hist"}, the default) and 
-#'   frequency polygon {\code{"freq_poly"}).
+#'   frequency polygon (\code{"freq_poly"}).
 #' @param scale Scale argument passed to \code{\link{facet_grid}}. Defaults to \code{"fixed"}.
 #'   Other options include \code{"free_y"}, \code{"free_x"}, and \code{"free_xy"}. 
 #' @param trans Transformation to be applied to the x-axis. A few options include "log", 
