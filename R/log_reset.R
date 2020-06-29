@@ -1,46 +1,45 @@
 log_reset <- function() {
-    #' Reset log file
-    #' @details Calls to log functions are automatically appended to the existing log file. Resetting the log file to an empty file requires restarting the R sessions or running log_reset().   
-    #' @export log_reset
-    #' @examples 
-    #' \dontrun{ 
-    #' log_reset() 
-    #' }
-    #' 
-    
-    if (exists("functionBodyout")) {
-        rm("functionBodyout")
-        rm("logbody")
-        rm("infoBodyout")
-    }
+  #' Reset log file
+  #' @details Calls to log functions are automatically appended to the existing log file. Resetting the log file to an empty file requires restarting the R sessions or running log_reset().
+  #' @export log_reset
+  #' @examples
+  #' \dontrun{
+  #' log_reset()
+  #' }
+  #'
+
+  if (exists("functionBodyout")) {
+    rm("functionBodyout")
+    rm("logbody")
+    rm("infoBodyout")
+  }
 }
 
 log_call <- function(fun.name) {
-    #' Reset function calls saved in log file
-    #' @param fun.name Function name
-    #' @details uplodate log file
-    #' @importFrom jsonlite read_json toJSON
-    #' @export
-    #' @keywords internal
-    
-    if (!file_test("-f", paste0(loclog(), Sys.Date(), ".json", sep = ""))) {
-        logbody <- list()
-        infoBodyout <- list()
-        functionBodyout <- list()
-        infobody <- list()
-        
-        infobody$rundate <- Sys.Date()
-        infoBodyout$info <- list(infobody)
-        
-        functionBodyout$function_calls <- list()
-        
-        logbody$fishset_run <- list(infoBodyout, functionBodyout)
-        functionBodyout$function_calls[[length(functionBodyout$function_calls) + 1]] <- fun.name
-        logbody$fishset_run <- list(infoBodyout, functionBodyout)
-    } else {
-        logbody <- jsonlite::read_json(paste0(loclog(), Sys.Date(), ".json", sep = ""))
-        logbody$fishset_run[[2]]$function_calls[[length(logbody$fishset_run[[2]]$function_calls) + 1]] <- fun.name
-    }
-    write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE, null='null', na='string'), paste(loclog(), Sys.Date(), ".json", sep = ""))
-    
+  #' Reset function calls saved in log file
+  #' @param fun.name Function name
+  #' @details uplodate log file
+  #' @importFrom jsonlite read_json toJSON
+  #' @export
+  #' @keywords internal
+
+  if (!file_test("-f", paste0(loclog(), Sys.Date(), ".json", sep = ""))) {
+    logbody <- list()
+    infoBodyout <- list()
+    functionBodyout <- list()
+    infobody <- list()
+
+    infobody$rundate <- Sys.Date()
+    infoBodyout$info <- list(infobody)
+
+    functionBodyout$function_calls <- list()
+
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
+    functionBodyout$function_calls[[length(functionBodyout$function_calls) + 1]] <- fun.name
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
+  } else {
+    logbody <- jsonlite::read_json(paste0(loclog(), Sys.Date(), ".json", sep = ""))
+    logbody$fishset_run[[2]]$function_calls[[length(logbody$fishset_run[[2]]$function_calls) + 1]] <- fun.name
+  }
+  write(jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE, null = "null", na = "string"), paste(loclog(), Sys.Date(), ".json", sep = ""))
 }

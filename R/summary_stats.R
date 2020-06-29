@@ -1,60 +1,70 @@
-#' View summary statistics  
+#' View summary statistics
+#'
 #' View summary statistics in table format for all variables in primary dataset.
-#' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+#' @param dat Primary data containing information on hauls or trips.
+#' Table in FishSET database contains the string 'MainDataTable'.
 #' @param project String, name of project.
-#' @param x Optional. Variable in \code{dat} to apply function over. If not defined, summary stats are displayed for all columns in the dataset.
+#' @param x Optional. Variable in \code{dat} to apply function over. If not defined, summary stats
+#'   are displayed for all columns in the dataset.
 #' @param project Name of project
 #' @keywords summary statistics
 #' @export summary_stats
-#' @details Prints summary statistics for each variable in the data set. If \code{x} is specified, summary stats will be returned only for that variable. 
+#' @details Prints summary statistics for each variable in the data set. If \code{x} is specified, summary stats will be returned only for that variable.
 #' Function is called in the \code{\link{data_check}} function.
 #' @examples
 #' \dontrun{
-#' summary_stats('pcodMainDataTable', x='')
-#' summary_stats('pcodMainDataTable', x='HAUL')
+#' summary_stats(pcodMainDataTable)
+#' summary_stats(pcodMainDataTable, x = "HAUL")
 #' }
-
+#'
 summary_stats <- function(dat, project, x = NULL) {
-    
-    # Call in datasets
-    out <- data_pull(dat)
-    dat <- out$dat
-    dataset <- out$dataset
-    
-    # Min apply(dataset, 2, function(x) min(x, na.rm=T)) 1st Quartile apply(dataset, 2, function(x) quantile(x)[2]) Median apply(dataset, 2, function(x)
-    # median(x, na.rm=T)) Mean apply(dataset, 2, function(x) mean(x, na.rm=TRUE)) 3rd Quartile apply(dataset, 2, function(x) length(unique(x))) Max
-    # apply(dataset, 2, function(x) max(x, n.arm=TRUE)) UniqueObs apply(dataset, 2, function(x) paste('UniqueObs:', length(unique(x))))
-    
-    # all columns
-    if (is_empty(x)) {
-        # No missing values in data set
-        if (anyNA(dataset) == FALSE) {
-            sum_table <- as.data.frame(as.matrix(rbind(summary(dataset, digits = 2), apply(dataset, 2, function(x) paste("NA's: 0")), apply(dataset, 2, 
-                function(x) paste("UniqueObs:", length(unique(x)))), apply(dataset, 2, function(x) paste("No. 0's:", length(which(x == 0)))))), row.names = FALSE)[-c(2, 
-                5), ]
-        } else {
-            # Missing data
-            sum_table <- as.data.frame(as.matrix(rbind(summary(dataset, digits = 2), apply(dataset, 2, function(x) paste("UniqueObs:", length(unique(x)))), 
-                apply(dataset, 2, function(x) paste("No. 0's:", length(which(x == 0)))))), row.names = FALSE)[-c(2, 5), ]
-        }
-        
+
+  # Call in datasets
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset
+
+  # Min apply(dataset, 2, function(x) min(x, na.rm=T)) 1st Quartile apply(dataset, 2, function(x) quantile(x)[2]) Median apply(dataset, 2, function(x)
+  # median(x, na.rm=T)) Mean apply(dataset, 2, function(x) mean(x, na.rm=TRUE)) 3rd Quartile apply(dataset, 2, function(x) length(unique(x))) Max
+  # apply(dataset, 2, function(x) max(x, n.arm=TRUE)) UniqueObs apply(dataset, 2, function(x) paste('UniqueObs:', length(unique(x))))
+
+  # all columns
+  if (is_empty(x)) {
+    # No missing values in data set
+    if (anyNA(dataset) == FALSE) {
+      sum_table <- as.data.frame(as.matrix(rbind(summary(dataset, digits = 2), apply(dataset, 2, function(x) paste("NA's: 0")), apply(
+        dataset, 2,
+        function(x) paste("UniqueObs:", length(unique(x)))
+      ), apply(dataset, 2, function(x) paste("No. 0's:", length(which(x == 0)))))), row.names = FALSE)[-c(
+        2,
+        5
+      ), ]
     } else {
-        # specific column No missing data
-        if (anyNA(dataset[[x]]) == FALSE) {
-            sum_table <- c(summary(dataset[[x]]), paste("NA's: 0"), paste("UniqueObs:", length(unique(dataset[[x]]))), paste("No. 0's:", length(which(dataset[[x]] == 
-                0))))[-c(2, 5)]
-        } else {
-            # Missing data
-            sum_table <- c(summary(dataset[[x]]), paste("UniqueObs:", length(unique(dataset[[x]]))), paste("No. 0's:", length(which(dataset[[x]] == 0))))[-c(2, 
-                5)]
-        }
+      # Missing data
+      sum_table <- as.data.frame(as.matrix(rbind(
+        summary(dataset, digits = 2), apply(dataset, 2, function(x) paste("UniqueObs:", length(unique(x)))),
+        apply(dataset, 2, function(x) paste("No. 0's:", length(which(x == 0))))
+      )), row.names = FALSE)[-c(2, 5), ]
     }
-    
-    summary_stats_function <- list()
-    summary_stats_function$functionID <- "summary_stats"
-    summary_stats_function$args <- list(dat, project, x)
-    log_call(summary_stats_function)
-    
-    save_table(sum_table, project, "summary_stats")
-    return(sum_table)
+  } else {
+    # specific column No missing data
+    if (anyNA(dataset[[x]]) == FALSE) {
+      sum_table <- c(summary(dataset[[x]]), paste("NA's: 0"), paste("UniqueObs:", length(unique(dataset[[x]]))), paste("No. 0's:", length(which(dataset[[x]] ==
+        0))))[-c(2, 5)]
+    } else {
+      # Missing data
+      sum_table <- c(summary(dataset[[x]]), paste("UniqueObs:", length(unique(dataset[[x]]))), paste("No. 0's:", length(which(dataset[[x]] == 0))))[-c(
+        2,
+        5
+      )]
+    }
+  }
+
+  summary_stats_function <- list()
+  summary_stats_function$functionID <- "summary_stats"
+  summary_stats_function$args <- list(dat, project, x)
+  log_call(summary_stats_function)
+
+  save_table(sum_table, project, "summary_stats")
+  return(sum_table)
 }
