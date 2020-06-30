@@ -352,7 +352,7 @@ species_catch <- function(dat, project, species, date, period = "month", fun = "
   
   if (!(p %in% c("%a", "%b"))) {
     
-    s_plot <- s_plot + ggplot2::scale_x_continuous(n.breaks = FishSET::n_breaks(count[[period]]))
+    s_plot <- s_plot + ggplot2::scale_x_continuous(breaks = num_breaks(count[[period]]))
   }
   
   # Log the function
