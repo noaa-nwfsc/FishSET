@@ -3,10 +3,11 @@
 
 nan_identify <- function(dat) {
   #' Check whether any columns in the primary dataset contain NAs or NaNs.
-
-  #' Check whether any columns in the primary dataset contain NAs or NaNs. Returns column names containing NAs or NaNs.
-  #'
-  #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+  #' 
+  #' @description Check whether any columns in the primary dataset contain NAs or NaNs. 
+  #'   Returns column names containing NAs or NaNs.
+  #' @param dat Primary data containing information on hauls or trips. 
+  #' Table in FishSET database contains the string 'MainDataTable'.
   #' @keywords NaN, NA
   #' @description Check whether any columns in the data frame contain NAs or NaNs. Returns column names containing NAs or NaNs.
   #' @return Returns names of columns containing NAs or NaNs, if any.

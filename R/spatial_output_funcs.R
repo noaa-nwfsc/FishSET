@@ -14,7 +14,7 @@ spatial_hist <- function(dat, project, group) {
   #' @export
   #' @examples
   #' \dontrun{
-  #' spatial_hist('pollockMainDataTable', 'pollock', 'GEAR_TYPE')
+  #' spatial_hist(pollockMainDataTable, 'pollock', 'GEAR_TYPE')
   #' }
 
   requireNamespace("ggplot2")
@@ -49,18 +49,20 @@ spatial_hist <- function(dat, project, group) {
 spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs", "perc_total", "mean", "median", "min", "max", "sum"),
                             variable, gridfile, lon.grid, lat.grid, lon.dat, lat.dat, cat) {
   #' @param dat Primary data containing information on hauls or trips.
-  #' Table in FishSET database contains the string 'MainDataTable'.
+  #'   Table in FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
   #' @param stat.var Options are \code{"length"}, \code{"no_unique_obs"}, \code{"perc_total"},
-  #'    \code{"mean"}, \code{"median'"}, \code{"min"}, \code{"max"}, and \code{"sum"}.
+  #'   \code{"mean"}, \code{"median"}, \code{"min"}, \code{"max"}, and \code{"sum"}.
   #' @param gridfile Spatial data containing information on fishery management or regulatory zones.
   #'   Shape, json, geojson, and csv formats are supported. Leave as NULL if the variable ‘ZoneID’
   #'   assigning observations to zones exists in \code{dat}.
   #' @param variable Variable in \code{dat} to summarize over date and zone.
-  #' @param lon.dat Longitude variable in \code{dat}. Leave as NULL if the variable ‘ZoneID’ (assigns observations to zones) exists in \code{dat}.
-  #' @param lat.dat Latitude variable in \code{dat}. Leave as NULL if the variable ‘ZoneID’ (assigns observations to zones) exists in \code{dat}.
-  #' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required for csv files. Leave as NULL if \code{gridfile} is
-  #'   a shape or json file or if the variable ‘ZoneID’ exists in \code{dat}.
+  #' @param lon.dat Longitude variable in \code{dat}. Leave as NULL if the variable ‘ZoneID’ (zonal 
+  #'   assignment) exists in \code{dat}.
+  #' @param lat.dat Latitude variable in \code{dat}. Leave as NULL if the variable ‘ZoneID’ (zonal 
+  #'   assignments) exists in \code{dat}.
+  #' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required for csv files. 
+  #'   Leave as NULL if \code{gridfile} isba shape or json file or if the variable ‘ZoneID’ exists in \code{dat}.
   #' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files. Leave as NULL if \code{gridfile}
   #'   is a shape or json file, or if the variable ‘ZoneID’ exists in \code{dat}.
   #' @param cat  Variable or list in \code{gridfile} that identifies the individual areas or zones. If \code{gridfile} is class sf, \code{cat}
@@ -80,16 +82,16 @@ spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs"
   #' max: \tab Maximum \cr
   #' sum: \tab Sum \cr
   #' }
-  #' @return Returns two plots, the variable variable aggregated by \code{stat.var} plotted against date and against zone.
+  #' @return Returns two plots, the variable aggregated by \code{stat.var} plotted against date and against zone.
   #' @examples
   #' \dontrun{
   #' Example where ZoneID exists in dataset
-  #'    spatial_summary(pcodMainDataTable, project='pcod', stat.var = "no_unique_obs",
-  #'       variable='HAUL')
+  #'    spatial_summary(pcodMainDataTable, project = 'pcod', 
+  #'       stat.var = "no_unique_obs", variable = 'HAUL')
   #'
   #' Example where obs. have not been assigned to zones
-  #'     spatial_summary(pcodMainDataTable, project='pcod', stat.var = "no_unique_obs",
-  #'        variable='HAUL', gridfile='spatdat', lon.dat = 'MidLat', lat.dat = 'MidLat',
+  #'     spatial_summary(pcodMainDataTable, project = 'pcod', stat.var = "no_unique_obs",
+  #'        variable = 'HAUL', gridfile = spatdat, lon.dat = 'MidLat', lat.dat = 'MidLat',
   #'        cat = 'NMFS_AREA')
   #' }
 

@@ -3,22 +3,22 @@
 #' Creates a table or plot of total species catch by period
 #'
 #' @param dat Primary data containing information on hauls or trips.
-#' Table in FishSET database contains the string 'MainDataTable'.
+#'   Table in FishSET database contains the string 'MainDataTable'.
 #' @param project String, name of project.
 #' @param species Variable in \code{dat} containing the species catch
-#' or a vector of species variables (in pounds).
+#'   or a vector of species variables (in pounds).
 #' @param date Variable in \code{dat} containing dates to aggregate by.
 #' @param period Time period to count by. Options include 'year', 'month', 'weeks'
-#' (weeks in the year),'weekday', 'weekday_abv', 'weekday_num', 'day' (day of the month),
+#'  (weeks in the year),'weekday', 'weekday_abv', 'weekday_num', 'day' (day of the month),
 #'   and 'day_of_year'.
 #' @param fun String, name of function to aggregate by. Defaults to \code{\link[base]{sum}}.
 #' @param group Grouping variable names(s). Up to two grouping variables are available for
 #'   line plots and one for bar plots. For bar plots, if only one species is entered the first
 #'   group variable is passed to 'fill'. If multiple species are entered, species is passed to
-#'   "fill" and the grouping variable is dropped. An exception occurs when facetting by species,
+#'   "fill" and the grouping variable is dropped. An exception occurs when faceting by species,
 #'   then the grouping variable is passed to "fill". For line plots, the first grouping variable
 #'   is passed to "fill" and the second to "linetype" if a single species column is entered or if
-#'   facetting by species. Otherwise, species is passed to "fill", the first group variable to
+#'   faceting by species. Otherwise, species is passed to "fill", the first group variable to
 #'   "linetype", and second is dropped.
 #' @param filter_date The type of filter to apply to table. Options include \code{"year-period"},
 #'   \code{"year-month"}, \code{"year"}, \code{"month"}, or \code{"period"}. The
@@ -45,13 +45,13 @@
 #'   (the default) and 'long'.
 #' @return  \code{species_catch()} aggregates catch (or percent)
 #'   by time period using one or more columns of catch data. The data can be filter using
-#'   two arguments: \code{filter_date} amd \code{filter_value}. \code{filter_date}
+#'   two arguments: \code{filter_date} and \code{filter_value}. \code{filter_date}
 #'   specifies how the data should be filtered--by year, period (see \code{period}), or year-period.
 #'   \code{filter_value} should contain the values (as integers) to filter
 #'   the data by. It is often useful to facet by year when using \code{filter_date}.
 #'   Up to two grouping variables can be entered. Grouping variables can
 #'   be merged into one variable using \code{combine = TRUE}. Any number of
-#'   variables can be combined, but no more than three is reccomended. For faceting,
+#'   variables can be combined, but no more than three is recommended. For faceting,
 #'   any variable (including ones listed in \code{group}) can be used, but "year" and
 #'   "month" are also available. Currently, combined variables cannot be faceted.
 #'   A list containing a table and plot are printed to the console and viewer by default.

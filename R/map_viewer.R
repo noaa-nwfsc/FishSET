@@ -12,9 +12,9 @@ map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars, lo
   #' @param temp_vars List, name of temporal variable(s) in \code{dat} to include for plotting.
   #' @param id_vars List, name of categorical variable(s) in \code{dat} to group by.
   #' @param lon_start String, variable in \code{dat} that identifies starting longitude decimal degrees.
-  #' @param lat_start String, variable in \code{dat} that identifies staring latitude decimal degrees.
-  #' @param lon_end String, variable in \code{dat} that identifies endng longitude decimal degrees.
-  #' @param lat_end String, variable in \code{dat} that identifies endng latitude decimal degrees.
+  #' @param lat_start String, variable in \code{dat} that identifies starting latitude decimal degrees.
+  #' @param lon_end String, variable in \code{dat} that identifies ending longitude decimal degrees.
+  #' @param lat_end String, variable in \code{dat} that identifies ending latitude decimal degrees.
   #' @importFrom geojsonio geojson_write
   #' @importFrom jsonlite toJSON
   #' @importFrom servr httd

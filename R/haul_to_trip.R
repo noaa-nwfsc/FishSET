@@ -3,27 +3,26 @@
 #' @param dat Primary data containing information on hauls or trips.
 #' Table in FishSET database contains the string 'MainDataTable'.
 #' @param project String, name of project.
-#' @param fun.time Hw to collapse temporal data. For example, min, mean, max. Cannot be sum for temporal variables.
+#' @param fun.time How to collapse temporal data. For example, min, mean, max. Cannot be sum for temporal variables.
 #' @param fun.numeric How to collapse numeric or temporal data. For example, min, mean, max, sum. Defaults to mean.
-#' @param ... Column(s) that identify the individual trip.
+#' @param tripID Column(s) that identify the individual trip.
 #' @export haul_to_trip
 #' @return Returns the primary dataset where each row is a trip.
 #' @details Collapses primary dataset from haul to trip level. Requires the MainDataTableInfo
-#' table associated with the primary dataset. Unique trips are defined based on selected column(s).
-#' For example, landing permit number and disembarked port. This id column is used to collapse the
-#' data to trip level.  \code{fun.numeric} and \code{fun.time} define how multiple observations for a trip
-#' are collapsed. For variables that are not numeric or dates, the first observation is used. The
-#' MainDataTableInfo table is updated using the \code{\link{dataindex_update}} function.
+#'   table associated with the primary dataset. Unique trips are defined based on selected column(s).
+#'   For example, landing permit number and disembarked port. This id column is used to collapse the
+#'   data to trip level.  \code{fun.numeric} and \code{fun.time} define how multiple observations for a trip
+#'   are collapsed. For variables that are not numeric or dates, the first observation is used. The
+#'   MainDataTableInfo table is updated using \code{\link{dataindex_update}}.
 #'
 #' @examples
 #' \dontrun{
-#' pollockMainDataTable <- haul_to_trip(
-#'   "pollockMainDataTable", "pollock",
-#'   min, mean, "PERMIT", "DISEMBARKED_PORT"
-#' )
+#' pollockMainDataTable <- haul_to_trip("pollockMainDataTable","pollock",
+#'     min, mean, "PERMIT", "DISEMBARKED_PORT"
+#'     )
 #' }
 #'
-haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, ...) {
+haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, tripID) {
   # fun.time = min, Create a column that indicates unique trip levels
 
   # Call in datasets
@@ -34,21 +33,19 @@ haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, ...)
   # Load in dataindex
 
   dataIndex <- dataindex_update(dataset, pull_info_data(project))
-  # suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase)) single_sql <- paste('select * from ', dataindex, sep='') dataindex <-
-  # DBI::dbGetQuery(fishset_db, single_sql) DBI::dbDisconnect(fishset_db)
 
-  if (grepl("input", as.character(match.call(expand.dots = FALSE)$...)[1]) == TRUE) {
-    argList <- eval(...)
-  } else {
-    argList <- (as.character(match.call(expand.dots = FALSE)$...))
-  }
+#  if (grepl("input", as.character(match.call(expand.dots = FALSE)$...)[1]) == TRUE) {
+#    argList <- eval(...)
+#  } else {
+#    argList <- (as.character(match.call(expand.dots = FALSE)$...))
+#  }
 
   idmaker <- function(vec) {
     return(paste(sort(vec), collapse = ""))
   }
-  int <- as.data.frame(cbind(dataset, rowID = as.numeric(factor(apply(as.matrix(dataset[, eval(substitute(argList))]), 1, idmaker)))))
+  int <- as.data.frame(cbind(dataset, rowID = as.numeric(factor(apply(as.matrix(dataset[, tripID]), 1, idmaker)))))
   # int <- int[, c(colnames(sapply(dataindex[[varnameindex]], grepl, colnames(int))), 'rowID')]
-  cat(length(unique(int$rowID)), "unique trips were identified using", argList, "\n")
+  cat(length(unique(int$rowID)), "unique trips were identified using", tripID, "\n")
   # Handling of empty variables
   if (any(apply(int, 2, function(x) all(is.na(x))) == TRUE)) {
     int <- int[, -which(apply(int, 2, function(x) all(is.na(x))) == TRUE)]
@@ -159,8 +156,7 @@ haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, ...)
 
   haul_to_trip_function <- list()
   haul_to_trip_function$functionID <- "haul_to_trip"
-  haul_to_trip_function$args <- list(dat, project, deparse(substitute(fun.numeric)), deparse(substitute(fun.time)))
-  haul_to_trip_function$kwargs <- list(argList)
+  haul_to_trip_function$args <- list(dat, project, deparse(substitute(fun.numeric)), deparse(substitute(fun.time)), tripID)
   haul_to_trip_function$output <- list(dat)
   log_call(haul_to_trip_function)
 

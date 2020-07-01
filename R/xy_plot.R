@@ -1,6 +1,8 @@
 xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
   #' Evaluate relationship of two variables in a plot format
-  #' Evaluate relationship of two variabls in a plot format. Plots first variable against second variable.
+  #' 
+  #' @description Evaluate relationship of two variables in a plot format. 
+  #'   Plots first variable against second variable.
   #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
   #' @param var1 First variable in \code{dat}.
@@ -13,7 +15,7 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
   #' @export
   #' @examples
   #' \dontrun{
-  #' xy_plot('pollockMainDataTable', 'OFFICIAL_TOTAL_CATCH_MT', 'HAUL', regress=TRUE)
+  #' xy_plot(pollockMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', 'HAUL', regress=TRUE)
   #' }
 
   requireNamespace("ggplot2")
