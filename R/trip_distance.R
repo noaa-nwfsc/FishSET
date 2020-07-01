@@ -1,4 +1,4 @@
-#' Create haul level trip distance variale
+#' Create haul level trip distance variable
 #'
 #' @param dat Primary data containing information on hauls or trips.
 #' Table in FishSET database contains the string 'MainDataTable'.
@@ -25,9 +25,8 @@
 #'  \url{https://cran.r-project.org/web/packages/geosphere/geosphere.pdf}.
 #' @examples
 #' \dontrun{
-#' pcodMainDataTable <- create_trip_distance(
-#'   pcodMainDataTable,
-#'   "pollockPortTable", "TRIP_SEQ", "DISEMBARKED_PORT", c("LonLat_START_LON", "LonLat_START_LAT"),
+#' pcodMainDataTable <- create_trip_distance(pcodMainDataTable, "pcodPortTable", 
+#'   "TRIP_SEQ", "DISEMBARKED_PORT", c("LonLat_START_LON", "LonLat_START_LAT"),
 #'   c("LonLat_END_LON", "LonLat_END_LAT"), "EMBARKED_PORT", "HAUL_SEQ", "TripDistance"
 #' )
 #' }

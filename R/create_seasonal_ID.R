@@ -18,9 +18,9 @@
 #' @importFrom DBI dbConnect
 #' @importFrom RSQLite SQLite
 #' @details Uses a table of fishery season dates to create fishery season identifier variables. Output is a SeasonID
-#' variable and/or multiple SeasonID*fishery variables. If fishery season dates vary by location or geartype,
+#' variable and/or multiple SeasonID*fishery variables. If fishery season dates vary by location or gear type,
 #' then \code{use.location} and \code{use.geartype} should be TRUE. \cr\cr
-#' The function matchers fishery season dates provided in \code{seasonal.dat} to the first date variable in the primary dataset.
+#' The function matches fishery season dates provided in \code{seasonal.dat} to the first date variable in the primary dataset.
 #' The seasonID variable is a vector of fisheries whereas the SeasonID*fishery variables are TRUE/FALSE indicating whether the
 #' fishery was open on the observed date. \cr\cr
 #' If \code{target} is not defined, then each row of seasonID is defined as the first fishery listed in \code{seasonal.dat} for
@@ -33,8 +33,7 @@
 #' @examples
 #' \dontrun{
 #' pcodMainDataTable <- create_seasonal_ID("pcodMainDataTable", seasonal_dat,
-#'   use.location = TRUE,
-#'   use.geartype = TRUE, sp.col = "SPECIES", target = "POLLOCK"
+#'   use.location = TRUE, use.geartype = TRUE, sp.col = "SPECIES", target = "POLLOCK"
 #' )
 #' }
 #'

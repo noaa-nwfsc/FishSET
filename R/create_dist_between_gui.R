@@ -7,7 +7,7 @@ create_dist_between_for_gui <- function(dat, start, end, units, name = "DistBetw
   #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
   #' @param start Starting location. Should be a port, lat/lon location, or the centroid of fishing zone or area. If port is desired,
   #'   \code{start} should be the column name in the \code{dat} containing the port names. Latitude and longitude for the port are extracted
-  #'   from the port table. If a lat, lon location is desired then \code{start} should b ea character string of column names from \code{dat}.
+  #'   from the port table. If a lat/lon location is desired then \code{start} should be a character string of column names from \code{dat}.
   #'   The order must be lon, lat. If the centroid of the fishing zone or area is to be used then \code{start} should be \code{"centroid"}
   #'   and \code{\link{find_centroid}} and \code{\link{assignment_column}} will be called to identify the latitude and longitude.
   #' @param end Ending location. Should be a port, lat/lon location, or the centroid of the fishing zone or area. If port is desired,

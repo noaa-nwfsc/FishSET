@@ -20,7 +20,7 @@ tables_database <- function() {
 
 table_fields <- function(table) {
   #' Lists fields for FishSET database table
-  #' @param table String, name of table in FishSET database.
+  #' @param table String, name of table in FishSET database. Table name must be in quotes.
   #' @export table_fields
   #' @description Wrapper for \code{\link[DBI]{dbListFields}}.  View fields of selected table.
   #' @importFrom DBI dbConnect dbDisconnect dbListFields
@@ -36,13 +36,13 @@ table_fields <- function(table) {
 
 table_view <- function(table) {
   #' View FishSET database table
-  #' @param table String, name of table in FishSET database.
+  #' @param table String, name of table in FishSET database. Table name must be in quotes.
   #' @export table_view
   #' @description Wrapper for \code{\link[DBI]{dbGetQuery}}. View or call the selected table from the FishSET database.
   #' @importFrom DBI dbConnect dbDisconnect  dbGetQuery
   #' @examples
   #' \dontrun{
-  #' head(table_view('MainDataTable'))
+  #' head(table_view('pollockMainDataTable'))
   #' }
 
   if (table_exists(table) == FALSE) {
@@ -58,7 +58,7 @@ table_remove <- function(table) {
   #' Remove table from FishSET database
   #'
   #' Wrapper for \code{\link[DBI]{dbRemoveTable}}. Remove a table from the FishSET database.
-  #' @param table String,name of table in FishSET database.
+  #' @param table String, name of table in FishSET database. Table name must be in quotes.
   #' @export table_remove
   #' @details Function utilizes sql functions to remove tables from the FishSET database.
   #' @importFrom DBI dbConnect dbDisconnect dbRemoveTable
@@ -74,7 +74,7 @@ table_remove <- function(table) {
 
 table_exists <- function(table) {
   #' Check if table exists in the FishSET database
-  #' @param table Name of table in FishSET database.
+  #' @param table Name of table in FishSET database.Table name must be in quotes.
   #' @export table_exists
   #' @description Wrapper for \code{\link[DBI]{dbExistsTable}}. Check if a table exists in the FishSET database.
   #' @return Returns a logical statement of table existence.
@@ -92,11 +92,11 @@ table_exists <- function(table) {
 model_out_view <- function(table) {
   #' Load model output to console
   #'
-  #' Returns output from running \code{discretefish_subroutine}. The table argument must be the full name of the table name in the FishSET database. Output includes information on model convergence, standard errors, t-stats, etc.
-  #' @param table  Table name in FishSET database. Should contain the phrase 'modelout'.
+  #' Returns output from running \code{\link{discretefish_subroutine}}. The table argument must be the full name of the table name in the FishSET database. Output includes information on model convergence, standard errors, t-stats, etc.
+  #' @param table  Table name in FishSET database. Should contain the phrase 'modelout'. Table name must be in quotes.
   #' @export
   #' @description Returns output from running the discretefish_subroutine function.
-  #' The table parameter must be the full name of the table name in the FishSET database.
+  #'   The table parameter must be the full name of the table name in the FishSET database.
   #' @examples
   #' \dontrun{
   #' model_out_view('pcodmodelout20190604')
@@ -118,7 +118,8 @@ globalcheck_view <- function(table) {
   #' Returns error output from running the discretefish_subroutine function.
   #' The table argument must be the full name of the table name in the FishSET database.
   #'
-  #' @param table  Table name in FishSET database. Should contain the phrase modelout.
+  #' @param table  Table name in FishSET database. Should contain the phrase modelout. 
+  #'  Table name must be in quotes.
   #' @export
   #' @examples
   #' \dontrun{
@@ -138,7 +139,8 @@ globalcheck_view <- function(table) {
 model_fit <- function(project) {
   #' Load model comparison metrics to console
   #'
-  #' Load model comparison metrics to console. Metrics are displayed for each model that was fun. Metrics produced by \code{\link{discretefish_subroutine}}.
+  #' Load model comparison metrics to console. Metrics are displayed for each model that was fun. 
+  #'   Metrics produced by \code{\link{discretefish_subroutine}}.
   #' @param project String, name of project.
   #' @export
   #' @examples

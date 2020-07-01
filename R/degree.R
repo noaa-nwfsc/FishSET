@@ -15,8 +15,8 @@ degree <- function(dat, lat = NULL, lon = NULL, latsign = FALSE, lonsign = FALSE
   #' @return Returns the primary dataset with the latitudes and longitudes converted to decimal degrees. Changing the sign, transforms all values in the variable.
   #' @examples
   #' \dontrun{
-  #' MainDataTable <- degree(MainDataTable, 'LatLon_START_LAT', 'LatLon_START_LON',
-  #'            latsign=FALSE, lonsign=FALSE, replace=TRUE)
+  #' pollockMainDataTable <- degree(pollockMainDataTable, 'LatLon_START_LAT', 'LatLon_START_LON',
+  #'        latsign=FALSE, lonsign=FALSE, replace=TRUE)
   #' }
   #'
 
