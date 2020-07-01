@@ -2210,7 +2210,6 @@
         conditionalPanel(condition="input.choiceTab=='distm'",
                          tagList(
                           h5(tags$b('Define how alternative fishing choices calculated.')),
-                           selectInput('case_ac', 'Variable which creates alternative choice:', choices=c("Centroid of zonal assignment")),#"Port", "Other"
                            div(style="display: inline-block;vertical-align:top; width: 160px;",
                                selectInput('alt_var_ac', 'between occurrence:', choices=c('Centroid of zonal assignment'='centroid', 
                                                                                           names(values$dataset)[grep('lat|lon|port', names(values$dataset), ignore.case=TRUE)]))), #Identifies how to find lat/lon for starting point (must have a lat/lon associated with it) 

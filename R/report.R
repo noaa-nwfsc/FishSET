@@ -1,18 +1,18 @@
 
 current_log <- function() {
-  #' 
+  #'
   #' Lists most recent log file
-  #' 
+  #'
   #' @keywords internal
   #' @export
   #' @details Prints the name of the most recent log file, but not the filepath.
-  
+
   logs <- list.files(loclog())
-  
+
   g <- gsub("[^0-9]", "", logs)
-  
+
   log <- logs[which(g == max(g))]
-  
+
   log
 }
 
@@ -20,35 +20,29 @@ current_log <- function() {
 pull_log <- function(log_date = NULL) {
   #'
   #'  pull log file
-  #'  
-  #' @param log_date Date of log to be pulled. If \code{NULL}, then most recent log file 
-  #'   is retrieved. 
+  #'
+  #' @param log_date Date of log to be pulled. If \code{NULL}, then most recent log file
+  #'   is retrieved.
   #' @importFrom jsonlite fromJSON
   #' @keywords internal
   #' @export
-  
+
   x <- 0
-  
+
   if (is.null(log_date)) {
-    
     log <- jsonlite::fromJSON(paste0(loclog(), current_log()), simplifyVector = FALSE)
-    
   } else {
-    
     if (file.exists(paste0(loclog(), log_date, ".json"))) {
-      
-      log <- jsonlite::fromJSON(paste0(loclog(), log_date, ".json"), 
-                                simplifyVector = FALSE)
-      
+      log <- jsonlite::fromJSON(paste0(loclog(), log_date, ".json"),
+        simplifyVector = FALSE
+      )
     } else {
-      
       warning("Log file does not exist.")
       x <- 1
     }
   }
-  
+
   if (x == 0) {
-    
     log
   }
 }
@@ -64,17 +58,17 @@ current_out <- function() {
   #' @details Prints the name of the most recent output files.
   #' @examples
   #' \dontrun{
-  #' current_out() 
+  #' current_out()
   #' }
-  
+
   outs <- list.files(locoutput())
-  
+
   c <- stringr::str_extract_all(outs, "\\d{4}-\\d{2}-\\d{2}", simplify = TRUE)
-  
+
   c <- gsub("[^0-9]", "", c)
-  
+
   outs <- outs[which(c == max(c))]
-  
+
   outs
 }
 
@@ -82,90 +76,73 @@ current_out <- function() {
 pull_output <- function(project, fun, date = NULL, type = "plot") {
   #'
   #' Retrieve output file name by project, function, and type.
-  #' 
+  #'
   #' @param project Name of project
   #' @param fun Name of function.
-  #' @param date Output file date in "%Y-%m-%d" format to retrieve. If \code{NULL} 
+  #' @param date Output file date in "%Y-%m-%d" format to retrieve. If \code{NULL}
   #'   the most recent output file is pulled.
   #' @param type Whether to return the \code{"plot"} (.png), \code{"table"} (.csv),
   #'   or \code{"all"} files matching the project name, function, and date.
   #' @export
-  #' @examples 
+  #' @examples
   #' \dontrun{
   #' pull_output("pollock", "species_catch", type = "plot")
   #' }
-  
+
   if (is.null(date)) {
-    
     out <- current_out()
-    
   } else {
-    
     outs <- list.files(locoutput())
-    
+
     out <- grep(date, outs, value = TRUE)
   }
-  
+
   out <- grep(paste0(project, "_", fun), out, value = TRUE)
-  
+
   if (type == "plot") {
-    
     out <- grep(".png$", out, value = TRUE)
-    
   } else if (type == "table") {
-    
     out <- grep(".csv$", out, value = TRUE)
-    
   } else if (type == "all") {
-    
     out <- out
   }
-  
+
   if (length(out) > 0) {
-    
     out
-    
   } else {
-    
     warning("No match found")
   }
 }
 
 
 pull_table <- function(project, table) {
-  #' 
+  #'
   #' Retrieve name of the most recent table from a project
-  #' 
+  #'
   #' @param project Name of project.
-  #' @param table Name of table, e.g. "MainDataTable". 
+  #' @param table Name of table, e.g. "MainDataTable".
   #' @export
   #' @keywords internal
-  
+
   tab <- tables_database()
-  
+
   tab <- grep(paste0(project, table), tab, value = TRUE)
-  
+
   if (table == "MainDataTable") {
-    
     tab <- tab[!grepl("Info", tab)]
-    
   } else if (table == "MainDataTableInfo") {
-    
     tab <- grep("Info", tab, value = TRUE)
   }
-  
+
   tab <- gsub("[^0-9\\.]", "", tab)
-  
+
   tab <- tab[tab == max(tab)]
-  
+
   tab <- paste0(project, table, tab)
-  
+
   if (table_exists(tab)) {
-    
     tab
-    
   } else {
-    
     warning(tab, " does not exist.")
   }
 }
@@ -178,21 +155,22 @@ table_format <- function(x) {
   #' @export
   #' @importFrom pander panderOptions pander
   #' @seealso \code{\link{pull_output}}
-  #' @examples 
+  #' @examples
   #' \dontrun{
   #' table_format("pollock_species_catch_2020-05-29.csv")
   #' table_format(pull_output("pollock", "species_catch", type = "table"))
-  #' } 
-  
+  #' }
+
   tab_int <- read.csv(paste0(locoutput(), x))
-  pander::panderOptions('table.alignment.default', function(df)
-    ifelse(sapply(df, is.numeric), 'right', 'left'))
-  pander::panderOptions('table.emphasize.rownames',TRUE)
-  pander::panderOptions('table.split.table', Inf)
-  pander::panderOptions('graph.fontsize',8)
-  pander::panderOptions('table.style', 'multiline')
-  if(grepl('summary', x)){
-    colnames(tab_int)[1] <- 'Variable'  
+  pander::panderOptions("table.alignment.default", function(df) {
+    ifelse(sapply(df, is.numeric), "right", "left")
+  })
+  pander::panderOptions("table.emphasize.rownames", TRUE)
+  pander::panderOptions("table.split.table", Inf)
+  pander::panderOptions("graph.fontsize", 8)
+  pander::panderOptions("table.style", "multiline")
+  if (grepl("summary", x)) {
+    colnames(tab_int)[1] <- "Variable"
     pander::pander(tab_int)
   } else {
     pander::pander(tab_int)
@@ -200,13 +178,13 @@ table_format <- function(x) {
 }
 
 
-plot_format <- function(x){
+plot_format <- function(x) {
   #' Import and format plots to notebook file
   #' @param x Name of plot saved in inst/output
   #' @keywords internal
   #' @export
   #' @importFrom knitr include_graphics
-  #' @examples 
+  #' @examples
   #' \dontrun{
   #' plot_format("pollock_species_catch_2020-05-29.png")
   #' plot_format(pull_output("pollock", "species_catch", type = "plot"))
@@ -216,393 +194,376 @@ plot_format <- function(x){
 
 
 summary_table <- function(project) {
-  #' 
+  #'
   #' Display dataset summary table
   #'
   #' @param project Name of project.
   #' @export
   #' @keywords internal
-  #' @importFrom tibble rownames_to_column 
-  #' @details Displays the most recent table created by \code{\link{summary_stats}} 
-  #' as a dataframe. Can be used in console or notebook. 
-  
+  #' @importFrom tibble rownames_to_column
+  #' @details Displays the most recent table created by \code{\link{summary_stats}}
+  #' as a dataframe. Can be used in console or notebook.
+
   date <- gsub(".json", "", current_log())
-  
-  sum_tab <- read.csv(paste0(locoutput(), project, "_summary_stats_", date, ".csv"), 
-                      strip.white = TRUE, check.names = FALSE)
-  
-  rownames(sum_tab) <- c("Min", "Median", "Mean", "Max", "Missing", 
-                         "Unique Obs.", "No. 0's")
-  
+
+  sum_tab <- read.csv(paste0(locoutput(), project, "_summary_stats_", date, ".csv"),
+    strip.white = TRUE, check.names = FALSE
+  )
+
+  rownames(sum_tab) <- c(
+    "Min", "Median", "Mean", "Max", "Missing",
+    "Unique Obs.", "No. 0's"
+  )
+
   sum_tab <- apply(sum_tab, 2, function(x) gsub(".*:", "", x))
-  
+
   sum_tab <- apply(sum_tab, 2, function(x) trimws(x))
-  
+
   sum_tab <- as.data.frame(t(sum_tab))
-  
+
   sum_tab <- tibble::rownames_to_column(sum_tab, "Variable")
-  
+
   sum_tab <- sum_tab[-1, ]
-  
+
   sum_tab
 }
 
 
-function_summary <- function(date = NULL, type = "dat_load", show = "all"){
-  #' 
+function_summary <- function(date = NULL, type = "dat_load", show = "all") {
+  #'
   #' Display summary of function calls
   #'
-  #' @param date Character string; the date of the log file ("%Y-%m-%d" format) to 
-  #'   retrieve. If \code{NULL} the most recent log is pulled. 
-  #' @param show Whether to display \code{"all"} calls, the \code{"last"} (most recent) call, or 
-  #' the \code{"first"} (oldest) function call from the log file.  
+  #' @param date Character string; the date of the log file ("%Y-%m-%d" format) to
+  #'   retrieve. If \code{NULL} the most recent log is pulled.
+  #' @param show Whether to display \code{"all"} calls, the \code{"last"} (most recent) call, or
+  #' the \code{"first"} (oldest) function call from the log file.
   #' @importFrom dplyr bind_rows
-  #' @details Displays a list of functions by type and their arguments from a log file. 
-  #'   If no date is entered the most recent log file is pulled. 
+  #' @details Displays a list of functions by type and their arguments from a log file.
+  #'   If no date is entered the most recent log file is pulled.
   #' @export
   #' @keywords internal
   #' @seealso \code{\link{filter_summary}}
-  #' @examples 
+  #' @examples
   #' \dontrun{
   #' function_summary()
   #' }
-  
-  dat_load <- c("load_data", "load_maindata", "main_mod", "load_port", "load_aux",
-                "load_gridded")
-  
-  dat_quality <- c("data_verification", "data_check", "nan_identify", "nan_filter", "na_filter", 
-                   "outlier_table", "outlier_plot", "outlier_remove", "degree", "unique_filter", 
-                   "empty_vars_filter", "check_model_data", "filter_table", "filter_dat",
-                   "add_vars")
-  
-  dat_create <- c("temp_mod", "ID_var", "create_seasonal_ID", "cpue", "dummy_var",
-                  "dummy_num", "dummy_matrix", "set_quants", "bin_var", "create_var_num",
-                  "create_mid_haul", "create_trip_centroid", "create_dist_between", 
-                  "create_duration", "create_startingloc", "haul_to_trip", "create_TD")
-  
-  dat_exploration <- c("map_plot", "map_kernel", "getis_ord_stats", "moran_stats", "temp_plot",
-                       "density_plot", "xy_plot", "corr_out")
-  
-  fleet <- c("fleet_table", "density_plot", "fleet_assign", "vessel_count", "species_catch", "bycatch",
-             "sum_catch", "weekly_catch", "weekly_effort", "trip_length")
-  
+
+  dat_load <- c(
+    "load_data", "load_maindata", "main_mod", "load_port", "load_aux",
+    "load_gridded"
+  )
+
+  dat_quality <- c(
+    "data_verification", "data_check", "nan_identify", "nan_filter", "na_filter",
+    "outlier_table", "outlier_plot", "outlier_remove", "degree", "unique_filter",
+    "empty_vars_filter", "check_model_data", "filter_table", "filter_dat",
+    "add_vars"
+  )
+
+  dat_create <- c(
+    "temp_mod", "ID_var", "create_seasonal_ID", "cpue", "dummy_var",
+    "dummy_num", "dummy_matrix", "set_quants", "bin_var", "create_var_num",
+    "create_mid_haul", "create_trip_centroid", "create_dist_between",
+    "create_duration", "create_startingloc", "haul_to_trip", "create_TD"
+  )
+
+  dat_exploration <- c(
+    "map_plot", "map_kernel", "getis_ord_stats", "moran_stats", "temp_plot",
+    "density_plot", "xy_plot", "corr_out"
+  )
+
+  fleet <- c(
+    "fleet_table", "density_plot", "fleet_assign", "vessel_count", "species_catch", "bycatch",
+    "sum_catch", "weekly_catch", "weekly_effort", "trip_length"
+  )
+
   zonal_def <- c("create_alternative_choice", "find_centroid", "assignment_column")
-  
-  model <- c("sparsetable", "sparsplot", "create_expectations", "make_model_design",
-             "discretefish_subroutine")
-  
-  fun_vector <- switch(type, "dat_load" = dat_load, "dat_quality" = dat_quality, 
-                       "dat_create" = dat_create, "dat_exploration" = dat_exploration,
-                       "fleet" = fleet, "zonal_def" = zonal_def, "model" = model)
-  
-  
+
+  model <- c(
+    "sparsetable", "sparsplot", "create_expectations", "make_model_design",
+    "discretefish_subroutine"
+  )
+
+  fun_vector <- switch(type, "dat_load" = dat_load, "dat_quality" = dat_quality,
+    "dat_create" = dat_create, "dat_exploration" = dat_exploration,
+    "fleet" = fleet, "zonal_def" = zonal_def, "model" = model
+  )
+
+
   log <- pull_log(log_date = date)
   log_date <- log[[1]][[1]]$info[[1]]$rundate
-  
-  
+
+
   # grab all function calls
-  fun_calls <- lapply(seq_along(log$fishset_run[[2]]$function_calls), 
-                      function(x) log$fishset_run[[2]]$function_calls[[x]]$functionID)
-  
+  fun_calls <- lapply(
+    seq_along(log$fishset_run[[2]]$function_calls),
+    function(x) log$fishset_run[[2]]$function_calls[[x]]$functionID
+  )
+
   c_vars <- unique(unlist(fun_calls[unlist(lapply(fun_vector, function(x) grep(x, fun_calls)))]))
-  
+
   ind <- lapply(c_vars, function(x) grep(x, fun_calls))
-  
+
   if (length(ind) == 0) {
-    
     cat("No functions of type", type, "found in log.")
-    
-  }  else if (length(ind) > 0) {
-    
+  } else if (length(ind) > 0) {
     fun_list <- lapply(ind, function(x) {
-      
       lapply(x, function(i) {
-        
         log$fishset_run[[2]]$function_calls[[i]]
-      })    
+      })
     })
-    
+
     if (any(c_vars == "temp_mod")) {
-      
       c_vars[c_vars == "temp_mod"] <- "temporal_mod"
-    }  
-    
+    }
+
     names(fun_list) <- c_vars
-    
-    # determine if all function args are present in log   
+
+    # determine if all function args are present in log
     args <- lapply(c_vars, function(x) names(formals(x))[names(formals(x)) != "..."])
-    
+
     arg_len <- lapply(args, length)
-    
-    names(arg_len) <- c_vars 
-    
+
+    names(arg_len) <- c_vars
+
     arg_match <- sapply(names(arg_len), function(x) {
-      
       sapply(seq_along(fun_list[[x]]), function(i) {
-        
-        arg_len[x] == length(fun_list[[x]][[i]]$args) 
+        arg_len[x] == length(fun_list[[x]][[i]]$args)
       }, USE.NAMES = TRUE, simplify = FALSE)
     }, USE.NAMES = TRUE, simplify = FALSE)
-    
-    if (all(unlist(arg_match)) == TRUE) {  
-      
+
+    if (all(unlist(arg_match)) == TRUE) {
       for (n in names(fun_list)) {
-        
         for (i in seq_along(fun_list[[n]])) {
-          
           names(fun_list[[n]][[i]]$args) <- names(formals(n))[names(formals(n)) != "..."]
         }
-      }  
-      
+      }
     } else {
-      
       arg_match <- sapply(arg_match, unlist, USE.NAMES = TRUE, simplify = FALSE)
-      
+
       match <- sapply(arg_match, which, USE.NAMES = TRUE, simplify = FALSE)
-      
-      no_match <- sapply(arg_match, function(x) which(x == FALSE), 
-                         USE.NAMES = TRUE, simplify = FALSE)
-      
+
+      no_match <- sapply(arg_match, function(x) which(x == FALSE),
+        USE.NAMES = TRUE, simplify = FALSE
+      )
+
       if (length(unlist(match)) > 0) {
-        
         for (n in names(match)) {
-          
           for (i in match[[n]]) {
-            
             names(fun_list[[n]][[i]]$args) <- names(formals(n))[names(formals(n)) != "..."]
-          } 
+          }
         }
       }
       # create generic names for unmatched arguments
       for (n in names(no_match)) {
-        
         for (i in no_match[[n]]) {
-          
           names(fun_list[[n]][[i]]$args) <- sapply(seq_along(fun_list[[n]][[i]]$args), function(x) {
-            
             paste("arg", x, sep = "_")
           })
         }
       }
     }
-    
-    # replace NULLs with string 
+
+    # replace NULLs with string
     for (n in names(fun_list)) {
-      
       for (i in seq_along(fun_list[[n]])) {
-        
         for (a in seq_along(fun_list[[n]][[i]]$args)) {
-          
           if (is.null(fun_list[[n]][[i]]$args[[a]])) {
-            
             fun_list[[n]][[i]]$args[[a]] <- "NULL"
-            
           } else {
-            
             fun_list[[n]][[i]]$args[[a]] <- fun_list[[n]][[i]]$args[[a]]
           }
         }
       }
     }
-    
+
     # Collaspe vectors, lists, and tables
     for (n in names(fun_list)) {
-      
       for (i in seq_along(fun_list[[n]])) {
-        
         for (a in seq_along(fun_list[[n]][[i]]$args)) {
-          
           if (length(fun_list[[n]][[i]]$args[[a]]) > 1) {
-            
-            fun_list[[n]][[i]]$args[[a]] <- paste(fun_list[[n]][[i]]$args[[a]], 
-                                                  collapse = ", ")
-            
+            fun_list[[n]][[i]]$args[[a]] <- paste(fun_list[[n]][[i]]$args[[a]],
+              collapse = ", "
+            )
           } else {
-            
             fun_list[[n]][[i]]$args[[a]] <- fun_list[[n]][[i]]$args[[a]]
           }
         }
       }
     }
-    
-    # create list of dataframes  
+
+    # create list of dataframes
     df_list <- list()
-    
+
     for (n in names(fun_list)) {
-      
       for (i in seq_along(fun_list[[n]])) {
-        
-        df_list[[n]][[i]] <- as.data.frame(fun_list[[n]][[i]]$args) 
-        
+        df_list[[n]][[i]] <- as.data.frame(fun_list[[n]][[i]]$args)
+
         df_list[[n]][[i]]$function_name <- n
       }
     }
-    
+
     df_list2 <- list()
-    
+
     for (i in seq_along(df_list)) {
-      
       df_list2[[i]] <- suppressWarnings(dplyr::bind_rows(df_list[[i]]))
-      
+
       n <- colnames(df_list2[[i]])[colnames(df_list2[[i]]) != "function_name"]
-      
+
       df_list2[[i]][["id"]] <- 1:nrow(df_list2[[i]])
-      
-      df_list2[[i]] <- df_list2[[i]][ , c("id", "function_name", n)]
+
+      df_list2[[i]] <- df_list2[[i]][, c("id", "function_name", n)]
     }
-    
+
     if (show == "first") {
-      
       for (i in seq_along(df_list2)) {
-        
         df_list2[[i]] <- df_list2[[i]][1, ]
-      } 
-      
+      }
     } else if (show == "last") {
-      
       for (i in seq_along(df_list2)) {
-        
         df_list2[[i]] <- df_list2[[i]][nrow(df_list2[[i]]), ]
       }
-      
     } else if (show == "all") {
-      
       df_list2 <- df_list2
     }
-    
+
     names(df_list2) <- names(fun_list)
-    
+
     df_list2$date <- log_date
-    
+
     df_list2 <- df_list2[c("date", c_vars)]
   }
-  
+
   df_list2
 }
 
 
 filter_summary <- function(sum_tab, filter_list) {
-  #' 
+  #'
   #' Select function calls to display
   #'
   #' @param sum_tab Summary table to filter.
-  #' @param filter_list A named list of integers. Each list entry should 
-  #'  contain the name of the function and the row number(s) to filter by. 
-  #'  For example, \code{list(temporal_mod = 2)} will display the second row of 
-  #'   the temporal_mod dataframe in a summary list. 
+  #' @param filter_list A named list of integers. Each list entry should
+  #'  contain the name of the function and the row number(s) to filter by.
+  #'  For example, \code{list(temporal_mod = 2)} will display the second row of
+  #'   the temporal_mod dataframe in a summary list.
   #' @export
   #' @keywords internal
   #' @seealso \code{\link{function_summary}}
   #' @examples
   #' \dontrun{
-  #' filter_summary(dat_create_summary(), 
+  #' filter_summary(dat_create_summary(),
   #'               filter_list = list(set_quants = 2, temporal_mod = 2))
   #' }
- 
-  
+
+
   for (i in names(filter_list)) {
-    
     sum_tab[[i]] <- sum_tab[[i]][filter_list[[i]], ]
   }
-  
+
   sum_tab
 }
 
 
 model_out_summary <- function(project) {
-  #' 
-  #' Retrieve most recent summary of model output  
-  #' 
+  #'
+  #' Retrieve most recent summary of model output
+  #'
   #' @param project Name of project
   #' @export
   #' @keywords internal
-  #' @examples 
+  #' @examples
   #' \dontrun{
   #' model_out_summary("pollock")
-  #' } 
-  
+  #' }
+
   p_mod <- pull_table(project, "modelOut")
-  
+
   results <- model_out_view(p_mod)
-  
-  modeltab <- data.frame(Model_name = rep(NA, length(results)), 
-                         covergence = rep(NA, length(results)), 
-                         Stand_Errors = rep(NA, length(results)), 
-                         Hessian = rep(NA, length(results)))
-  
+
+  modeltab <- data.frame(
+    Model_name = rep(NA, length(results)),
+    covergence = rep(NA, length(results)),
+    Stand_Errors = rep(NA, length(results)),
+    Hessian = rep(NA, length(results))
+  )
+
   for (i in seq_along(results)) {
-    
     modeltab[i, 1] <- results[[i]]$name
     modeltab[i, 2] <- results[[i]]$optoutput$convergence
     modeltab[i, 3] <- toString(round(results[[i]]$seoutmat2, 3))
     modeltab[i, 4] <- toString(round(results[[i]]$H1, 5))
   }
-  
+
   modeltab
 }
 
 
 model_error_summary <- function(project) {
-  #' 
-  #' Retrieve most recent summary of model error  
-  #' 
+  #'
+  #' Retrieve most recent summary of model error
+  #'
   #' @param project Name of project
   #' @export
   #' @keywords internal
-  #' @examples 
+  #' @examples
   #' \dontrun{
   #' model_error_summary("pollock")
   #' }
-  
+
   p_mod <- pull_table(project, "modelOut")
-  
+
   results <- model_out_view(p_mod)
-  
-  error_out <- data.frame(Model_name = rep(NA, length(results)), 
-                          Model_error = rep(NA, length(results)), 
-                          Optimization_error = rep(NA, length(results)))
-  
+
+  error_out <- data.frame(
+    Model_name = rep(NA, length(results)),
+    Model_error = rep(NA, length(results)),
+    Optimization_error = rep(NA, length(results))
+  )
+
   for (i in seq_along(results)) {
-    
     error_out[i, 1] <- results[[i]]$name
-    error_out[i, 2] <- ifelse(is.null(results[[i]]$errorExplain), 'No error reported', 
-                              toString(results[[i]]$errorExplain))
-    error_out[i, 3] <- ifelse(is.null(results[[i]]$optoutput$optim_message), 'No message reported', 
-                              toString(results[[i]]$optoutput$optim_message))
+    error_out[i, 2] <- ifelse(is.null(results[[i]]$errorExplain), "No error reported",
+      toString(results[[i]]$errorExplain)
+    )
+    error_out[i, 3] <- ifelse(is.null(results[[i]]$optoutput$optim_message), "No message reported",
+      toString(results[[i]]$optoutput$optim_message)
+    )
   }
-  
+
   error_out
 }
 
 
 model_fit_summary <- function(project) {
-  #' 
-  #' Retrieve most recent summary of model fit  
-  #' 
+  #'
+  #' Retrieve most recent summary of model fit
+  #'
   #' @param project Name of project
   #' @export
   #' @keywords internal
-  #' @examples 
+  #' @examples
   #' \dontrun{
   #' model_fit_summary("pollock")
   #' }
-  
+
   p_mod <- pull_table(project, "modelOut")
-  
+
   results <- model_out_view(p_mod)
-  
-  fit_tab <- data.frame(Model_name = rep(NA, length(results)), 
-                        AIC = rep(NA, length(results)), AICc = rep(NA, length(results)),
-                        BIC = rep(NA, length(results)), PseudoR2 = rep(NA, length(results)))
-  
+
+  fit_tab <- data.frame(
+    Model_name = rep(NA, length(results)),
+    AIC = rep(NA, length(results)), AICc = rep(NA, length(results)),
+    BIC = rep(NA, length(results)), PseudoR2 = rep(NA, length(results))
+  )
+
   for (i in seq_along(results)) {
-    
     fit_tab[i, 1] <- results[[i]]$name
     fit_tab[i, 2] <- results[[i]]$MCM$AIC
     fit_tab[i, 3] <- results[[i]]$MCM$AICc
     fit_tab[i, 4] <- results[[i]]$MCM$BIC
     fit_tab[i, 5] <- results[[i]]$MCM$PseudoR2
   }
-  
+
   fit_tab
 }
