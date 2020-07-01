@@ -84,6 +84,7 @@ pull_output <- function(project, fun, date = NULL, type = "plot") {
   #' @param type Whether to return the \code{"plot"} (.png), \code{"table"} (.csv),
   #'   or \code{"all"} files matching the project name, function, and date.
   #' @export
+  #' @internal
   #' @examples
   #' \dontrun{
   #' pull_output("pollock", "species_catch", type = "plot")

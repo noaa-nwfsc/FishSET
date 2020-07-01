@@ -2,16 +2,18 @@
 corr_out <- function(dat, project, variables) {
   #' View correlations between variables
   #'
-  #' Correlations can be displayed between all numeric variables or selected numeric variables. Both a plot and table output are generated and saved to the `output` folder. Correlation plot is output using ggcorplot.
-  #'
+  #' @description Correlations can be displayed between all numeric variables or selected numeric variables. 
+  #'    Both a plot and table output are generated and saved to the `output` folder. Correlation plot is generated using \code{\link[ggcorrplot]{ggcorrplot}}.
   #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
   #' @param project String, project name.
   #' @param variables A character string of variables to include. Defaults to \code{"all"} numeric variables.
   #' @export
+  #' @import ggplot2
+  #' @importFrom ggcorrplot ggcorrplot
   #' @details Returns a correlation plot and table. Output saved to output folder.
   #' @examples
   #' \dontrun{
-  #' corr_out('pollockMainDataTable', 'pollock', 'all')
+  #' corr_out(pollockMainDataTable, 'pollock', 'all')
   #' }
 
 
@@ -36,13 +38,15 @@ corr_out <- function(dat, project, variables) {
         ggplot2::labs(subtitle = paste(variables[1], "by", variables[2]), x = variables[1], y = variables[2]) +
         ggplot2::theme(
           panel.grid.major = ggplot2::element_blank(),
-          panel.grid.minor = ggplot2::element_blank(), panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"),
+          panel.grid.minor = ggplot2::element_blank(), panel.background = ggplot2::element_blank(), 
+          axis.line = ggplot2::element_line(colour = "black"),
           axis.text = ggplot2::element_text(size = 11), axis.title = ggplot2::element_text(size = 11)
         )
     } else if (length(variables) > 2) {
       ggcorrplot::ggcorrplot(round(cor(dataset[, variables], use = "complete.obs"), 2),
         type = "lower", outline.color = "white", hc.order = TRUE,
-        show.diag = TRUE, title = paste("Correlation matrix plot for", project, "data"), ggtheme = ggplot2::theme_minimal()
+        show.diag = TRUE, title = paste("Correlation matrix plot for", project, "data"),
+        ggtheme = ggplot2::theme_minimal()
       )
     }
 

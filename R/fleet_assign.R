@@ -47,8 +47,8 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
   #' catch by unique vessel without the need to create an additional variable in advance:
   #'
   #' \tabular{ll}{
-  #' condition                                                                                             \tab fleet\cr
-  #' 'sum_catch(pollockMainDataTable, 'myProject', catch = 'COD' v_id = 'v_id', exp = 'COD >= 3', val = 'raw')' \tab 'Cod'\cr
+  #' condition:  'sum_catch(pollockMainDataTable, 'myProject', catch = 'COD', v_id = 'v_id', exp = 'COD >= 3', val = 'raw')'      \cr\cr                                                                                       \tab fleet\cr
+  #' fleet: 'Cod'
   #' }
   #'
   # It may be useful to run \dontrun{subset(df, eval(parse(text = 'exp')))} to test that expressions have been formatted correctly.  @seealso
