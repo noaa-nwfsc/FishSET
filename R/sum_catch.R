@@ -23,10 +23,10 @@
 #' @return A summary table or vector of logical values based on the \code{exp} argument.
 #' @examples 
 #' \dontrun{
-#' sum_catch('MainDataTable', 'myProject', 'LBS_270_POLLOCK_LBS',
+#' sum_catch(pollockMainDataTable, 'myProject', 'LBS_270_POLLOCK_LBS',
 #'      'LBS_270_POLLOCK_LBS > 3000', val = 'raw', out = 'table')
-#' sum_catch('MainDataTable', 'myProject', 'catch', 
-#'     'species == 'cod' & catch > .5', val = 'per', out = 'logical')
+#' sum_catch(pollockMainDataTable, 'myProject', 'catch', 
+#'     "species == 'cod' & catch > .5", val = 'per', out = 'logical')
 #' }
 #' 
 
