@@ -1,18 +1,22 @@
 # Bycatch
 #'
-#' Compare bycatch to other species caught
+#' Compare bycatch CPUE and total catch/percent of catch to other species
 #'
-#' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
-#' @param project String, name of project.
-#' @param cpue A character string of \code{\link{cpue}}variable names. The order of variable string must match  
-#'   names in \code{catch} and \code{names} arguments.    
-#' @param catch A character string of names of catch variables to aggregate. The order of the catch variable string must match those of the \code{names} and \code{cpue} arguments.
-#' @param date A time variable containing dates to aggregate by.
-#' @param period Time period to aggregate by. Options include 'year', 'year_abv', 
-#'   'month', 'month_abv', 'month_num', and 'weeks'.
+#' @param dat Main data frame over which to apply function. Table in FishSET 
+#'   database should contain the string `MainDataTable`.
+#' @param project name of project.
+#' @param cpue A characteric string of CPUE variable names. The function outputs 
+#'   the mean CPUE by period. The variable names must match the order of variable 
+#'   names in \code{catch} and \code{names}.    
+#' @param catch A character string of names of catch variables to aggregate. The 
+#'   function outputs the total catch or share of total catch by period depending 
+#'   on the value argument. The order of the catch variable string must match those 
+#'   of the \code{cpue} and \code{names} arguments.  
+#' @param date A variable containing dates to aggregate by.
+#' @param period Period to aggregate by. Options include 'year', month', and weeks'.
 #' @param names An optional string of species names that will be used in the plot. If
 #'   \code{NULL} then species names from \code{catch} will be used. 
-#' @param group A categorical variable in \code{dat} to group by.
+#' @param group A categorical variable to group by.
 #' @param filter_date The type of filter to apply to table. Options include \code{"year-week"}, 
 #'   \code{"year-month"}, \code{"year"}, \code{"month"}, or \code{"week"}. The 
 #'   argument \code{filter_value} must be provided. 
@@ -23,17 +27,14 @@
 #' @param facet_by Variable name to facet by. This can be a variable that exists in 
 #'   the dataset, or a variable created by \code{bycatch()} such as \code{"year"}, 
 #'   \code{"month"}, or \code{"week"}.  
-#' @param value Return value. Options include ('raw') raw count or ('stc') share of total catch. 
+#' @param value Whether to return raw catch ("raw") or share of total catch ('stc'). 
+#' @param tran A function to transform the y-axis. Options include log, log2, log10, sqrt.
 #' @param combine Logical, whether to combine variables listed in \code{group}. 
 #' @param scale Scale argument passed to \code{\link{facet_grid}}. Defaults to \code{"fixed"}.
 #'   Other options include \code{"free_y"}, \code{"free_x"}, and \code{"free_xy"}. 
-#' @param output Output type. Options include 'table' or 'plot'.
-#' @param format_tab How table output should be formatted. Options include 'wide' 
+#' @param output Options include 'table', 'plot', or 'tab_plot' (table and plot).
+#' @param format_tab How table output should be formated. Options include 'wide' 
 #'   (the default) and 'long'.
-#'  @details Returns a plot or table of the mean CPUE and share of total catch or raw count for each species entered. 
-#'  For optimal plot size in an R Notebook/Markdown document, we recommend including no more than four species. 
-#'  The order of variables in the \code{cpue} and \code{catch} arguments must be in the same order as in the \code{names} argument. 
-#'  The \code{names} argument is used to join the \code{catch} and \code{cpue} variables together. 
 #' @return \code{bycatch()} compares the average CPUE and catch total/share of total 
 #' catch between one or more species. The data can be filter using 
 #'   two arguments: \code{filter_date} amd \code{filter_value}. \code{filter_date}
@@ -50,9 +51,7 @@
 #'   \code{fig.asp = 1}. 
 #' @examples 
 #' \dontrun{
-#' cpue(pollockMainDataTable, ‘myproject’, xWeight=’f1Weight’ , 
-#' xTime=’Hour’ , ‘f1_cpue’)
-#' bycatch(pollockMainDataTable, 'myProject', cpue = c('f1_cpue', 'f2_cpue', 'f3_cpue', 'f4_cpue'),
+#' bycatch('MainDataTable', 'myProject', cpue = c('f1_cpue', 'f2_cpue', 'f3_cpue', 'f4_cpue'),
 #' catch = c('f1', 'f2', 'f3', 'f4'), date = 'FISHING_START_DATE', 
 #' names = c('fish_1', 'fish_2', 'fish_3', 'fish_4'), period = 'month', 
 #' year = 2011, value = 'stc', output = 'table')
@@ -68,8 +67,8 @@
 
 bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NULL, 
                     group = NULL, filter_date = NULL, filter_value = NULL, facet_by = NULL, 
-                    value = "stc", combine = FALSE, scale = "fixed", output = "tab_plot", 
-                    format_tab = "wide") {
+                    tran = "identity", value = "stc", combine = FALSE, scale = "fixed",
+                    output = "tab_plot", format_tab = "wide") {
   
   # Call in datasets
   out <- data_pull(dat)
@@ -87,12 +86,12 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
     p <- switch(period, year = "%Y", month = "%b", weeks = "%U")
   }
   
-  facet_ym <- FALSE
+  facet_date_l <- FALSE
   
   if (!is.null(facet_by)) {
     
-    facet_spec <- ifelse(any(!(facet_by %in% names(dataset))), TRUE, FALSE)
-    facet_ym <- ifelse(any(!(facet_by %in% c("year", "month"))), TRUE, FALSE)
+    facet_spec <- any(!(facet_by %in% names(dataset)))
+    facet_date_l <- any(facet_by %in% c("year", "month", "week"))
     
     if (facet_spec == TRUE) {
       
@@ -168,14 +167,14 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
   
   dataset[[date]] <- date_parser(dataset[[date]])
   
-  # Base table ====
+  # Missing dates ====
   nm <- c(date, group, facet_by)
   
   full_dates <- seq.Date(from = min(dataset[[date]], na.rm = TRUE), 
                          to = max(dataset[[date]], na.rm = TRUE), 
                          by = "day")
   
-  grp_fct <- c(group, facet_by)
+  grp_fct <- unique(c(group, facet_by))
   
   missing <- lapply(dataset[grp_fct], function(x) unique(x))
   
@@ -189,33 +188,60 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
     
     missing[c(cpue, catch)] <- 0
     
-    base_tab <- rbind(dataset[c(nm, cpue, catch)], missing)
+    dataset <- rbind(dataset[c(nm, cpue, catch)], missing)
   }
+  
+  if (!is.null(filter_date)) {
+    
+    pf <- switch(filter_date, "year-month" = c("%Y", "%m"), "year-week" = c("%Y", "%U"),
+                 "year-day" = c("%Y", "%j"), "year" = "%Y", "month" = "%m", "week" = "%U",
+                 "day" = "%j")
+    
+    if (grepl("-", filter_date)) {
+      
+      dataset <- dataset[(as.integer(format(dataset[[date]], pf[1])) %in% filter_value[[1]]) & 
+                           (as.integer(format(dataset[[date]], pf[2])) %in% filter_value[[2]]), ]
+      
+    } else {
+      
+      dataset <- dataset[as.integer(format(dataset[[date]], pf)) %in% filter_value, ]
+    }
+    
+    if (nrow(dataset) == 0) {
+      
+      warning("Filtered data table has zero rows. Check filter parameters.")
+      end <- TRUE
+    }
+  }
+  
+  
   
   if (period != "year") {
     
-    base_tab$year <- as.integer(format(base_tab[[date]], "%Y"))
+    dataset$year <- as.integer(format(dataset[[date]], "%Y"))
   }
+  # filter base table 
+  dataset[[period]] <- format(dataset[[date]], p)
   
-  base_tab[[period]] <- format(base_tab[[date]], p)
-  
-  if (facet_ym == TRUE | 
-      (!is.null(filter_date) && any(filter_date %in% c("month", "year-month")))) {
+  if (facet_date_l == TRUE) {
     
-    if (period != "month") {
+    if (period != "month" & any("month" %in% facet)) {
       
-      base_tab$month <- factor(format(base_tab[[date]], "%b"), levels = month.abb, ordered = TRUE)
+      dataset$month <- factor(format(dataset[[date]], "%b"), levels = month.abb, ordered = TRUE)
+      
+      
+    } else if (period != "week" & any("week" %in% facet)) {
+      
+      dataset$week <- as.integer(format(dataset[[date]], "%U"))
     }
   }
   
   # Mean CPUE table ====
-  effort <- base_tab[names(base_tab)[!(names(base_tab) %in% catch)]]
+  effort <- dataset[names(dataset)[!(names(dataset) %in% catch)]]
   
   e_per <- names(effort)[!(names(effort) %in% c(nm, cpue))]
   
   e_nm <- unique(c(e_per, group, facet_by))
-  
-  effort[[date]] <- NULL
   
   agg_list <- lapply(e_nm, function(x) effort[[x]])
   names(agg_list) <- e_nm
@@ -229,13 +255,11 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
   }
   
   # Count/STC table ====
-  count <- base_tab[names(base_tab)[!(names(base_tab) %in% cpue)]]
+  count <- dataset[names(dataset)[!(names(dataset) %in% cpue)]]
   
   c_per <- names(count)[!(names(count) %in% c(nm, catch))]
   
   c_nm <- unique(c(c_per, group, facet_by))
-  
-  count[[date]] <- NULL
   
   agg_list <- lapply(c_nm, function(x) count[[x]])
   names(agg_list) <- c_nm
@@ -281,43 +305,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
     bycatch[[period]] <- as.integer(bycatch[[period]])
   }
   
-  # Filter by date ====
-  if (!is.null(filter_date)) {
-    
-    if (filter_date == "year-month") {
-      
-      bycatch <- subset(bycatch, (as.integer(year) %in% filter_value[[1]]) & 
-                          (as.integer(month) %in% filter_value[[2]]))
-      
-    } else if (filter_date == "year-week") {
-      
-      bycatch <- subset(bycatch, (as.integer(year) %in% filter_value[[1]]) & 
-                          (weeks %in% filter_value[[2]]))
-      
-    } else if (filter_date == "year") {
-      
-      bycatch <- subset(bycatch, as.integer(year) %in% filter_value)
-      
-    } else if (filter_date == "month") {
-      
-      bycatch <- subset(bycatch, as.integer(month) %in% filter_value)
-      
-    }  else if (filter_date == "week") {
-      
-      bycatch <- subset(bycatch, weeks %in% filter_value)
-      
-    } else {
-      
-      warning("Invalid filter type. Available options are 'year-month', 'year', and 'month'.")
-      x <- 1
-    }
-    
-    if (nrow(bycatch) == 0) {
-      
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      x <- 1
-    }
-  }
+  
   
   bycatch <- bycatch[order(bycatch$year, bycatch[[period]]), ]
   f_species <- function() if (length(catch) > 1) "species" else NULL
@@ -341,6 +329,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
       ggplot2::geom_line(size = 0.65) + 
       ggplot2::labs(title = "CPUE", y = "average CPUE") + 
       fishset_theme + 
+      ggplot2::scale_y_continuous(trans = tran) +
       ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, size = 9), 
                      axis.title = ggplot2::element_text(size = 7), 
                      axis.text = ggplot2::element_text(size = 7), 
@@ -362,7 +351,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
     
     if (p != "%b") {
       
-      cp_plot <- cp_plot + ggplot2::scale_x_continuous(n.breaks = n_breaks(cpue_dat[[period]]))
+      cp_plot <- cp_plot + ggplot2::scale_x_continuous(breaks = num_breaks(cpue_dat[[period]]))
     }
     
     cp_plot
@@ -388,7 +377,8 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
                                      axis.title = ggplot2::element_text(size = 7),
                                      axis.text = ggplot2::element_text(size = 7), 
                                      legend.position = "none") +
-      ggplot2::scale_y_continuous(labels = if (value == "stc") scales::percent else ggplot2::waiver())
+      ggplot2::scale_y_continuous(labels = if (value == "stc") scales::percent else ggplot2::waiver(),
+                                  trans = tran)
     
     if (!is.null(facet)) {
       
