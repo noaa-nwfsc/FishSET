@@ -1,6 +1,6 @@
 #' Check for common data quality issues
 #'
-#' Check primay data for common data quality issues, such as NaNs, NAs, outliers, unique rows, and empty variables.
+#' Check primary data for common data quality issues, such as NaNs, NAs, outliers, unique rows, and empty variables.
 
 #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
 #' @param project String, name of project.
@@ -11,7 +11,7 @@
 #' @details Prints summary stats for all variable in \code{dat}. Prints column names that contain NaNs or NAs. Checks for outliers for specified variable \code{x}. Checks that all column names are unique, whether any columns in the \code{dat} are empty, whether each row is a unique choice occurrence at the haul or trip level, that data for either lat/lon or fishing area are included, and whether specialized variables and units have been identified in the dataindex table. The function is also called by other functions.
 #' @examples
 #' \dontrun{
-#' data_check(pcodMainDataTable, "OFFICIAL_TOTAL_CATCH_MT", "MainDataTableInfo")
+#' data_check(pcodMainDataTable, "OFFICIAL_TOTAL_CATCH_MT", "pcodMainDataTableInfo")
 #' }
 #'
 data_check <- function(dat, project, x, dataindex) {

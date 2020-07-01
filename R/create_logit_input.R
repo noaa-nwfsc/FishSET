@@ -1,5 +1,5 @@
+# create_logit_input
 create_logit_input <- function(choice) {
-  # create_logit_input
   #' Creates a data matrix consistent with built-in model forms
   #'
   #' @param choice A (number of observations) x 1 vector of chosen locations

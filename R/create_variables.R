@@ -1,10 +1,10 @@
 # Create variables or matrix.
 
 ## --- CPUE ----##
-#' Create catch per unit effort varaiable
-#'
-#' Add catch per unit effort variable to the primary dataset. Catch should be a weight variable 
-#' but can be a count. Effort should be in a duration of time, such as days, hours, or minutes.
+#' Create catch per unit effort variable
+#' 
+#' @description Add catch per unit effort variable to the primary dataset. Catch should be a weight variable 
+#'   but can be a count. Effort should be in a duration of time, such as days, hours, or minutes.
 #'
 cpue <- function(dat, xWeight, xTime, name = "cpue") {
   #' @param dat Primary data containing information on hauls or trips.
@@ -64,26 +64,26 @@ cpue <- function(dat, xWeight, xTime, name = "cpue") {
 dummy_num <- function(dat, var, value, opts = "more_less", name = "dummy_num") {
   #' Create a dummy vector from numeric characterization of variable
   #' @param dat Primary data containing information on hauls or trips.
-  #' Table in FishSET database contains the string 'MainDataTable'.
+  #'   Table in FishSET database contains the string 'MainDataTable'.
   #' @param var Variable in \code{dat} to create dummy variable from.
-  #' @param value String, value to set dummy variable by. If \code{var} is a date date, value should be a year,
-  #' If \code{var} is a factor, value should be a factor level. If \code{var} is numeric, value should be a single
-  #' number or range of numbers [use c(1,5)].
+  #' @param value String, value to set dummy variable by. If \code{var} is a date, value should be a year,
+  #'   If \code{var} is a factor, value should be a factor level. If \code{var} is numeric, value should be a single
+  #'   number or range of numbers [use c(1,5)].
   #' @param opts String, how dummy variable should be defined. Choices are \code{"x_y"} and \code{"more_less’"}. For \code{"x_y"}, each
   #'   element of \code{var} is set to 1 if the elemant matches \code{value}, otherwise 0.
   #'   For \code{"more_less"}, each element of \code{var} less than \code{value} is set to 0 and all elements greater than
-  #'   \code{varlue} set to 1. If \code{var} is a factor, then elements that match value will be set to 1 and all other
+  #'   \code{vrlue} set to 1. If \code{var} is a factor, then elements that match value will be set to 1 and all other
   #'   elements set to 0. Default is set to \code{"more_less"}.
   #' @param name String, name of created dummy variable. Defaults to name of the function if not defined.
   #' @details For date variables, the dummy variable is defined by a date (year) and may be either year \code{x} versus all
   #'   other years (\code{"x_y"}) or before vs after year \code{x} (\code{"more_less"}). Use this function to create a variable defining whether
   #'   or not a policy action had been implemented. \cr
   #'   Example: before vs. after a 2008 ammendment: \cr
-  #'   ‘dummy_num(’MainDataTable', 'Haul_date', 2008, 'more_less', 'ammend08')' \cr\cr
+  #'   \code{dummy_num('pollockMainDataTable', 'Haul_date', 2008, 'more_less', 'ammend08')} \cr\cr
   #'
   #'  For factor variables, both choices in \code{opts} compare selected factor level(s) against all other factor levels.\cr
   #'  Example: Fishers targeting pollock vs. another species:  \cr
-  #'  ‘dummy_num(’MainDataTable', 'GF_TARGET_FT', c('Pollock - bottom', 'Pollock - midwater'), 'x_y', 'pollock_target')'  \cr\cr
+  #'  \code{dummy_num('pollockMainDataTable', 'GF_TARGET_FT', c('Pollock - bottom', 'Pollock - midwater'), 'x_y', 'pollock_target')}  \cr\cr
   #'
   #'  For numeric variables, \code{value} can be a single number or a range of numbers. The dummy variable is the
   #'  selected value(s) against all others (\code{x_y}) or less than the selected value versus more than the selected value
@@ -92,7 +92,7 @@ dummy_num <- function(dat, var, value, opts = "more_less", name = "dummy_num") {
   #' @export
   #' @examples
   #' \dontrun{
-  #' MainDataTable <- dummy_num(pollockMainDataTable, 'Haul_date', 2008, 'more_less', 'ammend80')
+  #' pollockMainDataTable <- dummy_num(pollockMainDataTable, 'Haul_date', 2008, 'more_less', 'ammend80')
   #' }
 
 
@@ -318,8 +318,8 @@ create_var_num <- function(dat, x, y, method, name = "create_var_num") {
   #' @return Returns primary dataset with new variable added.
   #' @examples
   #' \dontrun{
-  #' pollockMainDataTable <- create_var_num(pollockMainDataTable, x='HAUL_CHINOOK',
-  #' y='HAUL_CHUM', method='sum', name='tot_salmon')
+  #' pollockMainDataTable <- create_var_num(pollockMainDataTable, x = 'HAUL_CHINOOK',
+  #'     y = 'HAUL_CHUM', method = 'sum', name = 'tot_salmon')
   #' }
 
   dataset <- dat
@@ -374,7 +374,7 @@ create_mid_haul <- function(dat, start = c("lon", "lat"), end = c("lon", "lat"),
   #' @examples
   #' \dontrun{
   #' pollockMainDataTable <- create_mid_haul(pollockMainDataTable, start = c('LonLat_START_LON',
-  #' 'LonLat_START_LAT'), end = c('LonLat_END_LON', 'LonLat_END_LAT'), name='mid_haul')
+  #'    'LonLat_START_LAT'), end = c('LonLat_END_LON', 'LonLat_END_LAT'), name = 'mid_haul')
   #' }
   #
 
@@ -439,7 +439,7 @@ create_trip_centroid <- function(dat, lon, lat, weight.var = NULL, ...) {
   #' @examples
   #' \dontrun{
   #' pollockMainDataTable <- create_trip_centroid(pollockMainDataTable, 'LonLat_START_LON', 
-  #'   'LonLat_START_LAT', weight.var=NULL, 'DISEMBARKED_PORT', 'EMBARKED_PORT')
+  #'   'LonLat_START_LAT', weight.var = NULL, 'DISEMBARKED_PORT', 'EMBARKED_PORT')
   #' }
 
   dataset <- dat
@@ -711,8 +711,8 @@ create_duration <- function(dat, start, end, units = c("week", "day", "hour", "m
   #' A duration of time variable is required for other functions, such as \code{\link{cpue}}.
   #' @examples
   #' \dontrun{
-  #' MainDataTable <- create_duration(MainDataTable, 'TRIP_START', 'TRIP_END',
-  #'  units='minute', name='TripDur')
+  #' pollockMainDataTable <- create_duration(pollockMainDataTable, 'TRIP_START', 'TRIP_END',
+  #'   units = 'minute', name = 'TripDur')
   #' }
 
   # Call in datasets

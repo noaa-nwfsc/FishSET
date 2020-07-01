@@ -69,7 +69,7 @@
 #' \dontrun{
 #' create_expectations(pcodMainDataTable, "adfg", "OFFICIAL_TOTAL_CATCH_MT",
 #'   price = NULL, defineGroup = "fleet", temp.var = "DATE_FISHING_BEGAN",
-#'   temporal = "daily", calc.method = "stanard average", lag.method = "simple",
+#'   temporal = "daily", calc.method = "standard average", lag.method = "simple",
 #'   empty.catch = "all catch", empty.expectation = 0.0001, temp.window = 4,
 #'   temp.lag = 2, year.lag = 0, dummy.exp = FALSE, replace.output = FALSE
 #' )

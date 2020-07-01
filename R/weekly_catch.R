@@ -12,17 +12,17 @@
 #' @param group Grouping variable names(s). Up to two grouping variables are available for
 #'   line plots and one for bar plots. For bar plots, if only one species is entered the first
 #'   group variable is passed to 'fill'. If multiple species are entered, species is passed to
-#'   "fill" and the grouping variable is dropped. An exception occurs when facetting by species,
+#'   "fill" and the grouping variable is dropped. An exception occurs when faceting by species,
 #'   then the grouping variable is passed to "fill". For line plots, the first grouping variable
 #'   is passed to "fill" and the second to "linetype" if a single species column is entered or if
-#'   facetting by species. Otherwise, species is passed to "fill", the first group variable to
+#'   faceting by species. Otherwise, species is passed to "fill", the first group variable to
 #'   "linetype", and second is dropped.
 #' @param filter_date The type of filter to apply to table. Options include \code{"year-week"},
 #'   \code{"year-month"}, \code{"year"}, \code{"month"}, or \code{"week"}. The
 #'   argument \code{filter_value} must be provided.
 #' @param filter_value Integer (4 digits if year, 1-3 if month or period). A vector or list
 #'   of values to filter data table by. Use a list if using a two-part filter, e.g."year-month",
-#'   with the format: \code{list(year, period}. For example, \code{list(2011:2013, 5:7)}
+#'   with the format: \code{list(year, period)}. For example, \code{list(2011:2013, 5:7)}
 #'   will filter the data table from May to July for years 2011-2013.
 #' @param facet_by Variable name to facet by. This can be a variable that exists in
 #'   the dataset, or a variable created by \code{weekly_catch()} such as \code{"year"},
@@ -42,19 +42,19 @@
 #'   (the default) and 'long'.
 #' @return \code{weekly_catch()} aggregates catch (or percent)
 #'   by week using one or more columns of catch data. The data can be filter using
-#'   two arguments: \code{filter_date} amd \code{filter_value}. \code{filter_date}
+#'   two arguments: \code{filter_date} and \code{filter_value}. \code{filter_date}
 #'   specifies how the data should be filtered--by year, period (i.e. "month" or "week"), or year-period.
 #'   \code{filter_value} should contain the values (as integers) to filter
 #'   the data by. It is often useful to facet by year when using \code{filter_date}.
 #'   Up to two grouping variables can be entered. Grouping variables can
 #'   be merged into one variable using \code{combine = TRUE}. Any number of
-#'   variables can be combined, but no more than three is reccomended. For faceting,
+#'   variables can be combined, but no more than three is recommended. For faceting,
 #'   any variable (including ones listed in \code{group}) can be used, but "year" and
 #'   "month" are also available. Currently, combined variables cannot be faceted.
 #'   A list containing a table and plot are printed to the console and viewer by default.
 #' @examples
 #' \dontrun{
-#' weekly_catch("pollockMainDataTable",
+#' weekly_catch(pollockMainDataTable,
 #'   species = c(
 #'     "HAUL_LBS_270_POLLOCK_LBS",
 #'     "HAUL_LBS_110_PACIFIC_COD_LBS",  "HAUL_LBS_OTHER_LBS"
