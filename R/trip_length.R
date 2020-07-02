@@ -27,8 +27,8 @@
 #'   frequency polygon (\code{"freq_poly"}).
 #' @param scale Scale argument passed to \code{\link{facet_grid}}. Defaults to \code{"fixed"}.
 #'   Other options include \code{"free_y"}, \code{"free_x"}, and \code{"free_xy"}.
-#' @param trans Transformation to be applied to the x-axis. A few options include "log",
-#'   "log10", and "sqrt". See \code{\link{scale_x_continuous}} for a complete list.
+#' @param trans Transformation to be applied to the x-axis. A few options include \code{"log"},
+#'   \code{"log10"}, and \code{"sqrt"}. See \code{\link[ggplot2]{scale_x_continuous}} for a complete list.
 #' @param pages Whether to output plots on a single page (\code{"single"}, the default) or multiple
 #'   pages (\code{"multi"}).
 #' @param output Options include 'table', 'plot', or 'tab_plot' (both table and plot,
@@ -40,14 +40,14 @@
 #' @return \code{trip_length()} calculates vessel trip duration given a start and end date,
 #'   converts trip length to the desired unit of time (e.g. weeks, days, or hours),
 #'   and returns a table and/or plot. There is an option for calculating CPUE and
-#'   hauls per unit of time as well. The data can be filter using
-#'   two arguments: \code{filter_date} amd \code{filter_value}. \code{filter_date}
+#'   hauls per unit of time as well. The data can be filtered using
+#'   two arguments: \code{filter_date} and \code{filter_value}. \code{filter_date}
 #'   specifies how the data should be filtered--by year, period (i.e. "month" or "week"), or year-period.
 #'   \code{filter_value} should contain the values (as integers) to filter
-#'   the data by. Only one groupig variable will be displayed; however, Any number of
+#'   the data by. Only one grouping variable will be displayed; however, Any number of
 #'   variables can be combined by using \code{combine = TRUE}, but no more than
-#'   three is reccomended. Any variable in the dataset can be used for facetting,
-#'   but "year", "month", and "week" are also available. Distriubtion plots can be
+#'   three is recommended. Any variable in the dataset can be used for faceting,
+#'   but "year", "month", and "week" are also available. Distribution plots can be
 #'   combined on a single page or printed individually with \code{pages}.
 #' @export trip_length
 #' @examples

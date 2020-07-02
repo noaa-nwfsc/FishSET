@@ -63,7 +63,7 @@ sparsetable <- function(dat, project, timevar, zonevar, var) {
 
 sparsplot <- function(x, project) {
   #' Evaluate sparsity in data over time in plot format
-  #' @param x Output from \code{spartstable}.
+  #' @param x Output from \code{sparsetable}.
   #' @param project String, name of project.
   #' @export
   #' @import ggplot2

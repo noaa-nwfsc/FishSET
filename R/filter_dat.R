@@ -68,8 +68,8 @@ filter_dat <- function(dat, exp, filterTable) {
   #' accessed in the future.
   #' @examples
   #' \dontrun{
-  #' newdat <- filter_dat(pcodMainDataTable, exp=3, filterTable='pcodfilterTable01012011')
-  #' newdat <- filter_dat(pcodMainDataTable, exp='PERFORMANCE_Code==1', filteTable='')
+  #' newdat <- filter_dat(pcodMainDataTable, exp = 3, filterTable = 'pcodfilterTable01012011')
+  #' newdat <- filter_dat(pcodMainDataTable, exp = 'PERFORMANCE_Code==1', filteTable = '')
   #' }
   #'
 

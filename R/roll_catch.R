@@ -37,16 +37,13 @@
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @examples
 #' \dontrun{
-#' roll_catch(pollockMainDataTable,
-#'   project = "pollock", catch = "LBS_270_POLLOCK_LBS",
+#' roll_catch(pollockMainDataTable, project = "pollock", catch = "LBS_270_POLLOCK_LBS",
 #'   date = "FISHING_START_DATE", group = "GEAR_TYPE", k = 15
 #' )
 #'
-#' roll_catch(pollockMainDataTable,
-#'   project = "pollock",
-#'   catch = c("LBS_270_POLLOCK_LBS", "LBS_110_PACIFIC_COD_LBS"),
-#'   date = "FISHING_START_DATE", group = "GEAR_TYPE", k = 5, filter_date = "month",
-#'   filter_value = 4:6, facet_by = "month", convr = "tons"
+#' roll_catch(pollockMainDataTable, project = "pollock", catch = c("LBS_270_POLLOCK_LBS", 
+#'  "LBS_110_PACIFIC_COD_LBS"), date = "FISHING_START_DATE", group = "GEAR_TYPE", k = 5, 
+#'  filter_date = "month", filter_value = 4:6, facet_by = "month", convr = "tons"
 #' )
 #' }
 #'

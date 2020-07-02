@@ -2,19 +2,20 @@
 #'
 #' View the number of observations by year, month, and zone in table format
 #'
-#' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+#' @param dat Primary data containing information on hauls or trips. 
+#'   Table in FishSET database contains the string 'MainDataTable'.
 #' @param project String, name of project.
 #' @param x Variable in \code{dat} containing date variable.
 #' @param gridfile Spatial data containing information on fishery management or
-#' regulatory zones. Shape, json, geojson, and csv formats are supported. Required if ‘ZoneID’ does not exist in \code{dat}.
+#'   regulatory zones. Shape, json, geojson, and csv formats are supported. Required if ‘ZoneID’ does not exist in \code{dat}.
 #' @param lon.dat Longitude variable in \code{dat}. Required if ‘ZoneID’ does not exist in \code{dat}.
 #' @param lat.dat Latitude variable in \code{dat}. Required if ‘ZoneID’ does not exist in \code{dat}.
 #' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required if ‘ZoneID’ does not
-#' exist in \code{dat} and \code{gridfile} is a csv file. Leave as NULL if \code{gridfile} is a shape or json file.
+#'   exist in \code{dat} and \code{gridfile} is a csv file. Leave as NULL if \code{gridfile} is a shape or json file.
 #' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required if ‘ZoneID’ does not exist in \code{dat}
-#' and \code{gridfile} is a csv file. Leave as NULL if \code{gridfile} is a shape or json file.
+#'   and \code{gridfile} is a csv file. Leave as NULL if \code{gridfile} is a shape or json file.
 #' @param cat  Variable or list in \code{gridfile} that identifies the individual areas or zones. If \code{gridfile}
-#' is class sf, \code{cat} should be name of list containing information on zones. Required if ‘ZoneID’ does not exist in \code{dat}.
+#'   is class sf, \code{cat} should be name of list containing information on zones. Required if ‘ZoneID’ does not exist in \code{dat}.
 #' @importFrom sp CRS Polygons Polygon SpatialPolygons SpatialPolygonsDataFrame coordinates
 #' @importFrom rgeos gDistance
 #' @importFrom grDevices chull
@@ -24,11 +25,10 @@
 #' @export
 #' @examples
 #' \dontrun{
-#' temp_obs_table("pollockMainDataTable",
-#'   gridfile = map2, x = "DATE_FISHING_BEGAN",
+#' temp_obs_table(pollockMainDataTable, gridfile = map2, x = "DATE_FISHING_BEGAN",
 #'   lon.dat = "LonLat_START_LON", lat.dat = "LonLat_START_LAT", cat = "NMFS_AREA",
 #'   lon.grid = "", lat.grid = ""
-#' )
+#'   )
 #' }
 #'
 temp_obs_table <- function(dat, project, gridfile, x, lon.dat, lat.dat, cat, lon.grid = NULL, lat.grid = NULL) {

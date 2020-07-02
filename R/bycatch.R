@@ -15,14 +15,14 @@
 #' @param date A variable containing dates to aggregate by.
 #' @param period Period to aggregate by. Options include 'year', month', and weeks'.
 #' @param names An optional string of species names that will be used in the plot. If
-#'   \code{NULL} then species names from \code{catch} will be used. 
-#' @param group A categorical variable to group by.
-#' @param filter_date The type of filter to apply to table. Options include \code{"year-week"}, 
-#'   \code{"year-month"}, \code{"year"}, \code{"month"}, or \code{"week"}. The 
-#'   argument \code{filter_value} must be provided. 
-#' @param filter_value Integer (4 digits if year, 1-2 if month or week). A vector or list
+#'   \code{NULL}, then species names from \code{catch} will be used. 
+#' @param group A categorical variable in \code{dat} to group by.
+#' @param filter_date The type of filter to apply to table. Options include \code{"year-week"},
+#'   \code{"year-month"}, \code{"year"}, \code{"month"}, or \code{"week"}. The
+#'   argument \code{filter_value} must be provided.
+#' @param filter_value Integer, 4 digits if year, 1-2 if month or week. A vector or list
 #'   of values to filter data table by. Use a list if using a two-part filter, e.g."year-week",
-#'   with the format: \code{list(year, period}. For example, \code{list(2011:2013, 5:7)} 
+#'   with the format: \code{list(year, period)}. For example, \code{list(2011:2013, 5:7)}
 #'   will filter the data table from weeks 5 through 7 for years 2011-2013.
 #' @param facet_by Variable name to facet by. This can be a variable that exists in 
 #'   the dataset, or a variable created by \code{bycatch()} such as \code{"year"}, 
@@ -32,29 +32,38 @@
 #' @param combine Logical, whether to combine variables listed in \code{group}. 
 #' @param scale Scale argument passed to \code{\link{facet_grid}}. Defaults to \code{"fixed"}.
 #'   Other options include \code{"free_y"}, \code{"free_x"}, and \code{"free_xy"}. 
-#' @param output Options include 'table', 'plot', or 'tab_plot' (table and plot).
-#' @param format_tab How table output should be formated. Options include 'wide' 
-#'   (the default) and 'long'.
-#' @return \code{bycatch()} compares the average CPUE and catch total/share of total 
-#' catch between one or more species. The data can be filter using 
-#'   two arguments: \code{filter_date} amd \code{filter_value}. \code{filter_date}
-#'   specifies how the data should be filtered--by year, period (i.e. "month" or "week"), or year-period. 
-#'   \code{filter_value} should contain the values (as integers) to filter
-#'   the data by. It is often useful to facet by year when using \code{filter_date}.
-#'   Only one groupig variable will be displayed; however, Any number of 
-#'   variables can be combined by using \code{combine = TRUE}, but no more than 
-#'   three is reccomended. For faceting, any variable in the dataset can be used, 
-#'   but "year" and "month" are also available. Generally, no more than four species 
-#'   should be compared, and even fewer when facetting due to limited plot space.
-#'   A list containing a table and plot are printed to the console and viewer by default. 
-#'   For optimal plot size in a R Notebook/Markdown document, use the chunk option 
-#'   \code{fig.asp = 1}. 
-#' @examples 
+#' @param output Output type. Options include 'table' or 'plot'.
+#' @param format_tab How table output should be formatted. Options include \code{'wide'}
+#'   (the default) and \code{'long'}.
+#' @details Returns a plot or table of the mean CPUE and share of total catch or raw count for each species entered.
+#'  For optimal plot size in an R Notebook/Markdown document, we recommend including no more than four species.
+#'  The order of variables in the \code{cpue} and \code{catch} arguments must be in the same order as in the \code{names} argument.
+#'  The \code{names} argument is used to join the \code{catch} and \code{cpue} variables together.
+#' @return \code{bycatch()} compares the average CPUE and catch total/share of total
+#' catch between one or more species. The data can be filtered using two arguments: 
+#'   \code{filter_date} and \code{filter_value}. \code{filter_date} specifies how the data  
+#'   should be filtered--by year, period (i.e. "month" or "week"), or year-period.
+#'   \code{filter_value} should contain the values (as integers) to filter the data 
+#'   by. It is often useful to facet by year when using \code{filter_date}.
+#'   Only one grouping variable will be displayed; however, any number of
+#'   variables can be combined by using \code{combine = TRUE}, but no more than
+#'   three is recommended. For faceting, any variable in the dataset can be used,
+#'   but "year" and "month" are also available. Generally, no more than four species
+#'   should be compared, and even fewer when faceting due to limited plot space.
+#'   A list containing a table and plot are printed to the console and viewer by default.
+#'   For optimal plot size in an R Notebook/Markdown document, use the chunk option
+#'   \code{fig.asp = 1}.
+#' @examples
 #' \dontrun{
-#' bycatch('MainDataTable', 'myProject', cpue = c('f1_cpue', 'f2_cpue', 'f3_cpue', 'f4_cpue'),
-#' catch = c('f1', 'f2', 'f3', 'f4'), date = 'FISHING_START_DATE', 
-#' names = c('fish_1', 'fish_2', 'fish_3', 'fish_4'), period = 'month', 
-#' year = 2011, value = 'stc', output = 'table')
+#' cpue(pollockMainDataTable, "myproject", xWeight = "f1Weight",
+#'   xTime = "Hour", "f1_cpue"
+#' )
+#'
+#' bycatch(pollockMainDataTable, "myproject", cpue = c("f1_cpue", "f2_cpue", "f3_cpue", "f4_cpue"),
+#'   catch = c("f1", "f2", "f3", "f4"), date = "FISHING_START_DATE",
+#'   names = c("fish_1", "fish_2", "fish_3", "fish_4"), period = "month",
+#'   year = 2011, value = "stc", output = "table"
+#' )
 #' }
 #' @export bycatch
 #' @import ggplot2

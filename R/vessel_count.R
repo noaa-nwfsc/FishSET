@@ -10,8 +10,8 @@
 #' @param period Time period to aggregate by. Options include \code{"year"}, \code{"month"}, \code{"weeks"} 
 #'   (weeks in the year), \code{"weekday"}, \code{"weekday_abv"}, \code{"day"} (day of the month), 
 #'   and \code{"day_of_year"}.
-#' @param group Names of grouping variables. For lineplots two grouping variables 
-#'   can be entered, the first is passsed to "color" and second to "linetype". Only one 
+#' @param group Names of grouping variables. For line plots two grouping variables 
+#'   can be entered, the first is passed to "color" and second to "linetype". Only one 
 #'   grouping variable can be used for barplots, which is passed to "fill". When \code{combine = TRUE} 
 #'   all variables in \code{group} will be joined. 
 #' @param filter_date The type of filter to apply to table. Options include \code{"year-period"}, 
@@ -40,12 +40,12 @@
 #'   to both (\code{"tab_plot"}). 
 #' @return \code{vessel_count} aggregates the number (or percent) of active vessels
 #'   by time period using a column of unique vessel IDs. The data can be filter using 
-#'   two arguments: \code{filter_date} amd \code{filter_value}. \code{filter_date}
+#'   two arguments: \code{filter_date} and \code{filter_value}. \code{filter_date}
 #'   specifies how the data should be filtered--by year, month, or year-month. 
 #'   \code{filter_value} should contain the years or months (as integers) to filter
 #'   the data by. Up to two grouping variables can be entered. Grouping variables can 
 #'   be merged into one variable using \code{combine}; in this case any number of 
-#'   variables can be joined, but no more than three is reccomended. For faceting,
+#'   variables can be joined, but no more than three is recommended. For faceting,
 #'   any variable (including ones listed in \code{group}) can be used, but "year" and
 #'   "month" are also available. Currently, combined variables cannot be faceted.
 #'   A list containing a table and plot are printed to the console and viewer by default. 

@@ -9,14 +9,14 @@
 #'   of species variables.
 #' @param date Variable in \code{dat} containing dates to aggregate by.
 #' @param fun Name of function to aggregate by. Defaults to \code{\link[base]{sum}}. 
-#' @param group Grouping variable names(s). Up to two grouping variables are available for 
-#'   line plots and one for bar plots. For bar plots, if only one species is entered the first 
-#'   group variable is passed to 'fill'. If multiple species are entered, species is passed to 
-#'   "fill" and the grouping variable is dropped. An exception occurs when facetting by species, 
-#'   then the grouping variable is passed to "fill". For line plots, the first grouping variable 
-#'   is passed to "fill" and the second to "linetype" if a single species column is entered or if 
-#'   facetting by species. Otherwise, species is passed to "fill", the first group variable to 
-#'   "linetype", and second is dropped. 
+#' @param group Grouping variable names(s). Up to two grouping variables are available for
+#'   line plots and one for bar plots. For bar plots, if only one species is entered the first
+#'   group variable is passed to 'fill'. If multiple species are entered, species is passed to
+#'   "fill" and the grouping variable is dropped. An exception occurs when faceting by species,
+#'   then the grouping variable is passed to "fill". For line plots, the first grouping variable
+#'   is passed to "fill" and the second to "linetype" if a single species column is entered or if
+#'   faceting by species. Otherwise, species is passed to "fill", the first group variable to
+#'   "linetype", and second is dropped.
 #' @param filter_date The type of filter to apply to table. Options include \code{"year-week"}, 
 #'   \code{"year-month"}, \code{"year"}, \code{"month"}, or \code{"week"}. The 
 #'   argument \code{filter_value} must be provided. 
@@ -41,23 +41,27 @@
 #'   to both (\code{"tab_plot"}).
 #' @param format_tab How table output should be formatted. Options include 'wide' 
 #'   (the default) and 'long'.
-#' @return \code{weekly_catch()} aggregates catch (or percent) 
-#'   by week using one or more columns of catch data. The data can be filter using 
-#'   two arguments: \code{filter_date} amd \code{filter_value}. \code{filter_date}
-#'   specifies how the data should be filtered--by year, period (i.e. "month" or "week"), or year-period. 
+#' @return \code{weekly_catch()} aggregates catch (or percent)
+#'   by week using one or more columns of catch data. The data can be filter using
+#'   two arguments: \code{filter_date} and \code{filter_value}. \code{filter_date}
+#'   specifies how the data should be filtered--by year, period (i.e. "month" or "week"), or year-period.
 #'   \code{filter_value} should contain the values (as integers) to filter
 #'   the data by. It is often useful to facet by year when using \code{filter_date}.
-#'   Up to two grouping variables can be entered. Grouping variables can 
-#'   be merged into one variable using \code{combine = TRUE}. Any number of 
-#'   variables can be combined, but no more than three is reccomended. For faceting,
+#'   Up to two grouping variables can be entered. Grouping variables can
+#'   be merged into one variable using \code{combine = TRUE}. Any number of
+#'   variables can be combined, but no more than three is recommended. For faceting,
 #'   any variable (including ones listed in \code{group}) can be used, but "year" and
 #'   "month" are also available. Currently, combined variables cannot be faceted.
 #'   A list containing a table and plot are printed to the console and viewer by default. 
 #' @examples 
 #' \dontrun{
-#' weekly_catch('pollockMainDataTable', species = c('HAUL_LBS_270_POLLOCK_LBS', 
-#' 'HAUL_LBS_110_PACIFIC_COD_LBS',  'HAUL_LBS_OTHER_LBS'), date = 'DATE_FISHING_BEGAN', 
-#' convert_to_tons = T, year = 2011, output = 'plot')
+#' weekly_catch(pollockMainDataTable,
+#'   species = c(
+#'     "HAUL_LBS_270_POLLOCK_LBS",
+#'     "HAUL_LBS_110_PACIFIC_COD_LBS",  "HAUL_LBS_OTHER_LBS"
+#'   ), date = "DATE_FISHING_BEGAN",
+#'   convert_to_tons = T, year = 2011, output = "plot"
+#' )
 #' }
 #' @export weekly_catch
 #' @importFrom stats aggregate reformulate
