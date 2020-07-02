@@ -1,11 +1,11 @@
 #' Transform units of date variables
 #'
-#' Creates a new temporal variable by extraciting temporal unit, such as year, month, or day
+#' Creates a new temporal variable by extracting temporal unit, such as year, month, or day
 #' from a date variable.
 #' @param dat Primary data containing information on hauls or trips.
 #' Table in FishSET database contains the string 'MainDataTable'.
 #' @param x Time variable to modify from \code{dat}.
-#' @param define.format Format of temporal data. Format can be user-defined or from pre-defined choices.  Format follows as.Date format.
+#' @param define.format Format of temporal data. Format can be user-defined or from pre-defined choices. Format follows \code{\link{as.Date}} format.
 #' See Details for more information.
 #' @param name String, name of created variables. Defaults to `TempMod`.
 #' @keywords Date as.Date

@@ -13,10 +13,10 @@ outlier_table <- function(dat, project, x) {
   #' @keywords outliers
   #' @export outlier_table
   #' @return Table for evaluating whether outliers may exist in the selected data column.
-  #' @details The returned table provides summary statisticsmean, median, standard deviation, minimum,
+  #' @details The returned table provides summary statistics (mean, median, standard deviation, minimum,
   #'  maximum, number of NAs, and skew of the data) for the data based on each method to remove
   #'  outliers (data outside the 5 to 95 percent quantiles, data outside the 25-75\% quantile,
-  #'  data outside mean +/-2SD, data outside the mean +/-3SD, data outisde the median +/-2SD,
+  #'  data outside mean +/-2SD, data outside the mean +/-3SD, data outside the median +/-2SD,
   #'  data outside the median +/-3SD).
   #' @examples
   #' \dontrun{
@@ -123,13 +123,13 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FA
   #' @param dat Primary data containing information on hauls or trips.
   #' Table in FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
-  #' @param x Varaible in \code{dat} to check for outliers.
+  #' @param x Variable in \code{dat} to check for outliers.
   #' @param dat.remove Defines method to subset the data. Choices include: \code{"none"}, \code{"5_95_quant"},
   #' \code{"25_75_quant"}, \code{"mean_2SD"}, \code{"median_2SD"}, \code{"mean_3SD"}, \code{"median_3SD"}.
   #'    See the \emph{Details} sections for more information.
   #' @param x.dist Distribution of the data. Choices include: \code{"normal"}, \code{"lognormal"},
   #'  \code{"exponential"}, \code{"Weibull"}, \code{"Poisson"}, \code{"negative binomial"}.
-  #' @param output.screen Logical, if true, return plots to the screen. If false, returns plot to the inst/output folder as a png file.
+  #' @param output.screen Logical, if true, return plots to the screen. If false, returns plot to the 'inst/output' folder as a png file.
   #' @keywords outlier
   #' @importFrom graphics points
   #' @importFrom stats dnorm dpois dweibull rnorm dbinom dlnorm dexp dnbinom
@@ -137,20 +137,20 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FA
   #' @importFrom  ggplot2 ggplot geom_point aes_string theme geom_histogram labs aes geom_abline geom_abline
   #' @details  The function returns three plots, the data, a probability plot, and a Q-Q plot. The data plot is the value of
   #'  \code{x} against row number. Red points are all the data without any points removed.
-  #'  The blue points are the subsetted data. If \code{dat.remove} is \code{"none"}, then only blue points will be shown.
+  #'  The blue points are the subset of the data. If \code{dat.remove} is \code{"none"}, then only blue points will be shown.
   #'  The probability plot is a histogram of the data with the fitted probability distribution
   #'  based on \code{x.dist}. The Q-Q plot plots are sampled quantiles against theoretical quantiles. \cr\cr
   #'  The \code{dat.remove} choices are:
   #'  \itemize{
-  #'  \item{none: No data points are removed}
-  #'  \item{5_95_quant: Removes data points outside the 5th and 95th quantiles}
+  #'  \item{none:        No data points are removed}
+  #'  \item{5_95_quant:  Removes data points outside the 5th and 95th quantiles}
   #'  \item{25_75_quant: Removes data points outside the 25th and 75th quantiles}
-  #'  \item{mean_2SD: Removes data points outside +/- 2SD of the mean}
-  #'  \item{median_2SD: Removes data points outside +/- 2SD of the median}
-  #'  \item{mean_3SD: Removes data points outside +/- 3SD of the mean}
-  #'  \item{median_3SD: Removes data points outside +/- 3SD of the median}
+  #'  \item{mean_2SD:    Removes data points outside +/- 2SD of the mean}
+  #'  \item{median_2SD:  Removes data points outside +/- 2SD of the median}
+  #'  \item{mean_3SD:    Removes data points outside +/- 3SD of the mean}
+  #'  \item{median_3SD:  Removes data points outside +/- 3SD of the median}
   #'  }
-  #'  The distribution choices are
+  #'  The distribution choices are:
   #'  \itemize{
   #'   \item{normal}
   #'    \item{lognormal}
@@ -163,7 +163,8 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FA
   #' @return Plot of the data
   #' @examples
   #' \dontrun{
-  #' outlier_plot(MainDataTable, 'Haul', dat.remove='mean_2SD', x.dist='normal', output.screen=TRUE)
+  #' outlier_plot(pollockMainDataTable, 'Haul', dat.remove = 'mean_2SD', 
+  #'    x.dist = 'normal', output.screen = TRUE)
   #' }
 
 
@@ -339,19 +340,20 @@ outlier_remove <- function(dat, x, dat.remove = "none", remove = T, over_write =
   #' @param over_write Logical, If TRUE, saves data over previously saved data table in the FishSET database.
   #' @export outlier_remove
   #' @return Returns the modified primary dataset. Modified dataset will be saved to FishSET database.
-  #' @details   The \code{dat.remove} choices are
+  #' @details   The \code{dat.remove} choices are:
   #'  \itemize{
-  #'  \item{none: No data points are removed}
-  #'  \item{5_95_quant: Removes data points outside the 5th and 95th quantiles}
+  #'  \item{none:        No data points are removed}
+  #'  \item{5_95_quant:  Removes data points outside the 5th and 95th quantiles}
   #'  \item{25_75_quant: Removes data points outside the 25th and 75th quantiles}
-  #'  \item{mean_2SD: Removes data points outside +/- 2SD of the mean}
-  #'  \item{median_2SD: Removes data points outside +/- 2SD of the median}
-  #'  \item{mean_3SD: Removes data points outside +/- 3SD of the mean}
-  #'  \item{median_3SD: Removes data points outside +/- 3SD of the median}
+  #'  \item{mean_2SD:    Removes data points outside +/- 2SD of the mean}
+  #'  \item{median_2SD:  Removes data points outside +/- 2SD of the median}
+  #'  \item{mean_3SD:    Removes data points outside +/- 3SD of the mean}
+  #'  \item{median_3SD:  Removes data points outside +/- 3SD of the median}
   #'  }
   #' @examples
   #' \dontrun{
-  #' MainDataTable <- outlier_remove(MainDataTable, 'dist', dat.remove='mean_2SD', save.output=TRUE)
+  #' pollockMainDataTable <- outlier_remove(pollockMainDataTable, 'dist', 
+  #'    dat.remove = 'mean_2SD', save.output = TRUE)
   #' }
 
   # Call in datasets

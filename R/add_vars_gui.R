@@ -3,9 +3,10 @@
 
 # add_vars_gui
 #' Add removed variables back into dataset
+#' 
 #' Add columns that have been removed from the primary dataset back into the primary dataset. 
 #'
-#' @param working_dat Primary datacontaining information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+#' @param working_dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
 #' @param raw_dat Unmodified raw version of the primary dataset. Should be a character specifying a table from the FishSET database containing the string ‘MainDataTable’ and date table was created.
 #' @param project String, name of project. 
 #' @importFrom DBI  dbDisconnect dbConnect dbListTables dbWriteTable 

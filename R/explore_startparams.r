@@ -14,7 +14,7 @@ explore_startparams <- function(project, space, startsr, dev) {
   #'     revenue/location-specific covariates then cost/distance. The best
   #'     guess at what the starting value parameters should be (e.g. all
   #'     ones). Should correspond to the likelihood and data that you want to
-  #'     test. Include starting values parameters for each model.
+  #'     test. Include starting value parameters for each model.
   #' @param dev List of length 1 or length equal to the number of models to be evaluated.
   #'   \code{dev} refers to how far to deviate from the average parameter values when
   #'   exploring (random normal deviates). The less certain the average parameters are,
@@ -23,8 +23,7 @@ explore_startparams <- function(project, space, startsr, dev) {
   # @param choice Data corresponding to actual zonal choice.
   # @param catch Data corresponding to actual catch.
   # @param distance Data corresponding to distance.
-  # @param otherdat Other data (as a list, corresponding to the likelihood
-  #'     function you want to test).
+  # @param otherdat Other data (as a list, corresponding to the likelihood function you want to test).
   #' @details Function is used to identify better starting parameters when
   #'   convergence is an issue. For more details on the liklihood functions or data see \code{\link{make_model_design}}.
   #'   Function calls the model design file and should be used after the \code{\link{make_model_design}}
@@ -36,18 +35,17 @@ explore_startparams <- function(project, space, startsr, dev) {
   #'  \tabular{rlll}{
   #' newstart: \tab Chosen starting values with smallest likelihood \cr
   #' saveLLstarts: \tab Likelihood values for each starting value permutation \cr
-  #' savestarts: \tab Starting value permutations (corresponding to each saved
-  #'     likelihood value) \cr
+  #' savestarts: \tab Starting value permutations (corresponding to each saved likelihood value) \cr
   #'     }
   #' @export
   #' @examples
   #' \dontrun{
   #' Example with only one model specified
-  #' results <- explore_startparams(project, 15, rep(1,17), 3)
+  #' results <- explore_startparams('myproject', 15, rep(1,17), 3)
   #'
   #' Example with three models specified
-  #' results <- explore_startparams(space = list(15,10,100),
-  #' startsr=list(c(1,2,3), c(1,0, -1), c(0,0,.5)), dev=list(3,3,1))
+  #' results <- explore_startparams('myproject', space = list(15,10,100),
+  #'    startsr=list(c(1,2,3), c(1,0, -1), c(0,0,.5)), dev=list(3,3,1))
   #'
   #' View results
   #' results$startsOut

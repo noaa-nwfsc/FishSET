@@ -3,7 +3,7 @@
 #' Creates a table or plot of total species catch by period
 #' 
 #' @param dat Primary data containing information on hauls or trips. 
-#' Table in FishSET database contains the string 'MainDataTable'..
+#' Table in FishSET database contains the string 'MainDataTable'.
 #' @param project String, name of project.
 #' @param species Variable in \code{dat} containing the species catch 
 #' or a vector of species variables (in pounds).
@@ -43,15 +43,15 @@
 #'   to both (\code{"tab_plot"}).
 #' @param format_tab How table output should be formatted. Options include 'wide' 
 #'   (the default) and 'long'.
-#' @return  \code{species_catch()} aggregates catch (or percent) 
-#'   by time period using one or more columns of catch data. The data can be filter using 
-#'   two arguments: \code{filter_date} amd \code{filter_value}. \code{filter_date}
-#'   specifies how the data should be filtered--by year, period (see \code{period}), or year-period. 
+#' @return  \code{species_catch()} aggregates catch (or percent)
+#'   by time period using one or more columns of catch data. The data can be filtered using
+#'   two arguments: \code{filter_date} and \code{filter_value}. \code{filter_date}
+#'   specifies how the data should be filtered--by year, period (see \code{period}), or year-period.
 #'   \code{filter_value} should contain the values (as integers) to filter
 #'   the data by. It is often useful to facet by year when using \code{filter_date}.
-#'   Up to two grouping variables can be entered. Grouping variables can 
-#'   be merged into one variable using \code{combine = TRUE}. Any number of 
-#'   variables can be combined, but no more than three is reccomended. For faceting,
+#'   Up to two grouping variables can be entered. Grouping variables can
+#'   be merged into one variable using \code{combine = TRUE}. Any number of
+#'   variables can be combined, but no more than three is recommended. For faceting,
 #'   any variable (including ones listed in \code{group}) can be used, but "year" and
 #'   "month" are also available. Currently, combined variables cannot be faceted.
 #'   A list containing a table and plot are printed to the console and viewer by default.  

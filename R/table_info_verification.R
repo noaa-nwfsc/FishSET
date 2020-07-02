@@ -11,7 +11,7 @@ table_info_verification <- function(dataindex) {
   #' @details Checks whether specialized variables have been identified in the `dataindex` table and if units are defined and recognized.
   #' @examples
   #' \dontrun{
-  #' #Table loaded from fishet_db database
+  #' #Table loaded from FishSET database
   #'    table_info_verification('pcodMainDataTableInfo')
   #' #Table loaded from the global environment.
   #'    table_info_verification(pcodMainDataTableInfo)

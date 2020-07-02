@@ -25,7 +25,7 @@ moran_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, lat.da
   #' function is called to calculate the centroid of each zone. If the variable of interest is not associated with an
   #' area/zone than \code{\link{assignment_column}} is called to assign each observation to a zone. Arguments
   #' to identify centroid and assign variable of interest to area/zone are optional and default to NULL.
-  #' @return Returns a plot and map of moran’s I. Output is saved to the Output folder.
+  #' @return Returns a plot and map of Moran’s I. Output is saved to the Output folder.
   #' @import ggplot2
   #' @importFrom maps map
   #' @importFrom spdep knn2nb knearneigh nb2listw localmoran moran.test

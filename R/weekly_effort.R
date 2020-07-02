@@ -1,19 +1,20 @@
 # Weekly Effort
-#' 
-#' Average CPUE by week
-#' 
-#' @param dat Main data frame over which to apply function. Table in fishset_db 
-#'   database should contain the string `MainDataTable`.
-#' @param project Name of project.
-#' @param cpue Variable name(s) containing cpue. 
-#' @param date A variable containing dates to aggregate by.
+
+#'
+#' View average CPUE by week in plot and table format
+#'
+#' @param dat Primary data containing information on hauls or trips.
+#'    Table in FishSET database contains the string 'MainDataTable'.
+#' @param project String, name of project.
+#' @param cpue A variable in \code{dat} containing catch per unit effort.
+#' @param date A variable in \code{dat} containing dates to aggregate by.
 #' @param group Grouping variable name(s). Up to two grouping variables are available.
-#'   The first grouping variable is passed to "color" and the second to "linetype" if 
-#'   a single species column is entered or if facetting by species. Otherwise, species 
-#'   is passed to "color", the first group variable to "linetype", and second is dropped. 
-#' @param filter_date The type of filter to apply to table. Options include \code{"year-week"}, 
-#'   \code{"year-month"}, \code{"year"}, \code{"month"}, or \code{"week"}. The 
-#'   argument \code{filter_value} must be provided. 
+#'   The first grouping variable is passed to "fill" and the second to "linetype" if
+#'   a single species column is entered or if faceting by species. Otherwise, species
+#'   is passed to "fill", the first group variable to "linetype", and second is dropped.
+#' @param filter_date The type of filter to apply to table. Options include \code{"year-week"},
+#'   \code{"year-month"}, \code{"year"}, \code{"month"}, or \code{"week"}. The
+#'   argument \code{filter_value} must be provided.
 #' @param filter_value Integer (4 digits if year, 1-2 if month or week). A vector or list
 #'   of values to filter data table by. Use a list if using a two-part filter, e.g."year-week",
 #'   with the format: \code{list(year, period}. For example, \code{list(2011:2013, 5:7)} 
@@ -31,20 +32,20 @@
 #'   to both (\code{"tab_plot"}).
 #' @param format_tab How table output should be formated. Options include 'wide' 
 #'   (the default) and 'long'.
-#' @return \code{weekly_effort()} calculates mean CPUE by week. The data can be filter using 
-#'   two arguments: \code{filter_date} amd \code{filter_value}. \code{filter_date}
-#'   specifies how the data should be filtered--by year, period (i.e. "month" or "week"), or year-period. 
+#' @return \code{weekly_effort()} calculates mean CPUE by week. The data can be filter using
+#'   two arguments: \code{filter_date} and \code{filter_value}. \code{filter_date}
+#'   specifies how the data should be filtered--by year, period (i.e. "month" or "week"), or year-period.
 #'   \code{filter_value} should contain the values (as integers) to filter
 #'   the data by. It is often useful to facet by year when using \code{filter_date}.
-#'   Up to two grouping variables can be entered. Grouping variables can 
-#'   be merged into one variable using \code{combine = TRUE}. Any number of 
-#'   variables can be combined, but no more than three is reccomended. For faceting,
+#'   Up to two grouping variables can be entered. Grouping variables can
+#'   be merged into one variable using \code{combine = TRUE}. Any number of
+#'   variables can be combined, but no more than three is recommended. For faceting,
 #'   any variable (including ones listed in \code{group}) can be used, but "year" and
 #'   "month" are also available. Currently, combined variables cannot be faceted.
 #'   A list containing a table and plot are printed to the console and viewer by default.  
 #' @examples 
 #' \dontrun{
-#' weekly_effort('pollockMainDataTable', 'CPUE', 'DATE_FISHING_BEGAN', year = 2011, output = 'table')
+#' weekly_effort(pollockMainDataTable, "CPUE", "DATE_FISHING_BEGAN", year = 2011, output = "table")
 #' }
 #' @export weekly_effort
 #' @import ggplot2

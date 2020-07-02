@@ -35,8 +35,8 @@ getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, la
   #' @export
   #' @examples
   #' \dontrun{
-  #' getis_ord_stats(pcodMainDataTable, project='pcod', varofint='OFFICIAL_MT_TONS',
-  #' gridfile=spatdat, lon.dat='LonLat_START_LON', lat.dat ='LonLat_START_LAT', cat='NMFS_AREA')
+  #' getis_ord_stats(pcodMainDataTable, project = 'pcod', varofint = 'OFFICIAL_MT_TONS',
+  #'   gridfile = spatdat, lon.dat = 'LonLat_START_LON', lat.dat = 'LonLat_START_LAT', cat = 'NMFS_AREA')
   #' }
   #'
 

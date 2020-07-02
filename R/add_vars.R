@@ -1,31 +1,31 @@
 # Data selection tool
 
 # add_vars
-#' Add removed columns into working dataset
-#'
-#' Add columns that have been removed from the primary dataset back into the working primary dataset
+#' Add removed variables back into dataset
+#' 
+#' Add columns that have been removed from the primary dataset back into the primary dataset. 
 #'
 #' @param working_dat Primary data containing information on hauls or trips. Table in FishSET database contains the string `MainDataTable`.
 #' @param raw_dat Unmodified raw version of the primary dataset. Should be a character specifying a table from the FishSET database
-#' containing the string ‘MainDataTable’ and date table was created.
+#'   containing the string ‘MainDataTable’ and date table was created.
 #' @param vars Character string, variables from \code{raw_dat} to add back into \code{working_dat}.
 #' @param project Character, name of project. Parameter is used to generate meaningful table names in FishSET database.
 #' @importFrom DBI  dbDisconnect dbConnect dbListTables dbWriteTable
 #' @import shiny
 #' @export add_vars
 #' @details  Add variables back into the dataset that were removed.
-#' The removed variables are obtained from the raw_dat and merged into the working data based on a row identifier.
-#' The row identifier is created when the variable is removed using the `select_vars` function.
-#' The row identifier is used to match the raw data variables to work_dat.
+#' The removed variables are obtained from the \code{raw_dat} and merged into the working data based on a row identifier.
+#' The row identifier is created when a variable is removed using the \code{\link{select_vars}} function.
+#' The row identifier is used to match the raw data variables to \code{working_dat}.
 
 #' @examples
 #' \dontrun{
 #' add_vars(pcodMainDataTable, "pcodMainDataTable20200410", "pollock")
 #' }
 #'
-#' # Selectbox is column names in raw data that are not in working data
-#' # Show top five rows of working data
-#' # Drop rows that are not in linkID
+# Selectbox is column names in raw data that are not in working data
+# Show top five rows of working data
+# Drop rows that are not in linkID
 add_vars <- function(working_dat, raw_dat, vars, project) {
   x <- 0
 
