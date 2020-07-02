@@ -404,6 +404,34 @@ fishset_theme <- ggplot2::theme(
   axis.title = ggplot2::element_text(size = 11)
 )
 
+num_breaks <- function(per) {
+  #'
+  #'Plot breaks for numeric variable
+  #'
+  #'@param per period to set breaks for.
+  #'@export
+  #'
+  i <- length(unique(per))
+  
+  if (i <= 15) {
+    
+    breaks <- seq(min(per), max(per), by = 1)
+    
+  } else if (i > 15 & i < 30) {
+    
+    breaks <- seq(min(per), max(per), by = 2)
+    
+  } else if (i >= 30 & i <= 54) {
+    
+    breaks <- seq(min(per), max(per), by = 4)
+    
+  } else {
+    
+    breaks <- seq(min(per), max(per), by = 20)
+  }
+  
+  breaks
+} 
 
 n_breaks <- function(x) {
   #'

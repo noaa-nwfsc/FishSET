@@ -70,7 +70,7 @@ vessel_count <- function(dat, project, v_id, date, period = "month", group = NUL
     dat <- out$dat
     dataset <- out$dataset
     
-    periods <- c("year",  "month", "weeks", "weekday", "weekday_abv", "day", "day_of_year")
+    periods <- c("year",  "month", "weeks", "weekday", "day", "day_of_year")
     
     if (period %in% periods == FALSE) {
         
@@ -314,7 +314,7 @@ vessel_count <- function(dat, project, v_id, date, period = "month", group = NUL
     
     if (!(p %in% c("%a", "%b"))) {
         
-        v_plot <- v_plot + ggplot2::scale_x_continuous(n.breaks = n_breaks(count[[period]]))
+        v_plot <- v_plot + ggplot2::scale_x_continuous(breaks = num_breaks(count[[period]]))
     }
     
     # Log function
