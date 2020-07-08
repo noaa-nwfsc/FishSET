@@ -244,6 +244,12 @@ species_catch <- function(dat, project, species, date, period = "month", fun = "
     
     rev <- ifelse(position == "dodge", TRUE, FALSE)
     count <- order_factor(count, "species", "catch", rev = rev)
+  } else {
+    
+    if (!is.null(group)) {
+      rev <- ifelse(position == "dodge", TRUE, FALSE)
+      count <- order_factor(count, group1, species, rev = rev)
+    }
   }
   
   if (p %in% c("%a", "%b")) {

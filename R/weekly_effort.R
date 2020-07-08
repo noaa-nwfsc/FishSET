@@ -204,8 +204,6 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = 
         
         count <- reshape2::melt(count, measure.vars = cpue, variable.name = "species", 
                                 value.name = "mean_cpue")
-        
-        count <- order_factor(count, "species", "mean_cpue")
     }
     
     f_cpue <- function() if (length(cpue) == 1) cpue else "mean_cpue"
