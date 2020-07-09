@@ -405,7 +405,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
     
     if (p != "%b") {
       
-      ca_plot <- ca_plot + ggplot2::scale_x_continuous(n.breaks = n_breaks(catch_dat[[period]]))
+      ca_plot <- ca_plot + ggplot2::scale_x_continuous(breaks = num_breaks(catch_dat[[period]]))
     }
     
     ca_plot
