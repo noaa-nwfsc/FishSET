@@ -225,7 +225,15 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
     
     rev <- ifelse(position == "dodge", TRUE, FALSE)
     count <- order_factor(count, "species", "catch", rev = rev)
+    
+  } else {
+    
+    if (!is.null(group)) {
+      rev <- ifelse(position == "dodge", TRUE, FALSE)
+      count <- order_factor(count, group1, species, rev = rev)
+    }
   }
+  
   
   
   f_catch <- function() if (length(species) == 1) species else "catch"
