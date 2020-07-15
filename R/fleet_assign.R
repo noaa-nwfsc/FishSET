@@ -58,9 +58,9 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
   out <- data_pull(dat)
   dat <- out$dat
   dataset <- out$dataset
-
+  
   x <- 0
-
+  
   if (!is.null(table) & (!is.null(cond) | !is.null(fleet_val))) {
     warning("Error: Either a table or cond and fleet_val arguments should be given.")
     x <- 1
@@ -68,7 +68,7 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
     warning("Missing argument: both cond and fleet_val must be provided.")
     x <- 1
   }
-
+  
   if (x == 0) {
     if (!is.null(cond)) {
       if (is.list(cond)) {
@@ -80,14 +80,14 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
         warning("Fleet condition and fleet value lengths do not match.")
         x <- 1
       }
-
+      
       if (x == 0) {
         f_tab <- data.frame(cond, fleet = fleet_val, stringsAsFactors = FALSE)
-
+        
         if (is.null(names(cond)) | any(grepl("^cond", names(cond))) == FALSE) {
           if (is.list(cond)) {
             nm <- sapply(seq_along(cond), function(x) paste0("cond_", x))
-
+            
             f_tab <- setNames(f_tab, c(nm, "fleet"))
           } else {
             f_tab <- setNames(f_tab, c("cond", "fleet"))
@@ -95,33 +95,33 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
         }
       }
     }
-
+    
     if (!is.null(table)) {
       if (!is.data.frame(table)) {
         table <- as.data.frame(table)
       }
-
+      
       f_tab <- table
-
+      
       nm <- sapply(seq_along(f_tab[-1]), function(x) paste0("cond_", x))
-
+      
       f_tab <- setNames(f_tab, c(nm, "fleet"))
     }
-
+    
     nm <- names(f_tab)[grep("^cond", names(f_tab))]
-
+    
     if (any(apply(f_tab[nm], 1, function(x) grepl("^\\s*$", x)))) {
       f_tab <- data.frame(apply(f_tab, 2, function(x) gsub("^\\s*$", NA, x)))
-
+      
       warning("Empty strings found, replacing with NAs.")
     }
-
-    if (sum(apply(f_tab[nm], 1, function(x) all(is.na(x)))) != 1) {
-      warning("One row of the fleet table must contain all NAs with the exception of \n
-              the fleet column. This row will be for designating an 'other' category.")
-      x <- 1
-    }
-
+    
+    # if (sum(apply(f_tab[nm], 1, function(x) all(is.na(x)))) != 1) {
+    #   warning("One row of the fleet table must contain all NAs with the exception of \n
+    #           the fleet column. This row will be for designating an 'other' category.")
+    #   x <- 1
+    #}
+    
     if (x == 0) {
       if (save == TRUE) {
         # save to fishset_db
@@ -137,15 +137,15 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
           cat("Table saved to fishset_db database")
         }
       }
-
+      
       fleet_table_function <- list()
       fleet_table_function$functionID <- "fleet_table"
       fleet_table_function$args <- list(dat, project, cond, fleet_val, table, save)
       fleet_table_function$msg <- f_tab
       log_call(fleet_table_function)
-
+      
       save_table(f_tab, project, "fleet_table")
-
+      
       f_tab
     }
   }
@@ -182,47 +182,53 @@ fleet_assign <- function(dat, project, fleet_tab, overlap = FALSE, format_tab = 
   out <- data_pull(dat)
   dat <- out$dat
   dataset <- out$dataset
-
+  
   x <- 0
-
+  
   if (table_exists(fleet_tab) == FALSE) {
     warning("Table name does not exist in fishset_db. Check spelling or create a fleet assignment table with fleet_table().")
     x <- 1
   }
-
+  
   if (x == 0) {
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
     f_tab <- DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM", paste0("'", noquote(fleet_tab), "'")))
     DBI::dbDisconnect(fishset_db)
-
-
+    
     nm <- names(f_tab)[grep("^cond", names(f_tab))]
-
+    fleet_names <- f_tab$fleet
+    
+    if (any(grepl("other", fleet_names, ignore.case = TRUE)) == FALSE) {
+      
+      fleet_names <- c(fleet_names, "other") 
+    }
+    
     if (any(apply(f_tab, 2, FUN = function(x) grepl("sum_catch", x)))) {
-      htemp <- apply(f_tab, 2, FUN = function(x) grepl("sum_catch", x))
-
-      hd <- data.frame(exp = f_tab[htemp], row = row(htemp)[htemp == TRUE])
-
+      sc_cond <- apply(f_tab, 2, FUN = function(x) grepl("sum_catch", x))
+      
+      sc_rows <- data.frame(exp = f_tab[sc_cond], row = row(sc_cond)[sc_cond == TRUE])
+      
       f_tab[apply(f_tab, 2, FUN = function(x) grepl("sum_catch", x))] <- NA
     }
-
+    
     nm2 <- which(apply(f_tab[nm], 1, function(x) !is.na(x)))
-
+    
     if (length(nm) > 1) {
       if (any(is.na(f_tab[nm]))) {
         cond_list <- apply(f_tab[nm], 1, function(x) {
           x[!is.na(x)]
         })
-
+        
         if (!is.null(dim(cond_list))) {
-          cond_vec <- vapply(cond_list, function(x) paste(x, collapse = " & "), FUN.VALUE = "character")
+          cond_vec <- vapply(cond_list, function(x) paste(x, collapse = " & "), 
+                             FUN.VALUE = "character")
         } else if (is.null(dim(cond_list))) {
           cond_vec <- NULL
         }
       } else {
         cond_vec <- do.call(paste, c(f_tab[nm], sep = " & "))
       }
-
+      
       if (!is.null(cond_vec)) {
         cond_tab <- do.call(cbind, c(lapply(seq_along(cond_vec), function(x) {
           with(dataset, eval(parse(text = cond_vec[x])))
@@ -232,89 +238,89 @@ fleet_assign <- function(dat, project, fleet_tab, overlap = FALSE, format_tab = 
       }
     } else if (length(nm) == 1) {
       cond_vec <- f_tab[!is.na(f_tab[nm]), -which(names(f_tab) == "fleet")]
-
+      
       cond_tab <- do.call(cbind, c(lapply(cond_vec, FUN = function(x) {
         with(dataset, eval(parse(text = x)))
       })))
     }
-
-    if (exists("hd")) {
-      hm <- apply(hd["exp"], 1, function(x) {
+    
+    if (exists("sc_rows")) {
+      sc_matrix <- apply(sc_rows["exp"], 1, function(x) {
         eval(parse(text = x))
       })
-
-      if (anyNA(hm)) {
-        # Treating NaNs produced by helper function when calculating percentage
-        hm[is.na(hm)] <- FALSE
+      
+      if (anyNA(sc_matrix)) {
+        # Treating NaNs produced by sum_catch when calculating percentage
+        sc_matrix[is.na(sc_matrix)] <- FALSE
       }
-
-      colnames(hm) <- hd$row
-
+      
+      colnames(sc_matrix) <- sc_rows$row
+      
       if (!is.null(cond_tab)) {
         colnames(cond_tab) <- nm2
-
-        if (any(colnames(hm) %in% colnames(cond_tab))) {
-          for (i in (colnames(hm)[colnames(hm) %in% colnames(cond_tab)])) {
-            cond_tab[, colnames(cond_tab) == i] <- hm[, i] & cond_tab[, colnames(cond_tab) == i] # allow for ' | '
+        
+        if (any(colnames(sc_matrix) %in% colnames(cond_tab))) {
+          for (i in (colnames(sc_matrix)[colnames(sc_matrix) %in% colnames(cond_tab)])) {
+            cond_tab[, colnames(cond_tab) == i] <- sc_matrix[, i] & cond_tab[, colnames(cond_tab) == i] # allow for ' | '
           }
         }
-
-        if (any(!(colnames(hm) %in% colnames(cond_tab)))) {
-          cond_tab <- cbind(cond_tab, hm[, colnames(hm)[which(!(colnames(hm) %in% colnames(cond_tab)))]])
-
+        
+        if (any(!(colnames(sc_matrix) %in% colnames(cond_tab)))) {
+          cond_tab <- cbind(cond_tab, sc_matrix[, colnames(sc_matrix)[which(!(colnames(sc_matrix) %in% colnames(cond_tab)))]])
+          
           cond_tab <- cond_tab[, order(colnames(cond_tab))]
         }
       } else if (is.null(cond_tab)) {
-        cond_tab <- hm
+        cond_tab <- sc_matrix
       }
     }
     # check for overlapping fleet assignments
     ovrlp <- which(apply(cond_tab, 1, function(x) sum(x) > 1))
-
+    
     if (overlap == FALSE & length(ovrlp) > 0) {
-      warning(paste(length(ovrlp), "overlapping fleet assingments detected in the following rows: "), paste0(ovrlp, collapse = ", "))
+      warning(paste(length(ovrlp), "overlapping fleet assingments detected."))
       x <- 1
     }
-
+    
     if (x == 0) {
       # create 'other' category
       cond_tab <- cbind(cond_tab, apply(cond_tab, 1, function(x) ifelse(sum(x) == 0, 1, 0)))
-
-      colnames(cond_tab) <- f_tab$fleet
-
+      
+      colnames(cond_tab) <- fleet_names
+      
       cond_tab <- apply(cond_tab, 2, as.numeric)
-
+      
       if (any(colnames(cond_tab) %in% colnames(dataset))) {
         colnames(cond_tab)[colnames(cond_tab) %in% colnames(dataset)] <- toupper(colnames(cond_tab)[colnames(cond_tab) %in% colnames(dataset)])
       }
-
+      
       dataset <- cbind(dataset, cond_tab)
-
+      
       if (format_tab == "long") {
         dataset <- reshape2::melt(dataset, measure.vars = colnames(cond_tab), variable.name = "fleet")
-
+        
         dataset <- subset(dataset, value > 0)
-
+        
         dataset$value <- NULL
-
+        
         row.names(dataset) <- 1:nrow(dataset)
-
+        
         dup <- which(duplicated(dataset[, -which(names(dataset) %in% "fleet")]))
-
+        
         if (length(dup) > 0) {
-          warning(paste(length(dup), "overlapping fleet assignments detected in the following rows:"), paste0(dup, collapse = ", "))
+          warning(paste(length(dup), "overlapping fleet assignments detected."))
         }
       } else if (format_tab == "wide" & length(ovrlp) > 0) {
-        warning(paste(length(ovrlp), "overlapping fleet assingments detected in the following rows: "), paste0(ovrlp, collapse = ", "))
+        warning(paste(length(ovrlp), "overlapping fleet assingments detected."))
       }
-
+      
       fleet_assign_function <- list()
       fleet_assign_function$functionID <- "fleet_assign"
       fleet_assign_function$args <- list(dat, project, fleet_tab, overlap, format_tab)
       log_call(fleet_assign_function)
-
+      
       save_table(f_tab, project, "fleet_assign")
-
+      
       dataset
     }
   }
