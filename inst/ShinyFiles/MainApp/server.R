@@ -1,3 +1,6 @@
+source("fleetServ.R", local = TRUE)
+source("fleetUI.R", local = TRUE)
+source("fleet_helpers.R", local = TRUE)
 
     ### SERVER SIDE    
     server = function(input, output, session) {
@@ -1631,6 +1634,34 @@
       output$plot_xy <- renderPlot({
         print(plotInput_xy())
       })
+      
+      
+      
+      # Fleet Functions ========
+      
+      density_serv("den", values, reactive(input$projectname))
+      
+      vessel_serv("ves",  values, reactive(input$projectname))
+      
+      species_serv("spec", values, reactive(input$projectname))
+      
+      roll_serv("roll", values, reactive(input$projectname))
+      
+      weekly_catch_serv("wc", values, reactive(input$projectname))
+      
+      weekly_effort_serv("we", values, reactive(input$projectname))
+      
+      bycatch_serv("by", values, reactive(input$projectname))
+      
+      trip_serv("trip", values, reactive(input$projectname))
+      
+      fleet_table_serv("f_table", values, reactive(input$projectname))
+      
+      fleet_assign_serv("f_assign", values, reactive(input$projectname))
+      
+      
+      
+      
       
       ##
       ###----    
