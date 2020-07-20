@@ -1,6 +1,7 @@
 source("fleetServ.R", local = TRUE)
 source("fleetUI.R", local = TRUE)
 source("fleet_helpers.R", local = TRUE)
+source("map_viewer_app.R", local = TRUE)
 
     ### SERVER SIDE    
     server = function(input, output, session) {
@@ -2170,6 +2171,12 @@ source("fleet_helpers.R", local = TRUE)
         head(values$dataset)
         }
       )
+      
+      
+      # Map Viewer ====
+      
+      map_viewer_serv("map", values, spatdat)
+      onStop(function() servr::daemon_stop()) 
       
       
       #----

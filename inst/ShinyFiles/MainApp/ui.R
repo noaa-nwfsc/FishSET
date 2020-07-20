@@ -1,5 +1,6 @@
 source("fleetUI.R", local = TRUE)
 source("fleet_helpers.R", local = TRUE)
+source("map_viewer_app.R", local = TRUE)
 
 
    ## USER INTERFACE    
@@ -399,9 +400,9 @@ source("fleet_helpers.R", local = TRUE)
                                          condition='input.plot_table=="Plots" && input.plot_type=="x-y plot"',   
                                          shinycssloaders::withSpinner(plotOutput('plot_xy')))
                              ))),
-                  #---- 
-                  #Fleet functions tabset panel 
-                  #----
+                   
+                  #Fleet functions ==== 
+                  
                   tabPanel("Fleet Functions", value = "fleet",
                            
                            sidebarLayout(
@@ -702,6 +703,19 @@ source("fleet_helpers.R", local = TRUE)
                                DT::DTOutput("output_table_create")
                              )
                            )),
+                  
+                  
+                  # Map Viewer ====
+                  
+                  tabPanel("Map Viewer",
+                           
+                           map_viewerUI("map")
+                           
+                           ),
+                  
+                  
+                  
+                  
                   #----   
                   #Zonal definition tabset panel
                   #-----
