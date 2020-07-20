@@ -18,6 +18,7 @@ map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars, lo
   #' @importFrom geojsonio geojson_write
   #' @importFrom jsonlite toJSON
   #' @importFrom servr httd
+  #' @importFrom shiny isRunning
   #' @importFrom utils browseURL
   #' @details The map_viewer function creates the files required to run the MapViewer program.
   #' After creating the inputs, a map with zones is opened in the default web browser. To close
@@ -49,13 +50,14 @@ map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars, lo
   # 2 Create data file
 
   # remove NAs from lat and lon
-  dataset <- dataset[!is.na(dataset[[lon_start]]) | !is.na(dataset[[lat_start]]) | !is.na(dataset[[lon_end]]) | !is.na(dataset[[lat_end]]), ]
+  dataset <- dataset[!is.na(dataset[[lon_start]]) & !is.na(dataset[[lat_start]]) & 
+                       !is.na(dataset[[lon_end]]) & !is.na(dataset[[lat_end]]), ]
 
 
   dataset <- unique(dataset[, c(avd, num_vars, temp_vars, id_vars, lon_start, lat_start, lon_end, lat_end)])
   dataset$uniqueID <- 1:nrow(dataset)
 
-  write.csv(dat, paste0(loc_map(), "/datafile.csv"))
+  write.csv(dataset, paste0(loc_map(), "/datafile.csv"))
 
   # 3. Create map config
 
@@ -64,7 +66,7 @@ map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars, lo
   map_config$choosen_scatter <- num_vars[1]
   map_config$area_variable_column <- avd
   map_config$area_variable_map <- avm
-  map_config$numeric_vars <- num_vars
+  map_config$numeric_vars <- if (length(num_vars) == 1) list(num_vars) else num_vars
   map_config$temporal_vars <- temp_vars
   map_config$id_vars <- id_vars
   map_config$longitude_start <- lon_start
@@ -85,13 +87,14 @@ map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars, lo
   log_call(map_viewer_function)
 
   # working directory
-  current_wd <- getwd()
-
-  map_wd <- paste0(getwd(), "/inst/MapViewer")
-
-  setwd(map_wd)
-
-  utils::browseURL(servr::httd(browser = FALSE)$url)
-
-  on.exit(setwd(current_wd))
+  if (shiny::isRunning()) {
+    
+    map_url <- servr::httd(dir = loc_map(), browser = FALSE)$url
+    
+    return(map_url)
+    
+  } else {
+    
+    browseURL(servr::httd(dir = loc_map(), browser = FALSE)$url)
+  }
 }
