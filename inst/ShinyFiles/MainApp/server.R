@@ -2212,7 +2212,7 @@ source("map_viewer_app.R", local = TRUE)
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
                                selectizeInput('lat_dat_ac', '',
                                               choices=c(input$latBase, names(values$dataset)[grep('lat', names(values$dataset), ignore.case=TRUE)]), 
-                                              selected=c(input$latBase)), options = list(create = TRUE, placeholder='Select or type variable name')),
+                                              selected=c(input$latBase), options = list(create = TRUE, placeholder='Select or type variable name'))),
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
                                selectizeInput('lon_dat_ac', '', choices=c(input$lonBase, names(values$dataset)[grep('lon', names(values$dataset), ignore.case=TRUE)]), 
                                               selected=c(input$lonBase), options = list(create = TRUE, placeholder='Select or type variable name'))),
