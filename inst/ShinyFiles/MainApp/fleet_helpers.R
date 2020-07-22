@@ -11,6 +11,21 @@ date_select <- function(dat) {
   }
 }
 
+date_cols <- function(dat) {
+  
+  if (any(grepl("date", colnames(dat), ignore.case = TRUE))) {
+    
+    grep("date", colnames(dat), ignore.case = TRUE, value = TRUE)
+    
+  }
+}
+
+numeric_cols <- function(dat) {
+  
+  colnames(dat)[vapply(dat,  FUN = is.numeric, FUN.VALUE = logical(1))]
+}
+
+
 yearRange <- function(dat, yr, type) {
   
   if (!is.null(yr)) {
