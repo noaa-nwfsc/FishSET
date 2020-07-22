@@ -79,10 +79,10 @@ filter_sliderUI <- function(id, dat, date, type) {
 filter_sliderOut <- function(id, type, input) {
   
   # req(type) 
- 
+  
   if (!is.null(type)) {
     
-    if (grepl("-", type)) {
+    if (grepl("year-", type)) {
       
       list(seq(min(input$yr), max(input$yr), 1), 
            seq(min(input$per), max(input$per), 1))
@@ -102,42 +102,40 @@ density_plotUI <- function(id, dat) {
   ns <- NS(id)
   
   tagList(
-    actionButton(ns("run"), "Run",
+    actionButton(ns("run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
-    
-    uiOutput(ns("var_select")),
     
     selectInput(ns("type"), "Plot type",
                 choices = c("kde", "ecdf", "cdf")),
     
-    uiOutput(ns("grp_select")),
-    
-    checkboxInput(ns("combine"), "Combine grouping variables",
-                  value = FALSE),
+    uiOutput(ns("var_select")),
     
     uiOutput(ns("date_select")),
     
-    uiOutput(ns("fct_select")),
-    
-    selectizeInput(ns("ftype"), "filter type",
+    selectizeInput(ns("ftype"), "Subset data by (optional)",
                    choices = c("year-month", "year-week", "year-day",
-                               "year", "month", "week", "day"), multiple = TRUE,
-                   options = list(maxItems = 1)),
+                               "year", "month", "week", "day"),
+                   multiple = TRUE, options = list(maxItems = 1)),
     
     uiOutput(ns("filter_UI")),
     
-    selectInput(ns("tran"), "Transformation function",
-                choices = c("none" = "identity", "asn", "atanh", "boxcox", "date", "exp", "hms",
-                            "log", "log10", "log1p", "log2", "logit", "modulus", 
-                            "probability", "probit", "pseudo_log", "reciprocal", 
-                            "reverse", "sqrt")),
+    uiOutput(ns("grp_select")),
     
-    selectInput(ns("scale"), "Facet scale",
-                choices = c("fixed", "free y-axis" = "free_y", 
-                            "free x-axis" = "free_x", "free")),
+    checkboxInput(ns("combine"), "Combine grouping variables?",
+                  value = FALSE),
+    
+    uiOutput(ns("fct_select")),
     
     numericInput(ns("bw"), "Kernel binwidth",
                  value = 1),
+    
+    selectInput(ns("tran"), "Transformation function (optional)",
+                choices = c("none" = "identity", "exp",
+                            "log", "log2", "log10", "sqrt")),
+    
+    selectInput(ns("scale"), "Split plot scale",
+                choices = c("fixed", "free y-axis" = "free_y", 
+                            "free x-axis" = "free_x", "free")),
     
     selectInput(ns("position"), "Position of grouping variables",
                 choices = c("identity", "fill", "stack"), selected = "identity")
@@ -150,119 +148,119 @@ vessel_countUI <- function(id) {
   
   ns <- NS(id)
   
-    tagList(
-      actionButton(ns("run"), "Run",
-                   style = "color: #fff; background-color: #6da363; border-color: #800000;"),
-      
-      uiOutput(ns("var_select")),
-      
-      uiOutput(ns("date_select")),
-      
-      selectInput(ns("period"), "Select period",
-                  choices = c("year", "month", "weeks", "day of the month" = "day",
-                              "day of the year" = "day_of_year", "weekday"),
-                  selected = "year"),
-     
-      uiOutput(ns("grp_select")),
-      
-      checkboxInput(ns("combine"), "Combine grouping variables",
-                    value = FALSE),
-      
-      uiOutput(ns("fct_select")),
-      
-      selectizeInput(ns("ftype"), "filter type",
-                     choices = c("year-month", "year-week", "year-day",
-                                 "year", "month", "week", "day"), multiple = TRUE,
-                     options = list(maxItems = 1)),
-      
-      uiOutput(ns("filter_UI")),
-      
-      selectInput(ns("value"), "Select value type",
-                  choices = c("count", "percent")),
-      
-      selectInput(ns("tran"), "Transformation funcion",
-                  choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
-      
-      selectInput(ns("type"), "Plot type",
-                  choices = c("bar", "line")),
-      
-      selectInput(ns("scale"), "Facet scale",
-                  choices = c("fixed", "free y-axis" = "free_y", 
-                              "free x-axis" = "free_x", "free")),
-      
-      selectInput(ns("position"), "Position of grouping variables",
-                  choices = c("identity", "dodge", "fill", "stack"),
-                  selected = "stack"),
-      
-      selectInput(ns("out"), "Output type",
-                  choices = c("plot and table" = "tab_plot", "plot", "table"),
-                  selected = "tab_plot")
-    )
+  tagList(
+    actionButton(ns("run"), "Run function",
+                 style = "color: #fff; background-color: #6da363; border-color: #800000;"),
+    
+    selectInput(ns("out"), "View table or plot",
+                choices = c("plot and table" = "tab_plot", "plot", "table"),
+                selected = "tab_plot"),
+    
+    uiOutput(ns("var_select")),
+    
+    uiOutput(ns("date_select")),
+    
+    selectInput(ns("period"), "Show counts by",
+                choices = c("year", "month", "weeks", "day of the month" = "day",
+                            "day of the year" = "day_of_year", "weekday"),
+                selected = "year"),
+    
+    selectizeInput(ns("ftype"), "Subset data by (optional)",
+                   choices = c("year-month", "year-week", "year-day",
+                               "year", "month", "week", "day"),
+                   multiple = TRUE, options = list(maxItems = 1)),
+    
+    uiOutput(ns("filter_UI")),
+    
+    uiOutput(ns("grp_select")),
+    
+    checkboxInput(ns("combine"), "Combine grouping variables?",
+                  value = FALSE),
+    
+    uiOutput(ns("fct_select")),
+    
+    selectInput(ns("value"), "Select value type",
+                choices = c("count", "percent")),
+    
+    selectInput(ns("tran"), "Transformation function (optional)",
+                choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
+    
+    selectInput(ns("type"), "Plot type",
+                choices = c("bar", "line")),
+    
+    selectInput(ns("scale"), "Split plot scale",
+                choices = c("fixed", "free y-axis" = "free_y", 
+                            "free x-axis" = "free_x", "free")),
+    
+    selectInput(ns("position"), "Position of grouping variables",
+                choices = c("identity", "dodge", "fill", "stack"),
+                selected = "stack")
+  )
 }
 
-  
+
 species_catchUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-
-    actionButton(ns("run"), "Run",
+    
+    actionButton(ns("run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
-  
+    
+    selectInput(ns("out"), "View table or plot",
+                choices = c("plot and table" = "tab_plot", "plot", "table"),
+                selected = "tab_plot"),
+    
     uiOutput(ns("var_select")),
-  
+    
     uiOutput(ns("date_select")),
-  
-    selectInput(ns("period"), "Select period",
+    
+    selectInput(ns("period"), "Show counts by",
                 choices = c("year", "month", "weeks", "day of the month" = "day",
                             "day of the year" = "day_of_year", "weekday"),
                 selected = "year"),
-  
-    selectInput(ns("fun"), "Aggregate function",
-                choices = c("sum", "mean", "sd", "median", "min", "max", "IQR")),
-  
-    uiOutput(ns("grp_select")),
-  
-    checkboxInput(ns("combine"), "Combine grouping variables",
-                  value = FALSE),
-  
-    uiOutput(ns("fct_select")),
-  
-    selectizeInput(ns("ftype"), "filter type",
+    
+    selectizeInput(ns("ftype"), "Subset data by (optional)",
                    choices = c("year-month", "year-week", "year-day",
-                               "year", "month", "week", "day"), multiple = TRUE,
-                   options = list(maxItems = 1)),
-  
+                               "year", "month", "week", "day"),
+                   multiple = TRUE, options = list(maxItems = 1)),
+    
     uiOutput(ns("filter_UI")),
-  
+    
+    selectInput(ns("fun"), "Summary function",
+                choices = c("sum", "mean", "sd", "median", "min", "max", "IQR")),
+    
+    uiOutput(ns("grp_select")),
+    
+    checkboxInput(ns("combine"), "Combine grouping variables?",
+                  value = FALSE),
+    
+    uiOutput(ns("fct_select")),
+    
     selectInput(ns("value"), "Select value type",
                 choices = c("count", "percent")),
-  
-    selectInput(ns("conv"), "Convert catch",
+    
+    selectInput(ns("conv"), "Convert catch (optional)",
                 choices = c("none", "tons", "metric tons" = "metric_tons", "custom")),
-  
+    
     conditionalPanel("input.conv == 'custom'",
-  
+                     
                      textInput(ns("conv"), "Enter function")),
-  
-    selectInput(ns("tran"), "Transform y-axis",
+    
+    selectInput(ns("tran"), "Transform y-axis (optional)",
                 choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
-  
+    
     selectInput(ns("type"), "Plot type",
                 choices = c("bar", "line")),
-  
-    selectInput(ns("scale"), "Facet scale",
+    
+    selectInput(ns("scale"), "Split plot scale",
                 choices = c("fixed", "free y-axis" = "free_y",
                             "free x-axis" = "free_x", "free")),
-  
+    
     selectInput(ns("position"), "Position of grouping variables",
                 choices = c("identity", "dodge", "fill", "stack"),
                 selected = "stack"),
-  
-    selectInput(ns("out"), "Output type",
-                choices = c("plot and table" = "tab_plot", "plot", "table"),
-                selected = "tab_plot"),
-  
+    
     selectInput(ns("format"), "Table format",
                 choices = c("wide", "long"))
   )
@@ -273,51 +271,50 @@ roll_catchUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-
-    actionButton(ns("run"), "Run",
+    
+    actionButton(ns("run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
-  
+    
+    selectInput(ns("out"), "View table or plot",
+                choices = c("plot and table" = "tab_plot", "plot", "table")),
+    
     uiOutput(ns("var_select")),
     
     uiOutput(ns("date_select")),
-  
-    uiOutput(ns("grp_select")),
-  
-    numericInput(ns("win"), "Window",
-                 value = 10),
-  
-    selectInput(ns("fun"), "Aggregate function",
-                choices = c("sum", "mean", "sd", "median", "min", "max", "IQR")),
-  
-    uiOutput(ns("fct_select")),
-  
-    selectizeInput(ns("ftype"), "filter type",
+    
+    selectizeInput(ns("ftype"), "Subset data by (optional)",
                    choices = c("year-month", "year-week", "year-day",
-                               "year", "month", "week", "day"), multiple = TRUE,
-                   options = list(maxItems = 1)),
-  
+                               "year", "month", "week", "day"),
+                   multiple = TRUE, options = list(maxItems = 1)),
+    
     uiOutput(ns("filter_UI")),
-  
-    selectInput(ns("scale"), "Facet scale",
+    
+    selectInput(ns("fun"), "Summary function",
+                choices = c("sum", "mean", "sd", "median", "min", "max", "IQR")),
+    
+    uiOutput(ns("grp_select")),
+    
+    uiOutput(ns("fct_select")),
+    
+    selectInput(ns("scale"), "Split plot scale",
                 choices = c("fixed", "free y-axis" = "free_y",
                             "free x-axis" = "free_x", "free")),
-  
+    
+    numericInput(ns("win"), "Window width (days)",
+                 value = 10),
+    
     selectInput(ns("align"), "Window alignment",
                 choices = c("center", "left", "right")),
-  
-    selectInput(ns("conv"), "Convert catch",
+    
+    selectInput(ns("conv"), "Convert catch (optional)",
                 choices = c("none", "tons", "metric tons" = "metric_tons", "custom")),
-  
+    
     conditionalPanel("input.conv == 'custom'",
-  
+                     
                      textInput(ns("conv"), "Enter function")),
-  
-    selectInput(ns("tran"), "Transform y-axis",
-                choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
-  
-  
-    selectInput(ns("out"), "Output type",
-                choices = c("plot and table" = "tab_plot", "plot", "table"))
+    
+    selectInput(ns("tran"), "Transform y-axis (optional)",
+                choices = c("none" = "identity", "log", "log2", "log10", "sqrt"))
   )
 }
 
@@ -326,59 +323,59 @@ weekly_catchUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-
-    actionButton(ns("run"), "Run",
+    
+    actionButton(ns("run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
-  
+    
+    selectInput(ns("out"), "View table or plot",
+                choices = c("plot and table" = "tab_plot", "plot", "table"),
+                selected = "tab_plot"),
+    
     uiOutput(ns("var_select")),
     
     uiOutput(ns("date_select")),
     
+    selectizeInput(ns("ftype"), "Subset data by (optional)",
+                   choices = c("year-month", "year-week", "year-day",
+                               "year", "month", "week", "day"),
+                   multiple = TRUE, options = list(maxItems = 1)),
+    
+    uiOutput(ns("filter_UI")),
+    
     uiOutput(ns("grp_select")),
     
     uiOutput(ns("fct_select")),
-  
-    selectInput(ns("fun"), "Aggregate function",
+    
+    selectInput(ns("fun"), "Summary function",
                 choices = c("sum", "mean", "sd", "median", "min", "max", "IQR")),
-  
-    checkboxInput(ns("combine"), "Combine grouping variables",
+    
+    checkboxInput(ns("combine"), "Combine grouping variables?",
                   value = FALSE),
-  
-    selectizeInput(ns("ftype"), "filter type",
-                   choices = c("year-month", "year-week", "year-day",
-                               "year", "month", "week", "day"), multiple = TRUE,
-                   options = list(maxItems = 1)),
-  
-    uiOutput(ns("filter_UI")),
-  
+    
     selectInput(ns("value"), "Select value type",
                 choices = c("count", "percent")),
-  
-    selectInput(ns("conv"), "Convert catch",
+    
+    selectInput(ns("conv"), "Convert catch (optional)",
                 choices = c("none", "tons", "metric tons" = "metric_tons", "custom")),
-  
+    
     conditionalPanel("input.conv == 'custom'",
-  
+                     
                      textInput(ns("conv"), "Enter function")),
-  
-    selectInput(ns("tran"), "Transform y-axis",
+    
+    selectInput(ns("tran"), "Transform y-axis (optional)",
                 choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
-  
+    
     selectInput(ns("type"), "Plot type",
                 choices = c("bar", "line")),
-  
-    selectInput(ns("scale"), "Facet scale",
+    
+    selectInput(ns("scale"), "Split plot scale",
                 choices = c("fixed", "free y-axis" = "free_y",
                             "free x-axis" = "free_x", "free")),
-  
+    
     selectInput(ns("position"), "Position of grouping variables",
                 choices = c("identity", "dodge", "fill", "stack"),
                 selected = "stack"),
-  
-    selectInput(ns("out"), "Output type",
-                choices = c("plot and table" = "tab_plot", "plot", "table"),
-                selected = "tab_plot"),
-  
+    
     selectInput(ns("format"), "Table format",
                 choices = c("wide", "long"))
   )
@@ -389,46 +386,46 @@ weekly_effortUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-
-    actionButton(ns("run"), "Run",
+    
+    actionButton(ns("run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
-  
+    
+    selectInput(ns("out"), "View table or plot",
+                choices = c("plot and table" = "tab_plot", "plot", "table"),
+                selected = "tab_plot"),
+    
     uiOutput(ns("var_select")),
     
     uiOutput(ns("date_select")),
     
+    selectizeInput(ns("ftype"), "Subset data by (optional)",
+                   choices = c("year-month", "year-week", "year-day",
+                               "year", "month", "week", "day"),
+                   multiple = TRUE, options = list(maxItems = 1)),
+    
+    uiOutput(ns("filter_UI")),
+    
     uiOutput(ns("grp_select")),
     
-    uiOutput(ns("fct_select")),
-  
-    checkboxInput(ns("combine"), "Combine grouping variables",
+    checkboxInput(ns("combine"), "Combine grouping variables?",
                   value = FALSE),
-
-    selectizeInput(ns("ftype"), "filter type",
-                   choices = c("year-month", "year-week", "year-day",
-                               "year", "month", "week", "day"), multiple = TRUE,
-                   options = list(maxItems = 1)),
-  
-    uiOutput(ns("filter_UI")),
-  
-    selectInput(ns("conv"), "Convert catch",
+    
+    uiOutput(ns("fct_select")),
+    
+    selectInput(ns("conv"), "Convert catch (optional)",
                 choices = c("none", "tons", "metric tons" = "metric_tons", "custom")),
-  
+    
     conditionalPanel("input.conv == 'custom'",
-  
+                     
                      textInput(ns("conv"), "Enter function")),
-  
-    selectInput(ns("tran"), "Transform y-axis",
+    
+    selectInput(ns("tran"), "Transform y-axis (optional)",
                 choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
-  
-    selectInput(ns("scale"), "Facet scale",
+    
+    selectInput(ns("scale"), "Split plot scale",
                 choices = c("fixed", "free y-axis" = "free_y",
                             "free x-axis" = "free_x", "free")),
-  
-    selectInput(ns("out"), "Output type",
-                choices = c("plot and table" = "tab_plot", "plot", "table"),
-                selected = "tab_plot"),
-  
+    
     selectInput(ns("format"), "Table format",
                 choices = c("wide", "long"))
   )
@@ -438,57 +435,57 @@ bycatchUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-
+    
     p("Note: CPUE and catch variables should be added in the same order."),
-  
-    actionButton(ns("run"), "Run",
+    
+    actionButton(ns("run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
-  
+    
+    selectInput(ns("out"), "View table or plot",
+                choices = c("plot and table" = "tab_plot", "plot", "table"),
+                selected = "tab_plot"),
+    
     uiOutput(ns("cpue_select")),
     
     uiOutput(ns("catch_select")),
-  
+    
     uiOutput(ns("date_select")),
-  
-    selectInput(ns("period"), "Period",
+    
+    selectInput(ns("period"), "Show counts by",
                 choices = c("year", "month", "weeks")),
-  
+    
+    selectizeInput(ns("ftype"), "Subset data by (optional)",
+                   choices = c("year-month", "year-week", "year-day",
+                               "year", "month", "week", "day"),
+                   multiple = TRUE, options = list(maxItems = 1)),
+    
+    uiOutput(ns("filter_UI")),
+    
     textInput(ns("nms"), "Names", value = NULL,
               placeholder = "optional names to be used in plot/table"),
-  
+    
     fluidRow(actionButton(ns("nms_add"), "Add name"),
              actionButton(ns("nms_clear"), "Clear names")),
-  
+    
     textOutput(ns("caption")),
-  
+    
     uiOutput(ns("grp_select")),
-  
-    checkboxInput(ns("combine"), "Combine grouping variables",
+    
+    checkboxInput(ns("combine"), "Combine grouping variables?",
                   value = FALSE),
-  
+    
     uiOutput(ns("fct_select")),
     
-    selectizeInput(ns("ftype"), "filter type",
-                   choices = c("year-month", "year-week", "year-day",
-                               "year", "month", "week", "day"), multiple = TRUE,
-                   options = list(maxItems = 1)),
-  
-    uiOutput(ns("filter_UI")),
-  
     selectInput(ns("value"), "Catch value type",
                 choices = c("total", "share of total catch" = "stc")),
-  
-    selectInput(ns("tran"), "Transform y-axis",
+    
+    selectInput(ns("tran"), "Transform y-axis (optional)",
                 choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
-  
-    selectInput(ns("scale"), "Facet scale",
+    
+    selectInput(ns("scale"), "Split plot scale",
                 choices = c("fixed", "free y-axis" = "free_y",
                             "free x-axis" = "free_x", "free")),
-  
-    selectInput(ns("out"), "Output type",
-                choices = c("plot and table" = "tab_plot", "plot", "table"),
-                selected = "tab_plot"),
-  
+    
     selectInput(ns("format"), "Table format",
                 choices = c("wide", "long"))
   )
@@ -498,60 +495,60 @@ trip_lengthUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-
-  actionButton(ns("run"), "Run",
-               style = "color: #fff; background-color: #6da363; border-color: #800000;"),
-
-  uiOutput(ns("start_select")),
-  
-  uiOutput(ns("end_select")),
-
-  selectInput(ns("unit"), "Unit of time",
-              choices = c("minutes" = "mins", "hours", "days", "weeks"),
-              selected = "hours"),
-
-  uiOutput(ns("catch_select")),
-
-  uiOutput(ns("haul_select")),
-
-  uiOutput(ns("grp_select")),
-  
-  uiOutput(ns("fct_select")),
-  
-  selectizeInput(ns("ftype"), "filter type",
-                 choices = c("year-month", "year-week", "year-day",
-                             "year", "month", "week", "day"), multiple = TRUE,
-                 options = list(maxItems = 1)),
-
-  uiOutput(ns("filter_UI")),
-
-  selectInput(ns("type"), "Plot type",
-              choices = c("histogram" = "hist", "frequency polygon" = "freq_poly")),
-
-  sliderInput(ns("bins"), "Bins",
-              min = 1, max = 60, value = 30),
-
-  checkboxInput(ns("dens"), "Density", value = TRUE),
-
-  selectInput(ns("tran"), "Transform x-axis",
-              choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
-
-  selectInput(ns("scale"), "Facet scale",
-              choices = c("fixed", "free y-axis" = "free_y",
-                          "free x-axis" = "free_x", "free")),
-
-  checkboxInput(ns("haul_trp"), "Convert to trip-level",
-                value = FALSE),
-
-  conditionalPanel("input.haul_trp",
-
-                   uiOutput(ns("kwargs_select"))),
-
-  selectInput(ns("format"), "Table format",
-              choices = c("wide", "long")),
-
-  selectInput(ns("out"), "Output type",
-              choices = c("plot and table" = "tab_plot", "plot", "table"))
+    
+    actionButton(ns("run"), "Run function",
+                 style = "color: #fff; background-color: #6da363; border-color: #800000;"),
+    
+    selectInput(ns("out"), "View table or plot",
+                choices = c("plot and table" = "tab_plot", "plot", "table")),
+    
+    uiOutput(ns("start_select")),
+    
+    uiOutput(ns("end_select")),
+    
+    selectInput(ns("unit"), "Unit of time",
+                choices = c("minutes" = "mins", "hours", "days", "weeks"),
+                selected = "hours"),
+    
+    selectizeInput(ns("ftype"), "Subset data by (optional)",
+                   choices = c("year-month", "year-week", "year-day",
+                               "year", "month", "week", "day"),
+                   multiple = TRUE, options = list(maxItems = 1)),
+    
+    uiOutput(ns("filter_UI")),
+    
+    uiOutput(ns("catch_select")),
+    
+    uiOutput(ns("haul_select")),
+    
+    uiOutput(ns("grp_select")),
+    
+    uiOutput(ns("fct_select")),
+    
+    selectInput(ns("type"), "Plot type",
+                choices = c("histogram" = "hist", "frequency polygon" = "freq_poly")),
+    
+    sliderInput(ns("bins"), "Bins",
+                min = 1, max = 60, value = 30),
+    
+    checkboxInput(ns("dens"), "Density (y-axis)", value = TRUE),
+    
+    selectInput(ns("tran"), "Transform x-axis (optional)",
+                choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
+    
+    selectInput(ns("scale"), "Split plot scale",
+                choices = c("fixed", "free y-axis" = "free_y",
+                            "free x-axis" = "free_x", "free")),
+    
+    checkboxInput(ns("haul_trp"), "Convert to trip-level?",
+                  value = FALSE),
+    
+    conditionalPanel("input.haul_trp",
+                     
+                     uiOutput(ns("kwargs_select"))),
+    
+    selectInput(ns("format"), "Table format",
+                choices = c("wide", "long"))
   )
 }
 
@@ -560,67 +557,66 @@ fleet_tableUI <- function(id) {
   ns <- NS(id)
   
   tagList(
-  
+    
     p("Fleet tables must be saved to the FishSET database before they can be used to assign observations to fleets."),
     
-    actionButton(ns("save"), "save to FishSET database",
+    actionButton(ns("save"), "Save to FishSET database",
                  style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
     
     tags$br(), tags$br(),
     
     fluidRow(
-      actionButton(ns("addrow"), "add row",
+      actionButton(ns("addrow"), "Add row",
                    style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
       
-      actionButton(ns("deleterow"), "delete row",
+      actionButton(ns("deleterow"), "Delete row",
                    style = "color: #fff; background-color: #EB8C34; border-color:#000000;")),
     
     tags$br(), 
     
     fluidRow(
-      actionButton(ns("addcol"), "add column",
+      actionButton(ns("addcol"), "Add column",
                    style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
       
-      actionButton(ns("deletecol"), "delete column",
+      actionButton(ns("deletecol"), "Delete column",
                    style = "color: #fff; background-color: #EB8C34; border-color:#000000;")),
     
     tags$br(),
     
-    fileInput(ns("file"), "browse file"),
+    fileInput(ns("file"), "Browse file"),
     
-    actionButton(ns("upload"), "upload table"),
+    actionButton(ns("upload"), "Upload table"),
     
     tags$br(), tags$br(),
     
     textInput(ns("colname"), "New column name"),
     
-    actionButton(ns("colname_btn"), "change column name")
+    actionButton(ns("colname_btn"), "Change column name")
   )
 }
-  
-  
+
+
 fleet_assignUI <- function(id) {
   
   ns <- NS(id)
   
   tagList(
-  
+    
     actionButton(ns("refresh"), "", icon = icon("refresh")),
     
-    selectInput(ns("tab"), "Available fleet tables",
-                choices = grep("FleetTable", tables_database(), value = TRUE)),
+    uiOutput(ns("available_tabs")),
     
-    actionButton(ns("view_btn"), "view table"),
+    actionButton(ns("view_btn"), "View table"),
     
-    checkboxInput(ns("overlap"), "allow overlapping fleet assignments?"),
+    checkboxInput(ns("overlap"), "Allow overlapping fleet assignments?"),
     
-    selectInput(ns("format"), "fleet format",
+    selectInput(ns("format"), "Table format",
                 choices = c("long", "wide")),
     
-    actionButton(ns("run"), "run",
+    actionButton(ns("run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
     
-    actionButton(ns("save"), "save table")
+    actionButton(ns("save"), "Save table")
   )
 }
 
@@ -638,7 +634,7 @@ fleetOut <- function(id) {
 
 fleet_tableOut <- function(id) {
   ns <- NS(id)
-  DT::DTOutput(ns("f_tab"))
+    DT::DTOutput(ns("f_tab"))
 }
 
 fleet_assignOut <- function(id) {
