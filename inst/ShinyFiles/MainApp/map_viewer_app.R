@@ -38,7 +38,7 @@ map_viewer_serv <- function(id, dat, spatdat) {
           column(3,
                  
                  selectizeInput(ns("num"), "numeric variables",
-                                choices = colnames(dat$dataset), multiple = TRUE),
+                                choices = numeric_cols(dat$dataset), multiple = TRUE),
                  
                  selectizeInput(ns("temp"), "temporal variables",
                                 choices = colnames(dat$dataset), multiple = TRUE),
@@ -49,18 +49,18 @@ map_viewer_serv <- function(id, dat, spatdat) {
           column(3,
                  
                  selectInput(ns("lon_start"), "starting longitude",
-                             choices = colnames(dat$dataset)),
+                             choices = colnames(dat$dataset[ ,grep('lon', colnames(dat$dataset), ignore.case = TRUE)])),
                  
                  selectInput(ns("lat_start"), "starting latiitude",
-                             choices = colnames(dat$dataset)),
+                             choices = colnames(dat$dataset[ ,grep('lat', colnames(dat$dataset), ignore.case = TRUE)])),
                  
                  selectInput(ns("lon_end"), "ending longitude",
-                             choices = colnames(dat$dataset))),
+                             choices = colnames(dat$dataset[ ,grep('lon', colnames(dat$dataset), ignore.case = TRUE)]))),
           
           column(3,
                  
                  selectInput(ns("lat_end"), "ending latiitude",
-                             choices = colnames(dat$dataset)))
+                             choices = colnames(dat$dataset[ ,grep('lat', colnames(dat$dataset), ignore.case = TRUE)])))
         )
       )
     })

@@ -403,7 +403,7 @@ source("map_viewer_app.R", local = TRUE)
                    
                   #Fleet functions ==== 
                   
-                  tabPanel("Fleet Functions", value = "fleet",
+                  tabPanel("Fleet analysis and assignment", value = "fleet",
                            
                            sidebarLayout(
                              
