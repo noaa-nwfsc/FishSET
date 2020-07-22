@@ -20,6 +20,7 @@ map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars, lo
   #' @importFrom servr httd
   #' @importFrom shiny isRunning
   #' @importFrom utils browseURL
+  #' @export 
   #' @details The map_viewer function creates the files required to run the MapViewer program.
   #' After creating the inputs, a map with zones is opened in the default web browser. To close
   #' the server connection run \code{servr::daemon_stop()} in the console.
@@ -95,6 +96,6 @@ map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars, lo
     
   } else {
     
-    browseURL(servr::httd(dir = loc_map(), browser = FALSE)$url)
+    utils::browseURL(servr::httd(dir = loc_map(), browser = FALSE)$url)
   }
 }

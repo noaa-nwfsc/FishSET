@@ -27,6 +27,7 @@
 #'   \code{"center"}.
 #' @param convr Convert catch variable to \code{"tons"}, \code{"metric_tons"}, or
 #'   by using a function. Defaults to \code{FALSE}.
+#' @param tran A function to transform the y-axis. Options include log, log2, log10, sqrt.
 #' @param output Whether to display \code{"plot"}, \code{"table"}, or both. Defaults
 #'   to both (\code{"tab_plot"}).
 #' @param ... Additional arguments passed to \code{\link{rollapply}}
