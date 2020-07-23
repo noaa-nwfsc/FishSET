@@ -82,10 +82,17 @@ filter_sliderOut <- function(id, type, input) {
   
   if (!is.null(type)) {
     
-    if (grepl("year-", type)) {
+    if (grepl("year", type)) {
       
-      list(seq(min(input$yr), max(input$yr), 1), 
-           seq(min(input$per), max(input$per), 1))
+      if (grepl("-", type)) {
+      
+        list(seq(min(input$yr), max(input$yr), 1), 
+             seq(min(input$per), max(input$per), 1))
+        
+      } else {
+        
+        seq(min(input$yr), max(input$yr), 1)
+      }
       
     } else {
       
@@ -290,7 +297,7 @@ roll_catchUI <- function(id) {
     uiOutput(ns("filter_UI")),
     
     selectInput(ns("fun"), "Summary function",
-                choices = c("sum", "mean", "sd", "median", "min", "max", "IQR")),
+                choices = c("mean", "sum", "sd", "median", "min", "max", "IQR")),
     
     uiOutput(ns("grp_select")),
     
