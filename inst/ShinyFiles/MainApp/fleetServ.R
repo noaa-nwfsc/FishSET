@@ -150,12 +150,12 @@ species_serv <- function(id, dat, project) {
     
     output$filter_UI <- renderUI({
       
-      filter_sliderUI("filter", dat$dataset, input$date, input$ftype)
+      filter_sliderUI(id, dat$dataset, input$date, input$ftype)
     })
     
     filter_val <- reactive({
       
-      filter_sliderOut("filter", input$ftype, input)
+      filter_sliderOut(id, input$ftype, input)
     })
     
     args <- eventReactive(input$run, {
@@ -213,12 +213,12 @@ roll_serv <- function(id, dat, project) {
     
     output$filter_UI <- renderUI({
       
-      filter_sliderUI("filter", dat$dataset, input$date, input$ftype)
+      filter_sliderUI(id, dat$dataset, input$date, input$ftype)
     })
     
     filter_val <- reactive({
       
-      filter_sliderOut("filter", input$ftype, input)
+      filter_sliderOut(id, input$ftype, input)
     })
     
     args <- eventReactive(input$run, {
@@ -273,12 +273,12 @@ weekly_catch_serv <- function(id, dat, project) {
     
     output$filter_UI <- renderUI({
       
-      filter_sliderUI("filter", dat$dataset, input$date, input$ftype)
+      filter_sliderUI(id, dat$dataset, input$date, input$ftype)
     })
     
     filter_val <- reactive({
       
-      filter_sliderOut("filter", input$ftype, input)
+      filter_sliderOut(id, input$ftype, input)
     })
     
     args <- eventReactive(input$run, {
@@ -332,12 +332,12 @@ weekly_effort_serv <- function(id, dat, project) {
     
     output$filter_UI <- renderUI({
       
-      filter_sliderUI("filter", dat$dataset, input$date, input$ftype)
+      filter_sliderUI(id, dat$dataset, input$date, input$ftype)
     })
     
     filter_val <- reactive({
       
-      filter_sliderOut("filter", input$ftype, input)
+      filter_sliderOut(id, input$ftype, input)
     })
     
     args <- eventReactive(input$run, {
@@ -395,12 +395,12 @@ bycatch_serv <- function(id, dat, project) {
     
     output$filter_UI <- renderUI({
       
-      filter_sliderUI("filter", dat$dataset, input$date, input$ftype)
+      filter_sliderUI(id, dat$dataset, input$date, input$ftype)
     })
     
     filter_val <- reactive({
       
-      filter_sliderOut("filter", input$ftype, input)
+      filter_sliderOut(id, input$ftype, input)
     })
     
     names <- reactiveValues(names = NULL)
@@ -482,12 +482,12 @@ trip_serv <- function(id, dat, project) {
     
     output$filter_UI <- renderUI({
       
-      filter_sliderUI("filter", dat$dataset, input$start, input$ftype)
+      filter_sliderUI(id, dat$dataset, input$start, input$ftype)
     })
     
     filter_val <- reactive({
       
-      filter_sliderOut("filter", input$ftype, input)
+      filter_sliderOut(id, input$ftype, input)
     })
     
     args <- eventReactive(input$run, {
