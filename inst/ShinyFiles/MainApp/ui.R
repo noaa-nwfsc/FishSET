@@ -64,12 +64,12 @@ source("map_viewer_app.R", local = TRUE)
                                                         tags$br(),tags$br(),
                                                         tags$p('FishSET is a set of statistical programming and data management tools 
                                                               developed to standardize data management and organization,
-                                                               enable use of location choice models to provide input to the management
+                                                               enable the use of location choice models to provide input into the management
                                                                 of key fisheries, and organize statistical code so that predictions
-                                                                of fisher behavior can be incorporated and transparent to all users.'),
+                                                                of fisher behavior can be incorporated into models and transparent to all users.'),
                                                         tags$p('The FishSET toolbox is provided as a set of R functions that can be run in an R console or an R Shiny application.'),
-                                                        tags$p('The FishSET Shiny application is divided into tabs to guide users through all steps from uploading data to developing 
-                                                               and evaluating models. Tabs can be navigated in any order. Data are saved in a FishSET database. Output, plots and tables, 
+                                                        tags$p('The FishSET Shiny application is divided into tabs in order to guide users through all steps, from uploading data to developing 
+                                                               and evaluating models. Tabs can be navigated in any order. All data is saved in a FishSET database. Output, plots and tables, 
                                                                are saved in an output folder within the FishSET R package. The', tags$em('Quickstart Guide'), 'provides further assistance on using the 
                                                                FishSET Shiny application.'),
                                                         tags$p('For questions and comments please contact:',
@@ -109,7 +109,7 @@ source("map_viewer_app.R", local = TRUE)
                              tabPanel("AK catch and management data",
                                       fluidRow(
                                         column(width = 6,
-                                               tags$div(tags$p(tags$br(), 'This page will have some information on AK catch and management data with some links and tables.')) 
+                                               tags$div(tags$p(tags$br(), 'This page includes information on AK catch and management data with some links and tables.')) 
                                         ) 
                                       )
                              ),

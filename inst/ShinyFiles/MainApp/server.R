@@ -403,13 +403,13 @@ source("map_viewer_app.R", local = TRUE)
                       Refreshing the data pulls the raw, unprocessed data from the FishSET database.'),
                  tags$p('Buttons to save plots and tables to the output folder are provided where appropriate.'), 
                  tags$p('Each tab has a space to write notes and a button to save notes to the', tags$div(title='folder located in FishSET R package directory', 'output folder.')),
-                 tags$p('Each tab has an', tags$em('Enter an R expression'), 'area where R code can be run. 
+                 tags$p('Each tab has an', tags$code('Enter an R expression'), 'area where R code can be run. 
                         Within the FishSET Shiny application, the primary data frame is called', tags$em('values$dataset.')), 
-                 tags$p('Some examples. To view the mean of the fifth column type',  tags$em('mean(values$dataset[,5])'), 
-                        'and click the', tags$em('Run'), 'button.',
+                 tags$p('Some examples:', tags$br(), 'To view the mean of the fifth column, type',  tags$code('mean(values$dataset[,5])'), 
+                        'and click the', tags$code('Run'), 'button.',
                        tags$br(),
-                      'To view summary details of a column called Vessel_Length type', tags$em('summary(values$dataset$Vessel_Length)'), 
-                        'and push the', tags$em('Run'), 'button.'), 
+                      'To view summary details of a column called Vessel_Length, type', tags$code('summary(values$dataset$Vessel_Length)'), 
+                        'and click the', tags$code('Run'), 'button.'), 
                  tags$br(), tags$br(),
                  tags$div(style="display: inline-block; align:left; ", img(src="QuickStart1.png",  height="75%", width="75%"))
                 )
@@ -420,13 +420,13 @@ source("map_viewer_app.R", local = TRUE)
         if(input$QuickStartChoices=='UploadTab'){ 
           tags$div(
           tags$br(), tags$br(),
-            tags$p('To get started, a primary data set must be loaded and a project name must be specified.'),
-            tags$p('Upload data sources (primary, port, map, gridded, auxiliary) from the FishSET database or from source.'), 
-	          tags$p('To upload from a local file location select', tags$em('Upload new file'), 'and then browse to file location (arrow 1).', 
+            tags$p('To get started, you must load a primary data set and specify a project name.'),
+            tags$p('Upload data (primary, port, map, gridded, auxiliary) from the FishSET database or from source.'), 
+	          tags$p('To upload from a local file location, select', tags$code('Upload new file'), 'and then browse to file location (arrow 1).', 
               tags$br(),
               'Fill in the project name (arrow 2).'),
-	          tags$p('To upload from the FishSET database, select', tags$em('FishSET database'), ' (arrow 1) type in project name (arrow 2), and click the',
-              tags$em('Load data'), 'button (arrow 3).'),
+	          tags$p('To upload from the FishSET database, select', tags$code('FishSET database'), ' (arrow 1) type in project name (arrow 2), and click the',
+              tags$code('Load data'), 'button (arrow 3).'),
             tags$div(style="display: inline-block; align:center", img(src="upload.png",  height="75%", width="75%"))
           )
         }
@@ -437,26 +437,27 @@ source("map_viewer_app.R", local = TRUE)
           tags$div(
             tags$br(), tags$br(),
             tags$p('View and explore the primary data.',
-                tags$br(), 'Use the', tags$em('View data or plots'), 'dropdown box to view data as a table or plot.'),
-            tags$p(HTML(paste(tags$h4('Table:'), tags$h5('Edit, remove variables, filter'))),
+                tags$br(), 'Use the', tags$code('View data or plots'), 'dropdown box to view data as a table or plot.'),
+            tags$p(HTML(paste(tags$h4('Table:'), tags$h5('Edit and filter data, and remove variables from the dataset.'))),
             tags$br(),
             'Edit cells by double-clicking a cell'),
          tags$br(),
          tags$div(style="display: inline-block; align:center", img(src="Correct.png", height="75%", width="75%")),
          tags$br(),tags$br(),
-         tags$p('Remove variables by clicking on the column, then clicking the', tags$em('Remove variable'), 'button. The edited data frame will not be saved unless the', 
-            tags$em('Save data'), 'button is clicked. Press the', tags$em('Refresh data'), 'button to restore the original, unprocessed data frame.'),
+         tags$p('Remove variables by clicking on the column, then clicking the', tags$code('Remove variable'), 'button. 
+                The edited data frame will not be saved unless the', 
+            tags$code('Save data'), 'button is clicked. Press the', tags$code('Refresh data'), 'button to restore the original, unprocessed data frame.'),
          tags$br(), 
          tags$div(style="display: inline-block; align:center", img(src="DeleteVar.png", height="75%", width="75%")),
          tags$br(),tags$br(),
-         tags$p('Data can be filtered using the', tags$em('boxes'), 'below the variable name. Selected filters are saved when the', tags$em('Save data'), 'button is pushed.
-            Modified data is stored as "project, MainDataTable, and date". Raw, unmodified data can be reloaded by pressing the ', tags$em('Refresh data'), 'button.'),
+         tags$p('Data can be filtered using the', tags$em('boxes'), 'below the variable name. Selected filters are saved when the', tags$code('Save data to FishSET database'), 'button is pushed.
+            Modified data is stored as the project, "MainDataTable", and the date. Raw, unmodified data can be reloaded by pressing the ', tags$code('Refresh data'), 'button.'),
          tags$br(), 
          tags$div(style="display: inline-block; align:center", img(src="Filter.png", height="75%", width="75%")),
          tags$br(),tags$br(),
          tags$p(tags$h4('Plots:'),
           'Temporal, spatial, or x-y plots are available.'), 
-         tags$p('The', tags$em('Observed location'), 'spatial plot can be zoomed in on by double clicking a highlighted area.',
+         tags$p('Zoom in on the', tags$em('Observed location'), 'spatial plot by doubl-clicking a highlighted area.',
          tags$br(), 
          'Click an individual point to identify the latitude and longitude of that point.'),
          tags$br(), 
@@ -474,14 +475,14 @@ source("map_viewer_app.R", local = TRUE)
           p(tags$br(), tags$br(),
             'View and correct common data quality issues such as outliers and missing values (arrow 1).',
             tags$br(),tags$br(),
-            'Options to remove or correct for data quality issues are displayed before the', tags$em('R expression'), 'box (arrow 2).',
+            'Options to remove or correct for data quality issues are displayed before the', tags$code('R expression'), 'box (arrow 2).',
             tags$br(), tags$br(),
             tags$div(style="display: inline-block; align:center", img(src="dq.png", height="75%", width="75%")),
             tags$br(), tags$br(),
-            'To save modified data, click the', tags$em('Save data to fishset_db database'), 'button.', 
+            'To save modified data, click the', tags$code('Save data to FishSET database'), 'button.', 
             tags$br(),
             'The modified data will be saved to the FishSET database with a title based on the project, MainDataTable, and date.',
-            'Click on the', tags$em('Refresh data'), 'button to restore the data frame to the original, unmodified state.',
+            'Click on the', tags$code('Refresh data'), 'button to restore the data to its original, unmodified state.',
             tags$br(),tags$br(),
           'The outlier plot is interactive. Click on individual points to get values and zoom in to a highlighted area by double clicking.'
           )
@@ -495,10 +496,10 @@ source("map_viewer_app.R", local = TRUE)
             tags$br(),tags$br(),
             tags$div(style="display: inline-block; align:center", img(src="Corr.png", height="75%", width="75%")),
             tags$br(), tags$br(),
-            'For correlation plots/tables, variables can be removed from the', tags$em('select'), 'box by clicking on the variable and 
+            'For correlation plots/tables, variables can be removed from the', tags$code('select'), 'box by clicking on the variable and 
             then hitting the backspace or delete button on your keyboard.',
             tags$br(),
-            'Variables can be added by clicking an empty space in the', tags$em('select'), 'box.'
+            'Variables can be added by clicking an empty space in the', tags$code('select'), 'box.'
             )
         }
       })
@@ -508,16 +509,17 @@ source("map_viewer_app.R", local = TRUE)
           p(tags$br(), tags$br(),
             'Modify or create new variables such as CPUE or trip mid-point.',
             tags$br(),tags$br(),
-            'After a function is created, by clicking the', tags$em('Run function'), 'button (arrow 1), the new variable will be 
-            added as the last column of the displayed data table (arrow 2).', 
+            'Generate the desired variable by clicking the', tags$code('Run function'), 'button (arrow 1). The variable can then 
+            be viewed in the displayed data table (arrow 2).', 
             tags$br(),tags$br(),
             tags$div(style="display: inline-block; align:center", img(src="NewVar.png", height="75%", width="75%")),
             tags$br(), tags$br(),
-            'The created variable will be available for other analyses while the app is open but will not be available for future use unless the', tags$em('save data'), 'button is pushed.',
+            'The created variable will be available for other analyses while the app is open but will not be
+            available for future use unless the', tags$code('Save data'), 'button is pushed.',
             tags$br(),tags$br(),
             'Variable creation functions are grouped by type: Arithmetic and temporal, data transformations, dummy variables, nominal ID, spatial, and trip-level.',
             tags$br(), tags$br(),
-            'Default variable names will be provided if the', tags$em('Nme of new variable'), 'box is left empty (arrow 3).'
+            'Default variable names will be provided if the', tags$code('Name of new variable'), 'box is left empty (arrow 3).'
             )
         }
       })
@@ -535,7 +537,8 @@ source("map_viewer_app.R", local = TRUE)
 	           tags$li('(Required) Defining zones, calculate the zone or fishing centroids, and assign observations to zones.
                FishSET defaults to geographic centroids. To use fishing centroids, select a variable in the weighted centroid box.'),
 	           tags$li('Define the alternative fishing choices. These choices are used to develop the matrix of distances between alternative choices.'),
-             tags$li('(Optional) Select catch and price variables, which can be done in this or other tabs.')
+             tags$li('(Optional) Select catch and price variable. This can be done here or in the', 
+tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
 	         )
           )
         }
@@ -544,13 +547,13 @@ source("map_viewer_app.R", local = TRUE)
       output$ExpectedTabsText <- renderUI({
         if(input$QuickStartChoices=='ExpectedTab'){ 
           p(tags$br(), tags$br(),
-            'Define choices to calculate expectations of catch or revenue for alternative choices.',
+            'Calculate expectated catch or revenue for alternative choices.',
             tags$br(),tags$br(),
-            'Returns the expected catch or expected revenue data frame based on selected parameters along with three null outputs:', 
+            'Returns an expected catch or expected revenue data frame based on selected parameters along with three null outputs:', 
             tags$br(),
-            'expected catch/revenue based on catch of the previous two days (short-term expected catch)', 
+            'expected catch/revenue based on catch of the previous two days (short-term expected catch),', 
             tags$br(),
-            'expected catch/revenue based on catch for the previous seven days (medium-term expected catch)', 
+            'expected catch/revenue based on catch for the previous seven days (medium-term expected catch),', 
             tags$br(),
             'and expected catch/revenue based on catch in the previous year (long-term expected catch).'
             )
@@ -560,15 +563,15 @@ source("map_viewer_app.R", local = TRUE)
       output$ModelTabsText <- renderUI({
         if(input$QuickStartChoices=='ModelTab'){ 
           p(tags$br(),tags$br(),
-            'Define the likelihood function and model parameters before running models and comparing output.',
+            'Define the likelihood function and model parameters before running the models and comparing output.',
             tags$br(),tags$br(),
-          'Click', tags$em('Save model and Sdd new model'), 'to save model choices and define another model.',
+          'Click', tags$code('Save model and Sdd new model'), 'to save model choices and define another model.',
           tags$br(), tags$br(),
           'Defined models are shown in a table at the bottom of the screen.', 
           tags$br(), tags$br(),
-          'Once all models have been defined, select', tags$em('Run models'), 'to run all models.',
+          'Once all models have been defined, select', tags$code('Run models'), 'to run all models.',
           tags$br(), tags$br(),
-          'View and compare models in the', tags$em('Compare models'), 'subtab.',
+          'View and compare models in the', tags$code('Compare models'), 'subtab.',
           tags$div(style="display: inline-block; align:center", img(src="CompareModels.png", height="75%", width="75%"))
           )
         }
@@ -579,10 +582,10 @@ source("map_viewer_app.R", local = TRUE)
           p(tags$br(), tags$br(),
             'Save and reload the FishSET R Shiny application.',
             tags$br(), tags$br(),
-            'To bookmark the app, click the bookmark button. Push', tags$em('Dismiss'), 'in the popup message.',
+            'To bookmark the app, click the', tags$code('bookmark'), 'button. Click', tags$em('Dismiss'), 'in the popup message.',
             tags$div(style="display: inline-block; align:center", img(src="Dismiss.png", height="75%", width="75%")),
             tags$br(), tags$br(),tags$br(),
-            'To reload the saved state, click', tags$em('Browse'), 'and then migrate to the input.rds file and select', tags$em('Open.'),
+            'To reload the saved state, click', tags$code('Browse'), 'and then migrate to the', tags$em('input.rds'), 'file.',
             tags$br(), tags$br(),
             tags$div(style="display: inline-block; align:center", img(src="Bookmark2.png", height="75%", width="75%"))
             )
@@ -719,7 +722,7 @@ source("map_viewer_app.R", local = TRUE)
         if(is.null(input$maindat)) return()
         tagList(
           textInput('compare', label=div(style = "font-size:14px;  font-weight: 400;", 'If comparing data to previous year, enter saved table name'), 
-                    value='', placeholder = 'Saved table name in fishset_db database'),
+                    value='', placeholder = 'Saved table name in FishSET database'),
           checkboxInput('over_write','If file exsits, over write?', value=FALSE)
         )
       })
@@ -2776,7 +2779,7 @@ source("map_viewer_app.R", local = TRUE)
       
     
       #Add in two more tables for model evaulations
-      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+      fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
       mod_sum_out <- reactive({
         if(DBI::dbExistsTable(fishset_db, paste0(input$projectname, 'modelOut', format(Sys.Date(), format="%Y%m%d")))){#pollockmodelOut20190610#))
           model_out_view(paste0(input$projectname, 'modelOut', format(Sys.Date(), format="%Y%m%d")))#pollockmodelOut20190610))#
