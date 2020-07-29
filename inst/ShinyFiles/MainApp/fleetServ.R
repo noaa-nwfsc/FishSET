@@ -1,44 +1,243 @@
 source("fleetUI.R", local = TRUE)
 source("fleet_helpers.R", local = TRUE)
   
-# Density Plot ====
 
-density_serv <- function(id, dat, project) {
+# r expression module
+RexpressionServ <- function(id, values) {
   
   moduleServer(id, function(input, output, session) {
+    
+    r <- reactiveValues(done = 0, ok = TRUE, output = "")
+    
+    observeEvent(input$run, {
+      shinyjs::hide("error")
+      r$ok <- FALSE
+      tryCatch(
+        {
+          r$output <- isolate(
+            paste(utils::capture.output(eval(parse(text = input$expr))), collapse = '\n')
+          )
+          r$ok <- TRUE
+        },
+        error = function(err) {r$output <- err$message}
+      )
+      r$done <- r$done + 1
+    })
+    
+    exp_out <- reactive({
+      
+      if (r$done > 0 ) { 
+        
+        content <- paste(paste(">", isolate(input$expr)), r$output, sep = '\n')
+        
+        if (r$ok) {
+          
+          pre(content)
+          
+        } else {
+          pre( style = "color: red; font-weight: bold;", content)
+        }
+      }
+    })
+    
+    return(exp_out)
+  })
+}
+
+
+# Save buttons ====
+
+saveOutputServ <- function(id, fun_id, project, fun_name, tab_plot, out) {
+  
+  moduleServer(id, function(input, output, session) {
+    
+    table_save <- reactive({
+      if (out() == "table") {
+        
+        tab_plot() 
+      } else if (out()  == "tab_plot") {
+        
+        tab_plot()$table
+      } else {
+        NULL 
+      }
+    })
+    
+    plot_save <- reactive({
+      if (out() == "plot") {
+        
+        tab_plot() 
+      } else if (out() == "tab_plot") {
+        
+        tab_plot()$plot
+      } else {
+        NULL 
+      }
+    })
+    
+    observeEvent(input$downloadplot, {
+      
+      if (any(out() %in% c("plot", "tab_plot"))) {
+        
+        output$downloadplotHIDE <<- downloadHandler(
+          filename = function() {
+            paste0(locoutput(),  project(), "_", fun_name, '.png')
+          },
+          content = function(file) {
+            ggplot2::ggsave(file, plot = plot_save())
+          })
+        jsinject <- paste0("setTimeout(function(){window.open($('#", fun_id, "-", id, "-downloadplotHIDE').attr('href'))}, 100);")
+        session$sendCustomMessage(type = 'jsCode', list(value = jsinject))
+        showNotification('Plot saved.', type = 'message', duration = 10)
+        
+      } else {
+        showNotification('Plot not found.', type = 'message', duration = 10)
+      }
+    })
+    
+    observeEvent(input$downloadTable, {
+      
+      if (any(out() %in% c("table", "tab_plot"))) {
+        
+        write.csv(table_save(), paste0(locoutput(), project(), "_", fun_name, '.csv'))
+        showNotification('Table saved.', type = 'message', duration = 10)
+        
+      } else {
+        showNotification('Table not found.', type = 'message', duration = 10)
+      }
+    })
+  })
+}
+
+noteServ  <- function(id, fun_id) {
+  
+  moduleServer(id, function(input, output, session) {
+    
+    notes <- reactive({
+      if (!is.null(input$notes)) {
+        paste0(input$notes, "\n")
+      }
+    })
+    
+    savedText <- reactiveValues(answers = logical(0))
+    
+    observeEvent(input$callTextDownload, {
+      savedText$answers <- as.character(c(savedText$answers,  notes()))
+    })
+    
+    #  Stored Txt
+    observeEvent(input$callTextDownload, {
+      output$downloadText <- downloadHandler(
+        filename = function() {
+          paste0(locoutput(), 'StoredText.txt')
+        },
+        content = function(file) {
+          writeLines(savedText$answers, file)
+        },
+        contentType = "text/csv"
+      )
+      jsinject <- paste0("setTimeout(function(){window.open($('#", fun_id, "-", id, "-downloadText').attr('href'))}, 100);")
+      session$sendCustomMessage(type = 'jsCode', list(value = jsinject))
+    })
+  })
+}
+
+saveDataTableServ <- function(id, values, project) {
+  
+  moduleServer(id, function(input, output, session) {
+    
+    observeEvent(input$saveData, {
+      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+      DBI::dbWriteTable(fishset_db, paste0(project(), 'MainDataTable'), values$dataset, overwrite = TRUE)
+      DBI::dbDisconnect(fishset_db)
+      showNotification('Data saved to FishSET database', type = 'message', duration = 10)
+    })
+  })
+}
+
+refreshServ <- function(id, values, project) {
+  
+  moduleServer(id, function(input, output, session) {
+    
+    observeEvent(input$refresh, {
+      req(project())
+      temp <- tables_database()[grep(paste0(project(), 'MainDataTable\\d+'), tables_database())][which(
+        unlist(stringr::str_extract_all(tables_database()[grep(paste0(project(), 'MainDataTable\\d+'), 
+                                                               tables_database())], "\\d+"))==max((unlist(stringr::str_extract_all(tables_database()[grep(paste0(project(), 
+                                                                                                                                                                 'MainDataTable\\d+'), tables_database())], "\\d+")))))]
+      values$dataset <- table_view(temp)
+      showNotification("Data refreshed", type = 'message', duration = 10)
+    }, ignoreInit = TRUE, ignoreNULL = TRUE) 
+  })
+}
+
+
+closeAppServ <-  function(id) {
+  
+  moduleServer(id, function(input, output, session) {
+    
+    observeEvent(input$close, { stopApp() })
+  })
+}
+
+
+# Density Plot ====
+
+density_serv <- function(id, values, project) {
+  
+  moduleServer(id, function(input, output, session) {
+    
+    closeAppServ("close")
+    
+    refreshServ("refresh", values, project)
+    
+    noteServ("note", "den")
+    
+    observeEvent(input$downloadplot, {
+      output$downloadplotHIDE <<- downloadHandler(
+        filename = function() {
+          paste0(locoutput(), project(), "_density_plot.png")
+        },
+        content = function(file) {
+          ggplot2::ggsave(file, plot = den_out())
+        })
+      jsinject <- "setTimeout(function(){window.open($('#den-downloadplotHIDE').attr('href'))}, 100);"
+      session$sendCustomMessage(type = 'jsCode', list(value = jsinject))
+    })
+    
     
     ns <- session$ns
     
     output$var_select <- renderUI({
       
       selectInput(ns("var"), "Select variable",
-                  choices = c(numeric_cols(dat$dataset)))
+                  choices = c(numeric_cols(values$dataset)))
     })
     
     output$grp_select <- renderUI({
       
       selectizeInput(ns("grp"), "grouping variables (optional)",
-                     choices = c("year", "month", "week", colnames(dat$dataset)),
+                     choices = c("year", "month", "week", colnames(values$dataset)),
                      multiple = TRUE)
     })
     
     output$date_select <- renderUI({
       
       selectizeInput(ns("date"), "Date variable (optional)",
-                     choices = c(date_cols(dat$dataset)),
+                     choices = c(date_cols(values$dataset)),
                      multiple = TRUE, options = list(maxItems = 1))
     })
     
     output$fct_select <- renderUI({
       
       selectizeInput(ns("fct"), "Split plot by (optional)",
-                     choices = c("year", "month", "week", colnames(dat$dataset)),
+                     choices = c("year", "month", "week", colnames(values$dataset)),
                      multiple = TRUE, options = list(maxItems = 2))
     })
     
     output$filter_UI <- renderUI({
       
-      filter_sliderUI(id, dat$dataset, input$date, input$ftype)
+      filter_sliderUI(id, values$dataset, input$date, input$ftype)
     })
     
     filter_val <- reactive({
@@ -46,50 +245,64 @@ density_serv <- function(id, dat, project) {
       filter_sliderOut(id, input$ftype, input)
     })
     
-    args <- eventReactive(input$run, {
+    den_out <- eventReactive(input$fun_run, {
       
-      density_plot(dat$dataset, project = project(), var = input$var, type = input$type, group = input$grp,
+      density_plot(values$dataset, project = project(), var = input$var, type = input$type, group = input$grp,
                    date = input$date, filter_date = input$ftype, filter_value = filter_val(), 
                    facet_by = input$fct, scale = input$scale, combine = input$combine, 
                    tran = input$tran, bw = input$bw, position = input$position) 
     })
     
-    output$plot <- renderPlot({args()})
+    output$plot <- renderPlot({den_out()})
+    
+    exp_out <- RexpressionServ("exp", values)
+    output$result <- renderUI({exp_out()})
   })
 }
 
 
 # Vessel Count ====
 
-vessel_serv <- function(id, dat, project) {
+vessel_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
+    
+    
+    saveOutputServ("saveOut", fun_id = "ves", project = project, 
+                   fun_name = "vessel_count", tab_plot = v_out, 
+                   out = reactive(input$out))
+    
+    closeAppServ("close")
+    
+    refreshServ("refresh", values, project)
+    
+    noteServ("note", "ves")
     
     ns <- session$ns
     output$var_select <- renderUI({
       
-      selectizeInput(ns("var"), "Vessel identifier", choices = colnames(dat$dataset), multiple = FALSE)
+      selectizeInput(ns("var"), "Vessel identifier", choices = colnames(values$dataset), multiple = FALSE)
     })
     
     output$date_select <- renderUI({
       
-      selectInput(ns("date"), "Date variable (x-axis)", choices = date_cols(dat$dataset))
+      selectInput(ns("date"), "Date variable (x-axis)", choices = date_cols(values$dataset))
     })
     
     output$grp_select <- renderUI({
       
-      selectizeInput(ns("grp"), "Select group variables (optional)",choices = colnames(dat$dataset), multiple = TRUE)
+      selectizeInput(ns("grp"), "Select group variables (optional)",choices = colnames(values$dataset), multiple = TRUE)
     })
     
     output$fct_select <- renderUI({
       
-      selectizeInput(ns("fct"), "Split plot by (optional)", choices = c("year", "month", "week", colnames(dat$dataset)),
+      selectizeInput(ns("fct"), "Split plot by (optional)", choices = c("year", "month", "week", colnames(values$dataset)),
                      multiple = TRUE, options = list(maxItems = 2))
     })
     
     output$filter_UI <- renderUI({
       
-      filter_sliderUI(id, dat$dataset, input$date, input$ftype)
+      filter_sliderUI(id, values$dataset, input$date, input$ftype)
     })
     
     filter_val <- reactive({
@@ -97,60 +310,73 @@ vessel_serv <- function(id, dat, project) {
       filter_sliderOut(id, input$ftype, input)
     })
     
-    args <- eventReactive(input$run, {
+    v_out <- eventReactive(input$fun_run, {
       
-      vessel_count(dat$dataset, project = project(), v_id = input$var, date = input$date,
+      vessel_count(values$dataset, project = project(), v_id = input$var, date = input$date,
                    period = input$period, group = input$grp, filter_date = input$ftype,
                    filter_value = filter_val(), facet_by = input$fct, combine = input$combine,
                    position = input$position, tran = input$tran, value = input$value,
                    scale = input$scale, type = input$type, output = input$out)
     })
     
-    tabplot <- eventReactive(input$run, {
+    tabplot <- eventReactive(input$fun_run, {
       
-      tabplot_output(args(), input$out)
+      tabplot_output(v_out(), input$out)
     })
     
     output$output <- renderUI({tabplot()})
+    
+    exp_out <- RexpressionServ("exp", values)
+    output$result <- renderUI({exp_out()})
+    
   })
 }
 
 # Species Catch ====
 
-species_serv <- function(id, dat, project) {
+species_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
+    
+    saveOutputServ("saveOut", "spec", project = project, fun_name = "species_catch", 
+                   tab_plot = spec_out, out = reactive(input$out))
+    
+    closeAppServ("close")
+    
+    refreshServ("refresh", values, project)
+    
+    noteServ("note", "spec")
     
     ns <- session$ns
     
     output$var_select <- renderUI({
       
       selectizeInput(ns("var"), "Species catch variable",
-                     choices = c(numeric_cols(dat$dataset)), multiple = TRUE)
+                     choices = c(numeric_cols(values$dataset)), multiple = TRUE)
     })
     
     output$date_select <- renderUI({
       
       selectInput(ns("date"), "Date variable (x-axis)",
-                  choices = c(date_cols(dat$dataset)))
+                  choices = c(date_cols(values$dataset)))
     })
     
     output$grp_select <- renderUI({
       
       selectizeInput(ns("grp"), "Select group variables (optional)",
-                     choices = c(colnames(dat$dataset)), multiple = TRUE)
+                     choices = c(colnames(values$dataset)), multiple = TRUE)
     })
     
     output$fct_select <- renderUI({
       
       selectizeInput(ns("fct"), "split plot by (optional)",
-                     choices = c("year", "month", "week", "species", colnames(dat$dataset)),
+                     choices = c("year", "month", "week", "species", colnames(values$dataset)),
                      multiple = TRUE, options = list(maxItems = 2))
     })
     
     output$filter_UI <- renderUI({
       
-      filter_sliderUI(id, dat$dataset, input$date, input$ftype)
+      filter_sliderUI(id, values$dataset, input$date, input$ftype)
     })
     
     filter_val <- reactive({
@@ -158,9 +384,9 @@ species_serv <- function(id, dat, project) {
       filter_sliderOut(id, input$ftype, input)
     })
     
-    args <- eventReactive(input$run, {
+    spec_out <- eventReactive(input$fun_run, {
       
-      species_catch(dat$dataset, project = project(), species = input$var, date = input$date,
+      species_catch(values$dataset, project = project(), species = input$var, date = input$date,
                     period = input$period, fun = input$fun, group = input$grp,
                     filter_date = input$ftype, filter_value = filter_val(),
                     facet_by = input$fct, combine = input$combine,
@@ -169,51 +395,65 @@ species_serv <- function(id, dat, project) {
                     format_tab = input$format)
     })
     
-    tabplot <- eventReactive(input$run, {
+    tabplot <- eventReactive(input$fun_run, {
       
-      tabplot_output(args(), input$out)
+      tabplot_output(spec_out(), input$out)
     })
     
+    output$filter_out <- renderText({filter_val()})
+    
     output$output <- renderUI({tabplot()})
+    
+    exp_out <- RexpressionServ("exp", values)
+    output$result <- renderUI({exp_out()})
   })
 }
 
 # Rolling Catch ====
 
-roll_serv <- function(id, dat, project) {
+roll_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
+    
+    saveOutputServ("saveOut", "roll", project = project, fun_name = "roll_catch",
+                   tab_plot = roll_out, out = reactive(input$out))
+    
+    closeAppServ("close")
+    
+    refreshServ("refresh", values, project)
+    
+    noteServ("note", "roll")
     
     ns <- session$ns
     
     output$var_select <- renderUI({
       
       selectizeInput(ns("var"), "Select catch variable",
-                     choices = c(numeric_cols(dat$dataset)), multiple = TRUE)
+                     choices = c(numeric_cols(values$dataset)), multiple = TRUE)
     })
     
     output$date_select <- renderUI({
       
       selectInput(ns("date"), "Date variable (x-axis)",
-                  choices = c(date_cols(dat$dataset)))
+                  choices = c(date_cols(values$dataset)))
     })
     
     output$grp_select <- renderUI({
       
       selectizeInput(ns("grp"), "Select group variables (optional)",
-                     choices = c(colnames(dat$dataset)), multiple = TRUE)
+                     choices = c(colnames(values$dataset)), multiple = TRUE)
     })
     
     output$fct_select <- renderUI({
       
       selectizeInput(ns("fct"), "split plot by (optional)",
-                     choices = c("year", "month", "week", "species", colnames(dat$dataset)),
+                     choices = c("year", "month", "week", "species", colnames(values$dataset)),
                      multiple = TRUE, options = list(maxItems = 2))
     })
     
     output$filter_UI <- renderUI({
       
-      filter_sliderUI(id, dat$dataset, input$date, input$ftype)
+      filter_sliderUI(id, values$dataset, input$date, input$ftype)
     })
     
     filter_val <- reactive({
@@ -221,59 +461,71 @@ roll_serv <- function(id, dat, project) {
       filter_sliderOut(id, input$ftype, input)
     })
     
-    args <- eventReactive(input$run, {
+    roll_out <- eventReactive(input$fun_run, {
       
-      roll_catch(dat$dataset, project = project(), catch = input$var, date = input$date,
+      roll_catch(values$dataset, project = project(), catch = input$var, date = input$date,
                  fun = input$fun, group = input$grp, filter_date = input$ftype,
                  filter_value = filter_val(), facet_by = input$fct,
                  tran = input$tran, scale = input$scale, output = input$out)
     })
     
-    tabplot <- eventReactive(input$run, {
+    tabplot <- eventReactive(input$fun_run, {
       
-      tabplot_output(args(), input$out)
+      tabplot_output(roll_out(), input$out)
     })
     
     output$output <- renderUI({tabplot()})
+    
+    exp_out <- RexpressionServ("exp", values)
+    output$result <- renderUI({exp_out()})
   })
 }
 
 # Weekly Catch =====
 
-weekly_catch_serv <- function(id, dat, project) {
+weekly_catch_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
+    
+    saveOutputServ("saveOut", "wc", project = project, fun_name = "weekly_catch", 
+                   tab_plot = wc_out, out = reactive(input$out))
+    
+    closeAppServ("close")
+    
+    refreshServ("refresh", values, project)
+    
+    noteServ("note", "wc")
     
     ns <- session$ns
     
     output$var_select <- renderUI({
       
       selectizeInput(ns("var"), "Select catch variable",
-                     choices = c(numeric_cols(dat$dataset)), multiple = TRUE)
+                     choices = c(numeric_cols(values$dataset)), multiple = TRUE)
     })
     
     output$date_select <- renderUI({
       
       selectInput(ns("date"), "Date variable (x-axis)",
-                  choices = c(date_cols(dat$dataset)))
+                  choices = c(date_cols(values$dataset)))
     })
     
     output$grp_select <- renderUI({
       
       selectizeInput(ns("grp"), "Select group variables (optional)",
-                     choices = c(colnames(dat$dataset)), multiple = TRUE)
+                     choices = c(colnames(values$dataset)), multiple = TRUE)
     })
     
     output$fct_select <- renderUI({
       
       selectizeInput(ns("fct"), "Split plot by (optional)",
-                     choices = c("year", "month", "species", colnames(dat$dataset)),
+                     choices = c("year", "month", "species", colnames(values$dataset)),
                      multiple = TRUE, options = list(maxItems = 2))
     })
     
     output$filter_UI <- renderUI({
       
-      filter_sliderUI(id, dat$dataset, input$date, input$ftype)
+      filter_sliderUI(id, values$dataset, input$date, input$ftype)
     })
     
     filter_val <- reactive({
@@ -281,9 +533,9 @@ weekly_catch_serv <- function(id, dat, project) {
       filter_sliderOut(id, input$ftype, input)
     })
     
-    args <- eventReactive(input$run, {
+    wc_out <- eventReactive(input$fun_run, {
       
-      weekly_catch(dat$dataset, project = project(), species = input$var, date = input$date,
+      weekly_catch(values$dataset, project = project(), species = input$var, date = input$date,
                    fun = input$fun, group = input$grp, filter_date = input$ftype,
                    filter_value = filter_val(),facet_by = input$fct, combine = input$combine,
                    position = input$position, tran = input$tran, value = input$value,
@@ -291,48 +543,60 @@ weekly_catch_serv <- function(id, dat, project) {
                    format_tab = input$format)
     })
     
-    tabplot <- eventReactive(input$run, {
+    tabplot <- eventReactive(input$fun_run, {
       
-      tabplot_output(args(), input$out)
+      tabplot_output(wc_out(), input$out)
     })
     
     output$output <- renderUI({tabplot()})
+    
+    exp_out <- RexpressionServ("exp", values)
+    output$result <- renderUI({exp_out()})
   })
 }
 
 # Weekly Effort ====
 
-weekly_effort_serv <- function(id, dat, project) {
+weekly_effort_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
+    
+    saveOutputServ("saveOut", fun_id = "we", project = project, fun_name = "weekly_effort", 
+                   tab_plot = we_out, out = reactive(input$out))
+    
+    closeAppServ("close")
+    
+    refreshServ("refresh", values, project)
+    
+    noteServ("note", "we")
     
     ns <- session$ns
     
     output$var_select <- renderUI({
       
       selectizeInput(ns("var"), "Select CPUE variable",
-                     choices = c(numeric_cols(dat$dataset)), multiple = TRUE)
+                     choices = c(numeric_cols(values$dataset)), multiple = TRUE)
     })
     
     output$date_select <- renderUI({
       selectInput(ns("date"), "Date variable (x-axis)",
-                  choices = c(date_cols(dat$dataset)))
+                  choices = c(date_cols(values$dataset)))
     })
     
     output$grp_select <- renderUI({
       selectizeInput(ns("grp"), "Select group variables (optional)",
-                     choices = c(colnames(dat$dataset)), multiple = TRUE)
+                     choices = c(colnames(values$dataset)), multiple = TRUE)
     })
     
     output$fct_select <- renderUI({
       selectizeInput(ns("fct"), "Split plot by (optional)",
-                     choices = c("year", "month", "species", colnames(dat$dataset)),
+                     choices = c("year", "month", "species", colnames(values$dataset)),
                      multiple = TRUE, options = list(maxItems = 2))
     })
     
     output$filter_UI <- renderUI({
       
-      filter_sliderUI(id, dat$dataset, input$date, input$ftype)
+      filter_sliderUI(id, values$dataset, input$date, input$ftype)
     })
     
     filter_val <- reactive({
@@ -340,54 +604,66 @@ weekly_effort_serv <- function(id, dat, project) {
       filter_sliderOut(id, input$ftype, input)
     })
     
-    args <- eventReactive(input$run, {
+    we_out <- eventReactive(input$fun_run, {
       
-      weekly_effort(dat$dataset, project = project(), cpue = input$var, date = input$date,
+      weekly_effort(values$dataset, project = project(), cpue = input$var, date = input$date,
                     group = input$grp, filter_date = input$ftype,filter_value = filter_val(),
                     facet_by = input$fct, combine = input$combine, tran = input$tran,
                     scale = input$scale, output = input$out, format_tab = input$format)
     })
     
-    tabplot <- eventReactive(input$run, {
+    tabplot <- eventReactive(input$fun_run, {
       
-      tabplot_output(args(), input$out)
+      tabplot_output(we_out(), input$out)
     })
     
     output$output <- renderUI({tabplot()})
+    
+    exp_out <- RexpressionServ("exp", values)
+    output$result <- renderUI({exp_out()})
   })
 }
 
 # Bycatch ====
 
-bycatch_serv <- function(id, dat, project) {
+bycatch_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
+    
+    saveOutputServ("saveOut", fun_id = "by", project = project, fun_name = "bycatch",
+                   tab_plot = by_out, out = reactive(input$out))
+    
+    closeAppServ("close")
+    
+    refreshServ("refresh", values, project)
+    
+    noteServ("note", "by")
     
     ns <- session$ns
     
     output$cpue_select <- renderUI({
       selectizeInput(ns("cpue"), "Select CPUE variable(s)",
-                     choices = c(numeric_cols(dat$dataset)), multiple = TRUE)
+                     choices = c(numeric_cols(values$dataset)), multiple = TRUE)
     })
     
     output$catch_select <- renderUI({
       selectizeInput(ns("catch"), "Select catch variable(s)",
-                     choices = c(numeric_cols(dat$dataset)), multiple = TRUE)
+                     choices = c(numeric_cols(values$dataset)), multiple = TRUE)
     })
     
     output$date_select <- renderUI({
       selectInput(ns("date"), "Date variable (x-axis)",
-                  choices = c(date_cols(dat$dataset)))
+                  choices = c(date_cols(values$dataset)))
     })
     
     output$grp_select <- renderUI({
       selectizeInput(ns("grp"), "Select group variables (optional)",
-                     choices = c(colnames(dat$dataset)), multiple = TRUE)
+                     choices = c(colnames(values$dataset)), multiple = TRUE)
     })
     
     output$fct_select <- renderUI({
       selectizeInput(ns("fct"), "Split plot by (optional)",
-                     choices = c("year", "month", "week", colnames(dat$dataset)),
+                     choices = c("year", "month", "week", colnames(values$dataset)),
                      multiple = TRUE, 
                      options = list(maxItems = 2,
                                     placeholder = "Limit 2 (facet 1 x facet2)"))
@@ -395,7 +671,7 @@ bycatch_serv <- function(id, dat, project) {
     
     output$filter_UI <- renderUI({
       
-      filter_sliderUI(id, dat$dataset, input$date, input$ftype)
+      filter_sliderUI(id, values$dataset, input$date, input$ftype)
     })
     
     filter_val <- reactive({
@@ -417,72 +693,85 @@ bycatch_serv <- function(id, dat, project) {
     
     output$caption <- renderText({names$names})
     
-    args <- eventReactive(input$run, {
+    by_out <- eventReactive(input$fun_run, {
       
-      bycatch(dat$dataset, project = project(), cpue = input$cpue, catch = input$catch, 
+      bycatch(values$dataset, project = project(), cpue = input$cpue, catch = input$catch, 
               date = input$date, group = input$grp, names = names$names, period = input$period,
               filter_date = input$ftype, filter_value = filter_val(), facet_by = input$fct,
               value = input$value, combine = input$combine, tran = input$tran,
               scale = input$scale, output = input$out, format_tab = input$format)
     })
     
-    tabplot <- eventReactive(input$run, {
+    tabplot <- eventReactive(input$fun_run, {
       
-      tabplot_output(args(), input$out)
+      tabplot_output(by_out(), input$out)
     })
     
     output$output <- renderUI({tabplot()})
+    
+    exp_out <- RexpressionServ("exp", values)
+    output$result <- renderUI({exp_out()})
   })
 }
 
 # Trip Length ====
 
-trip_serv <- function(id, dat, project) {
+trip_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
+    
+    saveOutputServ("saveOut", fun_id = "trip", project = project, 
+                   fun_name = "trip_length", tab_plot = trip_out, 
+                   out = reactive(input$out))
+    
+    closeAppServ("close")
+    
+    refreshServ("refresh", values, project)
+    
+    noteServ("note", "trip")
     
     ns <- session$ns
     
     output$start_select <- renderUI({
       selectInput(ns("start"), "Trip start date",
-                  choices = c(date_cols(dat$dataset)))
+                  choices = c(date_cols(values$dataset)))
     })
     
     output$end_select <- renderUI({
       selectInput(ns("end"), "Trip end date",
-                  choices = c(date_cols(dat$dataset)))
+                  choices = c(date_cols(values$dataset)))
     })
     
     output$catch_select <- renderUI({
       selectizeInput(ns("catch"), "Select catch variable(s) (optional)",
-                     choices = c(numeric_cols(dat$dataset)), multiple = TRUE)
+                     choices = c(numeric_cols(values$dataset)), multiple = TRUE)
     })
     
     output$haul_select <- renderUI({
       selectizeInput(ns("haul"), "Select haul variable (optional)",
-                     choices = c(numeric_cols(dat$dataset)), multiple = TRUE,
+                     choices = c(numeric_cols(values$dataset)), multiple = TRUE,
                      options = list(maxItems = 1))
     })
     
     output$grp_select <- renderUI({
       selectizeInput(ns("grp"), "Group variables (optional)",
-                     choices = c("year", "month", "week", colnames(dat$dataset)), multiple = TRUE)
+                     choices = c("year", "month", "week", colnames(values$dataset)), multiple = TRUE)
     })
     
     output$fct_select <- renderUI({
       selectizeInput(ns("fct"), "Split plot by (optional)",
-                     choices = c("year", "month", "week", colnames(dat$dataset)),
+                     choices = c("year", "month", "week", colnames(values$dataset)),
                      multiple = TRUE, options = list(maxItems = 2, placeholder = "Limit 2 (facet 1 x facet 2)"))
     })
     
     output$kwargs_select <- renderUI({
       selectizeInput(ns("htp_kwargs"), "Columns indentifying unique trips (optional)",
-                     choices = colnames(dat$dataset), multiple = TRUE)
+                     choices = colnames(values$dataset), multiple = TRUE)
     })
     
     output$filter_UI <- renderUI({
       
-      filter_sliderUI(id, dat$dataset, input$start, input$ftype)
+      filter_sliderUI(id, values$dataset, input$start, input$ftype)
     })
     
     filter_val <- reactive({
@@ -490,9 +779,9 @@ trip_serv <- function(id, dat, project) {
       filter_sliderOut(id, input$ftype, input)
     })
     
-    args <- eventReactive(input$run, {
+    trip_out <- eventReactive(input$fun_run, {
       
-      trip_length(dat$dataset, project = project(), start = input$start, end = input$end,
+      trip_length(values$dataset, project = project(), start = input$start, end = input$end,
                   units = input$unit, catch = input$catch, hauls = input$haul,
                   group = input$grp, filter_date = input$ftype, filter_value = filter_val(),
                   facet_by = input$fct, density = input$dens, tran = input$tran,
@@ -501,19 +790,28 @@ trip_serv <- function(id, dat, project) {
                   haul_to_trip = input$haul_trp, input$htp_kwargs)
     })
     
-    tabplot <- eventReactive(input$run, {
+    tabplot <- eventReactive(input$fun_run, {
       
-      tabplot_output(args(), input$out)
+      tabplot_output(trip_out(), input$out)
     })
     
     output$output <- renderUI({tabplot()})
+    
+    exp_out <- RexpressionServ("exp", values)
+    output$result <- renderUI({exp_out()})
   })
 }
 # Fleet Table ====
 
-fleet_table_serv <- function(id, dat, project) {
+fleet_table_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
+    
+    closeAppServ("close")
+    
+    refreshServ("refresh", values, project)
+    
+    noteServ("note", "f_table")
     
     f_r <- reactiveValues()
     empty_row <- data.frame(condition = "enter condition", fleet = "enter fleet name",
@@ -540,6 +838,11 @@ fleet_table_serv <- function(id, dat, project) {
         }
         
         f_r$f_DT <- upload
+        f_r$row <- upload[1, ]
+        
+        for (i in seq_along(f_r$row)) {
+          f_r$row[[i]] <- "enter value"
+        }
       }
     })
     
@@ -584,7 +887,6 @@ fleet_table_serv <- function(id, dat, project) {
     output$f_tab <- DT::renderDataTable(f_r$f_DT, editable  = "all", 
                                         selection = list(target = 'row+column'))
     
-    
     observeEvent(input$colname_btn, {
       req(input$colname)
       names(f_r$f_DT)[input$f_tab_columns_selected] <- input$colname
@@ -592,17 +894,28 @@ fleet_table_serv <- function(id, dat, project) {
     
     observeEvent(input$save, {
       
-      fleet_table(dat$dataset, project = project(), table = f_r$f_DT, save = TRUE)
-      #showNotification("Table saved.", type = 'message', duration = 10)
+      fleet_table(values$dataset, project = project(), table = f_r$f_DT, save = TRUE)
+      showNotification("Table saved.", type = 'message', duration = 10)
     })
+    
+    exp_out <- RexpressionServ("exp", values)
+    output$result <- renderUI({exp_out()})
   })
 }
 
 # Fleet Assign ====
 
-fleet_assign_serv <- function(id, dat, project) {
+fleet_assign_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
+    
+    closeAppServ("close")
+    
+    refreshServ("refresh", values, project)
+    
+    #saveDataTableServ("saveDat", values, project)
+    
+    noteServ("note", "f_assign")
     
     fleet_tab_db <- reactive({
       
@@ -610,7 +923,7 @@ fleet_assign_serv <- function(id, dat, project) {
       
       grep("FleetTable", tables_database(), value = TRUE)
     })
-
+    
     output$available_tabs <- renderUI({
       
       selectInput(session$ns("tab"), "Available fleet tables",
@@ -625,26 +938,40 @@ fleet_assign_serv <- function(id, dat, project) {
     
     output$tab_preview <- DT::renderDT({tab_view()})
     
-    args <- eventReactive(input$run, {
+    fa_out <- eventReactive(input$fun_run, {
       
-      fleet_assign(dat$dataset, project = project(), input$tab, 
+      fleet_assign(values$dataset, project = project(), input$tab, 
                    overlap = input$overlap, format_tab = input$format)
     })
     
-    output$final_tab <- DT::renderDT({args()})
+    output$final_tab <- DT::renderDT({fa_out()})
+    
+    observeEvent(input$saveData, {
+        
+        values$dataset <- fa_out()
+        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+        DBI::dbWriteTable(fishset_db, paste0(project(), 'MainDataTable'), values$dataset, overwrite = TRUE)
+        DBI::dbDisconnect(fishset_db)
+        showNotification('Data saved to FishSET database', type = 'message', duration = 10)
+    })
     
     output$plot <- renderPlot({
       
       if (input$format == "long") {
         
-        ggplot2::ggplot(args(), ggplot2::aes(fleet, fill = fleet)) + ggplot2::geom_bar()
+        ggplot2::ggplot(fa_out(), ggplot2::aes(fleet, fill = fleet)) + 
+          ggplot2::geom_bar() + ggplot2::coord_flip()
         
       } else {
         
-        value <- vapply(args()[tab_view()$fleet], sum, FUN.VALUE = numeric(1))
+        value <- vapply(fa_out()[tab_view()$fleet], sum, FUN.VALUE = numeric(1))
         df <- data.frame(fleet = tab_view()$fleet, value = value)
-        ggplot2::ggplot(df, ggplot2::aes(fleet, value, fill = fleet)) + ggplot2::geom_col()
+        ggplot2::ggplot(df, ggplot2::aes(fleet, value, fill = fleet)) + 
+          ggplot2::geom_col() + ggplot2::coord_flip()
       }
     })
+    
+    exp_out <- RexpressionServ("exp", values)
+    output$result <- renderUI({exp_out()})
   })
 }
