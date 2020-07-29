@@ -11,28 +11,32 @@
 #' database contains the string 'MainDataTable'.
 #' @param project String, name of project.
 #' @param var String, name of variable to plot.
-#' @param type String, type of density plot. Options include \code{"kde"} (kernel density estimate), 
-#'   \code{"ecdf"} (empirical cdf), or \code{"cdf"}.
+#' @param type String, type of density plot. Options include "kde" (kernel density estimate), 
+#'   "ecdf" (empirical cdf), or "cdf".
 #' @param group A grouping variable.
 #' @param date Date variable from \code{dat} used to subset and/or facet the plot by.
-#' @param filter_date The type of filter to apply to table. Options include \code{"year-day"}, 
-#'   \code{"year-week"}, \code{"year-month"}, \code{"year"}, \code{"month"}, \code{"week"}, 
-#'   or \code{"day"}. The argument \code{filter_value} must be provided.
-#' @param filter_value Integer (4 digits if year, 1-2 if day, month, or week). A vector or list
-#'   of values to filter data table by. Use a list if using a two-part filter, e.g. "year-week",
-#'   with the format: \code{list(year, period)}. For example, \code{list(2011:2013, 5:7)}
-#'   will filter the data table from weeks 5 through 7 for years 2011-2013.
+#' @param filter_date The type of filter to apply to table. The "date_range" option will subset 
+#'   the data by two date values entered in \code{filter_val}. Other options include "year-day", 
+#'   "year-week", "year-month", "year", "month", "week", or "day". The argument filter_value must 
+#'   be provided.
+#' @param filter_value String containing a start and end date if using filter_date = "date_range", 
+#'   e.g. c("2011-01-01", "2011-03-15"). If filter_date = "period" or "year-period", use integers 
+#'   (4 digits if year, 1-2 if day, month, or week). Use a list if using a two-part filter, e.g. "year-week",
+#'   with the format \code{list(year, period)} or a vector if using a single period, \code{c(period)}. 
+#'   For example, \code{list(2011:2013, 5:7)} will filter the data table from weeks 5 through 7 for 
+#'   years 2011-2013 if filter_date = "year-week".\code{c(2:5)} will filter the data
+#'   February through May when filter_date = "month". 
 #' @param facet_by Variable name to facet by. This can be a variable that exists in
-#'   the dataset, or a variable created by \code{density_plot()} such as \code{"year"}, 
-#'   \code{"month"}, or \code{"week"}.
+#'   the dataset, or a variable created by \code{density_plot()} such as "year", 
+#'   "month", or "week".
 #' @param combine Logical, whether to combine variables listed in \code{group}.
 #' @param tran String; name of function to transform variable, for example "log" or
 #'   "sqrt".
-#' @param scale Scale argument passed to \code{\link{facet_grid}}. Defaults to \code{"fixed"}. 
-#'   Other options include \code{"free_y"}, \code{"free_x"}, and \code{"free_xy"}.
+#' @param scale Scale argument passed to \code{\link{facet_grid}}. Defaults to "fixed". 
+#'   Other options include "free_y", "free_x", and "free".
 #' @param bw Adjusts KDE bandwidth. Defaults to 1.
 #' @param position The position of the grouped variable for KDE plot. Options include
-#'   \code{"identity"}, \code{"stack"}, and \code{"fill"}.
+#'   "identity", "stack", and "fill".
 #' @return Returns a KDE, empirical CDF, or CDF of a selected variable.
 #'   The data can be filtered by date using two arguments: \code{filter_date} and
 #'   \code{filter_value}. \code{filter_date} specifies how the data should be filtered--
@@ -141,21 +145,32 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, date = N
   }
 
   if (!is.null(filter_date)) {
-    p <- switch(filter_date, "year-month" = c("%Y", "%m"), "year-week" = c("%Y", "%U"),
-      "year-day" = c("%Y", "%j"), "year" = "%Y", "month" = "%m", "week" = "%U",
-      "day" = "%j"
-    )
-
-    if (grepl("-", filter_date)) {
-      den_dat <- den_dat[(as.integer(format(den_dat[[date]], p[1])) %in% filter_value[[1]]) &
-        (as.integer(format(den_dat[[date]], p[2])) %in% filter_value[[2]]), ]
-    } else {
-      den_dat <- den_dat[as.integer(format(den_dat[[date]], p)) %in% filter_value, ]
-    }
-
-    if (nrow(den_dat) == 0) {
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      end <- TRUE
+    
+    if (filter_date != "none") {
+      
+      if (filter_date == "date_range") {
+        
+        den_dat <- den_dat[den_dat[[date]] >= filter_value[1] & den_dat[[date]] <= filter_value[2], ]
+        
+      } else {
+        
+        p <- switch(filter_date, "year-month" = c("%Y", "%m"), "year-week" = c("%Y", "%U"),
+                    "year-day" = c("%Y", "%j"), "year" = "%Y", "month" = "%m", "week" = "%U",
+                    "day" = "%j"
+        )
+        
+        if (grepl("-", filter_date)) {
+          den_dat <- den_dat[(as.integer(format(den_dat[[date]], p[1])) %in% filter_value[[1]]) &
+                             (as.integer(format(den_dat[[date]], p[2])) %in% filter_value[[2]]), ]
+        } else {
+          den_dat <- den_dat[as.integer(format(den_dat[[date]], p)) %in% filter_value, ]
+        }
+        
+        if (nrow(den_dat) == 0) {
+          warning("Filtered data table has zero rows. Check filter parameters.")
+          end <- TRUE
+        }
+      }
     }
   }
 
@@ -174,7 +189,7 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, date = N
         ggplot2::labs(
           title = paste("KDE of", var),
           x = if (tran != "identity") paste0(var, " (", tran, ")") else var,
-          caption = paste("kernel bandwidth:", bw)
+          caption = paste("kernel bindwidth:", bw)
         ) +
         fishset_theme +
         ggplot2::theme(legend.position = "bottom")

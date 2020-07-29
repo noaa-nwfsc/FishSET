@@ -45,6 +45,31 @@ yearRange <- function(dat, yr, type) {
   }
 }
 
+validate_date <- function(date = NULL, ftype = NULL, fct = NULL, grp = NULL) {
+  
+  if (ftype != "none" & is.null(date)) {
+    
+    validate("Please enter a date variable.")
+    
+  }
+  
+  if (!is.null(fct)) {
+    
+    if (fct %in% c("week", "month", "year") & is.null(date)) {
+      
+      validate("Please enter a date variable.")
+    }
+  }
+  
+  if (!is.null(grp)) {
+    
+    if (grp %in% c("week", "month", "year") & is.null(date)) {
+      
+      validate("Please enter a date variable.")
+    }
+  }
+}
+
 tabplot_output <- function(out, out_type) {
   
   if (out_type == "plot") {
