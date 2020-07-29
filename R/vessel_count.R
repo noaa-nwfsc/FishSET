@@ -14,13 +14,17 @@
 #'   can be entered, the first is passed to "color" and second to "linetype". Only one 
 #'   grouping variable can be used for barplots, which is passed to "fill". When \code{combine = TRUE} 
 #'   all variables in \code{group} will be joined. 
-#' @param filter_date The type of filter to apply to table. Options include \code{"year-period"}, 
-#'   \code{"year-month"}, \code{"year"}, \code{"month"}, or \code{"period"}. The 
-#'   argument \code{filter_value} must be provided. 
-#' @param filter_value Integer (4 digits if year, 1-2 if month). The year, month,
-#'   or year-month to filter data table by. Use a list if using "year-month"
-#'   with the format: \code{list(year(s), month(s))}. For example, \code{list(2011:2013, 5:7)} 
-#'   will filter the data table from May to July for years 2011-2013.
+#' @param filter_date The type of filter to apply to table. The "date_range" option will subset 
+#'   the data by two date values entered in \code{filter_val}. Other options include "year-day", 
+#'   "year-week", "year-month", "year", "month", "week", or "day". The argument filter_value must 
+#'   be provided. 
+#' @param filter_value String containing a start and end date if using filter_date = "date_range", 
+#'   e.g. c("2011-01-01", "2011-03-15"). If filter_date = "period" or "year-period", use integers 
+#'   (4 digits if year, 1-2 if day, month, or week). Use a list if using a two-part filter, e.g. "year-week",
+#'   with the format \code{list(year, period)} or a vector if using a single period, \code{c(period)}. 
+#'   For example, \code{list(2011:2013, 5:7)} will filter the data table from weeks 5 through 7 for 
+#'   years 2011-2013 if filter_date = "year-week".\code{c(2:5)} will filter the data
+#'   February through May when filter_date = "month".
 #' @param facet_by Variable name to facet by. Accepts up to two variables. These can be 
 #'   variables that exist in the dataset, or a variable created by \code{vessel_count()} such 
 #'   as \code{"year"} or \code{"month"}. The first variable is facetted by row and the 
@@ -182,24 +186,34 @@ vessel_count <- function(dat, project, v_id, date, period = "month", group = NUL
     
     if (!is.null(filter_date)) {
         
-        pf <- switch(filter_date, "year-month" = c("%Y", "%m"), "year-week" = c("%Y", "%U"),
-                     "year-day" = c("%Y", "%j"), "year" = "%Y", "month" = "%m", "week" = "%U",
-                     "day" = "%j")
-        
-        if (grepl("-", filter_date)) {
+        if (filter_date != "none") {
             
-            dataset <- dataset[(as.integer(format(dataset[[date]], pf[1])) %in% filter_value[[1]]) & 
-                                   (as.integer(format(dataset[[date]], pf[2])) %in% filter_value[[2]]), ]
-            
-        } else {
-            
-            dataset <- dataset[as.integer(format(dataset[[date]], pf)) %in% filter_value, ]
-        }
-        
-        if (nrow(dataset) == 0) {
-            
-            warning("Filtered data table has zero rows. Check filter parameters.")
-            end <- TRUE
+            if (filter_date == "date_range") {
+                
+                dataset <- dataset[dataset[[date]] >= filter_value[1] & dataset[[date]] <= filter_value[2], ]
+                
+            } else {
+                
+                pf <- switch(filter_date, "year-month" = c("%Y", "%m"), "year-week" = c("%Y", "%U"),
+                             "year-day" = c("%Y", "%j"), "year" = "%Y", "month" = "%m", "week" = "%U",
+                             "day" = "%j")
+                
+                if (grepl("-", filter_date)) {
+                    
+                    dataset <- dataset[(as.integer(format(dataset[[date]], pf[1])) %in% filter_value[[1]]) & 
+                                           (as.integer(format(dataset[[date]], pf[2])) %in% filter_value[[2]]), ]
+                    
+                } else {
+                    
+                    dataset <- dataset[as.integer(format(dataset[[date]], pf)) %in% filter_value, ]
+                }
+                
+                if (nrow(dataset) == 0) {
+                    
+                    warning("Filtered data table has zero rows. Check filter parameters.")
+                    end <- TRUE
+                }
+            }
         }
     }
     

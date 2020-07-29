@@ -10,12 +10,17 @@
 #'   variables.
 #' @param k The width of the window.
 #' @param fun The function to be applied to window. Defaults to \code{mean}.
-#' @param filter_date Whether to filter data table by \code{"year"}, \code{"month"}, or
-#'   \code{"year-month"}. \code{filter_value} must be provided.
-#' @param filter_value Integer (4 digits if year, 1-2 if month). The year, month,
-#'   or year-month to filter data table by. Use a list if using "year-month"
-#'   with the format: \code{list(year(s), month(s))}. For example, \code{list(2011:2013, 5:7)}
-#'   will filter the data table from May to July for years 2011-2013.
+#' @param filter_date The type of filter to apply to table. The "date_range" option will subset 
+#'   the data by two date values entered in \code{filter_val}. Other options include "year-day", 
+#'   "year-week", "year-month", "year", "month", "week", or "day". The argument filter_value must 
+#'   be provided. 
+#' @param filter_value String containing a start and end date if using filter_date = "date_range", 
+#'   e.g. c("2011-01-01", "2011-03-15"). If filter_date = "period" or "year-period", use integers 
+#'   (4 digits if year, 1-2 if day, month, or week). Use a list if using a two-part filter, e.g. "year-week",
+#'   with the format \code{list(year, period)} or a vector if using a single period, \code{c(period)}. 
+#'   For example, \code{list(2011:2013, 5:7)} will filter the data table from weeks 5 through 7 for 
+#'   years 2011-2013 if filter_date = "year-week".\code{c(2:5)} will filter the data
+#'   February through May when filter_date = "month".
 #' @param facet_by Variable name to facet by. This can be a variable that exists in
 #'   the dataset, or a variable created by \code{roll_catch()} such as \code{"year"},
 #'   \code{"month"}, or \code{"species"} if more than one variable is entered in \code{catch}.
@@ -76,9 +81,9 @@ roll_catch <- function(dat, project, catch, date, group = NULL, k = 10,
     facet <- NULL
   }
   
-  full_dates <- seq.Date( from = min(dataset[[date]], na.rm = TRUE),
-                          to = max(dataset[[date]], na.rm = TRUE),
-                          by = "day")
+  full_dates <- seq.Date(from = min(dataset[[date]], na.rm = TRUE),
+                         to = max(dataset[[date]], na.rm = TRUE),
+                         by = "day")
   
   full_dates <- zoo::zoo(0, full_dates)
   
@@ -171,24 +176,34 @@ roll_catch <- function(dat, project, catch, date, group = NULL, k = 10,
   
   if (!is.null(filter_date)) {
     
-    pf <- switch(filter_date, "year-month" = c("%Y", "%m"), "year-week" = c("%Y", "%U"),
-                 "year-day" = c("%Y", "%j"), "year" = "%Y", "month" = "%m", "week" = "%U",
-                 "day" = "%j")
-    
-    if (grepl("-", filter_date)) {
+    if (filter_date != "none") {
       
-      rz <- rz[(as.integer(format(rz[[date]], pf[1])) %in% filter_value[[1]]) & 
-                 (as.integer(format(rz[[date]], pf[2])) %in% filter_value[[2]]), ]
-      
-    } else {
-      
-      rz <- rz[as.integer(format(rz[[date]], pf)) %in% filter_value, ]
-    }
-    
-    if (nrow(rz) == 0) {
-      
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      end <- TRUE
+      if (filter_date == "date_range") {
+        
+        rz <- rz[rz[[date]] >= filter_value[1] & rz[[date]] <= filter_value[2], ]
+        
+      } else {
+        
+        pf <- switch(filter_date, "year-month" = c("%Y", "%m"), "year-week" = c("%Y", "%U"),
+                     "year-day" = c("%Y", "%j"), "year" = "%Y", "month" = "%m", "week" = "%U",
+                     "day" = "%j")
+        
+        if (grepl("-", filter_date)) {
+          
+          rz <- rz[(as.integer(format(rz[[date]], pf[1])) %in% filter_value[[1]]) & 
+                     (as.integer(format(rz[[date]], pf[2])) %in% filter_value[[2]]), ]
+          
+        } else {
+          
+          rz <- rz[as.integer(format(rz[[date]], pf)) %in% filter_value, ]
+        }
+        
+        if (nrow(rz) == 0) {
+          
+          warning("Filtered data table has zero rows. Check filter parameters.")
+          end <- TRUE
+        }
+      }
     }
   }
   
