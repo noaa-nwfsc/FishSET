@@ -4,7 +4,7 @@ outlier_table <- function(dat, project, x) {
   #' Evaluate outliers in a table format
   #'
   #' @param dat Primary data containing information on hauls or trips.
-  #' Table in FishSET database contains the string 'MainDataTable'.
+  #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
   #' @param x Variable in \code{dat} to check for outliers.
   #' @importFrom stats quantile sd var na.pass model.matrix
@@ -121,12 +121,12 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FA
   #'
   #' Visualize spread of data and impact of outlier removal options.
   #' @param dat Primary data containing information on hauls or trips.
-  #' Table in FishSET database contains the string 'MainDataTable'.
+  #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
   #' @param x Variable in \code{dat} to check for outliers.
   #' @param dat.remove Defines method to subset the data. Choices include: \code{"none"}, \code{"5_95_quant"},
   #' \code{"25_75_quant"}, \code{"mean_2SD"}, \code{"median_2SD"}, \code{"mean_3SD"}, \code{"median_3SD"}.
-  #'    See the \emph{Details} sections for more information.
+  #'    See the \emph{Details} section for more information.
   #' @param x.dist Distribution of the data. Choices include: \code{"normal"}, \code{"lognormal"},
   #'  \code{"exponential"}, \code{"Weibull"}, \code{"Poisson"}, \code{"negative binomial"}.
   #' @param output.screen Logical, if true, return plots to the screen. If false, returns plot to the 'inst/output' folder as a png file.
@@ -135,7 +135,7 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FA
   #' @importFrom stats dnorm dpois dweibull rnorm dbinom dlnorm dexp dnbinom
   # @importFrom ggpubr annotate_figure text_grob
   #' @importFrom  ggplot2 ggplot geom_point aes_string theme geom_histogram labs aes geom_abline geom_abline
-  #' @details  The function returns three plots, the data, a probability plot, and a Q-Q plot. The data plot is the value of
+  #' @details  The function returns three plots: the data, a probability plot, and a Q-Q plot. The data plot is the value of
   #'  \code{x} against row number. Red points are all the data without any points removed.
   #'  The blue points are the subset of the data. If \code{dat.remove} is \code{"none"}, then only blue points will be shown.
   #'  The probability plot is a histogram of the data with the fitted probability distribution
@@ -331,7 +331,7 @@ outlier_remove <- function(dat, x, dat.remove = "none", remove = T, over_write =
   #'
   #' Remove outliers based on method.
   #' @param dat Primary data containing information on hauls or trips.
-  #' Table in FishSET database contains the string 'MainDataTable'.
+  #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param x Variable in \code{dat} containing potential outliers.
   #' @param dat.remove Defines method to subset the data. Choices include: \code{"none"},
   #'    \code{"5_95_quant"}, \code{"25_75_quant"}, \code{"mean_2SD"}, \code{"median_2SD"}, \code{"mean_3SD"}, \code{"median_3SD"}.
@@ -339,7 +339,7 @@ outlier_remove <- function(dat, x, dat.remove = "none", remove = T, over_write =
   #'    with values removed outside the \code{dat.remove} expression, is returned.
   #' @param over_write Logical, If TRUE, saves data over previously saved data table in the FishSET database.
   #' @export outlier_remove
-  #' @return Returns the modified primary dataset. Modified dataset will be saved to FishSET database.
+  #' @return Returns the modified primary dataset. Modified dataset will be saved to the FishSET database.
   #' @details   The \code{dat.remove} choices are:
   #'  \itemize{
   #'  \item{none:        No data points are removed}

@@ -7,9 +7,8 @@ nan_identify <- function(dat) {
   #' @description Check whether any columns in the primary dataset contain NAs or NaNs. 
   #'   Returns column names containing NAs or NaNs.
   #' @param dat Primary data containing information on hauls or trips. 
-  #' Table in FishSET database contains the string 'MainDataTable'.
+  #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @keywords NaN, NA
-  #' @description Check whether any columns in the data frame contain NAs or NaNs. Returns column names containing NAs or NaNs.
   #' @return Returns names of columns containing NAs or NaNs, if any.
   #' @export nan_identify
   #' @examples
@@ -64,7 +63,7 @@ nan_filter <- function(dat, x, replace = F, remove = F, rep.value = NA, over_wri
   #'
   #' Remove or replace NaNs in primary dataset.
   #'
-  #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+  #' @param dat Primary data containing information on hauls or trips. Table in the FishSET database contains the string 'MainDataTable'.
   #' @param x  Character string of variables to remove or replace NaNs.
   #' @param replace Logical, If TRUE, NaNs are replaced. Defaults to FALSE.
   #' @param remove  Logical, if TRUE, removes the entire row of the dataset where NaN is present? Defaults to FALSE.

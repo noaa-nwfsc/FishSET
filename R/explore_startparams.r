@@ -8,7 +8,7 @@ explore_startparams <- function(project, space, startsr, dev) {
   #' @param project String, name of project.
   #' @param space List of length 1 or length equal to the number of models to be evaluated.
   #'   \code{space} is the number of starting value permutations to test (the size of
-  #'   the space to explore). The greater the \code{dev} argument the larger the
+  #'   the space to explore). The greater the \code{dev} argument, the larger the
   #'   \code{space} argument should be.
   #' @param startsr List, average starting value parameters for
   #'     revenue/location-specific covariates then cost/distance. The best
@@ -25,7 +25,7 @@ explore_startparams <- function(project, space, startsr, dev) {
   # @param distance Data corresponding to distance.
   # @param otherdat Other data (as a list, corresponding to the likelihood function you want to test).
   #' @details Function is used to identify better starting parameters when
-  #'   convergence is an issue. For more details on the liklihood functions or data see \code{\link{make_model_design}}.
+  #'   convergence is an issue. For more details on the likelihood functions or data, see \code{\link{make_model_design}}.
   #'   Function calls the model design file and should be used after the \code{\link{make_model_design}}
   #'   function is called. \cr
   #'   If more than one model is defined in the model design file, then starting parameters

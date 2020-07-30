@@ -103,7 +103,7 @@ unique_filter <- function(dat, project, remove = FALSE) {
   #' Check for and remove non-unique rows from primary dataset.
   #'
   #' @param dat Primary data containing information on hauls or trips.
-  #' Table in FishSET database contains the string 'MainDataTable'.
+  #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
   #' @param remove Logical, if TRUE removes non-unique rows. Defaults to FALSE.
   #' @details Output is determined by \code{remove}. If \code{remove} is TRUE then
@@ -161,7 +161,7 @@ empty_vars_filter <- function(dat, project, remove = FALSE) {
   #' Check for and remove empty variables.
   #'
   #' @param dat Primary data containing information on hauls or trips.
-  #' Table in FishSET database contains the string 'MainDataTable'.
+  #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
   #' @param remove Logical, whether to remove empty variables. Defaults to FALSE.
   #' @details Function checks for empty variables and prints an outcome message to the console. 

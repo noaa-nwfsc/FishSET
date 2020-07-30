@@ -156,11 +156,11 @@ fishset_compare <- function(x, y, compare = c(TRUE, FALSE)) {
 }
 
 load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = NULL) {
-  #' Load, parse, and save data into FishSET database
+  #' Load, parse, and save data to the FishSET database
   #'
-  #' Load, parse, and save primary dataset into FishSET database.
+  #' Load, parse, and save primary dataset to the FishSET database.
   #' @param dat Primary data containing information on hauls or trips.
-  #'   Table in FishSET database contains the string 'MainDataTable'.
+  #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param over_write Logical, If TRUE, saves data over previously saved data table in the FishSET database.
   #' @param project String, name of project.
   #' @param compare Logical, whether to compare new data frame to previously saved data frame \code{y}.
@@ -168,10 +168,10 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
   #' @importFrom jsonlite toJSON
   #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
   #' @export
-  #' @details Runs the \code{fishset_compare} function if \code{compare}is TRUE, calls the
+  #' @details Runs the \code{fishset_compare} function if \code{compare}is TRUE and calls the
   #'  \code{\link{data_verification}} function to check for common data issues and that latitude
-  #'  and longitude are defined. The index table that contains information for each variable on units,
-  #'  data format, and specialized variable is then generated. Finally, the datasets (main and index tables)
+  #'  and longitude are defined. Then generates an index table that contains units,
+  #'  data format, and information on specialized variables. Finally, the datasets (main and index tables)
   #'  are saved in the FishSET database as raw and working tables. In both cases, the table name is the \code{project}
   #'  and the table type, 'MainDataTable' or 'MainDataTableInfo'. Date is also attached to the name for the
   #'  raw data. The main data is also loaded into the working environment as ‘projectMainDataTable’.
@@ -353,7 +353,7 @@ load_port <- function(dat, port_name, over_write = TRUE, project = NULL, compare
   #'
   #' @param dat Dataset containing port data. At a minimum, must include three columns, the port names, and the latitude and longitude of ports.
   #' @param port_name Variable containing port names. Names should match port names in primary dataset.
-  #' @param over_write Logical, if TRUE, saves over data table previously saved in FishSET database.
+  #' @param over_write Logical, if TRUE, saves over data table previously saved in the FishSET database.
   #' @param project String, name of project.
   #' @param compare Logical, should new data be compared to previously saved data frame \code{y}.
   #' @param y Name of previously saved table in FishSET database. \code{y} must be defined if \code{compare} is TRUE.
@@ -424,9 +424,9 @@ load_aux <- function(dat, x, over_write = TRUE, project = NULL) {
   #' Load, parse, and save auxiliary data to FishSET database
   #'
   #' Auxiliary data is additional data that connects the primary dataset.
-  #' Function pulls the data, parses it, and then and saves the data to FishSET database.
+  #' Function pulls the data, parses it, and then and saves the data to the FishSET database.
   #' @param dat Primary data containing information on hauls or trips.
-  #'   Table in FishSET database contains the string 'MainDataTable'.
+  #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param x Name of auxiliary data frame to be saved.
   #' @param over_write Logical, If TRUE, saves data over previously
   #'   saved data table in the FishSET database.
@@ -435,7 +435,7 @@ load_aux <- function(dat, x, over_write = TRUE, project = NULL) {
   #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
   #' @export
   #' @details Auxiliary data is any additional data required beyond the primary data and the port data.
-  #'   Auxiliary data can be any data than can be merged with the primary dataset (ex. prices by date, vessel
+  #'   Auxiliary data can be any data that can be merged with the primary dataset (ex. prices by date, vessel
   #'   characteristics, or fishery season). The auxiliary data does not have to be at a haul or trip level
   #'   but must contain a variable to connect the auxiliary data to the primary dataset. The function checks
   #'  that at least one column name of the auxiliary data matches a column name in the primary dataset. Further

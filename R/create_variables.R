@@ -64,13 +64,13 @@ cpue <- function(dat, xWeight, xTime, name = "cpue") {
 dummy_num <- function(dat, var, value, opts = "more_less", name = "dummy_num") {
   #' Create a dummy vector from numeric characterization of variable
   #' @param dat Primary data containing information on hauls or trips.
-  #'   Table in FishSET database contains the string 'MainDataTable'.
+  #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param var Variable in \code{dat} to create dummy variable from.
   #' @param value String, value to set dummy variable by. If \code{var} is a date, value should be a year,
   #'   If \code{var} is a factor, value should be a factor level. If \code{var} is numeric, value should be a single
   #'   number or range of numbers [use c(1,5)].
   #' @param opts String, how dummy variable should be defined. Choices are \code{"x_y"} and \code{"more_less’"}. For \code{"x_y"}, each
-  #'   element of \code{var} is set to 1 if the elemant matches \code{value}, otherwise 0.
+  #'   element of \code{var} is set to 1 if the element matches \code{value}, otherwise 0.
   #'   For \code{"more_less"}, each element of \code{var} less than \code{value} is set to 0 and all elements greater than
   #'   \code{vrlue} set to 1. If \code{var} is a factor, then elements that match value will be set to 1 and all other
   #'   elements set to 0. Default is set to \code{"more_less"}.
@@ -78,8 +78,8 @@ dummy_num <- function(dat, var, value, opts = "more_less", name = "dummy_num") {
   #' @details For date variables, the dummy variable is defined by a date (year) and may be either year \code{x} versus all
   #'   other years (\code{"x_y"}) or before vs after year \code{x} (\code{"more_less"}). Use this function to create a variable defining whether
   #'   or not a policy action had been implemented. \cr
-  #'   Example: before vs. after a 2008 ammendment: \cr
-  #'   \code{dummy_num('pollockMainDataTable', 'Haul_date', 2008, 'more_less', 'ammend08')} \cr\cr
+  #'   Example: before vs. after a 2008 amendment: \cr
+  #'   \code{dummy_num('pollockMainDataTable', 'Haul_date', 2008, 'more_less', 'amend08')} \cr\cr
   #'
   #'  For factor variables, both choices in \code{opts} compare selected factor level(s) against all other factor levels.\cr
   #'  Example: Fishers targeting pollock vs. another species:  \cr
@@ -92,7 +92,7 @@ dummy_num <- function(dat, var, value, opts = "more_less", name = "dummy_num") {
   #' @export
   #' @examples
   #' \dontrun{
-  #' pollockMainDataTable <- dummy_num(pollockMainDataTable, 'Haul_date', 2008, 'more_less', 'ammend80')
+  #' pollockMainDataTable <- dummy_num(pollockMainDataTable, 'Haul_date', 2008, 'more_less', 'amend80')
   #' }
 
 
@@ -133,7 +133,7 @@ dummy_num <- function(dat, var, value, opts = "more_less", name = "dummy_num") {
 #' Create dummy variable
 dummy_var <- function(dat, DumFill = "TRUE", name = "dummy_var") {
   #' @param dat Primary data containing information on hauls or trips.
-  #' Table in FishSET database contains the string 'MainDataTable'.
+  #' Table in the FishSET database contains the string 'MainDataTable'.
   #' @param DumFill Fill the dummy variable with TRUE or FALSE
   #' @param name String, name of created dummy variable. Defaults to name of the function if not defined.
   #' @return Primary dataset with dummy variable added.
