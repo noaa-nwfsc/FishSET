@@ -237,15 +237,35 @@ density_serv <- function(id, values, project) {
     
     output$filter_UI <- renderUI({
       
-      filter_sliderUI(id, values$dataset, input$date, input$ftype)
+      if (input$ftype == "date_range") {
+        
+        dateRangeInput(ns("date_range"), label = "Date range")
+        
+      } else if (!(input$ftype %in% c("date_range", "none"))) {
+        
+        filter_sliderUI(id, values$dataset, input$date, input$ftype)
+      }
     })
     
     filter_val <- reactive({
-      
-      filter_sliderOut(id, input$ftype, input)
+
+      if (input$ftype == "date_range") {
+        
+        return(input$date_range)
+        
+      } else if (!(input$ftype %in% c("none", "date_range"))) {
+        
+        filter_sliderOut(id, input$ftype, input)
+        
+      } else if (input$ftype == "none") {
+        
+        return(NULL)
+      }
     })
     
     den_out <- eventReactive(input$fun_run, {
+      
+      validate_date(input$date, input$ftype, input$fct, input$grp)
       
       density_plot(values$dataset, project = project(), var = input$var, type = input$type, group = input$grp,
                    date = input$date, filter_date = input$ftype, filter_value = filter_val(), 
@@ -302,15 +322,35 @@ vessel_serv <- function(id, values, project) {
     
     output$filter_UI <- renderUI({
       
-      filter_sliderUI(id, values$dataset, input$date, input$ftype)
+      if (input$ftype == "date_range") {
+        
+        dateRangeInput(ns("date_range"), label = "Date range")
+        
+      } else if (!(input$ftype %in% c("date_range", "none"))) {
+        
+        filter_sliderUI(id, values$dataset, input$date, input$ftype)
+      }
     })
     
     filter_val <- reactive({
       
-      filter_sliderOut(id, input$ftype, input)
+      if (input$ftype == "date_range") {
+        
+        return(input$date_range)
+        
+      } else if (!(input$ftype %in% c("none", "date_range"))) {
+        
+        filter_sliderOut(id, input$ftype, input)
+        
+      } else if (input$ftype == "none") {
+        
+        return(NULL)
+      }
     })
     
     v_out <- eventReactive(input$fun_run, {
+      
+      validate_date(input$date, input$ftype, input$fct, input$grp)
       
       vessel_count(values$dataset, project = project(), v_id = input$var, date = input$date,
                    period = input$period, group = input$grp, filter_date = input$ftype,
@@ -376,15 +416,38 @@ species_serv <- function(id, values, project) {
     
     output$filter_UI <- renderUI({
       
-      filter_sliderUI(id, values$dataset, input$date, input$ftype)
+      if (input$ftype == "date_range") {
+        
+        dateRangeInput(ns("date_range"), label = "Date range")
+        
+      } else if (!(input$ftype %in% c("date_range", "none"))) {
+        
+        filter_sliderUI(id, values$dataset, input$date, input$ftype)
+      }
     })
     
     filter_val <- reactive({
       
-      filter_sliderOut(id, input$ftype, input)
+      if (input$ftype == "date_range") {
+        
+        return(input$date_range)
+        
+      } else if (!(input$ftype %in% c("none", "date_range"))) {
+        
+        filter_sliderOut(id, input$ftype, input)
+        
+      } else if (input$ftype == "none") {
+        
+        return(NULL)
+      }
     })
     
     spec_out <- eventReactive(input$fun_run, {
+      
+      validate(need(input$date, "Please select a date variable."),
+               need(input$var, "Please select a species catch variable."))
+      
+      validate_date(input$date, input$ftype, input$fct, input$grp)
       
       species_catch(values$dataset, project = project(), species = input$var, date = input$date,
                     period = input$period, fun = input$fun, group = input$grp,
@@ -399,8 +462,6 @@ species_serv <- function(id, values, project) {
       
       tabplot_output(spec_out(), input$out)
     })
-    
-    output$filter_out <- renderText({filter_val()})
     
     output$output <- renderUI({tabplot()})
     
@@ -453,15 +514,38 @@ roll_serv <- function(id, values, project) {
     
     output$filter_UI <- renderUI({
       
-      filter_sliderUI(id, values$dataset, input$date, input$ftype)
+      if (input$ftype == "date_range") {
+        
+        dateRangeInput(ns("date_range"), label = "Date range")
+        
+      } else if (!(input$ftype %in% c("date_range", "none"))) {
+        
+        filter_sliderUI(id, values$dataset, input$date, input$ftype)
+      }
     })
     
     filter_val <- reactive({
       
-      filter_sliderOut(id, input$ftype, input)
+      if (input$ftype == "date_range") {
+        
+        return(input$date_range)
+        
+      } else if (!(input$ftype %in% c("none", "date_range"))) {
+        
+        filter_sliderOut(id, input$ftype, input)
+        
+      } else if (input$ftype == "none") {
+        
+        return(NULL)
+      }
     })
     
     roll_out <- eventReactive(input$fun_run, {
+      
+      validate(need(input$date, "Please select a date variable."),
+               need(input$var, "Please select a species catch variable."))
+      
+      validate_date(input$date, input$ftype, input$fct, input$grp)
       
       roll_catch(values$dataset, project = project(), catch = input$var, date = input$date,
                  fun = input$fun, group = input$grp, filter_date = input$ftype,
@@ -525,15 +609,38 @@ weekly_catch_serv <- function(id, values, project) {
     
     output$filter_UI <- renderUI({
       
-      filter_sliderUI(id, values$dataset, input$date, input$ftype)
+      if (input$ftype == "date_range") {
+        
+        dateRangeInput(ns("date_range"), label = "Date range")
+        
+      } else if (!(input$ftype %in% c("date_range", "none"))) {
+        
+        filter_sliderUI(id, values$dataset, input$date, input$ftype)
+      }
     })
     
     filter_val <- reactive({
       
-      filter_sliderOut(id, input$ftype, input)
+      if (input$ftype == "date_range") {
+        
+        return(input$date_range)
+        
+      } else if (!(input$ftype %in% c("none", "date_range"))) {
+        
+        filter_sliderOut(id, input$ftype, input)
+        
+      } else if (input$ftype == "none") {
+        
+        return(NULL)
+      }
     })
     
     wc_out <- eventReactive(input$fun_run, {
+      
+      validate(need(input$date, "Please select a date variable."),
+               need(input$var, "Please select a species catch variable."))
+      
+      validate_date(input$date, input$ftype, input$fct, input$grp)
       
       weekly_catch(values$dataset, project = project(), species = input$var, date = input$date,
                    fun = input$fun, group = input$grp, filter_date = input$ftype,
@@ -596,15 +703,38 @@ weekly_effort_serv <- function(id, values, project) {
     
     output$filter_UI <- renderUI({
       
-      filter_sliderUI(id, values$dataset, input$date, input$ftype)
+      if (input$ftype == "date_range") {
+        
+        dateRangeInput(ns("date_range"), label = "Date range")
+        
+      } else if (!(input$ftype %in% c("date_range", "none"))) {
+        
+        filter_sliderUI(id, values$dataset, input$date, input$ftype)
+      }
     })
     
     filter_val <- reactive({
       
-      filter_sliderOut(id, input$ftype, input)
+      if (input$ftype == "date_range") {
+        
+        return(input$date_range)
+        
+      } else if (!(input$ftype %in% c("none", "date_range"))) {
+        
+        filter_sliderOut(id, input$ftype, input)
+        
+      } else if (input$ftype == "none") {
+        
+        return(NULL)
+      }
     })
     
     we_out <- eventReactive(input$fun_run, {
+      
+      validate(need(input$date, "Please select a date variable."),
+               need(input$var, "Please select a species catch variable."))
+      
+      validate_date(input$date, input$ftype, input$fct, input$grp)
       
       weekly_effort(values$dataset, project = project(), cpue = input$var, date = input$date,
                     group = input$grp, filter_date = input$ftype,filter_value = filter_val(),
@@ -671,12 +801,30 @@ bycatch_serv <- function(id, values, project) {
     
     output$filter_UI <- renderUI({
       
-      filter_sliderUI(id, values$dataset, input$date, input$ftype)
+      if (input$ftype == "date_range") {
+        
+        dateRangeInput(ns("date_range"), label = "Date range")
+        
+      } else if (!(input$ftype %in% c("date_range", "none"))) {
+        
+        filter_sliderUI(id, values$dataset, input$date, input$ftype)
+      }
     })
     
     filter_val <- reactive({
       
-      filter_sliderOut(id, input$ftype, input)
+      if (input$ftype == "date_range") {
+        
+        return(input$date_range)
+        
+      } else if (!(input$ftype %in% c("none", "date_range"))) {
+        
+        filter_sliderOut(id, input$ftype, input)
+        
+      } else if (input$ftype == "none") {
+        
+        return(NULL)
+      }
     })
     
     names <- reactiveValues(names = NULL)
@@ -694,6 +842,10 @@ bycatch_serv <- function(id, values, project) {
     output$caption <- renderText({names$names})
     
     by_out <- eventReactive(input$fun_run, {
+      
+      validate(need(input$date, "Please select a date variable."))
+      
+      validate_date(input$date, input$ftype, input$fct, input$grp)
       
       bycatch(values$dataset, project = project(), cpue = input$cpue, catch = input$catch, 
               date = input$date, group = input$grp, names = names$names, period = input$period,
@@ -771,15 +923,36 @@ trip_serv <- function(id, values, project) {
     
     output$filter_UI <- renderUI({
       
-      filter_sliderUI(id, values$dataset, input$start, input$ftype)
+      if (input$ftype == "date_range") {
+        
+        dateRangeInput(ns("date_range"), label = "Date range")
+        
+      } else if (!(input$ftype %in% c("date_range", "none"))) {
+        
+        filter_sliderUI(id, values$dataset, input$date, input$ftype)
+      }
     })
     
     filter_val <- reactive({
       
-      filter_sliderOut(id, input$ftype, input)
+      if (input$ftype == "date_range") {
+        
+        return(input$date_range)
+        
+      } else if (!(input$ftype %in% c("none", "date_range"))) {
+        
+        filter_sliderOut(id, input$ftype, input)
+        
+      } else if (input$ftype == "none") {
+        
+        return(NULL)
+      }
     })
     
     trip_out <- eventReactive(input$fun_run, {
+      
+      validate(need(input$start, "Please select a start date variable."),
+               need(input$end, "Please select an end date variable."))
       
       trip_length(values$dataset, project = project(), start = input$start, end = input$end,
                   units = input$unit, catch = input$catch, hauls = input$haul,
