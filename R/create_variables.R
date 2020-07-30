@@ -3,7 +3,7 @@
 ## --- CPUE ----##
 #' Create catch per unit effort variable
 #' 
-#' @description Add catch per unit effort variable to the primary dataset. Catch should be a weight variable 
+#' @description Add catch per unit effort (CPUE) variable to the primary dataset. Catch should be a weight variable 
 #'   but can be a count. Effort should be in a duration of time, such as days, hours, or minutes.
 #'
 cpue <- function(dat, xWeight, xTime, name = "cpue") {
@@ -267,7 +267,9 @@ bin_var <- function(dat, project, var, br, name, labs = NULL, ...) {
   #' @param name Variable name to return. Defaults to `bin`.
   #' @param labs A character string of category labels.
   #' @param ... Additional arguments passed to \code{\link{cut}}.
-  #' @details Function adds a new factor variable, labeled by name, to the primary dataset. The numeric variable is divided into equal sized groups if the length of \code{br} is one and into intervals if the length of \code{br} is greater than one.
+  #' @details Function adds a new factor variable, labeled by name, to the primary dataset. The numeric variable 
+  #' is divided into equal sized groups if the length of \code{br} is equal to one and into intervals if the 
+  #' length of \code{br} is greater than one.
   #' @export
   #' @return Returns the primary dataset with binned variable added.
   #' @examples
@@ -307,14 +309,15 @@ bin_var <- function(dat, project, var, br, name, labs = NULL, ...) {
 create_var_num <- function(dat, x, y, method, name = "create_var_num") {
   #' @description Creates a new variable based on the arithmetic operation between two variables.  Function is useful for creating rate variables or the summation of two related variables.
   #' @param dat Primary data containing information on hauls or trips.
-  #' Table in FishSET database contains the string 'MainDataTable'.
+  #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param x Variable in \code{dat}. Variable will be the numerator if \code{method} is division.
   #' @param y Variable  in \code{dat}. Variable will be the denominator if \code{method} is division.
   #' @param method String, arithmetic expression. Options include: \code{"sum"}, addition (\code{"add"}),
   #' subtraction (\code{"sub"}), multiplication (\code{"mult"}), and division (\code{"div"}).
   #' @param name String, name of created vector. Defaults to name of the function if not defined.
   #' @export create_var_num
-  #' @details Creates a new numeric variable based on defined arithmetic expression \code{method}. New variable is added to the primary dataset.
+  #' @details Creates a new numeric variable based on the defined arithmetic expression \code{method}. 
+  #'   New variable is added to the primary dataset.
   #' @return Returns primary dataset with new variable added.
   #' @examples
   #' \dontrun{
@@ -357,18 +360,18 @@ create_var_num <- function(dat, x, y, method, name = "create_var_num") {
 ## ---- Spatial  Variables ----##
 #' Calculate haul midpoint latitude and longitude variables
 create_mid_haul <- function(dat, start = c("lon", "lat"), end = c("lon", "lat"), name = "mid_haul") {
-  #' @description Calculate latitude and longitude of the haul midpoint and adds two variables
-  #' to the primary dataset, the midpoint latitude and the midpoint longitude.
+  #' @description Calculates latitude and longitude of the haul midpoint and adds two variables
+  #' to the primary dataset: the midpoint latitude and the midpoint longitude.
   #'
   #' @param dat Primary data containing information on hauls or trips.
-  #' Table in FishSET database contains the string 'MainDataTable'.
+  #' Table in the FishSET database contains the string 'MainDataTable'.
   #' @param start Character string, variables in \code{dat} defining the longitude and latitude of
   #' the starting location of haul. Must be in decimal degrees.
   #' @param end Character string, variables in \code{dat} defining the longitude and latitude of the
   #' ending location of haul.  Must be in decimal degrees.
   #' @param name String, name of new variable. Defaults to `mid_haul`.
-  #' @details Each row of data must be a unique haul. Requires a start and end point for each observations.
-  #' @return Returns primary dataset with two new variables added, latitude and longitude of haul midpoint.
+  #' @details Each row of data must be a unique haul. Requires a start and end point for each observation.
+  #' @return Returns primary dataset with two new variables added: latitude and longitude of haul midpoint.
   #' @importFrom geosphere distGeo midPoint
   #' @export
   #' @examples
@@ -424,15 +427,15 @@ create_trip_centroid <- function(dat, lon, lat, weight.var = NULL, ...) {
   ## ----trip centroid-----#
   #' Create trip centroid variable
   #'
-  #' Create latitude and longitude variables containing the centroid of each trip
+  #' Create latitude and longitude variables containing the centroid of each trip.
   #'
-  #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+  #' @param dat Primary data containing information on hauls or trips. Table in the FishSET database contains the string 'MainDataTable'.
   #' @param lat Variable in \code{dat} containing latitudinal data.
   #' @param lon Variable in \code{dat} containing longitudinal data.
   #' @param weight.var Variable in \code{dat} for computing the weighted average.
   #' @param ... Optional, one or more variable in \code{dat} that identify individual trips. If not defined, each row is treated as a unique trip.
-  #' @details Computes the average longitude and latitude for each trip. Centroid can be weighted using the \code{weight.var}.
-  #' Additional arguments can be added that define unique trips. If no additional arguments are added, each row will be treated as a unique trip.
+  #' @details Computes the average longitude and latitude for each trip. Specify \code{weight.var} to calculate the weighted centroid.
+  #'   Additional arguments can be added that define unique trips. If no additional arguments are added, each row will be treated as a unique trip.
   #' @return Returns the primary dataset with centroid latitude and centroid longitude variables added.
   #' @importFrom geosphere distGeo midPoint
   #' @export
@@ -521,7 +524,7 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
   #' @export
   #' @return Returns primary dataset with distance between variable.
   #' @importFrom geosphere distGeo midPoint
-  #' @description Adds distance between two points variable to the primary dataset. There are two versions of this
+  #' @description Adds a variable for distance between two points to the primary dataset. There are two versions of this
   #'   function. The difference between the two versions is how additional arguments specific to start and end locations are added.
   #'   This version requires only five arguments to be specified before running. Additional arguments specific to identifying
   #'   the lat/lon of start or end points are added through prompts. This function is designed for an interactive session.

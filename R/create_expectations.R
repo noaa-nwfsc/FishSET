@@ -40,26 +40,31 @@
 #' @importFrom stats aggregate reshape coef lm
 #' @importFrom signal polyval
 #' @export create_expectations
-#' @return Function returns a list of expected catch data frames. The list includes the expected catch matrix from the user-defined choices, the near-term, the medium-term, and the long-term expected catch matrices.  Additional expected catch cases can be added to the list by specifying \code{replace.output} to FALSE. The model run function will the model through each expected catch case provided. The list is automatically saved to the FishSET database and is called in \code{\link{make_model_design}}. The expected catch output does not need to be loaded when defining or running the model.
-#' @details Function creates an expectation of catch or revenue for alternative choices. The output is saved to
-#' FishSET database and called by the \code{\link{make_model_design}} function. The spatial alternatives are built
+#' @return Function returns a list of expected catch data frames. The list includes the expected catch matrix from the 
+#'   user-defined choices, the near-term, the medium-term, and the long-term expected catch matrices.  
+#'   Additional expected catch cases can be added to the list by specifying \code{replace.output} to FALSE. The model 
+#'   run function will run through each expected catch case provided. The list is automatically saved to the FishSET 
+#'   database and is called in \code{\link{make_model_design}}. The expected catch output does not need to be loaded 
+#'   when defining or running the model.
+#' @details Function creates an expectation of catch or revenue for alternative choices. The output is saved to the 
+#'  FishSET database and called by the \code{\link{make_model_design}} function. The spatial alternatives are built
 #' into the function and come from the structure Alt that was created in \code{\link{create_alternative_choice}}.\cr
 #' The primary choices are whether to treat data as a fleet or to group the data (\code{defineGroup}) and the time
 #' frame of catch data for calculating expected catch. Catch is averaged along a daily or sequential timeline
 #' (\code{temporal}) using a rolling average. \code{temp.window} and \code{temp.lat} determine the window size and
 #' temporal lag of the window for averaging. Use \code{\link{temp_obs_table}} before using this function to assess
-#' the availability of data for desired temporal moving window size. Sparse data is not suited for shorter moving
+#' the availability of data for the desired temporal moving window size. Sparse data is not suited for shorter moving
 #' window sizes. For very sparse data, consider setting \code{temp.var} to NULL and excluding temporal patterns in
 #' catch. \cr
-#' Empty catch values are considered to be times of no fishing activity whereas values of 0 in the catch variable
-#' are considered times where fishing activity occurred but with no catch and so those are included in the averaging
-#' and dummy creation as a point in time when fishing occurred. \cr
+#' Empty catch values are considered to be times of no fishing activity. Values of 0 in the catch variable
+#' are considered times when fishing activity occurred but with no catch. These points are included in the averaging
+#' and dummy creation as points in time when fishing occurred. \cr
 #'  Three default expected catch cases will be run:
 #' \itemize{
 #' \item{Near-term: Moving window size of two days. In this case, vessels are grouped based on \code{defineGroup}
 #' argument.}
 #' \item{Medium-term: Moving window size of seven days. In this case,
-#' there is no grouping and catch for entire fleet is used.}
+#' there is no grouping, and catch for entire fleet is used.}
 #' \item{Long-term: Moving window size of seven days from the previous year. In this case,
 #' there is no grouping and catch for entire fleet is used.}
 #' }

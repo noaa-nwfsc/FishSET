@@ -1,15 +1,15 @@
 #' Create haul level trip distance variable
 #'
 #' @param dat Primary data containing information on hauls or trips.
-#' Table in FishSET database contains the string 'MainDataTable'.
+#' Table in the FishSET database contains the string 'MainDataTable'.
 #' @param PortTable Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat.
 #' Table is generated using the \code{\link{load_port}} function and saved in the FishSET database as the project and PortTable,
 #' for example 'pollockPortTable'.
 #' @param trip_id Unique trip identifier in \code{dat}.
-#' @param starting_port Variable in \code{dat} containing port at start of trip.
+#' @param starting_port Variable in \code{dat} containing ports at the start of the trip.
 #' @param starting_haul Character string, variables containing latitude and longitude at start of haul in \code{dat}.
 #' @param ending_haul Character string, variables containing latitude and longitude at end of haul in \code{dat}.
-#' @param ending_port Variable in \code{dat} containing port at end of trip.
+#' @param ending_port Variable in \code{dat} containing ports at the end of the trip.
 #' @param haul_order Variable in \code{dat} that identifies haul order within a trip. Can be time, coded variable, etc.
 #' @param name String, name of created variable. Defaults to `TripDistance`.
 #' @param a  Numeric, major (equatorial) radius of the ellipsoid. The default value is for WGS84 ellipsoid.
@@ -17,12 +17,12 @@
 #' @importFrom geosphere distGeo
 #' @export create_trip_distance
 #' @return Returns the primary dataset with a trip distance variable added.
-#' @details Summation of distance across a trip based on starting and ending ports, and hauls in between.
-#' The functions uses \code{\link[geosphere]{distGeo}} from the geosphere package to calculate distances
+#' @details Summation of distance across a trip based on starting and ending ports and hauls in between.
+#' The function uses \code{\link[geosphere]{distGeo}} from the geosphere package to calculate distances
 #'  between hauls. Inputs are the trips, ports, and hauls from the primary dataset, and the latitude and
 #'  longitude of ports from the \code{PortTable}. The ellipsoid arguments, \code{a} and \code{f}, are numeric
 #'  and can be changed if an ellipsoid other than WGS84 is appropriate. See the geosphere R package for more details
-#'  \url{https://cran.r-project.org/web/packages/geosphere/geosphere.pdf}.
+#'  (\url{https://cran.r-project.org/web/packages/geosphere/geosphere.pdf}).
 #' @examples
 #' \dontrun{
 #' pcodMainDataTable <- create_trip_distance(pcodMainDataTable, "pcodPortTable", 

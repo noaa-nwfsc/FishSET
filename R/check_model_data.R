@@ -7,11 +7,12 @@
 #' @return Returns statements of data quality issues in the data. Saves table to FishSET database.
 #' @export check_model_data
 #' @description Check the primary dataset for NAs, NaNs, Inf, and that each row is a unique choice occurrence
-#' @details It is best to check the data for NAs, NaNs and Inf, and that each row is a unique choice occurrence after data creation functions
-#' have been run but before making the model design file (\code{make_model_design}), even if the data passed earlier data verification checks
-#' as data quality issues can arise in the creation or modification of data. Model functions may fail or return inaccurate results if data
-#' quality issues exist. The integrated data will not save if any of these issues are in the dataset. If data passes all tests, the data
-#' will then be saved in the FishSET database with the prefix ‘final’. The data index table will also be updated and saved.
+#' @details It is best to check the data for NAs, NaNs and Inf, and that each row is a unique choice occurrence 
+#' after data creation functions have been run but before making the model design file (\code{make_model_design}). 
+#' These steps should be taken even if the data passed earlier data verification checks, as data quality issues can arise in the creation or 
+#' modification of data. Model functions may fail or return inaccurate results if data quality issues exist. 
+#' The integrated data will not save if any of these issues are in the dataset. If data passes all tests, then data
+#' will be saved in the FishSET database with the prefix ‘final’. The data index table will also be updated and saved.
 #' @examples
 #' \dontrun{
 #' check_model_data(MainDataTable, "MainDataTableInfo", uniqueID = "uniqueID_Code", save.file = TRUE)

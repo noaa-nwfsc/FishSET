@@ -1,8 +1,8 @@
 degree <- function(dat, lat = NULL, lon = NULL, latsign = FALSE, lonsign = FALSE, replace = TRUE) {
   #' Check and correct lat/lon format
   #'
-  #' Check latitude and longitude are in decimal degrees and variable sign. Correct lat/lon if required.
-  #' @param dat Dataset containing latitude and longitude data
+  #' Check that latitude and longitude are in decimal degrees and the variable sign is correct. Correct lat/lon if required.
+  #' @param dat Dataset containing latitude and longitude data.
   #' @param lat Variable containing latitude data.
   #' @param lon Variable containing longitude data.
   #' @param latsign Logical, should the sign value of latitude be changed?
@@ -11,8 +11,11 @@ degree <- function(dat, lat = NULL, lon = NULL, latsign = FALSE, lonsign = FALSE
   #' @export degree
   #' @importFrom OSMscale degree
   #' @importFrom stringr str_replace
-  #' @details Uses the degree function to convert latitude and longitude coordinates to decimal degrees. Set \code{replace} to FALSE to first check lat/lon format and sign. FishSET requires latitude and longitude be in decimal degrees.
-  #' @return Returns the primary dataset with the latitudes and longitudes converted to decimal degrees. Changing the sign, transforms all values in the variable.
+  #' @details Uses the degree function to convert latitude and longitude coordinates to decimal degrees. 
+  #'   Set \code{replace} to FALSE to first check lat/lon format and sign. FishSET requires that latitude and longitude 
+  #'   be in decimal degrees.
+  #' @return Returns the primary dataset with the latitudes and longitudes converted to decimal degrees. 
+  #'    Changing the sign, transforms all values in the variable.
   #' @examples
   #' \dontrun{
   #' pollockMainDataTable <- degree(pollockMainDataTable, 'LatLon_START_LAT', 'LatLon_START_LON',
