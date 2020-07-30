@@ -13,13 +13,17 @@
 #' @param hauls Optional, hauls variable in \code{dat} for calculating hauls per trip.
 #' @param group Grouping variables. If more than one variable is given they are automatically
 #'   combined. 
-#' @param filter_date The type of filter to apply to table. Options include \code{"year-day"},
-#'   \code{"year-week"}, \code{"year-month"}, \code{"year"}, \code{"month"}, \code{"week"},
-#'   or \code{"day"}. The argument \code{filter_value} must be provided.
-#' @param filter_value Integer (4 digits if year, 1-2 if day, month, or week). A vector or list
-#'   of values to filter data table by. Use a list if using a two-part filter, e.g."year-week",
-#'   with the format: \code{list(year, period)}. For example, \code{list(2011:2013, 5:7)}
-#'   will filter the data table from weeks 5 through 7 for years 2011-2013.
+#' @param filter_date The type of filter to apply to table. The "date_range" option will subset 
+#'   the data by two date values entered in \code{filter_val}. Other options include "year-day", 
+#'   "year-week", "year-month", "year", "month", "week", or "day". The argument filter_value must 
+#'   be provided. 
+#' @param filter_value String containing a start and end date if using filter_date = "date_range", 
+#'   e.g. c("2011-01-01", "2011-03-15"). If filter_date = "period" or "year-period", use integers 
+#'   (4 digits if year, 1-2 if day, month, or week). Use a list if using a two-part filter, e.g. "year-week",
+#'   with the format \code{list(year, period)} or a vector if using a single period, \code{c(period)}. 
+#'   For example, \code{list(2011:2013, 5:7)} will filter the data table from weeks 5 through 7 for 
+#'   years 2011-2013 if filter_date = "year-week".\code{c(2:5)} will filter the data
+#'   February through May when filter_date = "month".
 #' @param facet_by Variable name to facet by. This can be a variable that exists in
 #'   the dataset, or a variable created by \code{trip_length()} such as \code{"year"},
 #'   \code{"month"}, or \code{"week"}.
@@ -31,7 +35,7 @@
 #' @param scale Scale argument passed to \code{\link{facet_grid}}. Defaults to \code{"fixed"}.
 #'   Other options include \code{"free_y"}, \code{"free_x"}, and \code{"free_xy"}.
 #' @param tran Transformation to be applied to the x-axis. A few options include \code{"log"},
-#'   \code{"log10"}, and \code{"sqrt"}. See \code{\link[ggplot2]{scale_x_continuous}} for a complete list.
+#'   \code{"log10"}, and \code{"sqrt"}. See \code{\link[ggplot2]{scale_continuous}} for a complete list.
 #' @param pages Whether to output plots on a single page (\code{"single"}, the default) or multiple
 #'   pages (\code{"multi"}).
 #' @param output Options include 'table', 'plot', or 'tab_plot' (both table and plot,
@@ -96,20 +100,35 @@ trip_length <- function(dat, project, start, end, units = "days", catch = NULL,
   }
   
   if (!is.null(filter_date)) {
-    p <- switch(filter_date, "year-month" = c("%Y", "%m"), "year-week" = c("%Y", "%U"),
-                "year-day" = c("%Y", "%j"), "year" = "%Y", "month" = "%m", "week" = "%U",
-                "day" = "%j")
     
-    if (grepl("year-", filter_date)) {
-      dataset <- dataset[(as.integer(format(dataset[[start]], p[1])) %in% filter_value[[1]]) &
-                           (as.integer(format(dataset[[start]], p[2])) %in% filter_value[[2]]), ]
-    } else {
-      dataset <- dataset[as.integer(format(dataset[[start]], p)) %in% filter_value, ]
-    }
-    
-    if (nrow(dataset) == 0) {
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      x <- 1
+    if (filter_date != "none") {
+      
+      if (filter_date == "date_range") {
+        
+        dataset <- dataset[dataset[[start]] >= filter_value[1] & dataset[[start]] <= filter_value[2], ]
+        
+      } else {
+        
+        pf <- switch(filter_date, "year-month" = c("%Y", "%m"), "year-week" = c("%Y", "%U"),
+                     "year-day" = c("%Y", "%j"), "year" = "%Y", "month" = "%m", "week" = "%U",
+                     "day" = "%j")
+        
+        if (grepl("-", filter_date)) {
+          
+          dataset <- dataset[(as.integer(format(dataset[[start]], pf[1])) %in% filter_value[[1]]) & 
+                               (as.integer(format(dataset[[start]], pf[2])) %in% filter_value[[2]]), ]
+          
+        } else {
+          
+          dataset <- dataset[as.integer(format(dataset[[start]], pf)) %in% filter_value, ]
+        }
+        
+        if (nrow(dataset) == 0) {
+          
+          warning("Filtered data table has zero rows. Check filter parameters.")
+          end <- TRUE
+        }
+      }
     }
   }
   
