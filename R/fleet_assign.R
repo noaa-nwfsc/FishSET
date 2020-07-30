@@ -6,9 +6,9 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
   #'   can then be applied to a dataset with fleet_assign. The table must contain a 'condition'
   #'   and 'fleet' column with each row corresponding to a set of expressions that will be used to
   #'   assign observations to fleets. A table can be created with the \code{cond} and \code{fleet_val}
-  #'   arguments, or by uploading an existing table that matches the format requirements. See 'Details'
-  #'   below for examples of how table can be formatted.
-  #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+  #'   arguments or by uploading an existing table that matches the format requirements. See 'Details'
+  #'   below for examples of how tables can be formatted.
+  #' @param dat Primary data containing information on hauls or trips. Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
   #' @param cond String; use a vector if creating a single condition column or a
   #'   list if creating multiple condition columns. Must be used with the \code{fleet_val} argument.

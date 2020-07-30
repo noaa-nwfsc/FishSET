@@ -4,10 +4,10 @@
 #'
 #' Create density plot
 #'
-#' Creates a kernel density estimate, empirical cumulative distribution function
+#' Creates a kernel density estimate, empirical cumulative distribution function,
 #' or cumulative distribution function plot of selected variable.
 #'
-#' @param dat Primary data containing information on hauls or trips. Table in FishSET
+#' @param dat Primary data containing information on hauls or trips. Table in the FishSET
 #' database contains the string 'MainDataTable'.
 #' @param project String, name of project.
 #' @param var String, name of variable to plot.
@@ -15,7 +15,7 @@
 #'   "ecdf" (empirical cdf), or "cdf".
 #' @param group A grouping variable.
 #' @param date Date variable from \code{dat} used to subset and/or facet the plot by.
-#' @param filter_date The type of filter to apply to table. The "date_range" option will subset 
+#' @param filter_date The type of filter to apply to the table. The "date_range" option will subset 
 #'   the data by two date values entered in \code{filter_val}. Other options include "year-day", 
 #'   "year-week", "year-month", "year", "month", "week", or "day". The argument filter_value must 
 #'   be provided.

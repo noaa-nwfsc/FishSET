@@ -7,15 +7,15 @@
 #' Opens an R Shiny web application. With the application select on
 #'   variables in the primary dataset that should be retained.
 #' @param dat Primary data containing information on hauls or trips.
-#'   Table in FishSET database contains the string 'MainDataTable'.
+#'   Table in the FishSET database contains the string 'MainDataTable'.
 #' @param project String, name of project.
 #' @importFrom DBI  dbDisconnect dbConnect dbListTables dbWriteTable
 #' @import shiny
 #' @export select_vars
-#' @details Opens an interactive table that allows uses to select which variables to be included by clicking check boxes.
-#' Data should be loaded into the FishSET database before running this function. Select variables that will be used to
-#' generate further variables, such as rates or cpue, and variables to be included in models.
-#' Removed variables can be added back into the dataset at a later date using the \code{\link{add_vars}} function.
+#' @details Opens an interactive table that allows users to select which variables to be included by clicking check boxes.
+#'   Data should be loaded into the FishSET database before running this function. Select variables that will be used to
+#'   generate further variables, such as rates or cpue, and variables to be included in models.
+#'   Removed variables can be added back into the dataset at a later date using the \code{\link{add_vars}} function.
 #' @examples
 #' \dontrun{
 #' select_vars(pcodMainDataTable, "pcod")

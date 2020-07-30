@@ -1,16 +1,18 @@
 #' Collapse data frame from haul to trip
 #'
 #' @param dat Primary data containing information on hauls or trips.
-#' Table in FishSET database contains the string 'MainDataTable'.
+#' Table in the FishSET database contains the string 'MainDataTable'.
 #' @param project String, name of project.
-#' @param fun.time How to collapse temporal data. For example, min, mean, max. Cannot be sum for temporal variables.
-#' @param fun.numeric How to collapse numeric or temporal data. For example, min, mean, max, sum. Defaults to mean.
+#' @param fun.time How to collapse temporal data. For example, \code{min}, \code{mean}, \code{max}. 
+#'   Cannot be \code{sum} for temporal variables.
+#' @param fun.numeric How to collapse numeric or temporal data. For example, \code{min}, \code{mean}, 
+#'    \code{max}, \code{sum}. Defaults to \code{mean}.
 #' @param tripID Column(s) that identify the individual trip.
 #' @export haul_to_trip
 #' @return Returns the primary dataset where each row is a trip.
 #' @details Collapses primary dataset from haul to trip level. Requires the MainDataTableInfo
-#'   table associated with the primary dataset. Unique trips are defined based on selected column(s).
-#'   For example, landing permit number and disembarked port. This id column is used to collapse the
+#'   table associated with the primary dataset. Unique trips are defined based on selected column(s), for 
+#'   example, landing permit number and disembarked port. This id column is used to collapse the
 #'   data to trip level.  \code{fun.numeric} and \code{fun.time} define how multiple observations for a trip
 #'   are collapsed. For variables that are not numeric or dates, the first observation is used. The
 #'   MainDataTableInfo table is updated using \code{\link{dataindex_update}}.

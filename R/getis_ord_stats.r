@@ -4,7 +4,7 @@ getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, la
   #' Wrapper function to calculate global and local Getis-Ord by discrete area
   #'
   #' @param dat Primary data containing information on hauls or trips.
-  #'   Table in FishSET database contains the string 'MainDataTable'.
+  #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
   #' @param varofint Numeric variable in \code{dat} to test for spatial high/low clustering.
   #' @param gridfile Spatial data containing information on fishery management or regulatory zones.
@@ -16,7 +16,7 @@ getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, la
   #' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files.
   #'   Leave as NULL if \code{gridfile} is a shape or json file.
   #' @param cat Variable defining the individual areas or zones.
-  #' @details Calculates degree, within each zone, that high or low values of the \code{varofint} cluster in space.
+  #' @details Calculates the degree, within each zone, that high or low values of the \code{varofint} cluster in space.
   #'   Function utilizes the \code{\link[spdep]{localG}} and \code{\link[spdep]{knearneigh}} functions from the spdep package.
   #'   The spatial input is a row-standardized spatial weights matrix for computed nearest neighbor matrix,
   #'   which is the null setting for the \code{\link[spdep]{nb2listw}} function. Requires a data frame with
