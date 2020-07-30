@@ -16,7 +16,10 @@
 #' @importFrom rgeos gDistance
 #' @importFrom grDevices chull
 #' @importFrom raster projection
-#' @details  Function uses the specified latitude and longitude from the primary dataset to assign each row of the primary dataset to a zone. Zone polygons are defined by the spatial dataset. Set \code{hull.polygon} to TRUE if spatial data is sparse or irregular Function is called by other functions if a zone identifier does not exist in the primary dataset.
+#' @details  Function uses the specified latitude and longitude from the primary dataset to assign each row of the 
+#' primary dataset to a zone. Zone polygons are defined by the spatial dataset. Set \code{hull.polygon} to TRUE if
+#'  spatial data is sparse or irregular. Function is called by other functions if a zone identifier does not exist 
+#'  in the primary dataset.
 #' @keywords  zone, polygon
 #' @return Returns primary dataset with new assignment column labeled zoneID.
 #' @export

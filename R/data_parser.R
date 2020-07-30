@@ -552,12 +552,12 @@ load_grid <- function(dat, x, over_write = TRUE, project = NULL) {
 }
 
 dataindex_update <- function(dat, dataindex) {
-  #' Automate updating MainDataTableInfo
+  #' Update MainDataTableInfo
   #'
-  #' Automate updating the dataindex (MainDataTableInfo) table saved to the FishSET database after modifying the primary dataset. Function should be run after variables have been added or removed from the primary dataset.
+  #' Automates updating the dataindex (MainDataTableInfo) table saved to the FishSET database after modifying the primary dataset. Function should be run after variables have been added or removed from the primary dataset.
   #'
   #' @param  dat Primary data containing information on hauls or trips.
-  #'   Table in FishSET database contains the string 'MainDataTable'.
+  #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param dataindex String, dataindex table name in the FishSET database.
   #'   Table name is usually the project and ‘MainDataTableInfo’. Name must be in quotes.
   #' @importFrom DBI dbConnect dbDisconnect dbWriteTable

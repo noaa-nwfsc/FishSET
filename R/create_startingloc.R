@@ -1,6 +1,6 @@
 #' Create starting location variable
 #'
-#' Creates a variable containing zone/area location when choice of where to fish next was chosen. This variable is required for the full information model with Dahl's correction (\code{\link{logit_correction}}).
+#' Creates a variable containing the zone/area location of a vessel when choice of where to fish next was made. This variable is required for the full information model with Dahl's correction (\code{\link{logit_correction}}).
 #'
 #' @param dat  Primary data containing information on hauls or trips.
 #'   Table in FishSET database contains the string 'MainDataTable'.
@@ -23,7 +23,7 @@
 #' @export create_startingloc
 #' @return Primary dataset with starting location variable added.
 #' @details Function creates the \code{startloc} vector that is required for the full information model with Dahl's correction \code{\link{logit_correction}}. 
-#'   The vector is the zone location of where to fish next was chosen. The first zone of a trip is generally the departure port. 
+#'   The vector is the zone location of a vessel when the decision of where to fish next was mdade. Generally, the first zone of a trip is the departure port. 
 #'   The \code{\link{assignment_column}} function is called to assign starting port locations and haul locations to zones. The starting port 
 #'   the location at the start of the trip.
 #' @examples

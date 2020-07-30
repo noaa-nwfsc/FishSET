@@ -36,7 +36,7 @@ create_dist_between_for_gui <- function(dat, start, end, units, name = "DistBetw
   #'   The \code{\link{create_dist_between}} version requires only five arguments to be specified before running. Additional arguments
   #'   specific to identifying the lat/long of start or end points are added through prompts. This function is designed for an
   #'   interactive session. Both versions of the distance between function require that the start and end points be different vectors.
-  #'   If the start or ending points are from a port then \code{PortTable} must be specified to obtain lat/lons. If the start or ending
+  #'   If the start or ending points are from a port, then \code{PortTable} must be specified to obtain lat/lons. If the start or ending
   #'   points are the center of a fishing zone or area then \code{gridfile}, \code{lon.dat}, \code{lat.dat}, \code{cat}, \code{lon.grid}, and \code{lat.grid}
   #'   must be specified to obtain latitude and longitude.
 

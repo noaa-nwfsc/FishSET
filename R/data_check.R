@@ -2,13 +2,17 @@
 #'
 #' Check primary data for common data quality issues, such as NaNs, NAs, outliers, unique rows, and empty variables.
 
-#' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+#' @param dat Primary data containing information on hauls or trips. Table in the FishSET database contains the string 'MainDataTable'.
 #' @param project String, name of project.
 #' @param x Variable in \code{dat} to check for outliers.
 #' @param dataindex MainDataTableInfo table from FishSET database that is associated with the dataset. This table contains information on each column of the data frame.
 #'  Must be in quotes if called from the FishSET database.
 #' @export data_check
-#' @details Prints summary stats for all variable in \code{dat}. Prints column names that contain NaNs or NAs. Checks for outliers for specified variable \code{x}. Checks that all column names are unique, whether any columns in the \code{dat} are empty, whether each row is a unique choice occurrence at the haul or trip level, that data for either lat/lon or fishing area are included, and whether specialized variables and units have been identified in the dataindex table. The function is also called by other functions.
+#' @details Prints summary stats for all variables in \code{dat}. Prints column names that contain NaNs or NAs. Checks 
+#'   for outliers for specified variable \code{x}. Checks that all column names are unique, whether any columns in 
+#'    \code{dat} are empty, whether each row is a unique choice occurrence at the haul or trip level, that data for 
+#'    either lat/lon or fishing area are included, and whether specialized variables and units have been identified 
+#'    in the dataindex table. The function is also called by other functions.
 #' @examples
 #' \dontrun{
 #' data_check(pcodMainDataTable, "OFFICIAL_TOTAL_CATCH_MT", "pcodMainDataTableInfo")
