@@ -190,9 +190,8 @@ density_plotUI <- function(id, dat) {
     uiOutput(ns("date_select")),
     
     selectizeInput(ns("ftype"), "Subset data by (optional)",
-                   choices = c("year-month", "year-week", "year-day",
-                               "year", "month", "week", "day"),
-                   multiple = TRUE, options = list(maxItems = 1)),
+                   choices = c("none", "date range" = "date_range", "year-month", "year-week", "year-day",
+                               "year", "month", "week", "day")),
     
     uiOutput(ns("filter_UI")),
     
@@ -207,8 +206,7 @@ density_plotUI <- function(id, dat) {
                  value = 1),
     
     selectInput(ns("tran"), "Transformation function (optional)",
-                choices = c("none" = "identity", "exp",
-                            "log", "log2", "log10", "sqrt")),
+                choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
     
     selectInput(ns("scale"), "Split plot scale",
                 choices = c("fixed", "free y-axis" = "free_y", 
@@ -257,9 +255,8 @@ vessel_countUI <- function(id) {
                 selected = "year"),
     
     selectizeInput(ns("ftype"), "Subset data by (optional)",
-                   choices = c("year-month", "year-week", "year-day",
-                               "year", "month", "week", "day"),
-                   multiple = TRUE, options = list(maxItems = 1)),
+                   choices = c("none", "date range" = "date_range", "year-month", 
+                               "year-week", "year-day", "year", "month", "week", "day")),
     
     uiOutput(ns("filter_UI")),
     
@@ -324,9 +321,8 @@ species_catchUI <- function(id) {
                 selected = "year"),
     
     selectizeInput(ns("ftype"), "Subset data by (optional)",
-                   choices = c("year-month", "year-week", "year-day",
-                               "year", "month", "week", "day"),
-                   multiple = TRUE, options = list(maxItems = 1)),
+                   choices = c("none", "date range" = "date_range", "year-month", 
+                               "year-week", "year-day", "year", "month", "week", "day")),
     
     uiOutput(ns("filter_UI")),
     
@@ -397,9 +393,8 @@ roll_catchUI <- function(id) {
     uiOutput(ns("date_select")),
     
     selectizeInput(ns("ftype"), "Subset data by (optional)",
-                   choices = c("year-month", "year-week", "year-day",
-                               "year", "month", "week", "day"),
-                   multiple = TRUE, options = list(maxItems = 1)),
+                   choices = c("none", "date range" = "date_range", "year-month", 
+                               "year-week", "year-day", "year", "month", "week", "day")),
     
     uiOutput(ns("filter_UI")),
     
@@ -461,9 +456,8 @@ weekly_catchUI <- function(id) {
     uiOutput(ns("date_select")),
     
     selectizeInput(ns("ftype"), "Subset data by (optional)",
-                   choices = c("year-month", "year-week", "year-day",
-                               "year", "month", "week", "day"),
-                   multiple = TRUE, options = list(maxItems = 1)),
+                   choices = c("none", "date range" = "date_range", "year-month", 
+                               "year-week", "year-day", "year", "month", "week", "day")),
     
     uiOutput(ns("filter_UI")),
     
@@ -535,9 +529,8 @@ weekly_effortUI <- function(id) {
     uiOutput(ns("date_select")),
     
     selectizeInput(ns("ftype"), "Subset data by (optional)",
-                   choices = c("year-month", "year-week", "year-day",
-                               "year", "month", "week", "day"),
-                   multiple = TRUE, options = list(maxItems = 1)),
+                   choices = c("none", "date range" = "date_range", "year-month", 
+                               "year-week", "year-day", "year", "month", "week", "day")),
     
     uiOutput(ns("filter_UI")),
     
@@ -602,9 +595,8 @@ bycatchUI <- function(id) {
                 choices = c("year", "month", "weeks")),
     
     selectizeInput(ns("ftype"), "Subset data by (optional)",
-                   choices = c("year-month", "year-week", "year-day",
-                               "year", "month", "week", "day"),
-                   multiple = TRUE, options = list(maxItems = 1)),
+                   choices = c("none", "date range" = "date_range", "year-month", 
+                               "year-week", "year-day", "year", "month", "week", "day")),
     
     uiOutput(ns("filter_UI")),
     
@@ -669,9 +661,8 @@ trip_lengthUI <- function(id) {
                 selected = "hours"),
     
     selectizeInput(ns("ftype"), "Subset data by (optional)",
-                   choices = c("year-month", "year-week", "year-day",
-                               "year", "month", "week", "day"),
-                   multiple = TRUE, options = list(maxItems = 1)),
+                   choices = c("none", "date range" = "date_range", "year-month", 
+                               "year-week", "year-day", "year", "month", "week", "day")),
     
     uiOutput(ns("filter_UI")),
     
