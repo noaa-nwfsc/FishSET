@@ -24,6 +24,7 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
   #'   the date is appended to the table name. See \code{\link{table_remove}} to delete a table.
   #' @importFrom DBI dbConnect dbWriteTable dbDisconnect
   #' @importFrom RSQLite SQLite
+  #' @importFrom stats setNames
   #' @export fleet_table
   #' @return Returns a table of fleet conditions that is saved to the FishSET database with the name
   #'   'projectFleetTable'.
@@ -88,9 +89,9 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
           if (is.list(cond)) {
             nm <- sapply(seq_along(cond), function(x) paste0("cond_", x))
             
-            f_tab <- setNames(f_tab, c(nm, "fleet"))
+            f_tab <- stats::setNames(f_tab, c(nm, "fleet"))
           } else {
-            f_tab <- setNames(f_tab, c("cond", "fleet"))
+            f_tab <- stats::setNames(f_tab, c("cond", "fleet"))
           }
         }
       }
@@ -105,7 +106,7 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
       
       nm <- sapply(seq_along(f_tab[-1]), function(x) paste0("cond_", x))
       
-      f_tab <- setNames(f_tab, c(nm, "fleet"))
+      f_tab <- stats::setNames(f_tab, c(nm, "fleet"))
     }
     
     nm <- names(f_tab)[grep("^cond", names(f_tab))]
@@ -297,6 +298,7 @@ fleet_assign <- function(dat, project, fleet_tab, overlap = FALSE, format_tab = 
       dataset <- cbind(dataset, cond_tab)
       
       if (format_tab == "long") {
+        value <- NULL
         dataset <- reshape2::melt(dataset, measure.vars = colnames(cond_tab), variable.name = "fleet")
         
         dataset <- subset(dataset, value > 0)

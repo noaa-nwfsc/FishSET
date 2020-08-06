@@ -25,7 +25,7 @@ spatial_hist <- function(dat, project, group) {
 
   dataset <- dataset[, c(dataset[[group]], grep("lon|lat", names(dataset), ignore.case = TRUE))]
   melt.dat <- reshape2::melt(dataset)
-  plot_out <- ggplot(melt.dat, aes(value, group = group, fill = group)) +
+  plot_out <- ggplot(melt.dat, aes(melt.dat$value, group = group, fill = group)) +
     geom_histogram(position = "identity", alpha = 0.5, binwidth = 0.25) +
     facet_wrap(~variable, scales = "free") +
     scale_color_grey() +

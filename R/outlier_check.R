@@ -224,7 +224,7 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FA
 
     # Hist Plot 2!
     p2 <- ggplot2::ggplot(dat_sub, aes_string(x)) +
-      ggplot2::geom_histogram(ggplot2::aes(y = ..density..),
+      ggplot2::geom_histogram(ggplot2::aes(y = dat_sub$..density..),
         na.rm = TRUE,
         bins = if (nrow(dataset) < 500) {
           round(nrow(dataset) / 2)

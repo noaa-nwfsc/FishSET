@@ -216,12 +216,12 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, date = N
       }
     } else {
       den_dat$cdf <- stats::pnorm(den_dat[[var]],
-        mean = mean(den_dat[[var]], na.rm = TRUE),
-        sd = sd(den_dat[[var]], na.rm = TRUE)
+          mean = mean(den_dat[[var]], na.rm = TRUE),
+          sd = sd(den_dat[[var]], na.rm = TRUE)
       )
-
+      
       plot <- ggplot2::ggplot(den_dat, ggplot2::aes_string(var)) +
-        ggplot2::geom_area(ggplot2::aes(y = cdf), position = "identity", alpha = .7) +
+        ggplot2::geom_area(ggplot2::aes(y = den_dat$cdf), position = "identity", alpha = .7) +
         ggplot2::labs(title = paste("CDF of", var)) +
         fishset_theme +
         ggplot2::theme(legend.position = "bottom")

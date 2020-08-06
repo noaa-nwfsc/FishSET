@@ -102,14 +102,17 @@ moran_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, lat.da
     annotatesize <- 6
 
     moranmap <- ggplot(data = datatomap) +
-      geom_path(aes(x = path_lon, y = path_lat, group = ZoneID), color = "black", size = 0.375) +
+      geom_path(aes(x = datatomap$path_lon, y = datatomap$path_lat, group = datatomap$ZoneID), 
+                color = "black", size = 0.375) +
       geom_map(
         data = world,
-        map = world, aes(x = long, y = lat, map_id = region), fill = "grey", color = "black", size = 0.375
+        map = world, aes(map_id = world$region), 
+        #map = world, aes(x = datatomap$long, y = datatomap$lat, map_id = world$region), 
+        fill = "grey", color = "black", size = 0.375
       ) +
       geom_polygon(data = datatomap, aes(
-        x = path_lon,
-        y = path_lat, group = ZoneID, fill = Moran
+        x = datatomap$path_lon,
+        y = datatomap$path_lat, group = datatomap$ZoneID, fill = datatomap$Moran
       ), color = "black", alpha = 1, size = 0.375) +
       scale_fill_gradient2(
         low = "skyblue2", high = "firebrick1",

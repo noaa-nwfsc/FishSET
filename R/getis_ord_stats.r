@@ -78,11 +78,11 @@ getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, la
       }
       # datatomap <- merge(temp, int, by='ZoneID')
       int <- merge(int, dataset[, c(varofint, "ZoneID")], by = "ZoneID")
-      names(temp)[2] <- "path_lon"
-      names(temp)[3] <- "path_lat"
-      names(int)[2] <- "centroid_lon"
-      names(int)[3] <- "centroid_lat"
-      names(int)[4] <- "varofint"
+      names(temp)[2] = "path_lon"
+      names(temp)[3] = "path_lat"
+      names(int)[2] = "centroid_lon"
+      names(int)[3] = "centroid_lat"
+      names(int)[4] = "varofint"
     }
     # 4. Identify variable of interest 5.
     int[["varofint"]] <- with(int, ave(int[["varofint"]], ZoneID, FUN = function(x) mean(x, na.rm = TRUE)))
@@ -96,7 +96,8 @@ getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, la
     globalgetis <- spdep::globalG.test(uniquedatatomap[["varofint"]], listw = spdep::nb2listw(nb.rk, style = "B"))
 
     datatomap <- unique(merge(temp, uniquedatatomap))
-
+    datatomap <- as.data.frame(datatomap)
+    
     minlon <- min(datatomap$path_lon) * 1.001 # lon negative
     maxlon <- max(datatomap$path_lon) * 0.985
     minlat <- min(datatomap$path_lat) * 0.992
@@ -105,14 +106,14 @@ getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, la
     annotatesize <- 6
 
     getismap <- ggplot(data = datatomap) +
-      geom_path(aes(x = path_lon, y = path_lat, group = ZoneID), color = "black", size = 0.375) +
+      geom_path(aes(x = datatomap$path_lon, y = datatomap$path_lat, group = datatomap$ZoneID), 
+                color = "black", size = 0.375) +
       geom_map(
         data = world,
-        map = world, aes(map_id = region), fill = "grey", color = "black", size = 0.375
+        map = world, aes(map_id = world$region), fill = "grey", color = "black", size = 0.375
       ) +
       geom_polygon(data = datatomap, aes(
-        x = path_lon, y = path_lat,
-        group = ZoneID, fill = GetisOrd
+        x = datatomap$path_lon, y = datatomap$path_lat, group = datatomap$ZoneID, fill = datatomap$GetisOrd
       ), color = "black", alpha = 1, size = 0.375) +
       xlim(minlon, maxlon) +
       ylim(minlat, maxlat) +

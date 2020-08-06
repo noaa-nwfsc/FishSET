@@ -1,6 +1,7 @@
 
 # map viewer
-map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars, lon_start, lat_start, lon_end, lat_end) {
+map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars, 
+                       lon_start, lat_start, lon_end=NULL, lat_end=NULL) {
   #' Interactive vessel locations and fishery zones map
   #'
   #' View vessel locations and fishery zones on interactive map.
@@ -11,8 +12,8 @@ map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars, lo
   #' @param num_vars List, name of numeric variable(s) in \code{dat} to include for plotting.
   #' @param temp_vars List, name of temporal variable(s) in \code{dat} to include for plotting.
   #' @param id_vars List, name of categorical variable(s) in \code{dat} to group by.
-  #' @param lon_start String, variable in \code{dat} that identifies starting longitude decimal degrees.
-  #' @param lat_start String, variable in \code{dat} that identifies starting latitude decimal degrees.
+  #' @param lon_start String, variable in \code{dat} that identifies a single longitude point or starting longitude decimal degrees.
+  #' @param lat_start String, variable in \code{dat} that identifies a single latitude point or starting latitude decimal degrees.
   #' @param lon_end String, variable in \code{dat} that identifies ending longitude decimal degrees.
   #' @param lat_end String, variable in \code{dat} that identifies ending latitude decimal degrees.
   #' @importFrom geojsonio geojson_write
@@ -22,6 +23,7 @@ map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars, lo
   #' @importFrom utils browseURL
   #' @export 
   #' @details The map_viewer function creates the files required to run the MapViewer program.
+  #' Users can map points or trip path. To plot points, leave \code{lon_end} and \code{lat_end} and \code{NULL}.
   #' After creating the inputs, a map with zones is opened in the default web browser. To close
   #' the server connection run \code{servr::daemon_stop()} in the console.
   #' Lines on the map represent the starting
@@ -30,9 +32,17 @@ map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars, lo
   #' At this time, the map can only be saved by taking a screen shot.
   #' @examples
   #' \dontrun{
+  #' #Plot haul path
   #' map_viewer(pollockMainDataTable, gridfile=spatdat, area_variable_column='NMFS_AREA',
   #' area_variable_map='NMFS_AREA', num_vars=c('HAUL','OFFICIAL_TOTAL_CATCH'),
-  #' temp_vars='HAUL_DATE', id_vars=c('GEAR_TYPE', 'PORT'))
+  #' temp_vars='HAUL_DATE', id_vars=c('GEAR_TYPE', 'PORT'), 
+  #'        'Lon_Start', 'Lat_Start', 'Lon_End', 'Lat_End')
+  #' 
+  #' #Plot haul midpoint
+  #' map_viewer(pollockMainDataTable, gridfile=spatdat, area_variable_column='NMFS_AREA',
+  #' area_variable_map='NMFS_AREA', num_vars=c('HAUL','OFFICIAL_TOTAL_CATCH'),
+  #' temp_vars='HAUL_DATE', id_vars=c('GEAR_TYPE', 'PORT'), 'Lon_Mid', 'Lat_Mid')
+  
   #' }
 
 
@@ -61,12 +71,10 @@ map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars, lo
   write.csv(dataset, paste0(loc_map(), "/datafile.csv"))
 
   # 3. Create map config
-
+if(!is.null(lon_end)){
   map_config <- list()
   map_config$mapbox_token <- "pk.eyJ1IjoibWhhcnNjaDEyNSIsImEiOiJjazZ2NXh6dXUwZ25vM25wYXJ6bHFpOGc1In0.nAdb9QQybVd9ESgtr0fjZg"
   map_config$choosen_scatter <- num_vars[1]
-  map_config$area_variable_column <- avd
-  map_config$area_variable_map <- avm
   map_config$numeric_vars <- if (length(num_vars) == 1) list(num_vars) else num_vars
   map_config$temporal_vars <- temp_vars
   map_config$id_vars <- id_vars
@@ -75,9 +83,32 @@ map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars, lo
   map_config$longitude_end <- lon_end
   map_config$latitude_end <- lat_end
   map_config$uniqueID <- "uniqueID"
-  map_config$grid_file <- "spatdat.geojson"
-
-
+  map_config$grid_file = "spatdat.geojson"
+  multi_grid <- list(list(
+    'mapfile' = "spatdat.geojson",
+    'area_variable_map' = avm,
+    'area_variable_column' = avd
+  ))
+  map_config$multi_grid <- multi_grid
+} else {
+  map_config <- list()
+  map_config$mapbox_token <- "pk.eyJ1IjoibWhhcnNjaDEyNSIsImEiOiJjazZ2NXh6dXUwZ25vM25wYXJ6bHFpOGc1In0.nAdb9QQybVd9ESgtr0fjZg"
+  map_config$choosen_scatter <- num_vars[1]
+   map_config$numeric_vars <- if (length(num_vars) == 1) list(num_vars) else num_vars
+  map_config$temporal_vars <- temp_vars
+  map_config$id_vars <- id_vars
+  map_config$longitude_pt <- lon_start
+  map_config$latitude_pt <- lat_start
+  map_config$uniqueID <- "uniqueID"
+  map_config$grid_file <- 'spatdat.geojson'
+  multi_grid <- list(list(
+    'mapfile' = "spatdat.geojson",
+    'area_variable_map' = avm,
+    'area_variable_column' = avd
+  ))
+  map_config$multi_grid <- multi_grid
+}
+ 
   write(jsonlite::toJSON(map_config, pretty = TRUE, auto_unbox = TRUE), paste0(loc_map(), "map_config.json"))
 
 

@@ -276,7 +276,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = 
         ggplot2::geom_point(ggplot2::aes_string(group = f_int(), color = f_group1()), size = 1) +
         ggplot2::scale_x_continuous(breaks = num_breaks(count$week)) +
         ggplot2::theme(legend.position = "bottom") +
-        FishSET:::fishset_theme
+        fishset_theme
     
     if (!is.null(facet)) {
         

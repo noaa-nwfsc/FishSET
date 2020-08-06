@@ -38,8 +38,8 @@
 #' @param weight.var Variable for calculating weighted centroids. Required if zonal assignments for observations
 #' in \code{dat} should be identified and \code{gridfile} is not NULL.
 #' @param closest.pt Logical, if true, zone ID identified as the closest polygon to the point.
-#' Called in \code{\link{assignment_column}}. Required if zonal assignments for observations in \code{dat}
-#' should be identified and \code{gridfile} is not NULL.
+#'   Called in \code{\link{assignment_column}}. Required if zonal assignments for observations in \code{dat}
+#'   should be identified and \code{gridfile} is not NULL.
 #' @param project String, name of project.
 #' @param griddedDat Optional data frame. Data must contain a variable that varies by the spatial dataset \code{gridfile}.
 #'  First variable in \code{griddedDat} should match a column in \code{dat}. The remaining columns should match the
@@ -47,16 +47,16 @@
 #' @importFrom DBI dbExecute
 #' @export create_alternative_choice
 #' @details Function the returns alternative choice matrix and saves the output to the FishSET database. The matrix is
-#' pulled by \code{\link{create_expectations}}, \code{\link{make_model_design}}, and the model run
-#' function (\code{\link{discretefish_subroutine}}). Function assigns each observation to a zone and identifies
-#' which zones are to be included based on a minimum number of hauls per trip within a zone. Functions that call the
-#' alternative choice matrix will exclude observations in zones that do not meet the minimum haul criteria. Function defines
-#' how start and end points for calculating the distance matrix in \code{\link{make_model_design}}.
-#' Note that if the alternative choice matrix is modified, the \code{\link{create_expectations}}
-#' and \code{\link{make_model_design}} functions should also be updated before rerunning the model run
-#' function (\code{\link{discretefish_subroutine}}).
+#'   pulled by \code{\link{create_expectations}}, \code{\link{make_model_design}}, and the model run
+#'   function (\code{\link{discretefish_subroutine}}). Function assigns each observation to a zone and identifies
+#'   which zones are to be included based on a minimum number of hauls per trip within a zone. Functions that call the
+#'   alternative choice matrix will exclude observations in zones that do not meet the minimum haul criteria. Function defines
+#'   how start and end points for calculating the distance matrix in \code{\link{make_model_design}}.
+#'   Note that if the alternative choice matrix is modified, the \code{\link{create_expectations}}
+#'   and \code{\link{make_model_design}} functions should also be updated before rerunning the model run
+#'   function (\code{\link{discretefish_subroutine}}).
 #' @return Saves the alternative choice matrix to the FishSET database as a list.
-#' Output includes: \cr
+#'   Output includes: \cr
 #' \tabular{rlll}{
 #'         dataZoneTrue: \tab Vector of 0/1 indicating whether the data from that zone is to be included in the model\cr
 #'         greaterNZ: \tab Zone which pass numofNecessary test\cr
@@ -207,7 +207,7 @@ create_alternative_choice <- function(dat, project, gridfile = NULL, min.haul,
       stop("Problem with loaded matrix, NaN found.")
     }
 
-    Alt <- list.append(Alt, matrix = allMat[Alt[["dataZoneTrue"]], ]) # allMat[Alt[[dataZoneTrue]],]
+    Alt <- c(Alt, matrix = list(allMat[Alt[["dataZoneTrue"]], ])) # allMat[Alt[[dataZoneTrue]],]
   }
 
 

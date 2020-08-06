@@ -263,7 +263,8 @@ trip_length <- function(dat, project, start, end, units = "days", catch = NULL,
     if (density == FALSE) {
       h_plot <- ggplot2::ggplot(trip, ggplot2::aes_string(x = p))
     } else {
-      h_plot <- ggplot2::ggplot(trip, ggplot2::aes(x = eval(parse(text = p)), y = ggplot2::after_stat(density)))
+      h_plot <- ggplot2::ggplot(trip, ggplot2::aes(x = eval(parse(text = p)), 
+                                                   y = ggplot2::after_stat(density)))
     }
     
     h_plot <- h_plot + ggplot2::labs(title = p, x = paste0(p, " (", units, ")")) +
@@ -281,7 +282,7 @@ trip_length <- function(dat, project, start, end, units = "days", catch = NULL,
     
     if (!is.null(facet_by)) {
       if (length(facet_by) == 1) {
-        fm <- stats::reformulate(".", facet)
+        fm <- stats::reformulate(".", facet_by)
       } else if (length(facet_by) == 2) {
         fm <- paste(facet_by, sep = " ~ ")
       }

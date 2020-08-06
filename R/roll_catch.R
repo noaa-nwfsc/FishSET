@@ -61,6 +61,9 @@ roll_catch <- function(dat, project, catch, date, group = NULL, k = 10,
   dat <- out$dat
   dataset <- out$dataset
   
+  #Empty variable
+  Index <- NULL
+  
   if (!is.null(facet_by)) {
     
     if (!(facet_by %in% names(dataset))) {

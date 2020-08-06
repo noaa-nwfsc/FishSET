@@ -24,6 +24,10 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
   out <- data_pull(dat)
   dat <- out$dat
   dataset <- out$dataset
+  
+  #Empty variables for plotting
+  .fitted <- NULL
+  .resid <- NULL
 
 
   if (regress == FALSE) {

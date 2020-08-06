@@ -97,7 +97,7 @@ map_plot <- function(dat, project, lat, lon, minmax = NULL, percshown = NULL) {
 
   plot <- ggplot2::ggplot() +
     ggplot2::geom_map(
-      data = world, map = world, ggplot2::aes(x = long, y = lat, map_id = region), fill = "grey", color = "black",
+      data = world, map = world, ggplot2::aes(x = world$long, y = world$lat, map_id = world$region), fill = "grey", color = "black",
       size = 0.375
     ) +
     ggplot2::geom_point(data = datatomap, ggplot2::aes(x = lon, y = lat), size = 1, alpha = 0.25, color = "red") +

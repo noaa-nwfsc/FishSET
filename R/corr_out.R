@@ -10,6 +10,7 @@ corr_out <- function(dat, project, variables) {
   #' @export
   #' @import ggplot2
   #' @importFrom ggcorrplot ggcorrplot
+  #' @importFrom stats cor
   #' @details Returns a correlation plot and table. Output saved to output folder.
   #' @examples
   #' \dontrun{
@@ -43,7 +44,7 @@ corr_out <- function(dat, project, variables) {
           axis.text = ggplot2::element_text(size = 11), axis.title = ggplot2::element_text(size = 11)
         )
     } else if (length(variables) > 2) {
-      ggcorrplot::ggcorrplot(round(cor(dataset[, variables], use = "complete.obs"), 2),
+      ggcorrplot::ggcorrplot(round(stats::cor(dataset[, variables], use = "complete.obs"), 2),
         type = "lower", outline.color = "white", hc.order = TRUE,
         show.diag = TRUE, title = paste("Correlation matrix plot for", project, "data"),
         ggtheme = ggplot2::theme_minimal()
@@ -51,7 +52,7 @@ corr_out <- function(dat, project, variables) {
     }
 
 
-    c1 <- round(cor(dataset[, variables], use = "complete.obs"), 2)
+    c1 <- round(stats::cor(dataset[, variables], use = "complete.obs"), 2)
     colnames(c1) <- gsub("_", "-", colnames(c1))
 
 
