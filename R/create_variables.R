@@ -505,21 +505,21 @@ create_trip_centroid <- function(dat, lon, lat, weight.var = NULL, ...) {
 #' Create distance between points variable - interactive version
 create_dist_between <- function(dat, start, end, units = c("miles", "meters", "km", "midpoint"), name = "distBetween") {
   #' @param dat Main data frame over which to apply function.
-  #' Table in FishSET database should contain the string `MainDataTable`.
+  #'   Table in FishSET database should contain the string `MainDataTable`.
   #' @param start Starting location. Should be a port, lat/lon location, or the centroid of fishing zone
-  #' or area. If port is desired, start should be the column name in the \code{dat} containing the port
-  #' names. Latitude and longitude for the port are extracted from the port table. If a lat/lon location is
-  #' desired then start should be a character string of column names from \code{dat}. The order must be lon,
-  #' lat. If the centroid of the fishing zone or area is to be used then \code{start} should be \code{"centroid"} and
-  #' \code{\link{find_centroid}} and \code{\link{assignment_column}} will be called to identify the latitude and longitude.
+  #'   or area. If port is desired, start should be the column name in the \code{dat} containing the port
+  #'   names. Latitude and longitude for the port are extracted from the port table. If a lat/lon location is
+  #'   desired then start should be a character string of column names from \code{dat}. The order must be lon,
+  #'   lat. If the centroid of the fishing zone or area is to be used then \code{start} should be \code{"centroid"} and
+  #'   \code{\link{find_centroid}} and \code{\link{assignment_column}} will be called to identify the latitude and longitude.
   #' @param end Ending location. Should be a port, lat/lon location, or the centroid of the fishing zone or area.
-  #' If port is desired, end should be a variable in \code{dat} containing the port names. Latitude
-  #' and longitude for the port are extracted from the port table. If a lat, long location is desired then end
-  #' should be a character string of column names specifying first longitude then latitude. If the centroid of the
-  #' fishing zone or area is to be used then \code{end} should be \code{"centroid"} and \code{\link{find_centroid}} and
-  #' \code{\link{assignment_column}} will be called to identify the latitude and longitude.
+  #'   If port is desired, end should be a variable in \code{dat} containing the port names. Latitude
+  #'   and longitude for the port are extracted from the port table. If a lat, long location is desired then end
+  #'   should be a character string of column names specifying first longitude then latitude. If the centroid of the
+  #'   fishing zone or area is to be used then \code{end} should be \code{"centroid"} and \code{\link{find_centroid}} and
+  #'   \code{\link{assignment_column}} will be called to identify the latitude and longitude.
   #' @param units  Unit of measurement for calculated distance between start and ending points.
-  #' Can be in \code{"miles"}, \code{"meters"}, \code{"kilometers"}, or \code{"midpoint"} location.
+  #'   Can be in \code{"miles"}, \code{"meters"}, \code{"kilometers"}, or \code{"midpoint"} location.
   #' @param name String, output variable name. Defaults to `distBetween`.
   #' @export
   #' @return Returns primary dataset with distance between variable.
@@ -623,10 +623,10 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
           vars[6]
         ), closest.pt = TRUE
       )
-      int <- find_centroid(dataset, gridfile = eval(parse(text = vars[1])), lon.grid == gsub("\"|'", "", vars[2]), lat.grid == gsub(
-        "\"|'", "",
-        vars[3]
-      ), lon.dat = gsub("\"|'", "", vars[4]), lat.dat = gsub("\"|'", "", vars[5]), cat = gsub("\"|'", "", vars[6]), weight.var = NULL)
+      int <- find_centroid(dat=dataset, gridfile = eval(parse(text = vars[1])), 
+                           lon.dat = gsub("\"|'", "", vars[4]), lat.dat = gsub("\"|'", "", vars[5]), 
+                           cat = gsub("\"|'", "", vars[6]), lon.grid = gsub("\"|'", "", vars[2]),
+                            lat.grid = gsub("\"|'", "", vars[3]), weight.var = NULL)
     }
 
     if (grepl("port", start[1], ignore.case = TRUE)) {

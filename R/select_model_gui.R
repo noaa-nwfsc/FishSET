@@ -5,6 +5,8 @@
 #'   Check boxes next to models allow users to record preferred or best model.
 #'
 #' @param project String, name of project.
+#' @param overwrite_table Logical, should best model table be written over? If table exists and 
+#'  value is FALSE, appends new results to existing table. Defaults to FALSE.
 #' @importFrom DBI dbExistsTable dbDisconnect dbConnect dbRemoveTable dbExecute dbGetQuery
 #' @importFrom DT DTOutput renderDT JS
 #' @import shiny
@@ -17,10 +19,10 @@
 #'   The 'modelChosen' table is not used in any functions. The purpose of this function and the 'modelChosen' table is to save a reference of the preferred model.
 #' @examples
 #' \dontrun{
-#' select_model("pollockmodelfit", overwrite.table = FALSE)
+#' select_model("pollockmodelfit", overwrite_table = FALSE)
 #' }
 #'
-select_model <- function(project) {
+select_model <- function(project, overwrite_table=FALSE) {
 
   #  requireNamespace("shiny")
 

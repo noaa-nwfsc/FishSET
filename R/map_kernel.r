@@ -47,6 +47,10 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE, 
 
   x <- 0
 
+  #Empty variables
+  year <- NULL
+  month <- NULL
+  
   datatomap <- as.data.frame(dataset[, c(latlon)])
   colnames(datatomap) <- c("lat", "lon")
   if (anyNA(datatomap)) {
@@ -133,11 +137,11 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE, 
       if (is.null(group) == FALSE & facet == FALSE) {
         mapout <- ggplot2::ggplot() +
           ggplot2::geom_map(
-            data = world, map = world, ggplot2::aes(x = long, y = lat, map_id = region), fill = "grey",
+            data = world, map = world, ggplot2::aes(x = world$long, y = world$lat, map_id = world$region), fill = "grey",
             color = "black", size = 0.375
           ) +
           ggplot2::geom_point(
-            data = datatomap, ggplot2::aes(x = lon, y = lat, colour = groupv), size = 0.375,
+            data = datatomap, ggplot2::aes(x = datatomap$lon, y = datatomap$lat, colour = datatomap$groupv), size = 0.375,
             alpha = 0.25
           ) +
           ggplot2::xlim(minlon, maxlon) +
@@ -154,10 +158,11 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE, 
       } else if (is.null(group) == FALSE & facet == TRUE) {
         mapout <- ggplot2::ggplot() +
           ggplot2::geom_map(
-            data = world, map = world, ggplot2::aes(x = long, y = lat, map_id = region), fill = "grey",
+            data = world, map = world, ggplot2::aes(x = world$long, y = world$lat, map_id = world$region), fill = "grey",
             color = "black", size = 0.375
           ) +
-          ggplot2::geom_point(data = datatomap, ggplot2::aes(x = lon, y = lat, colour = groupv), size = 0.375) +
+          ggplot2::geom_point(data = datatomap, 
+                              ggplot2::aes(x = datatomap$lon, y = datatomap$lat, colour = datatomap$groupv), size = 0.375) +
           ggplot2::xlim(minlon, maxlon) +
           ggplot2::ylim(minlat, maxlat) +
           ggplot2::ggtitle("Points") +
@@ -172,10 +177,10 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE, 
       } else {
         mapout <- ggplot2::ggplot() +
           ggplot2::geom_map(
-            data = world, map = world, ggplot2::aes(x = long, y = lat, map_id = region), fill = "grey",
+            data = world, map = world, ggplot2::aes(x = world$long, y = world$lat, map_id = world$region), fill = "grey",
             color = "black", size = 0.375
           ) +
-          ggplot2::geom_point(data = datatomap, ggplot2::aes(x = lon, y = lat), color = "black", size = 0.375) +
+          ggplot2::geom_point(data = datatomap, ggplot2::aes(x = datatomap$lon, y = datatomap$lat), color = "black", size = 0.375) +
           ggplot2::xlim(minlon, maxlon) +
           ggplot2::ylim(minlat, maxlat) +
           ggplot2::ggtitle("Points") +
@@ -193,14 +198,14 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE, 
       if (is.null(group) == FALSE & facet == FALSE) {
         mapout <- ggplot2::ggplot() +
           ggplot2::geom_map(
-            data = world, map = world, ggplot2::aes(x = long, y = lat, map_id = region), fill = "grey",
+            data = world, map = world, ggplot2::aes(x = world$long, y = world$lat, map_id = world$region), fill = "grey",
             color = "black", size = 0.375
           ) +
           ggplot2::geom_point(
-            data = datatomap, ggplot2::aes(x = lon, y = lat, colour = groupv), color = "black",
+            data = datatomap, ggplot2::aes(x = datatomap$lon, y = datatomap$lat, colour = datatomap$groupv), color = "black",
             size = 0.375
           ) +
-          ggplot2::geom_density_2d(data = datatomap, ggplot2::aes(x = lon, y = lat, colour = groupv)) +
+          ggplot2::geom_density_2d(data = datatomap, ggplot2::aes(x = datatomap$lon, y = datatomap$lat, colour = datatomap$groupv)) +
           ggplot2::xlim(
             minlon,
             maxlon
@@ -220,14 +225,14 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE, 
       } else if (is.null(group) == FALSE & facet == TRUE) {
         mapout <- ggplot2::ggplot() +
           ggplot2::geom_map(
-            data = world, map = world, ggplot2::aes(x = long, y = lat, map_id = region), fill = "grey",
+            data = world, map = world, ggplot2::aes(x = world$long, y = world$lat, map_id = world$region), fill = "grey",
             color = "black", size = 0.375
           ) +
           ggplot2::geom_point(
-            data = datatomap, ggplot2::aes(x = lon, y = lat, colour = groupv), color = "black",
+            data = datatomap, ggplot2::aes(x = datatomap$lon, y = datatomap$lat, colour = datatomap$groupv), color = "black",
             size = 0.375
           ) +
-          ggplot2::geom_density_2d(data = datatomap, ggplot2::aes(x = lon, y = lat, colour = groupv)) +
+          ggplot2::geom_density_2d(data = datatomap, ggplot2::aes(x = datatomap$lon, y = datatomap$lat, colour = datatomap$groupv)) +
           ggplot2::xlim(
             minlon,
             maxlon
@@ -245,11 +250,11 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE, 
       } else {
         mapout <- ggplot2::ggplot() +
           ggplot2::geom_map(
-            data = world, map = world, ggplot2::aes(x = long, y = lat, map_id = region), fill = "grey",
+            data = world, map = world, ggplot2::aes(x = world$long, y = world$lat, map_id = world$region), fill = "grey",
             color = "black", size = 0.375
           ) +
-          ggplot2::geom_point(data = datatomap, ggplot2::aes(x = lon, y = lat), color = "black", size = 0.375) +
-          ggplot2::geom_density_2d(data = datatomap, ggplot2::aes(x = lon, y = lat)) +
+          ggplot2::geom_point(data = datatomap, ggplot2::aes(x = datatomap$lon, y = datatomap$lat), color = "black", size = 0.375) +
+          ggplot2::geom_density_2d(data = datatomap, ggplot2::aes(x = datatomap$lon, y = datatomap$lat)) +
           ggplot2::xlim(minlon, maxlon) +
           ggplot2::ylim(minlat, maxlat) +
           ggplot2::ggtitle("Spatial kernel (contours)") +
@@ -272,14 +277,14 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE, 
       } else if (is.null(group) == FALSE & facet == TRUE) {
         mapout <- ggplot2::ggplot() +
           ggplot2::geom_map(
-            data = world, map = world, ggplot2::aes(x = long, y = lat, map_id = region), fill = "grey",
+            data = world, map = world, ggplot2::aes(x = world$long, y = world$lat, map_id = world$region), fill = "grey",
             color = "black", size = 0.375
           ) +
           ggplot2::geom_point(
-            data = datatomap, ggplot2::aes(x = lon, y = lat, colour = groupv), color = "black",
+            data = datatomap, ggplot2::aes(x = datatomap$lon, y = datatomap$lat, colour = datatomap$groupv), color = "black",
             size = 0.375
           ) +
-          ggplot2::stat_density_2d(data = datatomap, ggplot2::aes(x = lon, y = lat, fill = stat(level)), geom = "polygon") +
+          ggplot2::stat_density_2d(data = datatomap, ggplot2::aes(x = datatomap$lon, y = datatomap$lat, fill = stat(datatomap$level)), geom = "polygon") +
           ggplot2::xlim(
             minlon,
             maxlon
@@ -298,11 +303,12 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE, 
       } else {
         mapout <- ggplot2::ggplot() +
           ggplot2::geom_map(
-            data = world, map = world, ggplot2::aes(x = long, y = lat, map_id = region), fill = "grey",
+            data = world, map = world, ggplot2::aes(x = world$long, y = world$lat, map_id = world$region), fill = "grey",
             color = "black", size = 0.375
           ) +
-          ggplot2::geom_point(data = datatomap, ggplot2::aes(x = lon, y = lat), color = "black", size = 0.375) +
-          ggplot2::stat_density_2d(data = datatomap, ggplot2::aes(x = lon, y = lat, fill = stat(level)), geom = "polygon") +
+          ggplot2::geom_point(data = datatomap, ggplot2::aes(x = datatomap$lon, y = datatomap$lat), color = "black", size = 0.375) +
+          ggplot2::stat_density_2d(data = datatomap, 
+                                   ggplot2::aes(x = datatomap$lon, y = datatomap$lat, fill = stat(datatomap$level)), geom = "polygon") +
           ggplot2::xlim(
             minlon,
             maxlon

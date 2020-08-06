@@ -1,13 +1,12 @@
 sparsetable <- function(dat, project, timevar, zonevar, var) {
   #' Evaluate sparsity in data over time in table format
   #'
-  #' Create of data sparsity by predefined time periods.
-  #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+  #' Create table of data sparsity by predefined time periods.
+  #' @param dat Primary data containing information on hauls or trips. Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
   #' @param timevar Variable in \code{dat} containing temporal data
   #' @param zonevar Variable in \code{dat} containing zone observation assigned to
   #' @param var Variable in \code{dat} containing catch data
-  #' @description Function to create sparsity table
   #' @importFrom lubridate round_date
   #' @importFrom reshape2 acast
   #' @export
@@ -77,7 +76,7 @@ sparsplot <- function(x, project) {
   toplot_sub <- data.frame(day = c(1, 7, 14, 30, 90, 365), sparsity = apply(x, 1, mean)) # x[,dim(x)[2]])
   fit <- stats::lm(data = toplot_sub, sparsity ~ day)
 
-  g <- ggplot2::ggplot(data = toplot, ggplot2::aes(Var1, value, color = Var2)) +
+  g <- ggplot2::ggplot(data = toplot, ggplot2::aes(toplot$Var1, toplot$value, color = toplot$Var2)) +
     ggplot2::geom_point(show.legend = FALSE) +
     ggplot2::geom_smooth(ggplot2::aes(group = 1, color = "Mean of all zones"), method = "loess", size = 1, linetype = "dashed", se = FALSE, show.legend = FALSE) +
     ggplot2::stat_smooth(method = "nls", formula = "y ~ a*x^b", method.args = list(start = c(a = fit$coefficients[[1]], b = fit$coefficients[[2]])), se = FALSE, show.legend = FALSE) +

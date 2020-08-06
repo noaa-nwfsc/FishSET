@@ -69,7 +69,12 @@ load_data <- function(project, name = NULL) {
     } else {
       dat <- table_view(name)
     }
-    assign(paste0(project, "MainDataTable"), dat, envir = .GlobalEnv)
+    hack <- function(key, val, pos){
+      assign(key,val, envir=as.environment(pos)
+      )} 
+    hack(paste0(project, "MainDataTable"), dat, 1L)
+    #
+   # assign(paste0(project, "MainDataTable"), dat, envir = .GlobalEnv)
   }
 
 
@@ -274,8 +279,11 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
   load_maindata_function$args <- list(deparse(substitute(dat)), over_write, project, compare, y)
 
   log_call(load_maindata_function)
-
-  assign(paste0(project, "MainDataTable"), dataset, envir = .GlobalEnv)
+  hack <- function(key, val, pos){
+    assign(key,val, envir=as.environment(pos)
+           )} 
+  hack(paste0(project, "MainDataTable"), dataset, 1L)
+ # assign(paste0(project, "MainDataTable"), dataset, envir = .GlobalEnv)
   cat(
     "\n!!! -> Raw data saved as", paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d"), "."), "Working data saved to the database as",
     paste0(project, "MainDataTable."), "Table is also in the working environment. 

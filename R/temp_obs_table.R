@@ -43,7 +43,7 @@ temp_obs_table <- function(dat, project, gridfile, x, lon.dat, lat.dat, cat, lon
     out <- dataset
   } else {
     out <- assignment_column(dataset,
-      gridfile = gridfile, lon.grid = long.grid, lat.grid = lat.dat, lon.dat = lon.dat, lat.dat = lat.dat, cat = cat,
+      gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.dat, lon.dat = lon.dat, lat.dat = lat.dat, cat = cat,
       closest.pt = FALSE, hull.polygon = TRUE, epsg = NULL
     )
   }

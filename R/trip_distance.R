@@ -56,7 +56,7 @@ create_trip_distance <- function(dat, PortTable, trip_id, starting_port, startin
     x <- 1
   }
 
-  if (any(abs(dataset[, c(starting_haul)][1]) > 180) | any(abs(dataset[, c(end_haul)][1]) > 180)) {
+  if (any(abs(dataset[, c(starting_haul)][1]) > 180) | any(abs(dataset[, c(ending_haul)][1]) > 180)) {
     warning("Longitude is not valid (outside -180:180). Function not run.")
     x <- 1
   }
