@@ -159,6 +159,7 @@ source("map_viewer_app.R", local = TRUE)
                                textInput('projectname', 'Name of project'),
                                column(4, radioButtons('loadmainsource', "Source main data from:", choices=c( 'Upload new file','FishSET database'), selected='Upload new file', inline=TRUE)),
                                uiOutput('main_upload')),
+                           
                              fluidRow( 
                                column(width = 8, offset = 2,
                                       uiOutput('ui.action2'))),
@@ -183,6 +184,7 @@ source("map_viewer_app.R", local = TRUE)
                                column(4, radioButtons('loadauxsource', "Source auxiliary data from:", choices=c( 'Upload new file','FishSET database'), selected='Upload new file', inline=TRUE)),
                                uiOutput('aux_upload')
                              ), 
+                             uiOutput('mergeUI'),
                              uiOutput("SaveButtonsUpload"),
                              textInput('notesUp', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
                            )),
