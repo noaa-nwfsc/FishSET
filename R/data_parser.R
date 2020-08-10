@@ -1,39 +1,51 @@
 #  Import data
+#str_trim
 
-
-read_dat <- function(x, data.type) {
+read_dat <- function(x, data.type, ...) {
   #' Import data into R
   #' @param x Name and path of dataset to be read in.
   #' @param data.type csv, mat, json, shape, txt, spss, stata, R
+  #' @param ... Optional arguments 
   #' @importFrom sf read_sf
   #' @importFrom R.matlab readMat
   #' @importFrom jsonlite fromJSON
   #' @importFrom foreign read.spss read.dta
   #' @importFrom utils read.table
   #' @details Uses the appropriate function to read in data based on data type.
-  #' Supported data types include shape, csv, json, matlab, R, spss, and stata files.
+  #'   Supported data types include shape, csv, json, matlab, R, spss, and stata files.
+  #'   Additional arguments can be added, such as the seperator agument \code{sep='\\t'} for  
+  #'   reading in tab deliminated files. For more details, see \code{\link[base]{load}} for loading R objects, 
+  #'   \code{\link[utils]{read.csv}} for reading in comma deliminated files,
+  #'   \code{\link[utils]{read.table}} for reading in tab deliminated files, 
+  #'   \code{\link[sf]{read_sf}} for reading in shape or geojson files, 
+  #'   \code{\link[R.matlab]{readMat}} for reading in matlab data files,
+  #'   \code{\link[foreign]{read.dta}} for reading in stata data files,
+  #'   \code{\link[jsonlite]{fromJson}} for reading in json files, and
+  #'   \code{\link[foreign]{read.spss}} for reading in spss data files.
   #' @export
   #' @examples
   #' \dontrun{
-  #' dat <- read_dat('nmfs_manage_simple.shp', 'shape')
+  #' dat <- read_dat('C:/data/nmfs_manage_simple.shp', 'shape')
   #' }
 
   if (data.type == "R") {
     return(get(load(x)))
   } else if (data.type == "mat") {
-    R.matlab::readMat(x)
-  } else if (data.type == "json") {
-    sf::st_read(x)
+    R.matlab::readMat(x, ...)
+  } else if (data.type == "json"){
+    jsonlite::fromJSON(x, ...)
+  } else if (data.type == "geojson") {
+    sf::st_read(x, ...)
   } else if (data.type == "csv") {
-    read.csv(x)
+    read.csv(x, ...)
   } else if (data.type == "spss") {
-    foreign::read.spss(x)
+    foreign::read.spss(x, ...)
   } else if (data.type == "stata") {
-    foreign::read.dta(x)
+    foreign::read.dta(x, ...)
   } else if (data.type == "shape") {
-    sf::st_read(x) #' ~/path/to/file.shp'
+    sf::st_read(x, ...) #' ~/path/to/file.shp'
   } else {
-    utils::read.table(x)
+    utils::read.table(x, sep='\t', ...)
   }
 }
 
