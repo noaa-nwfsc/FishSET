@@ -30,7 +30,13 @@ temp_plot <- function(dat, project, var.select, len.fun = c("length", "unique", 
 
   requireNamespace("ggplot2")
 
-
+  #Needed functions
+  simpleCap <- function(x) {
+    s <- strsplit(x, " ")[[1]]
+    paste(toupper(substring(s, 1, 1)), substring(s, 2), sep = "", 
+          collapse = " ")
+  }
+  
   # Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
