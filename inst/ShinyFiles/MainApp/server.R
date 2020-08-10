@@ -364,7 +364,7 @@ source("map_viewer_app.R", local = TRUE)
         dataset = data.frame('var1'=0, 'var2'=0)
       )
       observeEvent(input$loadDat, {
-        req(input$auxdattext)
+        #req(input$auxdattext)
         if(input$loadauxsource=='FishSET database'){
           aux$dataset <- table_view(paste0(input$projectname, input$auxdattext))
         } else if(input$loadauxsource=='Upload new file' & !is.null(input$auxdat)){
@@ -696,8 +696,12 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       
       output$ui.actionA <- renderUI({
         if(is.null(input$auxdat)) return()
+        tagList(
         actionButton("uploadAux", label = "Save to database", 
-                     style = "color: white; background-color: blue;", size = "extra-small")
+                     style = "color: white; background-color: blue;", size = "extra-small"),
+        actionButton("mergeAux", label = "Merge with main data", 
+                     style = "background-color: #FAFA00;")
+        )
       })
       output$aux_upload <- renderUI({     
         tagList( 
@@ -712,8 +716,9 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
           conditionalPanel(condition="input.loadauxsource!='Upload new file'", 
                            tagList(
                              fluidRow(
-                               column(3, textInput("auxdattext", "Auxiliary data file name in database", placeholder = 'Optional data'))
-                             ))
+                               column(3, textInput("auxdattext", "Auxiliary data file name in database", placeholder = 'Optional data')),
+                               actionButton("mergeAux", label = "Merge with main data", 
+                                            style = "background-color: #FAFA00;")))
           )
           )
       })
@@ -737,6 +742,122 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
           # ))#label=div(style = "font-size:14px;  font-weight: 400;", 'Enter column name containing port names'), 
           # value='', placeholder = 'Column name')
         )
+      })
+      
+      merge <- reactiveValues(show = FALSE, end = FALSE)
+      
+      observeEvent(input$mergeAux, merge$show <- TRUE)
+      
+      observeEvent(input$mergeCancel, merge$show <- FALSE)
+      
+      output$mergeUI <- renderUI({
+        
+        if (merge$show == FALSE) return()
+        tagList(
+          fluidRow(
+           column(3,
+                   selectInput("mainKey", "Main data keys",
+                               choices = colnames(values$dataset), multiple = TRUE)),
+           column(3, 
+                   selectInput("auxKey", "Auxiliary data keys",
+                               choices = colnames(aux$dataset), multiple = TRUE))),
+          fluidRow(
+            column(8,
+                   verbatimTextOutput("mergeBy"))),
+          fluidRow(
+            column(3,
+                   actionButton("mergeOK", "Merge", style = "background-color: blue; color: #FFFFFF;")),
+            column(3, 
+                   actionButton("mergeCancel", "Cancel merge", 
+                                style ="color: #fff; background-color: #FF6347; border-color: #800000;"))),
+          tags$br(), tags$br()
+          )
+      })
+      
+      show_merge_by <- reactive({
+        req(input$mainKey, input$auxKey)
+        
+        unlist(purrr::pmap(list(m = input$mainKey, a = input$auxKey), function(m, a) {
+          paste0(m, " = ", a, "\n")
+        }))
+      })
+      
+      output$mergeBy <- renderText(show_merge_by())
+      
+      merge_by <- reactive({
+        req(input$mainKey, input$auxKey)
+        if (length(input$mainKey) != length(input$auxKey)) {
+          
+          showNotification("Key lengths must match.", type = "error")
+          return()
+        } else {
+
+          stats::setNames(input$auxKey, c(input$mainKey))
+        }
+      })
+      
+      observeEvent(input$mergeOK, {
+        
+        if (!is.null(merge_by())) {
+          
+          merge$end <- FALSE
+          
+          m_key <- input$mainKey
+          a_key <- input$auxKey
+          
+          m_class <- lapply(m_key, function(x) class(values$dataset[[x]]))
+          a_class <- lapply(a_key, function(x) class(aux$dataset[[x]]))
+          
+          no_match_class <- purrr::pmap(list(m = seq_along(m_class), a = seq_along(a_class)), 
+                                        function(m, a) !all(m_class[[m]] == a_class[[a]]))
+          
+          if (any(unlist(no_match_class))) {
+            
+            except_match <- purrr::pmap_lgl(list(m = m_class, a = a_class), function(m, a) {
+              
+              (m %in% c("character", "factor")) & (a %in% c("character", "factor")) |
+                (m %in% c("numeric", "integer")) & (a %in% c("numeric", "integer"))
+            })
+            
+            if (any(!except_match)) {
+              
+              ind <- which(!except_match)
+              
+              class_error <- vapply(ind, FUN = function(x) {
+                
+                paste0("'", m_key[x], "' and '", a_key[x], "' class types are incompatible (", 
+                       class(values$dataset[[m_key[x]]]), "/", class(aux$dataset[[a_key[x]]]), 
+                       "). Unable to merge datasets.")
+                
+              }, FUN.VALUE = character(1))
+              
+              showNotification(paste0(class_error, collapse = "\n"), type = "error",
+                               duration = NULL)
+              
+              merge$end <- TRUE
+            }
+          }
+          
+          if (!isTRUE(merge$end)) {
+        
+        
+            if (any(vapply(values$dataset[m_key], FUN = is.character, FUN.VALUE = logical(1)))) {
+              
+              values$dataset[m_key] <- as.data.frame(apply(values$dataset[m_key], 2, trimws))
+            }
+            
+            if (any(vapply(aux$dataset[a_key], FUN = is.character, FUN.VALUE = logical(1)))) {
+              
+              aux$dataset[a_key] <- as.data.frame(apply(aux$dataset[a_key], 2, trimws))
+            }
+            
+            values$dataset <-
+              dplyr::left_join(values$dataset,
+                               aux$dataset,
+                               by = merge_by(),
+                               suffix = c("_MAIN", "_AUX"))
+          }
+        }
       })
       
       observeEvent(input$uploadMain, {
