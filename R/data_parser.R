@@ -4,24 +4,27 @@
 read_dat <- function(x, data.type, ...) {
   #' Import data into R
   #' @param x Name and path of dataset to be read in.
-  #' @param data.type csv, mat, json, shape, txt, spss, stata, R
+  #' @param data.type csv, geojson, mat, json, shape, txt, sas, spss, stata, R, xls, xlsx
   #' @param ... Optional arguments 
   #' @importFrom sf read_sf
   #' @importFrom R.matlab readMat
   #' @importFrom jsonlite fromJSON
-  #' @importFrom foreign read.spss read.dta
+  #' @importFrom haven read_spss read_stata read_sas
   #' @importFrom utils read.table
+  #' @importFrom readxl read_excel
   #' @details Uses the appropriate function to read in data based on data type.
   #'   Supported data types include shape, csv, json, matlab, R, spss, and stata files.
   #'   Additional arguments can be added, such as the seperator agument \code{sep='\\t'} for  
   #'   reading in tab deliminated files. For more details, see \code{\link[base]{load}} for loading R objects, 
   #'   \code{\link[utils]{read.csv}} for reading in comma deliminated files,
   #'   \code{\link[utils]{read.table}} for reading in tab deliminated files, 
+  #'   \code{\link[readxl]{read_excel}} for reading in excel files (xls, xlsx), 
   #'   \code{\link[sf]{read_sf}} for reading in shape or geojson files, 
   #'   \code{\link[R.matlab]{readMat}} for reading in matlab data files,
-  #'   \code{\link[foreign]{read.dta}} for reading in stata data files,
-  #'   \code{\link[jsonlite]{fromJson}} for reading in json files, and
-  #'   \code{\link[foreign]{read.spss}} for reading in spss data files.
+  #'   \code{\link[haven]{read_stata}} for reading in stata data files,
+  #'   \code{\link[haven]{read_spss}} for reading in spss data files,
+  #'   \code{\link[haven]{read_sas}} for reading in sas data files, and 
+  #'   \code{\link[jsonlite]{fromJSON}} for reading in json files.
   #' @export
   #' @examples
   #' \dontrun{
@@ -44,6 +47,8 @@ read_dat <- function(x, data.type, ...) {
     foreign::read.dta(x, ...)
   } else if (data.type == "shape") {
     sf::st_read(x, ...) #' ~/path/to/file.shp'
+  } else if (data.type == "xls" | data.type == 'xlsx'){
+    readxl::read_excel(x, ...)
   } else {
     utils::read.table(x, sep='\t', ...)
   }
