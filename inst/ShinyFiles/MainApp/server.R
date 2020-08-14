@@ -861,40 +861,30 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       })
       
       observeEvent(input$uploadMain, {
-        type <- sub('.*\\.', '', input$maindat$name)
-        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-        df_data <- FishSET::read_dat(input$maindat$datapath, type)
+        df_data <- FishSET::read_dat(input$maindat$datapath)
         df_y <- input$compare
         df_compare <- ifelse(nchar(input$compare)>0, TRUE, FALSE)
         q_test <- quietly_test(load_maindata)
         q_test(df_data, over_write=input$over_write, project=input$projectname, compare=df_compare, y=df_y)
       })
       observeEvent(input$uploadPort, {
-        type <- sub('.*\\.', '', input$portdat$name)
-        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-        df_data <- FishSET::read_dat(input$portdat$datapath, type)
+        df_data <- FishSET::read_dat(input$portdat$datapath)
         q_test <- quietly_test(load_port)
         q_test(df_data, port_name=input$port_name, over_write=TRUE, project=input$projectname, compare=FALSE, y=NULL)
       }) 
       observeEvent(input$uploadspatial, {
-        type <- sub('.*\\.', '', input$spatialdat$name)
-        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-        df_data <- FishSET::read_dat(input$spatialdat$datapath, type)
+        df_data <- FishSET::read_dat(input$spatialdat$datapath)
         fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
         DBI::dbWriteTable(fishset_db, input$spatialdat$name,  df_data, overwrite=TRUE) 
         DBI::dbDisconnect(fishset_db)
       }) 
       observeEvent(input$uploadGrid, {
-        type <- sub('.*\\.', '', input$griddat$name)
-        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-        df_data <- FishSET::read_dat(input$griddat$datapath, type)
+        df_data <- FishSET::read_dat(input$griddat$datapath)
         q_test <- quietly_test(load_grid)
         q_test(paste0(input$projectname, 'MainDataTable'), x=df_data, over_write=TRUE, project=input$projectname)
       }) 
       observeEvent(input$uploadAux, {
-        type <- sub('.*\\.', '', input$auxdat$name)
-        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-        df_data <- FishSET::read_dat(input$auxdat$datapath, type)
+       df_data <- FishSET::read_dat(input$auxdat$datapath)
         q_test <- quietly_test(load_aux)
         q_test(paste0(input$projectname, 'MainDataTable'), x=df_data, over_write=TRUE, project=input$projectname)
       }) 

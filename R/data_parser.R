@@ -1,10 +1,13 @@
 #  Import data
 #str_trim
 
-read_dat <- function(x, data.type, ...) {
+read_dat <- function(x, data.type=NULL, ...) {
   #' Import data into R
   #' @param x Name and path of dataset to be read in.
-  #' @param data.type csv, geojson, mat, json, shape, txt, sas, spss, stata, R, xls, xlsx
+  #' @param data.type Optional. Data type can be defined by user or based on the file extension,
+  #'   Leave \code{data.type} as NULL if data type is to based on file extension.
+  #'   R, comma deliminated, tab deliminated, excel, matlab, json, geojson, shape, sas,
+  #'    spss, and stata data files are recognized. 
   #' @param ... Optional arguments 
   #' @importFrom sf read_sf
   #' @importFrom R.matlab readMat
@@ -28,26 +31,34 @@ read_dat <- function(x, data.type, ...) {
   #' @export
   #' @examples
   #' \dontrun{
-  #' dat <- read_dat('C:/data/nmfs_manage_simple.shp', 'shape')
+  #' dat <- read_dat('C:/data/nmfs_manage_simple.shp')
   #' }
-
-  if (data.type == "R") {
+  
+  if(is.null(data.type)) {
+        data.type <- sub('.*\\.', '', x)
+  }
+  
+  data.type <- tolower(data.type)
+  
+  if (data.type == 'rda' | data.type == "r") {
     return(get(load(x)))
-  } else if (data.type == "mat") {
+  } else if (data.type == "mat" | data.type == 'matlab') {
     R.matlab::readMat(x, ...)
   } else if (data.type == "json"){
     jsonlite::fromJSON(x, ...)
   } else if (data.type == "geojson") {
     sf::st_read(x, ...)
   } else if (data.type == "csv") {
-    read.csv(x, ...)
-  } else if (data.type == "spss") {
-    foreign::read.spss(x, ...)
-  } else if (data.type == "stata") {
-    foreign::read.dta(x, ...)
-  } else if (data.type == "shape") {
+    utils::read.csv(x, ...)
+  } else if (data.type == 'sas7bdat' | data.type == 'sas') {
+    haven::read_sas(x, ...)
+  } else if (data.type == "sav" | data.type == 'zsav' | data.type == 'por' | data.type == 'sas') {
+    haven::read_spss(x, ...)
+  } else if (data.type == "dta" | data.type == "stata") {
+    haven::read.dta(x, ...)
+  } else if (data.type == 'shp' | data.type == "shape") {
     sf::st_read(x, ...) #' ~/path/to/file.shp'
-  } else if (data.type == "xls" | data.type == 'xlsx'){
+  } else if (data.type == "xls" | data.type == 'xlsx' | data.type == 'excel'){
     readxl::read_excel(x, ...)
   } else {
     utils::read.table(x, sep='\t', ...)
