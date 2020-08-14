@@ -46,8 +46,8 @@ read_dat <- function(x, data.type=NULL, ...) {
     R.matlab::readMat(x, ...)
     cat('Data returned as named list structure. Further processing is required.')
   } else if (data.type == "json"){
-    jsonlite::fromJSON(x, simplifyDataFrame=T, ...)
-    cat('JSON arrays contianing only records coerced into a data frame.')
+    jsonlite::fromJSON(x, ...)
+    cat('Data may require additional processing.')
   } else if (data.type == "geojson") {
     sf::st_read(x, ...)
   } else if (data.type == "csv") {
