@@ -41,25 +41,27 @@ read_dat <- function(x, data.type=NULL, ...) {
   data.type <- tolower(data.type)
   
   if (data.type == 'rda' | data.type == "r") {
-    return(get(load(x)))
+    return(as.data.frame(get(load(x))))
   } else if (data.type == "mat" | data.type == 'matlab') {
     R.matlab::readMat(x, ...)
+    cat('Data returned as named list structure. Further processing is required.')
   } else if (data.type == "json"){
-    jsonlite::fromJSON(x, ...)
+    jsonlite::fromJSON(x, simplifyDataFrame=T, ...)
+    cat('JSON arrays contianing only records coerced into a data frame.')
   } else if (data.type == "geojson") {
     sf::st_read(x, ...)
   } else if (data.type == "csv") {
     utils::read.csv(x, ...)
   } else if (data.type == 'sas7bdat' | data.type == 'sas') {
-    haven::read_sas(x, ...)
+    as.data.frame(haven::read_sas(x, ...))
   } else if (data.type == "sav" | data.type == 'zsav' | data.type == 'por' | data.type == 'sas') {
-    haven::read_spss(x, ...)
+    as.data.frame(haven::read_spss(x, ...))
   } else if (data.type == "dta" | data.type == "stata") {
-    haven::read.dta(x, ...)
+    as.data.frame(haven::read_stata(x, ...))
   } else if (data.type == 'shp' | data.type == "shape") {
     sf::st_read(x, ...) #' ~/path/to/file.shp'
   } else if (data.type == "xls" | data.type == 'xlsx' | data.type == 'excel'){
-    readxl::read_excel(x, ...)
+    as.data.frame(readxl::read_excel(x, ...))
   } else {
     utils::read.table(x, sep='\t', ...)
   }

@@ -34,23 +34,17 @@ outlier_table <- function(dat, project, x) {
   emptyrow <- data.frame(N = 0, mean = NA, median = NA, SD = NA, min = NA, max = NA, NAs = NA, skew = NA)
 
   filledrow <- function(dat, x) {
-    data.frame(N = length(temp[, x]), mean = round(mean(temp[, x], na.rm = T), 2), median = round(stats::median(temp[, x], na.rm = T), 2), SD = round(stats::sd(temp[
-      ,
-      x
-    ], na.rm = T), 2), min = round(min(temp[, x], na.rm = T), 2), max = round(max(temp[, x], na.rm = T), 2), NAs = sum(length(which(is.na(temp[
-      ,
-      x
-    ])))), skew = round(skewness(temp[, x], na.rm = T), 2))
+    data.frame(N = length(temp[, x]), mean = round(mean(temp[, x], na.rm = T), 2), median = round(stats::median(temp[, x], na.rm = T), 2),
+               SD = round(stats::sd(temp[ ,x], na.rm = T), 2), min = round(min(temp[, x], na.rm = T), 2), 
+               max = round(max(temp[, x], na.rm = T), 2), NAs = sum(length(which(is.na(temp[ ,x])))), skew = round(skewness(temp[, x], na.rm = T), 2))
   }
   # numeric. Cannot check outliers if not.
-  if (is.numeric(dataset[, x]) == T) {
+  if (is.numeric(dataset[, x])) {
     # Output table of summary statistics Row 1 No data removed
-    dat.table <- data.frame(Vector = x.name, outlier_check = "None", N = length(dataset[, x]), mean = round(mean(dataset[, x], na.rm = T), 2), median = round(stats::median(dataset[
-      ,
-      x
-    ], na.rm = T), 2), SD = round(sd(dataset[, x], na.rm = T), 2), min = round(min(dataset[, x], na.rm = T), 2), max = round(max(dataset[, x],
-      na.rm = T
-    ), 2), NAs = sum(length(which(is.na(dataset[, x])))), skew = round(skewness(dataset[, x], na.rm = T), 2))
+    dat.table <- data.frame(Vector = x.name, outlier_check = "None", N = length(dataset[, x]), mean = round(mean(dataset[, x], na.rm = T), 2),
+                            median = round(stats::median(dataset[ ,x], na.rm = T), 2), SD = round(sd(dataset[, x], na.rm = T), 2), 
+                            min = round(min(dataset[, x], na.rm = T), 2), max = round(max(dataset[, x], na.rm = T), 2), 
+                            NAs = sum(length(which(is.na(dataset[, x])))), skew = round(skewness(dataset[, x], na.rm = T), 2))
     # Row 2 5-95% quantile
     temp <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.95, na.rm = TRUE) & dataset[, x] > stats::quantile(dataset[, x], 0.05, na.rm = TRUE), ]
     dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "5_95_quant", if (dim(temp)[1] == 0) {
@@ -111,8 +105,12 @@ outlier_table <- function(dat, project, x) {
   outlier_table_function$args <- list(dat, project, x)
 
   log_call(outlier_table_function)
-
-  save_table(dat.table, project, "outlier_table")
+  
+  if(is.numeric(dataset[,x])){
+    save_table(dat.table, project, "outlier_table")
+  } else  {
+    cat('Table not available. Data is not numeric.')
+  }
 }
 
 ## ---------------------------##
