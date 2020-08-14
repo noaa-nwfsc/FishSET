@@ -6,7 +6,7 @@ outlier_table <- function(dat, project, x) {
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
-  #' @param x Variable in \code{dat} to check for outliers.
+  #' @param x Variable or column number in \code{dat} to check for outliers.
   #' @importFrom stats quantile sd var na.pass model.matrix
   #' @importFrom utils file_test
   #' @importFrom grDevices dev.off pdf
@@ -22,6 +22,7 @@ outlier_table <- function(dat, project, x) {
   #' \dontrun{
   #' outlier_table(pollockMainDataTable, 'pollock', 'HAUL')
   #' }
+
 
   # Call in datasets
   out <- data_pull(dat)
