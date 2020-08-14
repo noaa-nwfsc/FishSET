@@ -96,7 +96,7 @@ trip_length <- function(dat, project, start, end, units = "days", catch = NULL,
   }
   
   if (haul_to_trip == TRUE) {
-    dataset <- haul_to_trip(dataset, ...)
+    dataset <- haul_to_trip(dataset, project = project, ...)
   }
   
   if (!is.null(filter_date)) {
@@ -343,8 +343,9 @@ trip_length <- function(dat, project, start, end, units = "days", catch = NULL,
   trip_length_function <- list()
   trip_length_function$functionID <- "trip_length"
   trip_length_function$args <- list(dat, project, start, end, units, catch, hauls,
-                                    group, filter_date, filter_value, facet_by, scale,
-                                    tran, pages, output, haul_to_trip)
+                                    group, filter_date, filter_value, facet_by, type,
+                                    bins, density, scale, tran, pages, output, 
+                                    format_tab, haul_to_trip)
   trip_length_function$kwargs <- list(...)
   log_call(trip_length_function)
   
