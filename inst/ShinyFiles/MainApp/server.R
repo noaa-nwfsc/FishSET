@@ -918,6 +918,19 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
         options = list(autoWidth=FALSE, scrollX=T,  responsive=TRUE, pageLength = 7)
       )
       
+      tableInputOutlier <- reactive({
+        if(colnames(values$dataset)[1] == 'var1') {
+          return(NULL)
+        } else if(input$checks=='Outliers'){
+          table <- outlier_table(values$dataset, project=input$projectname, x=input$column_check)
+          rownames(table)=table[,2]
+          table <- table[,3:10]
+          #table <<- table
+        } else {
+          NULL
+        }
+      })
+      
       ##Output to main panel
       output$Case<-renderPrint({
         if(input$checks=='Summary table') {
@@ -949,9 +962,9 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
           nan_filter(values$dataset, x=names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), 
                      replace = FALSE, remove = FALSE, rep.value=NA,  over_write=FALSE)
         } else if(input$checks=='Unique observations'){
-          unique_filter(values$dataset, remove=FALSE)
+          unique_filter(values$dataset, input$projectname, remove=FALSE)
         } else if(input$checks=='Empty variables'){
-          empty_vars_filter(values$dataset, remove=FALSE)
+          empty_vars_filter(values$dataset, input$projectname, remove=FALSE)
         } else if(input$checks=='Lat_Lon units'){
           degree(values$dataset, lat=NULL, lon=NULL, latsign=FALSE, lonsign=FALSE, replace=FALSE)
         } else {
@@ -1141,18 +1154,7 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
         options = list(autoWidth=FALSE, scrollX=T, responsive=FALSE, pageLength = 25)
       )
       
-      tableInputOutlier <- reactive({
-        if(colnames(values$dataset)[1] == 'var1') {
-          return(NULL)
-        } else if(input$checks=='Outliers'){
-          table <- outlier_table(values$dataset, project=input$projectname, x=input$column_check)
-          rownames(table)=table[,2]
-          table <- table[,3:10]
-          #table <<- table
-        } else {
-          NULL
-        }
-      })
+
       
       output$output_table_outlier <- DT::renderDT(
         if(colnames(values$dataset)[1] == 'var1') {
