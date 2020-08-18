@@ -461,7 +461,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
   bycatch_function <- list()
   bycatch_function$functionID <- "bycatch"
   bycatch_function$args <- list(dat, project, cpue, catch, date, period, names, group, 
-                                filter_date, filter_value, facet_by, value, combine, 
+                                filter_date, filter_value, facet_by, tran, value, combine, 
                                 scale, output, format_tab)
   log_call(bycatch_function)
   
