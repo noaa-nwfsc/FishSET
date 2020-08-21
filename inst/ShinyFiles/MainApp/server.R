@@ -215,9 +215,7 @@ source("map_viewer_app.R", local = TRUE)
         values$dataset <- table_view(paste0(input$projectname, 'MainDataTable'))
           }
         } else if(input$loadmainsource=='Upload new file' & !is.null(input$maindat)){
-          type <- sub('.*\\.', '', input$maindat$name)
-          if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-          values$dataset <- read_dat(input$maindat$datapath, type)
+           values$dataset <- read_dat(input$maindat$datapath)
        }   else {
           values$dataset <- values$dataset
        }
@@ -229,9 +227,7 @@ source("map_viewer_app.R", local = TRUE)
       
       observeEvent(input$uploadMain, {
         if(input$loadmainsource=='Upload new file'){
-          type <- sub('.*\\.', '', input$maindat$name)
-          if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-          values$dataset <- read_dat(input$maindat$datapath, type)
+           values$dataset <- read_dat(input$maindat$datapath)
         } else {
           values$dataset <- values$dataset
         }
@@ -268,9 +264,7 @@ source("map_viewer_app.R", local = TRUE)
           ptdat$dataset <- table_view(paste0(input$projectname, 'PortTable'))
           }
         } else if(input$loadportsource=='Upload new file' & !is.null(input$portdat)){
-          type <- sub('.*\\.', '', input$portdat$name)
-          if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-          ptdat$dataset <- read_dat(input$portdat$datapath, type)
+         ptdat$dataset <- read_dat(input$portdat$datapath)
           }else {
           ptdat$dataset <- ptdat$dataset
           }
@@ -281,9 +275,7 @@ source("map_viewer_app.R", local = TRUE)
       
       observeEvent(input$uploadPort, {
         if(input$loadportsource!='FishSET database'){
-        type <- sub('.*\\.', '', input$portdat$name)
-        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-        ptdat$dataset <- read_dat(input$portdat$datapath, type)
+        ptdat$dataset <- read_dat(input$portdat$datapath)
         } else {
           ptdat$dataset <- ptdat$dataset
         }
@@ -301,9 +293,7 @@ source("map_viewer_app.R", local = TRUE)
         if(input$loadspatialsource=='FishSET database'){
           spatdat$dataset <- table_view(input$spatialdattext)
         } else if(input$loadspatialsource=='Upload new file' & !is.null(input$spatialdat)){
-          type <- sub('.*\\.', '', input$spatialdat$name)
-          if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-          spatdat$dataset <- read_dat(input$spatialdat$datapath, type)
+          spatdat$dataset <- read_dat(input$spatialdat$datapath)
           } else {
           spatdat$dataset <- spatdat$dataset
           }
@@ -314,9 +304,7 @@ source("map_viewer_app.R", local = TRUE)
       
        observeEvent(input$uploadspatial, {
          if(input$loadspatialsource!='FishSET database'){
-        type <- sub('.*\\.', '', input$spatialdat$name)
-        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-        spatdat$dataset <- read_dat(input$spatialdat$datapath, type)
+        spatdat$dataset <- read_dat(input$spatialdat$datapath)
        } else {
          spatdat$dataset <- spatdat$dataset
        }
@@ -334,9 +322,7 @@ source("map_viewer_app.R", local = TRUE)
         if(input$loadgridsource=='FishSET database'){
           grddat$dataset <- table_view(paste0(input$projectname, input$griddattext))
         } else if(input$loadgridsource=='Upload new file' & !is.null(input$griddat)) {
-          type <- sub('.*\\.', '', input$griddat$name)
-          if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-          grddat$dataset <- read_dat(input$griddat$datapath, type)
+          grddat$dataset <- read_dat(input$griddat$datapath)
         } else {
           grddat$dataset <- grddat$dataset
         }
@@ -347,9 +333,7 @@ source("map_viewer_app.R", local = TRUE)
       
       observeEvent(input$uploadGrid, {
         if(input$loadgridsource!='FishSET database'){
-          type <- sub('.*\\.', '', input$griddat$name)
-          if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-          grddat$dataset <- read_dat(input$griddat$datapath, type)
+           grddat$dataset <- read_dat(input$griddat$datapath)
          } else {
            grddat$dataset <- grddat$dataset
          }
@@ -368,9 +352,7 @@ source("map_viewer_app.R", local = TRUE)
         if(input$loadauxsource=='FishSET database'){
           aux$dataset <- table_view(paste0(input$projectname, input$auxdattext))
         } else if(input$loadauxsource=='Upload new file' & !is.null(input$auxdat)){
-          type <- sub('.*\\.', '', input$auxdat$name)
-          if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-          aux$dataset <-read_dat(input$auxdat$datapath, type)
+           aux$dataset <-read_dat(input$auxdat$datapath)
           } else {
           aux$dataset <- aux$dataset
           }
@@ -380,9 +362,7 @@ source("map_viewer_app.R", local = TRUE)
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
        observeEvent(input$uploadAux, {
          if(input$loadauxsource!='FishSET database'){
-            type <- sub('.*\\.', '', input$auxdat$name)
-            if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-            aux$dataset <-read_dat(input$auxdat$datapath, type)
+            aux$dataset <-read_dat(input$auxdat$datapath)
          } else {
            aux$dataset <- aux$dataset
          }
@@ -619,6 +599,16 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
         actionButton("uploadMain", label = "Save to database", 
                      style = "color: white; background-color: blue;", size = "extra-small")
       })
+ 
+      output$ui.action2 <- renderUI({
+        if(is.null(input$maindat)) return()
+        tagList(
+          textInput('compare', label=div(style = "font-size:14px;  font-weight: 400;", 'If comparing data to previous year, enter saved table name'), 
+                    value='', placeholder = 'Saved table name in FishSET database'),
+          checkboxInput('over_write','If file exsits, over write?', value=FALSE)
+        )
+      })
+ 
  #     observeEvent(input$maindat, {
  #       type <- sub('.*\\.', '', input$maindat$name)
  #       if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
@@ -723,14 +713,7 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
           )
       })
     
-      output$ui.action2 <- renderUI({
-        if(is.null(input$maindat)) return()
-        tagList(
-          textInput('compare', label=div(style = "font-size:14px;  font-weight: 400;", 'If comparing data to previous year, enter saved table name'), 
-                    value='', placeholder = 'Saved table name in FishSET database'),
-          checkboxInput('over_write','If file exsits, over write?', value=FALSE)
-        )
-      })
+      
       output$ui.actionP2 <- renderUI({
         if(is.null(input$portdat)) return()
         tagList(
@@ -743,7 +726,8 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
           # value='', placeholder = 'Column name')
         )
       })
-      
+      ###---- 
+      #Merge
       merge <- reactiveValues(show = FALSE, end = FALSE)
       
       observeEvent(input$mergeAux, merge$show <- TRUE)
@@ -859,32 +843,33 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
           }
         }
       })
+      ###----
       
       observeEvent(input$uploadMain, {
-        df_data <- FishSET::read_dat(input$maindat$datapath)
+        df_data <- read_dat(input$maindat$datapath)
         df_y <- input$compare
         df_compare <- ifelse(nchar(input$compare)>0, TRUE, FALSE)
         q_test <- quietly_test(load_maindata)
         q_test(df_data, over_write=input$over_write, project=input$projectname, compare=df_compare, y=df_y)
       })
       observeEvent(input$uploadPort, {
-        df_data <- FishSET::read_dat(input$portdat$datapath)
+        df_data <- read_dat(input$portdat$datapath)
         q_test <- quietly_test(load_port)
         q_test(df_data, port_name=input$port_name, over_write=TRUE, project=input$projectname, compare=FALSE, y=NULL)
       }) 
       observeEvent(input$uploadspatial, {
-        df_data <- FishSET::read_dat(input$spatialdat$datapath)
+        df_data <- read_dat(input$spatialdat$datapath)
         fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
         DBI::dbWriteTable(fishset_db, input$spatialdat$name,  df_data, overwrite=TRUE) 
         DBI::dbDisconnect(fishset_db)
       }) 
       observeEvent(input$uploadGrid, {
-        df_data <- FishSET::read_dat(input$griddat$datapath)
+        df_data <- read_dat(input$griddat$datapath)
         q_test <- quietly_test(load_grid)
         q_test(paste0(input$projectname, 'MainDataTable'), x=df_data, over_write=TRUE, project=input$projectname)
       }) 
       observeEvent(input$uploadAux, {
-       df_data <- FishSET::read_dat(input$auxdat$datapath)
+       df_data <- read_dat(input$auxdat$datapath)
         q_test <- quietly_test(load_aux)
         q_test(paste0(input$projectname, 'MainDataTable'), x=df_data, over_write=TRUE, project=input$projectname)
       }) 

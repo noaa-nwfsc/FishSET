@@ -19,7 +19,7 @@ read_dat <- function(x, data.type=NULL, ...) {
   #'   Supported data types include shape, csv, json, matlab, R, spss, and stata files.
   #'   Additional arguments can be added, such as the seperator agument \code{sep='\\t'} for  
   #'   reading in tab deliminated files. For more details, see \code{\link[base]{load}} for loading R objects, 
-  #'   \code{\link[utils]{read.csv}} for reading in comma deliminated files,
+  #'   \code{\link{read.csv}} for reading in comma deliminated files,
   #'   \code{\link[utils]{read.table}} for reading in tab deliminated files, 
   #'   \code{\link[readxl]{read_excel}} for reading in excel files (xls, xlsx), 
   #'   \code{\link[sf]{read_sf}} for reading in shape or geojson files, 
@@ -51,7 +51,7 @@ read_dat <- function(x, data.type=NULL, ...) {
   } else if (data.type == "geojson") {
     sf::st_read(x, ...)
   } else if (data.type == "csv") {
-    utils::read.csv(x, ...)
+    read.csv(x, ...)
   } else if (data.type == 'sas7bdat' | data.type == 'sas') {
     as.data.frame(haven::read_sas(x, ...))
   } else if (data.type == "sav" | data.type == 'zsav' | data.type == 'por' | data.type == 'sas') {
@@ -67,7 +67,7 @@ read_dat <- function(x, data.type=NULL, ...) {
   }
 }
 
-# Load main data table
+# Load main data table into working environment
 load_data <- function(project, name = NULL) {
   #' Load data from FishSET database into working environment
   #' @param project String, name of project.
@@ -203,7 +203,7 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
   #' @importFrom jsonlite toJSON
   #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
   #' @export
-  #' @details Runs the \code{fishset_compare} function if \code{compare}is TRUE and calls the
+  #' @details Runs the \code{fishset_compare} function if \code{compare} is TRUE and calls the
   #'  \code{\link{data_verification}} function to check for common data issues and that latitude
   #'  and longitude are defined. Then generates an index table that contains units,
   #'  data format, and information on specialized variables. Finally, the datasets (main and index tables)
@@ -225,66 +225,76 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
     fishset_compare(dataset, y, compare)
   }
   ## -----------MainDataTable--------------------##
-  data_verification_call(dataset, project)
-  # Check to see if lat/long or fish area is in dataset
-  indx <- grepl("lat|lon|area", colnames(dataset), ignore.case = TRUE)
-  if (length(dataset[indx]) > 0) {
-    cat("Pass: Latitude and longitude or fishing area included in the data frame")
+  #QC
+  check <- 0
+  # check that names are unique in dataset
+  x <- colnames(dataset)
+    if (length(x) == length(unique(x)) & length(toupper(x)) != length(unique(toupper(x)))) {
+    cat("\nData set will not be saved to database. 
+        Duplicate case-insensitive column names. Sqlite column names are case insensitive.")
+    check <- 1
+  } else if(length(x) != length(unique(x))) {
+    cat("\nVariable names are not unique.\n")
+    check <- 1
+  }
+  
+  
+  if (any(grepl("area|zone", names(dataset), ignore.case = TRUE)) == FALSE & 
+      (any(grepl("lat", names(dataset), ignore.case = TRUE)) == FALSE |
+       any(grepl("lon", names(dataset), ignore.case = TRUE)) ==  FALSE)) {
+    cat("Neither Latitude/Longitude or Area/Zone variables are included. Data will not be saved.")
+    check = 1
+  }
+  
+  if(check == 1) { 
+    print('Dataset not saved. Check that column names are case-insensitive unique and that latitude/longitude
+          or area/zone are included.')
   } else {
-    warning("Dataset must contain either latitude and longitude or fishing area designation.")
-  }
-
-  n <- grep("DATE|TRIP_END|TRIP_START", colnames(dataset), ignore.case = TRUE)
-  for (i in 1:length(n)) {
-    dataset[, n[i]] <- format(date_parser(dataset[, n[i]]), "%Y-%m-%d %H:%M:%S")
-  }
+      
+    n <- grep("DATE", colnames(dataset), ignore.case = TRUE)
+    for (i in 1:length(n)) {
+      dataset[, n[i]] <- format(date_parser(dataset[, n[i]]), "%Y-%m-%d %H:%M:%S")
+    }
 
 
   ## --------- MainDataTableInfo -------------- ##
   MainDataTableInfo <- data.frame(
-    variable_name = colnames(dataset), units = c(ifelse(grepl("DATE|TRIP_END|TRIP_START", colnames(dataset), ignore.case = TRUE),
-      "yyyymmdd", ifelse(grepl("MIN", colnames(dataset), ignore.case = TRUE), "min", ifelse(grepl("FATHOMS", colnames(dataset)), "fathoms", ifelse(grepl("HOURS|CHINOOK|CHUM|PROPORTION|SIZE",
-        colnames(dataset),
-        ignore.case = TRUE
-      ), "numeric", ifelse(grepl("DOLLARS", colnames(dataset), ignore.case = TRUE), "dollars", ifelse(grepl("POUNDS|LBS",
-        colnames(dataset),
-        ignore.case = TRUE
-      ), "lbs", ifelse(grepl("Lon|Lat|", colnames(dataset), ignore.case = TRUE), "decimal degrees", ifelse(grepl("PERCENT",
-        colnames(dataset),
-        ignore.case = TRUE
-      ), "percent", ifelse(grepl("MT", colnames(dataset), ignore.case = TRUE), "metric tons", ifelse(grepl("WEEK",
-        colnames(dataset),
-        ignore.case = TRUE
-      ), "WK", ifelse(grepl("WEEK", colnames(dataset), ignore.case = TRUE), "Y/N", NA))))))))))
-    )), generalType = c(ifelse(grepl("DATE|MIN",
-      colnames(dataset),
-      ignore.case = TRUE
-    ), "Time", ifelse(grepl("IFQ", colnames(dataset), ignore.case = TRUE), "Flag", ifelse(grepl("ID", colnames(dataset),
-      ignore.case = TRUE
-    ), "Code", ifelse(grepl("Long|Lat", colnames(dataset), ignore.case = TRUE), "Latitude", ifelse(grepl("TYPE|PROCESSOR|LOCATION|METHOD",
-      colnames(dataset),
-      ignore.case = TRUE
-    ), "Code String", ifelse(grepl("CHINOOK|CHUM|FATHOMS|DOLLARS|LBS|PROPORTION|VALUE|PERCENT|MT", colnames(dataset),
-      ignore.case = TRUE
-    ), "Other Numeric", ifelse(grepl("HAUL|AREA|PERFORMANCE|PERMIT", colnames(dataset), ignore.case = TRUE), "Code Numeric", NA)))))))),
-    isXY = ifelse(grepl("HOURS|CHINOOK|CHUM|PROPORTION|SIZE", colnames(dataset), ignore.case = TRUE), 1, 0), isID = ifelse(grepl("ID", colnames(dataset),
-      ignore.case = TRUE
-    ), 1, 0), variable_link = rep(NA, length(colnames(dataset))), isTime = ifelse(grepl("DATE|MIN", colnames(dataset), ignore.case = TRUE),
-      1, 0
-    ), isCatch = ifelse(grepl("CATCH|POUNDS|LBS", colnames(dataset), ignore.case = TRUE), 1, 0), isEffort = ifelse(grepl("DURATION", colnames(dataset),
-      ignore.case = TRUE
-    ), 1, 0), isCPUE = rep(0, length(colnames(dataset))), isLon = ifelse(grepl("LON", colnames(dataset), ignore.case = TRUE),
-      1, 0
-    ), isLat = ifelse(grepl("LAT", colnames(dataset), ignore.case = TRUE), 1, 0), isValue = ifelse(grepl("DOLLARS", colnames(dataset), ignore.case = TRUE),
-      1, 0
-    ), isZoneArea = ifelse(grepl("AREA", colnames(dataset), ignore.case = TRUE), 1, 0), isPort = ifelse(grepl("PORT", colnames(dataset), ignore.case = TRUE),
-      1, 0
-    ), isPrice = rep(0, length(colnames(dataset)), ignore.case = TRUE), isTrip = ifelse(grepl("TRIP", colnames(dataset), ignore.case = TRUE),
-      1, 0
-    ), isHaul = ifelse(grepl("HAUL", colnames(dataset), ignore.case = TRUE), 1, 0), isOther = rep(0, length(colnames(dataset))), tableLink = rep(
-      NA,
-      length(colnames(dataset))
-    )
+    variable_name = colnames(dataset), 
+    units = c(ifelse(grepl("DATE|TRIP_END|TRIP_START", colnames(dataset), ignore.case = TRUE), "yyyymmdd", 
+                     ifelse(grepl("MIN", colnames(dataset), ignore.case = TRUE), "min", 
+                            ifelse(grepl("FATHOMS", colnames(dataset)), "fathoms", 
+                                   ifelse(grepl("HOURS|CHINOOK|CHUM|PROPORTION|SIZE", colnames(dataset), ignore.case = TRUE), "numeric", 
+                                          ifelse(grepl("DOLLARS", colnames(dataset), ignore.case = TRUE), "dollars", 
+                                                 ifelse(grepl("POUNDS|LBS", colnames(dataset), ignore.case = TRUE), "lbs", 
+                                                        ifelse(grepl("Lon|Lat|", colnames(dataset), ignore.case = TRUE), "decimal degrees", 
+                                                               ifelse(grepl("PERCENT",colnames(dataset), ignore.case = TRUE), "percent", 
+                                                                      ifelse(grepl("MT", colnames(dataset), ignore.case = TRUE), "metric tons", 
+                                                                             ifelse(grepl("WEEK",colnames(dataset), ignore.case = TRUE), "WK", 
+                                                                                    ifelse(grepl("WEEK", colnames(dataset), ignore.case = TRUE), "Y/N", NA)))))))))))), 
+    generalType = c(ifelse(grepl("DATE|MIN", colnames(dataset), ignore.case = TRUE), "Time", 
+                           ifelse(grepl("IFQ", colnames(dataset), ignore.case = TRUE), "Flag", 
+                                  ifelse(grepl("ID", colnames(dataset),ignore.case = TRUE), "Code", 
+                                         ifelse(grepl("Long|Lat", colnames(dataset), ignore.case = TRUE), "Latitude", 
+                                                ifelse(grepl("TYPE|PROCESSOR|LOCATION|METHOD",colnames(dataset), ignore.case = TRUE), "Code String", 
+                                                       ifelse(grepl("CHINOOK|CHUM|FATHOMS|DOLLARS|LBS|PROPORTION|VALUE|PERCENT|MT", colnames(dataset), ignore.case = TRUE), "Other Numeric", 
+                                                              ifelse(grepl("HAUL|AREA|PERFORMANCE|PERMIT", colnames(dataset), ignore.case = TRUE), "Code Numeric", NA)))))))),
+    isXY = ifelse(grepl("HOURS|CHINOOK|CHUM|PROPORTION|SIZE", colnames(dataset), ignore.case = TRUE), 1, 0), 
+    isID = ifelse(grepl("ID", colnames(dataset), ignore.case = TRUE), 1, 0),
+    variable_link = rep(NA, length(colnames(dataset))), 
+    isTime = ifelse(grepl("DATE|MIN", colnames(dataset), ignore.case = TRUE),1, 0), 
+    isCatch = ifelse(grepl("CATCH|POUNDS|LBS", colnames(dataset), ignore.case = TRUE), 1, 0), 
+    isEffort = ifelse(grepl("DURATION", colnames(dataset),ignore.case = TRUE), 1, 0), 
+    isCPUE = rep(0, length(colnames(dataset))), 
+    isLon = ifelse(grepl("LON", colnames(dataset), ignore.case = TRUE),1, 0), 
+    isLat = ifelse(grepl("LAT", colnames(dataset), ignore.case = TRUE), 1, 0), 
+    isValue = ifelse(grepl("DOLLARS", colnames(dataset), ignore.case = TRUE), 1, 0), 
+    isZoneArea = ifelse(grepl("AREA", colnames(dataset), ignore.case = TRUE), 1, 0), 
+    isPort = ifelse(grepl("PORT", colnames(dataset), ignore.case = TRUE), 1, 0), 
+    isPrice = rep(0, length(colnames(dataset)), ignore.case = TRUE), 
+    isTrip = ifelse(grepl("TRIP", colnames(dataset), ignore.case = TRUE), 1, 0), 
+    isHaul = ifelse(grepl("HAUL", colnames(dataset), ignore.case = TRUE), 1, 0),
+    isOther = rep(0, length(colnames(dataset))), 
+    tableLink = rep(NA, length(colnames(dataset)))
   )
 
   if (table_exists(paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d"))) == FALSE | over_write == TRUE) {
@@ -292,33 +302,36 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
     DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTableInfo", format(Sys.Date(), format = "%Y%m%d")), MainDataTableInfo, overwrite = over_write)
     print("Table saved to database")
   } else {
-    warning(paste("Table not saved.", paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d")), "exists in database, and overwrite is FALSE."))
+    warning(paste(paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d")), "was not saved. Table exists in database. Set over_write to TRUE."))
   }
   if (table_exists(paste0(project, "MainDataTable")) == FALSE | over_write == TRUE) {
     DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable_raw"), dataset, overwrite = over_write)
     DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable"), dataset, overwrite = over_write)
     DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTableInfo"), MainDataTableInfo, overwrite = over_write)
-  } else {
-    warning(paste("Table not saved.", paste0(project, "MainDataTable"), "exists in database, and overwrite is FALSE."))
-  }
-  DBI::dbDisconnect(fishset_db)
 
-  # log function
+     # log function
   load_maindata_function <- list()
   load_maindata_function$functionID <- "load_maindata"
   load_maindata_function$args <- list(deparse(substitute(dat)), over_write, project, compare, y)
 
   log_call(load_maindata_function)
+  
+  #Make data availlable
   hack <- function(key, val, pos){
     assign(key,val, envir=as.environment(pos)
            )} 
   hack(paste0(project, "MainDataTable"), dataset, 1L)
- # assign(paste0(project, "MainDataTable"), dataset, envir = .GlobalEnv)
-  cat(
-    "\n!!! -> Raw data saved as", paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d"), "."), "Working data saved to the database as",
-    paste0(project, "MainDataTable."), "Table is also in the working environment. 
-        To improve ease of reproducing work, please use this name in future analysis. <- !!!"
+
+   cat("\n! Data saved to database as", paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d")), "(raw) and", 
+       paste0(project, "MainDataTable."), "(working). \nTable is also in the working environment. !"
   )
+
+  } else {
+    warning(paste(paste0(project, "MainDataTable"), "was not saved. Table already exists in database. Set over_write to TRUE."))
+  }
+  DBI::dbDisconnect(fishset_db)
+
+   }
 }
 
 main_mod <- function(dat, x, new.unit = NULL, new.type = NULL, new.class = NULL) {
@@ -398,7 +411,10 @@ load_port <- function(dat, port_name, over_write = TRUE, project = NULL, compare
   #' @export
   #' @importFrom jsonlite toJSON
   #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
-  #' @details Runs a series of checks on the port data. If checks pass, runs the fishset_compare function and
+  #' @details Runs a series of checks on the port data. The function checks that
+  #'   each row is unique, that no variables are empty, and that column names are case-insensitive unique. 
+  #'   There data issues are resolved before the data is saved to the database.
+  #'  If checks pass, runs the fishset_compare function and
   #' saves the new data frame to the FishSET database.  The data is saved in the FishSET database
   #' as the raw data and the working data. In both cases, the table name is the `project` and `PortTable`.
   #' Date is also attached to the name for the raw data.
@@ -432,7 +448,22 @@ load_port <- function(dat, port_name, over_write = TRUE, project = NULL, compare
   colnames(x)[grep("LON", colnames(x), ignore.case = TRUE)] <- "Port_Long"
   colnames(x)[grep("LAT", colnames(x), ignore.case = TRUE)] <- "Port_Lat"
 
-  data_verification_call(x, project)
+  #data_verification_call(x, project)
+  #unique rows
+  if(dim(x)[1] != dim(unique(x))[1]){
+    print('Duplicate rows found and removed.')
+    x <- unique(x)
+  }
+  #unique column names
+  if(length(toupper(colnames(x))) != length(unique(toupper(colnames(x))))){
+    print('Duplicate case-insensitive column names found. Duplicate column names adjusted.')
+    colnames(x)[which(duplicated(colnames(x)))] <- paste0(colnames(x)[which(duplicated(colnames(x)))], '.1')
+  }
+  #empty variables
+  if (any(apply(x, 2, function(x) all(is.na(x))) == TRUE)) {
+    print(names(which(apply(x, 2, function(x) all(is.na(x))) == TRUE)), 'is empty and was removed.')
+    x <- x[,-(which(apply(x, 2, function(x) all(is.na(x))) == TRUE))]
+  }
 
   if (compare == TRUE) {
     fishset_compare(x, y, compare)
@@ -476,9 +507,10 @@ load_aux <- function(dat, x, over_write = TRUE, project = NULL) {
   #'   Auxiliary data can be any data that can be merged with the primary dataset (ex. prices by date, vessel
   #'   characteristics, or fishery season). The auxiliary data does not have to be at a haul or trip level
   #'   but must contain a variable to connect the auxiliary data to the primary dataset. The function checks
-  #'  that at least one column name of the auxiliary data matches a column name in the primary dataset. Further
-  #'  checks are run using the \code{\link{data_verification_call}} function before saving the new data frame to
-  #'  the FishSET database. The data is saved in the FishSET database as the raw data and the working data. In
+  #'  that at least one column name of the auxiliary data matches a column name in the primary dataset. The function checks that
+  #'   each row is unique, that no variables are empty, and that column names are case-insensitive unique. 
+  #'   There data issues are resolved before the data is saved to the database.
+  #'   The data is saved in the FishSET database as the raw data and the working data. In
   #'  both cases, the table name is the \code{project} and the file name \code{x}. Date is also added to the name for the raw data.
   #' @examples
   #' \dontrun{
@@ -508,7 +540,23 @@ load_aux <- function(dat, x, over_write = TRUE, project = NULL) {
     val <- 1
   }
   if (val == 0) {
-    data_verification_call(x, project)
+    #data_verification_call(x, project)
+    #unique rows
+    if(dim(x)[1] != dim(unique(x))[1]){
+      print('Duplicate rows found and removed.')
+      x <- unique(x)
+    }
+    #unique column names
+    if(length(toupper(colnames(x))) != length(unique(toupper(colnames(x))))){
+      print('Duplicate case-insensitive column names found. Duplicate column names adjusted.')
+      colnames(x)[which(duplicated(colnames(x)))] <- paste0(colnames(x)[which(duplicated(colnames(x)))], '.1')
+    }
+    #empty variables
+    if (any(apply(x, 2, function(x) all(is.na(x))) == TRUE)) {
+      print(names(which(apply(x, 2, function(x) all(is.na(x))) == TRUE)), 'is empty and was removed.')
+      x <- x[,-(which(apply(x, 2, function(x) all(is.na(x))) == TRUE))]
+    }
+    
 
     fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
     if (table_exists(paste0(project, x)) == FALSE | over_write == TRUE) {
@@ -542,7 +590,9 @@ load_grid <- function(dat, x, over_write = TRUE, project = NULL) {
   #'   dimensions in the gridded data file need to be variables included in the primary dataset.
   #'   The grid locations (zones) must define the columns and the optional second dimension defines the rows.
   #'   The row variable must have the exact name as the variable
-  #'   in the main data frame that it will be linked to. The data is saved in the FishSET database as the raw
+  #'   in the main data frame that it will be linked to. 
+  #'   The function checks that each row is unique, that no variables are empty, and that column names are case-insensitive unique. 
+  #'   There data issues are resolved before the data is saved to the database.The data is saved in the FishSET database as the raw
   #'   data and the working data. In both cases, the table name is the \code{project} and the file name \code{x}.
   #'   Date is attached to the name for the raw data.
   #' @export
@@ -571,7 +621,23 @@ load_grid <- function(dat, x, over_write = TRUE, project = NULL) {
   }
 
   if (val == 0) {
-    data_verification_call(x, project)
+    #data_verification_call(x, project)
+    #unique rows
+    if(dim(x)[1] != dim(unique(x))[1]){
+      print('Duplicate rows found and removed.')
+      x <- unique(x)
+    }
+    #unique column names
+    if(length(toupper(colnames(x))) != length(unique(toupper(colnames(x))))){
+      print('Duplicate case-insensitive column names found. Duplicate column names adjusted.')
+      colnames(x)[which(duplicated(colnames(x)))] <- paste0(colnames(x)[which(duplicated(colnames(x)))], '.1')
+    }
+    #empty variables
+    if (any(apply(x, 2, function(x) all(is.na(x))) == TRUE)) {
+      print(names(which(apply(x, 2, function(x) all(is.na(x))) == TRUE)), 'is empty and was removed.')
+      x <- x[,-(which(apply(x, 2, function(x) all(is.na(x))) == TRUE))]
+    }
+    
 
     fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
     if (table_exists(paste0(project, x)) == FALSE | over_write == TRUE) {
