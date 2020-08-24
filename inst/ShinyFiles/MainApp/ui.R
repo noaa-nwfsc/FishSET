@@ -721,7 +721,7 @@ source("map_viewer_app.R", local = TRUE)
                   #----   
                   #Zonal definition tabset panel
                   #-----
-                  tabPanel('Zonal Definition',
+                  tabPanel('Zonal Definition', value = "zone",
                            sidebarLayout(
                              sidebarPanel(
                                tags$button(
@@ -747,6 +747,7 @@ source("map_viewer_app.R", local = TRUE)
                                                 actionButton('runCentroid','Assign observations to centroids', style = "color: white; background-color: green;")),
                                conditionalPanel(condition="input.choiceTab=='distm'",
                                                 actionButton('saveALT','Save choices', style = "color: white; background-color: green;")),
+                               actionButton('callTextDownloadZone','Save notes'),
                                textInput('notesZone', "Notes", value=NULL, 
                                          placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
                                ##Inline scripting 
@@ -781,7 +782,7 @@ source("map_viewer_app.R", local = TRUE)
                   #-----
                   #Expected catch tabset panel
                   #----
-                  tabPanel("Expected Catch/Revenue",
+                  tabPanel("Expected Catch/Revenue", value = "expectedCatch",
                            sidebarLayout(
                              sidebarPanel(
                                tags$button(
@@ -798,7 +799,8 @@ source("map_viewer_app.R", local = TRUE)
                                ),
                                tags$br(),
                                actionButton("submitE", "Run expected catch/revenue function", style="color: #fff; background-color: #6da363; border-color: #800000;"), 
-                               tags$br(),tags$br(),                               
+                               tags$br(),tags$br(), 
+                               actionButton('callTextDownloadEC','Save notes'),
                                textInput('notesEC', "Notes", value=NULL, 
                                          placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
 
@@ -877,7 +879,7 @@ source("map_viewer_app.R", local = TRUE)
                   #----
                   #Model design and Run tabset panel
                   #----
-                   tabPanel("Models",
+                   tabPanel("Models", value = "models",
                             tabsetPanel(
                                 tabPanel("Run model(s)",
                            sidebarLayout(
@@ -899,6 +901,7 @@ source("map_viewer_app.R", local = TRUE)
                                tags$br(),tags$br(),
                                tags$p(tags$strong("More information"), tags$br(),
                                       "Model parameter table is editable. Double click a cell to edit."),
+                               actionButton('callTextDownloadModels','Save notes'),
                                textInput('notesModel', "Notes", value=NULL, 
                                          placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
                                ##Inline scripting 
