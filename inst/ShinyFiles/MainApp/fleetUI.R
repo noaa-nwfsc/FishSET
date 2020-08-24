@@ -17,7 +17,6 @@ noteUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-    downloadLink(ns("downloadText"), label = ''),
     actionButton(ns('callTextDownload'),'Save notes'),
     textInput(ns('notes'), "Notes", value = NULL, 
               placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')

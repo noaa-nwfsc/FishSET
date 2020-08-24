@@ -109,38 +109,6 @@ saveOutputServ <- function(id, fun_id, project, fun_name, tab_plot, out) {
   })
 }
 
-noteServ  <- function(id, fun_id) {
-  
-  moduleServer(id, function(input, output, session) {
-    
-    notes <- reactive({
-      if (!is.null(input$notes)) {
-        paste0(input$notes, "\n")
-      }
-    })
-    
-    savedText <- reactiveValues(answers = logical(0))
-    
-    observeEvent(input$callTextDownload, {
-      savedText$answers <- as.character(c(savedText$answers,  notes()))
-    })
-    
-    #  Stored Txt
-    observeEvent(input$callTextDownload, {
-      output$downloadText <- downloadHandler(
-        filename = function() {
-          paste0(locoutput(), 'StoredText.txt')
-        },
-        content = function(file) {
-          writeLines(savedText$answers, file)
-        },
-        contentType = "text/csv"
-      )
-      jsinject <- paste0("setTimeout(function(){window.open($('#", fun_id, "-", id, "-downloadText').attr('href'))}, 100);")
-      session$sendCustomMessage(type = 'jsCode', list(value = jsinject))
-    })
-  })
-}
 
 saveDataTableServ <- function(id, values, project) {
   
@@ -190,8 +158,6 @@ density_serv <- function(id, values, project) {
     closeAppServ("close")
     
     refreshServ("refresh", values, project)
-    
-    noteServ("note", "den")
     
     observeEvent(input$downloadplot, {
       output$downloadplotHIDE <<- downloadHandler(
@@ -296,8 +262,6 @@ vessel_serv <- function(id, values, project) {
     
     refreshServ("refresh", values, project)
     
-    noteServ("note", "ves")
-    
     ns <- session$ns
     output$var_select <- renderUI({
       
@@ -384,8 +348,6 @@ species_serv <- function(id, values, project) {
     closeAppServ("close")
     
     refreshServ("refresh", values, project)
-    
-    noteServ("note", "spec")
     
     ns <- session$ns
     
@@ -483,8 +445,6 @@ roll_serv <- function(id, values, project) {
     
     refreshServ("refresh", values, project)
     
-    noteServ("note", "roll")
-    
     ns <- session$ns
     
     output$var_select <- renderUI({
@@ -577,8 +537,6 @@ weekly_catch_serv <- function(id, values, project) {
     closeAppServ("close")
     
     refreshServ("refresh", values, project)
-    
-    noteServ("note", "wc")
     
     ns <- session$ns
     
@@ -675,8 +633,6 @@ weekly_effort_serv <- function(id, values, project) {
     
     refreshServ("refresh", values, project)
     
-    noteServ("note", "we")
-    
     ns <- session$ns
     
     output$var_select <- renderUI({
@@ -766,8 +722,6 @@ bycatch_serv <- function(id, values, project) {
     closeAppServ("close")
     
     refreshServ("refresh", values, project)
-    
-    noteServ("note", "by")
     
     ns <- session$ns
     
@@ -880,8 +834,6 @@ trip_serv <- function(id, values, project) {
     
     refreshServ("refresh", values, project)
     
-    noteServ("note", "trip")
-    
     ns <- session$ns
     
     output$start_select <- renderUI({
@@ -984,8 +936,6 @@ fleet_table_serv <- function(id, values, project) {
     
     refreshServ("refresh", values, project)
     
-    noteServ("note", "f_table")
-    
     f_r <- reactiveValues()
     empty_row <- data.frame(condition = "enter condition", fleet = "enter fleet name",
                             stringsAsFactors = FALSE)
@@ -1087,8 +1037,6 @@ fleet_assign_serv <- function(id, values, project) {
     refreshServ("refresh", values, project)
     
     #saveDataTableServ("saveDat", values, project)
-    
-    noteServ("note", "f_assign")
     
     fleet_tab_db <- reactive({
       
