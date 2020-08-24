@@ -216,6 +216,10 @@ source("map_viewer_app.R", local = TRUE)
           }
         } else if(input$loadmainsource=='Upload new file' & !is.null(input$maindat)){
            values$dataset <- read_dat(input$maindat$datapath)
+           if(input$uploadMain == 0){
+             showNotification('Data not saved to database. Press the Save to Database button.', type='warning', duration=20)
+           }
+          # warning('')
        }   else {
           values$dataset <- values$dataset
        }
@@ -317,6 +321,7 @@ source("map_viewer_app.R", local = TRUE)
       grddat <- reactiveValues(
         dataset = data.frame('var1'=0, 'var2'=0)
       )
+      
       observeEvent(input$loadDat, {
         req(input$griddattext)
         if(input$loadgridsource=='FishSET database'){
@@ -347,6 +352,7 @@ source("map_viewer_app.R", local = TRUE)
       aux <- reactiveValues(
         dataset = data.frame('var1'=0, 'var2'=0)
       )
+      
       observeEvent(input$loadDat, {
         #req(input$auxdattext)
         if(input$loadauxsource=='FishSET database'){
@@ -545,7 +551,7 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
           p(tags$br(),tags$br(),
             'Define the likelihood function and model parameters before running the models and comparing output.',
             tags$br(),tags$br(),
-          'Click', tags$code('Save model and Sdd new model'), 'to save model choices and define another model.',
+          'Click', tags$code('Save model and Add new model'), 'to save model choices and define another model.',
           tags$br(), tags$br(),
           'Defined models are shown in a table at the bottom of the screen.', 
           tags$br(), tags$br(),
@@ -583,7 +589,7 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
                              fluidRow(
                                  column(3, fileInput("maindat", "Choose primary data file",
                                             multiple = FALSE, placeholder = 'Required data')),
-                                column(1, uiOutput('ui.action'))
+                                column(2, uiOutput('ui.action'))
                            ))
           ),     
           conditionalPanel(condition="input.loadmainsource=='FishSET database'", 
@@ -637,7 +643,19 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
         actionButton("uploadPort", label = "Save to database", 
                      style = "color: white; background-color: blue;", size = "extra-small")
       })
- 
+      output$ui.actionP2 <- renderUI({
+        if(is.null(input$portdat)) return()
+        tagList(
+          selectInput('port_name', "Enter column name containing port names", 
+                      choices=names(FishSET::read_dat(input$portdat$datapath, if(sub('.*\\.', '', input$portdat$name) == 'shp') { 
+                        'shape'} else if(sub('.*\\.', '', input$portdat$name) == 'RData') { 
+                          'R'} else { sub('.*\\.', '', input$portdat$name)})), selected="")
+          
+          # ))#label=div(style = "font-size:14px;  font-weight: 400;", 'Enter column name containing port names'), 
+          # value='', placeholder = 'Column name')
+        )
+      })
+
       output$spatial_upload <- renderUI({     
         tagList( 
           conditionalPanel(condition="input.loadspatialsource=='Upload new file'", 
@@ -713,19 +731,37 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
           )
       })
     
-      
-      output$ui.actionP2 <- renderUI({
-        if(is.null(input$portdat)) return()
-        tagList(
-          selectInput('port_name', "Enter column name containing port names", 
-                      choices=names(FishSET::read_dat(input$portdat$datapath, if(sub('.*\\.', '', input$portdat$name) == 'shp') { 
-                        'shape'} else if(sub('.*\\.', '', input$portdat$name) == 'RData') { 
-                          'R'} else { sub('.*\\.', '', input$portdat$name)})), selected="")
-          
-          # ))#label=div(style = "font-size:14px;  font-weight: 400;", 'Enter column name containing port names'), 
-          # value='', placeholder = 'Column name')
-        )
+ 
+      observeEvent(input$uploadMain, {
+        df_data <- read_dat(input$maindat$datapath)
+        df_y <- input$compare
+        df_compare <- ifelse(nchar(input$compare)>0, TRUE, FALSE)
+        q_test <- quietly_test(load_maindata)
+        q_test(df_data, over_write=input$over_write, project=input$projectname, compare=df_compare, y=df_y)
       })
+      observeEvent(input$uploadPort, {
+        df_data <- read_dat(input$portdat$datapath)
+        q_test <- quietly_test(load_port)
+        q_test(df_data, port_name=input$port_name, over_write=TRUE, project=input$projectname, compare=FALSE, y=NULL)
+      }) 
+      observeEvent(input$uploadspatial, {
+        df_data <- read_dat(input$spatialdat$datapath)
+        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+        DBI::dbWriteTable(fishset_db, input$spatialdat$name,  df_data, overwrite=TRUE) 
+        DBI::dbDisconnect(fishset_db)
+      }) 
+      observeEvent(input$uploadGrid, {
+        df_data <- read_dat(input$griddat$datapath)
+        q_test <- quietly_test(load_grid)
+        q_test(paste0(input$projectname, 'MainDataTable'), x=df_data, over_write=TRUE, project=input$projectname)
+      }) 
+      observeEvent(input$uploadAux, {
+       df_data <- read_dat(input$auxdat$datapath)
+        q_test <- quietly_test(load_aux)
+        q_test(paste0(input$projectname, 'MainDataTable'), x=df_data, over_write=TRUE, project=input$projectname)
+      }) 
+       
+      #Merge aux with main
       ###---- 
       #Merge
       merge <- reactiveValues(show = FALSE, end = FALSE)
@@ -845,35 +881,7 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       })
       ###----
       
-      observeEvent(input$uploadMain, {
-        df_data <- read_dat(input$maindat$datapath)
-        df_y <- input$compare
-        df_compare <- ifelse(nchar(input$compare)>0, TRUE, FALSE)
-        q_test <- quietly_test(load_maindata)
-        q_test(df_data, over_write=input$over_write, project=input$projectname, compare=df_compare, y=df_y)
-      })
-      observeEvent(input$uploadPort, {
-        df_data <- read_dat(input$portdat$datapath)
-        q_test <- quietly_test(load_port)
-        q_test(df_data, port_name=input$port_name, over_write=TRUE, project=input$projectname, compare=FALSE, y=NULL)
-      }) 
-      observeEvent(input$uploadspatial, {
-        df_data <- read_dat(input$spatialdat$datapath)
-        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
-        DBI::dbWriteTable(fishset_db, input$spatialdat$name,  df_data, overwrite=TRUE) 
-        DBI::dbDisconnect(fishset_db)
-      }) 
-      observeEvent(input$uploadGrid, {
-        df_data <- read_dat(input$griddat$datapath)
-        q_test <- quietly_test(load_grid)
-        q_test(paste0(input$projectname, 'MainDataTable'), x=df_data, over_write=TRUE, project=input$projectname)
-      }) 
-      observeEvent(input$uploadAux, {
-       df_data <- read_dat(input$auxdat$datapath)
-        q_test <- quietly_test(load_aux)
-        q_test(paste0(input$projectname, 'MainDataTable'), x=df_data, over_write=TRUE, project=input$projectname)
-      }) 
-      
+    
       ###----
       
       #DATA QUALITY FUNCTIONS
