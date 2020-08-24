@@ -230,11 +230,11 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
   # check that names are unique in dataset
   x <- colnames(dataset)
     if (length(x) == length(unique(x)) & length(toupper(x)) != length(unique(toupper(x)))) {
-    cat("\nData set will not be saved to database. 
+    warning("\nData set will not be saved to database. 
         Duplicate case-insensitive column names. Sqlite column names are case insensitive.")
     check <- 1
   } else if(length(x) != length(unique(x))) {
-    cat("\nVariable names are not unique.\n")
+    warning("\nVariable names are not unique.\n")
     check <- 1
   }
   
@@ -242,12 +242,12 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
   if (any(grepl("area|zone", names(dataset), ignore.case = TRUE)) == FALSE & 
       (any(grepl("lat", names(dataset), ignore.case = TRUE)) == FALSE |
        any(grepl("lon", names(dataset), ignore.case = TRUE)) ==  FALSE)) {
-    cat("Neither Latitude/Longitude or Area/Zone variables are included. Data will not be saved.")
+    warning("Neither Latitude/Longitude or Area/Zone variables are included. Data will not be saved.")
     check = 1
   }
   
   if(check == 1) { 
-    print('Dataset not saved. Check that column names are case-insensitive unique and that latitude/longitude
+    warning('Dataset not saved. Check that column names are case-insensitive unique and that latitude/longitude
           or area/zone are included.')
   } else {
       
@@ -301,8 +301,8 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
     DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d")), dataset, overwrite = over_write)
     DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTableInfo", format(Sys.Date(), format = "%Y%m%d")), MainDataTableInfo, overwrite = over_write)
     print("Table saved to database")
-  } else {
-    warning(paste(paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d")), "was not saved. Table exists in database. Set over_write to TRUE."))
+  } else { 
+    warning(paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d"), " was not saved. Table exists in database. Set over_write to TRUE."))
   }
   if (table_exists(paste0(project, "MainDataTable")) == FALSE | over_write == TRUE) {
     DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable_raw"), dataset, overwrite = over_write)
@@ -322,12 +322,12 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
            )} 
   hack(paste0(project, "MainDataTable"), dataset, 1L)
 
-   cat("\n! Data saved to database as", paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d")), "(raw) and", 
-       paste0(project, "MainDataTable."), "(working). \nTable is also in the working environment. !"
+   message("\n! Data saved to database as ", paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d")), " (raw) and ", 
+       paste0(project, "MainDataTable"), " (working). \nTable is also in the working environment. !"
   )
 
   } else {
-    warning(paste(paste0(project, "MainDataTable"), "was not saved. Table already exists in database. Set over_write to TRUE."))
+    warning(paste0(project, "MainDataTable was not saved. Table already exists in database. Set over_write to TRUE."))
   }
   DBI::dbDisconnect(fishset_db)
 
