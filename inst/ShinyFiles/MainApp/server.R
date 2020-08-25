@@ -16,8 +16,8 @@ source("map_viewer_app.R", local = TRUE)
               shinyjs::disable(x) }
       }
       
-      #inline scripting 
-      #----
+      #inline scripting ----
+      #---
       r <- reactiveValues(done = 0, ok = TRUE, output = "")
       observeEvent(input$runI, {
         shinyjs::hide("error")
@@ -194,10 +194,10 @@ source("map_viewer_app.R", local = TRUE)
           }
         }
       })
-      #----
+      #---
       
-      ##Pull data functions
-      ##----
+      ##Pull data functions ----
+      ##---
       values <- reactiveValues(
         dataset = data.frame('var1'=0, 'var2'=0)
         )
@@ -377,10 +377,10 @@ source("map_viewer_app.R", local = TRUE)
          }
        }, ignoreInit = TRUE, ignoreNULL = TRUE) 
   
-      ##----     
+      ##---     
       
-      #Landing Page
-      ###----
+      #Landing Page ----
+      ###---
       output$AcrossTabsText <- renderUI({
         if(input$QuickStartChoices=='AcrossTabs'){
           tags$div(
@@ -577,10 +577,10 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
             )
         }
       })
-      ###----
+      ###---
       
-      #DATA UPLOAD FUNCTIONS
-      ###----
+      #DATA UPLOAD FUNCTIONS ----
+      ###---
       
       output$main_upload <- renderUI({     
         tagList( 
@@ -881,11 +881,50 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       })
       ###----
       
-    
-      ###----
+
+      observeEvent(input$uploadMain, {
+        type <- sub('.*\\.', '', input$maindat$name)
+        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
+        df_data <- FishSET::read_dat(input$maindat$datapath, type)
+        df_y <- input$compare
+        df_compare <- ifelse(nchar(input$compare)>0, TRUE, FALSE)
+        q_test <- quietly_test(load_maindata)
+        q_test(df_data, over_write=input$over_write, project=input$projectname, compare=df_compare, y=df_y)
+      })
+      observeEvent(input$uploadPort, {
+        type <- sub('.*\\.', '', input$portdat$name)
+        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
+        df_data <- FishSET::read_dat(input$portdat$datapath, type)
+        q_test <- quietly_test(load_port)
+        q_test(df_data, port_name=input$port_name, over_write=TRUE, project=input$projectname, compare=FALSE, y=NULL)
+      }) 
+      observeEvent(input$uploadspatial, {
+        type <- sub('.*\\.', '', input$spatialdat$name)
+        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
+        df_data <- FishSET::read_dat(input$spatialdat$datapath, type)
+        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+        DBI::dbWriteTable(fishset_db, input$spatialdat$name,  df_data, overwrite=TRUE) 
+        DBI::dbDisconnect(fishset_db)
+      }) 
+      observeEvent(input$uploadGrid, {
+        type <- sub('.*\\.', '', input$griddat$name)
+        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
+        df_data <- FishSET::read_dat(input$griddat$datapath, type)
+        q_test <- quietly_test(load_grid)
+        q_test(paste0(input$projectname, 'MainDataTable'), x=df_data, over_write=TRUE, project=input$projectname)
+      }) 
+      observeEvent(input$uploadAux, {
+        type <- sub('.*\\.', '', input$auxdat$name)
+        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
+        df_data <- FishSET::read_dat(input$auxdat$datapath, type)
+        q_test <- quietly_test(load_aux)
+        q_test(paste0(input$projectname, 'MainDataTable'), x=df_data, over_write=TRUE, project=input$projectname)
+      }) 
       
-      #DATA QUALITY FUNCTIONS
-      ###-----      
+      ###---
+      
+      #DATA QUALITY FUNCTIONS ----
+      ###---     
 
       output$LatLonDir <- renderUI ({
         tagList(
@@ -955,9 +994,11 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
           nan_filter(values$dataset, x=names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), 
                      replace = FALSE, remove = FALSE, rep.value=NA,  over_write=FALSE)
         } else if(input$checks=='Unique observations'){
-          unique_filter(values$dataset, input$projectname, remove=FALSE)
+
+          unique_filter(values$dataset, project = input$projectname, remove=FALSE)
         } else if(input$checks=='Empty variables'){
-          empty_vars_filter(values$dataset, input$projectname, remove=FALSE)
+          empty_vars_filter(values$dataset, project = input$projectname, remove=FALSE)
+
         } else if(input$checks=='Lat_Lon units'){
           degree(values$dataset, lat=NULL, lon=NULL, latsign=FALSE, lonsign=FALSE, replace=FALSE)
         } else {
@@ -965,16 +1006,144 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
         } 
       })
       
-      ##Output to saved file
-      case_to_print <- reactive({
+      ##Output to saved file----
+      # case_to_print <- reactive({
+      #   if(input$tabs=='qaqc'){
+      #     if(input$checks=='Summary table') {
+      #       "Summary table of numeric variables viewed.\n"
+      #     } else  if(input$checks=='Outliers'){
+      #       if(input$dat.remove=='none'){
+      #         paste0('Table and plots to assess outliers viewed for ', input$column_check, ".\n")
+      #       } else {
+      #         paste('Table and plot to assess outliers viewed for', input$column_check, 'with',
+      #               nrow(values$dataset)-tableInputOutlier()[which(rownames(tableInputOutlier())==input$dat.remove),1], 
+      #               'points that fall outside the',  if(input$dat.remove=='5_95_quant'){
+      #                 '5th and 95th quantiles'
+      #               } else if(input$dat.remove=='25_75_quant') {
+      #                 '25th and 75th quantiles'
+      #               } else if(input$dat.remove=='mean_2SD'){
+      #                 'mean +/- 2SD'
+      #               } else if(input$dat.remove=='mean_3SD'){
+      #                 'mean +/- 3SD'
+      #               } else if(input$dat.remove=='median_2SD') {
+      #                 'median +/- 2SD'
+      #               } else if(input$dat.remove=='median_3SD'){
+      #                 'median +/- 3SD'
+      #               }, "removed.\n")
+      #       }
+      #     } else if(input$checks=='NAs'){
+      #       if(any(apply(values$dataset, 2, function(x) anyNA(x)))==TRUE) {
+      #         if(input$NA_Filter_all==0&NA_Filter_allNA_Filter_mean==0){
+      #           paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), collapse = ", ")),
+      #                 "variables contain",  sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
+      #                                                                                function(x) length(which(is.na(x)==TRUE))), collapse=", ")), 
+      #                 "missing values, respectively.", length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
+      #                                                                                                               function(x) anyNA(x))==TRUE))], 2, function(x) which(is.na(x)==TRUE))))), "rows have missing values. Missing values were not removed or replaced.\n") 
+      #         }} else {
+      #           if(input$NA_Filter_all==0&NA_Filter_allNA_Filter_mean==0){
+      #             paste("Occurrence of missing values checked. No columns in the data set contain missing values.\n")
+      #           } else {
+      #             if(input$NA_Filter_all>0){
+      #               paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), collapse = ", ")), "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
+      #                                                                                                                                      function(x) length(which(is.na(x)==TRUE))), collapse=", ")), "missing values.", length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
+      #                                                                                                                                                                                 function(x) anyNA(x))==TRUE))], 2, function(x) which(is.na(x)==TRUE))))), "rows containing missing values were removed from the data set.\n")
+      #             } else if(input$NA_Filter_mean>0){
+      #               paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), collapse = ", ")), "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
+      #                                                                                                                                      function(x) length(which(is.na(x)==TRUE))), collapse=", ")), "missing values. Missing values were replaced with the mean values of", RM, "respectively.\n")
+      #             }
+      #           } }
+      #     } else if(input$checks=='NaNs') {
+      #       if(any(apply(values$dataset, 2, function(x) any(is.nan(x))))==TRUE) {
+      #         if(input$NAN_Filter_all==0&input$NAN_Filter_mean==0){
+      #           paste("Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")),
+      #                 "variables contain", 
+      #                 sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE))], 2, 
+      #                                                          function(x) length(which(is.nan(x)==TRUE))), collapse=", ")), "non-numbers, respectively.", 
+      #                 length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
+      #                                                                              function(x) any(is.nan(x)))==TRUE))], 2, function(x) which(is.nan(x)==TRUE))))), "rows have non-numbers. No action was taken to remove or replace non-numbers.\n") 
+      #         }} else {
+      #           if(input$NAN_Filter_all==0&input$NAN_Filter_mean==0){
+      #             "Occurruence of non-numbers checked. No columns in the data set contain non-numbers.\n"
+      #           } else {
+      #             if(input$NAN_Filter_all>0){
+      #               paste("Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")), "variables contained", 
+      #                     sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE))], 2, 
+      #                                                              function(x) length(which(is.nan(x)==TRUE))), collapse=", ")), "non-numbers.", 
+      #                     length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
+      #                                                                                  function(x) any(is.nan(x)))==TRUE))], 2, function(x) which(is.nan(x)==TRUE))))), "rows containing non-numbers were removed from the data set.\n")
+      #             } else if(input$NAN_Filter_mean>0){
+      #               paste("Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")), "variables contained", 
+      #                     sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE))], 2, 
+      #                                                              function(x) length(which(is.nan(x)==TRUE))), collapse=", ")), "non-numbers.\n")
+      #             }
+      #           } }
+      #     } else if(input$checks=='Unique observations'){
+      #       if(dim(values$dataset)[1] == dim(unique(values$dataset))[1]) {
+      #         "Each row is a unique choice occurrence.\n"
+      #       } else {
+      #         if(input$Unique_Filter==0){
+      #           "Each row in data set is not a unique choice occurrence at haul or trip level. No action taken.\n"
+      #         } else {
+      #           "Duplicate choice occurrence at haul or trip level existed in the data set and have been removed.\n"
+      #         }
+      #       }
+      #     } else if(input$checks=='Empty variables'){
+      #       if(any(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)) {
+      #         if(input$Empty_Filter==0){
+      #           paste('Occurrence of empty variables was checked and the', names(which(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)), 
+      #                 "variable is empty. The varible was not removed from the data set.\n")
+      #         } else {
+      #           paste('Occurrence of empty variables was checked and the', names(which(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)), 
+      #                 "was empty and was removed from the data set.\n")
+      #         }
+      #       } else {
+      #         "Occurrence of empty variables was checked and not found in the data set.\n"
+      #       }
+      #     } else if(input$checks=='Lat_Lon units'){
+      #       if(any(apply(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=TRUE)], 2, function(x) !is.numeric(x))==TRUE)==TRUE){
+      #         if(input$LatLon_Filter==FALSE){
+      #           'Latitude and longitude units were checked and are not in decimal degrees.\n'
+      #         } else {
+      #           'Latitude or longitude units not in decimal degrees were converted to decimal degrees.\n'
+      #         }
+      #       } else {
+      #         'Latitude and longitude units were checked and are in decimal degrees.\n'
+      #       }
+      #     }
+      #   } else if(input$tabs=='explore'){
+      #     if(input$plot_table=='Plots'& input$plot_type=='Temporal'){
+      #       paste0("Viewed plots of ", input$col_select, ' against time for raw points, the ', input$p2fun, ", and the ",  input$p3fun, ' value.\n')
+      #     } else if(input$plot_table=='Plots'& input$plot_type=='Spatial'){
+      #       paste0("Viewed spatial distribution of occurrence points and spatial density of occurrence points.\n
+      #              Getis-ord and Moran's I statistics provided for ", input$varofint, ". Default settings for spdep functions are used.")
+      #     } else if(input$plot_table=='Plots'& input$plot_type=='x-y plot'){
+      #       paste0("Viewed plotted relationship between ", input$x_y_select1,  'and ', input$x_y_select2, '.\n')
+      #     } 
+      #   } else if(input$tabs=='analysis'){
+      #     if(input$corr_reg=='Correlation'){
+      #       paste0("Viewed correlation matrix for ",  isolate({sub(",([^,]*)$", ", and\\1",paste(input$corr_select, collapse = ", "))}), '.\n')
+      #     } else if(input$corr_reg=='Regression'){
+      #       paste0('Viewed plot and linear regression test output for ',input$reg_exp_select, ' on ', input$reg_resp_select,'.\n') 
+      #     } 
+      #   }
+      #   })
+      
+      case_to_print <- reactiveValues(dataQuality = logical(0),
+                                      explore = logical(0),
+                                      analysis = logical(0))
+      
+      observeEvent(c(input$checks, input$column_check, input$dat.remove, input$x_dist,
+                     input$plot_table, input$plot_type, input$col_select, input$x_y_select1, input$x_y_select2,
+                     input$corr_reg, input$corr_select, input$reg_resp_select, input$reg_exp_select), {
+        
         if(input$tabs=='qaqc'){
           if(input$checks=='Summary table') {
-            "Summary table of numeric variables viewed.\n"
-          } else  if(input$checks=='Outliers'){
+           case_to_print$dataQuality <- c(case_to_print$dataQuality, "Summary table of numeric variables viewed.\n")
+          } else if(input$checks=='Outliers') {
             if(input$dat.remove=='none'){
-              paste0('Table and plots to assess outliers viewed for ', input$column_check, ".\n")
+              case_to_print$dataQuality <- c(case_to_print$dataQuality, paste0('Table and plots to assess outliers viewed for ', input$column_check, ".\n"))
             } else {
-              paste('Table and plot to assess outliers viewed for', input$column_check, 'with',
+              case_to_print$dataQuality <- c(case_to_print$dataQuality, paste('Table and plot to assess outliers viewed for', input$column_check, 'with',
                     nrow(values$dataset)-tableInputOutlier()[which(rownames(tableInputOutlier())==input$dat.remove),1], 
                     'points that fall outside the',  if(input$dat.remove=='5_95_quant'){
                       '5th and 95th quantiles'
@@ -988,133 +1157,251 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
                       'median +/- 2SD'
                     } else if(input$dat.remove=='median_3SD'){
                       'median +/- 3SD'
-                    }, "removed.\n")
+                    }, "removed.\n"))
             }
           } else if(input$checks=='NAs'){
             if(any(apply(values$dataset, 2, function(x) anyNA(x)))==TRUE) {
-              if(input$NA_Filter_all==0&NA_Filter_allNA_Filter_mean==0){
-                paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), collapse = ", ")),
+              if(input$NA_Filter_all==0&input$NA_Filter_mean==0){
+                case_to_print$dataQuality <- c(case_to_print$dataQuality, paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), collapse = ", ")),
                       "variables contain",  sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
                                                                                      function(x) length(which(is.na(x)==TRUE))), collapse=", ")), 
                       "missing values, respectively.", length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
-                                                                                                                    function(x) anyNA(x))==TRUE))], 2, function(x) which(is.na(x)==TRUE))))), "rows have missing values. Missing values were not removed or replaced.\n") 
+                                                                                                                    function(x) anyNA(x))==TRUE))], 2, function(x) which(is.na(x)==TRUE))))), "rows have missing values. Missing values were not removed or replaced.\n")) 
               }} else {
-                if(input$NA_Filter_all==0&NA_Filter_allNA_Filter_mean==0){
-                  paste("Occurrence of missing values checked. No columns in the data set contain missing values.\n")
+                if(input$NA_Filter_all==0&input$NA_Filter_mean==0){
+                  case_to_print$dataQuality <- c(case_to_print$dataQuality, paste("Occurrence of missing values checked. No columns in the data set contain missing values.\n"))
                 } else {
                   if(input$NA_Filter_all>0){
-                    paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), collapse = ", ")), "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
-                                                                                                                                           function(x) length(which(is.na(x)==TRUE))), collapse=", ")), "missing values.", length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
-                                                                                                                                                                                      function(x) anyNA(x))==TRUE))], 2, function(x) which(is.na(x)==TRUE))))), "rows containing missing values were removed from the data set.\n")
+                    case_to_print$dataQuality <- c(case_to_print$dataQuality, paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), collapse = ", ")), "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
+                                                                                                                                                                                                                                                                function(x) length(which(is.na(x)==TRUE))), collapse=", ")), "missing values.", length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
+                                                                                                                                                                                                                                                                                                                                                                                                             function(x) anyNA(x))==TRUE))], 2, function(x) which(is.na(x)==TRUE))))), "rows containing missing values were removed from the data set.\n"))
                   } else if(input$NA_Filter_mean>0){
-                    paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), collapse = ", ")), "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
-                                                                                                                                           function(x) length(which(is.na(x)==TRUE))), collapse=", ")), "missing values. Missing values were replaced with the mean values of", RM, "respectively.\n")
+                    case_to_print$dataQuality <- c(case_to_print$dataQuality, paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), collapse = ", ")), "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
+                                                                                                                                                                                                                                                                function(x) length(which(is.na(x)==TRUE))), collapse=", ")), "missing values. Missing values were replaced with the mean values of", RM, "respectively.\n"))
                   }
                 } }
           } else if(input$checks=='NaNs') {
             if(any(apply(values$dataset, 2, function(x) any(is.nan(x))))==TRUE) {
               if(input$NAN_Filter_all==0&input$NAN_Filter_mean==0){
-                paste("Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")),
+                case_to_print$dataQuality <- c(case_to_print$dataQuality, paste("Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")),
                       "variables contain", 
                       sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE))], 2, 
                                                                function(x) length(which(is.nan(x)==TRUE))), collapse=", ")), "non-numbers, respectively.", 
                       length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
-                                                                                   function(x) any(is.nan(x)))==TRUE))], 2, function(x) which(is.nan(x)==TRUE))))), "rows have non-numbers. No action was taken to remove or replace non-numbers.\n") 
+                                                                                   function(x) any(is.nan(x)))==TRUE))], 2, function(x) which(is.nan(x)==TRUE))))), "rows have non-numbers. No action was taken to remove or replace non-numbers.\n")) 
               }} else {
                 if(input$NAN_Filter_all==0&input$NAN_Filter_mean==0){
-                  "Occurruence of non-numbers checked. No columns in the data set contain non-numbers.\n"
+                  case_to_print$dataQuality <- c(case_to_print$dataQuality, "Occurruence of non-numbers checked. No columns in the data set contain non-numbers.\n")
                 } else {
                   if(input$NAN_Filter_all>0){
-                    paste("Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")), "variables contained", 
+                    case_to_print$dataQuality <- c(case_to_print$dataQuality, paste("Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")), "variables contained", 
                           sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE))], 2, 
                                                                    function(x) length(which(is.nan(x)==TRUE))), collapse=", ")), "non-numbers.", 
                           length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
-                                                                                       function(x) any(is.nan(x)))==TRUE))], 2, function(x) which(is.nan(x)==TRUE))))), "rows containing non-numbers were removed from the data set.\n")
+                                                                                       function(x) any(is.nan(x)))==TRUE))], 2, function(x) which(is.nan(x)==TRUE))))), "rows containing non-numbers were removed from the data set.\n"))
                   } else if(input$NAN_Filter_mean>0){
-                    paste("Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")), "variables contained", 
+                    case_to_print$dataQuality <- c(case_to_print$dataQuality, paste("Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")), "variables contained", 
                           sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE))], 2, 
-                                                                   function(x) length(which(is.nan(x)==TRUE))), collapse=", ")), "non-numbers.\n")
+                                                                   function(x) length(which(is.nan(x)==TRUE))), collapse=", ")), "non-numbers.\n"))
                   }
                 } }
           } else if(input$checks=='Unique observations'){
             if(dim(values$dataset)[1] == dim(unique(values$dataset))[1]) {
-              "Each row is a unique choice occurrence.\n"
+              case_to_print$dataQuality <- c(case_to_print$dataQuality, "Each row is a unique choice occurrence.\n")
             } else {
               if(input$Unique_Filter==0){
-                "Each row in data set is not a unique choice occurrence at haul or trip level. No action taken.\n"
+                case_to_print$dataQuality <- c(case_to_print$dataQuality, "Each row in data set is not a unique choice occurrence at haul or trip level. No action taken.\n")
               } else {
-                "Duplicate choice occurrence at haul or trip level existed in the data set and have been removed.\n"
+                case_to_print$dataQuality <- c(case_to_print$dataQuality, "Duplicate choice occurrence at haul or trip level existed in the data set and have been removed.\n")
               }
             }
           } else if(input$checks=='Empty variables'){
             if(any(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)) {
               if(input$Empty_Filter==0){
-                paste('Occurrence of empty variables was checked and the', names(which(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)), 
-                      "variable is empty. The varible was not removed from the data set.\n")
+                case_to_print$dataQuality <- c(case_to_print$dataQuality, paste('Occurrence of empty variables was checked and the', names(which(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)), 
+                      "variable is empty. The varible was not removed from the data set.\n"))
               } else {
-                paste('Occurrence of empty variables was checked and the', names(which(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)), 
-                      "was empty and was removed from the data set.\n")
+                case_to_print$dataQuality <- c(case_to_print$dataQuality, paste('Occurrence of empty variables was checked and the', names(which(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)), 
+                      "was empty and was removed from the data set.\n"))
               }
             } else {
-              "Occurrence of empty variables was checked and not found in the data set.\n"
+              case_to_print$dataQuality <- c(case_to_print$dataQuality, "Occurrence of empty variables was checked and not found in the data set.\n")
             }
           } else if(input$checks=='Lat_Lon units'){
             if(any(apply(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=TRUE)], 2, function(x) !is.numeric(x))==TRUE)==TRUE){
               if(input$LatLon_Filter==FALSE){
-                'Latitude and longitude units were checked and are not in decimal degrees.\n'
+                case_to_print$dataQuality <- c(case_to_print$dataQuality, 'Latitude and longitude units were checked and are not in decimal degrees.\n')
               } else {
-                'Latitude or longitude units not in decimal degrees were converted to decimal degrees.\n'
+                case_to_print$dataQuality <- c(case_to_print$dataQuality, 'Latitude or longitude units not in decimal degrees were converted to decimal degrees.\n')
               }
             } else {
-              'Latitude and longitude units were checked and are in decimal degrees.\n'
+              case_to_print$dataQuality <- c(case_to_print$dataQuality, 'Latitude and longitude units were checked and are in decimal degrees.\n')
             }
           }
         } else if(input$tabs=='explore'){
           if(input$plot_table=='Plots'& input$plot_type=='Temporal'){
-            paste0("Viewed plots of ", input$col_select, ' against time for raw points, the ', input$p2fun, ", and the ",  input$p3fun, ' value.\n')
+            case_to_print$explore <- c(case_to_print$explore, paste0("Viewed plots of ", input$col_select, ' against time for raw points, the ', input$p2fun, ", and the ",  input$p3fun, ' value.\n'))
           } else if(input$plot_table=='Plots'& input$plot_type=='Spatial'){
-            paste0("Viewed spatial distribution of occurrence points and spatial density of occurrence points.\n
-                   Getis-ord and Moran's I statistics provided for ", input$varofint, ". Default settings for spdep functions are used.")
+            case_to_print$explore <- c(case_to_print$explore, paste0("Viewed spatial distribution of occurrence points and spatial density of occurrence points.\n
+                   Getis-ord and Moran's I statistics provided for ", input$varofint, ". Default settings for spdep functions are used."))
           } else if(input$plot_table=='Plots'& input$plot_type=='x-y plot'){
-            paste0("Viewed plotted relationship between ", input$x_y_select1,  'and ', input$x_y_select2, '.\n')
+            case_to_print$explore <- c(case_to_print$explore, paste0("Viewed plotted relationship between ", input$x_y_select1,  ' and ', input$x_y_select2, '.\n'))
           } 
         } else if(input$tabs=='analysis'){
           if(input$corr_reg=='Correlation'){
-            paste0("Viewed correlation matrix for ",  isolate({sub(",([^,]*)$", ", and\\1",paste(input$corr_select, collapse = ", "))}), '.\n')
+            case_to_print$analysis <- c(case_to_print$analysis, paste0("Viewed correlation matrix for ",  isolate({sub(",([^,]*)$", ", and\\1",paste(input$corr_select, collapse = ", "))}), '.\n'))
           } else if(input$corr_reg=='Regression'){
-            paste0('Viewed plot and linear regression test output for ',input$reg_exp_select, ' on ', input$reg_resp_select,'.\n') 
+            case_to_print$analysis <- c(case_to_print$analysis, paste0('Viewed plot and linear regression test output for ',input$reg_exp_select, ' on ', input$reg_resp_select,'.\n')) 
           } 
-        }
-        })
-      
-      notes <- reactive({ 
-        if(input$tabs=='qaqc'){
-          if(!is.null(input$notesQAQC)){
-            paste0(input$notesQAQC, "\n")
-          }
-        } else if(input$tabs=='anal') {
-          if(!is.null(input$notesAnal)){
-            paste0(input$notesAnal, "\n")
-          }
-        } else if(input$tabs=='explore'){
-          if(!is.null(input$notesExplore)){
-            paste0(input$notesExplore, "\n")
-          }
-        } else if(input$tabs=='upload'){
-          if(!is.null(input$notesUp)){
-            paste0(input$notesUp, "\n")
-          }
-        } else if(input$tabs=='new'){
-          if(!is.null(input$notesNew)){
-            paste0(input$notesNew, '\n')
-          }
-        } else if(input$tabs=='book'){
-          if(!is.null(input$notesBook)){
-            paste0(input$notesBook, '\n')
-          }
         }
       })
       
+# Notes ====
+      # notes <- reactive({ 
+      #   if(input$tabs=='qaqc'){
+      #     if(!is.null(input$notesQAQC)){
+      #       paste0("Data quality evaluation:\n", input$notesQAQC, "\n")
+      #     }
+      #   } else if(input$tabs=='analysis') {
+      #     if(!is.null(input$notesAnal)){
+      #       paste0("Simple analysis:\n", input$notesAnal, "\n")
+      #     }
+      #   } else if(input$tabs=='explore'){
+      #     if(!is.null(input$notesExplore)){
+      #       paste0("Data exploration:\n", input$notesExplore, "\n")
+      #     }
+      #   } else if(input$tabs=='upload'){
+      #     if(!is.null(input$notesUp)){
+      #       paste0("Data upload:\n", input$notesUp, "\n")
+      #     }
+      #   } else if(input$tabs=='new'){
+      #     if(!is.null(input$notesNew)){
+      #       paste0("New variables:\n", input$notesNew, '\n')
+      #     }
+      #   } else if (input$tabs=='zone'){
+      #     if (!is.null(input$notesZone)) {
+      #       paste0("Zone definition:\n", input$notesZone, "\n")
+      #     } 
+      #   } else if (input$tabs=='expectedCatch'){
+      #     if (!is.null(input$notesEC)) {
+      #       paste0("Expected catch/revenue:\n", input$notesEC, "\n")
+      #     } 
+      #   } else if (input$tabs=='models'){
+      #     if (!is.null(input$notesModel)) {
+      #       paste0("Models:\n", input$notesModel, "\n")
+      #     }
+      #   } else if(input$tabs=='book'){
+      #     if(!is.null(input$notesBook)){
+      #       paste0("Boomark URL:\n", input$notesBook, '\n')
+      #     }
+      #   }
+      # })
+      
+      notes <- reactiveValues(upload = "Upload data: ",
+                              dataQuality = "Data quality evaluation: ",
+                              explore = "Data exploration: ",
+                              fleet = list(density = "Fleet functions: ", vessel = character(0),
+                                           spec = character(0), roll = character(0),
+                                           wc = character(0), we = character(0),
+                                           by = character(0), trip = character(0),
+                                           f_table = character(0), f_assign = character(0)),
+                              analysis = "Simple analysis: ",
+                              new = "Create new variable: ",
+                              zone = "Zone definition: ",
+                              ec = "Expected catch/revenue: ",
+                              models = "Models: ",
+                              book = "Bookmark URL: ")
+      
+      fleet_note_DL <- reactive({
+        c(input[["den-note-callTextDownload"]], input[["ves-note-callTextDownload"]],
+          input[["spec-note-callTextDownload"]], input[["roll-note-callTextDownload"]],
+          input[["wc-note-callTextDownload"]], input[["we-note-callTextDownload"]],
+          input[["by-note-callTextDownload"]], input[["trip-note-callTextDownload"]],
+          input[["f_table-note-callTextDownload"]], input[["f_assign-note-callTextDownload"]])
+      })
+      
+      observeEvent(c(input$callTextDownload,
+                     input$callTextDownloadAnal,
+                     input$callTextDownloadExplore,
+                     input$callTextDownloadUp,
+                     input$callTextDownloadNew,
+                     fleet_note_DL(), 
+                     input$callTextDownloadZone,
+                     input$callTextDownloadEC,
+                     input$callTextDownloadModels,
+                     input$callTextDownloadBook), {
+                       
+        if (input$tabs == 'upload') {
+          if (!is.null(input$notesUp)) {
+            notes$upload <- c(notes$upload, paste0(input$notesUp, "\n"))
+          }
+        } else if (input$tabs == 'qaqc') {
+          if (!is.null(input$notesQAQC)) {
+            notes$dataQuality <- c(notes$dataQuality, paste0(input$notesQAQC, "\n"))
+          }
+        } else if (input$tabs == 'explore') {
+          if (!is.null(input$notesExplore)) {
+            notes$explore <- c(notes$explore, paste0(input$notesExplore, "\n"))
+          }
+         } else if (input$tabs == 'fleet') {
+          if (input$fleet_tab == "density_plot") {
+            notes$fleet$density <- c(notes$fleet$density, paste0(input[["den-note-notes"]], "\n"))
+            
+          } else if (input$fleet_tab == "vessel_count") {
+            notes$fleet$vessel <- c(notes$fleet$vessel, paste0(input[["ves-note-notes"]], "\n"))
+            
+          } else if (input$fleet_tab == "species_catch") {
+            notes$fleet$spec <- c(notes$fleet$spec, paste0(input[["spec-note-notes"]], "\n"))
+            
+          } else if (input$fleet_tab == "roll_catch") {
+            notes$fleet$roll <- c(notes$fleet$roll, paste0(input[["roll-note-notes"]], "\n"))
+            
+          } else if (input$fleet_tab == "weekly_catch") {
+            notes$fleet$wc <- c(notes$fleet$wc, paste0(input[["wc-note-notes"]], "\n"))
+            
+          } else if (input$fleet_tab == "weekly_effort") {
+            notes$fleet$we <- c(notes$fleet$we, paste0(input[["we-note-notes"]], "\n"))
+            
+          } else if (input$fleet_tab == "by_catch") {
+            notes$fleet$by <- c(notes$fleet$by, paste0(input[["by-note-notes"]], "\n"))
+            
+          } else if (input$fleet_tab == "trip_length") {
+            notes$fleet$trip <- c(notes$fleet$trip, paste0(input[["trip-note-notes"]], "\n"))
+            
+          } else if (input$fleet_tab == "fleet_table") {
+            notes$fleet$f_table <- c(notes$fleet$f_table, paste0(input[["f_table-note-notes"]], "\n"))
+            
+          } else if (input$fleet_tab == "fleet_assign") {
+            notes$fleet$f_assign <- c(notes$fleet$f_assign, paste0(input[["f_assign-note-notes"]], "\n"))
+          }
+         
+        } else if (input$tabs == 'analysis') {
+          if (!is.null(input$notesAnal)) {
+            notes$analysis <- c(notes$analysis, paste0(input$notesAnal, "\n"))
+          }
+        } else if (input$tabs == 'new') {
+          if (!is.null(input$notesNew)) {
+            notes$new <- c(notes$new, paste0(input$notesNew, '\n'))
+          }
+        } else if (input$tabs == 'zone') {
+          if (!is.null(input$notesZone)) {
+            notes$zone <- c(notes$zone, paste0(input$notesZone, "\n"))
+          } 
+        } else if (input$tabs == 'expectedCatch') {
+          if (!is.null(input$notesEC)) {
+            notes$ec <- c(notes$ec, paste0(input$notesEC, "\n"))
+          } 
+        } else if (input$tabs == 'models') {
+          if (!is.null(input$notesModel)) {
+            notes$models <- c(notes$models, paste0(input$notesModel, "\n"))
+          }
+        } else if (input$tabs == 'book') {
+          if (!is.null(input$notesBook)) {
+            notes$book <- c(notes$book, paste0(input$notesBook, '\n'))
+          }
+        }
+      })
+    
       ##Table output
       tableInputSummary <- reactive({
         if(colnames(values$dataset)[1] == 'var1') {
@@ -1388,10 +1675,10 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
 
       
       
-      ##----        
+      ##---        
 
-      #DATA EXPLORATION FUNCTIONS
-      ###----
+      #DATA EXPLORATION FUNCTIONS ----
+      ###---
       #1. TABLE
       output$output_table_exploration <- DT::renderDT(
         if(colnames(values$dataset)[1] == 'var1') {
@@ -1768,16 +2055,14 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       fleet_table_serv("f_table", values, reactive(input$projectname))
       
       fleet_assign_serv("f_assign", values, reactive(input$projectname))
-      
-      
-      
+
       
       
       ##
-      ###----    
+      ###---    
       
-      #DATA ANALYSIS FUNCTIONS
-      ###----
+      #DATA ANALYSIS FUNCTIONS ----
+      ###---
       output$corr_out <- renderUI({
         selectInput('corr_select', 'Select variables to include in correlation test', 
                     choices= names(which(lapply(values$dataset[,which(lapply(values$dataset, is.numeric)==TRUE)], var, na.rm=TRUE)>0)), 
@@ -1875,10 +2160,10 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       output$output_plot_reg <- renderPlot({
         print(plotInputreg())
       })    
-      ###----
+      ###---
       
-      #DATA CREATION/MODIFICATION FUNCTIONS
-      ###----
+      #DATA CREATION/MODIFICATION FUNCTIONS----
+      ###---
       #Transformations 
       output$trans_time_out <- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Data transformations'&input.trans=='temp_mod'",
@@ -2285,13 +2570,13 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       # Map Viewer ====
       
       map_viewer_serv("map", values, spatdat)
-      onStop(function() servr::daemon_stop()) 
+      #onStop(function() servr::daemon_stop()) 
       
       
-      #----
+      #---
       
-      #Zonal definition
-      #----
+      #Zonal definition ----
+      #---
       output$conditionalInput1 <- renderUI({
         conditionalPanel(condition="input.choiceTab=='primary'",
                          tagList(
@@ -2400,10 +2685,10 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       
       
      
-       #----
+       #---
       
-      #Expected Catch      
-      #----
+      #Expected Catch----     
+      #---
       output$selectcp <- renderUI({
         tagList(
           selectInput('catche','Catch variable for averaging',
@@ -2449,10 +2734,10 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       })
       
       
-      #----
+      #---
       
-      #Model Parameters
-      #----
+      #Model Parameters----
+      #---
       # helper function for making checkbox
       #names <- c('one','two', 'three')
       inline = function (x) {
@@ -2928,9 +3213,9 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       
       
       
-      #----
-      # Run functions
-      #-----
+      #---
+      # Run functions ----
+      #---
       observeEvent(input$saveALT, {
               q_test <- quietly_test(create_alternative_choice)
               q_test(dat=values$dataset, gridfile=spatdat$dataset, min.haul=input$min_haul_ac,
@@ -2952,16 +3237,16 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       }) 
       
      
-       ####----
+       ####---
       ##Resetting inputs
       observeEvent(input$refresh1,{
         updateCheckboxInput(session, 'Outlier_Filter', value=FALSE)
       })
-      ###----                
+      ###---              
       
-      ####-----        
-      ##Save output       
-      ###----      
+      ####---  
+      ##Save output----   
+      ###---   
       observeEvent(input$saveData, {
         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
         DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'MainDataTable'), values$dataset, overwrite=TRUE)
@@ -2983,14 +3268,14 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
           actionButton('downloadplot', label ='Save plot to folder'),
           downloadLink('downloadplotHIDE', label=''),
           actionButton('downloaddata', label ='Save table to folder as csv'),
-          downloadLink("downloadText", label=''),
+         # downloadLink("downloadText", label=''),
           actionButton('callTextDownload','Save notes')
         )
       })
       
       output$SaveButtonsUpload <- renderUI({
         tagList(
-          downloadLink("downloadTextUp", label=''),
+        #  downloadLink("downloadTextUp", label=''),
           actionButton('callTextDownloadUp','Save notes')
         )
       })
@@ -3003,7 +3288,7 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
           downloadLink('downloadTableEXPLOREHIDE', label=''),
           conditionalPanel(condition = "input.plot_type=='Spatial'",
           actionButton('downloadTableExplore', label ='Save table to folder as csv')),
-          downloadLink("downloadTextExplore", label='')
+        #  downloadLink("downloadTextExplore", label='')
         )
       })
       
@@ -3013,7 +3298,7 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
           downloadLink('downloaddataAnalHIDE', label =''),
           actionButton('downloadplotAnal', label ='Save plot to folder'),#, title = "", filename = paste0(project,'_', input$corr_reg, '_plot'), filetype = "png"),
           actionButton('downloaddataAnal', label ='Save table to folder as csv'),
-          downloadLink("downloadTextAnal", label=''),
+        #  downloadLink("downloadTextAnal", label=''),
           actionButton('callTextDownloadAnal','Save notes')
         )
       })
@@ -3022,109 +3307,146 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
         tagList(
           downloadLink('downloadplotNew', label=''),
           actionButton('downloadplotNew', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
-          downloadLink("downloadTextNew", label=''),
+        #  downloadLink("downloadTextNew", label=''),
           actionButton('callTextDownloadNew','Save notes')
         )
       })
       
       
       
-      ##Downloads      
-      ##----
+      ##Downloads ====  
+      ##---
+      # savedText <- reactiveValues(answers = logical(0))
+      # observeEvent(c(input$callTextDownload,
+      #                input$callTextDownloadAnal,
+      #                input$callTextDownloadExplore,
+      #                input$callTextDownloadUp,
+      #                input$callTextDownloadNew,
+      #                input$callTextDownloadZone,
+      #                input$callTextDownloadEC,
+      #                input$callTextDownloadModels,
+      #                input$callTextDownloadBook),{
+      #                  savedText$answers <- as.character(c(savedText$answers, case_to_print(), notes()))
+      #                  
+      #                  # updateTextInput(session, 'notesUp', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+      #                  # updateTextInput(session, 'notesExplore', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. 
+      #                  #                              Text can be inserted into report later.')
+      #                  # updateTextInput(session, 'notesAnal', "Notes", value=NULL, 
+      #                  #           placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+      #                  # updateTextInput(session, 'notesNew', "Notes", value=NULL, 
+      #                  #           placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+      #                  # updateTextInput(session, 'notesZone', "Notes", value=NULL, 
+      #                  #           placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+      #                  # updateTextInput(session, 'notesEC', "Notes", value=NULL, 
+      #                  #           placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+      #                  # updateTextInput(session, 'notesModel', "Notes", value=NULL, 
+      #                  #           placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+      #                  # updateTextInput(session, 'notesBook', "Notes", value=NULL, placeholder = 'Paste bookmarked URL here.')
+      #                })
+      
       savedText <- reactiveValues(answers = logical(0))
       observeEvent(c(input$callTextDownload,
                      input$callTextDownloadAnal,
                      input$callTextDownloadExplore,
                      input$callTextDownloadUp,
                      input$callTextDownloadNew,
+                     fleet_note_DL(),
+                     input$callTextDownloadZone,
+                     input$callTextDownloadEC,
+                     input$callTextDownloadModels,
                      input$callTextDownloadBook),{
-                       savedText$answers <- as.character(c(savedText$answers, case_to_print(), notes()))
+                      
+                       savedText$answers <- reactiveValuesToList(notes)
+                       nms <- c("dataQuality", "explore", "analysis")
+                       for (n in nms) {
+                         savedText$answers[[n]] <- c(savedText$answers[[n]], case_to_print[[n]])
+                       }
                      })
       
       #  Stored Txt
-      observeEvent(input$callTextDownloadUp, {
-        output$downloadTextUp <- downloadHandler(
-          filename = function() {
-            paste0(locoutput(), 'StoredText.txt')
-          },
-          content = function(file) {
-            writeLines(savedText$answers, file)
-          },
-          contentType = "text/csv"
-        )
-        jsinject <- "setTimeout(function(){window.open($('#downloadTextUp').attr('href'))}, 100);"
-        session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
-      })
-      
-      observeEvent(input$callTextDownloadExplore, {
-        output$downloadTextExplore <- downloadHandler(
-          filename = function() {
-            paste0(locoutput(), 'StoredText.txt')
-          },
-          content = function(file) {
-            writeLines(savedText$answers, file)
-          },
-          contentType = "text/csv"
-        )
-        jsinject <- "setTimeout(function(){window.open($('#downloadTextExplore').attr('href'))}, 100);"
-        session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
-      })
-      
-      observeEvent(input$callTextDownloadAnal,{
-        output$downloadTextAnal<- downloadHandler(
-          filename = function() {
-            paste0(locoutput(), 'StoredText.txt')
-          },
-          content = function(file) {
-            writeLines(savedText$answers, file)
-          },
-          contentType = "text/csv"
-        )
-        jsinject <- "setTimeout(function(){window.open($('#downloadTextAnal').attr('href'))}, 100);"
-        session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
-      })
-     
-      observeEvent(input$callTextDownload,{
-        output$downloadText <- downloadHandler(
-          filename = function() {
-            paste0(locoutput(), 'StoredText.txt')
-          },
-          content = function(file) {
-            writeLines(savedText$answers, file)
-          },
-          contentType = "text/csv"
-        )
-        jsinject <- "setTimeout(function(){window.open($('#downloadText').attr('href'))}, 100);"
-        session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
-      })
-     
-      observeEvent(input$callTextDownloadNew, {
-        output$downloadTextNew <- downloadHandler(
-          filename = function() {
-            paste0(locoutput(), 'StoredText.txt')
-          },
-          content = function(file) {
-            writeLines(savedText$answers, file)
-          },
-          contentType = "text/csv"
-        )
-        jsinject <- "setTimeout(function(){window.open($('#downloadTextNew').attr('href'))}, 100);"
-        session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
-      })
-     
-      observeEvent(input$callTextDownloadBook, {
-        output$downloadTextBook <- downloadHandler(
-          filename = function() {
-            paste0(locoutput(), 'StoredText.txt')
-          },
-          content = function(file) {
-            writeLines(savedText$answers, file)
-          },
-          contentType = "text/csv"
-        )
-        jsinject <- "setTimeout(function(){window.open($('#downloadTextBook').attr('href'))}, 100);"
-        session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
-      })
+      # observeEvent(input$callTextDownloadUp, {
+      #   output$downloadTextUp <- downloadHandler(
+      #     filename = function() {
+      #       paste0(locoutput(), 'StoredText.txt')
+      #     },
+      #     content = function(file) {
+      #       writeLines(savedText$answers, file)
+      #     },
+      #     contentType = "text/csv"
+      #   )
+      #   jsinject <- "setTimeout(function(){window.open($('#downloadTextUp').attr('href'))}, 100);"
+      #   session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
+      # })
+      # 
+      # observeEvent(input$callTextDownloadExplore, {
+      #   output$downloadTextExplore <- downloadHandler(
+      #     filename = function() {
+      #       paste0(locoutput(), 'StoredText.txt')
+      #     },
+      #     content = function(file) {
+      #       writeLines(savedText$answers, file)
+      #     },
+      #     contentType = "text/csv"
+      #   )
+      #   jsinject <- "setTimeout(function(){window.open($('#downloadTextExplore').attr('href'))}, 100);"
+      #   session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
+      # })
+      # 
+      # observeEvent(input$callTextDownloadAnal,{
+      #   output$downloadTextAnal<- downloadHandler(
+      #     filename = function() {
+      #       paste0(locoutput(), 'StoredText.txt')
+      #     },
+      #     content = function(file) {
+      #       writeLines(savedText$answers, file)
+      #     },
+      #     contentType = "text/csv"
+      #   )
+      #   jsinject <- "setTimeout(function(){window.open($('#downloadTextAnal').attr('href'))}, 100);"
+      #   session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
+      # })
+      # 
+      # observeEvent(input$callTextDownload,{
+      #   output$downloadText <- downloadHandler(
+      #     filename = function() {
+      #       paste0(locoutput(), 'StoredText.txt')
+      #     },
+      #     content = function(file) {
+      #       writeLines(savedText$answers, file)
+      #     },
+      #     contentType = "text/csv"
+      #   )
+      #   jsinject <- "setTimeout(function(){window.open($('#downloadText').attr('href'))}, 100);"
+      #   session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
+      # })
+      # 
+      # observeEvent(input$callTextDownloadNew, {
+      #   output$downloadTextNew <- downloadHandler(
+      #     filename = function() {
+      #       paste0(locoutput(), 'StoredText.txt')
+      #     },
+      #     content = function(file) {
+      #       writeLines(savedText$answers, file)
+      #     },
+      #     contentType = "text/csv"
+      #   )
+      #   jsinject <- "setTimeout(function(){window.open($('#downloadTextNew').attr('href'))}, 100);"
+      #   session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
+      # })
+      # 
+      # observeEvent(input$callTextDownloadBook, {
+      #   output$downloadTextBook <- downloadHandler(
+      #     filename = function() {
+      #       paste0(locoutput(), 'StoredText.txt')
+      #     },
+      #     content = function(file) {
+      #       writeLines(savedText$answers, file)
+      #     },
+      #     contentType = "text/csv"
+      #   )
+      #   jsinject <- "setTimeout(function(){window.open($('#downloadTextBook').attr('href'))}, 100);"
+      #   session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
+      # })
       
       observeEvent(input$downloadplot, {
         output$downloadplotHIDE <<- downloadHandler(
@@ -3226,10 +3548,10 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       
       
       
-      ##----
+      ##---
       
-      # stop shiny
-      ##----
+      # stop shiny ----
+      ##---
       observe({
         if(input$close > 0) stopApp()
       })
@@ -3245,10 +3567,10 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       
       
      
-       ###----
+       ###---
      
-       # Update From Bookmarked state
-      ###----    
+       # Update From Bookmarked state----
+      ###---   
       bookmarkedstate <- reactive({
         req(input$uploadbookmark)
         readRDS(input$uploadbookmark$datapath)
@@ -3275,7 +3597,7 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       observeEvent(input$uploadbookmark, {
         req(input$projectname)
         if(colnames(values$dataset)[1]!='var1'){
-          #-----
+          #---
         updateSelectInput(session, "alt_var_ac", selected = bookmarkedstate()$alt_var_ac) 
         updateSelectInput(session, "alternatives", selected = bookmarkedstate()$alternatives) 
         updateSelectInput(session, "calc_method", selected = bookmarkedstate()$calc_method) 
@@ -3403,9 +3725,56 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
         updateSelectInput(session, 'xWeight', selected = bookmarkedstate()$xWeight)
         updateSelectInput(session, "x_dist", selected = bookmarkedstate()$x_dist) 
         }
-#----
+#---
         })
-      ###----
-      
+      ###---
+     
+      onStop(function() {
+        
+        if (sum(isolate(c(input$callTextDownload,
+                  input$callTextDownloadAnal,
+                  input$callTextDownloadExplore,
+                  fleet_note_DL(),
+                  input$callTextDownloadUp,
+                  input$callTextDownloadNew,
+                  input$callTextDownloadZone,
+                  input$callTextDownloadEC,
+                  input$callTextDownloadModels,
+                  input$callTextDownloadBook))) > 0) {
+        
+          notes_out <- unlist(isolate(savedText$answers))
+        
+        } else {
+         
+          notes_out <- isolate(reactiveValuesToList(case_to_print))
+          nms_out <- c("dataQuality" = "Data quality evaluation: ", 
+                       "explore" = "Data exploration: ", "analysis" = "Simple analysis: ")
+         
+          for (i in names(notes_out)) { 
+            notes_out[[i]] <- paste0(nms_out[i], "\n", paste(notes_out[[i]], collapse = "\n"))
+          }
+          notes_out <- unlist(notes_out)
+        }
+        
+        filename <- paste0(locoutput(), isolate(input$projectname), "_notes_", Sys.Date(), ".txt")
+        
+        if (file.exists(filename)) {
+          
+          note_pd <- paste0(isolate(input$projectname), "_notes_", Sys.Date())
+          
+          note_int <- sum(grepl(note_pd, current_out()))
+          
+          writeLines(notes_out, 
+                     con = paste0(locoutput(), isolate(input$projectname), 
+                                  "_notes_", Sys.Date(), "(", (note_int + 1), ").txt"))
+          
+        } else {
+          writeLines(notes_out, con = filename)
+        }
+               
+        # map viewer 
+        servr::daemon_stop()
+      }) 
+       
     }
             
