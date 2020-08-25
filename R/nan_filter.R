@@ -32,6 +32,12 @@ nan_identify <- function(dat) {
     cat("No columns in the dataframe contain NAs", file = tmp, append = TRUE)
   }
 
+  
+  # check for -999
+  if(any(apply(dataset, 2, function(x) x == -999))){
+    cat('The', names(which(apply(dataset, 2, function(x) any(x == -999)))), 'variable has -999. 
+        Check that this is a valid value or stands for NA.', file = tmp, append = TRUE)
+  }
   # check for NaNs
   if (any(unlist(lapply(dataset, function(x) any(is.nan(x))))) == TRUE) {
     # cat('The', names(which(colSums(is.nan.data.frame(dataset)) != 0)), 'columns contain', unname(which(colSums(is.nan.data.frame(dataset)) != 0)),
