@@ -115,38 +115,50 @@ pull_output <- function(project, fun = NULL, date = NULL, type = "plot") {
   #' \dontrun{
   #' pull_output("pollock", "species_catch", type = "plot")
   #' }
+  end <- FALSE
+  outs <- list.files(locoutput())
+  ext <- switch(type, "plot" = ".*\\.png$", "table" = ".*\\.csv$", "notes" = ".*\\.txt$")
   
-  if (is.null(date)) {
-    out <- current_out()
-  } else {
-    outs <- list.files(locoutput())
-    
-    out <- grep(date, outs, value = TRUE)
+  out <- grep(paste0("^", project, "_", ext), outs, value = TRUE)
+  
+  if (length(out) == 0) {
+    cat("No ", type, " found for project '", project,"'.", sep = "")
+    end <- TRUE
   }
   
-  if (type == "notes") {
+  if (!end) {
     
-    out <- grep(paste0(project, "_notes"), out, value = TRUE)
+    if (!is.null(fun)) {
+      out <- grep(paste0("_", fun, "_"), out, value = TRUE)
+      
+      if (length(out) == 0) {
+        cat("No", type, "output for function", fun, "exists for project", paste0("'", project, "'. "))
+        end <- TRUE
+      }
+    } else {
+      out <- grep("_notes_", out, value = TRUE)
+    }
     
-  } else {
-    
-    out <- grep(paste0(project, "_", fun), out, value = TRUE)
-  }
-  
-  if (type == "plot") {
-    out <- grep(".png$", out, value = TRUE)
-  } else if (type == "table") {
-    out <- grep(".csv$", out, value = TRUE)
-  } else if (type == "notes") {
-    out <- grep(".txt$", out, value = TRUE)
-  } else if (type == "all") {
-    out <- out
-  }
-  
-  if (length(out) > 0) {
-    out
-  } else {
-    cat("No match found")
+    if (!end) {
+      
+      if (is.null(date)) {
+        dates <- stringr::str_extract_all(out, "\\d{4}-\\d{2}-\\d{2}", simplify = TRUE)
+        dates <- gsub("[^0-9]", "", dates)
+        out <- out[which(dates == max(dates))]
+       
+      } else {
+        
+        out <- grep(date, outs, value = TRUE)
+        
+        if (length(out) == 0) {
+          cat("No", type, "output from", date, "exists for project", paste0("'", project, "'. "))
+          end <- TRUE
+        }
+      }
+      if (!end) {
+        out
+      }
+    }
   }
 }
 
@@ -650,14 +662,14 @@ function_summary <- function(date = NULL, type = "dat_load", show = "all") {
       }
     }
 
-    # replace NULLs with string
+    # replace NULLs and zero length args with string
     for (n in names(fun_list)) {
       for (i in seq_along(fun_list[[n]])) {
         for (a in seq_along(fun_list[[n]][[i]]$args)) {
           if (is.null(fun_list[[n]][[i]]$args[[a]])) {
             fun_list[[n]][[i]]$args[[a]] <- "NULL"
-          } else {
-            fun_list[[n]][[i]]$args[[a]] <- fun_list[[n]][[i]]$args[[a]]
+          } else if (length(fun_list[[n]][[i]]$args[[a]]) == 0) {
+            fun_list[[n]][[i]]$args[[a]] <- "NULL"
           }
         }
       }
