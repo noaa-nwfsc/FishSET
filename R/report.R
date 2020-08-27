@@ -347,13 +347,15 @@ insert_table <- function(out) {
   }
 }
 
-pull_notes <- function(project, date = NULL) {
+pull_notes <- function(project, date = NULL, output = "print") {
   #' 
   #' Pull notes from output folder
   #'
   #' @param project String, the project name.
   #' @param date String, date to pull notes from. If NULL, most recent note file is 
-  #'   retrieved. 
+  #'   retrieved.
+  #' @param output Output type. "print" returns formatted notes. "string" returns a 
+  #'   character vector of the notes. "print" is reccomended for displaying notes in a report.  
   #' @export
   #' @importFrom stringi stri_omit_empty
   #' @importFrom stringr str_extract
@@ -375,8 +377,13 @@ pull_notes <- function(project, date = NULL) {
     
     for (i in ind) notes[i] <- paste0("\n", notes[i])
     
-    cat(notes, sep = "\n")
-    
+    if (output == "string") {
+      paste(notes, collapse = "\n")
+      
+    } else if (output == "print") {
+      
+      cat(notes, sep = "\n")
+    }
   } else if (length(out) > 1) { # if users has multiple notes from different sessions
     # order notes chronologically
     n_id <- stringr::str_extract(out, "\\d{4}-\\d{2}-\\d{2}.*")
@@ -395,7 +402,54 @@ pull_notes <- function(project, date = NULL) {
       }
     }
     
-    cat(unlist(notes), sep = "\n")
+    if (output == "string") {
+      paste(unlist(notes), collapse = "\n")
+      
+    } else if (output == "print") {
+      
+      cat(unlist(notes), sep = "\n")
+    }
+  }
+}
+
+parse_notes <- function(project, date = NULL, section, output = "print") {
+  #'
+  #' Selectively display a note section
+  #' 
+  #' @param project The project name.
+  #' @param date Date to pull notes from. If NULL then the most recent version of notes
+  #'   from the project are retreived. 
+  #' @param section The note section to display. Options include "upload" for Upload data,
+  #'   "quality" for Data quality evaluation, "explore" for Data exploration, "fleet" for
+  #'   Fleet functions, "analysis" for Simple analysis, "new_variable" for Create new variable,
+  #'   "zone" for Zone definition, "models", and "bookmark". 
+  #' @param output Output type. "print" returns formatted notes. "string" returns a 
+  #'   character vector of the notes. "print" is reccomended for displaying notes in a report.
+  #' @export
+  #' @example 
+  #' \dontrun{
+  #' parse_notes("pollock", type = "explore")
+  #' }
+  
+  notes <- pull_notes(project = project, date = date, output = "string")
+  
+  split <- unlist(strsplit(notes, "\n\n"))
+  
+  note_type <-  switch(section, "upload" = "Upload data: ", "quality" = "Data quality evaluation: ", 
+                       "explore" = "Data exploration: ", "fleet" = "Fleet functions: ", 
+                       "analysis" =  "Simple analysis: ","new_variable" = "Create new variable: ", 
+                       "zone" =  "Zone definition: ", "expected_catch" = "Expected catch/revenue: ", 
+                       "models" = "Models: ", "bookmark" = "Bookmark URL: ")
+  
+  notes <- grep(note_type, split, value = TRUE)
+  
+  if (output == "string") {
+    
+    notes
+    
+  } else if (output == "print") {
+    
+    cat(notes, sep = "\n")
   }
 }
 
