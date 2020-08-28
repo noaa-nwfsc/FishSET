@@ -238,7 +238,7 @@ current_db_table <- function(project, table) {
     
   } else if (length(proj_tab) == 1) {
     
-    proj_tab <- proj_tab
+    tab_out <- proj_tab
     
   } else if (length(proj_tab) > 1) {
     # pull most recent table
@@ -438,7 +438,7 @@ parse_notes <- function(project, date = NULL, section, output = "print") {
   #' @param output Output type. "print" returns formatted notes. "string" returns a 
   #'   character vector of the notes. "print" is reccomended for displaying notes in a report.
   #' @export
-  #' @example 
+  #' @examples 
   #' \dontrun{
   #' parse_notes("pollock", type = "explore")
   #' }
@@ -465,14 +465,17 @@ parse_notes <- function(project, date = NULL, section, output = "print") {
   }
 }
 
-summary_table <- function(project) {
+summary_table <- function(project, output = "print") {
   #'
   #' Display dataset summary table
   #'
   #' @param project Name of project.
+  #' @param output Output type. "print" returns formatted notes. "table" returns a 
+  #'   dataframe. "print" is reccomended for displaying summary table in a report.
   #' @export
   #' @keywords internal
   #' @importFrom tibble rownames_to_column
+  #' @importFrom pander pander pandoc.table
   #' @details Displays the most recent table created by \code{\link{summary_stats}}
   #' as a dataframe. Can be used in console or notebook.
 
@@ -497,7 +500,15 @@ summary_table <- function(project) {
 
   sum_tab <- sum_tab[-1, ]
 
-  sum_tab
+  if (output == "print") {
+    
+    pander::pander(
+      pander::pandoc.table(sum_tab, style = "simple", row.names = FALSE, split.tables = Inf)
+    )
+  } else if (output == "table") {
+    
+    sum_tab
+  }
 }
 
 
@@ -777,12 +788,15 @@ filter_summary <- function(sum_tab, filter_list) {
 }
 
 
-model_out_summary <- function(project) {
+model_out_summary <- function(project, output = "print") {
   #'
   #' Retrieve most recent summary of model output
   #'
   #' @param project Name of project
+  #' @param output Output type. "print" returns formatted notes. "table" returns a 
+  #'   dataframe. "print" is reccomended for displaying summary table in a report.
   #' @export
+  #' @importFrom pander pander pandoc.table
   #' @keywords internal
   #' @examples
   #' \dontrun{
@@ -811,18 +825,30 @@ model_out_summary <- function(project) {
       modeltab[i, 4] <- toString(round(results[[i]]$H1, 5))
     }
     
-    modeltab
+    if (output == "print") {
+      
+      pander::pander(
+        pander::pandoc.table(modeltab, style = "simple", row.names = FALSE, split.table = Inf)
+      )
+      
+    } else if (output == "table") {
+      
+      modeltab
+    }
   }
   paste0(project, "modelOut", "not found.")
 }
 
 
-model_error_summary <- function(project) {
+model_error_summary <- function(project, output = "print") {
   #'
   #' Retrieve most recent summary of model error
   #'
   #' @param project Name of project
+  #' @param output Output type. "print" returns formatted notes. "table" returns a 
+  #'   dataframe. "print" is reccomended for displaying summary table in a report.
   #' @export
+  #' @importFrom pander pander pandoc.table
   #' @keywords internal
   #' @examples
   #' \dontrun{
@@ -852,18 +878,30 @@ model_error_summary <- function(project) {
       )
     }
   
-    error_out
+    if (output == "print") {
+      
+      pander::pander(
+        pander::pandoc.table(error_out, style = "simple", row.names = FALSE, split.table = Inf)
+      )
+      
+    } else if (output == "table") {
+      
+      error_out
+    }
   }
   paste0(project, "modelOut", " not found.")
 }
 
 
-model_fit_summary <- function(project) {
+model_fit_summary <- function(project, output = "print") {
   #'
   #' Retrieve most recent summary of model fit
   #'
   #' @param project Name of project
+  #' @param output Output type. "print" returns formatted notes. "table" returns a 
+  #'   dataframe. "print" is reccomended for displaying summary table in a report.
   #' @export
+  #' @importFrom pander pander pandoc.table
   #' @keywords internal
   #' @examples
   #' \dontrun{
@@ -891,7 +929,43 @@ model_fit_summary <- function(project) {
       fit_tab[i, 5] <- results[[i]]$MCM$PseudoR2
     }
   
-    fit_tab
+    if (output == "print") {
+      
+      pander::pander(
+        pander::pandoc.table(fit_tab, style = "simple", row.names = FALSE, split.table = Inf)
+      )
+      
+    } else if (output == "table") {
+      
+      fit_tab
+    }
   }
   paste0(project, "modelOut", " not found.")
+}
+
+view_fleet_table <- function(project) {
+  #'
+  #'View the most recent fleet table by project
+  #'
+  #' @param project The name of project.
+  #' @export
+  #' @importFrom pander pander pandoc.table
+  #' 
+  #' @examples 
+  #' \dontrun{
+  #' view_fleet_table("pollock")
+  #' }
+  
+  fleet_tab <- current_db_table(project, table = "FleetTable")
+  
+  if (fleet_tab$exists == TRUE) {
+    pander::pander(
+      pander::pandoc.table(
+        table_view(fleet_tab$table),
+        style = "simple", row.names = FALSE, split.table = Inf)
+    )
+    
+  } else {
+    cat("No fleet table found.")
+  }
 }
