@@ -4,13 +4,16 @@
 \alias{pull_notes}
 \title{Pull notes from output folder}
 \usage{
-pull_notes(project, date = NULL)
+pull_notes(project, date = NULL, output = "print")
 }
 \arguments{
 \item{project}{String, the project name.}
 
 \item{date}{String, date to pull notes from. If NULL, most recent note file is 
 retrieved.}
+
+\item{output}{Output type. "print" returns formatted notes. "string" returns a 
+character vector of the notes. "print" is reccomended for displaying notes in a report.}
 }
 \description{
 Pull notes from output folder
