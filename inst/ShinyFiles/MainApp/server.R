@@ -3731,49 +3731,53 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
      
       onStop(function() {
         
-        if (sum(isolate(c(input$callTextDownload,
-                  input$callTextDownloadAnal,
-                  input$callTextDownloadExplore,
-                  fleet_note_DL(),
-                  input$callTextDownloadUp,
-                  input$callTextDownloadNew,
-                  input$callTextDownloadZone,
-                  input$callTextDownloadEC,
-                  input$callTextDownloadModels,
-                  input$callTextDownloadBook))) > 0) {
+        if (isolate(input$projectname) != "") {
         
-          notes_out <- unlist(isolate(savedText$answers))
-        
-        } else {
-         
-          notes_out <- isolate(reactiveValuesToList(case_to_print))
-          nms_out <- c("dataQuality" = "Data quality evaluation: ", 
-                       "explore" = "Data exploration: ", "analysis" = "Simple analysis: ")
-         
-          for (i in names(notes_out)) { 
-            notes_out[[i]] <- paste0(nms_out[i], "\n", paste(notes_out[[i]], collapse = "\n"))
+          if (sum(isolate(c(input$callTextDownload,
+                    input$callTextDownloadAnal,
+                    input$callTextDownloadExplore,
+                    fleet_note_DL(),
+                    input$callTextDownloadUp,
+                    input$callTextDownloadNew,
+                    input$callTextDownloadZone,
+                    input$callTextDownloadEC,
+                    input$callTextDownloadModels,
+                    input$callTextDownloadBook))) > 0) {
+  
+            notes_out <- unlist(isolate(savedText$answers))
+  
+          } else {
+  
+            notes_out <- isolate(reactiveValuesToList(case_to_print))
+            nms_out <- c("dataQuality" = "Data quality evaluation: ",
+                         "explore" = "Data exploration: ", "analysis" = "Simple analysis: ")
+  
+            for (i in names(notes_out)) {
+              notes_out[[i]] <- paste0(nms_out[i], "\n", paste(notes_out[[i]], collapse = "\n"))
+            }
+            notes_out <- unlist(notes_out)
           }
-          notes_out <- unlist(notes_out)
+  
+          filename <- paste0(locoutput(), isolate(input$projectname), "_notes_", Sys.Date(), ".txt")
+  
+          if (file.exists(filename)) {
+  
+            note_pd <- paste0(isolate(input$projectname), "_notes_", Sys.Date())
+  
+            note_int <- sum(grepl(note_pd, current_out()))
+  
+            writeLines(notes_out,
+                       con = paste0(locoutput(), isolate(input$projectname),
+                                    "_notes_", Sys.Date(), "(", (note_int + 1), ").txt"))
+  
+          } else {
+            writeLines(notes_out, con = filename)
+          }
         }
-        
-        filename <- paste0(locoutput(), isolate(input$projectname), "_notes_", Sys.Date(), ".txt")
-        
-        if (file.exists(filename)) {
-          
-          note_pd <- paste0(isolate(input$projectname), "_notes_", Sys.Date())
-          
-          note_int <- sum(grepl(note_pd, current_out()))
-          
-          writeLines(notes_out, 
-                     con = paste0(locoutput(), isolate(input$projectname), 
-                                  "_notes_", Sys.Date(), "(", (note_int + 1), ").txt"))
-          
-        } else {
-          writeLines(notes_out, con = filename)
-        }
-               
-        # map viewer 
+
+        # map viewer
         servr::daemon_stop()
+        
       }) 
        
     }
