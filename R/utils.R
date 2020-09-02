@@ -661,6 +661,19 @@ date_title <- function(plot, filter_date, filter_value) {
   plot
 }
 
+deparse_name <- function(dat) {
+  #' Deparse a data table for log 
+  #'
+  #'@param dat A dataframe object or string to deparse for \code{log_call} function. 
+  #'@export
+  #'@keywords internal
+  
+  if (is.character(dat)) {
+    dat
+  } else if (is.object(dat)) {
+    deparse(substitute(dat))
+  }
+}
 
 ## ----Shiny util functions-----
 outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plot_type) {

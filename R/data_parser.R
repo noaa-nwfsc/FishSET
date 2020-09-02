@@ -40,7 +40,7 @@ read_dat <- function(x, data.type=NULL, ...) {
   
   data.type <- tolower(data.type)
   
-  if (data.type == 'rda' | data.type == "r") {
+  if (data.type == 'rdata' | data.type == "r") {
     return(as.data.frame(get(load(x))))
   } else if (data.type == "mat" | data.type == 'matlab') {
     R.matlab::readMat(x, ...)
@@ -489,13 +489,14 @@ load_port <- function(dat, port_name, over_write = TRUE, project = NULL, compare
   }
 }
 
-load_aux <- function(dat, x, over_write = TRUE, project = NULL) {
+load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
   #' Load, parse, and save auxiliary data to FishSET database
   #'
   #' Auxiliary data is additional data that connects the primary dataset.
   #' Function pulls the data, parses it, and then and saves the data to the FishSET database.
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in the FishSET database contains the string 'MainDataTable'.
+  #' @param aux Auxiliary data to be saved to the FishSET database.
   #' @param x Name of auxiliary data frame to be saved.
   #' @param over_write Logical, If TRUE, saves data over previously
   #'   saved data table in the FishSET database.
@@ -535,33 +536,33 @@ load_aux <- function(dat, x, over_write = TRUE, project = NULL) {
   DBI::dbDisconnect(fishset_db)
 
 
-  if (any(colnames(x) == colnames(old)) == FALSE) {
+  if (any(colnames(aux) %in% colnames(old)) == FALSE) {
     warning("No shared columns. Column names do not match between two data sets.")
     val <- 1
   }
   if (val == 0) {
     #data_verification_call(x, project)
     #unique rows
-    if(dim(x)[1] != dim(unique(x))[1]){
+    if(dim(aux)[1] != dim(unique(aux))[1]){
       print('Duplicate rows found and removed.')
-      x <- unique(x)
+      aux <- unique(aux)
     }
     #unique column names
-    if(length(toupper(colnames(x))) != length(unique(toupper(colnames(x))))){
+    if(length(toupper(colnames(aux))) != length(unique(toupper(colnames(aux))))){
       print('Duplicate case-insensitive column names found. Duplicate column names adjusted.')
-      colnames(x)[which(duplicated(colnames(x)))] <- paste0(colnames(x)[which(duplicated(colnames(x)))], '.1')
+      colnames(aux)[which(duplicated(colnames(aux)))] <- paste0(colnames(aux)[which(duplicated(colnames(aux)))], '.1')
     }
     #empty variables
-    if (any(apply(x, 2, function(x) all(is.na(x))) == TRUE)) {
-      print(names(which(apply(x, 2, function(x) all(is.na(x))) == TRUE)), 'is empty and was removed.')
-      x <- x[,-(which(apply(x, 2, function(x) all(is.na(x))) == TRUE))]
+    if (any(apply(aux, 2, function(x) all(is.na(x))) == TRUE)) {
+      print(names(which(apply(aux, 2, function(x) all(is.na(x))) == TRUE)), 'is empty and was removed.')
+      aux <- aux[,-(which(apply(aux, 2, function(x) all(is.na(x))) == TRUE))]
     }
     
 
     fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
     if (table_exists(paste0(project, x)) == FALSE | over_write == TRUE) {
-      DBI::dbWriteTable(fishset_db, paste0(project, x, format(Sys.Date(), format = "%Y%m%d")), x, overwrite = over_write)
-      DBI::dbWriteTable(fishset_db, paste0(project, x), x, overwrite = over_write)
+      DBI::dbWriteTable(fishset_db, paste0(project, x, format(Sys.Date(), format = "%Y%m%d")), aux, overwrite = over_write)
+      DBI::dbWriteTable(fishset_db, paste0(project, x), aux, overwrite = over_write)
       print("Data saved to database")
     } else {
       warning(paste("Table not saved.", paste0(project, x), "exists in database, and overwrite is FALSE."))
@@ -571,17 +572,18 @@ load_aux <- function(dat, x, over_write = TRUE, project = NULL) {
 
     load_aux_function <- list()
     load_aux_function$functionID <- "load_aux"
-    load_aux_function$args <- list(deparse(substitute(dat)), deparse(substitute(x)), over_write, project)
+    load_aux_function$args <- list(deparse_name(dat), deparse_name(aux), x, over_write, project)
     log_call(load_aux_function)
   }
 }
 
-load_grid <- function(dat, x, over_write = TRUE, project = NULL) {
+load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
   #' Load, parse, and save gridded data to FishSET database
   #'
   #' Gridded data is data that varies by two dimensions. Column names must be zone names. Load, parse, and save gridded data to FishSET database
   #' @param dat Primary data containing information on hauls or trips. 
   #'   Table in FishSET database contains the string 'MainDataTable'.
+  #' @param grid Gridded data to be saved to FishSET database. 
   #' @param x Name of gridded data frame to be saved.
   #' @param over_write Logical, If TRUE, saves dat over previously saved data table in the FishSET database.
   #' @param project String, name of project.
@@ -615,7 +617,7 @@ load_grid <- function(dat, x, over_write = TRUE, project = NULL) {
   }
   DBI::dbDisconnect(fishset_db)
 
-  if (any(colnames(x) == colnames(old)) == FALSE) {
+  if (any(colnames(grid) %in% colnames(old)) == FALSE) {
     warning("No shared columns. Column names do not match between two data sets. Gridded data set not saved.")
     val <- 1
   }
@@ -623,25 +625,25 @@ load_grid <- function(dat, x, over_write = TRUE, project = NULL) {
   if (val == 0) {
     #data_verification_call(x, project)
     #unique rows
-    if(dim(x)[1] != dim(unique(x))[1]){
+    if(dim(grid)[1] != dim(unique(grid))[1]){
       print('Duplicate rows found and removed.')
-      x <- unique(x)
+      grid <- unique(grid)
     }
     #unique column names
-    if(length(toupper(colnames(x))) != length(unique(toupper(colnames(x))))){
+    if(length(toupper(colnames(grid))) != length(unique(toupper(colnames(grid))))){
       print('Duplicate case-insensitive column names found. Duplicate column names adjusted.')
-      colnames(x)[which(duplicated(colnames(x)))] <- paste0(colnames(x)[which(duplicated(colnames(x)))], '.1')
+      colnames(grid)[which(duplicated(colnames(grid)))] <- paste0(colnames(grid)[which(duplicated(colnames(grid)))], '.1')
     }
     #empty variables
-    if (any(apply(x, 2, function(x) all(is.na(x))) == TRUE)) {
-      print(names(which(apply(x, 2, function(x) all(is.na(x))) == TRUE)), 'is empty and was removed.')
-      x <- x[,-(which(apply(x, 2, function(x) all(is.na(x))) == TRUE))]
+    if (any(apply(grid, 2, function(x) all(is.na(x))) == TRUE)) {
+      print(names(which(apply(grid, 2, function(x) all(is.na(x))) == TRUE)), 'is empty and was removed.')
+      grid <- grid[,-(which(apply(grid, 2, function(x) all(is.na(x))) == TRUE))]
     }
     
 
     fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
     if (table_exists(paste0(project, x)) == FALSE | over_write == TRUE) {
-      DBI::dbWriteTable(fishset_db, paste0(project, x), x, overwrite = over_write)
+      DBI::dbWriteTable(fishset_db, paste0(project, x), grid, overwrite = over_write)
       print("Data saved to database")
     } else {
       warning(paste("Table not saved.", paste0(project, x), "exists in database, and overwrite is FALSE."))
@@ -649,8 +651,8 @@ load_grid <- function(dat, x, over_write = TRUE, project = NULL) {
     DBI::dbDisconnect(fishset_db)
 
     load_gridded_function <- list()
-    load_gridded_function$functionID <- "load_gridded"
-    load_gridded_function$args <- list(deparse(substitute(dataset)), deparse(substitute(x)), over_write, project)
+    load_gridded_function$functionID <- "load_grid"
+    load_gridded_function$args <- list(deparse_name(dat), deparse_name(grid), x, over_write, project)
     log_call(load_gridded_function)
   }
 }
