@@ -41,6 +41,7 @@ out <- data_pull(dat)
 dat <- out$dat
 dataset <- out$dataset
 
+
   #change data
     #Conversion is based on starting and ending class
 if(!is.null(x)){
@@ -59,7 +60,7 @@ if(!is.null(newclass)){
       }
       if(length(which((origclass == 'CHARACTER' | origclass == 'DATE') & (newclass=='NUMERIC')))>1){
           dataset[,names(which((origclass=='CHARACTER'|origclass=='DATE')&(newclass=='NUMERIC')))] <- 
-            apply(dataset[,names(which((origclass=='CHARACTER'|origclass=='DATE')&(newclass=='NUMERIC')))], 2, as.numeric)
+            apply(dataset[,names(which((origclass=='CHARACTER'|origclass=='DATE')&(newclass=='NUMERIC')))], 2, function(x) as.numeric(x))
       }
     #from factor
       if(length(which((origclass == 'FACTOR')&(newclass=='NUMERIC')))>1){
@@ -102,13 +103,15 @@ if(!is.null(newclass)){
 
   #Change to factor
     #numeric, character, date
-    if(length(which((origclass == 'NUMERIC' | origclass == 'CHARACTER' | origclass == 'DATE')&(newclass=='FACTOR')))==1){
-      dataset[,names(which((origclass == 'NUMERIC' | origclass=='CHARACTER'|origclass=='DATE')&(newclass=='FACTOR')))] <- 
-        as.factor(dataset[,names(which((origclass == 'NUMERIC' | origclass=='CHARACTER'|origclass=='DATE')&(newclass=='FACTOR')))])
+    if(length(which((origclass == 'NUMERIC' | origclass == 'CHARACTER' | origclass == 'DATE') & (newclass=='FACTOR')))==1){
+      dataset[,names(which((origclass == 'NUMERIC' | origclass=='CHARACTER'|origclass=='DATE') & (newclass=='FACTOR')))] <- 
+        as.factor(dataset[,names(which((origclass == 'NUMERIC' | origclass=='CHARACTER'|origclass=='DATE') & (newclass=='FACTOR')))])
     }
-    if(length(which((origclass == 'NUMERIC' | origclass == 'CHARACTER' | origclass == 'DATE')&(newclass=='FACTOR')))>1){
-      dataset[,names(which((origclass == 'NUMERIC' | origclass=='CHARACTER'|origclass=='DATE')&(newclass=='FACTOR')))] <- 
-        apply(dataset[,names(which((origclass == 'NUMERIC' | origclass=='CHARACTER'|origclass=='DATE')&(newclass=='FACTOR')))], 2, as.factor)
+    if(length(which((origclass == 'NUMERIC' | origclass == 'CHARACTER' | origclass == 'DATE') & (newclass=='FACTOR')))>1){
+      g <- names(which((origclass=='NUMERIC'| origclass == 'CHARACTER' | origclass == 'DATE') & (newclass=='FACTOR')))
+      for(i in 1:length(g)){
+        dataset[,g[i]] <- as.factor(dataset[,g[i]])
+      }
     }
 
   #Change to date  
