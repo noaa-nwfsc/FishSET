@@ -33,7 +33,6 @@ source("map_viewer_app.R", local = TRUE)
         )
         r$done <- r$done + 1
       })
-      
       output$resultI <- renderUI({
         if(r$done > 0 ) { 
           content <- paste(paste(">", isolate(input$expr)), r$output, sep = '\n')
@@ -730,7 +729,6 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
           )
           )
       })
-    
  
       observeEvent(input$uploadMain, {
         df_data <- read_dat(input$maindat$datapath)
@@ -879,9 +877,7 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
           }
         }
       })
-      ###----
-      
-
+ 
       observeEvent(input$uploadMain, {
         type <- sub('.*\\.', '', input$maindat$name)
         if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
@@ -1724,10 +1720,10 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
             
             filter_data_function <- list()
             filter_data_function$functionID <- 'filter_table'
-            filter_data_function$args <- c(dat, project, x, exp)
+            filter_data_function$args <- c(values$dataset, input$projectname, x, exp)
             filter_data_function$kwargs <- list()
             filter_data_function$output <- c('')
-            filter_data_function$msg <- filterTable
+            filter_data_function$msg <- FilterTable
             log_call(filter_data_function)
             
             fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
