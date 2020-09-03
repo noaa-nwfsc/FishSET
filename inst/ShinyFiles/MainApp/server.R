@@ -698,13 +698,17 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       })
       output$ui.actionG <- renderUI({
         if(is.null(input$griddat)) return()
-        actionButton("uploadGrid", label = "Save to database", 
-                     style = "color: white; background-color: blue;", size = "extra-small")
+        tagList(
+          textInput("GridName", "Grid table name." ),
+          actionButton("uploadGrid", label = "Save to database", 
+                       style = "color: white; background-color: blue;", size = "extra-small")
+        )
       })
       
       output$ui.actionA <- renderUI({
         if(is.null(input$auxdat)) return()
         tagList(
+        textInput("AuxName", "Auxiliary table name." ),
         actionButton("uploadAux", label = "Save to database", 
                      style = "color: white; background-color: blue;", size = "extra-small"),
         actionButton("mergeAux", label = "Merge with main data", 
@@ -751,14 +755,22 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
         DBI::dbDisconnect(fishset_db)
       }) 
       observeEvent(input$uploadGrid, {
+        if (input$GridName == "") {
+          showNotification("Please provide a name for the grided table.", type = "message", duration = 10)
+        } else {
         df_data <- read_dat(input$griddat$datapath)
         q_test <- quietly_test(load_grid)
-        q_test(paste0(input$projectname, 'MainDataTable'), x=df_data, over_write=TRUE, project=input$projectname)
+        q_test(paste0(input$projectname, 'MainDataTable'), grid = df_data, x = input$GridName, over_write=TRUE, project=input$projectname)
+        }
       }) 
       observeEvent(input$uploadAux, {
+        if (input$AuxName == "") {
+          showNotification("Please provide a name for the auxiliary table.", type = "message", duration = 10)
+        } else {
        df_data <- read_dat(input$auxdat$datapath)
         q_test <- quietly_test(load_aux)
-        q_test(paste0(input$projectname, 'MainDataTable'), x=df_data, over_write=TRUE, project=input$projectname)
+        q_test(paste0(input$projectname, 'MainDataTable'), aux=df_data, x = input$AuxName, over_write=TRUE, project=input$projectname)
+        }
       }) 
        
       #Merge aux with main
@@ -879,47 +891,6 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
           }
         }
       })
-      ###----
-      
-
-      observeEvent(input$uploadMain, {
-        type <- sub('.*\\.', '', input$maindat$name)
-        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-        df_data <- FishSET::read_dat(input$maindat$datapath, type)
-        df_y <- input$compare
-        df_compare <- ifelse(nchar(input$compare)>0, TRUE, FALSE)
-        q_test <- quietly_test(load_maindata)
-        q_test(df_data, over_write=input$over_write, project=input$projectname, compare=df_compare, y=df_y)
-      })
-      observeEvent(input$uploadPort, {
-        type <- sub('.*\\.', '', input$portdat$name)
-        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-        df_data <- FishSET::read_dat(input$portdat$datapath, type)
-        q_test <- quietly_test(load_port)
-        q_test(df_data, port_name=input$port_name, over_write=TRUE, project=input$projectname, compare=FALSE, y=NULL)
-      }) 
-      observeEvent(input$uploadspatial, {
-        type <- sub('.*\\.', '', input$spatialdat$name)
-        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-        df_data <- FishSET::read_dat(input$spatialdat$datapath, type)
-        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
-        DBI::dbWriteTable(fishset_db, input$spatialdat$name,  df_data, overwrite=TRUE) 
-        DBI::dbDisconnect(fishset_db)
-      }) 
-      observeEvent(input$uploadGrid, {
-        type <- sub('.*\\.', '', input$griddat$name)
-        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-        df_data <- FishSET::read_dat(input$griddat$datapath, type)
-        q_test <- quietly_test(load_grid)
-        q_test(paste0(input$projectname, 'MainDataTable'), x=df_data, over_write=TRUE, project=input$projectname)
-      }) 
-      observeEvent(input$uploadAux, {
-        type <- sub('.*\\.', '', input$auxdat$name)
-        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-        df_data <- FishSET::read_dat(input$auxdat$datapath, type)
-        q_test <- quietly_test(load_aux)
-        q_test(paste0(input$projectname, 'MainDataTable'), x=df_data, over_write=TRUE, project=input$projectname)
-      }) 
       
       ###---
       
@@ -1404,10 +1375,17 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
     
       ##Table output
       tableInputSummary <- reactive({
-        if(colnames(values$dataset)[1] == 'var1') {
+        
+        temp <- switch(input$SelectDatasetDQ, 
+                       "main" = values$dataset, 
+                       "port" = ptdat$dataset, 
+                       "grid" = grddat$dataset, 
+                       "auxiliary" = aux$dataset)
+        
+        if(colnames(temp)[1] == 'var1') {
           return(NULL)
         } else if(input$checks=='Summary table'|input$checks=='NAs') { 
-          temp <- values$dataset
+          #temp <- values$dataset
           stable <- summary_stats(temp, input$projectname) 
           nums <- unlist(lapply(temp, is.numeric))
           stable  <- apply(stable[nums], 2, function(x) gsub(".*:","", x))
@@ -1587,6 +1565,20 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       })
         
       
+      ##Check UI
+      
+      output$checks_dataset <- renderUI({
+        
+        if (input$SelectDatasetDQ == "main") {
+          
+          radioButtons("checks", "", choices = c('Summary table', 'Outliers', 'NAs', 'NaNs', 'Unique observations', 
+                                                 'Empty variables', 'Lat_Lon units'))
+        } else {
+          
+          radioButtons("checks", "", choices = c('Summary table'))
+        }
+      })
+      
       ##Outlier options 
       output$outlier_column <- renderUI({
         conditionalPanel(
@@ -1680,12 +1672,37 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       #DATA EXPLORATION FUNCTIONS ----
       ###---
       #1. TABLE
+      explore_temp <- reactive({
+        
+         switch(input$SelectDatasetExplore,
+                       "main" = values$dataset,
+                       "port" = ptdat$dataset,
+                       "grid" = grddat$dataset,
+                       "auxiliary" = aux$dataset)
+      })
+      
+     # cell_change <- reactive(unlist(input$output_table_exploration_cell_clicked))
+      
+      observeEvent(c(input$subsetData,
+                     input$output_table_exploration_search_columns), {
+        # cell edited? 
+        if (input$SelectDatasetExplore == "main") {
+          values$dataset <- explore_temp()
+        } else if (input$SelectDatasetExplore == "port") {
+          ptdat$dataset <- explore_temp()
+        } else if (input$SelectDatasetExplore == "grid") {
+          grddat$dataset <- explore_temp()
+        } else if (input$SelectDatasetExplore == "aux") {
+          aux$dataset <- explore_temp()
+        }
+      })
+      
       output$output_table_exploration <- DT::renderDT(
-        if(colnames(values$dataset)[1] == 'var1') {
+        if(colnames(explore_temp())[1] == 'var1') {
           return(NULL)
         } else {
         if(input$plot_table=='Table') { 
-          c1 <- values$dataset
+          c1 <- explore_temp()
           colnames(c1)=gsub("_","-", colnames(c1))
           return(c1)
         } else {
@@ -1699,8 +1716,16 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       observeEvent(input$saveData,{
         # when it updates, save the search strings so they're not lost
           # update global search and column search strings
-          default_search_columns <- c("", input$output_table_exploration_search_columns)
-          default_sub <- which(default_search_columns!='')
+          #default_search_columns <- c("", input$output_table_exploration_search_columns)
+        default_search_columns <- c(input$output_table_exploration_search_columns)
+        default_sub <- which(default_search_columns!='')
+        
+        table_type <- switch(input$SelectDatasetExplore, 
+                             "main" = "MainDataTable",
+                             "port" = "PortTable",
+                             "grid" = input$GridName,
+                             "auxiliary" = input$AuxName)
+         
           if(length(default_sub)==0){
             NULL
           } else {
@@ -1711,12 +1736,12 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
             }
             for(i in 1:length(default_sub)){
               if( grepl("\\..\\.", default_search_columns[default_sub[i]])==TRUE){
-                FilterTable <- rbind(FilterTable, c(paste0(input$projectname, 'MainDataTable'), (colnames(values$dataset[default_sub])[i]), 
-                                                    paste(colnames(values$dataset[default_sub])[i], '>', as.numeric(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), head, 1)), '&', 
-                                                          colnames(values$dataset[default_sub])[i], '<', as.numeric(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), tail, 1)))))
+                FilterTable <- rbind(FilterTable, c(paste0(input$projectname, table_type), (colnames(explore_temp()[default_sub])[i]), 
+                                                    paste(colnames(explore_temp()[default_sub])[i], '>', as.numeric(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), head, 1)), '&', 
+                                                          colnames(explore_temp()[default_sub])[i], '<', as.numeric(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), tail, 1)))))
               } else {
-                FilterTable <- rbind(FilterTable, c(paste0(input$projectname, 'MainDataTable'), (colnames(values$dataset[default_sub])[i]), 
-                                                    paste0("grepl('", default_search_columns[default_sub[i]],"', ", colnames(values$dataset[default_sub])[i],")")))
+                FilterTable <- rbind(FilterTable, c(paste0(input$projectname, table_type), (colnames(explore_temp()[default_sub])[i]), 
+                                                    paste0("grepl('", default_search_columns[default_sub[i]],"', ", colnames(explore_temp()[default_sub])[i],")")))
               }
             }
             
@@ -1724,10 +1749,10 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
             
             filter_data_function <- list()
             filter_data_function$functionID <- 'filter_table'
-            filter_data_function$args <- c(dat, project, x, exp)
+            filter_data_function$args <- c(paste0(input$projectname, table_type), input$projectname, FilterTable$vector[nrow(FilterTable)],  FilterTable$FilterFunction[nrow(FilterTable)])
             filter_data_function$kwargs <- list()
             filter_data_function$output <- c('')
-            filter_data_function$msg <- filterTable
+            filter_data_function$msg <- FilterTable
             log_call(filter_data_function)
             
             fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
@@ -3249,7 +3274,16 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       ###---   
       observeEvent(input$saveData, {
         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-        DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'MainDataTable'), values$dataset, overwrite=TRUE)
+        
+        if (input$SelectDatasetExplore == "main") {
+          DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'MainDataTable'), values$dataset, overwrite=TRUE)
+        } else if (input$SelectDatasetExplore == "port") {
+          DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'PortTable'), ptdat$dataset, overwrite=TRUE)
+        } else if (input$SelectDatasetExplore == "grid") {
+          DBI::dbWriteTable(fishset_db, paste0(input$projectname, input$GridName), grddat$dataset, overwrite=TRUE)
+        } else if (input$SelectDatasetExplore == "auxiliary") {
+          DBI::dbWriteTable(fishset_db, paste0(input$projectname, input$AuxName), aux$dataset, overwrite=TRUE)
+        }
         DBI::dbDisconnect(fishset_db)
         showNotification('Data saved to FishSET database', type='message', duration=10)
       })
@@ -3327,21 +3361,7 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       #                input$callTextDownloadModels,
       #                input$callTextDownloadBook),{
       #                  savedText$answers <- as.character(c(savedText$answers, case_to_print(), notes()))
-      #                  
-      #                  # updateTextInput(session, 'notesUp', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-      #                  # updateTextInput(session, 'notesExplore', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. 
-      #                  #                              Text can be inserted into report later.')
-      #                  # updateTextInput(session, 'notesAnal', "Notes", value=NULL, 
-      #                  #           placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-      #                  # updateTextInput(session, 'notesNew', "Notes", value=NULL, 
-      #                  #           placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-      #                  # updateTextInput(session, 'notesZone', "Notes", value=NULL, 
-      #                  #           placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-      #                  # updateTextInput(session, 'notesEC', "Notes", value=NULL, 
-      #                  #           placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-      #                  # updateTextInput(session, 'notesModel', "Notes", value=NULL, 
-      #                  #           placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-      #                  # updateTextInput(session, 'notesBook', "Notes", value=NULL, placeholder = 'Paste bookmarked URL here.')
+      #                 
       #                })
       
       savedText <- reactiveValues(answers = logical(0))
@@ -3361,6 +3381,26 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
                        for (n in nms) {
                          savedText$answers[[n]] <- c(savedText$answers[[n]], case_to_print[[n]])
                        }
+                       
+                       updateTextInput(session, 'notesUp', "Notes", value = "", 
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesQAQC', "Notes", value="", 
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesExplore', "Notes", value = "", 
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesAnal', "Notes", value="", 
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesNew', "Notes", value = "",
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesZone', "Notes", value = "", 
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesEC', "Notes", value = "",
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesModel', "Notes", value = "", 
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesBook', "Notes", value = "", placeholder = 'Paste bookmarked URL here.')
+                       
+                       showNotification("Note saved.", type = 'message', duration = 5)
                      })
       
       #  Stored Txt
@@ -3731,49 +3771,53 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
      
       onStop(function() {
         
-        if (sum(isolate(c(input$callTextDownload,
-                  input$callTextDownloadAnal,
-                  input$callTextDownloadExplore,
-                  fleet_note_DL(),
-                  input$callTextDownloadUp,
-                  input$callTextDownloadNew,
-                  input$callTextDownloadZone,
-                  input$callTextDownloadEC,
-                  input$callTextDownloadModels,
-                  input$callTextDownloadBook))) > 0) {
+        if (isolate(input$projectname) != "") {
         
-          notes_out <- unlist(isolate(savedText$answers))
-        
-        } else {
-         
-          notes_out <- isolate(reactiveValuesToList(case_to_print))
-          nms_out <- c("dataQuality" = "Data quality evaluation: ", 
-                       "explore" = "Data exploration: ", "analysis" = "Simple analysis: ")
-         
-          for (i in names(notes_out)) { 
-            notes_out[[i]] <- paste0(nms_out[i], "\n", paste(notes_out[[i]], collapse = "\n"))
+          if (sum(isolate(c(input$callTextDownload,
+                    input$callTextDownloadAnal,
+                    input$callTextDownloadExplore,
+                    fleet_note_DL(),
+                    input$callTextDownloadUp,
+                    input$callTextDownloadNew,
+                    input$callTextDownloadZone,
+                    input$callTextDownloadEC,
+                    input$callTextDownloadModels,
+                    input$callTextDownloadBook))) > 0) {
+  
+            notes_out <- unlist(isolate(savedText$answers))
+  
+          } else {
+  
+            notes_out <- isolate(reactiveValuesToList(case_to_print))
+            nms_out <- c("dataQuality" = "Data quality evaluation: ",
+                         "explore" = "Data exploration: ", "analysis" = "Simple analysis: ")
+  
+            for (i in names(notes_out)) {
+              notes_out[[i]] <- paste0(nms_out[i], "\n", paste(notes_out[[i]], collapse = "\n"))
+            }
+            notes_out <- unlist(notes_out)
           }
-          notes_out <- unlist(notes_out)
+  
+          filename <- paste0(locoutput(), isolate(input$projectname), "_notes_", Sys.Date(), ".txt")
+  
+          if (file.exists(filename)) {
+  
+            note_pd <- paste0(isolate(input$projectname), "_notes_", Sys.Date())
+  
+            note_int <- sum(grepl(note_pd, current_out()))
+  
+            writeLines(notes_out,
+                       con = paste0(locoutput(), isolate(input$projectname),
+                                    "_notes_", Sys.Date(), "(", (note_int + 1), ").txt"))
+  
+          } else {
+            writeLines(notes_out, con = filename)
+          }
         }
-        
-        filename <- paste0(locoutput(), isolate(input$projectname), "_notes_", Sys.Date(), ".txt")
-        
-        if (file.exists(filename)) {
-          
-          note_pd <- paste0(isolate(input$projectname), "_notes_", Sys.Date())
-          
-          note_int <- sum(grepl(note_pd, current_out()))
-          
-          writeLines(notes_out, 
-                     con = paste0(locoutput(), isolate(input$projectname), 
-                                  "_notes_", Sys.Date(), "(", (note_int + 1), ").txt"))
-          
-        } else {
-          writeLines(notes_out, con = filename)
-        }
-               
-        # map viewer 
+
+        # map viewer
         servr::daemon_stop()
+        
       }) 
        
     }
