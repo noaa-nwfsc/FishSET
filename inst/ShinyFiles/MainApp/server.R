@@ -404,14 +404,14 @@ source("map_viewer_app.R", local = TRUE)
       output$UploadTabsText <- renderUI({
         if(input$QuickStartChoices=='UploadTab'){ 
           tags$div(
-          tags$br(), tags$br(),
+			tags$br(), tags$br(),
             tags$p('To get started, you must load a primary data set and specify a project name.'),
             tags$p('Upload data (primary, port, map, gridded, auxiliary) from the FishSET database or from source.'), 
-	          tags$p('To upload from a local file location, select', tags$code('Upload new file'), 'and then browse to file location (arrow 1).', 
+	        tags$p('To upload from a local file location, select', tags$code('Upload new file'), 'and then browse to file location (arrow 1).', 
               tags$br(),
               'Fill in the project name (arrow 2).'),
-	          tags$p('To upload from the FishSET database, select', tags$code('FishSET database'), ' (arrow 1) type in project name (arrow 2), and click the',
-              tags$code('Load data'), 'button (arrow 3).'),
+	        tags$p('To upload from the FishSET database, select', tags$code('FishSET database'), ' (arrow 1) type in project name (arrow 2), 
+				and click the', tags$code('Load data'), 'button (arrow 3).'),
             tags$div(style="display: inline-block; align:center", img(src="upload.png",  height="75%", width="75%"))
           )
         }
@@ -424,33 +424,34 @@ source("map_viewer_app.R", local = TRUE)
             tags$p('View and explore the primary data.',
                 tags$br(), 'Use the', tags$code('View data or plots'), 'dropdown box to view data as a table or plot.'),
             tags$p(HTML(paste(tags$h4('Table:'), tags$h5('Edit and filter data, and remove variables from the dataset.'))),
-            tags$br(),
-            'Edit cells by double-clicking a cell'),
-         tags$br(),
-         tags$div(style="display: inline-block; align:center", img(src="Correct.png", height="75%", width="75%")),
-         tags$br(),tags$br(),
-         tags$p('Remove variables by clicking on the column, then clicking the', tags$code('Remove variable'), 'button. 
-                The edited data frame will not be saved unless the', 
-            tags$code('Save data'), 'button is clicked. Press the', tags$code('Refresh data'), 'button to restore the original, unprocessed data frame.'),
-         tags$br(), 
-         tags$div(style="display: inline-block; align:center", img(src="DeleteVar.png", height="75%", width="75%")),
-         tags$br(),tags$br(),
-         tags$p('Data can be filtered using the', tags$em('boxes'), 'below the variable name. Selected filters are saved when the', tags$code('Save data to FishSET database'), 'button is pushed.
-            Modified data is stored as the project, "MainDataTable", and the date. Raw, unmodified data can be reloaded by pressing the ', tags$code('Refresh data'), 'button.'),
-         tags$br(), 
-         tags$div(style="display: inline-block; align:center", img(src="Filter.png", height="75%", width="75%")),
-         tags$br(),tags$br(),
-         tags$p(tags$h4('Plots:'),
-          'Temporal, spatial, or x-y plots are available.'), 
-         tags$p('Zoom in on the', tags$em('Observed location'), 'spatial plot by doubl-clicking a highlighted area.',
-         tags$br(), 
-         'Click an individual point to identify the latitude and longitude of that point.'),
-         tags$br(), 
-         tags$div(style="display: inline-block; align:center", img(src="MapZoom.png", height="75%", width="75%")),
-         tags$br(),tags$br(),
-          tags$p("Make further selections on the left to display global Moran's I (a measure of spatial autocorrelation) and
-          GetisOrd (a measure of spatial clustering) statistics."
-          )
+				tags$br(),
+				'Edit cells by double-clicking a cell'),
+				tags$br(),
+			tags$div(style="display: inline-block; align:center", img(src="Correct.png", height="75%", width="75%")),
+				tags$br(),tags$br(),
+			tags$p('Remove variables by clicking on the column, then clicking the', tags$code('Remove variable'), 'button. 
+                The edited data frame will not be saved unless the', tags$code('Save data'), 
+				'button is clicked. Press the', tags$code('Refresh data'), 'button to restore the original, unprocessed data frame.'),
+				tags$br(), 
+			tags$div(style="display: inline-block; align:center", img(src="DeleteVar.png", height="75%", width="75%")),
+				tags$br(),tags$br(),
+			tags$p('Data can be filtered using the', tags$em('boxes'), 'below the variable name. Selected filters are saved when the', 
+				tags$code('Save data to FishSET database'), 'button is pushed. Modified data is stored as the project,
+				"MainDataTable", and the date. Raw, unmodified data can be reloaded by pressing the ', tags$code('Refresh data'), 'button.'),
+				tags$br(), 
+			tags$div(style="display: inline-block; align:center", img(src="Filter.png", height="75%", width="75%")),
+				tags$br(),tags$br(),
+			tags$p(tags$h4('Plots:'),
+				'Temporal, spatial, or x-y plots are available.'), 
+			tags$p('Zoom in on the', tags$em('Observed location'), 'spatial plot by doubl-clicking a highlighted area.',
+				tags$br(), 
+				'Click an individual point to identify the latitude and longitude of that point.'),
+				tags$br(), 
+			tags$div(style="display: inline-block; align:center", img(src="MapZoom.png", height="75%", width="75%")),
+				tags$br(),tags$br(),
+			tags$p("Make further selections on the left to display global Moran's I (a measure of spatial autocorrelation) and
+				GetisOrd (a measure of spatial clustering) statistics."
+				)
           )
         }
       })
@@ -459,16 +460,16 @@ source("map_viewer_app.R", local = TRUE)
         if(input$QuickStartChoices=='DQTab'){ 
           p(tags$br(), tags$br(),
             'View and correct common data quality issues such as outliers and missing values (arrow 1).',
-            tags$br(),tags$br(),
+				tags$br(),tags$br(),
             'Options to remove or correct for data quality issues are displayed before the', tags$code('R expression'), 'box (arrow 2).',
-            tags$br(), tags$br(),
+				tags$br(), tags$br(),
             tags$div(style="display: inline-block; align:center", img(src="dq.png", height="75%", width="75%")),
-            tags$br(), tags$br(),
+				tags$br(), tags$br(),
             'To save modified data, click the', tags$code('Save data to FishSET database'), 'button.', 
-            tags$br(),
+				tags$br(),
             'The modified data will be saved to the FishSET database with a title based on the project, MainDataTable, and date.',
             'Click on the', tags$code('Refresh data'), 'button to restore the data to its original, unmodified state.',
-            tags$br(),tags$br(),
+				tags$br(),tags$br(),
           'The outlier plot is interactive. Click on individual points to get values and zoom in to a highlighted area by double clicking.'
           )
         }
@@ -478,12 +479,12 @@ source("map_viewer_app.R", local = TRUE)
         if(input$QuickStartChoices=='AnalTab'){ 
           p(tags$br(), tags$br(), 
             'View correlations and simple linear regressions.', 
-            tags$br(),tags$br(),
+				tags$br(),tags$br(),
             tags$div(style="display: inline-block; align:center", img(src="Corr.png", height="75%", width="75%")),
-            tags$br(), tags$br(),
+				tags$br(), tags$br(),
             'For correlation plots/tables, variables can be removed from the', tags$code('select'), 'box by clicking on the variable and 
-            then hitting the backspace or delete button on your keyboard.',
-            tags$br(),
+				then hitting the backspace or delete button on your keyboard.',
+				tags$br(),
             'Variables can be added by clicking an empty space in the', tags$code('select'), 'box.'
             )
         }
@@ -493,17 +494,17 @@ source("map_viewer_app.R", local = TRUE)
         if(input$QuickStartChoices=='NewVarsTab'){ 
           p(tags$br(), tags$br(),
             'Modify or create new variables such as CPUE or trip mid-point.',
-            tags$br(),tags$br(),
+				tags$br(),tags$br(),
             'Generate the desired variable by clicking the', tags$code('Run function'), 'button (arrow 1). The variable can then 
-            be viewed in the displayed data table (arrow 2).', 
-            tags$br(),tags$br(),
+				be viewed in the displayed data table (arrow 2).', 
+				tags$br(),tags$br(),
             tags$div(style="display: inline-block; align:center", img(src="NewVar.png", height="75%", width="75%")),
-            tags$br(), tags$br(),
+				tags$br(), tags$br(),
             'The created variable will be available for other analyses while the app is open but will not be
-            available for future use unless the', tags$code('Save data'), 'button is pushed.',
-            tags$br(),tags$br(),
+				available for future use unless the', tags$code('Save data'), 'button is pushed.',
+				tags$br(),tags$br(),
             'Variable creation functions are grouped by type: Arithmetic and temporal, data transformations, dummy variables, nominal ID, spatial, and trip-level.',
-            tags$br(), tags$br(),
+				tags$br(), tags$br(),
             'Default variable names will be provided if the', tags$code('Name of new variable'), 'box is left empty (arrow 3).'
             )
         }
@@ -513,17 +514,17 @@ source("map_viewer_app.R", local = TRUE)
         if(input$QuickStartChoices=='ZonalTab'){ 
           p(tags$br(), tags$br(),
             'Assign observations to zones and define alternative fishing choices.',
-            tags$br(), tags$br(),
-	         'There are three steps on this tab.',
-	         tags$br(), tags$br(),
-	         tags$div(style="display: inline-block; align:center", img(src="zonal.png", height="75%", width="75%")),
-	         tags$br(), tags$br(),
-	         tags$ol(	         
+				tags$br(), tags$br(),
+	        'There are three steps on this tab.',
+				tags$br(), tags$br(),
+	        tags$div(style="display: inline-block; align:center", img(src="zonal.png", height="75%", width="75%")),
+				tags$br(), tags$br(),
+	        tags$ol(	         
 	           tags$li('(Required) Defining zones, calculate the zone or fishing centroids, and assign observations to zones.
-               FishSET defaults to geographic centroids. To use fishing centroids, select a variable in the weighted centroid box.'),
+					FishSET defaults to geographic centroids. To use fishing centroids, select a variable in the weighted centroid box.'),
 	           tags$li('Define the alternative fishing choices. These choices are used to develop the matrix of distances between alternative choices.'),
-             tags$li('(Optional) Select catch and price variable. This can be done here or in the', 
-tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
+				tags$li('(Optional) Select catch and price variable. This can be done here or in the', tags$em('Expected Catch'), 
+					'or', tags$em('Models'), 'tabs.')
 	         )
           )
         }
@@ -533,13 +534,13 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
         if(input$QuickStartChoices=='ExpectedTab'){ 
           p(tags$br(), tags$br(),
             'Calculate expectated catch or revenue for alternative choices.',
-            tags$br(),tags$br(),
+				tags$br(),tags$br(),
             'Returns an expected catch or expected revenue data frame based on selected parameters along with three null outputs:', 
-            tags$br(),
+				tags$br(),
             'expected catch/revenue based on catch of the previous two days (short-term expected catch),', 
-            tags$br(),
+				tags$br(),
             'expected catch/revenue based on catch for the previous seven days (medium-term expected catch),', 
-            tags$br(),
+				tags$br(),
             'and expected catch/revenue based on catch in the previous year (long-term expected catch).'
             )
         }
@@ -549,15 +550,15 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
         if(input$QuickStartChoices=='ModelTab'){ 
           p(tags$br(),tags$br(),
             'Define the likelihood function and model parameters before running the models and comparing output.',
-            tags$br(),tags$br(),
-          'Click', tags$code('Save model and Add new model'), 'to save model choices and define another model.',
-          tags$br(), tags$br(),
-          'Defined models are shown in a table at the bottom of the screen.', 
-          tags$br(), tags$br(),
-          'Once all models have been defined, select', tags$code('Run models'), 'to run all models.',
-          tags$br(), tags$br(),
-          'View and compare models in the', tags$code('Compare models'), 'subtab.',
-          tags$div(style="display: inline-block; align:center", img(src="CompareModels.png", height="75%", width="75%"))
+				tags$br(),tags$br(),
+			'Click', tags$code('Save model and Add new model'), 'to save model choices and define another model.',
+				tags$br(), tags$br(),
+			'Defined models are shown in a table at the bottom of the screen.', 
+				tags$br(), tags$br(),
+			'Once all models have been defined, select', tags$code('Run models'), 'to run all models.',
+				tags$br(), tags$br(),
+			'View and compare models in the', tags$code('Compare models'), 'subtab.',
+			tags$div(style="display: inline-block; align:center", img(src="CompareModels.png", height="75%", width="75%"))
           )
         }
       })
@@ -566,12 +567,12 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
         if(input$QuickStartChoices=='BookmarkTab'){ 
           p(tags$br(), tags$br(),
             'Save and reload the FishSET R Shiny application.',
-            tags$br(), tags$br(),
+				tags$br(), tags$br(),
             'To bookmark the app, click the', tags$code('bookmark'), 'button. Click', tags$em('Dismiss'), 'in the popup message.',
             tags$div(style="display: inline-block; align:center", img(src="Dismiss.png", height="75%", width="75%")),
-            tags$br(), tags$br(),tags$br(),
+				tags$br(), tags$br(),tags$br(),
             'To reload the saved state, click', tags$code('Browse'), 'and then migrate to the', tags$em('input.rds'), 'file.',
-            tags$br(), tags$br(),
+				tags$br(), tags$br(),
             tags$div(style="display: inline-block; align:center", img(src="Bookmark2.png", height="75%", width="75%"))
             )
         }
@@ -608,7 +609,8 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       output$ui.action2 <- renderUI({
         if(is.null(input$maindat)) return()
         tagList(
-          textInput('compare', label=div(style = "font-size:14px;  font-weight: 400;", 'If comparing data to previous year, enter saved table name'), 
+          textInput('compare', label=div(style = "font-size:14px;  font-weight: 400;", 
+		  'If comparing data to previous year, enter saved table name'), 
                     value='', placeholder = 'Saved table name in FishSET database'),
           checkboxInput('over_write','If file exsits, over write?', value=FALSE)
         )
@@ -697,13 +699,17 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       })
       output$ui.actionG <- renderUI({
         if(is.null(input$griddat)) return()
-        actionButton("uploadGrid", label = "Save to database", 
-                     style = "color: white; background-color: blue;", size = "extra-small")
+        tagList(
+          textInput("GridName", "Grid table name." ),
+          actionButton("uploadGrid", label = "Save to database", 
+                       style = "color: white; background-color: blue;", size = "extra-small")
+        )
       })
       
       output$ui.actionA <- renderUI({
         if(is.null(input$auxdat)) return()
         tagList(
+        textInput("AuxName", "Auxiliary table name." ),
         actionButton("uploadAux", label = "Save to database", 
                      style = "color: white; background-color: blue;", size = "extra-small"),
         actionButton("mergeAux", label = "Merge with main data", 
@@ -737,6 +743,7 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
         q_test <- quietly_test(load_maindata)
         q_test(df_data, over_write=input$over_write, project=input$projectname, compare=df_compare, y=df_y)
       })
+	  
       observeEvent(input$uploadPort, {
         df_data <- read_dat(input$portdat$datapath)
         q_test <- quietly_test(load_port)
@@ -749,14 +756,22 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
         DBI::dbDisconnect(fishset_db)
       }) 
       observeEvent(input$uploadGrid, {
+        if (input$GridName == "") {
+          showNotification("Please provide a name for the grided table.", type = "message", duration = 10)
+        } else {
         df_data <- read_dat(input$griddat$datapath)
         q_test <- quietly_test(load_grid)
-        q_test(paste0(input$projectname, 'MainDataTable'), x=df_data, over_write=TRUE, project=input$projectname)
+        q_test(paste0(input$projectname, 'MainDataTable'), grid = df_data, x = input$GridName, over_write=TRUE, project=input$projectname)
+        }
       }) 
       observeEvent(input$uploadAux, {
+        if (input$AuxName == "") {
+          showNotification("Please provide a name for the auxiliary table.", type = "message", duration = 10)
+        } else {
        df_data <- read_dat(input$auxdat$datapath)
         q_test <- quietly_test(load_aux)
-        q_test(paste0(input$projectname, 'MainDataTable'), x=df_data, over_write=TRUE, project=input$projectname)
+        q_test(paste0(input$projectname, 'MainDataTable'), aux=df_data, x = input$AuxName, over_write=TRUE, project=input$projectname)
+        }
       }) 
        
       #Merge aux with main
@@ -877,45 +892,7 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
           }
         }
       })
- 
-      observeEvent(input$uploadMain, {
-        type <- sub('.*\\.', '', input$maindat$name)
-        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-        df_data <- FishSET::read_dat(input$maindat$datapath, type)
-        df_y <- input$compare
-        df_compare <- ifelse(nchar(input$compare)>0, TRUE, FALSE)
-        q_test <- quietly_test(load_maindata)
-        q_test(df_data, over_write=input$over_write, project=input$projectname, compare=df_compare, y=df_y)
-      })
-      observeEvent(input$uploadPort, {
-        type <- sub('.*\\.', '', input$portdat$name)
-        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-        df_data <- FishSET::read_dat(input$portdat$datapath, type)
-        q_test <- quietly_test(load_port)
-        q_test(df_data, port_name=input$port_name, over_write=TRUE, project=input$projectname, compare=FALSE, y=NULL)
-      }) 
-      observeEvent(input$uploadspatial, {
-        type <- sub('.*\\.', '', input$spatialdat$name)
-        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-        df_data <- FishSET::read_dat(input$spatialdat$datapath, type)
-        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
-        DBI::dbWriteTable(fishset_db, input$spatialdat$name,  df_data, overwrite=TRUE) 
-        DBI::dbDisconnect(fishset_db)
-      }) 
-      observeEvent(input$uploadGrid, {
-        type <- sub('.*\\.', '', input$griddat$name)
-        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-        df_data <- FishSET::read_dat(input$griddat$datapath, type)
-        q_test <- quietly_test(load_grid)
-        q_test(paste0(input$projectname, 'MainDataTable'), x=df_data, over_write=TRUE, project=input$projectname)
-      }) 
-      observeEvent(input$uploadAux, {
-        type <- sub('.*\\.', '', input$auxdat$name)
-        if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
-        df_data <- FishSET::read_dat(input$auxdat$datapath, type)
-        q_test <- quietly_test(load_aux)
-        q_test(paste0(input$projectname, 'MainDataTable'), x=df_data, over_write=TRUE, project=input$projectname)
-      }) 
+
       
       ###---
       
@@ -1400,10 +1377,17 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
     
       ##Table output
       tableInputSummary <- reactive({
-        if(colnames(values$dataset)[1] == 'var1') {
+        
+        temp <- switch(input$SelectDatasetDQ, 
+                       "main" = values$dataset, 
+                       "port" = ptdat$dataset, 
+                       "grid" = grddat$dataset, 
+                       "auxiliary" = aux$dataset)
+        
+        if(colnames(temp)[1] == 'var1') {
           return(NULL)
         } else if(input$checks=='Summary table'|input$checks=='NAs') { 
-          temp <- values$dataset
+          #temp <- values$dataset
           stable <- summary_stats(temp, input$projectname) 
           nums <- unlist(lapply(temp, is.numeric))
           stable  <- apply(stable[nums], 2, function(x) gsub(".*:","", x))
@@ -1583,6 +1567,20 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       })
         
       
+      ##Check UI
+      
+      output$checks_dataset <- renderUI({
+        
+        if (input$SelectDatasetDQ == "main") {
+          
+          radioButtons("checks", "", choices = c('Summary table', 'Outliers', 'NAs', 'NaNs', 'Unique observations', 
+                                                 'Empty variables', 'Lat_Lon units'))
+        } else {
+          
+          radioButtons("checks", "", choices = c('Summary table'))
+        }
+      })
+      
       ##Outlier options 
       output$outlier_column <- renderUI({
         conditionalPanel(
@@ -1676,12 +1674,37 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       #DATA EXPLORATION FUNCTIONS ----
       ###---
       #1. TABLE
+      explore_temp <- reactive({
+        
+         switch(input$SelectDatasetExplore,
+                       "main" = values$dataset,
+                       "port" = ptdat$dataset,
+                       "grid" = grddat$dataset,
+                       "auxiliary" = aux$dataset)
+      })
+      
+     # cell_change <- reactive(unlist(input$output_table_exploration_cell_clicked))
+      
+      observeEvent(c(input$subsetData,
+                     input$output_table_exploration_search_columns), {
+        # cell edited? 
+        if (input$SelectDatasetExplore == "main") {
+          values$dataset <- explore_temp()
+        } else if (input$SelectDatasetExplore == "port") {
+          ptdat$dataset <- explore_temp()
+        } else if (input$SelectDatasetExplore == "grid") {
+          grddat$dataset <- explore_temp()
+        } else if (input$SelectDatasetExplore == "aux") {
+          aux$dataset <- explore_temp()
+        }
+      })
+      
       output$output_table_exploration <- DT::renderDT(
-        if(colnames(values$dataset)[1] == 'var1') {
+        if(colnames(explore_temp())[1] == 'var1') {
           return(NULL)
         } else {
         if(input$plot_table=='Table') { 
-          c1 <- values$dataset
+          c1 <- explore_temp()
           colnames(c1)=gsub("_","-", colnames(c1))
           return(c1)
         } else {
@@ -1695,8 +1718,16 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       observeEvent(input$saveData,{
         # when it updates, save the search strings so they're not lost
           # update global search and column search strings
-          default_search_columns <- c("", input$output_table_exploration_search_columns)
-          default_sub <- which(default_search_columns!='')
+          #default_search_columns <- c("", input$output_table_exploration_search_columns)
+        default_search_columns <- c(input$output_table_exploration_search_columns)
+        default_sub <- which(default_search_columns!='')
+        
+        table_type <- switch(input$SelectDatasetExplore, 
+                             "main" = "MainDataTable",
+                             "port" = "PortTable",
+                             "grid" = input$GridName,
+                             "auxiliary" = input$AuxName)
+         
           if(length(default_sub)==0){
             NULL
           } else {
@@ -1707,12 +1738,12 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
             }
             for(i in 1:length(default_sub)){
               if( grepl("\\..\\.", default_search_columns[default_sub[i]])==TRUE){
-                FilterTable <- rbind(FilterTable, c(paste0(input$projectname, 'MainDataTable'), (colnames(values$dataset[default_sub])[i]), 
-                                                    paste(colnames(values$dataset[default_sub])[i], '>', as.numeric(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), head, 1)), '&', 
-                                                          colnames(values$dataset[default_sub])[i], '<', as.numeric(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), tail, 1)))))
+                FilterTable <- rbind(FilterTable, c(paste0(input$projectname, table_type), (colnames(explore_temp()[default_sub])[i]), 
+                                                    paste(colnames(explore_temp()[default_sub])[i], '>', as.numeric(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), head, 1)), '&', 
+                                                          colnames(explore_temp()[default_sub])[i], '<', as.numeric(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), tail, 1)))))
               } else {
-                FilterTable <- rbind(FilterTable, c(paste0(input$projectname, 'MainDataTable'), (colnames(values$dataset[default_sub])[i]), 
-                                                    paste0("grepl('", default_search_columns[default_sub[i]],"', ", colnames(values$dataset[default_sub])[i],")")))
+                FilterTable <- rbind(FilterTable, c(paste0(input$projectname, table_type), (colnames(explore_temp()[default_sub])[i]), 
+                                                    paste0("grepl('", default_search_columns[default_sub[i]],"', ", colnames(explore_temp()[default_sub])[i],")")))
               }
             }
             
@@ -1720,7 +1751,7 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
             
             filter_data_function <- list()
             filter_data_function$functionID <- 'filter_table'
-            filter_data_function$args <- c(values$dataset, input$projectname, x, exp)
+            filter_data_function$args <- c(paste0(input$projectname, table_type), input$projectname, FilterTable$vector[nrow(FilterTable)],  FilterTable$FilterFunction[nrow(FilterTable)])
             filter_data_function$kwargs <- list()
             filter_data_function$output <- c('')
             filter_data_function$msg <- FilterTable
@@ -3245,7 +3276,16 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       ###---   
       observeEvent(input$saveData, {
         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-        DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'MainDataTable'), values$dataset, overwrite=TRUE)
+        
+        if (input$SelectDatasetExplore == "main") {
+          DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'MainDataTable'), values$dataset, overwrite=TRUE)
+        } else if (input$SelectDatasetExplore == "port") {
+          DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'PortTable'), ptdat$dataset, overwrite=TRUE)
+        } else if (input$SelectDatasetExplore == "grid") {
+          DBI::dbWriteTable(fishset_db, paste0(input$projectname, input$GridName), grddat$dataset, overwrite=TRUE)
+        } else if (input$SelectDatasetExplore == "auxiliary") {
+          DBI::dbWriteTable(fishset_db, paste0(input$projectname, input$AuxName), aux$dataset, overwrite=TRUE)
+        }
         DBI::dbDisconnect(fishset_db)
         showNotification('Data saved to FishSET database', type='message', duration=10)
       })
@@ -3323,21 +3363,7 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
       #                input$callTextDownloadModels,
       #                input$callTextDownloadBook),{
       #                  savedText$answers <- as.character(c(savedText$answers, case_to_print(), notes()))
-      #                  
-      #                  # updateTextInput(session, 'notesUp', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-      #                  # updateTextInput(session, 'notesExplore', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. 
-      #                  #                              Text can be inserted into report later.')
-      #                  # updateTextInput(session, 'notesAnal', "Notes", value=NULL, 
-      #                  #           placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-      #                  # updateTextInput(session, 'notesNew', "Notes", value=NULL, 
-      #                  #           placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-      #                  # updateTextInput(session, 'notesZone', "Notes", value=NULL, 
-      #                  #           placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-      #                  # updateTextInput(session, 'notesEC', "Notes", value=NULL, 
-      #                  #           placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-      #                  # updateTextInput(session, 'notesModel', "Notes", value=NULL, 
-      #                  #           placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-      #                  # updateTextInput(session, 'notesBook', "Notes", value=NULL, placeholder = 'Paste bookmarked URL here.')
+      #                 
       #                })
       
       savedText <- reactiveValues(answers = logical(0))
@@ -3357,6 +3383,26 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
                        for (n in nms) {
                          savedText$answers[[n]] <- c(savedText$answers[[n]], case_to_print[[n]])
                        }
+                       
+                       updateTextInput(session, 'notesUp', "Notes", value = "", 
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesQAQC', "Notes", value="", 
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesExplore', "Notes", value = "", 
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesAnal', "Notes", value="", 
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesNew', "Notes", value = "",
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesZone', "Notes", value = "", 
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesEC', "Notes", value = "",
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesModel', "Notes", value = "", 
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesBook', "Notes", value = "", placeholder = 'Paste bookmarked URL here.')
+                       
+                       showNotification("Note saved.", type = 'message', duration = 5)
                      })
       
       #  Stored Txt
@@ -3727,49 +3773,53 @@ tags$em('Expected Catch'), 'or', tags$em('Models'), 'tabs.')
      
       onStop(function() {
         
-        if (sum(isolate(c(input$callTextDownload,
-                  input$callTextDownloadAnal,
-                  input$callTextDownloadExplore,
-                  fleet_note_DL(),
-                  input$callTextDownloadUp,
-                  input$callTextDownloadNew,
-                  input$callTextDownloadZone,
-                  input$callTextDownloadEC,
-                  input$callTextDownloadModels,
-                  input$callTextDownloadBook))) > 0) {
+        if (isolate(input$projectname) != "") {
         
-          notes_out <- unlist(isolate(savedText$answers))
-        
-        } else {
-         
-          notes_out <- isolate(reactiveValuesToList(case_to_print))
-          nms_out <- c("dataQuality" = "Data quality evaluation: ", 
-                       "explore" = "Data exploration: ", "analysis" = "Simple analysis: ")
-         
-          for (i in names(notes_out)) { 
-            notes_out[[i]] <- paste0(nms_out[i], "\n", paste(notes_out[[i]], collapse = "\n"))
+          if (sum(isolate(c(input$callTextDownload,
+                    input$callTextDownloadAnal,
+                    input$callTextDownloadExplore,
+                    fleet_note_DL(),
+                    input$callTextDownloadUp,
+                    input$callTextDownloadNew,
+                    input$callTextDownloadZone,
+                    input$callTextDownloadEC,
+                    input$callTextDownloadModels,
+                    input$callTextDownloadBook))) > 0) {
+  
+            notes_out <- unlist(isolate(savedText$answers))
+  
+          } else {
+  
+            notes_out <- isolate(reactiveValuesToList(case_to_print))
+            nms_out <- c("dataQuality" = "Data quality evaluation: ",
+                         "explore" = "Data exploration: ", "analysis" = "Simple analysis: ")
+  
+            for (i in names(notes_out)) {
+              notes_out[[i]] <- paste0(nms_out[i], "\n", paste(notes_out[[i]], collapse = "\n"))
+            }
+            notes_out <- unlist(notes_out)
           }
-          notes_out <- unlist(notes_out)
+  
+          filename <- paste0(locoutput(), isolate(input$projectname), "_notes_", Sys.Date(), ".txt")
+  
+          if (file.exists(filename)) {
+  
+            note_pd <- paste0(isolate(input$projectname), "_notes_", Sys.Date())
+  
+            note_int <- sum(grepl(note_pd, current_out()))
+  
+            writeLines(notes_out,
+                       con = paste0(locoutput(), isolate(input$projectname),
+                                    "_notes_", Sys.Date(), "(", (note_int + 1), ").txt"))
+  
+          } else {
+            writeLines(notes_out, con = filename)
+          }
         }
-        
-        filename <- paste0(locoutput(), isolate(input$projectname), "_notes_", Sys.Date(), ".txt")
-        
-        if (file.exists(filename)) {
-          
-          note_pd <- paste0(isolate(input$projectname), "_notes_", Sys.Date())
-          
-          note_int <- sum(grepl(note_pd, current_out()))
-          
-          writeLines(notes_out, 
-                     con = paste0(locoutput(), isolate(input$projectname), 
-                                  "_notes_", Sys.Date(), "(", (note_int + 1), ").txt"))
-          
-        } else {
-          writeLines(notes_out, con = filename)
-        }
-               
-        # map viewer 
+
+        # map viewer
         servr::daemon_stop()
+        
       }) 
        
     }
