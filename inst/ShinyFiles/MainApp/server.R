@@ -902,7 +902,7 @@ source("map_viewer_app.R", local = TRUE)
         
         if (input$SelectDatasetDQ == "main") {
           
-          radioButtons("checks", "", choices = c('Summary table', 'Outliers', 'NAs', 'NaNs', 'Unique observations', 
+          radioButtons("checks", "", choices = c('Change variable class', 'Summary table', 'Outliers', 'NAs', 'NaNs', 'Unique observations', 
                                                  'Empty variables', 'Lat_Lon units'))
         } else {
           
@@ -910,33 +910,6 @@ source("map_viewer_app.R", local = TRUE)
         }
       })
 
-      output$LatLonDir <- renderUI ({
-        tagList(
-        conditionalPanel(condition="input.checks=='Lat_Lon units'",
-                         selectizeInput('LatDirection','Latitudinal variable', 
-                                        choices=c('None', colnames(values$dataset[,grep('lat', names(values$dataset), ignore.case=TRUE)])),
-                                        options = list(create = TRUE, placeholder='Select or type variable name'))),
-        conditionalPanel(condition="input.checks=='Lat_Lon units'",
-                         selectizeInput('LonDirection','Longitudinal variable', 
-                                        choices=c('None', colnames(values$dataset[,grep('lon', names(values$dataset), ignore.case=TRUE)])),
-                                        options = list(create = TRUE, placeholder='Select or type variable name')))
-        )
-      })
-      
-      output$output_table_latlon <- DT::renderDT(
-        if(colnames(values$dataset)[1] == 'var1') {
-          return(NULL)
-        } else if(input$checks=='Lat_Lon units'){
-          table <- head(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=TRUE)])
-        } else {
-          NULL
-        }, server = TRUE, selection = list(target = 'column'), rownames=FALSE,
-        options = list(autoWidth=FALSE, scrollX=T,  responsive=TRUE, pageLength = 7)
-      )
-            
-      ##Check UI
-      
-      
       ##Outlier options 
       output$outlier_column <- renderUI({
         conditionalPanel(
@@ -970,6 +943,33 @@ source("map_viewer_app.R", local = TRUE)
           NULL
         }
       })
+      
+      #Lat/Lon
+      output$LatLonDir <- renderUI ({
+        tagList(
+        conditionalPanel(condition="input.checks=='Lat_Lon units'",
+                         selectizeInput('LatDirection','Latitudinal variable', 
+                                        choices=c('None', colnames(values$dataset[,grep('lat', names(values$dataset), ignore.case=TRUE)])),
+                                        options = list(create = TRUE, placeholder='Select or type variable name'))),
+        conditionalPanel(condition="input.checks=='Lat_Lon units'",
+                         selectizeInput('LonDirection','Longitudinal variable', 
+                                        choices=c('None', colnames(values$dataset[,grep('lon', names(values$dataset), ignore.case=TRUE)])),
+                                        options = list(create = TRUE, placeholder='Select or type variable name')))
+        )
+      })
+      
+      output$output_table_latlon <- DT::renderDT(
+        if(colnames(values$dataset)[1] == 'var1') {
+          return(NULL)
+        } else if(input$checks=='Lat_Lon units'){
+          table <- head(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=TRUE)])
+        } else {
+          NULL
+        }, server = TRUE, selection = list(target = 'column'), rownames=FALSE,
+        options = list(autoWidth=FALSE, scrollX=T,  responsive=TRUE, pageLength = 7)
+      )
+            
+      ##Check UI
       
       ##Output to main panel
       output$Case<-renderPrint({
@@ -1135,7 +1135,7 @@ source("map_viewer_app.R", local = TRUE)
       #     } 
       #   }
       #   })
-      
+      #----
       case_to_print <- reactiveValues(dataQuality = logical(0),
                                       explore = logical(0),
                                       analysis = logical(0))
@@ -1188,7 +1188,7 @@ source("map_viewer_app.R", local = TRUE)
                                                                                                                                                                                                                                                                 function(x) length(which(is.na(x)==TRUE))), collapse=", ")), "missing values. Missing values were replaced with the mean values of", RM, "respectively.\n"))
                   }
                 } }
-          } else if(input$checks=='NaNs') {
+          } else if(input$checks=='NaNs') { 
             if(any(apply(values$dataset, 2, function(x) any(is.nan(x))))==TRUE) {
               if(input$NAN_Filter_all==0&input$NAN_Filter_mean==0){
                 case_to_print$dataQuality <- c(case_to_print$dataQuality, paste("Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")),
@@ -1262,7 +1262,7 @@ source("map_viewer_app.R", local = TRUE)
             case_to_print$analysis <- c(case_to_print$analysis, paste0('Viewed plot and linear regression test output for ',input$reg_exp_select, ' on ', input$reg_resp_select,'.\n')) 
           } 
         }
-      }, ignoreInit = TRUE)
+      })
       
 # Notes ===
       # notes <- reactive({ 
@@ -1408,7 +1408,7 @@ source("map_viewer_app.R", local = TRUE)
             notes$book <- c(notes$book, paste0(input$notesBook, '\n'))
           }
         }
-      }, ignoreInit = TRUE)
+      })
     
       ##Table output
       tableInputSummary <- reactive({
@@ -3299,53 +3299,55 @@ source("map_viewer_app.R", local = TRUE)
         
       })
       
-      # output$SaveButtons <- renderUI({
-      #   tagList(
-      #     #shinySaveButton(id = 'downloadplot', label ='Save plot to folder', title = "", filename = paste0(project,'_', input$checks, '_plot'), filetype = "png"),
-      #     actionButton('downloadplot', label ='Save plot to folder'),
-      #     downloadLink('downloadplotHIDE', label=''),
-      #     actionButton('downloaddata', label ='Save table to folder as csv'),
-      #   )
-      # })
+      output$SaveButtons <- renderUI({
+        tagList(
+          #shinySaveButton(id = 'downloadplot', label ='Save plot to folder', title = "", filename = paste0(project,'_', input$checks, '_plot'), filetype = "png"),
+          actionButton('downloadplot', label ='Save plot to folder'),
+          downloadLink('downloadplotHIDE', label=''),
+          actionButton('downloaddata', label ='Save table to folder as csv'),
+         # downloadLink("downloadText", label=''),
+          actionButton('callTextDownload','Save notes')
+        )
+      })
       
-      # output$SaveButtonsUpload <- renderUI({
-      #   tagList(
-      #   #  downloadLink("downloadTextUp", label=''),
-      #     actionButton('callTextDownloadUp','Save notes')
-      #   )
-      # })
+      output$SaveButtonsUpload <- renderUI({
+        tagList(
+        #  downloadLink("downloadTextUp", label=''),
+          actionButton('callTextDownloadUp','Save notes')
+        )
+      })
       
       ## Save buttons
-      # output$SaveButtonsExplore <- renderUI({
-      #   tagList(
-      #     downloadLink('downloadplotEXPLOREHIDE', label=''),
-      #     actionButton('downloadplotExplore', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
-      #     downloadLink('downloadTableEXPLOREHIDE', label=''),
-      #     conditionalPanel(condition = "input.plot_type=='Spatial'",
-      #     actionButton('downloadTableExplore', label ='Save table to folder as csv')),
-      #   #  downloadLink("downloadTextExplore", label='')
-      #   )
-      # })
+      output$SaveButtonsExplore <- renderUI({
+        tagList(
+          downloadLink('downloadplotEXPLOREHIDE', label=''),
+          actionButton('downloadplotExplore', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
+          downloadLink('downloadTableEXPLOREHIDE', label=''),
+          conditionalPanel(condition = "input.plot_type=='Spatial'",
+          actionButton('downloadTableExplore', label ='Save table to folder as csv')),
+        #  downloadLink("downloadTextExplore", label='')
+        )
+      })
       
-      # output$SaveButtonsAnal <- renderUI({
-      #   tagList(
-      #     downloadLink('downloadplotAnalHIDE', label =''),
-      #     downloadLink('downloaddataAnalHIDE', label =''),
-      #     actionButton('downloadplotAnal', label ='Save plot to folder'),#, title = "", filename = paste0(project,'_', input$corr_reg, '_plot'), filetype = "png"),
-      #     actionButton('downloaddataAnal', label ='Save table to folder as csv'),
-      #   #  downloadLink("downloadTextAnal", label=''),
-      #     actionButton('callTextDownloadAnal','Save notes')
-      #   )
-      # })
+      output$SaveButtonsAnal <- renderUI({
+        tagList(
+          downloadLink('downloadplotAnalHIDE', label =''),
+          downloadLink('downloaddataAnalHIDE', label =''),
+          actionButton('downloadplotAnal', label ='Save plot to folder'),#, title = "", filename = paste0(project,'_', input$corr_reg, '_plot'), filetype = "png"),
+          actionButton('downloaddataAnal', label ='Save table to folder as csv'),
+        #  downloadLink("downloadTextAnal", label=''),
+          actionButton('callTextDownloadAnal','Save notes')
+        )
+      })
       
-      # output$SaveButtonsNew <- renderUI({
-      #   tagList(
-      #     downloadLink('downloadplotNew', label=''),
-      #     actionButton('downloadplotNew', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
-      #   #  downloadLink("downloadTextNew", label=''),
-      #     actionButton('callTextDownloadNew','Save notes')
-      #   )
-      # })
+      output$SaveButtonsNew <- renderUI({
+        tagList(
+          downloadLink('downloadplotNew', label=''),
+          actionButton('downloadplotNew', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
+        #  downloadLink("downloadTextNew", label=''),
+          actionButton('callTextDownloadNew','Save notes')
+        )
+      })
       
       
       
@@ -3402,7 +3404,7 @@ source("map_viewer_app.R", local = TRUE)
                        updateTextInput(session, 'notesBook', "Notes", value = "", placeholder = 'Paste bookmarked URL here.')
                        
                        showNotification("Note saved.", type = 'message', duration = 5)
-                     }, ignoreInit = TRUE)
+                     })
       
       #  Stored Txt
       # observeEvent(input$callTextDownloadUp, {
