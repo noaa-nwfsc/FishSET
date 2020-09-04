@@ -902,14 +902,87 @@ source("map_viewer_app.R", local = TRUE)
         
         if (input$SelectDatasetDQ == "main") {
           
-          radioButtons("checks", "", choices = c('Change variable class', 'Summary table', 'Outliers', 'NAs', 'NaNs', 'Unique observations', 
+          radioButtons("checks", "", choices = c('Variable class', 'Summary table', 'Outliers', 'NAs', 'NaNs', 'Unique observations', 
                                                  'Empty variables', 'Lat_Lon units'))
         } else {
           
-          radioButtons("checks", "", choices = c('Summary table'))
+          radioButtons("checks", "", choices = c('Variable class'))
         }
       })
 
+      #change variable class
+      m <- reactive({
+        if(colnames(values$dataset)[1] == 'var1') {
+          return(NULL)
+        } else if(input$checks=='Variable class'){
+          int = t(t(sapply(values$dataset, class)))
+          df = matrix(
+            as.character(1:7), nrow = nrow(int), ncol = 7, byrow = TRUE,
+            dimnames = list(rownames(int), c('class', 'first value', 'no changes', 'numeric', 'character', 'factor', 'date'))
+          )
+          for(i in seq_len(nrow(df))) {
+            for(j in seq_len(ncol(df))) {
+              df[i, j] = sprintf(
+                '<input type="radio" name="%s" value="%s" %s/>',
+                rownames(int)[i], df[i, j], ifelse(j==3, 'checked="checked"', "")
+              )
+            }
+          }
+          df[,1] = int  
+          df[,2] = t(values$dataset[1,])
+          return(df)
+        } else {
+          NULL
+        }
+      })
+        
+      changecode <- reactive({
+        if(input$checks=='Variable class'){
+          g <- c('class', 'first value', 'no changes', 'numeric', 'character', 'factor', 'date')
+          g <- g[as.numeric(as.vector(sapply(names(values$dataset), function(i) input[[i]])))]
+        } else {
+          NULL
+        }
+      })   
+      
+      output$changetable <- DT::renderDataTable(
+        if(colnames(values$dataset)[1] == 'var1') {
+          return(NULL)
+        } else if(input$checks=='Variable class'){
+          m()
+          } else {
+            NULL
+          },
+        escape = FALSE, selection = 'single', server = FALSE,
+        options = list(dom = 't', paging = FALSE, ordering = FALSE),
+        callback = JS("table.rows().every(function(i, tab, row) {
+          var $this = $(this.node());
+          $this.attr('id', this.data()[0]);
+          $this.addClass('shiny-input-radiogroup');
+        });
+        Shiny.unbindAll(table.table().node());
+        Shiny.bindAll(table.table().node());")
+      )
+      
+      changecode <- reactive({
+        if(colnames(values$dataset)[1] == 'var1') {
+          return(NULL)
+        } else if(input$checks=='Variable class'){
+          g <- c('class', 'first value', 'no changes', 'numeric', 'character', 'factor', 'date')
+          g <- g[as.numeric(as.vector(sapply(names(values$dataset), function(i) input[[i]])))]
+        } else {
+          NULL
+        } 
+      })     
+      
+      observeEvent(input$rchclass, {
+        xn <- which(changecode()!="no changes")
+        x <- colnames(values$dataset)[xn]
+        newclass <- changecode()[xn]
+        changeclass(values$dataset, project=input$projectname, x=x, newclass=newclass, savedat=FALSE)
+      })
+      
+      
       ##Outlier options 
       output$outlier_column <- renderUI({
         conditionalPanel(
