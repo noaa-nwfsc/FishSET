@@ -898,6 +898,17 @@ source("map_viewer_app.R", local = TRUE)
       
       #DATA QUALITY FUNCTIONS ----
       ###---     
+      output$checks_dataset <- renderUI({
+        
+        if (input$SelectDatasetDQ == "main") {
+          
+          radioButtons("checks", "", choices = c('Summary table', 'Outliers', 'NAs', 'NaNs', 'Unique observations', 
+                                                 'Empty variables', 'Lat_Lon units'))
+        } else {
+          
+          radioButtons("checks", "", choices = c('Summary table'))
+        }
+      })
 
       output$LatLonDir <- renderUI ({
         tagList(
@@ -922,6 +933,30 @@ source("map_viewer_app.R", local = TRUE)
         }, server = TRUE, selection = list(target = 'column'), rownames=FALSE,
         options = list(autoWidth=FALSE, scrollX=T,  responsive=TRUE, pageLength = 7)
       )
+            
+      ##Check UI
+      
+      
+      ##Outlier options 
+      output$outlier_column <- renderUI({
+        conditionalPanel(
+          condition="input.checks=='Outliers'",
+          selectInput('column_check', 'Choose variable',
+                      choices= names(values$dataset[1,unlist(lapply(values$dataset, is.numeric))]), selectize=TRUE))
+      })
+      output$outlier_subset <- renderUI({
+        conditionalPanel(
+          condition="input.checks=='Outliers'",
+          selectInput('dat.remove', 'Method to subset the data', 
+                      choices=c('none', '5_95_quant', '25_75_quant','mean_2SD','mean_3SD','median_2SD','median_3SD'),
+                      selected=c('none', '5_95_quant', '25_75_quant','mean_2SD','mean_3SD','median_2SD','median_3SD')[input$output_table_outlier_rows_selected]))
+      })
+      output$outlier_dist <- renderUI({
+        conditionalPanel(
+          condition="input.checks=='Outliers'",
+          selectInput('x_dist', 'Distribution', 
+                      choices=c('normal', 'lognormal', 'exponential', 'weibull', 'poisson', 'negative binomial'), selected='normal'))
+      })
       
       tableInputOutlier <- reactive({
         if(colnames(values$dataset)[1] == 'var1') {
@@ -1229,7 +1264,7 @@ source("map_viewer_app.R", local = TRUE)
         }
       })
       
-# Notes ====
+# Notes ===
       # notes <- reactive({ 
       #   if(input$tabs=='qaqc'){
       #     if(!is.null(input$notesQAQC)){
@@ -1566,41 +1601,7 @@ source("map_viewer_app.R", local = TRUE)
         }
       })
         
-      
-      ##Check UI
-      
-      output$checks_dataset <- renderUI({
-        
-        if (input$SelectDatasetDQ == "main") {
-          
-          radioButtons("checks", "", choices = c('Summary table', 'Outliers', 'NAs', 'NaNs', 'Unique observations', 
-                                                 'Empty variables', 'Lat_Lon units'))
-        } else {
-          
-          radioButtons("checks", "", choices = c('Summary table'))
-        }
-      })
-      
-      ##Outlier options 
-      output$outlier_column <- renderUI({
-        conditionalPanel(
-          condition="input.checks=='Outliers'",
-          selectInput('column_check', 'Choose variable',
-                      choices= names(values$dataset[1,unlist(lapply(values$dataset, is.numeric))]), selectize=TRUE))
-      })
-      output$outlier_subset <- renderUI({
-        conditionalPanel(
-          condition="input.checks=='Outliers'",
-          selectInput('dat.remove', 'Method to subset the data', 
-                      choices=c('none', '5_95_quant', '25_75_quant','mean_2SD','mean_3SD','median_2SD','median_3SD'),
-                      selected=c('none', '5_95_quant', '25_75_quant','mean_2SD','mean_3SD','median_2SD','median_3SD')[input$output_table_outlier_rows_selected]))
-      })
-      output$outlier_dist <- renderUI({
-        conditionalPanel(
-          condition="input.checks=='Outliers'",
-          selectInput('x_dist', 'Distribution', 
-                      choices=c('normal', 'lognormal', 'exponential', 'weibull', 'poisson', 'negative binomial'), selected='normal'))
-      })
+
       
       ##Filtering options
       #output_table())
