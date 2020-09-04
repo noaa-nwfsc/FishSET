@@ -1227,7 +1227,7 @@ source("map_viewer_app.R", local = TRUE)
             case_to_print$analysis <- c(case_to_print$analysis, paste0('Viewed plot and linear regression test output for ',input$reg_exp_select, ' on ', input$reg_resp_select,'.\n')) 
           } 
         }
-      })
+      }, ignoreInit = TRUE)
       
 # Notes ====
       # notes <- reactive({ 
@@ -1373,7 +1373,7 @@ source("map_viewer_app.R", local = TRUE)
             notes$book <- c(notes$book, paste0(input$notesBook, '\n'))
           }
         }
-      })
+      }, ignoreInit = TRUE)
     
       ##Table output
       tableInputSummary <- reactive({
@@ -3298,55 +3298,53 @@ source("map_viewer_app.R", local = TRUE)
         
       })
       
-      output$SaveButtons <- renderUI({
-        tagList(
-          #shinySaveButton(id = 'downloadplot', label ='Save plot to folder', title = "", filename = paste0(project,'_', input$checks, '_plot'), filetype = "png"),
-          actionButton('downloadplot', label ='Save plot to folder'),
-          downloadLink('downloadplotHIDE', label=''),
-          actionButton('downloaddata', label ='Save table to folder as csv'),
-         # downloadLink("downloadText", label=''),
-          actionButton('callTextDownload','Save notes')
-        )
-      })
+      # output$SaveButtons <- renderUI({
+      #   tagList(
+      #     #shinySaveButton(id = 'downloadplot', label ='Save plot to folder', title = "", filename = paste0(project,'_', input$checks, '_plot'), filetype = "png"),
+      #     actionButton('downloadplot', label ='Save plot to folder'),
+      #     downloadLink('downloadplotHIDE', label=''),
+      #     actionButton('downloaddata', label ='Save table to folder as csv'),
+      #   )
+      # })
       
-      output$SaveButtonsUpload <- renderUI({
-        tagList(
-        #  downloadLink("downloadTextUp", label=''),
-          actionButton('callTextDownloadUp','Save notes')
-        )
-      })
+      # output$SaveButtonsUpload <- renderUI({
+      #   tagList(
+      #   #  downloadLink("downloadTextUp", label=''),
+      #     actionButton('callTextDownloadUp','Save notes')
+      #   )
+      # })
       
       ## Save buttons
-      output$SaveButtonsExplore <- renderUI({
-        tagList(
-          downloadLink('downloadplotEXPLOREHIDE', label=''),
-          actionButton('downloadplotExplore', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
-          downloadLink('downloadTableEXPLOREHIDE', label=''),
-          conditionalPanel(condition = "input.plot_type=='Spatial'",
-          actionButton('downloadTableExplore', label ='Save table to folder as csv')),
-        #  downloadLink("downloadTextExplore", label='')
-        )
-      })
+      # output$SaveButtonsExplore <- renderUI({
+      #   tagList(
+      #     downloadLink('downloadplotEXPLOREHIDE', label=''),
+      #     actionButton('downloadplotExplore', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
+      #     downloadLink('downloadTableEXPLOREHIDE', label=''),
+      #     conditionalPanel(condition = "input.plot_type=='Spatial'",
+      #     actionButton('downloadTableExplore', label ='Save table to folder as csv')),
+      #   #  downloadLink("downloadTextExplore", label='')
+      #   )
+      # })
       
-      output$SaveButtonsAnal <- renderUI({
-        tagList(
-          downloadLink('downloadplotAnalHIDE', label =''),
-          downloadLink('downloaddataAnalHIDE', label =''),
-          actionButton('downloadplotAnal', label ='Save plot to folder'),#, title = "", filename = paste0(project,'_', input$corr_reg, '_plot'), filetype = "png"),
-          actionButton('downloaddataAnal', label ='Save table to folder as csv'),
-        #  downloadLink("downloadTextAnal", label=''),
-          actionButton('callTextDownloadAnal','Save notes')
-        )
-      })
+      # output$SaveButtonsAnal <- renderUI({
+      #   tagList(
+      #     downloadLink('downloadplotAnalHIDE', label =''),
+      #     downloadLink('downloaddataAnalHIDE', label =''),
+      #     actionButton('downloadplotAnal', label ='Save plot to folder'),#, title = "", filename = paste0(project,'_', input$corr_reg, '_plot'), filetype = "png"),
+      #     actionButton('downloaddataAnal', label ='Save table to folder as csv'),
+      #   #  downloadLink("downloadTextAnal", label=''),
+      #     actionButton('callTextDownloadAnal','Save notes')
+      #   )
+      # })
       
-      output$SaveButtonsNew <- renderUI({
-        tagList(
-          downloadLink('downloadplotNew', label=''),
-          actionButton('downloadplotNew', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
-        #  downloadLink("downloadTextNew", label=''),
-          actionButton('callTextDownloadNew','Save notes')
-        )
-      })
+      # output$SaveButtonsNew <- renderUI({
+      #   tagList(
+      #     downloadLink('downloadplotNew', label=''),
+      #     actionButton('downloadplotNew', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
+      #   #  downloadLink("downloadTextNew", label=''),
+      #     actionButton('callTextDownloadNew','Save notes')
+      #   )
+      # })
       
       
       
@@ -3403,7 +3401,7 @@ source("map_viewer_app.R", local = TRUE)
                        updateTextInput(session, 'notesBook', "Notes", value = "", placeholder = 'Paste bookmarked URL here.')
                        
                        showNotification("Note saved.", type = 'message', duration = 5)
-                     })
+                     }, ignoreInit = TRUE)
       
       #  Stored Txt
       # observeEvent(input$callTextDownloadUp, {

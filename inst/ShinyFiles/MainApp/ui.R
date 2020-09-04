@@ -185,7 +185,9 @@ source("map_viewer_app.R", local = TRUE)
                                uiOutput('aux_upload')
                              ), 
                              uiOutput('mergeUI'),
-                             uiOutput("SaveButtonsUpload"),
+                             #uiOutput("SaveButtonsUpload"),
+                             #  downloadLink("downloadTextUp", label=''),
+                             actionButton('callTextDownloadUp','Save notes'),
                              textInput('notesUp', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
                            )),
                   #-----
@@ -195,7 +197,12 @@ source("map_viewer_app.R", local = TRUE)
                            sidebarLayout(
                              sidebarPanel(width=3,
                                           tags$br(),tags$br(),
-                                          uiOutput('SaveButtons'),
+                                          #uiOutput('SaveButtons'),
+                                          #shinySaveButton(id = 'downloadplot', label ='Save plot to folder', title = "", filename = paste0(project,'_', input$checks, '_plot'), filetype = "png"),
+                                          actionButton('downloadplot', label ='Save plot to folder'),
+                                          downloadLink('downloadplotHIDE', label=''),
+                                          actionButton('downloaddata', label ='Save table to folder as csv'),
+                                          actionButton('callTextDownload','Save notes'),
                                           actionButton('saveDataQ','Save data to fishset_db database'),
                                           tags$br(),
                                           tags$button(
@@ -310,7 +317,13 @@ source("map_viewer_app.R", local = TRUE)
                                           tags$br(),tags$br(),
                                           conditionalPanel(
                                             condition='input.plot_table=="Plots"',
-                                            uiOutput('SaveButtonsExplore')),
+                                            #uiOutput('SaveButtonsExplore')),
+                                            downloadLink('downloadplotEXPLOREHIDE', label=''),
+                                            actionButton('downloadplotExplore', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
+                                            downloadLink('downloadTableEXPLOREHIDE', label=''),
+                                            conditionalPanel(condition = "input.plot_type=='Spatial'",
+                                                             actionButton('downloadTableExplore', label ='Save table to folder as csv'))),
+                                            #  downloadLink("downloadTextExplore", label=''),
                                           conditionalPanel(
                                             condition='input.plot_table=="Table"',
                                             actionButton('subsetData', 'Remove variable from data set')
@@ -529,7 +542,13 @@ source("map_viewer_app.R", local = TRUE)
                   tabPanel("Simple Analyses", value = "analysis",
                            sidebarLayout(
                              sidebarPanel(
-                               uiOutput('SaveButtonsAnal'),
+                               #uiOutput('SaveButtonsAnal'),
+                                downloadLink('downloadplotAnalHIDE', label =''),
+                                downloadLink('downloaddataAnalHIDE', label =''),
+                                actionButton('downloadplotAnal', label ='Save plot to folder'),#, title = "", filename = paste0(project,'_', input$corr_reg, '_plot'), filetype = "png"),
+                                actionButton('downloaddataAnal', label ='Save table to folder as csv'),
+                                #  downloadLink("downloadTextAnal", label=''),
+                                actionButton('callTextDownloadAnal','Save notes'),
                                tags$button(
                                  id = 'close2',
                                  type = "button",
@@ -583,7 +602,11 @@ source("map_viewer_app.R", local = TRUE)
                   tabPanel('Compute New Variables', value='new',
                            sidebarLayout(
                              sidebarPanel(
-                               uiOutput('SaveButtonsNew'),
+                               #uiOutput('SaveButtonsNew'),
+                                downloadLink('downloadplotNew', label=''),
+                                actionButton('downloadplotNew', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
+                                #  downloadLink("downloadTextNew", label=''),
+                                actionButton('callTextDownloadNew','Save notes'),
                                actionButton('saveDataNew','Save data to fishset_db database'),
                                tags$br(),
                                tags$button(
