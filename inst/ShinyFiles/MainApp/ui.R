@@ -227,6 +227,10 @@ source("map_viewer_app.R", local = TRUE)
                                           # radioButtons("checks", "", choices = c('Summary table', 'Outliers', 'NAs', 'NaNs', 'Unique observations', 
                                           #                                        'Empty variables', 'Lat_Lon units')),
                                           uiOutput("checks_dataset"),
+                                          conditionalPanel(
+                                            condition = "input.checks == 'Variable class'",
+                                            actionButton('rchclass', 'Change variable classes')
+                                          ),
                                           uiOutput('outlier_column'),
                                           uiOutput('outlier_subset'),
                                           uiOutput('outlier_dist'),
@@ -286,6 +290,8 @@ source("map_viewer_app.R", local = TRUE)
                              mainPanel(width=9,
                                        tags$br(), tags$br(),
                                        htmlOutput("Case"),
+                                       conditionalPanel(condition = "input.checks == 'Variable class'",
+                                                        DT::dataTableOutput('changetable') ),
                                        conditionalPanel(condition="input.checks=='Summary table'",
                                                         DT::DTOutput("output_table_summary")),
                                        shinycssloaders::withSpinner(DT::DTOutput("output_table_outlier")),
