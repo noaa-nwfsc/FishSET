@@ -148,7 +148,7 @@ pull_output <- function(project, fun = NULL, date = NULL, type = "plot") {
        
       } else {
         
-        out <- grep(date, outs, value = TRUE)
+        out <- grep(date, out, value = TRUE)
         
         if (length(out) == 0) {
           cat("No", type, "output from", date, "exists for project", paste0("'", project, "'. "))
