@@ -43,11 +43,11 @@ read_dat <- function(x, data.type=NULL, ...) {
   if (data.type == 'rdata' | data.type == "r") {
     return(as.data.frame(get(load(x))))
   } else if (data.type == "mat" | data.type == 'matlab') {
-    R.matlab::readMat(x, ...)
     cat('Data returned as named list structure. Further processing is required.')
+    R.matlab::readMat(x, ...)
   } else if (data.type == "json"){
-    jsonlite::fromJSON(x, ...)
     cat('Data may require additional processing.')
+    jsonlite::fromJSON(x, ...)
   } else if (data.type == "geojson") {
     sf::st_read(x, ...)
   } else if (data.type == "csv") {
