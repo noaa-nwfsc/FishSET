@@ -221,11 +221,13 @@ source("map_viewer_app.R", local = TRUE)
                                           tags$br(), tags$br(),
                                           textInput('notesQAQC', "Notes", value=NULL,
                                                     placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
-                                          selectInput("SelectDatasetDQ", "Select a dataset", choices = c("main", "port", "auxiliary", "grid")),
+                                          conditionalPanel(condition = "input.checks == 'Summary table'",
+                                            selectInput("SelectDatasetDQ", "Select a dataset", choices = c("main", "port", "auxiliary", "grid"))
+                                          ),
                                           h4('Select data validation check functions to run'),
                                           #Checkbox input widget  
-                                          # radioButtons("checks", "", choices = c('Summary table', 'Outliers', 'NAs', 'NaNs', 'Unique observations', 
-                                          #                                        'Empty variables', 'Lat_Lon units')),
+                                           radioButtons("checks", "", choices = c('Variable class', 'Summary table', 'Outliers', 'NAs', 'NaNs', 'Unique observations', 
+                                                                                  'Empty variables', 'Lat_Lon units')),
                                           uiOutput("checks_dataset"),
                                           conditionalPanel(
                                             condition = "input.checks == 'Variable class'",
@@ -353,8 +355,9 @@ source("map_viewer_app.R", local = TRUE)
                                           tags$br(), tags$br(),
                                           textInput('notesExplore', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. 
                                                     Text can be inserted into report later.'),
-                                          selectInput("SelectDatasetExplore", "Select a dataset", 
-                                                      choices = c("main", "port", "auxiliary", "grid")),
+                                          conditionalPanel(condition = "input.plot_table == 'Table'",
+                                                           selectInput("SelectDatasetExplore", "Select a dataset", 
+                                                      choices = c("main", "port", "auxiliary", "grid"))),
                                           selectInput('plot_table', 'View data table or plots', choices=c('Table','Plots'), selected='Table'),
                                           conditionalPanel(
                                             condition="input.plot_table=='Plots'",

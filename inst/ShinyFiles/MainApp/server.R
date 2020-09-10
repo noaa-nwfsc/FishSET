@@ -3,6 +3,12 @@ source("fleetUI.R", local = TRUE)
 source("fleet_helpers.R", local = TRUE)
 source("map_viewer_app.R", local = TRUE)
 
+# default global search value
+if(!exists("default_search")) {default_search <- ""}
+
+# default column search values
+if (!exists("default_search_columns")) {default_search_columns <- NULL}
+
     ### SERVER SIDE    
     server = function(input, output, session) {
       options(shiny.maxRequestSize = 8000*1024^2)
@@ -200,46 +206,7 @@ source("map_viewer_app.R", local = TRUE)
       values <- reactiveValues(
         dataset = data.frame('var1'=0, 'var2'=0)
         )
-      
-      #Add in reactive values once data  call is is not empty
-      observeEvent(input$loadDat, {
-        if(input$projectname==''){
-          showNotification("Please enter a project name.", type='message', duration=10)
-        }
-        req(input$projectname)
-        if(input$loadmainsource=='FishSET database'){
-          if(table_exists(paste0(input$projectname, 'MainDataTable'))==FALSE){
-            showNotification('Table not found in FishSET database. Check project spelling.', type='message', duration=15)
-          } else {
-        values$dataset <- table_view(paste0(input$projectname, 'MainDataTable'))
-          }
-        } else if(input$loadmainsource=='Upload new file' & !is.null(input$maindat)){
-           values$dataset <- read_dat(input$maindat$datapath)
-           if(input$uploadMain == 0){
-             showNotification('Data not saved to database. Press the Save to Database button.', type='warning', duration=20)
-           }
-          # warning('')
-       }   else {
-          values$dataset <- values$dataset
-       }
-        if(names(values$dataset)[1]!='var1'){
-          showNotification("Data loaded.", type='message', duration=10)
-        }
-      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
-      
-      
-      observeEvent(input$uploadMain, {
-        if(input$loadmainsource=='Upload new file'){
-           values$dataset <- read_dat(input$maindat$datapath)
-        } else {
-          values$dataset <- values$dataset
-        }
-        if(names(values$dataset)[1]!='var1'){
-          showNotification("Data loaded.", type='message', duration=10)
-        }
-      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
-      
-      # refresh data
+       # refresh data
       observeEvent(c(input$refresh,input$refresh1,input$refresh2,input$refreshNew), {
         req(input$projectname)
         temp <- tables_database()[grep(paste0(input$projectname, 'MainDataTable\\d+'), tables_database())][which(
@@ -250,133 +217,7 @@ source("map_viewer_app.R", local = TRUE)
         showNotification("Data refreshed", type='message', duration=10)
       }, ignoreInit = TRUE, ignoreNULL=TRUE) 
      
-      #PORT
-      ptdat <- reactiveValues(
-        dataset = data.frame('var1'=0, 'var2'=0)
-      )
-      
-      observeEvent(input$loadDat, {
-        if(input$projectname==''){
-          showNotification("Please enter a project name.", type='message', duration=10)
-        }
-        req(input$projectname)
-        if(input$loadportsource=='FishSET database'){
-          if(table_exists(paste0(input$projectname, 'PortTable'))==FALSE){
-            showNotification('Table not found in FishSET database. Check project spelling.', type='message', duration=15)
-          } else {
-          ptdat$dataset <- table_view(paste0(input$projectname, 'PortTable'))
-          }
-        } else if(input$loadportsource=='Upload new file' & !is.null(input$portdat)){
-         ptdat$dataset <- read_dat(input$portdat$datapath)
-          }else {
-          ptdat$dataset <- ptdat$dataset
-          }
-        if(names(ptdat$dataset)[1]!='var1'){
-          showNotification("Port data loaded.", type='message', duration=10)
-        }
-      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
-      
-      observeEvent(input$uploadPort, {
-        if(input$loadportsource!='FishSET database'){
-        ptdat$dataset <- read_dat(input$portdat$datapath)
-        } else {
-          ptdat$dataset <- ptdat$dataset
-        }
-        if(names(ptdat$dataset)[1]!='var1'){
-          showNotification("Port data loaded.", type='message', duration=10)
-        }
-      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
-         
-      #SPATIAL
-      spatdat <- reactiveValues(
-        dataset = data.frame('var1'=0, 'var2'=0)
-      )
-      
-      observeEvent(input$loadDat, {
-        if(input$loadspatialsource=='FishSET database'){
-          spatdat$dataset <- table_view(input$spatialdattext)
-        } else if(input$loadspatialsource=='Upload new file' & !is.null(input$spatialdat)){
-          spatdat$dataset <- read_dat(input$spatialdat$datapath)
-          } else {
-          spatdat$dataset <- spatdat$dataset
-          }
-        if(names(spatdat$dataset)[1]!='var1'){
-          showNotification("Map file loaded.", type='message', duration=10)
-        }
-      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
-      
-       observeEvent(input$uploadspatial, {
-         if(input$loadspatialsource!='FishSET database'){
-        spatdat$dataset <- read_dat(input$spatialdat$datapath)
-       } else {
-         spatdat$dataset <- spatdat$dataset
-       }
-       if(names(spatdat$dataset)[1]!='var1'){
-           showNotification("Map file loaded.", type='message', duration=10)
-         }
-    }, ignoreInit = TRUE, ignoreNULL = TRUE) 
-      
-      #GRIDDED      
-      grddat <- reactiveValues(
-        dataset = data.frame('var1'=0, 'var2'=0)
-      )
-      
-      observeEvent(input$loadDat, {
-        req(input$griddattext)
-        if(input$loadgridsource=='FishSET database'){
-          grddat$dataset <- table_view(paste0(input$projectname, input$griddattext))
-        } else if(input$loadgridsource=='Upload new file' & !is.null(input$griddat)) {
-          grddat$dataset <- read_dat(input$griddat$datapath)
-        } else {
-          grddat$dataset <- grddat$dataset
-        }
-        if(names(grddat$dataset)[1]!='var1'){
-          showNotification("Gridded data loaded.", type='message', duration=10)
-        }
-      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
-      
-      observeEvent(input$uploadGrid, {
-        if(input$loadgridsource!='FishSET database'){
-           grddat$dataset <- read_dat(input$griddat$datapath)
-         } else {
-           grddat$dataset <- grddat$dataset
-         }
-        if(names(grddat$dataset)[1]!='var1'){
-          showNotification("Gridded data loaded.", type='message', duration=10)
-        }
-    }, ignoreInit = TRUE, ignoreNULL = TRUE) 
-         
-     
-  #Auxiliary  
-      aux <- reactiveValues(
-        dataset = data.frame('var1'=0, 'var2'=0)
-      )
-      
-      observeEvent(input$loadDat, {
-        #req(input$auxdattext)
-        if(input$loadauxsource=='FishSET database'){
-          aux$dataset <- table_view(paste0(input$projectname, input$auxdattext))
-        } else if(input$loadauxsource=='Upload new file' & !is.null(input$auxdat)){
-           aux$dataset <-read_dat(input$auxdat$datapath)
-          } else {
-          aux$dataset <- aux$dataset
-          }
-        if(names(aux$dataset)[1]!='var1'){
-          showNotification("Auxiliary data loaded.", type='message', duration=10)
-        }
-      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
-       observeEvent(input$uploadAux, {
-         if(input$loadauxsource!='FishSET database'){
-            aux$dataset <-read_dat(input$auxdat$datapath)
-         } else {
-           aux$dataset <- aux$dataset
-         }
-         if(names(aux$dataset)[1]!='var1'){
-           showNotification("Auxiliary data loaded.", type='message', duration=10)
-         }
-       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
-  
-      ##---     
+        
       
       #Landing Page ----
       ###---
@@ -588,8 +429,8 @@ source("map_viewer_app.R", local = TRUE)
                            tagList(
                              fluidRow(
                                  column(3, fileInput("maindat", "Choose primary data file",
-                                            multiple = FALSE, placeholder = 'Required data')),
-                                column(2, uiOutput('ui.action'))
+                                            multiple = FALSE, placeholder = 'Required data'))#,
+                               # column(2, uiOutput('ui.action'))
                            ))
           ),     
           conditionalPanel(condition="input.loadmainsource=='FishSET database'", 
@@ -600,11 +441,11 @@ source("map_viewer_app.R", local = TRUE)
                              )
           ))
       })
-      output$ui.action <- renderUI({
-        if(is.null(input$maindat)) return()
-        actionButton("uploadMain", label = "Save to database", 
-                     style = "color: white; background-color: blue;", size = "extra-small")
-      })
+      #output$ui.action <- renderUI({
+      #  if(is.null(input$maindat)) return()
+      #  actionButton("uploadMain", label = "Save to database", 
+      #               style = "color: white; background-color: blue;", size = "extra-small")
+      #})
  
       output$ui.action2 <- renderUI({
         if(is.null(input$maindat)) return()
@@ -615,21 +456,61 @@ source("map_viewer_app.R", local = TRUE)
           checkboxInput('over_write','If file exsits, over write?', value=FALSE)
         )
       })
- 
- #     observeEvent(input$maindat, {
- #       type <- sub('.*\\.', '', input$maindat$name)
- #       if(type == 'shp') { type <- 'shape'} else if(type == 'RData') { type <- 'R'} else { type <- type}
- #       df_data <- FishSET::read_dat(input$maindat$datapath, type)
- #     }) 
+     #Add in reactive values once data  call is is not empty
+      observeEvent(input$loadDat, {
+        if(input$projectname==''){
+          showNotification("Please enter a project name.", type='message', duration=10)
+        }
+        req(input$projectname)
+        if(input$loadmainsource=='FishSET database'){
+          if(table_exists(paste0(input$projectname, 'MainDataTable'))==FALSE){
+            showNotification('Primary data table not found in FishSET database. Check project spelling.', type='message', duration=15)
+          } else {
+        values$dataset <- table_view(paste0(input$projectname, 'MainDataTable'))
+          }
+        } else if(input$loadmainsource=='Upload new file' & !is.null(input$maindat)){
+           values$dataset <- read_dat(input$maindat$datapath)
+           df_y <- input$compare
+          df_compare <- ifelse(nchar(input$compare)>0, TRUE, FALSE)
+          q_test <- quietly_test(load_maindata)
+          q_test(values$dataset, over_write=input$over_write, project=input$projectname, compare=df_compare, y=df_y)
+
+#           if(input$uploadMain == 0){
+#             showNotification('Data not saved to database. Press the Save to Database button.', type='warning', duration=20)
+#           }
+          # warning('')
+       }   else {
+          values$dataset <- values$dataset
+       }
+        if(names(values$dataset)[1]!='var1'){
+          showNotification("Primary data loaded.", type='message', duration=10)
+        }
+      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
+#      observeEvent(input$uploadMain, {
+#        if(input$loadmainsource=='Upload new file'){
+#           values$dataset <- read_dat(input$maindat$datapath)
+#        } else {
+#          values$dataset <- values$dataset
+#        }
+#        if(names(values$dataset)[1]!='var1'){
+#          showNotification("Data loaded.", type='message', duration=10)
+#        }
+#      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
+      
+#      observeEvent(input$uploadMain, {
+#        df_data <- read_dat(input$maindat$datapath)
+#      })
+
+     #PORT
       output$port_upload <- renderUI({     
         tagList( 
           conditionalPanel(condition="input.loadportsource=='Upload new file'", 
                            tagList(
                              fluidRow(
                                column(3, fileInput("portdat", "Choose port data file",
-                                                   multiple = FALSE, placeholder = 'Required data')),
-                               column(1, uiOutput('ui.actionP'))
+                                                   multiple = FALSE, placeholder = 'Required data'))#,
+                               #column(1, uiOutput('ui.actionP'))
                              ))
           ),
           conditionalPanel(condition="input.loadportsource!='Upload new file'", 
@@ -639,11 +520,11 @@ source("map_viewer_app.R", local = TRUE)
                              ))
           ))
       })
-      output$ui.actionP <- renderUI({
-        if(is.null(input$portdat)) return()
-        actionButton("uploadPort", label = "Save to database", 
-                     style = "color: white; background-color: blue;", size = "extra-small")
-      })
+      #output$ui.actionP <- renderUI({
+      #  if(is.null(input$portdat)) return()
+       # actionButton("uploadPort", label = "Save to database", 
+      #               style = "color: white; background-color: blue;", size = "extra-small")
+      #})
       output$ui.actionP2 <- renderUI({
         if(is.null(input$portdat)) return()
         tagList(
@@ -657,6 +538,36 @@ source("map_viewer_app.R", local = TRUE)
         )
       })
 
+      ptdat <- reactiveValues(
+        dataset = data.frame('var1'=0, 'var2'=0)
+      )
+      
+      observeEvent(input$loadDat, {
+        if(input$projectname==''){
+          showNotification("Please enter a project name.", type='message', duration=10)
+        }
+        req(input$projectname)
+        if(input$loadportsource=='FishSET database'){
+          if(table_exists(paste0(input$projectname, 'PortTable'))==FALSE){
+            showNotification('Table not found in FishSET database. Check project spelling.', type='message', duration=15)
+          } else {
+          ptdat$dataset <- table_view(paste0(input$projectname, 'PortTable'))
+          }
+        } else if(input$loadportsource=='Upload new file' & !is.null(input$portdat)){
+         ptdat$dataset <- read_dat(input$portdat$datapath)
+         q_test <- quietly_test(load_port)
+         q_test(ptdat$dataset, port_name=input$port_name, over_write=TRUE, project=input$projectname, compare=FALSE, y=NULL)
+         showNotification("Port data saved to database.", type = "message", duration = 10)
+          }else {
+          ptdat$dataset <- ptdat$dataset
+          }
+        if(names(ptdat$dataset)[1]!='var1'){
+          showNotification("Port data loaded.", type='message', duration=10)
+        }
+      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
+      
+
+  #Spatial
       output$spatial_upload <- renderUI({     
         tagList( 
           conditionalPanel(condition="input.loadspatialsource=='Upload new file'", 
@@ -679,15 +590,38 @@ source("map_viewer_app.R", local = TRUE)
 #        actionButton("uploadspatial", label = "Save to database", 
 #                     style = "color: white; background-color: blue;", size = "extra-small")
 #      })
+
+      spatdat <- reactiveValues(
+        dataset = data.frame('var1'=0, 'var2'=0)
+      )
       
+      observeEvent(input$loadDat, {
+        if(input$loadspatialsource=='FishSET database'){
+          spatdat$dataset <- table_view(input$spatialdattext)
+        } else if(input$loadspatialsource=='Upload new file' & !is.null(input$spatialdat)){
+          spatdat$dataset <- read_dat(input$spatialdat$datapath)
+          #fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+          #DBI::dbWriteTable(fishset_db, input$spatialdat$name,  spatdat$dataset, overwrite=TRUE) 
+          #DBI::dbDisconnect(fishset_db)
+          #showNotification("Map saved to database")
+          } else {
+          spatdat$dataset <- spatdat$dataset
+          }
+        if(names(spatdat$dataset)[1]!='var1'){
+          showNotification("Map file loaded but not currently able to save to database.", type='message', duration=10)
+        }
+      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
+
+
+ #GRIDDED      
       output$grid_upload <- renderUI({     
         tagList( 
           conditionalPanel(condition="input.loadgridsource=='Upload new file'", 
                            tagList(
                              fluidRow(
                                column(3, fileInput("griddat", "Choose data file that varies over two dimensions (gridded)",
-                                                   multiple = FALSE, placeholder = 'Optional data')),
-                               column(1, uiOutput('ui.actionG'))
+                                                   multiple = FALSE, placeholder = 'Optional data'))#,
+                              # column(1, uiOutput('ui.actionG'))
                              ))
           ),
           conditionalPanel(condition="input.loadgridsource!='Upload new file'", 
@@ -697,25 +631,48 @@ source("map_viewer_app.R", local = TRUE)
                              ))
           ))
       })
-      output$ui.actionG <- renderUI({
-        if(is.null(input$griddat)) return()
-        tagList(
-          textInput("GridName", "Grid table name." ),
-          actionButton("uploadGrid", label = "Save to database", 
-                       style = "color: white; background-color: blue;", size = "extra-small")
-        )
-      })
+     # output$ui.actionG <- renderUI({
+     #   if(is.null(input$griddat)) return()
+     #   tagList(
+     #     textInput("GridName", "Grid table name." ),
+     #     actionButton("uploadGrid", label = "Save to database", 
+     #                  style = "color: white; background-color: blue;", size = "extra-small")
+     #   )
+     # })
       
+      grddat <- reactiveValues(
+        dataset = data.frame('var1'=0, 'var2'=0)
+      )
+      
+      observeEvent(input$loadDat, {
+        req(input$griddattext)
+        if(input$loadgridsource=='FishSET database'){
+          grddat$dataset <- table_view(paste0(input$projectname, input$griddattext))
+        } else if(input$loadgridsource=='Upload new file' & !is.null(input$griddat)) {
+          grddat$dataset <- read_dat(input$griddat$datapath)        
+          q_test <- quietly_test(load_grid)
+          q_test(paste0(input$projectname, 'MainDataTable'), grid = grddat$dataset, x = input$GridName, over_write=TRUE, project=input$projectname)
+          showNotification('Gridded data saved to database.', type = 'message', duration = 10)
+        } else {
+          grddat$dataset <- grddat$dataset
+        }
+        if(names(grddat$dataset)[1]!='var1'){
+          showNotification("Gridded data loaded.", type='message', duration=10)
+        }
+      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
+    
+      #Auxiliary      
       output$ui.actionA <- renderUI({
         if(is.null(input$auxdat)) return()
         tagList(
         textInput("AuxName", "Auxiliary table name." ),
-        actionButton("uploadAux", label = "Save to database", 
-                     style = "color: white; background-color: blue;", size = "extra-small"),
+        #actionButton("uploadAux", label = "Save to database", 
+        #             style = "color: white; background-color: blue;", size = "extra-small"),
         actionButton("mergeAux", label = "Merge with main data", 
                      style = "background-color: #FAFA00;")
         )
       })
+      
       output$aux_upload <- renderUI({     
         tagList( 
           conditionalPanel(condition="input.loadauxsource=='Upload new file'", 
@@ -735,45 +692,30 @@ source("map_viewer_app.R", local = TRUE)
           )
           )
       })
- 
-      observeEvent(input$uploadMain, {
-        df_data <- read_dat(input$maindat$datapath)
-        df_y <- input$compare
-        df_compare <- ifelse(nchar(input$compare)>0, TRUE, FALSE)
-        q_test <- quietly_test(load_maindata)
-        q_test(df_data, over_write=input$over_write, project=input$projectname, compare=df_compare, y=df_y)
-      })
-	  
-      observeEvent(input$uploadPort, {
-        df_data <- read_dat(input$portdat$datapath)
-        q_test <- quietly_test(load_port)
-        q_test(df_data, port_name=input$port_name, over_write=TRUE, project=input$projectname, compare=FALSE, y=NULL)
-      }) 
-      observeEvent(input$uploadspatial, {
-        df_data <- read_dat(input$spatialdat$datapath)
-        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
-        DBI::dbWriteTable(fishset_db, input$spatialdat$name,  df_data, overwrite=TRUE) 
-        DBI::dbDisconnect(fishset_db)
-      }) 
-      observeEvent(input$uploadGrid, {
-        if (input$GridName == "") {
-          showNotification("Please provide a name for the grided table.", type = "message", duration = 10)
+
+      aux <- reactiveValues(
+        dataset = data.frame('var1'=0, 'var2'=0)
+      )
+      
+      observeEvent(input$loadDat, {
+        #req(input$auxdattext)
+        if(input$loadauxsource=='FishSET database'){
+          aux$dataset <- table_view(paste0(input$projectname, input$auxdattext))
+        } else if(input$loadauxsource=='Upload new file' & !is.null(input$auxdat)){
+           aux$dataset <-read_dat(input$auxdat$datapath)
+           q_test <- quietly_test(load_aux)
+            q_test(paste0(input$projectname, 'MainDataTable'), aux=aux$dataset, x = input$AuxName, over_write=TRUE,
+                   project=input$projectname)
+            showNotification('Auxiliary data saved to FishSET database.', type = 'message', duration = 10)
         } else {
-        df_data <- read_dat(input$griddat$datapath)
-        q_test <- quietly_test(load_grid)
-        q_test(paste0(input$projectname, 'MainDataTable'), grid = df_data, x = input$GridName, over_write=TRUE, project=input$projectname)
+          aux$dataset <- aux$dataset
+          }
+        if(names(aux$dataset)[1]!='var1'){
+          showNotification("Auxiliary data loaded.", type='message', duration=10)
         }
-      }) 
-      observeEvent(input$uploadAux, {
-        if (input$AuxName == "") {
-          showNotification("Please provide a name for the auxiliary table.", type = "message", duration = 10)
-        } else {
-       df_data <- read_dat(input$auxdat$datapath)
-        q_test <- quietly_test(load_aux)
-        q_test(paste0(input$projectname, 'MainDataTable'), aux=df_data, x = input$AuxName, over_write=TRUE, project=input$projectname)
-        }
-      }) 
-       
+      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
+      
+
       #Merge aux with main
       ###---- 
       #Merge
@@ -898,17 +840,15 @@ source("map_viewer_app.R", local = TRUE)
       
       #DATA QUALITY FUNCTIONS ----
       ###---     
-      output$checks_dataset <- renderUI({
-        
-        if (input$SelectDatasetDQ == "main") {
-          
-          radioButtons("checks", "", choices = c('Variable class', 'Summary table', 'Outliers', 'NAs', 'NaNs', 'Unique observations', 
-                                                 'Empty variables', 'Lat_Lon units'))
-        } else {
-          
-          radioButtons("checks", "", choices = c('Variable class'))
-        }
-      })
+#      output$checks_dataset <- renderUI({
+#        if (input$SelectDatasetDQ == "main") {
+#          radioButtons("checks", "", choices = c('Variable class', 'Summary table', 'Outliers', 'NAs', 'NaNs', 'Unique observations', #                                                 'Empty variables', 'Lat_Lon units'))
+#        } else {
+#          radioButtons("checks", "", choices = c('Summary table'))
+#        }
+#      })
+      
+      
 
       #change variable class
       m <- reactive({
@@ -955,7 +895,7 @@ source("map_viewer_app.R", local = TRUE)
           },
         escape = FALSE, selection = 'single', server = FALSE,
         options = list(dom = 't', paging = FALSE, ordering = FALSE),
-        callback = JS("table.rows().every(function(i, tab, row) {
+        callback = DT::JS("table.rows().every(function(i, tab, row) {
           var $this = $(this.node());
           $this.attr('id', this.data()[0]);
           $this.addClass('shiny-input-radiogroup');
@@ -1748,6 +1688,8 @@ source("map_viewer_app.R", local = TRUE)
       #DATA EXPLORATION FUNCTIONS ----
       ###---
       #1. TABLE
+      
+  
       explore_temp <- reactive({
         
          switch(input$SelectDatasetExplore,
@@ -3012,7 +2954,10 @@ source("map_viewer_app.R", local = TRUE)
       #})
       counter <- reactiveValues(countervalue = 0) # Defining & initializing the reactiveValues object
       rv <- reactiveValues(
-        data = model_table,
+        data = data.frame('mod_name'='', 'likelihood'='', 'alternatives'='', 'optimOpts'='', 'inits'='', 
+                          'vars1'='','vars2'='', 'catch'='', 'lon'='', 'lat'='', 'project'='', 'price'='', 
+                          'startloc'='', 'polyn'=''),
+        #model_table,
         deletedRows = NULL,
         deletedRowIndices = list()
       )

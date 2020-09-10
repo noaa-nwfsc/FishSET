@@ -9,11 +9,6 @@ requireNamespace('DT')
 enableBookmarking(store = "server")
 
 
-# default global search value
-if (!exists("default_search")) {default_search <- ""}
-
-# default column search values
-if (!exists("default_search_columns")) {default_search_columns <- NULL}
 
 simpleCap <- function(x) {
   s <- strsplit(x, " ")[[1]]
@@ -21,9 +16,15 @@ simpleCap <- function(x) {
         sep="", collapse=" ")
 }
 
-model_table <- data.frame('mod_name'='', 'likelihood'='', 'alternatives'='', 'optimOpts'='', 'inits'='', 
-                          'vars1'='','vars2'='', 'catch'='', 'lon'='', 'lat'='', 'project'='', 'price'='', 'startloc'='', 'polyn'='')
+## default global search value
+#if (!exists("default_search")) {default_search <- ""}
 
+# default column search values
+#if (!exists("default_search_columns")) {default_search_columns <- NULL}
+
+#model_table <- data.frame('mod_name'='', 'likelihood'='', 'alternatives'='', 'optimOpts'='', 'inits'='', 
+#                         'vars1'='','vars2'='', 'catch'='', 'lon'='', 'lat'='', 'project'='', 'price'='', 'startloc'='', 'polyn'='')
+#
 
 
 #' A column of delete buttons for each row in the data frame for the first column
