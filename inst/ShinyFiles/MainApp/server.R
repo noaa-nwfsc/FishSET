@@ -848,8 +848,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 #        }
 #      })
       
-      
-
       #change variable class
       m <- reactive({
         if(colnames(values$dataset)[1] == 'var1') {
@@ -986,7 +984,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       ##Output to main panel
       output$Case<-renderPrint({
-        if(input$checks=='Summary table') {
+        if(input$checks == 'Variable class'){
+          "Check and change variable data classes."
+        }else if(input$checks=='Summary table') {
           "Summary table of NUMERIC variables in data set."
         } else if(input$checks=='Outliers'){
           if(input$dat.remove=='none'){
@@ -1011,11 +1011,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           #na(values$dataset)
           na_filter(values$dataset, x=names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), 
                     replace = FALSE, remove = FALSE, rep.value=NA, over_write=FALSE)
-        } else if(input$checks=='NaNs') {
           nan_filter(values$dataset, x=names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), 
                      replace = FALSE, remove = FALSE, rep.value=NA,  over_write=FALSE)
         } else if(input$checks=='Unique observations'){
-
           unique_filter(values$dataset, project = input$projectname, remove=FALSE)
         } else if(input$checks=='Empty variables'){
           empty_vars_filter(values$dataset, project = input$projectname, remove=FALSE)
@@ -1183,28 +1181,32 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           } else if(input$checks=='NAs'){
             if(any(apply(values$dataset, 2, function(x) anyNA(x)))==TRUE) {
               if(input$NA_Filter_all==0&input$NA_Filter_mean==0){
-                case_to_print$dataQuality <- c(case_to_print$dataQuality, paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), collapse = ", ")),
+                #case_to_print$dataQuality <- c(case_to_print$dataQuality, 
+                g <- paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), collapse = ", ")),
                       "variables contain",  sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
                                                                                      function(x) length(which(is.na(x)==TRUE))), collapse=", ")), 
                       "missing values, respectively.", length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
-                                                                                                                    function(x) anyNA(x))==TRUE))], 2, function(x) which(is.na(x)==TRUE))))), "rows have missing values. Missing values were not removed or replaced.\n")) 
+                                                                function(x) anyNA(x))==TRUE))], 2, function(x) which(is.na(x)==TRUE))))), "rows have missing values. Missing values were not removed or replaced.\n")#) 
               }} else {
                 if(input$NA_Filter_all==0&input$NA_Filter_mean==0){
-                  case_to_print$dataQuality <- c(case_to_print$dataQuality, paste("Occurrence of missing values checked. No columns in the data set contain missing values.\n"))
+                 # case_to_print$dataQuality <- c(case_to_print$dataQuality, 
+                  g <- paste("Occurrence of missing values checked. No columns in the data set contain missing values.\n")#)
                 } else {
                   if(input$NA_Filter_all>0){
-                    case_to_print$dataQuality <- c(case_to_print$dataQuality, paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), collapse = ", ")), "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
+                    #case_to_print$dataQuality <- c(case_to_print$dataQuality, 
+                   g<- paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), collapse = ", ")), "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
                                                                                                                                                                                                                                                                 function(x) length(which(is.na(x)==TRUE))), collapse=", ")), "missing values.", length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
-                                                                                                                                                                                                                                                                                                                                                                                                             function(x) anyNA(x))==TRUE))], 2, function(x) which(is.na(x)==TRUE))))), "rows containing missing values were removed from the data set.\n"))
+                                                                                                                                                                                                                                                                                                                                                                                                             function(x) anyNA(x))==TRUE))], 2, function(x) which(is.na(x)==TRUE))))), "rows containing missing values were removed from the data set.\n")#)
                   } else if(input$NA_Filter_mean>0){
-                    case_to_print$dataQuality <- c(case_to_print$dataQuality, paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), collapse = ", ")), "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
-                                                                                                                                                                                                                                                                function(x) length(which(is.na(x)==TRUE))), collapse=", ")), "missing values. Missing values were replaced with the mean values of", RM, "respectively.\n"))
+                    #case_to_print$dataQuality <- c(case_to_print$dataQuality, 
+                    g <- paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), collapse = ", ")), "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
+                                                                                                                                                                                                                                                                function(x) length(which(is.na(x)==TRUE))), collapse=", ")), "missing values. Missing values were replaced with the mean values of", names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), "respectively.\n")#)
                   }
                 } }
-          } else if(input$checks=='NaNs') { 
+ 
             if(any(apply(values$dataset, 2, function(x) any(is.nan(x))))==TRUE) {
-              if(input$NAN_Filter_all==0&input$NAN_Filter_mean==0){
-                case_to_print$dataQuality <- c(case_to_print$dataQuality, paste("Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")),
+              if(input$NAN_Filter_all==0 & input$NAN_Filter_mean==0){
+                case_to_print$dataQuality <- c(case_to_print$dataQuality, paste(g, "Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")),
                       "variables contain", 
                       sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE))], 2, 
                                                                function(x) length(which(is.nan(x)==TRUE))), collapse=", ")), "non-numbers, respectively.", 
@@ -1212,16 +1214,16 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                                                                    function(x) any(is.nan(x)))==TRUE))], 2, function(x) which(is.nan(x)==TRUE))))), "rows have non-numbers. No action was taken to remove or replace non-numbers.\n")) 
               }} else {
                 if(input$NAN_Filter_all==0&input$NAN_Filter_mean==0){
-                  case_to_print$dataQuality <- c(case_to_print$dataQuality, "Occurruence of non-numbers checked. No columns in the data set contain non-numbers.\n")
+                  case_to_print$dataQuality <- c(case_to_print$dataQuality, paste(g, "Occurruence of non-numbers checked. No columns in the data set contain non-numbers.\n"))
                 } else {
                   if(input$NAN_Filter_all>0){
-                    case_to_print$dataQuality <- c(case_to_print$dataQuality, paste("Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")), "variables contained", 
+                    case_to_print$dataQuality <- c(case_to_print$dataQuality, paste(g, "Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")), "variables contained", 
                           sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE))], 2, 
                                                                    function(x) length(which(is.nan(x)==TRUE))), collapse=", ")), "non-numbers.", 
                           length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
                                                                                        function(x) any(is.nan(x)))==TRUE))], 2, function(x) which(is.nan(x)==TRUE))))), "rows containing non-numbers were removed from the data set.\n"))
                   } else if(input$NAN_Filter_mean>0){
-                    case_to_print$dataQuality <- c(case_to_print$dataQuality, paste("Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")), "variables contained", 
+                    case_to_print$dataQuality <- c(case_to_print$dataQuality, paste(g, "Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")), "variables contained", 
                           sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE))], 2, 
                                                                    function(x) length(which(is.nan(x)==TRUE))), collapse=", ")), "non-numbers.\n"))
                   }
@@ -1426,11 +1428,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       ##Table output
       tableInputSummary <- reactive({
         
-        temp <- switch(input$SelectDatasetDQ, 
-                       "main" = values$dataset, 
-                       "port" = ptdat$dataset, 
-                       "grid" = grddat$dataset, 
-                       "auxiliary" = aux$dataset)
+        temp <- #switch(input$SelectDatasetDQ, 
+                       #"main" = 
+          values$dataset#, 
+                       #"port" = ptdat$dataset, 
+                       #"grid" = grddat$dataset, 
+                       #"auxiliary" = aux$dataset)
         
         if(colnames(temp)[1] == 'var1') {
           return(NULL)
@@ -1665,11 +1668,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
       
       observeEvent(input$Unique_Filter,{
-        values$dataset <- unique_filter(values$dataset, remove=TRUE)
+        values$dataset <- unique_filter(values$dataset, project=input$projectname, remove=TRUE)
       })
       
       observeEvent(input$Empty_Filter,{
-        values$dataset <- empty_vars_filter(values$dataset, remove=TRUE)            
+        values$dataset <- empty_vars_filter(values$dataset,  project=input$projectname, remove=TRUE)            
         })
       
       observeEvent(input$LatLon_Filter, {
@@ -1738,11 +1741,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         default_search_columns <- c(input$output_table_exploration_search_columns)
         default_sub <- which(default_search_columns!='')
         
-        table_type <- switch(input$SelectDatasetExplore, 
-                             "main" = "MainDataTable",
-                             "port" = "PortTable",
-                             "grid" = input$GridName,
-                             "auxiliary" = input$AuxName)
+        table_type <- #switch(input$SelectDatasetExplore, 
+                             "main" = "MainDataTable"#,
+                             #"port" = "PortTable",
+                             #"grid" = input$GridName,
+                             #"auxiliary" = input$AuxName)
          
           if(length(default_sub)==0){
             NULL
