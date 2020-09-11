@@ -221,13 +221,13 @@ source("map_viewer_app.R", local = TRUE)
                                           tags$br(), tags$br(),
                                           textInput('notesQAQC', "Notes", value=NULL,
                                                     placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
-                                          conditionalPanel(condition = "input.checks == 'Summary table'",
-                                            selectInput("SelectDatasetDQ", "Select a dataset", choices = c("main", "port", "auxiliary", "grid"))
-                                          ),
+                                          #conditionalPanel(condition = "input.checks == 'Summary table'",
+                                          #  selectInput("SelectDatasetDQ", "Select a dataset", choices = c("main", "port", "auxiliary", "grid"))
+                                          #),
                                           h4('Select data validation check functions to run'),
                                           #Checkbox input widget  
-                                           radioButtons("checks", "", choices = c('Variable class', 'Summary table', 'Outliers', 'NAs', 'NaNs', 'Unique observations', 
-                                                                                  'Empty variables', 'Lat_Lon units')),
+                                           radioButtons("checks", "", choices = c('Variable class', 'Summary table', 'Outliers', 'NAs', #'NaNs', 
+                                                                                  'Unique observations', 'Empty variables', 'Lat_Lon units')),
                                           uiOutput("checks_dataset"),
                                           conditionalPanel(
                                             condition = "input.checks == 'Variable class'",
@@ -245,12 +245,12 @@ source("map_viewer_app.R", local = TRUE)
                                             actionButton('NA_Filter_mean', 'Replace NAs with mean value')
                                           ),
                                           conditionalPanel(
-                                            condition = "input.checks == 'NaNs'",
-                                            actionButton('NAN_Filter_all', 'Remove all NAs')
+                                            condition = "input.checks == 'NAs'",
+                                            actionButton('NAN_Filter_all', 'Remove all NaNs')
                                           ),
                                           conditionalPanel(
-                                            condition = "input.checks == 'NaNs'",
-                                            actionButton('NAN_Filter_mean', 'Replace NAs with mean value')
+                                            condition = "input.checks == 'Nas'",
+                                            actionButton('NAN_Filter_mean', 'Replace NaNs with mean value')
                                           ),
                                           conditionalPanel(condition="input.checks=='Outliers'",
                                                            actionButton('Outlier_Filter', 'Remove outliers')),
@@ -750,9 +750,6 @@ source("map_viewer_app.R", local = TRUE)
                            map_viewerUI("map")
                            
                            ),
-                  
-                  
-                  
                   
                   #----   
                   #Zonal definition tabset panel
