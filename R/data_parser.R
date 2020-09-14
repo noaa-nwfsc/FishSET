@@ -504,7 +504,7 @@ load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
   #' @importFrom jsonlite toJSON
   #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
   #' @export
-  #' @details Auxiliary data is any additional data required beyond the primary data and the port data.
+  #' @details Auxiliary data is any additional data beyond the primary data and the port data.
   #'   Auxiliary data can be any data that can be merged with the primary dataset (ex. prices by date, vessel
   #'   characteristics, or fishery season). The auxiliary data does not have to be at a haul or trip level
   #'   but must contain a variable to connect the auxiliary data to the primary dataset. The function checks
@@ -584,17 +584,18 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
   #' @param dat Primary data containing information on hauls or trips. 
   #'   Table in FishSET database contains the string 'MainDataTable'.
   #' @param grid Gridded data to be saved to FishSET database. 
-  #' @param x Name of gridded data frame to be saved.
+  #' @param x Name of gridded dataframe to be saved.
   #' @param over_write Logical, If TRUE, saves dat over previously saved data table in the FishSET database.
   #' @param project String, name of project.
   #' @details Grid data is an optional data frame that contains a variable that varies by the map grid (ex.
   #'   sea surface temperature, wind speed). Data can also vary by a second dimension (e.g., date/time). Both
   #'   dimensions in the gridded data file need to be variables included in the primary dataset.
   #'   The grid locations (zones) must define the columns and the optional second dimension defines the rows.
-  #'   The row variable must have the exact name as the variable
-  #'   in the main data frame that it will be linked to. 
+  #'   The row variable must have the exact name as the variable in the main data frame that it will be linked to. 
+  #'   The function DOES NOT check that column and row variables match a variable in the primary data set.
   #'   The function checks that each row is unique, that no variables are empty, and that column names are case-insensitive unique. 
-  #'   There data issues are resolved before the data is saved to the database.The data is saved in the FishSET database as the raw
+  #'   These data issues are resolved before the data is saved to the database.
+  #'    The data is saved in the FishSET database as the raw
   #'   data and the working data. In both cases, the table name is the \code{project} and the file name \code{x}.
   #'   Date is attached to the name for the raw data.
   #' @export
@@ -617,10 +618,10 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
   }
   DBI::dbDisconnect(fishset_db)
 
-  if (any(colnames(grid) %in% colnames(old)) == FALSE) {
-    warning("No shared columns. Column names do not match between two data sets. Gridded data set not saved.")
-    val <- 1
-  }
+  #if (any(colnames(grid) %in% colnames(old)) == FALSE) {
+    message("Column names must match zone IDs. Optional secondary dimension must match a variable in the primary dataset.")
+ #   val <- 1
+ # }
 
   if (val == 0) {
     #data_verification_call(x, project)

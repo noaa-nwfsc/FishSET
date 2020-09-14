@@ -621,7 +621,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                              fluidRow(
                                column(3, fileInput("griddat", "Choose data file that varies over two dimensions (gridded)",
                                                    multiple = FALSE, placeholder = 'Optional data'))#,
-                              # column(1, uiOutput('ui.actionG'))
+                               column(1, uiOutput('ui.actionG'))
                              ))
           ),
           conditionalPanel(condition="input.loadgridsource!='Upload new file'", 
@@ -631,28 +631,28 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                              ))
           ))
       })
-     # output$ui.actionG <- renderUI({
-     #   if(is.null(input$griddat)) return()
+      output$ui.actionG <- renderUI({
+        if(is.null(input$griddat)) return()
      #   tagList(
-     #     textInput("GridName", "Grid table name." ),
+          textInput("GridName", "Grid table name." )#,
      #     actionButton("uploadGrid", label = "Save to database", 
      #                  style = "color: white; background-color: blue;", size = "extra-small")
      #   )
-     # })
+      })
       
       grddat <- reactiveValues(
         dataset = data.frame('var1'=0, 'var2'=0)
       )
       
       observeEvent(input$loadDat, {
-        req(input$griddattext)
         if(input$loadgridsource=='FishSET database'){
+          req(input$griddattext)
           grddat$dataset <- table_view(paste0(input$projectname, input$griddattext))
         } else if(input$loadgridsource=='Upload new file' & !is.null(input$griddat)) {
+          showNotification('Gridded data saved to database.', type = 'message', duration = 10)
           grddat$dataset <- read_dat(input$griddat$datapath)        
           q_test <- quietly_test(load_grid)
           q_test(paste0(input$projectname, 'MainDataTable'), grid = grddat$dataset, x = input$GridName, over_write=TRUE, project=input$projectname)
-          showNotification('Gridded data saved to database.', type = 'message', duration = 10)
         } else {
           grddat$dataset <- grddat$dataset
         }
@@ -702,11 +702,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         if(input$loadauxsource=='FishSET database'){
           aux$dataset <- table_view(paste0(input$projectname, input$auxdattext))
         } else if(input$loadauxsource=='Upload new file' & !is.null(input$auxdat)){
+            showNotification('Auxiliary data saved to FishSET database.', type = 'message', duration = 10)
            aux$dataset <-read_dat(input$auxdat$datapath)
            q_test <- quietly_test(load_aux)
             q_test(paste0(input$projectname, 'MainDataTable'), aux=aux$dataset, x = input$AuxName, over_write=TRUE,
                    project=input$projectname)
-            showNotification('Auxiliary data saved to FishSET database.', type = 'message', duration = 10)
         } else {
           aux$dataset <- aux$dataset
           }
