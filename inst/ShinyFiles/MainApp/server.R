@@ -620,7 +620,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                            tagList(
                              fluidRow(
                                column(3, fileInput("griddat", "Choose data file that varies over two dimensions (gridded)",
-                                                   multiple = FALSE, placeholder = 'Optional data'))#,
+                                                   multiple = FALSE, placeholder = 'Optional data')),
                                column(1, uiOutput('ui.actionG'))
                              ))
           ),
