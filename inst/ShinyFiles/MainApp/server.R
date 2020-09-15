@@ -621,7 +621,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                              fluidRow(
                                column(3, fileInput("griddat", "Choose data file that varies over two dimensions (gridded)",
                                                    multiple = FALSE, placeholder = 'Optional data')),
-                               column(1, uiOutput('ui.actionG'))
+                               column(2, uiOutput('ui.actionG'))
                              ))
           ),
           conditionalPanel(condition="input.loadgridsource!='Upload new file'", 
@@ -634,7 +634,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       output$ui.actionG <- renderUI({
         if(is.null(input$griddat)) return()
      #   tagList(
-          textInput("GridName", "Grid table name." )#,
+          textInput("GridName", "Grid table name" )#,
      #     actionButton("uploadGrid", label = "Save to database", 
      #                  style = "color: white; background-color: blue;", size = "extra-small")
      #   )
