@@ -701,7 +701,6 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
         newvar <- newvar / 1000
       }
 
-      
       g <- cbind(dataset, newvar)
       colnames(g)[dim(g)[2]] = name
       
@@ -762,7 +761,6 @@ create_duration <- function(dat, start, end, units = c("week", "day", "hour", "m
   } else if (units == "minute") {
     newvar <- lubridate::as.duration(elapsed.time) / lubridate::dminutes(1)
   }
-  
   
    g <- cbind(dataset, newvar)
   colnames(g)[dim(g)[2]] = name
