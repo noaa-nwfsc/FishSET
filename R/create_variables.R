@@ -46,8 +46,11 @@ cpue <- function(dat, xWeight, xTime, name = "cpue") {
       warning("xWeight must a measurement of mass. CPUE calculated.")
     }
 
-    name <- dataset[[xWeight]] / dataset[[xTime]]
+    newvar <- dataset[[xWeight]] / dataset[[xTime]]
 
+    g <- cbind(dataset, newvar)
+    colnames(g)[dim(g)[2]] = name
+    
     create_var_cpue_function <- list()
     create_var_cpue_function$functionID <- "cpue"
     create_var_cpue_function$args <- list(dat, xWeight, xTime, deparse(substitute(name)))
@@ -55,7 +58,7 @@ cpue <- function(dat, xWeight, xTime, name = "cpue") {
     create_var_cpue_function$output <- list(dat)
 
     log_call(create_var_cpue_function)
-    return(cbind(dataset, name))
+    return(g)
   }
 }
 
@@ -110,16 +113,19 @@ dummy_num <- function(dat, var, value, opts = "more_less", name = "dummy_num") {
     }
   } else if (is.numeric(dataset[[var]])) {
     if (opts == "x_y") {
-      name <- ifelse(dataset[[var]] >= min(value) & dataset[[var]] <= max(value), 0, 1)
+      newvar <- ifelse(dataset[[var]] >= min(value) & dataset[[var]] <= max(value), 0, 1)
     } else {
-      name <- ifelse(dataset[[var]] < mean(value), 0, 1)
+      newvar <- ifelse(dataset[[var]] < mean(value), 0, 1)
     }
   } else if (is.factor(dataset[[var]]) | is.character(dataset[[var]])) {
-    name <- ifelse(trimws(dataset[[var]], "both") == trimws(value, "both"), 0, 1)
+    newvar <- ifelse(trimws(dataset[[var]], "both") == trimws(value, "both"), 0, 1)
   } else {
     (warning("variable is not recognized as being a date, factor, or numeric. Function not run."))
   }
 
+  g <- cbind(dataset, newvar)
+  colnames(g)[dim(g)[2]] = name
+  
   create_var_dummy_num_function <- list()
   create_var_dummy_num_function$functionID <- "dummy_num"
   create_var_dummy_num_function$args <- list(dat, var, value, opts, deparse(substitute(name)))
@@ -127,7 +133,7 @@ dummy_num <- function(dat, var, value, opts = "more_less", name = "dummy_num") {
   create_var_dummy_num_function$output <- list(dat)
 
   log_call(create_var_dummy_num_function)
-  return(cbind(dataset, name))
+  return(g)
 }
 
 #' Create dummy variable
@@ -148,8 +154,11 @@ dummy_var <- function(dat, DumFill = "TRUE", name = "dummy_var") {
   dataset <- dat
   dat <- deparse(substitute(dat))
 
-  name <- as.vector(rep(DumFill, nrow(dataset)))
-
+  newvar <- as.vector(rep(DumFill, nrow(dataset)))
+  
+  g <- cbind(dataset, newvar)
+  colnames(g)[dim(g)[2]] = name
+  
   create_var_dummy_var_function <- list()
   create_var_dummy_var_function$functionID <- "dummy_var"
   create_var_dummy_var_function$args <- list(dat, DumFill, deparse(substitute(name)))
@@ -158,7 +167,7 @@ dummy_var <- function(dat, DumFill = "TRUE", name = "dummy_var") {
 
   log_call(create_var_dummy_var_function)
 
-  return(cbind(dataset, name))
+  return(g)
 }
 
 #' Create dummy matrix from a coded ID variable
@@ -242,8 +251,11 @@ set_quants <- function(dat, x, quant.cat = c(0.2, 0.25, 0.4), name = "set_quants
       prob.def <- c(0, 0.1, 0.5, 0.9, 1)
     }
     # var.name <- paste('TRIP_OTC_MT', 'quantile', sep = '.')
-    name <- as.integer(cut(dataset[[x]], quantile(dataset[[x]], probs = prob.def), include.lowest = TRUE))
-
+    newvar <- as.integer(cut(dataset[[x]], quantile(dataset[[x]], probs = prob.def), include.lowest = TRUE))
+    
+    g <- cbind(dataset, newvar)
+    colnames(g)[dim(g)[2]] = name
+    
     create_var_set_quants_function <- list()
     create_var_set_quants_function$functionID <- "set_quants"
     create_var_set_quants_function$args <- list(dat, x, quant.cat, deparse(substitute(name)))
@@ -251,7 +263,7 @@ set_quants <- function(dat, x, quant.cat = c(0.2, 0.25, 0.4), name = "set_quants
     create_var_set_quants_function$output <- list(dat)
 
     log_call(create_var_set_quants_function)
-    return(cbind(dataset, name))
+    return(g)
   }
 }
 
@@ -289,8 +301,11 @@ bin_var <- function(dat, project, var, br, name, labs = NULL, ...) {
   }
 
   if (tmp == 0) {
-    name <- cut(dataset[[var]], breaks = br, labels = labs, ...)
+    newvar <- cut(dataset[[var]], breaks = br, labels = labs, ...)
 
+    g <- cbind(dataset, newvar)
+    colnames(g)[dim(g)[2]] = name
+    
     # Log function
     bin_var_function <- list()
     bin_var_function$functionID <- "bin_var"
@@ -299,7 +314,7 @@ bin_var <- function(dat, project, var, br, name, labs = NULL, ...) {
     bin_var_function$output <- list(dat)
     log_call(bin_var_function)
 
-    return(cbind(dataset, name))
+    return(g)
   }
 }
 
@@ -337,15 +352,18 @@ create_var_num <- function(dat, x, y, method, name = "create_var_num") {
 
   if (tmp == 0) {
     if (grepl("add|sum", method, ignore.case = TRUE)) {
-      name <- dataset[[x]] + dataset[[y]]
+      newvar <- dataset[[x]] + dataset[[y]]
     } else if (grepl("sub", method, ignore.case = TRUE)) {
-      name <- dataset[[x]] - dataset[[y]]
+      newvar <- dataset[[x]] - dataset[[y]]
     } else if (grepl("mult", method, ignore.case = TRUE)) {
-      name <- dataset[[x]] * dataset[[y]]
+      newvar <- dataset[[x]] * dataset[[y]]
     } else if (grepl("div", method, ignore.case = TRUE)) {
-      name <- dataset[[x]] / dataset[[y]]
+      newvar <- dataset[[x]] / dataset[[y]]
     }
-
+    
+    g <- cbind(dataset, newvar)
+    colnames(g)[dim(g)[2]] = name
+    
     create_var_num_function <- list()
     create_var_num_function$functionID <- "create_var_num"
     create_var_num_function$args <- list(dat, x, y, method, deparse(substitute(name)))
@@ -353,7 +371,7 @@ create_var_num <- function(dat, x, y, method, name = "create_var_num") {
     create_var_num_function$output <- list(dat)
     log_call(create_var_num_function)
 
-    return(cbind(dataset, name))
+    return(g)
   }
 }
 
@@ -672,17 +690,21 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
     if (x == 1) {
       # Get distance between points
       if (units == "midpoint") {
-        name <- geosphere::midPoint(cbind(start.long, start.lat), cbind(end.long, end.lat))
+        newvar <- geosphere::midPoint(cbind(start.long, start.lat), cbind(end.long, end.lat))
       } else {
-        name <- geosphere::distGeo(cbind(start.long, start.lat), cbind(end.long, end.lat), a = 6378137, f = 1 / 298.257223563)
+        newvar <- geosphere::distGeo(cbind(start.long, start.lat), cbind(end.long, end.lat), a = 6378137, f = 1 / 298.257223563)
       }
 
       if (units == "miles") {
-        name <- name * 0.000621371192237334
+        newvar <- newvar * 0.000621371192237334
       } else if (units == "kilometers") {
-        name <- name / 1000
+        newvar <- newvar / 1000
       }
 
+      
+      g <- cbind(dataset, newvar)
+      colnames(g)[dim(g)[2]] = name
+      
       # Log the function
       create_dist_between_function <- list()
       create_dist_between_function$functionID <- "create_dist_between"
@@ -691,7 +713,7 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
       create_dist_between_function$output <- list(dat)
 
       log_call(create_dist_between_function)
-      return(cbind(dataset, name))
+      return(g)
     }
   }
 }
@@ -732,15 +754,20 @@ create_duration <- function(dat, start, end, units = c("week", "day", "hour", "m
 
   elapsed.time <- lubridate::interval(date_parser(dataset[[start]]), date_parser(dataset[[end]]))
   if (units == "week") {
-    name <- lubridate::as.duration(elapsed.time) / lubridate::dweeks(1)
+    newvar <- lubridate::as.duration(elapsed.time) / lubridate::dweeks(1)
   } else if (units == "day") {
-    name <- lubridate::as.duration(elapsed.time) / lubridate::ddays(1)
+    newvar <- lubridate::as.duration(elapsed.time) / lubridate::ddays(1)
   } else if (units == "hour") {
-    name <- lubridate::as.duration(elapsed.time) / lubridate::dhours(1)
+    newvar <- lubridate::as.duration(elapsed.time) / lubridate::dhours(1)
   } else if (units == "minute") {
-    name <- lubridate::as.duration(elapsed.time) / lubridate::dminutes(1)
+    newvar <- lubridate::as.duration(elapsed.time) / lubridate::dminutes(1)
   }
-
+  
+  
+   g <- cbind(dataset, newvar)
+  colnames(g)[dim(g)[2]] = name
+  
+ 
   create_var_temp_function <- list()
   create_var_temp_function$functionID <- "create_duration"
   create_var_temp_function$args <- list(dat, start, end, units, deparse(substitute(name)))
@@ -748,5 +775,5 @@ create_duration <- function(dat, start, end, units = c("week", "day", "hour", "m
   create_var_temp_function$output <- list(dat)
   log_call(create_var_temp_function)
 
-  return(cbind(dataset, name))
+  return(g)
 }

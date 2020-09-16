@@ -621,7 +621,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                              fluidRow(
                                column(3, fileInput("griddat", "Choose data file that varies over two dimensions (gridded)",
                                                    multiple = FALSE, placeholder = 'Optional data')),
-                               column(2, uiOutput('ui.actionG'))
+                               column(3, uiOutput('ui.actionG'))
                              ))
           ),
           conditionalPanel(condition="input.loadgridsource!='Upload new file'", 
@@ -918,6 +918,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         x <- colnames(values$dataset)[xn]
         newclass <- changecode()[xn]
         changeclass(values$dataset, project=input$projectname, x=x, newclass=newclass, savedat=FALSE)
+        showNotification('Variable class changed.', type='message', duration=10)
       })
       
       
