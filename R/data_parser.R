@@ -1,13 +1,15 @@
 #  Import data
 #str_trim
 
-read_dat <- function(x, data.type=NULL, ...) {
+read_dat <- function(x, data.type=NULL, is.map = F, ...) {
   #' Import data into R
   #' @param x Name and path of dataset to be read in.
   #' @param data.type Optional. Data type can be defined by user or based on the file extension,
   #'   Leave \code{data.type} as NULL if data type is to based on file extension.
   #'   R, comma deliminated, tab deliminated, excel, matlab, json, geojson, shape, sas,
   #'    spss, and stata data files are recognized. 
+  #' @param is.map logical, set \code{is.map} to TRUE if data is a spatial file.  
+  #'   Spatial files ending in .json will not be read in properly unless \code{is.map} is true.
   #' @param ... Optional arguments 
   #' @importFrom sf read_sf
   #' @importFrom R.matlab readMat
@@ -39,6 +41,10 @@ read_dat <- function(x, data.type=NULL, ...) {
   }
   
   data.type <- tolower(data.type)
+  
+  if(data.type == 'json' & is.map == TRUE) {
+    data.type = 'geojson'
+  }
   
   if (data.type == 'rdata' | data.type == "r") {
     return(as.data.frame(get(load(x))))
