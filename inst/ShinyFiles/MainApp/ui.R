@@ -550,7 +550,7 @@ source("map_viewer_app.R", local = TRUE)
                   
                   
                   #---- 
-                  #Basic analysis tabset panel 
+                  #Basic analyses tabset panel 
                   #----
                   tabPanel("Simple Analyses", value = "analysis",
                            sidebarLayout(
@@ -652,7 +652,9 @@ source("map_viewer_app.R", local = TRUE)
                                                             multiple = FALSE)),
                                conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'",
                                                 selectInput('numfunc','Functions',multiple = FALSE, 
-                                                            choices = c('Numeric functions'='create_var_num','Catch per unit effort'='cpue'))),
+                                                            choices = c('Numeric functions'='create_var_num',
+                                                                        'Duration of time between two temporal variables'='create_duration', 
+                                                                        'Catch per unit effort'='cpue'))),
                                conditionalPanel(condition="input.VarCreateTop=='Dummy variables'",
                                                 selectInput('dummyfunc','Functions', multiple=FALSE,
                                                             choices=c('From variable', 'From policy dates', 'From area closures'))),
@@ -660,7 +662,6 @@ source("map_viewer_app.R", local = TRUE)
                                                 selectInput('dist','Functions',multiple = FALSE, 
                                                             choices = c('Distance between two points'='create_dist_between',
                                                                         'Midpoint location (lon/lat) for each haul'='create_mid_haul',
-                                                                        'Duration of time between two temporal variables'='create_duration',
                                                                         'Zone when choice of where to go next was made'='create_startingloc'))),
                                conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'",
                                                 selectInput('trip','Functions',multiple = FALSE, 
@@ -696,6 +697,11 @@ source("map_viewer_app.R", local = TRUE)
                                uiOutput('var_y_select'),
                                conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='create_var_num'",
                                                 style = "margin-left:19px;", selectInput('create_method', 'Arithmetic expression', choices=c('addition', 'subtraction', 'multiplication', 'division'))),
+                               uiOutput('input_dur_start'),
+                               uiOutput('input_dur_end'),
+                               conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfun=='create_duration'",
+                                                style = "margin-left:19px;", selectInput('dur_units', 'Unit of time for calculating duration', 
+                                                                                         choices = c("week", "day", "hour", "minute"))),
                                uiOutput('input_xWeight'),
                                uiOutput('input_xTime'),
                                uiOutput('dur_add'),
@@ -713,11 +719,6 @@ source("map_viewer_app.R", local = TRUE)
                                                 style = "margin-left:19px;", selectInput('units', 'Distance unit',choices = c('miles','meters','km'))),
                                uiOutput('start_mid_input'),
                                uiOutput('end_mid_input'),
-                               uiOutput('input_dur_start'),
-                               uiOutput('input_dur_end'),
-                               conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_duration'",
-                                                style = "margin-left:19px;", selectInput('dur_units', 'Unit of time for calculating duration', 
-                                                                                         choices = c("week", "day", "hour", "minute"))),
                                uiOutput('input_startingloc'),
                                uiOutput('input_startingloc_extra'),
                                conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='haul_to_trip'",

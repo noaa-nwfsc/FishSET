@@ -428,14 +428,14 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           conditionalPanel(condition="input.loadmainsource=='Upload new file'", 
                            tagList(
                              fluidRow(
-                                 column(3, fileInput("maindat", "Choose primary data file",
+                                 column(5, fileInput("maindat", "Choose primary data file",
                                             multiple = FALSE, placeholder = 'Required data'))#,
                                # column(2, uiOutput('ui.action'))
                            ))
           ),     
           conditionalPanel(condition="input.loadmainsource=='FishSET database'", 
                              fluidRow(
-                               column(3, textInput("maindatabasedat", "Name of data frame in FishSET database",
+                               column(5, textInput("maindatabasedat", "Name of data frame in FishSET database",
                                                    value='', placeholder = 'Optional. Use if loading modified data frame'))
                                
                              )
@@ -508,7 +508,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           conditionalPanel(condition="input.loadportsource=='Upload new file'", 
                            tagList(
                              fluidRow(
-                               column(3, fileInput("portdat", "Choose port data file",
+                               column(5, fileInput("portdat", "Choose port data file",
                                                    multiple = FALSE, placeholder = 'Required data'))#,
                                #column(1, uiOutput('ui.actionP'))
                              ))
@@ -516,7 +516,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           conditionalPanel(condition="input.loadportsource!='Upload new file'", 
                            tagList(
                              fluidRow(
-                               column(3, textInput("portdattext", "Port data file name in database", placeholder = 'Optional data'))
+                               column(5, textInput("portdattext", "Port data file name in database", placeholder = 'Optional data'))
                              ))
           ))
       })
@@ -573,7 +573,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           conditionalPanel(condition="input.loadspatialsource=='Upload new file'", 
                            tagList(
                              fluidRow(
-                               column(3, fileInput("spatialdat", "Choose spatial data file",
+                               column(5, fileInput("spatialdat", "Choose spatial data file",
                                                    multiple = FALSE, placeholder = 'Suggested data'))#,
                               # column(1, uiOutput('ui.actionS'))
                              ))
@@ -581,7 +581,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           conditionalPanel(condition="input.loadspatialsource!='Upload new file'", 
                            tagList(
                              fluidRow(
-                               column(3, textInput("spatialdattext", "Spatial data file name in database", placeholder = 'Suggested data'))
+                               column(5, textInput("spatialdattext", "Spatial data file name in database", placeholder = 'Suggested data'))
                              ))
           ))
       })
@@ -599,7 +599,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         if(input$loadspatialsource=='FishSET database'){
           spatdat$dataset <- table_view(input$spatialdattext)
         } else if(input$loadspatialsource=='Upload new file' & !is.null(input$spatialdat)){
-          spatdat$dataset <- read_dat(input$spatialdat$datapath)
+          spatdat$dataset <- read_dat(input$spatialdat$datapath, is.map=TRUE)
           #fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
           #DBI::dbWriteTable(fishset_db, input$spatialdat$name,  spatdat$dataset, overwrite=TRUE) 
           #DBI::dbDisconnect(fishset_db)
@@ -619,15 +619,15 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           conditionalPanel(condition="input.loadgridsource=='Upload new file'", 
                            tagList(
                              fluidRow(
-                               column(3, fileInput("griddat", "Choose data file that varies over two dimensions (gridded)",
+                               column(5, fileInput("griddat", "Choose data file that varies over two dimensions (gridded)",
                                                    multiple = FALSE, placeholder = 'Optional data')),
-                               column(3, uiOutput('ui.actionG'))
+                               column(5, uiOutput('ui.actionG'))
                              ))
           ),
           conditionalPanel(condition="input.loadgridsource!='Upload new file'", 
                            tagList(
                              fluidRow(
-                               column(3, textInput("griddattext", "Gridded data file name in database", placeholder = 'Optional data'))
+                               column(5, textInput("griddattext", "Gridded data file name in database", placeholder = 'Optional data'))
                              ))
           ))
       })
@@ -678,15 +678,15 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           conditionalPanel(condition="input.loadauxsource=='Upload new file'", 
                            tagList(
                              fluidRow(
-                               column(3, fileInput("auxdat", "Choose auxiliary data file that links to primary data",
+                               column(5, fileInput("auxdat", "Choose auxiliary data file that links to primary data",
                                                    multiple = FALSE, placeholder = 'Optional data')),
-                               column(1, uiOutput('ui.actionA'))
+                               column(5, uiOutput('ui.actionA'))
                              ))
           ),
           conditionalPanel(condition="input.loadauxsource!='Upload new file'", 
                            tagList(
                              fluidRow(
-                               column(3, textInput("auxdattext", "Auxiliary data file name in database", placeholder = 'Optional data')),
+                               column(5, textInput("auxdattext", "Auxiliary data file name in database", placeholder = 'Optional data')),
                                actionButton("mergeAux", label = "Merge with main data", 
                                             style = "background-color: #FAFA00;")))
           )
@@ -2276,6 +2276,18 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                            style = "margin-left:19px;", selectInput('dur_units2', 'Unit of time for calculating duration', choices = c("week", "day", "hour", "minute")))
         )
       })
+      output$input_dur_start <- renderUI({
+        conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfun=='create_duration'",
+                         style = "margin-left:19px;", selectizeInput('dur_start', 'Variable indicating start of time period', 
+                                                                  choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]), 
+                                                                  options = list(create = TRUE, placeholder='Select or type variable name')))
+      })
+      output$input_dur_end <- renderUI({
+        conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfun=='create_duration'",
+                         style = "margin-left:19px;", selectizeInput('dur_end', 'Variable indicating end of time period', 
+                                                                  choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]),
+                                                                  options = list(create = TRUE, placeholder='Select or type variable name')))
+      })
       output$dist_between_input <- renderUI({
         tagList(
          if(names(spatdat$dataset)[1]=='var1'){
@@ -2345,18 +2357,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                                                    choices = names(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=TRUE)]),
                                                                    options = list(maxItems = 2, create = TRUE, placeholder='Select or type variable name')))
       })
-      output$input_dur_start <- renderUI({
-        conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_duration'",
-                         style = "margin-left:19px;", selectizeInput('dur_start', 'Variable indicating start of time period', 
-                                                                  choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]), 
-                                                                  options = list(create = TRUE, placeholder='Select or type variable name')))
-      })
-      output$input_dur_end <- renderUI({
-        conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_duration'",
-                         style = "margin-left:19px;", selectizeInput('dur_end', 'Variable indicating end of time period', 
-                                                                  choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]),
-                                                                  options = list(create = TRUE, placeholder='Select or type variable name')))
-      })
+      
       output$input_startingloc <- renderUI({
         tagList(
           if(names(spatdat$dataset)[1]=='var1'){
@@ -2581,7 +2582,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               q_test <- quietly_test(create_mid_haul)
               values$dataset <- q_test(values$dataset, start=c(input$mid_start[2], input$mid_start[1]), 
                                        end=c(input$mid_end[2], input$mid_end[1]), name=input$varname)
-        } else if(input$VarCreateTop=='Spatial functions'&input$dist=='create_duration'){
+        } else if(input$VarCreateTop=='Arithmetic and temporal functions' & input$numfun=='create_duration'){
               q_test <- quietly_test(create_duration)
               values$datase <- q_test(values$dataset, start=input$dur_start, end=input$dur_end, units=input$dur_units, name=input$varname)
         } else if(input$VarCreateTop=='Spatial functions'&input$dist=='create_startingloc'){
@@ -2635,10 +2636,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                           selected='none', options = list(create = TRUE, placeholder='Select or type variable name')),
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
                                selectizeInput('latBase', 'Occurrence latitude', choices=c('',colnames(values$dataset[,grep('lat', colnames(values$dataset), ignore.case=TRUE)])), 
-                                           selected='', options = list(create = TRUE, placeholder='Select or type variable name'))),
+                                           selected='', options = list(create = TRUE, placeholder='Select or type LATITUDE variable name'))),
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
                                selectizeInput('lonBase', 'Occurrence longitude', choices=c('',colnames(values$dataset[,grep('lon', colnames(values$dataset), ignore.case=TRUE)])),
-                                              selected='', options = list(create = TRUE, placeholder='Select or type variable name')))
+                                              selected='', options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name')))
                          ))
       })
       output$conditionalInput2 <- renderUI({
@@ -2653,10 +2654,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
                                selectizeInput('lat_dat_ac', '',
                                               choices=c(input$latBase, names(values$dataset)[grep('lat', names(values$dataset), ignore.case=TRUE)]), 
-                                              selected=c(input$latBase), options = list(create = TRUE, placeholder='Select or type variable name'))),
+                                              selected=c(input$latBase), options = list(create = TRUE, placeholder='Select or type LATITUDE variable name'))),
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
                                selectizeInput('lon_dat_ac', '', choices=c(input$lonBase, names(values$dataset)[grep('lon', names(values$dataset), ignore.case=TRUE)]), 
-                                              selected=c(input$lonBase), options = list(create = TRUE, placeholder='Select or type variable name'))),
+                                              selected=c(input$lonBase), options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name'))),
                            selectInput('cat_altc', 'Individual areas/zones from the spatial data set', choices=names(as.data.frame(spatdat$dataset))),
                            selectInput('weight_var_ac', 'If desired, variable for use in calculating weighted centroids', 
                                        choices=c('none'="", colnames(values$dataset))), #variable weighted centroids
