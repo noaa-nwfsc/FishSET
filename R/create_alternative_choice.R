@@ -171,7 +171,7 @@ create_alternative_choice <- function(dat, project, gridfile = NULL, min.haul,
 
     int <- noquote(gsub("[^0-9]", "", colnames(gridVar)))
 
-    if (any(noquote(gsub("[^0-9]", "", colnames(temp))) %in% int.data[[cat]]) == FALSE) {
+    if (any(noquote(gsub("[^0-9]", "", colnames(gridVar))) %in% int.data[[cat]]) == FALSE) {
       stop("Cannot use griddedDat. Column names of griddedDat do not match zone ids in gridfile.")
     }
 
@@ -204,7 +204,7 @@ create_alternative_choice <- function(dat, project, gridfile = NULL, min.haul,
       allMat <- gridVar[, -1][biD, biG]
     }
     if (anyNA(allMat[Alt[["dataZoneTrue"]], ])) {
-      stop("Problem with loaded matrix, NaN found.")
+      stop("Problem with loaded matrix, NA found.")
     }
 
     Alt <- c(Alt, matrix = list(allMat[Alt[["dataZoneTrue"]], ])) # allMat[Alt[[dataZoneTrue]],]

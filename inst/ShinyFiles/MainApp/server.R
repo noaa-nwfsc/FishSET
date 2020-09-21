@@ -512,13 +512,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                                    multiple = FALSE, placeholder = 'Required data'))#,
                                #column(1, uiOutput('ui.actionP'))
                              ))
-          ),
-          conditionalPanel(condition="input.loadportsource!='Upload new file'", 
-                           tagList(
-                             fluidRow(
-                               column(5, textInput("portdattext", "Port data file name in database", placeholder = 'Optional data'))
-                             ))
-          ))
+          )#,
+          #conditionalPanel(condition="input.loadportsource!='Upload new file'", 
+          #                 tagList(
+          #                   fluidRow(
+          #                     column(5, textInput("portdattext", "Port data file name in database", placeholder = 'Optional. Provide if name '))
+          #                   ))
+          )#)
       })
       #output$ui.actionP <- renderUI({
       #  if(is.null(input$portdat)) return()
@@ -627,7 +627,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           conditionalPanel(condition="input.loadgridsource!='Upload new file'", 
                            tagList(
                              fluidRow(
-                               column(5, textInput("griddattext", "Gridded data file name in database", placeholder = 'Optional data'))
+                               column(5, textInput("griddattext", "Gridded data file name in database", placeholder = 'Name must be provided.'))
                              ))
           ))
       })
