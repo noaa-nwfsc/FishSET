@@ -89,8 +89,7 @@ haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, trip
   }
   names(out2)[1:dim(out2)[2] - 1] <- names(int)[which(dataIndex[
     dataIndex[, "variable_name"] %in% colnames(int[, -which(colnames(int) == "rowID")]),
-    "generalType"
-  ] == "Time")]
+    "generalType"] == "Time")]
   out <- cbind(out, out2)
   # Time - duration
   if (length(which(as.data.frame(dataIndex[dataIndex[, "variable_name"] %in% colnames(int[, -which(colnames(int) == "rowID")]), "generalType"]) == "Time")) >
