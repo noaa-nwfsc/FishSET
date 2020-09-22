@@ -161,10 +161,12 @@ create_alternative_choice <- function(dat, project, gridfile = NULL, min.haul,
       int = int # centroid data
     )
   }
+  
   ### Add gridded data ###
   if (!is.null(griddedDat)) {
     gridVar <- griddedDat
-
+    st <- 0
+    
     if (DBI::dbExistsTable(fishset_db, griddedDat) == FALSE) {
       DBI::dbWriteTable(fishset_db, griddedDat, gridVar)
     }
@@ -172,27 +174,32 @@ create_alternative_choice <- function(dat, project, gridfile = NULL, min.haul,
     int <- noquote(gsub("[^0-9]", "", colnames(gridVar)))
 
     if (any(noquote(gsub("[^0-9]", "", colnames(gridVar))) %in% int.data[[cat]]) == FALSE) {
-      stop("Cannot use griddedDat. Column names of griddedDat do not match zone ids in gridfile.")
+      warning("Cannot use griddedDat. Column names of griddedDat do not match zone ids in gridfile.")
+      st <- 1
     }
 
     # If gridded data is not an array, need to create matrix
-    if (dim(gridVar)[1] == 1) { # (is_empty(gridVar.row.array)){ #1d
-      biG <- match(Alt[["zoneRow"]], int) # [aiG,biG] = ismember(Alt.zoneRow, gridVar.col.array) #FIXME FOR STRING CONNECTIONS
-      numRows <- nrow(dataset) # size(data(1).dataColumn,1)  #
-      if (!any(biG)) {
-        stop("The map associated to the data and the grid information in the gridded variable do not overlap.")
-      }
-      allMat <- matrix(1, numRows, 1) %x% as.matrix(gridVar[1, biG]) # repmat(gridVar.matrix(1,biG), numRows, 1)
-    } else {
-      # [aiG,biG] = ismember(Alt.zoneRow, gridVar.col.array)#FIXME FOR STRING CONNECTIONS
-      biG <- match(Alt[["zoneRow"]], int[-1]) # gridVar.col.array
-      if (!any(biG)) {
-        stop("The map associated to the data and the grid information in the gridded variable do not overlap.")
+    if (st ==0) {
+      if(dim(gridVar)[1] == 1) { # (is_empty(gridVar.row.array)){ #1d
+        biG <- match(Alt[["zoneRow"]], int) # [aiG,biG] = ismember(Alt.zoneRow, gridVar.col.array) #FIXME FOR STRING CONNECTIONS
+        numRows <- nrow(dataset) # size(data(1).dataColumn,1)  #
+        if (!any(biG)) {
+          warning("The map associated to the data and the grid information in the gridded variable do not overlap.")
+          st <- 1
+        }
+        allMat <- matrix(1, numRows, 1) %x% as.matrix(gridVar[1, biG]) # repmat(gridVar.matrix(1,biG), numRows, 1)
+      } else {
+        # [aiG,biG] = ismember(Alt.zoneRow, gridVar.col.array)#FIXME FOR STRING CONNECTIONS
+        biG <- match(Alt[["zoneRow"]], int[-1]) # gridVar.col.array
+        if (!any(biG)) {
+          warning("The map associated to the data and the grid information in the gridded variable do not overlap.")
+          st <- 1
       }
 
       if (names(gridVar)[1] %in% colnames(dataset) == FALSE) {
         # wrong occourance variable to connect data
-        stop("The data in the workspace and the loaded grid file do not have a matching variable for connecting.")
+        warning("The data in the workspace and the loaded grid file do not have a matching variable for connecting.")
+        st <- 1
       }
 
       biD <- match(dataset[, names(gridVar)[1]], gridVar[, 1]) # [aiD,biD]=ismember(data(occasVar).dataColumn,gridVar.row.array)
@@ -202,12 +209,17 @@ create_alternative_choice <- function(dat, project, gridfile = NULL, min.haul,
       }
 
       allMat <- gridVar[, -1][biD, biG]
+      }
     }
     if (anyNA(allMat[Alt[["dataZoneTrue"]], ])) {
-      stop("Problem with loaded matrix, NA found.")
+      warning("Problem with loaded matrix, NA found.")
+      st <- 1
     }
-
+    if(st == 0){
     Alt <- c(Alt, matrix = list(allMat[Alt[["dataZoneTrue"]], ])) # allMat[Alt[[dataZoneTrue]],]
+    } else {
+      Alt = Alt
+    }
   }
 
 

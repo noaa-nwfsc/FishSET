@@ -284,16 +284,20 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
   }
 
 
-  ################### Steps if alternative matrix come from grid file use loaded alternatives matrix
+  ################### 
+  #Steps if alternative matrix come from gridded data file 
+   #The distance matrix is the gridded data file
   if (alternativeMatrix == "griddedData") {
     X <- Alt[["matrix"]]
 
     altChoiceUnits <- Alt[["altChoiceUnits"]]
-    allZP <- dataset[, grepl("AREA", colnames(dataset))] # get zonal type variables
+    
+  #Identify if using centroid or other for altToLocal2
+    allZP <- dataset[, grep("AREA|zone", colnames(dataset), ignore.case =T)[1]] # get zonal type variables
     if (all(is.null(allZP)) || Alt[["alt_var"]] > length(allZP)) {
       v2 <- 0 # zonal centroid
     } else {
-      v2 <- allZP(Alt[["alt_var"]]) # <<- What is this doing?  Getting an index to find the name?
+      v2 <- allZP(Alt[["alt_var"]]) #
     }
     if (v2 == 0) {
       altToLocal1 <- ""
@@ -305,7 +309,7 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
     altChoiceType <- "loaded grid data matrix"
     B <- Alt[["zoneRow"]]
     choiceZ <- ""
-    # End Grid Matrix
+# End Grid Matrix
   } else {
 
     # steps if alternative matrix comes from loaded data (expectations)
