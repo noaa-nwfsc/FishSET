@@ -2,7 +2,7 @@
 % Please edit documentation in R/merge_dat.R
 \name{merge_dat}
 \alias{merge_dat}
-\title{Merge datasets}
+\title{Merge datasets using a left join}
 \usage{
 merge_dat(dat, aux, project, mainKey, auxKey)
 }
@@ -10,7 +10,8 @@ merge_dat(dat, aux, project, mainKey, auxKey)
 \item{dat}{Primary data containing information on hauls or trips. Table in the FishSET
 database contains the string 'MainDataTable'.}
 
-\item{aux}{Auxiliary data table to join to MainDataTable.}
+\item{aux}{Auxiliary data table to join to MainDataTable. Use string if referencing 
+a table saved in the FishSET database.}
 
 \item{project}{String, name of project.}
 
@@ -21,11 +22,16 @@ of columns must match "auxKey".}
 of columns must match "mainKey".}
 }
 \description{
-Merge datasets
+Merge datasets using a left join
+}
+\details{
+This function merges two datasets using a left join: all columns and rows from the
+  MainDataTable are kept while only matching columns and rows from the auxiliary table 
+  are joined.
 }
 \examples{
 \dontrun{
-
+ merge_dat("pollockMainDataTable", "pollockPortTable", 
+           mainKey = "PORT_CODE", auxKey = "PORT_CODE")
 } 
-
 }
