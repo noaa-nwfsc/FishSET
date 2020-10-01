@@ -51,7 +51,7 @@ assignment_column <- function(dat, gridfile, lon.dat, lat.dat, cat, closest.pt =
 
   if (x == 0) {
     # For json and shape files
-    if (any(class(gridfile) == "sf") || any(class(gridfile) == "sp")) {
+    if (any(class(gridfile) %in% "sf") || any(class(gridfile) %in% c("sp", "SpatialPolygonsDataFrame"))) {
       # map2 <- sf::st_read('Z:/OLDFishSET/NMFS_RA.json')
       dat_sub <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), crs = "+proj=longlat +datum=WGS84")
 
