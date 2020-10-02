@@ -3,15 +3,21 @@
 #' @description Assign each observation in the primary dataset to a fishery management or regulatory zone. 
 #'    Function is primarily called by other functions that require zone assignment but can also be used on its own.
 #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
-#' @param gridfile Spatial data containing information on fishery management or regulatory zones. Shape, json, geojson, and csv formats are supported.
-#' @param hull.polygon Logical, if TRUE, creates convex hull polygon. Use if spatial data creating polygon are sparse or irregular.
+#' @param gridfile Spatial data containing information on fishery management or regulatory zones. 
+#'    Shape, json, geojson, and csv formats are supported.
+#' @param hull.polygon Logical, if TRUE, creates convex hull polygon. Use if spatial data creating polygon 
+#'   are sparse or irregular.
 #' @param lon.dat Longitude variable in \code{dat}.
 #' @param lat.dat Latitude variable in \code{dat}.
-#' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
-#' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
-#' @param cat Variable or list in \code{gridfile} that identifies the individual areas or zones. If \code{gridfile} is class sf, \code{cat} should be name of list containing information on zones.
+#' @param lon.grid Variable or list from \code{gridfile} containing longitude data. 
+#'    Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
+#' @param lat.grid Variable or list from \code{gridfile} containing latitude data. 
+#'   Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
+#' @param cat Variable or list in \code{gridfile} that identifies the individual areas or zones. 
+#'    If \code{gridfile} is class sf, \code{cat} should be name of list containing information on zones.
 #' @param epsg EPSG number. See \url{http://spatialreference.org/} to help identify optimal epsg number.
-#' @param closest.pt  Logical, if true, observations that fall outside zones are classed as the closest zone polygon to the point.
+#' @param closest.pt  Logical, if true, observations that fall outside zones are classed as the closest 
+#'    zone polygon to the point.
 #' @importFrom sp CRS Polygons Polygon SpatialPolygons SpatialPolygonsDataFrame coordinates
 #' @importFrom rgeos gDistance
 #' @importFrom grDevices chull
@@ -25,10 +31,8 @@
 #' @export
 
 
-assignment_column <- function(dat, gridfile, lon.dat, lat.dat, cat, closest.pt = c(TRUE, FALSE), lon.grid = NULL, lat.grid = NULL, hull.polygon = c(
-                                TRUE,
-                                FALSE
-                              ), epsg = NULL) {
+assignment_column <- function(dat, gridfile, lon.dat, lat.dat, cat, closest.pt = FALSE, lon.grid = NULL, lat.grid = NULL, 
+                              hull.polygon = FALSE, epsg = NULL) {
 
   # Call in data sets
   dataset <- dat
