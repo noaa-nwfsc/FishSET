@@ -48,3 +48,20 @@ parseDeleteEvent <- function(idstr) {
   if (! is.na(res)) res
 }
 
+find_lon <- function(dat) {
+  
+  cols <- colnames(dat)
+  lon_match <- stringi::stri_count_regex(cols, '(?=LON|Lon|lon)')
+  lon_cols <- which(lon_match %in% max(lon_match))
+  
+  cols[lon_cols]
+}
+
+find_lat <- function(dat) {
+  
+  cols <- colnames(dat)
+  lat_match <- stringi::stri_count_regex(cols, '(?=LAT|Lat|lat)')
+  lat_cols <- which(lat_match %in% max(lat_match))
+  
+  cols[lat_cols]
+}
