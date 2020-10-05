@@ -1,33 +1,37 @@
-#' Visualize gridded data
-#' 
-#' 
-#' @param grid Gridded data table to visualize. Use string if visualizing a gridded data
-#'   table in the FishSET Database. 
-#' @param project String, project name. 
-#' @param lon String, variable name containing longitude.
-#' @param lat String, variable name containing latitude.
-#' @param value String, variable name containing gridded values, e.g. sea surface 
-#'   temperature, wind speed, etc. 
-#' @param split_by String, variable in gridded data table to split by. 
-#' @param agg_by String, variable in gridded data table to group "value" by. By default,
-#'   the mean is aggregated. The string "latlon" is a shortcut for \code{agg_by = c("lon", "lat")}
-#'   which aggregates the "value" for each latitude-longitude pair across the entire dataset.
-#'   date 
-#' @export
-#' @import ggplot2
-#' @import ggmap
-#' @import dplyr 
-#' @examples 
-#' \dontrun{
-#' view_grid_dat(SST, "pollock", "lon", "lat", value = "analysed_sst")
-#' }
 
 
-view_grid_dat <- function(grid, project, lon, lat, value, split_by = NULL, agg_by = NULL) {
-  
+
+view_grid_dat <- function(grid, project, lon, lat, value, split_by = NULL, agg_by = NULL, gmap = FALSE) {
+  #' Visualize gridded data
+  #' 
+  #' 
+  #' @param grid Gridded data table to visualize. Use string if visualizing a gridded data
+  #'   table in the FishSET Database. 
+  #' @param project String, project name. 
+  #' @param lon String, variable name containing longitude.
+  #' @param lat String, variable name containing latitude.
+  #' @param value String, variable name containing gridded values, e.g. sea surface 
+  #'   temperature, wind speed, etc. 
+  #' @param split_by String, variable in gridded data table to split by. 
+  #' @param agg_by String, variable in gridded data table to group "value" by. By default,
+  #'   the mean is aggregated. The string "latlon" is a shortcut for \code{agg_by = c("lon", "lat")}
+  #'   which aggregates the "value" for each latitude-longitude pair across the entire dataset. 
+  #' @param gmap A ggmap object to be passed to \code{\link[ggmap]{ggmap}}. If FALSE, 
+  #'   then a ggmap is automatically retrieved. Defaults to FALSE. 
+  #' @export
+  #' @import ggplot2
+  #' @import ggmap
+  #' @import dplyr 
+  #' @examples 
+  #' \dontrun{
+  #' view_grid_dat(SST, "pollock", "lon", "lat", value = "analysed_sst")
+  #' }
+  #' 
   out <- data_pull(grid)
   dat <- out$dat
   grid <- out$dataset
+  
+  data(colors) # load in colors.RData in Data/
   
   # make bounding box
   bbox <- ggmap::make_bbox(lon, lat, grid)
@@ -35,11 +39,20 @@ view_grid_dat <- function(grid, project, lon, lat, value, split_by = NULL, agg_b
   xlim <- c(bbox["left"], bbox["right"])
   ylim <- c(bbox["bottom"], bbox["top"])
   
-  # Find ideal zoom level
-  zm <- ggmap::calc_zoom(lon, lat, grid)
+  if (is.logical(gmap)) { # Check if existing ggmap is present
+    
+    grid_map <- retrieve_map(grid, lon, lat)
+
+  } else {
+    
+    grid_map <- gmap
+  }
   
   # remove NA values
   grid <- grid[!is.na(grid[[value]]), ]
+  
+  # Shiny app 
+  if (!is.null(split_by)) if (split_by == "none") split_by <- NULL
   
   # aggregate 
   if (!is.null(agg_by)) {
@@ -52,12 +65,7 @@ view_grid_dat <- function(grid, project, lon, lat, value, split_by = NULL, agg_b
         dplyr::mutate(dplyr::across(value, mean, na.rm = TRUE))
   }
   
-  map_color <- colors$temperature # (from rerddap)
-  
-  grid_map <- ggmap::get_stamenmap(bbox = bbox, 
-                                   zoom = zm,
-                                   maptype = "toner-lite",
-                                   crop = FALSE)
+  map_color <- colors$temperature
   
   map_out <- 
     ggmap::ggmap(grid_map) +
@@ -91,8 +99,33 @@ view_grid_dat <- function(grid, project, lon, lat, value, split_by = NULL, agg_b
   # log function
   view_grid_dat_function <- list()
   view_grid_dat_function$functionID <- "view_grid_dat"
-  view_grid_dat_function$args <- list(grid, project, lon, lat, split_by, agg_by)
+  view_grid_dat_function$args <- list(dat, project, lon, lat, split_by, agg_by, deparse(substitute(gmap)))
   log_call(view_grid_dat_function)
   
   map_out
+}
+
+retrieve_map <- function(grid, lon, lat) {
+  #' Get stamen map 
+  #' 
+  #' @param grid Gridded data table to visualize. Use string if visualizing a gridded data
+  #'   table in the FishSET Database. 
+  #' @param lon String, variable name containing longitude.
+  #' @param lat String, variable name containing latitude.
+  #' @import ggmap
+  #' @export
+  #' @details This is a wrapper for \code{\link[ggmap]{get_stamenmap}}
+  
+  # make bounding box
+  bbox <- ggmap::make_bbox(lon, lat, grid)
+  
+  # Find ideal zoom level
+  zm <- ggmap::calc_zoom(lon, lat, grid)
+  
+  grid_map <- ggmap::get_stamenmap(bbox = bbox, 
+                                   zoom = zm,
+                                   maptype = "toner-lite",
+                                   crop = FALSE)
+  
+  grid_map
 }

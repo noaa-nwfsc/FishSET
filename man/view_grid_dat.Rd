@@ -4,7 +4,16 @@
 \alias{view_grid_dat}
 \title{Visualize gridded data}
 \usage{
-view_grid_dat(grid, project, lon, lat, value, split_by = NULL, agg_by = NULL)
+view_grid_dat(
+  grid,
+  project,
+  lon,
+  lat,
+  value,
+  split_by = NULL,
+  agg_by = NULL,
+  gmap = FALSE
+)
 }
 \arguments{
 \item{grid}{Gridded data table to visualize. Use string if visualizing a gridded data
@@ -23,8 +32,10 @@ temperature, wind speed, etc.}
 
 \item{agg_by}{String, variable in gridded data table to group "value" by. By default,
 the mean is aggregated. The string "latlon" is a shortcut for \code{agg_by = c("lon", "lat")}
-which aggregates the "value" for each latitude-longitude pair across the entire dataset.
-date}
+which aggregates the "value" for each latitude-longitude pair across the entire dataset.}
+
+\item{gmap}{A ggmap object to be passed to \code{\link[ggmap]{ggmap}}. If FALSE, 
+then a ggmap is automatically retrieved. Defaults to FALSE.}
 }
 \description{
 Visualize gridded data
@@ -33,4 +44,5 @@ Visualize gridded data
 \dontrun{
 view_grid_dat(SST, "pollock", "lon", "lat", value = "analysed_sst")
 }
+
 }
