@@ -355,28 +355,34 @@ source("map_viewer_app.R", local = TRUE)
                                           tags$br(), tags$br(),
                                           textInput('notesExplore', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. 
                                                     Text can be inserted into report later.'),
-                                          conditionalPanel(condition = "input.plot_table == 'Table'",
-                                                           selectInput("SelectDatasetExplore", "Select a dataset", 
-                                                      choices = c("main", "port", "auxiliary", "grid"))),
-                                          selectInput('plot_table', 'View data table or plots', choices=c('Table','Plots'), selected='Table'),
+                                          selectInput("SelectDatasetExplore", "Select a dataset", 
+                                                      choices = c("main", "port", "auxiliary", "grid")),
+                                          conditionalPanel("input.SelectDatasetExplore=='main' | input.SelectDatasetExplore=='grid'",
+                                          selectInput('plot_table', 'View data table or plots', choices=c('Table','Plots'), selected='Table')
+                                          ),
                                           conditionalPanel(
-                                            condition="input.plot_table=='Plots'",
+                                            condition="input.SelectDatasetExplore=='main' & input.plot_table=='Plots'",
                                             selectInput('plot_type', 'Select Plot Type', choices=c('Temporal','Spatial','x-y plot'))
                                           ),
                                           
                                           #selectInput('varofint', 'Variable of interest', choices=c('A','B','C'))
-                                          conditionalPanel(condition="input.plot_table=='Plots'& input.plot_type=='Spatial'",
+                                          conditionalPanel(condition="input.SelectDatasetExplore=='main' & input.plot_table=='Plots'& input.plot_type=='Spatial'",
                                                            uiOutput("mtgt_output")),
                                           uiOutput('mtgt_out2'),
                                           conditionalPanel(
-                                            condition='input.plot_table=="Table"',
+                                            condition='input.SelectDatasetExplore=="main" & input.plot_table=="Table"',
                                             verbatimTextOutput('editText')
                                           ),
                                           
                                           conditionalPanel(
-                                            condition='input.plot_table=="Plots" & input.plot_type=="Spatial"',
+                                            condition='input.SelectDatasetExplore=="main" & input.plot_table=="Plots" & input.plot_type=="Spatial"',
                                             uiOutput("location_info_spatial")
                                           ),
+                                          
+                                          conditionalPanel(
+                                             condition = "input.SelectDatasetExplore == 'grid' & input.plot_table == 'Plots'",
+                                             uiOutput("plot_grid_args")
+                                             ),
                                         
                                           ##Inline scripting 
                                           textInput("expr", label = "Enter an R expression",
@@ -389,16 +395,16 @@ source("map_viewer_app.R", local = TRUE)
                              mainPanel(width=10,
                                        tags$div(shinycssloaders::withSpinner(DT::DTOutput("output_table_exploration")), style = "font-size: 75%; width: 100%"),
                                        conditionalPanel(
-                                         condition='input.plot_table=="Plots" && input.plot_type=="Temporal"', 
+                                         condition="input.SelectDatasetExplore=='main' & input.plot_table=='Plots' && input.plot_type=='Temporal'", 
                                          uiOutput('column_select')),
                                        conditionalPanel(
-                                         condition='input.plot_table=="Plots" && input.plot_type=="x-y plot"',
+                                         condition='input.SelectDatasetExplore=="main" & input.plot_table=="Plots" && input.plot_type=="x-y plot"',
                                          uiOutput('xy_select1')),
                                        conditionalPanel(
-                                         condition='input.plot_table=="Plots" && input.plot_type=="x-y plot"',
+                                         condition='input.SelectDatasetExplore=="main" & input.plot_table=="Plots" && input.plot_type=="x-y plot"',
                                          uiOutput('xy_select2')),
                                        conditionalPanel(
-                                         condition='input.plot_table=="Plots" & input.plot_type=="Temporal"',
+                                         condition='input.SelectDatasetExplore=="main" & input.plot_table=="Plots" & input.plot_type=="Temporal"',
                                          tagList(
                                            tags$br(),tags$br(),
                                            fluidRow(column(12, align='right',
@@ -409,24 +415,30 @@ source("map_viewer_app.R", local = TRUE)
                                            )))
                                        ),
                                        conditionalPanel(
-                                         condition='input.plot_table=="Plots" & input.plot_type=="Temporal"',
+                                         condition='input.SelectDatasetExplore=="main" & input.plot_table=="Plots" & input.plot_type=="Temporal"',
                                          shinycssloaders::withSpinner(plotOutput('plot_time'))
                                        ),
                                        conditionalPanel(
-                                         condition='input.plot_table=="Plots" & input.plot_type=="Spatial"',
+                                         condition='input.SelectDatasetExplore=="main" & input.plot_table=="Plots" & input.plot_type=="Spatial"',
                                          column(shinycssloaders::withSpinner(plotOutput('plot_spatial',
                                                            click = "plot_spatial_click",
                                                            dblclick = "plot_spatial_dblclick", 
                                                            brush = brushOpts(id = "plot_spatial_brush",resetOnNew = FALSE ))), width=7)),
                                        conditionalPanel(
-                                         condition='input.plot_table=="Plots" & input.plot_type=="Spatial"',
+                                         condition='input.SelectDatasetExplore=="main" & input.plot_table=="Plots" & input.plot_type=="Spatial"',
                                          column(shinycssloaders::withSpinner(plotOutput('map_kernel')), width=7)),
                                        conditionalPanel(
-                                         condition='input.plot_table=="Plots" & input.plot_type=="Spatial"',
+                                         condition='input.SelectDatasetExplore=="main" & input.plot_table=="Plots" & input.plot_type=="Spatial"',
                                          column(DT::DTOutput('output_table_gt_mt'), width=6)),
                                        conditionalPanel(
-                                         condition='input.plot_table=="Plots" && input.plot_type=="x-y plot"',   
-                                         shinycssloaders::withSpinner(plotOutput('plot_xy')))
+                                         condition='input.SelectDatasetExplore=="main" & input.plot_table=="Plots" && input.plot_type=="x-y plot"',   
+                                         shinycssloaders::withSpinner(plotOutput('plot_xy'))),
+                                       
+                                       # gridded data plot 
+                                       conditionalPanel(
+                                          condition = "input.SelectDatasetExplore == 'grid' & input.plot_table == 'Plots'",
+                                          shinycssloaders::withSpinner(plotOutput("grid_plot"))
+                                       )
                              ))),
                    
                   #Fleet functions ==== 
