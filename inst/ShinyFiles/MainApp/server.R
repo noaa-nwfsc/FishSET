@@ -2021,10 +2021,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           if(names(spatdat$dataset)[1]=='var1'){
             tags$div(h5('Map file not loaded. Please load on Upload Data tab', style="color:red"))
           },
-          conditionalPanel(condition="input.plot_table=='Plots'&input.plot_type=='Spatial'",
+          conditionalPanel(condition="input.SelectDatasetExplore=='main' & input.plot_table=='Plots'&input.plot_type=='Spatial'",
                            style = "margin-left:19px;", selectizeInput('varofint', 'Variable to test for spatial autocorrelation',
                                                                     choices=colnames(values$dataset[,sapply(values$dataset,is.numeric)]))),
-          conditionalPanel(condition="input.plot_table=='Plots'&input.plot_type=='Spatial'",
+          conditionalPanel(condition="input.SelectDatasetExplore=='main' & input.plot_table=='Plots'&input.plot_type=='Spatial'",
                            style = "margin-left:19px;",  selectizeInput('gtmt_lonlat', 'Select lat then lon from data frame to assign observations to zone', 
                                                                      choices=c(NULL, names(values$dataset)[grep('lon|lat', names(values$dataset), ignore.case=TRUE)]), 
                                                                      multiple = TRUE, options = list(maxItems = 2, create = TRUE, placeholder='Select or type variable name')))#, 
@@ -2034,10 +2034,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })    
       output$mtgt_out2 <- renderUI({
         tagList(
-          conditionalPanel(condition="input.plot_table=='Plots'&input.plot_type=='Spatial'",
+          conditionalPanel(condition="input.SelectDatasetExplore=='main' & input.plot_table=='Plots'&input.plot_type=='Spatial'",
                            style = "margin-left:19px;", selectInput('mtgtcat',  "Variable defining zones or areas", 
                                                                     choices= c('', names(as.data.frame(spatdat$dataset))), selected='')),
-          conditionalPanel(condition="input.plot_table=='Plots'&input.plot_type=='Spatial'",
+          conditionalPanel(condition="input.SelectDatasetExplore=='main' & input.plot_table=='Plots'&input.plot_type=='Spatial'",
                            style = "margin-left:19px;", selectizeInput('mtgtlonlat', 'Select vector containing latitude then longitude from spatial data frame', 
                                                                     choices= c(NULL, names(as.data.frame(spatdat$dataset))), multiple=TRUE,
                                                                     options = list(maxItems = 2,create = TRUE, placeholder='Select or type variable name')))
@@ -2079,6 +2079,63 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         print(plotInput_xy())
       })
       
+      output$plot_grid_args <- renderUI({
+        tagList(
+          actionButton("run_grid", "Plot grid",
+                       style = "color: #fff; background-color: #6da363; border-color: #800000;"),
+          selectInput("grid_lon", "Longitude", 
+                      choices = find_lon(grddat$dataset)),
+          selectInput("grid_lat", "Latitude", 
+                      choices = find_lat(grddat$dataset)),
+          selectInput("grid_value", "Value", 
+                      choices = numeric_cols(grddat$dataset)),
+          selectInput("grid_split", "Split plot by",
+                      choices = c("none", colnames(grddat$dataset))),
+          selectInput("grid_agg", "Group mean value by",
+                      choices = c("latlon", colnames(grddat$dataset)),
+                      multiple = TRUE)
+        )
+      })
+      
+      grid_values <- reactiveValues(plot = FALSE,
+                                    bbox = FALSE,
+                                    gmap = FALSE)
+      
+      observeEvent(input$run_grid, {
+        
+        if (is.logical(grid_values$bbox)) {
+          
+          grid_values$bbox <- ggmap::make_bbox(grddat$dataset[[input$grid_lon]], 
+                                               grddat$dataset[[input$grid_lat]])
+          
+          grid_values$gmap <- retrieve_map(grddat$dataset, 
+                                           input$grid_lon, 
+                                           input$grid_lat) 
+          
+        } else {
+          
+          incoming_bbox <- ggmap::make_bbox(grddat$dataset[[input$grid_lon]], 
+                                            grddat$dataset[[input$grid_lat]])
+          
+          same_bbox <- all(round(grid_values$bbox) == round(incoming_bbox))
+          
+          if (same_bbox == FALSE) { # retrieve new map if bbox changes, else keep existing map
+            grid_values$gmap <- retrieve_map(grddat$dataset,
+                                             input$grid_lon, 
+                                             input$grid_lat) 
+            
+            grid_values$bbox <- incoming_bbox # update bbox
+          }
+        }
+        
+        grid_values$plot <-
+          view_grid_dat(grid = grddat$dataset, project = input$projectname,
+                      lon = input$grid_lon, lat = input$grid_lat,
+                      value = input$grid_value, split_by = input$grid_split,
+                      agg_by = input$grid_agg, gmap = grid_values$gmap)
+      })
+      
+      output$grid_plot <- renderPlot(grid_values$plot)
       
       
       # Fleet Functions ========
