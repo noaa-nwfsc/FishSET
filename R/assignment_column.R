@@ -65,6 +65,8 @@ assignment_column <- function(dat, gridfile, lon.dat, lat.dat, cat, closest.pt =
       if (!is.null(epsg)) {
         dat_sub <- sf::st_transform(dat_sub, epsg)
         gridfile <- sf::st_transform(gridfile, epsg)
+      } else {
+        gridfile <- sf::st_transform(gridfile, "+proj=longlat +datum=WGS84")
       }
       pts <- as.data.frame(as.numeric(sf::st_intersects(dat_sub, gridfile)))
       colnames(pts) <- "col.id"
