@@ -212,12 +212,13 @@ dummy_matrix <- function(dat, x) {
 #'
 #' Create a factor variable from numeric data.  Numeric variable is split into categories based on quantile categories.
 #'
-set_quants <- function(dat, x, quant.cat = c(0.2, 0.25, 0.4), name = "set_quants") {
+set_quants <- function(dat, x, quant.cat = c(0.2, 0.25, 0.4), custom.quant = NULL, name = "set_quants") {
   #' @param dat Primary data containing information on hauls or trips.
   #' Table in FishSET database contains the string 'MainDataTable'.
   #' @param x Variable to transform into quantiles.
   #' @param quant.cat Quantile options: \code{"0.2"}, \code{"0.25"}, and \code{"0.4"}
   #' \itemize{
+  #'   \item{.1:  (0\%, 10\%, 20\%, 30\%, 40\%, 50\%, 60\%, 70\%, 80\%, 90\%, 100\%)}
   #'   \item{.2:  (0\%, 20\%, 40\%, 60\%, 80\%, 100\%)}
   #'   \item{.25: (0\%, 25\%, 50\%, 75\%, 100\%)}
   #'   \item{.4:  (0\%, 10\%, 50\%, 90\%, 100\%)}
@@ -231,9 +232,11 @@ set_quants <- function(dat, x, quant.cat = c(0.2, 0.25, 0.4), name = "set_quants
   #' pollockMainDataTable <- set_quants(pollockMainDataTable, 'HAUL', quant.cat=.2, 'haul.quant')
   #' }
   #
-
-  dataset <- dat
-  dat <- deparse(substitute(dat))
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset
+  # dataset <- dat
+  # dat <- deparse(substitute(dat))
 
   tmp <- 0
 
@@ -243,12 +246,18 @@ set_quants <- function(dat, x, quant.cat = c(0.2, 0.25, 0.4), name = "set_quants
   }
 
   if (tmp == 0) {
-    if (quant.cat == 0.2) {
-      prob.def <- c(0, 0.2, 0.4, 0.6, 0.8, 1)
+    if (quant.cat == 0.1) {
+      prob.def <- seq(0, 1, by = .1)
+    } else if (quant.cat == 0.2) {
+      prob.def <- seq(0, 1, by = .2)
     } else if (quant.cat == 0.25) {
-      prob.def <- c(0, 0.25, 0.5, 0.75, 1)
+      prob.def <- seq(0, 1, by = .25)
     } else if (quant.cat == 0.4) {
       prob.def <- c(0, 0.1, 0.5, 0.9, 1)
+    }
+    
+    if (!is.null(custom.quant) & is.numeric(custom.quant)) {
+      prob.def <- custom.quant
     }
     # var.name <- paste('TRIP_OTC_MT', 'quantile', sep = '.')
     newvar <- as.integer(cut(dataset[[x]], quantile(dataset[[x]], probs = prob.def), include.lowest = TRUE))
@@ -258,7 +267,7 @@ set_quants <- function(dat, x, quant.cat = c(0.2, 0.25, 0.4), name = "set_quants
     
     create_var_set_quants_function <- list()
     create_var_set_quants_function$functionID <- "set_quants"
-    create_var_set_quants_function$args <- list(dat, x, quant.cat, deparse(substitute(name)))
+    create_var_set_quants_function$args <- list(dat, x, quant.cat, custom.quant, deparse(substitute(name)))
     create_var_set_quants_function$kwargs <- list()
     create_var_set_quants_function$output <- list(dat)
 
@@ -774,4 +783,283 @@ create_duration <- function(dat, start, end, units = c("week", "day", "hour", "m
   log_call(create_var_temp_function)
 
   return(g)
+}
+
+
+# Confidentiality functions ----
+
+randomize_value_row <- function(dat, project, value) {
+  #'
+  #' Randomize value between rows
+  #'
+  #' @param dat Main data frame over which to apply function. Table in FishSET 
+  #'   database should contain the string `MainDataTable`.
+  #' @param project Project name. 
+  #' @param value String, variable name to be randomly distributed between rows. 
+  #' @export 
+  #' @details This is one of the FishSET confidentiality functions. It is useful
+  #'   for randomly assigning ID values between observations. 
+  #' @examples
+  #' \dontrun{
+  #' jitter_row(pollockMainDataTable, "PERMIT")
+  #' }
+  
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset
+  
+  dataset[[value]] <- sample(dataset[[value]], size = nrow(dataset), replace = FALSE)
+  
+  randomize_value_row_function <- list()
+  randomize_value_row_function$functionID <- "randomize_value_row"
+  randomize_value_row_function$args <- list(dat, project, value) 
+  log_call(randomize_value_row_function)
+  
+  dataset
+}
+
+
+randomize_value_range <- function(dat, project, value, perc = NULL) {
+  #' 
+  #' Randomize value by percentage range
+  #' 
+  #' @param dat Main data frame over which to apply function. Table in FishSET 
+  #'   database should contain the string `MainDataTable`.
+  #' @param project Project name. 
+  #' @param value String, name of variable to jitter. 
+  #' @param perc Numeric, a vector of percentages to randomly adjust a column of values by. 
+  #'   Defaults to a range of 0.5 - 0.15 (i.e. 5-%15 of original value). 
+  #' @export
+  #' @details This is one of the FishSET confidentiality functions. It adjusts a 
+  #'   value by randomly sampling a range of percentages provided in the "perc" argument. 
+  #' @examples 
+  #' \dontrun{
+  #' jitter_value(pollockMainDataTable, "LBS_270_POLLOCK_LBS")
+  #' } 
+  
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset
+  
+  end <- FALSE
+  
+  if (!is.numeric(dataset[[value]])) {
+    
+    warning("Variable must be numeric.")
+    end <- TRUE
+  }
+  
+  if (end == FALSE) {
+  
+    if (is.null(perc)) perc <- seq(.05, .15, by = .01)
+    
+    r_val <- function(v, prc) {
+      
+      r_perc <- sample(prc, 1)
+      add_sub <- sample(c("add", "subtract"), 1)
+      
+      if (add_sub == "add") {
+        v <- v + (v * r_perc)
+      } else {
+        v <- v - (v * r_perc)
+      }
+      v
+    }
+    
+    new_vals <- vapply(dataset[[value]], FUN = r_val, FUN.VALUE = numeric(1), prc = perc)
+    
+    if (is.integer(dataset[[value]])) new_vals <- round(new_vals) 
+    
+    dataset[[value]] <- new_vals
+    
+    randomize_value_range_function <- list()
+    randomize_value_range_function$functionID <- "randomize_value_range"
+    randomize_value_range_function$args <- list(dat, project, value, perc) 
+    log_call(randomize_value_range_function)
+    
+    dataset
+  }
+}
+
+
+jitter_lonlat <- function(dat, project, lon, lat, factor = 1, amount = NULL) {
+  #'
+  #' Jitter longitude and latitude 
+  #'
+  #' @param dat Main data frame over which to apply function. Table in FishSET 
+  #'   database should contain the string `MainDataTable`.
+  #' @param project Project name. 
+  #' @param lon String, variable name containing longitude.
+  #' @param lat String, variable name containing latitude.
+  #' @param factor Numeric, see \code{\link[base]{jitter}} for details. 
+  #' @param amount Numeric, see \code{\link[base]{jitter}} for details.
+  #' @export
+  #' @details This is one of the FishSET confidentiality functions. It "jitters" 
+  #'   longitude and latitude using the base R function \code{\link[base]{jitter}}. 
+  #' @examples 
+  #' \dontrun{
+  #' jitter_lonlat(pollockMainDataTable, 
+  #'               lon = "LonLat_START_LON", lat = "LonLat_START_LAT")
+  #' }
+  
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset
+  
+  j_list <- 
+    lapply(c(lon, lat), function(x) {
+      
+      jitter(dataset[[x]], factor = factor, amount = amount)
+    })
+  
+  names(j_list) <- c(lon, lat)
+  
+  dataset[c(lon, lat)] <- as.data.frame.list(j_list)
+  
+  jitter_lonlat_function <- list()
+  jitter_lonlat_function$functionID <- "jitter_lonlat"
+  jitter_lonlat_function$args <- list(dat, project, lon, lat, factor, amount) 
+  log_call(jitter_lonlat_function)
+  
+  dataset
+}
+
+
+randomize_lonlat_zone <- function(dat, project, spatdat, lon, lat, zone) {
+  #' 
+  #' Randomize latitude and longitude points by zone
+  #' 
+  #' @param dat Main data frame over which to apply function. Table in FishSET 
+  #'   database should contain the string `MainDataTable`.
+  #' @param project Project name. 
+  #' @param spatdat Spatial data table containing regulatory zones. This can be 
+  #'   a "spatial feature" or sf object.
+  #' @param lon String, variable name containing longitude.
+  #' @param lat String, variable name containing latitude.
+  #' @param zone String, column name contain the assigned zone. Must be the same 
+  #'   for both the spatial data table and MainDataTable. 
+  #' @importFrom dplyr across arrange count
+  #' @importFrom sf st_coordinates st_sample
+  #' @export
+  #' @details This is one of the FishSET confidentiality functions. It replaces 
+  #'   longitude and latitude values with randomly sampled coordinates from the
+  #'   regulatory zone the observation occurred in. 
+  #' @examples 
+  #' \dontrun{
+  #' jitter_lonlat_zone(pollockMainDataTable, spatdat, 
+  #'                    lon = "LonLat_START_LON", lat = "LonLat_START_LAT",
+  #'                    zone = "NMFS_AREA")
+  #' }
+  
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset
+  
+  # arrange spatdat and dataset by zone
+  spatdat <- 
+    spatdat %>% 
+    dplyr::arrange(dplyr::across(zone))
+  
+  # temporary row id to preserve order
+  dataset$temp_row_id <- 1:nrow(dataset)
+  
+  dataset <- 
+    dataset %>% 
+    dplyr::arrange(dplyr::across(zone))
+  
+  # count the n_obs in each zone
+  zone_tab <- 
+    dataset %>% 
+    dplyr::count(dplyr::across(zone)) 
+  
+  # index of which zones have obs
+  z_ind <- which(spatdat[[zone]] %in% zone_tab[[zone]]) 
+  
+  # empty vector to be filled by zone sample size
+  # st_sample's size arg accepts a vector (sample size for each polygon)
+  size_vec <- rep(0, length(spatdat[[zone]]))
+  
+  # add sample size from zone_tab to size_vec, positioned by zone index
+  for (i in 1:nrow(zone_tab)) {
+    
+    size_vec[z_ind[i]] <- zone_tab$n[i]
+  }
+  
+  # generate random lonlat points 
+  rm_pnts <- sf::st_sample(spatdat, size = size_vec, type = "random")
+  
+  # fetch coordinates (matrix, array)
+  pts <- sf::st_coordinates(rm_pnts)
+  
+  colnames(pts) <- c(lon, lat)
+  
+  pts <- as.data.frame(pts)
+  
+  # create zone id vector
+  z_id <- rep(spatdat[[zone]], times = size_vec)
+  
+  pts[[zone]] <- z_id
+  
+  dataset[c(lon, lat)] <- pts[c(lon, lat)]
+  
+  dataset <- dataset %>% dplyr::arrange(temp_row_id)
+  dataset$temp_row_id <- NULL
+  
+  randomize_lonlat_zone_function <- list()
+  randomize_lonlat_zone_function$functionID <- "randomize_lonlat_zone"
+  randomize_lonlat_zone_function$args <- list(dat, project, deparse(substitute(spatdat)), lon, lat, zone) 
+  log_call(randomize_lonlat_zone_function)
+  
+  dataset
+}
+
+
+lonlat_to_centroid <- function(dat, project, lon, lat, spatdat, zone) {
+  #'
+  #' Assign longitude and latitude points to zonal centroid
+  #' 
+  #' @param dat Main data frame over which to apply function. Table in FishSET 
+  #'   database should contain the string `MainDataTable`.
+  #' @param project Project name. 
+  #' @param lon String, variable name containing longitude.
+  #' @param lat String, variable name containing latitude.
+  #' @param spatdat Spatial data table containing regulatory zones. This can be 
+  #'   a "spatial feature" or sf object. 
+  #' @param zone String, column name contain the assigned zone. Must be the same 
+  #'   for both the spatial data table and MainDataTable. 
+  #' @importFrom dplyr left_join
+  #' @details This is one of the FishSET confidentiality functions. It replaces the 
+  #'   selected longitude and latitude columns with the zonal centroid derived 
+  #'   from a spatial data table. 
+  #' @examples 
+  #' \dontrun{
+  #' lonlat_to_centroid(pollockMainDataTable, spatdat, 
+  #'                   lon = "LonLat_START_LON", lat = "LonLat_START_LAT",
+  #'                   zone = "NMFS_AREA")
+  #' }
+  #' 
+  
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset
+  
+  
+  pts <- find_centroid(dataset, spatdat, lon.dat = lon, lat.dat = lat, cat = zone)
+  
+  colnames(pts) <- c(zone, lon, lat)
+  
+  c_names <- colnames(dataset)
+  
+  dataset[c(lon, lat)] <- NULL
+  
+  dataset <- dplyr::left_join(dataset, pts, by = zone)
+  
+  dataset <- dataset[, c_names] # preserve original column order
+  
+  lonlat_to_centroid_function <- list()
+  lonlat_to_centroid_function$functionID <- "lonlat_to_centroid"
+  lonlat_to_centroid_function$args <- list(dat, project, deparse(substitute(spatdat)), lon, lat, zone) 
+  log_call(lonlat_to_centroid_function)
+  
+  dataset
 }
