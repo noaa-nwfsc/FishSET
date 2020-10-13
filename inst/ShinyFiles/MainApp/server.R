@@ -1155,7 +1155,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       observeEvent(c(input$checks, input$column_check, input$dat.remove, input$x_dist,
                      input$plot_table, input$plot_type, input$col_select, input$x_y_select1, input$x_y_select2,
                      input$corr_reg, input$corr_select, input$reg_resp_select, input$reg_exp_select), {
-        
+                       
         if(input$tabs=='qaqc'){
           if(input$checks=='Summary table') {
            case_to_print$dataQuality <- c(case_to_print$dataQuality, "Summary table of numeric variables viewed.\n")
@@ -1278,7 +1278,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             case_to_print$analysis <- c(case_to_print$analysis, paste0('Viewed plot and linear regression test output for ',input$reg_exp_select, ' on ', input$reg_resp_select,'.\n')) 
           } 
         }
-      })
+    })
       
 # Notes ===
       # notes <- reactive({ 
@@ -2268,6 +2268,69 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       #DATA CREATION/MODIFICATION FUNCTIONS----
       ###---
+      # Confidentiality
+      
+      output$rand_val_row_out <- renderUI({
+        conditionalPanel(condition = "input.VarCreateTop == 'Confidentiality' & input.confid == 'randomize_value_row'",
+                         style = "margin-left:19px;", selectInput('rand_val_row', 'Select variable', 
+                                                                  choices = colnames(values$dataset), multiple = FALSE))
+      })
+      
+      output$rand_val_range_out <- renderUI({
+        conditionalPanel(condition = "input.VarCreateTop == 'Confidentiality' & input.confid == 'randomize_value_range'",
+                         style = "margin-left:19px;", selectInput('rand_val_rng', 'Select variable', 
+                                                                  choices = numeric_cols(values$dataset), multiple = FALSE))
+      })
+      
+      output$jit_lonlat_out <- renderUI({
+        conditionalPanel(condition = "input.VarCreateTop == 'Confidentiality' & input.confid == 'jitter_lonlat'",
+                         style = "margin-left:19px;", 
+                         selectizeInput('jit_latlon', 'Select lon then lat', choices = find_lonlat(values$dataset), 
+                                        multiple = TRUE, options = list(maxItems = 2, create = TRUE, placeholder = 'Select or type variable name')),
+                         numericInput("jit_factor", "Set factor", value = 1),
+                         numericInput("jit_amount", "Set amount", value = 0))
+      })
+      
+      output$rand_lonlat_zone_out <- renderUI({
+        tagList(
+          
+          if(names(spatdat$dataset)[1]=='var1'){
+            conditionalPanel(condition = "input.VarCreateTop == 'Confidentiality' & input.confid == 'randomize_lonlat_zone'",
+                             style = "margin-left:19px;",
+            tags$div(h4('Map file not loaded. Please load on Upload Data tab', style="color:red")))
+            
+          } else {
+        conditionalPanel(condition = "input.VarCreateTop == 'Confidentiality' & input.confid == 'randomize_lonlat_zone'",
+                         style = "margin-left:19px;",
+  
+                         selectizeInput('rand_llz', 'Select lon then lat', choices = find_lonlat(values$dataset), 
+                                        multiple = TRUE, options = list(maxItems = 2, create = TRUE, placeholder = 'Select or type variable name')),
+                         selectInput("rand_llz_zone", "Select zone", multiple = FALSE,
+                                     choices = colnames(values$dataset)))
+          }
+        )
+      })
+      
+      output$lonlat_centroid_out <- renderUI({
+        tagList(
+          
+          if (names(spatdat$dataset)[1]=='var1') {
+            conditionalPanel(condition = "input.VarCreateTop == 'Confidentiality' & input.confid == 'lonlat_to_centroid'",
+                             style = "margin-left:19px;",
+                             tags$div(h4('Map file not loaded. Please load on Upload Data tab', style="color:red")))
+            
+          } else {
+            conditionalPanel(condition = "input.VarCreateTop == 'Confidentiality' & input.confid == 'lonlat_to_centroid'",
+                             style = "margin-left:19px;",
+                             
+                             selectizeInput('ll_cen', 'Select lon then lat', choices = find_lonlat(values$dataset), 
+                                            multiple = TRUE, options = list(maxItems = 2, create = TRUE, placeholder = 'Select or type variable name')),
+                             selectInput("ll_cen_zone", "Select zone", multiple = FALSE,
+                                         choices = colnames(values$dataset)))
+          }
+        )
+      })
+      
       #Transformations 
       output$trans_time_out <- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Data transformations'&input.trans=='temp_mod'",
@@ -2590,6 +2653,26 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         } else if(input$VarCreateTop=='Dummy variables'&input$dummyfunc=='From variable') {
               q_test <- quietly_test(dummy_num)
               values$dataset <- q_test(values$dataset, var=input$dummyvarfunc, value=input$select.val, opts=input$dumsubselect, name=input$varname)
+        } else if (input$VarCreateTop == "Confidentiality") {
+          if (input$confid == "randomize_value_row") {
+            q_test <- quietly_test(randomize_value_row)
+            values$dataset <- q_test(values$dataset, input$projectname, input$rand_val_row)
+          } else if (input$confid == "randomize_value_range") {
+            q_test <- quietly_test(randomize_value_range)
+            values$dataset <- q_test(values$dataset, input$projectname, input$rand_val_rng)
+          } else if (input$confid == "jitter_lonlat") {
+            q_test <- quietly_test(jitter_lonlat)
+            values$dataset <- q_test(values$dataset, input$projectname, lon = input$jit_latlon[1], 
+                                     lat = input$jit_latlon[2], factor = input$jit_factor, amount = input$jit_amount)
+          } else if (input$confid == "randomize_lonlat_zone") {
+            q_test <- quietly_test(randomize_lonlat_zone)
+            values$dataset <- q_test(values$dataset, project = input$projectname, spatdat = spatdat$dataset, lon = input$rand_llz[1], 
+                                     lat = input$rand_llz[2], zone = input$rand_llz_zone)
+          } else if (input$confid == "lonlat_to_centroid") {
+            q_test <- quietly_test(lonlat_to_centroid)
+            values$dataset <- q_test(values$dataset, project = input$projectname, spatdat = spatdat$dataset, lon = input$ll_cen[1], 
+                                     lat = input$ll_cen[2], zone = input$ll_cen_zone)
+          }
         } else if(input$VarCreateTop=='Data transformations'&input$trans=='temp_mod') {
               q_test <- quietly_test(temporal_mod)
               values$dataset <- q_test(values$dataset, x=input$TimeVar, define.format=input$define_format, name=input$varname)
@@ -3448,6 +3531,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       #                })
       
       savedText <- reactiveValues(answers = logical(0))
+      
       observeEvent(c(input$callTextDownload,
                      input$callTextDownloadAnal,
                      input$callTextDownloadExplore,
