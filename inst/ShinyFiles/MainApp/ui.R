@@ -7,9 +7,9 @@ source("map_viewer_app.R", local = TRUE)
     ui = function(request){
       fluidPage(
       shinyjs::useShinyjs(),
-      #--- 
-      #Formatting ----
-      #---
+      #---- 
+      #Formatting
+      #----
       tags$head(tags$style(HTML("
                                 .multicol { 
                                   height: 150px;
@@ -47,12 +47,12 @@ source("map_viewer_app.R", local = TRUE)
                               }
                                "))
                 ), #  position:fixed;
-      #---
+      #----
 
-      #---
+      #----
       tabsetPanel(id = "tabs",
-                  #Landing page ----
-                  #---
+                  #Landing page
+                  #----
                   tabPanel("Information",
                            tabsetPanel(
                              tabPanel("Background",
@@ -63,25 +63,22 @@ source("map_viewer_app.R", local = TRUE)
                                                         tags$div(style="display: inline-block; align:right", img(src="SandPoint_Boats.JPG", height='10%', width='100%', align='center')),
                                                         tags$br(),tags$br(),
                                                         tags$p('FishSET is a set of statistical programming and data management tools 
-                                                              developed to standardize data management and organization,
-                                                               enable the use of location choice models to provide input into the management
-                                                                of key fisheries, and organize statistical code so that predictions
-                                                                of fisher behavior can be incorporated into models and transparent to all users.'),
-                                                        tags$p('The FishSET toolbox is provided as a set of R functions that can be run in an R console or an R Shiny application.'),
-                                                        tags$p('The FishSET Shiny application is divided into tabs in order to guide users through all steps, from uploading data to developing 
-                                                               and evaluating models. Tabs can be navigated in any order. All data is saved in a FishSET database. Output, plots and tables, 
+                                                              developed to improve fishery modeling. The tools standardize data management and organization,
+                                                               enable the use of location choice models to provide input into fishery management,
+                                                                 and provide various other modeling and visualization tools.'),
+                                                        tags$p('The FishSET toolbox is provided as a set of R functions that can be run in an R console or here in this R Shiny application.'),
+                                                        tags$p('The FishSET Shiny application is divided into tabs to guide users through the steps of creation, from uploading and exploring data to developing 
+                                                               and evaluating models. Tabs can be navigated in any order. All data is saved to the FishSET database, a SQL database housed in the FishSET R package folder. Output, plots and tables, 
                                                                are saved in an output folder within the FishSET R package. The', tags$em('Quickstart Guide'), 'provides further assistance on using the 
                                                                FishSET Shiny application.'),
-                                                        tags$p('For questions and comments please contact:',
-                                                               tags$ul('Alan Haynie  alan.haynie@noaa.gov'),
-                                                               tags$ul('Melanie Harsch melanie.harsch@nooa.gov')))
+                                                        tags$p('For questions and comments please contact: FishSET@noaa.gov'))
                                         )
                                       )
                              ),
                              tabPanel('Quickstart guide',
 
                                         tags$br(),
-                                      
+                                      tags$p('Select a radio button for a brief guide for each tab.'),
                                       tags$div(
                                       radioButtons('QuickStartChoices',"", choices = c('Information across all tabs'='AcrossTabs',
                                                                                        'Upload Data tab'='UploadTab',
@@ -130,10 +127,10 @@ source("map_viewer_app.R", local = TRUE)
                                       )
                              ) 
                            )),
-                  
                   #---
-                  #Upload data tabset panel ---- 
-                  #---
+                  #----
+                  #Upload data tabset panel   
+                  #-----
                   tabPanel("Upload Data", value = "upload",
                            tags$style(type='text/css', "#uploadMain { width:100%; margin-top: 24px;margin-left:-20px;padding-left:2px; padding-right:5px}"),
                            
@@ -190,9 +187,9 @@ source("map_viewer_app.R", local = TRUE)
                              actionButton('callTextDownloadUp','Save notes'),
                              textInput('notesUp', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
                            )),
-                  #---
-                  #Data quality evaluation tabset panel ----
-                  #---
+                  #-----
+                  #Data quality evaluation tabset panel   
+                  #----
                   tabPanel("Data Quality Evaluation", value = "qaqc",
                            sidebarLayout(
                              sidebarPanel(width=3,
@@ -318,9 +315,9 @@ source("map_viewer_app.R", local = TRUE)
                                        DT::DTOutput('output_table_latlon')
                                 
                                        ))),
-                  #---
-                  #Data exploration tabset panel ----
-                  #---
+                  #---- 
+                  #Data exploration tabset panel 
+                  #----
                   tabPanel("Data Exploration", value = "explore",
                            sidebarLayout(
                              sidebarPanel(width=2,
@@ -561,9 +558,9 @@ source("map_viewer_app.R", local = TRUE)
                   ),
                   
                   
-                  #---
-                  #Basic analyses tabset panel ----
-                  #---
+                  #---- 
+                  #Basic analyses tabset panel 
+                  #----
                   tabPanel("Simple Analyses", value = "analysis",
                            sidebarLayout(
                              sidebarPanel(
@@ -621,9 +618,9 @@ source("map_viewer_app.R", local = TRUE)
                                  ))  )
                            )),
                   
-                  #---
-                  #Create new variables tabset panel ----
-                  #---
+                  #----
+                  #Create new variables tabset panel
+                  #----
                   tabPanel('Compute New Variables', value='new',
                            sidebarLayout(
                              sidebarPanel(
@@ -651,15 +648,9 @@ source("map_viewer_app.R", local = TRUE)
                                textInput('notesNew', "Notes", value=NULL, 
                                          placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
                                selectInput('VarCreateTop', "Create variables based on", multiple=FALSE,  
-                                           choices=c('Confidentiality', 'Data transformations', 'Nominal ID', 'Arithmetic and temporal functions', 'Dummy variables', 'Spatial functions', 'Trip-level functions')),
+                                           choices=c('Data transformations', 'Nominal ID', 'Arithmetic and temporal functions', 'Dummy variables', 'Spatial functions', 'Trip-level functions')),
                                
-                               ## Function options
-                               conditionalPanel(condition = "input.VarCreateTop == 'Confidentiality'",
-                                                selectInput('confid', 'Functions', multiple = FALSE,
-                                                            choices = c('Randomize value between rows' = 'randomize_value_row', 'Randomize value by percentage range' = 'randomize_value_range',
-                                                                        'Jitter longitude and latitude' = 'jitter_lonlat', 'Randomize longitude and latitude by zone' = 'randomize_lonlat_zone',
-                                                                        'Assign longitude and latitude to zonal centroid' = 'lonlat_to_centroid'))),
-                               
+                               ## Function options              
                                conditionalPanel(condition="input.VarCreateTop=='Data transformations'",
                                                 selectInput('trans','Functions',multiple = FALSE, 
                                                             choices = c("Change time unit"='temp_mod','Coded variable based on quantiles'='set_quants'))),
@@ -687,20 +678,6 @@ source("map_viewer_app.R", local = TRUE)
                                                                         'Calculate trip centroid'='trip_centroid'))),
                                conditionalPanel(condition="input.trip!='haul_to_trip'|input.trip!='trip_centroid'", 
                                                 textInput('varname','Name of new variable', value='', placeholder = '')),
-                               
-                               #More sub choices Confidentiality
-                               #uiOutput("confid_quant_out"),
-                               
-                               
-                               uiOutput("rand_val_row_out"),
-                               
-                               uiOutput("rand_val_range_out"),
-                               
-                               uiOutput("jit_lonlat_out"), 
-                               
-                               uiOutput("rand_lonlat_zone_out"),
-                               
-                               uiOutput("lonlat_centroid_out"),
                                
                                #More sub choices Data Transformations     
                                uiOutput('trans_time_out'),
@@ -784,9 +761,9 @@ source("map_viewer_app.R", local = TRUE)
                            
                            ),
                   
-                  #---
-                  #Zonal definition tabset panel ----
-                  #---
+                  #----   
+                  #Zonal definition tabset panel
+                  #-----
                   tabPanel('Zonal Definition', value = "zone",
                            sidebarLayout(
                              sidebarPanel(
@@ -845,9 +822,9 @@ source("map_viewer_app.R", local = TRUE)
                                #EXPECTED CATCH
                              )
                            )),
-                  #---
-                  #Expected catch tabset panel ----
-                  #---
+                  #-----
+                  #Expected catch tabset panel
+                  #----
                   tabPanel("Expected Catch/Revenue", value = "expectedCatch",
                            sidebarLayout(
                              sidebarPanel(
@@ -942,9 +919,9 @@ source("map_viewer_app.R", local = TRUE)
                                                 ))
                              )
                              )),
-                  #---
-                  #Model design and Run tabset panel ----
-                  #---
+                  #----
+                  #Model design and Run tabset panel
+                  #----
                    tabPanel("Models", value = "models",
                             tabsetPanel(
                                 tabPanel("Run model(s)",
@@ -1048,9 +1025,9 @@ source("map_viewer_app.R", local = TRUE)
                                         )
                                       )  )
                             )),
-                  #---
-                  #Bookmark tabset panel ----
-                  #---
+                  #---- 
+                  #Bookmark tabset panel
+                  #-----
                   tabPanel('Bookmark Choices', value = "book",
                            tags$br(),
                            tags$button(
