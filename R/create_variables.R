@@ -385,6 +385,7 @@ create_var_num <- function(dat, x, y, method, name = "create_var_num") {
 }
 
 ## ---- Spatial  Variables ----##
+
 #' Calculate haul midpoint latitude and longitude variables
 create_mid_haul <- function(dat, start = c("lon", "lat"), end = c("lon", "lat"), name = "mid_haul") {
   #' @description Calculates latitude and longitude of the haul midpoint and adds two variables
@@ -955,6 +956,10 @@ randomize_lonlat_zone <- function(dat, project, spatdat, lon, lat, zone) {
   dat <- out$dat
   dataset <- out$dataset
   
+  if (all(!(class(spatdat) %in% "sf"))) {
+    spatdat <- sf::st_as_sf(x = spatdat, crs = "+proj=longlat +datum=WGS84")
+  }
+  
   # arrange spatdat and dataset by zone
   spatdat <- 
     spatdat %>% 
@@ -1028,6 +1033,7 @@ lonlat_to_centroid <- function(dat, project, lon, lat, spatdat, zone) {
   #' @param zone String, column name contain the assigned zone. Must be the same 
   #'   for both the spatial data table and MainDataTable. 
   #' @importFrom dplyr left_join
+  #' @export
   #' @details This is one of the FishSET confidentiality functions. It replaces the 
   #'   selected longitude and latitude columns with the zonal centroid derived 
   #'   from a spatial data table. 
@@ -1043,6 +1049,9 @@ lonlat_to_centroid <- function(dat, project, lon, lat, spatdat, zone) {
   dat <- out$dat
   dataset <- out$dataset
   
+  if (all(!(class(spatdat) %in% "sf"))) {
+    spatdat <- sf::st_as_sf(x = spatdat, crs = "+proj=longlat +datum=WGS84")
+  }
   
   pts <- find_centroid(dataset, spatdat, lon.dat = lon, lat.dat = lat, cat = zone)
   

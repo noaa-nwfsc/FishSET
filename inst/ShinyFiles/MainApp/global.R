@@ -65,3 +65,8 @@ find_lat <- function(dat) {
   
   cols[lat_cols]
 }
+
+find_lonlat <- function(dat) {
+  
+  grep("lon|lat", colnames(dat), ignore.case = TRUE, value = TRUE)
+}
