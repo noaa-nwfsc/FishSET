@@ -225,17 +225,22 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         if(input$QuickStartChoices=='AcrossTabs'){
           tags$div(
                  tags$br(), tags$br(),
-                 tags$p('All tabs have buttons to close the app and refresh the data. 
-                      Refreshing the data pulls the raw, unprocessed data from the FishSET database.'),
-                 tags$p('Buttons to save plots and tables to the output folder are provided where appropriate.'), 
-                 tags$p('Each tab has a space to write notes and a button to save notes to the', tags$div(title='folder located in FishSET R package directory', 'output folder.')),
-                 tags$p('Each tab has an', tags$code('Enter an R expression'), 'area where R code can be run. 
+                 tags$p('All tabs have the following elements-',
+                  tags$ul('Buttons that enable you to close the app and refresh the data. Refreshing the data pulls the original 
+                            data loaded into the FishSET database. Instead of refreshing to the original state, you can refresh the 
+                            data to an intermediate state by entering in the name of the dataset in the', tags$code('optional text'),
+                            'input box for loading data from FishSET database on the', tags$cod('Upload Data'), 'tab. Intermediate 
+                            data will contain a date in the table name, such as', tags$em('ExampleMainDataTable01012020,')),
+                  tags$ul('Buttons that allow you to save plots and tables to the output folder.'), 
+                  tags$ul("A", tags$code('notes'), "section and a button to save notes to the", tags$div(title='folder located in FishSET R package directory',
+                                                                   'output folder.')),
+                  tags$ul('An', tags$code('R expression'), 'area where you can enter and run R code. 
                         Within the FishSET Shiny application, the primary data frame is called', tags$em('values$dataset.')), 
-                 tags$p('Some examples:', tags$br(), 'To view the mean of the fifth column, type',  tags$code('mean(values$dataset[,5])'), 
-                        'and click the', tags$code('Run'), 'button.',
-                       tags$br(),
-                      'To view summary details of a column called Vessel_Length, type', tags$code('summary(values$dataset$Vessel_Length)'), 
-                        'and click the', tags$code('Run'), 'button.'), 
+                 tags$ul(tags$ul('Some examples:'), 
+                         tags$ul(tags$code('mean(values$dataset[,5])'), 'displays the mean of the fifth column.'),
+                         tags$ul(tags$code('summary(values$dataset$Vessel_Length)'), 'displays summary details of a column called Vessel_Length.')
+                 )
+                 ),
                  tags$br(), tags$br(),
                  tags$div(style="display: inline-block; align:left; ", img(src="QuickStart1.png",  height="75%", width="75%"))
                 )
@@ -1155,7 +1160,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       observeEvent(c(input$checks, input$column_check, input$dat.remove, input$x_dist,
                      input$plot_table, input$plot_type, input$col_select, input$x_y_select1, input$x_y_select2,
                      input$corr_reg, input$corr_select, input$reg_resp_select, input$reg_exp_select), {
-                       
+        
         if(input$tabs=='qaqc'){
           if(input$checks=='Summary table') {
            case_to_print$dataQuality <- c(case_to_print$dataQuality, "Summary table of numeric variables viewed.\n")
@@ -1278,7 +1283,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             case_to_print$analysis <- c(case_to_print$analysis, paste0('Viewed plot and linear regression test output for ',input$reg_exp_select, ' on ', input$reg_resp_select,'.\n')) 
           } 
         }
-    })
+      })
       
 # Notes ===
       # notes <- reactive({ 
@@ -2268,69 +2273,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       #DATA CREATION/MODIFICATION FUNCTIONS----
       ###---
-      # Confidentiality
-      
-      output$rand_val_row_out <- renderUI({
-        conditionalPanel(condition = "input.VarCreateTop == 'Confidentiality' & input.confid == 'randomize_value_row'",
-                         style = "margin-left:19px;", selectInput('rand_val_row', 'Select variable', 
-                                                                  choices = colnames(values$dataset), multiple = FALSE))
-      })
-      
-      output$rand_val_range_out <- renderUI({
-        conditionalPanel(condition = "input.VarCreateTop == 'Confidentiality' & input.confid == 'randomize_value_range'",
-                         style = "margin-left:19px;", selectInput('rand_val_rng', 'Select variable', 
-                                                                  choices = numeric_cols(values$dataset), multiple = FALSE))
-      })
-      
-      output$jit_lonlat_out <- renderUI({
-        conditionalPanel(condition = "input.VarCreateTop == 'Confidentiality' & input.confid == 'jitter_lonlat'",
-                         style = "margin-left:19px;", 
-                         selectizeInput('jit_latlon', 'Select lon then lat', choices = find_lonlat(values$dataset), 
-                                        multiple = TRUE, options = list(maxItems = 2, create = TRUE, placeholder = 'Select or type variable name')),
-                         numericInput("jit_factor", "Set factor", value = 1),
-                         numericInput("jit_amount", "Set amount", value = 0))
-      })
-      
-      output$rand_lonlat_zone_out <- renderUI({
-        tagList(
-          
-          if(names(spatdat$dataset)[1]=='var1'){
-            conditionalPanel(condition = "input.VarCreateTop == 'Confidentiality' & input.confid == 'randomize_lonlat_zone'",
-                             style = "margin-left:19px;",
-            tags$div(h4('Map file not loaded. Please load on Upload Data tab', style="color:red")))
-            
-          } else {
-        conditionalPanel(condition = "input.VarCreateTop == 'Confidentiality' & input.confid == 'randomize_lonlat_zone'",
-                         style = "margin-left:19px;",
-  
-                         selectizeInput('rand_llz', 'Select lon then lat', choices = find_lonlat(values$dataset), 
-                                        multiple = TRUE, options = list(maxItems = 2, create = TRUE, placeholder = 'Select or type variable name')),
-                         selectInput("rand_llz_zone", "Select zone", multiple = FALSE,
-                                     choices = colnames(values$dataset)))
-          }
-        )
-      })
-      
-      output$lonlat_centroid_out <- renderUI({
-        tagList(
-          
-          if (names(spatdat$dataset)[1]=='var1') {
-            conditionalPanel(condition = "input.VarCreateTop == 'Confidentiality' & input.confid == 'lonlat_to_centroid'",
-                             style = "margin-left:19px;",
-                             tags$div(h4('Map file not loaded. Please load on Upload Data tab', style="color:red")))
-            
-          } else {
-            conditionalPanel(condition = "input.VarCreateTop == 'Confidentiality' & input.confid == 'lonlat_to_centroid'",
-                             style = "margin-left:19px;",
-                             
-                             selectizeInput('ll_cen', 'Select lon then lat', choices = find_lonlat(values$dataset), 
-                                            multiple = TRUE, options = list(maxItems = 2, create = TRUE, placeholder = 'Select or type variable name')),
-                             selectInput("ll_cen_zone", "Select zone", multiple = FALSE,
-                                         choices = colnames(values$dataset)))
-          }
-        )
-      })
-      
       #Transformations 
       output$trans_time_out <- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Data transformations'&input.trans=='temp_mod'",
@@ -2653,26 +2595,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         } else if(input$VarCreateTop=='Dummy variables'&input$dummyfunc=='From variable') {
               q_test <- quietly_test(dummy_num)
               values$dataset <- q_test(values$dataset, var=input$dummyvarfunc, value=input$select.val, opts=input$dumsubselect, name=input$varname)
-        } else if (input$VarCreateTop == "Confidentiality") {
-          if (input$confid == "randomize_value_row") {
-            q_test <- quietly_test(randomize_value_row)
-            values$dataset <- q_test(values$dataset, input$projectname, input$rand_val_row)
-          } else if (input$confid == "randomize_value_range") {
-            q_test <- quietly_test(randomize_value_range)
-            values$dataset <- q_test(values$dataset, input$projectname, input$rand_val_rng)
-          } else if (input$confid == "jitter_lonlat") {
-            q_test <- quietly_test(jitter_lonlat)
-            values$dataset <- q_test(values$dataset, input$projectname, lon = input$jit_latlon[1], 
-                                     lat = input$jit_latlon[2], factor = input$jit_factor, amount = input$jit_amount)
-          } else if (input$confid == "randomize_lonlat_zone") {
-            q_test <- quietly_test(randomize_lonlat_zone)
-            values$dataset <- q_test(values$dataset, project = input$projectname, spatdat = spatdat$dataset, lon = input$rand_llz[1], 
-                                     lat = input$rand_llz[2], zone = input$rand_llz_zone)
-          } else if (input$confid == "lonlat_to_centroid") {
-            q_test <- quietly_test(lonlat_to_centroid)
-            values$dataset <- q_test(values$dataset, project = input$projectname, spatdat = spatdat$dataset, lon = input$ll_cen[1], 
-                                     lat = input$ll_cen[2], zone = input$ll_cen_zone)
-          }
         } else if(input$VarCreateTop=='Data transformations'&input$trans=='temp_mod') {
               q_test <- quietly_test(temporal_mod)
               values$dataset <- q_test(values$dataset, x=input$TimeVar, define.format=input$define_format, name=input$varname)
@@ -3531,7 +3453,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       #                })
       
       savedText <- reactiveValues(answers = logical(0))
-      
       observeEvent(c(input$callTextDownload,
                      input$callTextDownloadAnal,
                      input$callTextDownloadExplore,
