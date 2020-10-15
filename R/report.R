@@ -535,21 +535,23 @@ function_summary <- function(date = NULL, type = "dat_load", show = "all") {
 
   dat_load <- c(
     "load_data", "load_maindata", "main_mod", "load_port", "load_aux",
-    "load_gridded"
+    "load_gridded", "merge_dat", "split_dat"
   )
 
   dat_quality <- c(
     "data_verification", "data_check", "nan_identify", "nan_filter", "na_filter",
     "outlier_table", "outlier_plot", "outlier_remove", "degree", "unique_filter",
     "empty_vars_filter", "check_model_data", "filter_table", "filter_dat",
-    "add_vars"
+    "add_vars", "changeclass"
   )
 
   dat_create <- c(
     "temp_mod", "ID_var", "create_seasonal_ID", "cpue", "dummy_var",
     "dummy_num", "dummy_matrix", "set_quants", "bin_var", "create_var_num",
     "create_mid_haul", "create_trip_centroid", "create_dist_between",
-    "create_duration", "create_startingloc", "haul_to_trip", "create_TD"
+    "create_duration", "create_startingloc", "haul_to_trip", "create_TD",
+    "randomize_value_row", "randomize_value_range", "jitter_lonlat", 
+    "randomize_lonlat_zone", "lonlat_to_centroid"
   )
 
   dat_exploration <- c(
@@ -559,14 +561,14 @@ function_summary <- function(date = NULL, type = "dat_load", show = "all") {
 
   fleet <- c(
     "fleet_table", "density_plot", "fleet_assign", "vessel_count", "species_catch", "bycatch",
-    "sum_catch", "weekly_catch", "weekly_effort", "trip_length"
+    "sum_catch", "weekly_catch", "weekly_effort", "trip_length", "roll_catch"
   )
 
   zonal_def <- c("create_alternative_choice", "find_centroid", "assignment_column")
 
   model <- c(
     "sparsetable", "sparsplot", "create_expectations", "make_model_design",
-    "discretefish_subroutine"
+    "discretefish_subroutine", "check_model_data", "log_func_model"
   )
 
   fun_vector <- switch(type, "dat_load" = dat_load, "dat_quality" = dat_quality,
