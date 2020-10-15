@@ -225,15 +225,16 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         if(input$QuickStartChoices=='AcrossTabs'){
           tags$div(
                  tags$br(), tags$br(),
-                 tags$p('All tabs have the following elements-',
-                  tags$ul('Buttons that enable you to close the app and refresh the data. Refreshing the data pulls the original 
-                            data loaded into the FishSET database. Instead of refreshing to the original state, you can refresh the 
+                 tags$p('All tabs have the following elements:',
+                  tags$ul('Buttons that enable you to close the app and refresh the data.', 
+                            tags$ul('Refreshing the data pulls the original data loaded into the FishSET database. Instead of refreshing to the original state, you can refresh the 
                             data to an intermediate state by entering in the name of the dataset in the', tags$code('optional text'),
                             'input box for loading data from FishSET database on the', tags$cod('Upload Data'), 'tab. Intermediate 
-                            data will contain a date in the table name, such as', tags$em('ExampleMainDataTable01012020,')),
+                            data will contain a date in the table name, such as', tags$em('ExampleMainDataTable01012020,'))
+                          ),
                   tags$ul('Buttons that allow you to save plots and tables to the output folder.'), 
-                  tags$ul("A", tags$code('notes'), "section and a button to save notes to the", tags$div(title='folder located in FishSET R package directory',
-                                                                   'output folder.')),
+                  tags$ul("A", tags$code('notes'), "section and a button to save notes to the", tags$div(title='folder located in FishSET R package directory','output folder.')
+                          ),
                   tags$ul('An', tags$code('R expression'), 'area where you can enter and run R code. 
                         Within the FishSET Shiny application, the primary data frame is called', tags$em('values$dataset.')), 
                  tags$ul(tags$ul('Some examples:'), 
@@ -246,23 +247,52 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                 )
         }
       })
-     
+###WORK HERE ####
       output$UploadTabsText <- renderUI({
         if(input$QuickStartChoices=='UploadTab'){ 
           tags$div(
 			tags$br(), tags$br(),
-            tags$p('To get started, you must load a primary data set and specify a project name.'),
-            tags$p('Upload data (primary, port, map, gridded, auxiliary) from the FishSET database or from source.'), 
-	        tags$p('To upload from a local file location, select', tags$code('Upload new file'), 'and then browse to file location (arrow 1).', 
-              tags$br(),
-              'Fill in the project name (arrow 2).'),
-	        tags$p('To upload from the FishSET database, select', tags$code('FishSET database'), ' (arrow 1) type in project name (arrow 2), 
-				and click the', tags$code('Load data'), 'button (arrow 3).'),
-            tags$div(style="display: inline-block; align:center", img(src="upload.png",  height="75%", width="75%"))
+           tags$p('Purpose:', 
+                tags$ul('This tab is used to upload data (primary, port, map, gridded, auxiliary) from the FishSET database or 
+                        from a local file location.')), 
+	         tags$p("To get started first write a project name in the", tags$code('Name of project'), "text box. The project name is a 
+unique identifier for all data tables and outputs (plots, model results, etc) associated with the analysis. Example project names are 'pollock2019' or 'AKGOA'."),
+          tags$p('Next, load data',
+            tags$ul('To load from a local file location, select the', tags$code('Upload new file'), 'radio button and then browse to file location.'), 
+	          tags$ul('To load from the FishSET database, select the', tags$code('FishSET database'), 'radio button. Fill out the', 
+				tags$code('Name of data table in FishSET Database'), 'text box if using a data table other than the original, unmodified table first loaded into the FishSET database.')
+				), 
+	         tags$p('Finally, press the', tags$code('Load data'), 'button.'),
+           # tags$div(style="display: inline-block; align:center", img(src="upload.png",  height="75%", width="75%"))
+			tags$br(), tags$br(),
+			tags$p("Details on data", 
+			       tags$br(),
+			       "FishSET uses four types of data:",
+			       tags$ul('primary (requred)'), 
+			       tags$ul('port (required)'),
+			       tags$ul('spatial (required)'), 
+			       tags$ul('auxiliary (optional)'), 
+			       tags$ul('gridded (optional)'), 
+			       "The 'primary data set' is a flat data file containing the core data used in models. It must contain at least one vector containing information on 
+ports (id, name), date (haul, trip start), catch amount (metric tons, kg), and fishing location (latitude/longitude, zone/area). 
+			       Additional information such as price, species caught, and vessel characteristics may included in the primary data set or added later. 
+			       Each row of the primary data file should be a unique observation and each column a unique variable. Single or double apostrophes, commas other than as 
+CSV separators, and periods other than as decimal points, should not be included in the file. Use underscores rather than spaces in column names and use NA or leave 
+cells empty to represent no or missing data.",
+			       tags$br(),
+			       "The port data file contains the location (lat/lon) of ports in the primary data file and a variable containing port name or ID that links to the 
+			       primary data file. Values in port name variable must exactly match values in the primary data port variable. 
+			       Check spelling, capitalization, and spaces if port data is not successfully merged into primary dataset.
+			       Location variables (latitude and longitude) must be in decimal degrees with cardinal direction indicated by sign.",
+			       tags$br()#,
+			       
+			
+          )
           )
         }
       })
-      
+    
+                   
       output$ExploreTabsText <- renderUI({
         if(input$QuickStartChoices=='ExplorTab'){ 
           tags$div(
@@ -440,8 +470,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           ),     
           conditionalPanel(condition="input.loadmainsource=='FishSET database'", 
                              fluidRow(
-                               column(5, textInput("maindatabasedat", "Name of data frame in FishSET database",
-                                                   value='', placeholder = 'Optional. Use if loading modified data frame'))
+                               column(5, textInput("maindatabasedat", "Name of data table in FishSET database",
+                                                   value='', placeholder = 'Optional. Use if loading modified data table'))
                                
                              )
           ))
@@ -586,7 +616,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           conditionalPanel(condition="input.loadspatialsource!='Upload new file'", 
                            tagList(
                              fluidRow(
-                               column(5, textInput("spatialdattext", "Spatial data file name in database", placeholder = 'Suggested data'))
+                               column(5, textInput("spatialdattext", "Spatial data table name in database", placeholder = 'Suggested data'))
                              ))
           ))
       })
@@ -632,7 +662,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           conditionalPanel(condition="input.loadgridsource!='Upload new file'", 
                            tagList(
                              fluidRow(
-                               column(5, textInput("griddattext", "Gridded data file name in database", placeholder = 'Name must be provided.'))
+                               column(5, textInput("griddattext", "Gridded data table name in database", placeholder = 'Name must be provided.'))
                              ))
           ))
       })
@@ -691,7 +721,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           conditionalPanel(condition="input.loadauxsource!='Upload new file'", 
                            tagList(
                              fluidRow(
-                               column(5, textInput("auxdattext", "Auxiliary data file name in database", placeholder = 'Optional data')),
+                               column(5, textInput("auxdattext", "Auxiliary data table name in database", placeholder = 'Optional data')),
                                actionButton("mergeAux", label = "Merge with main data", 
                                             style = "background-color: #FAFA00;")))
           )

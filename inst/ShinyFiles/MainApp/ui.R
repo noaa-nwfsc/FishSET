@@ -84,8 +84,10 @@ source("map_viewer_app.R", local = TRUE)
                                                                                        'Upload Data tab'='UploadTab',
                                                                                        'Data Quality Evaluation tab'='DQTab',
                                                                                        'Data Exploration tab'='ExplorTab',
+                                                                                       'Fleet Analysis and Assignment tab' = 'FleetTab',
                                                                                        'Simple Analyses tab'='AnalTab',
                                                                                        'Compute New Variables tab'='NewVarsTab',
+                                                                                       'Map Viewer tab' = 'MapTab',
                                                                                        'Zonal Definition tab'='ZonalTab',
                                                                                        'Expected Catch/Revenue tab'='ExpectedTab',
                                                                                        'Models tab'='ModelTab',
@@ -440,7 +442,7 @@ source("map_viewer_app.R", local = TRUE)
                    
                   #Fleet functions ==== 
                   
-                  tabPanel("Fleet analysis and assignment", value = "fleet",
+                  tabPanel("Fleet Analysis and Assignment", value = "fleet",
                            
                            sidebarLayout(
                              
