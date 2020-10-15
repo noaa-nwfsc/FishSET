@@ -3464,32 +3464,38 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                      input$callTextDownloadModels,
                      input$callTextDownloadBook),{
                       
-                       savedText$answers <- reactiveValuesToList(notes)
-                       nms <- c("dataQuality", "explore", "analysis")
-                       for (n in nms) {
-                         savedText$answers[[n]] <- c(savedText$answers[[n]], case_to_print[[n]])
+                       if (input$projectname == "") {
+                         showNotification("Enter a project name. Note not saved.", type = 'message', duration = 5)
+                         
+                       } else {
+                         
+                         savedText$answers <- reactiveValuesToList(notes)
+                         nms <- c("dataQuality", "explore", "analysis")
+                         for (n in nms) {
+                           savedText$answers[[n]] <- c(savedText$answers[[n]], case_to_print[[n]])
+                         }
+                         
+                         updateTextInput(session, 'notesUp', "Notes", value = "", 
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                         updateTextInput(session, 'notesQAQC', "Notes", value="", 
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                         updateTextInput(session, 'notesExplore', "Notes", value = "", 
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                         updateTextInput(session, 'notesAnal', "Notes", value="", 
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                         updateTextInput(session, 'notesNew', "Notes", value = "",
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                         updateTextInput(session, 'notesZone', "Notes", value = "", 
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                         updateTextInput(session, 'notesEC', "Notes", value = "",
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                         updateTextInput(session, 'notesModel', "Notes", value = "", 
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                         updateTextInput(session, 'notesBook', "Notes", value = "", placeholder = 'Paste bookmarked URL here.')
+                         
+                         showNotification("Note saved.", type = 'message', duration = 5)
                        }
-                       
-                       updateTextInput(session, 'notesUp', "Notes", value = "", 
-                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                       updateTextInput(session, 'notesQAQC', "Notes", value="", 
-                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                       updateTextInput(session, 'notesExplore', "Notes", value = "", 
-                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                       updateTextInput(session, 'notesAnal', "Notes", value="", 
-                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                       updateTextInput(session, 'notesNew', "Notes", value = "",
-                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                       updateTextInput(session, 'notesZone', "Notes", value = "", 
-                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                       updateTextInput(session, 'notesEC', "Notes", value = "",
-                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                       updateTextInput(session, 'notesModel', "Notes", value = "", 
-                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                       updateTextInput(session, 'notesBook', "Notes", value = "", placeholder = 'Paste bookmarked URL here.')
-                       
-                       showNotification("Note saved.", type = 'message', duration = 5)
-                     })
+                     }, ignoreInit = TRUE)
       
       #  Stored Txt
       # observeEvent(input$callTextDownloadUp, {
@@ -3873,18 +3879,18 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                     input$callTextDownloadBook))) > 0) {
   
             notes_out <- unlist(isolate(savedText$answers))
-  
-          } else {
-  
-            notes_out <- isolate(reactiveValuesToList(case_to_print))
-            nms_out <- c("dataQuality" = "Data quality evaluation: ",
-                         "explore" = "Data exploration: ", "analysis" = "Simple analysis: ")
-  
-            for (i in names(notes_out)) {
-              notes_out[[i]] <- paste0(nms_out[i], "\n", paste(notes_out[[i]], collapse = "\n"))
-            }
-            notes_out <- unlist(notes_out)
-          }
+
+         #  } else {
+         # 
+         #    notes_out <- isolate(reactiveValuesToList(case_to_print))
+         #    nms_out <- c("dataQuality" = "Data quality evaluation: ",
+         #                 "explore" = "Data exploration: ", "analysis" = "Simple analysis: ")
+         # 
+         #    for (i in names(notes_out)) {
+         #      notes_out[[i]] <- paste0(nms_out[i], "\n", paste(notes_out[[i]], collapse = "\n"))
+         #    }
+         #    notes_out <- unlist(notes_out)
+         # }
   
           filename <- paste0(locoutput(), isolate(input$projectname), "_notes_", Sys.Date(), ".txt")
   
@@ -3901,6 +3907,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           } else {
             writeLines(notes_out, con = filename)
           }
+         }
         }
 
         # map viewer
