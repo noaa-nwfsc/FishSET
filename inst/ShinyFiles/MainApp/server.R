@@ -247,7 +247,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                 )
         }
       })
-     
+###WORK HERE ####
       output$UploadTabsText <- renderUI({
         if(input$QuickStartChoices=='UploadTab'){ 
           tags$div(
@@ -284,9 +284,10 @@ cells empty to represent no or missing data.",
 			       primary data file. Values in port name variable must exactly match values in the primary data port variable. 
 			       Check spelling, capitalization, and spaces if port data is not successfully merged into primary dataset.
 			       Location variables (latitude and longitude) must be in decimal degrees with cardinal direction indicated by sign.",
-			       tags$br(),
+			       tags$br()#,
 			       
 			
+          )
           )
         }
       })
@@ -3493,32 +3494,38 @@ cells empty to represent no or missing data.",
                      input$callTextDownloadModels,
                      input$callTextDownloadBook),{
                       
-                       savedText$answers <- reactiveValuesToList(notes)
-                       nms <- c("dataQuality", "explore", "analysis")
-                       for (n in nms) {
-                         savedText$answers[[n]] <- c(savedText$answers[[n]], case_to_print[[n]])
+                       if (input$projectname == "") {
+                         showNotification("Enter a project name. Note not saved.", type = 'message', duration = 5)
+                         
+                       } else {
+                         
+                         savedText$answers <- reactiveValuesToList(notes)
+                         nms <- c("dataQuality", "explore", "analysis")
+                         for (n in nms) {
+                           savedText$answers[[n]] <- c(savedText$answers[[n]], case_to_print[[n]])
+                         }
+                         
+                         updateTextInput(session, 'notesUp', "Notes", value = "", 
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                         updateTextInput(session, 'notesQAQC', "Notes", value="", 
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                         updateTextInput(session, 'notesExplore', "Notes", value = "", 
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                         updateTextInput(session, 'notesAnal', "Notes", value="", 
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                         updateTextInput(session, 'notesNew', "Notes", value = "",
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                         updateTextInput(session, 'notesZone', "Notes", value = "", 
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                         updateTextInput(session, 'notesEC', "Notes", value = "",
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                         updateTextInput(session, 'notesModel', "Notes", value = "", 
+                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                         updateTextInput(session, 'notesBook', "Notes", value = "", placeholder = 'Paste bookmarked URL here.')
+                         
+                         showNotification("Note saved.", type = 'message', duration = 5)
                        }
-                       
-                       updateTextInput(session, 'notesUp', "Notes", value = "", 
-                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                       updateTextInput(session, 'notesQAQC', "Notes", value="", 
-                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                       updateTextInput(session, 'notesExplore', "Notes", value = "", 
-                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                       updateTextInput(session, 'notesAnal', "Notes", value="", 
-                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                       updateTextInput(session, 'notesNew', "Notes", value = "",
-                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                       updateTextInput(session, 'notesZone', "Notes", value = "", 
-                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                       updateTextInput(session, 'notesEC', "Notes", value = "",
-                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                       updateTextInput(session, 'notesModel', "Notes", value = "", 
-                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                       updateTextInput(session, 'notesBook', "Notes", value = "", placeholder = 'Paste bookmarked URL here.')
-                       
-                       showNotification("Note saved.", type = 'message', duration = 5)
-                     })
+                     }, ignoreInit = TRUE)
       
       #  Stored Txt
       # observeEvent(input$callTextDownloadUp, {
@@ -3902,18 +3909,18 @@ cells empty to represent no or missing data.",
                     input$callTextDownloadBook))) > 0) {
   
             notes_out <- unlist(isolate(savedText$answers))
-  
-          } else {
-  
-            notes_out <- isolate(reactiveValuesToList(case_to_print))
-            nms_out <- c("dataQuality" = "Data quality evaluation: ",
-                         "explore" = "Data exploration: ", "analysis" = "Simple analysis: ")
-  
-            for (i in names(notes_out)) {
-              notes_out[[i]] <- paste0(nms_out[i], "\n", paste(notes_out[[i]], collapse = "\n"))
-            }
-            notes_out <- unlist(notes_out)
-          }
+
+         #  } else {
+         # 
+         #    notes_out <- isolate(reactiveValuesToList(case_to_print))
+         #    nms_out <- c("dataQuality" = "Data quality evaluation: ",
+         #                 "explore" = "Data exploration: ", "analysis" = "Simple analysis: ")
+         # 
+         #    for (i in names(notes_out)) {
+         #      notes_out[[i]] <- paste0(nms_out[i], "\n", paste(notes_out[[i]], collapse = "\n"))
+         #    }
+         #    notes_out <- unlist(notes_out)
+         # }
   
           filename <- paste0(locoutput(), isolate(input$projectname), "_notes_", Sys.Date(), ".txt")
   
@@ -3930,6 +3937,7 @@ cells empty to represent no or missing data.",
           } else {
             writeLines(notes_out, con = filename)
           }
+         }
         }
 
         # map viewer
