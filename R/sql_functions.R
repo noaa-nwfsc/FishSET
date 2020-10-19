@@ -151,3 +151,27 @@ model_fit <- function(project) {
   return(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0("SELECT * FROM ", paste0(project, "modelfit"))))
   DBI::dbDisconnect(fishset_db)
 }
+
+project_tables <- function(project, ...) {
+  #' Display database table names by project
+  #' 
+  #' @param project Name of project.
+  #' @param ... String, additional characters to match by. 
+  #' @export
+  #' @examples 
+  #' \dontrun{
+  #' project_tables("pollock")
+  #' project_tables("pollock", "main")
+  #' }
+
+  out <- grep(paste0("^", project, ...), tables_database(), 
+              value = TRUE, ignore.case = TRUE)
+  
+  if (length(out) == 0) {
+    
+    paste0("No database tables found for project ", project)
+  } else {
+    
+    out
+  }
+}
