@@ -1,4 +1,4 @@
-moran_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, lat.dat = NULL, cat = NULL, lon.grid = NULL, lat.grid = NULL) {
+moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = NULL, cat = NULL, lon.grid = NULL, lat.grid = NULL) {
   #' Calculate and view Moran's I
   #'
   #' Wrapper function to calculate global and local Moran's I by discrete area.
@@ -7,16 +7,16 @@ moran_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, lat.da
   #' Table in FishSET database contains the string 'MaindataTable'.
   #' @param project String, name of project.
   #' @param varofint Numeric variable from \code{dat} to test for spatial autocorrelation.
-  #' @param gridfile Spatial data containing information on fishery management or regulatory zones.
+  #' @param spat Spatial data containing information on fishery management or regulatory zones.
   #' Shape, json, geojson, and csv formats are supported.
   #' @param lon.dat Longitude variable from \code{dat}.
   #' @param lat.dat Latitude variable from \code{dat}.
-  #' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required for csv files.
-  #' Leave as NULL if \code{gridfile} is a shape or json file.
-  #' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files.
-  #' Leave as NULL if \code{gridfile} is a shape or json file.
-  #' @param cat Variable or list in \code{gridfile} that identifies the individual areas or zones.
-  #' If \code{gridfile} is class sf, \code{cat} should be name of list containing information on zones.
+  #' @param lon.grid Variable or list from \code{spat} containing longitude data. Required for csv files.
+  #' Leave as NULL if \code{spat} is a shape or json file.
+  #' @param lat.grid Variable or list from \code{spat} containing latitude data. Required for csv files.
+  #' Leave as NULL if \code{spat} is a shape or json file.
+  #' @param cat Variable or list in \code{spat} that identifies the individual areas or zones.
+  #' If \code{spat} is class sf, \code{cat} should be name of list containing information on zones.
   #' @details Measure degree of spatial autocorrelation. Function utilizes the \code{\link[spdep]{localmoran}}
   #' and \code{\link[spdep]{knearneigh}} functions from the spdep package. The spatial input is a row-standardized spatial
   #' weights matrix for computed nearest neighbor matrix, which is the null setting for the \code{\link[spdep]{nb2listw}}
@@ -33,7 +33,7 @@ moran_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, lat.da
   #' @examples
   #' \dontrun{
   #' moran_stats(pcodMainDataTable, project='pcod', varofint='OFFICIAL_MT_TONS',
-  #' gridfile=spatdat, lon.dat='LonLat_START_LON', lat.dat ='LonLat_START_LAT', cat='NMFS_AREA')
+  #' spat=spatdat, lon.dat='LonLat_START_LON', lat.dat ='LonLat_START_LAT', cat='NMFS_AREA')
   #' }
   #'
 
@@ -44,6 +44,10 @@ moran_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, lat.da
   out <- data_pull(dat)
   dat <- out$dat
   dataset <- out$dataset
+  
+  spat_out <- data_pull(spat)
+  spat <- spat_out$dat
+  spatdat <- spat_out$dataset
 
   x <- 0
   if (any(abs(dataset[[lon.dat]]) > 180)) {
@@ -60,18 +64,18 @@ moran_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, lat.da
   if (x == 0) {
     # Assign data to zone
     if (!is.null(cat)) {
-      dataset <- assignment_column(dataset, gridfile, hull.polygon = TRUE, lon.dat, lat.dat, cat, closest.pt = TRUE, lon.grid, lat.grid, epsg = NULL)
+      dataset <- assignment_column(dataset, spatdat, hull.polygon = TRUE, lon.dat, lat.dat, cat, closest.pt = TRUE, lon.grid, lat.grid, epsg = NULL)
 
       # Idenfity centroid of zone
-      int <- find_centroid(dataset, gridfile, lon.dat, lat.dat, cat, lon.grid, lat.grid, weight.var = NULL)
+      int <- find_centroid(dataset, spatdat, lon.dat, lat.dat, cat, lon.grid, lat.grid, weight.var = NULL)
     }
 
     # Create dataset
-    if (any(class(gridfile) == "sf")) {
-      nc_geom <- sf::st_geometry(gridfile)
-      temp <- data.frame(ZoneID = rep(gridfile[[cat]][1], path = dim(as.data.frame(nc_geom[[1]][[1]]))[1]), as.data.frame(nc_geom[[1]][[1]]))
+    if ("sf" %in% class(spatdat)) {
+      nc_geom <- sf::st_geometry(spatdat)
+      temp <- data.frame(ZoneID = rep(spatdat[[cat]][1], path = dim(as.data.frame(nc_geom[[1]][[1]]))[1]), as.data.frame(nc_geom[[1]][[1]]))
       for (i in 2:length(nc_geom)) {
-        temp <- rbind(temp, data.frame(ZoneID = rep(gridfile[[cat]][i], path = dim(as.data.frame(nc_geom[[1]][[i]]))[1]), as.data.frame(nc_geom[[1]][[i]])))
+        temp <- rbind(temp, data.frame(ZoneID = rep(spatdat[[cat]][i], path = dim(as.data.frame(nc_geom[[1]][[i]]))[1]), as.data.frame(nc_geom[[1]][[i]])))
       }
       # datatomap <- merge(temp, int, by='ZoneID')
       int <- merge(int, dataset[, c(varofint, "ZoneID")], by = "ZoneID")
@@ -141,7 +145,7 @@ moran_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, lat.da
 
     moran_stats_function <- list()
     moran_stats_function$functionID <- "moran_stats"
-    moran_stats_function$args <- list(dat, project, varofint, gridfile, lon.dat, lat.dat, cat)
+    moran_stats_function$args <- list(dat, project, varofint, spat, lon.dat, lat.dat, cat)
     moran_stats_function$kwargs <- list(lon.grid, lat.grid)
     log_call(moran_stats_function)
 
