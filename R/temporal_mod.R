@@ -33,7 +33,7 @@
 #'
 #'
 #' # Change to Year, month, day, minutes
-temporal_mod <- function(dat, x, define.format, name) {
+temporal_mod <- function(dat, x, define.format, name = NULL) {
 
   # Call in datasets
   out <- data_pull(dat)
@@ -43,32 +43,35 @@ temporal_mod <- function(dat, x, define.format, name) {
 
   if (!define.format %in% c("year", "month", "day", "hour", "minute")) {
     # User defines the format of the time variable
-    name <- format(date_parser(dataset[[x]]), format = define.format)
+    temp_out <- format(date_parser(dataset[[x]]), format = define.format)
     # Extract specific time unit
   } else {
     if (define.format == "month") {
       # Month:
-      name <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m")
+      temp_out <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m")
     } else if (define.format == "year") {
       # Year:
-      name <- format(as.Date(date_parser(dataset[[x]])), format = "%Y")
+      temp_out <- format(as.Date(date_parser(dataset[[x]])), format = "%Y")
     } else if (define.format == "day") {
       # Month/day
-      name <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m/%d")
+      temp_out <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m/%d")
     } else if (define.format == "hour") {
-      name <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m/%d %H")
+      temp_out <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m/%d %H")
     } else if (define.format == "minute") {
-      name <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m/%d %H:%M")
+      temp_out <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m/%d %H:%M")
     } else {
       warning("define.format is not recognized. Pre-formatted choices include, year, month, day, hour, minute")
     }
   }
 
   temp_mod_function <- list()
-  temp_mod_function$functionID <- "temp_mod"
+  temp_mod_function$functionID <- "temporal_mod"
   temp_mod_function$args <- list(dat, x, define.format, deparse(substitute(name)))
   temp_mod_function$output <- list(dat)
   log_call(temp_mod_function)
+  
+  if (is.null(name)) name <- paste0("temp_mod_", define.format)
 
-  return(cbind(dataset, name))
+  dataset[[name]] <- temp_out
+  return(dataset)
 }

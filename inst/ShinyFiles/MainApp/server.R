@@ -1778,7 +1778,8 @@ cells empty to represent no or missing data.",
         default_sub <- which(default_search_columns!='')
         
         table_type <- #switch(input$SelectDatasetExplore, 
-                             "main" = "MainDataTable"#,
+                             #"main" = 
+                                "MainDataTable"#,
                              #"port" = "PortTable",
                              #"grid" = input$GridName,
                              #"auxiliary" = input$AuxName)
@@ -2082,9 +2083,9 @@ cells empty to represent no or missing data.",
         if(input$mtgtcat==''){
           return( NULL)
         } else {
-          gt <- getis_ord_stats(values$dataset, project=input$projectname, varofint=input$varofint, gridfile=spatdat$dataset, 
+          gt <- getis_ord_stats(values$dataset, project=input$projectname, varofint=input$varofint, spat=spatdat$dataset, 
                                 lon.dat=input$gtmt_lonlat[2], lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat, lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$getistable
-          mt <- moran_stats(values$dataset, project=input$projectname, varofint=input$varofint, gridfle=spatdat$dataset, 
+          mt <- moran_stats(values$dataset, project=input$projectname, varofint=input$varofint, spat=spatdat$dataset, 
                             lon.dat=input$gtmt_lonlat[2], lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat, lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$morantable
           print(gt)
           return(as.data.frame(merge(gt, mt)))
@@ -3208,7 +3209,7 @@ cells empty to represent no or missing data.",
                                   All buttons are inactive while model function is running.
                                   Check R console for progress.', type='message', duration=30)
                 discretefish_subroutine(input$projectname, initparams=rv$data$inits, optimOpt=rv$data$optimOpt,  
-                                  methodname=input$optmeth, mod.name=rv$data$mod_name, select.model=FALSE, name='discretefish_subroutine')              
+                                  methodname=input$optmeth, mod.name=rv$data$mod_name, select.model=FALSE) #, name='discretefish_subroutine')              
         #    ), type='message', duration=10)
                 showNotification('Model run is complete. Check the `Compare Models` subtab to view output', type='message', duration=10)
           toggle_inputs(input_list,T)
