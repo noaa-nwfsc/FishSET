@@ -4,7 +4,7 @@
 \alias{lonlat_to_centroid}
 \title{Assign longitude and latitude points to zonal centroid}
 \usage{
-lonlat_to_centroid(dat, project, lon, lat, spatdat, zone)
+lonlat_to_centroid(dat, project, lon, lat, spat, zone)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in FishSET 
@@ -16,7 +16,7 @@ database should contain the string `MainDataTable`.}
 
 \item{lat}{String, variable name containing latitude.}
 
-\item{spatdat}{Spatial data table containing regulatory zones. This can be 
+\item{spat}{Spatial data table containing regulatory zones. This can be 
 a "spatial feature" or sf object.}
 
 \item{zone}{String, column name contain the assigned zone. Must be the same 

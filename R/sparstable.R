@@ -11,7 +11,7 @@ sparsetable <- function(dat, project, timevar, zonevar, var) {
   #' @importFrom reshape2 acast
   #' @export
   #'
-
+  
   spars <- function(x, dname) {
     if (dname == "1 weeks") {
       rownames(x) <- lubridate::round_date(as.Date(rownames(x)), "1 weeks")
@@ -28,8 +28,12 @@ sparsetable <- function(dat, project, timevar, zonevar, var) {
     # print(head(x))
     return(colSums(x == 0) / nrow(x))
   }
-
-  tmp <- reshape2::acast(dat[, c(zonevar, var, timevar)], dat[[timevar]] ~ dat[[zonevar]], value.var = var)
+  
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset
+  
+  tmp <- reshape2::acast(dataset[, c(zonevar, var, timevar)], dataset[[timevar]] ~ dataset[[zonevar]], value.var = var)
   tmp <- cbind(tmp, All_zones = rowSums(tmp))
 
   sparstable <- matrix(nrow = 6, ncol = length(colnames(tmp)))

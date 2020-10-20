@@ -875,7 +875,7 @@ randomize_value_range <- function(dat, project, value, perc = NULL) {
     
     randomize_value_range_function <- list()
     randomize_value_range_function$functionID <- "randomize_value_range"
-    randomize_value_range_function$args <- list(dat, project, value, perc) 
+    randomize_value_range_function$args <- list(dat, project, value, c(perc[1], perc[length(perc)])) 
     log_call(randomize_value_range_function)
     
     dataset
@@ -926,14 +926,14 @@ jitter_lonlat <- function(dat, project, lon, lat, factor = 1, amount = NULL) {
 }
 
 
-randomize_lonlat_zone <- function(dat, project, spatdat, lon, lat, zone) {
+randomize_lonlat_zone <- function(dat, project, spat, lon, lat, zone) {
   #' 
   #' Randomize latitude and longitude points by zone
   #' 
   #' @param dat Main data frame over which to apply function. Table in FishSET 
   #'   database should contain the string `MainDataTable`.
   #' @param project Project name. 
-  #' @param spatdat Spatial data table containing regulatory zones. This can be 
+  #' @param spat Spatial data table containing regulatory zones. This can be 
   #'   a "spatial feature" or sf object.
   #' @param lon String, variable name containing longitude.
   #' @param lat String, variable name containing latitude.
@@ -956,7 +956,11 @@ randomize_lonlat_zone <- function(dat, project, spatdat, lon, lat, zone) {
   dat <- out$dat
   dataset <- out$dataset
   
-  if (all(!(class(spatdat) %in% "sf"))) {
+  spat_out <- data_pull(spat)
+  spat <- spat_out$dat
+  spatdat <- spat_out$dataset
+  
+  if (!("sf" %in% class(spatdat))) {
     spatdat <- sf::st_as_sf(x = spatdat, crs = "+proj=longlat +datum=WGS84")
   }
   
@@ -1012,14 +1016,14 @@ randomize_lonlat_zone <- function(dat, project, spatdat, lon, lat, zone) {
   
   randomize_lonlat_zone_function <- list()
   randomize_lonlat_zone_function$functionID <- "randomize_lonlat_zone"
-  randomize_lonlat_zone_function$args <- list(dat, project, deparse(substitute(spatdat)), lon, lat, zone) 
+  randomize_lonlat_zone_function$args <- list(dat, project, spat, lon, lat, zone) 
   log_call(randomize_lonlat_zone_function)
   
   dataset
 }
 
 
-lonlat_to_centroid <- function(dat, project, lon, lat, spatdat, zone) {
+lonlat_to_centroid <- function(dat, project, lon, lat, spat, zone) {
   #'
   #' Assign longitude and latitude points to zonal centroid
   #' 
@@ -1028,7 +1032,7 @@ lonlat_to_centroid <- function(dat, project, lon, lat, spatdat, zone) {
   #' @param project Project name. 
   #' @param lon String, variable name containing longitude.
   #' @param lat String, variable name containing latitude.
-  #' @param spatdat Spatial data table containing regulatory zones. This can be 
+  #' @param spat Spatial data table containing regulatory zones. This can be 
   #'   a "spatial feature" or sf object. 
   #' @param zone String, column name contain the assigned zone. Must be the same 
   #'   for both the spatial data table and MainDataTable. 
@@ -1049,7 +1053,11 @@ lonlat_to_centroid <- function(dat, project, lon, lat, spatdat, zone) {
   dat <- out$dat
   dataset <- out$dataset
   
-  if (all(!(class(spatdat) %in% "sf"))) {
+  spat_out <- data_pull(spat)
+  spat <- spat_out$dat
+  spatdat <- spat_out$dataset
+  
+  if (!("sf" %in% class(spatdat))) {
     spatdat <- sf::st_as_sf(x = spatdat, crs = "+proj=longlat +datum=WGS84")
   }
   
@@ -1067,7 +1075,7 @@ lonlat_to_centroid <- function(dat, project, lon, lat, spatdat, zone) {
   
   lonlat_to_centroid_function <- list()
   lonlat_to_centroid_function$functionID <- "lonlat_to_centroid"
-  lonlat_to_centroid_function$args <- list(dat, project, deparse(substitute(spatdat)), lon, lat, zone) 
+  lonlat_to_centroid_function$args <- list(dat, project, spat, lon, lat, zone) 
   log_call(lonlat_to_centroid_function)
   
   dataset

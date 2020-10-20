@@ -55,7 +55,7 @@ pull_log <- function(log_date = NULL) {
   #' @keywords internal
   #' @export
 
-  x <- 0
+  end <- FALSE
 
   if (is.null(log_date)) {
     log <- jsonlite::fromJSON(paste0(loclog(), current_log()), simplifyVector = FALSE)
@@ -66,11 +66,11 @@ pull_log <- function(log_date = NULL) {
       )
     } else {
       warning("Log file does not exist.")
-      x <- 1
+      end <- TRUE
     }
   }
 
-  if (x == 0) {
+  if (end == FALSE) {
     log
   }
 }
@@ -99,6 +99,30 @@ current_out <- function() {
 
   outs
 }
+
+project_files <- function(project) {
+  #' List output files by project name
+  #' 
+  #' @param project Project name
+  #' @export
+  #' @examples 
+  #' \dontrun{
+  #' project_files("pollock")
+  #' }
+  
+  outs <- list.files(locoutput())
+  
+  proj <- grep(paste0("^", project), outs, value = TRUE)
+  
+  if (length(proj) == 0) {
+    
+    paste0("No output files found for project ", project)
+  
+  } else {
+    proj
+  }
+}
+
 
 pull_output <- function(project, fun = NULL, date = NULL, type = "plot") {
   #'
@@ -178,9 +202,14 @@ pull_table <- function(project, fun, date = NULL) {
   #' 
   out <- pull_output(project = project, fun = fun, date = date, type = "table")
   
-  # formatting here
+  if (fun == "summary_stats") {
+    
+    summary_table(project)
+  
+    } else {
   
   table_format(out)
+  }
 }
 
 
@@ -445,23 +474,30 @@ parse_notes <- function(project, date = NULL, section, output = "print") {
   
   notes <- pull_notes(project = project, date = date, output = "string")
   
-  split <- unlist(strsplit(notes, "\n\n"))
-  
-  note_type <-  switch(section, "upload" = "Upload data: ", "quality" = "Data quality evaluation: ", 
-                       "explore" = "Data exploration: ", "fleet" = "Fleet functions: ", 
-                       "analysis" =  "Simple analysis: ","new_variable" = "Create new variable: ", 
-                       "zone" =  "Zone definition: ", "expected_catch" = "Expected catch/revenue: ", 
-                       "models" = "Models: ", "bookmark" = "Bookmark URL: ")
-  
-  notes <- grep(note_type, split, value = TRUE)
-  
-  if (output == "string") {
+  if (length(notes) == 0) {
     
-    notes
+    paste("No notes found for project", project, date)
+  
+  } else {
+  
+    split <- unlist(strsplit(notes, "\n\n"))
     
-  } else if (output == "print") {
+    note_type <-  switch(section, "upload" = "Upload data: ", "quality" = "Data quality evaluation: ", 
+                         "explore" = "Data exploration: ", "fleet" = "Fleet functions: ", 
+                         "analysis" =  "Simple analysis: ","new_variable" = "Create new variable: ", 
+                         "zone" =  "Zone definition: ", "expected_catch" = "Expected catch/revenue: ", 
+                         "models" = "Models: ", "bookmark" = "Bookmark URL: ")
     
-    cat(notes, sep = "\n")
+    notes <- grep(note_type, split, value = TRUE)
+    
+    if (output == "string") {
+      
+      notes
+      
+    } else if (output == "print") {
+      
+      cat(notes, sep = "\n")
+    }
   }
 }
 
@@ -479,35 +515,42 @@ summary_table <- function(project, output = "print") {
   #' @details Displays the most recent table created by \code{\link{summary_stats}}
   #' as a dataframe. Can be used in console or notebook.
 
-  date <- gsub(".json", "", current_log())
-
-  sum_tab <- read.csv(paste0(locoutput(), project, "_summary_stats_", date, ".csv"),
-    strip.white = TRUE, check.names = FALSE
-  )
-
-  rownames(sum_tab) <- c(
-    "Min", "Median", "Mean", "Max", "Missing",
-    "Unique Obs.", "No. 0's"
-  )
-
-  sum_tab <- apply(sum_tab, 2, function(x) gsub(".*:", "", x))
-
-  sum_tab <- apply(sum_tab, 2, function(x) trimws(x))
-
-  sum_tab <- as.data.frame(t(sum_tab))
-
-  sum_tab <- tibble::rownames_to_column(sum_tab, "Variable")
-
-  sum_tab <- sum_tab[-1, ]
-
-  if (output == "print") {
+  #date <- gsub(".json", "", current_log())
+  sum_out <- pull_output(project = project, fun = "summary_stats", type = "table")
+  
+  if (length(sum_out) == 0) {
     
-    pander::pander(
-      pander::pandoc.table(sum_tab, style = "simple", row.names = FALSE, split.tables = Inf)
+    paste("Summary table for project", project, "not found.")
+  
+  } else {
+
+    sum_tab <- read.csv(paste0(locoutput(), sum_out),
+      strip.white = TRUE, check.names = FALSE)
+  
+    rownames(sum_tab) <- c(
+      "Min", "Median", "Mean", "Max", "Missing",
+      "Unique Obs.", "No. 0's"
     )
-  } else if (output == "table") {
-    
-    sum_tab
+  
+    sum_tab <- apply(sum_tab, 2, function(x) gsub(".*:", "", x))
+  
+    sum_tab <- apply(sum_tab, 2, function(x) trimws(x))
+  
+    sum_tab <- as.data.frame(t(sum_tab))
+  
+    sum_tab <- tibble::rownames_to_column(sum_tab, "Variable")
+  
+    sum_tab <- sum_tab[-1, ]
+  
+    if (output == "print") {
+      
+      pander::pander(
+        pander::pandoc.table(sum_tab, style = "simple", row.names = FALSE, split.tables = Inf)
+      )
+    } else if (output == "table") {
+      
+      sum_tab
+    }
   }
 }
 
@@ -789,6 +832,26 @@ filter_summary <- function(sum_tab, filter_list) {
   sum_tab
 }
 
+view_model_design <- function(project, date = NULL) {
+  #' View model design file in database
+  #' 
+  #' @param project Project name.
+  #' @param date String, date model design file was created. 
+  #' @export
+  
+  tab_name <- paste0(project, "modelDesignTable")
+  
+  if (!is.null(date)) tab_name <- paste0(tab_name, gsub("-", "", date))
+  
+  if (!table_exists(tab_name)) {
+    
+    paste0(tab_name, " not found.")
+  
+    } else {
+    
+    table_view(tab_name)
+  }
+}
 
 model_out_summary <- function(project, output = "print") {
   #'
@@ -807,7 +870,11 @@ model_out_summary <- function(project, output = "print") {
 
   pull_out <- current_db_table(project, "modelOut")
   
-  if (pull_out$exists == TRUE) {
+  if (pull_out$exists == FALSE) {
+    
+    paste0(project, "modelOut", " not found.")
+  
+  } else {
     
     p_mod <- pull_out$table
     
@@ -838,7 +905,6 @@ model_out_summary <- function(project, output = "print") {
       modeltab
     }
   }
-  paste0(project, "modelOut", "not found.")
 }
 
 
@@ -859,7 +925,11 @@ model_error_summary <- function(project, output = "print") {
 
   pull_out <- current_db_table(project, "modelOut")
 
-  if (pull_out$exists == TRUE) {
+  if (pull_out$exists == FALSE) {
+    
+    paste0(project, "modelOut", " not found.")
+    
+  } else {
     
     p_mod <- pull_out$table 
     results <- model_out_view(p_mod)
@@ -891,7 +961,6 @@ model_error_summary <- function(project, output = "print") {
       error_out
     }
   }
-  paste0(project, "modelOut", " not found.")
 }
 
 
@@ -910,9 +979,13 @@ model_fit_summary <- function(project, output = "print") {
   #' model_fit_summary("pollock")
   #' }
 
-  pull_out <- current_db_table(project, " modelOut")
+  pull_out <- current_db_table(project, "modelOut")
   
-  if (pull_out$exists == TRUE) {
+  if (pull_out$exists == FALSE) {
+    
+    paste0(project, "modelOut", " not found.")
+  
+  } else {
     
     p_mod <- pull_out$table 
     results <- model_out_view(p_mod)
@@ -942,7 +1015,6 @@ model_fit_summary <- function(project, output = "print") {
       fit_tab
     }
   }
-  paste0(project, "modelOut", " not found.")
 }
 
 view_fleet_table <- function(project) {

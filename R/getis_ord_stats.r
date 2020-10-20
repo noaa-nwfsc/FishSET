@@ -1,4 +1,4 @@
-getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, lat.dat = NULL, cat = NULL, lon.grid = NULL, lat.grid = NULL) {
+getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = NULL, cat = NULL, lon.grid = NULL, lat.grid = NULL) {
   #' Calculate and view Getis-Ord statistic
   #'
   #' Wrapper function to calculate global and local Getis-Ord by discrete area
@@ -7,14 +7,14 @@ getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, la
   #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
   #' @param varofint Numeric variable in \code{dat} to test for spatial high/low clustering.
-  #' @param gridfile Spatial data containing information on fishery management or regulatory zones.
+  #' @param spat Spatial data containing information on fishery management or regulatory zones.
   #'  Can be shape file, json, geojson, data frame, or list.
   #' @param lon.dat Longitude variable in \code{dat}.
   #' @param lat.dat Latitude variable in \code{dat}.
-  #' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required for csv files.
-  #'   Leave as NULL if \code{gridfile} is a shape or json file.
-  #' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files.
-  #'   Leave as NULL if \code{gridfile} is a shape or json file.
+  #' @param lon.grid Variable or list from \code{spat} containing longitude data. Required for csv files.
+  #'   Leave as NULL if \code{spat} is a shape or json file.
+  #' @param lat.grid Variable or list from \code{spat} containing latitude data. Required for csv files.
+  #'   Leave as NULL if \code{spat} is a shape or json file.
   #' @param cat Variable defining the individual areas or zones.
   #' @details Calculates the degree, within each zone, that high or low values of the \code{varofint} cluster in space.
   #'   Function utilizes the \code{\link[spdep]{localG}} and \code{\link[spdep]{knearneigh}} functions from the spdep package.
@@ -36,7 +36,7 @@ getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, la
   #' @examples
   #' \dontrun{
   #' getis_ord_stats(pcodMainDataTable, project = 'pcod', varofint = 'OFFICIAL_MT_TONS',
-  #'   gridfile = spatdat, lon.dat = 'LonLat_START_LON', lat.dat = 'LonLat_START_LAT', cat = 'NMFS_AREA')
+  #'   spat = spatdat, lon.dat = 'LonLat_START_LON', lat.dat = 'LonLat_START_LAT', cat = 'NMFS_AREA')
   #' }
   #'
 
@@ -47,6 +47,10 @@ getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, la
   out <- data_pull(dat)
   dat <- out$dat
   dataset <- out$dataset
+  
+  spat_out <- data_pull(spat)
+  spat <- spat_out$dat
+  spatdat <- spat_out$dataset
 
   x <- 0
   if (any(abs(dataset[[lon.dat]]) > 180)) {
@@ -63,18 +67,18 @@ getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, la
   if (x == 0) {
     # Assign data to zone
     if (!is.null(cat)) {
-      dataset <- assignment_column(dataset, gridfile, hull.polygon = TRUE, lon.dat, lat.dat, cat, closest.pt = TRUE, lon.grid, lat.grid, epsg = NULL)
+      dataset <- assignment_column(dataset, spatdat, hull.polygon = TRUE, lon.dat, lat.dat, cat, closest.pt = TRUE, lon.grid, lat.grid, epsg = NULL)
 
       # Idenfity centroid of zone
-      int <- find_centroid(dataset, gridfile, lon.dat, lat.dat, cat, lon.grid, lat.grid, weight.var = NULL)
+      int <- find_centroid(dataset, spatdat, lon.dat, lat.dat, cat, lon.grid, lat.grid, weight.var = NULL)
     }
 
     # Create dataset
-    if (any(class(gridfile) == "sf")) {
-      nc_geom <- sf::st_geometry(gridfile)
-      temp <- data.frame(ZoneID = rep(gridfile[[cat]][1], path = dim(as.data.frame(nc_geom[[1]][[1]]))[1]), as.data.frame(nc_geom[[1]][[1]]))
+    if ("sf" %in% class(spatdat)) {
+      nc_geom <- sf::st_geometry(spatdat)
+      temp <- data.frame(ZoneID = rep(spatdat[[cat]][1], path = dim(as.data.frame(nc_geom[[1]][[1]]))[1]), as.data.frame(nc_geom[[1]][[1]]))
       for (i in 2:length(nc_geom)) {
-        temp <- rbind(temp, data.frame(ZoneID = rep(gridfile[[cat]][i], path = dim(as.data.frame(nc_geom[[1]][[i]]))[1]), as.data.frame(nc_geom[[1]][[i]])))
+        temp <- rbind(temp, data.frame(ZoneID = rep(spatdat[[cat]][i], path = dim(as.data.frame(nc_geom[[1]][[i]]))[1]), as.data.frame(nc_geom[[1]][[i]])))
       }
       # datatomap <- merge(temp, int, by='ZoneID')
       int <- merge(int, dataset[, c(varofint, "ZoneID")], by = "ZoneID")
@@ -140,7 +144,7 @@ getis_ord_stats <- function(dat, project, varofint, gridfile, lon.dat = NULL, la
 
     getis_ord_stats_function <- list()
     getis_ord_stats_function$functionID <- "getis_ord_stats"
-    getis_ord_stats_function$args <- list(dat, project, varofint, gridfile, lon.dat, lat.dat, cat)
+    getis_ord_stats_function$args <- list(dat, project, varofint, spat, lon.dat, lat.dat, cat)
     getis_ord_stats_function$kwargs <- list(lon.grid, lat.grid)
 
     log_call(getis_ord_stats_function)
