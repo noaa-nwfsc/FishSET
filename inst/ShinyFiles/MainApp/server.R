@@ -226,18 +226,19 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           tags$div(
                  tags$br(), tags$br(),
                  tags$p('All tabs have the following elements:',
-                  tags$ul('Buttons that enable you to close the app and refresh the data.', 
+                  tags$ul(
+                    tags$li('Buttons that enable you to close the app and refresh the data.', 
                             tags$ul('Refreshing the data pulls the original data loaded into the FishSET database. Instead of refreshing to the original state, you can refresh the 
-                            data to an intermediate state by entering in the name of the dataset in the', tags$code('optional text'),
-                            'input box for loading data from FishSET database on the', tags$cod('Upload Data'), 'tab. Intermediate 
-                            data will contain a date in the table name, such as', tags$em('ExampleMainDataTable01012020,'))
+                            data to an intermediate state by entering the name of the data table in the', tags$code('Optional text'),
+                            'input box then the', tags$code('FishSET database'), 'radio button is chosen on the', tags$code('Upload Data'), 'tab. Intermediate 
+                            data will contain a date in the table name, such as', tags$em('ExampleMainDataTable01012020.'))
                           ),
-                  tags$ul('Buttons that allow you to save plots and tables to the output folder.'), 
-                  tags$ul("A", tags$code('notes'), "section and a button to save notes to the", tags$div(title='folder located in FishSET R package directory','output folder.')
+                    tags$li('Buttons that allow you to save plots and tables to the output folder in the FishSET folder.'), 
+                    tags$li("A", tags$code('notes'), "section and a button to save notes to the output folder in the FishSET folder.")
                           ),
-                  tags$ul('An', tags$code('R expression'), 'area where you can enter and run R code. 
-                        Within the FishSET Shiny application, the primary data frame is called', tags$em('values$dataset.')), 
-                 tags$ul(tags$ul('Some examples:'), 
+                    tags$li('An', tags$code('R expression'), 'area where you can enter and run R code. 
+                        Within the FishSET Shiny application, the primary data is called', tags$em('values$dataset.')), 
+                    tags$ul(tags$ul('Some examples:'), 
                          tags$ul(tags$code('mean(values$dataset[,5])'), 'displays the mean of the fifth column.'),
                          tags$ul(tags$code('summary(values$dataset$Vessel_Length)'), 'displays summary details of a column called Vessel_Length.')
                  )
@@ -247,57 +248,92 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                 )
         }
       })
-###WORK HERE ####
+
       output$UploadTabsText <- renderUI({
         if(input$QuickStartChoices=='UploadTab'){ 
           tags$div(
-			tags$br(), tags$br(),
-           tags$p('Purpose:', 
-                tags$ul('This tab is used to upload data (primary, port, map, gridded, auxiliary) from the FishSET database or 
-                        from a local file location.')), 
-	         tags$p("To get started first write a project name in the", tags$code('Name of project'), "text box. The project name is a 
-unique identifier for all data tables and outputs (plots, model results, etc) associated with the analysis. Example project names are 'pollock2019' or 'AKGOA'."),
-          tags$p('Next, load data',
+			      tags$br(), tags$br(),
+           tags$p(tags$strong('Purpose:'), tags$br(), 'The', tags$em('Upload Data'), 'tab is used to load data (primary, port, map, gridded, auxiliary) from the FishSET database or 
+                        from a local file location.'), 
+	         tags$p("To get started, first write a project name in the", tags$code('Name of project'), "text box.",
+	                tags$ul("The project name is a user-created unique identifier for all data tables  and outputs (plots, model results, etc) 
+                 associated with the analysis. Example project names are 'pollock2019' and 'AKGOA'.")
+	                ),
+          tags$p('Next, load data.',
             tags$ul('To load from a local file location, select the', tags$code('Upload new file'), 'radio button and then browse to file location.'), 
-	          tags$ul('To load from the FishSET database, select the', tags$code('FishSET database'), 'radio button. Fill out the', 
+	          tags$ul('To load from the FishSET database, select the', tags$code('FishSET database'), 'radio button. Fill out the optional', 
 				tags$code('Name of data table in FishSET Database'), 'text box if using a data table other than the original, unmodified table first loaded into the FishSET database.')
 				), 
 	         tags$p('Finally, press the', tags$code('Load data'), 'button.'),
            # tags$div(style="display: inline-block; align:center", img(src="upload.png",  height="75%", width="75%"))
 			tags$br(), tags$br(),
-			tags$p("Details on data", 
-			       tags$br(),
-			       "FishSET uses four types of data:",
-			       tags$ul('primary (requred)'), 
+			tags$p(tags$strong("Data:"),
+			       tags$ul('primary (required)'), 
 			       tags$ul('port (required)'),
 			       tags$ul('spatial (required)'), 
 			       tags$ul('auxiliary (optional)'), 
 			       tags$ul('gridded (optional)'), 
-			       "The 'primary data set' is a flat data file containing the core data used in models. It must contain at least one vector containing information on 
+			       tags$br(),
+			       "The", tags$strong('primary data'), " file is a flat data file containing the core data used in models. It must contain at least one vector containing information on 
 ports (id, name), date (haul, trip start), catch amount (metric tons, kg), and fishing location (latitude/longitude, zone/area). 
-			       Additional information such as price, species caught, and vessel characteristics may included in the primary data set or added later. 
+			       Additional information such as price, species caught, and vessel characteristics may be included in the primary data file or added later. 
 			       Each row of the primary data file should be a unique observation and each column a unique variable. Single or double apostrophes, commas other than as 
 CSV separators, and periods other than as decimal points, should not be included in the file. Use underscores rather than spaces in column names and use NA or leave 
 cells empty to represent no or missing data.",
-			       tags$br(),
-			       "The port data file contains the location (lat/lon) of ports in the primary data file and a variable containing port name or ID that links to the 
-			       primary data file. Values in port name variable must exactly match values in the primary data port variable. 
-			       Check spelling, capitalization, and spaces if port data is not successfully merged into primary dataset.
+			       tags$br(),tags$br(),
+			       "The", tags$strong('port data'), "file contains the location (lat/lon) of ports in the primary data file and a variable containing port name or ID that links to the 
+			       primary data file. Values in the port name variable must exactly match values in the primary data port variable. 
+			       Check spelling, capitalization, and spaces if port data is not successfully merged into the primary dataset.
 			       Location variables (latitude and longitude) must be in decimal degrees with cardinal direction indicated by sign.",
-			       tags$br()#,
-			       
-			
+			       tags$br(), tags$br(),
+			       "The", tags$strong('spatial or map data'), "file is an essential file that contains the latitude and longitude points defining fishery zone polygons. 
+              The preferred file format is geojson but other formats are accepted. In FishSET, multiple zones with the same ID are combined and treated as a single zone,
+              even if spatially separated. FishSET imports your map file as is, even if the zone outlines cover land. 
+              The land will not be subtracted out by FishSET.",
+			       tags$br(),tags$br(),
+			      tags$strong("Auxiliary data"), "files are optional and can contain anything you want to merge with the primary data file within FishSET 
+			       (ex. prices by date, vessel characteristics). Each column should be a unique variable and each row a unique observation. 
+            Auxiliary data does not need to be at the haul or trip level but does need to contain a variable in common with 
+			       the primary data file. Auxiliary data files are useful when a set of data is common across multiple primary data files, 
+			       or as an efficient way to include data that is not haul or trip level specific.",
+			       tags$br(),tags$br(),
+			       "The", tags$strong("gridded data"), "is an optional file that contains a variable that varies by the map grid and, optionally, by a second 
+              dimension (e.g., date/time). Both dimensions in the gridded data file need to be variables in the primary data file. 
+              The grid locations (zones) must define the columns and the optional second dimension defines the rows. The row variable must have the exact name as the variable in the primary data file that it will be linked to. 
+              Examples of gridded data include sea surface temperature, ice cover, and wind speed."
           )
           )
         }
       })
     
+      output$DQTabsText <- renderUI({
+        if(input$QuickStartChoices=='DQTab'){ 
+          p(tags$br(), tags$br(),
+            tags$strong('Purpose:'), tags$br(), 
+            'The', tags$em('Data Quality and Evaluation'), 'tab is used to identify and correct common data quality issues such as erroneous outliers and missing values.',
+				tags$br(),tags$br(),
+				    'Users can view a summary table of numeric data, check for missing values, emtpy variables, duplicate data, erroneous outliers, and that lat/lon variables 
+				    are in the correct format.',
+            'Options to remove or correct for data quality issues are displayed before the', tags$code('R expression'), 'box (arrow 2).',
+				tags$br(), tags$br(),
+            tags$div(style="display: inline-block; align:center", img(src="dq.png", height="75%", width="75%")),
+				tags$br(), tags$br(),
+            'To save modified data, click the', tags$code('Save data to FishSET database'), 'button.', 
+				tags$br(),
+            'The modified data will be saved to the FishSET database with a title based on the project, MainDataTable, and date.',
+            'Click on the', tags$code('Refresh data'), 'button to restore the data to its original, unmodified state.',
+				tags$br(),tags$br(),
+          'The outlier plot is interactive. Click on individual points to get values and zoom in to a highlighted area by double clicking.'
+          )
+        }
+      })
                    
       output$ExploreTabsText <- renderUI({
         if(input$QuickStartChoices=='ExplorTab'){ 
           tags$div(
             tags$br(), tags$br(),
-            tags$p('View and explore the primary data.',
+            tags$p(tags$strong('Purpose'), tags$br(), 
+                   'View and explore the primary data.',
                 tags$br(), 'Use the', tags$code('View data or plots'), 'dropdown box to view data as a table or plot.'),
             tags$p(HTML(paste(tags$h4('Table:'), tags$h5('Edit and filter data, and remove variables from the dataset.'))),
 				tags$br(),
@@ -332,29 +368,11 @@ cells empty to represent no or missing data.",
         }
       })
 
-      output$DQTabsText <- renderUI({
-        if(input$QuickStartChoices=='DQTab'){ 
-          p(tags$br(), tags$br(),
-            'View and correct common data quality issues such as outliers and missing values (arrow 1).',
-				tags$br(),tags$br(),
-            'Options to remove or correct for data quality issues are displayed before the', tags$code('R expression'), 'box (arrow 2).',
-				tags$br(), tags$br(),
-            tags$div(style="display: inline-block; align:center", img(src="dq.png", height="75%", width="75%")),
-				tags$br(), tags$br(),
-            'To save modified data, click the', tags$code('Save data to FishSET database'), 'button.', 
-				tags$br(),
-            'The modified data will be saved to the FishSET database with a title based on the project, MainDataTable, and date.',
-            'Click on the', tags$code('Refresh data'), 'button to restore the data to its original, unmodified state.',
-				tags$br(),tags$br(),
-          'The outlier plot is interactive. Click on individual points to get values and zoom in to a highlighted area by double clicking.'
-          )
-        }
-      })
-      
       output$AnalTabsText <- renderUI({
         if(input$QuickStartChoices=='AnalTab'){ 
           p(tags$br(), tags$br(), 
-            'View correlations and simple linear regressions.', 
+            tags$strong('Purpose:'), tags$br(),
+               'View correlations and simple linear regressions.', 
 				tags$br(),tags$br(),
             tags$div(style="display: inline-block; align:center", img(src="Corr.png", height="75%", width="75%")),
 				tags$br(), tags$br(),
@@ -369,7 +387,7 @@ cells empty to represent no or missing data.",
       output$NewVarsTabsText <- renderUI({
         if(input$QuickStartChoices=='NewVarsTab'){ 
           p(tags$br(), tags$br(),
-            'Modify or create new variables such as CPUE or trip mid-point.',
+            tags$strong('Purpose:'), tags$br(), 'Modify or create new variables such as CPUE or trip mid-point.',
 				tags$br(),tags$br(),
             'Generate the desired variable by clicking the', tags$code('Run function'), 'button (arrow 1). The variable can then 
 				be viewed in the displayed data table (arrow 2).', 
@@ -389,7 +407,7 @@ cells empty to represent no or missing data.",
       output$ZonalTabsText <- renderUI({
         if(input$QuickStartChoices=='ZonalTab'){ 
           p(tags$br(), tags$br(),
-            'Assign observations to zones and define alternative fishing choices.',
+           tags$strong('Problem:'), tags$br(), 'Assign observations to zones and define alternative fishing choices.',
 				tags$br(), tags$br(),
 	        'There are three steps on this tab.',
 				tags$br(), tags$br(),
@@ -409,7 +427,7 @@ cells empty to represent no or missing data.",
       output$ExpectedTabsText <- renderUI({
         if(input$QuickStartChoices=='ExpectedTab'){ 
           p(tags$br(), tags$br(),
-            'Calculate expectated catch or revenue for alternative choices.',
+            tags$strong('Problem:'), tags$br(), 'Calculate expectated catch or revenue for alternative choices.',
 				tags$br(),tags$br(),
             'Returns an expected catch or expected revenue data frame based on selected parameters along with three null outputs:', 
 				tags$br(),
@@ -425,6 +443,7 @@ cells empty to represent no or missing data.",
       output$ModelTabsText <- renderUI({
         if(input$QuickStartChoices=='ModelTab'){ 
           p(tags$br(),tags$br(),
+            tags$strong('Purpose: Run models'), tags$br(), 
             'Define the likelihood function and model parameters before running the models and comparing output.',
 				tags$br(),tags$br(),
 			'Click', tags$code('Save model and Add new model'), 'to save model choices and define another model.',

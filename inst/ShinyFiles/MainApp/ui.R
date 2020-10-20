@@ -68,9 +68,13 @@ source("map_viewer_app.R", local = TRUE)
                                                                  and provide various other modeling and visualization tools.'),
                                                         tags$p('The FishSET toolbox is provided as a set of R functions that can be run in an R console or here in this R Shiny application.'),
                                                         tags$p('The FishSET Shiny application is divided into tabs to guide users through the steps of creation, from uploading and exploring data to developing 
-                                                               and evaluating models. Tabs can be navigated in any order. All data is saved to the FishSET database, a SQL database housed in the FishSET R package folder. Output, plots and tables, 
-                                                               are saved in an output folder within the FishSET R package. The', tags$em('Quickstart Guide'), 'provides further assistance on using the 
-                                                               FishSET Shiny application.'),
+                                                               and evaluating models. Tabs can be navigated in any order. 
+                                                                All data is automatically saved to a SQL database called the FishSET database when first loaded. The database is housed in the FishSET R package folder. 
+                                                                Modified versions of the data can be saved to the FishSET database in the', tags$em('Data Quality Evaluation'), 'and', 
+                                                               tags$em('Compute New Variables'), 'tabs.   
+                                                                Plots and table outputs are saved in an output folder within the FishSET R package. 
+                                                              Function calls, including chosen parameters, are saved to the', tags$em('Logs'), 'folder in the FishSET package folder. 
+                                                              The', tags$em('Quickstart Guide'), 'tab provides further assistance on using the FishSET Shiny application.'),
                                                         tags$p('For questions and comments please contact: FishSET@noaa.gov'))
                                         )
                                       )
@@ -202,7 +206,7 @@ source("map_viewer_app.R", local = TRUE)
                                           downloadLink('downloadplotHIDE', label=''),
                                           actionButton('downloaddata', label ='Save table to folder as csv'),
                                           actionButton('callTextDownload','Save notes'),
-                                          actionButton('saveDataQ','Save data to fishset_db database'),
+                                          actionButton('saveDataQ','Save data to FishSET database'),
                                           tags$br(),
                                           tags$button(
                                             id = 'close1',
@@ -338,7 +342,7 @@ source("map_viewer_app.R", local = TRUE)
                                             actionButton('subsetData', 'Remove variable from data set')
                                           ),
                                           actionButton('callTextDownloadExplore','Save notes'),
-                                          actionButton('saveData','Save data to fishset_db database'),
+                                          actionButton('saveData','Save data to FishSET database'),
                                           tags$button(
                                             id = 'close',
                                             type = "button",
@@ -631,7 +635,7 @@ source("map_viewer_app.R", local = TRUE)
                                 actionButton('downloadplotNew', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
                                 #  downloadLink("downloadTextNew", label=''),
                                 actionButton('callTextDownloadNew','Save notes'),
-                               actionButton('saveDataNew','Save data to fishset_db database'),
+                               actionButton('saveDataNew','Save data to FishSET database'),
                                tags$br(),
                                tags$button(
                                  id = 'closeNew',
@@ -909,7 +913,7 @@ source("map_viewer_app.R", local = TRUE)
                                       expected catch/revenue based on catch of the previous two day (short-term expected catch),
                                       expected catch/revenue based on catch for the previous seven days (medium-term expected catch), and 
                                       expected catch/revenue based on catch in the previous year (long-term expected catch).
-                                      Output saved in fishset_db sqLite database. Previously saved expected catch/revenue output will be written over if the', 
+                                      Output saved in FishSET database. Previously saved expected catch/revenue output will be written over if the', 
                                       tags$i('Replace previously saved'), 'box is unchecked. Checking this box will add new output to existing output.'),
                                tags$br(), tags$br(),
                                conditionalPanel(condition="input.temp_var!='none'",
