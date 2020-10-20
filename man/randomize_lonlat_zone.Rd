@@ -4,7 +4,7 @@
 \alias{randomize_lonlat_zone}
 \title{Randomize latitude and longitude points by zone}
 \usage{
-randomize_lonlat_zone(dat, project, spatdat, lon, lat, zone)
+randomize_lonlat_zone(dat, project, spat, lon, lat, zone)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in FishSET 
@@ -12,7 +12,7 @@ database should contain the string `MainDataTable`.}
 
 \item{project}{Project name.}
 
-\item{spatdat}{Spatial data table containing regulatory zones. This can be 
+\item{spat}{Spatial data table containing regulatory zones. This can be 
 a "spatial feature" or sf object.}
 
 \item{lon}{String, variable name containing longitude.}

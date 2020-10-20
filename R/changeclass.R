@@ -45,7 +45,7 @@ dataset <- out$dataset
   #change data
     #Conversion is based on starting and ending class
 if(!is.null(x)){
-  origclass <- sapply(dataset[,x], class)
+  origclass <- sapply(x, function(v) class(dataset[, v]))
   origclass <- toupper(origclass)
 }
 if(!is.null(newclass)){
@@ -137,7 +137,7 @@ if(!is.null(newclass)){
     colnames(g)=c('Class', 'Value')
     print(g)
   } else {
-   g<- as.data.frame(cbind(t(sapply(dataset, class)), t(dataset[1,])))
+   g<- as.data.frame(cbind(sapply(dataset, class), t(dataset[1,])))
    colnames(g) = c('Class', 'Value')
     print(g)
   }
