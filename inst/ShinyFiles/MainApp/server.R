@@ -477,6 +477,7 @@ cells empty to represent no or missing data.",
       #DATA UPLOAD FUNCTIONS ----
       ###---
       
+      
       output$main_upload <- renderUI({     
         tagList( 
           conditionalPanel(condition="input.loadmainsource=='Upload new file'", 
@@ -521,6 +522,7 @@ cells empty to represent no or missing data.",
             showNotification('Primary data table not found in FishSET database. Check project spelling.', type='message', duration=15)
           } else {
         values$dataset <- table_view(paste0(input$projectname, 'MainDataTable'))
+        dat_name <<- paste0(input$projectname, 'MainDataTable')
           }
         } else if(input$loadmainsource=='Upload new file' & !is.null(input$maindat)){
            values$dataset <- read_dat(input$maindat$datapath)
@@ -528,6 +530,7 @@ cells empty to represent no or missing data.",
           df_compare <- ifelse(nchar(input$compare)>0, TRUE, FALSE)
           q_test <- quietly_test(load_maindata)
           q_test(values$dataset, over_write=input$over_write, project=input$projectname, compare=df_compare, y=df_y)
+          dat_name <<- paste0(input$projectname, 'MainDataTable')
 
 #           if(input$uploadMain == 0){
 #             showNotification('Data not saved to database. Press the Save to Database button.', type='warning', duration=20)
@@ -3962,6 +3965,8 @@ cells empty to represent no or missing data.",
 
         # map viewer
         servr::daemon_stop()
+        
+        rm("dat_name")
         
       }) 
        
