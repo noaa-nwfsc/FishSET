@@ -27,6 +27,20 @@ user_locoutput <- function() {
   }
 }
 
+list_logs <- function(chron = FALSE) {
+  #' Lists all logs files
+  #' @param chron Logical, whether to display logs in chronological order (TRUE) or
+  #'   reverse chronological order (FALSE). 
+  #' @export
+  
+  logs <- list.files(loclog())
+  ord <- gsub("[^0-9]", "", logs)
+  
+  if (chron == FALSE) logs[order(-as.numeric(ord))]
+  else logs[order(as.numeric(ord))]
+}
+
+
 current_log <- function() {
   #'
   #' Lists most recent log file
@@ -238,6 +252,17 @@ pull_plot <- function(project, fun, date = NULL) {
     
     cat("Plot not found.")
   }
+}
+
+list_MainDataTables <- function() {
+  #' List MainDataTables
+  #' @export 
+
+  tab <- tables_database()
+  tab <- grep("MainDataTable", tab, value = TRUE)
+  tab <- tab[!grepl("(Info)", tab)]
+  
+  tab
 }
 
 current_db_table <- function(project, table) {
@@ -643,9 +668,6 @@ function_summary <- function(date = NULL, type = "dat_load", show = "all") {
       })
     })
 
-    if (any(c_vars == "temp_mod")) {
-      c_vars[c_vars == "temp_mod"] <- "temporal_mod"
-    }
 
     names(fun_list) <- c_vars
 
