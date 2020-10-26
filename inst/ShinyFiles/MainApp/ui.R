@@ -74,7 +74,7 @@ source("map_viewer_app.R", local = TRUE)
                                                                tags$em('Compute New Variables'), 'tabs.   
                                                                 Plots and table outputs are saved in an output folder within the FishSET R package. 
                                                               Function calls, including chosen parameters, are saved to the', tags$em('Logs'), 'folder in the FishSET package folder. 
-                                                              The', tags$em('Quickstart Guide'), 'tab provides further assistance on using the FishSET Shiny application.'),
+                                                              The', tags$em('Quickstart Guide'), 'subtab provides further assistance on using the FishSET Shiny application.'),
                                                         tags$p('For questions and comments please contact: FishSET@noaa.gov'))
                                         )
                                       )
@@ -109,24 +109,46 @@ source("map_viewer_app.R", local = TRUE)
                                       uiOutput('ModelTabsText'),
                                       uiOutput('BookmarkTabsText')
                              ),
-                             tabPanel("AK catch and management data",
+                             tabPanel("Alaska Details",
                                       fluidRow(
                                         column(width = 6,
-                                               tags$div(tags$p(tags$br(), 'This page includes information on AK catch and management data with some links and tables.')) 
+                                               tags$div(
+                                                 tags$p(
+                                                   tags$br(), 
+                                                   'This page includes information on AK catch and management data with some links and tables.'
+                                                   ), 
+                                                 tags$p('Relevant papers', 
+                                                   tags$br(),
+                                                    tags$a('North Pacific Fleet Profiles (2012)', href='FleetProfiles2012.pdf', target="_blank"),
+                                                   tags$br(),
+                                                   tags$a('Fisheries Catch and Landings Reports in Alaska', href='https://www.fisheries.noaa.gov/alaska/commercial-fishing/fisheries-catch-and-landings-reports-alaska', target="_blank")
+                                                        )
+                                               )
                                         ) 
                                       )
                              ),
-                             tabPanel("More information and links",
+                             tabPanel("FishSET Background",
                                       fluidRow(
                                         column(width = 6,
-                                               tags$div(tags$p(tags$br(),
-                                                               'We can add more text here or not'),
-                                                        tags$p('Relevant papers', tags$br(),
-                                                               tags$a('Fleet Profile', href='FleetProfiles2012.pdf', target="_blank")
-                                                        ),
-                                                        tags$p('Some links', tags$br(),
-                                                               tags$a('National Marine Fisheries Science Center (NMFS)', href='https://www.fisheries.noaa.gov/', target="_blank"), tags$br(),
-                                                               tags$a('NOAA Office of Science and Technology Economics Program', href='https://www.st.nmfs.noaa.gov/economics/', target="_blank")
+                                               tags$div(
+                                                 tags$p(
+                                                   tags$br(),
+                                                        'The Spatial Economics Toolbox for Fisheries (FishSET) is a collaborative effort by economists and data scientists at the NOAA Alaska 
+                                                        Fisheries Science Center, NOAA Fisheries Office of Science and Technology, other NOAA Fisheries Science Centers, the Pacific States 
+                                                        Marine Fisheries Commission (PacStates), the Alaska Fisheries Information Network (AKFIN), and academic partners at many universities, ICES, 
+                                                        PICES, IIFET, NAAFE, and others.'),
+                                                        tags$p('Partner links', tags$br(),
+                                                               tags$a('National Marine Fisheries Science Service (NMFS)', href='https://www.fisheries.noaa.gov/', target="_blank"), 
+                                                               tags$br(),
+                                                               tags$a('NOAA Office of Science and Technology Economics Program', href='https://www.st.nmfs.noaa.gov/economics/', target="_blank"),
+                                                               tags$br(),
+                                                               tags$a("NOAA Alaska Fisheries Science Center", href = 'https://www.fisheries.noaa.gov/about/alaska-fisheries-science-center', target="_blank"),
+                                                               tags$br(),
+                                                               tags$a("Other NOAA Fisheries Science Centers", href = 'https://www.fisheries.noaa.gov/', target="_blank"),
+                                                               tags$br(),
+                                                               tags$a('Pacific Stats Marine Fisheries Commission', href = 'https://www.psmfc.org/psmfc-info', target="_blank"),
+                                                               tags$br(),
+                                                               tags$a('AKFIN', href = 'https://akfin.psmfc.org/', target="_blank")
                                                         )
                                                )
                                         ) 
@@ -227,46 +249,46 @@ source("map_viewer_app.R", local = TRUE)
                                           #conditionalPanel(condition = "input.checks == 'Summary table'",
                                           #  selectInput("SelectDatasetDQ", "Select a dataset", choices = c("main", "port", "auxiliary", "grid"))
                                           #),
-                                          h4('Select data validation check functions to run'),
+                                          #h4('Select data check functions to run'),
                                           #Checkbox input widget  
-                                           radioButtons("checks", "", choices = c('Variable class', 'Summary table', 'Outliers', 'NAs', #'NaNs', 
+                                           radioButtons("checks", "Select data quality check functions to run", choices = c('Variable class', 'Summary table', 'Outliers', 'NAs', #'NaNs', 
                                                                                   'Unique observations', 'Empty variables', 'Lat_Lon units')),
                                           uiOutput("checks_dataset"),
                                           conditionalPanel(
                                             condition = "input.checks == 'Variable class'",
-                                            actionButton('rchclass', 'Change variable classes')
+                                            actionButton('rchclass', 'Change variable classes', style = "color: white; background-color: #0073e6;")
                                           ),
                                           uiOutput('outlier_column'),
                                           uiOutput('outlier_subset'),
                                           uiOutput('outlier_dist'),
                                           conditionalPanel(
                                             condition = "input.checks == 'NAs'",
-                                            actionButton('NA_Filter_all', 'Remove all NAs')
+                                            actionButton('NA_Filter_all', 'Remove all NAs', style = "color: white; background-color: #0073e6;")
                                           ),
                                           conditionalPanel(
                                             condition = "input.checks == 'NAs'",
-                                            actionButton('NA_Filter_mean', 'Replace NAs with mean value')
+                                            actionButton('NA_Filter_mean', 'Replace NAs with mean value', style = "color: white; background-color: #0073e6;")
                                           ),
-                                          conditionalPanel(
-                                            condition = "input.checks == 'NAs'",
-                                            actionButton('NAN_Filter_all', 'Remove all NaNs')
-                                          ),
-                                          conditionalPanel(
-                                            condition = "input.checks == 'Nas'",
-                                            actionButton('NAN_Filter_mean', 'Replace NaNs with mean value')
-                                          ),
+                                          #conditionalPanel(
+                                          #  condition = "input.checks == 'NAs'",
+                                          #  actionButton('NAN_Filter_all', 'Remove all NaNs')
+                                          #),
+                                          #conditionalPanel(
+                                          #  condition = "input.checks == 'NAs'",
+                                          #  actionButton('NAN_Filter_mean', 'Replace NaNs with mean value')
+                                          #),
                                           conditionalPanel(condition="input.checks=='Outliers'",
-                                                           actionButton('Outlier_Filter', 'Remove outliers')),
+                                                           actionButton('Outlier_Filter', 'Remove outliers', style = "color: white; background-color: #0073e6;")),
                                           conditionalPanel(
                                             condition ='input.checks=="Outliers"',
                                             uiOutput("hover_info1")),
                                           conditionalPanel(
                                             condition ='input.checks=="Unique observations"',
-                                            actionButton('Unique_Filter', 'Remove non-unique rows')
+                                            actionButton('Unique_Filter', 'Remove non-unique rows', style = "color: white; background-color: #0073e6;")
                                           ),
                                           conditionalPanel(
                                             condition ='input.checks=="Empty variables"',
-                                            actionButton('Empty_Filter', 'Remove empty variables')
+                                            actionButton('Empty_Filter', 'Remove empty variables', style = "color: white; background-color: #0073e6;")
                                           ),
                                            uiOutput('LatLonDir'),
                                           
@@ -1053,7 +1075,8 @@ source("map_viewer_app.R", local = TRUE)
                            downloadLink("downloadTextBook", label=''),
                            tags$br(),tags$br(),
                            h4('Upload previously saved bookmarked state (.rds file)'),
-                           fileInput('uploadbookmark', paste0('File should be located in ', system.file(package='FishSET'),'/ShinyFiles/MainApp/shiny_bookmarks folder'), multiple=FALSE, accept='.rds'),
+                           fileInput('uploadbookmark', paste0('File should be located in ', system.file(package='FishSET'),'/ShinyFiles/MainApp/shiny_bookmarks folder'), 
+                                     multiple=FALSE, accept='.rds'),
                            #h4(paste0("File should be a .rds file and would be located in a shiny_bookmarks folder under ",  system.file(package='FishSET'), " directory")),
                            #textInput('notesBook', "Notes", value=NULL, 
                            #          placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
