@@ -403,7 +403,7 @@ outlier_remove <- function(dat, x, dat.remove = "none", remove = T, over_write =
       }
       outlier_remove_function <- list()
       outlier_remove_function$functionID <- "outlier_remove"
-      outlier_remove_function$args <- c(dat, deparse(substitute(x)), dat.remove, remove)
+      outlier_remove_function$args <- c(dat, deparse(substitute(x)), dat.remove, remove, over_write)
       outlier_remove_function$kwargs <- list()
       outlier_remove_function$output <- c("")
       outlier_remove_function$msg <- paste("outliers removed using", dat.remove)
