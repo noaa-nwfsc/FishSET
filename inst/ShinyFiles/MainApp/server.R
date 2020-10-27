@@ -649,12 +649,14 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             showNotification('Table not found in FishSET database. Check project spelling.', type='message', duration=15)
           } else {
           ptdat$dataset <- table_view(paste0(input$projectname, 'PortTable'))
+          port_name <<- paste0(input$projectname, 'PortTable')
           }
         } else if(input$loadportsource=='Upload new file' & !is.null(input$portdat)){
          ptdat$dataset <- read_dat(input$portdat$datapath)
          q_test <- quietly_test(load_port)
          q_test(ptdat$dataset, port_name=input$port_name, over_write=TRUE, project=input$projectname, compare=FALSE, y=NULL)
          showNotification("Port data saved to database.", type = "message", duration = 10)
+         port_name <<- paste0(input$projectname, 'PortTable')
           }else {
           ptdat$dataset <- ptdat$dataset
           }
@@ -745,11 +747,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         if(input$loadgridsource=='FishSET database'){
           req(input$griddattext)
           grddat$dataset <- table_view(paste0(input$projectname, input$griddattext))
+          grid_name <<- paste0(input$projectname, input$griddattext)
         } else if(input$loadgridsource=='Upload new file' & !is.null(input$griddat)) {
           showNotification('Gridded data saved to database.', type = 'message', duration = 10)
           grddat$dataset <- read_dat(input$griddat$datapath)        
           q_test <- quietly_test(load_grid)
           q_test(paste0(input$projectname, 'MainDataTable'), grid = grddat$dataset, x = input$GridName, over_write=TRUE, project=input$projectname)
+          grid_name <<- paste0(input$projectname, input$griddattext)
         } else {
           grddat$dataset <- grddat$dataset
         }
@@ -798,12 +802,14 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         #req(input$auxdattext)
         if(input$loadauxsource=='FishSET database'){
           aux$dataset <- table_view(paste0(input$projectname, input$auxdattext))
+          aux_name <<- paste0(input$projectname, input$auxdattext)
         } else if(input$loadauxsource=='Upload new file' & !is.null(input$auxdat)){
             showNotification('Auxiliary data saved to FishSET database.', type = 'message', duration = 10)
            aux$dataset <-read_dat(input$auxdat$datapath)
            q_test <- quietly_test(load_aux)
             q_test(paste0(input$projectname, 'MainDataTable'), aux=aux$dataset, x = input$AuxName, over_write=TRUE,
                    project=input$projectname)
+            aux_name <<- paste0(input$projectname, input$auxdattext)
         } else {
           aux$dataset <- aux$dataset
           }
@@ -2014,14 +2020,14 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       #3. SPATIAL DISTRIBUTION
       ranges_spatial <- reactiveValues(x = NULL, y=NULL)
       observeEvent(input$plot_type,{
-        ranges_spatial$x <- c(ifelse((min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1]], na.rm=TRUE)-abs(min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1]], na.rm=TRUE)/10) < -180), 
-                                     -180, min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1]], na.rm=TRUE)-abs(min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1]], na.rm=TRUE)/10)), 
-                              ifelse((max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1]], na.rm=TRUE)+abs(max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1]], na.rm=TRUE)/10) > 180), 
-                                     180, max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1]], na.rm=TRUE)+abs(max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1]], na.rm=TRUE)/10))) 
-        ranges_spatial$y <-c(ifelse((min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]], na.rm=TRUE)-abs(min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]], na.rm=TRUE)/10) < -90), 
-                                    -90, min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]], na.rm=TRUE)-abs(min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]], na.rm=TRUE)/10)), 
-                             ifelse((max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]], na.rm=TRUE)+abs(max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]], na.rm=TRUE)/10) > 90),
-                                    90, max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]], na.rm=TRUE)+abs(max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]], na.rm=TRUE)/10)))
+        ranges_spatial$x <- c(ifelse((min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')))[1]], na.rm=TRUE)-abs(min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')))[1]], na.rm=TRUE)/10) < -180), 
+                                     -180, min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')))[1]], na.rm=TRUE)-abs(min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')))[1]], na.rm=TRUE)/10)), 
+                              ifelse((max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')))[1]], na.rm=TRUE)+abs(max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')))[1]], na.rm=TRUE)/10) > 180), 
+                                     180, max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')))[1]], na.rm=TRUE)+abs(max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')))[1]], na.rm=TRUE)/10))) 
+        ranges_spatial$y <-c(ifelse((min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')))[1]], na.rm=TRUE)-abs(min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')))[1]], na.rm=TRUE)/10) < -90), 
+                                    -90, min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')))[1]], na.rm=TRUE)-abs(min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')))[1]], na.rm=TRUE)/10)), 
+                             ifelse((max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')))[1]], na.rm=TRUE)+abs(max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')))[1]], na.rm=TRUE)/10) > 90),
+                                    90, max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')))[1]], na.rm=TRUE)+abs(max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')))[1]], na.rm=TRUE)/10)))
       })
       output$plot_spatial <- renderPlot({#plotInput_spatial <-  reactive({
         if(is.null(values$dataset)) {
@@ -3952,8 +3958,42 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         updateSelectInput(session, 'xWeight', selected = bookmarkedstate()$xWeight)
         updateSelectInput(session, "x_dist", selected = bookmarkedstate()$x_dist) 
         }
+    
 #---
         })
+      
+      # Rerun log -----
+      
+      fetch_log <- reactive(log_rerun(input$log, run = FALSE))
+      
+      log_table_r <- reactive({
+        
+        log_file <- as.character(fetch_log()) # prevents evaluation when coerced to data.frame
+        
+        log_file <- tibble::rownames_to_column(as.data.frame(log_file))
+        
+        log_file <- tibble::remove_rownames(log_file)
+        
+        names(log_file) <- c("call order", "function call")
+        
+        log_file
+      })
+      
+      output$log_table <- DT::renderDT(log_table_r(),
+                                       selection = list(mode ='multiple', 
+                                                        target = 'row'),
+                                       rownames = FALSE)
+      
+      observeEvent(input$run_log, {
+        
+        log_rerun(input$log, dat = input$new_dat, portTable = input$new_port,
+                  aux = input$new_aux, gridfile = input$new_grid, spat = input$new_spat,
+                  ind = input$log_table_rows_selected, run = TRUE)
+        
+        showNotification("Log has been successfully rerun.", type = "message", duration = 10)
+      })
+      
+      observeEvent(input$rerun_close, stopApp())
       ###---
      
       onStop(function() {
@@ -4006,7 +4046,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         # map viewer
         servr::daemon_stop()
         
-        rm("dat_name")
+        rm("dat_name", envir = rlang::global_env())
         
       }) 
        

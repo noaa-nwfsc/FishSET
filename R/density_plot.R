@@ -63,20 +63,13 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, date = N
                          combine = FALSE, tran = "identity", scale = "fixed", bw = 1,
                          position = "identity") {
   out <- data_pull(dat)
-  #dat <- out$dat
   dataset <- out$dataset
 
-  if (shiny::isRunning()) {
+  if (shiny::isRunning()) 
+    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
     
-    dat <- get("dat_name")
-  
-  } else {
-    
-    if (is.character(dat)) dat else deparse(substitute(dat))
-  }
-    
-    
-  
+  else 
+    if (!is.character(dat)) dat <- deparse(substitute(dat))
   
   end <- FALSE
   facet_date_l <- FALSE

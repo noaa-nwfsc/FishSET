@@ -265,6 +265,15 @@ list_MainDataTables <- function() {
   tab
 }
 
+list_PortTables <- function() {
+  #' List PortTables 
+  #' @export
+  tab <- tables_database()
+  tab <- grep("PortTable", tab, value = TRUE)
+  
+  tab
+}
+
 current_db_table <- function(project, table) {
   #'
   #' Retrieve name of the most recent table from a project

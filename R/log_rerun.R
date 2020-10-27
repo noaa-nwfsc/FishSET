@@ -1,17 +1,18 @@
 
-log_rerun <- function(log_file, dat = NULL, ind = NULL, run = FALSE) {
+log_rerun <- function(log_file, dat = NULL, portTable = NULL, aux = NULL, 
+                      gridfile = NULL, spat = NULL, ind = NULL, run = FALSE) {
   #' Console function for rerunning project log
   #' 
   #' @param log_file String, name of the log file starting with the date (YYYY-MM-DD) and
   #'   ending in ".json". 
-  #' @param dat String, new data table to rerun log with.
+  #' @param dat String, new main data table to rerun log with.
   #' @param ind Numeric, indices of function calls to rerun. 
   #' @param run Logical, whether to run the logged function calls (TRUE) or simply
   #'   list all function calls (FALSE). 
   #' @export
   #' @seealso \code{\link{log_rerun_gui}}
   #' @importFrom jsonlite fromJSON
-  #' @importFrom shiny showNotification
+  #' @importFrom shiny showNotification isRunning
   #' @importFrom rlang exprs call2
   #' @examples 
   #' \dontrun{
@@ -33,7 +34,7 @@ log_rerun <- function(log_file, dat = NULL, ind = NULL, run = FALSE) {
     
     fun_name <- unique(fun_name[log_arg_len != fun_arg_len])
     
-    if (isRunning()) { # if app is running
+    if (shiny::isRunning()) { # if app is running
       
       shiny::showNotification("Logged arguments do not match function formals for the following functions: ", 
                        paste(fun_name, collapse = ", "), type = "warning", duration = 10)
@@ -63,13 +64,48 @@ log_rerun <- function(log_file, dat = NULL, ind = NULL, run = FALSE) {
       rlang::call2(out[[i]]$functionID, !!!expr_list)
     })
   
-  # change data table
+  replace_dat <- function(clist, dat_type, new_dat) {
+    
+    for (i in seq_along(clist)) {
+      
+      for (j in names(clist[[i]])) {
+        
+        if (j == dat_type) {
+          
+          clist[[i]][j] <- new_dat
+        }
+      }
+    }
+    clist
+  }
+
   if (!is.null(dat)) {
     
-    for (i in seq_along(call_list)) {
-      
-      call_list[[i]]$dat <- dat
-    }
+    call_list <- replace_dat(call_list, "dat", new_dat = dat)
+  }
+  
+  # change port table
+  if (!is.null(portTable)) {
+    
+    call_list <- replace_dat(call_list, "portTable", new_dat = portTable)
+  }
+  
+  # change aux table
+  if (!is.null(aux)) {
+    
+    call_list <- replace_dat(call_list, "aux", new_dat = aux)
+  }
+  
+  # change gridded table
+  if (!is.null(gridfile)) {
+    
+    call_list <- replace_dat(call_list, "gridfile", new_dat = gridfile)
+  }
+  
+  # change spatial table
+  if (!is.null(spat)) {
+    
+    call_list <- replace_dat(call_list, "spat", new_dat = spat)
   }
   
   # index of calls to run 
@@ -122,9 +158,25 @@ log_rerun_gui <- function() {
           
           conditionalPanel("input.new_dat_cb",
                            
-                           selectizeInput("new_dat", "Choose a new table", 
+                           selectizeInput("new_dat", "Choose main table", 
                                           choices = list_MainDataTables(), multiple = TRUE,
-                                          options = list(maxItems = 1)) # sets dat to NULL by default
+                                          options = list(maxItems = 1)), # sets dat to NULL by default
+                           
+                           selectizeInput("new_port", "Choose port table", 
+                                          choices = list_PortTables(), multiple = TRUE,
+                                          options = list(maxItems = 1)),
+                           
+                           selectizeInput("new_aux", "Choose aux table", 
+                                          choices = tables_database(), multiple = TRUE,
+                                          options = list(maxItems = 1)),
+                           
+                           selectizeInput("new_grid", "Choose gridded table", 
+                                          choices = tables_database(), multiple = TRUE,
+                                          options = list(maxItems = 1)),
+                           
+                           selectizeInput("new_spat", "Choose spatial table", 
+                                          choices = tables_database(), multiple = TRUE,
+                                          options = list(maxItems = 1))
           ),
           
           p("Click on the table rows to run specific function calls.")
@@ -161,8 +213,9 @@ log_rerun_gui <- function() {
       
       observeEvent(input$run_log, {
         
-        log_rerun(input$log, dat = input$new_dat, 
-                   ind = input$log_table_rows_selected, run = TRUE)
+        log_rerun(input$log, dat = input$new_dat, portTable = input$new_port,
+                  aux = input$new_aux, gridfile = input$new_grid, spat = input$new_spat,
+                  ind = input$log_table_rows_selected, run = TRUE)
         
         showNotification("Log has been successfully rerun.", type = "message", duration = 10)
       })
