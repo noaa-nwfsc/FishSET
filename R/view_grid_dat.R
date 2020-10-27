@@ -1,11 +1,11 @@
 
 
 
-view_grid_dat <- function(grid, project, lon, lat, value, split_by = NULL, agg_by = NULL, gmap = FALSE) {
+view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL, agg_by = NULL, gmap = FALSE) {
   #' Visualize gridded data
   #' 
   #' 
-  #' @param grid Gridded data table to visualize. Use string if visualizing a gridded data
+  #' @param gridfile Gridded data table to visualize. Use string if visualizing a gridded data
   #'   table in the FishSET Database. 
   #' @param project String, project name. 
   #' @param lon String, variable name containing longitude.
@@ -27,9 +27,14 @@ view_grid_dat <- function(grid, project, lon, lat, value, split_by = NULL, agg_b
   #' view_grid_dat(SST, "pollock", "lon", "lat", value = "analysed_sst")
   #' }
   #' 
-  out <- data_pull(grid)
-  dat <- out$dat
+  out <- data_pull(gridfile)
   grid <- out$dataset
+  
+  if (shiny::isRunning())
+    if (deparse(substitute(gridfile)) == "grddat$dataset") gridfile <- get("grid_name")
+    
+   else 
+     if (!is.character(gridfile)) gridfile <- deparse(substitute(gridfile))
   
   data(colors) # load in colors.RData in Data/
   
@@ -46,6 +51,7 @@ view_grid_dat <- function(grid, project, lon, lat, value, split_by = NULL, agg_b
   } else {
     
     grid_map <- gmap
+    gmap <- deparse(substitute(gmap))
   }
   
   # remove NA values
@@ -99,7 +105,7 @@ view_grid_dat <- function(grid, project, lon, lat, value, split_by = NULL, agg_b
   # log function
   view_grid_dat_function <- list()
   view_grid_dat_function$functionID <- "view_grid_dat"
-  view_grid_dat_function$args <- list(dat, project, lon, lat, split_by, agg_by, deparse(substitute(gmap)))
+  view_grid_dat_function$args <- list(gridfile, project, lon, lat, value, split_by, agg_by, gmap)
   log_call(view_grid_dat_function)
   
   map_out

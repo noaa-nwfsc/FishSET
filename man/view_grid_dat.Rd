@@ -5,7 +5,7 @@
 \title{Visualize gridded data}
 \usage{
 view_grid_dat(
-  grid,
+  gridfile,
   project,
   lon,
   lat,
@@ -16,7 +16,7 @@ view_grid_dat(
 )
 }
 \arguments{
-\item{grid}{Gridded data table to visualize. Use string if visualizing a gridded data
+\item{gridfile}{Gridded data table to visualize. Use string if visualizing a gridded data
 table in the FishSET Database.}
 
 \item{project}{String, project name.}
