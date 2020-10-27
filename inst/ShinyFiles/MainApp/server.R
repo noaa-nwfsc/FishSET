@@ -323,6 +323,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           'For the variable class option, select the correct variable data class if the wrong class is shown. For instance, a variable containing 
           all numbers should generally be classed as numeric and not character. Click the', tags$code('Change variable class'), 'button when
 			    selections are done. The data will not be changed but the variable data class will.', tags$br(),
+          tags$br(),
           'For the outlier option, a data table and three plots are displayed. The plots show the distribution of the data in three 
 				   different ways. You can click on the data table to view the impact of removing a defined subset of the data. Click on individual points 
          in the first plot to view the point value or zoom in to a highlighted area by double clicking. Further details on the outlier 
@@ -344,40 +345,52 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             tags$br(), tags$br(),
             tags$p(tags$strong('Purpose:'), tags$br(), 
                    'The', tags$em('Data Exploration'), 'tab is used to view and explore the loaded data.',
-                   tags$br(), 'Data can be viewed in table or plot format. Plots show the temporal and spatial distribution of the data 
+                   tags$br(),tags$br(),
+                  'Data can be viewed in table or plot format. Plots show the temporal and spatial distribution of the data 
                    and the relationship between two variables.',
-                tags$br(), 'Use the', tags$code('View data or plots'), 'dropdown box to select between viewing data as a table or as plots.',
-            tags$br(), "We describe usage of the table option first and then of plots."
+                 'Use the', tags$code('View data or plots'), 'dropdown box to select between viewing data as a table or as plots.',
+            tags$br(),tags$br(),
+            "We describe usage of the table option first and then of plots."
             ),
-            tags$p(HTML(paste(tags$h4('Table:'), tags$h5('Edit and filter data, and remove variables from the dataset.'))),
+            tags$p(HTML(paste(tags$h4('Table:'), 
+                              tags$h5('The table is used to edit individual cells, filter the data, 
+                                      and remove variables from the dataset that are redundant or 
+                                      will not be used in analyses or modeling. In addition, the 
+                                      other data types (plot, auxilliary, gridded), can be viewed 
+                                      and edited using the', tags$code('Select a dataset'), 'dropdown box.' 
+                                      ))),
 				    tags$br(),
-				    'Edit cells by double-clicking a cell'
+				    tags$strong('Edit cells'), 'by double-clicking a cell.'
 				    ),
 				    tags$br(),
 			      tags$div(style="display: inline-block; align:center", img(src="Correct.png", height="75%", width="75%")),
 			    	tags$br(),tags$br(),
-			tags$p('Remove variables by clicking on a column, then clicking the', tags$code('Remove variable'), 'button. 
+			tags$p(tags$strong('Remove variables'), 'by clicking on a column, then clicking the', tags$code('Remove variable'), 'button. 
               Save the edited data table to the FishSET database by clicking the', tags$code('Save data'), 
-				'button. Press the', tags$code('Refresh data'), 'button to load the original, unprocessed data frame.'),
+				'button. Press the', tags$code('Refresh data'), 'button to load the original, unaltered data table.'),
 				tags$br(), 
 			tags$div(style="display: inline-block; align:center", img(src="DeleteVar.png", height="75%", width="75%")),
 				tags$br(),tags$br(),
-			tags$p('Data can be filtered using the', tags$em('boxes'), 'below the variable name. Selected filters are saved when the', 
-				tags$code('Save data to FishSET database'), 'button is pushed. Revised data is stored as the project,
-				"MainDataTable", and the date. To undo changes, click on the', tags$code('Refresh data'), 'button. This action will restore 
-        the data to its original, unaltered state. Any previous actions will be lost.'),
+			tags$p(tags$strong('Filter data'), 'using the', tags$em('boxes'), 'below the variable name and above the data. Filters are saved when the', 
+				tags$code('Save data to FishSET database'), 'button is pushed. The edited data is stored as the project,
+				"MainDataTable", and the date.'),
 				tags$br(), 
 			tags$div(style="display: inline-block; align:center", img(src="Filter.png", height="75%", width="75%")),
 				tags$br(),tags$br(),
 			tags$p(tags$h4('Plots:'),
 				'Temporal, spatial, and x-y plots are available.'), 
-			tags$p('The temporal plots show the distribution of the selected variable over the selected data variable.',
+			tags$p('The temporal plots show the relationship of the selected variable by date.',
+			       tags$br(),tags$br(),
+			       'The spatial plots show the distribution of hauls in the map region and hot spots of activity.',
 			       tags$br(),
-			       'The spatial plots show the '
-			       
-			       Zoom in on the', tags$em('Observed location'), 'spatial plot by double-clicking a highlighted area.',
-				tags$br(), 
-				'Click an individual point to view the latitude and longitude of that point.'),
+			       'You can zoom in on the', 
+			       tags$em('Observed location'), 'spatial plot by double-clicking a highlighted area or view the latitude and longitude of a point
+			       by single clicking on the point. This map can be saved. A more detailed spatial map can be viewed on the', tags$code('Map Viewer'),
+			       'tab.', 
+			       tags$br(), tags$br(),
+			       'The x-y plots show the relationship between two selected variables.',
+			       tags$br(), tags$br()
+             ),
 				tags$br(), 
 			tags$div(style="display: inline-block; align:center", img(src="MapZoom.png", height="75%", width="75%")),
 				tags$br(),tags$br(),
