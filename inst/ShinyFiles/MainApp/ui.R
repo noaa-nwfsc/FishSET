@@ -1057,6 +1057,11 @@ source("map_viewer_app.R", local = TRUE)
                   #Bookmark tabset panel
                   #-----
                   tabPanel('Bookmark Choices', value = "book",
+                           
+                     tabsetPanel(id = "boomark_tab", 
+                     
+                     tabPanel("bookmark", value = "bookmark_page",
+                           
                            tags$br(),
                            tags$button(
                              id = 'closeB',
@@ -1089,11 +1094,66 @@ source("map_viewer_app.R", local = TRUE)
                            tags$ul(tags$ul(tags$li('Reopen the app'))),
                            tags$ul(tags$ul(tags$li('Open a tab in a web browser'))),
                            tags$ul(tags$ul(tags$li('Paste saved url in web browser. The saved application can then be used in the web browser.')))
-                    
+                     ),
+                     
+                     tabPanel("log rerun", value = "log_rerun",
+                              
+                              sidebarLayout(
+                                 
+                                 sidebarPanel(
+                                    
+                                    tags$button(
+                                       id = "rerun_close",
+                                       type = "button",
+                                       style="color: #fff; background-color: #FF6347; border-color: #800000;",
+                                       class = "btn action-button",
+                                       onclick = "setTimeout(function(){window.close();},500);",  # close browser
+                                       "Close app"
+                                    ),
+                                    
+                                    actionButton("run_log", "Rerun log",
+                                                 style="color: #fff; background-color: #6da363; border-color: #800000;"),
+                                    
+                                    selectInput("log", "Select a log file", choices = list_logs()),
+                                    
+                                    checkboxInput("new_dat_cb", "Run log with different data table"),
+                                    
+                                    conditionalPanel("input.new_dat_cb",
+                                                     
+                                                     selectizeInput("new_dat", "Choose main table", 
+                                                                    choices = list_MainDataTables(), multiple = TRUE,
+                                                                    options = list(maxItems = 1)), # sets dat to NULL by default
+                                                     
+                                                     selectizeInput("new_port", "Choose port table", 
+                                                                    choices = list_PortTables(), multiple = TRUE,
+                                                                    options = list(maxItems = 1)),
+                                                     
+                                                     selectizeInput("new_aux", "Choose aux table", 
+                                                                    choices = tables_database(), multiple = TRUE,
+                                                                    options = list(maxItems = 1)),
+                                                     
+                                                     selectizeInput("new_grid", "Choose gridded table", 
+                                                                    choices = tables_database(), multiple = TRUE,
+                                                                    options = list(maxItems = 1)),
+                                                     
+                                                     selectizeInput("new_spat", "Choose spatial table", 
+                                                                    choices = tables_database(), multiple = TRUE,
+                                                                    options = list(maxItems = 1))
+                                    ),
+                                    
+                                    p("Click on the table rows to run specific function calls.")
+                                 ),
+                                 
+                                 mainPanel(
+                                    
+                                    shinycssloaders::withSpinner(DT::DTOutput("log_table")),
+                                 )
+                              )
+                           )
+                        )
+                     )
                   )
-
-                  
-                  
-      ))
+          
+      )
     }
     

@@ -4,13 +4,22 @@
 \alias{log_rerun}
 \title{Console function for rerunning project log}
 \usage{
-log_rerun(log_file, dat = NULL, ind = NULL, run = FALSE)
+log_rerun(
+  log_file,
+  dat = NULL,
+  portTable = NULL,
+  aux = NULL,
+  gridfile = NULL,
+  spat = NULL,
+  ind = NULL,
+  run = FALSE
+)
 }
 \arguments{
 \item{log_file}{String, name of the log file starting with the date (YYYY-MM-DD) and
 ending in ".json".}
 
-\item{dat}{String, new data table to rerun log with.}
+\item{dat}{String, new main data table to rerun log with.}
 
 \item{ind}{Numeric, indices of function calls to rerun.}
 
