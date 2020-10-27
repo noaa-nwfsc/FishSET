@@ -272,19 +272,15 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE, 
       } else if (is.null(group) == FALSE & facet == TRUE) {
         mapout <- ggplot2::ggplot() +
           ggplot2::geom_map(
-            data = world, map = world, ggplot2::aes(x = long, y = lat, map_id = region), fill = "grey",
-            color = "black", size = 0.375
-          ) +
+            data = world, map = world, ggplot2::aes(x = long, y = lat, map_id = region), 
+            fill = "grey", color = "black", size = 0.375) +
           ggplot2::geom_point(
-            data = datatomap, ggplot2::aes(x = lon, y = lat, colour = groupv), color = "black",
-            size = 0.375
-          ) +
-          ggplot2::stat_density_2d_filled(data = datatomap, ggplot2::aes(x = lon, y = lat, fill = ..level..#, fill = stat(datatomap$level)
-                                                                         ), geom = "polygon") +
+            data = datatomap, ggplot2::aes(x = lon, y = lat, colour = groupv), color = "black", size = 0.375) +
+          ggplot2::stat_density_2d(data = datatomap, ggplot2::aes(x = lon, y = lat, fill = stat(level)), geom = "polygon") +
           ggplot2::xlim(minlon, maxlon) +
           ggplot2::ylim(minlat, maxlat) +
           ggplot2::facet_wrap(. ~ groupv) +
-          #ggplot2::scale_fill_gradient(name = "..level..\n(density)") +
+          ggplot2::scale_fill_gradient(name = "Level\n(density)") +
           ggplot2::ggtitle("Spatial kernel (gradient)") +
           ggplot2::theme(
             text = ggplot2::element_text(size = 12), axis.title.y = ggplot2::element_text(vjust = 1.5),
@@ -296,16 +292,14 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE, 
       } else {
         mapout <- ggplot2::ggplot() +
           ggplot2::geom_map(
-            data = world, map = world, ggplot2::aes(x = world$long, y = world$lat, map_id = world$region), fill = "grey",
-            color = "black", size = 0.375
-          ) +
-          ggplot2::geom_point(data = datatomap, ggplot2::aes(x = datatomap$lon, y = datatomap$lat), color = "black", size = 0.375) +
-          ggplot2::stat_density_2d_filled(data = datatomap, 
-                                   ggplot2::aes(x = lon, y = lat, fill =..level..#stat(datatomap$level)
-                                                ), geom = "polygon") +
+            data = world, map = world, ggplot2::aes(x = long, y = lat, map_id = region), 
+            fill = "grey", color = "black", size = 0.375) +
+          ggplot2::geom_point(data = datatomap, ggplot2::aes(x = lon, y = lat), color = "black", size = 0.375) +
+          ggplot2::stat_density_2d(data = datatomap, 
+                                   ggplot2::aes(x = lon, y = lat, fill = stat(level)), geom = "polygon") +
           ggplot2::xlim(minlon, maxlon) +
           ggplot2::ylim(minlat, maxlat) +
-          #ggplot2::scale_fill_gradient(name = "Level\n(density)") +
+          ggplot2::scale_fill_gradient(name = "Level\n(density)") +
           ggplot2::ggtitle("Spatial kernel (gradient)") +
           ggplot2::theme(
             text = ggplot2::element_text(size = 12), axis.title.y = ggplot2::element_text(vjust = 1.5), panel.grid.major = ggplot2::element_blank(),
