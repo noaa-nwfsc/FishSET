@@ -32,6 +32,7 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
   #' @importFrom maps map
   #' @importFrom spdep knn2nb knearneigh nb2listw localG globalG.test
   #' @importFrom sf st_geometry
+  #' @importFrom shiny isRunning
   #' @export
   #' @examples
   #' \dontrun{
@@ -45,12 +46,17 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
 
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
   
   spat_out <- data_pull(spat)
-  spat <- spat_out$dat
   spatdat <- spat_out$dataset
+  
+  if (shiny::isRunning()) {
+    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
+    if (deparse(substitute(spat)) == "spatdat$dataset") spat <- get("spat_name")
+  } else { 
+    if (!is.character(dat)) dat <- deparse(substitute(dat))
+    if (!is.character(spat)) spat <- deparse(substitute(spat)) }
 
   x <- 0
   if (any(abs(dataset[[lon.dat]]) > 180)) {
@@ -144,8 +150,7 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
 
     getis_ord_stats_function <- list()
     getis_ord_stats_function$functionID <- "getis_ord_stats"
-    getis_ord_stats_function$args <- list(dat, project, varofint, spat, lon.dat, lat.dat, cat)
-    getis_ord_stats_function$kwargs <- list(lon.grid, lat.grid)
+    getis_ord_stats_function$args <- list(dat, project, varofint, spat, lon.dat, lat.dat, cat, lon.grid, lat.grid)
 
     log_call(getis_ord_stats_function)
 

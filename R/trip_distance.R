@@ -37,12 +37,18 @@ create_trip_distance <- function(dat, PortTable, trip_id, starting_port, startin
 
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
 
   out <- data_pull(PortTable)
-  PortTable <- out$dat
   port.table <- out$dataset
+  
+  if (shiny::isRunning()) 
+    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
+  if (deparse(substitute(PortTable)) == "ptdat$dataset") PortTable <- get("port_name")
+  
+  else 
+    if (!is.character(dat)) dat <- deparse(substitute(dat))
+    if (!is.character(PortTable)) PortTable <- deparse(substitute(PortTable))
 
   x <- 0
 
@@ -138,16 +144,15 @@ create_trip_distance <- function(dat, PortTable, trip_id, starting_port, startin
       tripDist <- rowSums(cbind(sumToHaul, sumInnerDist, portToEnd), na.rm = T)
     }
 
-    name <- tripDist[C]
-    haulLevelTripDist <- cbind(dataset, name)
+    dataset[[name]] <- tripDist[C]
 
     create_TD_function <- list()
-    create_TD_function$functionID <- "create_TD"
-    create_TD_function$args <- list(dat, PortTable, trip_id, starting_port, starting_haul, ending_haul, ending_port, haul_order, name)
-    create_TD_function$kwargs <- list(a = a, f = f)
+    create_TD_function$functionID <- "create_trip_distance"
+    create_TD_function$args <- list(dat, PortTable, trip_id, starting_port, starting_haul, 
+                                    ending_haul, ending_port, haul_order, name, a, f)
     create_TD_function$output <- list(dat)
     log_call(create_TD_function)
 
-    return(haulLevelTripDist)
+    return(dataset)
   }
 }

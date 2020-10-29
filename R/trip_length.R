@@ -72,6 +72,7 @@
 #' @importFrom stats reformulate
 #' @importFrom gridExtra arrangeGrob grid.arrange marrangeGrob
 #' @importFrom reshape2 melt
+#' @importFrom shiny isRunning
 #' @import ggplot2
 
 trip_length <- function(dat, project, start, end, units = "days", catch = NULL,
@@ -80,8 +81,12 @@ trip_length <- function(dat, project, start, end, units = "days", catch = NULL,
                         scale = "fixed", tran = "identity", pages = "single", 
                         output = "tab_plot", format_tab = "wide", haul_to_trip = FALSE, ...) {
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
+  
+  if (shiny::isRunning()) {
+    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
+  } else { 
+    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
   
   # cleaning ====
   dataset <- date_check(dataset, start)
