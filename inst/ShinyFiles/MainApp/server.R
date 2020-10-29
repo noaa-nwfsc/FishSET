@@ -235,14 +235,14 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                           ),
                     tags$li('Buttons that allow you to save plots and tables to the output folder in the FishSET folder.'), 
                     tags$li("A", tags$code('notes'), "section and a button to save notes to the output folder in the FishSET folder.")
-                          ),
+                          ,
                     tags$li('An', tags$code('R expression'), 'area where you can enter and run R code. 
                         Within the FishSET Shiny application, the primary data is called', tags$em('values$dataset.')), 
                     tags$ul(tags$ul('Some examples:'), 
                          tags$ul(tags$code('mean(values$dataset[,5])'), 'displays the mean of the fifth column.'),
                          tags$ul(tags$code('summary(values$dataset$Vessel_Length)'), 'displays summary details of a column called Vessel_Length.')
                  )
-                 ),
+                 )),
                  tags$br(), tags$br(),
                  tags$div(style="display: inline-block; align:left; ", img(src="QuickStart1.png",  height="75%", width="75%"))
                 )
@@ -262,7 +262,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           tags$p('Next, load data.',
             tags$ul('To load from a local file location, select the', tags$code('Upload new file'), 'radio button and then browse to file location.'), 
 	          tags$ul('To load from the FishSET database, select the', tags$code('FishSET database'), 'radio button. Fill out the optional', 
-				tags$code('Name of data table in FishSET Database'), 'text box if using a data table other than the original, unmodified table first loaded into the FishSET database.')
+				tags$code('Name of data table in FishSET database'), 'text box if using a data table other than the original, unmodified table first loaded into the FishSET database.')
 				), 
 	         tags$p('Finally, press the', tags$code('Load data'), 'button.'),
            # tags$div(style="display: inline-block; align:center", img(src="upload.png",  height="75%", width="75%"))
@@ -275,11 +275,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 			       tags$ul('gridded (optional)'), 
 			       tags$br(),
 			       "The", tags$strong('primary data'), " file is a flat data file containing the core data used in models. It must contain at least one vector containing information on 
-ports (id, name), date (haul, trip start), catch amount (metric tons, kg), and fishing location (latitude/longitude, zone/area). 
+             ports (id, name), date (haul, trip start), catch amount (metric tons, kg), and fishing location (latitude/longitude, zone/area). 
 			       Additional information such as price, species caught, and vessel characteristics may be included in the primary data file or added later. 
 			       Each row of the primary data file should be a unique observation and each column a unique variable. Single or double apostrophes, commas other than as 
-CSV separators, and periods other than as decimal points, should not be included in the file. Use underscores rather than spaces in column names and use NA or leave 
-cells empty to represent no or missing data.",
+             CSV separators, and periods other than as decimal points, should not be included in the file. Use underscores rather than spaces in column names and use NA or leave 
+             cells empty to represent no or missing data.",
 			       tags$br(),tags$br(),
 			       "The", tags$strong('port data'), "file contains the location (lat/lon) of ports in the primary data file and a variable containing port name or ID that links to the 
 			       primary data file. Values in the port name variable must exactly match values in the primary data port variable. 
@@ -312,18 +312,29 @@ cells empty to represent no or missing data.",
             tags$strong('Purpose:'), tags$br(), 
             'The', tags$em('Data Quality and Evaluation'), 'tab is used to identify and correct common data quality issues such as erroneous outliers and missing values.',
 				tags$br(),tags$br(),
-				    'Users can view a summary table of numeric data, check for missing values, emtpy variables, duplicate data, erroneous outliers, and that lat/lon variables 
-				    are in the correct format.',
-            'Options to remove or correct for data quality issues are displayed before the', tags$code('R expression'), 'box (arrow 2).',
-				tags$br(), tags$br(),
+				    'Users can view data classes for variables, check for missing values, empty variables, duplicate data, erroneous outliers, and that lat/lon variables 
+				    are in the correct format. Output from most data evaluation checks appear as a statement of check results at the top of the main panel. 
+            For the', tags$em('Variable class'), 'and', tags$em('Outliers'), 'options, interactive tables and plots are displayed.', 
+       tags$br(), tags$br(),
+          'Options to address data quality issues are specific to each data evaluation check option and are displayed 
+				above the', tags$code('R expression'), 'box (arrow 2). Calls to check for and correct data quality issues will be recorded in the log file. 
+				Evaluation statements outputs are automatically saved to the log file and notes file.',
+			tags$br(), tags$br(),
+          'For the variable class option, select the correct variable data class if the wrong class is shown. For instance, a variable containing 
+          all numbers should generally be classed as numeric and not character. Click the', tags$code('Change variable class'), 'button when
+			    selections are done. The data will not be changed but the variable data class will.', tags$br(),
+          tags$br(),
+          'For the outlier option, a data table and three plots are displayed. The plots show the distribution of the data in three 
+				   different ways. You can click on the data table to view the impact of removing a defined subset of the data. Click on individual points 
+         in the first plot to view the point value or zoom in to a highlighted area by double clicking. Further details on the outlier 
+			    checks are in the Help Manual.',
             tags$div(style="display: inline-block; align:center", img(src="dq.png", height="75%", width="75%")),
 				tags$br(), tags$br(),
-            'To save modified data, click the', tags$code('Save data to FishSET database'), 'button.', 
-				tags$br(),
-            'The modified data will be saved to the FishSET database with a title based on the project, MainDataTable, and date.',
-            'Click on the', tags$code('Refresh data'), 'button to restore the data to its original, unmodified state.',
-				tags$br(),tags$br(),
-          'The outlier plot is interactive. Click on individual points to get values and zoom in to a highlighted area by double clicking.'
+            'Once all changes have been made, save the revised data to the FishSET database by clicking the', tags$code('Save data to FishSET database'), 'button. 
+            The revised data will be saved to the FishSET database with a name based on the project, MainDataTable, and date. Even if the 
+				revised data is not saved to the FishSET database, the Shiny application will use the revised data.',
+            'To undo changes, click on the', tags$code('Refresh data'), 'button. This action will restore the data to its original, 
+				unaltered state. Any previous actions will also be lost.'
           )
         }
       })
@@ -332,32 +343,54 @@ cells empty to represent no or missing data.",
         if(input$QuickStartChoices=='ExplorTab'){ 
           tags$div(
             tags$br(), tags$br(),
-            tags$p(tags$strong('Purpose'), tags$br(), 
-                   'View and explore the primary data.',
-                tags$br(), 'Use the', tags$code('View data or plots'), 'dropdown box to view data as a table or plot.'),
-            tags$p(HTML(paste(tags$h4('Table:'), tags$h5('Edit and filter data, and remove variables from the dataset.'))),
-				tags$br(),
-				'Edit cells by double-clicking a cell'),
-				tags$br(),
-			tags$div(style="display: inline-block; align:center", img(src="Correct.png", height="75%", width="75%")),
-				tags$br(),tags$br(),
-			tags$p('Remove variables by clicking on the column, then clicking the', tags$code('Remove variable'), 'button. 
-                The edited data frame will not be saved unless the', tags$code('Save data'), 
-				'button is clicked. Press the', tags$code('Refresh data'), 'button to restore the original, unprocessed data frame.'),
+            tags$p(tags$strong('Purpose:'), tags$br(), 
+                   'The', tags$em('Data Exploration'), 'tab is used to view and explore the loaded data.',
+                   tags$br(),tags$br(),
+                  'Data can be viewed in table or plot format. Plots show the temporal and spatial distribution of the data 
+                   and the relationship between two variables.',
+                 'Use the', tags$code('View data or plots'), 'dropdown box to select between viewing data as a table or as plots.',
+            tags$br(),tags$br(),
+            "We describe usage of the table option first and then of plots."
+            ),
+            tags$p(HTML(paste(tags$h4('Table:'), 
+                              tags$h5('The table is used to edit individual cells, filter the data, 
+                                      and remove variables from the dataset that are redundant or 
+                                      will not be used in analyses or modeling. In addition, the 
+                                      other data types (plot, auxilliary, gridded), can be viewed 
+                                      and edited using the', tags$code('Select a dataset'), 'dropdown box.' 
+                                      ))),
+				    tags$br(),
+				    tags$strong('Edit cells'), 'by double-clicking a cell.'
+				    ),
+				    tags$br(),
+			      tags$div(style="display: inline-block; align:center", img(src="Correct.png", height="75%", width="75%")),
+			    	tags$br(),tags$br(),
+			tags$p(tags$strong('Remove variables'), 'by clicking on a column, then clicking the', tags$code('Remove variable'), 'button. 
+              Save the edited data table to the FishSET database by clicking the', tags$code('Save data'), 
+				'button. Press the', tags$code('Refresh data'), 'button to load the original, unaltered data table.'),
 				tags$br(), 
 			tags$div(style="display: inline-block; align:center", img(src="DeleteVar.png", height="75%", width="75%")),
 				tags$br(),tags$br(),
-			tags$p('Data can be filtered using the', tags$em('boxes'), 'below the variable name. Selected filters are saved when the', 
-				tags$code('Save data to FishSET database'), 'button is pushed. Modified data is stored as the project,
-				"MainDataTable", and the date. Raw, unmodified data can be reloaded by pressing the ', tags$code('Refresh data'), 'button.'),
+			tags$p(tags$strong('Filter data'), 'using the', tags$em('boxes'), 'below the variable name and above the data. Filters are saved when the', 
+				tags$code('Save data to FishSET database'), 'button is pushed. The edited data is stored as the project,
+				"MainDataTable", and the date.'),
 				tags$br(), 
 			tags$div(style="display: inline-block; align:center", img(src="Filter.png", height="75%", width="75%")),
 				tags$br(),tags$br(),
 			tags$p(tags$h4('Plots:'),
-				'Temporal, spatial, or x-y plots are available.'), 
-			tags$p('Zoom in on the', tags$em('Observed location'), 'spatial plot by doubl-clicking a highlighted area.',
-				tags$br(), 
-				'Click an individual point to identify the latitude and longitude of that point.'),
+				'Temporal, spatial, and x-y plots are available.'), 
+			tags$p('The temporal plots show the relationship of the selected variable by date.',
+			       tags$br(),tags$br(),
+			       'The spatial plots show the distribution of hauls in the map region and hot spots of activity.',
+			       tags$br(),
+			       'You can zoom in on the', 
+			       tags$em('Observed location'), 'spatial plot by double-clicking a highlighted area or view the latitude and longitude of a point
+			       by single clicking on the point. This map can be saved. A more detailed spatial map can be viewed on the', tags$code('Map Viewer'),
+			       'tab.', 
+			       tags$br(), tags$br(),
+			       'The x-y plots show the relationship between two selected variables.',
+			       tags$br(), tags$br()
+             ),
 				tags$br(), 
 			tags$div(style="display: inline-block; align:center", img(src="MapZoom.png", height="75%", width="75%")),
 				tags$br(),tags$br(),
@@ -372,7 +405,7 @@ cells empty to represent no or missing data.",
         if(input$QuickStartChoices=='AnalTab'){ 
           p(tags$br(), tags$br(), 
             tags$strong('Purpose:'), tags$br(),
-               'View correlations and simple linear regressions.', 
+               'View correlation and simple linear regression among selected variables.', 
 				tags$br(),tags$br(),
             tags$div(style="display: inline-block; align:center", img(src="Corr.png", height="75%", width="75%")),
 				tags$br(), tags$br(),
@@ -407,7 +440,7 @@ cells empty to represent no or missing data.",
       output$ZonalTabsText <- renderUI({
         if(input$QuickStartChoices=='ZonalTab'){ 
           p(tags$br(), tags$br(),
-           tags$strong('Problem:'), tags$br(), 'Assign observations to zones and define alternative fishing choices.',
+           tags$strong('Purpose:'), tags$br(), 'Assign observations to zones and define alternative fishing choices.',
 				tags$br(), tags$br(),
 	        'There are three steps on this tab.',
 				tags$br(), tags$br(),
@@ -427,15 +460,16 @@ cells empty to represent no or missing data.",
       output$ExpectedTabsText <- renderUI({
         if(input$QuickStartChoices=='ExpectedTab'){ 
           p(tags$br(), tags$br(),
-            tags$strong('Problem:'), tags$br(), 'Calculate expectated catch or revenue for alternative choices.',
+            tags$strong('Purpose:'), tags$br(), 
+            '', tags$em(), 'tab is used to calculate expected catch or revenue for alternative choices.',
 				tags$br(),tags$br(),
             'Returns an expected catch or expected revenue data frame based on selected parameters along with three null outputs:', 
 				tags$br(),
-            'expected catch/revenue based on catch of the previous two days (short-term expected catch),', 
+            'expected catch/revenue based the previous two days (short-term) chatch,', 
 				tags$br(),
-            'expected catch/revenue based on catch for the previous seven days (medium-term expected catch),', 
+            'expected catch/revenue based the previous seven days (medium-term) catch,', 
 				tags$br(),
-            'and expected catch/revenue based on catch in the previous year (long-term expected catch).'
+            'and expected catch/revenue based the previous years (long-term) catch.'
             )
         }
       })
@@ -443,8 +477,8 @@ cells empty to represent no or missing data.",
       output$ModelTabsText <- renderUI({
         if(input$QuickStartChoices=='ModelTab'){ 
           p(tags$br(),tags$br(),
-            tags$strong('Purpose: Run models'), tags$br(), 
-            'Define the likelihood function and model parameters before running the models and comparing output.',
+            tags$strong('Purpose:'), tags$br(), 
+            'The', tags$em('Models'), 'tab is used to define the likelihood function and model parameters, run the models, and compare output.',
 				tags$br(),tags$br(),
 			'Click', tags$code('Save model and Add new model'), 'to save model choices and define another model.',
 				tags$br(), tags$br(),
@@ -461,12 +495,18 @@ cells empty to represent no or missing data.",
       output$BookmarkTabsText <- renderUI({
         if(input$QuickStartChoices=='BookmarkTab'){ 
           p(tags$br(), tags$br(),
-            'Save and reload the FishSET R Shiny application.',
+            'Purpose:', tags$br(),
+            'The', tags$em('Bookmark Choices'), 'tabs is to save choices made in the FishSET R Shiny application and enable current application state to be reloaded at a later date.',
 				tags$br(), tags$br(),
-            'To bookmark the app, click the', tags$code('bookmark'), 'button. Click', tags$em('Dismiss'), 'in the popup message.',
+				    'Reloading a bookmarked state will restore the last selections in the application. The data will not be automatically loaded 
+            and no functions will be applied to the data. It is best to save the data before bookmarking the current application state. 
+				    After the application is reloaded, load the saved data.',  
+				    tags$br(), tags$br(),
+            'To bookmark the application, click the', tags$code('bookmark'), 'button. Click', tags$em('Dismiss'), 'in the popup message.',
             tags$div(style="display: inline-block; align:center", img(src="Dismiss.png", height="75%", width="75%")),
 				tags$br(), tags$br(),tags$br(),
-            'To reload the saved state, click', tags$code('Browse'), 'and then migrate to the', tags$em('input.rds'), 'file.',
+            'To reload a perviously saved application state, you must have the FishSET R application open. Navigate to the', tags$code('Bookmark Choices'), 
+        'tab. Click the', tags$code('Browse'), 'button and then migrate to the', tags$em('input.rds'), 'file.',
 				tags$br(), tags$br(),
             tags$div(style="display: inline-block; align:center", img(src="Bookmark2.png", height="75%", width="75%"))
             )
