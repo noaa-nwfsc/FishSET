@@ -17,7 +17,8 @@ log_rerun <- function(log_file, dat = NULL, portTable = NULL, aux = NULL,
   #' @examples 
   #' \dontrun{
   #' log_rerun("2020-10-23.json", run = TRUE) # reruns entire log with original data table
-  #' log_rerun("2020-10-23.json", dat = "pollockMainDataTable", run = TRUE) # runs log with new data table
+  #' # runs log with new data table
+  #' log_rerun("2020-10-23.json", dat = "pollockMainDataTable", run = TRUE) 
   #' }
   
   out <- jsonlite::fromJSON(paste0(loclog(), log_file), simplifyVector = FALSE) # import as list, preserves class type
