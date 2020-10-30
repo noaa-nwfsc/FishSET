@@ -72,6 +72,7 @@
 #' @importFrom reshape2 melt dcast
 #' @importFrom scales percent
 #' @importFrom dplyr anti_join
+#' @importFrom shiny isRunning
 #' @import ggplot2
 
 weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL, 
@@ -82,8 +83,12 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
   
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
+  
+  if (shiny::isRunning()) {
+    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
+  } else { 
+    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
   
   facet_date_l <- FALSE
   

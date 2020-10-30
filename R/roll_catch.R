@@ -35,7 +35,7 @@
 #' @param tran A function to transform the y-axis. Options include log, log2, log10, sqrt.
 #' @param output Whether to display \code{"plot"}, \code{"table"}, or both. Defaults
 #'   to both (\code{"tab_plot"}).
-#' @param ... Additional arguments passed to \code{\link{rollapply}}
+#' @param ... Additional arguments passed to \code{\link[zoo]{rollapply}}
 #' @export roll_catch
 #' @import ggplot2
 #' @importFrom stats aggregate reformulate
@@ -54,12 +54,16 @@
 #' }
 #'
 roll_catch <- function(dat, project, catch, date, group = NULL, k = 10,
-                       fun = mean, filter_date = NULL, filter_value = NULL,
+                       fun = "mean", filter_date = NULL, filter_value = NULL,
                        facet_by = NULL, scale = "fixed", align = "center",
                        convr = FALSE, tran = "identity", output = "tab_plot", ...) {
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
+  
+  if (shiny::isRunning()) {
+    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
+  } else { 
+    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
   
   #Empty variable
   Index <- NULL
@@ -283,7 +287,7 @@ roll_catch <- function(dat, project, catch, date, group = NULL, k = 10,
   
   roll_catch_function <- list()
   roll_catch_function$functionID <- "roll_catch"
-  roll_catch_function$args <- list(dat, project, catch, date, group, date, k, fun,
+  roll_catch_function$args <- list(dat, project, catch, date, group, k, fun,
                                    filter_date, filter_value, facet_by, scale,
                                    align, convr, tran, output)
   roll_catch_function$kwargs <- list(...)

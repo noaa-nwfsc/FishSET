@@ -13,7 +13,7 @@ log_rerun <- function(log_file, dat = NULL, portTable = NULL, aux = NULL,
   #' @seealso \code{\link{log_rerun_gui}}
   #' @importFrom jsonlite fromJSON
   #' @importFrom shiny showNotification isRunning
-  #' @importFrom rlang exprs call2
+  #' @importFrom rlang call2
   #' @examples 
   #' \dontrun{
   #' log_rerun("2020-10-23.json", run = TRUE) # reruns entire log with original data table
@@ -29,7 +29,11 @@ log_rerun <- function(log_file, dat = NULL, portTable = NULL, aux = NULL,
   fun_name <- vapply(seq_along(out), function(i) out[[i]]$functionID, character(1))
   
   log_arg_len <- vapply(seq_along(out), function(i) length(out[[i]]$args), numeric(1))
-  fun_arg_len <- vapply(seq_along(out), function(i) length(names(formals(out[[i]]$functionID))),  numeric(1))
+  fun_arg_len <- vapply(seq_along(out), function(i) {
+    
+      arg_nm <- names(formals(out[[i]]$functionID))
+      length(arg_nm[arg_nm != "..."])
+    },  numeric(1))
   
   if (any(log_arg_len != fun_arg_len)) {
     
@@ -44,13 +48,40 @@ log_rerun <- function(log_file, dat = NULL, portTable = NULL, aux = NULL,
     warning("Logged arguments do not match formals for the following functions: ", 
             paste(fun_name, collapse = ", "))
   }
-  
+ 
   # add names to args
   for (i in seq_along(out)) {
     
-    names(out[[i]]$args) <- names(formals(out[[i]]$functionID))
+    arg_names <- names(formals(out[[i]]$functionID))
+    names(out[[i]]$args) <- arg_names[arg_names != "..."] 
   }
-  
+
+  # handling args containing a vector or list 
+  for (i in seq_along(out)) {
+    
+    for (j in names(out[[i]]$args)) {
+      
+      if (length(out[[i]]$args[[j]]) > 1) {
+        
+        if (all(vapply(out[[i]]$args[[j]], FUN = length, numeric(1)) == 1)) { # case for vectors
+          
+          out[[i]]$args[[j]] <- unlist(out[[i]]$args[[j]]) # collapse list to vector
+        
+          } else { # case for lists
+          
+          arg_list <-
+            lapply(out[[i]]$args[[j]], function(x) {
+              
+              if (length(x) > 1) unlist(x) # collapse to single list
+              else x
+            })
+          
+          out[[i]]$args[[j]] <- arg_list
+        }
+      }
+    }
+  }
+
   # concatenate kwargs list to args list
   for (i in seq_along(out)) {
     
@@ -61,8 +92,7 @@ log_rerun <- function(log_file, dat = NULL, portTable = NULL, aux = NULL,
   call_list <- 
     lapply(seq_along(out), function(i) {
       
-      expr_list <- rlang::exprs(!!!out[[i]]$args)
-      rlang::call2(out[[i]]$functionID, !!!expr_list)
+      rlang::call2(out[[i]]$functionID, !!!out[[i]]$args)
     })
   
   replace_dat <- function(clist, dat_type, new_dat) {
