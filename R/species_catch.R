@@ -71,6 +71,7 @@
 #' @importFrom reshape2 dcast melt
 #' @importFrom dplyr anti_join
 #' @importFrom scales percent 
+#' @importFrom shiny isRunning
 
 species_catch <- function(dat, project, species, date, period = "month", fun = "sum", 
                           group = NULL, filter_date = NULL, filter_value = NULL, 
@@ -80,8 +81,12 @@ species_catch <- function(dat, project, species, date, period = "month", fun = "
   
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
+  
+  if (shiny::isRunning()) {
+    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
+  } else { 
+    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
   
   periods <- c("year", "month", "weeks", "weekday", "day", "day_of_year")
   

@@ -63,6 +63,7 @@
 #' @importFrom stats aggregate reformulate
 #' @importFrom dplyr anti_join left_join
 #' @importFrom scales percent
+#' @importFrom shiny isRunning
 
 vessel_count <- function(dat, project, v_id, date, period = "month", group = NULL, 
                          filter_date = NULL, filter_value = NULL, facet_by = NULL,
@@ -71,8 +72,12 @@ vessel_count <- function(dat, project, v_id, date, period = "month", group = NUL
     
     # Call in datasets
     out <- data_pull(dat)
-    dat <- out$dat
     dataset <- out$dataset
+    
+    if (shiny::isRunning()) {
+        if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
+    } else { 
+      if (!is.character(dat)) dat <- deparse(substitute(dat)) }
     
     periods <- c("year",  "month", "weeks", "weekday", "day", "day_of_year")
     

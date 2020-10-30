@@ -30,11 +30,11 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL, a
   out <- data_pull(gridfile)
   grid <- out$dataset
   
-  if (shiny::isRunning())
+  if (shiny::isRunning()) {
     if (deparse(substitute(gridfile)) == "grddat$dataset") gridfile <- get("grid_name")
     
-   else 
-     if (!is.character(gridfile)) gridfile <- deparse(substitute(gridfile))
+  } else {
+     if (!is.character(gridfile)) gridfile <- deparse(substitute(gridfile))}
   
   data(colors) # load in colors.RData in Data/
   
