@@ -829,7 +829,7 @@ randomize_value_range <- function(dat, project, value, perc = NULL) {
   #' @param project Project name. 
   #' @param value String, name of variable to jitter. 
   #' @param perc Numeric, a vector of percentages to randomly adjust a column of values by. 
-  #'   Defaults to a range of 0.5 - 0.15 (i.e. 5-%15 of original value). 
+  #'   Defaults to a range of 0.05 - 0.15 (i.e. 5-15 percent of original value). 
   #' @export
   #' @details This is one of the FishSET confidentiality functions. It adjusts a 
   #'   value by randomly sampling a range of percentages provided in the "perc" argument. 

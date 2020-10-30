@@ -24,9 +24,9 @@ read_dat <- function(x, data.type=NULL, is.map = F, ...) {
   #'   \code{\link{read.csv}} for reading in comma deliminated files,
   #'   \code{\link[utils]{read.table}} for reading in tab deliminated files, 
   #'   \code{\link[readxl]{read_excel}} for reading in excel files (xls, xlsx), 
-  #'   \code{\link[sf]{read_sf}} for reading in shape or geojson files, 
+  #'   \code{\link[sf]{st_read}} for reading in shape or geojson files, 
   #'   \code{\link[R.matlab]{readMat}} for reading in matlab data files,
-  #'   \code{\link[haven]{read_stata}} for reading in stata data files,
+  #'   \code{\link[haven]{read_dta}} for reading in stata data files,
   #'   \code{\link[haven]{read_spss}} for reading in spss data files,
   #'   \code{\link[haven]{read_sas}} for reading in sas data files, and 
   #'   \code{\link[jsonlite]{fromJSON}} for reading in json files.
