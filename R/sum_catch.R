@@ -18,6 +18,7 @@
 #'   the \code{exp} argument. This can be used to subset tables or assign values. The option 'table' returns a summary table. 
 #' @importFrom stats aggregate reformulate
 #' @importFrom dplyr left_join
+#' @importFrom shiny isRunning
 #' @export sum_catch
 #' @return A summary table or vector of logical values based on the \code{exp} argument.
 #' @examples 
@@ -32,8 +33,12 @@
 sum_catch <- function(dat, project, catch, v_id, species = NULL, exp, val = c("raw", "per"), output = c("logical", "table")) {
     
     out <- data_pull(dat)
-    dat <- out$dat
     dataset <- out$dataset
+    
+    if (shiny::isRunning()) {
+        if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
+    } else { 
+        if (!is.character(dat)) dat <- deparse(substitute(dat)) }
     
     dataset$temp_row_id <- 1:nrow(dataset)
     

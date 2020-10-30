@@ -29,6 +29,7 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
   #' @import ggplot2
   #' @importFrom maps map
   #' @importFrom spdep knn2nb knearneigh nb2listw localmoran moran.test
+  #' @importFrom shiny isRunning
   #' @export
   #' @examples
   #' \dontrun{
@@ -42,12 +43,17 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
 
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
   
   spat_out <- data_pull(spat)
-  spat <- spat_out$dat
   spatdat <- spat_out$dataset
+  
+  if (shiny::isRunning()) {
+    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
+    if (deparse(substitute(spat)) == "spatdat$dataset") spat <- get("spat_name")
+  } else { 
+    if (!is.character(dat)) dat <- deparse(substitute(dat))
+    if (!is.character(spat)) spat <- deparse(substitute(spat)) }
 
   x <- 0
   if (any(abs(dataset[[lon.dat]]) > 180)) {
@@ -145,8 +151,7 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
 
     moran_stats_function <- list()
     moran_stats_function$functionID <- "moran_stats"
-    moran_stats_function$args <- list(dat, project, varofint, spat, lon.dat, lat.dat, cat)
-    moran_stats_function$kwargs <- list(lon.grid, lat.grid)
+    moran_stats_function$args <- list(dat, project, varofint, spat, lon.dat, lat.dat, cat, lon.grid, lat.grid)
     log_call(moran_stats_function)
 
     return(list(moranmap = moranmap, morantable = uniquedatatomap[, c("ZoneID", "Morans_I")]))
