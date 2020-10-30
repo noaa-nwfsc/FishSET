@@ -64,8 +64,12 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = 
     
     # Call in datasets
     out <- data_pull(dat)
-    dat <- out$dat
     dataset <- out$dataset
+    
+    if (shiny::isRunning()) {
+        if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
+    } else { 
+        if (!is.character(dat)) dat <- deparse(substitute(dat)) }
     
     facet_date_l <- FALSE
     

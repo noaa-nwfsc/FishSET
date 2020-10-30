@@ -77,6 +77,7 @@
 #' @importFrom gridExtra grid.arrange arrangeGrob
 #' @importFrom reshape2 melt dcast
 #' @importFrom scales percent
+#' @importFrom shiny isRunning
 
 bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NULL, 
                     group = NULL, filter_date = NULL, filter_value = NULL, facet_by = NULL, 
@@ -85,8 +86,12 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
   
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
+  
+  if (shiny::isRunning()) {
+    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
+  } else { 
+    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
   
   periods <- c("year", "month", "weeks")
   

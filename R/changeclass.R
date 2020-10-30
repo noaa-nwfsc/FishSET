@@ -20,6 +20,7 @@
 #'   Set \code{savedat} to TRUE. 
 #' @return Table with data class for each variable and the working data with modified data class as specified.
 #' @importFrom DBI dbWriteTable dbConnect dbDisconnect
+#' @importFrom shiny isRunning
 #' @examples
 #' \dontrun{
 #' #View table without changing class or saving
@@ -38,14 +39,18 @@ changeclass <- function(dat, project, x=NULL, newclass=NULL, savedat=FALSE){
 
 # Call in datasets
 out <- data_pull(dat)
-dat <- out$dat
 dataset <- out$dataset
+
+if (shiny::isRunning()) {
+  if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
+} else { 
+  if (!is.character(dat)) dat <- deparse(substitute(dat)) }
 
 
   #change data
     #Conversion is based on starting and ending class
 if(!is.null(x)){
-  origclass <- sapply(x, function(v) class(dataset[, v]))
+  origclass <- sapply(x, function(v) class(dataset[[v]]))
   origclass <- toupper(origclass)
 }
 if(!is.null(newclass)){
