@@ -223,9 +223,10 @@ set_quants <- function(dat, x, quant.cat = c(0.2, 0.25, 0.4), custom.quant = NUL
   #'   \item{.25: (0\%, 25\%, 50\%, 75\%, 100\%)}
   #'   \item{.4:  (0\%, 10\%, 50\%, 90\%, 100\%)}
   #'   }
+  #' @param custom.quant Vector, user defined quantiles.
   #' @param name String, name of created vector. Defaults to name of the function if not defined.
   #' @return Primary dataset with quantile variable added.
-  #' @export set_quants
+  #' @export set_quants  
   #'
   #' @examples
   #' \dontrun{
