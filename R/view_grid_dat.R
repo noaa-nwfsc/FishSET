@@ -24,7 +24,7 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL, a
   #' @import dplyr 
   #' @examples 
   #' \dontrun{
-  #' view_grid_dat(SST, "pollock", "lon", "lat", value = "analysed_sst")
+  #' view_grid_dat('SST', "pollock", "lon", "lat", value = "analysed_sst")
   #' }
   #'
   #
@@ -114,7 +114,7 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL, a
                          na.rm = TRUE,
                          alpha = .85) + # slight transparency for maps feature visibility
     ggplot2::coord_fixed(ratio = 1.5, xlim = xlim, ylim = ylim) +
-    FishSET:::fishset_theme + 
+    fishset_theme + 
     ggplot2::labs(x = "longitude", y = "latitude") +
     ggplot2::scale_fill_gradientn(colors = map_color, na.value = NA) 
   
