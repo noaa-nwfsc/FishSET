@@ -26,6 +26,6 @@ This is one of the FishSET confidentiality functions. It adjusts a
 }
 \examples{
 \dontrun{
-jitter_value(pollockMainDataTable, "LBS_270_POLLOCK_LBS")
+randomize_value_range(pollockMainDataTable, "LBS_270_POLLOCK_LBS")
 } 
 }

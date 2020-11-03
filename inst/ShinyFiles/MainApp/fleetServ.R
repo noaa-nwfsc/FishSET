@@ -205,7 +205,9 @@ density_serv <- function(id, values, project) {
       
       if (input$ftype == "date_range") {
         
-        dateRangeInput(ns("date_range"), label = "Date range")
+        dateRangeInput(ns("date_range"), label = "Date range",
+                       start = min(values$dataset[[input$date]], na.rm = TRUE),
+                       end = max(values$dataset[[input$date]], na.rm = TRUE))
         
       } else if (!(input$ftype %in% c("date_range", "none"))) {
         
@@ -288,7 +290,9 @@ vessel_serv <- function(id, values, project) {
       
       if (input$ftype == "date_range") {
         
-        dateRangeInput(ns("date_range"), label = "Date range")
+        dateRangeInput(ns("date_range"), label = "Date range",
+                       start = min(values$dataset[[input$date]], na.rm = TRUE),
+                       end = max(values$dataset[[input$date]], na.rm = TRUE))
         
       } else if (!(input$ftype %in% c("date_range", "none"))) {
         
@@ -380,7 +384,9 @@ species_serv <- function(id, values, project) {
       
       if (input$ftype == "date_range") {
         
-        dateRangeInput(ns("date_range"), label = "Date range")
+        dateRangeInput(ns("date_range"), label = "Date range",
+                       start = min(values$dataset[[input$date]], na.rm = TRUE),
+                       end = max(values$dataset[[input$date]], na.rm = TRUE))
         
       } else if (!(input$ftype %in% c("date_range", "none"))) {
         
@@ -476,7 +482,9 @@ roll_serv <- function(id, values, project) {
       
       if (input$ftype == "date_range") {
         
-        dateRangeInput(ns("date_range"), label = "Date range")
+        dateRangeInput(ns("date_range"), label = "Date range",
+                       start = min(values$dataset[[input$date]], na.rm = TRUE),
+                       end = max(values$dataset[[input$date]], na.rm = TRUE))
         
       } else if (!(input$ftype %in% c("date_range", "none"))) {
         
@@ -569,7 +577,9 @@ weekly_catch_serv <- function(id, values, project) {
       
       if (input$ftype == "date_range") {
         
-        dateRangeInput(ns("date_range"), label = "Date range")
+        dateRangeInput(ns("date_range"), label = "Date range",
+                       start = min(values$dataset[[input$date]], na.rm = TRUE),
+                       end = max(values$dataset[[input$date]], na.rm = TRUE))
         
       } else if (!(input$ftype %in% c("date_range", "none"))) {
         
@@ -661,7 +671,9 @@ weekly_effort_serv <- function(id, values, project) {
       
       if (input$ftype == "date_range") {
         
-        dateRangeInput(ns("date_range"), label = "Date range")
+        dateRangeInput(ns("date_range"), label = "Date range",
+                       start = min(values$dataset[[input$date]], na.rm = TRUE),
+                       end = max(values$dataset[[input$date]], na.rm = TRUE))
         
       } else if (!(input$ftype %in% c("date_range", "none"))) {
         
@@ -757,7 +769,9 @@ bycatch_serv <- function(id, values, project) {
       
       if (input$ftype == "date_range") {
         
-        dateRangeInput(ns("date_range"), label = "Date range")
+        dateRangeInput(ns("date_range"), label = "Date range",
+                       start = min(values$dataset[[input$date]], na.rm = TRUE),
+                       end = max(values$dataset[[input$date]], na.rm = TRUE))
         
       } else if (!(input$ftype %in% c("date_range", "none"))) {
         
@@ -877,7 +891,9 @@ trip_serv <- function(id, values, project) {
       
       if (input$ftype == "date_range") {
         
-        dateRangeInput(ns("date_range"), label = "Date range")
+        dateRangeInput(ns("date_range"), label = "Date range",
+                       start = min(values$dataset[[input$date]], na.rm = TRUE),
+                       end = max(values$dataset[[input$date]], na.rm = TRUE))
         
       } else if (!(input$ftype %in% c("date_range", "none"))) {
         
@@ -947,9 +963,9 @@ fleet_table_serv <- function(id, values, project) {
     observeEvent(input$upload, {
       
       req(input$file)
-      type <- sub('.*\\.', '', input$file$name)
-      if (type == 'RData') { type <- 'R'} else { type <- type}
-      upload <- FishSET::read_dat(input$file$datapath, type)
+      # type <- sub('.*\\.', '', input$file$name)
+      # if (type == 'RData') { type <- 'R'} else { type <- type}
+      upload <- FishSET::read_dat(input$file$datapath)
       
       if (any(vapply(upload, is.factor, FUN.VALUE = logical(1)))) {
         
