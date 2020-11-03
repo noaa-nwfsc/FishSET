@@ -196,7 +196,7 @@ density_plotUI <- function(id, dat) {
     
     uiOutput(ns("grp_select")),
     
-    checkboxInput(ns("combine"), "Combine grouping variables?",
+    checkboxInput(ns("combine"), "Combine grouping variables",
                   value = FALSE),
     
     uiOutput(ns("fct_select")),
@@ -261,7 +261,7 @@ vessel_countUI <- function(id) {
     
     uiOutput(ns("grp_select")),
     
-    checkboxInput(ns("combine"), "Combine grouping variables?",
+    checkboxInput(ns("combine"), "Combine grouping variables",
                   value = FALSE),
     
     uiOutput(ns("fct_select")),
@@ -330,7 +330,7 @@ species_catchUI <- function(id) {
     
     uiOutput(ns("grp_select")),
     
-    checkboxInput(ns("combine"), "Combine grouping variables?",
+    checkboxInput(ns("combine"), "Combine grouping variables",
                   value = FALSE),
     
     uiOutput(ns("fct_select")),
@@ -467,7 +467,7 @@ weekly_catchUI <- function(id) {
     selectInput(ns("fun"), "Summary function",
                 choices = c("sum", "mean", "sd", "median", "min", "max", "IQR")),
     
-    checkboxInput(ns("combine"), "Combine grouping variables?",
+    checkboxInput(ns("combine"), "Combine grouping variables",
                   value = FALSE),
     
     selectInput(ns("value"), "Select value type",
@@ -535,7 +535,7 @@ weekly_effortUI <- function(id) {
     
     uiOutput(ns("grp_select")),
     
-    checkboxInput(ns("combine"), "Combine grouping variables?",
+    checkboxInput(ns("combine"), "Combine grouping variables",
                   value = FALSE),
     
     uiOutput(ns("fct_select")),
@@ -609,7 +609,7 @@ bycatchUI <- function(id) {
     
     uiOutput(ns("grp_select")),
     
-    checkboxInput(ns("combine"), "Combine grouping variables?",
+    checkboxInput(ns("combine"), "Combine grouping variables",
                   value = FALSE),
     
     uiOutput(ns("fct_select")),
@@ -741,7 +741,7 @@ fleet_tableUI <- function(id) {
     
     tags$br(),
     
-    fileInput(ns("file"), "Browse file"),
+    fileInput(ns("file"), "Import table"),
     
     actionButton(ns("upload"), "Upload table"),
     

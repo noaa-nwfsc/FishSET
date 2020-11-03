@@ -803,7 +803,7 @@ randomize_value_row <- function(dat, project, value) {
   #'   for randomly assigning ID values between observations. 
   #' @examples
   #' \dontrun{
-  #' jitter_row(pollockMainDataTable, "PERMIT")
+  #' randomize_value_row(pollockMainDataTable, "PERMIT")
   #' }
   
   out <- data_pull(dat)
@@ -836,7 +836,7 @@ randomize_value_range <- function(dat, project, value, perc = NULL) {
   #'   value by randomly sampling a range of percentages provided in the "perc" argument. 
   #' @examples 
   #' \dontrun{
-  #' jitter_value(pollockMainDataTable, "LBS_270_POLLOCK_LBS")
+  #' randomize_value_range(pollockMainDataTable, "LBS_270_POLLOCK_LBS")
   #' } 
   
   out <- data_pull(dat)
@@ -940,15 +940,15 @@ randomize_lonlat_zone <- function(dat, project, spat, lon, lat, zone) {
   #' @param lat String, variable name containing latitude.
   #' @param zone String, column name contain the assigned zone. Must be the same 
   #'   for both the spatial data table and MainDataTable. 
+  #' @export
   #' @importFrom dplyr across arrange count
   #' @importFrom sf st_coordinates st_sample
-  #' @export
   #' @details This is one of the FishSET confidentiality functions. It replaces 
   #'   longitude and latitude values with randomly sampled coordinates from the
   #'   regulatory zone the observation occurred in. 
   #' @examples 
   #' \dontrun{
-  #' jitter_lonlat_zone(pollockMainDataTable, spatdat, 
+  #' randomize_lonlat_zone(pollockMainDataTable, spatdat, 
   #'                    lon = "LonLat_START_LON", lat = "LonLat_START_LAT",
   #'                    zone = "NMFS_AREA")
   #' }
@@ -1037,8 +1037,8 @@ lonlat_to_centroid <- function(dat, project, lon, lat, spat, zone) {
   #'   a "spatial feature" or sf object. 
   #' @param zone String, column name contain the assigned zone. Must be the same 
   #'   for both the spatial data table and MainDataTable. 
-  #' @importFrom dplyr left_join
   #' @export
+  #' @importFrom dplyr left_join
   #' @details This is one of the FishSET confidentiality functions. It replaces the 
   #'   selected longitude and latitude columns with the zonal centroid derived 
   #'   from a spatial data table. 

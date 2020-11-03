@@ -337,7 +337,7 @@ species_catch <- function(dat, project, species, date, period = "month", fun = "
   f_group2 <- function() if (length(species) == 1) group2 else group1
   
   s_plot <- ggplot2::ggplot(data = count, ggplot2::aes_string(x = period, y = f_catch())) +
-    fishset_theme +
+    fishset_theme() +
     ggplot2::theme(legend.position = "bottom") +
     ggplot2::scale_y_continuous(labels = if (value == "percent") scales::percent else ggplot2::waiver(),
                                 trans = tran)

@@ -273,7 +273,7 @@ trip_length <- function(dat, project, start, end, units = "days", catch = NULL,
     }
     
     h_plot <- h_plot + ggplot2::labs(title = p, x = paste0(p, " (", units, ")")) +
-      fishset_theme + ggplot2::scale_x_continuous(trans = tran)
+      fishset_theme() + ggplot2::scale_x_continuous(trans = tran)
     
     if (type == "hist") {
       h_plot <- h_plot + ggplot2::geom_histogram(ggplot2::aes_string(fill = group), bins = bins)
