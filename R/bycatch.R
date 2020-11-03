@@ -356,7 +356,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
       ggplot2::geom_point(size = 1) + 
       ggplot2::geom_line(size = 0.65) + 
       ggplot2::labs(title = "CPUE", y = "average CPUE") + 
-      fishset_theme + 
+      fishset_theme() + 
       ggplot2::scale_y_continuous(trans = tran) +
       ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, size = 9), 
                      axis.title = ggplot2::element_text(size = 7), 
@@ -401,7 +401,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
       ggplot2::geom_line(size = 0.65) + 
       ggplot2::labs(title = if (value == "total") "Total" else "STC", 
                     y = if (value == "total")  "total catch" else "share of catch") + 
-      fishset_theme + ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, size = 9), 
+      fishset_theme() + ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, size = 9), 
                                      axis.title = ggplot2::element_text(size = 7),
                                      axis.text = ggplot2::element_text(size = 7), 
                                      legend.position = "none") +
