@@ -196,7 +196,7 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, date = N
           x = if (tran != "identity") paste0(var, " (", tran, ")") else var,
           caption = paste("kernel bindwidth:", bw)
         ) +
-        fishset_theme +
+        fishset_theme() +
         ggplot2::theme(legend.position = "bottom")
     } else if (type == "ecdf") {
       if (is.null(group)) {
@@ -207,7 +207,7 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, date = N
             title = paste("ECDF of", var),
             x = if (tran != "identity") paste0(var, " (", tran, ")") else var
           ) +
-          fishset_theme +
+          fishset_theme() +
           ggplot2::theme(legend.position = "bottom")
       } else {
         plot <- ggplot2::ggplot(den_dat, ggplot2::aes_string(x = var, color = group)) +
@@ -216,7 +216,7 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, date = N
             title = paste("ECDF of", var),
             x = if (tran != "identity") paste0(var, " (", tran, ")") else var
           ) +
-          fishset_theme +
+          fishset_theme() +
           ggplot2::theme(legend.position = "bottom")
       }
     } else {
@@ -228,7 +228,7 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, date = N
       plot <- ggplot2::ggplot(den_dat, ggplot2::aes_string(var)) +
         ggplot2::geom_area(ggplot2::aes(y = den_dat$cdf), position = "identity", alpha = .7) +
         ggplot2::labs(title = paste("CDF of", var)) +
-        fishset_theme +
+        fishset_theme() +
         ggplot2::theme(legend.position = "bottom")
     }
 

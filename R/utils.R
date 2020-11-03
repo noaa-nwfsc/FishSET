@@ -395,14 +395,19 @@ data_pull <- function(dat) {
   return(list(dat = dat, dataset = dataset))
 }
 
-fishset_theme <- ggplot2::theme(
+#' Default FishSET plot theme
+#' 
+#' @keywords internal
+fishset_theme <- function() {
+  
+  ggplot2::theme(
   panel.grid.major = ggplot2::element_blank(),
   panel.grid.minor = ggplot2::element_blank(),
   panel.background = ggplot2::element_blank(),
   axis.line = ggplot2::element_line(colour = "black"),
   axis.text = ggplot2::element_text(size = 11),
-  axis.title = ggplot2::element_text(size = 11)
-)
+  axis.title = ggplot2::element_text(size = 11))
+}
 
 num_breaks <- function(per) {
   #'
