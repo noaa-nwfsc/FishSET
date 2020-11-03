@@ -356,7 +356,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                               tags$h5('The table is used to edit individual cells, filter the data, 
                                       and remove variables from the dataset that are redundant or 
                                       will not be used in analyses or modeling. In addition, the 
-                                      other data types (plot, auxilliary, gridded), can be viewed 
+                                      other data types (plot, auxilliary, gridded), can also be viewed 
                                       and edited using the', tags$code('Select a dataset'), 'dropdown box.' 
                                       ))),
 				    tags$br(),
@@ -371,8 +371,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 				tags$br(), 
 			tags$div(style="display: inline-block; align:center", img(src="DeleteVar.png", height="75%", width="75%")),
 				tags$br(),tags$br(),
-			tags$p(tags$strong('Filter data'), 'using the', tags$em('boxes'), 'below the variable name and above the data. Filters are saved when the', 
-				tags$code('Save data to FishSET database'), 'button is pushed. The edited data is stored as the project,
+			tags$p(tags$strong('Filter data'), 'using the', tags$em('boxes'), 'between the variable name the first row of data. Filters are saved when the', 
+				tags$code('Save data to FishSET database'), 'button is pushed. The altered data is also saved as the project,
 				"MainDataTable", and the date.'),
 				tags$br(), 
 			tags$div(style="display: inline-block; align:center", img(src="Filter.png", height="75%", width="75%")),
@@ -385,18 +385,19 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 			       tags$br(),
 			       'You can zoom in on the', 
 			       tags$em('Observed location'), 'spatial plot by double-clicking a highlighted area or view the latitude and longitude of a point
-			       by single clicking on the point. This map can be saved. A more detailed spatial map can be viewed on the', tags$code('Map Viewer'),
+			       by single clicking on the point. To reset the map, double-click outside the highlighted area. 
+			       This map can be saved. A more detailed spatial map can be viewed on the', tags$code('Map Viewer'),
 			       'tab.', 
-			       tags$br(), tags$br(),
-			       'The x-y plots show the relationship between two selected variables.',
-			       tags$br(), tags$br()
-             ),
-				tags$br(), 
-			tags$div(style="display: inline-block; align:center", img(src="MapZoom.png", height="75%", width="75%")),
+			       tags$br(),
+			       	tags$div(style="display: inline-block; align:center", img(src="MapZoom.png", height="75%", width="75%")),
 				tags$br(),tags$br(),
-			tags$p("Make further selections on the left to display global Moran's I (a measure of spatial autocorrelation) and
-				GetisOrd (a measure of spatial clustering) statistics."
-				)
+			tags$p("A measure of spatial autocorrelation (global Moran's I) and of spatial clustering (GetisOrd statistic) will display below the 
+      plots once selections below plot type are made. The table can be saved."
+				),
+			       tags$br(), tags$br(),
+			       'The finaly plot type, x-y plots, shows the relationship between two selected variables. 
+			To assess the degree of correlation between variables or the fit of the relationship, visit the', tags$code('Simple Analyses'), 'tab.'
+			)
           )
         }
       })
@@ -405,14 +406,14 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         if(input$QuickStartChoices=='AnalTab'){ 
           p(tags$br(), tags$br(), 
             tags$strong('Purpose:'), tags$br(),
-               'View correlation and simple linear regression among selected variables.', 
+               'The', tags$em('Simple Analyses'), 'tab is used to view correlation and simple linear regression among selected variables.', 
 				tags$br(),tags$br(),
             tags$div(style="display: inline-block; align:center", img(src="Corr.png", height="75%", width="75%")),
 				tags$br(), tags$br(),
-            'For correlation plots/tables, variables can be removed from the', tags$code('select'), 'box by clicking on the variable and 
+            'Variables can be removed from the correlation plots and tables by clicking on a variable in the,', tags$code('Select variables'), 'box and 
 				then hitting the backspace or delete button on your keyboard.',
 				tags$br(),
-            'Variables can be added by clicking an empty space in the', tags$code('select'), 'box.'
+            'Variables can be added by clicking an empty space in the', tags$code('Select variables'), 'box.'
             )
         }
       })
