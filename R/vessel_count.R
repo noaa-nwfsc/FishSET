@@ -295,7 +295,7 @@ vessel_count <- function(dat, project, v_id, date, period = "month", group = NUL
         else 1 }
     
     v_plot <- ggplot2::ggplot(data = count, ggplot2::aes_string(x = period, y = f_value())) +
-        fishset_theme +
+        fishset_theme() +
         ggplot2::theme(legend.position = "bottom") +
         ggplot2::scale_y_continuous(labels = if (value == "percent") scales::percent else ggplot2::waiver(),
                                     trans = tran)

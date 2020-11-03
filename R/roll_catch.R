@@ -232,20 +232,20 @@ roll_catch <- function(dat, project, catch, date, group = NULL, k = 10,
       }
       
       rc_plot <- ggplot2::ggplot(rz, ggplot2::aes_string("day", f_catch())) +
-        fishset_theme +
+        fishset_theme() +
         ggplot2::theme(legend.position = "bottom") +
         ggplot2::scale_x_continuous(labels = function(x) date_lab(x)) +
         ggplot2::facet_grid(stats::reformulate(".", facet), scales = scale)
       
     } else {
       rc_plot <- ggplot2::ggplot(rz, ggplot2::aes_string(date, f_catch())) +
-        fishset_theme +
+        fishset_theme() +
         ggplot2::theme(legend.position = "bottom") +
         ggplot2::facet_grid(reformulate(".", facet), scales = scale)
     }
   } else {
     rc_plot <- ggplot2::ggplot(rz, ggplot2::aes_string(date, f_catch())) +
-      fishset_theme +
+      fishset_theme() +
       ggplot2::theme(legend.position = "bottom")
   }
   

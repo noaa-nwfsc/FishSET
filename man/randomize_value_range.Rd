@@ -15,7 +15,7 @@ database should contain the string `MainDataTable`.}
 \item{value}{String, name of variable to jitter.}
 
 \item{perc}{Numeric, a vector of percentages to randomly adjust a column of values by. 
-Defaults to a range of 0.5 - 0.15 (i.e. 5-%15 of original value).}
+Defaults to a range of 0.05 - 0.15 (i.e. 5-15 percent of original value).}
 }
 \description{
 Randomize value by percentage range
@@ -26,6 +26,6 @@ This is one of the FishSET confidentiality functions. It adjusts a
 }
 \examples{
 \dontrun{
-jitter_value(pollockMainDataTable, "LBS_270_POLLOCK_LBS")
+randomize_value_range(pollockMainDataTable, "LBS_270_POLLOCK_LBS")
 } 
 }
