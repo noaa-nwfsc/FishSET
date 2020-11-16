@@ -41,7 +41,7 @@
 #'    travel-distance parameters are of length (# of catch variables)*(k) and (# of cost variables) respectively.
 #'
 #'  epm_normal: \verb{  } Expected profit model with normal catch function \cr
-#'    \verb{    }Starting parameters values takes the order of: c([catch-function parameters], [travel-distance parameters], [catch sigma(s)], [scale parameter]). \cr \cr
+#'    \verb{    }Starting parameters values take the order of: c([catch-function parameters], [travel-distance parameters], [catch sigma(s)], [scale parameter]). \cr \cr
 #'    The catch-function and travel-distance parameters are of length (# of catch-function variables)*(k) and (# of travel-distance
 #'    variables) respectively, where (k) equals the number of alternative fishing choices. The catch sigma(s) are either of length equal
 #'    to unity or length (k) if the analyst is estimating location-specific catch sigma parameters. The scale parameter is of length

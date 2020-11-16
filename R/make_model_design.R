@@ -5,13 +5,9 @@
 #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
 #' @param project String, name of project.
 #' @param catchID  String, variable from \code{dat} that contains catch data.
-#' @param alternativeMatrix Whether the alternative choice matrix should come from \code{"loaded data"} or \code{"gridded data"}.
 #' @param replace Logical, should the model design file be replaced? If false, appends to existing model design file. 
 #'   Defaults to TRUE.
-#' @param lonlat Variable from \code{dat} containing longitude and latitude data. Define if \code{alt_var} from 
-#'   \code{\link{create_alternative_choice}} is lat/lon or port. Must be specified as longitude then latitude. 
-#'   \code{lonlat} is used to estimate port location if not defined in PortTable.
-#' @param PortTable String, name of data table in FishSET database containing the port table with lat/lon for each port. 
+#' @param PortTable Optional. String, name of data table in FishSET database containing the port table with lat/lon for each port. 
 #'   Define if \code{alt_var} is a port.
 #' @param likelihood String, name of likelihood function. Details on likelihood specific initial parameter specification 
 #'   can be found in \code{\link{discretefish_subroutine}} documentation.
@@ -19,7 +15,7 @@
 #'  logit_c: \tab  Conditional logit likelihood  \cr
 #'  logit_avgcat: \tab Average catch multinomial logit procedure \cr
 #'  logit_correction: \tab Full information model with Dahl's correction function  \cr
-#'  epm_norma:  \tab  Expected profit model with normal catch function \cr
+#'  epm_normal:  \tab  Expected profit model with normal catch function \cr
 #'  epm_weibull: \tab Expected profit model with Weibull catch function \cr
 #'  epm_lognormal: \tab  Expected profit model with lognormal catch function  \cr
 #'  }
@@ -37,12 +33,12 @@
 #' @importFrom DBI dbGetQuery dbExecute dbListTables
 #' @export make_model_design
 #' @details Function creates the model matrix list that contains the data and modeling choices.
-#' The model design list is saved to the FishSET database and called by the
-#' \code{\link{discretefish_subroutine}}. Alternative fishing options come from the
-#' Alternative Choice list, generated from the \code{\link{create_alternative_choice}} function,
-#' and the expected catch matrices from the \code{\link{create_expectations}} function.
-#' The distance from the starting point to alternative choices is calculated. \cr\cr
-#' Variable names details: \cr
+#'   The model design list is saved to the FishSET database and called by the
+#'   \code{\link{discretefish_subroutine}}. Alternative fishing options come from the
+#'   Alternative Choice list, generated from the \code{\link{create_alternative_choice}} function,
+#'   and the expected catch matrices from the \code{\link{create_expectations}} function.
+#'   The distance from the starting point to alternative choices is calculated. \cr\cr
+#'   Variable names details: \cr
 #' \tabular{lllllll}{
 #' \tab \strong{vars1} \tab \strong{vars2} \tab \cr \cr
 #' \strong{logit_c}: \tab 
@@ -173,8 +169,8 @@
 #'   lonlat = c("LonLat_START_LON", "LonLat_START_LAT"), PortTable = NULL, project = "pcod")
 #' }
 #'
-make_model_design <- function(dat, project, catchID, alternativeMatrix = c("loadedData", "griddedData"), replace = TRUE, lonlat = NULL, PortTable = NULL,
-                              likelihood = NULL, vars1 = NULL, vars2 = NULL, priceCol = NULL, startloc = NULL, polyn = NULL) {
+make_model_design <- function(dat, project, catchID, replace = TRUE, PortTable = NULL, likelihood = NULL, 
+                              vars1 = NULL, vars2 = NULL, priceCol = NULL, startloc = NULL, polyn = NULL) {
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
   # Call in datasets
   out <- data_pull(dat)
@@ -207,12 +203,12 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
   # lon.dat <- as.character(lon.dat)
   # lat.dat <- as.character(lat.dat)
 
-  if (any(!is_empty(lonlat))) {
-    if (lonlat[1] == lonlat[2]) {
-      warning("Longitude and Latitude variables are identical.")
-      x0 <- 1
-    }
-  }
+#  if (any(!is_empty(lonlat))) {
+#    if (lonlat[1] == lonlat[2]) {
+#      warning("Longitude and Latitude variables are identical.")
+#      x0 <- 1
+#    }
+#  }
   # indeVarsForModel = vars1
   # gridVariablesInclude=vars2
 
@@ -287,7 +283,7 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
   ################### 
   #Steps if alternative matrix come from gridded data file 
    #The distance matrix is the gridded data file
-  if (alternativeMatrix == "griddedData") {
+  if (exists(Alt[["matrix"]])) {
     X <- Alt[["matrix"]]
 
     altChoiceUnits <- Alt[["altChoiceUnits"]]
@@ -345,23 +341,23 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
 
 
           if (any(unique(toXYa[[alt_var]]) %in% unique(port[[alt_var]]) == FALSE)) {
-            if (any(is_empty(lonlat))) {
-              warning("At least one port not included in PortTable. Specify starting lat/lon in lonlat variable to use mean lat/lon.")
+       #     if (any(is_empty(lonlat))) {
+              warning("At least one port not included in PortTable.") #Specify starting lat/lon in lonlat variable to use mean lat/lon.")
               x0 <- 1
-            } else {
-              warning("At least one port not included in PortTable. 
-                      Using vessel lon/lat at", alt_var, "to calculate mean lon/lat of undefined ports.")
-              unport <- unique(toXYa[[alt_var]])[which(unique(toXYa[[alt_var]]) %in% unique(port[[alt_var]]) == FALSE)]
-              dataset[[alt_var]] <- trimws(dataset[[alt_var]])
-              temp <- dataset[dataset[[alt_var]] %in% unport, ]
-
-              temp <- data.frame(
-                unique(temp[[alt_var]]), tapply(temp[[lonlat[1]]], temp[[alt_var]], mean),
-                tapply(temp[[lonlat[2]]], temp[[alt_var]], mean)
-              )
-              colnames(temp) <- colnames(port)
-              port <- rbind(port, temp)
-            }
+      #      } else {
+      #        warning("At least one port not included in PortTable. 
+      #                Using vessel lon/lat at", alt_var, "to calculate mean lon/lat of undefined ports.")
+      #        unport <- unique(toXYa[[alt_var]])[which(unique(toXYa[[alt_var]]) %in% unique(port[[alt_var]]) == FALSE)]
+      #        dataset[[alt_var]] <- trimws(dataset[[alt_var]])
+      #        temp <- dataset[dataset[[alt_var]] %in% unport, ]
+#
+      #        temp <- data.frame(
+      #          unique(temp[[alt_var]]), tapply(temp[[lonlat[1]]], temp[[alt_var]], mean),
+      #          tapply(temp[[lonlat[2]]], temp[[alt_var]], mean)
+     #         )
+      #        colnames(temp) <- colnames(port)
+     #         port <- rbind(port, temp)
+      #      }
           }
 
           toXY1 <- merge(toXYa, port) # portLL(toXYa,:)
@@ -377,11 +373,11 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
           temp <- data.frame(
             unique(data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn)),
             tapply(
-              data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == "LonLat_START")]$dataColumn)[, 1],
+              data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn)[, 1],
               data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn), mean
             ),
             tapply(
-              data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == "LonLat_START")]$dataColumn)[, 2],
+              data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn)[, 2],
               data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn), mean
             )
           )
@@ -392,21 +388,21 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
       } else {
         # Data is from a dataframe or matrix
         if (is.data.frame(dataset)) {
-          if (length(alt_var) > 1) {
+          if (length(alt_var) < 2) {
+            warning("Please define both lat and long in alt_var parameter of create_alternative_choice function.")
+            x0 <- 1
+          }
             toXY1 <- data.frame(
               dataset[[alt_var[1]]][which(dataZoneTrue == 1)],
               dataset[[alt_var[2]]][which(dataZoneTrue == 1)]
             )
           } else {
-            toXY1 <- data.frame(
-              dataset[[lonlat[1]]][which(dataZoneTrue == 1)],
-              dataset[[lonlat[2]]][which(dataZoneTrue == 1)]
-            )
-          }
+           toXY1 <- dataset[[alt_var]][which(dataZoneTrue == 1)]
+           
           # Data from a list
-        } else {
-          toXY1 <- data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn)[which(dataZoneTrue == 1), ] # data.frame(dataset[[alt_var]][which(dataZoneTrue==1)])#  data[[altToLocal1]]data(v1).dataColumn(dataZoneTrue,:)      #subset data to when dataZoneTrue==1
-        }
+        } #else {
+          #toXY1 <- data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn)[which(dataZoneTrue == 1), ] # data.frame(dataset[[alt_var]][which(dataZoneTrue==1)])#  data[[altToLocal1]]data(v1).dataColumn(dataZoneTrue,:)      #subset data to when dataZoneTrue==1
+       # }
       }
       altToLocal1 <- alt_var
     }
@@ -423,7 +419,7 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
     } else {
       if (is.data.frame(dataset)) {
         if (length(occasion) < 2) {
-          warning("Please define both lat and long in occasion variable.")
+          warning("Please define both lat and long in parameter variable of create_alternative_choice function.")
           x0 <- 1
         }
 
@@ -449,10 +445,8 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
       B <- Bb[, 1] # Assignment column
       centersZone <- Bb[, 2:3] # Latitude aned Longitude
       altToLocal2 <- occasion
-    }
-  }
-  ## -End Occasion Var--##
-  # End From loaded data
+    } ## -End Occasion Var--##
+  } # End From loaded data
 
   ## ------ Generate Distance Matrix ----##
   # Test for potential issues with data
@@ -480,10 +474,10 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
 
     altChoiceType <- "distance"
 
-    if (Alt[["altChoiceUnits"]] %in% c("meters", "M")) {
+    if (Alt[["altChoiceUnits"]] %in% c("meters", "M", "m")) {
       X <- distMatrix
       altChoiceUnits <- "meters"
-    } else if (Alt[["altChoiceUnits"]] %in% c("kilometers", "KM")) {
+    } else if (Alt[["altChoiceUnits"]] %in% c("kilometers", "KM", "km")) {
       X <- distMatrix / 1000
       altChoiceUnits <- "kilometers"
     } else if (Alt[["altChoiceUnits"]] == "miles") {
@@ -573,7 +567,7 @@ make_model_design <- function(dat, project, catchID, alternativeMatrix = c("load
     make_model_design_function <- list()
     make_model_design_function$functionID <- "make_model_design"
     make_model_design_function$args <- list(
-      dat, project, catchID, alternativeMatrix, replace, lonlat, ptname, likelihood,
+      dat, project, catchID, replace, ptname, likelihood,
       vars1, vars2, priceCol, startloc, polyn
     )
     make_model_design_function$kwargs <- list()
