@@ -5,9 +5,9 @@ read_dat <- function(x, data.type=NULL, is.map = F, ...) {
   #' Import data into R
   #' @param x Name and path of dataset to be read in.
   #' @param data.type Optional. Data type can be defined by user or based on the file extension,
-  #'   Leave \code{data.type} as NULL if data type is to based on file extension.
-  #'   R, comma deliminated, tab deliminated, excel, matlab, json, geojson, shape, sas,
-  #'    spss, and stata data files are recognized. 
+  #   Leave \code{data.type} as NULL if data type is to based on file extension.
+  #   R, comma deliminated, tab deliminated, excel, matlab, json, geojson, shape, sas,
+  #    spss, and stata data files are recognized. 
   #' @param is.map logical, set \code{is.map} to TRUE if data is a spatial file.  
   #'   Spatial files ending in .json will not be read in properly unless \code{is.map} is true.
   #' @param ... Optional arguments 
@@ -36,9 +36,9 @@ read_dat <- function(x, data.type=NULL, is.map = F, ...) {
   #' dat <- read_dat('C:/data/nmfs_manage_simple.shp')
   #' }
   
-  if(is.null(data.type)) {
+ # if(is.null(data.type)) {
         data.type <- sub('.*\\.', '', x)
-  }
+  #}
   
   data.type <- tolower(data.type)
   
