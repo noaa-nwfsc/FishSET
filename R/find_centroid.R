@@ -21,7 +21,8 @@
 
 
 
-find_centroid <- function(dat, gridfile, lon.dat = NULL, lat.dat = NULL, cat, lon.grid = NULL, lat.grid = NULL, weight.var = NULL) {
+find_centroid <- function(dat, gridfile, cat, lon.dat = NULL, lat.dat = NULL, 
+                          lon.grid = NULL, lat.grid = NULL, weight.var = NULL) {
   # Call in datasets
   out <- data_pull(dat)
   dat <- out$dat
@@ -155,6 +156,10 @@ find_centroid <- function(dat, gridfile, lon.dat = NULL, lat.dat = NULL, cat, lo
     }
   }
 
-
+  
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+  DBI::dbWriteTable(fishset_db, paste0(gridfile, "Centroid"), int, overwrite = TRUE)
+  DBI::dbDisconnect(fishset_db)
+  
   return(int)
 }
