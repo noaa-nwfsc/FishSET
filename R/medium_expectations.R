@@ -70,7 +70,7 @@ medium_expectations <- function(dat, project, catch, price, defineGroup, temp.va
   C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*")) # C = row ID of those unique items
 
   catchData <- as.numeric(dataset[[catch]][which(dataZoneTrue == 1)])
-  if (price != "none" & !is_empty(price)) {
+  if (price != "none" && !is_empty(price)) {
     priceData <- as.numeric(dataset[[price]][which(dataZoneTrue == 1)])
     catchData <- catchData * priceData
   }
@@ -170,6 +170,8 @@ medium_expectations <- function(dat, project, catch, price, defineGroup, temp.va
   meanCatchSimple <- stats::reshape(df2[, c("numData", "spData", "tiData", "ra")],
     idvar = c("numData", "spData"), timevar = "tiData", direction = "wide"
   )
+  rownames(meanCatchSimple) <- meanCatchSimple$spData
+  
   dummyTrack <- meanCatchSimple[, -c(1, 2)] # preallocate for tracking no value
 
 
@@ -222,7 +224,7 @@ medium_expectations <- function(dat, project, catch, price, defineGroup, temp.va
     # if ~isinf(B(C(w),end))
     col <- B[C[w], 2]
     # the following is the output that is NROWS by number of alternatives
-    newCatch[which(cit == cit[w]), col] <- meanCatch[C[w], bi[w]] ## loop shouldn't be necessary but no loop results in out of memory issue
+    newCatch[which(cit == cit[w]), col] <- meanCatch[which(rownames(meanCatch)==col), which(sub("^[^.]*.","",colnames(meanCatch))==tiDataFloor[i])] ## loop shouldn't be necessary but no loop results in out of memory issue
   }
 
   if (is_empty(empty.expectation)) {
