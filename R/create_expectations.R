@@ -3,37 +3,38 @@
 #' Create expected catch or expected revenue matrix. The matrix is required for the logit_c model.
 
 #' @param dat  Primary data containing information on hauls or trips.
-#' Table in FishSET database contains the string 'MainDataTable'.
+#'   Table in FishSET database contains the string 'MainDataTable'.
 #' @param catch Variable from \code{dat} containing catch data.
 #' @param price Optional, variable from \code{dat} containing price/value data.  Price is multiplied against
-#' \code{catch} to generated revenue. Defaults to NULL.
+#'   \code{catch} to generated revenue. If revenue exists in \code{dat} and you wish to use this revenue instead of price,
+#'   then \code{catch} must be a vector of 1 of length equal to \code{dat}. Defaults to NULL.
 #' @param temporal String, choices are \code{"daily"} or \code{"sequential"}. Should time, if \code{temp.var} is defined,
-#' be included as a daily timeline or sequential order of recorded dates.  For daily, catch on dates with no record
-#' are filled with NA. The choice affects how the rolling average is calculated. If temporal is daily then the window
-#' size for average and the temporal lag are in days. If sequential, then averaging will occur over the specified
-#' number of observations, regardless of how many days they represent.
+#'   be included as a daily timeline or sequential order of recorded dates.  For daily, catch on dates with no record
+#'   are filled with NA. The choice affects how the rolling average is calculated. If temporal is daily then the window
+#'   size for average and the temporal lag are in days. If sequential, then averaging will occur over the specified
+#'   number of observations, regardless of how many days they represent.
 #' @param temp.var Optional, temporal variable from \code{dat}. Set to NULL if temporal patterns in
-#' catch should not be considered.
+#'   catch should not be considered.
 #' @param calc.method String, how catch values are average over window size. Select standard average
-#' (\code{"standardAverage"}), simple lag regression of means (\code{"simpleLag"}), or weights of regressed groups (\code{"weights"})
+#'   (\code{"standardAverage"}), simple lag regression of means (\code{"simpleLag"}), or weights of regressed groups (\code{"weights"})
 #' @param lag.method  String, use regression over entire group (\code{"simple"}) or for grouped time periods (\code{"grouped"}).
 #' @param empty.catch String, replace empty catch with \code{NA}, \code{"0"}, mean of all catch (\code{"allCatch"}),
-#' or mean of grouped catch (\code{"groupCatch"}).
+#'   or mean of grouped catch (\code{"groupCatch"}).
 #' @param empty.expectation Numeric, how to treat empty expectation values. Choices are to not replace (NULL)
-#' or replace with 0.0001 or 0.
+#'   or replace with 0.0001 or 0.
 #' @param temp.window Numeric, temporal window size. If \code{temp.var} is not NULL, set the window size to
-#'  average catch over. Defaults to 14 (14 days if \code{temporal} is \code{"daily"}).
+#'   average catch over. Defaults to 14 (14 days if \code{temporal} is \code{"daily"}).
 #' @param temp.lag Numeric, temporal lag time. If \code{temp.var} is not NULL, how far back to lag \code{temp.window}.
 #' @param year.lag If expected catch should be based on catch from previous year(s), set year.lag to the number
-#' of years to go back.
+#'   of years to go back.
 #' @param dummy.exp Logical, should a dummy variable be created? If true, output dummy variable for originally
-#' missing value. If false, no dummy variable is outputted. Defaults to False.
+#'   missing value. If false, no dummy variable is outputted. Defaults to False.
 #' @param project String, name of project.
 #' @param defineGroup Optional, variable from \code{dat} that defines how to split the fleet. Defaults to
-#' treating data as a fleet.
+#'   treating entire dataframe \code{dat} as a fleet.
 #' @param replace.output Logical, replace existing saved expected catch data frame with new expected catch data
-#' frame? If FALSE, new expected catch data frames appended to previously saved expected catch data frames.
-#' Default is FALSE.
+#'   frame? If FALSE, new expected catch data frames appended to previously saved expected catch data frames.
+#'   Default is FALSE.
 #' @importFrom lubridate floor_date
 #' @importFrom zoo rollapply
 #' @importFrom DBI dbGetQuery
@@ -46,19 +47,20 @@
 #'   run function will run through each expected catch case provided. The list is automatically saved to the FishSET 
 #'   database and is called in \code{\link{make_model_design}}. The expected catch output does not need to be loaded 
 #'   when defining or running the model.
-#' @details Function creates an expectation of catch or revenue for alternative choices. The output is saved to the 
-#'  FishSET database and called by the \code{\link{make_model_design}} function. The spatial alternatives are built
-#' into the function and come from the structure Alt that was created in \code{\link{create_alternative_choice}}.\cr
-#' The primary choices are whether to treat data as a fleet or to group the data (\code{defineGroup}) and the time
-#' frame of catch data for calculating expected catch. Catch is averaged along a daily or sequential timeline
-#' (\code{temporal}) using a rolling average. \code{temp.window} and \code{temp.lat} determine the window size and
-#' temporal lag of the window for averaging. Use \code{\link{temp_obs_table}} before using this function to assess
-#' the availability of data for the desired temporal moving window size. Sparse data is not suited for shorter moving
-#' window sizes. For very sparse data, consider setting \code{temp.var} to NULL and excluding temporal patterns in
-#' catch. \cr
-#' Empty catch values are considered to be times of no fishing activity. Values of 0 in the catch variable
-#' are considered times when fishing activity occurred but with no catch. These points are included in the averaging
-#' and dummy creation as points in time when fishing occurred. \cr
+#' @details Function creates an expectation of catch or revenue for alternative fishing zones (zones where they could have 
+#'  fished but did not). The output is saved to the FishSET database and called
+#'   by the \code{\link{make_model_design}} function. \code{\link{create_alternative_choice}}
+#'  must be called first as observed catch and zone inclusion requirements are defined there.\cr
+#'  The primary choices are whether to treat data as a fleet or to group the data (\code{defineGroup}) and the time
+#'  frame of catch data for calculating expected catch. Catch is averaged along a daily or sequential timeline
+#'  (\code{temporal}) using a rolling average. \code{temp.window} and \code{temp.lag} determine the window size and
+#'  temporal lag of the window for averaging. Use \code{\link{temp_obs_table}} before using this function to assess
+#'  the availability of data for the desired temporal moving window size. Sparse data is not suited for shorter moving
+#'  window sizes. For very sparse data, consider setting \code{temp.var} to NULL and excluding temporal patterns in
+#'  catch. \cr
+#'  Empty catch values are considered to be times of no fishing activity. Values of 0 in the catch variable
+#'  are considered times when fishing activity occurred but with no catch. These points are included in the averaging
+#'  and dummy creation as points in time when fishing occurred. \cr
 #'  Three default expected catch cases will be run:
 #' \itemize{
 #' \item{Near-term: Moving window size of two days. In this case, vessels are grouped based on \code{defineGroup}
@@ -86,9 +88,10 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
                                 temp.window = 7, temp.lag = 0, year.lag = 0, dummy.exp = FALSE, replace.output = FALSE) {
 
   # Call in datasets
-  dataset <- dat
-  dat <- deparse(substitute(dat))
-
+  out <- data_pull(dat)
+  dat <- out$dat
+  dataset <- out$dataset
+  
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
   Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
   DBI::dbDisconnect(fishset_db)
@@ -96,7 +99,6 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
 
   dataZoneTrue <- Alt[["dataZoneTrue"]] # used for catch and other variables
   choice <- Alt[["choice"]] # used for catch and other variables
-  zoneRow <- Alt[["zoneRow"]]
 
   # for now if no time, only allow mean based on group without options TODO: allow
   # options from tab 2, currently turned off ti=find([data.isTime])# TODO add option for other time
@@ -110,7 +112,7 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
       stop("defineGroup not recognized. Check that parameter is correctly defined")
     }
   }
-
+  
   ## 1. Option 1. Short-term, individual grouping t - 2 (window)
   short_exp <- short_expectations(
     dat = dataset, project = project, catch = catch, price = price, defineGroup = defineGroup, temp.var = temp.var,
@@ -144,7 +146,7 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
   spData <- choice[which(dataZoneTrue == 1), ] # mapping to to the map file
   spNAN <- which(is.na(spData) == T)
   if (any(!is_empty(spNAN))) {
-    spData[spNAN] <- rep(Inf, length(spNAN)) # better for grouping than nans because aggregated
+    spData[spNAN] <- rep(Inf, length(spNAN)) # better for grouping than nas because aggregated
   }
   numNAN <- which(is.nan(numData) == T)
   if (any(!is_empty(numNAN))) {
@@ -158,10 +160,10 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
   C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*")) # C = row ID of those unique items
 
   catchData <- as.numeric(dataset[[catch]][which(dataZoneTrue == 1)])
-  if (price != "none" & !is_empty(price)) {
-    priceData <- as.numeric(dataset[[price]][which(dataZoneTrue == 1)])
-    catchData <- catchData * priceData
-  }
+#  if (price != "none" && !is_empty(price)) {
+#    priceData <- as.numeric(dataset[[price]][which(dataZoneTrue == 1)])
+#    catchData <- catchData * priceData
+#  }
 
   # Time variable not chosen if temp.var is empty
   # NOTE currently doesn't allow dummy or other options if no time detected
@@ -282,10 +284,10 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
 
     # reshape catch data to wide format with date as columns
     meanCatchSimple <- stats::reshape(df2[, c("numData", "spData", "tiData", "ra")],
-      idvar = c("numData", "spData"), timevar = "tiData", direction = "wide"
-    )
+      idvar = c("numData", "spData"), timevar = "tiData", direction = "wide")
+    rownames(meanCatchSimple) <- meanCatchSimple$spData
+    
     dummyTrack <- meanCatchSimple[, -c(1, 2)] # preallocate for tracking no value
-
 
     if (calc.method == "standardAverage") {
       meanCatch <- meanCatchSimple[, -c(1, 2)]
@@ -337,7 +339,7 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
       # if ~isinf(B(C(w),end))
       col <- B[C[w], 2]
       # the following is the output that is NROWS by number of alternatives
-      newCatch[which(cit == cit[w]), col] <- meanCatch[C[w], bi[w]] ## loop shouldn't be necessary but no loop results in out of memory issue
+      newCatch[which(cit == cit[w]), col] <- meanCatch[which(rownames(meanCatch)==col), which(sub("^[^.]*.","",colnames(meanCatch))==tiDataFloor[i])] ## loop shouldn't be necessary but no loop results in out of memory issue
     }
 
     if (is_empty(empty.expectation)) {
