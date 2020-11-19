@@ -251,7 +251,7 @@ source("map_viewer_app.R", local = TRUE)
                                           #),
                                           #h4('Select data check functions to run'),
                                           #Checkbox input widget  
-                                           radioButtons("checks", "Select data quality check functions to run", choices = c('Variable class', 'Summary table', 'Outliers', 'NAs', #'NaNs', 
+                                           radioButtons("checks", "Select data quality check functions to run", choices = c('Variable class', 'Summary table', 'Outliers', 'NAs', 'NaNs', 
                                                                                   'Unique observations', 'Empty variables', 'Lat_Lon units')),
                                           uiOutput("checks_dataset"),
                                           conditionalPanel(
@@ -269,14 +269,14 @@ source("map_viewer_app.R", local = TRUE)
                                             condition = "input.checks == 'NAs'",
                                             actionButton('NA_Filter_mean', 'Replace NAs with mean value', style = "color: white; background-color: #0073e6;")
                                           ),
-                                          #conditionalPanel(
-                                          #  condition = "input.checks == 'NAs'",
-                                          #  actionButton('NAN_Filter_all', 'Remove all NaNs')
-                                          #),
-                                          #conditionalPanel(
-                                          #  condition = "input.checks == 'NAs'",
-                                          #  actionButton('NAN_Filter_mean', 'Replace NaNs with mean value')
-                                          #),
+                                          conditionalPanel(
+                                            condition = "input.checks == 'NaNs'",
+                                            actionButton('NAN_Filter_all', 'Remove all NaNs')
+                                          ),
+                                          conditionalPanel(
+                                            condition = "input.checks == 'NaNs'",
+                                            actionButton('NAN_Filter_mean', 'Replace NaNs with mean value')
+                                          ),
                                           conditionalPanel(condition="input.checks=='Outliers'",
                                                            actionButton('Outlier_Filter', 'Remove outliers', style = "color: white; background-color: #0073e6;")),
                                           conditionalPanel(
@@ -815,7 +815,7 @@ source("map_viewer_app.R", local = TRUE)
                                                                        'Select catch and price variables'='primary')),#, #calculate distance matrix
                                #checkboxInput('ExpedCatch', 'Define variables to calculate expected catch', value=FALSE)
                                conditionalPanel(condition="input.choiceTab=='zone'",  
-                                                actionButton('runCentroid','Assign observations to centroids', style = "color: white; background-color: green;")),
+                                                actionButton('runCentroid','Assign observations to zones', style = "color: white; background-color: green;")),
                                conditionalPanel(condition="input.choiceTab=='distm'",
                                                 actionButton('saveALT','Save choices', style = "color: white; background-color: green;")),
                                actionButton('callTextDownloadZone','Save notes'),
@@ -840,11 +840,12 @@ source("map_viewer_app.R", local = TRUE)
                                #runs assignment column and find_centroid functions
                                #--------#
                                #DISTANCE MATRIX
+                               uiOutput('conditionalInput3a'),
                                uiOutput('conditionalInput3'),
                                div(style="display: inline-block;vertical-align:top; width: 500px;",
-                                   conditionalPanel(condition="input.choiceTab=='distm'",plotOutput('zoneIDNumbers_plot'))),
+                                   conditionalPanel(condition="input.choiceTab=='distm'", plotOutput('zoneIDNumbers_plot'))),
                                div(style="display: inline-block;vertical-align:top; width: 160px;",
-                                   conditionalPanel(condition="input.choiceTab=='distm'",textOutput('zoneIDText'))),
+                                   conditionalPanel(condition="input.choiceTab=='distm'", textOutput('zoneIDText'))),
                                #--------# 
                                uiOutput('conditionalInput1')
                                #EXPECTED CATCH
@@ -881,8 +882,7 @@ source("map_viewer_app.R", local = TRUE)
                                
                                h4('Temporal options'),
                                h5('Use the entire temporal record of catch or take the timeline of catch into account. 
-                                  When timeline in considered catch can be calculated as the moving average where 
-                                  catch for a given day is the average for the defined number of days (window), 
+                                  When timeline is considered, catch for a given day is the average for the defined number of days (window), 
                                   shifted to the past by the defined number of days (lag). For example, a window of 3 days and lag of 1 day means we take the 
                                   average catch of the three days priors to the given date.'),
                                div(style = "margin-left:19px;font-size: 12px", 
@@ -907,12 +907,13 @@ source("map_viewer_app.R", local = TRUE)
                                conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'", 
                                                 selectInput('lag_method', 'Method to average across time steps', 
                                                             choices= c("Entire time period"="simple", "Grouped time periods"="grouped"))),
-                               
-                               h4('Averaging options'),
-                               div(style = "margin-left:19px; font-size: 12px", 
-                                   selectInput('empty_catch', 'Replace empty catch with:', 
-                                               choices = c("NA: NA's removed when averaging"='NA', '0', 'Mean of all catch' ="allCatch", 'Mean of grouped catch' = "groupedCatch"))), 
-                               #h6("Note: Na's removed when averaging"), 
+                               conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'", 
+                                  h4('Averaging options')),
+                               conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'", 
+                                  div(style = "margin-left:19px; font-size: 12px", 
+                                      selectInput('empty_catch', 'Replace empty catch with:', 
+                                                  choices = c("NA: NA's removed when averaging"='NA', '0', 'Mean of all catch' ="allCatch", 'Mean of grouped catch' = "groupedCatch"))) 
+                               ),#h6("Note: Na's removed when averaging"), 
                                h4('Expected Catch/Dummy options'), 
                                div(style = "margin-left:19px; font-size: 12px",
                                    selectInput('empty_expectation', 'Replace empty expected catch with:', choices = c("NA: NA's removed when averaging"='NA', 1e-04, 0))),  
@@ -936,7 +937,7 @@ source("map_viewer_app.R", local = TRUE)
                                       expected catch/revenue based on catch for the previous seven days (medium-term expected catch), and 
                                       expected catch/revenue based on catch in the previous year (long-term expected catch).
                                       Output saved in FishSET database. Previously saved expected catch/revenue output will be written over if the', 
-                                      tags$i('Replace previously saved'), 'box is unchecked. Checking this box will add new output to existing output.'),
+                                      tags$i('Replace previously saved'), 'box is checked. Leaving the box unchecked will add new output to existing output.'),
                                tags$br(), tags$br(),
                                conditionalPanel(condition="input.temp_var!='none'",
                                                 tagList(
@@ -983,19 +984,19 @@ source("map_viewer_app.R", local = TRUE)
                              ),
                              mainPanel(
                                div(id = "form",
-                                   h4('Alternative choice matrix parameters'),
-                                   selectInput("alternatives", label = "Create alternative choice matrix from",
-                                               choices = list("Loaded data" = 'loadedData', "Grid data" = "griddedData"),
-                                               selected = 'loadedData'),
-                                   uiOutput('latlonB'),
-                                   uiOutput('portmd'),
+                                   #h4('Alternative choice matrix parameters'),
+                                   #selectInput("alternatives", label = "Create alternative choice matrix from",
+                                   #            choices = list("Loaded data" = 'loadedData', "Grid data" = "griddedData"),
+                                  #             selected = 'loadedData'),
+                                   #uiOutput('latlonB'),
+                                   #uiOutput('portmd'),
                                    h4('Likelihood function'),
                                    selectInput("model", label = "",
                                                choices = list("Conditional logit" = 'logit_c', "Average catch" = "logit_avgcat", "Logit Dahl correction" = "logit_correction",
                                                               'EPM normal'='epm_normal', 'EPM lognormal'='epm_lognormal', 'EPM Weibull'='epm_weibull'),
                                                selected = 'logit_c'),
                                    selectInput('optmeth', 'Optimization method', 
-                                               choices=c("Nelder-Mead", "BFGS", "CG", "L-BFGS-B", "SANN", "Brent"), selected='BFGS'),
+                                               choices=c("Nelder-Mead", "BFGS", "CG", "L-BFGS-B", "SANN"), selected='BFGS'),
                                    h4('Select variables to include in model'),
                                    div(style="display: inline-block;vertical-align:top; width: 250px;", uiOutput('indvariables')),
                                    div(style="display: inline-block;vertical-align:top; width: 250px;", uiOutput('gridvariables')),
