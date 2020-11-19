@@ -371,14 +371,14 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 				tags$br(), 
 			tags$div(style="display: inline-block; align:center", img(src="DeleteVar.png", height="75%", width="75%")),
 				tags$br(),tags$br(),
-			tags$p(tags$strong('Filter data'), 'using the', tags$em('boxes'), 'between the variable name the first row of data. Filters are saved when the', 
+			tags$p(tags$strong('Filter data'), 'using the', tags$em('boxes'), 'between the variable name and the first row of data. Filters are saved when the', 
 				tags$code('Save data to FishSET database'), 'button is pushed. The altered data is also saved as the project,
 				"MainDataTable", and the date.'),
 				tags$br(), 
 			tags$div(style="display: inline-block; align:center", img(src="Filter.png", height="75%", width="75%")),
 				tags$br(),tags$br(),
 			tags$p(tags$h4('Plots:'),
-				'Temporal, spatial, and x-y plots are available. All plots can be saved in the the directory of chocie 
+				'Temporal, spatial, and x-y plots are available. All plots can be saved in the the directory of choice 
 				or in the default location within the FishSET package directory. Plot can also be copied and pasted 
 				by right-clicking on the plot.'), 
 			tags$p('The temporal plots show the relationship of the selected variable by date.',
@@ -391,13 +391,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 			      A more detailed spatial map can be viewed on the', tags$code('Map Viewer'), 'tab.', 
 			       tags$br(),
 			       	tags$div(style="display: inline-block; align:center", img(src="MapZoom.png", height="75%", width="75%")),
-				tags$br(),tags$br(),
-			tags$p("A measure of spatial autocorrelation (global Moran's I) and of spatial clustering (GetisOrd statistic) will display below the 
-      plots once selections below plot type are made. The table can be saved."
-				),
-			       tags$br(), tags$br(),
-			       'The finaly plot type, x-y plots, shows the relationship between two selected variables. 
-			To assess the degree of correlation between variables or the fit of the relationship, visit the', tags$code('Simple Analyses'), 'tab.'
+				tags$br(), tags$br(), tags$br(),
+			  tags$p("A measure of spatial autocorrelation (global Moran's I) and of spatial clustering (GetisOrd statistic) will display below the 
+              plots once selections below plot type are made. The table can be saved."),
+			  tags$br(), 
+			       'The final plot type, x-y plots, shows the relationship between two selected variables. 
+			      To assess the degree of correlation between variables or the fit of the relationship, 
+				    visit the', tags$code('Simple Analyses'), 'tab.'
 			)
           )
         }
@@ -405,17 +405,17 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 
       output$AnalTabsText <- renderUI({
         if(input$QuickStartChoices=='AnalTab'){ 
-          p(tags$br(), tags$br(), 
+          tags$p(tags$br(), tags$br(), 
             tags$strong('Purpose:'), tags$br(),
                'The', tags$em('Simple Analyses'), 'tab is used to assess the relationship between variables.
               The correlation analysis provides an assessment of the strength and direction of the linear 
-              relationship between two variables. The simple linear regression analysis maps the relationshop between 
+              relationship between two variables. The simple linear regression analysis maps the relationship between 
               an explanatory variable (X) and response variable (Y) through an equation. This equation can be used 
-              to predict new valus of Y with changes in X. ', 
+              to predict new values of Y with changes in X. ', 
 				tags$br(),tags$br(),
             tags$div(style="display: inline-block; align:center", img(src="Corr.png", height="75%", width="75%")),
 				tags$br(), tags$br(),
-            'Variables can be removed from the correlation plots and tables by clicking on a variable in the,', tags$code('Select variables'), 'box and 
+            'Variables can be removed from the correlation plots and tables by clicking on a variable in the', tags$code('Select variables'), 'box and 
 				then hitting the backspace or delete button on your keyboard.',
 				tags$br(),
             'Variables can be added by clicking an empty space in the', tags$code('Select variables'), 'box.',
@@ -430,11 +430,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       output$NewVarsTabsText <- renderUI({
         if(input$QuickStartChoices=='NewVarsTab'){ 
-          p(tags$br(), tags$br(),
-            tags$strong('Purpose:'), tags$br(),
+          tags$p(tags$br(), tags$br(), 
+           tags$strong('Purpose:'), tags$br(),
             'The', tags$em('Compute New Variables'), 'tab is used to modify or create new variables such as CPUE 
-            and trip or haul mid-point. ',
-				tags$br(),tags$br(),
+            and haul midpoint.',
+				tags$br(), tags$br(),
             'Functions are grouped into six categories:',
             tags$li('Arithmetic and temporal'), 
             tags$li('Data transformations'), 
@@ -443,8 +443,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             tags$li('Spatial'), 
             tags$li('Trip-level'),
 				tags$br(),tags$br(),
-				    'We describe first how to run functons, view the created variable, and save the altered data. We then describe the 
-				    functions in the six variable createion categories.',
+				    'We describe first how to run functions, view the created variable, and save the altered data. We then describe the 
+				    functions in the six variable creation categories.',
 				tags$br(), tags$br(),
             'To run a function, click the', tags$code('Run function'), 'button (arrow 1). This will run the selected function and
             generate the output.',
@@ -455,20 +455,22 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 				tags$br(),
             'Save the revised data by pressing the', tags$code('Save data'), 'button. If the data is not saved the created variables will 
             not be available once the app is closed.',
-				tags$br(),tags$br(),
+				tags$br(), tags$br(),
             tags$div(style="display: inline-block; align:center", img(src="NewVar.png", height="75%", width="75%")),
 				tags$br(), tags$br(),
-				tags$strong('Function category descriptions'),
-				tags$em('Arithmetic and temporal'), 'functions focus on creating varaiables based on numeric calculations (i.e., plus, minus) 
-				          between two variables, durations of time between two variable, and catch per unit effort (CPUE).',
-				tags$em('Data transformations'), 'functions focus on transforming data into coded variables and date variables into preferred unit of time and ',
-				tags$em('Dummy variables'), 'functions focus on creating binary variables. These are useful for contrasting between two states, such 
-				        as caught at least 50 metric tons or not, before versus after a policy was enacted, or fishery zone was open versus closed.',
-				tags$em('Nominal ID'), 'functions focus on creating identifiers - haul, trip, or fishery season.',
-				tags$em('Spatial'), 'functions focus on creating variables that vary over space, such as haul midpoint and distance between points.
-				        A spatial data file is required. ',
-				tags$em('Trip-level'), 'functions focus on trip-level variables including trip distance and trip centroid. A function to collapse 
-				        data from haul level to trip level is also included.'
+				tags$strong('Function category descriptions'), tags$br(),
+				tags$ul(tags$em('Arithmetic and temporal'), 'functions focus on creating variables based on numeric calculations (i.e., plus, minus) 
+				          between two variables, duration of time between two variables, and catch per unit effort (CPUE).'),
+				tags$ul(tags$em('Data transformations'), 'functions focus on transforming data into coded variables and date 
+				        variables into the preferred unit of time.'),
+				tags$ul(tags$em('Dummy variables'), 'functions focus on creating binary variables. These are useful for 
+                contrasting between two states, such as before versus after a policy was 
+				        enacted or a fishery zone was open versus closed.'),
+				tags$ul(tags$em('Nominal ID'), 'functions focus on creating identifiers - haul, trip, or fishery season.'),
+				tags$ul(tags$em('Spatial'), 'functions focus on creating variables that vary over space, such as haul midpoint and distance between points.)
+				        A spatial data file is required.'),
+				tags$ul(tags$em('Trip-level'), 'functions focus on trip-level variables including trip distance and trip centroid. A function to collapse 
+				        data from haul level to trip level is also included.')
             )
         }
       })
