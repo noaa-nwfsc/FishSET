@@ -468,11 +468,28 @@ source("map_viewer_app.R", local = TRUE)
                    
                   #Fleet functions ==== 
                   
-                  tabPanel("Fleet Analysis and Assignment", value = "fleet",
+                  tabPanel("Fleet Assignment and Analyses", value = "fleet",
                            
                            sidebarLayout(
                              
                              sidebarPanel(
+                                
+                                conditionalPanel("input.fleet_tab == 'fleet_assign'",
+                                                 
+                                                 radioButtons("assign_rb", label = "Choose:",
+                                                              choices = c("Definition table", "Fleet assignment"), 
+                                                              selected = "Definition table"),
+                                                 
+                                                 conditionalPanel("input.assign_rb == 'Definition table'",
+                                                                  
+                                                                  fleet_tableUI("f_table")
+                                                                  ),
+                                                 
+                                                 conditionalPanel("input.assign_rb == 'Fleet assignment'",
+                                                                  
+                                                                  fleet_assignUI("f_assign")
+                                                                  )                 
+                                ),
                                
                                conditionalPanel("input.fleet_tab == 'density_plot'",
                                                 
@@ -512,23 +529,24 @@ source("map_viewer_app.R", local = TRUE)
                                conditionalPanel("input.fleet_tab == 'trip_length'",
                                                 
                                                 trip_lengthUI("trip")
-                               ),
-                               
-                               conditionalPanel("input.fleet_tab == 'fleet_table'",
-                                                
-                                                fleet_tableUI("f_table")
-                               ),
-                               
-                               conditionalPanel("input.fleet_tab == 'fleet_assign'",
-                                                
-                                                fleet_assignUI("f_assign")
                                )
-                               
+                                   
                              ),
                              
                              mainPanel(
                                
                                tabsetPanel(id = "fleet_tab", 
+                                           
+                                           tabPanel("Fleet Assignment", value = "fleet_assign",
+                                                    
+                                                    conditionalPanel("input.assign_rb == 'Definition table'",
+                                                    
+                                                      fleet_tableOut("f_table")),
+                                                    
+                                                    conditionalPanel("input.assign_rb == 'Fleet assignment'",
+                                                    
+                                                      fleet_assignOut("f_assign"))
+                                           ),
                                            
                                            tabPanel("Density Plot", value = "density_plot",
                                                     
@@ -568,17 +586,8 @@ source("map_viewer_app.R", local = TRUE)
                                            tabPanel("Trip Length", value = "trip_length",
                                                     
                                                     fleetOut("trip")
-                                           ),
-                                           
-                                           tabPanel("Fleet Table", value = "fleet_table",
-                                                    
-                                                    fleet_tableOut("f_table")
-                                           ),
-                                           
-                                           tabPanel("Fleet Assign", value = "fleet_assign",
-                                                    
-                                                    fleet_assignOut("f_assign")
                                            )
+                                           
            
                                )
                              )
