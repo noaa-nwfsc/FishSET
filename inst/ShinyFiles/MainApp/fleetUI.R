@@ -711,7 +711,9 @@ fleet_tableUI <- function(id) {
   
   tagList(
     
-    p("Fleet tables must be saved to the FishSET database before they can be used to assign observations to fleets."),
+    h3("Fleet Definition"),
+    
+    p("Fleet tables must be saved to the FishSET database before they can be used to assign vessels to fleets."),
     
     actionButton(ns("save"), "Save table to FishSET database",
                  style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
@@ -722,6 +724,10 @@ fleet_tableUI <- function(id) {
     tags$br(), tags$br(),
     
     noteUI(ns("note")),
+    
+    tags$br(),
+    
+    h4("Build Table"),
     
     fluidRow(
       actionButton(ns("addrow"), "Add row",
@@ -739,19 +745,25 @@ fleet_tableUI <- function(id) {
       actionButton(ns("deletecol"), "Delete column",
                    style = "color: #fff; background-color: #EB8C34; border-color:#000000;")),
     
+    tags$br(), tags$br(), 
+    
+    textInput(ns("colname"), label = NULL, placeholder = "Enter new column name"),
+    
+    actionButton(ns("colname_btn"), "Change column name",
+                 style = "color: white; background-color: blue;"),
+    
+    tags$br(), tags$br(), tags$br(), 
+    
+    h4("Import Table"),
+    
+    fileInput(ns("file"), label = NULL),
+    
+    actionButton(ns("upload"), "Upload table",
+                 style = "color: white; background-color: blue;"),
+    
+    tags$br(), tags$br(),
+    
     tags$br(),
-    
-    fileInput(ns("file"), "Import table"),
-    
-    actionButton(ns("upload"), "Upload table"),
-    
-    tags$br(), tags$br(),
-    
-    textInput(ns("colname"), "New column name"),
-    
-    actionButton(ns("colname_btn"), "Change column name"),
-    
-    tags$br(), tags$br(),
     
     RexpressionUI(ns("exp")),
     div( style = "margin-top: 2em;",
@@ -766,32 +778,33 @@ fleet_assignUI <- function(id) {
   ns <- NS(id)
   
   tagList(
+    h3("Fleet Assignment"),
+    
     #saveDataTableUI(ns("saveDat")),
     
-    actionButton(ns('saveData'),'Save data to fishset_db database',
+    actionButton(ns('saveData'),'Save data to FishSET database',
                  style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
-    closeAppUI(ns("close")), 
+     closeAppUI(ns("close")), 
     refreshUI(ns("refresh")),
     
     tags$br(), tags$br(),
     
-    noteUI(ns("note")),
+     noteUI(ns("note")),
     
-    actionButton(ns("refresh"), "", icon = icon("refresh")),
+    actionButton(ns("refresh_tabs"), "", icon = icon("refresh"), style = "color: blue;"),
     
     uiOutput(ns("available_tabs")),
     
-    actionButton(ns("view_btn"), "View table"),
+    actionButton(ns("load_btn"), "Load table",
+                 style = "color: white; background-color: blue;"),
     
-    checkboxInput(ns("overlap"), "Allow overlapping fleet assignments?"),
+    checkboxInput(ns("overlap"), "Allow overlapping fleet assignments"),
     
     selectInput(ns("format"), "Table format",
                 choices = c("long", "wide")),
     
     actionButton(ns("fun_run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
-    
-    actionButton(ns("save"), "Save table"),
     
     tags$br(), tags$br(),
     
@@ -820,18 +833,22 @@ fleetOut <- function(id) {
 
 fleet_tableOut <- function(id) {
   ns <- NS(id)
-  DT::DTOutput(ns("f_tab"))
+  tagList(
+    h4("Fleet Definition Table"),
+  DT::DTOutput(ns("f_tab")),
+  tableOutput(ns("reference"))
+  )
 }
 
 fleet_assignOut <- function(id) {
   
   ns <- NS(id)
   tagList(
-    h5("Fleet Table"),
+    h4("Fleet Table"),
     DT::DTOutput(ns("tab_preview")),
-    h5("Dataset"),
+    h4("Dataset"),
     DT::DTOutput(ns("final_tab")),
-    h5("Frequency of fleets"),
+    h4("Frequency of fleets"),
     plotOutput(ns("plot"))
   )
 }

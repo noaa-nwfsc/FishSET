@@ -1031,6 +1031,15 @@ fleet_table_serv <- function(id, values, project) {
       names(f_r$f_DT)[input$f_tab_columns_selected] <- input$colname
     })
     
+    
+    output$reference <- renderTable({
+      data.frame(operator = c("<", ">", "<=", ">=", "==", "!=", "%in%", "!", "&", "|"), 
+                 description = c("Less than", "Greater than", "Less than or equal to", 
+                                 "Greater than or equal to", "Equal to", "Not equal to", 
+                                 "Matches", "Logical NOT", "Logical AND", "Logical OR"))
+    })
+
+    
     observeEvent(input$save, {
       
       fleet_table(values$dataset, project = project(), table = f_r$f_DT, save = TRUE)
@@ -1056,7 +1065,7 @@ fleet_assign_serv <- function(id, values, project) {
     
     fleet_tab_db <- reactive({
       
-      input$refresh
+      input$refresh_tabs
       
       grep("FleetTable", tables_database(), value = TRUE)
     })
@@ -1068,7 +1077,7 @@ fleet_assign_serv <- function(id, values, project) {
     })
     
     
-    tab_view <- eventReactive(input$view_btn, {
+    tab_view <- eventReactive(input$load_btn, {
       
       table_view(input$tab)
     })
