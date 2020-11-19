@@ -30,8 +30,8 @@
 #'   into geoson. This is done automatically when the file is loaded with \code{\link{read_dat}} with \code{\link{is.map}} set to true.
 #'   \code{gridfile} cannot, at this time, be loaded from the FishSET database. \cr
 #'   \code{lon.dat}, \code{lat.dat}, \code{lon.grid}, and \code{lat.grid} are required for specific \code{gridfile} file formats. \cr
-#'  \code{cat} must be specified for all file formats.
-#'  If a zonal centroid table exists in the FishSET database and a zonal assignment column 
+#'   \code{cat} must be specified for all file formats.
+#'   If a zonal centroid table exists in the FishSET database and a zonal assignment column 
 #'  exists in \code{dat} then \code{gridfile} may be a table from the FishSET database or a data file. If \code{gridfile} should 
 #'  come from the FishSET database, it should be the name of the original file name, in quotes. For example, 'NMFS_zones_polygons'.
 #'  \code{cat} would then be the name of the column in \code{dat} containing fishing zone assignments.
