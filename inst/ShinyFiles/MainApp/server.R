@@ -255,7 +255,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 			      tags$br(), tags$br(),
            tags$p(tags$strong('Purpose:'), tags$br(), 'The', tags$em('Upload Data'), 'tab is used to load data (primary, port, map, gridded, auxiliary) from the FishSET database or 
                         from a local file location.'), 
-	         tags$p("To get started, first write a project name in the", tags$code('Name of project'), "text box.",
+	         tags$p("To get started, write a project name in the", tags$code('Name of project'), "text box.",
 	                tags$ul("The project name is a user-created unique identifier for all data tables  and outputs (plots, model results, etc) 
                  associated with the analysis. Example project names are 'pollock2019' and 'AKGOA'.")
 	                ),
@@ -356,7 +356,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                               tags$h5('The table is used to edit individual cells, filter the data, 
                                       and remove variables from the dataset that are redundant or 
                                       will not be used in analyses or modeling. In addition, the 
-                                      other data types (plot, auxilliary, gridded), can also be viewed 
+                                      other data types (plot, auxiliary, gridded), can also be viewed 
                                       and edited using the', tags$code('Select a dataset'), 'dropdown box.' 
                                       ))),
 				    tags$br(),
@@ -378,16 +378,17 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 			tags$div(style="display: inline-block; align:center", img(src="Filter.png", height="75%", width="75%")),
 				tags$br(),tags$br(),
 			tags$p(tags$h4('Plots:'),
-				'Temporal, spatial, and x-y plots are available.'), 
+				'Temporal, spatial, and x-y plots are available. All plots can be saved in the the directory of chocie 
+				or in the default location within the FishSET package directory. Plot can also be copied and pasted 
+				by right-clicking on the plot.'), 
 			tags$p('The temporal plots show the relationship of the selected variable by date.',
 			       tags$br(),tags$br(),
 			       'The spatial plots show the distribution of hauls in the map region and hot spots of activity.',
 			       tags$br(),
-			       'You can zoom in on the', 
-			       tags$em('Observed location'), 'spatial plot by double-clicking a highlighted area or view the latitude and longitude of a point
-			       by single clicking on the point. To reset the map, double-click outside the highlighted area. 
-			       This map can be saved. A more detailed spatial map can be viewed on the', tags$code('Map Viewer'),
-			       'tab.', 
+			       'You can zoom in on the', tags$em('Observed location'), 'spatial plot by double-clicking 
+			       a highlighted area or view the latitude and longitude of a point by single clicking 
+			       on the point. To reset the map, double-click outside the highlighted area.  This map can be saved. 
+			      A more detailed spatial map can be viewed on the', tags$code('Map Viewer'), 'tab.', 
 			       tags$br(),
 			       	tags$div(style="display: inline-block; align:center", img(src="MapZoom.png", height="75%", width="75%")),
 				tags$br(),tags$br(),
@@ -406,14 +407,23 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         if(input$QuickStartChoices=='AnalTab'){ 
           p(tags$br(), tags$br(), 
             tags$strong('Purpose:'), tags$br(),
-               'The', tags$em('Simple Analyses'), 'tab is used to view correlation and simple linear regression among selected variables.', 
+               'The', tags$em('Simple Analyses'), 'tab is used to assess the relationship between variables.
+              The correlation analysis provides an assessment of the strength and direction of the linear 
+              relationship between two variables. The simple linear regression analysis maps the relationshop between 
+              an explanatory variable (X) and response variable (Y) through an equation. This equation can be used 
+              to predict new valus of Y with changes in X. ', 
 				tags$br(),tags$br(),
             tags$div(style="display: inline-block; align:center", img(src="Corr.png", height="75%", width="75%")),
 				tags$br(), tags$br(),
             'Variables can be removed from the correlation plots and tables by clicking on a variable in the,', tags$code('Select variables'), 'box and 
 				then hitting the backspace or delete button on your keyboard.',
 				tags$br(),
-            'Variables can be added by clicking an empty space in the', tags$code('Select variables'), 'box.'
+            'Variables can be added by clicking an empty space in the', tags$code('Select variables'), 'box.',
+				tags$br(), tags$br(),
+				    'Switch to the regression output using the', tags$code('Show correlation or simple linear regression'), 'button. 
+				    The response variable is limited to numeric variables. The explanatory variable may be any variable.',
+				tags$br(), tags$br(),
+				    'Plot and table outputs for both correlation and regression analyses can be downloaded.'
             )
         }
       })
@@ -421,19 +431,44 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       output$NewVarsTabsText <- renderUI({
         if(input$QuickStartChoices=='NewVarsTab'){ 
           p(tags$br(), tags$br(),
-            tags$strong('Purpose:'), tags$br(), 'Modify or create new variables such as CPUE or trip mid-point.',
+            tags$strong('Purpose:'), tags$br(),
+            'The', tags$em('Compute New Variables'), 'tab is used to modify or create new variables such as CPUE 
+            and trip or haul mid-point. ',
 				tags$br(),tags$br(),
-            'Generate the desired variable by clicking the', tags$code('Run function'), 'button (arrow 1). The variable can then 
-				be viewed in the displayed data table (arrow 2).', 
+            'Functions are grouped into six categories:',
+            tags$li('Arithmetic and temporal'), 
+            tags$li('Data transformations'), 
+            tags$li('Dummy variables'), 
+            tags$li('Nominal ID'), 
+            tags$li('Spatial'), 
+            tags$li('Trip-level'),
+				tags$br(),tags$br(),
+				    'We describe first how to run functons, view the created variable, and save the altered data. We then describe the 
+				    functions in the six variable createion categories.',
+				tags$br(), tags$br(),
+            'To run a function, click the', tags$code('Run function'), 'button (arrow 1). This will run the selected function and
+            generate the output.',
+				tags$br(),
+				    'The new variable can then be viewed in the displayed data table (arrow 2). It will be the last 
+				    variable in the data table. Default variable names will be provided if the', 
+            tags$code('Name of new variable'), 'box is left empty (arrow 3).', 
+				tags$br(),
+            'Save the revised data by pressing the', tags$code('Save data'), 'button. If the data is not saved the created variables will 
+            not be available once the app is closed.',
 				tags$br(),tags$br(),
             tags$div(style="display: inline-block; align:center", img(src="NewVar.png", height="75%", width="75%")),
 				tags$br(), tags$br(),
-            'The created variable will be available for other analyses while the app is open but will not be
-				available for future use unless the', tags$code('Save data'), 'button is pushed.',
-				tags$br(),tags$br(),
-            'Variable creation functions are grouped by type: Arithmetic and temporal, data transformations, dummy variables, nominal ID, spatial, and trip-level.',
-				tags$br(), tags$br(),
-            'Default variable names will be provided if the', tags$code('Name of new variable'), 'box is left empty (arrow 3).'
+				tags$strong('Function category descriptions'),
+				tags$em('Arithmetic and temporal'), 'functions focus on creating varaiables based on numeric calculations (i.e., plus, minus) 
+				          between two variables, durations of time between two variable, and catch per unit effort (CPUE).',
+				tags$em('Data transformations'), 'functions focus on transforming data into coded variables and date variables into preferred unit of time and ',
+				tags$em('Dummy variables'), 'functions focus on creating binary variables. These are useful for contrasting between two states, such 
+				        as caught at least 50 metric tons or not, before versus after a policy was enacted, or fishery zone was open versus closed.',
+				tags$em('Nominal ID'), 'functions focus on creating identifiers - haul, trip, or fishery season.',
+				tags$em('Spatial'), 'functions focus on creating variables that vary over space, such as haul midpoint and distance between points.
+				        A spatial data file is required. ',
+				tags$em('Trip-level'), 'functions focus on trip-level variables including trip distance and trip centroid. A function to collapse 
+				        data from haul level to trip level is also included.'
             )
         }
       })
@@ -441,17 +476,42 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       output$ZonalTabsText <- renderUI({
         if(input$QuickStartChoices=='ZonalTab'){ 
           p(tags$br(), tags$br(),
-           tags$strong('Purpose:'), tags$br(), 'Assign observations to zones and define alternative fishing choices.',
+           tags$strong('Purpose:'), tags$br(), 
+           'The', tags$em("Zonal Definition"),'tab is used to assign observations (e.g., hauls) to zones and define alternative fishing choices.',
 				tags$br(), tags$br(),
-	        'There are three steps on this tab.',
+	        'There are three sets of functions that can be run on this tab.',
 				tags$br(), tags$br(),
 	        tags$div(style="display: inline-block; align:center", img(src="zonal.png", height="75%", width="75%")),
 				tags$br(), tags$br(),
 	        tags$ol(	         
-	           tags$li('(Required) Defining zones, calculate the zone or fishing centroids, and assign observations to zones.
-					FishSET defaults to geographic centroids. To use fishing centroids, select a variable in the weighted centroid box.'),
-	           tags$li('Define the alternative fishing choices. These choices are used to develop the matrix of distances between alternative choices.'),
-				tags$li('(Optional) Select catch and price variable. This can be done here or in the', tags$em('Expected Catch'), 
+	           tags$li('(Required) Identify fishery zones or management areas, calculate zone or fishing centroids, and assign each observations 
+                      in the main data set to zones. FishSET defaults to geographic centroids. 
+					             To use fishing centroids, select a weighting variable in the weighted centroid box. Points that fall outside of 
+	                    any zones can be assigned to the closest zone by checking the', tags$code('Use closest polygon to point'), 'box. 
+	                    If spatial data creating polygons are sparse or irregular, the', tags$code('Use convex hull method'),'is recommended. 
+                    '),
+	           tags$br(),
+	           tags$li('(Required) Define the alternative fishing choices. These choices are used to develop the matrix of distances 
+	                   between observed and alternative fishing choices (where they could have fished but did not). 
+                     The distance matrix can be generated from the data or from gridded data. We describe generating the distance matrix 
+                     from the data first.',
+	                   tags$br(),
+                     'If the distance matrix comes from the primary haul-level data, the function requires defining how the 
+                     starting location (in longitude and latitude) should be found. Choices are the centroid of the zone where the haul occurred,
+                     port, or other lon/lat variable such as haul starting location. Next, define how to find 
+                     the location of the alternative fishing locations. Choices are the centroid of 
+                     each of the alternative zones or a lon/lat location in the primary dataset, such as haul ending 
+                     location. The distance matrix is then calculated between defined starting and alternative choice locations. 
+                     Distance can be returned in miles, kilometers, or meters.', 
+	                   tags$br(),
+	                   'Alternatively, the the distance matrix can be generated from a gridded dataset, such as sea surface temperature. 
+	                   Columns in the gridded data file must be individual zones.',
+            tags$br(),
+                     'The number of observed hauls can vary considerably between zones. The histogram at the bottom of the page 
+	                    is provided to assess variance in the amount of data between hauls. Observations from zones with insufficient zones can be 
+	                   removed from analyses by setting the minimum haul number in the', tags$code('Include zones with more hauls than'), 'box.'),
+				    tags$br(),
+             tags$li('(Optional) Select catch and price variable. This can be done here or in the', tags$em('Expected Catch/Revenue'), 
 					'or', tags$em('Models'), 'tabs.')
 	         )
           )
@@ -462,15 +522,50 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         if(input$QuickStartChoices=='ExpectedTab'){ 
           p(tags$br(), tags$br(),
             tags$strong('Purpose:'), tags$br(), 
-            '', tags$em(), 'tab is used to calculate expected catch or revenue for alternative choices.',
-				tags$br(),tags$br(),
-            'Returns an expected catch or expected revenue data frame based on selected parameters along with three null outputs:', 
+            'The', tags$em('Expected Catch/Revenue'), 'tab is used to calculate the expected catch or revenue matrix for alternative
+            fishing zones (zones they could have but did not fish in). 
+            This matrix is required to run the conditional logit model.',
+			  tags$br(), tags$br(),
+			    'Expected catch or revenue can be calculated using the entire dataset. Alternatively, you can take into account that 
+			     catch may differ between groups or vessels and how catch varies over time.',
+			  tags$br(),tags$br(), 
+        'Grouping is done by selecting the variable in', tags$strong('Choose variables that define group'), 'that defines groups.  
+          Temporal trends in catch can also be taken into account. These options include the window of time to average catch over
+        and whether to use current or previous years catch data to calculate expected catch. These choices determine whether to 
+        use recent or longer-term catch data over short to long time frames. Empty catch values are considered to be times of no 
+        fishing activity. Values of 0 in the catch variable are considered times when fishing activity occurred but with no catch. 
+			  These points are included.',
+			  tags$br(),tags$br(),
+			  'Three default cases will be run. The near-term (catch/revenue over previous two days), medium-term (catch/revenue over previous seven 
+			  days), and long-term (catch/revenue over seven days prior in the previous year). Choices other than temporal window or time
+			  frame will be passed to each default case.',
+			  tags$br(),tags$br(),
+			  'Calculations are done using a rolling average based on the temporal window size and any desired temporal lags. 
+        Catch is averaged along a daily or sequential timeline. Assess data sparsity when determining moving 
+        window size. For very sparse data, consider setting', 
+        tags$strong('Method to sort time'), 'to', tags$em('entire record of catch.'),
+			  tags$br(),tags$br(),
+			  'To define temporal options, first choose whether the', tags$strong('Method to sort time'), 'should be', 
+			  tags$em('Daily timeline'), 'or', tags$em('Sequential timeline.'), "Sequential timeline sorts data by date but does not take 
+			  into account that days may be missing. Daily timeline adds in these dates with NA (missing value). With sequential timeline,
+			  a window size of seven means catch would be the average over the past seven fishing days. Whereas, with daily timeline, 
+			  it would be the average over seven calendar days. Use', tags$strong('No. of years to go back'), 
+			  'to define whether to use current year or previous year's data.", tags$strong('Window size'), 'is used to determine the 
+			  number of fishing days or calendar days to average over.', tags$strong('Time lag'), 'defines where to start the window from 
+			  day', tags$em('x'), 'or to to start from', tags$em('n'), 'days prior. The catch value for day', tags$em('x'), 'is the 
+			  average catch across the window lagged by the specified days and years. This is done for each row of the data and each date 
+        of the chosen', tags$strong('Temporal variable for averaging.'), 'Next, select whether to return the calculated 
+			  standard average or simple lag regression of the mean. The simple lag regression of the mean calculates 
+			  the predicted value for each zone/date given regression coefficients', tags$em('p'), 'for each row. Expected catch 
+			  is calculated for each row of the data for every possible fishing zone.  The expected catch is pulled from the 
+			  matrix of calculated catches for each date and zone.',
+			  tags$br(), tags$br(),
+            'The function returns four expected catch or expected revenue data frames based on:', 
 				tags$br(),
-            'expected catch/revenue based the previous two days (short-term) chatch,', 
-				tags$br(),
-            'expected catch/revenue based the previous seven days (medium-term) catch,', 
-				tags$br(),
-            'and expected catch/revenue based the previous years (long-term) catch.'
+				    tags$ul('selected temporal parameters'),
+            tags$ul('expected catch/revenue based the previous two days (short-term) catch,'), 
+            tags$ul('expected catch/revenue based the previous seven days (medium-term) catch,'), 
+            tags$ul('and expected catch/revenue based the previous years (long-term) catch.')
             )
         }
       })
@@ -479,16 +574,71 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         if(input$QuickStartChoices=='ModelTab'){ 
           p(tags$br(),tags$br(),
             tags$strong('Purpose:'), tags$br(), 
-            'The', tags$em('Models'), 'tab is used to define the likelihood function and model parameters, run the models, and compare output.',
-				tags$br(),tags$br(),
-			'Click', tags$code('Save model and Add new model'), 'to save model choices and define another model.',
+            'The', tags$em('Models'), 'tab is used to define model parameters (including the likelihood function), 
+            and then run model and compare output.',
+				tags$br(),
+				    'First, we describe model parameters in the', tags$code('Run models'), 'subtab and how to define then.
+          Then we describe the output in the', tags$code('Compare models'), 'subtab.',
 				tags$br(), tags$br(),
-			'Defined models are shown in a table at the bottom of the screen.', 
+				    tags$strong('Run Models:'),tags$br(),
+				    'Here, you define all models that you want to run. Click', tags$code('Save model and Add new model'), 
+			      'to save selected model choices and define another model.',
+				tags$br(), 
+		    	'Defined models are shown in a table at the bottom of the screen.', 
+				tags$br(), 
+		    	'Once all models have been defined, select', tags$code('Run models'), 'to run all models.',
 				tags$br(), tags$br(),
-			'Once all models have been defined, select', tags$code('Run models'), 'to run all models.',
+				'Likelihood functions',
+				    tags$ul("Conditional logit likelihood"),
+				    tags$ul("Average catch multinomial logit procedure"),
+				    tags$ul("Full information model with Dahl's correction function"),
+				    tags$ul("Expected profit model with normal catch function"),
+				    tags$ul("Expected profit model with Weibull catch function"),
+				    tags$ul("Expected profit model with lognormal catch function"),
+				'Optimization method', tags$br(),
+				  "For more details see documentation for the optim function in the stats package.",
+				    tags$ul("BFGS: Quasi-Newton method. Uses function values and gradients to build up a picture of the surface to be optimized."),
+            tags$ul("CG: Conjugate gradients method. Generally more fragile than the BFGS method, but useful in larger optimization problems."),
+				    tags$ul("L-BFGS-B: Uses a limited-memory modification of the BFGS method. Allows box constraints."),
+				    tags$ul("Nelder-Mead: Is robust but relatively slow. It will work reasonably well for non-differentiable functions."),
+            tags$ul("SANN: Simulated-annealing method. It is relatively slow and is sensitive to the settings of the 
+                    control parameters. It is not a general-purpose method but is useful on a rough surface to be optimized."),
+				    tags$br(),
+				  'Added variables',tags$br(),
+				     tags$ul('Travel distance'),
+				     tags$ul('Alternative specific'),
+				  "Optimization options",
+				    tags$ul("Max iterations: maximum number of interations to run."),
+				    tags$ul("Tolerance of x: Relative convergence tolerance. The algorithm stops if it is unable to reduce the 
+				            value by a factor of reltol * (abs(val) + reltol) at a step. Defaults to 1e-8."),
+            tags$ul("Report frequency: How frequently to report iteration output."),
+				    tags$ul("Detail report: Level of tracing information on optimization progress."),
+				   "Initial parameters",
+				    tags$ul("The number of initial parameters depends upon the likelihood function and added variables.
+				            See the help manual or discretefish_subroutine function documentation for more details."),
 				tags$br(), tags$br(),
-			'View and compare models in the', tags$code('Compare models'), 'subtab.',
-			tags$div(style="display: inline-block; align:center", img(src="CompareModels.png", height="75%", width="75%"))
+				tags$strong('Compare models'), tags$br(),
+			    'View model convergence, model fit, and error messages. Then compare models and identify the best model.',
+				tags$br(),
+				  'Three tables are provided that detail, for each model that was run, measure of fit, output, and error messages.',
+				'Measures of fit', tags$br(),
+				  'See the Help Manual for more information on the measures of fit.',
+				    tags$ul('AIC: Akaike information criterion'),
+				    tags$ul('AICc: Akaike information criterion corrrected for small sample size'),
+				    tags$ul('BIC: Bayesian information criterion'),
+				    tags$ul(HTML(paste0('PseudoR', tags$sup('2')))),
+				'Model Output',
+				  tags$ul('Convergence: 0 - converged, 1 - maximum iterations reached. See optim function documentation 
+				          in stats package for description of other codes.'),
+				  tags$ul('Standard error of parameters:  Values come from the square root of the inverse of the Hessian.'),
+				  tags$ul('Hessian: The inverse hessian.'),
+				'Error messages',
+				  tags$ul('Model error: Description of any model errors.'),
+				  tags$ul('optimization error: Description of any optimization errors.'),
+				tags$br(), tags$br(),
+				'To record the perferred model, check the box next to the model in the', tags$em('Measure of fit'), 'tabe.
+				Press the', tags$code('Save table'), 'button to save selections to the FishSET database.',
+			  tags$div(style="display: inline-block; align:center", img(src="CompareModels.png", height="75%", width="75%"))
           )
         }
       })
@@ -496,18 +646,37 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       output$BookmarkTabsText <- renderUI({
         if(input$QuickStartChoices=='BookmarkTab'){ 
           p(tags$br(), tags$br(),
-            'Purpose:', tags$br(),
-            'The', tags$em('Bookmark Choices'), 'tabs is to save choices made in the FishSET R Shiny application and enable current application state to be reloaded at a later date.',
+            'Purpose:', tags$br(), 
+            'The', tags$em('Bookmark Choices'), 'tab allows users to reopen this application at a later date and 
+            continue where you left off.',
+            tags$br(),  
+            'We first describe how to save or bookmark the application and then we describe how to restore the application .',
 				tags$br(), tags$br(),
-				    'Reloading a bookmarked state will restore the last selections in the application. The data will not be automatically loaded 
-            and no functions will be applied to the data. It is best to save the data before bookmarking the current application state. 
-				    After the application is reloaded, load the saved data.',  
+				    "Bookmarking places a virtual 'bookmark' in this FishSET application, allowing you to pick up
+            where you left off. You can have multiple bookmarks. To create a bookmark, click the", 
+				    tags$code('bookmark'), 'button. Any popup messages can be dismissed. The bookmark will be saved as 
+				    input.rds in a folder within the', tags$em('shiny_bookmarks'), 'folder in the FishSET package directory. 
+            Bookmark folder names are generic and should be renamed to a more informative name.',
+				tags$br(), 
+            'Before bookmarking, it is best to save the data so that data cleaning and variable creation steps do not need
+            to be repeated. Bookmarking saves selections, such as file names of data to be loaded and whether action 
+            buttons, such as the button to load the data, have been pushed. Actions caused by the 
+            action button (loading data) will not be rerun when the application is opened at a bookmarked state.',  
 				    tags$br(), tags$br(),
-            'To bookmark the application, click the', tags$code('bookmark'), 'button. Click', tags$em('Dismiss'), 'in the popup message.',
             tags$div(style="display: inline-block; align:center", img(src="Dismiss.png", height="75%", width="75%")),
 				tags$br(), tags$br(),tags$br(),
-            'To reload a perviously saved application state, you must have the FishSET R application open. Navigate to the', tags$code('Bookmark Choices'), 
-        'tab. Click the', tags$code('Browse'), 'button and then migrate to the', tags$em('input.rds'), 'file.',
+            'To reload the application at a bookmarked state:', 
+                tags$ul('Open the FishSET R application. This can be done by running', tags$code('run_fishset_gui'),
+                        'in the r console'), 
+                tags$ul('Navigate to the', tags$code('Bookmark Choices'), 'tab.'), 
+                tags$ul('Click the', tags$code('Browse'), 'button and migrate to the', tags$em('input.rds'), 'file. 
+                        This file should be in the', tags$em('shiny_bookmarks'), 'folder of the FishSET package directory.
+                        The location of the shiny_bookmarks directory is shown above the file browse box.'),
+				        tags$ul('Bookmarked choices will be restored once upload is complete.'),
+				        tags$ul('Go to the', tags$code('Upload data'), 'tab, click that the data comes from the FishSET 
+                        database, and enter the name of the saved data table in in the optional text input box. 
+				                The name should be project name, MainDataTable and date as year, month day. For example,
+				                pollockMainDataTable20200910. Enter the project name before loading the data.'),
 				tags$br(), tags$br(),
             tags$div(style="display: inline-block; align:center", img(src="Bookmark2.png", height="75%", width="75%"))
             )
@@ -2293,13 +2462,14 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         options=list(autoWidth = TRUE, scrollX=TRUE, deferRender = T,
                      scrollY = 'auto', scroller = TRUE, scrollX = T, pageLength = 25)
       )
+      
       output$output_text_corr <- renderPrint(
         if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
         } else if(length(input$corr_select)==2){
           cor.test(values$dataset[[input$corr_select[1]]], values$dataset[[input$corr_select[2]]])
         } else {
-          return(NULL)
+          return()
          }
       )
       
@@ -2324,21 +2494,27 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         } 
         }
       })
+      
       output$output_plot_corr <- renderPlot({
         plotInputcorr()
       })
       
       output$reg_resp_out <- renderUI({
-        varSelectInput('reg_resp_select', 'Select response variable', data = values$dataset, multiple = FALSE, selectize = TRUE)
+        varSelectInput('reg_resp_select', 'Select response variable', data = values$dataset[,unlist(lapply(values$dataset, is.numeric))], 
+                       multiple = FALSE, selectize = TRUE)
       })
+      
       output$reg_exp_out <- renderUI({
-        varSelectInput('reg_exp_select', 'Select explanatory variable(s)', data= values$dataset, 
+        varSelectInput('reg_exp_select', 'Select explanatory variable', data= values$dataset, 
                     selected= "", multiple=FALSE, selectize=TRUE)
       })
       
       ## Add regression component
       #Run model
-      p2 <- reactive({summary(lm(values$dataset[[input$reg_resp_select]]~values$dataset[,input$reg_exp_select]))})
+      p2 <- reactive({
+        summary(lm(values$dataset[[input$reg_resp_select]]~values$dataset[[input$reg_exp_select]]))
+        })
+      
       output$output_text_reg <- renderPrint(
         p2()
       )
@@ -2348,7 +2524,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           return(NULL)
         } else if(length(input$reg_exp_select)!=1){
           return(NULL)
-        } else {
+        }  else {
           ggpubr::annotate_figure(ggpubr::ggarrange(ggplot2::ggplot(values$dataset, ggplot2::aes_string(x=input$reg_exp_select, y=input$reg_resp_select)) + 
                                                       ggplot2::geom_point()+ ggplot2::geom_smooth(method=lm)+
                                                       ggplot2::labs(subtitle=paste(input$reg_resp_select, 'against', input$reg_exp_select), x=input$reg_exp_select, y=input$reg_resp_select)+
@@ -2463,7 +2639,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           #Port
           conditionalPanel(condition="(input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Port')|
                            (input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.end=='Port')" ,
-                           style = "margin-left:19px;", selectInput("filePort", "Choose file from FishSET SQL database containing port data", 
+                           style = "margin-left:19px;", selectInput("filePort", "Choose file from the FishSET database containing port data", 
                                                                     choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE)),
 #port
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'&input.start=='Port'",
@@ -2544,7 +2720,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                                                     choices= names(values$dataset[,grep("lat", names(values$dataset), ignore.case = TRUE)]),
                                                                     options = list(create = TRUE, placeholder='Select or type variable name'))),
           conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
-                           style = "margin-left:19px;",  selectInput("port.dat", "Choose file from FishSET SQL database containing port data", 
+                           style = "margin-left:19px;",  selectInput("port.dat", "Choose file from the FishSET database containing port data", 
                                                                      choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE))#,
           #conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
           #                 style = "margin-left:19px;", fileInput("grid.dat", "Choose data file containing map shapefile (shape, json, and csv formats are supported)",
@@ -2574,7 +2750,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       output$input_trip_dist_vars <- renderUI({
         tagList(
           conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.dist=='trip_distance'" ,
-                           style = "margin-left:19px;", selectInput("port_dat_dist", "Choose file from FishSET SQL database containing port data", 
+                           style = "margin-left:19px;", selectInput("port_dat_dist", "Choose file from the FishSET database containing port data", 
                                                                     choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE)),
           #
           conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='trip_distance'",
@@ -2812,7 +2988,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                            if(names(spatdat$dataset)[1]=='var1'){
                              tags$div(h4('Map file not loaded. Please load on Upload Data tab', style="color:red"))
                            },
-                           h5(tags$b('Select latitude than longitude from main dataset for assigning observations to zones')),
+                           h5(tags$b('Select latitude then longitude from main dataset for assigning observations to zones')),
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
                                selectizeInput('lat_dat_ac', '',
                                               choices=c(input$latBase, names(values$dataset)[grep('lat', names(values$dataset), ignore.case=TRUE)]), 
@@ -2848,22 +3024,37 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                          }
         ) 
       })
-      output$conditionalInput3 <- renderUI({
+
+      output$conditionalInput3a <- renderUI({
         conditionalPanel(condition="input.choiceTab=='distm'",
+                         selectInput('distMsource', 'Should distance matrix come from', 
+                                     choices=c('Primary haul- or trip-level data'='primary', 'Gridded dataset'='gridded'), 
+                                     selected='primary')
+        )
+      })
+        
+      output$conditionalInput3 <- renderUI({
+        tagList(
+        conditionalPanel(condition="input.choiceTab=='distm' & input.distMsource == 'primary'",
                          tagList(
-                          h5(tags$b('Define how alternative fishing choices calculated.')),
+                          h5(tags$b('Define how alternative fishing choices are calculated between')),
                            div(style="display: inline-block;vertical-align:top; width: 160px;",
-                               selectInput('alt_var_ac', 'between occurrence:', choices=c('Centroid of zonal assignment'='centroid', 
-                                                                                          names(values$dataset)[grep('lat|lon|port', names(values$dataset), ignore.case=TRUE)]))), #Identifies how to find lat/lon for starting point (must have a lat/lon associated with it) 
+                               selectizeInput('alt_var_ac', 'occurrence:', 
+                                           choices=c('Centroid of zonal assignment'='centroid', 
+                                                      names(values$dataset)[grep('lat|lon|port', names(values$dataset), ignore.case=TRUE)]),
+                                           selected='', options = list(maxItems=2))), #Identifies how to find lat/lon for starting point (must have a lat/lon associated with it) 
                            div(style="display: inline-block;vertical-align:top; width: 170px;",
-                               selectizeInput('occasion_ac','and centroid or lat/lon of location', 
-                                              choices=c('Centroid of zonal assignment'='centroid', names(values$dataset)[grep('lat|lon', names(values$dataset), ignore.case=TRUE)]), 
-                                              selected='centroid', options = list(maxItems = 2))),
+                               selectizeInput('occasion_ac', 'and alternative location', 
+                                              choices=c('Centroid of zonal assignment'='centroid', 
+                                                       names(values$dataset)[grep('lat|lon', names(values$dataset), ignore.case=TRUE)]), 
+                                              selected='', options = list(maxItems = 2))),
+                          h5(tags$em('Longitude must be specified before latitude.')),
                            selectizeInput('dist_ac','Distance units', choices=c('miles','kilometers','meters'), selected='miles'),
                            numericInput('min_haul_ac', 'Include zones with more hauls than', min=1, max=1000, value=1)#,
-                           #checkboxInput('morec', 'Show more choices', value=FALSE),
-                           #Additional choices
-                           #uiOutput('conditionalInput')
+                         )
+                         ),
+        conditionalPanel(condition="input.choiceTab=='distm' & input.distMsource == 'gridded'",
+                         fileInput("gridded.dat", "Load gridded data file", multiple = FALSE, placeholder = '')
                          )
         )
       })
@@ -3015,17 +3206,17 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                         )
         )
       })
-      output$latlonB <- renderUI({
-        conditionalPanel(
-          condition="input.alternatives=='loadedData'",
-          div(style="display: inline-block;vertical-align:top; width: 200px;",
-              selectizeInput('lat', 'Occurrence latitude', choices=c(input$latBase, colnames(values$dataset[,grep('lat', colnames(values$dataset), ignore.case=TRUE)])), 
-                          selected='', options = list(create = TRUE, placeholder='Select or type variable name'))),
-          div(style="display: inline-block;vertical-align:top; width: 200px;",
-              selectizeInput('lon', 'Occurrence longitude', choices=c(input$lonBase, colnames(values$dataset[,grep('lon', colnames(values$dataset), ignore.case=TRUE)])), 
-                          selected='', options = list(create = TRUE, placeholder='Select or type variable name')))
-        )
-      })
+#      output$latlonB <- renderUI({
+#        conditionalPanel(
+#          condition="input.alternatives=='loadedData'",
+#          div(style="display: inline-block;vertical-align:top; width: 200px;",
+#              selectizeInput('lat', 'Occurrence latitude', choices=c(input$latBase, colnames(values$dataset[,grep('lat', colnames(values$dataset), ignore.case=TRUE)])), 
+#                          selected='', options = list(create = TRUE, placeholder='Select or type variable name'))),
+#          div(style="display: inline-block;vertical-align:top; width: 200px;",
+#              selectizeInput('lon', 'Occurrence longitude', choices=c(input$lonBase, colnames(values$dataset[,grep('lon', colnames(values$dataset), ignore.case=TRUE)])), 
+#                          selected='', options = list(create = TRUE, placeholder='Select or type variable name')))
+#        )
+#      })
       # Data needed
       ## Alternative choices
       Alt_vars <- reactive({
@@ -3071,7 +3262,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
       
       output$portmd <- renderUI ({
-      selectInput("port.datMD", "Choose file from FishSET SQL database containing port data", 
+      selectInput("port.datMD", "Choose file from the FishSET database containing port data", 
                                        choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE)#,
       })
       
@@ -3260,14 +3451,14 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           times <- nrow(rv$data)-1
           i <- 1
           showNotification(paste('1 of', times, 'model design files created.'), type='message', duration=10)
-          q_test(values$dataset, project=rv$data$project[i], catchID=rv$data$catch[i], alternativeMatrix = rv$data$alternatives[i], 
-                            replace=TRUE, lonlat= c(as.vector(rv$data$lon[i]), as.vector(rv$data$lat[i])), PortTable = input$port.datMD, likelihood=rv$data$likelihood[i], vars1=rv$data$vars1[i],
+          q_test(values$dataset, project=rv$data$project[i], catchID=rv$data$catch[i],  
+                            replace=TRUE, PortTable = input$port.datMD, likelihood=rv$data$likelihood[i], vars1=rv$data$vars1[i],
                             vars2=rv$data$vars2[i], priceCol=rv$data$price[i], startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
           
           if(times>1){
           for(i in 2:times){
-            q_test(values$dataset, project=rv$data$project[i], catchID=rv$data$catch[i], alternativeMatrix = rv$data$alternatives[i], 
-                              replace=FALSE, lonlat=c(as.vector(rv$data$lon[i]), as.vector(rv$data$lat[i])), PortTable = input$port.datMD, likelihood=rv$data$likelihood[i], vars1=rv$data$vars1[i],
+            q_test(values$dataset, project=rv$data$project[i], catchID=rv$data$catch[i], 
+                              replace=FALSE,  PortTable = input$port.datMD, likelihood=rv$data$likelihood[i], vars1=rv$data$vars1[i],
                               vars2=rv$data$vars2[i], priceCol=rv$data$price[i], startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
             showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
           }
@@ -3358,11 +3549,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       observeEvent(input$submit_ms, {
         # Connect to the database
         fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
-        if(overwrite_table==T){
+#        if(overwrite_table==T){
           if(DBI::dbExistsTable(fishset_db, 'modelChosen')==TRUE){
             DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase()), 'modelChosen')
           }
-        }
+#        }
         
         if(DBI::dbExistsTable(fishset_db, 'modelChosen')==FALSE){
           DBI::dbExecute(fishset_db, "CREATE TABLE modelChosen(model TEXT, AIC TEXT, AICc TEXT, BIC TEXT, PseudoR2 TEXT, Selected TEXT, Date TEXT)")
@@ -3431,11 +3622,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       #---
       observeEvent(input$saveALT, {
               q_test <- quietly_test(create_alternative_choice)
-              q_test(dat=values$dataset, gridfile=spatdat$dataset, min.haul=input$min_haul_ac,
-                                  alt_var=input$alt_var_ac, occasion=input$occasion_ac, dist.unit=input$dist_ac, lon.dat=input$lon_dat_ac,
-                                  lat.dat=input$lat_dat_ac, lon.grid=input$long_grid_altc, lat.grid=input$lat_grid_altc, 
-                                  cat=input$cat_altc, hull.polygon=input$hull_polygon_ac, 
-                                  closest.pt=input$closest_pt_ac, project=input$projectname, griddedDat=NULL, weight.var=input$weight_var_ac) 
+              q_test(values$dataset, project=input$projectname, gridfile=spatdat$dataset, alt_var=input$alt_var_ac, 
+                                  occasion=input$occasion_ac, griddedDat=NULL, dist.unit=input$dist_ac, min.haul=input$min_haul_ac,
+                                  cat=input$cat_altc, lon.dat=input$lon_dat_ac, lat.dat=input$lat_dat_ac,
+                                  hull.polygon=input$hull_polygon_ac, lon.grid=input$long_grid_altc, lat.grid=input$lat_grid_altc, 
+                                  closest.pt=input$closest_pt_ac,  weight.var=input$weight_var_ac) 
               showNotification('Alternative choice matrix updated', type='message', duration=10)
       }, ignoreInit = F) 
       
@@ -3509,7 +3700,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           actionButton('downloadplotExplore', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
           downloadLink('downloadTableEXPLOREHIDE', label=''),
           conditionalPanel(condition = "input.plot_type=='Spatial'",
-          actionButton('downloadTableExplore', label ='Save table to folder as csv')),
+          actionButton('downloadTableExplore', label ='Save table to folder as csv'))
         #  downloadLink("downloadTextExplore", label='')
         )
       })
