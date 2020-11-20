@@ -2566,7 +2566,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       output$unique_col_id <- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Nominal ID'&input.ID=='ID_var'",
                          style = "margin-left:19px;", selectInput('unique_identifier','Variables that identify unique observations',
-                                                                  choices=colnames(values$dataset), multiple=TRUE, selectize=TRUE))
+                                                                  choices=colnames(values$dataset), multiple=TRUE, selectize=TRUE),
+                         selectInput('ID_type', "Select ID column class type",
+                                     choices = c("string", "integer")))
       })
       seasonalData <- reactive({
         if(is.null(input$seasonal.dat)){return()} 
@@ -2590,6 +2592,45 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='create_var_num'",
                          style = "margin-left:19px;", selectInput('var_y', 'Second variable. Will be the denomenator if dividing.',  
                                                                   choices=names(values$dataset[,unlist(lapply(values$dataset, is.numeric))]), selectize=TRUE))
+      })
+      
+      output$grp_perc <- renderUI({
+        conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='group_perc'",
+                         style = "margin-left:19px;", 
+                         selectInput('perc_id_grp', 'Select primary grouping variable(s)',
+                                     choices = colnames(values$dataset), multiple = TRUE),
+                         selectInput('perc_grp', 'Select secondary grouping variable(s)',
+                                     choices = colnames(values$dataset), multiple = TRUE),
+                         selectInput('perc_value', 'Select numeric variable',
+                                     choices = numeric_cols(values$dataset)),
+                         checkboxInput('perc_id_col', 'Create an ID variable'),
+                         checkboxInput('perc_drop', 'Drop total columns'))
+      })
+      
+      output$grp_diff <- renderUI({
+        conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='group_diff'",
+                         style = "margin-left:19px;", 
+                         selectInput('diff_sort', 'Sort table by',
+                                     choices = date_select(values$dataset)),
+                         selectInput('diff_grp', 'Select secondary grouping variable(s)',
+                                     choices = colnames(values$dataset), multiple = TRUE),
+                         selectInput('diff_value', 'Select numeric variable',
+                                     choices = numeric_cols(values$dataset)),
+                         checkboxInput('diff_id_col', 'Create an ID variable'),
+                         checkboxInput('diff_drop', 'Drop total columns'))
+      })
+      
+      output$grp_cumsum <- renderUI({
+        conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='group_cumsum'",
+                         style = "margin-left:19px;", 
+                         selectInput('cumsum_sort', 'Sort table by',
+                                     choices = date_select(values$dataset)),
+                         selectInput('cumsum_grp', 'Select secondary grouping variable(s)',
+                                     choices = colnames(values$dataset), multiple = TRUE),
+                         selectInput('cumsum_value', 'Select numeric variable',
+                                     choices = numeric_cols(values$dataset)),
+                         checkboxInput('cumsum_id_col', 'Create an ID variable'),
+                         checkboxInput('cumsum_drop', 'Drop total columns'))
       })
       output$input_xWeight <- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='cpue'",
@@ -2881,11 +2922,23 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               values$dataset <- q_test(values$dataset, x=input$trans_var_name, quant.cat = input$quant_cat, name=input$varname)
         } else if(input$VarCreateTop=='Nominal ID'&input$ID=='ID_var'){
               q_test <- quietly_test(ID_var)
-              values$dataset <- q_test(values$dataset, newID=input$varname, input$unique_identifier)
+              values$dataset <- q_test(values$dataset, name=input$varname, vars=input$unique_identifier, type=input$ID_type)
         } else if(input$VarCreateTop=='Nominal ID'&input$ID=='create_seasonal_ID'){
               q_test <- quietly_test(create_seasonal_ID)
               values$dataset <- q_test(values$dataset, seasonal.dat=seasonalData(), use.location=input$use_location, 
                                                use.geartype=input$use_geartype, sp.col=input$sp_col, target=input$target)
+        } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='group_perc'){
+          q_test <- quietly_test(group_perc)
+          values$dataset <- q_test(values$dataset, project=input$projectname, id_group=input$perc_id_grp, group=input$perc_grp,
+                                   value=input$perc_value, name=input$varname, create_group_ID=input$perc_id_col, drop_total_col=input$perc_drop)
+        } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='group_diff'){
+          q_test <- quietly_test(group_diff)
+          values$dataset <- q_test(values$dataset, project=input$projectname, group=input$diff_grp,  sort_by=input$diff_sort,
+                                   value=input$diff_value, name=input$varname, create_group_ID=input$diff_id_col, drop_total_col=input$diff_drop)
+        } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='group_cumsum'){
+          q_test <- quietly_test(group_cumsum)
+          values$dataset <- q_test(values$dataset, project=input$projectname, group=input$cumsum_grp,  sort_by=input$cumsum_sort,
+                                   value=input$cumsum_value, name=input$varname, create_group_ID=input$cumsum_id_col, drop_total_col=input$cumsum_drop)
         } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='create_var_num'){
               q_test <- quietly_test(create_var_num)
               values$dataset <- q_test(values$dataset, x=input$var_x, y=input$var_y, method=input$create_method, name=input$varname)
