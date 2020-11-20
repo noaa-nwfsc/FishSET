@@ -1130,7 +1130,7 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   } else { 
     if (!is.character(dat)) dat <- deparse(substitute(dat)) }
   
-  if (create_group_ID) dataset <- ID_var(dataset, newID = "group_ID", vars = c(id_group, group))
+  if (create_group_ID) dataset <- ID_var(dataset, vars = c(id_group, group))
   
   if (is.null(group)) {
     
@@ -1159,7 +1159,7 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   group_perc_function$functionID <- "group_perc"
   group_perc_function$args <- list(dat, project, id_group, group, value, name, 
                                    create_group_ID, drop_total_col) 
-  log_call(group_perc)
+  log_call(group_perc_function)
   
   dataset
 }
@@ -1204,7 +1204,7 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   } else { 
     if (!is.character(dat)) dat <- deparse(substitute(dat)) }
   
-  if (create_group_ID) dataset <- ID_var(dataset, newID = "group_ID", vars = group)
+  if (create_group_ID) dataset <- ID_var(dataset, vars = group)
   
    alt_diff <- function(x, lag) c(0, diff(x, lag = lag))
    
@@ -1236,7 +1236,7 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   group_diff_function$functionID <- "group_diff"
   group_diff_function$args <- list(dat, project, group, sort_by, value, name, lag,
                                    create_group_ID, drop_total_col) 
-  log_call(group_diff)
+  log_call(group_diff_function)
   
   dataset
 }
@@ -1283,7 +1283,7 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
   } else { 
     if (!is.character(dat)) dat <- deparse(substitute(dat)) }
   
-  if (create_group_ID) dataset <- ID_var(dataset, newID = "group_ID", vars = group)
+  if (create_group_ID) dataset <- ID_var(dataset, vars = group)
   
   if (all(!(class(dataset[[sort_by]]) %in% c("Date","POSIXct", "POSIXt")))) {
     
@@ -1313,7 +1313,7 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
   group_cumsum_function$functionID <- "group_cumsum"
   group_cumsum_function$args <- list(dat, project, group, sort_by, value, name,
                                      create_group_ID, drop_total_col) 
-  log_call(group_cumsum)
+  log_call(group_cumsum_function)
   
   dataset
 }
