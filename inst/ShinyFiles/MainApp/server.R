@@ -486,9 +486,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 	        tags$div(style="display: inline-block; align:center", img(src="zonal.png", height="75%", width="75%")),
 				tags$br(), tags$br(),
 	        tags$ol(	         
-	           tags$li('(Required) Identify fishery zones or management areas, calculate zone or fishing centroids, and assign each observations 
-                      in the main data set to zones. FishSET defaults to geographic centroids. 
-					             To use fishing centroids, select a weighting variable in the weighted centroid box. Points that fall outside of 
+	           tags$li('(Required) Identify fishery zones or management areas, calculate zone or fishing centroids, and assign each  
+                      observation in the main data set to zones. FishSET defaults to geographic centroids. To use 
+					             fishing centroids, select a weighting variable in the weighted centroid box. Points that fall outside of 
 	                    any zones can be assigned to the closest zone by checking the', tags$code('Use closest polygon to point'), 'box. 
 	                    If spatial data creating polygons are sparse or irregular, the', tags$code('Use convex hull method'),'is recommended. 
                     '),
@@ -506,7 +506,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                      location. The distance matrix is then calculated between defined starting and alternative choice locations. 
                      Distance can be returned in miles, kilometers, or meters.', 
 	                   tags$br(),
-	                   'Alternatively, the the distance matrix can be generated from a gridded dataset, such as sea surface temperature. 
+	                   'Alternatively, the distance matrix can be generated from a gridded dataset, such as sea surface temperature. 
 	                   Columns in the gridded data file must be individual zones.',
             tags$br(),
                      'The number of observed hauls can vary considerably between zones. The histogram at the bottom of the page 
@@ -531,7 +531,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 			    'Expected catch or revenue can be calculated using the entire dataset. Alternatively, you can take into account that 
 			     catch may differ between groups or vessels and how catch varies over time.',
 			  tags$br(),tags$br(), 
-        'Grouping is done by selecting the variable in', tags$strong('Choose variables that define group'), 'that defines groups.  
+        'Grouping is done by selecting the variable in', tags$code('Choose variables that define group'), 'that defines groups.  
           Temporal trends in catch can also be taken into account. These options include the window of time to average catch over
         and whether to use current or previous years catch data to calculate expected catch. These choices determine whether to 
         use recent or longer-term catch data over short to long time frames. Empty catch values are considered to be times of no 
@@ -539,24 +539,25 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 			  These points are included.',
 			  tags$br(),tags$br(),
 			  'Three default cases will be run. The near-term (catch/revenue over previous two days), medium-term (catch/revenue over previous seven 
-			  days), and long-term (catch/revenue over seven days prior in the previous year). Choices other than temporal window or time
-			  frame will be passed to each default case.',
+			  days), and long-term (catch/revenue over seven days prior in the previous year). Parameter choices other than the 
+        temporal window or time lag parameters will be passed to each default case.',
 			  tags$br(),tags$br(),
 			  'Calculations are done using a rolling average based on the temporal window size and any desired temporal lags. 
         Catch is averaged along a daily or sequential timeline. Assess data sparsity when determining moving 
         window size. For very sparse data, consider setting', 
-        tags$strong('Method to sort time'), 'to', tags$em('entire record of catch.'),
+        tags$code('Method to sort time'), 'to', tags$strong('entire record of catch.'),
 			  tags$br(),tags$br(),
-			  'To define temporal options, first choose whether the', tags$strong('Method to sort time'), 'should be', 
-			  tags$em('Daily timeline'), 'or', tags$em('Sequential timeline.'), "Sequential timeline sorts data by date but does not take 
-			  into account that days may be missing. Daily timeline adds in these dates with NA (missing value). With sequential timeline,
-			  a window size of seven means catch would be the average over the past seven fishing days. Whereas, with daily timeline, 
-			  it would be the average over seven calendar days. Use', tags$strong('No. of years to go back'), 
-			  'to define whether to use current year or previous year's data.", tags$strong('Window size'), 'is used to determine the 
-			  number of fishing days or calendar days to average over.', tags$strong('Time lag'), 'defines where to start the window from 
-			  day', tags$em('x'), 'or to to start from', tags$em('n'), 'days prior. The catch value for day', tags$em('x'), 'is the 
-			  average catch across the window lagged by the specified days and years. This is done for each row of the data and each date 
-        of the chosen', tags$strong('Temporal variable for averaging.'), 'Next, select whether to return the calculated 
+			  'To define temporal options, first choose whether the', tags$code('Method to sort time'), 'should be', 
+			  tags$strong('Daily timeline'), 'or', tags$strong('Sequential timeline.'), "Sequential timeline sorts data by date 
+        but does not take into account that days may be missing. Daily timeline adds in these dates with NA 
+			  (missing value). With", tags$strong('sequential timeline,'), "a window size of seven means catch would be the average over 
+			  the past seven fishing days. Whereas, with", tags$strong('daily timeline,'), "it would be the average over seven calendar 
+			  days. Use", tags$code('No. of years to go back'), "to define whether to use current year or previous year's data.",
+			   tags$code('Window size'), 'is used to determine the number of fishing days or calendar days to average over.',
+			   tags$code('Time lag'), 'defines where to start the window from  day', tags$em('x'), 'or to to start from', 
+			 tags$em('n'), 'days prior. The catch value for day', tags$em('x'), 'is the average catch across 
+			  the window lagged by the specified days and years. This is done for each row of the data and each date 
+        of the chosen', tags$code('Temporal variable for averaging.'), 'Next, select whether to return the calculated 
 			  standard average or simple lag regression of the mean. The simple lag regression of the mean calculates 
 			  the predicted value for each zone/date given regression coefficients', tags$em('p'), 'for each row. Expected catch 
 			  is calculated for each row of the data for every possible fishing zone.  The expected catch is pulled from the 
@@ -577,10 +578,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           p(tags$br(),tags$br(),
             tags$strong('Purpose:'), tags$br(), 
             'The', tags$em('Models'), 'tab is used to define model parameters (including the likelihood function), 
-            and then run model and compare output.',
+            and then run models and compare output.',
 				tags$br(),
-				    'First, we describe model parameters in the', tags$code('Run models'), 'subtab and how to define then.
-          Then we describe the output in the', tags$code('Compare models'), 'subtab.',
+				    'First, we describe model parameters in the', tags$strong('Run models'), 'subtab and how to define then.
+          Then we describe the output in the', tags$strong('Compare models'), 'subtab.',
 				tags$br(), tags$br(),
 				    tags$strong('Run Models:'),tags$br(),
 				    'Here, you define all models that you want to run. Click', tags$code('Save model and Add new model'), 
@@ -607,10 +608,30 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                     control parameters. It is not a general-purpose method but is useful on a rough surface to be optimized."),
 				    tags$br(),
 				  'Added variables',tags$br(),
-				     tags$ul('Travel distance'),
-				     tags$ul('Alternative specific'),
+				     tags$ul('Travel distance',
+				             tags$ul('Travel distance variables are alternative-invariant variables that are interacted with travel 
+                              distance to form the cost portion of the likelihood. Each variable name therefore corresponds 
+                              to data with dimensions (number of observations) by (unity), and returns  a single parameter.,
+            ')),
+				     tags$ul('Alternative specific, average-catch, or catch-function variables',
+				             tags$br(),
+				      'These variables depend upon the likelihood function.',
+				          tags$ul(tags$em('Alternative specific variables'), 'vary across alternatives, e.g. catch rates.
+                      Each variable name therefore corresponds to data with dimensions', tags$em('number of observations'), 
+				              'by', tags$em('number of alternatives,'), 'and returns a single  parameter for each variable 
+                      (e.g. the marginal  utility from catch).'),
+				          tags$ul(tags$em('Average-catch variables'), 'are alternative-invariant variables, e.g. vessel  gross tonnage. 
+				                  Each variable name therefore corresponds to data with dimensions', tags$em('number of observations'), 'by',
+                          tags$em('unity,'), 'and returns', tags$em('k-1'), 'parameters where', tags$em('k'), 'equals the 
+				                  number of alternatives, as a normalization of parameters is needed as the probabilities 
+				                  sum to one. Interpretation is therefore relative to the first alternative'),
+				          tags$ul(tags$em('Catch_function variables'), 'are alternative-invariant variables that are interacted with zonal 
+                          constants to form the catch portion of the likelihood. Each variable name therefore corresponds to data 
+                          with dimensions', tags$em('number of observations'), 'by', tags$em('unity,'), 'and returns', 
+				                  tags$em('k'), 'parameters where', tags$em('k'), 'equals the number of alternatives.'
+              )),
 				  "Optimization options",
-				    tags$ul("Max iterations: maximum number of interations to run."),
+				    tags$ul("Max iterations: maximum number of iterations to run."),
 				    tags$ul("Tolerance of x: Relative convergence tolerance. The algorithm stops if it is unable to reduce the 
 				            value by a factor of reltol * (abs(val) + reltol) at a step. Defaults to 1e-8."),
             tags$ul("Report frequency: How frequently to report iteration output."),
@@ -622,11 +643,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 				tags$strong('Compare models'), tags$br(),
 			    'View model convergence, model fit, and error messages. Then compare models and identify the best model.',
 				tags$br(),
-				  'Three tables are provided that detail, for each model that was run, measure of fit, output, and error messages.',
+				  'Three tables are provided that detail, for each model that was run, measure of fit, model output, and error messages.',
+				tags$br(),
 				'Measures of fit', tags$br(),
 				  'See the Help Manual for more information on the measures of fit.',
 				    tags$ul('AIC: Akaike information criterion'),
-				    tags$ul('AICc: Akaike information criterion corrrected for small sample size'),
+				    tags$ul('AICc: Akaike information criterion corrected for small sample size'),
 				    tags$ul('BIC: Bayesian information criterion'),
 				    tags$ul(HTML(paste0('PseudoR', tags$sup('2')))),
 				'Model Output',
@@ -636,9 +658,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 				  tags$ul('Hessian: The inverse hessian.'),
 				'Error messages',
 				  tags$ul('Model error: Description of any model errors.'),
-				  tags$ul('optimization error: Description of any optimization errors.'),
+				  tags$ul('Optimization error: Description of any optimization errors.'),
 				tags$br(), tags$br(),
-				'To record the perferred model, check the box next to the model in the', tags$em('Measure of fit'), 'tabe.
+				'To record the preferred model, check the box next to the model in the', tags$strong('Measure of fit'), 'table.
 				Press the', tags$code('Save table'), 'button to save selections to the FishSET database.',
 			  tags$div(style="display: inline-block; align:center", img(src="CompareModels.png", height="75%", width="75%"))
           )
@@ -652,7 +674,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             'The', tags$em('Bookmark Choices'), 'tab allows users to reopen this application at a later date and 
             continue where you left off.',
             tags$br(),  
-            'We first describe how to save or bookmark the application and then we describe how to restore the application .',
+            'We first describe how to save or bookmark the application and then we describe how to restore the application.',
 				tags$br(), tags$br(),
 				    "Bookmarking places a virtual 'bookmark' in this FishSET application, allowing you to pick up
             where you left off. You can have multiple bookmarks. To create a bookmark, click the", 
@@ -669,7 +691,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 				tags$br(), tags$br(),tags$br(),
             'To reload the application at a bookmarked state:', 
                 tags$ul('Open the FishSET R application. This can be done by running', tags$code('run_fishset_gui'),
-                        'in the r console'), 
+                        'in the R console'), 
                 tags$ul('Navigate to the', tags$code('Bookmark Choices'), 'tab.'), 
                 tags$ul('Click the', tags$code('Browse'), 'button and migrate to the', tags$em('input.rds'), 'file. 
                         This file should be in the', tags$em('shiny_bookmarks'), 'folder of the FishSET package directory.
@@ -677,8 +699,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 				        tags$ul('Bookmarked choices will be restored once upload is complete.'),
 				        tags$ul('Go to the', tags$code('Upload data'), 'tab, click that the data comes from the FishSET 
                         database, and enter the name of the saved data table in in the optional text input box. 
-				                The name should be project name, MainDataTable and date as year, month day. For example,
-				                pollockMainDataTable20200910. Enter the project name before loading the data.'),
+				                The name should be project name, MainDataTable and date as year, month day. For example,',
+				                tags$em('pollockMainDataTable20200910.'), 'Enter the project name before loading the data.'),
 				tags$br(), tags$br(),
             tags$div(style="display: inline-block; align:center", img(src="Bookmark2.png", height="75%", width="75%"))
             )
@@ -3253,8 +3275,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       gridlab <- renderText({
         if(input$model=='logit_c') { 
-          label='alternative-specific variables'} else if(input$model=='logit_avgcat') { 
-            label='alternative-specific variables'} else { label='catch-function variables'}
+          label='alternative-specific variables'
+          } else if(input$model=='logit_avgcat') { 
+            label='average-catch variables'
+          } else { label='catch-function variables'
+            }
       })
       
       output$gridvariables <- renderUI ({
