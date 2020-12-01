@@ -395,6 +395,159 @@ data_pull <- function(dat) {
   return(list(dat = dat, dataset = dataset))
 }
 
+
+agg_helper <- function(dataset, value, period = NULL, group = NULL, fun = "sum") {
+  #' Aggregating function 
+  #'
+  #' @param dataset `MainDataTable` to aggregate. 
+  #' @param value String, name of variable to aggregate. 
+  #' @param period String, name of period variable to aggregate by.
+  #' @param group String, name of grouping variable(s) to aggregate by.
+  #' @param fun String, function name to aggregate by. Also accepts anonymous functions.
+  #' @export
+  #' @keywords internal
+  #' @importFrom rlang syms expr expr_text
+  #' @importFrom stringi stri_isempty
+  #' @importFrom stats aggregate reformulate
+  
+  by_fm <- paste(unique(c(period, group)), collapse = " + ")
+  
+  value <- rlang::syms(value)
+  val_fm <- rlang::expr(cbind(!!!value))
+  val_fm <- rlang::expr_text(val_fm)
+  
+  # if period and group are NULL
+  if (stringi::stri_isempty(by_fm)) by_fm <- val_fm
+  
+  agg_fm <- stats::reformulate(by_fm, val_fm)
+  
+  stats::aggregate(agg_fm, data = dataset, FUN = fun)
+}
+
+
+add_missing_dates <- function(dataset, date, value, group = NULL, facet_by = NULL) {
+  #' Add missing dates to `MainDataTable`.
+  #'
+  #' @param dataset Object containing `MainDataTable`. 
+  #' @param date String, name of date variable to find missing days.
+  #' @param value String, name of value variable to be aggregated by \code{agg_helper}.
+  #' @param group String, name of grouping variable(s).
+  #' @param facet_by String, name of variables(s) to be facetted (split). 
+  #' @export
+  #' @keywords internal
+  #' @importFrom dplyr anti_join
+  
+  dataset[[date]] <- date_parser(dataset[[date]])
+  
+  cols <- c(date, group, facet_by)
+  
+  full_dates <- seq.Date(from = min(dataset[[date]], na.rm = TRUE), 
+                         to = max(dataset[[date]], na.rm = TRUE), 
+                         by = "day")
+  
+  grp_fct <- c(group, facet_by)
+  
+  missing <- lapply(dataset[grp_fct], function(x) unique(x))
+  
+  missing[[date]] <- full_dates
+  
+  missing <- do.call(expand.grid, list(missing))
+  
+  missing <- dplyr::anti_join(missing, dataset[cols])
+  
+  if (nrow(missing) > 0) {
+    
+    missing[value] <- 0
+    
+    dataset <- rbind(dataset[c(cols, value)], missing)
+  }
+  
+  dataset
+}
+
+
+subset_date <- function(dataset, date, filter, value) {
+  #' Subset dataset by date value/range
+  #' 
+  #' @param dataset `MainDataTable` to filter.
+  #' @param date String, name of date variable to subset by.
+  #' @param filter String, filter type. 
+  #' @param value A range of dates if \code{filter = "date_range"}, or integer if
+  #'   using a period filter. 
+  #' @export
+  #' @keywords internal
+  
+  if (filter != "none") {
+    
+    if (filter == "date_range") {
+      
+      dataset <- dataset[dataset[[date]] >= value[1] & dataset[[date]] <= value[2], ]
+      
+    } else {
+      
+      pf <- switch(filter, "year-month" = c("%Y", "%m"), "year-week" = c("%Y", "%U"),
+                   "year-day" = c("%Y", "%j"), "year" = "%Y", "month" = "%m", "week" = "%U",
+                   "day" = "%j")
+      
+      if (grepl("-", filter)) {
+        
+        dataset <- dataset[(as.integer(format(dataset[[date]], pf[1])) %in% value[[1]]) & 
+                             (as.integer(format(dataset[[date]], pf[2])) %in% value[[2]]), ]
+        
+      } else {
+        
+        dataset <- dataset[as.integer(format(dataset[[date]], pf)) %in% value, ]
+      }
+    }
+  }
+  
+  dataset
+}
+
+
+subset_var <- function(dataset, filter_by, filter_value = NULL, filter_expr = NULL) {
+  #' Subset `MainDataTable` by variable
+  #' 
+  #' @param dataset dataset `MainDataTable` to filter.
+  #' @param filter_by String, name of variable used to subset `MainDataTable`.
+  #' @param filter_value Vector of values to subset by (inclusive). 
+  #' @param filter_expr String, a valid R expression used to subset `MainDataTable`.
+  #' @export
+  #' @keywords internal 
+  #' @importFrom rlang parse_expr
+
+  if (!is.null(filter_value) | !is_empty(filter_expr)) {
+  
+    if (!is.null(filter_value)) {
+      
+      rows <- dataset[[filter_by]] %in% filter_value
+      
+    } else if (!is_empty(filter_expr)) {
+      
+      p_expr <- rlang::parse_expr(filter_expr)
+      
+      rows <- eval(p_expr, envir = dataset)
+    }
+    
+    if (is.logical(rows)) {
+      
+      dataset <- dataset[rows, ]
+      
+    } else {
+      
+      warning("Invalid filter expression.")
+    }
+  
+  } else {
+    
+    warning("Both filter_value and filter_expr arguments are missing.")
+  }
+  
+  dataset
+}
+
+
+
 #' Default FishSET plot theme
 #' 
 #' @keywords internal
