@@ -45,12 +45,21 @@ yearRange <- function(dat, yr, type) {
   }
 }
 
-validate_date <- function(date = NULL, ftype = NULL, fct = NULL, grp = NULL) {
+validate_date <- function(date = NULL, period = NULL, filter_date = NULL, fct = NULL, grp = NULL) {
   
-  if (ftype != "none" & is.null(date)) {
+  if (!is.null(date) & is.null(period)) {
+    
+    validate("Please enter a period to summarize by.")
+  }
+  
+  if (is.null(date) & !is.null(period)) {
     
     validate("Please enter a date variable.")
+  }
+  
+  if (!is.null(filter_date) & is.null(date)) {
     
+    validate("Please enter a date variable.")
   }
   
   if (!is.null(fct)) {
@@ -87,5 +96,21 @@ tabplot_output <- function(out, out_type) {
         renderPlot({out$plot}),
         DT::renderDT({out$table})
       ))
+  }
+}
+
+
+filter_select <- function(dataset, col) {
+  
+  if (is.null(col)) {
+    
+    NULL
+  
+  } else {
+    
+   out <- unique(dataset[[col]])
+   
+   if (length(out) < 15) out else out[1:15]
+   
   }
 }
