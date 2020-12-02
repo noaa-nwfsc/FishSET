@@ -165,8 +165,7 @@
 #'   }
 #' @examples
 #' \dontrun{
-#' make_model_design(pollockMainDataTable, catchID = "HAUL", alternativeMatrix = "loadedData",
-#'   lonlat = c("LonLat_START_LON", "LonLat_START_LAT"), PortTable = NULL, project = "pcod")
+#' make_model_design(pollockMainDataTable ,"pollock", catchID= "OFFICIAL_TOTAL_CATCH", likelihood='logit_c')
 #' }
 #'
 make_model_design <- function(dat, project, catchID, replace = TRUE, PortTable = NULL, likelihood = NULL, 

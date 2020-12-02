@@ -22,9 +22,9 @@ temp_plot <- function(dat, project, var.select, len.fun = c("length", "unique", 
   #' @export
   #' @examples
   #' \dontrun{
-  #' temp_plot(pollockMainDataTable, var.select = 'OFFICIAL_TOTAL_CATCH_MT',
+  #' temp_plot(pollockMainDataTable, project='pollock', var.select = 'OFFICIAL_TOTAL_CATCH_MT',
   #'            len.fun = 'percent', agg.fun = 'mean', date.var = 'HAUL_DATE')
-  #' temp_plot(pollockMainDataTable, var.select = 'OFFICIAL_TOTAL_CATCH_MT',
+  #' temp_plot(pollockMainDataTable, project='pollock', var.select = 'OFFICIAL_TOTAL_CATCH_MT',
   #'            len.fun = 'length', agg.fun = 'max')
   #' }
 

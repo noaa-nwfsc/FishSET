@@ -85,7 +85,7 @@
 # # griddatfin <- list(predicted_catch=modelInputData$gridVaryingVariables$matrix)
 # # intdatfin <- list(modelInputData$bCHeader[[-1]])
 #' \dontrun{
-#' results <- discretefish_subroutine("pcod", nitparams = c(0.5, -2.8),
+#' results <- discretefish_subroutine("pcod", initparams = c(0.5, -2.8),
 #'   optimOpt = c(100000, 1.00000000000000e-08, 1, 1), methodname = "BFGS",
 #'   mod.name = "newlogit4", select.model = TRUE)
 #' }
