@@ -13,7 +13,7 @@
 #' fishing area are included.
 #' @examples
 #' \dontrun{
-#' data_verification(pollockMainDataTable)
+#' data_verification(pollockMainDataTable, 'pollock')
 #' }
 #'
 data_verification <- function(dat, project) {
