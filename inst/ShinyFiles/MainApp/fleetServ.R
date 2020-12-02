@@ -203,29 +203,29 @@ density_serv <- function(id, values, project) {
     
     output$filter_UI <- renderUI({
       
-      if (input$ftype == "date_range") {
+      if (input$filter_date == "date_range") {
         
         dateRangeInput(ns("date_range"), label = "Date range",
                        start = min(values$dataset[[input$date]], na.rm = TRUE),
                        end = max(values$dataset[[input$date]], na.rm = TRUE))
         
-      } else if (!(input$ftype %in% c("date_range", "none"))) {
+      } else if (!(input$filter_date %in% c("date_range", "none"))) {
         
-        filter_sliderUI(id, values$dataset, input$date, input$ftype)
+        filter_periodUI(id, values$dataset, input$date, input$filter_date)
       }
     })
     
-    filter_val <- reactive({
+    date_value <- reactive({
 
-      if (input$ftype == "date_range") {
+      if (input$filter_date == "date_range") {
         
         return(input$date_range)
         
-      } else if (!(input$ftype %in% c("none", "date_range"))) {
+      } else if (!(input$filter_date %in% c("none", "date_range"))) {
         
-        filter_sliderOut(id, input$ftype, input)
+        filter_periodOut(id, input$filter_date, input)
         
-      } else if (input$ftype == "none") {
+      } else if (input$filter_date == "none") {
         
         return(NULL)
       }
@@ -233,10 +233,10 @@ density_serv <- function(id, values, project) {
     
     den_out <- eventReactive(input$fun_run, {
       
-      validate_date(input$date, input$ftype, input$fct, input$grp)
+      validate_date(input$date, input$filter_date, input$fct, input$grp)
       
       density_plot(values$dataset, project = project(), var = input$var, type = input$type, group = input$grp,
-                   date = input$date, filter_date = input$ftype, filter_value = filter_val(), 
+                   date = input$date, filter_date = input$filter_date, filter_value = date_value(), 
                    facet_by = input$fct, scale = input$scale, combine = input$combine, 
                    tran = input$tran, bw = input$bw, position = input$position) 
     })
@@ -288,29 +288,29 @@ vessel_serv <- function(id, values, project) {
     
     output$filter_UI <- renderUI({
       
-      if (input$ftype == "date_range") {
+      if (input$filter_date == "date_range") {
         
         dateRangeInput(ns("date_range"), label = "Date range",
                        start = min(values$dataset[[input$date]], na.rm = TRUE),
                        end = max(values$dataset[[input$date]], na.rm = TRUE))
         
-      } else if (!(input$ftype %in% c("date_range", "none"))) {
+      } else if (!(input$filter_date %in% c("date_range", "none"))) {
         
-        filter_sliderUI(id, values$dataset, input$date, input$ftype)
+        filter_periodUI(id, values$dataset, input$date, input$filter_date)
       }
     })
     
-    filter_val <- reactive({
+    date_value <- reactive({
       
-      if (input$ftype == "date_range") {
+      if (input$filter_date == "date_range") {
         
         return(input$date_range)
         
-      } else if (!(input$ftype %in% c("none", "date_range"))) {
+      } else if (!(input$filter_date %in% c("none", "date_range"))) {
         
-        filter_sliderOut(id, input$ftype, input)
+        filter_periodOut(id, input$filter_date, input)
         
-      } else if (input$ftype == "none") {
+      } else if (input$filter_date == "none") {
         
         return(NULL)
       }
@@ -318,11 +318,11 @@ vessel_serv <- function(id, values, project) {
     
     v_out <- eventReactive(input$fun_run, {
       
-      validate_date(input$date, input$ftype, input$fct, input$grp)
+      validate_date(input$date, input$filter_date, input$fct, input$grp)
       
       vessel_count(values$dataset, project = project(), v_id = input$var, date = input$date,
-                   period = input$period, group = input$grp, filter_date = input$ftype,
-                   filter_value = filter_val(), facet_by = input$fct, combine = input$combine,
+                   period = input$period, group = input$grp, filter_date = input$filter_date,
+                   filter_value = date_value(), facet_by = input$fct, combine = input$combine,
                    position = input$position, tran = input$tran, value = input$value,
                    scale = input$scale, type = input$type, output = input$out)
     })
@@ -357,14 +357,18 @@ species_serv <- function(id, values, project) {
     
     output$var_select <- renderUI({
       
-      selectizeInput(ns("var"), "Species catch variable",
+      selectizeInput(ns("var"), "Catch variable",
                      choices = c(numeric_cols(values$dataset)), multiple = TRUE)
     })
     
     output$date_select <- renderUI({
+      tagList(
+      conditionalPanel("input.date_cb", ns = ns, 
       
-      selectInput(ns("date"), "Date variable (x-axis)",
-                  choices = c(date_cols(values$dataset)))
+        selectizeInput(ns("date"), "Date variable (x-axis)",
+                    choices = c(date_cols(values$dataset)), multiple = TRUE,
+                    options = list(maxItems = 1)))
+      )
     })
     
     output$grp_select <- renderUI({
@@ -380,47 +384,112 @@ species_serv <- function(id, values, project) {
                      multiple = TRUE, options = list(maxItems = 2))
     })
     
-    output$filter_UI <- renderUI({
-      
-      if (input$ftype == "date_range") {
+    #spec <- reactiveValues(out = NULL)
+    
+    filter_val <- reactive({
+    #observe({
+
+      if (is.null(input$filter_by)) {
         
-        dateRangeInput(ns("date_range"), label = "Date range",
-                       start = min(values$dataset[[input$date]], na.rm = TRUE),
-                       end = max(values$dataset[[input$date]], na.rm = TRUE))
+        NULL
+        #spec$out <- NULL
+
+      } else {
         
-      } else if (!(input$ftype %in% c("date_range", "none"))) {
-        
-        filter_sliderUI(id, values$dataset, input$date, input$ftype)
+        out <- unique(values$dataset[[input$filter_by]])
+        #spec$out <- unique(values$dataset[[input$filter_by]])
+
+        out
       }
     })
     
-    filter_val <- reactive({
+    output$filter_by_UIOutput <- renderUI({
+     
+        selectizeInput(ns("filter_by"), "Subset by variable",
+        choices = names(values$dataset), multiple = TRUE, options = list(maxItems = 1)) 
+    })
+    
+    output$filter_by_val_UIOutput <- renderUI({
+    
+      tagList(  
+        conditionalPanel("typeof input.filter_by !== 'undefined' && input.filter_by.length > 0", ns = ns,
+                         style = "margin-left:19px;",
+        
+        selectizeInput(ns("filter_by_val"), "Select values to subset by",
+                    choices = filter_val(),
+                    #choices = spec$out,
+                    multiple = TRUE, options = list(maxOptions = 15, placeholder = "type to search")),
+        
+        textInput(ns("filter_expr"), "subset expression",
+                  value = NULL, placeholder = "e.g. GEAR_TYPE == 2")
+        )
+      )
+    })
+    
+    output$filter_date_UIOutput <- renderUI({
+     
+      if (input$date_cb == TRUE) {
+       if (!is.null(input$date)) {
+        if (!is.null(input$filter_date)) {
+          if (input$filter_date == "date_range") {
+
+            dateRangeInput(ns("date_range"), label = "Date range",
+                           start = min(values$dataset[[input$date]], na.rm = TRUE),
+                           end = max(values$dataset[[input$date]], na.rm = TRUE))
+
+          } else if (input$filter_date != "date_range") {
+
+            filter_periodUI(id, values$dataset, input$date, input$filter_date)
+          }
+        }
+       }
+      }
+    })
+    
+    observeEvent(input$date_cb == FALSE, {
       
-      if (input$ftype == "date_range") {
+      updateSelectizeInput(session, "period", choices = c("year", "month", "weeks", "day of the month" = "day",
+                                                         "day of the year" = "day_of_year", "weekday"),
+                           options = list(maxItems = 1), selected = NULL)
+      
+      updateSelectizeInput(session, "date", choices = date_cols(values$dataset),
+                           options = list(maxItems = 1), selected = NULL)
+      
+      updateSelectizeInput(session, "filter_date",choices = c("date range" = "date_range", "year-month", 
+                                                              "year-week", "year-day", "year", "month", "week", "day"),
+                           options = list(maxItems = 1), selected = NULL)
+    })
+    
+    date_value <- reactive({
+      
+      if (!is.null(input$date) & !is.null(input$filter_date)) {
+      
+      if (input$filter_date == "date_range") {
         
         return(input$date_range)
         
-      } else if (!(input$ftype %in% c("none", "date_range"))) {
+      } else if (input$filter_date != "date_range") {
         
-        filter_sliderOut(id, input$ftype, input)
+        filter_periodOut(id, input$filter_date, input)
+      }
         
-      } else if (input$ftype == "none") {
+      } else {
         
-        return(NULL)
+        NULL
       }
     })
     
     spec_out <- eventReactive(input$fun_run, {
       
-      validate(need(input$date, "Please select a date variable."),
-               need(input$var, "Please select a species catch variable."))
+      validate(need(input$var, "Please select a species catch variable."))
       
-      validate_date(input$date, input$ftype, input$fct, input$grp)
+      validate_date(input$date, input$period, input$filter_date, input$fct, input$grp)
       
       species_catch(values$dataset, project = project(), species = input$var, date = input$date,
                     period = input$period, fun = input$fun, group = input$grp,
-                    filter_date = input$ftype, filter_value = filter_val(),
-                    facet_by = input$fct, combine = input$combine,
+                    filter_date = input$filter_date, date_value = date_value(),
+                    filter_by = input$filter_by, filter_value = input$filter_by_val, 
+                    filter_expr = input$filter_expr, facet_by = input$fct, combine = input$combine,
                     position = input$position, tran = input$tran, value = input$value,
                     scale = input$scale, type = input$type, output = input$out,
                     format_tab = input$format)
@@ -480,29 +549,29 @@ roll_serv <- function(id, values, project) {
     
     output$filter_UI <- renderUI({
       
-      if (input$ftype == "date_range") {
+      if (input$filter_date == "date_range") {
         
         dateRangeInput(ns("date_range"), label = "Date range",
                        start = min(values$dataset[[input$date]], na.rm = TRUE),
                        end = max(values$dataset[[input$date]], na.rm = TRUE))
         
-      } else if (!(input$ftype %in% c("date_range", "none"))) {
+      } else if (!(input$filter_date %in% c("date_range", "none"))) {
         
-        filter_sliderUI(id, values$dataset, input$date, input$ftype)
+        filter_periodUI(id, values$dataset, input$date, input$filter_date)
       }
     })
     
-    filter_val <- reactive({
+    date_value <- reactive({
       
-      if (input$ftype == "date_range") {
+      if (input$filter_date == "date_range") {
         
         return(input$date_range)
         
-      } else if (!(input$ftype %in% c("none", "date_range"))) {
+      } else if (!(input$filter_date %in% c("none", "date_range"))) {
         
-        filter_sliderOut(id, input$ftype, input)
+        filter_periodOut(id, input$filter_date, input)
         
-      } else if (input$ftype == "none") {
+      } else if (input$filter_date == "none") {
         
         return(NULL)
       }
@@ -513,11 +582,11 @@ roll_serv <- function(id, values, project) {
       validate(need(input$date, "Please select a date variable."),
                need(input$var, "Please select a species catch variable."))
       
-      validate_date(input$date, input$ftype, input$fct, input$grp)
+      validate_date(input$date, input$filter_date, input$fct, input$grp)
       
       roll_catch(values$dataset, project = project(), catch = input$var, date = input$date,
-                 fun = input$fun, group = input$grp, filter_date = input$ftype,
-                 filter_value = filter_val(), facet_by = input$fct,
+                 fun = input$fun, group = input$grp, filter_date = input$filter_date,
+                 filter_value = date_value(), facet_by = input$fct,
                  tran = input$tran, scale = input$scale, output = input$out)
     })
     
@@ -575,29 +644,29 @@ weekly_catch_serv <- function(id, values, project) {
     
     output$filter_UI <- renderUI({
       
-      if (input$ftype == "date_range") {
+      if (input$filter_date == "date_range") {
         
         dateRangeInput(ns("date_range"), label = "Date range",
                        start = min(values$dataset[[input$date]], na.rm = TRUE),
                        end = max(values$dataset[[input$date]], na.rm = TRUE))
         
-      } else if (!(input$ftype %in% c("date_range", "none"))) {
+      } else if (!(input$filter_date %in% c("date_range", "none"))) {
         
-        filter_sliderUI(id, values$dataset, input$date, input$ftype)
+        filter_periodUI(id, values$dataset, input$date, input$filter_date)
       }
     })
     
-    filter_val <- reactive({
+    date_value <- reactive({
       
-      if (input$ftype == "date_range") {
+      if (input$filter_date == "date_range") {
         
         return(input$date_range)
         
-      } else if (!(input$ftype %in% c("none", "date_range"))) {
+      } else if (!(input$filter_date %in% c("none", "date_range"))) {
         
-        filter_sliderOut(id, input$ftype, input)
+        filter_periodOut(id, input$filter_date, input)
         
-      } else if (input$ftype == "none") {
+      } else if (input$filter_date == "none") {
         
         return(NULL)
       }
@@ -608,11 +677,11 @@ weekly_catch_serv <- function(id, values, project) {
       validate(need(input$date, "Please select a date variable."),
                need(input$var, "Please select a species catch variable."))
       
-      validate_date(input$date, input$ftype, input$fct, input$grp)
+      validate_date(input$date, input$filter_date, input$fct, input$grp)
       
       weekly_catch(values$dataset, project = project(), species = input$var, date = input$date,
-                   fun = input$fun, group = input$grp, filter_date = input$ftype,
-                   filter_value = filter_val(),facet_by = input$fct, combine = input$combine,
+                   fun = input$fun, group = input$grp, filter_date = input$filter_date,
+                   filter_value = date_value(),facet_by = input$fct, combine = input$combine,
                    position = input$position, tran = input$tran, value = input$value,
                    scale = input$scale, type = input$type, output = input$out,
                    format_tab = input$format)
@@ -669,29 +738,29 @@ weekly_effort_serv <- function(id, values, project) {
     
     output$filter_UI <- renderUI({
       
-      if (input$ftype == "date_range") {
+      if (input$filter_date == "date_range") {
         
         dateRangeInput(ns("date_range"), label = "Date range",
                        start = min(values$dataset[[input$date]], na.rm = TRUE),
                        end = max(values$dataset[[input$date]], na.rm = TRUE))
         
-      } else if (!(input$ftype %in% c("date_range", "none"))) {
+      } else if (!(input$filter_date %in% c("date_range", "none"))) {
         
-        filter_sliderUI(id, values$dataset, input$date, input$ftype)
+        filter_periodUI(id, values$dataset, input$date, input$filter_date)
       }
     })
     
-    filter_val <- reactive({
+    date_value <- reactive({
       
-      if (input$ftype == "date_range") {
+      if (input$filter_date == "date_range") {
         
         return(input$date_range)
         
-      } else if (!(input$ftype %in% c("none", "date_range"))) {
+      } else if (!(input$filter_date %in% c("none", "date_range"))) {
         
-        filter_sliderOut(id, input$ftype, input)
+        filter_periodOut(id, input$filter_date, input)
         
-      } else if (input$ftype == "none") {
+      } else if (input$filter_date == "none") {
         
         return(NULL)
       }
@@ -702,10 +771,10 @@ weekly_effort_serv <- function(id, values, project) {
       validate(need(input$date, "Please select a date variable."),
                need(input$var, "Please select a species catch variable."))
       
-      validate_date(input$date, input$ftype, input$fct, input$grp)
+      validate_date(input$date, input$filter_date, input$fct, input$grp)
       
       weekly_effort(values$dataset, project = project(), cpue = input$var, date = input$date,
-                    group = input$grp, filter_date = input$ftype,filter_value = filter_val(),
+                    group = input$grp, filter_date = input$filter_date,filter_value = date_value(),
                     facet_by = input$fct, combine = input$combine, tran = input$tran,
                     scale = input$scale, output = input$out, format_tab = input$format)
     })
@@ -767,29 +836,29 @@ bycatch_serv <- function(id, values, project) {
     
     output$filter_UI <- renderUI({
       
-      if (input$ftype == "date_range") {
+      if (input$filter_date == "date_range") {
         
         dateRangeInput(ns("date_range"), label = "Date range",
                        start = min(values$dataset[[input$date]], na.rm = TRUE),
                        end = max(values$dataset[[input$date]], na.rm = TRUE))
         
-      } else if (!(input$ftype %in% c("date_range", "none"))) {
+      } else if (!(input$filter_date %in% c("date_range", "none"))) {
         
-        filter_sliderUI(id, values$dataset, input$date, input$ftype)
+        filter_periodUI(id, values$dataset, input$date, input$filter_date)
       }
     })
     
-    filter_val <- reactive({
+    date_value <- reactive({
       
-      if (input$ftype == "date_range") {
+      if (input$filter_date == "date_range") {
         
         return(input$date_range)
         
-      } else if (!(input$ftype %in% c("none", "date_range"))) {
+      } else if (!(input$filter_date %in% c("none", "date_range"))) {
         
-        filter_sliderOut(id, input$ftype, input)
+        filter_periodOut(id, input$filter_date, input)
         
-      } else if (input$ftype == "none") {
+      } else if (input$filter_date == "none") {
         
         return(NULL)
       }
@@ -813,11 +882,11 @@ bycatch_serv <- function(id, values, project) {
       
       validate(need(input$date, "Please select a date variable."))
       
-      validate_date(input$date, input$ftype, input$fct, input$grp)
+      validate_date(input$date, input$filter_date, input$fct, input$grp)
       
       bycatch(values$dataset, project = project(), cpue = input$cpue, catch = input$catch, 
               date = input$date, group = input$grp, names = names$names, period = input$period,
-              filter_date = input$ftype, filter_value = filter_val(), facet_by = input$fct,
+              filter_date = input$filter_date, filter_value = date_value(), facet_by = input$fct,
               value = input$value, combine = input$combine, tran = input$tran,
               scale = input$scale, output = input$out, format_tab = input$format)
     })
@@ -889,29 +958,29 @@ trip_serv <- function(id, values, project) {
     
     output$filter_UI <- renderUI({
       
-      if (input$ftype == "date_range") {
+      if (input$filter_date == "date_range") {
         
         dateRangeInput(ns("date_range"), label = "Date range",
                        start = min(values$dataset[[input$date]], na.rm = TRUE),
                        end = max(values$dataset[[input$date]], na.rm = TRUE))
         
-      } else if (!(input$ftype %in% c("date_range", "none"))) {
+      } else if (!(input$filter_date %in% c("date_range", "none"))) {
         
-        filter_sliderUI(id, values$dataset, input$date, input$ftype)
+        filter_periodUI(id, values$dataset, input$date, input$filter_date)
       }
     })
     
-    filter_val <- reactive({
+    date_value <- reactive({
       
-      if (input$ftype == "date_range") {
+      if (input$filter_date == "date_range") {
         
         return(input$date_range)
         
-      } else if (!(input$ftype %in% c("none", "date_range"))) {
+      } else if (!(input$filter_date %in% c("none", "date_range"))) {
         
-        filter_sliderOut(id, input$ftype, input)
+        filter_periodOut(id, input$filter_date, input)
         
-      } else if (input$ftype == "none") {
+      } else if (input$filter_date == "none") {
         
         return(NULL)
       }
@@ -924,7 +993,7 @@ trip_serv <- function(id, values, project) {
       
       trip_length(values$dataset, project = project(), start = input$start, end = input$end,
                   units = input$unit, catch = input$catch, hauls = input$haul,
-                  group = input$grp, filter_date = input$ftype, filter_value = filter_val(),
+                  group = input$grp, filter_date = input$filter_date, filter_value = date_value(),
                   facet_by = input$fct, density = input$dens, tran = input$tran,
                   scale = input$scale, output = input$out, pages = "single",
                   type = input$type, format_tab = input$format, bins = input$bins,
