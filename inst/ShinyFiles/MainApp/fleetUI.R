@@ -64,7 +64,7 @@ closeAppUI <- function(id) {
 
 
 
-filter_sliderUI <- function(id, dat, date, type) {
+filter_periodUI <- function(id, dat, date, type) {
   
   if (!is.null(type)) {
     
@@ -137,7 +137,7 @@ filter_sliderUI <- function(id, dat, date, type) {
 }
 
 
-filter_sliderOut <- function(id, type, input) {
+filter_periodOut <- function(id, type, input) {
   
   if (!is.null(type)) {
     
@@ -161,6 +161,10 @@ filter_sliderOut <- function(id, type, input) {
     NULL
   }
 }
+
+# filter_varUI <- function(id, ) {
+#   
+# }
 
 
 density_plotUI <- function(id, dat) {
@@ -188,7 +192,7 @@ density_plotUI <- function(id, dat) {
     
     uiOutput(ns("date_select")),
     
-    selectizeInput(ns("ftype"), "Subset data by (optional)",
+    selectizeInput(ns("filter_date"), "Subset data by (optional)",
                    choices = c("none", "date range" = "date_range", "year-month", "year-week", "year-day",
                                "year", "month", "week", "day")),
     
@@ -248,12 +252,13 @@ vessel_countUI <- function(id) {
     
     uiOutput(ns("date_select")),
     
-    selectInput(ns("period"), "Show counts by",
+   
+    selectizeInput(ns("period"), "Show counts by",
                 choices = c("year", "month", "weeks", "day of the month" = "day",
                             "day of the year" = "day_of_year", "weekday"),
-                selected = "year"),
+                multiple = TRUE, options = list(maxItems = 1)),
     
-    selectizeInput(ns("ftype"), "Subset data by (optional)",
+    selectizeInput(ns("filter_date"), "Subset data by (optional)",
                    choices = c("none", "date range" = "date_range", "year-month", 
                                "year-week", "year-day", "year", "month", "week", "day")),
     
@@ -284,7 +289,6 @@ vessel_countUI <- function(id) {
                 selected = "stack"),
     
     RexpressionUI(ns("exp")),
-    #RexpressionUI(id),
     div( style = "margin-top: 2em;",
          uiOutput(ns("result"))
     )
@@ -306,61 +310,99 @@ species_catchUI <- function(id) {
     actionButton(ns("fun_run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
     
+    tags$br(), tags$br(),
+    
     selectInput(ns("out"), "View table and/or plot",
                 choices = c("plot and table" = "tab_plot", "plot", "table"),
                 selected = "tab_plot"),
     
+    selectInput(ns("fun"), "Summary function",
+                choices = c("sum", "mean", "sd", "median", "min", "max", "IQR")),
+    
     uiOutput(ns("var_select")),
+    
+    checkboxInput(ns("date_cb"), "Summarize over time", value = FALSE),
     
     uiOutput(ns("date_select")),
     
-    selectInput(ns("period"), "Show counts by",
-                choices = c("year", "month", "weeks", "day of the month" = "day",
-                            "day of the year" = "day_of_year", "weekday"),
-                selected = "year"),
+    conditionalPanel("input.date_cb", ns = ns,
+      selectizeInput(ns("period"), "Show counts by",
+                  choices = c("year", "month", "weeks", "day of the month" = "day",
+                              "day of the year" = "day_of_year", "weekday"),
+                  multiple = TRUE, options = list(maxItems = 1))
+    ),
     
-    selectizeInput(ns("ftype"), "Subset data by (optional)",
-                   choices = c("none", "date range" = "date_range", "year-month", 
-                               "year-week", "year-day", "year", "month", "week", "day")),
+    tags$br(), tags$br(),
     
-    uiOutput(ns("filter_UI")),
+    h4(strong("Subset")),
     
-    selectInput(ns("fun"), "Summary function",
-                choices = c("sum", "mean", "sd", "median", "min", "max", "IQR")),
+    uiOutput(ns("filter_by_UIOutput")), 
+    
+    uiOutput(ns("filter_by_val_UIOutput")), 
+    
+    conditionalPanel("input.date_cb", ns = ns,
+      selectizeInput(ns("filter_date"), "Subset by date (optional)",
+                     choices = c("date range" = "date_range", "year-month", 
+                                 "year-week", "year-day", "year", "month", "week", "day"),
+                     multiple = TRUE, options = list(maxItems = 1))
+    ),
+    
+    uiOutput(ns("filter_date_UIOutput")),
+    
+    tags$br(), tags$br(),
+    
+    h4(strong("Group")),
     
     uiOutput(ns("grp_select")),
     
     checkboxInput(ns("combine"), "Combine grouping variables",
                   value = FALSE),
     
+    tags$br(), tags$br(),
+    
+    h4(strong("Split")), 
+    
     uiOutput(ns("fct_select")),
     
-    selectInput(ns("value"), "Select value type",
-                choices = c("count", "percent")),
+    tags$br(), tags$br(),
     
-    selectInput(ns("conv"), "Convert catch (optional)",
-                choices = c("none", "tons", "metric tons" = "metric_tons", "custom")),
+    h4(strong("Plot options")),
     
-    conditionalPanel("input.conv == 'custom'",
-                     
-                     textInput(ns("conv"), "Enter function")),
+    checkboxInput(ns("show_options"), "Show plot options",
+                  value = FALSE),
     
-    selectInput(ns("tran"), "Transform y-axis (optional)",
-                choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
+    conditionalPanel("input.show_options", ns = ns,
+        
+      tagList(
     
-    selectInput(ns("type"), "Plot type",
-                choices = c("bar", "line")),
-    
-    selectInput(ns("scale"), "Split plot scale",
-                choices = c("fixed", "free y-axis" = "free_y",
-                            "free x-axis" = "free_x", "free")),
-    
-    selectInput(ns("position"), "Position of grouping variables",
-                choices = c("identity", "dodge", "fill", "stack"),
-                selected = "stack"),
-    
-    selectInput(ns("format"), "Table format",
-                choices = c("wide", "long")),
+        selectInput(ns("value"), "Select value type",
+                    choices = c("count", "percent")),
+        
+        selectInput(ns("conv"), "Convert catch (optional)",
+                    choices = c("none", "tons", "metric tons" = "metric_tons", "custom")),
+        
+        conditionalPanel("input.conv == 'custom'", ns = ns,
+                         
+                         textInput(ns("conv"), "Enter function")),
+        
+        selectInput(ns("tran"), "Transform y-axis (optional)",
+                    choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
+        
+        selectInput(ns("type"), "Plot type",
+                    choices = c("bar", "line")),
+        
+        selectInput(ns("scale"), "Split plot scale",
+                    choices = c("fixed", "free y-axis" = "free_y",
+                                "free x-axis" = "free_x", "free")),
+        
+        selectInput(ns("position"), "Position of grouping variables",
+                    choices = c("identity", "dodge", "fill", "stack"),
+                    selected = "stack"),
+        
+        selectInput(ns("format"), "Table format",
+                    choices = c("wide", "long"))
+      )
+    ),
     
     RexpressionUI(ns("exp")),
     div( style = "margin-top: 2em;",
@@ -391,7 +433,7 @@ roll_catchUI <- function(id) {
     
     uiOutput(ns("date_select")),
     
-    selectizeInput(ns("ftype"), "Subset data by (optional)",
+    selectizeInput(ns("filter_date"), "Subset data by (optional)",
                    choices = c("none", "date range" = "date_range", "year-month", 
                                "year-week", "year-day", "year", "month", "week", "day")),
     
@@ -454,7 +496,7 @@ weekly_catchUI <- function(id) {
     
     uiOutput(ns("date_select")),
     
-    selectizeInput(ns("ftype"), "Subset data by (optional)",
+    selectizeInput(ns("filter_date"), "Subset data by (optional)",
                    choices = c("none", "date range" = "date_range", "year-month", 
                                "year-week", "year-day", "year", "month", "week", "day")),
     
@@ -527,7 +569,7 @@ weekly_effortUI <- function(id) {
     
     uiOutput(ns("date_select")),
     
-    selectizeInput(ns("ftype"), "Subset data by (optional)",
+    selectizeInput(ns("filter_date"), "Subset data by (optional)",
                    choices = c("none", "date range" = "date_range", "year-month", 
                                "year-week", "year-day", "year", "month", "week", "day")),
     
@@ -593,7 +635,7 @@ bycatchUI <- function(id) {
     selectInput(ns("period"), "Show counts by",
                 choices = c("year", "month", "weeks")),
     
-    selectizeInput(ns("ftype"), "Subset data by (optional)",
+    selectizeInput(ns("filter_date"), "Subset data by (optional)",
                    choices = c("none", "date range" = "date_range", "year-month", 
                                "year-week", "year-day", "year", "month", "week", "day")),
     
@@ -659,7 +701,7 @@ trip_lengthUI <- function(id) {
                 choices = c("minutes" = "mins", "hours", "days", "weeks"),
                 selected = "hours"),
     
-    selectizeInput(ns("ftype"), "Subset data by (optional)",
+    selectizeInput(ns("filter_date"), "Subset data by (optional)",
                    choices = c("none", "date range" = "date_range", "year-month", 
                                "year-week", "year-day", "year", "month", "week", "day")),
     
@@ -711,7 +753,7 @@ fleet_tableUI <- function(id) {
   
   tagList(
     
-    h3("Fleet Definition"),
+    h3(strong("Fleet Definition")),
     
     p("Fleet tables must be saved to the FishSET database before they can be used to assign vessels to fleets."),
     
@@ -727,7 +769,7 @@ fleet_tableUI <- function(id) {
     
     tags$br(),
     
-    h4("Build Table"),
+    h4(strong("Build Table")),
     
     fluidRow(
       actionButton(ns("addrow"), "Add row",
@@ -754,16 +796,14 @@ fleet_tableUI <- function(id) {
     
     tags$br(), tags$br(), tags$br(), 
     
-    h4("Import Table"),
+    h4(strong("Import Table")),
     
     fileInput(ns("file"), label = NULL),
     
     actionButton(ns("upload"), "Upload table",
                  style = "color: white; background-color: blue;"),
     
-    tags$br(), tags$br(),
-    
-    tags$br(),
+    tags$br(), tags$br(), tags$br(),
     
     RexpressionUI(ns("exp")),
     div( style = "margin-top: 2em;",
@@ -778,18 +818,25 @@ fleet_assignUI <- function(id) {
   ns <- NS(id)
   
   tagList(
-    h3("Fleet Assignment"),
+    h3(strong("Fleet Assignment")),
     
     #saveDataTableUI(ns("saveDat")),
     
     actionButton(ns('saveData'),'Save data to FishSET database',
                  style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
-     closeAppUI(ns("close")), 
+    closeAppUI(ns("close")), 
     refreshUI(ns("refresh")),
     
     tags$br(), tags$br(),
     
-     noteUI(ns("note")),
+    noteUI(ns("note")),
+    
+    actionButton(ns("fun_run"), "Run function",
+                 style = "color: #fff; background-color: #6da363; border-color: #800000;"),
+    
+    tags$br(), tags$br(),
+    
+    h4(strong("Import table")),
     
     actionButton(ns("refresh_tabs"), "", icon = icon("refresh"), style = "color: blue;"),
     
@@ -798,13 +845,14 @@ fleet_assignUI <- function(id) {
     actionButton(ns("load_btn"), "Load table",
                  style = "color: white; background-color: blue;"),
     
+    tags$br(), tags$br(),
+    
+    h4(strong("Options")),
+    
     checkboxInput(ns("overlap"), "Allow overlapping fleet assignments"),
     
     selectInput(ns("format"), "Table format",
                 choices = c("long", "wide")),
-    
-    actionButton(ns("fun_run"), "Run function",
-                 style = "color: #fff; background-color: #6da363; border-color: #800000;"),
     
     tags$br(), tags$br(),
     
@@ -834,7 +882,7 @@ fleetOut <- function(id) {
 fleet_tableOut <- function(id) {
   ns <- NS(id)
   tagList(
-    h4("Fleet Definition Table"),
+    h4(strong("Fleet Definition Table")),
   DT::DTOutput(ns("f_tab")),
   tableOutput(ns("reference"))
   )
@@ -844,11 +892,11 @@ fleet_assignOut <- function(id) {
   
   ns <- NS(id)
   tagList(
-    h4("Fleet Table"),
+    h4(strong("Fleet Definition Table")),
     DT::DTOutput(ns("tab_preview")),
-    h4("Dataset"),
+    h4(strong("Dataset")),
     DT::DTOutput(ns("final_tab")),
-    h4("Frequency of fleets"),
+    h4(strong("Fleet Frequency")),
     plotOutput(ns("plot"))
   )
 }
