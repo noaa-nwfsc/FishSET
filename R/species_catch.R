@@ -123,7 +123,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
   # group----
   if (!is.null(group)) {
     
-    if (combine == TRUE) { # update to new ID_var (my vesion)
+    if (combine == TRUE) {
       
       dataset <- ID_var(dataset, vars = group, type = "string")
       group <- gsub(" ", "", paste(group, collapse = "_"))
@@ -151,7 +151,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
   
   if (!is.null(date)) {
     
-    periods <- c("year", "month", "weeks", "weekday", "day", "day_of_year")
+    periods <- c("year_month", "month_year", "year", "month", "weeks", "weekday", "day", "day_of_year")
     
     if (period %in% periods == FALSE) {
       
@@ -159,8 +159,8 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
       
     } else {
       
-      p <- switch(period, year = "%Y", month = "%b", weeks = "%U", weekday = "%a", day = "%d", 
-                  day_of_year = "%j")
+      p <- switch(period, year_month = "%Y-%m", month_year = "%Y-%m", year = "%Y", 
+                  month = "%b", weeks = "%U", weekday = "%a", day = "%d", day_of_year = "%j")
     }
     
     dataset <- add_missing_dates(dataset, date, species, group = group, facet_by = facet_by)
@@ -235,7 +235,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
   
   if (!is.null(date)) {
     # convert period to ordered factor/integer
-    if (p %in% c("%a", "%b")) {
+    if (p %in% c("%Y-%m", "%a", "%b")) {
       
       table_out <- date_factorize(table_out, period, p)
       
@@ -267,9 +267,10 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
   
   if (value == "percent") {
     
-    table_out[f_catch()] <- table_out[f_catch()]/sum(table_out[f_catch()])
+    table_out[f_catch()] <- (table_out[f_catch()]/sum(table_out[f_catch()])) * 100
   } 
   
+  row.names(table_out) <- 1:nrow(table_out)
   
   
   if (output %in% c("plot", "tab_plot")) {
@@ -458,13 +459,25 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
     }
     
     if (!is.null(date)) {
-      if (!(p %in% c("%a", "%b"))) {
+      if (!(p %in% c("%a", "%b", "%Y-%m"))) {
         
         s_plot <- s_plot + ggplot2::scale_x_continuous(breaks = num_breaks(table_out[[period]]))
+      
+        } else if (period == "month_year") {
+        
+        d_labs <- levels(table_out$month_year)
+        d_labs <- format(as.Date(paste0(d_labs, "-01")), "%b %y")
+        s_plot <- s_plot + ggplot2::scale_x_discrete(labels = d_labs)
       }
     }
     
     save_plot(project, "species_catch")
+  }
+  
+  if (!is.null(date)) {
+    if (period == "month_year") {
+      table_out$month_year <- format(as.Date(paste0(table_out$month_year, "-01")), "%b %y")
+    }
   }
   
   # Log function ----
