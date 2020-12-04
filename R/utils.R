@@ -671,9 +671,7 @@ order_factor <- function(dat, fac, val, rev = FALSE) {
 
   ord <- unique(agg[[fac]][order(agg[[val]])])
 
-  if (rev == TRUE) {
-    ord <- rev(ord)
-  }
+  if (rev == TRUE) ord <- rev(levels(ord))
 
   dat[[fac]] <- factor(dat[[fac]], levels = ord)
 
@@ -686,34 +684,38 @@ date_factorize <- function(dataset, date_col, date_code) {
   #' Convert date variable of type character to ordered factor
   #' @keywords internal
   #' @export
-  #' @param dataset data frame containg date variable.
+  #' @param dataset data frame containing date variable.
   #' @param date_col date variable of type character to convert to ordered factor.
   #' @param date_code date code used to format date variable.
 
-  if (date_code %in% c("%a", "%A", "%b", "%B")) {
+  if (date_code %in% c("%Y-%m", "%a", "%A", "%b", "%B")) {
     if (date_code == "%b") {
       dataset[[date_col]] <- factor(dataset[[date_col]],
         levels = month.abb,
-        ordered = T
-      )
+        ordered = TRUE)
+      
     } else if (date_code == "%B") {
       dataset[[date_col]] <- factor(dataset[[date_col]],
         levels = month.name,
-        ordered = T
-      )
+        ordered = TRUE)
+      
     } else if (date_code == "%a") {
       dataset[[date_col]] <- factor(dataset[[date_col]],
         levels = c("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"),
-        ordered = T
-      )
-    } else {
+        ordered = TRUE)
+      
+    } else if (date_code == "%A") {
       dataset[[date_col]] <- factor(dataset[[date_col]],
         levels = c(
           "Sunday", "Monday", "Tuesday", "Wednesday",
-          "Thursday", "Friday", "Saturday"
-        ),
-        ordered = T
-      )
+          "Thursday", "Friday", "Saturday"),
+        ordered = TRUE)
+      
+    } else if (date_code == "%Y-%m") {
+      
+      dataset[[date_col]] <- factor(dataset[[date_col]], 
+                                    levels = sort(unique(dataset[[date_col]])),
+                                    ordered = TRUE)
     }
   } else {
     stop("Date format is not character type")
