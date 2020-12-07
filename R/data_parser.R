@@ -73,7 +73,7 @@ read_dat <- function(x, data.type=NULL, is.map = F, ...) {
   }
 }
 
-# Load main data table into working environment
+# Read in main data table from database into working environment
 load_data <- function(project, name = NULL) {
   #' Load data from FishSET database into working environment
   #' @param project String, name of project.
@@ -502,8 +502,8 @@ load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
   #' Function pulls the data, parses it, and then and saves the data to the FishSET database.
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in the FishSET database contains the string 'MainDataTable'.
-  #' @param aux Auxiliary data to be saved to the FishSET database.
-  #' @param x Name of auxiliary data frame to be saved.
+  #' @param aux File name, including path of auxiliary data.
+  #' @param x Name auxiliary data should be saved as in FishSET database.
   #' @param over_write Logical, If TRUE, saves data over previously
   #'   saved data table in the FishSET database.
   #' @param project String, name of project.
@@ -589,8 +589,8 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
   #' Gridded data is data that varies by two dimensions. Column names must be zone names. Load, parse, and save gridded data to FishSET database
   #' @param dat Primary data containing information on hauls or trips. 
   #'   Table in FishSET database contains the string 'MainDataTable'.
-  #' @param grid Gridded data to be saved to FishSET database. 
-  #' @param x Name of gridded dataframe to be saved.
+  #' @param grid File name, including path, of gridded data. 
+  #' @param x Name gridded data should be saved as in FishSET database.
   #' @param over_write Logical, If TRUE, saves dat over previously saved data table in the FishSET database.
   #' @param project String, name of project.
   #' @details Grid data is an optional data frame that contains a variable that varies by the map grid (ex.
