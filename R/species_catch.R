@@ -72,9 +72,8 @@
 #' }
 #' @export species_catch
 #' @import ggplot2
-#' @importFrom stats aggregate reformulate
+#' @importFrom stats reformulate
 #' @importFrom reshape2 dcast melt
-#' @importFrom dplyr anti_join
 #' @importFrom rlang expr sym
 #' @importFrom scales percent 
 #' @importFrom shiny isRunning
@@ -146,6 +145,18 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
     group2 <- NULL
   }
   
+  # filter by variable ----
+  if (!is.null(filter_by) | !is.null(filter_expr)) {
+    
+    dataset <- subset_var(dataset, filter_by, filter_value, filter_expr)
+    
+    if (nrow(dataset) == 0) {
+      
+      warning("Filtered data table has zero rows. Check filter parameters.")
+      end <- TRUE
+    }
+  }
+  
   # date ----
   facet_date <- facet[facet %in% c("year", "month", "week")]
   
@@ -187,7 +198,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
     }
   }
   
-  # filter ----
+  # filter date ----
   if (!is.null(filter_date)) {
     
     dataset <- subset_date(dataset, date, filter_date, date_value)
@@ -198,18 +209,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
       end <- TRUE
     }
   }
-  
-  if (!is.null(filter_by)) {
-    
-    dataset <- subset_var(dataset, filter_by, filter_value, filter_expr)
-    
-    if (nrow(dataset) == 0) {
-      
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      end <- TRUE
-    }
-  }
-  
+ 
   # summary table ----
   agg_grp <- c(group, facet_by, facet_date)
   
@@ -267,7 +267,14 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
   
   if (value == "percent") {
     
-    table_out[f_catch()] <- (table_out[f_catch()]/sum(table_out[f_catch()])) * 100
+    if (fun == "sum") {
+    
+      table_out[f_catch()] <- (table_out[f_catch()]/sum(table_out[f_catch()])) * 100
+    
+    } else {
+      
+      warning("Cannot convert to percentage. Change 'fun' argument to 'sum'.")
+    }
   } 
   
   row.names(table_out) <- 1:nrow(table_out)
