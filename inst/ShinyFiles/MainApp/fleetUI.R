@@ -162,11 +162,6 @@ filter_periodOut <- function(id, type, input) {
   }
 }
 
-# filter_varUI <- function(id, ) {
-#   
-# }
-
-
 density_plotUI <- function(id, dat) {
   
   ns <- NS(id)
@@ -244,49 +239,86 @@ vessel_countUI <- function(id) {
     actionButton(ns("fun_run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
     
+    tags$br(), tags$br(),
+    
     selectInput(ns("out"), "View table and/or plot",
                 choices = c("plot and table" = "tab_plot", "plot", "table"),
                 selected = "tab_plot"),
     
     uiOutput(ns("var_select")),
     
+    checkboxInput(ns("date_cb"), "Summarize over time", value = FALSE),
+    
     uiOutput(ns("date_select")),
     
-   
-    selectizeInput(ns("period"), "Show counts by",
-                choices = c("year", "month", "weeks", "day of the month" = "day",
-                            "day of the year" = "day_of_year", "weekday"),
-                multiple = TRUE, options = list(maxItems = 1)),
+    conditionalPanel("input.date_cb", ns = ns,
+      selectizeInput(ns("period"), "Show counts by",
+                  choices = c("year-month" = "year_month", "month-year" = "month_year",
+                              "year", "month", "weeks", "day of the month" = "day",
+                              "day of the year" = "day_of_year", "weekday"),
+                  multiple = TRUE, options = list(maxItems = 1))
+      ), 
     
-    selectizeInput(ns("filter_date"), "Subset data by (optional)",
-                   choices = c("none", "date range" = "date_range", "year-month", 
-                               "year-week", "year-day", "year", "month", "week", "day")),
+    tags$br(), tags$br(),
     
-    uiOutput(ns("filter_UI")),
+    h4(strong("Subset")),
+    
+    uiOutput(ns("filter_by_UIOutput")), 
+    
+    uiOutput(ns("filter_by_val_UIOutput")),
+    
+    conditionalPanel("input.date_cb", ns = ns,
+      selectizeInput(ns("filter_date"), "Subset data by (optional)",
+                     choices = c("none", "date range" = "date_range", "year-month", 
+                                 "year-week", "year-day", "year", "month", "week", "day"),
+                     multiple = TRUE, options = list(maxItems = 1))
+    ),
+    
+    uiOutput(ns("filter_date_UIOutput")),
+    
+    tags$br(), tags$br(),
+    
+    h4(strong("Group")),
     
     uiOutput(ns("grp_select")),
     
     checkboxInput(ns("combine"), "Combine grouping variables",
                   value = FALSE),
     
+    tags$br(), tags$br(),
+    
+    h4(strong("Split")), 
+    
     uiOutput(ns("fct_select")),
     
-    selectInput(ns("value"), "Select value type",
-                choices = c("count", "percent")),
+    tags$br(), tags$br(),
     
-    selectInput(ns("tran"), "Transformation function (optional)",
-                choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
+    h4(strong("Plot options")),
     
-    selectInput(ns("type"), "Plot type",
-                choices = c("bar", "line")),
+    checkboxInput(ns("show_options"), "Show plot options",
+                  value = FALSE),
     
-    selectInput(ns("scale"), "Split plot scale",
-                choices = c("fixed", "free y-axis" = "free_y", 
-                            "free x-axis" = "free_x", "free")),
+    conditionalPanel("input.show_options", ns = ns,
+                     
+      tagList(
     
-    selectInput(ns("position"), "Position of grouping variables",
-                choices = c("identity", "dodge", "fill", "stack"),
-                selected = "stack"),
+        selectInput(ns("value"), "Select value type",
+                    choices = c("count", "percent")),
+        
+        selectInput(ns("tran"), "Transformation function (optional)",
+                    choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
+        
+        selectInput(ns("type"), "Plot type",
+                    choices = c("bar", "line")),
+        
+        selectInput(ns("scale"), "Split plot scale",
+                    choices = c("fixed", "free y-axis" = "free_y", 
+                                "free x-axis" = "free_x", "free")),
+        
+        selectInput(ns("position"), "Position of grouping variables",
+                    choices = c("identity", "dodge", "fill", "stack"),
+                    selected = "stack"))
+      ),
     
     RexpressionUI(ns("exp")),
     div( style = "margin-top: 2em;",
@@ -327,7 +359,8 @@ species_catchUI <- function(id) {
     
     conditionalPanel("input.date_cb", ns = ns,
       selectizeInput(ns("period"), "Show counts by",
-                  choices = c("year", "month", "weeks", "day of the month" = "day",
+                  choices = c("year-month" = "year_month", "month-year" = "month_year",
+                              "year", "month", "weeks", "day of the month" = "day",
                               "day of the year" = "day_of_year", "weekday"),
                   multiple = TRUE, options = list(maxItems = 1))
     ),
