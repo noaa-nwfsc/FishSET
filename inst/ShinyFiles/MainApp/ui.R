@@ -529,49 +529,7 @@ source("map_viewer_app.R", local = TRUE)
                                                conditionalPanel("input.fleet_fun == 'density_plot'",
                                                                 
                                                                 density_plotUI("den"))
-                                                             
-                               
-                               # conditionalPanel("input.fleet_tab == 'density_plot'",
-                               #                  
-                               #                  density_plotUI("den")
-                               # ),
-                               # 
-                               # conditionalPanel("input.fleet_tab == 'vessel_count'",
-                               #                  
-                               #                  vessel_countUI("ves")
-                               # ),
-                               # 
-                               # conditionalPanel("input.fleet_tab == 'species_catch'",
-                               #                  
-                               #                  species_catchUI("spec")
-                               # ),
-                               # 
-                               # conditionalPanel("input.fleet_tab == 'roll_catch'",
-                               #                  
-                               #                  roll_catchUI("roll")
-                               # ),
-                               # 
-                               # conditionalPanel("input.fleet_tab == 'weekly_catch'",
-                               #                  
-                               #                  weekly_catchUI("wc")
-                               # ),
-                               # 
-                               # conditionalPanel("input.fleet_tab == 'weekly_effort'",
-                               #                  
-                               #                  weekly_effortUI("we")
-                               # ),
-                               # 
-                               # conditionalPanel("input.fleet_tab == 'bycatch'",
-                               #                  
-                               #                  bycatchUI("by")
-                               # ),
-                               # 
-                               # conditionalPanel("input.fleet_tab == 'trip_length'",
-                               #                  
-                               #                  trip_lengthUI("trip")
-                               # )
-                             )
-                                   
+                                 )
                              ),
                              
                              mainPanel(
@@ -623,48 +581,6 @@ source("map_viewer_app.R", local = TRUE)
                                                                      
                                                                      density_plotOut("den"))
                                                 )
-                                           
-                                           # tabPanel("Density Plot", value = "density_plot",
-                                           #          
-                                           #          density_plotOut("den")
-                                           # ),
-                                           # 
-                                           # tabPanel("Vessel Count", value = "vessel_count",
-                                           #          
-                                           #          fleetOut("ves")
-                                           # ),
-                                           # 
-                                           # tabPanel("Species Catch", value = "species_catch",
-                                           #          
-                                           #          fleetOut("spec")
-                                           # ),
-                                           # 
-                                           # tabPanel("Rolling Catch", value = "roll_catch",
-                                           #          
-                                           #          fleetOut("roll")
-                                           # ),
-                                           # 
-                                           # tabPanel("Weekly Catch", value = "weekly_catch",
-                                           #          
-                                           #          fleetOut("wc")
-                                           # ),
-                                           # 
-                                           # tabPanel("Weekly Effort", value = "weekly_effort",
-                                           #          
-                                           #          fleetOut("we")
-                                           # ),
-                                           # 
-                                           # tabPanel("Bycatch", value = "bycatch",
-                                           #          
-                                           #          fleetOut("by")
-                                           # ),
-                                           # 
-                                           # tabPanel("Trip Length", value = "trip_length",
-                                           #          
-                                           #          fleetOut("trip")
-                                           #)
-                                           
-           
                                )
                              )
                            )
