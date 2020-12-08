@@ -47,10 +47,10 @@ yearRange <- function(dat, yr, type) {
 
 validate_date <- function(date = NULL, period = NULL, filter_date = NULL, fct = NULL, grp = NULL) {
   
-  if (!is.null(date) & is.null(period)) {
-    
-    validate("Please enter a period to summarize by.")
-  }
+  # if (!is.null(date) & is.null(period)) {
+  #   
+  #   validate("Please enter a period to summarize by.")
+  # }
   
   if (is.null(date) & !is.null(period)) {
     

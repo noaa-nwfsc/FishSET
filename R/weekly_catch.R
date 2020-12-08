@@ -1,6 +1,6 @@
 # Weekly catch
 #' 
-#' View catch total by week in plot and table format
+#' Summarize weekly catch 
 #'
 #' @param dat Primary data containing information on hauls or trips. 
 #'   Table in FishSET database contains the string 'MainDataTable'.
@@ -21,13 +21,21 @@
 #'   the data by two date values entered in \code{filter_val}. Other options include "year-day", 
 #'   "year-week", "year-month", "year", "month", "week", or "day". The argument filter_value must 
 #'   be provided. 
-#' @param filter_value String containing a start and end date if using filter_date = "date_range", 
+#' @param date_value String containing a start and end date if using filter_date = "date_range", 
 #'   e.g. c("2011-01-01", "2011-03-15"). If filter_date = "period" or "year-period", use integers 
 #'   (4 digits if year, 1-2 if day, month, or week). Use a list if using a two-part filter, e.g. "year-week",
 #'   with the format \code{list(year, period)} or a vector if using a single period, \code{c(period)}. 
 #'   For example, \code{list(2011:2013, 5:7)} will filter the data table from weeks 5 through 7 for 
 #'   years 2011-2013 if filter_date = "year-week".\code{c(2:5)} will filter the data
 #'   February through May when filter_date = "month".
+#' @param filter_by String, variable name to filter by.
+#' @param filter_value A vector of values to filter `MainDataTable` by using the variable 
+#'   in \code{filter_by}. 
+#' @param filter_expr String, a valid R expression to filter `MainDataTable` by using the variable 
+#'   in \code{filter_by}. 
+#' @param facet_by Variable name to facet by. This can be a variable that exists in 
+#'   the dataset, or a variable created by \code{species_catch()} such as \code{"year"}, 
+#'   \code{"month"}, or \code{"species"}.
 #' @param facet_by Variable name to facet by. This can be a variable that exists in 
 #'   the dataset, or a variable created by \code{weekly_catch()} such as \code{"year"}, 
 #'   \code{"month"}, or \code{"species"}.  
@@ -68,15 +76,16 @@
 #' )
 #' }
 #' @export weekly_catch
-#' @importFrom stats aggregate reformulate
+#' @importFrom stats reformulate
 #' @importFrom reshape2 melt dcast
 #' @importFrom scales percent
-#' @importFrom dplyr anti_join
+#' @importFrom rlang sym expr
 #' @importFrom shiny isRunning
 #' @import ggplot2
 
 weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL, 
-                         filter_date = NULL, filter_value = NULL, facet_by = NULL, 
+                         filter_date = NULL, date_value = NULL, filter_by = NULL, 
+                         filter_value = NULL, filter_expr = NULL, facet_by = NULL, 
                          type = "bar", conv = "none", tran = "identity", value = "count", 
                          position = "stack", combine = FALSE, scale = "fixed",
                          output = "tab_plot", format_tab = "wide") {
@@ -90,30 +99,19 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
   } else { 
     if (!is.character(dat)) dat <- deparse(substitute(dat)) }
   
-  facet_date_l <- FALSE
-  
+  # facet ----
   if (!is.null(facet_by)) {
+    # if facet_by contains "species", "year", "month", or "week"
+    special_facet <- ifelse(any(!(facet_by %in% names(dataset))), TRUE, FALSE) 
     
-    facet_spec <- ifelse(any(!(facet_by %in% names(dataset))), TRUE, FALSE)
-    facet_date <- ifelse(any(!(facet_by %in% c("year", "month"))), TRUE, FALSE)
-    
-    if (facet_spec == TRUE) {
+    if (special_facet == TRUE) {
       
-      facet_s_id <- facet_by[!(facet_by %in% names(dataset))]
+      facet <- facet_by
+      facet_by <- facet_by[facet_by %in% names(dataset)]
       
-      if (all(facet_s_id %in% c("year", "month", "species")) == FALSE) {
+      if (length(facet_by) == 0) {
         
-        warning("Invalid facet variable.")
-        
-      } else {
-        
-        facet <- facet_by
-        facet_by <- facet_by[facet_by %in% names(dataset)]
-        
-        if (length(facet_by) == 0) {
-          
-          facet_by <- NULL
-        }
+        facet_by <- NULL
       }
       
     } else {
@@ -126,32 +124,24 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
     facet <- NULL
   }
   
+  # group----
   if (!is.null(group)) {
     
     if (combine == TRUE) {
       
-      dataset[[paste(group, collapse = "_")]] <- apply(dataset[group], 1, paste, collapse = " ")
-      group <- paste(group, collapse = "_")
+      dataset <- ID_var(dataset, vars = group, type = "string")
+      group <- gsub(" ", "", paste(group, collapse = "_"))
       group2 <- NULL
     }
     
+    dataset[group] <- lapply(dataset[group], as.factor)
     group1 <- group[1]
     
-    dataset[[group1]] <- as.factor(dataset[[group1]])
+    if (length(group) == 1) group2 <- NULL else group2 <- group[2]
     
-    if (length(group) == 2) {
+    if (length(group) > 2) {
       
-      group2 <- group[2]
-      
-      dataset[[group2]] <- as.factor(dataset[[group2]])
-      
-    } else if (length(group) > 2) {
-      
-      warning("Too many grouping variables included, selecting first two.")
-      
-    } else {
-      
-      group2 <- NULL
+      warning("Only the first two grouping variables will be displayed in plot.")
     }
     
   } else {
@@ -160,212 +150,252 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
     group2 <- NULL
   }
   
-  dataset[[date]] <- date_parser(dataset[[date]])
-  
-  nm1 <- c(date, group, facet_by)
-  
-  full_dates <- seq.Date(from = min(dataset[[date]], na.rm = TRUE), 
-                         to = max(dataset[[date]], na.rm = TRUE), 
-                         by = "day")
-  
-  grp_fct <- c(group, facet_by)
-  
-  missing <- lapply(dataset[grp_fct], function(x) unique(x))
-  
-  missing[[date]] <- full_dates
-  
-  missing <- do.call(expand.grid, list(missing))
-  
-  missing <- dplyr::anti_join(missing, dataset[nm1])
-  
-  if (nrow(missing) > 0) {
+  # filter by variable ----
+  if (!is.null(filter_by) | !is.null(filter_expr)) {
     
-    missing[species] <- 0
+    dataset <- subset_var(dataset, filter_by, filter_value, filter_expr)
     
-    dataset <- rbind(dataset[c(nm1, species)], missing)
+    if (nrow(dataset) == 0) {
+      
+      warning("Filtered data table has zero rows. Check filter parameters.")
+      end <- TRUE
+    }
   }
   
-  if (!is.null(filter_date)) {
+  # date ----
+  facet_date <- facet[facet %in% c("year", "month", "week")]
+  
+  if (!is.null(date)) {
     
-    if (filter_date != "none") {
+    dataset <- add_missing_dates(dataset, date, species, group = group, facet_by = facet_by)
+    
+    if (!is.null(facet_date)) {
       
-      if (filter_date == "date_range") {
+      if ("month" %in% facet_date) {
         
-        dataset <- dataset[dataset[[date]] >= filter_value[1] & dataset[[date]] <= filter_value[2], ]
+        dataset$month <- factor(format(dataset[[date]], "%b"), levels = month.abb, ordered = TRUE)
         
-      } else {
         
-        pf <- switch(filter_date, "year-month" = c("%Y", "%m"), "year-week" = c("%Y", "%U"),
-                     "year-day" = c("%Y", "%j"), "year" = "%Y", "month" = "%m", "week" = "%U",
-                     "day" = "%j")
+      } else if ("week" %in% facet_date) {
         
-        if (grepl("-", filter_date)) {
-          
-          dataset <- dataset[(as.integer(format(dataset[[date]], pf[1])) %in% filter_value[[1]]) & 
-                               (as.integer(format(dataset[[date]], pf[2])) %in% filter_value[[2]]), ]
-          
-        } else {
-          
-          dataset <- dataset[as.integer(format(dataset[[date]], pf)) %in% filter_value, ]
-        }
-        
-        if (nrow(dataset) == 0) {
-          
-          warning("Filtered data table has zero rows. Check filter parameters.")
-          end <- TRUE
-        }
+        dataset$week <- as.integer(format(dataset[[date]], "%U"))
       }
     }
   }
   
+  # date filter ----
+  if (!is.null(filter_date)) {
+    
+    dataset <- subset_date(dataset, date, filter_date, date_value)
+    
+    if (nrow(dataset) == 0) {
+      
+      warning("Filtered data table has zero rows. Check filter parameters.")
+      end <- TRUE
+    }
+  }
+  
+  # add year and week columns
   dataset$year <- format(dataset[[date]], "%Y")
   dataset$week <- format(dataset[[date]], "%U")
   
-  if (facet_date_l == TRUE && ("month" %in% facet)) {
+  if (!is.null(facet_date)) {
     
-    dataset$month <- factor(format(dataset[[date]], "%b"), levels = month.abb, ordered = TRUE)
+    if ("month" %in% facet_date){
+      
+      dataset$month <- factor(format(dataset[[date]], "%b"), 
+                              levels = month.abb, ordered = TRUE)
+    }
   }
   
-  per <- names(dataset)[!(names(dataset) %in% c(nm1, species))]
+  # summary table ----
+  agg_grp <- c(group, facet_by, facet_date)
   
-  nm2 <- unique(c(per, group, facet_by))
+  table_out <- agg_helper(dataset, value = species, period = c("year", "week"), 
+                          group = agg_grp, fun = fun)
   
-  agg_list <- lapply(nm2, function(x) dataset[[x]])
-  names(agg_list) <- nm2
-  
-  count <- stats::aggregate(dataset[species], by = agg_list, FUN = fun)
-  
-  count$week <- as.integer(count$week)
+  table_out[c("year", "week")] <- lapply(table_out[c("year", "week")], as.integer)
   
   if (length(species) > 1) {
     
-    count <- reshape2::melt(count, measure.vars = species, variable.name = "species", 
-                            value.name = "catch")
+    table_out <- reshape2::melt(table_out, measure.vars = species, variable.name = "species", 
+                                value.name = "catch")
     
     rev <- ifelse(position == "dodge", TRUE, FALSE)
-    count <- order_factor(count, "species", "catch", rev = rev)
+    table_out <- order_factor(table_out, "species", "catch", rev = rev)
     
   } else {
     
     if (!is.null(group)) {
       rev <- ifelse(position == "dodge", TRUE, FALSE)
-      count <- order_factor(count, group1, species, rev = rev)
+      table_out <- order_factor(table_out, group1, species, rev = rev)
     }
   }
   
-  
-  
+  # weight conversion
   f_catch <- function() if (length(species) == 1) species else "catch"
   
   if (conv != "none") {
     
     if (conv == "tons") {
       
-      count[f_catch()] <- count[f_catch()]/2000
+      table_out[f_catch()] <- table_out[f_catch()]/2000
       
     } else if (conv == "metric_tons") {
       
-      count[f_catch()] <- count[f_catch()]/2204.62
+      table_out[f_catch()] <- table_out[f_catch()]/2204.62
       
     } else {
       
-      count[f_catch()] <- do.call(conv, list(count[f_catch()]))
+      table_out[f_catch()] <- do.call(conv, list(table_out[f_catch()]))
     }
   }
   
   if (value == "percent") {
     
-    count[f_catch()] <- count[f_catch()]/sum(count[f_catch()])
+    if (fun == "sum") {
+      
+      table_out[f_catch()] <- (table_out[f_catch()]/sum(table_out[f_catch()])) * 100
+      
+    } else {
+      
+      warning("Cannot convert to percentage. Change 'fun' argument to 'sum'.")
+    } 
   }
   
-  f_int <- function() {
-    if (length(species) == 1) {
-      if (is.null(group)) {
-        1
+  row.names(table_out) <- 1:nrow(table_out)
+  
+  # plot section ----
+  if (output %in% c("plot", "tab_plot")) {
+    
+    # plot functions ----
+    
+    if (length(species) == 1) single_species_sym <- rlang::sym(species)
+    
+    if (length(species) > 1) multi_species_sym <- rlang::sym("species")
+    
+    if (!is.null(group)) {
+      
+      group1_sym <- rlang::sym(group1)
+      if (length(group) > 1) group2_sym <- rlang::sym(group2)
+    }
+    
+    y_axis_exp <- function() if (length(species) == 1) single_species_sym else rlang::sym("catch")
+    
+    interaction_exp <- function() {
+      if (length(species) == 1) {
+        if (is.null(group)) {
+          1
+          
+        } else {
+          if (length(group) == 1) {
+            group1_sym
+            
+          } else if (length(group) > 1) {
+            rlang::expr(interaction(!!group1_sym, !!group2_sym))
+          }
+        }
         
-      } else {
-        if (length(group) == 1) {
-          group1
+      } else if (length(species) > 1) {
+        if (is.null(group)) {
+          multi_species_sym
+          
+        } else if (length(group) == 1) {
+          rlang::expr(interaction(!!multi_species_sym, !!group1_sym))
           
         } else if (length(group) > 1) {
-          paste0("interaction(", group1, ", ", group2, ")")
+          rlang::expr(interaction(!!multi_species_sym, !!group1_sym, !!group2_sym))
         }
       }
+    }
+    
+    color_exp <- function() {
       
-    } else if (length(species) > 1) {
-      if (is.null(group)) {
-        "species"
-        
-      } else if (length(group) == 1) {
-        paste0("interaction(", "species", ", ", group1, ")")
-        
-      } else if (length(group) > 1) {
-        paste0("interaction(", "species", ", ", group1, ", ", group2, ")")
+      if (length(species) == 1) {
+        if (!is.null(group)) {
+          group1_sym
+        } else {
+          NULL
+        }
+      } else if (length(species) > 1) {
+        multi_species_sym
       }
     }
-  }
-  
-  f_group1 <- function() if (length(species) == 1) group1 else "species"
-  
-  f_group2 <- function() if (length(species) == 1) group2 else group1
-  
-  w_plot <- ggplot2::ggplot(data = count, ggplot2::aes_string(x = "week", y = f_catch())) +
-    fishset_theme() +
-    ggplot2::theme(legend.position = "bottom") +
-    ggplot2::scale_y_continuous(labels = if (value == "percent") scales::percent else ggplot2::waiver(),
-                                trans = tran) +
-    ggplot2::scale_x_continuous(breaks = num_breaks(count$week))
-  
-  if (type == "bar") {
     
-    if (position == "dodge") position <- ggplot2::position_dodge2(preserve = "single")
-    
-    w_plot <- w_plot + ggplot2::geom_col(ggplot2::aes_string(fill = f_group1()), 
-                                         position = position)
-    
-    position <- ifelse(class(position)[1] == "PositionDodge2", "dodge", position)
-    
-  } else if (type == "line") {
-    
-    w_plot <- w_plot + ggplot2::geom_line(ggplot2::aes_string(group = f_int(),
-                                                              color = f_group1(), 
-                                                              linetype = f_group2())) +
-      ggplot2::geom_point(ggplot2::aes_string(group = f_int(), color = f_group1()), 
-                          size = 1)
-  }
-  
-  if (!is.null(facet)) {
-    
-    if (length(facet) == 1) {
+    linetype_exp <- function() {
       
-      fm <- stats::reformulate(".", facet)
-      
-    } else if (length(facet) == 2) {
-      
-      fm <- paste(facet, sep = " ~ ")
+      if (length(species) == 1) {
+        if (length(group) > 1) {
+          group2_sym
+        } else {
+          NULL
+        }
+      } else if (length(species) > 1) {
+        group1_sym
+      }
     }
     
-    w_plot <- w_plot + ggplot2::facet_grid(fm, scales = scale)
+    w_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = week, y = !!y_axis_exp())) +
+      fishset_theme() +
+      ggplot2::theme(legend.position = "bottom") +
+      ggplot2::scale_y_continuous(labels = if (value == "percent") scales::percent else ggplot2::waiver(),
+                                  trans = tran) +
+      ggplot2::scale_x_continuous(breaks = num_breaks(table_out$week), 
+                                  labels = week_labeller(num_breaks(table_out$week), 
+                                                         year = table_out$year))
+    
+    if (type == "bar") {
+      
+      if (position == "dodge") position <- ggplot2::position_dodge2(preserve = "single")
+      
+      w_plot <- w_plot + ggplot2::geom_col(ggplot2::aes(fill = !!color_exp()), 
+                                           position = position)
+      
+      position <- ifelse(class(position)[1] == "PositionDodge2", "dodge", position)
+      
+    } else if (type == "line") {
+      
+      w_plot <- w_plot + ggplot2::geom_line(ggplot2::aes(group = !!interaction_exp(),
+                                                         color = !!color_exp(), 
+                                                         linetype = !!linetype_exp())) +
+        ggplot2::geom_point(ggplot2::aes(group = !!interaction_exp(), color = !!color_exp()), 
+                            size = 1)
+    }
+    
+    if (!is.null(facet)) {
+      
+      if (length(facet) == 1) {
+        
+        fm <- stats::reformulate(".", facet)
+        
+      } else if (length(facet) == 2) {
+        
+        fm <- paste(facet, sep = " ~ ")
+      }
+      
+      w_plot <- w_plot + ggplot2::facet_grid(fm, scales = scale)
+    }
   }
   
   if (length(species) > 1 & format_tab == "wide") {
     
-    count <- reshape2::dcast(count, ... ~ species, value.var = "catch", fill = 0)
+    table_out <- reshape2::dcast(table_out, ... ~ species, value.var = "catch", fill = 0)
   }
-  
+  # log function
   weekly_catch_function <- list()
   weekly_catch_function$functionID <- "weekly_catch"
   weekly_catch_function$args <- list(dat, project, species, date, fun, group, filter_date, 
-                                     filter_value, facet_by, type, conv, tran, value, position, 
+                                     date_value, filter_by, filter_value, filter_expr, 
+                                     facet_by, type, conv, tran, value, position, 
                                      combine, scale,  output, format_tab)
   log_call(weekly_catch_function)
   
   save_plot(project, "weekly_catch", w_plot)
-  save_table(count, project, "weekly_catch")
+  save_table(table_out, project, "weekly_catch")
   
   if (output == "table") {
     
-    count
+    table_out
     
   } else if (output == "plot") {
     
@@ -373,7 +403,7 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
     
   } else {
     
-    out_list <- list(table = count,
+    out_list <- list(table = table_out,
                      plot = w_plot)
     out_list
   }
