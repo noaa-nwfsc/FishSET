@@ -551,6 +551,8 @@ subset_var <- function(dataset, filter_by, filter_value = NULL, filter_expr = NU
 #' Default FishSET plot theme
 #' 
 #' @keywords internal
+#' @export
+#' @import ggplot2
 fishset_theme <- function() {
   
   ggplot2::theme(
@@ -736,6 +738,23 @@ text_filepath <- function(project, fun_name) {
   #' }
 
   paste0(locoutput(), project, "_", fun_name, Sys.Date(), ".txt")
+}
+
+week_labeller <- function(breaks, year) {
+  #' X-axis scale labeller for weekly data
+  #' @param breaks scale label breaks 
+  #' @param year vector of years from summary table
+  #' @export
+  #' @keywords internal
+  #' @importFrom lubridate weeks
+  #'
+  
+  min_year <- min(year)
+  wk_lab <- as.Date(paste0(min_year, "-01-01"))
+  
+  wk_lab <- wk_lab + lubridate::weeks(breaks)
+  
+  format(wk_lab, "%b %d")
 }
 
 date_title <- function(plot, filter_date, filter_value) {
