@@ -773,9 +773,9 @@ weekly_catch_serv <- function(id, values, project) {
       validate_date(input$date, input$filter_date, input$fct, input$grp)
       
       weekly_catch(values$dataset, project = project(), species = input$var, date = input$date,
-                   fun = input$fun, group = input$grp,filter_date = input$filter_date, 
+                   fun = input$fun, group = input$grp, filter_date = input$filter_date, 
                    date_value = date_value(), filter_by = input$filter_by, filter_value = input$filter_by_val, 
-                   filter_expr = input$filter_expr,facet_by = input$fct, combine = input$combine,
+                   filter_expr = input$filter_expr, facet_by = input$fct, combine = input$combine,
                    position = input$position, tran = input$tran, value = input$value,
                    scale = input$scale, type = input$type, output = input$out,
                    format_tab = input$format)
@@ -830,47 +830,86 @@ weekly_effort_serv <- function(id, values, project) {
                      multiple = TRUE, options = list(maxItems = 2))
     })
     
-    output$filter_UI <- renderUI({
+    filter_val <- reactive({
       
-      if (input$filter_date == "date_range") {
+      if (is.null(input$filter_by)) {
         
-        dateRangeInput(ns("date_range"), label = "Date range",
-                       start = min(values$dataset[[input$date]], na.rm = TRUE),
-                       end = max(values$dataset[[input$date]], na.rm = TRUE))
+        NULL
         
-      } else if (!(input$filter_date %in% c("date_range", "none"))) {
+      } else {
         
-        filter_periodUI(id, values$dataset, input$date, input$filter_date)
+        out <- unique(values$dataset[[input$filter_by]])
+        
+        out
+      }
+    })
+    
+    output$filter_by_UIOutput <- renderUI({
+      
+      selectizeInput(ns("filter_by"), "Subset by variable",
+                     choices = names(values$dataset), multiple = TRUE, options = list(maxItems = 1)) 
+    })
+    
+    output$filter_by_val_UIOutput <- renderUI({
+      
+      tagList(  
+        conditionalPanel("typeof input.filter_by !== 'undefined' && input.filter_by.length > 0", ns = ns,
+                         style = "margin-left:19px;",
+                         
+                         selectizeInput(ns("filter_by_val"), "Select values to subset by",
+                                        choices = filter_val(),
+                                        multiple = TRUE, options = list(maxOptions = 15, 
+                                                                        placeholder = "Select or type value name")))
+      )
+    })
+    
+    output$filter_date_UIOutput <- renderUI({
+      
+      if (!is.null(input$filter_date)) { 
+        if (input$filter_date == "date_range") {
+          
+          dateRangeInput(ns("date_range"), label = "Date range",
+                         start = min(values$dataset[[input$date]], na.rm = TRUE),
+                         end = max(values$dataset[[input$date]], na.rm = TRUE))
+          
+        } else {
+          
+          filter_periodUI(id, values$dataset, input$date, input$filter_date)
+        }
       }
     })
     
     date_value <- reactive({
       
-      if (input$filter_date == "date_range") {
+      if (!is.null(input$filter_date)) {
         
-        return(input$date_range)
+        if (input$filter_date == "date_range") {
+          
+          return(input$date_range)
+          
+        } else if (input$filter_date != "date_range") {
+          
+          filter_periodOut(id, input$filter_date, input)
+        }
         
-      } else if (!(input$filter_date %in% c("none", "date_range"))) {
+      } else {
         
-        filter_periodOut(id, input$filter_date, input)
-        
-      } else if (input$filter_date == "none") {
-        
-        return(NULL)
+        NULL
       }
     })
     
     we_out <- eventReactive(input$fun_run, {
       
       validate(need(input$date, "Please select a date variable."),
-               need(input$var, "Please select a species catch variable."))
+               need(input$var, "Please select a cpue variable."))
       
       validate_date(input$date, input$filter_date, input$fct, input$grp)
       
       weekly_effort(values$dataset, project = project(), cpue = input$var, date = input$date,
-                    group = input$grp, filter_date = input$filter_date,filter_value = date_value(),
-                    facet_by = input$fct, combine = input$combine, tran = input$tran,
-                    scale = input$scale, output = input$out, format_tab = input$format)
+                    group = input$grp, filter_date = input$filter_date, date_value = date_value(),
+                    filter_by = input$filter_by, filter_value = input$filter_by_val, 
+                    filter_expr = input$filter_expr, facet_by = input$fct, combine = input$combine, 
+                    tran = input$tran, scale = input$scale, output = input$out, format_tab = input$format)
     })
     
     tabplot <- eventReactive(input$fun_run, {
