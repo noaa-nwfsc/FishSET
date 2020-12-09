@@ -505,7 +505,7 @@ subset_date <- function(dataset, date, filter, value) {
 }
 
 
-subset_var <- function(dataset, filter_by, filter_value = NULL, filter_expr = NULL) {
+subset_var <- function(dataset, filter_by = NULL, filter_value = NULL, filter_expr = NULL) {
   #' Subset `MainDataTable` by variable
   #' 
   #' @param dataset dataset `MainDataTable` to filter.
@@ -516,36 +516,38 @@ subset_var <- function(dataset, filter_by, filter_value = NULL, filter_expr = NU
   #' @keywords internal 
   #' @importFrom rlang parse_expr
 
-  if (!is.null(filter_value) | !is_empty(filter_expr)) {
-  
-    if (!is.null(filter_value)) {
+  if (!is.null(filter_by) & !is.null(filter_value)) {
       
       rows <- dataset[[filter_by]] %in% filter_value
       
-    } else if (!is_empty(filter_expr)) {
+      if (is.logical(rows)) {
+        
+        dataset <- dataset[rows, ]
+        
+      } else {
+        
+        warning("Invalid filter expression.")
+      }
+    } 
+    
+    if (!is_empty(filter_expr)) {
       
       p_expr <- rlang::parse_expr(filter_expr)
       
       rows <- eval(p_expr, envir = dataset)
+      
+      if (is.logical(rows)) {
+        
+        dataset <- dataset[rows, ]
+        
+      } else {
+        
+        warning("Invalid filter expression.")
+      }
     }
-    
-    if (is.logical(rows)) {
-      
-      dataset <- dataset[rows, ]
-      
-    } else {
-      
-      warning("Invalid filter expression.")
-    }
-  
-  } else {
-    
-    warning("Both filter_value and filter_expr arguments are missing.")
-  }
-  
-  dataset
-}
 
+    dataset
+  } 
 
 
 #' Default FishSET plot theme
