@@ -201,7 +201,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
       #---
       
-      ##Pull data functions ----
+      #Pull data functions ----
       ##---
       values <- reactiveValues(
         dataset = data.frame('var1'=0, 'var2'=0)
@@ -231,7 +231,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                             tags$ul('Refreshing the data pulls the original data loaded into the FishSET database. Instead of refreshing to the original state, you can refresh the 
                             data to an intermediate state by entering the name of the data table in the', tags$code('Optional text'),
                             'input box then the', tags$code('FishSET database'), 'radio button is chosen on the', tags$code('Upload Data'), 'tab. Intermediate 
-                            data will contain a date in the table name, such as', tags$em('ExampleMainDataTable01012020.'))
+                            data will contain a date in the table name, such as', tags$em('ExampleMainDataTable20200101.'))
                           ),
                     tags$li('Buttons that allow you to save plots and tables to the output folder in the FishSET folder.'), 
                     tags$li("A", tags$code('notes'), "section and a button to save notes to the output folder in the FishSET folder.")
@@ -296,6 +296,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             Auxiliary data does not need to be at the haul or trip level but does need to contain a variable in common with 
 			       the primary data file. Auxiliary data files are useful when a set of data is common across multiple primary data files, 
 			       or as an efficient way to include data that is not haul or trip level specific.",
+			      tags$br(),
+			       'MERGE TEXT'
 			       tags$br(),tags$br(),
 			       "The", tags$strong("gridded data"), "is an optional file that contains a variable that varies by the map grid and, optionally, by a second 
               dimension (e.g., date/time). Both dimensions in the gridded data file need to be variables in the primary data file. 
@@ -1012,9 +1014,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
-
-      #Merge aux with main
-      ###---- 
+      #Merge aux with main ----
       #Merge
       merge <- reactiveValues(show = FALSE, end = FALSE)
       
@@ -1323,7 +1323,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         } 
       })
       
-      ##Output to saved file----
+      #Output to saved file old----
       # case_to_print <- reactive({
       #   if(input$tabs=='qaqc'){
       #     if(input$checks=='Summary table') {
@@ -1444,7 +1444,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       #     } 
       #   }
       #   })
-      #----
+      #Output to saved file NEW ----
       case_to_print <- reactiveValues(dataQuality = logical(0),
                                       explore = logical(0),
                                       analysis = logical(0))
@@ -2436,7 +2436,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       output$grid_plot <- renderPlot(grid_values$plot)
       
       
-      # Fleet Functions ========
+      #Fleet Functions ========
       
       density_serv("den", values, reactive(input$projectname))
       
@@ -3030,7 +3030,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       )
       
       
-      # Map Viewer ====
+      #Map Viewer ====
       
       map_viewer_serv("map", values, spatdat)
       #onStop(function() servr::daemon_stop()) 
@@ -3698,7 +3698,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       
       #---
-      # Run functions ----
+      #Run functions ----
       #---
       observeEvent(input$saveALT, {
               q_test <- quietly_test(create_alternative_choice)
@@ -3729,7 +3729,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       ###---              
       
       ####---  
-      ##Save output----   
+      #Save output----   
       ###---   
       observeEvent(input$saveData, {
         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
@@ -3807,7 +3807,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       
       
-      ##Downloads ====  
+      #Downloads ====  
       ##---
       # savedText <- reactiveValues(answers = logical(0))
       # observeEvent(c(input$callTextDownload,
@@ -4055,7 +4055,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       ##---
       
-      # stop shiny ----
+      #stop shiny ----
       ##---
       observe({
         if(input$close > 0) stopApp()
@@ -4074,7 +4074,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
      
        ###---
      
-       # Update From Bookmarked state----
+      #Update From Bookmarked state----
       ###---   
       bookmarkedstate <- reactive({
         req(input$uploadbookmark)
@@ -4234,7 +4234,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 #---
         })
       
-      # Rerun log -----
+      #Rerun log -----
       
       fetch_log <- reactive(log_rerun(input$log, run = FALSE))
       

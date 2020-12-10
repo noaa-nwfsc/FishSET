@@ -68,8 +68,10 @@ read_dat <- function(x, data.type=NULL, is.map = F, ...) {
     sf::st_read(x, ...) #' ~/path/to/file.shp'
   } else if (data.type == "xls" | data.type == 'xlsx' | data.type == 'excel'){
     as.data.frame(readxl::read_excel(x, ...))
+  } else if (data.type == 'txt') {
+    utils::read.table(x, sep='\t', header=T, ...)
   } else {
-    utils::read.table(x, sep='\t', ...)
+    cat('Data extension not recognized.')
   }
 }
 
@@ -323,10 +325,10 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
   log_call(load_maindata_function)
   
   #Make data availlable
-  hack <- function(key, val, pos){
+  makeavail <- function(key, val, pos){
     assign(key,val, envir=as.environment(pos)
            )} 
-  hack(paste0(project, "MainDataTable"), dataset, 1L)
+  makeavail(paste0(project, "MainDataTable"), dataset, 1L)
 
    message("\n! Data saved to database as ", paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d")), " (raw) and ", 
        paste0(project, "MainDataTable"), " (working). \nTable is also in the working environment. !"
