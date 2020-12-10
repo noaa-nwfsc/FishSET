@@ -1,28 +1,36 @@
 # Weekly Effort
 
 #'
-#' View average CPUE by week in plot and table format
+#' Summarize average CPUE by week
 #'
 #' @param dat Primary data containing information on hauls or trips.
 #'    Table in FishSET database contains the string 'MainDataTable'.
 #' @param project String, name of project.
-#' @param cpue A variable in \code{dat} containing catch per unit effort.
+#' @param cpue Variable(s) in \code{dat} containing catch per unit effort.
 #' @param date A variable in \code{dat} containing dates to aggregate by.
 #' @param group Grouping variable name(s). Up to two grouping variables are available.
-#'   The first grouping variable is passed to "fill" and the second to "linetype" if
-#'   a single species column is entered or if faceting by species. Otherwise, species
-#'   is passed to "fill", the first group variable to "linetype", and second is dropped.
+#'   For plotting, if a single CPUE column is entered the first grouping variable is 
+#'   passed to the "color" aesthetic and the second to "linetype". If multiple CPUE
+#'   columns are entered, a new variable named "species" is created and passed to "fill", 
+#'   the first group variable to "linetype", and second is dropped.
 #' @param filter_date The type of filter to apply to table. The "date_range" option will subset 
-#'   the data by two date values entered in \code{filter_val}. Other options include "year-day", 
+#'   the data by two date values entered in \code{date_value}. Other options include "year-day", 
 #'   "year-week", "year-month", "year", "month", "week", or "day". The argument filter_value must 
 #'   be provided. 
-#' @param filter_value String containing a start and end date if using filter_date = "date_range", 
+#' @param date_value String containing a start and end date if using filter_date = "date_range", 
 #'   e.g. c("2011-01-01", "2011-03-15"). If filter_date = "period" or "year-period", use integers 
 #'   (4 digits if year, 1-2 if day, month, or week). Use a list if using a two-part filter, e.g. "year-week",
 #'   with the format \code{list(year, period)} or a vector if using a single period, \code{c(period)}. 
 #'   For example, \code{list(2011:2013, 5:7)} will filter the data table from weeks 5 through 7 for 
 #'   years 2011-2013 if filter_date = "year-week".\code{c(2:5)} will filter the data
 #'   February through May when filter_date = "month".
+#' @param filter_by String, variable name to filter by.
+#' @param filter_value A vector of values to filter `MainDataTable` by using the variable 
+#'   in \code{filter_by}. 
+#' @param filter_expr String, a valid R expression to filter `MainDataTable` by. 
+#' @param facet_by Variable name to facet by. This can be a variable that exists in 
+#'   the dataset, or a variable created by \code{weekly_effort()} such as \code{"year"}, 
+#'   \code{"month"}, or \code{"species"}.
 #' @param facet_by Variable name to facet by. This can be a variable that exists in 
 #'   the dataset, or a variable created by \code{weekly_effort()} such as \code{"year"}, 
 #'   \code{"month"}, or \code{"species"}.  
@@ -31,34 +39,37 @@
 #' @param tran A function to transform the y-axis. Options include log, log2, log10, sqrt.
 #' @param combine Whether to combine variables listed in \code{group}. This is passed
 #'   to the "color" aesthetic for plots. 
-#' @param scale Scale argument passed to \code{\link{facet_grid}}. Defaults to \code{"fixed"}.
+#' @param scale Scale argument passed to \code{\link[ggplot2]{facet_grid}}. Defaults to \code{"fixed"}.
 #' @param output Whether to display \code{"plot"}, \code{"table"}. Defaults 
 #'   to both (\code{"tab_plot"}).
 #' @param format_tab How table output should be formated. Options include 'wide' 
 #'   (the default) and 'long'.
-#' @return \code{weekly_effort()} calculates mean CPUE by week. The data can be filter using
-#'   two arguments: \code{filter_date} and \code{filter_value}. \code{filter_date}
+#' @return \code{weekly_effort()} calculates mean CPUE by week. This function doesn't 
+#'   calculate CPUE; the CPUE variable must be created in advance (see \code{\link{cpue}}).
+#'   There are types of filters that can be applied to the data: date filters and variable filters.
+#'   \code{filter_date}
 #'   specifies how the data should be filtered--by year, period (i.e. "month" or "week"), or year-period.
-#'   \code{filter_value} should contain the values (as integers) to filter
-#'   the data by. It is often useful to facet by year when using \code{filter_date}.
-#'   Up to two grouping variables can be entered. Grouping variables can
+#'   \code{date_value} should contain the values (as integers) to filter
+#'   the data by. Grouping variables can
 #'   be merged into one variable using \code{combine = TRUE}. Any number of
 #'   variables can be combined, but no more than three is recommended. For faceting,
 #'   any variable (including ones listed in \code{group}) can be used, but "year" and
 #'   "month" are also available. Currently, combined variables cannot be faceted.
-#'   A list containing a table and plot are printed to the console and viewer by default.  
+#'   A list containing a table and plot are printed to the console and viewer by default, 
+#'   this changed by setting \code{output} to "table" or "plot".  
 #' @examples 
 #' \dontrun{
 #' weekly_effort(pollockMainDataTable, "CPUE", "DATE_FISHING_BEGAN", year = 2011, output = "table")
 #' }
 #' @export weekly_effort
 #' @import ggplot2
-#' @importFrom stats aggregate reformulate
+#' @importFrom stats reformulate
 #' @importFrom reshape2 dcast melt
-#' @importFrom dplyr anti_join
+#' @importFrom rlang expr sym
 
 weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = NULL, 
-                          filter_value = NULL, facet_by = NULL, conv = "none",
+                          date_value = NULL, filter_by = NULL, filter_value = NULL,
+                          filter_expr = NULL, facet_by = NULL, conv = "none",
                           tran = "identity",  combine = FALSE, scale = "fixed", 
                           output = "tab_plot", format_tab = "wide") {
     
@@ -71,30 +82,19 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = 
     } else { 
         if (!is.character(dat)) dat <- deparse(substitute(dat)) }
     
-    facet_date_l <- FALSE
-    
+    # facet ----
     if (!is.null(facet_by)) {
+        # if facet_by contains "species", "year", "month", or "week"
+        special_facet <- ifelse(any(!(facet_by %in% names(dataset))), TRUE, FALSE) 
         
-        facet_spec <- ifelse(any(!(facet_by %in% names(dataset))), TRUE, FALSE)
-        facet_date <- ifelse(any(!(facet_by %in% c("year", "month"))), TRUE, FALSE)
-        
-        if (facet_spec == TRUE) {
+        if (special_facet == TRUE) {
             
-            facet_s_id <- facet_by[!(facet_by %in% names(dataset))]
+            facet <- facet_by
+            facet_by <- facet_by[facet_by %in% names(dataset)]
             
-            if (all(facet_s_id %in% c("year", "month", "species")) == FALSE) {
+            if (length(facet_by) == 0) {
                 
-                warning("Invalid facet variable.")
-                
-            } else {
-                
-                facet <- facet_by
-                facet_by <- facet_by[facet_by %in% names(dataset)]
-                
-                if (length(facet_by) == 0) {
-                    
-                    facet_by <- NULL
-                }
+                facet_by <- NULL
             }
             
         } else {
@@ -107,32 +107,24 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = 
         facet <- NULL
     }
     
+    # group----
     if (!is.null(group)) {
         
         if (combine == TRUE) {
             
-            dataset[[paste(group, collapse = "_")]] <- apply(dataset[group], 1, paste, collapse = " ")
-            group <- paste(group, collapse = "_")
+            dataset <- ID_var(dataset, vars = group, type = "string")
+            group <- gsub(" ", "", paste(group, collapse = "_"))
             group2 <- NULL
         }
         
+        dataset[group] <- lapply(dataset[group], as.factor)
         group1 <- group[1]
         
-        dataset[[group1]] <- as.factor(dataset[[group1]])
+        if (length(group) == 1) group2 <- NULL else group2 <- group[2]
         
-        if (length(group) == 2) {
+        if (length(group) > 2) {
             
-            group2 <- group[2]
-            
-            dataset[[group2]] <- as.factor(dataset[[group2]])
-            
-        } else if (length(group) > 2) {
-            
-            warning("Too many grouping variables included, selecting first two.")
-            
-        } else {
-            
-            group2 <- NULL
+            warning("Only the first two grouping variables will be displayed in plot.")
         }
         
     } else {
@@ -141,87 +133,76 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = 
         group2 <- NULL
     }
     
-    dataset[[date]] <- date_parser(dataset[[date]])
-    
-    nm1 <- c(date, group, facet_by)
-    
-    full_dates <- seq.Date(from = min(dataset[[date]], na.rm = TRUE), 
-                           to = max(dataset[[date]], na.rm = TRUE), 
-                           by = "day")
-    
-    grp_fct <- unique(c(group, facet_by))
-    
-    missing <- lapply(dataset[grp_fct], function(x) unique(x))
-    
-    missing[[date]] <- full_dates
-    
-    missing <- do.call(expand.grid, list(missing))
-    
-    missing <- dplyr::anti_join(missing, dataset[nm1])
-    
-    if (nrow(missing) > 0) {
+    # filter by variable ----
+    if (!is.null(filter_by) | !is.null(filter_expr)) {
         
-        missing[cpue] <- 0
+        dataset <- subset_var(dataset, filter_by, filter_value, filter_expr)
         
-        dataset <- rbind(dataset[c(nm1, cpue)], missing)
+        if (nrow(dataset) == 0) {
+            
+            warning("Filtered data table has zero rows. Check filter parameters.")
+            end <- TRUE
+        }
     }
     
-    if (!is.null(filter_date)) {
+    # date ----
+    facet_date <- facet[facet %in% c("year", "month", "week")]
+    
+    if (!is.null(date)) {
         
-        if (filter_date != "none") {
+        dataset <- add_missing_dates(dataset, date, cpue, group = group, facet_by = facet_by)
+        
+        if (!is.null(facet_date)) {
             
-            if (filter_date == "date_range") {
+            if ("month" %in% facet_date) {
                 
-                dataset <- dataset[dataset[[date]] >= filter_value[1] & dataset[[date]] <= filter_value[2], ]
+                dataset$month <- factor(format(dataset[[date]], "%b"), levels = month.abb, ordered = TRUE)
                 
-            } else {
                 
-                pf <- switch(filter_date, "year-month" = c("%Y", "%m"), "year-week" = c("%Y", "%U"),
-                             "year-day" = c("%Y", "%j"), "year" = "%Y", "month" = "%m", "week" = "%U",
-                             "day" = "%j")
+            } else if ("week" %in% facet_date) {
                 
-                if (grepl("-", filter_date)) {
-                    
-                    dataset <- dataset[(as.integer(format(dataset[[date]], pf[1])) %in% filter_value[[1]]) & 
-                                           (as.integer(format(dataset[[date]], pf[2])) %in% filter_value[[2]]), ]
-                    
-                } else {
-                    
-                    dataset <- dataset[as.integer(format(dataset[[date]], pf)) %in% filter_value, ]
-                }
-                
-                if (nrow(dataset) == 0) {
-                    
-                    warning("Filtered data table has zero rows. Check filter parameters.")
-                    end <- TRUE
-                }
+                dataset$week <- as.integer(format(dataset[[date]], "%U"))
             }
         }
     }
     
+    # date filter ----
+    if (!is.null(filter_date)) {
+        
+        dataset <- subset_date(dataset, date, filter_date, date_value)
+        
+        if (nrow(dataset) == 0) {
+            
+            warning("Filtered data table has zero rows. Check filter parameters.")
+            end <- TRUE
+        }
+    }
+    
+    # add year and week columns
     dataset$year <- format(dataset[[date]], "%Y")
     dataset$week <- format(dataset[[date]], "%U")
     
-    if (facet_date_l == TRUE && ("month" %in% facet)) {
+    if (!is.null(facet_date)) {
         
-        dataset$month <- factor(format(dataset[[date]], "%b"), levels = month.abb, ordered = TRUE)
+        if ("month" %in% facet_date){
+            
+            dataset$month <- factor(format(dataset[[date]], "%b"), 
+                                    levels = month.abb, ordered = TRUE)
+        }
     }
     
-    per <- names(dataset)[!(names(dataset) %in% c(nm1, cpue))]
+    # summary table ----
+    agg_grp <- c(group, facet_by, facet_date)
     
-    nm2 <- unique(c(per, group, facet_by))
+    table_out <- agg_helper(dataset, value = cpue, period = c("year", "week"), 
+                            group = agg_grp, fun = mean)
     
-    agg_list <- lapply(nm2, function(x) dataset[[x]])
-    names(agg_list) <- nm2
-    
-    count <- stats::aggregate(dataset[cpue], by = agg_list, FUN = mean)
-    
-    count$week <- as.integer(count$week)
+    table_out[c("year", "week")] <- lapply(table_out[c("year", "week")], as.integer)
     
     if (length(cpue) > 1) {
         
-        count <- reshape2::melt(count, measure.vars = cpue, variable.name = "species", 
-                                value.name = "mean_cpue")
+        table_out <- reshape2::melt(table_out, measure.vars = cpue, variable.name = "species", 
+                                    value.name = "mean_cpue")
     }
     
     f_cpue <- function() if (length(cpue) == 1) cpue else "mean_cpue"
@@ -230,89 +211,142 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = 
         
         if (conv == "tons") {
             
-            count[f_cpue()] <- count[f_cpue()]/2000
+            table_out[f_cpue()] <- table_out[f_cpue()]/2000
             
         } else if (conv == "metric_tons") {
             
-            count[f_cpue()] <- count[f_cpue()]/2204.62
+            table_out[f_cpue()] <- table_out[f_cpue()]/2204.62
             
         } else {
             
-            count[f_cpue()] <- do.call(conv, list(count[f_cpue()]))
+            table_out[f_cpue()] <- do.call(conv, list(table_out[f_cpue()]))
         }
     }
     
-    f_int <- function() {
-        if (length(cpue) == 1) {
-            if (is.null(group)) {
-                1
+    row.names(table_out) <- 1:nrow(table_out)
+    
+    # plot section ----
+    if (output %in% c("plot", "tab_plot")) {
+        
+        # plot functions ----
+        
+        if (length(cpue) == 1) single_cpue_sym <- rlang::sym(cpue)
+        
+        if (length(cpue) > 1) {
+            
+            multi_cpue_sym <- rlang::sym("mean_cpue")
+            species_sym <- rlang::sym("species")
+        }
+        
+        if (!is.null(group)) {
+            
+            group1_sym <- rlang::sym(group1)
+            if (length(group) > 1) group2_sym <- rlang::sym(group2)
+        }
+        
+        y_axis_exp <- function() if (length(cpue) == 1) single_cpue_sym else multi_cpue_sym
+        
+        
+        interaction_exp <- function() {
+            if (length(cpue) == 1) {
+                if (is.null(group)) {
+                    1
+                    
+                } else {
+                    if (length(group) == 1) {
+                        group1_sym
+                        
+                    } else if (length(group) > 1) {
+                        rlang::expr(interaction(!!group1_sym, !!group2_sym))
+                    }
+                }
                 
-            } else {
-                if (length(group) == 1) {
-                    group1
+            } else if (length(cpue) > 1) {
+                if (is.null(group)) {
+                    species_sym
+                    
+                } else if (length(group) == 1) {
+                    rlang::expr(interaction(!!species_sym, !!group1_sym))
                     
                 } else if (length(group) > 1) {
-                    paste0("interaction(", group1, ", ", group2, ")")
+                    rlang::expr(interaction(!!species_sym, !!group1_sym, !!group2_sym))
                 }
             }
+        }
+        
+        color_exp <- function() {
             
-        } else if (length(cpue) > 1) {
-            if (is.null(group)) {
-                "species"
-                
-            } else if (length(group) == 1) {
-                paste0("interaction(", "species", ", ", group1, ")")
-                
-            } else if (length(group) > 1) {
-                paste0("interaction(", "species", ", ", group1, ", ", group2, ")")
+            if (length(cpue) == 1) {
+                if (!is.null(group)) {
+                    group1_sym
+                } else {
+                    NULL
+                }
+            } else if (length(cpue) > 1) {
+                species_sym
             }
         }
-    }
-    
-    f_group1 <- function() if (length(cpue) == 1) group1 else "species"
-    
-    f_group2 <- function() if (length(cpue) == 1) group2 else group1
-    
-    e_plot <- ggplot2::ggplot(data = count, ggplot2::aes_string(x = "week", y = f_cpue())) +
-        ggplot2::geom_line(ggplot2::aes_string(group = f_int(), 
-                                               color = f_group1(), 
-                                               linetype = f_group2())) +
-        ggplot2::geom_point(ggplot2::aes_string(group = f_int(), color = f_group1()), size = 1) +
-        ggplot2::scale_x_continuous(breaks = num_breaks(count$week)) +
-        ggplot2::theme(legend.position = "bottom") +
-        fishset_theme()
-    
-    if (!is.null(facet)) {
         
-        if (length(facet) == 1) {
+        linetype_exp <- function() {
             
-            fm <- stats::reformulate(".", facet)
-            
-        } else if (length(facet) == 2) {
-            
-            fm <- paste(facet, sep = " ~ ")
+            if (length(cpue) == 1) {
+                if (length(group) > 1) {
+                    group2_sym
+                } else {
+                    NULL
+                }
+            } else if (length(cpue) > 1) {
+                if (!is.null(group)) {
+                    group1_sym
+                } else {
+                    NULL
+                }
+                
+            }
         }
         
-        e_plot <- e_plot + ggplot2::facet_grid(fm, scales = scale)
+        e_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = week, y = !!y_axis_exp())) +
+            ggplot2::geom_line(ggplot2::aes(group = !!interaction_exp(), 
+                                            color = !!color_exp(), 
+                                            linetype = !!linetype_exp())) +
+            ggplot2::geom_point(ggplot2::aes(group = !!interaction_exp(), color = !!color_exp()), size = 1) +
+            ggplot2::scale_x_continuous(breaks = num_breaks(table_out$week), 
+                                        labels = week_labeller(num_breaks(table_out$week), 
+                                                               year = table_out$year)) +
+            ggplot2::theme(legend.position = "bottom") +
+            fishset_theme()
+        
+        if (!is.null(facet)) {
+            
+            if (length(facet) == 1) {
+                
+                fm <- stats::reformulate(".", facet)
+                
+            } else if (length(facet) == 2) {
+                
+                fm <- paste(facet, sep = " ~ ")
+            }
+            
+            e_plot <- e_plot + ggplot2::facet_grid(fm, scales = scale)
+        }
+        
+        save_plot(project, "weekly_effort", e_plot)
     }
     
     if (length(cpue) > 1 & format_tab == "wide") {
         
-        count <- reshape2::dcast(count, ... ~ species, value.var = "mean_cpue", 
-                                 fill = 0)
+        table_out <- reshape2::dcast(table_out, ... ~ species, value.var = "mean_cpue", fill = 0)
     }
     
     # Log function
     weekly_effort_function <- list()
     weekly_effort_function$functionID <- "weekly_effort"
     weekly_effort_function$args <- list(dat, project, cpue, date, group, filter_date, 
-                                        filter_value, facet_by, conv, tran, combine, scale, 
-                                        output, format_tab)
+                                        date_value, filter_by, filter_value, filter_expr,
+                                        facet_by, conv, tran, combine, scale, output, format_tab)
     log_call(weekly_effort_function)
     
-    # Save plot
-    save_plot(project, "weekly_effort", e_plot)
-    save_table(count, project, "weekly_effort")
+    save_table(table_out, project, "weekly_effort")
     
     if (output == "plot") {
         
@@ -322,7 +356,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = 
         
     } else {
         
-        out_list <- list(table = count,
+        out_list <- list(table = table_out,
                          plot = e_plot)
         out_list
     }
