@@ -967,33 +967,71 @@ bycatch_serv <- function(id, values, project) {
                                     placeholder = "Limit 2 (facet 1 x facet2)"))
     })
     
-    output$filter_UI <- renderUI({
+    filter_val <- reactive({
       
-      if (input$filter_date == "date_range") {
+      if (is.null(input$filter_by)) {
         
-        dateRangeInput(ns("date_range"), label = "Date range",
-                       start = min(values$dataset[[input$date]], na.rm = TRUE),
-                       end = max(values$dataset[[input$date]], na.rm = TRUE))
+        NULL
         
-      } else if (!(input$filter_date %in% c("date_range", "none"))) {
+      } else {
         
-        filter_periodUI(id, values$dataset, input$date, input$filter_date)
+        out <- unique(values$dataset[[input$filter_by]])
+        
+        out
+      }
+    })
+    
+    output$filter_by_UIOutput <- renderUI({
+      
+      selectizeInput(ns("filter_by"), "Subset by variable",
+                     choices = names(values$dataset), multiple = TRUE, options = list(maxItems = 1)) 
+    })
+    
+    output$filter_by_val_UIOutput <- renderUI({
+      
+      tagList(  
+        conditionalPanel("typeof input.filter_by !== 'undefined' && input.filter_by.length > 0", ns = ns,
+                         style = "margin-left:19px;",
+                         
+                         selectizeInput(ns("filter_by_val"), "Select values to subset by",
+                                        choices = filter_val(),
+                                        multiple = TRUE, options = list(maxOptions = 15, 
+                                                                        placeholder = "Select or type value name")))
+      )
+    })
+    
+    output$filter_date_UIOutput <- renderUI({
+      
+      if (!is.null(input$filter_date)) { 
+        if (input$filter_date == "date_range") {
+          
+          dateRangeInput(ns("date_range"), label = "Date range",
+                         start = min(values$dataset[[input$date]], na.rm = TRUE),
+                         end = max(values$dataset[[input$date]], na.rm = TRUE))
+          
+        } else {
+          
+          filter_periodUI(id, values$dataset, input$date, input$filter_date)
+        }
       }
     })
     
     date_value <- reactive({
       
-      if (input$filter_date == "date_range") {
+      if (!is.null(input$filter_date)) {
         
-        return(input$date_range)
+        if (input$filter_date == "date_range") {
+          
+          return(input$date_range)
+          
+        } else if (input$filter_date != "date_range") {
+          
+          filter_periodOut(id, input$filter_date, input)
+        }
         
-      } else if (!(input$filter_date %in% c("none", "date_range"))) {
+      } else {
         
-        filter_periodOut(id, input$filter_date, input)
-        
-      } else if (input$filter_date == "none") {
-        
-        return(NULL)
+        NULL
       }
     })
     
@@ -1019,7 +1057,8 @@ bycatch_serv <- function(id, values, project) {
       
       bycatch(values$dataset, project = project(), cpue = input$cpue, catch = input$catch, 
               date = input$date, group = input$grp, names = names$names, period = input$period,
-              filter_date = input$filter_date, filter_value = date_value(), facet_by = input$fct,
+              filter_date = input$filter_date, date_value = date_value(), filter_by = input$filter_by, 
+              filter_value = input$filter_by_val, filter_expr = input$filter_expr,  facet_by = input$fct,
               value = input$value, combine = input$combine, tran = input$tran,
               scale = input$scale, output = input$out, format_tab = input$format)
     })
