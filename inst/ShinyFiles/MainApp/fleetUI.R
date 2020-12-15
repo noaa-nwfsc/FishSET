@@ -267,12 +267,12 @@ vessel_countUI <- function(id) {
     
     uiOutput(ns("filter_by_val_UIOutput")),
     
-    textInput(ns("filter_expr"), "subset expression",
+    textInput(ns("filter_expr"), "Subset expression",
               value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
     
     conditionalPanel("input.date_cb", ns = ns,
-      selectizeInput(ns("filter_date"), "Subset data by (optional)",
-                     choices = c("none", "date range" = "date_range", "year-month", 
+      selectizeInput(ns("filter_date"), "Subset by date",
+                     choices = c("date range" = "date_range", "year-month", 
                                  "year-week", "year-day", "year", "month", "week", "day"),
                      multiple = TRUE, options = list(maxItems = 1))
     ),
@@ -376,11 +376,11 @@ species_catchUI <- function(id) {
     
     uiOutput(ns("filter_by_val_UIOutput")), 
     
-    textInput(ns("filter_expr"), "subset expression",
+    textInput(ns("filter_expr"), "Subset expression",
               value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
     
     conditionalPanel("input.date_cb", ns = ns,
-      selectizeInput(ns("filter_date"), "Subset by date (optional)",
+      selectizeInput(ns("filter_date"), "Subset by date",
                      choices = c("date range" = "date_range", "year-month", 
                                  "year-week", "year-day", "year", "month", "week", "day"),
                      multiple = TRUE, options = list(maxItems = 1))
@@ -465,45 +465,79 @@ roll_catchUI <- function(id) {
     actionButton(ns("fun_run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
     
+    tags$br(), tags$br(),
+    
     selectInput(ns("out"), "View table and/or plot",
                 choices = c("plot and table" = "tab_plot", "plot", "table")),
+    
+    selectInput(ns("fun"), "Summary function",
+                choices = c("mean", "sum", "sd", "median", "min", "max", "IQR")),
     
     uiOutput(ns("var_select")),
     
     uiOutput(ns("date_select")),
     
-    selectizeInput(ns("filter_date"), "Subset data by (optional)",
-                   choices = c("none", "date range" = "date_range", "year-month", 
-                               "year-week", "year-day", "year", "month", "week", "day")),
+    tags$br(), tags$br(),
     
-    uiOutput(ns("filter_UI")),
+    h4(strong("Subset")),
     
-    selectInput(ns("fun"), "Summary function",
-                choices = c("mean", "sum", "sd", "median", "min", "max", "IQR")),
+    uiOutput(ns("filter_by_UIOutput")), 
+    
+    uiOutput(ns("filter_by_val_UIOutput")), 
+    
+    textInput(ns("filter_expr"), "Subset expression",
+              value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
+    
+    selectizeInput(ns("filter_date"), "Subset by date",
+                   choices = c("date range" = "date_range", "year-month", 
+                               "year-week", "year-day", "year", "month", "week", "day"),
+                   multiple = TRUE, options = list(maxItems = 1)),
+    
+    uiOutput(ns("filter_date_UIOutput")),
+    
+    tags$br(), tags$br(),
+    
+    h4(strong("Group")),
     
     uiOutput(ns("grp_select")),
     
+    tags$br(), tags$br(),
+    
+    h4(strong("Split")), 
+    
     uiOutput(ns("fct_select")),
     
-    selectInput(ns("scale"), "Split plot scale",
-                choices = c("fixed", "free y-axis" = "free_y",
-                            "free x-axis" = "free_x", "free")),
+    tags$br(), tags$br(),
     
-    numericInput(ns("win"), "Window width (days)",
-                 value = 10),
+    h4(strong("Plot options")),
     
-    selectInput(ns("align"), "Window alignment",
-                choices = c("center", "left", "right")),
+    checkboxInput(ns("show_options"), "Show plot options",
+                  value = FALSE),
     
-    selectInput(ns("conv"), "Convert catch (optional)",
-                choices = c("none", "tons", "metric tons" = "metric_tons", "custom")),
-    
-    conditionalPanel("input.conv == 'custom'",
+    conditionalPanel("input.show_options", ns = ns,
                      
-                     textInput(ns("conv"), "Enter function")),
+      tagList(
     
-    selectInput(ns("tran"), "Transform y-axis (optional)",
-                choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
+        selectInput(ns("scale"), "Split plot scale",
+                    choices = c("fixed", "free y-axis" = "free_y",
+                                "free x-axis" = "free_x", "free")),
+        
+        numericInput(ns("win"), "Window width (days)",
+                     value = 10),
+        
+        selectInput(ns("align"), "Window alignment",
+                    choices = c("center", "left", "right")),
+        
+        selectInput(ns("conv"), "Convert catch (optional)",
+                    choices = c("none", "tons", "metric tons" = "metric_tons", "custom")),
+        
+        conditionalPanel("input.conv == 'custom'",
+                         
+                         textInput(ns("conv"), "Enter function")),
+        
+        selectInput(ns("tran"), "Transform y-axis (optional)",
+                    choices = c("none" = "identity", "log", "log2", "log10", "sqrt")))
+    ),
     
     RexpressionUI(ns("exp")),
     div( style = "margin-top: 2em;",
@@ -548,10 +582,10 @@ weekly_catchUI <- function(id) {
     
     uiOutput(ns("filter_by_val_UIOutput")), 
     
-    textInput(ns("filter_expr"), "subset expression",
+    textInput(ns("filter_expr"), "Subset expression",
               value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
     
-    selectizeInput(ns("filter_date"), "Subset by date (optional)",
+    selectizeInput(ns("filter_date"), "Subset by date",
                    choices = c("date range" = "date_range", "year-month", 
                                "year-week", "year-day", "year", "month", "week", "day"),
                    multiple = TRUE, options = list(maxItems = 1)),
@@ -650,10 +684,10 @@ weekly_effortUI <- function(id) {
     
     uiOutput(ns("filter_by_val_UIOutput")), 
     
-    textInput(ns("filter_expr"), "subset expression",
+    textInput(ns("filter_expr"), "Subset expression",
               value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
     
-    selectizeInput(ns("filter_date"), "Subset by date (optional)",
+    selectizeInput(ns("filter_date"), "Subset by date",
                    choices = c("date range" = "date_range", "year-month", 
                                "year-week", "year-day", "year", "month", "week", "day"),
                    multiple = TRUE, options = list(maxItems = 1)),
@@ -683,13 +717,6 @@ weekly_effortUI <- function(id) {
     conditionalPanel("input.show_options", ns = ns,
                      
       tagList(
-    
-        selectInput(ns("conv"), "Convert catch (optional)",
-                    choices = c("none", "tons", "metric tons" = "metric_tons", "custom")),
-        
-        conditionalPanel("input.conv == 'custom'",
-                         
-                         textInput(ns("conv"), "Enter function")),
         
         selectInput(ns("tran"), "Transform y-axis (optional)",
                     choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
@@ -725,6 +752,8 @@ bycatchUI <- function(id) {
     actionButton(ns("fun_run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
     
+    tags$br(), tags$br(),
+    
     selectInput(ns("out"), "View table and/or plot",
                 choices = c("plot and table" = "tab_plot", "plot", "table"),
                 selected = "tab_plot"),
@@ -738,39 +767,79 @@ bycatchUI <- function(id) {
     selectInput(ns("period"), "Show counts by",
                 choices = c("year", "month", "weeks")),
     
-    selectizeInput(ns("filter_date"), "Subset data by (optional)",
-                   choices = c("none", "date range" = "date_range", "year-month", 
-                               "year-week", "year-day", "year", "month", "week", "day")),
+    tags$br(), tags$br(),
     
-    uiOutput(ns("filter_UI")),
+    h4(strong("Subset")),
     
-    textInput(ns("nms"), "Names", value = NULL,
-              placeholder = "optional names to be used in plot/table"),
+    uiOutput(ns("filter_by_UIOutput")), 
     
-    fluidRow(actionButton(ns("nms_add"), "Add name"),
-             actionButton(ns("nms_clear"), "Clear names")),
+    uiOutput(ns("filter_by_val_UIOutput")), 
     
-    textOutput(ns("caption")),
+    textInput(ns("filter_expr"), "Subset expression",
+              value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
+    
+    selectizeInput(ns("filter_date"), "Subset by date",
+                   choices = c("date range" = "date_range", "year-month", 
+                               "year-week", "year-day", "year", "month", "week", "day"),
+                   multiple = TRUE, options = list(maxItems = 1)),
+    
+    uiOutput(ns("filter_date_UIOutput")),
+    
+    tags$br(), tags$br(),
+    
+    h4(strong("Group")),
     
     uiOutput(ns("grp_select")),
     
     checkboxInput(ns("combine"), "Combine grouping variables",
                   value = FALSE),
     
+    tags$br(), tags$br(),
+    
+    h4(strong("Split")),
+    
     uiOutput(ns("fct_select")),
     
-    selectInput(ns("value"), "Catch value type",
-                choices = c("total", "share of total catch" = "stc")),
+    tags$br(), tags$br(),
     
-    selectInput(ns("tran"), "Transform y-axis (optional)",
-                choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
+    h4(strong("Plot and table options")),
     
-    selectInput(ns("scale"), "Split plot scale",
-                choices = c("fixed", "free y-axis" = "free_y",
-                            "free x-axis" = "free_x", "free")),
+    checkboxInput(ns("show_options"), "Show plot options",
+                  value = FALSE),
     
-    selectInput(ns("format"), "Table format",
-                choices = c("wide", "long")),
+      conditionalPanel("input.show_options", ns = ns,
+                       
+        tagList(
+          
+          textInput(ns("nms"), "Names", value = NULL,
+                    placeholder = "optional names to be used in plot/table"),
+          
+          fluidRow(actionButton(ns("nms_add"), "Add name"),
+                   actionButton(ns("nms_clear"), "Clear names")),
+          
+          tags$br(),
+          
+          conditionalPanel("typeof input.nms !== 'undefined' && input.nms.length > 0", ns = ns,
+                           
+                           div(class = "well well-sm", style = "background-color: white",
+                               textOutput(ns("caption")))
+          ),
+          
+          tags$br(),
+      
+          selectInput(ns("value"), "Catch value type",
+                      choices = c("total", "share of total catch" = "stc")),
+          
+          selectInput(ns("tran"), "Transform y-axis (optional)",
+                      choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
+          
+          selectInput(ns("scale"), "Split plot scale",
+                      choices = c("fixed", "free y-axis" = "free_y",
+                                  "free x-axis" = "free_x", "free")),
+          
+          selectInput(ns("format"), "Table format",
+                      choices = c("wide", "long")))
+    ),
     
     RexpressionUI(ns("exp")),
     div( style = "margin-top: 2em;",

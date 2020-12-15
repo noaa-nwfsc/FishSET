@@ -209,7 +209,11 @@ source("map_viewer_app.R", local = TRUE)
                                column(4, radioButtons('loadauxsource', "Source auxiliary data from:", choices=c( 'Upload new file','FishSET database'), selected='Upload new file', inline=TRUE)),
                                uiOutput('aux_upload')
                              ), 
+                             
+                             checkboxInput("mergeAux", label = "Merge aux data"),
+                             
                              uiOutput('mergeUI'),
+                             
                              #uiOutput("SaveButtonsUpload"),
                              #  downloadLink("downloadTextUp", label=''),
                              actionButton('callTextDownloadUp','Save notes'),
