@@ -297,7 +297,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 			       the primary data file. Auxiliary data files are useful when a set of data is common across multiple primary data files, 
 			       or as an efficient way to include data that is not haul or trip level specific.",
 			      tags$br(),
-			       'MERGE TEXT'
+			       'MERGE TEXT',
 			       tags$br(),tags$br(),
 			       "The", tags$strong("gridded data"), "is an optional file that contains a variable that varies by the map grid and, optionally, by a second 
               dimension (e.g., date/time). Both dimensions in the gridded data file need to be variables in the primary data file. 
@@ -967,9 +967,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         tagList(
         textInput("AuxName", "Auxiliary table name." ),
         #actionButton("uploadAux", label = "Save to database", 
-        #             style = "color: white; background-color: blue;", size = "extra-small"),
-        actionButton("mergeAux", label = "Merge with main data", 
-                     style = "background-color: #FAFA00;")
+        #             style = "color: white; background-color: blue;", size = "extra-small")
         )
       })
       
@@ -986,9 +984,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           conditionalPanel(condition="input.loadauxsource!='Upload new file'", 
                            tagList(
                              fluidRow(
-                               column(5, textInput("auxdattext", "Auxiliary data table name in database", placeholder = 'Optional data')),
-                               actionButton("mergeAux", label = "Merge with main data", 
-                                            style = "background-color: #FAFA00;")))
+                               column(5, textInput("auxdattext", "Auxiliary data table name in database", placeholder = 'Optional data'))))
           )
           )
       })
@@ -1019,34 +1015,29 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       #Merge aux with main ----
       #Merge
-      merge <- reactiveValues(show = FALSE, end = FALSE)
-      
-      observeEvent(input$mergeAux, merge$show <- TRUE)
-      
-      observeEvent(input$mergeCancel, merge$show <- FALSE)
-      
+     
       output$mergeUI <- renderUI({
         
-        if (merge$show == FALSE) return()
         tagList(
-          fluidRow(
-           column(3,
-                   selectInput("mainKey", "Main data keys",
-                               choices = colnames(values$dataset), multiple = TRUE)),
-           column(3, 
-                   selectInput("auxKey", "Auxiliary data keys",
-                               choices = colnames(aux$dataset), multiple = TRUE))),
-          fluidRow(
-            column(8,
-                   verbatimTextOutput("mergeBy"))),
-          fluidRow(
-            column(3,
-                   actionButton("mergeOK", "Merge", style = "background-color: blue; color: #FFFFFF;")),
-            column(3, 
-                   actionButton("mergeCancel", "Cancel merge", 
-                                style ="color: #fff; background-color: #FF6347; border-color: #800000;"))),
-          tags$br(), tags$br()
-          )
+          
+          conditionalPanel("input.mergeAux",
+                           
+                           fluidRow(
+                             column(3,
+                                    selectInput("mainKey", "Main data keys",
+                                                choices = colnames(values$dataset), multiple = TRUE)),
+                             column(3, 
+                                    selectInput("auxKey", "Auxiliary data keys",
+                                                choices = colnames(aux$dataset), multiple = TRUE))),
+                           fluidRow(
+                             column(8,
+                                    verbatimTextOutput("mergeBy"))),
+                           fluidRow(
+                             column(3,
+                                    actionButton("mergeOK", "Merge", style = "background-color: blue; color: #FFFFFF;"))),
+                           tags$br(), tags$br()) 
+        )
+        
       })
       
       show_merge_by <- reactive({
@@ -1066,7 +1057,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           showNotification("Key lengths must match.", type = "error")
           return()
         } else {
-
+          
           stats::setNames(input$auxKey, c(input$mainKey))
         }
       })
@@ -1075,65 +1066,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         
         if (!is.null(merge_by())) {
           
-          merge$end <- FALSE
+          values$dataset <- merge_dat(values$dataset, aux$dataset, input$projectname, input$mainKey, input$auxKey)
           
-          m_key <- input$mainKey
-          a_key <- input$auxKey
-          
-          m_class <- lapply(m_key, function(x) class(values$dataset[[x]]))
-          a_class <- lapply(a_key, function(x) class(aux$dataset[[x]]))
-          
-          no_match_class <- purrr::pmap(list(m = seq_along(m_class), a = seq_along(a_class)), 
-                                        function(m, a) !all(m_class[[m]] == a_class[[a]]))
-          
-          if (any(unlist(no_match_class))) {
-            
-            except_match <- purrr::pmap_lgl(list(m = m_class, a = a_class), function(m, a) {
-              
-              (m %in% c("character", "factor")) & (a %in% c("character", "factor")) |
-                (m %in% c("numeric", "integer")) & (a %in% c("numeric", "integer"))
-            })
-            
-            if (any(!except_match)) {
-              
-              ind <- which(!except_match)
-              
-              class_error <- vapply(ind, FUN = function(x) {
-                
-                paste0("'", m_key[x], "' and '", a_key[x], "' class types are incompatible (", 
-                       class(values$dataset[[m_key[x]]]), "/", class(aux$dataset[[a_key[x]]]), 
-                       "). Unable to merge datasets.")
-                
-              }, FUN.VALUE = character(1))
-              
-              showNotification(paste0(class_error, collapse = "\n"), type = "error",
-                               duration = NULL)
-              
-              merge$end <- TRUE
-            }
-          }
-          
-          if (!isTRUE(merge$end)) {
-        
-        
-            if (any(vapply(values$dataset[m_key], FUN = is.character, FUN.VALUE = logical(1)))) {
-              
-              values$dataset[m_key] <- as.data.frame(apply(values$dataset[m_key], 2, trimws))
-            }
-            
-            if (any(vapply(aux$dataset[a_key], FUN = is.character, FUN.VALUE = logical(1)))) {
-              
-              aux$dataset[a_key] <- as.data.frame(apply(aux$dataset[a_key], 2, trimws))
-            }
-            
-            values$dataset <-
-              dplyr::left_join(values$dataset,
-                               aux$dataset,
-                               by = merge_by(),
-                               suffix = c("_MAIN", "_AUX"))
-          }
+          showNotification("Auxiliary data merged to primary table.", type = "message")
         }
-      })
+    })
 
       
       ###---

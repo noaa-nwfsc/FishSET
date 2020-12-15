@@ -14,13 +14,18 @@
 #'   the data by two date values entered in \code{filter_val}. Other options include "year-day", 
 #'   "year-week", "year-month", "year", "month", "week", or "day". The argument filter_value must 
 #'   be provided. 
-#' @param filter_value String containing a start and end date if using filter_date = "date_range", 
+#' @param date_value String containing a start and end date if using filter_date = "date_range", 
 #'   e.g. c("2011-01-01", "2011-03-15"). If filter_date = "period" or "year-period", use integers 
 #'   (4 digits if year, 1-2 if day, month, or week). Use a list if using a two-part filter, e.g. "year-week",
 #'   with the format \code{list(year, period)} or a vector if using a single period, \code{c(period)}. 
 #'   For example, \code{list(2011:2013, 5:7)} will filter the data table from weeks 5 through 7 for 
 #'   years 2011-2013 if filter_date = "year-week".\code{c(2:5)} will filter the data
 #'   February through May when filter_date = "month".
+#' @param filter_by String, variable name to filter by.
+#' @param filter_value A vector of values to filter `MainDataTable` by using the variable 
+#'   in \code{filter_by}. 
+#' @param filter_expr String, a valid R expression to filter `MainDataTable` by using the variable 
+#'   in \code{filter_by}. 
 #' @param facet_by Variable name to facet by. This can be a variable that exists in
 #'   the dataset, or a variable created by \code{roll_catch()} such as \code{"year"},
 #'   \code{"month"}, or \code{"species"} if more than one variable is entered in \code{catch}.
@@ -38,7 +43,8 @@
 #' @param ... Additional arguments passed to \code{\link[zoo]{rollapply}}
 #' @export roll_catch
 #' @import ggplot2
-#' @importFrom stats aggregate reformulate
+#' @importFrom stats reformulate setNames
+#' @importFrom rlang sym
 #' @importFrom zoo zoo merge.zoo rollapply fortify.zoo
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @examples
@@ -49,14 +55,15 @@
 #'
 #' roll_catch(pollockMainDataTable, project = "pollock", catch = c("LBS_270_POLLOCK_LBS", 
 #'  "LBS_110_PACIFIC_COD_LBS"), date = "FISHING_START_DATE", group = "GEAR_TYPE", k = 5, 
-#'  filter_date = "month", filter_value = 4:6, facet_by = "month", convr = "tons"
+#'  filter_date = "month", date_value = 4:6, facet_by = "month", convr = "tons"
 #' )
 #' }
 #'
-roll_catch <- function(dat, project, catch, date, group = NULL, k = 10,
-                       fun = "mean", filter_date = NULL, filter_value = NULL,
-                       facet_by = NULL, scale = "fixed", align = "center",
-                       convr = FALSE, tran = "identity", output = "tab_plot", ...) {
+roll_catch <- function(dat, project, catch, date, group = NULL, k = 10, fun = "mean", 
+                       filter_date = NULL, date_value = NULL, filter_by = NULL,
+                       filter_value = NULL, filter_expr = NULL, facet_by = NULL, 
+                       scale = "fixed", align = "center",convr = FALSE, tran = "identity", 
+                       output = "tab_plot", ...) {
   out <- data_pull(dat)
   dataset <- out$dataset
   
@@ -68,25 +75,35 @@ roll_catch <- function(dat, project, catch, date, group = NULL, k = 10,
   #Empty variable
   Index <- NULL
   
+  # facet ----
   if (!is.null(facet_by)) {
+    # if facet_by contains "species", "year", "month", or "week"
+    special_facet <- ifelse(any(!(facet_by %in% names(dataset))), TRUE, FALSE) 
     
-    if (!(facet_by %in% names(dataset))) {
+    if (special_facet == TRUE) {
       
-      if (!(facet_by %in% c("year", "month", "species"))) {
-        warning("Invalid facet variable.")
+      facet <- facet_by
+      facet_by <- facet_by[facet_by %in% names(dataset)]
+      
+      if (length(facet_by) == 0) {
         
-      } else {
-        facet <- facet_by
         facet_by <- NULL
       }
       
     } else {
+      
       facet <- facet_by
     }
     
   } else {
+    
     facet <- NULL
   }
+  
+  facet_date <- facet[facet %in% c("year", "month", "week")]
+  
+  # add missing dates ----
+  dataset[[date]] <- date_parser(dataset[[date]])
   
   full_dates <- seq.Date(from = min(dataset[[date]], na.rm = TRUE),
                          to = max(dataset[[date]], na.rm = TRUE),
@@ -95,212 +112,253 @@ roll_catch <- function(dat, project, catch, date, group = NULL, k = 10,
   full_dates <- zoo::zoo(0, full_dates)
   
   if (!is.null(group)) {
+    
+    dataset[group] <- lapply(dataset[group], as.factor)
     group1 <- group[1]
     
-    dataset[[group1]] <- as.factor(dataset[[group1]])
+    if (length(group) == 1) group2 <- NULL else group2 <- group[2]
     
-    if (length(group) == 2) {
-      group2 <- group[2]
+    if (length(group) > 2) {
       
-      dataset[[group2]] <- as.factor(dataset[[group2]])
+      warning("Only the first two grouping variables will be displayed in plot.")
+    }
+    
+  } else {
+    
+    group1 <- NULL
+    group2 <- NULL
+  }
+  
+  # filter by variable ----
+  if (!is.null(filter_by) | !is.null(filter_expr)) {
+    
+    dataset <- subset_var(dataset, filter_by, filter_value, filter_expr)
+    
+    if (nrow(dataset) == 0) {
+      
+      warning("Filtered data table has zero rows. Check filter parameters.")
+      end <- TRUE
     }
   }
   
-  nm <- unique(c(date, group, facet_by))
+  # summary table ----
+  agg_grp <- unique(c(group, facet_by))
   
-  l <- lapply(nm, function(x) dataset[[x]])
+  sum_tab <- agg_helper(dataset, value = catch, period = date, group = agg_grp, fun = sum)
   
-  names(l) <- nm
-  
-  agg <- stats::aggregate(dataset[catch], by = l, FUN = sum)
-  
+  # catch conversion ----
   if (convr != FALSE) {
     if (convr == "tons") {
-      agg[catch] <- agg[catch] / 2000
+      sum_tab[catch] <- sum_tab[catch] / 2000
     } else if (convr == "metric_tons") {
-      agg[catch] <- agg[catch] / 2204.62
+      sum_tab[catch] <- sum_tab[catch] / 2204.62
     } else {
-      agg[catch] <- do.call(convr, list(agg[catch]))
+      sum_tab[catch] <- do.call(convr, list(sum_tab[catch]))
     }
   }
   
+  # data prep (pivot table) before converting to zoo object
   if (!is.null(group) | !is.null(facet_by)) {
-    nm2 <- unique(c(group, facet_by))
     
-    agg[nm2] <- apply(agg[nm2], 2, trimws)
+    sum_tab[agg_grp] <- lapply(sum_tab[agg_grp], trimws)
     
     if (length(catch) == 1) {
-      agg <- tidyr::pivot_wider(agg, names_from = nm2, values_from = catch, names_sep = "__")
-      agg[is.na(agg)] <- 0
-    } else {
-      agg <- tidyr::pivot_longer(agg, cols = catch, values_to = "catch", names_to = "species")
       
-      nm4 <- c(nm2, "species")
-      agg <- tidyr::pivot_wider(agg,
-                                names_from = nm4, names_sep = "__",
-                                values_from = "catch", values_fill = list(catch = 0))
+      sum_tab <- tidyr::pivot_wider(sum_tab, names_from = agg_grp, 
+                                    values_from = catch, names_sep = "__")
+      sum_tab[is.na(sum_tab)] <- 0
+      
+    } else {
+      
+      sum_tab <- tidyr::pivot_longer(sum_tab, cols = !!catch, values_to = "catch", 
+                                     names_to = "species")
+      
+      species_grp <- c(agg_grp, "species")
+      sum_tab <- tidyr::pivot_wider(sum_tab, names_from = !!species_grp, names_sep = "__",
+                                    values_from = "catch", values_fill = list(catch = 0))
     }
   }
   
-  z <- zoo::zoo(agg[names(agg)[!(names(agg) %in% date)]], agg[[date]])
+  # convert summary table to zoo object, merge missing dates
+  sum_tab <- zoo::zoo(sum_tab[-which(names(sum_tab) == date)], sum_tab[[date]])
+  sum_tab <- zoo::merge.zoo(sum_tab, full_dates, all = TRUE, fill = 0)
   
-  z <- zoo::merge.zoo(z, full_dates, all = TRUE, fill = 0)
+  sum_tab$full_dates <- NULL
   
-  z$full_dates <- NULL
+  roll_tab <- zoo::rollapply(sum_tab, width = k, FUN = fun, align = align, by.column = TRUE,
+                             ...)
   
-  rz <- zoo::rollapply(z, width = k, FUN = fun, align = align, by.column = TRUE,
-                       ...)
-  
-  if (!is.null(group)) {
-    rz <- zoo::fortify.zoo(rz)
+  # fortify table for plotting ----
+  if (length(agg_grp) > 0) {
     
-    if (length(nm2) > 1 & length(catch) == 1) {
-      rz <- tidyr::pivot_longer(rz,
-                                cols = -Index, names_to = nm2, values_to = "catch",
-                                names_sep = "__")
+    if (length(catch) == 1) {
+      
+      if (length(agg_grp) > 1) {
+        
+        roll_tab <- zoo::fortify.zoo(roll_tab)
+        roll_tab <- tidyr::pivot_longer(roll_tab,cols = -Index, names_to = agg_grp, 
+                                        values_to = "catch", names_sep = "__")
+      } else {
+        
+        roll_tab <- zoo::fortify.zoo(roll_tab, melt = TRUE)
+      }
       
     } else if (length(catch) > 1) {
-      rz <- tidyr::pivot_longer(rz,
-                                cols = -Index, names_to = nm4, values_to = "catch",
-                                names_sep = "__")
+      
+      roll_tab <- zoo::fortify.zoo(roll_tab)
+      roll_tab <- tidyr::pivot_longer(roll_tab,cols = -Index, names_to = species_grp, 
+                                      values_to = "catch", names_sep = "__")
     }
     
   } else if (length(catch) > 1) {
-    rz <- zoo::fortify.zoo(rz, melt = TRUE)
+    roll_tab <- zoo::fortify.zoo(roll_tab, melt = TRUE)
     
   } else {
-    rz <- zoo::fortify.zoo(rz)
+    roll_tab <- zoo::fortify.zoo(roll_tab)
   }
   
+  # set original names ----
   if (length(catch) == 1) {
-    nm3 <- c(nm, catch)
-    names(rz) <- nm3
+    roll_tab <- stats::setNames(roll_tab, c(date, agg_grp, catch))
     
   } else {
-    nm5 <- c(nm, "species", "catch")
-    names(rz) <- nm5
+    
+    roll_tab <- stats::setNames(roll_tab, c(date, agg_grp, "species", "catch"))
   }
   
+  # filter by date ----
   if (!is.null(filter_date)) {
     
-    if (filter_date != "none") {
+    roll_tab <- subset_date(roll_tab, date, filter_date, date_value)
+    
+    if (nrow(roll_tab) == 0) {
       
-      if (filter_date == "date_range") {
-        
-        rz <- rz[rz[[date]] >= filter_value[1] & rz[[date]] <= filter_value[2], ]
-        
-      } else {
-        
-        pf <- switch(filter_date, "year-month" = c("%Y", "%m"), "year-week" = c("%Y", "%U"),
-                     "year-day" = c("%Y", "%j"), "year" = "%Y", "month" = "%m", "week" = "%U",
-                     "day" = "%j")
-        
-        if (grepl("-", filter_date)) {
-          
-          rz <- rz[(as.integer(format(rz[[date]], pf[1])) %in% filter_value[[1]]) & 
-                     (as.integer(format(rz[[date]], pf[2])) %in% filter_value[[2]]), ]
-          
-        } else {
-          
-          rz <- rz[as.integer(format(rz[[date]], pf)) %in% filter_value, ]
-        }
-        
-        if (nrow(rz) == 0) {
-          
-          warning("Filtered data table has zero rows. Check filter parameters.")
-          end <- TRUE
-        }
-      }
+      warning("Filtered data table has zero rows. Check filter parameters.")
+      end <- TRUE
     }
   }
   
-  f_catch <- function() if (length(catch) == 1) catch else "catch"
-  
-  if (!is.null(facet)) {
-    if (facet %in% c("year", "month")) {
-      rz$year <- as.integer(format(rz[[date]], "%Y"))
-      rz$month <- as.integer(format(rz[[date]], "%m"))
-      rz$day <- as.integer(format(rz[[date]], if (facet == "year") "%j" else "%d"))
-      
-      date_lab <- function(x) {
-        if (facet == "year") {
-          format(as.Date(as.character(x), "%j"), "%b-%d")
-          
-        } else if (facet == "month") {
-          format(as.Date(as.character(x), "%j"), "%d")
+  # plot ----
+  if (output %in% c("tab_plot", "plot")) {
+    
+    # plot functions ----
+    catch_exp <- function() if (length(catch) == 1) rlang::sym(catch) else rlang::sym("catch")
+    
+    date_sym <- rlang::sym(date)
+    
+    x_axis_exp <- function() {
+      if (!is.null(facet)) {
+        if (facet %in% c("year", "month")) {
+          rlang::sym("day")
+        } else {
+          date_sym
+        }
+      } else {
+        date_sym
+      }
+    }
+    
+    species_exp <- function() if (length(catch) > 1) rlang::sym("species") else NULL
+    
+    color_exp <- function() {
+      if (length(catch) == 1) {
+        if (is.null(group)) {
+          NULL
+        } else {
+          rlang::sym(group1)
+        }
+      } else if (length(catch) > 1) {
+        species_exp()
+      }
+    }
+    
+    linetype_exp <- function() {
+      if (length(catch) == 1) {
+        if (!is.null(group)) {
+          if (length(group) == 1) {
+            NULL
+          } else {
+            rlang::sym(group2)
+          }
+        } else {
+          NULL
+        }
+      } else if (length(catch) > 1) {
+        if (!is.null(group)) {
+          rlang::sym(group1)
+        } else {
+          NULL
         }
       }
-      
-      rc_plot <- ggplot2::ggplot(rz, ggplot2::aes_string("day", f_catch())) +
-        fishset_theme() +
-        ggplot2::theme(legend.position = "bottom") +
-        ggplot2::scale_x_continuous(labels = function(x) date_lab(x)) +
-        ggplot2::facet_grid(stats::reformulate(".", facet), scales = scale)
-      
-    } else {
-      rc_plot <- ggplot2::ggplot(rz, ggplot2::aes_string(date, f_catch())) +
-        fishset_theme() +
-        ggplot2::theme(legend.position = "bottom") +
-        ggplot2::facet_grid(reformulate(".", facet), scales = scale)
     }
-  } else {
-    rc_plot <- ggplot2::ggplot(rz, ggplot2::aes_string(date, f_catch())) +
+    
+    size_exp <- function() {
+      if (length(group) > 1 & length(catch) > 1) {
+        rlang::sym(group2) 
+      } else { 
+        NULL
+      }
+    }
+    
+    date_lab <- function(x) {
+      if (facet == "year") {
+        format(as.Date(as.character(x), "%j"), "%b-%d")
+        
+      } else if (facet == "month") {
+        format(as.Date(as.character(x), "%j"), "%d")
+      }
+    }
+    
+    if (!is.null(facet)) {
+      if (facet %in% c("year", "month")) {
+        roll_tab$year <- as.integer(format(roll_tab[[date]], "%Y"))
+        roll_tab$month <- as.integer(format(roll_tab[[date]], "%m"))
+        roll_tab$day <- as.integer(format(roll_tab[[date]], if (facet == "year") "%j" else "%d"))
+      }
+    }
+    
+    rc_plot <- 
+      ggplot2::ggplot(roll_tab, ggplot2::aes(!!x_axis_exp(), !!catch_exp())) +
+      ggplot2::geom_line(ggplot2::aes(color = !!color_exp(), linetype = !!linetype_exp(),
+                                      size = !!size_exp())) +
+      ggplot2::scale_y_continuous(trans = tran) +
       fishset_theme() +
       ggplot2::theme(legend.position = "bottom")
-  }
-  
-  if (!is.null(group)) {
     
-    if (length(group) == 1) {
-      
-      if (length(catch) == 1) {
-        rc_plot <- rc_plot + ggplot2::geom_line(ggplot2::aes_string(color = group1))
-        
-      } else {
-        rc_plot <- rc_plot + ggplot2::geom_line(ggplot2::aes_string(
-          color = "species", linetype = group1))
+    
+    if (!is.null(facet)) {
+      if (facet %in% c("year", "month")) {
+        rc_plot <- 
+          rc_plot + 
+          ggplot2::scale_x_continuous(labels = function(x) date_lab(x))
       }
       
-    } else if (length(group) == 2) {
-      
-      if (length(catch) == 1) {
-        rc_plot <- rc_plot + ggplot2::geom_line(ggplot2::aes_string(
-          color = group1, linetype = group2))
-        
-      } else {
-        rc_plot <- rc_plot + ggplot2::geom_line(ggplot2::aes_string(
-          color = "species", linetype = group1, size = group2))
-      }
+      rc_plot <- 
+        rc_plot +
+        ggplot2::facet_grid(stats::reformulate(".", facet), scales = scale)
     }
     
-  } else if (length(catch) > 1) {
-    rc_plot <- rc_plot + ggplot2::geom_line(ggplot2::aes_string(color = "species"))
-    
-  } else {
-    rc_plot <- rc_plot + ggplot2::geom_line()
+    save_plot(project, "roll_catch", rc_plot)
   }
   
-  rc_plot <- rc_plot + ggplot2::scale_y_continuous(trans = tran) +
-    
-    save_plot(project, "roll_catch", rc_plot)
-  save_table(rz, project, "roll_catch")
+  save_table(roll_tab, project, "roll_catch")
   
   roll_catch_function <- list()
   roll_catch_function$functionID <- "roll_catch"
-  roll_catch_function$args <- list(dat, project, catch, date, group, k, fun,
-                                   filter_date, filter_value, facet_by, scale,
-                                   align, convr, tran, output)
+  roll_catch_function$args <- list(dat, project, catch, date, group, k, fun, filter_date, 
+                                   date_value, filter_by, filter_value, filter_expr, facet_by, 
+                                   scale, align, convr, tran, output)
   roll_catch_function$kwargs <- list(...)
   log_call(roll_catch_function)
   
   if (output == "table") {
-    rz
+    roll_tab
     
   } else if (output == "plot") {
     rc_plot
     
   } else if (output == "tab_plot") {
-    tab_plot <- list(table = rz, plot = rc_plot)
+    tab_plot <- list(table = roll_tab, plot = rc_plot)
     
     tab_plot
   }

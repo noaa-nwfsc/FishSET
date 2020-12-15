@@ -34,8 +34,6 @@
 #' @param facet_by Variable name to facet by. This can be a variable that exists in 
 #'   the dataset, or a variable created by \code{weekly_effort()} such as \code{"year"}, 
 #'   \code{"month"}, or \code{"species"}.  
-#' @param conv Convert cpue variable to \code{"tons"}, \code{"metric_tons"}, or 
-#'   by using a function entered as a string. Defaults to \code{"none"}.
 #' @param tran A function to transform the y-axis. Options include log, log2, log10, sqrt.
 #' @param combine Whether to combine variables listed in \code{group}. This is passed
 #'   to the "color" aesthetic for plots. 
@@ -69,9 +67,8 @@
 
 weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = NULL, 
                           date_value = NULL, filter_by = NULL, filter_value = NULL,
-                          filter_expr = NULL, facet_by = NULL, conv = "none",
-                          tran = "identity",  combine = FALSE, scale = "fixed", 
-                          output = "tab_plot", format_tab = "wide") {
+                          filter_expr = NULL, facet_by = NULL, tran = "identity",  
+                          combine = FALSE, scale = "fixed", output = "tab_plot", format_tab = "wide") {
     
     # Call in datasets
     out <- data_pull(dat)
@@ -82,7 +79,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = 
     } else { 
         if (!is.character(dat)) dat <- deparse(substitute(dat)) }
     
-    # facet ----
+    # facet setup ----
     if (!is.null(facet_by)) {
         # if facet_by contains "species", "year", "month", or "week"
         special_facet <- ifelse(any(!(facet_by %in% names(dataset))), TRUE, FALSE) 
@@ -107,7 +104,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = 
         facet <- NULL
     }
     
-    # group----
+    # group setup ----
     if (!is.null(group)) {
         
         if (combine == TRUE) {
@@ -145,7 +142,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = 
         }
     }
     
-    # date ----
+    # date setup ----
     facet_date <- facet[facet %in% c("year", "month", "week")]
     
     if (!is.null(date)) {
@@ -203,24 +200,6 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = 
         
         table_out <- reshape2::melt(table_out, measure.vars = cpue, variable.name = "species", 
                                     value.name = "mean_cpue")
-    }
-    
-    f_cpue <- function() if (length(cpue) == 1) cpue else "mean_cpue"
-    
-    if (conv != "none") {
-        
-        if (conv == "tons") {
-            
-            table_out[f_cpue()] <- table_out[f_cpue()]/2000
-            
-        } else if (conv == "metric_tons") {
-            
-            table_out[f_cpue()] <- table_out[f_cpue()]/2204.62
-            
-        } else {
-            
-            table_out[f_cpue()] <- do.call(conv, list(table_out[f_cpue()]))
-        }
     }
     
     row.names(table_out) <- 1:nrow(table_out)
@@ -343,7 +322,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = 
     weekly_effort_function$functionID <- "weekly_effort"
     weekly_effort_function$args <- list(dat, project, cpue, date, group, filter_date, 
                                         date_value, filter_by, filter_value, filter_expr,
-                                        facet_by, conv, tran, combine, scale, output, format_tab)
+                                        facet_by, tran, combine, scale, output, format_tab)
     log_call(weekly_effort_function)
     
     save_table(table_out, project, "weekly_effort")

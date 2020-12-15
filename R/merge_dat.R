@@ -29,13 +29,21 @@ merge_dat <- function(dat, aux, project, mainKey, auxKey) {
 
   # pull main data
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
+  
+  if (shiny::isRunning()) {
+    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
+  } else { 
+    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
   
   # pull aux data
   aux_out <- data_pull(aux)
-  aux <- aux_out$aux
   aux_dat <- aux_out$dataset
+  
+  if (shiny::isRunning()) {
+    if (deparse(substitute(aux)) == "aux$dataset") aux <- get("aux_name")
+  } else { 
+    if (!is.character(aux)) aux <- deparse(substitute(aux)) }
   
   end <- FALSE 
 
@@ -89,12 +97,12 @@ merge_dat <- function(dat, aux, project, mainKey, auxKey) {
     # if key is character or factor class, trim white spaces
     if (any(vapply(dataset[mainKey], FUN = is_factor_char, FUN.VALUE = logical(1)))) {
       
-      dataset[mainKey] <- as.data.frame(apply(dataset[mainKey], 2, trimws))
+      dataset[mainKey] <- lapply(mainKey, function(x) trimws(dataset[[x]]))
     }
     
     if (any(vapply(aux_dat[auxKey], FUN = is_factor_char, FUN.VALUE = logical(1)))) {
       
-      aux_dat[auxKey] <- as.data.frame(apply(aux_dat[auxKey], 2, trimws))
+      aux_dat[auxKey] <- lapply(auxKey, function(x) trimws(aux_dat[[x]]))
     }
     
     dataset <-
