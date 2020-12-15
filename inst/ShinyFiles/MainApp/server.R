@@ -437,16 +437,17 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             'The', tags$em('Compute New Variables'), 'tab is used to modify or create new variables such as CPUE 
             and haul midpoint.',
 				tags$br(), tags$br(),
-            'Functions are grouped into six categories:',
+            'Functions are grouped into seven categories:',
             tags$li('Arithmetic and temporal'), 
             tags$li('Data transformations'), 
             tags$li('Dummy variables'), 
             tags$li('Nominal ID'), 
             tags$li('Spatial'), 
             tags$li('Trip-level'),
+				    tags$li('Confidentiality'),
 				tags$br(),tags$br(),
 				    'We describe first how to run functions, view the created variable, and save the altered data. We then describe the 
-				    functions in the six variable creation categories.',
+				    functions in the seven variable creation categories.',
 				tags$br(), tags$br(),
             'To run a function, click the', tags$code('Run function'), 'button (arrow 1). This will run the selected function and
             generate the output.',
@@ -472,7 +473,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 				tags$ul(tags$em('Spatial'), 'functions focus on creating variables that vary over space, such as haul midpoint and distance between points.)
 				        A spatial data file is required.'),
 				tags$ul(tags$em('Trip-level'), 'functions focus on trip-level variables including trip distance and trip centroid. A function to collapse 
-				        data from haul level to trip level is also included.')
+				        data from haul level to trip level is also included.'),
+				tags$ul(tags$em('Confidentiality'), 'functions focus on modifications to the data that will remove the 
+				        potential for confidential data to be shown. WARNING NOTE')
             )
         }
       })
