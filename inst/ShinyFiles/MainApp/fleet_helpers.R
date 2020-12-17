@@ -79,22 +79,55 @@ validate_date <- function(date = NULL, period = NULL, filter_date = NULL, fct = 
   }
 }
 
+n_plot_output <- function(out) {
+    
+    if ("ggplot" %in% class(out)) {
+      
+      renderPlot({ out })
+      
+    } else if ("gtable" %in% class(out)) {
+      
+      renderPlot(gridExtra::grid.arrange(out))
+      
+    } else if (all(class(out) == "list")) {
+      
+      lapply(out, function(x) renderPlot(x))
+    }
+}
+
+n_tab_output <- function(out) {
+  
+  if (is.data.frame(out)) {
+    
+    DT::renderDT({ out })
+    
+  } else {
+    
+    lapply(seq_along(out), function(x) DT::renderDT(out[[x]]))
+  }
+}
+
 tabplot_output <- function(out, out_type) {
   
   if (out_type == "plot") {
-    
-    shinycssloaders::withSpinner(list(renderPlot({ out })))
+    shinycssloaders::withSpinner(
+      tagList(
+        n_plot_output(out)
+      ))
     
   } else if (out_type == "table") {
     
-    shinycssloaders::withSpinner(list(DT::renderDT({ out })))
+    shinycssloaders::withSpinner(
+      tagList(
+        n_tab_output(out)
+      ))
     
   } else if (out_type == "tab_plot") {
     
     shinycssloaders::withSpinner(
       tagList(
-        renderPlot({out$plot}),
-        DT::renderDT({out$table})
+        n_plot_output(out$plot),
+        n_tab_output(out$table)
       ))
   }
 }

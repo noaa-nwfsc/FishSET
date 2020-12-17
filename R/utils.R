@@ -618,7 +618,7 @@ save_table <- function(table, project, func_name, ...) {
   #' @param table table name.
   #' @param project project name.
   #' @param func_name function name.
-  #' @param ... addition arguments passsed to write.csv function.
+  #' @param ... addition arguments passed to write.csv function.
   #' @keywords internal
   #' @export
   #' @examples
