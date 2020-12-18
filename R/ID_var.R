@@ -9,7 +9,8 @@
 #' @param type String, the class type of the new ID column. "string" returns a character
 #'   vector where each column in \code{vars} is combined and separated with an underscore 
 #'   "_". "integer" returns an integer vector where each value corresponds to a unique
-#'   group in \code{vars}. 
+#'   group in \code{vars}.
+#' @param drop Logical, whether to drop columns in \code{vars}.  
 #' @export ID_var
 #' @return Returns the `MainDataTable` with the ID variable included.
 #' @details ID variable can be based on a single or multiple variables.
@@ -19,7 +20,7 @@
 #' pcodMainDataTable <- ID_var(pcodMainDataTable, name = "PermitID", c("GEAR_TYPE", "TRIP_SEQ"))
 #' }
 #'
-ID_var <- function(dat, vars, name = NULL, type = "string") {
+ID_var <- function(dat, vars, name = NULL, type = "string", drop = FALSE) {
 
   # Call in datasets
   out <- data_pull(dat)
@@ -44,6 +45,11 @@ ID_var <- function(dat, vars, name = NULL, type = "string") {
   if (type == "integer") {
     
     dataset[[name]] <- as.integer(as.factor(dataset[[name]]))
+  }
+  
+  if (drop == TRUE) {
+    
+    dataset[vars] <- NULL
   }
 
   # logging function information write(layout.json.ed(trace, 'ID_var', deparse(substitute(dataset)), newID, msg = paste(newID, 'created based on',
