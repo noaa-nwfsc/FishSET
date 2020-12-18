@@ -441,6 +441,14 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
       by_plot <- gridExtra::arrangeGrob(by_plot, legend, ncol = 1, heights = c(.9, .1))
     }
     
+    f_plot <- function() {
+      if (shiny::isRunning()) {
+        by_plot
+      } else {
+        gridExtra::grid.arrange(by_plot, ncol = 1)
+      }
+    }
+    
     save_plot(project, "bycatch", by_plot)
   }
   # remove extra cols used for joining 
@@ -464,7 +472,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
   
   if (output == "plot") {
     
-    gridExtra::grid.arrange(by_plot, ncol = 1)
+    f_plot()
     
   } else if (output == "table") {
     
@@ -473,7 +481,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
   } else {
     
     out_list <- list(table = bycatch,
-                     plot = gridExtra::grid.arrange(by_plot, ncol = 1))
+                     plot = f_plot())
     out_list
   }
 }
