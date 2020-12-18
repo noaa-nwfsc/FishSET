@@ -862,6 +862,8 @@ trip_lengthUI <- function(id) {
     actionButton(ns("fun_run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
     
+    tags$br(), tags$br(),
+    
     selectInput(ns("out"), "View table and/or plot",
                 choices = c("plot and table" = "tab_plot", "plot", "table")),
     
@@ -873,44 +875,78 @@ trip_lengthUI <- function(id) {
                 choices = c("minutes" = "mins", "hours", "days", "weeks"),
                 selected = "hours"),
     
-    selectizeInput(ns("filter_date"), "Subset data by (optional)",
-                   choices = c("none", "date range" = "date_range", "year-month", 
-                               "year-week", "year-day", "year", "month", "week", "day")),
-    
-    uiOutput(ns("filter_UI")),
-    
     uiOutput(ns("catch_select")),
     
     uiOutput(ns("haul_select")),
     
+    tags$br(), tags$br(),
+    
+    h4(strong("Subset")),
+    
+    uiOutput(ns("filter_by_UIOutput")), 
+    
+    uiOutput(ns("filter_by_val_UIOutput")), 
+    
+    textInput(ns("filter_expr"), "Subset expression",
+              value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
+    
+    selectizeInput(ns("filter_date"), "Subset by date",
+                   choices = c("date range" = "date_range", "year-month", 
+                               "year-week", "year-day", "year", "month", "week", "day"),
+                   multiple = TRUE, options = list(maxItems = 1)),
+    
+    uiOutput(ns("filter_date_UIOutput")),
+    
+    tags$br(), tags$br(),
+    
+    h4(strong("Group")),
+    
     uiOutput(ns("grp_select")),
+    
+    tags$br(), tags$br(),
+    
+    h4(strong("Split")),
     
     uiOutput(ns("fct_select")),
     
-    selectInput(ns("type"), "Plot type",
-                choices = c("histogram" = "hist", "frequency polygon" = "freq_poly")),
+    h4(strong("Plot options")),
     
-    sliderInput(ns("bins"), "Bins",
-                min = 1, max = 60, value = 30),
-    
-    checkboxInput(ns("dens"), "Density (y-axis)", value = TRUE),
-    
-    selectInput(ns("tran"), "Transform x-axis (optional)",
-                choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
-    
-    selectInput(ns("scale"), "Split plot scale",
-                choices = c("fixed", "free y-axis" = "free_y",
-                            "free x-axis" = "free_x", "free")),
-    
-    checkboxInput(ns("haul_trp"), "Convert to trip-level?",
+    checkboxInput(ns("show_options"), "Show plot options",
                   value = FALSE),
     
-    conditionalPanel("input.haul_trp",
+    conditionalPanel("input.show_options", ns = ns,
                      
-                     uiOutput(ns("kwargs_select"))),
+      tagList(
     
-    selectInput(ns("format"), "Table format",
-                choices = c("wide", "long")),
+        selectInput(ns("type"), "Plot type",
+                    choices = c("histogram" = "hist", "frequency polygon" = "freq_poly")),
+        
+        selectInput(ns("pages"), "Plot output", choices = c("single", "mulitple" = "multi"), selected = "multi"),
+        
+        sliderInput(ns("bins"), "Bins",
+                    min = 2, max = 60, value = 30),
+        
+        checkboxInput(ns("dens"), "Density (y-axis)", value = FALSE),
+        
+        checkboxInput(ns("rm_neg"), "Remove negative durations", value = FALSE),
+        
+        selectInput(ns("tran"), "Transform x-axis (optional)",
+                    choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
+        
+        selectInput(ns("scale"), "Split plot scale",
+                    choices = c("fixed", "free y-axis" = "free_y",
+                                "free x-axis" = "free_x", "free")),
+        
+        checkboxInput(ns("haul_trp"), "Convert to trip-level",
+                      value = FALSE),
+        
+        conditionalPanel("input.haul_trp",
+                         
+                         uiOutput(ns("kwargs_select"))),
+        
+        selectInput(ns("format"), "Table format",
+                    choices = c("wide", "long")))
+    ),
     
     RexpressionUI(ns("exp")),
     div( style = "margin-top: 2em;",
