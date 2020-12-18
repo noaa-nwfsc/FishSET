@@ -417,7 +417,8 @@ trip_length <- function(dat, project, start, end, units = "days", catch = NULL,
       if (type == "hist") {
         t_plot <- t_plot + ggplot2::geom_histogram(ggplot2::aes(fill = !!group_exp()), bins = bins)
       } else if (type == "freq_poly") {
-        t_plot <- t_plot + ggplot2::geom_freqpoly(ggplot2::aes(color = !!group_exp()), bins = bins)
+        t_plot <- t_plot + ggplot2::geom_freqpoly(ggplot2::aes(color = !!group_exp()), 
+                                                  bins = bins, size = 1)
       }
       
       if (!is.null(facet_by)) {
@@ -447,7 +448,8 @@ trip_length <- function(dat, project, start, end, units = "days", catch = NULL,
         if (type == "hist") {
           h_plot <- h_plot + ggplot2::geom_histogram(ggplot2::aes(fill = !!group_exp()), bins = bins)
         } else if (type == "freq_poly") {
-          h_plot <- h_plot + ggplot2::geom_freqpoly(ggplot2::aes(color = !!group_exp()), bins = bins)
+          h_plot <- h_plot + ggplot2::geom_freqpoly(ggplot2::aes(color = !!group_exp()), 
+                                                    bins = bins, size = 1)
         }
         
         if (pages == "single") {
