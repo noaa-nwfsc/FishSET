@@ -171,7 +171,6 @@ density_serv <- function(id, values, project) {
       session$sendCustomMessage(type = 'jsCode', list(value = jsinject))
     })
     
-    
     ns <- session$ns
     
     output$var_select <- renderUI({
@@ -189,7 +188,7 @@ density_serv <- function(id, values, project) {
     
     output$date_select <- renderUI({
       
-      selectizeInput(ns("date"), "Date variable (optional)",
+      selectizeInput(ns("date"), "Subset, split, or group by date (optional)",
                      choices = c(date_cols(values$dataset)),
                      multiple = TRUE, options = list(maxItems = 1))
     })
@@ -201,33 +200,71 @@ density_serv <- function(id, values, project) {
                      multiple = TRUE, options = list(maxItems = 2))
     })
     
-    output$filter_UI <- renderUI({
+    filter_val <- reactive({
       
-      if (input$filter_date == "date_range") {
+      if (is.null(input$filter_by)) {
         
-        dateRangeInput(ns("date_range"), label = "Date range",
-                       start = min(values$dataset[[input$date]], na.rm = TRUE),
-                       end = max(values$dataset[[input$date]], na.rm = TRUE))
+        NULL
         
-      } else if (!(input$filter_date %in% c("date_range", "none"))) {
+      } else {
         
-        filter_periodUI(id, values$dataset, input$date, input$filter_date)
+        out <- unique(values$dataset[[input$filter_by]])
+        out
+      }
+    })
+    
+    output$filter_by_UIOutput <- renderUI({
+      
+      selectizeInput(ns("filter_by"), "Subset by variable",
+                     choices = names(values$dataset), multiple = TRUE, options = list(maxItems = 1)) 
+    })
+    
+    output$filter_by_val_UIOutput <- renderUI({
+      
+      tagList(  
+        conditionalPanel("typeof input.filter_by !== 'undefined' && input.filter_by.length > 0", ns = ns,
+                         style = "margin-left:19px;",
+                         
+                         selectizeInput(ns("filter_by_val"), "Select values to subset by",
+                                        choices = filter_val(),
+                                        multiple = TRUE, options = list(maxOptions = 15, placeholder = "Select or type value name")))
+      )
+    })
+    
+    output$filter_date_UIOutput <- renderUI({
+      
+      if (!is.null(input$date)) {
+        if (!is.null(input$filter_date)) {
+          if (input$filter_date == "date_range") {
+            
+            dateRangeInput(ns("date_range"), label = "Date range",
+                           start = min(values$dataset[[input$date]], na.rm = TRUE),
+                           end = max(values$dataset[[input$date]], na.rm = TRUE))
+            
+          } else if (input$filter_date != "date_range") {
+            
+            filter_periodUI(id, values$dataset, input$date, input$filter_date)
+          }
+        }
       }
     })
     
     date_value <- reactive({
-
-      if (input$filter_date == "date_range") {
+      
+      if (!is.null(input$date) & !is.null(input$filter_date)) {
         
-        return(input$date_range)
+        if (input$filter_date == "date_range") {
+          
+          return(input$date_range)
+          
+        } else if (input$filter_date != "date_range") {
+          
+          filter_periodOut(id, input$filter_date, input)
+        }
         
-      } else if (!(input$filter_date %in% c("none", "date_range"))) {
+      } else {
         
-        filter_periodOut(id, input$filter_date, input)
-        
-      } else if (input$filter_date == "none") {
-        
-        return(NULL)
+        NULL
       }
     })
     
@@ -235,9 +272,10 @@ density_serv <- function(id, values, project) {
       
       validate_date(input$date, input$filter_date, input$fct, input$grp)
       
-      density_plot(values$dataset, project = project(), var = input$var, type = input$type, group = input$grp,
-                   date = input$date, filter_date = input$filter_date, filter_value = date_value(), 
-                   facet_by = input$fct, scale = input$scale, combine = input$combine, 
+      density_plot(values$dataset, project = project(), var = input$var, type = input$type, 
+                   group = input$grp,date = input$date, filter_date = input$filter_date, 
+                   date_value = date_value(), filter_by = input$filter_by, filter_value = input$filter_by_val, 
+                   filter_expr = input$filter_expr, facet_by = input$fct, scale = input$scale, 
                    tran = input$tran, bw = input$bw, position = input$position) 
     })
     
@@ -336,7 +374,7 @@ vessel_serv <- function(id, values, project) {
                              start = min(values$dataset[[input$date]], na.rm = TRUE),
                              end = max(values$dataset[[input$date]], na.rm = TRUE))
               
-            } else if (!(input$filter_date %in% c("date_range", "none"))) {
+            } else if (input$filter_date != "date_range") {
               
               filter_periodUI(id, values$dataset, input$date, input$filter_date)
             }
@@ -1205,12 +1243,12 @@ trip_serv <- function(id, values, project) {
         if (input$filter_date == "date_range") {
           
           dateRangeInput(ns("date_range"), label = "Date range",
-                         start = min(values$dataset[[input$date]], na.rm = TRUE),
-                         end = max(values$dataset[[input$date]], na.rm = TRUE))
+                         start = min(values$dataset[[input$start]], na.rm = TRUE),
+                         end = max(values$dataset[[input$start]], na.rm = TRUE))
           
         } else {
           
-          filter_periodUI(id, values$dataset, input$date, input$filter_date)
+          filter_periodUI(id, values$dataset, input$start, input$filter_date)
         }
       }
     })
@@ -1241,8 +1279,9 @@ trip_serv <- function(id, values, project) {
       
       trip_length(values$dataset, project = project(), start = input$start, end = input$end,
                   units = input$unit, catch = input$catch, hauls = input$haul,
-                  group = input$grp, filter_date = input$filter_date, filter_value = date_value(),
-                  facet_by = input$fct, density = input$dens, tran = input$tran,
+                  group = input$grp, filter_date = input$filter_date, date_value = date_value(),
+                  filter_by = input$filter_by, filter_value = input$filter_by_val, 
+                  filter_expr = input$filter_expr, facet_by = input$fct, density = input$dens, tran = input$tran,
                   scale = input$scale, output = input$out, pages = input$pages, remove_neg = input$rm_neg,
                   type = input$type, format_tab = input$format, bins = input$bins,
                   haul_to_trip = input$haul_trp, input$htp_kwargs)
