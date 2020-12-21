@@ -180,38 +180,71 @@ density_plotUI <- function(id, dat) {
     actionButton(ns("fun_run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
     
+    tags$br(), tags$br(),
+    
     selectInput(ns("type"), "Plot type",
-                choices = c("kde", "ecdf", "cdf")),
+                choices = c("Kernel density estimate" = "kde",
+                            "Empirical cumulative distribution function" = "ecdf", 
+                            "Cumulative distribution function" = "cdf")),
     
     uiOutput(ns("var_select")),
     
     uiOutput(ns("date_select")),
     
-    selectizeInput(ns("filter_date"), "Subset data by (optional)",
-                   choices = c("none", "date range" = "date_range", "year-month", "year-week", "year-day",
-                               "year", "month", "week", "day")),
+    tags$br(), tags$br(),
     
-    uiOutput(ns("filter_UI")),
+    h4(strong("Subset")),
+    
+    uiOutput(ns("filter_by_UIOutput")), 
+    
+    uiOutput(ns("filter_by_val_UIOutput")),
+    
+    textInput(ns("filter_expr"), "Subset expression",
+              value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
+    
+    selectizeInput(ns("filter_date"), "Subset by date",
+                   choices = c("date range" = "date_range", "year-month", 
+                               "year-week", "year-day", "year", "month", "week", "day"),
+                   multiple = TRUE, options = list(maxItems = 1)),
+    
+    uiOutput(ns("filter_date_UIOutput")),
+    
+    tags$br(), tags$br(),
+    
+    h4(strong("Group")),
     
     uiOutput(ns("grp_select")),
     
-    checkboxInput(ns("combine"), "Combine grouping variables",
-                  value = FALSE),
+    tags$br(), tags$br(),
+    
+    h4(strong("Split")), 
     
     uiOutput(ns("fct_select")),
     
-    numericInput(ns("bw"), "Kernel binwidth",
-                 value = 1),
+    tags$br(), tags$br(),
     
-    selectInput(ns("tran"), "Transformation function (optional)",
-                choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
+    h4(strong("Plot options")),
     
-    selectInput(ns("scale"), "Split plot scale",
-                choices = c("fixed", "free y-axis" = "free_y", 
-                            "free x-axis" = "free_x", "free")),
+    checkboxInput(ns("show_options"), "Show plot options",
+                  value = FALSE),
     
-    selectInput(ns("position"), "Position of grouping variables",
-                choices = c("identity", "fill", "stack"), selected = "identity"),
+    conditionalPanel("input.show_options", ns = ns,
+                     
+      tagList(
+    
+        numericInput(ns("bw"), "Kernel banwidth",
+                     value = 1),
+        
+        selectInput(ns("tran"), "Transformation function (optional)",
+                    choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
+        
+        selectInput(ns("scale"), "Split plot scale",
+                    choices = c("fixed", "free y-axis" = "free_y", 
+                                "free x-axis" = "free_x", "free")),
+        
+        selectInput(ns("position"), "Position of grouping variables",
+                    choices = c("identity", "fill", "stack"), selected = "identity"))
+    ),
     
     RexpressionUI(ns("exp")),
     div( style = "margin-top: 2em;",
