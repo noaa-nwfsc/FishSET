@@ -477,27 +477,24 @@ subset_date <- function(dataset, date, filter, value) {
   #' @export
   #' @keywords internal
   
-  if (filter != "none") {
-    
-    if (filter == "date_range") {
+  if (filter == "date_range") {
       
-      dataset <- dataset[dataset[[date]] >= value[1] & dataset[[date]] <= value[2], ]
+    dataset <- dataset[dataset[[date]] >= value[1] & dataset[[date]] <= value[2], ]
+    
+  } else {
+    
+    pf <- switch(filter, "year-month" = c("%Y", "%m"), "year-week" = c("%Y", "%U"),
+                 "year-day" = c("%Y", "%j"), "year" = "%Y", "month" = "%m", "week" = "%U",
+                 "day" = "%j")
+    
+    if (grepl("-", filter)) {
+      
+      dataset <- dataset[(as.integer(format(dataset[[date]], pf[1])) %in% value[[1]]) & 
+                           (as.integer(format(dataset[[date]], pf[2])) %in% value[[2]]), ]
       
     } else {
       
-      pf <- switch(filter, "year-month" = c("%Y", "%m"), "year-week" = c("%Y", "%U"),
-                   "year-day" = c("%Y", "%j"), "year" = "%Y", "month" = "%m", "week" = "%U",
-                   "day" = "%j")
-      
-      if (grepl("-", filter)) {
-        
-        dataset <- dataset[(as.integer(format(dataset[[date]], pf[1])) %in% value[[1]]) & 
-                             (as.integer(format(dataset[[date]], pf[2])) %in% value[[2]]), ]
-        
-      } else {
-        
-        dataset <- dataset[as.integer(format(dataset[[date]], pf)) %in% value, ]
-      }
+      dataset <- dataset[as.integer(format(dataset[[date]], pf)) %in% value, ]
     }
   }
   
