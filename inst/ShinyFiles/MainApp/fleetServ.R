@@ -209,6 +209,9 @@ density_serv <- function(id, values, project) {
       } else {
         
         out <- unique(values$dataset[[input$filter_by]])
+        
+        if (length(out) > 50)  out <- out[1:50]
+        
         out
       }
     })
@@ -341,6 +344,9 @@ vessel_serv <- function(id, values, project) {
       } else {
         
         out <- unique(values$dataset[[input$filter_by]])
+        
+        if (length(out) > 50)  out <- out[1:50]
+        
         out
       }
     })
@@ -495,6 +501,8 @@ species_serv <- function(id, values, project) {
       } else {
         
         out <- unique(values$dataset[[input$filter_by]])
+        
+        if (length(out) > 50)  out <- out[1:50]
 
         out
       }
@@ -650,6 +658,8 @@ roll_serv <- function(id, values, project) {
         
         out <- unique(values$dataset[[input$filter_by]])
         
+        if (length(out) > 50)  out <- out[1:50]
+        
         out
       }
     })
@@ -783,6 +793,8 @@ weekly_catch_serv <- function(id, values, project) {
         
         out <- unique(values$dataset[[input$filter_by]])
         
+        if (length(out) > 50)  out <- out[1:50]
+        
         out
       }
     })
@@ -915,6 +927,8 @@ weekly_effort_serv <- function(id, values, project) {
       } else {
         
         out <- unique(values$dataset[[input$filter_by]])
+        
+        if (length(out) > 50)  out <- out[1:50]
         
         out
       }
@@ -1052,6 +1066,8 @@ bycatch_serv <- function(id, values, project) {
       } else {
         
         out <- unique(values$dataset[[input$filter_by]])
+        
+        if (length(out) > 50)  out <- out[1:50]
         
         out
       }
@@ -1214,6 +1230,8 @@ trip_serv <- function(id, values, project) {
         
         out <- unique(values$dataset[[input$filter_by]])
         
+        if (length(out) > 50)  out <- out[1:50]
+        
         out
       }
     })
@@ -1300,6 +1318,50 @@ trip_serv <- function(id, values, project) {
 }
 # Fleet Table ====
 
+# expr builder add row server
+nexpr_row_server <- function(id, values) {
+  moduleServer(id, function(input, output, session) {
+    
+    ns <- session$ns
+    
+    output$varUI <- renderUI({
+      selectInput(ns("var"), "", 
+                  choices = colnames(values$dataset), multiple = FALSE)
+    })
+    
+    unique_values  <- reactive({
+      
+      if (is.null(input$var)) {
+        
+        NULL
+        
+      } else {
+        
+        out <- unique(values$dataset[[input$var]])
+        
+        out
+      }
+    })
+    
+    output$valueUI <- renderUI({
+      
+      if (input$oper == "%in%") {
+        textInput(ns("value"), "",
+                  value = "c( add choices here )",
+                  placeholder = 'e.g. c("Port A", "Port D")')
+      } else {
+        
+        #textInput(ns("value"), "")
+        selectizeInput(ns("value"), "",
+                       choices = unique_values(),   
+                       multiple = TRUE, options = list(maxOptions = 15, maxItems = 1, 
+                                                       placeholder = "Select or type value name",
+                                                       create = TRUE))
+      }
+    })
+  })
+}
+
 fleet_table_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
@@ -1308,6 +1370,102 @@ fleet_table_serv <- function(id, values, project) {
     
     refreshServ("refresh", values, project)
     
+    ns <- session$ns
+    
+    # expression builder ----
+    
+    rv <- reactiveValues(expr = character(0),
+                         expr_num = 1,
+                         select = list(target = "row"))
+    
+    output$select_var <- renderUI({
+      
+      selectInput(ns("nexpr_1-var"), "Variable", 
+                  choices = colnames(values$dataset), multiple = FALSE)
+    })
+    
+    # used for value input
+    unique_values <- reactive({
+      
+      if (is.null(input[["nexpr_1-var"]])) {
+        
+        NULL
+        
+      } else {
+        
+        out <- unique(values$dataset[[input[["nexpr_1-var"]]]])
+        
+        if (length(out) > 50)  out <- out[1:50]
+        
+        out
+      }
+    })
+    
+    output$valueUI <- renderUI({
+      
+      if (input[["nexpr_1-oper"]] == "%in%") {
+        textInput(ns("nexpr_1-value"), "Value", value = "c( add choices here )",
+                  placeholder = 'e.g. c("Port A", "Port D")')
+      #   selectizeInput(ns("nexpr_1-value"), "Value",
+      #                  choices = unique_values(),
+      #                  multiple = TRUE, options = list(maxOptions = 15,
+      #                                                  placeholder = "Select or type value name",
+      #                                                  create = TRUE))
+      } else {
+        #textInput(ns("nexpr_1-value"), "Value")
+        selectizeInput(ns("nexpr_1-value"), "Value",
+                       choices = unique_values(),
+                       multiple = TRUE, options = list(maxOptions = 15, maxItems = 1,
+                                                       placeholder = "Select or type value name",
+                                                       create = TRUE))
+      }
+    })
+    
+    
+    
+    # insert new expression line when blue plus button is clicked
+    observeEvent(input$add_expr, {
+      
+      rv$expr_num <- rv$expr_num + 1
+      ui_id <- ns(paste0("nexpr_", rv$expr_num)) # different namespaces for ui 
+      server_id <- paste0("nexpr_", rv$expr_num) # and server (otherwise server 
+                                                 # gets a duplicate ns)
+      insertUI(
+        selector = "#n_expr_container",
+        where = "beforeEnd",
+        ui = nexpr_row_ui(ui_id) # run expr row module
+      )
+      
+      nexpr_row_server(server_id, values) # run expr row server
+    })
+    
+    
+    # reactive containing expression that updates whenever an expr selector is changed
+    expr <- reactive({
+      
+      expr_list <- lapply(seq(rv$expr_num), function(x) {
+        
+        new_id <- paste0("nexpr_", x)
+        
+        paste(input[[paste0(new_id, "-log_oper")]], input[[paste0(new_id, "-var")]], 
+              input[[paste0(new_id,"-oper")]], input[[paste0(new_id, "-value")]])
+      })
+      
+      paste(expr_list, collapse = " ")
+    })
+   
+    # display current expression 
+    output$expr_txt <- renderText(expr())
+    
+    # remove expression UI
+    observeEvent(input$reset_expr, {
+     
+      rv$expr_num <- 1
+      removeUI(selector = ".n-expr-section", multiple = TRUE)
+    })
+
+    
+    # fleet table builder ----
     f_r <- reactiveValues()
     empty_row <- data.frame(condition = "enter condition", fleet = "enter fleet name",
                             stringsAsFactors = FALSE)
@@ -1316,13 +1474,14 @@ fleet_table_serv <- function(id, values, project) {
     f_r$f_DT <- empty_row
     proxy_f <- DT::dataTableProxy("f_tab")
     
+    # upload existing table
     observeEvent(input$upload, {
       
       req(input$file)
-      # type <- sub('.*\\.', '', input$file$name)
-      # if (type == 'RData') { type <- 'R'} else { type <- type}
+      
       upload <- FishSET::read_dat(input$file$datapath)
       
+      # convert factors to strings
       if (any(vapply(upload, is.factor, FUN.VALUE = logical(1)))) {
         
         fac <- vapply(upload, is.factor, FUN.VALUE = logical(1))
@@ -1341,8 +1500,17 @@ fleet_table_serv <- function(id, values, project) {
       }
     })
     
+    # Select rows, columns, cells, or deselect
+    observeEvent(input$deselect, rv$select <- "none")
+    
+    observeEvent(input$select_row, rv$select <- list(target = "row"))
+    
+    observeEvent(input$select_column, rv$select <- list(target = "column"))
+    
+    observeEvent(input$select_cell, rv$select <- list(target = "cell"))
+    
+    # add or remove columns/rows
     observeEvent(input$addrow, {
-      
       
       colnames(f_r$row) <- colnames(f_r$f_DT)
       
@@ -1372,6 +1540,7 @@ fleet_table_serv <- function(id, values, project) {
       }
     })
     
+    # edit fleet table cells 
     observeEvent(input$f_tab_cell_edit, {
       
       f_r$f_DT <<- DT::editData(f_r$f_DT, input$f_tab_cell_edit, "f_tab")
@@ -1379,23 +1548,39 @@ fleet_table_serv <- function(id, values, project) {
       DT::replaceData(proxy_f, f_r$f_DT, resetPaging = FALSE)
     })
     
-    output$f_tab <- DT::renderDataTable(f_r$f_DT, editable  = "all", 
-                                        selection = list(target = 'row+column'))
+    # insert expression from builder
+    observeEvent(input$insert_expr, {
+      
+      if (dim(input$f_tab_cells_selected)[1] == 0) {
+        
+        showNotification("Select a condition cell", type = "warning")
+        
+      } else {
+        
+        f_r$f_DT[input$f_tab_cells_selected] <- expr() #rv$expr
+      }
+    })
     
+    # render fleet table
+    output$f_tab <- DT::renderDataTable(f_r$f_DT, editable  = "all", 
+                                        selection = rv$select,
+                                        escape = FALSE)
+
+    
+    # change column name 
     observeEvent(input$colname_btn, {
       req(input$colname)
       names(f_r$f_DT)[input$f_tab_columns_selected] <- input$colname
     })
     
-    
+    # reference table
     output$reference <- renderTable({
       data.frame(operator = c("<", ">", "<=", ">=", "==", "!=", "%in%", "!", "&", "|"), 
                  description = c("Less than", "Greater than", "Less than or equal to", 
                                  "Greater than or equal to", "Equal to", "Not equal to", 
                                  "Matches", "Logical NOT", "Logical AND", "Logical OR"))
     })
-
-    
+    # run fleet_table/save table
     observeEvent(input$save, {
       
       fleet_table(values$dataset, project = project(), table = f_r$f_DT, save = TRUE)
