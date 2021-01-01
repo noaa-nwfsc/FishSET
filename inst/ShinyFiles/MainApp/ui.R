@@ -543,6 +543,8 @@ source("map_viewer_app.R", local = TRUE)
                                            tabPanel("Fleet Assignment", value = "fleet_assign",
                                                     
                                                     conditionalPanel("input.assign_rb == 'Definition table'",
+                                                      
+                                                      fleet_exprUI("f_table"), 
                                                     
                                                       fleet_tableOut("f_table")),
                                                     
