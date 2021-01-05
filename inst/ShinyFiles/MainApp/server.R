@@ -201,7 +201,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
       #---
       
-      #Pull data functions ----
+      ##Pull data functions ----
       ##---
       values <- reactiveValues(
         dataset = data.frame('var1'=0, 'var2'=0)
@@ -231,7 +231,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                             tags$ul('Refreshing the data pulls the original data loaded into the FishSET database. Instead of refreshing to the original state, you can refresh the 
                             data to an intermediate state by entering the name of the data table in the', tags$code('Optional text'),
                             'input box then the', tags$code('FishSET database'), 'radio button is chosen on the', tags$code('Upload Data'), 'tab. Intermediate 
-                            data will contain a date in the table name, such as', tags$em('ExampleMainDataTable20200101.'))
+                            data will contain a date in the table name, such as', tags$em('ExampleMainDataTable01012020.'))
                           ),
                     tags$li('Buttons that allow you to save plots and tables to the output folder in the FishSET folder.'), 
                     tags$li("A", tags$code('notes'), "section and a button to save notes to the output folder in the FishSET folder.")
@@ -255,7 +255,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 			      tags$br(), tags$br(),
            tags$p(tags$strong('Purpose:'), tags$br(), 'The', tags$em('Upload Data'), 'tab is used to load data (primary, port, map, gridded, auxiliary) from the FishSET database or 
                         from a local file location.'), 
-	         tags$p("To get started, write a project name in the", tags$code('Name of project'), "text box.",
+	         tags$p("To get started, first write a project name in the", tags$code('Name of project'), "text box.",
 	                tags$ul("The project name is a user-created unique identifier for all data tables  and outputs (plots, model results, etc) 
                  associated with the analysis. Example project names are 'pollock2019' and 'AKGOA'.")
 	                ),
@@ -296,8 +296,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             Auxiliary data does not need to be at the haul or trip level but does need to contain a variable in common with 
 			       the primary data file. Auxiliary data files are useful when a set of data is common across multiple primary data files, 
 			       or as an efficient way to include data that is not haul or trip level specific.",
-			      tags$br(),
-			       'MERGE TEXT',
 			       tags$br(),tags$br(),
 			       "The", tags$strong("gridded data"), "is an optional file that contains a variable that varies by the map grid and, optionally, by a second 
               dimension (e.g., date/time). Both dimensions in the gridded data file need to be variables in the primary data file. 
@@ -358,7 +356,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                               tags$h5('The table is used to edit individual cells, filter the data, 
                                       and remove variables from the dataset that are redundant or 
                                       will not be used in analyses or modeling. In addition, the 
-                                      other data types (plot, auxiliary, gridded), can also be viewed 
+                                      other data types (plot, auxilliary, gridded), can also be viewed 
                                       and edited using the', tags$code('Select a dataset'), 'dropdown box.' 
                                       ))),
 				    tags$br(),
@@ -373,33 +371,32 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 				tags$br(), 
 			tags$div(style="display: inline-block; align:center", img(src="DeleteVar.png", height="75%", width="75%")),
 				tags$br(),tags$br(),
-			tags$p(tags$strong('Filter data'), 'using the', tags$em('boxes'), 'between the variable name and the first row of data. Filters are saved when the', 
+			tags$p(tags$strong('Filter data'), 'using the', tags$em('boxes'), 'between the variable name the first row of data. Filters are saved when the', 
 				tags$code('Save data to FishSET database'), 'button is pushed. The altered data is also saved as the project,
 				"MainDataTable", and the date.'),
 				tags$br(), 
 			tags$div(style="display: inline-block; align:center", img(src="Filter.png", height="75%", width="75%")),
 				tags$br(),tags$br(),
 			tags$p(tags$h4('Plots:'),
-				'Temporal, spatial, and x-y plots are available. All plots can be saved in the the directory of choice 
-				or in the default location within the FishSET package directory. Plot can also be copied and pasted 
-				by right-clicking on the plot.'), 
+				'Temporal, spatial, and x-y plots are available.'), 
 			tags$p('The temporal plots show the relationship of the selected variable by date.',
 			       tags$br(),tags$br(),
 			       'The spatial plots show the distribution of hauls in the map region and hot spots of activity.',
 			       tags$br(),
-			       'You can zoom in on the', tags$em('Observed location'), 'spatial plot by double-clicking 
-			       a highlighted area or view the latitude and longitude of a point by single clicking 
-			       on the point. To reset the map, double-click outside the highlighted area.  This map can be saved. 
-			      A more detailed spatial map can be viewed on the', tags$code('Map Viewer'), 'tab.', 
+			       'You can zoom in on the', 
+			       tags$em('Observed location'), 'spatial plot by double-clicking a highlighted area or view the latitude and longitude of a point
+			       by single clicking on the point. To reset the map, double-click outside the highlighted area. 
+			       This map can be saved. A more detailed spatial map can be viewed on the', tags$code('Map Viewer'),
+			       'tab.', 
 			       tags$br(),
 			       	tags$div(style="display: inline-block; align:center", img(src="MapZoom.png", height="75%", width="75%")),
-				tags$br(), tags$br(), tags$br(),
-			  tags$p("A measure of spatial autocorrelation (global Moran's I) and of spatial clustering (GetisOrd statistic) will display below the 
-              plots once selections below plot type are made. The table can be saved."),
-			  tags$br(), 
-			       'The final plot type, x-y plots, shows the relationship between two selected variables. 
-			      To assess the degree of correlation between variables or the fit of the relationship, 
-				    visit the', tags$code('Simple Analyses'), 'tab.'
+				tags$br(),tags$br(),
+			tags$p("A measure of spatial autocorrelation (global Moran's I) and of spatial clustering (GetisOrd statistic) will display below the 
+      plots once selections below plot type are made. The table can be saved."
+				),
+			       tags$br(), tags$br(),
+			       'The finaly plot type, x-y plots, shows the relationship between two selected variables. 
+			To assess the degree of correlation between variables or the fit of the relationship, visit the', tags$code('Simple Analyses'), 'tab.'
 			)
           )
         }
@@ -407,17 +404,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 
       output$AnalTabsText <- renderUI({
         if(input$QuickStartChoices=='AnalTab'){ 
-          tags$p(tags$br(), tags$br(), 
+          p(tags$br(), tags$br(), 
             tags$strong('Purpose:'), tags$br(),
-               'The', tags$em('Simple Analyses'), 'tab is used to assess the relationship between variables.
-              The correlation analysis provides an assessment of the strength and direction of the linear 
-              relationship between two variables. The simple linear regression analysis maps the relationship between 
-              an explanatory variable (X) and response variable (Y) through an equation. This equation can be used 
-              to predict new values of Y with changes in X. ', 
+               'The', tags$em('Simple Analyses'), 'tab is used to view correlation and simple linear regression among selected variables.', 
 				tags$br(),tags$br(),
             tags$div(style="display: inline-block; align:center", img(src="Corr.png", height="75%", width="75%")),
 				tags$br(), tags$br(),
-            'Variables can be removed from the correlation plots and tables by clicking on a variable in the', tags$code('Select variables'), 'box and 
+            'Variables can be removed from the correlation plots and tables by clicking on a variable in the,', tags$code('Select variables'), 'box and 
 				then hitting the backspace or delete button on your keyboard.',
 				tags$br(),
             'Variables can be added by clicking an empty space in the', tags$code('Select variables'), 'box.',
@@ -432,22 +425,20 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       output$NewVarsTabsText <- renderUI({
         if(input$QuickStartChoices=='NewVarsTab'){ 
-          tags$p(tags$br(), tags$br(), 
-           tags$strong('Purpose:'), tags$br(),
-            'The', tags$em('Compute New Variables'), 'tab is used to modify or create new variables such as CPUE 
-            and haul midpoint.',
-				tags$br(), tags$br(),
-            'Functions are grouped into seven categories:',
+          p(tags$br(), tags$br(),
+            tags$strong('Purpose:'), tags$br(),
+            'The', tags$em('Compute New Variables'), 'tab is used to modify or create new variables such as CPUE or trip mid-point.',
+				tags$br(),tags$br(),
+            'Functions are grouped into six categories:',
             tags$li('Arithmetic and temporal'), 
             tags$li('Data transformations'), 
             tags$li('Dummy variables'), 
             tags$li('Nominal ID'), 
             tags$li('Spatial'), 
             tags$li('Trip-level'),
-				    tags$li('Confidentiality'),
 				tags$br(),tags$br(),
-				    'We describe first how to run functions, view the created variable, and save the altered data. We then describe the 
-				    functions in the seven variable creation categories.',
+				    'We describe first how to run functons, view the created variable, and save the altered data. We then describe the 
+				    functions in the six variable createion categories.',
 				tags$br(), tags$br(),
             'To run a function, click the', tags$code('Run function'), 'button (arrow 1). This will run the selected function and
             generate the output.',
@@ -458,25 +449,20 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 				tags$br(),
             'Save the revised data by pressing the', tags$code('Save data'), 'button. If the data is not saved the created variables will 
             not be available once the app is closed.',
-				tags$br(), tags$br(),
+				tags$br(),tags$br(),
             tags$div(style="display: inline-block; align:center", img(src="NewVar.png", height="75%", width="75%")),
 				tags$br(), tags$br(),
-				tags$strong('Function category descriptions'), tags$br(),
-				tags$ul(tags$em('Arithmetic and temporal'), 'functions focus on creating variables based on numeric calculations (i.e., plus, minus) 
-				          between two variables, within-group aggregation, duration of time between two variables, 
-				        and catch per unit effort (CPUE).'),
-				tags$ul(tags$em('Data transformations'), 'functions focus on transforming data into coded variables and date 
-				        variables into the preferred unit of time.'),
-				tags$ul(tags$em('Dummy variables'), 'functions focus on creating binary variables. These are useful for 
-                contrasting between two states, such as before versus after a policy was 
-				        enacted or a fishery zone was open versus closed.'),
-				tags$ul(tags$em('Nominal ID'), 'functions focus on creating identifiers - haul, trip, or fishery season.'),
-				tags$ul(tags$em('Spatial'), 'functions focus on creating variables that vary over space, such as haul midpoint and distance between points.)
-				        A spatial data file is required.'),
-				tags$ul(tags$em('Trip-level'), 'functions focus on trip-level variables including trip distance and trip centroid. A function to collapse 
-				        data from haul level to trip level is also included.'),
-				tags$ul(tags$em('Confidentiality'), 'functions focus on modifications to the data that will remove the 
-				        potential for confidential data to be shown. WARNING NOTE')
+				tags$strong('Function category descriptions'),
+				tags$em('Arithmetic and temporal'), 'functions focus on creating varaiables based on numeric calculations (i.e., plus, minus) 
+				          between two variables, durations of time between two variable, and catch per unit effort (CPUE).',
+				tags$em('Data transformations'), 'functions focus on transforming data into coded variables and date variables into preferred unit of time and ',
+				tags$em('Dummy variables'), 'functions focus on creating binary variables. These are useful for contrasting between two states, such 
+				        as caught at least 50 metric tons or not, before versus after a policy was enacted, or fishery zone was open versus closed.',
+				tags$em('Nominal ID'), 'functions focus on creating identifiers - haul, trip, or fishery season.',
+				tags$em('Spatial'), 'functions focus on creating variables that vary over space, such as haul midpoint and distance between points.
+				        A spatial data file is required. ',
+				tags$em('Trip-level'), 'functions focus on trip-level variables including trip distance and trip centroid. A function to collapse 
+				        data from haul level to trip level is also included.'
             )
         }
       })
@@ -492,9 +478,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 	        tags$div(style="display: inline-block; align:center", img(src="zonal.png", height="75%", width="75%")),
 				tags$br(), tags$br(),
 	        tags$ol(	         
-	           tags$li('(Required if not already defined) Identify fishery zones or management areas, calculate zone or fishing centroids, and assign each  
-                      observation in the main data set to zones. FishSET defaults to geographic centroids. To use 
-					             fishing centroids, select a weighting variable in the weighted centroid box. Points that fall outside of 
+	           tags$li('(Required) Identify fishery zones or management areas, calculate zone or fishing centroids, and assign each observations 
+                      in the main data set to zones. FishSET defaults to geographic centroids. 
+					             To use fishing centroids, select a weighting variable in the weighted centroid box. Points that fall outside of 
 	                    any zones can be assigned to the closest zone by checking the', tags$code('Use closest polygon to point'), 'box. 
 	                    If spatial data creating polygons are sparse or irregular, the', tags$code('Use convex hull method'),'is recommended. 
                     '),
@@ -512,7 +498,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                      location. The distance matrix is then calculated between defined starting and alternative choice locations. 
                      Distance can be returned in miles, kilometers, or meters.', 
 	                   tags$br(),
-	                   'Alternatively, the distance matrix can be generated from a gridded dataset, such as sea surface temperature. 
+	                   'Alternatively, the the distance matrix can be generated from a gridded dataset, such as sea surface temperature. 
 	                   Columns in the gridded data file must be individual zones.',
             tags$br(),
                      'The number of observed hauls can vary considerably between zones. The histogram at the bottom of the page 
@@ -531,45 +517,23 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           p(tags$br(), tags$br(),
             tags$strong('Purpose:'), tags$br(), 
             'The', tags$em('Expected Catch/Revenue'), 'tab is used to calculate the expected catch or revenue matrix for alternative
-            fishing zones (zones they could have but did not fish in). 
+            fishing zones. 
             This matrix is required to run the conditional logit model.',
 			  tags$br(), tags$br(),
-			    'Expected catch or revenue can be calculated using the entire dataset. Alternatively, you can take into account that 
-			     catch may differ between groups or vessels and how catch varies over time.',
-			  tags$br(),tags$br(), 
-        'Grouping is done by selecting the variable in', tags$code('Choose variables that define groups'), 'that defines groups.  
-          Temporal trends in catch can also be taken into account. These options include the window of time to average catch over
-        and whether to use current or previous years catch data to calculate expected catch. These choices determine whether to 
-        use recent or longer-term catch data over short to long time frames. Empty catch values are considered to be times of no 
-        fishing activity. Values of 0 in the catch variable are considered times when fishing activity occurred but with no catch. 
-			  These points are included.',
-			  tags$br(),tags$br(),
-			  'Three default cases will be run. The near-term (catch/revenue over previous two days), medium-term (catch/revenue over previous seven 
-			  days), and long-term (catch/revenue over seven days prior in the previous year). Parameter choices other than the 
-        temporal window or time lag parameters will be passed to each default case.',
-			  tags$br(),tags$br(),
-			  'Calculations are done using a rolling average based on the temporal window size and any desired temporal lags. 
-        Catch is averaged along a daily or sequential timeline. Assess data sparsity when determining moving 
-        window size. For very sparse data, consider setting', 
-        tags$code('Method to sort time'), 'to', tags$strong('entire record of catch.'),
-			  tags$br(),tags$br(),
-			  'To define temporal options, first choose whether the', tags$code('Method to sort time'), 'should be', 
-			  tags$strong('Daily timeline'), 'or', tags$strong('Sequential timeline.'), "Sequential timeline sorts data by date 
-        but does not take into account that days may be missing. Daily timeline adds in these dates with NA 
-			  (missing value). With", tags$strong('sequential timeline,'), "a window size of seven means catch would be the average over 
-			  the past seven fishing days. Whereas, with", tags$strong('daily timeline,'), "it would be the average over seven calendar 
-			  days. Use", tags$code('No. of years to go back'), "to define whether to use current year or previous year's data.",
-			   tags$code('Window size'), 'is used to determine the number of fishing days or calendar days to average over.',
-			   tags$code('Time lag'), 'defines where to start the window from  day', tags$em('x'), 'or to to start from', 
-			 tags$em('n'), 'days prior. The catch value for day', tags$em('x'), 'is the average catch across 
-			  the window lagged by the specified days and years. This is done for each row of the data and each date 
-        of the chosen', tags$code('Temporal variable for averaging.'), 'Next, select whether to return the calculated 
-			  standard average or simple lag regression of the mean. The simple lag regression of the mean calculates 
-			  the predicted value for each zone/date given regression coefficients', tags$em('p'), 'for each row. Expected catch 
-			  is calculated for each row of the data for every possible fishing zone.  The expected catch is pulled from the 
-			  matrix of calculated catches for each date and zone.',
+			  'The function takes that The output is saved to the FishSET database and called in the models tab.', 
+        
+			  #  'The primary choices are whether to treat data as a fleet or to group the data', tags$strong('defineGroup'), 'and the time
+			  #  frame of catch data for calculating expected catch. Catch is averaged along a daily or sequential timeline',
+			  #  tags$strong('temporal'), 'using a rolling average.', tags$strong('temp.window'), 'and tags$strong('temp.lat') determine the window size and
+			  #  temporal lag of the window for averaging. Use tags$strong('temp_obs_table') before using this function to assess
+			  #  the availability of data for the desired temporal moving window size. Sparse data is not suited for shorter moving
+			  #  window sizes. For very sparse data, consider setting,' tags$strong('temp.var'), 'to NULL and excluding temporal patterns in
+			  #  catch.', tags$br(),
+			  #  'Empty catch values are considered to be times of no fishing activity. Values of 0 in the catch variable
+			  #  are considered times when fishing activity occurred but with no catch. These points are included in the averaging
+			  #  and dummy creation as points in time when fishing occurred.' 
 			  tags$br(), tags$br(),
-            'The function returns four expected catch or expected revenue data frames based on:', 
+            'The function returns four expected catch or expected revenue data frames based on selected parameters:', 
 				tags$br(),
 				    tags$ul('selected temporal parameters'),
             tags$ul('expected catch/revenue based the previous two days (short-term) catch,'), 
@@ -584,90 +548,21 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           p(tags$br(),tags$br(),
             tags$strong('Purpose:'), tags$br(), 
             'The', tags$em('Models'), 'tab is used to define model parameters (including the likelihood function), 
-            and then run models and compare output.',
-				tags$br(),
-				    'First, we describe model parameters in the', tags$strong('Run models'), 'subtab and how to define then.
-          Then we describe the output in the', tags$strong('Compare models'), 'subtab.',
+            and then run model and compare output.',
+				tags$br(),tags$br(),
+				    'First, we describe how to define model parameters in the', tags$code('Run models'), 'subtab and then we describe 
+            the output in the', tags$code('Compare models'), 'substab.',
 				tags$br(), tags$br(),
-				    tags$strong('Run Models:'),tags$br(),
-				    'Here, you define all models that you want to run. Click', tags$code('Save model and Add new model'), 
-			      'to save selected model choices and define another model.',
-				tags$br(), 
+				    tags$strong('Run Models'),
+				
+			      'Click', tags$code('Save model and Add new model'), 'to save selected model choices and define another model 
+			      so you can compare multiple models.',
+				tags$br(), tags$br(),
 		    	'Defined models are shown in a table at the bottom of the screen.', 
-				tags$br(), 
+				tags$br(), tags$br(),
 		    	'Once all models have been defined, select', tags$code('Run models'), 'to run all models.',
 				tags$br(), tags$br(),
-				'Likelihood functions',
-				    tags$ul("Conditional logit likelihood"),
-				    tags$ul("Average catch multinomial logit procedure"),
-				    tags$ul("Full information model with Dahl's correction function"),
-				    tags$ul("Expected profit model with normal catch function"),
-				    tags$ul("Expected profit model with Weibull catch function"),
-				    tags$ul("Expected profit model with lognormal catch function"),
-				'Optimization method', tags$br(),
-				  "For more details see documentation for the optim function in the stats package.",
-				    tags$ul("BFGS: Quasi-Newton method. Uses function values and gradients to build up a picture of the surface to be optimized."),
-            tags$ul("CG: Conjugate gradients method. Generally more fragile than the BFGS method, but useful in larger optimization problems."),
-				    tags$ul("L-BFGS-B: Uses a limited-memory modification of the BFGS method. Allows box constraints."),
-				    tags$ul("Nelder-Mead: Is robust but relatively slow. It will work reasonably well for non-differentiable functions."),
-            tags$ul("SANN: Simulated-annealing method. It is relatively slow and is sensitive to the settings of the 
-                    control parameters. It is not a general-purpose method but is useful on a rough surface to be optimized."),
-				    tags$br(),
-				  'Added variables',tags$br(),
-				     tags$ul('Travel distance',
-				             tags$ul('Travel distance variables are alternative-invariant variables that are interacted with travel 
-                              distance to form the cost portion of the likelihood. Each variable name therefore corresponds 
-                              to data with dimensions (number of observations) by (unity), and returns  a single parameter.,
-            ')),
-				     tags$ul('Alternative specific, average-catch, or catch-function variables',
-				             tags$br(),
-				      'These variables depend upon the likelihood function.',
-				          tags$ul(tags$em('Alternative specific variables'), 'vary across alternatives, e.g. catch rates.
-                      Each variable name therefore corresponds to data with dimensions', tags$em('number of observations'), 
-				              'by', tags$em('number of alternatives,'), 'and returns a single  parameter for each variable 
-                      (e.g. the marginal  utility from catch).'),
-				          tags$ul(tags$em('Average-catch variables'), 'are alternative-invariant variables, e.g. vessel  gross tonnage. 
-				                  Each variable name therefore corresponds to data with dimensions', tags$em('number of observations'), 'by',
-                          tags$em('unity,'), 'and returns', tags$em('k-1'), 'parameters where', tags$em('k'), 'equals the 
-				                  number of alternatives, as a normalization of parameters is needed as the probabilities 
-				                  sum to one. Interpretation is therefore relative to the first alternative'),
-				          tags$ul(tags$em('Catch_function variables'), 'are alternative-invariant variables that are interacted with zonal 
-                          constants to form the catch portion of the likelihood. Each variable name therefore corresponds to data 
-                          with dimensions', tags$em('number of observations'), 'by', tags$em('unity,'), 'and returns', 
-				                  tags$em('k'), 'parameters where', tags$em('k'), 'equals the number of alternatives.'
-              )),
-				  "Optimization options",
-				    tags$ul("Max iterations: maximum number of iterations to run."),
-				    tags$ul("Tolerance of x: Relative convergence tolerance. The algorithm stops if it is unable to reduce the 
-				            value by a factor of reltol * (abs(val) + reltol) at a step. Defaults to 1e-8."),
-            tags$ul("Report frequency: How frequently to report iteration output."),
-				    tags$ul("Detail report: Level of tracing information on optimization progress."),
-				   "Initial parameters",
-				    tags$ul("The number of initial parameters depends upon the likelihood function and added variables.
-				            See the help manual or discretefish_subroutine function documentation for more details."),
-				tags$br(), tags$br(),
-				tags$strong('Compare models'), tags$br(),
-			    'View model convergence, model fit, and error messages. Then compare models and identify the best model.',
-				tags$br(),
-				  'Three tables are provided that detail, for each model that was run, measure of fit, model output, and error messages.',
-				tags$br(),
-				'Measures of fit', tags$br(),
-				  'See the Help Manual for more information on the measures of fit.',
-				    tags$ul('AIC: Akaike information criterion'),
-				    tags$ul('AICc: Akaike information criterion corrected for small sample size'),
-				    tags$ul('BIC: Bayesian information criterion'),
-				    tags$ul(HTML(paste0('PseudoR', tags$sup('2')))),
-				'Model Output',
-				  tags$ul('Convergence: 0 - converged, 1 - maximum iterations reached. See optim function documentation 
-				          in stats package for description of other codes.'),
-				  tags$ul('Standard error of parameters:  Values come from the square root of the inverse of the Hessian.'),
-				  tags$ul('Hessian: The inverse hessian.'),
-				'Error messages',
-				  tags$ul('Model error: Description of any model errors.'),
-				  tags$ul('Optimization error: Description of any optimization errors.'),
-				tags$br(), tags$br(),
-				'To record the preferred model, check the box next to the model in the', tags$strong('Measure of fit'), 'table.
-				Press the', tags$code('Save table'), 'button to save selections to the FishSET database.',
+			    'View and compare models in the', tags$code('Compare models'), 'subtab.',
 			  tags$div(style="display: inline-block; align:center", img(src="CompareModels.png", height="75%", width="75%"))
           )
         }
@@ -676,37 +571,18 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       output$BookmarkTabsText <- renderUI({
         if(input$QuickStartChoices=='BookmarkTab'){ 
           p(tags$br(), tags$br(),
-            'Purpose:', tags$br(), 
-            'The', tags$em('Bookmark Choices'), 'tab allows users to reopen this application at a later date and 
-            continue where you left off.',
-            tags$br(),  
-            'We first describe how to save or bookmark the application and then we describe how to restore the application.',
+            'Purpose:', tags$br(),
+            'The', tags$em('Bookmark Choices'), 'tabs is to save choices made in the FishSET R Shiny application and enable current application state to be reloaded at a later date.',
 				tags$br(), tags$br(),
-				    "Bookmarking places a virtual 'bookmark' in this FishSET application, allowing you to pick up
-            where you left off. You can have multiple bookmarks. To create a bookmark, click the", 
-				    tags$code('bookmark'), 'button. Any popup messages can be dismissed. The bookmark will be saved as 
-				    input.rds in a folder within the', tags$em('shiny_bookmarks'), 'folder in the FishSET package directory. 
-            Bookmark folder names are generic and should be renamed to a more informative name.',
-				tags$br(), 
-            'Before bookmarking, it is best to save the data so that data cleaning and variable creation steps do not need
-            to be repeated. Bookmarking saves selections, such as file names of data to be loaded and whether action 
-            buttons, such as the button to load the data, have been pushed. Actions caused by the 
-            action button (loading data) will not be rerun when the application is opened at a bookmarked state.',  
+				    'Reloading a bookmarked state will restore the last selections in the application. The data will not be automatically loaded 
+            and no functions will be applied to the data. It is best to save the data before bookmarking the current application state. 
+				    After the application is reloaded, load the saved data.',  
 				    tags$br(), tags$br(),
+            'To bookmark the application, click the', tags$code('bookmark'), 'button. Click', tags$em('Dismiss'), 'in the popup message.',
             tags$div(style="display: inline-block; align:center", img(src="Dismiss.png", height="75%", width="75%")),
 				tags$br(), tags$br(),tags$br(),
-            'To reload the application at a bookmarked state:', 
-                tags$ul('Open the FishSET R application. This can be done by running', tags$code('run_fishset_gui'),
-                        'in the R console'), 
-                tags$ul('Navigate to the', tags$code('Bookmark Choices'), 'tab.'), 
-                tags$ul('Click the', tags$code('Browse'), 'button and migrate to the', tags$em('input.rds'), 'file. 
-                        This file should be in the', tags$em('shiny_bookmarks'), 'folder of the FishSET package directory.
-                        The location of the shiny_bookmarks directory is shown above the file browse box.'),
-				        tags$ul('Bookmarked choices will be restored once upload is complete.'),
-				        tags$ul('Go to the', tags$code('Upload data'), 'tab, click that the data comes from the FishSET 
-                        database, and enter the name of the saved data table in in the optional text input box. 
-				                The name should be project name, MainDataTable and date as year, month day. For example,',
-				                tags$em('pollockMainDataTable20200910.'), 'Enter the project name before loading the data.'),
+            'To reload a perviously saved application state, you must have the FishSET R application open. Navigate to the', tags$code('Bookmark Choices'), 
+        'tab. Click the', tags$code('Browse'), 'button and then migrate to the', tags$em('input.rds'), 'file.',
 				tags$br(), tags$br(),
             tags$div(style="display: inline-block; align:center", img(src="Bookmark2.png", height="75%", width="75%"))
             )
@@ -968,7 +844,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         tagList(
         textInput("AuxName", "Auxiliary table name." ),
         #actionButton("uploadAux", label = "Save to database", 
-        #             style = "color: white; background-color: blue;", size = "extra-small")
+        #             style = "color: white; background-color: blue;", size = "extra-small"),
+        actionButton("mergeAux", label = "Merge with main data", 
+                     style = "background-color: #FAFA00;")
         )
       })
       
@@ -985,7 +863,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           conditionalPanel(condition="input.loadauxsource!='Upload new file'", 
                            tagList(
                              fluidRow(
-                               column(5, textInput("auxdattext", "Auxiliary data table name in database", placeholder = 'Optional data'))))
+                               column(5, textInput("auxdattext", "Auxiliary data table name in database", placeholder = 'Optional data')),
+                               actionButton("mergeAux", label = "Merge with main data", 
+                                            style = "background-color: #FAFA00;")))
           )
           )
       })
@@ -1014,31 +894,38 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
-      #Merge aux with main ----
+
+      #Merge aux with main
+      ###---- 
       #Merge
-     
+      merge <- reactiveValues(show = FALSE, end = FALSE)
+      
+      observeEvent(input$mergeAux, merge$show <- TRUE)
+      
+      observeEvent(input$mergeCancel, merge$show <- FALSE)
+      
       output$mergeUI <- renderUI({
         
+        if (merge$show == FALSE) return()
         tagList(
-          
-          conditionalPanel("input.mergeAux",
-                           
-                           fluidRow(
-                             column(3,
-                                    selectInput("mainKey", "Main data keys",
-                                                choices = colnames(values$dataset), multiple = TRUE)),
-                             column(3, 
-                                    selectInput("auxKey", "Auxiliary data keys",
-                                                choices = colnames(aux$dataset), multiple = TRUE))),
-                           fluidRow(
-                             column(8,
-                                    verbatimTextOutput("mergeBy"))),
-                           fluidRow(
-                             column(3,
-                                    actionButton("mergeOK", "Merge", style = "background-color: blue; color: #FFFFFF;"))),
-                           tags$br(), tags$br()) 
-        )
-        
+          fluidRow(
+           column(3,
+                   selectInput("mainKey", "Main data keys",
+                               choices = colnames(values$dataset), multiple = TRUE)),
+           column(3, 
+                   selectInput("auxKey", "Auxiliary data keys",
+                               choices = colnames(aux$dataset), multiple = TRUE))),
+          fluidRow(
+            column(8,
+                   verbatimTextOutput("mergeBy"))),
+          fluidRow(
+            column(3,
+                   actionButton("mergeOK", "Merge", style = "background-color: blue; color: #FFFFFF;")),
+            column(3, 
+                   actionButton("mergeCancel", "Cancel merge", 
+                                style ="color: #fff; background-color: #FF6347; border-color: #800000;"))),
+          tags$br(), tags$br()
+          )
       })
       
       show_merge_by <- reactive({
@@ -1058,7 +945,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           showNotification("Key lengths must match.", type = "error")
           return()
         } else {
-          
+
           stats::setNames(input$auxKey, c(input$mainKey))
         }
       })
@@ -1067,11 +954,65 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         
         if (!is.null(merge_by())) {
           
-          values$dataset <- merge_dat(values$dataset, aux$dataset, input$projectname, input$mainKey, input$auxKey)
+          merge$end <- FALSE
           
-          showNotification("Auxiliary data merged to primary table.", type = "message")
+          m_key <- input$mainKey
+          a_key <- input$auxKey
+          
+          m_class <- lapply(m_key, function(x) class(values$dataset[[x]]))
+          a_class <- lapply(a_key, function(x) class(aux$dataset[[x]]))
+          
+          no_match_class <- purrr::pmap(list(m = seq_along(m_class), a = seq_along(a_class)), 
+                                        function(m, a) !all(m_class[[m]] == a_class[[a]]))
+          
+          if (any(unlist(no_match_class))) {
+            
+            except_match <- purrr::pmap_lgl(list(m = m_class, a = a_class), function(m, a) {
+              
+              (m %in% c("character", "factor")) & (a %in% c("character", "factor")) |
+                (m %in% c("numeric", "integer")) & (a %in% c("numeric", "integer"))
+            })
+            
+            if (any(!except_match)) {
+              
+              ind <- which(!except_match)
+              
+              class_error <- vapply(ind, FUN = function(x) {
+                
+                paste0("'", m_key[x], "' and '", a_key[x], "' class types are incompatible (", 
+                       class(values$dataset[[m_key[x]]]), "/", class(aux$dataset[[a_key[x]]]), 
+                       "). Unable to merge datasets.")
+                
+              }, FUN.VALUE = character(1))
+              
+              showNotification(paste0(class_error, collapse = "\n"), type = "error",
+                               duration = NULL)
+              
+              merge$end <- TRUE
+            }
+          }
+          
+          if (!isTRUE(merge$end)) {
+        
+        
+            if (any(vapply(values$dataset[m_key], FUN = is.character, FUN.VALUE = logical(1)))) {
+              
+              values$dataset[m_key] <- as.data.frame(apply(values$dataset[m_key], 2, trimws))
+            }
+            
+            if (any(vapply(aux$dataset[a_key], FUN = is.character, FUN.VALUE = logical(1)))) {
+              
+              aux$dataset[a_key] <- as.data.frame(apply(aux$dataset[a_key], 2, trimws))
+            }
+            
+            values$dataset <-
+              dplyr::left_join(values$dataset,
+                               aux$dataset,
+                               by = merge_by(),
+                               suffix = c("_MAIN", "_AUX"))
+          }
         }
-    })
+      })
 
       
       ###---
@@ -1264,7 +1205,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         } 
       })
       
-      #Output to saved file old----
+      ##Output to saved file----
       # case_to_print <- reactive({
       #   if(input$tabs=='qaqc'){
       #     if(input$checks=='Summary table') {
@@ -1385,7 +1326,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       #     } 
       #   }
       #   })
-      #Output to saved file NEW ----
+      #----
       case_to_print <- reactiveValues(dataQuality = logical(0),
                                       explore = logical(0),
                                       analysis = logical(0))
@@ -2377,7 +2318,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       output$grid_plot <- renderPlot(grid_values$plot)
       
       
-      #Fleet Functions ========
+      # Fleet Functions ========
       
       density_serv("den", values, reactive(input$projectname))
       
@@ -2529,9 +2470,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       output$unique_col_id <- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Nominal ID'&input.ID=='ID_var'",
                          style = "margin-left:19px;", selectInput('unique_identifier','Variables that identify unique observations',
-                                                                  choices=colnames(values$dataset), multiple=TRUE, selectize=TRUE),
-                         selectInput('ID_type', "Select ID column class type",
-                                     choices = c("string", "integer")))
+                                                                  choices=colnames(values$dataset), multiple=TRUE, selectize=TRUE))
       })
       seasonalData <- reactive({
         if(is.null(input$seasonal.dat)){return()} 
@@ -2555,45 +2494,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='create_var_num'",
                          style = "margin-left:19px;", selectInput('var_y', 'Second variable. Will be the denomenator if dividing.',  
                                                                   choices=names(values$dataset[,unlist(lapply(values$dataset, is.numeric))]), selectize=TRUE))
-      })
-      
-      output$grp_perc <- renderUI({
-        conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='group_perc'",
-                         style = "margin-left:19px;", 
-                         selectInput('perc_id_grp', 'Select primary grouping variable(s)',
-                                     choices = colnames(values$dataset), multiple = TRUE),
-                         selectInput('perc_grp', 'Select secondary grouping variable(s)',
-                                     choices = colnames(values$dataset), multiple = TRUE),
-                         selectInput('perc_value', 'Select numeric variable',
-                                     choices = numeric_cols(values$dataset)),
-                         checkboxInput('perc_id_col', 'Create an ID variable'),
-                         checkboxInput('perc_drop', 'Drop total columns'))
-      })
-      
-      output$grp_diff <- renderUI({
-        conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='group_diff'",
-                         style = "margin-left:19px;", 
-                         selectInput('diff_sort', 'Sort table by',
-                                     choices = date_select(values$dataset)),
-                         selectInput('diff_grp', 'Select secondary grouping variable(s)',
-                                     choices = colnames(values$dataset), multiple = TRUE),
-                         selectInput('diff_value', 'Select numeric variable',
-                                     choices = numeric_cols(values$dataset)),
-                         checkboxInput('diff_id_col', 'Create an ID variable'),
-                         checkboxInput('diff_drop', 'Drop total columns'))
-      })
-      
-      output$grp_cumsum <- renderUI({
-        conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='group_cumsum'",
-                         style = "margin-left:19px;", 
-                         selectInput('cumsum_sort', 'Sort table by',
-                                     choices = date_select(values$dataset)),
-                         selectInput('cumsum_grp', 'Select secondary grouping variable(s)',
-                                     choices = colnames(values$dataset), multiple = TRUE),
-                         selectInput('cumsum_value', 'Select numeric variable',
-                                     choices = numeric_cols(values$dataset)),
-                         checkboxInput('cumsum_id_col', 'Create an ID variable'),
-                         checkboxInput('cumsum_drop', 'Drop total columns'))
       })
       output$input_xWeight <- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='cpue'",
@@ -2885,23 +2785,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               values$dataset <- q_test(values$dataset, x=input$trans_var_name, quant.cat = input$quant_cat, name=input$varname)
         } else if(input$VarCreateTop=='Nominal ID'&input$ID=='ID_var'){
               q_test <- quietly_test(ID_var)
-              values$dataset <- q_test(values$dataset, name=input$varname, vars=input$unique_identifier, type=input$ID_type)
+              values$dataset <- q_test(values$dataset, newID=input$varname, input$unique_identifier)
         } else if(input$VarCreateTop=='Nominal ID'&input$ID=='create_seasonal_ID'){
               q_test <- quietly_test(create_seasonal_ID)
               values$dataset <- q_test(values$dataset, seasonal.dat=seasonalData(), use.location=input$use_location, 
                                                use.geartype=input$use_geartype, sp.col=input$sp_col, target=input$target)
-        } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='group_perc'){
-          q_test <- quietly_test(group_perc)
-          values$dataset <- q_test(values$dataset, project=input$projectname, id_group=input$perc_id_grp, group=input$perc_grp,
-                                   value=input$perc_value, name=input$varname, create_group_ID=input$perc_id_col, drop_total_col=input$perc_drop)
-        } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='group_diff'){
-          q_test <- quietly_test(group_diff)
-          values$dataset <- q_test(values$dataset, project=input$projectname, group=input$diff_grp,  sort_by=input$diff_sort,
-                                   value=input$diff_value, name=input$varname, create_group_ID=input$diff_id_col, drop_total_col=input$diff_drop)
-        } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='group_cumsum'){
-          q_test <- quietly_test(group_cumsum)
-          values$dataset <- q_test(values$dataset, project=input$projectname, group=input$cumsum_grp,  sort_by=input$cumsum_sort,
-                                   value=input$cumsum_value, name=input$varname, create_group_ID=input$cumsum_id_col, drop_total_col=input$cumsum_drop)
         } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='create_var_num'){
               q_test <- quietly_test(create_var_num)
               values$dataset <- q_test(values$dataset, x=input$var_x, y=input$var_y, method=input$create_method, name=input$varname)
@@ -2971,7 +2859,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       )
       
       
-      #Map Viewer ====
+      # Map Viewer ====
       
       map_viewer_serv("map", values, spatdat)
       #onStop(function() servr::daemon_stop()) 
@@ -3269,11 +3157,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       gridlab <- renderText({
         if(input$model=='logit_c') { 
-          label='alternative-specific variables'
-          } else if(input$model=='logit_avgcat') { 
-            label='average-catch variables'
-          } else { label='catch-function variables'
-            }
+          label='alternative-specific variables'} else if(input$model=='logit_avgcat') { 
+            label='alternative-specific variables'} else { label='catch-function variables'}
       })
       
       output$gridvariables <- renderUI ({
@@ -3639,7 +3524,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       
       #---
-      #Run functions ----
+      # Run functions ----
       #---
       observeEvent(input$saveALT, {
               q_test <- quietly_test(create_alternative_choice)
@@ -3670,7 +3555,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       ###---              
       
       ####---  
-      #Save output----   
+      ##Save output----   
       ###---   
       observeEvent(input$saveData, {
         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
@@ -3748,7 +3633,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       
       
-      #Downloads ====  
+      ##Downloads ====  
       ##---
       # savedText <- reactiveValues(answers = logical(0))
       # observeEvent(c(input$callTextDownload,
@@ -3996,7 +3881,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       ##---
       
-      #stop shiny ----
+      # stop shiny ----
       ##---
       observe({
         if(input$close > 0) stopApp()
@@ -4015,7 +3900,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
      
        ###---
      
-      #Update From Bookmarked state----
+       # Update From Bookmarked state----
       ###---   
       bookmarkedstate <- reactive({
         req(input$uploadbookmark)
@@ -4175,7 +4060,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 #---
         })
       
-      #Rerun log -----
+      # Rerun log -----
       
       fetch_log <- reactive(log_rerun(input$log, run = FALSE))
       
