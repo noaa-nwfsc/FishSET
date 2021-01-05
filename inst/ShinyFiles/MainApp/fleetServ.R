@@ -1421,8 +1421,6 @@ fleet_table_serv <- function(id, values, project) {
       }
     })
     
-    
-    
     # insert new expression line when blue plus button is clicked
     observeEvent(input$add_expr, {
       
@@ -1443,12 +1441,27 @@ fleet_table_serv <- function(id, values, project) {
     # reactive containing expression that updates whenever an expr selector is changed
     expr <- reactive({
       
+      req(input[["nexpr_1-var"]]) # prevents reactive from running early
+      
       expr_list <- lapply(seq(rv$expr_num), function(x) {
         
         new_id <- paste0("nexpr_", x)
+        value <- ""
+        var_class <- class(values$dataset[[input[[paste0(new_id, "-var")]]]])
+        
+        if (is_empty(input[[paste0(new_id, "-value")]]) == FALSE) {
+          
+         # check if var should be wrapped in quotes
+          if (any(var_class %in% c("character", "factor", "date", "POSIXct", "POSIXt"))) {
+            
+            value <- paste0("'", input[[paste0(new_id, "-value")]], "'") # add single quotes
+          } else {
+            value <- input[[paste0(new_id, "-value")]] # otherwise, assign original value
+          }
+        }
         
         paste(input[[paste0(new_id, "-log_oper")]], input[[paste0(new_id, "-var")]], 
-              input[[paste0(new_id,"-oper")]], input[[paste0(new_id, "-value")]])
+              input[[paste0(new_id,"-oper")]], value)
       })
       
       paste(expr_list, collapse = " ")
@@ -1578,7 +1591,7 @@ fleet_table_serv <- function(id, values, project) {
       data.frame(operator = c("<", ">", "<=", ">=", "==", "!=", "%in%", "!", "&", "|"), 
                  description = c("Less than", "Greater than", "Less than or equal to", 
                                  "Greater than or equal to", "Equal to", "Not equal to", 
-                                 "Matches", "Logical NOT", "Logical AND", "Logical OR"))
+                                 "Contains", "Logical NOT", "Logical AND", "Logical OR"))
     })
     # run fleet_table/save table
     observeEvent(input$save, {
