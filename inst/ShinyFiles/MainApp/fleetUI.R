@@ -988,6 +988,7 @@ trip_lengthUI <- function(id) {
   )
 }
 
+
 fleet_tableUI <- function(id) {
   
   ns <- NS(id)
@@ -1050,6 +1051,69 @@ fleet_tableUI <- function(id) {
     div( style = "margin-top: 2em;",
          uiOutput(ns("result"))
     )
+  )
+}
+
+# expression builder module (add expr row)
+nexpr_row_ui <- function(id) {
+  
+  ns <- NS(id)
+  
+  tagList(
+    div(class = "n-expr-section", style = "width: 85%; padding: 0px;",
+        fluidRow(
+          column(2, selectInput(ns("log_oper"), "", 
+                                choices = c("AND" = "&", "OR" = "|"))),
+          
+          column(3, uiOutput(ns("varUI"))),
+          
+          column(3, selectInput(ns("oper"), "", 
+                                choices = c("less than" = "<","greater than" = ">", "less than or equal to" = "<=", 
+                                            "greater than or equal to" = ">=", "equal to" = "==", "not equal to" = "!=",
+                                            "contains" = "%in%"))),
+          
+          column(4, uiOutput(ns("valueUI")))
+        )
+    )
+  )
+} 
+
+fleet_exprUI <- function(id) {
+  ns <- NS(id)
+  
+  tagList(
+    h4(strong("Expression Builder")),
+    
+    div(style = "width: 85%; padding: 0px;",
+        fluidRow(
+          column(3, uiOutput(ns("select_var")), offset = 2),
+          
+          column(3, selectInput(ns("nexpr_1-oper"), "Operator", 
+                                choices = c("less than" = "<","greater than" = ">", "less than or equal to" = "<=", 
+                                            "greater than or equal to" = ">=", "equal to" = "==", "not equal to" = "!=",
+                                            "contains" = "%in%"))),
+          
+          column(4, 
+                # textInput(ns("value_1"), "Value")
+                uiOutput(ns("valueUI"))
+                 )
+        )),
+    
+    div(id = "n_expr_container"),
+    
+    actionButton(ns("add_expr"), label = "", icon = icon(name = "plus"), 
+                 style = "background-color: blue; color: white;"), 
+    
+    tags$br(), tags$br(),
+    h6(strong("Expression")),
+    verbatimTextOutput(ns("expr_txt")),
+    tags$br(), tags$br(),
+    
+    actionButton(ns("reset_expr"), "Reset expression", style = "color: white; background-color: blue;"),
+    actionButton(ns("insert_expr"), "Insert expression", style = "color: white; background-color: green;"),
+    
+    tags$br(), tags$br()
+    
   )
 }
 
@@ -1124,8 +1188,48 @@ fleet_tableOut <- function(id) {
   ns <- NS(id)
   tagList(
     h4(strong("Fleet Definition Table")),
+    
+    fluidRow(column(8,
+                    actionButton(ns("deselect"), "Deselect", 
+                                 style = "background-color:#E8E8E8;
+                                    color:#000000;
+                                    border-color:#BEBEBE;
+                                    border-style:double;
+                                    border-width:3px;
+                                    border-radius:0%;
+                                    font-size:14px;"),
+                    actionButton(ns("select_row"), "Select row", 
+                                 style = "background-color:#E8E8E8;
+                                    color:#000000;
+                                    border-color:#BEBEBE;
+                                    border-style:double;
+                                    border-width:3px;
+                                    border-radius:0%;
+                                    font-size:14px;"),
+                    actionButton(ns("select_column"), "Select column", 
+                                 style = "background-color:#E8E8E8;
+                                    color:#000000;
+                                    border-color:#BEBEBE;
+                                    border-style:double;
+                                    border-width:3px;
+                                    border-radius:0%;
+                                    font-size:14px;"),
+                    actionButton(ns("select_cell"), "Select cell", 
+                                 style = "background-color:#E8E8E8;
+                                   color:#000000;
+                                   border-color:#BEBEBE;
+                                   border-style:double;
+                                   border-width:3px;
+                                   border-radius:0%;
+                                   font-size:14px;"))),
   DT::DTOutput(ns("f_tab")),
-  tableOutput(ns("reference"))
+  
+  tags$br(), tags$br(),
+  
+  fluidRow(column(4, 
+                  h4(strong("Reference Table")),
+                  tableOutput(ns("reference"))))
+  
   )
 }
 
