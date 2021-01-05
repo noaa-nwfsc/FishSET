@@ -2368,7 +2368,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }
         
         grid_values$plot <-
-          view_grid_dat(grid = grddat$dataset, project = input$projectname,
+          view_grid_dat(gridfile = grddat$dataset, project = input$projectname,
                       lon = input$grid_lon, lat = input$grid_lat,
                       value = input$grid_value, split_by = input$grid_split,
                       agg_by = input$grid_agg, gmap = grid_values$gmap)
