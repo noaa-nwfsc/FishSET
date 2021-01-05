@@ -57,8 +57,12 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
   # 8', 'species == 'cod'', 'area %in% c(640, 620)', NA), fleet_val = c('A', 'B', 'C', 'Other'), save = TRUE) }
 
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
+  
+  if (shiny::isRunning()) {
+    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
+  } else { 
+    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
   
   x <- 0
   
@@ -181,8 +185,12 @@ fleet_assign <- function(dat, project, fleet_tab, overlap = FALSE, format_tab = 
   #' @seealso \code{\link{fleet_table}}
 
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
+  
+  if (shiny::isRunning()) {
+    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
+  } else { 
+    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
   
   x <- 0
   
