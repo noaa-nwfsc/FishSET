@@ -472,23 +472,29 @@ source("map_viewer_app.R", local = TRUE)
                    
                   #Fleet functions ==== 
                   
-                  tabPanel("Fleet Assignment and Analyses", value = "fleet",
+                  tabPanel("Fleet Assignment and Summary", value = "fleet",
                            
                            sidebarLayout(
                              
                              sidebarPanel(
                                 
+                                uiOutput("fleetSaveOutputUI"),
+                                saveDataTableUI("fleet"),
+                                refreshUI("fleet"),
+                                closeAppUI("fleet"),
+                                noteUI("fleet"), 
+                                
                                 conditionalPanel("input.fleet_tab == 'fleet_assign'",
                                                  
-                                                 radioButtons("assign_rb", label = "Choose:",
-                                                              choices = c("Definition table", "Fleet assignment"), 
-                                                              selected = "Definition table"),
+                                                 selectInput("assign_fun", label = "Select task",
+                                                              choices = c("Define fleets", "Fleet assignment"), 
+                                                              selected = "Define fleets"),
                                                  
-                                                 conditionalPanel("input.assign_rb == 'Definition table'",
+                                                 conditionalPanel("input.assign_fun == 'Define fleets'",
                                                                   
                                                                   fleet_tableUI("f_table")),
                                                  
-                                                 conditionalPanel("input.assign_rb == 'Fleet assignment'",
+                                                 conditionalPanel("input.assign_fun == 'Fleet assignment'",
                                                                   
                                                                   fleet_assignUI("f_assign"))                 
                                 ),
@@ -532,23 +538,27 @@ source("map_viewer_app.R", local = TRUE)
                                                
                                                conditionalPanel("input.fleet_fun == 'density_plot'",
                                                                 
-                                                                density_plotUI("den"))
-                                 )
-                             ),
+                                                                density_plotUI("den")),
+                                               
+                                               
+                                 ), 
+                               
+                               RexpressionUI("fleet")
+                               ), # sidebarPanel
                              
                              mainPanel(
                                
-                               tabsetPanel(id = "fleet_tab", 
+                               tabsetPanel(id = "fleet_tab", selected = "fleet_assign",
                                            
                                            tabPanel("Fleet Assignment", value = "fleet_assign",
                                                     
-                                                    conditionalPanel("input.assign_rb == 'Definition table'",
+                                                    conditionalPanel("input.assign_fun == 'Define fleets'",
                                                       
                                                       fleet_exprUI("f_table"), 
                                                     
                                                       fleet_tableOut("f_table")),
                                                     
-                                                    conditionalPanel("input.assign_rb == 'Fleet assignment'",
+                                                    conditionalPanel("input.assign_fun == 'Fleet assignment'",
                                                     
                                                       fleet_assignOut("f_assign"))
                                            ),

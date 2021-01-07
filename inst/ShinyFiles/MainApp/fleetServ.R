@@ -40,7 +40,7 @@ RexpressionServ <- function(id, values) {
       }
     })
     
-    return(exp_out)
+    output$result <- renderUI({exp_out()})
   })
 }
 
@@ -116,7 +116,7 @@ saveDataTableServ <- function(id, values, project) {
     
     observeEvent(input$saveData, {
       suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-      DBI::dbWriteTable(fishset_db, paste0(project(), 'MainDataTable'), values$dataset, overwrite = TRUE)
+      DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTable'), values$dataset, overwrite = TRUE)
       DBI::dbDisconnect(fishset_db)
       showNotification('Data saved to FishSET database', type = 'message', duration = 10)
     })
@@ -128,10 +128,10 @@ refreshServ <- function(id, values, project) {
   moduleServer(id, function(input, output, session) {
     
     observeEvent(input$refresh, {
-      req(project())
-      temp <- tables_database()[grep(paste0(project(), 'MainDataTable\\d+'), tables_database())][which(
-        unlist(stringr::str_extract_all(tables_database()[grep(paste0(project(), 'MainDataTable\\d+'), 
-                                                               tables_database())], "\\d+"))==max((unlist(stringr::str_extract_all(tables_database()[grep(paste0(project(), 
+      req(project)
+      temp <- tables_database()[grep(paste0(project, 'MainDataTable\\d+'), tables_database())][which(
+        unlist(stringr::str_extract_all(tables_database()[grep(paste0(project, 'MainDataTable\\d+'), 
+                                                               tables_database())], "\\d+"))==max((unlist(stringr::str_extract_all(tables_database()[grep(paste0(project, 
                                                                                                                                                                  'MainDataTable\\d+'), tables_database())], "\\d+")))))]
       values$dataset <- table_view(temp)
       showNotification("Data refreshed", type = 'message', duration = 10)
@@ -154,10 +154,7 @@ closeAppServ <-  function(id) {
 density_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
-    
-    closeAppServ("close")
-    
-    refreshServ("refresh", values, project)
+
     
     observeEvent(input$downloadplot, {
       output$downloadplotHIDE <<- downloadHandler(
@@ -283,9 +280,6 @@ density_serv <- function(id, values, project) {
     })
     
     output$plot <- renderPlot({den_out()})
-    
-    exp_out <- RexpressionServ("exp", values)
-    output$result <- renderUI({exp_out()})
   })
 }
 
@@ -301,10 +295,6 @@ vessel_serv <- function(id, values, project) {
                    fun_name = "vessel_count", tab_plot = v_out, 
                    out = reactive(input$out))
     
-    closeAppServ("close")
-    
-    refreshServ("refresh", values, project)
-    
     ns <- session$ns
     output$var_select <- renderUI({
       
@@ -313,25 +303,21 @@ vessel_serv <- function(id, values, project) {
     
     output$date_select <- renderUI({
       
-     # tagList(
-        conditionalPanel("input.date_cb", ns = ns, 
-      
-          selectizeInput(ns("date"), "Date variable (x-axis)", 
+          selectizeInput(ns("date"), "Date variable (optional)", 
                       choices = date_cols(values$dataset), multiple = TRUE,
                       options = list(maxItems = 1, create = TRUE,
-                                     placeholder='Select or type variable name')))
-    #  )
+                                     placeholder='Select or type variable name'))
     })
     
     output$grp_select <- renderUI({
       
-      selectizeInput(ns("grp"), "Select group variables (optional)",choices = colnames(values$dataset), 
+      selectizeInput(ns("grp"), "Select group variables", choices = colnames(values$dataset), 
                      multiple = TRUE, options = list(create = TRUE))
     })
     
     output$fct_select <- renderUI({
       
-      selectizeInput(ns("fct"), "Split plot by (optional)", choices = c("year", "month", "week", colnames(values$dataset)),
+      selectizeInput(ns("fct"), "Split plot by", choices = c("year", "month", "week", colnames(values$dataset)),
                      multiple = TRUE, options = list(maxItems = 2))
     })
     
@@ -371,7 +357,7 @@ vessel_serv <- function(id, values, project) {
     
     output$filter_date_UIOutput <- renderUI({
       
-      if (input$date_cb == TRUE) {
+      #if (input$date_cb == TRUE) {
         if (!is.null(input$date)) {
           if (!is.null(input$filter_date)) {
             if (input$filter_date == "date_range") {
@@ -386,7 +372,7 @@ vessel_serv <- function(id, values, project) {
             }
           }
         }
-      }
+     # }
     })
     
     observeEvent(input$date_cb == FALSE, {
@@ -396,12 +382,12 @@ vessel_serv <- function(id, values, project) {
                                                           "day of the year" = "day_of_year", "weekday"),
                            options = list(maxItems = 1), selected = NULL)
       
-      updateSelectizeInput(session, "date", choices = date_cols(values$dataset),
-                           options = list(maxItems = 1), selected = NULL)
-      
-      updateSelectizeInput(session, "filter_date",choices = c("date range" = "date_range", "year-month", 
-                                                              "year-week", "year-day", "year", "month", "week", "day"),
-                           options = list(maxItems = 1), selected = NULL)
+      # updateSelectizeInput(session, "date", choices = date_cols(values$dataset),
+      #                      options = list(maxItems = 1), selected = NULL)
+      # 
+      # updateSelectizeInput(session, "filter_date",choices = c("date range" = "date_range", "year-month", 
+      #                                                         "year-week", "year-day", "year", "month", "week", "day"),
+      #                      options = list(maxItems = 1), selected = NULL)
     })
     
     date_value <- reactive({
@@ -441,10 +427,6 @@ vessel_serv <- function(id, values, project) {
     })
     
     output$output <- renderUI({tabplot()})
-    
-    exp_out <- RexpressionServ("exp", values)
-    output$result <- renderUI({exp_out()})
-    
   })
 }
 
@@ -454,12 +436,8 @@ species_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
     
-    saveOutputServ("saveOut", "spec", project = project, fun_name = "species_catch", 
+    saveOutputServ("saveOut", "spec", project = project, fun_name = "species_catch",
                    tab_plot = spec_out, out = reactive(input$out))
-    
-    closeAppServ("close")
-    
-    refreshServ("refresh", values, project)
     
     ns <- session$ns
     
@@ -470,24 +448,21 @@ species_serv <- function(id, values, project) {
     })
     
     output$date_select <- renderUI({
-      tagList(
-      conditionalPanel("input.date_cb", ns = ns, 
       
-        selectizeInput(ns("date"), "Date variable (x-axis)",
+       selectizeInput(ns("date"), "Date variable (optional)",
                     choices = c(date_cols(values$dataset)), multiple = TRUE,
-                    options = list(maxItems = 1, create = TRUE)))
-      )
+                    options = list(maxItems = 1, create = TRUE))
     })
     
     output$grp_select <- renderUI({
       
-      selectizeInput(ns("grp"), "Select group variables (optional)",
+      selectizeInput(ns("grp"), "Select group variables",
                      choices = c(colnames(values$dataset)), multiple = TRUE)
     })
     
     output$fct_select <- renderUI({
       
-      selectizeInput(ns("fct"), "split plot by (optional)",
+      selectizeInput(ns("fct"), "split plot by",
                      choices = c("year", "month", "week", "species", colnames(values$dataset)),
                      multiple = TRUE, options = list(maxItems = 2))
     })
@@ -528,7 +503,7 @@ species_serv <- function(id, values, project) {
     
     output$filter_date_UIOutput <- renderUI({
      
-      if (input$date_cb == TRUE) {
+      
        if (!is.null(input$date)) {
         if (!is.null(input$filter_date)) {
           if (input$filter_date == "date_range") {
@@ -543,7 +518,6 @@ species_serv <- function(id, values, project) {
           }
         }
        }
-      }
     })
     
     observeEvent(input$date_cb == FALSE, {
@@ -602,9 +576,6 @@ species_serv <- function(id, values, project) {
     })
     
     output$output <- renderUI({tabplot()})
-    
-    exp_out <- RexpressionServ("exp", values)
-    output$result <- renderUI({exp_out()})
   })
 }
 
@@ -616,10 +587,6 @@ roll_serv <- function(id, values, project) {
     
     saveOutputServ("saveOut", "roll", project = project, fun_name = "roll_catch",
                    tab_plot = roll_out, out = reactive(input$out))
-    
-    closeAppServ("close")
-    
-    refreshServ("refresh", values, project)
     
     ns <- session$ns
     
@@ -737,9 +704,6 @@ roll_serv <- function(id, values, project) {
     })
     
     output$output <- renderUI({tabplot()})
-    
-    exp_out <- RexpressionServ("exp", values)
-    output$result <- renderUI({exp_out()})
   })
 }
 
@@ -751,10 +715,6 @@ weekly_catch_serv <- function(id, values, project) {
     
     saveOutputServ("saveOut", "wc", project = project, fun_name = "weekly_catch", 
                    tab_plot = wc_out, out = reactive(input$out))
-    
-    closeAppServ("close")
-    
-    refreshServ("refresh", values, project)
     
     ns <- session$ns
     
@@ -875,9 +835,6 @@ weekly_catch_serv <- function(id, values, project) {
     })
     
     output$output <- renderUI({tabplot()})
-    
-    exp_out <- RexpressionServ("exp", values)
-    output$result <- renderUI({exp_out()})
   })
 }
 
@@ -889,10 +846,6 @@ weekly_effort_serv <- function(id, values, project) {
     
     saveOutputServ("saveOut", fun_id = "we", project = project, fun_name = "weekly_effort", 
                    tab_plot = we_out, out = reactive(input$out))
-    
-    closeAppServ("close")
-    
-    refreshServ("refresh", values, project)
     
     ns <- session$ns
     
@@ -1008,9 +961,6 @@ weekly_effort_serv <- function(id, values, project) {
     })
     
     output$output <- renderUI({tabplot()})
-    
-    exp_out <- RexpressionServ("exp", values)
-    output$result <- renderUI({exp_out()})
   })
 }
 
@@ -1022,10 +972,6 @@ bycatch_serv <- function(id, values, project) {
     
     saveOutputServ("saveOut", fun_id = "by", project = project, fun_name = "bycatch",
                    tab_plot = by_out, out = reactive(input$out))
-    
-    closeAppServ("close")
-    
-    refreshServ("refresh", values, project)
     
     ns <- session$ns
     
@@ -1161,9 +1107,6 @@ bycatch_serv <- function(id, values, project) {
     })
     
     output$output <- renderUI({tabplot()})
-    
-    exp_out <- RexpressionServ("exp", values)
-    output$result <- renderUI({exp_out()})
   })
 }
 
@@ -1176,10 +1119,6 @@ trip_serv <- function(id, values, project) {
     saveOutputServ("saveOut", fun_id = "trip", project = project, 
                    fun_name = "trip_length", tab_plot = trip_out, 
                    out = reactive(input$out))
-    
-    closeAppServ("close")
-    
-    refreshServ("refresh", values, project)
     
     ns <- session$ns
     
@@ -1311,9 +1250,6 @@ trip_serv <- function(id, values, project) {
     })
     
     output$output <- renderUI({tabplot()})
-    
-    exp_out <- RexpressionServ("exp", values)
-    output$result <- renderUI({exp_out()})
   })
 }
 # Fleet Table ====
@@ -1365,10 +1301,6 @@ nexpr_row_server <- function(id, values) {
 fleet_table_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
-    
-    closeAppServ("close")
-    
-    refreshServ("refresh", values, project)
     
     ns <- session$ns
     
@@ -1452,7 +1384,7 @@ fleet_table_serv <- function(id, values, project) {
         if (is_empty(input[[paste0(new_id, "-value")]]) == FALSE) {
           
          # check if var should be wrapped in quotes
-          if (any(var_class %in% c("character", "factor", "date", "POSIXct", "POSIXt"))) {
+          if (any(var_class %in% c("character", "factor", "Date", "POSIXct", "POSIXt"))) {
             
             value <- paste0("'", input[[paste0(new_id, "-value")]], "'") # add single quotes
           } else {
@@ -1599,9 +1531,6 @@ fleet_table_serv <- function(id, values, project) {
       fleet_table(values$dataset, project = project(), table = f_r$f_DT, save = TRUE)
       showNotification("Table saved.", type = 'message', duration = 10)
     })
-    
-    exp_out <- RexpressionServ("exp", values)
-    output$result <- renderUI({exp_out()})
   })
 }
 
@@ -1610,12 +1539,6 @@ fleet_table_serv <- function(id, values, project) {
 fleet_assign_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
-    
-    closeAppServ("close")
-    
-    refreshServ("refresh", values, project)
-    
-    #saveDataTableServ("saveDat", values, project)
     
     fleet_tab_db <- reactive({
       
@@ -1670,8 +1593,5 @@ fleet_assign_serv <- function(id, values, project) {
           ggplot2::geom_col() + ggplot2::coord_flip()
       }
     })
-    
-    exp_out <- RexpressionServ("exp", values)
-    output$result <- renderUI({exp_out()})
   })
 }
