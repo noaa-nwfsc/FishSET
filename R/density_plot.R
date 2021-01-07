@@ -12,9 +12,10 @@
 #' @param project String, name of project.
 #' @param var String, name of variable to plot.
 #' @param type String, type of density plot. Options include "kde" (kernel density estimate), 
-#'   "ecdf" (empirical cdf), or "cdf".
+#'   "ecdf" (empirical cdf), or "cdf" (cumilitive dstribution function).
 #' @param group String, name of grouping variable(s). Multiple group variables will be combined. 
 #' @param date Date variable from \code{dat} used to subset and/or facet the plot by.
+#' @param date_value
 #' @param filter_date The type of filter to apply to the table. The "date_range" option will subset 
 #'   the data by two date values entered in \code{filter_val}. Other options include "year-day", 
 #'   "year-week", "year-month", "year", "month", "week", or "day". The argument filter_value must 

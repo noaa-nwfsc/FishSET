@@ -27,7 +27,7 @@
 #' @param gridfile Required, data file or character. 
 #'   \code{gridfile} is a spatial data file containing information on fishery management or regulatory zones boundaries.
 #'   Shape, json, geojson, and csv formats are supported. geojson is the preferred format. json files must be converted
-#'   into geoson. This is done automatically when the file is loaded with \code{\link{read_dat}} with \code{\link{is.map}} set to true.
+#'   into geoson. This is done automatically when the file is loaded with \code{\link{read_dat}} with \code{is.map} set to true.
 #'   \code{gridfile} cannot, at this time, be loaded from the FishSET database. \cr
 #'   \code{lon.dat}, \code{lat.dat}, \code{lon.grid}, and \code{lat.grid} are required for specific \code{gridfile} file formats. \cr
 #'   \code{cat} must be specified for all file formats.

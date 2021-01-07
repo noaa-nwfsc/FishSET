@@ -165,7 +165,8 @@
 #'   }
 #' @examples
 #' \dontrun{
-#' make_model_design(pollockMainDataTable ,"pollock", catchID= "OFFICIAL_TOTAL_CATCH", likelihood='logit_c')
+#' make_model_design(pollockMainDataTable ,"pollock", catchID= "OFFICIAL_TOTAL_CATCH", 
+#' likelihood='logit_c')
 #' }
 #'
 make_model_design <- function(dat, project, catchID, replace = TRUE, PortTable = NULL, likelihood = NULL, 

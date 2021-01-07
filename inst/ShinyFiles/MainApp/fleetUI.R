@@ -997,7 +997,7 @@ fleet_tableUI <- function(id) {
     
     h3(strong("Fleet Definition")),
     
-    p("Fleet tables must be saved to the FishSET database before they can be used to assign vessels to fleets."),
+    p("Fleet definition tables must be saved to the FishSET database before they can be used to assign vessels to fleets."),
     
     actionButton(ns("save"), "Save table to FishSET database",
                  style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
