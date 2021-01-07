@@ -1,8 +1,10 @@
 # correlation
-corr_out <- function(dat, project, variables) {
-  #' View correlations between variables
+corr_out <- function(dat, project, variables, ...) {
+  #' View correlation coefficients between numeric variables
   #'
-  #' @description Correlations can be displayed between all numeric variables or selected numeric variables. 
+  #' @description Correlations coefficients can be displayed between all numeric variables or selected numeric variables. 
+  #'   Defaults to pearson correlation coefficient. To change the method, specify \code{'method'} as 
+  #'   \code{'kendall'}, or \code{'spearman'}.
   #'    Both a plot and table output are generated and saved to the `output` folder. Correlation plot is generated using \code{\link[ggcorrplot]{ggcorrplot}}.
   #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
   #' @param project String, project name.
@@ -11,7 +13,8 @@ corr_out <- function(dat, project, variables) {
   #' @import ggplot2
   #' @importFrom ggcorrplot ggcorrplot
   #' @importFrom stats cor
-  #' @details Returns a correlation plot and table. Output saved to output folder.
+  #' @details Returns pearson's correlation coefficient between numeric variables in plot 
+  #'   and table format. Output saved to output folder.
   #' @examples
   #' \dontrun{
   #' corr_out(pollockMainDataTable, 'pollock', 'all')
