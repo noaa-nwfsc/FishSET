@@ -82,12 +82,13 @@ validate_date <- function(date = NULL, period = NULL, filter_date = NULL, fct = 
 n_plot_output <- function(out) {
     
     if ("ggplot" %in% class(out)) {
-      
-      renderPlot({ out })
+       
+      tagList(renderPlot({ out }))
       
     } else if ("gtable" %in% class(out)) {
       
-      renderPlot(gridExtra::grid.arrange(out))
+      tagList(renderPlot(gridExtra::grid.arrange(out)))
+        
       
     } else if (all(class(out) == "list")) {
       
@@ -99,7 +100,7 @@ n_tab_output <- function(out) {
   
   if (is.data.frame(out)) {
     
-    DT::renderDT({ out })
+    tagList(DT::renderDT({ out }))
     
   } else {
     
@@ -110,25 +111,16 @@ n_tab_output <- function(out) {
 tabplot_output <- function(out, out_type) {
   
   if (out_type == "plot") {
-    shinycssloaders::withSpinner(
-      tagList(
-        n_plot_output(out)
-      ))
+    
+    n_plot_output(out)
     
   } else if (out_type == "table") {
-    
-    shinycssloaders::withSpinner(
-      tagList(
-        n_tab_output(out)
-      ))
-    
+      
+    n_tab_output(out)
+      
   } else if (out_type == "tab_plot") {
     
-    shinycssloaders::withSpinner(
-      tagList(
-        n_plot_output(out$plot),
-        n_tab_output(out$table)
-      ))
+   tagList(n_plot_output(out$plot), n_tab_output(out$table))
   }
 }
 

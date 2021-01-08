@@ -152,9 +152,18 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
   }
   
   # date ----
+  # convert date var if not date/date-time class
+  if (!is.null(date)) {
+    if (any(!(class(dataset[[date]]) %in% c("Date", "POSIXct", "POSIXt")))) {
+      dataset[[date]] <- date_parser(dataset[[date]])
+    }
+  } 
+  
   facet_date <- facet[facet %in% c("year", "month", "week")]
   
-  if (!is.null(date)) {
+  if (!is.null(period)) {
+    
+    if (is.null(date)) warning("Please enter a date variable.")
     
     periods <- c("year_month", "month_year", "year", "month", "weeks", "weekday", "day", "day_of_year")
     
@@ -171,9 +180,12 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
     dataset <- add_missing_dates(dataset, date, v_id, group = group, facet_by = facet_by)
     
     dataset[[period]] <- format(dataset[[date]], p)
+  }
+  # facet by date
+  if (!is.null(facet_date)) {
+    # if summarizing over period
+    if (!is.null(period)) {
     
-    if (!is.null(facet_date)) {
-      
       if (period != "month" & any("month" %in% facet_date)) {
         
         dataset$month <- factor(format(dataset[[date]], "%b"), levels = month.abb, ordered = TRUE)
@@ -182,6 +194,18 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
         
         dataset$week <- as.integer(format(dataset[[date]], "%U"))
       }
+    
+    } else {
+      # if not summarizing over period
+      
+      dataset[facet_date] <- lapply(facet_date, function(x) {
+        fp <- switch(x, "year" = "%Y", "month" = "%b", "week" = "%U")
+        if (fp == "%b") {
+          factor(format(dataset[[date]], fp), levels = month.abb, ordered = TRUE) 
+        } else {
+          as.integer(format(dataset[[date]], fp))
+        }
+      })
     }
   }
   
@@ -210,7 +234,7 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
   }
   
   # convert period to factor
-  if (!is.null(date)) {
+  if (!is.null(period)) {
     
     if (p %in% c("%Y-%m", "%a", "%b")) {
       
@@ -240,7 +264,7 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
     vessel_exp <- function() if (value == "percent") rlang::sym(v_id_perc) else rlang::sym(v_id)
     
     xaxis_exp <- function() {
-      if (!is.null(date)) { 
+      if (!is.null(period)) { 
         rlang::sym(period)
         
       } else { 
@@ -256,7 +280,7 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
     group1_exp <- function() if (!is.null(group)) rlang::sym(group1) else NULL
     group2_exp <- function() if (length(group) > 1) rlang::sym(group2) else NULL
     
-    if (!is.null(date)) {
+    if (!is.null(period)) {
       
       interaction_exp <- function() {
         if (is.null(group)) 1
@@ -324,13 +348,16 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
         
         fm <- paste(facet, sep = " ~ ")
       }
-      
+      if (is.null(period)) {
+        v_plot <- v_plot + ggplot2::facet_wrap(fm, scales = scale)
+      } else {
       v_plot <- v_plot + ggplot2::facet_grid(fm, scales = scale)
+      }
     }
     
     v_plot <- v_plot + ggplot2::labs(y = "active vessels")
     
-    if (!is.null(date)) {
+    if (!is.null(period)) {
       # adjust x-axis breaks 
       if (!(p %in% c("%a", "%b", "%Y-%m"))) {
         
@@ -347,7 +374,7 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
     save_plot(project, "vessel_count", v_plot)
   }
   
-  if (!is.null(date)) {
+  if (!is.null(period)) {
     if (period == "month_year") {
       table_out$month_year <- format(as.Date(paste0(table_out$month_year, "-01")), "%b %y")
     }
