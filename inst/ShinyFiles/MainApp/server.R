@@ -1096,7 +1096,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         xn <- which(changecode()!="no changes")
         x <- colnames(values$dataset)[xn]
         newclass <- changecode()[xn]
-        changeclass(values$dataset, project=input$projectname, x=x, newclass=newclass, savedat=FALSE)
+        values$dataset <- changeclass(values$dataset, project=input$projectname, x=x, newclass=newclass, savedat=FALSE)
         showNotification('Variable class changed.', type='message', duration=10)
       })
       
@@ -1125,7 +1125,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       tableInputOutlier <- reactive({
         if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
-        } else if(input$checks=='Outliers'){
+        } else if (input$checks=='Outliers') {
           table <- outlier_table(values$dataset, project=input$projectname, x=input$column_check)
           rownames(table)=table[,2]
           table <- table[,3:10]
@@ -1460,75 +1460,28 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
       
 # Notes ===
-      # notes <- reactive({ 
-      #   if(input$tabs=='qaqc'){
-      #     if(!is.null(input$notesQAQC)){
-      #       paste0("Data quality evaluation:\n", input$notesQAQC, "\n")
-      #     }
-      #   } else if(input$tabs=='analysis') {
-      #     if(!is.null(input$notesAnal)){
-      #       paste0("Simple analysis:\n", input$notesAnal, "\n")
-      #     }
-      #   } else if(input$tabs=='explore'){
-      #     if(!is.null(input$notesExplore)){
-      #       paste0("Data exploration:\n", input$notesExplore, "\n")
-      #     }
-      #   } else if(input$tabs=='upload'){
-      #     if(!is.null(input$notesUp)){
-      #       paste0("Data upload:\n", input$notesUp, "\n")
-      #     }
-      #   } else if(input$tabs=='new'){
-      #     if(!is.null(input$notesNew)){
-      #       paste0("New variables:\n", input$notesNew, '\n')
-      #     }
-      #   } else if (input$tabs=='zone'){
-      #     if (!is.null(input$notesZone)) {
-      #       paste0("Zone definition:\n", input$notesZone, "\n")
-      #     } 
-      #   } else if (input$tabs=='expectedCatch'){
-      #     if (!is.null(input$notesEC)) {
-      #       paste0("Expected catch/revenue:\n", input$notesEC, "\n")
-      #     } 
-      #   } else if (input$tabs=='models'){
-      #     if (!is.null(input$notesModel)) {
-      #       paste0("Models:\n", input$notesModel, "\n")
-      #     }
-      #   } else if(input$tabs=='book'){
-      #     if(!is.null(input$notesBook)){
-      #       paste0("Boomark URL:\n", input$notesBook, '\n')
-      #     }
-      #   }
-      # })
       
-      notes <- reactiveValues(upload = "Upload data: ",
-                              dataQuality = "Data quality evaluation: ",
-                              explore = "Data exploration: ",
-                              fleet = list(density = "Fleet functions: ", vessel = character(0),
-                                           spec = character(0), roll = character(0),
-                                           wc = character(0), we = character(0),
-                                           by = character(0), trip = character(0),
-                                           f_table = character(0), f_assign = character(0)),
-                              analysis = "Simple analysis: ",
-                              new = "Create new variable: ",
-                              zone = "Zone definition: ",
-                              ec = "Expected catch/revenue: ",
-                              models = "Models: ",
-                              book = "Bookmark URL: ")
-      
-      fleet_note_DL <- reactive({
-        c(input[["den-note-callTextDownload"]], input[["ves-note-callTextDownload"]],
-          input[["spec-note-callTextDownload"]], input[["roll-note-callTextDownload"]],
-          input[["wc-note-callTextDownload"]], input[["we-note-callTextDownload"]],
-          input[["by-note-callTextDownload"]], input[["trip-note-callTextDownload"]],
-          input[["f_table-note-callTextDownload"]], input[["f_assign-note-callTextDownload"]])
-      })
+    notes <- reactiveValues(upload = "Upload data: ",
+                            dataQuality = "Data quality evaluation: ",
+                            explore = "Data exploration: ",
+                            fleet = list(density = "Fleet functions: ", vessel = character(0),
+                                         spec = character(0), roll = character(0),
+                                         wc = character(0), we = character(0),
+                                         by = character(0), trip = character(0),
+                                         f_table = character(0), f_assign = character(0)),
+                            analysis = "Simple analysis: ",
+                            new = "Create new variable: ",
+                            zone = "Zone definition: ",
+                            ec = "Expected catch/revenue: ",
+                            models = "Models: ",
+                            book = "Bookmark URL: ")
       
       observeEvent(c(input$callTextDownload,
                      input$callTextDownloadAnal,
                      input$callTextDownloadExplore,
                      input$callTextDownloadUp,
                      input$callTextDownloadNew,
-                     fleet_note_DL(), 
+                     input[["fleet-callTextDownload"]],
                      input$callTextDownloadZone,
                      input$callTextDownloadEC,
                      input$callTextDownloadModels,
@@ -1546,38 +1499,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           if (!is.null(input$notesExplore)) {
             notes$explore <- c(notes$explore, paste0(input$notesExplore, "\n"))
           }
-         } else if (input$tabs == 'fleet') {
-          if (input$fleet_tab == "density_plot") {
-            notes$fleet$density <- c(notes$fleet$density, paste0(input[["den-note-notes"]], "\n"))
-            
-          } else if (input$fleet_tab == "vessel_count") {
-            notes$fleet$vessel <- c(notes$fleet$vessel, paste0(input[["ves-note-notes"]], "\n"))
-            
-          } else if (input$fleet_tab == "species_catch") {
-            notes$fleet$spec <- c(notes$fleet$spec, paste0(input[["spec-note-notes"]], "\n"))
-            
-          } else if (input$fleet_tab == "roll_catch") {
-            notes$fleet$roll <- c(notes$fleet$roll, paste0(input[["roll-note-notes"]], "\n"))
-            
-          } else if (input$fleet_tab == "weekly_catch") {
-            notes$fleet$wc <- c(notes$fleet$wc, paste0(input[["wc-note-notes"]], "\n"))
-            
-          } else if (input$fleet_tab == "weekly_effort") {
-            notes$fleet$we <- c(notes$fleet$we, paste0(input[["we-note-notes"]], "\n"))
-            
-          } else if (input$fleet_tab == "by_catch") {
-            notes$fleet$by <- c(notes$fleet$by, paste0(input[["by-note-notes"]], "\n"))
-            
-          } else if (input$fleet_tab == "trip_length") {
-            notes$fleet$trip <- c(notes$fleet$trip, paste0(input[["trip-note-notes"]], "\n"))
-            
-          } else if (input$fleet_tab == "fleet_table") {
-            notes$fleet$f_table <- c(notes$fleet$f_table, paste0(input[["f_table-note-notes"]], "\n"))
-            
-          } else if (input$fleet_tab == "fleet_assign") {
-            notes$fleet$f_assign <- c(notes$fleet$f_assign, paste0(input[["f_assign-note-notes"]], "\n"))
-          }
-         
+       } else if (input$tabs == 'fleet') {
+         if (!is.null(input[["fleet-notes"]])) {
+           notes$fleet <- c(notes$fleet, paste0(input[["fleet-notes"]], "\n"))
+         }
         } else if (input$tabs == 'analysis') {
           if (!is.null(input$notesAnal)) {
             notes$analysis <- c(notes$analysis, paste0(input$notesAnal, "\n"))
@@ -2320,6 +2245,22 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       # Fleet Functions ========
       
+      fleet_id <- reactive({
+        f_id <- switch(input$fleet_fun, "vessel_count" = "ves", "species_catch" = "spec", 
+                       "roll_catch" = "roll", "weekly_catch" = "wc", "weekly_effort" = "we", 
+                       "bycatch" = "by", "trip_length" = "trip", "density_plot" = "den")
+         paste0(f_id, "-saveOut")
+      })
+      
+      output$fleetSaveOutputUI <- renderUI(saveOutputUI(fleet_id()))
+      
+      saveDataTableServ("fleet", values, input$projectname)
+      
+      closeAppServ("fleet")
+      
+      refreshServ("fleet", values, input$projectname)
+      
+      
       density_serv("den", values, reactive(input$projectname))
       
       vessel_serv("ves",  values, reactive(input$projectname))
@@ -2339,6 +2280,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       fleet_table_serv("f_table", values, reactive(input$projectname))
       
       fleet_assign_serv("f_assign", values, reactive(input$projectname))
+      
+      # R expr output
+      RexpressionServ("fleet", values)
 
       
       
@@ -3633,151 +3577,56 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       
       
-      ##Downloads ====  
-      ##---
-      # savedText <- reactiveValues(answers = logical(0))
-      # observeEvent(c(input$callTextDownload,
-      #                input$callTextDownloadAnal,
-      #                input$callTextDownloadExplore,
-      #                input$callTextDownloadUp,
-      #                input$callTextDownloadNew,
-      #                input$callTextDownloadZone,
-      #                input$callTextDownloadEC,
-      #                input$callTextDownloadModels,
-      #                input$callTextDownloadBook),{
-      #                  savedText$answers <- as.character(c(savedText$answers, case_to_print(), notes()))
-      #                 
-      #                })
-      
-      savedText <- reactiveValues(answers = logical(0))
-      observeEvent(c(input$callTextDownload,
-                     input$callTextDownloadAnal,
-                     input$callTextDownloadExplore,
-                     input$callTextDownloadUp,
-                     input$callTextDownloadNew,
-                     fleet_note_DL(),
-                     input$callTextDownloadZone,
-                     input$callTextDownloadEC,
-                     input$callTextDownloadModels,
-                     input$callTextDownloadBook),{
-                      
-                       if (input$projectname == "") {
-                         showNotification("Enter a project name. Note not saved.", type = 'message', duration = 5)
-                         
-                       } else {
-                         
-                         savedText$answers <- reactiveValuesToList(notes)
-                         nms <- c("dataQuality", "explore", "analysis")
-                         for (n in nms) {
-                           savedText$answers[[n]] <- c(savedText$answers[[n]], case_to_print[[n]])
-                         }
-                         
-                         updateTextInput(session, 'notesUp', "Notes", value = "", 
-                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                         updateTextInput(session, 'notesQAQC', "Notes", value="", 
-                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                         updateTextInput(session, 'notesExplore', "Notes", value = "", 
-                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                         updateTextInput(session, 'notesAnal', "Notes", value="", 
-                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                         updateTextInput(session, 'notesNew', "Notes", value = "",
-                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                         updateTextInput(session, 'notesZone', "Notes", value = "", 
-                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                         updateTextInput(session, 'notesEC', "Notes", value = "",
-                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                         updateTextInput(session, 'notesModel', "Notes", value = "", 
-                                         placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                         updateTextInput(session, 'notesBook', "Notes", value = "", placeholder = 'Paste bookmarked URL here.')
-                         
-                         showNotification("Note saved.", type = 'message', duration = 5)
+
+    #Downloads ====  
+    savedText <- reactiveValues(answers = logical(0))
+    
+    observeEvent(c(input$callTextDownload,
+                   input$callTextDownloadAnal,
+                   input$callTextDownloadExplore,
+                   input$callTextDownloadUp,
+                   input$callTextDownloadNew,
+                   input[["fleet-callTextDownload"]],
+                   input$callTextDownloadZone,
+                   input$callTextDownloadEC,
+                   input$callTextDownloadModels,
+                   input$callTextDownloadBook),{
+                    
+                     if (input$projectname == "") {
+                       showNotification("Enter a project name. Note not saved.", type = 'message', duration = 5)
+                       
+                     } else {
+                       
+                       savedText$answers <- reactiveValuesToList(notes)
+                       nms <- c("dataQuality", "explore", "analysis")
+                       for (n in nms) {
+                         savedText$answers[[n]] <- c(savedText$answers[[n]], case_to_print[[n]])
                        }
-                     }, ignoreInit = TRUE)
+                       
+                       updateTextInput(session, 'notesUp', "Notes", value = "", 
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesQAQC', "Notes", value="", 
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesExplore', "Notes", value = "", 
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, "fleet-notes", "Notes", value = "",
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                        updateTextInput(session, 'notesAnal', "Notes", value="", 
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesNew', "Notes", value = "",
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesZone', "Notes", value = "", 
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesEC', "Notes", value = "",
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesModel', "Notes", value = "", 
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                       updateTextInput(session, 'notesBook', "Notes", value = "", placeholder = 'Paste bookmarked URL here.')
+                       
+                       showNotification("Note saved.", type = 'message', duration = 5)
+                     }
+                   }, ignoreInit = TRUE)
       
-      #  Stored Txt
-      # observeEvent(input$callTextDownloadUp, {
-      #   output$downloadTextUp <- downloadHandler(
-      #     filename = function() {
-      #       paste0(locoutput(), 'StoredText.txt')
-      #     },
-      #     content = function(file) {
-      #       writeLines(savedText$answers, file)
-      #     },
-      #     contentType = "text/csv"
-      #   )
-      #   jsinject <- "setTimeout(function(){window.open($('#downloadTextUp').attr('href'))}, 100);"
-      #   session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
-      # })
-      # 
-      # observeEvent(input$callTextDownloadExplore, {
-      #   output$downloadTextExplore <- downloadHandler(
-      #     filename = function() {
-      #       paste0(locoutput(), 'StoredText.txt')
-      #     },
-      #     content = function(file) {
-      #       writeLines(savedText$answers, file)
-      #     },
-      #     contentType = "text/csv"
-      #   )
-      #   jsinject <- "setTimeout(function(){window.open($('#downloadTextExplore').attr('href'))}, 100);"
-      #   session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
-      # })
-      # 
-      # observeEvent(input$callTextDownloadAnal,{
-      #   output$downloadTextAnal<- downloadHandler(
-      #     filename = function() {
-      #       paste0(locoutput(), 'StoredText.txt')
-      #     },
-      #     content = function(file) {
-      #       writeLines(savedText$answers, file)
-      #     },
-      #     contentType = "text/csv"
-      #   )
-      #   jsinject <- "setTimeout(function(){window.open($('#downloadTextAnal').attr('href'))}, 100);"
-      #   session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
-      # })
-      # 
-      # observeEvent(input$callTextDownload,{
-      #   output$downloadText <- downloadHandler(
-      #     filename = function() {
-      #       paste0(locoutput(), 'StoredText.txt')
-      #     },
-      #     content = function(file) {
-      #       writeLines(savedText$answers, file)
-      #     },
-      #     contentType = "text/csv"
-      #   )
-      #   jsinject <- "setTimeout(function(){window.open($('#downloadText').attr('href'))}, 100);"
-      #   session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
-      # })
-      # 
-      # observeEvent(input$callTextDownloadNew, {
-      #   output$downloadTextNew <- downloadHandler(
-      #     filename = function() {
-      #       paste0(locoutput(), 'StoredText.txt')
-      #     },
-      #     content = function(file) {
-      #       writeLines(savedText$answers, file)
-      #     },
-      #     contentType = "text/csv"
-      #   )
-      #   jsinject <- "setTimeout(function(){window.open($('#downloadTextNew').attr('href'))}, 100);"
-      #   session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
-      # })
-      # 
-      # observeEvent(input$callTextDownloadBook, {
-      #   output$downloadTextBook <- downloadHandler(
-      #     filename = function() {
-      #       paste0(locoutput(), 'StoredText.txt')
-      #     },
-      #     content = function(file) {
-      #       writeLines(savedText$answers, file)
-      #     },
-      #     contentType = "text/csv"
-      #   )
-      #   jsinject <- "setTimeout(function(){window.open($('#downloadTextBook').attr('href'))}, 100);"
-      #   session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
-      # })
       
       observeEvent(input$downloadplot, {
         output$downloadplotHIDE <<- downloadHandler(
@@ -4101,7 +3950,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           if (sum(isolate(c(input$callTextDownload,
                     input$callTextDownloadAnal,
                     input$callTextDownloadExplore,
-                    fleet_note_DL(),
+                    input[["fleet-callTextDownload"]],
                     input$callTextDownloadUp,
                     input$callTextDownloadNew,
                     input$callTextDownloadZone,
@@ -4110,38 +3959,26 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                     input$callTextDownloadBook))) > 0) {
   
             notes_out <- unlist(isolate(savedText$answers))
-
-         #  } else {
-         # 
-         #    notes_out <- isolate(reactiveValuesToList(case_to_print))
-         #    nms_out <- c("dataQuality" = "Data quality evaluation: ",
-         #                 "explore" = "Data exploration: ", "analysis" = "Simple analysis: ")
-         # 
-         #    for (i in names(notes_out)) {
-         #      notes_out[[i]] <- paste0(nms_out[i], "\n", paste(notes_out[[i]], collapse = "\n"))
-         #    }
-         #    notes_out <- unlist(notes_out)
-         # }
   
-          filename <- paste0(locoutput(), isolate(input$projectname), "_notes_", Sys.Date(), ".txt")
-  
-          if (file.exists(filename)) {
-  
-            note_pd <- paste0(isolate(input$projectname), "_notes_", Sys.Date())
-  
-            note_int <- sum(grepl(note_pd, current_out()))
-  
-            writeLines(notes_out,
-                       con = paste0(locoutput(), isolate(input$projectname),
-                                    "_notes_", Sys.Date(), "(", (note_int + 1), ").txt"))
-  
-          } else {
-            writeLines(notes_out, con = filename)
+            filename <- paste0(locoutput(), isolate(input$projectname), "_notes_", Sys.Date(), ".txt")
+    
+            if (file.exists(filename)) {
+    
+              note_pd <- paste0(isolate(input$projectname), "_notes_", Sys.Date())
+    
+              note_int <- sum(grepl(note_pd, current_out()))
+    
+              writeLines(notes_out,
+                         con = paste0(locoutput(), isolate(input$projectname),
+                                      "_notes_", Sys.Date(), "(", (note_int + 1), ").txt"))
+    
+            } else {
+              writeLines(notes_out, con = filename)
+            }
           }
-         }
         }
 
-        # map viewer
+        # map viewer -- add check to see if run w/ servr::daemon_list()
         servr::daemon_stop()
         
         rm("dat_name", envir = rlang::global_env())
