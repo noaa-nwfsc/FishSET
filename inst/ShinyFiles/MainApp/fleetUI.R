@@ -29,13 +29,17 @@ RexpressionUI <- function(id) {
   tagList(
     textInput(ns("expr"), label = "Enter an R expression",
               value = "values$dataset"),
-    actionButton(ns("run"), "Run", class = "btn-success")
+    actionButton(ns("run"), "Run", class = "btn-success"),
+    
+    div( style = "margin-top: 2em;",
+         uiOutput(ns("result"))
+    )
   )
 }
 
 saveDataTableUI <- function(id) {
   ns <- NS(id)
-  actionButton(ns('saveData'),'Save data to fishset_db database',
+  actionButton(ns('saveData'),'Save data to FishSET database',
                style = "color: #fff; background-color: #6EC479; border-color:#000000;")
 }
 
@@ -168,15 +172,6 @@ density_plotUI <- function(id, dat) {
   
   tagList(
     
-    downloadLink(ns('downloadplotHIDE'), label = ''),
-    actionButton(ns('downloadplot'), label = 'Save plot to folder'),
-    closeAppUI(ns("close")), 
-    refreshUI(ns("refresh")), 
-    
-    tags$br(), tags$br(),
-    
-    noteUI(ns("note")),
-    
     actionButton(ns("fun_run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
     
@@ -244,11 +239,6 @@ density_plotUI <- function(id, dat) {
         
         selectInput(ns("position"), "Position of grouping variables",
                     choices = c("identity", "fill", "stack"), selected = "identity"))
-    ),
-    
-    RexpressionUI(ns("exp")),
-    div( style = "margin-top: 2em;",
-         uiOutput(ns("result"))
     )
   )
 }
@@ -260,14 +250,6 @@ vessel_countUI <- function(id) {
   ns <- NS(id)
   
   tagList(
-    saveOutputUI(ns("saveOut")),
-    
-    closeAppUI(ns("close")), 
-    refreshUI(ns("refresh")),
-    
-    tags$br(), tags$br(),
-    
-    noteUI(ns("note")),
     
     actionButton(ns("fun_run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
@@ -280,9 +262,9 @@ vessel_countUI <- function(id) {
     
     uiOutput(ns("var_select")),
     
-    checkboxInput(ns("date_cb"), "Summarize over time", value = FALSE),
-    
     uiOutput(ns("date_select")),
+    
+    checkboxInput(ns("date_cb"), "Summarize over time", value = FALSE),
     
     conditionalPanel("input.date_cb", ns = ns,
       selectizeInput(ns("period"), "Show counts by",
@@ -290,49 +272,51 @@ vessel_countUI <- function(id) {
                               "year", "month", "weeks", "day of the month" = "day",
                               "day of the year" = "day_of_year", "weekday"),
                   multiple = TRUE, options = list(maxItems = 1))
-      ), 
+      ),
     
-    tags$br(), tags$br(),
+    div(checkboxInput("subset_cb",strong("Subset"), value = FALSE),
+        style = "font-size: 18px"),
     
-    h4(strong("Subset")),
+    conditionalPanel("input.subset_cb",
+                     
+           uiOutput(ns("filter_by_UIOutput")), 
+           
+           uiOutput(ns("filter_by_val_UIOutput")),
+           
+           textInput(ns("filter_expr"), "Subset expression",
+                     value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
+           
+           conditionalPanel("input.date !== 'undefined' && input.date.length > 0", ns = ns,
+                            selectizeInput(ns("filter_date"), "Subset by date",
+                                           choices = c("date range" = "date_range", "year-month", 
+                                                       "year-week", "year-day", "year", "month", "week", "day"),
+                                           multiple = TRUE, options = list(maxItems = 1))
+           ),
+           
+           uiOutput(ns("filter_date_UIOutput"))
+            ),
     
-    uiOutput(ns("filter_by_UIOutput")), 
+    div(checkboxInput("group_cb", strong("Group"), value = FALSE),
+        style = "font-size: 18px"),
     
-    uiOutput(ns("filter_by_val_UIOutput")),
+    conditionalPanel("input.group_cb", 
+                     
+           uiOutput(ns("grp_select")),
+           
+           checkboxInput(ns("combine"), "Combine grouping variables",
+                         value = FALSE)
+           ),
     
-    textInput(ns("filter_expr"), "Subset expression",
-              value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
+    div(checkboxInput("split_cb", strong("Split"), value = FALSE),
+    style = "font-size: 18px"),
     
-    conditionalPanel("input.date_cb", ns = ns,
-      selectizeInput(ns("filter_date"), "Subset by date",
-                     choices = c("date range" = "date_range", "year-month", 
-                                 "year-week", "year-day", "year", "month", "week", "day"),
-                     multiple = TRUE, options = list(maxItems = 1))
+    conditionalPanel("input.split_cb", 
+                     
+          uiOutput(ns("fct_select"))        
     ),
     
-    uiOutput(ns("filter_date_UIOutput")),
-    
-    tags$br(), tags$br(),
-    
-    h4(strong("Group")),
-    
-    uiOutput(ns("grp_select")),
-    
-    checkboxInput(ns("combine"), "Combine grouping variables",
-                  value = FALSE),
-    
-    tags$br(), tags$br(),
-    
-    h4(strong("Split")), 
-    
-    uiOutput(ns("fct_select")),
-    
-    tags$br(), tags$br(),
-    
-    h4(strong("Plot options")),
-    
-    checkboxInput(ns("show_options"), "Show plot options",
-                  value = FALSE),
+    div(checkboxInput(ns("show_options"), strong("Plot options"), value = FALSE),
+        style = "font-size: 18px"),
     
     conditionalPanel("input.show_options", ns = ns,
                      
@@ -354,12 +338,7 @@ vessel_countUI <- function(id) {
         selectInput(ns("position"), "Position of grouping variables",
                     choices = c("identity", "dodge", "fill", "stack"),
                     selected = "stack"))
-      ),
-    
-    RexpressionUI(ns("exp")),
-    div( style = "margin-top: 2em;",
-         uiOutput(ns("result"))
-    )
+      )
   )
 }
 
@@ -368,13 +347,8 @@ species_catchUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-    saveOutputUI(ns("saveOut")),
-    closeAppUI(ns("close")), 
-    refreshUI(ns("refresh")),
     
-    tags$br(), tags$br(),
-    
-    noteUI(ns("note")),
+    #noteUI(ns("note")),
     actionButton(ns("fun_run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
     
@@ -389,9 +363,9 @@ species_catchUI <- function(id) {
     
     uiOutput(ns("var_select")),
     
-    checkboxInput(ns("date_cb"), "Summarize over time", value = FALSE),
-    
     uiOutput(ns("date_select")),
+    
+    checkboxInput(ns("date_cb"), "Summarize over time", value = FALSE),
     
     conditionalPanel("input.date_cb", ns = ns,
       selectizeInput(ns("period"), "Show counts by",
@@ -412,7 +386,7 @@ species_catchUI <- function(id) {
     textInput(ns("filter_expr"), "Subset expression",
               value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
     
-    conditionalPanel("input.date_cb", ns = ns,
+    conditionalPanel("input.date !== 'undefined' && input.date.length > 0", ns = ns,
       selectizeInput(ns("filter_date"), "Subset by date",
                      choices = c("date range" = "date_range", "year-month", 
                                  "year-week", "year-day", "year", "month", "week", "day"),
@@ -474,11 +448,6 @@ species_catchUI <- function(id) {
         selectInput(ns("format"), "Table format",
                     choices = c("wide", "long"))
       )
-    ),
-    
-    RexpressionUI(ns("exp")),
-    div( style = "margin-top: 2em;",
-         uiOutput(ns("result"))
     )
   )
 }
@@ -488,13 +457,8 @@ roll_catchUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-    saveOutputUI(ns("saveOut")),
-    closeAppUI(ns("close")), 
-    refreshUI(ns("refresh")),
     
-    tags$br(), tags$br(),
-    
-    noteUI(ns("note")),
+    #noteUI(ns("note")),
     actionButton(ns("fun_run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
     
@@ -570,11 +534,6 @@ roll_catchUI <- function(id) {
         
         selectInput(ns("tran"), "Transform y-axis (optional)",
                     choices = c("none" = "identity", "log", "log2", "log10", "sqrt")))
-    ),
-    
-    RexpressionUI(ns("exp")),
-    div( style = "margin-top: 2em;",
-         uiOutput(ns("result"))
     )
   )
 }
@@ -584,13 +543,8 @@ weekly_catchUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-    saveOutputUI(ns("saveOut")),
-    closeAppUI(ns("close")), 
-    refreshUI(ns("refresh")),
     
-    tags$br(), tags$br(),
-    
-    noteUI(ns("note")),
+   # noteUI(ns("note")),
     actionButton(ns("fun_run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
     
@@ -675,11 +629,6 @@ weekly_catchUI <- function(id) {
         
         selectInput(ns("format"), "Table format",
                     choices = c("wide", "long")))
-    ),
-    
-    RexpressionUI(ns("exp")),
-    div( style = "margin-top: 2em;",
-         uiOutput(ns("result"))
     )
   )
 }
@@ -689,13 +638,8 @@ weekly_effortUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-    saveOutputUI(ns("saveOut")),
-    closeAppUI(ns("close")), 
-    refreshUI(ns("refresh")),
     
-    tags$br(), tags$br(),
-    
-    noteUI(ns("note")),
+    #noteUI(ns("note")),
     actionButton(ns("fun_run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
     
@@ -760,11 +704,6 @@ weekly_effortUI <- function(id) {
         
         selectInput(ns("format"), "Table format",
                     choices = c("wide", "long")))
-    ),
-    
-    RexpressionUI(ns("exp")),
-    div( style = "margin-top: 2em;",
-         uiOutput(ns("result"))
     )
   )
 }
@@ -773,13 +712,8 @@ bycatchUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-    saveOutputUI(ns("saveOut")),
-    closeAppUI(ns("close")), 
-    refreshUI(ns("refresh")),
     
-    tags$br(), tags$br(),
-    
-    noteUI(ns("note")),
+   # noteUI(ns("note")),
     p("Note: CPUE and catch variables should be added in the same order."),
     
     actionButton(ns("fun_run"), "Run function",
@@ -872,11 +806,6 @@ bycatchUI <- function(id) {
           
           selectInput(ns("format"), "Table format",
                       choices = c("wide", "long")))
-    ),
-    
-    RexpressionUI(ns("exp")),
-    div( style = "margin-top: 2em;",
-         uiOutput(ns("result"))
     )
   )
 }
@@ -885,13 +814,8 @@ trip_lengthUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-    saveOutputUI(ns("saveOut")),
-    closeAppUI(ns("close")), 
-    refreshUI(ns("refresh")),
     
-    tags$br(), tags$br(),
-    
-    noteUI(ns("note")),
+    #noteUI(ns("note")),
     actionButton(ns("fun_run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
     
@@ -979,11 +903,6 @@ trip_lengthUI <- function(id) {
         
         selectInput(ns("format"), "Table format",
                     choices = c("wide", "long")))
-    ),
-    
-    RexpressionUI(ns("exp")),
-    div( style = "margin-top: 2em;",
-         uiOutput(ns("result"))
     )
   )
 }
@@ -995,19 +914,9 @@ fleet_tableUI <- function(id) {
   
   tagList(
     
-    h3(strong("Fleet Definition")),
+    h3(strong("Define Fleets")),
     
-    p("Fleet definition tables must be saved to the FishSET database before they can be used to assign vessels to fleets."),
-    
-    actionButton(ns("save"), "Save table to FishSET database",
-                 style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
-    
-    closeAppUI(ns("close")), 
-    refreshUI(ns("refresh")),
-    
-    tags$br(), tags$br(),
-    
-    noteUI(ns("note")),
+    p("Fleet definitions must be saved to the FishSET database before they can be used to assign vessels to fleets."),
     
     tags$br(),
     
@@ -1045,12 +954,8 @@ fleet_tableUI <- function(id) {
     actionButton(ns("upload"), "Upload table",
                  style = "color: white; background-color: blue;"),
     
-    tags$br(), tags$br(), tags$br(),
-    
-    RexpressionUI(ns("exp")),
-    div( style = "margin-top: 2em;",
-         uiOutput(ns("result"))
-    )
+    actionButton(ns("save"), "Save table to FishSET database",
+                 style = "color: #fff; background-color: #6EC479; border-color:#000000;")
   )
 }
 
@@ -1125,22 +1030,6 @@ fleet_assignUI <- function(id) {
   tagList(
     h3(strong("Fleet Assignment")),
     
-    #saveDataTableUI(ns("saveDat")),
-    
-    actionButton(ns('saveData'),'Save data to FishSET database',
-                 style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
-    closeAppUI(ns("close")), 
-    refreshUI(ns("refresh")),
-    
-    tags$br(), tags$br(),
-    
-    noteUI(ns("note")),
-    
-    actionButton(ns("fun_run"), "Run function",
-                 style = "color: #fff; background-color: #6da363; border-color: #800000;"),
-    
-    tags$br(), tags$br(),
-    
     h4(strong("Import table")),
     
     actionButton(ns("refresh_tabs"), "", icon = icon("refresh"), style = "color: blue;"),
@@ -1159,12 +1048,10 @@ fleet_assignUI <- function(id) {
     selectInput(ns("format"), "Table format",
                 choices = c("long", "wide")),
     
-    tags$br(), tags$br(),
+    actionButton(ns("fun_run"), "Assign fleets",
+                 style = "color: #fff; background-color: #6da363; border-color: #800000;"),
     
-    RexpressionUI(ns("exp")),
-    div(style = "margin-top: 2em;",
-        uiOutput(ns("result"))
-    )
+    tags$br(), tags$br()
   )
 }
 
@@ -1179,8 +1066,7 @@ fleetOut <- function(id) {
   ns <- NS(id)
   
   tagList(
-    verbatimTextOutput(ns("filter_out")),
-    uiOutput(ns("output")) 
+    shinycssloaders::withSpinner(uiOutput(ns("output"))) 
   )
 }
 
@@ -1238,10 +1124,10 @@ fleet_assignOut <- function(id) {
   ns <- NS(id)
   tagList(
     h4(strong("Fleet Definition Table")),
-    DT::DTOutput(ns("tab_preview")),
+    shinycssloaders::withSpinner(DT::DTOutput(ns("tab_preview"))),
     h4(strong("Dataset")),
-    DT::DTOutput(ns("final_tab")),
+    shinycssloaders::withSpinner(DT::DTOutput(ns("final_tab"))),
     h4(strong("Fleet Frequency")),
-    plotOutput(ns("plot"))
+    shinycssloaders::withSpinner(plotOutput(ns("plot")))
   )
 }
