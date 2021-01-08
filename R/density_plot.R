@@ -15,12 +15,11 @@
 #'   "ecdf" (empirical cdf), or "cdf" (cumilitive dstribution function).
 #' @param group String, name of grouping variable(s). Multiple group variables will be combined. 
 #' @param date Date variable from \code{dat} used to subset and/or facet the plot by.
-#' @param date_value
 #' @param filter_date The type of filter to apply to the table. The "date_range" option will subset 
 #'   the data by two date values entered in \code{filter_val}. Other options include "year-day", 
 #'   "year-week", "year-month", "year", "month", "week", or "day". The argument filter_value must 
 #'   be provided.
-#' @param filter_value String containing a start and end date if using filter_date = "date_range", 
+#' @param date_value String containing a start and end date if using filter_date = "date_range", 
 #'   e.g. c("2011-01-01", "2011-03-15"). If filter_date = "period" or "year-period", use integers 
 #'   (4 digits if year, 1-2 if day, month, or week). Use a list if using a two-part filter, e.g. "year-week",
 #'   with the format \code{list(year, period)} or a vector if using a single period, \code{c(period)}. 
