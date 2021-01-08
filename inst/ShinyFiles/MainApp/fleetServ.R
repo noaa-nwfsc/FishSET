@@ -154,19 +154,10 @@ closeAppServ <-  function(id) {
 density_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
-
     
-    observeEvent(input$downloadplot, {
-      output$downloadplotHIDE <<- downloadHandler(
-        filename = function() {
-          paste0(locoutput(), project(), "_density_plot.png")
-        },
-        content = function(file) {
-          ggplot2::ggsave(file, plot = den_out())
-        })
-      jsinject <- "setTimeout(function(){window.open($('#den-downloadplotHIDE').attr('href'))}, 100);"
-      session$sendCustomMessage(type = 'jsCode', list(value = jsinject))
-    })
+    saveOutputServ("saveOut", fun_id = "den", project = project, 
+                   fun_name = "density_plot", tab_plot = den_out, 
+                   out = function() "plot")
     
     ns <- session$ns
     
@@ -357,7 +348,6 @@ vessel_serv <- function(id, values, project) {
     
     output$filter_date_UIOutput <- renderUI({
       
-      #if (input$date_cb == TRUE) {
         if (!is.null(input$date)) {
           if (!is.null(input$filter_date)) {
             if (input$filter_date == "date_range") {
@@ -372,7 +362,6 @@ vessel_serv <- function(id, values, project) {
             }
           }
         }
-     # }
     })
     
     observeEvent(input$date_cb == FALSE, {
@@ -381,13 +370,6 @@ vessel_serv <- function(id, values, project) {
                                                           "year", "month", "weeks", "day of the month" = "day",
                                                           "day of the year" = "day_of_year", "weekday"),
                            options = list(maxItems = 1), selected = NULL)
-      
-      # updateSelectizeInput(session, "date", choices = date_cols(values$dataset),
-      #                      options = list(maxItems = 1), selected = NULL)
-      # 
-      # updateSelectizeInput(session, "filter_date",choices = c("date range" = "date_range", "year-month", 
-      #                                                         "year-week", "year-day", "year", "month", "week", "day"),
-      #                      options = list(maxItems = 1), selected = NULL)
     })
     
     date_value <- reactive({
@@ -1567,16 +1549,12 @@ fleet_assign_serv <- function(id, values, project) {
                    overlap = input$overlap, format_tab = input$format)
     })
     
-    output$final_tab <- DT::renderDT({fa_out()})
-    
-    observeEvent(input$saveData, {
-        
-        values$dataset <- fa_out()
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-        DBI::dbWriteTable(fishset_db, paste0(project(), 'MainDataTable'), values$dataset, overwrite = TRUE)
-        DBI::dbDisconnect(fishset_db)
-        showNotification('Data saved to FishSET database', type = 'message', duration = 10)
+    observeEvent(input$fun_run, {
+      
+      values$dataset <- fa_out()
     })
+    
+    output$final_tab <- DT::renderDT({fa_out()})
     
     output$plot <- renderPlot({
       
