@@ -158,9 +158,16 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
   }
   
   # date ----
+  # convert date var if not date/date-time class
+  if (!is.null(date)) {
+    if (any(!(class(dataset[[date]]) %in% c("Date", "POSIXct", "POSIXt")))) {
+      dataset[[date]] <- date_parser(dataset[[date]])
+    }
+  } 
+  
   facet_date <- facet[facet %in% c("year", "month", "week")]
   
-  if (!is.null(date)) {
+  if (!is.null(period)) {
     
     periods <- c("year_month", "month_year", "year", "month", "weeks", "weekday", "day", "day_of_year")
     
@@ -183,18 +190,33 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
     }
     
     dataset[[period]] <- format(dataset[[date]], p)
+  }
     
-    if (!is.null(facet_date)) {
+  # facet by date
+  if (!is.null(facet_date)) {
+    # if summarizing over period
+    if (!is.null(period)) {
       
       if (period != "month" & any("month" %in% facet_date)) {
         
         dataset$month <- factor(format(dataset[[date]], "%b"), levels = month.abb, ordered = TRUE)
         
-        
       } else if (period != "week" & any("week" %in% facet_date)) {
         
         dataset$week <- as.integer(format(dataset[[date]], "%U"))
       }
+      
+    } else {
+      # if not summarizing over period
+      
+      dataset[facet_date] <- lapply(facet_date, function(x) {
+        fp <- switch(x, "year" = "%Y", "month" = "%b", "week" = "%U")
+        if (fp == "%b") {
+          factor(format(dataset[[date]], fp), levels = month.abb, ordered = TRUE) 
+        } else {
+          as.integer(format(dataset[[date]], fp))
+        }
+      })
     }
   }
   
@@ -233,7 +255,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
     }
   }
   
-  if (!is.null(date)) {
+  if (!is.null(period)) {
     # convert period to ordered factor/integer
     if (p %in% c("%Y-%m", "%a", "%b")) {
       
@@ -287,7 +309,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
     catch_exp <- function() if (length(species) == 1) rlang::sym(species) else rlang::sym("catch")
     
     xaxis_exp <- function() {
-      if (!is.null(date)) { 
+      if (!is.null(period)) { 
         
         rlang::sym(period)
         
@@ -309,7 +331,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
       }
     }
     
-    if (!is.null(date)) {
+    if (!is.null(period)) {
       
       interaction_exp <- function() {
         
@@ -461,11 +483,15 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
         
         fm <- paste(facet, sep = " ~ ")
       }
+      if (is.null(period)) {
+        s_plot <- s_plot + ggplot2::facet_wrap(fm, scales = scale)
+      } else {
+        s_plot <- s_plot + ggplot2::facet_grid(fm, scales = scale)
+      }
       
-      s_plot <- s_plot + ggplot2::facet_grid(fm, scales = scale)
     }
     
-    if (!is.null(date)) {
+    if (!is.null(period)) {
       if (!(p %in% c("%a", "%b", "%Y-%m"))) {
         
         s_plot <- s_plot + ggplot2::scale_x_continuous(breaks = num_breaks(table_out[[period]]))
@@ -481,7 +507,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
     save_plot(project, "species_catch")
   }
   
-  if (!is.null(date)) {
+  if (!is.null(period)) {
     if (period == "month_year") {
       table_out$month_year <- format(as.Date(paste0(table_out$month_year, "-01")), "%b %y")
     }
