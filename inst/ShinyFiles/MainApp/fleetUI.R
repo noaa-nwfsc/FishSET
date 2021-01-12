@@ -1,6 +1,5 @@
 source("fleet_helpers.R", local = TRUE)
 
-
 saveOutputUI <- function(id) {
   
   ns <- NS(id)
@@ -186,51 +185,54 @@ density_plotUI <- function(id, dat) {
     
     uiOutput(ns("date_select")),
     
-    tags$br(), tags$br(),
+    div(checkboxInput(ns("subset_cb"), strong("Subset"), value = FALSE),
+        style = "font-size: 18px"),
     
-    h4(strong("Subset")),
+    conditionalPanel("input.subset_cb", ns = ns, style = "margin-left:19px;",
+                     
+                     uiOutput(ns("filter_by_UIOutput")), 
+                     
+                     uiOutput(ns("filter_by_val_UIOutput")),
+                     
+                     textInput(ns("filter_expr"), "Subset expression",
+                               value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
+                     
+                     conditionalPanel("input.date !== 'undefined' && input.date.length > 0", ns = ns,
+                                      selectizeInput(ns("filter_date"), "Subset by date",
+                                                     choices = c("date range" = "date_range", "year-month", 
+                                                                 "year-week", "year-day", "year", "month", "week", "day"),
+                                                     multiple = TRUE, options = list(maxItems = 1))
+                     ),
+                     
+                     uiOutput(ns("filter_date_UIOutput"))
+    ),
     
-    uiOutput(ns("filter_by_UIOutput")), 
+    div(checkboxInput(ns("group_cb"), strong("Group"), value = FALSE),
+        style = "font-size: 18px"),
     
-    uiOutput(ns("filter_by_val_UIOutput")),
+    conditionalPanel("input.group_cb",  ns = ns, style = "margin-left:19px;",
+                     
+                     uiOutput(ns("grp_select"))),
     
-    textInput(ns("filter_expr"), "Subset expression",
-              value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
+    div(checkboxInput(ns("split_cb"), strong("Split"), value = FALSE),
+        style = "font-size: 18px"),
     
-    selectizeInput(ns("filter_date"), "Subset by date",
-                   choices = c("date range" = "date_range", "year-month", 
-                               "year-week", "year-day", "year", "month", "week", "day"),
-                   multiple = TRUE, options = list(maxItems = 1)),
+    conditionalPanel("input.split_cb",  ns = ns, style = "margin-left:19px;",
+                     
+                     uiOutput(ns("fct_select"))        
+    ),
     
-    uiOutput(ns("filter_date_UIOutput")),
+    div(checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
+        style = "font-size: 18px"),
     
-    tags$br(), tags$br(),
-    
-    h4(strong("Group")),
-    
-    uiOutput(ns("grp_select")),
-    
-    tags$br(), tags$br(),
-    
-    h4(strong("Split")), 
-    
-    uiOutput(ns("fct_select")),
-    
-    tags$br(), tags$br(),
-    
-    h4(strong("Plot options")),
-    
-    checkboxInput(ns("show_options"), "Show plot options",
-                  value = FALSE),
-    
-    conditionalPanel("input.show_options", ns = ns,
+    conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
                      
       tagList(
     
         numericInput(ns("bw"), "Kernel banwidth",
                      value = 1),
         
-        selectInput(ns("tran"), "Transformation function (optional)",
+        selectInput(ns("tran"), "Transformation function",
                     choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
         
         selectInput(ns("scale"), "Split plot scale",
@@ -264,20 +266,18 @@ vessel_countUI <- function(id) {
     
     uiOutput(ns("date_select")),
     
-    checkboxInput(ns("date_cb"), "Summarize over time", value = FALSE),
-    
-    conditionalPanel("input.date_cb", ns = ns,
-      selectizeInput(ns("period"), "Show counts by",
+    conditionalPanel("typeof input.date !== 'undefined' && input.date.length > 0", ns = ns,
+                     style = "margin-left:19px;",
+      selectizeInput(ns("period"), "Show counts by (optional)",
                   choices = c("year-month" = "year_month", "month-year" = "month_year",
                               "year", "month", "weeks", "day of the month" = "day",
                               "day of the year" = "day_of_year", "weekday"),
-                  multiple = TRUE, options = list(maxItems = 1))
-      ),
+                  multiple = TRUE, options = list(maxItems = 1))),
     
-    div(checkboxInput("subset_cb",strong("Subset"), value = FALSE),
+    div(checkboxInput(ns("subset_cb"), strong("Subset"), value = FALSE),
         style = "font-size: 18px"),
     
-    conditionalPanel("input.subset_cb",
+    conditionalPanel("input.subset_cb", ns = ns, style = "margin-left:19px;",
                      
            uiOutput(ns("filter_by_UIOutput")), 
            
@@ -296,10 +296,10 @@ vessel_countUI <- function(id) {
            uiOutput(ns("filter_date_UIOutput"))
             ),
     
-    div(checkboxInput("group_cb", strong("Group"), value = FALSE),
+    div(checkboxInput(ns("group_cb"), strong("Group"), value = FALSE),
         style = "font-size: 18px"),
     
-    conditionalPanel("input.group_cb", 
+    conditionalPanel("input.group_cb",  ns = ns, style = "margin-left:19px;",
                      
            uiOutput(ns("grp_select")),
            
@@ -307,25 +307,25 @@ vessel_countUI <- function(id) {
                          value = FALSE)
            ),
     
-    div(checkboxInput("split_cb", strong("Split"), value = FALSE),
+    div(checkboxInput(ns("split_cb"), strong("Split"), value = FALSE),
     style = "font-size: 18px"),
     
-    conditionalPanel("input.split_cb", 
+    conditionalPanel("input.split_cb",  ns = ns, style = "margin-left:19px;",
                      
           uiOutput(ns("fct_select"))        
     ),
     
-    div(checkboxInput(ns("show_options"), strong("Plot options"), value = FALSE),
+    div(checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
         style = "font-size: 18px"),
     
-    conditionalPanel("input.show_options", ns = ns,
+    conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
                      
       tagList(
     
         selectInput(ns("value"), "Select value type",
                     choices = c("count", "percent")),
         
-        selectInput(ns("tran"), "Transformation function (optional)",
+        selectInput(ns("tran"), "Transformation function",
                     choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
         
         selectInput(ns("type"), "Plot type",
@@ -348,7 +348,6 @@ species_catchUI <- function(id) {
   ns <- NS(id)
   tagList(
     
-    #noteUI(ns("note")),
     actionButton(ns("fun_run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
     
@@ -365,73 +364,73 @@ species_catchUI <- function(id) {
     
     uiOutput(ns("date_select")),
     
-    checkboxInput(ns("date_cb"), "Summarize over time", value = FALSE),
+    conditionalPanel("typeof input.date !== 'undefined' && input.date.length > 0", ns = ns,
+                     style = "margin-left:19px;",
+                     selectizeInput(ns("period"), "Show counts by (optional)",
+                                    choices = c("year-month" = "year_month", "month-year" = "month_year",
+                                                "year", "month", "weeks", "day of the month" = "day",
+                                                "day of the year" = "day_of_year", "weekday"),
+                                    multiple = TRUE, options = list(maxItems = 1))),
     
-    conditionalPanel("input.date_cb", ns = ns,
-      selectizeInput(ns("period"), "Show counts by",
-                  choices = c("year-month" = "year_month", "month-year" = "month_year",
-                              "year", "month", "weeks", "day of the month" = "day",
-                              "day of the year" = "day_of_year", "weekday"),
-                  multiple = TRUE, options = list(maxItems = 1))
+    div(checkboxInput(ns("subset_cb"), strong("Subset"), value = FALSE),
+        style = "font-size: 18px"),
+    
+    conditionalPanel("input.subset_cb", ns = ns, style = "margin-left:19px;",
+                     
+                     uiOutput(ns("filter_by_UIOutput")), 
+                     
+                     uiOutput(ns("filter_by_val_UIOutput")),
+                     
+                     textInput(ns("filter_expr"), "Subset expression",
+                               value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
+                     
+                     conditionalPanel("input.date !== 'undefined' && input.date.length > 0", ns = ns,
+                                      selectizeInput(ns("filter_date"), "Subset by date",
+                                                     choices = c("date range" = "date_range", "year-month", 
+                                                                 "year-week", "year-day", "year", "month", "week", "day"),
+                                                     multiple = TRUE, options = list(maxItems = 1))
+                     ),
+                     
+                     uiOutput(ns("filter_date_UIOutput"))
     ),
     
-    tags$br(), tags$br(),
+    div(checkboxInput(ns("group_cb"), strong("Group"), value = FALSE),
+        style = "font-size: 18px"),
     
-    h4(strong("Subset")),
-    
-    uiOutput(ns("filter_by_UIOutput")), 
-    
-    uiOutput(ns("filter_by_val_UIOutput")), 
-    
-    textInput(ns("filter_expr"), "Subset expression",
-              value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
-    
-    conditionalPanel("input.date !== 'undefined' && input.date.length > 0", ns = ns,
-      selectizeInput(ns("filter_date"), "Subset by date",
-                     choices = c("date range" = "date_range", "year-month", 
-                                 "year-week", "year-day", "year", "month", "week", "day"),
-                     multiple = TRUE, options = list(maxItems = 1))
+    conditionalPanel("input.group_cb",  ns = ns, style = "margin-left:19px;",
+                     
+                     uiOutput(ns("grp_select")),
+                     
+                     checkboxInput(ns("combine"), "Combine grouping variables",
+                                   value = FALSE)
     ),
     
-    uiOutput(ns("filter_date_UIOutput")),
+    div(checkboxInput(ns("split_cb"), strong("Split"), value = FALSE),
+        style = "font-size: 18px"),
     
-    tags$br(), tags$br(),
+    conditionalPanel("input.split_cb",  ns = ns, style = "margin-left:19px;",
+                     
+                     uiOutput(ns("fct_select"))        
+    ),
     
-    h4(strong("Group")),
+    div(checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
+        style = "font-size: 18px"),
     
-    uiOutput(ns("grp_select")),
-    
-    checkboxInput(ns("combine"), "Combine grouping variables",
-                  value = FALSE),
-    
-    tags$br(), tags$br(),
-    
-    h4(strong("Split")), 
-    
-    uiOutput(ns("fct_select")),
-    
-    tags$br(), tags$br(),
-    
-    h4(strong("Plot options")),
-    
-    checkboxInput(ns("show_options"), "Show plot options",
-                  value = FALSE),
-    
-    conditionalPanel("input.show_options", ns = ns,
+    conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
         
       tagList(
     
         selectInput(ns("value"), "Select value type",
                     choices = c("count", "percent")),
         
-        selectInput(ns("conv"), "Convert catch (optional)",
+        selectInput(ns("conv"), "Convert catch",
                     choices = c("none", "tons", "metric tons" = "metric_tons", "custom")),
         
-        conditionalPanel("input.conv == 'custom'", ns = ns,
+        conditionalPanel("input.conv == 'custom'", ns = ns, style = "margin-left:19px;",
                          
                          textInput(ns("conv"), "Enter function")),
         
-        selectInput(ns("tran"), "Transform y-axis (optional)",
+        selectInput(ns("tran"), "Transform y-axis",
                     choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
         
         selectInput(ns("type"), "Plot type",
@@ -457,8 +456,6 @@ roll_catchUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-    
-    #noteUI(ns("note")),
     actionButton(ns("fun_run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
     
@@ -474,44 +471,45 @@ roll_catchUI <- function(id) {
     
     uiOutput(ns("date_select")),
     
-    tags$br(), tags$br(),
+    div(checkboxInput(ns("subset_cb"), strong("Subset"), value = FALSE),
+        style = "font-size: 18px"),
     
-    h4(strong("Subset")),
+    conditionalPanel("input.subset_cb", ns = ns, style = "margin-left:19px;",
+                     
+                     uiOutput(ns("filter_by_UIOutput")), 
+                     
+                     uiOutput(ns("filter_by_val_UIOutput")),
+                     
+                     textInput(ns("filter_expr"), "Subset expression",
+                               value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
+                     
+                     selectizeInput(ns("filter_date"), "Subset by date",
+                                    choices = c("date range" = "date_range", "year-month", 
+                                                "year-week", "year-day", "year", "month", "week", "day"),
+                                    multiple = TRUE, options = list(maxItems = 1)),
+                     
+                     uiOutput(ns("filter_date_UIOutput"))
+    ),
+    div(checkboxInput(ns("group_cb"), strong("Group"), value = FALSE),
+        style = "font-size: 18px"),
     
-    uiOutput(ns("filter_by_UIOutput")), 
+    conditionalPanel("input.group_cb",  ns = ns, style = "margin-left:19px;",
+                     
+                     uiOutput(ns("grp_select"))
+    ),
     
-    uiOutput(ns("filter_by_val_UIOutput")), 
+    div(checkboxInput(ns("split_cb"), strong("Split"), value = FALSE),
+        style = "font-size: 18px"),
     
-    textInput(ns("filter_expr"), "Subset expression",
-              value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
+    conditionalPanel("input.split_cb",  ns = ns, style = "margin-left:19px;",
+                     
+                     uiOutput(ns("fct_select"))        
+    ),
     
-    selectizeInput(ns("filter_date"), "Subset by date",
-                   choices = c("date range" = "date_range", "year-month", 
-                               "year-week", "year-day", "year", "month", "week", "day"),
-                   multiple = TRUE, options = list(maxItems = 1)),
+    div(checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
+        style = "font-size: 18px"),
     
-    uiOutput(ns("filter_date_UIOutput")),
-    
-    tags$br(), tags$br(),
-    
-    h4(strong("Group")),
-    
-    uiOutput(ns("grp_select")),
-    
-    tags$br(), tags$br(),
-    
-    h4(strong("Split")), 
-    
-    uiOutput(ns("fct_select")),
-    
-    tags$br(), tags$br(),
-    
-    h4(strong("Plot options")),
-    
-    checkboxInput(ns("show_options"), "Show plot options",
-                  value = FALSE),
-    
-    conditionalPanel("input.show_options", ns = ns,
+    conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
                      
       tagList(
     
@@ -525,14 +523,14 @@ roll_catchUI <- function(id) {
         selectInput(ns("align"), "Window alignment",
                     choices = c("center", "left", "right")),
         
-        selectInput(ns("conv"), "Convert catch (optional)",
+        selectInput(ns("conv"), "Convert catch",
                     choices = c("none", "tons", "metric tons" = "metric_tons", "custom")),
         
-        conditionalPanel("input.conv == 'custom'",
+        conditionalPanel("input.conv == 'custom'", ns = ns, style = "margin-left:19px;",
                          
                          textInput(ns("conv"), "Enter function")),
         
-        selectInput(ns("tran"), "Transform y-axis (optional)",
+        selectInput(ns("tran"), "Transform y-axis",
                     choices = c("none" = "identity", "log", "log2", "log10", "sqrt")))
     )
   )
@@ -543,8 +541,6 @@ weekly_catchUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-    
-   # noteUI(ns("note")),
     actionButton(ns("fun_run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
     
@@ -561,59 +557,63 @@ weekly_catchUI <- function(id) {
     
     uiOutput(ns("date_select")),
     
-    tags$br(), tags$br(),
+    div(checkboxInput(ns("subset_cb"), strong("Subset"), value = FALSE),
+        style = "font-size: 18px"),
     
-    h4(strong("Subset")),
+    conditionalPanel("input.subset_cb", ns = ns, style = "margin-left:19px;",
+                     
+                     uiOutput(ns("filter_by_UIOutput")), 
+                     
+                     uiOutput(ns("filter_by_val_UIOutput")),
+                     
+                     textInput(ns("filter_expr"), "Subset expression",
+                               value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
+                     
+                     selectizeInput(ns("filter_date"), "Subset by date",
+                                    choices = c("date range" = "date_range", "year-month", 
+                                                "year-week", "year-day", "year", "month", "week", "day"),
+                                    multiple = TRUE, options = list(maxItems = 1)),
+                     
+                     uiOutput(ns("filter_date_UIOutput"))
+    ),
     
-    uiOutput(ns("filter_by_UIOutput")), 
+    div(checkboxInput(ns("group_cb"), strong("Group"), value = FALSE),
+        style = "font-size: 18px"),
     
-    uiOutput(ns("filter_by_val_UIOutput")), 
+    conditionalPanel("input.group_cb",  ns = ns, style = "margin-left:19px;",
+                     
+                     uiOutput(ns("grp_select")),
+                     
+                     checkboxInput(ns("combine"), "Combine grouping variables",
+                                   value = FALSE)
+    ),
     
-    textInput(ns("filter_expr"), "Subset expression",
-              value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
+    div(checkboxInput(ns("split_cb"), strong("Split"), value = FALSE),
+        style = "font-size: 18px"),
     
-    selectizeInput(ns("filter_date"), "Subset by date",
-                   choices = c("date range" = "date_range", "year-month", 
-                               "year-week", "year-day", "year", "month", "week", "day"),
-                   multiple = TRUE, options = list(maxItems = 1)),
+    conditionalPanel("input.split_cb",  ns = ns, style = "margin-left:19px;",
+                     
+                     uiOutput(ns("fct_select"))        
+    ),
     
-    uiOutput(ns("filter_date_UIOutput")),
+    div(checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
+        style = "font-size: 18px"),
     
-    tags$br(), tags$br(),
-    
-    h4(strong("Group")),
-    
-    uiOutput(ns("grp_select")),
-    
-    checkboxInput(ns("combine"), "Combine grouping variables",
-                  value = FALSE),
-    
-    tags$br(), tags$br(),
-    
-    h4(strong("Split")),
-    
-    uiOutput(ns("fct_select")),
-    
-    h4(strong("Plot options")),
-    
-    checkboxInput(ns("show_options"), "Show plot options",
-                  value = FALSE),
-    
-    conditionalPanel("input.show_options", ns = ns,
+    conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
                      
       tagList(
     
         selectInput(ns("value"), "Select value type",
                     choices = c("count", "percent")),
         
-        selectInput(ns("conv"), "Convert catch (optional)",
+        selectInput(ns("conv"), "Convert catch",
                     choices = c("none", "tons", "metric tons" = "metric_tons", "custom")),
         
-        conditionalPanel("input.conv == 'custom'",
+        conditionalPanel("input.conv == 'custom'", ns = ns, style = "margin-left:19px;",
                          
                          textInput(ns("conv"), "Enter function")),
         
-        selectInput(ns("tran"), "Transform y-axis (optional)",
+        selectInput(ns("tran"), "Transform y-axis",
                     choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
         
         selectInput(ns("type"), "Plot type",
@@ -638,8 +638,6 @@ weekly_effortUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-    
-    #noteUI(ns("note")),
     actionButton(ns("fun_run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
     
@@ -653,49 +651,53 @@ weekly_effortUI <- function(id) {
     
     uiOutput(ns("date_select")),
     
-    tags$br(), tags$br(),
+    div(checkboxInput(ns("subset_cb"), strong("Subset"), value = FALSE),
+        style = "font-size: 18px"),
     
-    h4(strong("Subset")),
+    conditionalPanel("input.subset_cb", ns = ns, style = "margin-left:19px;",
+                     
+                     uiOutput(ns("filter_by_UIOutput")), 
+                     
+                     uiOutput(ns("filter_by_val_UIOutput")),
+                     
+                     textInput(ns("filter_expr"), "Subset expression",
+                               value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
+                     
+                     selectizeInput(ns("filter_date"), "Subset by date",
+                                   choices = c("date range" = "date_range", "year-month", 
+                                               "year-week", "year-day", "year", "month", "week", "day"),
+                                   multiple = TRUE, options = list(maxItems = 1)),
+                     
+                     uiOutput(ns("filter_date_UIOutput"))
+    ),
     
-    uiOutput(ns("filter_by_UIOutput")), 
+    div(checkboxInput(ns("group_cb"), strong("Group"), value = FALSE),
+        style = "font-size: 18px"),
     
-    uiOutput(ns("filter_by_val_UIOutput")), 
+    conditionalPanel("input.group_cb",  ns = ns, style = "margin-left:19px;",
+                     
+                     uiOutput(ns("grp_select")),
+                     
+                     checkboxInput(ns("combine"), "Combine grouping variables",
+                                   value = FALSE)
+    ),
     
-    textInput(ns("filter_expr"), "Subset expression",
-              value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
+    div(checkboxInput(ns("split_cb"), strong("Split"), value = FALSE),
+        style = "font-size: 18px"),
     
-    selectizeInput(ns("filter_date"), "Subset by date",
-                   choices = c("date range" = "date_range", "year-month", 
-                               "year-week", "year-day", "year", "month", "week", "day"),
-                   multiple = TRUE, options = list(maxItems = 1)),
+    conditionalPanel("input.split_cb",  ns = ns, style = "margin-left:19px;",
+                     
+                     uiOutput(ns("fct_select"))        
+    ),
     
-    uiOutput(ns("filter_date_UIOutput")),
+    div(checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
+        style = "font-size: 18px"),
     
-    tags$br(), tags$br(),
-    
-    h4(strong("Group")),
-    
-    uiOutput(ns("grp_select")),
-    
-    checkboxInput(ns("combine"), "Combine grouping variables",
-                  value = FALSE),
-    
-    tags$br(), tags$br(),
-    
-    h4(strong("Split")),
-    
-    uiOutput(ns("fct_select")),
-    
-    h4(strong("Plot options")),
-    
-    checkboxInput(ns("show_options"), "Show plot options",
-                  value = FALSE),
-    
-    conditionalPanel("input.show_options", ns = ns,
+    conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
                      
       tagList(
         
-        selectInput(ns("tran"), "Transform y-axis (optional)",
+        selectInput(ns("tran"), "Transform y-axis",
                     choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
         
         selectInput(ns("scale"), "Split plot scale",
@@ -712,8 +714,6 @@ bycatchUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-    
-   # noteUI(ns("note")),
     p("Note: CPUE and catch variables should be added in the same order."),
     
     actionButton(ns("fun_run"), "Run function",
@@ -734,47 +734,49 @@ bycatchUI <- function(id) {
     selectInput(ns("period"), "Show counts by",
                 choices = c("year", "month", "weeks")),
     
-    tags$br(), tags$br(),
+    div(checkboxInput(ns("subset_cb"), strong("Subset"), value = FALSE),
+        style = "font-size: 18px"),
     
-    h4(strong("Subset")),
+    conditionalPanel("input.subset_cb", ns = ns, style = "margin-left:19px;",
+                     
+                     uiOutput(ns("filter_by_UIOutput")), 
+                     
+                     uiOutput(ns("filter_by_val_UIOutput")),
+                     
+                     textInput(ns("filter_expr"), "Subset expression",
+                               value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
+                     
+                     selectizeInput(ns("filter_date"), "Subset by date",
+                                    choices = c("date range" = "date_range", "year-month", 
+                                                "year-week", "year-day", "year", "month", "week", "day"),
+                                    multiple = TRUE, options = list(maxItems = 1)),
+                     
+                     uiOutput(ns("filter_date_UIOutput"))
+    ),
     
-    uiOutput(ns("filter_by_UIOutput")), 
+    div(checkboxInput(ns("group_cb"), strong("Group"), value = FALSE),
+        style = "font-size: 18px"),
     
-    uiOutput(ns("filter_by_val_UIOutput")), 
+    conditionalPanel("input.group_cb",  ns = ns, style = "margin-left:19px;",
+                     
+                     uiOutput(ns("grp_select")),
+                     
+                     checkboxInput(ns("combine"), "Combine grouping variables",
+                                   value = FALSE)
+    ),
     
-    textInput(ns("filter_expr"), "Subset expression",
-              value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
+    div(checkboxInput(ns("split_cb"), strong("Split"), value = FALSE),
+        style = "font-size: 18px"),
     
-    selectizeInput(ns("filter_date"), "Subset by date",
-                   choices = c("date range" = "date_range", "year-month", 
-                               "year-week", "year-day", "year", "month", "week", "day"),
-                   multiple = TRUE, options = list(maxItems = 1)),
+    conditionalPanel("input.split_cb",  ns = ns, style = "margin-left:19px;",
+                     
+                     uiOutput(ns("fct_select"))        
+    ),
     
-    uiOutput(ns("filter_date_UIOutput")),
+    div(checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
+        style = "font-size: 18px"),
     
-    tags$br(), tags$br(),
-    
-    h4(strong("Group")),
-    
-    uiOutput(ns("grp_select")),
-    
-    checkboxInput(ns("combine"), "Combine grouping variables",
-                  value = FALSE),
-    
-    tags$br(), tags$br(),
-    
-    h4(strong("Split")),
-    
-    uiOutput(ns("fct_select")),
-    
-    tags$br(), tags$br(),
-    
-    h4(strong("Plot and table options")),
-    
-    checkboxInput(ns("show_options"), "Show plot options",
-                  value = FALSE),
-    
-      conditionalPanel("input.show_options", ns = ns,
+    conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
                        
         tagList(
           
@@ -797,7 +799,7 @@ bycatchUI <- function(id) {
           selectInput(ns("value"), "Catch value type",
                       choices = c("total", "share of total catch" = "stc")),
           
-          selectInput(ns("tran"), "Transform y-axis (optional)",
+          selectInput(ns("tran"), "Transform y-axis",
                       choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
           
           selectInput(ns("scale"), "Split plot scale",
@@ -814,8 +816,6 @@ trip_lengthUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-    
-    #noteUI(ns("note")),
     actionButton(ns("fun_run"), "Run function",
                  style = "color: #fff; background-color: #6da363; border-color: #800000;"),
     
@@ -836,49 +836,54 @@ trip_lengthUI <- function(id) {
     
     uiOutput(ns("haul_select")),
     
-    tags$br(), tags$br(),
+    div(checkboxInput(ns("subset_cb"), strong("Subset"), value = FALSE),
+        style = "font-size: 18px"),
     
-    h4(strong("Subset")),
+    conditionalPanel("input.subset_cb", ns = ns, style = "margin-left:19px;",
+                     
+                     uiOutput(ns("filter_by_UIOutput")), 
+                     
+                     uiOutput(ns("filter_by_val_UIOutput")),
+                     
+                     textInput(ns("filter_expr"), "Subset expression",
+                               value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
+                     
+                     selectizeInput(ns("filter_date"), "Subset by date",
+                                     choices = c("date range" = "date_range", "year-month", 
+                                                 "year-week", "year-day", "year", "month", "week", "day"),
+                                     multiple = TRUE, options = list(maxItems = 1)),
+                     
+                     uiOutput(ns("filter_date_UIOutput"))
+    ),
     
-    uiOutput(ns("filter_by_UIOutput")), 
+    div(checkboxInput(ns("group_cb"), strong("Group"), value = FALSE),
+        style = "font-size: 18px"),
     
-    uiOutput(ns("filter_by_val_UIOutput")), 
+    conditionalPanel("input.group_cb",  ns = ns, style = "margin-left:19px;",
+                     
+                     uiOutput(ns("grp_select"))
+    ),
     
-    textInput(ns("filter_expr"), "Subset expression",
-              value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
+    div(checkboxInput(ns("split_cb"), strong("Split"), value = FALSE),
+        style = "font-size: 18px"),
     
-    selectizeInput(ns("filter_date"), "Subset by date",
-                   choices = c("date range" = "date_range", "year-month", 
-                               "year-week", "year-day", "year", "month", "week", "day"),
-                   multiple = TRUE, options = list(maxItems = 1)),
+    conditionalPanel("input.split_cb",  ns = ns, style = "margin-left:19px;",
+                     
+                     uiOutput(ns("fct_select"))        
+    ),
     
-    uiOutput(ns("filter_date_UIOutput")),
+    div(checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
+        style = "font-size: 18px"),
     
-    tags$br(), tags$br(),
-    
-    h4(strong("Group")),
-    
-    uiOutput(ns("grp_select")),
-    
-    tags$br(), tags$br(),
-    
-    h4(strong("Split")),
-    
-    uiOutput(ns("fct_select")),
-    
-    h4(strong("Plot options")),
-    
-    checkboxInput(ns("show_options"), "Show plot options",
-                  value = FALSE),
-    
-    conditionalPanel("input.show_options", ns = ns,
+    conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
                      
       tagList(
     
         selectInput(ns("type"), "Plot type",
                     choices = c("histogram" = "hist", "frequency polygon" = "freq_poly")),
         
-        selectInput(ns("pages"), "Plot output", choices = c("single", "mulitple" = "multi"), selected = "multi"),
+        selectInput(ns("pages"), "Plot output", choices = c("single", "mulitple" = "multi"), 
+                    selected = "multi"),
         
         sliderInput(ns("bins"), "Bins",
                     min = 2, max = 60, value = 30),
@@ -887,7 +892,7 @@ trip_lengthUI <- function(id) {
         
         checkboxInput(ns("rm_neg"), "Remove negative durations", value = FALSE),
         
-        selectInput(ns("tran"), "Transform x-axis (optional)",
+        selectInput(ns("tran"), "Transform x-axis",
                     choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
         
         selectInput(ns("scale"), "Split plot scale",
@@ -897,7 +902,7 @@ trip_lengthUI <- function(id) {
         checkboxInput(ns("haul_trp"), "Convert to trip-level",
                       value = FALSE),
         
-        conditionalPanel("input.haul_trp",
+        conditionalPanel("input.haul_trp", ns = ns, style = "margin-left:19px;",
                          
                          uiOutput(ns("kwargs_select"))),
         
@@ -914,48 +919,30 @@ fleet_tableUI <- function(id) {
   
   tagList(
     
-    h3(strong("Define Fleets")),
-    
     p("Fleet definitions must be saved to the FishSET database before they can be used to assign vessels to fleets."),
+    p("Steps:"),
+    p("1)"),
+    p("2)"),
     
     tags$br(),
     
-    h4(strong("Build Table")),
+    fileInput(ns("file"), "Import table from local file"),
     
-    fluidRow(
-      actionButton(ns("addrow"), "Add row",
-                   style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
-      
-      actionButton(ns("deleterow"), "Delete row",
-                   style = "color: #fff; background-color: #EB8C34; border-color:#000000;")),
+    actionButton(ns("upload"), "Import table",
+                 style = "color: white; background-color: blue;"),
     
-    tags$br(), 
-    
-    fluidRow(
-      actionButton(ns("addcol"), "Add column",
-                   style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
-      
-      actionButton(ns("deletecol"), "Delete column",
-                   style = "color: #fff; background-color: #EB8C34; border-color:#000000;")),
-    
-    tags$br(), tags$br(), 
+    tags$br(), tags$br(),
     
     textInput(ns("colname"), label = NULL, placeholder = "Enter new column name"),
     
     actionButton(ns("colname_btn"), "Change column name",
                  style = "color: white; background-color: blue;"),
     
-    tags$br(), tags$br(), tags$br(), 
-    
-    h4(strong("Import Table")),
-    
-    fileInput(ns("file"), label = NULL),
-    
-    actionButton(ns("upload"), "Upload table",
-                 style = "color: white; background-color: blue;"),
+    tags$br(), tags$br(),
     
     actionButton(ns("save"), "Save table to FishSET database",
-                 style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+                 style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
+    tags$br(), tags$br()
   )
 }
 
@@ -973,7 +960,7 @@ nexpr_row_ui <- function(id) {
           column(3, uiOutput(ns("varUI"))),
           
           column(3, selectInput(ns("oper"), "", 
-                                choices = c("less than" = "<","greater than" = ">", "less than or equal to" = "<=", 
+                                choices = c("less than" = "<", "greater than" = ">", "less than or equal to" = "<=", 
                                             "greater than or equal to" = ">=", "equal to" = "==", "not equal to" = "!=",
                                             "contains" = "%in%"))),
           
@@ -998,15 +985,12 @@ fleet_exprUI <- function(id) {
                                             "greater than or equal to" = ">=", "equal to" = "==", "not equal to" = "!=",
                                             "contains" = "%in%"))),
           
-          column(4, 
-                # textInput(ns("value_1"), "Value")
-                uiOutput(ns("valueUI"))
-                 )
+          column(4, uiOutput(ns("valueUI")))
         )),
     
     div(id = "n_expr_container"),
     
-    actionButton(ns("add_expr"), label = "", icon = icon(name = "plus"), 
+    actionButton(ns("add_expr"), label = "add expression", icon = icon(name = "plus"), 
                  style = "background-color: blue; color: white;"), 
     
     tags$br(), tags$br(),
@@ -1018,7 +1002,6 @@ fleet_exprUI <- function(id) {
     actionButton(ns("insert_expr"), "Insert expression", style = "color: white; background-color: green;"),
     
     tags$br(), tags$br()
-    
   )
 }
 
@@ -1075,39 +1058,45 @@ fleet_tableOut <- function(id) {
   tagList(
     h4(strong("Fleet Definition Table")),
     
+    fluidRow(
+      actionButton(ns("addrow"), "Add row",
+                   style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
+      
+      actionButton(ns("addcol"), "Add column",
+                   style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
+      
+      actionButton(ns("deleterow"), "Delete row",
+                   style = "color: #fff; background-color: #EB8C34; border-color:#000000;"),
+    
+      actionButton(ns("deletecol"), "Delete column",
+                   style = "color: #fff; background-color: #EB8C34; border-color:#000000;")),
+    
+    tags$br(),
+    
     fluidRow(column(8,
                     actionButton(ns("deselect"), "Deselect", 
                                  style = "background-color:#E8E8E8;
-                                    color:#000000;
-                                    border-color:#BEBEBE;
-                                    border-style:double;
-                                    border-width:3px;
-                                    border-radius:0%;
-                                    font-size:14px;"),
+                                    color:#000000; border-color:#BEBEBE;
+                                    border-style:double; border-width:3px;
+                                    border-radius:0%; font-size:14px;"),
+                    
                     actionButton(ns("select_row"), "Select row", 
                                  style = "background-color:#E8E8E8;
-                                    color:#000000;
-                                    border-color:#BEBEBE;
-                                    border-style:double;
-                                    border-width:3px;
-                                    border-radius:0%;
-                                    font-size:14px;"),
+                                    color:#000000; border-color:#BEBEBE;
+                                    border-style:double; border-width:3px;
+                                    border-radius:0%; font-size:14px;"),
+                    
                     actionButton(ns("select_column"), "Select column", 
                                  style = "background-color:#E8E8E8;
-                                    color:#000000;
-                                    border-color:#BEBEBE;
-                                    border-style:double;
-                                    border-width:3px;
-                                    border-radius:0%;
-                                    font-size:14px;"),
+                                    color:#000000; border-color:#BEBEBE;
+                                    border-style:double; border-width:3px;
+                                    border-radius:0%; font-size:14px;"),
+                    
                     actionButton(ns("select_cell"), "Select cell", 
                                  style = "background-color:#E8E8E8;
-                                   color:#000000;
-                                   border-color:#BEBEBE;
-                                   border-style:double;
-                                   border-width:3px;
-                                   border-radius:0%;
-                                   font-size:14px;"))),
+                                   color:#000000; border-color:#BEBEBE;
+                                   border-style:double; border-width:3px;
+                                   border-radius:0%; font-size:14px;"))),
   DT::DTOutput(ns("f_tab")),
   
   tags$br(), tags$br(),
@@ -1115,7 +1104,6 @@ fleet_tableOut <- function(id) {
   fluidRow(column(4, 
                   h4(strong("Reference Table")),
                   tableOutput(ns("reference"))))
-  
   )
 }
 

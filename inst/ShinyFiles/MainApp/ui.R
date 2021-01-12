@@ -473,132 +473,138 @@ source("map_viewer_app.R", local = TRUE)
                   #Fleet functions ==== 
                   
                   tabPanel("Fleet Assignment and Summary", value = "fleet",
-                           
+
                            sidebarLayout(
-                             
+
                              sidebarPanel(
-                                
+
                                 uiOutput("fleetSaveOutputUI"),
                                 saveDataTableUI("fleet"),
                                 refreshUI("fleet"),
                                 closeAppUI("fleet"),
-                                noteUI("fleet"), 
-                                
+                                noteUI("fleet"),
+
                                 conditionalPanel("input.fleet_tab == 'fleet_assign'",
-                                                 
+
                                                  selectInput("assign_fun", label = "Select task",
-                                                              choices = c("Define fleets", "Fleet assignment"), 
+                                                              choices = c("Define fleets", "Fleet assignment"),
                                                               selected = "Define fleets"),
-                                                 
+
                                                  conditionalPanel("input.assign_fun == 'Define fleets'",
-                                                                  
+
                                                                   fleet_tableUI("f_table")),
-                                                 
+
                                                  conditionalPanel("input.assign_fun == 'Fleet assignment'",
-                                                                  
-                                                                  fleet_assignUI("f_assign"))                 
+
+                                                                  fleet_assignUI("f_assign"))
                                 ),
-                                
+
                                conditionalPanel("input.fleet_tab == 'fleet_summary'",
-                                                
+
                                                 selectInput("fleet_fun", "Select function", multiple = FALSE,
-                                                            choices = c("vessel count" = "vessel_count", "species catch" = "species_catch", 
-                                                                        "rolling catch" = "roll_catch", "weekly catch" = "weekly_catch", 
-                                                                        "weekly effort" = "weekly_effort", "bycatch", "trip length" = "trip_length", 
+                                                            choices = c("vessel count" = "vessel_count", "species catch" = "species_catch",
+                                                                        "rolling catch" = "roll_catch", "weekly catch" = "weekly_catch",
+                                                                        "weekly effort" = "weekly_effort", "bycatch", "trip length" = "trip_length",
                                                                         "density plot" = "density_plot")),
-                                
-                                                
+
+
                                                 conditionalPanel("input.fleet_fun == 'vessel_count'",
-                                                                 
+
                                                                  vessel_countUI("ves")),
-                                                
+
                                                 conditionalPanel("input.fleet_fun == 'species_catch'",
-                                                                 
+
                                                                  species_catchUI("spec")),
-                                                
+
                                                 conditionalPanel("input.fleet_fun == 'roll_catch'",
-                                                                 
+
                                                                  roll_catchUI("roll")),
-                                                
+
                                                 conditionalPanel("input.fleet_fun == 'weekly_catch'",
-                                                                 
+
                                                                  weekly_catchUI("wc")),
-                                                
+
                                                 conditionalPanel("input.fleet_fun == 'weekly_effort'",
-                                                                 
+
                                                                  weekly_effortUI("we")),
-                                                
+
                                                 conditionalPanel("input.fleet_fun == 'bycatch'",
-                                                                 
+
                                                                  bycatchUI("by")),
-                                                
+
                                                 conditionalPanel("input.fleet_fun == 'trip_length'",
-                                                                 
+
                                                                  trip_lengthUI("trip")),
-                                               
+
                                                conditionalPanel("input.fleet_fun == 'density_plot'",
-                                                                
-                                                                density_plotUI("den")),
-                                               
-                                               
-                                 ), 
-                               
-                               RexpressionUI("fleet")
+
+                                                                density_plotUI("den"))
+
+
+                                 ),
+
+                              # RexpressionUI("fleet")
+                              textInput("exprFleet", label = "Enter an R expression",
+                                        value = "values$dataset"),
+                              actionButton("runFleet", "Run", class = "btn-success"),
+                              div(style = "margin-top: 2em;",
+                                  uiOutput('resultFleet')
+                              )
                                ), # sidebarPanel
-                             
+
                              mainPanel(
-                               
+
                                tabsetPanel(id = "fleet_tab", selected = "fleet_assign",
-                                           
-                                           tabPanel("Fleet Assignment", value = "fleet_assign",
-                                                    
+
+                                           tabPanel(title = "Fleet Assignment", value = "fleet_assign",
+
                                                     conditionalPanel("input.assign_fun == 'Define fleets'",
-                                                      
-                                                      fleet_exprUI("f_table"), 
-                                                    
+
+                                                      fleet_exprUI("f_table"),
+
                                                       fleet_tableOut("f_table")),
-                                                    
+
                                                     conditionalPanel("input.assign_fun == 'Fleet assignment'",
-                                                    
-                                                      fleet_assignOut("f_assign"))
-                                           ),
-                                           
-                                           tabPanel("Fleet Summary", value = "fleet_summary",
-                                                    
+
+                                                      fleet_assignOut("f_assign")),
+                                            ),
+
+                                             tabPanel(title = "Fleet Summary", value = "fleet_summary",
+
                                                     conditionalPanel("input.fleet_fun == 'vessel_count'",
-                                                                     
+
                                                                      fleetOut("ves")),
-                                                    
+
                                                     conditionalPanel("input.fleet_fun == 'species_catch'",
-                                                                     
+
                                                                      fleetOut("spec")),
-                                                    
+
                                                     conditionalPanel("input.fleet_fun == 'roll_catch'",
-                                                                     
+
                                                                      fleetOut("roll")),
-                                                    
+
                                                     conditionalPanel("input.fleet_fun == 'weekly_catch'",
-                                                                     
+
                                                                      fleetOut("wc")),
-                                                    
+
                                                     conditionalPanel("input.fleet_fun == 'weekly_effort'",
-                                                                     
+
                                                                      fleetOut("we")),
-                                                    
+
                                                     conditionalPanel("input.fleet_fun == 'bycatch'",
-                                                                     
+
                                                                      fleetOut("by")),
-                                                    
+
                                                     conditionalPanel("input.fleet_fun == 'trip_length'",
-                                                                     
+
                                                                      fleetOut("trip")),
-                                                    
+
                                                     conditionalPanel("input.fleet_fun == 'density_plot'",
-                                                                     
+
                                                                      density_plotOut("den"))
-                                                )
-                               )
-                             )
+                                )
+                                )
+                              )
                            )
                   ),
                   
