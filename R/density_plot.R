@@ -79,6 +79,13 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, date = N
 
   if (!is.null(date)) dataset[[date]] <- date_parser(dataset[[date]])
   
+  # convert date var if not date/date-time class
+  if (!is.null(date)) {
+    if (any(!(class(dataset[[date]]) %in% c("Date", "POSIXct", "POSIXt")))) {
+      dataset[[date]] <- date_parser(dataset[[date]])
+    }
+  } 
+  
   # facet setup ----
   if (!is.null(facet_by)) {
     facet_spec <- any(!(facet_by %in% names(dataset)))
@@ -137,12 +144,8 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, date = N
       group_nd <- group[!(group %in% group_date)]
 
       if (length(group_nd) > 0) {
-        dataset[group_nd] <- lapply(dataset[[group_nd]], as.factor)
+        dataset[group_nd] <- lapply(group_nd, function(x) as.factor(dataset[[x]]))
       }
-    }
-
-    if (length(group) > 1) {
-      warning("Too many grouping variables included, selecting first two.")
     }
   }
 
@@ -226,11 +229,11 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, date = N
     if (!is.null(facet_by)) {
       if (length(facet_by) == 1) {
         fm <- stats::reformulate(".", facet_by)
+        plot <- plot + ggplot2::facet_wrap(fm, scales = scale)
       } else if (length(facet_by) == 2) {
         fm <- paste(facet_by, sep = " ~ ")
+        plot <- plot + ggplot2::facet_grid(fm, scales = scale)
       }
-
-      plot <- plot + ggplot2::facet_grid(fm, scales = scale)
     }
 
     plot <- plot +  ggplot2::scale_x_continuous(trans = tran)
