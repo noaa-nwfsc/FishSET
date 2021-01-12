@@ -429,11 +429,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             tags$strong('Purpose:'), tags$br(),
             'The', tags$em('Compute New Variables'), 'tab is used to modify or create new variables such as CPUE or trip mid-point.',
 				tags$br(),tags$br(),
-            'Functions are grouped into six categories:',
-            tags$li('Arithmetic and temporal'), 
+            'Functions are grouped into seven categories:',
+            tags$li('Arithmetic'), 
             tags$li('Data transformations'), 
             tags$li('Dummy variables'), 
             tags$li('Nominal ID'), 
+				    tags$li('Temporal'),
             tags$li('Spatial'), 
             tags$li('Trip-level'),
 				tags$br(),tags$br(),
@@ -453,13 +454,16 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             tags$div(style="display: inline-block; align:center", img(src="NewVar.png", height="75%", width="75%")),
 				tags$br(), tags$br(),
 				tags$strong('Function category descriptions'),
-				tags$em('Arithmetic and temporal'), 'functions focus on creating varaiables based on numeric calculations (i.e., plus, minus) 
-				          between two variables, durations of time between two variable, and catch per unit effort (CPUE).',
-				tags$em('Data transformations'), 'functions focus on transforming data into coded variables and date variables into preferred unit of time and ',
+				tags$em('Arithmetic'), 'functions focus on creating variables based on numeric calculations (i.e., plus, minus) 
+				          between two variables and catch per unit effort (CPUE).',
+				tags$em('Data transformations'), 'functions focus on transforming data into coded variables. These functions can be used to 
+				        transform confidential data.',
 				tags$em('Dummy variables'), 'functions focus on creating binary variables. These are useful for contrasting between two states, such 
 				        as caught at least 50 metric tons or not, before versus after a policy was enacted, or fishery zone was open versus closed.',
 				tags$em('Nominal ID'), 'functions focus on creating identifiers - haul, trip, or fishery season.',
-				tags$em('Spatial'), 'functions focus on creating variables that vary over space, such as haul midpoint and distance between points.
+				tags$em('Temporal'), 'functions focus on converting a date variable into the needed unit of time and calculated duration of time 
+				        between two temporal variables',
+        tags$em('Spatial'), 'functions focus on creating variables that vary over space, such as haul midpoint and distance between points.
 				        A spatial data file is required. ',
 				tags$em('Trip-level'), 'functions focus on trip-level variables including trip distance and trip centroid. A function to collapse 
 				        data from haul level to trip level is also included.'
@@ -892,7 +896,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 
       #Merge aux with main ---
   
-      #Merge ----
+      #MERGE ----
       ###---      
       merge <- reactiveValues(show = FALSE, end = FALSE)
       
@@ -1148,128 +1152,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         } 
       })
       
-      ##Output to saved file----
-      # case_to_print <- reactive({
-      #   if(input$tabs=='qaqc'){
-      #     if(input$checks=='Summary table') {
-      #       "Summary table of numeric variables viewed.\n"
-      #     } else  if(input$checks=='Outliers'){
-      #       if(input$dat.remove=='none'){
-      #         paste0('Table and plots to assess outliers viewed for ', input$column_check, ".\n")
-      #       } else {
-      #         paste('Table and plot to assess outliers viewed for', input$column_check, 'with',
-      #               nrow(values$dataset)-tableInputOutlier()[which(rownames(tableInputOutlier())==input$dat.remove),1], 
-      #               'points that fall outside the',  if(input$dat.remove=='5_95_quant'){
-      #                 '5th and 95th quantiles'
-      #               } else if(input$dat.remove=='25_75_quant') {
-      #                 '25th and 75th quantiles'
-      #               } else if(input$dat.remove=='mean_2SD'){
-      #                 'mean +/- 2SD'
-      #               } else if(input$dat.remove=='mean_3SD'){
-      #                 'mean +/- 3SD'
-      #               } else if(input$dat.remove=='median_2SD') {
-      #                 'median +/- 2SD'
-      #               } else if(input$dat.remove=='median_3SD'){
-      #                 'median +/- 3SD'
-      #               }, "removed.\n")
-      #       }
-      #     } else if(input$checks=='NAs'){
-      #       if(any(apply(values$dataset, 2, function(x) anyNA(x)))==TRUE) {
-      #         if(input$NA_Filter_all==0&NA_Filter_allNA_Filter_mean==0){
-      #           paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), collapse = ", ")),
-      #                 "variables contain",  sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
-      #                                                                                function(x) length(which(is.na(x)==TRUE))), collapse=", ")), 
-      #                 "missing values, respectively.", length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
-      #                                                                                                               function(x) anyNA(x))==TRUE))], 2, function(x) which(is.na(x)==TRUE))))), "rows have missing values. Missing values were not removed or replaced.\n") 
-      #         }} else {
-      #           if(input$NA_Filter_all==0&NA_Filter_allNA_Filter_mean==0){
-      #             paste("Occurrence of missing values checked. No columns in the data set contain missing values.\n")
-      #           } else {
-      #             if(input$NA_Filter_all>0){
-      #               paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), collapse = ", ")), "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
-      #                                                                                                                                      function(x) length(which(is.na(x)==TRUE))), collapse=", ")), "missing values.", length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
-      #                                                                                                                                                                                 function(x) anyNA(x))==TRUE))], 2, function(x) which(is.na(x)==TRUE))))), "rows containing missing values were removed from the data set.\n")
-      #             } else if(input$NA_Filter_mean>0){
-      #               paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), collapse = ", ")), "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
-      #                                                                                                                                      function(x) length(which(is.na(x)==TRUE))), collapse=", ")), "missing values. Missing values were replaced with the mean values of", RM, "respectively.\n")
-      #             }
-      #           } }
-      #     } else if(input$checks=='NaNs') {
-      #       if(any(apply(values$dataset, 2, function(x) any(is.nan(x))))==TRUE) {
-      #         if(input$NAN_Filter_all==0&input$NAN_Filter_mean==0){
-      #           paste("Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")),
-      #                 "variables contain", 
-      #                 sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE))], 2, 
-      #                                                          function(x) length(which(is.nan(x)==TRUE))), collapse=", ")), "non-numbers, respectively.", 
-      #                 length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
-      #                                                                              function(x) any(is.nan(x)))==TRUE))], 2, function(x) which(is.nan(x)==TRUE))))), "rows have non-numbers. No action was taken to remove or replace non-numbers.\n") 
-      #         }} else {
-      #           if(input$NAN_Filter_all==0&input$NAN_Filter_mean==0){
-      #             "Occurruence of non-numbers checked. No columns in the data set contain non-numbers.\n"
-      #           } else {
-      #             if(input$NAN_Filter_all>0){
-      #               paste("Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")), "variables contained", 
-      #                     sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE))], 2, 
-      #                                                              function(x) length(which(is.nan(x)==TRUE))), collapse=", ")), "non-numbers.", 
-      #                     length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
-      #                                                                                  function(x) any(is.nan(x)))==TRUE))], 2, function(x) which(is.nan(x)==TRUE))))), "rows containing non-numbers were removed from the data set.\n")
-      #             } else if(input$NAN_Filter_mean>0){
-      #               paste("Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")), "variables contained", 
-      #                     sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE))], 2, 
-      #                                                              function(x) length(which(is.nan(x)==TRUE))), collapse=", ")), "non-numbers.\n")
-      #             }
-      #           } }
-      #     } else if(input$checks=='Unique observations'){
-      #       if(dim(values$dataset)[1] == dim(unique(values$dataset))[1]) {
-      #         "Each row is a unique choice occurrence.\n"
-      #       } else {
-      #         if(input$Unique_Filter==0){
-      #           "Each row in data set is not a unique choice occurrence at haul or trip level. No action taken.\n"
-      #         } else {
-      #           "Duplicate choice occurrence at haul or trip level existed in the data set and have been removed.\n"
-      #         }
-      #       }
-      #     } else if(input$checks=='Empty variables'){
-      #       if(any(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)) {
-      #         if(input$Empty_Filter==0){
-      #           paste('Occurrence of empty variables was checked and the', names(which(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)), 
-      #                 "variable is empty. The varible was not removed from the data set.\n")
-      #         } else {
-      #           paste('Occurrence of empty variables was checked and the', names(which(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)), 
-      #                 "was empty and was removed from the data set.\n")
-      #         }
-      #       } else {
-      #         "Occurrence of empty variables was checked and not found in the data set.\n"
-      #       }
-      #     } else if(input$checks=='Lat_Lon units'){
-      #       if(any(apply(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=TRUE)], 2, function(x) !is.numeric(x))==TRUE)==TRUE){
-      #         if(input$LatLon_Filter==FALSE){
-      #           'Latitude and longitude units were checked and are not in decimal degrees.\n'
-      #         } else {
-      #           'Latitude or longitude units not in decimal degrees were converted to decimal degrees.\n'
-      #         }
-      #       } else {
-      #         'Latitude and longitude units were checked and are in decimal degrees.\n'
-      #       }
-      #     }
-      #   } else if(input$tabs=='explore'){
-      #     if(input$plot_table=='Plots'& input$plot_type=='Temporal'){
-      #       paste0("Viewed plots of ", input$col_select, ' against time for raw points, the ', input$p2fun, ", and the ",  input$p3fun, ' value.\n')
-      #     } else if(input$plot_table=='Plots'& input$plot_type=='Spatial'){
-      #       paste0("Viewed spatial distribution of occurrence points and spatial density of occurrence points.\n
-      #              Getis-ord and Moran's I statistics provided for ", input$varofint, ". Default settings for spdep functions are used.")
-      #     } else if(input$plot_table=='Plots'& input$plot_type=='x-y plot'){
-      #       paste0("Viewed plotted relationship between ", input$x_y_select1,  'and ', input$x_y_select2, '.\n')
-      #     } 
-      #   } else if(input$tabs=='analysis'){
-      #     if(input$corr_reg=='Correlation'){
-      #       paste0("Viewed correlation matrix for ",  isolate({sub(",([^,]*)$", ", and\\1",paste(input$corr_select, collapse = ", "))}), '.\n')
-      #     } else if(input$corr_reg=='Regression'){
-      #       paste0('Viewed plot and linear regression test output for ',input$reg_exp_select, ' on ', input$reg_resp_select,'.\n') 
-      #     } 
-      #   }
-      #   })
-      #---
       case_to_print <- reactiveValues(dataQuality = logical(0),
                                       explore = logical(0),
                                       analysis = logical(0))
@@ -1401,7 +1283,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           } 
         }
       })
-      
 # Notes ===
       
     notes <- reactiveValues(upload = "Upload data: ",
@@ -1472,7 +1353,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           }
         }
       })
-    
+    #End NOTES
+      
       ##Table output
       tableInputSummary <- reactive({
         
@@ -1666,7 +1548,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
         
 
-      
       ##Filtering options
       #output_table())
       
@@ -1730,9 +1611,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                      latsign=input$LatLon_Filter_Lat, lonsign=input$LatLon_Filter_Lon, replace=TRUE
                                       ) 
       })
-      
-
-      
       
       ##---        
 
@@ -2371,7 +2249,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       ###---
       #Transformations 
       output$trans_time_out <- renderUI({
-        conditionalPanel(condition="input.VarCreateTop=='Data transformations'&input.trans=='temp_mod'",
+        conditionalPanel(condition="input.VarCreateTop=='Temporal functions'&input.tempfunc=='temp_mod'",
                          style = "margin-left:19px;", selectizeInput('TimeVar','Select variable',
                                                                   choices=c(colnames(values$dataset)[grep('date|hour|time|year', colnames(values$dataset), ignore.case=TRUE)]), 
                                                                   options=list(create=TRUE, placeholder='Select or type input')))
@@ -2390,7 +2268,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
       
       output$grp_perc <- renderUI({
-        conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='group_perc'",
+        conditionalPanel(condition="input.VarCreateTop=='Data transformations'&input.trans=='group_perc'",
                          style = "margin-left:19px;", 
                          selectInput('perc_id_grp', 'Select primary grouping variable(s)',
                                      choices = colnames(values$dataset), multiple = TRUE),
@@ -2403,7 +2281,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
       
       output$grp_diff <- renderUI({
-        conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='group_diff'",
+        conditionalPanel(condition="input.VarCreateTop=='Data transformations'&input.trans=='group_diff'",
                          style = "margin-left:19px;", 
                          selectInput('diff_sort', 'Sort table by',
                                      choices = date_select(values$dataset)),
@@ -2416,7 +2294,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
       
       output$grp_cumsum <- renderUI({
-        conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='group_cumsum'",
+        conditionalPanel(condition="input.VarCreateTop=='Data transformations'&input.trans=='group_cumsum'",
                          style = "margin-left:19px;", 
                          selectInput('cumsum_sort', 'Sort table by',
                                      choices = date_select(values$dataset)),
@@ -2442,48 +2320,48 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                                                    , multiple = FALSE, selectize=TRUE))
       })
       output$var_x_select <- renderUI({
-        conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='create_var_num'",
+        conditionalPanel(condition="input.VarCreateTop=='Arithmetic functions'&input.numfunc=='create_var_num'",
                          style = "margin-left:19px;", selectInput('var_x', 'First variable. Will be the numerator if dividing.', 
                                                                   choices=names(values$dataset[,unlist(lapply(values$dataset, is.numeric))]), selectize=TRUE))
       })
       output$var_y_select <- renderUI({
-        conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='create_var_num'",
+        conditionalPanel(condition="input.VarCreateTop=='Arithmetic functions'&input.numfunc=='create_var_num'",
                          style = "margin-left:19px;", selectInput('var_y', 'Second variable. Will be the denomenator if dividing.',  
                                                                   choices=names(values$dataset[,unlist(lapply(values$dataset, is.numeric))]), selectize=TRUE))
       })
       output$input_xWeight <- renderUI({
-        conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='cpue'",
+        conditionalPanel(condition="input.VarCreateTop=='Arithmetic functions'&input.numfunc=='cpue'",
                          style = "margin-left:19px;", selectizeInput('xWeight','Weight variable', 
                                                                   choices=names(values$dataset[,grep("mt|lb|ton|pound|weight|metric|kilo|mass", names(values$dataset), ignore.case = TRUE)]),
                                                                   options = list(create = TRUE, placeholder='Select or type variable name')))
       })
       output$input_xTime <- renderUI({
-        conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='cpue'",
+        conditionalPanel(condition="input.VarCreateTop=='Arithmetic functions'&input.numfunc=='cpue'",
                          style = "margin-left:19px;", selectInput('xTime','Duration. To calculate duration, select the Calculate Duration option.', 
                                                                   choices=c('Calculate duration', names(values$dataset[,unlist(lapply(values$dataset, is.numeric))])), selectize=TRUE))
       })
       output$dur_add <- renderUI({
         tagList(
-          conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='cpue'&input.xTime=='Calculate duration'",
+          conditionalPanel(condition="input.VarCreateTop=='Arithmetic functions'&input.numfunc=='cpue'&input.xTime=='Calculate duration'",
                            style = "margin-left:19px;", selectizeInput('dur_start2', 'Variable indicating start of time period', 
                                                                     choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]),
                                                                     options = list(create = TRUE, placeholder='Select or type variable name'))),
-          conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='cpue'&input.xTime=='Calculate duration'",         
+          conditionalPanel(condition="input.VarCreateTop=='Arithmetic functions'&input.numfunc=='cpue'&input.xTime=='Calculate duration'",         
                            style = "margin-left:19px;", selectizeInput('dur_end2', 'Variable indicating end of time period', 
                                                                     choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]),
                                                                     options = list(create = TRUE, placeholder='Select or type variable name'))),
-          conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='cpue'&input.xTime=='Calculate duration'",          
+          conditionalPanel(condition="input.VarCreateTop=='Arithmetic functions'&input.numfunc=='cpue'&input.xTime=='Calculate duration'",          
                            style = "margin-left:19px;", selectInput('dur_units2', 'Unit of time for calculating duration', choices = c("week", "day", "hour", "minute")))
         )
       })
       output$input_dur_start <- renderUI({
-        conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='create_duration'",
+        conditionalPanel(condition="input.VarCreateTop=='Temporal functions'&input.tempfunc=='create_duration'",
                          style = "margin-left:19px;", selectizeInput('dur_start', 'Variable indicating start of time period', 
                                                                   choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]), 
                                                                   options = list(create = TRUE, placeholder='Select or type variable name')))
       })
       output$input_dur_end <- renderUI({
-        conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='create_duration'",
+        conditionalPanel(condition="input.VarCreateTop=='Temporal functions'&input.tempfunc=='create_duration'",
                          style = "margin-left:19px;", selectizeInput('dur_end', 'Variable indicating end of time period', 
                                                                   choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]),
                                                                   options = list(create = TRUE, placeholder='Select or type variable name')))
@@ -2733,7 +2611,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         } else if(input$VarCreateTop=='Dummy variables'&input$dummyfunc=='From variable') {
               q_test <- quietly_test(dummy_num)
               values$dataset <- q_test(values$dataset, var=input$dummyvarfunc, value=input$select.val, opts=input$dumsubselect, name=input$varname)
-        } else if(input$VarCreateTop=='Data transformations'&input$trans=='temp_mod') {
+        } else if(input$VarCreateTop=='Temporal functions'&input$tempfunc=='temp_mod') {
               q_test <- quietly_test(temporal_mod)
               values$dataset <- q_test(values$dataset, x=input$TimeVar, define.format=input$define_format, name=input$varname)
         } else if(input$VarCreateTop=='Data transformations'&input$trans=='set_quants'){
@@ -2746,22 +2624,22 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               q_test <- quietly_test(create_seasonal_ID)
               values$dataset <- q_test(values$dataset, seasonal.dat=seasonalData(), use.location=input$use_location, 
                                                use.geartype=input$use_geartype, sp.col=input$sp_col, target=input$target)
-        } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='group_perc'){
+        } else if(input$VarCreateTop=='Data transformations'&input$trans=='group_perc'){
           q_test <- quietly_test(group_perc)
           values$dataset <- q_test(values$dataset, project=input$projectname, id_group=input$perc_id_grp, group=input$perc_grp,
                                    value=input$perc_value, name=input$varname, create_group_ID=input$perc_id_col, drop_total_col=input$perc_drop)
-        } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='group_diff'){
+        } else if(input$VarCreateTop=='Data transformations'&input$trans=='group_diff'){
           q_test <- quietly_test(group_diff)
           values$dataset <- q_test(values$dataset, project=input$projectname, group=input$diff_grp,  sort_by=input$diff_sort,
                                    value=input$diff_value, name=input$varname, create_group_ID=input$diff_id_col, drop_total_col=input$diff_drop)
-        } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='group_cumsum'){
+        } else if(input$VarCreateTop=='Data transformations'&input$trans=='group_cumsum'){
           q_test <- quietly_test(group_cumsum)
           values$dataset <- q_test(values$dataset, project=input$projectname, group=input$cumsum_grp,  sort_by=input$cumsum_sort,
                                    value=input$cumsum_value, name=input$varname, create_group_ID=input$cumsum_id_col, drop_total_col=input$cumsum_drop)
-        } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='create_var_num'){
+        } else if(input$VarCreateTop=='Arithmetic functions'&input$numfunc=='create_var_num'){
               q_test <- quietly_test(create_var_num)
               values$dataset <- q_test(values$dataset, x=input$var_x, y=input$var_y, method=input$create_method, name=input$varname)
-        } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='cpue') {
+        } else if(input$VarCreateTop=='Arithmetic functions'&input$numfunc=='cpue') {
           if(input$xTime!='Calculate duration'){
               q_test <- quietly_test(cpue)
               values$dataset <- q_test(values$dataset, xWeight=input$xWeight, xTime=input$xTime, name=input$varname)
@@ -2794,7 +2672,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               q_test <- quietly_test(create_mid_haul)
               values$dataset <- q_test(values$dataset, start=c(input$mid_start[2], input$mid_start[1]), 
                                        end=c(input$mid_end[2], input$mid_end[1]), name=input$varname)
-        } else if(input$VarCreateTop=='Arithmetic and temporal functions' & input$numfunc=='create_duration'){
+        } else if(input$VarCreateTop=='Temporal functions' & input$tempfunc=='create_duration'){
               q_test <- quietly_test(create_duration)
               values$datase <- q_test(values$dataset, start=input$dur_start, end=input$dur_end, units=input$dur_units, name=input$varname)
         } else if(input$VarCreateTop=='Spatial functions'&input$dist=='create_startingloc'){
@@ -2827,7 +2705,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       )
       
       
-      # Map Viewer ====
+      #Map Viewer ====
       
       map_viewer_serv("map", values, spatdat)
       #onStop(function() servr::daemon_stop()) 
@@ -3492,7 +3370,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       
       #---
-      # Run functions ----
+      #Run functions ----
       #---
       observeEvent(input$saveALT, {
               q_test <- quietly_test(create_alternative_choice)
@@ -3523,7 +3401,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       ###---              
       
       ####---  
-      ##Save output----   
+      #Save output----   
       ###---   
       observeEvent(input$saveData, {
         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
@@ -3602,7 +3480,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       
 
-    #Downloads ====  
+      #Downloads ====  
     savedText <- reactiveValues(answers = logical(0))
     
     observeEvent(c(input$callTextDownload,
@@ -3754,7 +3632,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       ##---
       
-      # stop shiny ----
+      #Stop shiny ----
       ##---
       observe({
         if(input$close > 0) stopApp()
@@ -3773,7 +3651,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
      
        ###---
      
-       # Update From Bookmarked state----
+      #Update From Bookmarked state----
       ###---   
       bookmarkedstate <- reactive({
         req(input$uploadbookmark)
@@ -3933,7 +3811,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 #---
         })
       
-      # Rerun log -----
+      #Rerun log -----
       
       fetch_log <- reactive(log_rerun(input$log, run = FALSE))
       
