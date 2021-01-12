@@ -845,8 +845,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         textInput("AuxName", "Auxiliary table name." ),
         #actionButton("uploadAux", label = "Save to database", 
         #             style = "color: white; background-color: blue;", size = "extra-small"),
-        actionButton("mergeAux", label = "Merge with main data", 
-                     style = "background-color: #FAFA00;")
         )
       })
       
@@ -860,12 +858,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                column(5, uiOutput('ui.actionA'))
                              ))
           ),
-          conditionalPanel(condition="input.loadauxsource!='Upload new file'", 
+          conditionalPanel(condition = "input.loadauxsource !== 'Upload new file'", 
                            tagList(
                              fluidRow(
-                               column(5, textInput("auxdattext", "Auxiliary data table name in database", placeholder = 'Optional data')),
-                               actionButton("mergeAux", label = "Merge with main data", 
-                                            style = "background-color: #FAFA00;")))
+                               column(5, textInput("auxdattext", "Auxiliary data table name in database", placeholder = 'Optional data'))))
           )
           )
       })
@@ -895,37 +891,29 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
 
-      #Merge aux with main
-      ###---- 
-      #Merge
-      merge <- reactiveValues(show = FALSE, end = FALSE)
-      
-      observeEvent(input$mergeAux, merge$show <- TRUE)
-      
-      observeEvent(input$mergeCancel, merge$show <- FALSE)
-      
+      # Merge aux with main ----
+
       output$mergeUI <- renderUI({
         
-        if (merge$show == FALSE) return()
         tagList(
-          fluidRow(
-           column(3,
-                   selectInput("mainKey", "Main data keys",
-                               choices = colnames(values$dataset), multiple = TRUE)),
-           column(3, 
-                   selectInput("auxKey", "Auxiliary data keys",
-                               choices = colnames(aux$dataset), multiple = TRUE))),
-          fluidRow(
-            column(8,
-                   verbatimTextOutput("mergeBy"))),
-          fluidRow(
-            column(3,
-                   actionButton("mergeOK", "Merge", style = "background-color: blue; color: #FFFFFF;")),
-            column(3, 
-                   actionButton("mergeCancel", "Cancel merge", 
-                                style ="color: #fff; background-color: #FF6347; border-color: #800000;"))),
-          tags$br(), tags$br()
-          )
+          conditionalPanel("input.mergeAux",
+                           
+                           fluidRow(
+                             column(3,
+                                    selectInput("mainKey", "Main data keys",
+                                                choices = colnames(values$dataset), multiple = TRUE)),
+                             column(3, 
+                                    selectInput("auxKey", "Auxiliary data keys",
+                                                choices = colnames(aux$dataset), multiple = TRUE))),
+                           fluidRow(
+                             column(8,
+                                    verbatimTextOutput("mergeBy"))),
+                           fluidRow(
+                             column(3,
+                                    actionButton("mergeOK", "Merge", style = "background-color: blue; color: #FFFFFF;"))),
+                           tags$br(), tags$br()) 
+        )
+        
       })
       
       show_merge_by <- reactive({
@@ -954,63 +942,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         
         if (!is.null(merge_by())) {
           
-          merge$end <- FALSE
+          values$dataset <- merge_dat(values$dataset, aux$dataset, input$projectname, input$mainKey, input$auxKey)
           
-          m_key <- input$mainKey
-          a_key <- input$auxKey
-          
-          m_class <- lapply(m_key, function(x) class(values$dataset[[x]]))
-          a_class <- lapply(a_key, function(x) class(aux$dataset[[x]]))
-          
-          no_match_class <- purrr::pmap(list(m = seq_along(m_class), a = seq_along(a_class)), 
-                                        function(m, a) !all(m_class[[m]] == a_class[[a]]))
-          
-          if (any(unlist(no_match_class))) {
-            
-            except_match <- purrr::pmap_lgl(list(m = m_class, a = a_class), function(m, a) {
-              
-              (m %in% c("character", "factor")) & (a %in% c("character", "factor")) |
-                (m %in% c("numeric", "integer")) & (a %in% c("numeric", "integer"))
-            })
-            
-            if (any(!except_match)) {
-              
-              ind <- which(!except_match)
-              
-              class_error <- vapply(ind, FUN = function(x) {
-                
-                paste0("'", m_key[x], "' and '", a_key[x], "' class types are incompatible (", 
-                       class(values$dataset[[m_key[x]]]), "/", class(aux$dataset[[a_key[x]]]), 
-                       "). Unable to merge datasets.")
-                
-              }, FUN.VALUE = character(1))
-              
-              showNotification(paste0(class_error, collapse = "\n"), type = "error",
-                               duration = NULL)
-              
-              merge$end <- TRUE
-            }
-          }
-          
-          if (!isTRUE(merge$end)) {
-        
-        
-            if (any(vapply(values$dataset[m_key], FUN = is.character, FUN.VALUE = logical(1)))) {
-              
-              values$dataset[m_key] <- as.data.frame(apply(values$dataset[m_key], 2, trimws))
-            }
-            
-            if (any(vapply(aux$dataset[a_key], FUN = is.character, FUN.VALUE = logical(1)))) {
-              
-              aux$dataset[a_key] <- as.data.frame(apply(aux$dataset[a_key], 2, trimws))
-            }
-            
-            values$dataset <-
-              dplyr::left_join(values$dataset,
-                               aux$dataset,
-                               by = merge_by(),
-                               suffix = c("_MAIN", "_AUX"))
-          }
+          showNotification("Auxiliary data merged to primary table.", type = "message")
         }
       })
 
@@ -2246,43 +2180,70 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       # Fleet Functions ========
       
       fleet_id <- reactive({
-        f_id <- switch(input$fleet_fun, "vessel_count" = "ves", "species_catch" = "spec", 
-                       "roll_catch" = "roll", "weekly_catch" = "wc", "weekly_effort" = "we", 
+        f_id <- switch(input$fleet_fun, "vessel_count" = "ves", "species_catch" = "spec",
+                       "roll_catch" = "roll", "weekly_catch" = "wc", "weekly_effort" = "we",
                        "bycatch" = "by", "trip_length" = "trip", "density_plot" = "den")
          paste0(f_id, "-saveOut")
       })
-      
+
       output$fleetSaveOutputUI <- renderUI(saveOutputUI(fleet_id()))
-      
-      saveDataTableServ("fleet", values, input$projectname)
-      
+
+      saveDataTableServ("fleet", values, reactive(input$projectname))
+
       closeAppServ("fleet")
-      
-      refreshServ("fleet", values, input$projectname)
-      
-      
+
+      refreshServ("fleet", values, reactive(input$projectname))
+
+
       density_serv("den", values, reactive(input$projectname))
-      
+
       vessel_serv("ves",  values, reactive(input$projectname))
-      
+
       species_serv("spec", values, reactive(input$projectname))
-      
+
       roll_serv("roll", values, reactive(input$projectname))
-      
+
       weekly_catch_serv("wc", values, reactive(input$projectname))
-      
+
       weekly_effort_serv("we", values, reactive(input$projectname))
-      
+
       bycatch_serv("by", values, reactive(input$projectname))
-      
+
       trip_serv("trip", values, reactive(input$projectname))
-      
+
       fleet_table_serv("f_table", values, reactive(input$projectname))
-      
+
       fleet_assign_serv("f_assign", values, reactive(input$projectname))
-      
+
       # R expr output
-      RexpressionServ("fleet", values)
+      #RexpressionServ("fleet", values)
+      
+      observeEvent(input$runFleet, {
+        shinyjs::hide("error")
+        r$ok <- FALSE
+        tryCatch(
+          {
+            r$output <- isolate(
+              paste(capture.output(eval(parse(text = input$exprFleet))), collapse = '\n')
+            )
+            r$ok <- TRUE
+          },
+          error = function(err) {r$output <- err$message}
+        )
+        r$done <- r$done + 1
+      })
+      output$resultFleet <- renderUI({
+        if(r$done > 0 ) { 
+          content <- paste(paste(">", isolate(input$exprFleet)), r$output, sep = '\n')
+          if(r$ok) {
+            pre(content)
+          } else {
+            pre( style = "color: red; font-weight: bold;", content)
+          }
+        }
+      })
+      
+      
 
       
       
@@ -2414,8 +2375,50 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       output$unique_col_id <- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Nominal ID'&input.ID=='ID_var'",
                          style = "margin-left:19px;", selectInput('unique_identifier','Variables that identify unique observations',
-                                                                  choices=colnames(values$dataset), multiple=TRUE, selectize=TRUE))
+                                                                  choices=colnames(values$dataset), multiple=TRUE, selectize=TRUE),
+                         selectInput('ID_type', "Select ID column class type",
+                                     choices = c("string", "integer")))
       })
+      
+      output$grp_perc <- renderUI({
+        conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='group_perc'",
+                         style = "margin-left:19px;", 
+                         selectInput('perc_id_grp', 'Select primary grouping variable(s)',
+                                     choices = colnames(values$dataset), multiple = TRUE),
+                         selectInput('perc_grp', 'Select secondary grouping variable(s)',
+                                     choices = colnames(values$dataset), multiple = TRUE),
+                         selectInput('perc_value', 'Select numeric variable',
+                                     choices = numeric_cols(values$dataset)),
+                         checkboxInput('perc_id_col', 'Create an ID variable'),
+                         checkboxInput('perc_drop', 'Drop total columns'))
+      })
+      
+      output$grp_diff <- renderUI({
+        conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='group_diff'",
+                         style = "margin-left:19px;", 
+                         selectInput('diff_sort', 'Sort table by',
+                                     choices = date_select(values$dataset)),
+                         selectInput('diff_grp', 'Select secondary grouping variable(s)',
+                                     choices = colnames(values$dataset), multiple = TRUE),
+                         selectInput('diff_value', 'Select numeric variable',
+                                     choices = numeric_cols(values$dataset)),
+                         checkboxInput('diff_id_col', 'Create an ID variable'),
+                         checkboxInput('diff_drop', 'Drop total columns'))
+      })
+      
+      output$grp_cumsum <- renderUI({
+        conditionalPanel(condition="input.VarCreateTop=='Arithmetic and temporal functions'&input.numfunc=='group_cumsum'",
+                         style = "margin-left:19px;", 
+                         selectInput('cumsum_sort', 'Sort table by',
+                                     choices = date_select(values$dataset)),
+                         selectInput('cumsum_grp', 'Select secondary grouping variable(s)',
+                                     choices = colnames(values$dataset), multiple = TRUE),
+                         selectInput('cumsum_value', 'Select numeric variable',
+                                     choices = numeric_cols(values$dataset)),
+                         checkboxInput('cumsum_id_col', 'Create an ID variable'),
+                         checkboxInput('cumsum_drop', 'Drop total columns'))
+      })
+      
       seasonalData <- reactive({
         if(is.null(input$seasonal.dat)){return()} 
         type <- sub('.*\\.', '', input$seasonal.dat$name)
@@ -2729,11 +2732,23 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               values$dataset <- q_test(values$dataset, x=input$trans_var_name, quant.cat = input$quant_cat, name=input$varname)
         } else if(input$VarCreateTop=='Nominal ID'&input$ID=='ID_var'){
               q_test <- quietly_test(ID_var)
-              values$dataset <- q_test(values$dataset, newID=input$varname, input$unique_identifier)
+              values$dataset <- q_test(values$dataset, name=input$varname, vars=input$unique_identifier, type=input$ID_type)
         } else if(input$VarCreateTop=='Nominal ID'&input$ID=='create_seasonal_ID'){
               q_test <- quietly_test(create_seasonal_ID)
               values$dataset <- q_test(values$dataset, seasonal.dat=seasonalData(), use.location=input$use_location, 
                                                use.geartype=input$use_geartype, sp.col=input$sp_col, target=input$target)
+        } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='group_perc'){
+          q_test <- quietly_test(group_perc)
+          values$dataset <- q_test(values$dataset, project=input$projectname, id_group=input$perc_id_grp, group=input$perc_grp,
+                                   value=input$perc_value, name=input$varname, create_group_ID=input$perc_id_col, drop_total_col=input$perc_drop)
+        } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='group_diff'){
+          q_test <- quietly_test(group_diff)
+          values$dataset <- q_test(values$dataset, project=input$projectname, group=input$diff_grp,  sort_by=input$diff_sort,
+                                   value=input$diff_value, name=input$varname, create_group_ID=input$diff_id_col, drop_total_col=input$diff_drop)
+        } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='group_cumsum'){
+          q_test <- quietly_test(group_cumsum)
+          values$dataset <- q_test(values$dataset, project=input$projectname, group=input$cumsum_grp,  sort_by=input$cumsum_sort,
+                                   value=input$cumsum_value, name=input$varname, create_group_ID=input$cumsum_id_col, drop_total_col=input$cumsum_drop)
         } else if(input$VarCreateTop=='Arithmetic and temporal functions'&input$numfunc=='create_var_num'){
               q_test <- quietly_test(create_var_num)
               values$dataset <- q_test(values$dataset, x=input$var_x, y=input$var_y, method=input$create_method, name=input$varname)
