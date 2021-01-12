@@ -593,7 +593,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       #DATA UPLOAD FUNCTIONS ----
       ###---
       
-      
       output$main_upload <- renderUI({     
         tagList( 
           conditionalPanel(condition="input.loadmainsource=='Upload new file'", 
@@ -893,11 +892,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           showNotification("Auxiliary data loaded.", type='message', duration=10)
         }
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
-      
+      ###---
 
-      #Merge aux with main
-      ###---- 
-      #Merge
+      #Merge aux with main ---
+  
+      #Merge ----
+      ###---      
       merge <- reactiveValues(show = FALSE, end = FALSE)
       
       observeEvent(input$mergeAux, merge$show <- TRUE)
@@ -1326,7 +1326,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       #     } 
       #   }
       #   })
-      #----
+      #---
       case_to_print <- reactiveValues(dataQuality = logical(0),
                                       explore = logical(0),
                                       analysis = logical(0))
@@ -3138,7 +3138,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       output$Inits <- renderUI({
         i = 1:numInits()
         numwidth <- rep(1/numInits()*100, numInits())
-        numwidth <- paste("'",as.character(numwidth),"%'",collapse=", ",sep="")
+        numwidth <- paste("'", as.character(numwidth),"%'", collapse=", ", sep="")
         UI <- paste0("splitLayout(",
                      "cellWidths = c(",numwidth,")",",",
                      paste0("textInput(",
