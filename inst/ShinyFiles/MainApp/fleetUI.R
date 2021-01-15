@@ -6,9 +6,11 @@ saveOutputUI <- function(id) {
   
   tagList(
     downloadLink(ns('downloadplotHIDE'), label = ''),
-    actionButton(ns('downloadplot'), label = 'Save plot to folder'),
+    actionButton(ns('downloadplot'), label = 'Save plot to folder',
+                 style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
     downloadLink(ns('downloadTableHIDE'), label = ''),
-    actionButton(ns('downloadTable'), label = 'Save table to folder as csv')
+    actionButton(ns('downloadTable'), label = 'Save table to folder as csv',
+                 style = "color: #fff; background-color: #6EC479; border-color:#000000;")
   )
 }
 
@@ -16,7 +18,8 @@ noteUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-    actionButton(ns('callTextDownload'),'Save notes'),
+    actionButton(ns('callTextDownload'),'Save notes',
+                 style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
     textInput(ns('notes'), "Notes", value = NULL, 
               placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
   )
@@ -39,14 +42,14 @@ RexpressionUI <- function(id) {
 saveDataTableUI <- function(id) {
   ns <- NS(id)
   actionButton(ns('saveData'),'Save data to FishSET database',
-               style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+               style = "color: white; background-color: blue;")
 }
 
 refreshUI <- function(id) {
   
   ns <- NS(id)
   actionButton(ns("refresh"), "Refresh data", 
-               icon = icon("fa fa-refresh"),
+               icon = icon("refresh"),
                style = "color: white; background-color: blue;")
 }
 
@@ -63,8 +66,6 @@ closeAppUI <- function(id) {
     "Close app"
   )
 }
-
-
 
 
 filter_periodUI <- function(id, dat, date, type) {
@@ -197,7 +198,7 @@ density_plotUI <- function(id, dat) {
                      textInput(ns("filter_expr"), "Subset expression",
                                value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
                      
-                     conditionalPanel("input.date !== 'undefined' && input.date.length > 0", ns = ns,
+                     conditionalPanel("typeof input.date !== 'undefined' && input.date.length > 0", ns = ns,
                                       selectizeInput(ns("filter_date"), "Subset by date",
                                                      choices = c("date range" = "date_range", "year-month", 
                                                                  "year-week", "year-day", "year", "month", "week", "day"),
@@ -286,7 +287,7 @@ vessel_countUI <- function(id) {
            textInput(ns("filter_expr"), "Subset expression",
                      value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
            
-           conditionalPanel("input.date !== 'undefined' && input.date.length > 0", ns = ns,
+           conditionalPanel("typeof input.date !== 'undefined' && input.date.length > 0", ns = ns,
                             selectizeInput(ns("filter_date"), "Subset by date",
                                            choices = c("date range" = "date_range", "year-month", 
                                                        "year-week", "year-day", "year", "month", "week", "day"),
@@ -384,7 +385,7 @@ species_catchUI <- function(id) {
                      textInput(ns("filter_expr"), "Subset expression",
                                value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
                      
-                     conditionalPanel("input.date !== 'undefined' && input.date.length > 0", ns = ns,
+                     conditionalPanel("typeof input.date !== 'undefined' && input.date.length > 0", ns = ns,
                                       selectizeInput(ns("filter_date"), "Subset by date",
                                                      choices = c("date range" = "date_range", "year-month", 
                                                                  "year-week", "year-day", "year", "month", "week", "day"),
@@ -919,10 +920,17 @@ fleet_tableUI <- function(id) {
   
   tagList(
     
-    p("Fleet definitions must be saved to the FishSET database before they can be used to assign vessels to fleets."),
-    p("Steps:"),
-    p("1)"),
-    p("2)"),
+    p("Fleet definitions must be saved to the FishSET database before they can be 
+      used to assign vessels to fleets."),
+    p("Double-click to edit the definition table. Press crtl+Enter 
+      to save changes and exit editing mode, or Esc to exit without saving."),
+    p(strong("Steps:")),
+    p(strong("1)"), "Select a variable, operator, and value to create an expression. 
+      Select \"add to expression\" to expand the expression if needed."),
+    p(strong("2)"), "Select \"Insert expression\" to insert an expression into the definition table automatically. 
+      To insert into a specific cell, click \"select cell\", choose a cell, then select \"Insert expression\"."),
+    p(strong("3)"), "Double-click the definition table and enter a fleet name."),
+    p(strong("4)"), "Click \"Reset expression\" to create a new expression."),
     
     tags$br(),
     
@@ -934,7 +942,7 @@ fleet_tableUI <- function(id) {
     tags$br(), tags$br(),
     
     textInput(ns("colname"), label = NULL, placeholder = "Enter new column name"),
-    
+
     actionButton(ns("colname_btn"), "Change column name",
                  style = "color: white; background-color: blue;"),
     
@@ -980,17 +988,19 @@ fleet_exprUI <- function(id) {
         fluidRow(
           column(3, uiOutput(ns("select_var")), offset = 2),
           
-          column(3, selectInput(ns("nexpr_1-oper"), "Operator", 
-                                choices = c("less than" = "<","greater than" = ">", "less than or equal to" = "<=", 
-                                            "greater than or equal to" = ">=", "equal to" = "==", "not equal to" = "!=",
-                                            "contains" = "%in%"))),
+          column(3,
+                 selectizeInput(ns("nexpr_1-oper"), "Operator", 
+                             choices = c("less than" = "<","greater than" = ">", "less than or equal to" = "<=", 
+                                         "greater than or equal to" = ">=", "equal to" = "==", "not equal to" = "!=",
+                                         "contains" = "%in%"), multiple = TRUE, options = list(maxIems = 1))
+                 ),
           
           column(4, uiOutput(ns("valueUI")))
         )),
     
     div(id = "n_expr_container"),
     
-    actionButton(ns("add_expr"), label = "add expression", icon = icon(name = "plus"), 
+    actionButton(ns("add_expr"), label = "add to expression", icon = icon(name = "plus"), 
                  style = "background-color: blue; color: white;"), 
     
     tags$br(), tags$br(),
@@ -1011,7 +1021,10 @@ fleet_assignUI <- function(id) {
   ns <- NS(id)
   
   tagList(
-    h3(strong("Fleet Assignment")),
+    
+    p(strong("Steps:")),
+    p(strong("1)"), "Load definition table from database."),
+    p(strong("2)"), "Assign fleets."),
     
     h4(strong("Import table")),
     
@@ -1059,7 +1072,9 @@ fleet_tableOut <- function(id) {
     h4(strong("Fleet Definition Table")),
     
     fluidRow(
-      actionButton(ns("addrow"), "Add row",
+      
+      div(style = "margin-left:19px;",
+          actionButton(ns("addrow"), "Add row",
                    style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
       
       actionButton(ns("addcol"), "Add column",
@@ -1069,7 +1084,7 @@ fleet_tableOut <- function(id) {
                    style = "color: #fff; background-color: #EB8C34; border-color:#000000;"),
     
       actionButton(ns("deletecol"), "Delete column",
-                   style = "color: #fff; background-color: #EB8C34; border-color:#000000;")),
+                   style = "color: #fff; background-color: #EB8C34; border-color:#000000;"))),
     
     tags$br(),
     
