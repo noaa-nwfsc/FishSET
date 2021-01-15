@@ -2068,21 +2068,24 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       # Fleet Functions ========
       
       fleet_id <- reactive({
-        f_id <- switch(input$fleet_fun, "vessel_count" = "ves", "species_catch" = "spec",
-                       "roll_catch" = "roll", "weekly_catch" = "wc", "weekly_effort" = "we",
-                       "bycatch" = "by", "trip_length" = "trip", "density_plot" = "den")
-         paste0(f_id, "-saveOut")
+        switch(input$fleet_fun, "vessel_count" = "ves", "species_catch" = "spec",
+               "roll_catch" = "roll", "weekly_catch" = "wc", "weekly_effort" = "we",
+               "bycatch" = "by", "trip_length" = "trip", "density_plot" = "den")
       })
-
-      output$fleetSaveOutputUI <- renderUI(saveOutputUI(fleet_id()))
+      # Save buttons
+      output$fleetSaveOutputUI <- renderUI({
+        saveOutputUI(paste0(fleet_id(), "-saveOut"))
+        })
 
       saveDataTableServ("fleet", values, reactive(input$projectname))
 
       closeAppServ("fleet")
 
       refreshServ("fleet", values, reactive(input$projectname))
-
-
+      
+      output$run_fleet_fun <- renderUI(runFunUI(fleet_id()))
+      
+      # server modules
       density_serv("den", values, reactive(input$projectname))
 
       vessel_serv("ves",  values, reactive(input$projectname))
