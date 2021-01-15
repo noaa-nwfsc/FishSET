@@ -265,47 +265,38 @@ source("map_viewer_app.R", local = TRUE)
                                           uiOutput('outlier_column'),
                                           uiOutput('outlier_subset'),
                                           uiOutput('outlier_dist'),
-                                          conditionalPanel(
-                                            condition = "input.checks == 'NAs'",
+                                          conditionalPanel("input.checks == 'NAs'",
                                             actionButton('NA_Filter_all', 'Remove all NAs', style = "color: white; background-color: #0073e6;")
                                           ),
-                                          conditionalPanel(
-                                            condition = "input.checks == 'NAs'",
+                                          conditionalPanel("input.checks == 'NAs'",
                                             actionButton('NA_Filter_mean', 'Replace NAs with mean value', style = "color: white; background-color: #0073e6;")
                                           ),
-                                          conditionalPanel(
-                                            condition = "input.checks == 'NaNs'",
-                                            actionButton('NAN_Filter_all', 'Remove all NaNs')
+                                          conditionalPanel("input.checks == 'NaNs'",
+                                            actionButton('NAN_Filter_all', 'Remove all NaNs', style = "color: white; background-color: #0073e6;")
                                           ),
-                                          conditionalPanel(
-                                            condition = "input.checks == 'NaNs'",
-                                            actionButton('NAN_Filter_mean', 'Replace NaNs with mean value')
+                                          conditionalPanel("input.checks == 'NaNs'",
+                                            actionButton('NAN_Filter_mean', 'Replace NaNs with mean value', style = "color: white; background-color: #0073e6;")
                                           ),
-                                          conditionalPanel(condition="input.checks=='Outliers'",
+                                          conditionalPanel("input.checks=='Outliers'",
                                                            actionButton('Outlier_Filter', 'Remove outliers', style = "color: white; background-color: #0073e6;")),
-                                          conditionalPanel(
-                                            condition ='input.checks=="Outliers"',
+                                          conditionalPanel("input.checks=='Outliers'",
                                             uiOutput("hover_info1")),
-                                          conditionalPanel(
-                                            condition ='input.checks=="Unique observations"',
+                                          conditionalPanel("input.checks=='Unique observations'",
                                             actionButton('Unique_Filter', 'Remove non-unique rows', style = "color: white; background-color: #0073e6;")
                                           ),
-                                          conditionalPanel(
-                                            condition ='input.checks=="Empty variables"',
+                                          conditionalPanel("input.checks=='Empty variables'",
                                             actionButton('Empty_Filter', 'Remove empty variables', style = "color: white; background-color: #0073e6;")
                                           ),
                                            uiOutput('LatLonDir'),
                                           
-                                          conditionalPanel(
-                                            condition ='input.checks=="Lat_Lon units"',
+                                          conditionalPanel("input.checks=='Lat_Lon units'",
                                             checkboxInput('LatLon_Filter_Lat', 'Change sign for latitude direction', value=FALSE)
                                           ),
-                                          conditionalPanel(
-                                            condition ='input.checks=="Lat_Lon units"',
+                                          conditionalPanel("input.checks=='Lat_Lon units'",
                                             checkboxInput('LatLon_Filter_Lon', 'Change sign for longitude direction', value=FALSE)
                                           ),
                                           conditionalPanel(
-                                            condition ='input.checks=="Lat_Lon units"',
+                                            condition ="input.checks=='Lat_Lon units'",
                                             actionButton('LatLon_Filter', 'Convert lat/long to decimal degrees', 
                                                          value=FALSE, style = "color: white; background-color: #0073e6;" )
                                           ),
@@ -321,13 +312,13 @@ source("map_viewer_app.R", local = TRUE)
                              mainPanel(width=9,
                                        tags$br(), tags$br(),
                                        htmlOutput("Case"),
-                                       conditionalPanel(condition = "input.checks == 'Variable class'",
+                                       conditionalPanel("input.checks == 'Variable class'",
                                                         DT::dataTableOutput('changetable') ),
-                                       conditionalPanel(condition="input.checks=='Summary table'",
+                                       conditionalPanel("input.checks=='Summary table'",
                                                         DT::DTOutput("output_table_summary")),
                                        shinycssloaders::withSpinner(DT::DTOutput("output_table_outlier")),
                                        tags$br(),tags$br(),
-                                       conditionalPanel(condition="input.checks=='Outliers'",
+                                       conditionalPanel("input.checks=='Outliers'",
                                        splitLayout(cellWidths = c('33%','33%','33%'),
                                                    shinycssloaders::withSpinner(plotOutput('plot1',
                                                               hover = hoverOpts("plot1_hover", delay = 100, delayType = "debounce"),
@@ -342,7 +333,7 @@ source("map_viewer_app.R", local = TRUE)
                                                               brush = brushOpts(id = "plot3_brush",resetOnNew = TRUE)
                                                    )))
                                        ),
-                                       conditionalPanel(condition="input.checks=='NAs'",
+                                       conditionalPanel("input.checks=='NAs'",
                                                         DT::DTOutput('missingtable')),
                                        DT::DTOutput('output_table_latlon')
                                 
@@ -354,17 +345,16 @@ source("map_viewer_app.R", local = TRUE)
                            sidebarLayout(
                              sidebarPanel(width=2,
                                           tags$br(),tags$br(),
-                                          conditionalPanel(
-                                            condition='input.plot_table=="Plots"',
+                                          conditionalPanel("input.plot_table=='Plots'",
                                             #uiOutput('SaveButtonsExplore')),
                                             downloadLink('downloadplotEXPLOREHIDE', label=''),
                                             actionButton('downloadplotExplore', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
                                             downloadLink('downloadTableEXPLOREHIDE', label=''),
-                                            conditionalPanel(condition = "input.plot_type=='Spatial'",
-                                                             actionButton('downloadTableExplore', label ='Save table to folder as csv'))),
+                                            conditionalPanel("input.plot_type=='Spatial'",
+                                                             actionButton('downloadTableExplore', label ='Save table to folder as csv'))
+                                            ),
                                             #  downloadLink("downloadTextExplore", label=''),
-                                          conditionalPanel(
-                                            condition='input.plot_table=="Table"',
+                                          conditionalPanel("input.plot_table=='Table'",
                                             actionButton('subsetData', 'Remove variable from data set')
                                           ),
                                           actionButton('callTextDownloadExplore','Save notes'),
@@ -386,30 +376,26 @@ source("map_viewer_app.R", local = TRUE)
                                                     Text can be inserted into report later.'),
                                           selectInput("SelectDatasetExplore", "Select a dataset", 
                                                       choices = c("main", "port", "auxiliary", "grid")),
-                                          conditionalPanel("input.SelectDatasetExplore=='main' | input.SelectDatasetExplore=='grid'",
+                                          conditionalPanel("input.SelectDatasetExplore=='main' || input.SelectDatasetExplore=='grid'",
                                           selectInput('plot_table', 'View data table or plots', choices=c('Table','Plots'), selected='Table')
                                           ),
-                                          conditionalPanel(
-                                            condition="input.SelectDatasetExplore=='main' & input.plot_table=='Plots'",
+                                          conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots'",
                                             selectInput('plot_type', 'Select Plot Type', choices=c('Temporal','Spatial','x-y plot'))
                                           ),
                                           
                                           #selectInput('varofint', 'Variable of interest', choices=c('A','B','C'))
-                                          conditionalPanel(condition="input.SelectDatasetExplore=='main' & input.plot_table=='Plots'& input.plot_type=='Spatial'",
+                                          conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial'",
                                                            uiOutput("mtgt_output")),
                                           uiOutput('mtgt_out2'),
-                                          conditionalPanel(
-                                            condition='input.SelectDatasetExplore=="main" & input.plot_table=="Table"',
+                                          conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Table'",
                                             verbatimTextOutput('editText')
                                           ),
                                           
-                                          conditionalPanel(
-                                            condition='input.SelectDatasetExplore=="main" & input.plot_table=="Plots" & input.plot_type=="Spatial"',
+                                          conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial'",
                                             uiOutput("location_info_spatial")
                                           ),
                                           
-                                          conditionalPanel(
-                                             condition = "input.SelectDatasetExplore == 'grid' & input.plot_table == 'Plots'",
+                                          conditionalPanel("input.SelectDatasetExplore == 'grid' && input.plot_table == 'Plots'",
                                              uiOutput("plot_grid_args")
                                              ),
                                         
@@ -424,16 +410,16 @@ source("map_viewer_app.R", local = TRUE)
                              mainPanel(width=10,
                                        tags$div(shinycssloaders::withSpinner(DT::DTOutput("output_table_exploration")), style = "font-size: 75%; width: 100%"),
                                        conditionalPanel(
-                                         condition="input.SelectDatasetExplore=='main' & input.plot_table=='Plots' && input.plot_type=='Temporal'", 
+                                         "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Temporal'", 
                                          uiOutput('column_select')),
                                        conditionalPanel(
-                                         condition='input.SelectDatasetExplore=="main" & input.plot_table=="Plots" && input.plot_type=="x-y plot"',
+                                         "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='x-y plot'",
                                          uiOutput('xy_select1')),
                                        conditionalPanel(
-                                         condition='input.SelectDatasetExplore=="main" & input.plot_table=="Plots" && input.plot_type=="x-y plot"',
+                                         "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='x-y plot'",
                                          uiOutput('xy_select2')),
                                        conditionalPanel(
-                                         condition='input.SelectDatasetExplore=="main" & input.plot_table=="Plots" & input.plot_type=="Temporal"',
+                                         "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Temporal'",
                                          tagList(
                                            tags$br(),tags$br(),
                                            fluidRow(column(12, align='right',
@@ -444,28 +430,28 @@ source("map_viewer_app.R", local = TRUE)
                                            )))
                                        ),
                                        conditionalPanel(
-                                         condition='input.SelectDatasetExplore=="main" & input.plot_table=="Plots" & input.plot_type=="Temporal"',
+                                         "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Temporal'",
                                          shinycssloaders::withSpinner(plotOutput('plot_time'))
                                        ),
                                        conditionalPanel(
-                                         condition='input.SelectDatasetExplore=="main" & input.plot_table=="Plots" & input.plot_type=="Spatial"',
+                                         "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial'",
                                          column(shinycssloaders::withSpinner(plotOutput('plot_spatial',
                                                            click = "plot_spatial_click",
                                                            dblclick = "plot_spatial_dblclick", 
                                                            brush = brushOpts(id = "plot_spatial_brush",resetOnNew = FALSE ))), width=7)),
                                        conditionalPanel(
-                                         condition='input.SelectDatasetExplore=="main" & input.plot_table=="Plots" & input.plot_type=="Spatial"',
+                                         "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial'",
                                          column(shinycssloaders::withSpinner(plotOutput('map_kernel')), width=7)),
                                        conditionalPanel(
-                                         condition='input.SelectDatasetExplore=="main" & input.plot_table=="Plots" & input.plot_type=="Spatial"',
+                                         "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial'",
                                          column(DT::DTOutput('output_table_gt_mt'), width=6)),
                                        conditionalPanel(
-                                         condition='input.SelectDatasetExplore=="main" & input.plot_table=="Plots" && input.plot_type=="x-y plot"',   
+                                         "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='x-y plot'",   
                                          shinycssloaders::withSpinner(plotOutput('plot_xy'))),
                                        
                                        # gridded data plot 
                                        conditionalPanel(
-                                          condition = "input.SelectDatasetExplore == 'grid' & input.plot_table == 'Plots'",
+                                          "input.SelectDatasetExplore == 'grid' && input.plot_table == 'Plots'",
                                           shinycssloaders::withSpinner(plotOutput("grid_plot"))
                                        )
                              ))),
@@ -500,12 +486,12 @@ source("map_viewer_app.R", local = TRUE)
                                 ),
 
                                conditionalPanel("input.fleet_tab == 'fleet_summary'",
-
-                                                selectInput("fleet_fun", "Select function", multiple = FALSE,
+                                                selectInput("fleet_fun", "Select function",
                                                             choices = c("vessel count" = "vessel_count", "species catch" = "species_catch",
                                                                         "rolling catch" = "roll_catch", "weekly catch" = "weekly_catch",
                                                                         "weekly effort" = "weekly_effort", "bycatch", "trip length" = "trip_length",
-                                                                        "density plot" = "density_plot")),
+                                                                        "density plot" = "density_plot"), multiple = FALSE,
+                                                            selected='vessel_count'),
 
 
                                                 conditionalPanel("input.fleet_fun == 'vessel_count'",
@@ -540,7 +526,6 @@ source("map_viewer_app.R", local = TRUE)
 
                                                                 density_plotUI("den"))
 
-
                                  ),
 
                               # RexpressionUI("fleet")
@@ -554,7 +539,7 @@ source("map_viewer_app.R", local = TRUE)
 
                              mainPanel(
 
-                               tabsetPanel(id = "fleet_tab", selected = "fleet_assign",
+                               tabsetPanel(id = "fleet_tab", selected = "fleet_summary",
 
                                            tabPanel(title = "Fleet Assignment", value = "fleet_assign",
 
@@ -566,7 +551,7 @@ source("map_viewer_app.R", local = TRUE)
 
                                                     conditionalPanel("input.assign_fun == 'Fleet assignment'",
 
-                                                      fleet_assignOut("f_assign")),
+                                                      fleet_assignOut("f_assign"))
                                             ),
 
                                              tabPanel(title = "Fleet Summary", value = "fleet_summary",
@@ -650,23 +635,19 @@ source("map_viewer_app.R", local = TRUE)
                              ),
                              mainPanel(
                                tags$br(),
-                               conditionalPanel(
-                                 condition="input.corr_reg=='Correlation'",
-                                 tagList(
+                               conditionalPanel("input.corr_reg=='Correlation'",
                                    uiOutput('corr_out'),
                                    verbatimTextOutput('output_text_corr'),
                                    div(DT::DTOutput('output_table_corr'), style = "font-size: 75%; width: 100%"),
                                    tags$br(), tags$br(),
                                    shinycssloaders::withSpinner(plotOutput('output_plot_corr', width='100%', height = "600px"))
-                                 )),
-                               conditionalPanel(
-                                 condition="input.corr_reg=='Regression'",
-                                 tagList(
+                                ),
+                               conditionalPanel("input.corr_reg=='Regression'",
                                    uiOutput('reg_resp_out'),
                                    uiOutput('reg_exp_out'),
                                    verbatimTextOutput('output_text_reg'),
                                    shinycssloaders::withSpinner(plotOutput('output_plot_reg'))
-                                 ))  )
+                                 ))
                            )),
                   
                   #----
@@ -677,7 +658,7 @@ source("map_viewer_app.R", local = TRUE)
                              sidebarPanel(
                                #uiOutput('SaveButtonsNew'),
                                 downloadLink('downloadplotNew', label=''),
-                                actionButton('downloadplotNew', label ='Save plot to folder'),
+                                actionButton('downloadplotNew', label='Save plot to folder'),
                                 actionButton('callTextDownloadNew','Save notes'),
                                 actionButton('saveDataNew','Save data to FishSET database'),
                                tags$br(),
@@ -699,82 +680,99 @@ source("map_viewer_app.R", local = TRUE)
                                          placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
                                selectInput('VarCreateTop', "Create variables based on", multiple=FALSE,  
                                            choices=c('Nominal ID', 'Arithmetic functions', 'Dummy variables', 'Temporal functions',
-                                                     'Spatial functions', 'Trip-level functions', 'Data transformations' ),
-                                           selected = 'Nominal ID'),
+                                                     'Spatial functions', 'Trip-level functions', 'Data transformations'),
+                                           selected = 'Arithmetic functions'),
                                
                                ## Function options              
-                               conditionalPanel(condition="input.VarCreateTop=='Data transformations'",
-                                                selectInput('trans','Functions',multiple = FALSE, 
+                               conditionalPanel("input.VarCreateTop=='Data transformations'",
+                                                selectInput('trans','Functions', 
                                                             choices = c('Coded variable based on quantiles'='set_quants',
                                                                         'Within-group percentage' = 'group_perc',
                                                                         'Within-group lagged difference' = 'group_diff',
                                                                         'Within-group running sum' = 'group_cumsum'),
-                                                            selected = 'set_quants')),
-                               conditionalPanel(condition="input.VarCreateTop=='Temporal functions'",
-                                                selectInput('tempfunc', 'Functions', multiple=FALSE,
+                                                            selected = 'set_quants'), multiple = FALSE),
+                               conditionalPanel("input.VarCreateTop=='Temporal functions'",
+                                                selectInput('tempfunc', 'Functions', 
                                                             choices = c("Change time unit"='temp_mod',
                                                                         'Duration of time between two temporal variables'='create_duration'),
-                                                            selected = 'temp_mod')),
-                               conditionalPanel(condition="input.VarCreateTop=='Nominal ID'",
+                                                            selected = 'temp_mod', multiple=FALSE)),
+                               conditionalPanel("input.VarCreateTop=='Nominal ID'",
                                                 selectInput('ID','Functions', 
-                                                            choices = c('Create distinct haul or trip ID'='ID_var','Create fishery season identifier'='create_seasonal_ID'),
+                                                            choices = c('Create distinct haul or trip ID'='ID_var',
+                                                                        'Create fishery season identifier'='create_seasonal_ID'),
                                                             multiple = FALSE, selected='ID_var')),
-                               conditionalPanel(condition="input.VarCreateTop=='Arithmetic functions'",
-                                                selectInput('numfunc','Functions', multiple = FALSE, 
+                               conditionalPanel("input.VarCreateTop=='Arithmetic functions'",
+                                                selectInput('numfunc','Functions', 
                                                             choices = c('Numeric functions'='create_var_num',
                                                                         'Catch per unit effort'='cpue'),
-                                                selected = 'create_var_num')),
-                               conditionalPanel(condition="input.VarCreateTop=='Dummy variables'",
-                                                selectInput('dummyfunc','Functions', multiple=FALSE,
-                                                            choices=c('From variable', 'From policy dates', 'From area closures'),
-                                                            selected = 'From variable')),
-                               conditionalPanel(condition="input.VarCreateTop=='Spatial functions'",
-                                                selectInput('dist','Functions', multiple = FALSE, 
+                                                selected = 'create_var_num', multiple = FALSE)),
+                               conditionalPanel("input.VarCreateTop=='Dummy variables'",
+                                                selectInput('dummyfunc','Functions',
+                                                            choices = c('From variable', 'From policy dates', 'From area closures'),
+                                                            selected = 'From variable', multiple=FALSE)),
+                               conditionalPanel("input.VarCreateTop=='Spatial functions'",
+                                                selectInput('dist','Functions', 
                                                             choices = c('Distance between two points'='create_dist_between',
                                                                         'Midpoint location (lon/lat) for each haul'='create_mid_haul',
-                                                                        'Zone when choice of where to go next was made'='create_startingloc'))),
-                               conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'",
-                                                selectInput('trip','Functions',multiple = FALSE, 
+                                                                        'Zone when choice of where to go next was made'='create_startingloc'),
+                                                            selected='create_dist_between', multiple = FALSE)),
+                               conditionalPanel("input.VarCreateTop=='Trip-level functions'",
+                                                selectInput('trip','Functions', 
                                                             choices = c('Collapse haul to trip'='haul_to_trip','Calculate trip distance'='trip_distance',
-                                                                        'Calculate trip centroid'='trip_centroid'))),
-                               conditionalPanel(condition="input.trip!='haul_to_trip'|input.trip!='trip_centroid'", 
+                                                                        'Calculate trip centroid'='trip_centroid'),
+                                                            selected='haul_to_trip', multiple = FALSE)),
+                               conditionalPanel("input.trip!='haul_to_trip'||input.trip!='trip_centroid'", 
                                                 textInput('varname','Name of new variable', value='', placeholder = '')),
                                
                                #More sub choices Data Transformations     
                                uiOutput('trans_time_out'),
-                               conditionalPanel(condition="input.VarCreateTop=='Temporal functions'&input.tempfunc=='temp_mod'",
-                                                style = "margin-left:19px;", selectInput('define_format','Temporal units to return data in',choices=c('year', "month","day", 'hour', 'minute'))),
+                               conditionalPanel("input.VarCreateTop=='Temporal functions'&&input.tempfunc=='temp_mod'",
+                                                style = "margin-left:19px;", 
+                                                selectInput('define_format','Temporal units to return data in',
+                                                            choices=c('year', "month","day", 'hour', 'minute'), 
+                                                            selected = 'year')),
                                uiOutput('trans_quant_name'),
-                               conditionalPanel(condition="input.VarCreateTop=='Data transformations'&input.trans=='set_quants'",
-                                                style = "margin-left:19px;", selectInput('quant_cat','Quantile categories',
-                                                                                         choices=c('0%, 20%, 40%, 60%, 80%, 100%'='0.2', '0%, 25%, 50%, 75%, 100%'='0.25', 
-                                                                                                   '0%, 10%, 50%, 90%, 100%'='0.4'))),
+                               conditionalPanel("input.VarCreateTop=='Data transformations'&&input.trans=='set_quants'",
+                                                style = "margin-left:19px;", 
+                                                selectInput('quant_cat','Quantile categories',
+                                                            choices=c('0%, 20%, 40%, 60%, 80%, 100%'='0.2', 
+                                                                      '0%, 25%, 50%, 75%, 100%'='0.25', 
+                                                                      '0%, 10%, 50%, 90%, 100%'='0.4'))),
                                #More sub choices Nominal IDS  
                                uiOutput('unique_col_id'),
-                               conditionalPanel(condition="input.VarCreateTop=='Nominal ID'&input.ID=='create_seasonal_ID'",
-                                                style = "margin-left:19px;", fileInput("seasonal.dat", "Choose data file containing data on fishery seasons",
+                               conditionalPanel("input.VarCreateTop=='Nominal ID'&&input.ID=='create_seasonal_ID'",
+                                                style = "margin-left:19px;", 
+                                                fileInput("seasonal.dat", "Choose data file containing data on fishery seasons",
                                                                                        multiple = FALSE)),
                                uiOutput('sp_col.select'),
-                               conditionalPanel(condition="input.VarCreateTop=='Nominal ID'&input.ID=='create_seasonal_ID'",
-                                                style = "margin-left:19px;", checkboxInput('sp_collocation', "Optional: Do fishery season dates depend on fishery location?", value=FALSE)),
-                               conditionalPanel(condition="input.VarCreateTop=='Nominal ID'&input.ID=='create_seasonal_ID'",
-                                                style = "margin-left:19px;", checkboxInput('sp_colgeartype', "Optional: Do fishery season dates depend on fishery location?", value=FALSE)),
-                               conditionalPanel(condition="input.VarCreateTop=='Nominal ID'&input.ID=='create_seasonal_ID'",
-                                                style = "margin-left:19px;", textInput('target', "Optional: Name of target species", value=NULL)),
+                               conditionalPanel("input.VarCreateTop=='Nominal ID'&&input.ID=='create_seasonal_ID'",
+                                                style = "margin-left:19px;", 
+                                                checkboxInput('sp_collocation', "Optional: Do fishery season dates depend on fishery location?", 
+                                                              value=FALSE)),
+                               conditionalPanel("input.VarCreateTop=='Nominal ID'&&input.ID=='create_seasonal_ID'",
+                                                style = "margin-left:19px;", 
+                                                checkboxInput('sp_colgeartype', "Optional: Do fishery season dates depend on fishery location?",
+                                                              value=FALSE)),
+                               conditionalPanel("input.VarCreateTop=='Nominal ID'&&input.ID=='create_seasonal_ID'",
+                                                style = "margin-left:19px;", 
+                                                textInput('target', "Optional: Name of target species", value=NULL)),
                                
                                #More sub choices Arithmetic functions  
                                uiOutput('var_x_select'),
                                uiOutput('var_y_select'),
-                               conditionalPanel(condition="input.VarCreateTop=='Arithmetic functions'&input.numfunc=='create_var_num'",
-                                                style = "margin-left:19px;", selectInput('create_method', 'Arithmetic expression', choices=c('addition', 'subtraction', 'multiplication', 'division'))),
+                               conditionalPanel("input.VarCreateTop=='Arithmetic functions'&&input.numfunc=='create_var_num'",
+                                                style = "margin-left:19px;", 
+                                                selectInput('create_method', 'Arithmetic expression', 
+                                                             choices=c('addition', 'subtraction', 'multiplication', 'division'))),
                                uiOutput('grp_perc'),
                                uiOutput('grp_diff'),
                                uiOutput('grp_cumsum'),
                                uiOutput('input_dur_start'),
                                uiOutput('input_dur_end'),
-                               conditionalPanel(condition="input.VarCreateTop=='Temporal functions'&input.tempfunc=='create_duration'",
+                               conditionalPanel("input.VarCreateTop=='Temporal functions'&&input.tempfunc=='create_duration'",
                                                 style = "margin-left:19px;", selectInput('dur_units', 'Unit of time for calculating duration', 
-                                                                                         choices = c("week", "day", "hour", "minute"))),
+                                                                                         choices = c("week", "day", "hour", "minute"),
+                                                                                         selected='week')),
                                uiOutput('input_xWeight'),
                                uiOutput('input_xTime'),
                                uiOutput('dur_add'),
@@ -788,18 +786,21 @@ source("map_viewer_app.R", local = TRUE)
                                #More sub choices Spatial functions  
                                uiOutput('dist_between_input'),
                                uiOutput('dist_betwn_opts'),
-                               conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'",
-                                                style = "margin-left:19px;", selectInput('units', 'Distance unit',choices = c('miles','meters','km'))),
+                               conditionalPanel("input.VarCreateTop=='Spatial functions'&&input.dist=='create_dist_between'",
+                                                style = "margin-left:19px;", selectInput('units', 'Distance unit',
+                                                                                         choices = c('miles','meters','km'))),
                                uiOutput('start_mid_input'),
                                uiOutput('end_mid_input'),
                                uiOutput('input_startingloc'),
                                uiOutput('input_startingloc_extra'),
-                               conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='haul_to_trip'",
+                               conditionalPanel("input.VarCreateTop=='Trip-level functions'&&input.trip=='haul_to_trip'",
                                                 style = "margin-left:19px;", selectInput('fun_numeric','Numeric function to transform data', 
-                                                                                         choices = c('min','mean','max','median','sum'), selected = 'mean')),
-                               conditionalPanel(condition="input.VarCreateTop=='Trip-level functions'&input.trip=='haul_to_trip'",
+                                                                                         choices = c('min','mean','max','median','sum'), 
+                                                                                         selected = 'mean')),
+                               conditionalPanel("input.VarCreateTop=='Trip-level functions'&input.trip=='haul_to_trip'",
                                                 style = "margin-left:19px;", selectInput('fun_time','Numeric function to transform temporal data',
-                                                                                         choices = c('min','mean','max','median'), selected = 'mean')),
+                                                                                         choices = c('min','mean','max','median'), 
+                                                                                         selected = 'mean')),
                                uiOutput('input_IDVAR'),
                                uiOutput('input_trip_dist_vars'),
                                uiOutput('input_tri_cent'),
@@ -850,9 +851,10 @@ source("map_viewer_app.R", local = TRUE)
                                                                        'Select variables that define alternative fishing choices'='distm',
                                                                        'Select catch and price variables'='primary')),#, #calculate distance matrix
                                #checkboxInput('ExpedCatch', 'Define variables to calculate expected catch', value=FALSE)
-                               conditionalPanel(condition="input.choiceTab=='zone'",  
-                                                actionButton('runCentroid','Assign observations to zones', style = "color: white; background-color: green;")),
-                               conditionalPanel(condition="input.choiceTab=='distm'",
+                               conditionalPanel("input.choiceTab=='zone'",  
+                                                actionButton('runCentroid','Assign observations to zones', 
+                                                             style = "color: white; background-color: green;")),
+                               conditionalPanel("input.choiceTab=='distm'",
                                                 actionButton('saveALT','Save choices', style = "color: white; background-color: green;")),
                                actionButton('callTextDownloadZone','Save notes'),
                                textInput('notesZone', "Notes", value=NULL, 
@@ -879,9 +881,11 @@ source("map_viewer_app.R", local = TRUE)
                                uiOutput('conditionalInput3a'),
                                uiOutput('conditionalInput3'),
                                div(style="display: inline-block;vertical-align:top; width: 500px;",
-                                   conditionalPanel(condition="input.choiceTab=='distm'", plotOutput('zoneIDNumbers_plot'))),
+                                   conditionalPanel("input.choiceTab=='distm'",
+                                                    plotOutput('zoneIDNumbers_plot'))),
                                div(style="display: inline-block;vertical-align:top; width: 160px;",
-                                   conditionalPanel(condition="input.choiceTab=='distm'", textOutput('zoneIDText'))),
+                                   conditionalPanel("input.choiceTab=='distm'", 
+                                                    textOutput('zoneIDText'))),
                                #--------# 
                                uiOutput('conditionalInput1')
                                #EXPECTED CATCH
@@ -924,35 +928,38 @@ source("map_viewer_app.R", local = TRUE)
                                div(style = "margin-left:19px;font-size: 12px", 
                                    selectInput('temporal', 'Method to sort time:', c('Entire record of catch (no time)', 'Daily timeline'='daily', 'Sequential order'='sequential'))),
                                uiOutput('expcatch'),
-                               conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'",
+                               conditionalPanel("input.temporal!='Entire record of catch (no time)'",
                                                 style = "margin-left:19px;font-size: 12px",
-                                                numericInput('temp_year', 'No. of years to go back if expected catch based on from previous year(s) catch ', value=0, min=0, max='')),
+                                                  numericInput('temp_year', 'No. of years to go back if expected catch based on from previous year(s) catch ', value=0, min=0, max='')),
                                #if(input$temporal!='Entire record of catch (no time)') {h5('Moving window averaging parameters')},
-                               conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'",
+                               conditionalPanel("input.temporal!='Entire record of catch (no time)'",
                                                 style = "margin-left:19px;font-size: 12px", 
-                                                numericInput('temp_window', 'Window size (days) to average over', value = 7, min=0)),
-                               conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'", 
+                                                  numericInput('temp_window', 'Window size (days) to average over', value = 7, min=0)),
+                               conditionalPanel("input.temporal!='Entire record of catch (no time)'", 
                                                 style = "margin-left:19px;font-size: 12px", 
-                                                numericInput('temp_lag', 'Time lag (in days) ', value = 0, min=0, max='')),
-                               conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'", 
+                                                  numericInput('temp_lag', 'Time lag (in days) ', value = 0, min=0, max='')),
+                               conditionalPanel("input.temporal!='Entire record of catch (no time)'", 
                                                 style = "margin-left:19px;font-size: 12px", 
-                                                selectInput('calc_method','Expectation calculation:', 
-                                                            choices = c("Standard average"="standardAverage", "Simple lag regression of means"="simpleLag"#, 
+                                                  selectInput('calc_method','Expectation calculation:', 
+                                                            choices = c("Standard average"="standardAverage", 
+                                                                        "Simple lag regression of means"="simpleLag"#, 
                                                                         #"Weights of regressed groups"="weights"
                                                             ))), 
-                               conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'", 
+                               conditionalPanel("input.temporal!='Entire record of catch (no time)'", 
                                                 selectInput('lag_method', 'Method to average across time steps', 
                                                             choices= c("Entire time period"="simple", "Grouped time periods"="grouped"))),
-                               conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'", 
-                                  h4('Averaging options')),
-                               conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'", 
+                               conditionalPanel("input.temporal!='Entire record of catch (no time)'", 
+                                      h4('Averaging options')),
+                               conditionalPanel("input.temporal!='Entire record of catch (no time)'", 
                                   div(style = "margin-left:19px; font-size: 12px", 
                                       selectInput('empty_catch', 'Replace empty catch with:', 
-                                                  choices = c("NA: NA's removed when averaging"='NA', '0', 'Mean of all catch' ="allCatch", 'Mean of grouped catch' = "groupedCatch"))) 
+                                                  choices = c("NA: NA's removed when averaging"='NA', '0', 'Mean of all catch' ="allCatch", 
+                                                              'Mean of grouped catch' = "groupedCatch"))) 
                                ),#h6("Note: Na's removed when averaging"), 
                                h4('Expected Catch/Dummy options'), 
                                div(style = "margin-left:19px; font-size: 12px",
-                                   selectInput('empty_expectation', 'Replace empty expected catch with:', choices = c("NA: NA's removed when averaging"='NA', 1e-04, 0))),  
+                                   selectInput('empty_expectation', 'Replace empty expected catch with:', 
+                                               choices = c("NA: NA's removed when averaging"='NA', 1e-04, 0))),  
                                #h6("Note: Na's removed when averaging"),
                                div(style = "margin-left:19px; font-size: 14px",
                                    checkboxInput('dummy_exp', 'Output dummy variable for originally missing values?', value=FALSE)),
@@ -975,7 +982,7 @@ source("map_viewer_app.R", local = TRUE)
                                       Output saved in FishSET database. Previously saved expected catch/revenue output will be written over if the', 
                                       tags$i('Replace previously saved'), 'box is checked. Leaving the box unchecked will add new output to existing output.'),
                                tags$br(), tags$br(),
-                               conditionalPanel(condition="input.temp_var!='none'",
+                               conditionalPanel("input.temp_var!='none'",
                                                 tagList(
                                      h4('Sparsity of observations by time period and zone.'),
                                      h5('Higher values indicate greater sparsity.'),
@@ -1003,7 +1010,7 @@ source("map_viewer_app.R", local = TRUE)
                                tags$br(),
                                actionButton("addModel", "Save model and add new model", style="color: #fff; background-color: #337ab7; border-color: #800000;"),
                                tags$br(),
-                               conditionalPanel(condition='input.addModel>0',
+                               conditionalPanel("input.addModel!='0'",
                                    actionButton("submit", "Run model(s)", style="color: #fff; background-color: #6da363; border-color: #800000;")
                                ),
                                tags$br(),tags$br(),
