@@ -569,7 +569,7 @@ species_serv <- function(id, values, project) {
       
       updateSelectizeInput(session, "period", choices = c("year-month" = "year_month", "month-year" = "month_year",
                                                           "year", "month", "weeks", "day of the month" = "day",
-                                                         "day of the year" = "day_of_year", "weekday"),
+                                                          "day of the year" = "day_of_year", "weekday"),
                            options = list(maxItems = 1), selected = NULL)
     })
     
@@ -1503,9 +1503,12 @@ nexpr_row_server <- function(id, values) {
     output$valueUI <- renderUI({
       
       if (input$oper == "%in%") {
-        textInput(ns("value"), "",
-                  value = "c( add choices here )",
-                  placeholder = 'e.g. c("Port A", "Port D")')
+        
+        selectizeInput(ns("value"), "",
+                       choices = unique_values(),
+                       multiple = TRUE, options = list(maxOptions = 15,
+                                                       placeholder = "Select or type value name",
+                                                       create = TRUE))
       } else {
         
         selectizeInput(ns("value"), "",
@@ -1532,8 +1535,8 @@ fleet_table_serv <- function(id, values, project) {
     
     output$select_var <- renderUI({
       
-      selectInput(ns("nexpr_1-var"), "Variable", 
-                  choices = colnames(values$dataset), multiple = FALSE)
+      selectizeInput(ns("nexpr_1-var"), "Variable", 
+                  choices = colnames(values$dataset), multiple = TRUE, options = list(maxIems = 1))
     })
     
     # used for value input
@@ -1555,22 +1558,30 @@ fleet_table_serv <- function(id, values, project) {
     
     output$valueUI <- renderUI({
       
-      if (input[["nexpr_1-oper"]] == "%in%") {
-        textInput(ns("nexpr_1-value"), "Value", value = "c( add choices here )",
-                  placeholder = 'e.g. c("Port A", "Port D")')
-      #   selectizeInput(ns("nexpr_1-value"), "Value",
-      #                  choices = unique_values(),
-      #                  multiple = TRUE, options = list(maxOptions = 15,
-      #                                                  placeholder = "Select or type value name",
-      #                                                  create = TRUE))
-      } else {
+      if (is.null(input[["nexpr_1-oper"]])) {
         
-        selectizeInput(ns("nexpr_1-value"), "Value",
-                       choices = unique_values(),
-                       multiple = TRUE, options = list(maxOptions = 15, maxItems = 1,
-                                                       placeholder = "Select or type value name",
-                                                       create = TRUE))
+        selectizeInput(ns("nexpr_1-value"), "Value", choices = "") # placeholder widget
+      
+        } else {
+        
+          if (input[["nexpr_1-oper"]] == "%in%") {
+            
+            selectizeInput(ns("nexpr_1-value"), "Value",
+                           choices = unique_values(),
+                           multiple = TRUE, options = list(maxOptions = 15, # no maxItems
+                                                           placeholder = "Select or type value name",
+                                                           create = TRUE))
+          } else {
+            
+            selectizeInput(ns("nexpr_1-value"), "Value",
+                           choices = unique_values(),
+                           multiple = TRUE, options = list(maxOptions = 15, maxItems = 1,
+                                                           placeholder = "Select or type value name",
+                                                           create = TRUE))
+          }
+        
       }
+    
     })
     
     # insert new expression line when blue plus button is clicked
@@ -1583,10 +1594,10 @@ fleet_table_serv <- function(id, values, project) {
       insertUI(
         selector = "#n_expr_container",
         where = "beforeEnd",
-        ui = nexpr_row_ui(ui_id) # run expr row module
+        ui = nexpr_row_ui(ui_id) # run expr row UI module
       )
       
-      nexpr_row_server(server_id, values) # run expr row server
+      nexpr_row_server(server_id, values) # run expr row server module
     })
     
     
@@ -1598,23 +1609,33 @@ fleet_table_serv <- function(id, values, project) {
       expr_list <- lapply(seq(rv$expr_num), function(x) {
         
         new_id <- paste0("nexpr_", x)
-        value <- ""
+        log_oper <- paste0(new_id, "-log_oper")
+        var <- paste0(new_id, "-var")
+        oper <- paste0(new_id, "-oper")
+        val <- paste0(new_id, "-value")
+        value <- "" # empty placeholder value
         
-        if (is_empty(input[[paste0(new_id, "-value")]]) == FALSE) {
+        if (is_value_empty(input[[val]]) == FALSE) {
           
-          var_class <- class(values$dataset[[input[[paste0(new_id, "-var")]]]])
+          var_class <- class(values$dataset[[input[[var]]]])
           
          # check if var should be wrapped in quotes
           if (any(var_class %in% c("character", "factor", "Date", "POSIXct", "POSIXt"))) {
             
-            value <- paste0("'", input[[paste0(new_id, "-value")]], "'") # add single quotes
+            value <- paste0('"', input[[val]], '"') # add single quotes
           } else {
-            value <- input[[paste0(new_id, "-value")]] # otherwise, assign original value
+            value <- input[[val]] # otherwise, assign original value
+          }
+          
+          if (input[[oper]] == "%in%") {
+            
+            value <- as.list(value)
+            val_expr <- rlang::expr(c(!!!value))
+            value <- rlang::expr_text(val_expr)
           }
         }
         
-        paste(input[[paste0(new_id, "-log_oper")]], input[[paste0(new_id, "-var")]], 
-              input[[paste0(new_id,"-oper")]], value)
+        paste(input[[log_oper]], input[[var]], input[[oper]], value)
       })
       
       paste(expr_list, collapse = " ")
@@ -1623,11 +1644,35 @@ fleet_table_serv <- function(id, values, project) {
     # display current expression 
     output$expr_txt <- renderText(expr())
     
+    # validate that all expr inputs have been filled out
+    validate_expr <- reactive({
+      
+      expr_list <- lapply(seq(rv$expr_num), function(x) {
+        
+        new_id <- paste0("nexpr_", x)
+        expr_inputs <- grep(new_id, names(input), value = TRUE)
+
+        vapply(expr_inputs, function(e) is_value_empty(input[[e]]), logical(1))
+        
+      })
+
+       any(unlist(expr_list)) # are any exprs empty? 
+    })
+    
     # remove expression UI
     observeEvent(input$reset_expr, {
      
       rv$expr_num <- 1
       removeUI(selector = ".n-expr-section", multiple = TRUE)
+      
+      # reset first row of widgets 
+      updateSelectizeInput(session, "nexpr_1-var", choices = colnames(values$dataset), 
+                           options = list(maxIems = 1), selected = NULL)
+      
+      updateSelectizeInput(session, "nexpr_1-oper",  
+                           choices = c("less than" = "<","greater than" = ">", "less than or equal to" = "<=", 
+                                       "greater than or equal to" = ">=", "equal to" = "==", "not equal to" = "!=",
+                                       "contains" = "%in%"), options = list(maxIems = 1), selected = NULL)
     })
 
     
@@ -1645,7 +1690,7 @@ fleet_table_serv <- function(id, values, project) {
       
       req(input$file)
       
-      upload <- FishSET::read_dat(input$file$datapath)
+      upload <- read_dat(input$file$datapath)
       
       # convert factors to strings
       if (any(vapply(upload, is.factor, FUN.VALUE = logical(1)))) {
@@ -1711,20 +1756,56 @@ fleet_table_serv <- function(id, values, project) {
       
       f_r$f_DT <<- DT::editData(f_r$f_DT, input$f_tab_cell_edit, "f_tab")
       rownames(f_r$f_DT) <- 1:nrow(f_r$f_DT)
+      
+      rv$empty_cell <- f_r$f_DT == ""
+      rv$fleet_col <- grep("fleet", names(f_r$f_DT), ignore.case = TRUE)
+      
+      rv$empty_cond <- rv$empty_cell
+      
+      if (rv$fleet_col != 0) {
+        
+        rv$empty_cond[, rv$fleet_col] <- FALSE # prevent adding "enter condition" to fleet column 
+        rv$empty_fleet <- rv$empty_cell
+        rv$empty_fleet[, -rv$fleet_col] <- FALSE
+        
+        f_r$f_DT[rv$empty_fleet] <- "enter fleet name"
+      } 
+      
+      f_r$f_DT[rv$empty_cond] <- "enter condition"
+      
       DT::replaceData(proxy_f, f_r$f_DT, resetPaging = FALSE)
     })
     
     # insert expression from builder
     observeEvent(input$insert_expr, {
       
-      if (dim(input$f_tab_cells_selected)[1] == 0) {
+      if (validate_expr()) {
         
-        showNotification("Select a condition cell", type = "warning")
+        showNotification("Please complete the expression. Expression not inserted.", type = "warning")
+      
+        } else {
         
-      } else {
-        
-        f_r$f_DT[input$f_tab_cells_selected] <- expr() #rv$expr
+          if (dim(input$f_tab_cells_selected)[1] != 0) { # check if user selected a cell
+            
+            f_r$f_DT[input$f_tab_cells_selected] <- expr() 
+            
+          } else {
+            
+            rv$cond_ind <- which(f_r$f_DT == "enter condition", arr.ind = TRUE) # index of condition cells (matrix)
+            
+            if (nrow(rv$cond_ind) == 0) {
+              
+              showNotification("No empty condition cells available. Use 'select cell' to overwrite an expression.", 
+                               type = "warning")
+            } else {
+              
+              if (nrow(rv$cond_ind) > 1) rv$cond_ind <- rv$cond_ind[order(rv$cond_ind[, 1]), ] # order by row 
+           
+              f_r$f_DT[rv$cond_ind[1, 1], rv$cond_ind[1, 2]] <- expr() # insert expr into next available cell
+            }
+          }
       }
+     
     })
     
     # render fleet table
@@ -1732,7 +1813,6 @@ fleet_table_serv <- function(id, values, project) {
                                         editable  = "all",
                                         selection = rv$select,
                                         escape = FALSE)
-
     
     # change column name 
     observeEvent(input$colname_btn, {
@@ -1744,8 +1824,8 @@ fleet_table_serv <- function(id, values, project) {
     output$reference <- renderTable({
       data.frame(operator = c("<", ">", "<=", ">=", "==", "!=", "%in%", "!", "&", "|"), 
                  description = c("Less than", "Greater than", "Less than or equal to", 
-                                 "Greater than or equal to", "Equal to", "Not equal to", 
-                                 "Contains", "Logical NOT", "Logical AND", "Logical OR"))
+                                 "Greater than or equal to", "Equal to (single value)", "Not equal to", 
+                                 "Contains (multiple values)", "Logical NOT", "Logical AND", "Logical OR"))
     })
     # run fleet_table/save table
     observeEvent(input$save, {
@@ -1776,12 +1856,9 @@ fleet_assign_serv <- function(id, values, project) {
     })
     
     
-    tab_view <- eventReactive(input$load_btn, {
-      
-      table_view(input$tab)
-    })
+    tab_view <- eventReactive(input$load_btn, table_view(input$tab))
     
-    output$tab_preview <- DT::renderDT({tab_view()})
+    output$tab_preview <- DT::renderDT(tab_view())
     
     fa_out <- eventReactive(input$fun_run, {
       
@@ -1800,15 +1877,26 @@ fleet_assign_serv <- function(id, values, project) {
       
       if (input$format == "long") {
         
-        ggplot2::ggplot(fa_out(), ggplot2::aes(fleet, fill = fleet)) + 
-          ggplot2::geom_bar() + ggplot2::coord_flip()
+        fleet_col <- rlang::sym(names(fa_out())[ncol(fa_out())])
+        ggplot2::ggplot(fa_out(), ggplot2::aes(!!fleet_col, fill = !!fleet_col)) + 
+          ggplot2::geom_bar() + ggplot2::coord_flip() +
+          ggplot2::labs(y = "No. of obs.") +
+          fishset_theme() + ggplot2::theme(legend.position = "none")
         
       } else {
         
         value <- vapply(fa_out()[tab_view()$fleet], sum, FUN.VALUE = numeric(1))
         df <- data.frame(fleet = tab_view()$fleet, value = value)
+        # include "other" fleet
+        if (input$overlap) {
+          other <- data.frame(value = nrow(fa_out()) - sum(value), fleet = "other")
+          df <- rbind(df, other)
+        }
+        
         ggplot2::ggplot(df, ggplot2::aes(fleet, value, fill = fleet)) + 
-          ggplot2::geom_col() + ggplot2::coord_flip()
+          ggplot2::geom_col() + ggplot2::coord_flip() +
+          ggplot2::labs(y = "No. of obs.") +
+          fishset_theme() + ggplot2::theme(legend.position = "none") 
       }
     })
   })
