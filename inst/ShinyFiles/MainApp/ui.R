@@ -539,7 +539,7 @@ source("map_viewer_app.R", local = TRUE)
 
                              mainPanel(
 
-                               tabsetPanel(id = "fleet_tab", selected = "fleet_summary",
+                               tabsetPanel(id = "fleet_tab", selected = "fleet_assign",
 
                                            tabPanel(title = "Fleet Assignment", value = "fleet_assign",
 

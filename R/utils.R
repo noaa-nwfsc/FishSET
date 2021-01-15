@@ -159,6 +159,23 @@ is_empty <- function(x, trim = TRUE, ...) {
   }
 }
 
+is_value_empty <- function(x) {
+  #' Empty value check
+  #' @param x A value, input, or argument to check.
+  #' @keywords internal
+  #' @export
+  
+  if (is.null(x)) {
+    TRUE
+  } else if (length(x) == 0) {
+    TRUE
+  } else if (is.character(x) && nchar(trimws(x)) == 0) {
+    TRUE
+  } else {
+    FALSE
+  }
+}
+
 find_first <- function(y) {
   #' Find earliest date
   #' @param y variable of interest
