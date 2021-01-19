@@ -67,6 +67,11 @@ closeAppUI <- function(id) {
   )
 }
 
+runFunUI <- function(id) {
+  ns <- NS(id)
+  actionButton(ns("fun_run"), "Run function",
+               style = "color: #fff; background-color: #6da363; border-color: #800000;")
+}
 
 filter_periodUI <- function(id, dat, date, type) {
   
@@ -171,12 +176,6 @@ density_plotUI <- function(id, dat) {
   ns <- NS(id)
   
   tagList(
-    
-    actionButton(ns("fun_run"), "Run function",
-                 style = "color: #fff; background-color: #6da363; border-color: #800000;"),
-    
-    tags$br(), tags$br(),
-    
     selectInput(ns("type"), "Plot type",
                 choices = c("Kernel density estimate" = "kde",
                             "Empirical cumulative distribution function" = "ecdf", 
@@ -186,8 +185,7 @@ density_plotUI <- function(id, dat) {
     
     uiOutput(ns("date_select")),
     
-    div(checkboxInput(ns("subset_cb"), strong("Subset"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("subset_cb"), strong("Subset (optional)"), value = FALSE),
     
     conditionalPanel("input.subset_cb", ns = ns, style = "margin-left:19px;",
                      
@@ -208,23 +206,20 @@ density_plotUI <- function(id, dat) {
                      uiOutput(ns("filter_date_UIOutput"))
     ),
     
-    div(checkboxInput(ns("group_cb"), strong("Group"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("group_cb"), strong("Group (optional)"), value = FALSE),
     
     conditionalPanel("input.group_cb",  ns = ns, style = "margin-left:19px;",
                      
                      uiOutput(ns("grp_select"))),
     
-    div(checkboxInput(ns("split_cb"), strong("Split"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("split_cb"), strong("Split (optional)"), value = FALSE),
     
     conditionalPanel("input.split_cb",  ns = ns, style = "margin-left:19px;",
                      
                      uiOutput(ns("fct_select"))        
     ),
     
-    div(checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("options_cb"), strong("Plot options (optional)"), value = FALSE),
     
     conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
                      
@@ -253,13 +248,7 @@ vessel_countUI <- function(id) {
   ns <- NS(id)
   
   tagList(
-    
-    actionButton(ns("fun_run"), "Run function",
-                 style = "color: #fff; background-color: #6da363; border-color: #800000;"),
-    
-    tags$br(), tags$br(),
-    
-    selectInput(ns("out"), "View table and/or plot",
+     selectInput(ns("out"), "View table and/or plot",
                 choices = c("plot and table" = "tab_plot", "plot", "table"),
                 selected = "tab_plot"),
     
@@ -275,8 +264,7 @@ vessel_countUI <- function(id) {
                               "day of the year" = "day_of_year", "weekday"),
                   multiple = TRUE, options = list(maxItems = 1))),
     
-    div(checkboxInput(ns("subset_cb"), strong("Subset"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("subset_cb"), strong("Subset (optional)"), value = FALSE),
     
     conditionalPanel("input.subset_cb", ns = ns, style = "margin-left:19px;",
                      
@@ -297,8 +285,7 @@ vessel_countUI <- function(id) {
            uiOutput(ns("filter_date_UIOutput"))
             ),
     
-    div(checkboxInput(ns("group_cb"), strong("Group"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("group_cb"), strong("Group (optional)"), value = FALSE),
     
     conditionalPanel("input.group_cb",  ns = ns, style = "margin-left:19px;",
                      
@@ -308,16 +295,14 @@ vessel_countUI <- function(id) {
                          value = FALSE)
            ),
     
-    div(checkboxInput(ns("split_cb"), strong("Split"), value = FALSE),
-    style = "font-size: 18px"),
+    checkboxInput(ns("split_cb"), strong("Split (optional)"), value = FALSE),
     
     conditionalPanel("input.split_cb",  ns = ns, style = "margin-left:19px;",
                      
           uiOutput(ns("fct_select"))        
     ),
     
-    div(checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("options_cb"), strong("Plot options (optional)"), value = FALSE),
     
     conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
                      
@@ -348,12 +333,6 @@ species_catchUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-    
-    actionButton(ns("fun_run"), "Run function",
-                 style = "color: #fff; background-color: #6da363; border-color: #800000;"),
-    
-    tags$br(), tags$br(),
-    
     selectInput(ns("out"), "View table and/or plot",
                 choices = c("plot and table" = "tab_plot", "plot", "table"),
                 selected = "tab_plot"),
@@ -373,8 +352,7 @@ species_catchUI <- function(id) {
                                                 "day of the year" = "day_of_year", "weekday"),
                                     multiple = TRUE, options = list(maxItems = 1))),
     
-    div(checkboxInput(ns("subset_cb"), strong("Subset"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("subset_cb"), strong("Subset (optional)"), value = FALSE),
     
     conditionalPanel("input.subset_cb", ns = ns, style = "margin-left:19px;",
                      
@@ -395,8 +373,7 @@ species_catchUI <- function(id) {
                      uiOutput(ns("filter_date_UIOutput"))
     ),
     
-    div(checkboxInput(ns("group_cb"), strong("Group"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("group_cb"), strong("Group (optional)"), value = FALSE),
     
     conditionalPanel("input.group_cb",  ns = ns, style = "margin-left:19px;",
                      
@@ -406,16 +383,14 @@ species_catchUI <- function(id) {
                                    value = FALSE)
     ),
     
-    div(checkboxInput(ns("split_cb"), strong("Split"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("split_cb"), strong("Split (optional)"), value = FALSE),
     
     conditionalPanel("input.split_cb",  ns = ns, style = "margin-left:19px;",
                      
                      uiOutput(ns("fct_select"))        
     ),
     
-    div(checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("options_cb"), strong("Plot options (optional)"), value = FALSE),
     
     conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
         
@@ -457,11 +432,6 @@ roll_catchUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-    actionButton(ns("fun_run"), "Run function",
-                 style = "color: #fff; background-color: #6da363; border-color: #800000;"),
-    
-    tags$br(), tags$br(),
-    
     selectInput(ns("out"), "View table and/or plot",
                 choices = c("plot and table" = "tab_plot", "plot", "table")),
     
@@ -472,8 +442,7 @@ roll_catchUI <- function(id) {
     
     uiOutput(ns("date_select")),
     
-    div(checkboxInput(ns("subset_cb"), strong("Subset"), value = FALSE),
-        style = "font-size: 18px"),
+  checkboxInput(ns("subset_cb"), strong("Subset (optional)"), value = FALSE),
     
     conditionalPanel("input.subset_cb", ns = ns, style = "margin-left:19px;",
                      
@@ -491,24 +460,21 @@ roll_catchUI <- function(id) {
                      
                      uiOutput(ns("filter_date_UIOutput"))
     ),
-    div(checkboxInput(ns("group_cb"), strong("Group"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("group_cb"), strong("Group (optional)"), value = FALSE),
     
     conditionalPanel("input.group_cb",  ns = ns, style = "margin-left:19px;",
                      
                      uiOutput(ns("grp_select"))
     ),
     
-    div(checkboxInput(ns("split_cb"), strong("Split"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("split_cb"), strong("Split (optional)"), value = FALSE),
     
     conditionalPanel("input.split_cb",  ns = ns, style = "margin-left:19px;",
                      
                      uiOutput(ns("fct_select"))        
     ),
     
-    div(checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("options_cb"), strong("Plot options (optional)"), value = FALSE),
     
     conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
                      
@@ -542,11 +508,6 @@ weekly_catchUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-    actionButton(ns("fun_run"), "Run function",
-                 style = "color: #fff; background-color: #6da363; border-color: #800000;"),
-    
-    tags$br(), tags$br(),
-    
     selectInput(ns("out"), "View table and/or plot",
                 choices = c("plot and table" = "tab_plot", "plot", "table"),
                 selected = "tab_plot"),
@@ -558,8 +519,7 @@ weekly_catchUI <- function(id) {
     
     uiOutput(ns("date_select")),
     
-    div(checkboxInput(ns("subset_cb"), strong("Subset"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("subset_cb"), strong("Subset (optional)"), value = FALSE),
     
     conditionalPanel("input.subset_cb", ns = ns, style = "margin-left:19px;",
                      
@@ -578,8 +538,7 @@ weekly_catchUI <- function(id) {
                      uiOutput(ns("filter_date_UIOutput"))
     ),
     
-    div(checkboxInput(ns("group_cb"), strong("Group"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("group_cb"), strong("Group (optional)"), value = FALSE),
     
     conditionalPanel("input.group_cb",  ns = ns, style = "margin-left:19px;",
                      
@@ -589,16 +548,14 @@ weekly_catchUI <- function(id) {
                                    value = FALSE)
     ),
     
-    div(checkboxInput(ns("split_cb"), strong("Split"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("split_cb"), strong("Split (optional)"), value = FALSE),
     
     conditionalPanel("input.split_cb",  ns = ns, style = "margin-left:19px;",
                      
                      uiOutput(ns("fct_select"))        
     ),
     
-    div(checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("options_cb"), strong("Plot options (optional)"), value = FALSE),
     
     conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
                      
@@ -639,11 +596,6 @@ weekly_effortUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-    actionButton(ns("fun_run"), "Run function",
-                 style = "color: #fff; background-color: #6da363; border-color: #800000;"),
-    
-    tags$br(), tags$br(),
-    
     selectInput(ns("out"), "View table and/or plot",
                 choices = c("plot and table" = "tab_plot", "plot", "table"),
                 selected = "tab_plot"),
@@ -652,8 +604,7 @@ weekly_effortUI <- function(id) {
     
     uiOutput(ns("date_select")),
     
-    div(checkboxInput(ns("subset_cb"), strong("Subset"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("subset_cb"), strong("Subset (optional)"), value = FALSE),
     
     conditionalPanel("input.subset_cb", ns = ns, style = "margin-left:19px;",
                      
@@ -672,8 +623,7 @@ weekly_effortUI <- function(id) {
                      uiOutput(ns("filter_date_UIOutput"))
     ),
     
-    div(checkboxInput(ns("group_cb"), strong("Group"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("group_cb"), strong("Group (optional)"), value = FALSE),
     
     conditionalPanel("input.group_cb",  ns = ns, style = "margin-left:19px;",
                      
@@ -683,16 +633,14 @@ weekly_effortUI <- function(id) {
                                    value = FALSE)
     ),
     
-    div(checkboxInput(ns("split_cb"), strong("Split"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("split_cb"), strong("Split (optional)"), value = FALSE),
     
     conditionalPanel("input.split_cb",  ns = ns, style = "margin-left:19px;",
                      
                      uiOutput(ns("fct_select"))        
     ),
     
-    div(checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("options_cb"), strong("Plot options (optional)"), value = FALSE),
     
     conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
                      
@@ -715,17 +663,12 @@ bycatchUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-    p("Note: CPUE and catch variables should be added in the same order."),
-    
-    actionButton(ns("fun_run"), "Run function",
-                 style = "color: #fff; background-color: #6da363; border-color: #800000;"),
-    
-    tags$br(), tags$br(),
-    
     selectInput(ns("out"), "View table and/or plot",
                 choices = c("plot and table" = "tab_plot", "plot", "table"),
                 selected = "tab_plot"),
     
+    p("Note: CPUE and catch variables should be added in the same order. CPUE can
+      be created in the Compute New Variables tab."),
     uiOutput(ns("cpue_select")),
     
     uiOutput(ns("catch_select")),
@@ -735,8 +678,7 @@ bycatchUI <- function(id) {
     selectInput(ns("period"), "Show counts by",
                 choices = c("year", "month", "weeks")),
     
-    div(checkboxInput(ns("subset_cb"), strong("Subset"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("subset_cb"), strong("Subset (optional)"), value = FALSE),
     
     conditionalPanel("input.subset_cb", ns = ns, style = "margin-left:19px;",
                      
@@ -755,8 +697,7 @@ bycatchUI <- function(id) {
                      uiOutput(ns("filter_date_UIOutput"))
     ),
     
-    div(checkboxInput(ns("group_cb"), strong("Group"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("group_cb"), strong("Group (optional)"), value = FALSE),
     
     conditionalPanel("input.group_cb",  ns = ns, style = "margin-left:19px;",
                      
@@ -766,16 +707,14 @@ bycatchUI <- function(id) {
                                    value = FALSE)
     ),
     
-    div(checkboxInput(ns("split_cb"), strong("Split"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("split_cb"), strong("Split (optional)"), value = FALSE),
     
     conditionalPanel("input.split_cb",  ns = ns, style = "margin-left:19px;",
                      
                      uiOutput(ns("fct_select"))        
     ),
     
-    div(checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("options_cb"), strong("Plot options  (optional)"), value = FALSE),
     
     conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
                        
@@ -817,11 +756,6 @@ trip_lengthUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-    actionButton(ns("fun_run"), "Run function",
-                 style = "color: #fff; background-color: #6da363; border-color: #800000;"),
-    
-    tags$br(), tags$br(),
-    
     selectInput(ns("out"), "View table and/or plot",
                 choices = c("plot and table" = "tab_plot", "plot", "table")),
     
@@ -837,8 +771,7 @@ trip_lengthUI <- function(id) {
     
     uiOutput(ns("haul_select")),
     
-    div(checkboxInput(ns("subset_cb"), strong("Subset"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("subset_cb"), strong("Subset (optional)"), value = FALSE),
     
     conditionalPanel("input.subset_cb", ns = ns, style = "margin-left:19px;",
                      
@@ -857,24 +790,21 @@ trip_lengthUI <- function(id) {
                      uiOutput(ns("filter_date_UIOutput"))
     ),
     
-    div(checkboxInput(ns("group_cb"), strong("Group"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("group_cb"), strong("Group (optional)"), value = FALSE),
     
     conditionalPanel("input.group_cb",  ns = ns, style = "margin-left:19px;",
                      
                      uiOutput(ns("grp_select"))
     ),
     
-    div(checkboxInput(ns("split_cb"), strong("Split"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("split_cb"), strong("Split (optional)"), value = FALSE),
     
     conditionalPanel("input.split_cb",  ns = ns, style = "margin-left:19px;",
                      
                      uiOutput(ns("fct_select"))        
     ),
     
-    div(checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
-        style = "font-size: 18px"),
+    checkboxInput(ns("options_cb"), strong("Plot options (optional)"), value = FALSE),
     
     conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
                      
