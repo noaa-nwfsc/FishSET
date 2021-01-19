@@ -696,8 +696,6 @@ order_factor <- function(dat, fac, val, rev = FALSE) {
   dat
 }
 
-
-
 date_factorize <- function(dataset, date_col, date_code) {
   #' Convert date variable of type character to ordered factor
   #' @keywords internal
