@@ -467,8 +467,9 @@ source("map_viewer_app.R", local = TRUE)
                                 uiOutput("fleetSaveOutputUI"),
                                 saveDataTableUI("fleet"),
                                 refreshUI("fleet"),
-                                closeAppUI("fleet"),
                                 noteUI("fleet"),
+                                closeAppUI("fleet"),
+                                uiOutput("run_fleet_fun"),
 
                                 conditionalPanel("input.fleet_tab == 'fleet_assign'",
 
@@ -490,8 +491,9 @@ source("map_viewer_app.R", local = TRUE)
                                                             choices = c("vessel count" = "vessel_count", "species catch" = "species_catch",
                                                                         "rolling catch" = "roll_catch", "weekly catch" = "weekly_catch",
                                                                         "weekly effort" = "weekly_effort", "bycatch", "trip length" = "trip_length",
-                                                                        "density plot" = "density_plot"), multiple = FALSE,
-                                                            selected='vessel_count'),
+                                                                        "density plot" = "density_plot"), 
+                                                            multiple = FALSE,
+                                                            selected = "vessel_count"),
 
 
                                                 conditionalPanel("input.fleet_fun == 'vessel_count'",
