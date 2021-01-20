@@ -80,7 +80,7 @@
 #' @importFrom purrr pmap
 #' @importFrom dplyr left_join
 #' @importFrom gridExtra grid.arrange arrangeGrob
-#' @importFrom reshape2 melt dcast
+#' @importFrom tidyr pivot_longer
 #' @importFrom scales percent
 #' @importFrom rlang sym as_string
 #' @importFrom shiny isRunning
@@ -99,9 +99,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
     if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
   } else { 
     if (!is.character(dat)) dat <- deparse(substitute(dat)) }
-  
-  
-  
+
   # facet setup ----
   if (!is.null(facet_by)) {
     # if facet_by contains "species", "year", "month", or "week"
@@ -244,17 +242,18 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
   
   if (length(cpue) > 1) {
     
-    cpue_tab <- reshape2::melt(cpue_tab, measure.vars = cpue, variable.name = "species_cpue", 
-                               value.name = "mean_cpue")
+    cpue_tab <- tidyr::pivot_longer(cpue_tab, cols = !!cpue, names_to = "species_cpue", 
+                                    values_to = "mean_cpue")
   }
   
   # Total catch/STC table ----
-  catch_tab <- agg_helper(dataset, value = catch, period = period, group = agg_grp, fun = sum)
+  catch_tab <- agg_helper(dataset, value = catch, period = period, group = agg_grp, 
+                          fun = sum)
   
   if (length(catch) > 1) {
     
-    catch_tab <- reshape2::melt(catch_tab, measure.vars = catch, variable.name = "species_catch", 
-                                value.name = "catch")
+    catch_tab <- tidyr::pivot_longer(catch_tab, cols = !!catch, names_to = "species_catch", 
+                                     values_to = "catch")
   }
   # STC conversion ---- 
   f_catch <- function() if (length(catch) > 1) "catch" else catch
@@ -262,7 +261,8 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
   
   if (value == "stc") {
     
-    stc_tab <- agg_helper(catch_tab, value = f_catch(), group = c(catch_grp()), fun = function(x) x/sum(x))
+    stc_tab <- agg_helper(catch_tab, value = f_catch(), group = c(catch_grp()), 
+                          fun = function(x) x/sum(x))
     
     if (is.vector(stc_tab$catch)) {
       catch_tab$stc <- stc_tab$catch
@@ -283,7 +283,8 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
   } else {
     
     cpue_tab <- dplyr::left_join(cpue_tab, name_tab, by = "species_cpue")
-    bycatch <- dplyr::left_join(cpue_tab, catch_tab, by = unique(c(period, agg_grp, "species_catch")))
+    bycatch <- dplyr::left_join(cpue_tab, catch_tab, 
+                                by = unique(c(period, agg_grp, "species_catch")))
   }
   
   if (p == "%b") {
@@ -455,9 +456,12 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
   bycatch[c("species_catch", "species_cpue")] <- NULL
   
   if (format_tab == "long") {
-    
-    bycatch <- reshape2::melt(bycatch, id.vars = c(period, agg_grp, "species"), 
-                              variable.name = "measure", value.name = "value")
+   
+    stc <- if (value == "stc") "stc" else NULL
+    cols <- c("mean_cpue", "catch", stc)
+
+    bycatch <- tidyr::pivot_longer(bycatch, cols = !!cols, names_to = "measure", 
+                                   values_to = "value")
   }
   
   save_table(bycatch, project, "bycatch")
