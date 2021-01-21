@@ -852,17 +852,23 @@ fleet_tableUI <- function(id) {
     
     p("Fleet definitions must be saved to the FishSET database before they can be 
       used to assign vessels to fleets."),
-    p("Double-click to edit the definition table. Press crtl+Enter 
-      to save changes and exit editing mode, or Esc to exit without saving."),
-    p(strong("Steps:")),
+    p("Create fleet table on the right or upload from local file below."),
+    p(strong("Steps for Expression Builder:")),
     p(strong("1)"), "Select a variable, operator, and value to create an expression. 
       Select \"add to expression\" to expand the expression if needed."),
-    p(strong("2)"), "Select \"Insert expression\" to insert an expression into the definition table automatically. 
+    p(strong("2)"), "Select \"Insert expression\" to insert an expression into the Fleet Definition Table. 
       To insert into a specific cell, click \"select cell\", choose a cell, then select \"Insert expression\"."),
-    p(strong("3)"), "Double-click the definition table and enter a fleet name."),
-    p(strong("4)"), "Click \"Reset expression\" to create a new expression."),
+    p(strong("3)"), "Double-click the definition table and enter a fleet name. Press ctrl+Enter to save the name."),
+    p(strong("4)"), "Click \"Reset expression\" button to create a new expression."),
+    p("To edit the definition table double-click on the cell. Press crtl+Enter 
+      to save changes."),
+    p(strong("5)"), "Click the \"Save table to FishSET database\" button to save the table."),
     
     tags$br(),
+    
+    actionButton(ns("save"), "Save table to FishSET database",
+                 style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
+    tags$br(), tags$br(),
     
     fileInput(ns("file"), "Import table from local file"),
     
@@ -876,10 +882,6 @@ fleet_tableUI <- function(id) {
     actionButton(ns("colname_btn"), "Change column name",
                  style = "color: white; background-color: blue;"),
     
-    tags$br(), tags$br(),
-    
-    actionButton(ns("save"), "Save table to FishSET database",
-                 style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
     tags$br(), tags$br()
   )
 }
@@ -958,7 +960,7 @@ fleet_assignUI <- function(id) {
     
     h4(strong("Import table")),
     
-    actionButton(ns("refresh_tabs"), "", icon = icon("refresh"), style = "color: blue;"),
+    actionButton(ns("refresh_tabs"), "Load tables", icon = icon("refresh"), style = "color: blue;"),
     
     uiOutput(ns("available_tabs")),
     

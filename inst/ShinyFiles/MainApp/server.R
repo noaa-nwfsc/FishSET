@@ -1740,7 +1740,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       output$column_select <- renderUI({
       #  tags$div(align = 'left', class = 'multicol', 
-                 selectInput("col_select", "Select 1 variable", choices = names(values$dataset), 
+                 selectInput("col_select", "Select variable", choices = names(values$dataset), 
                               selected = numeric_cols(values$dataset)[1], 
                               multiple=FALSE, selectize = TRUE)#)
       })
