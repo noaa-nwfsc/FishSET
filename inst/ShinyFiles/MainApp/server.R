@@ -1739,10 +1739,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
       
       output$column_select <- renderUI({
-        tags$div(align = 'left', class = 'multicol', 
-                 radioButtons("col_select", "Select 1 variable", choices = names(values$dataset), 
-                              selected = names(lapply(values$dataset, is.numeric)[1]), 
-                              inline=FALSE))
+      #  tags$div(align = 'left', class = 'multicol', 
+                 selectInput("col_select", "Select 1 variable", choices = names(values$dataset), 
+                              selected = numeric_cols(values$dataset)[1], 
+                              multiple=FALSE, selectize = TRUE)#)
       })
       
       t2 = reactive({

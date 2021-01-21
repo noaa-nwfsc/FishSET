@@ -3,11 +3,11 @@ date_select <- function(dat) {
   
   if (any(grepl("date", colnames(dat), ignore.case = TRUE))) {
     
-    grep("date", colnames(dat), ignore.case = TRUE, value = TRUE)[1]
+    grep("date", colnames(dat), ignore.case = TRUE, value = TRUE)
     
   } else {
     
-    colnames(dat)[1]
+    colnames(dat)
   }
 }
 

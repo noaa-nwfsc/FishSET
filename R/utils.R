@@ -1054,6 +1054,86 @@ quietly_test <- function(.f) {
   }
 }
 
+
+simpleCap <- function(x) {
+  #' Convert case to upper
+  #' @param x Variable
+  #' @keywords internal
+  s <- strsplit(x, " ")[[1]]
+  paste(toupper(substring(s, 1,1)), substring(s, 2),
+        sep="", collapse=" ")
+}
+
+deleteButtonColumn <- function(df, id, ...) {
+#' A column of delete buttons for each row in the data frame for the first column
+#'
+#' @param df data frame
+#' @param id id prefix to add to each actionButton. The buttons will be id'd as id_INDEX.
+#' @return A DT::datatable with escaping turned off that has the delete buttons in the first column 
+#'   and \code{df} in the other function to create one action button as string
+#' @keywords internal
+
+  f <- function(i) {
+    # https://shiny.rstudio.com/articles/communicating-with-js.html
+    as.character(actionButton(paste(id, i, sep="_"), label = NULL, icon = icon('trash'),
+                              onclick = 'Shiny.setInputValue(\"deletePressed\",  this.id, {priority: "event"})'))
+  }
+  
+  deleteCol <- unlist(lapply(seq_len(nrow(df)), f))
+  
+  # Return a data table
+  DT::datatable(cbind(delete = deleteCol, df),
+                # Need to disable escaping for html as string to work
+                escape = FALSE,
+                options = list(
+                  # Disable sorting for the delete column
+                  columnDefs = list(list(targets = 1, sortable = FALSE))
+                ))
+}
+
+
+parseDeleteEvent <- function(idstr) {
+  #' Extracts the row id number from the id string
+#' @param idstr the id string formated as id_INDEX
+#' @return INDEX from the id string id_INDEX
+#' @keywords internal
+
+  res <- as.integer(sub(".*_([0-9]+)", "\\1", idstr))
+  if (! is.na(res)) res
+}
+
+find_lon <- function(dat) {
+ #' Find columns that may be longitude data
+ #' @param dat Dataset to search over
+ #' @keywords internal
+ 
+  cols <- colnames(dat)
+  lon_match <- stringi::stri_count_regex(cols, '(?=LON|Lon|lon)')
+  lon_cols <- which(lon_match %in% max(lon_match))
+  
+  cols[lon_cols]
+}
+
+find_lat <- function(dat) {
+  #' Find columns that may be latitude data
+  #' @param dat Dataset to search over
+  #' @keywords internal
+  
+  cols <- colnames(dat)
+  lat_match <- stringi::stri_count_regex(cols, '(?=LAT|Lat|lat)')
+  lat_cols <- which(lat_match %in% max(lat_match))
+  
+  cols[lat_cols]
+}
+
+find_lonlat <- function(dat) {
+  #' Find columns that may be longitude or latitude data
+  #' @param dat Dataset to search over
+  #' @keywords internal
+  
+  grep("lon|lat", colnames(dat), ignore.case = TRUE, value = TRUE)
+}
+
 # shiny_running = function () {
 # Look for `runApp` call somewhere in the call stack.
 #  frames = sys.frames()
@@ -1072,3 +1152,5 @@ quietly_test <- function(.f) {
 #  namespace_frame = parent.env(target_frame)
 #  isNamespace(namespace_frame) && environmentName(namespace_frame) == 'shiny'
 # }
+
+
