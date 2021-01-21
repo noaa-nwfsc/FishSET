@@ -62,7 +62,7 @@
 #' @export weekly_effort
 #' @import ggplot2
 #' @importFrom stats reformulate
-#' @importFrom reshape2 dcast melt
+#' @importFrom tidyr pivot_longer pivot_wider
 #' @importFrom rlang expr sym
 
 weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = NULL, 
@@ -198,11 +198,9 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = 
     
     if (length(cpue) > 1) {
         
-        table_out <- reshape2::melt(table_out, measure.vars = cpue, variable.name = "species", 
-                                    value.name = "mean_cpue")
+        table_out <- tidyr::pivot_longer(table_out, cols = cpue, names_to = "species", 
+                                         values_to = "mean_cpue")
     }
-    
-    row.names(table_out) <- 1:nrow(table_out)
     
     # plot section ----
     if (output %in% c("plot", "tab_plot")) {
@@ -280,9 +278,13 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = 
                 } else {
                     NULL
                 }
-                
             }
         }
+        
+        f_cpue <- function() if (length(cpue) == 1) cpue else "CPUE" 
+        
+        x_lab <- function() paste("week", date)
+        y_lab <- function() paste(f_cpue(), ifelse(tran == "identity", "", paste0("(", tran, ")")))
         
         e_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = week, y = !!y_axis_exp())) +
             ggplot2::geom_line(ggplot2::aes(group = !!interaction_exp(), 
@@ -292,6 +294,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = 
             ggplot2::scale_x_continuous(breaks = num_breaks(table_out$week), 
                                         labels = week_labeller(num_breaks(table_out$week), 
                                                                year = table_out$year)) +
+            ggplot2::labs(x = x_lab(), y = y_lab()) +
             ggplot2::theme(legend.position = "bottom") +
             fishset_theme()
         
@@ -314,7 +317,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, filter_date = 
     
     if (length(cpue) > 1 & format_tab == "wide") {
         
-        table_out <- reshape2::dcast(table_out, ... ~ species, value.var = "mean_cpue", fill = 0)
+        table_out <- tidyr::pivot_wider(table_out, names_from = species, values_from = mean_cpue)
     }
     
     # Log function

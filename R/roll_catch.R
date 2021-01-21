@@ -196,7 +196,7 @@ roll_catch <- function(dat, project, catch, date, group = NULL, k = 10, fun = "m
       if (length(agg_grp) > 1) {
         
         roll_tab <- zoo::fortify.zoo(roll_tab)
-        roll_tab <- tidyr::pivot_longer(roll_tab,cols = -Index, names_to = agg_grp, 
+        roll_tab <- tidyr::pivot_longer(roll_tab, cols = -Index, names_to = agg_grp, 
                                         values_to = "catch", names_sep = "__")
       } else {
         
@@ -300,6 +300,11 @@ roll_catch <- function(dat, project, catch, date, group = NULL, k = 10, fun = "m
       }
     }
     
+    title_lab <- function() paste("Rolling", fun, k, "day", catch)
+    
+    y_lab <- function() paste(catch, ifelse(tran == "identity", "", paste0("(", tran, ")")))
+    
+    
     date_lab <- function(x) {
       if (facet == "year") {
         format(as.Date(as.character(x), "%j"), "%b-%d")
@@ -322,6 +327,7 @@ roll_catch <- function(dat, project, catch, date, group = NULL, k = 10, fun = "m
       ggplot2::geom_line(ggplot2::aes(color = !!color_exp(), linetype = !!linetype_exp(),
                                       size = !!size_exp())) +
       ggplot2::scale_y_continuous(trans = tran) +
+      ggplot2::labs(title = title_lab(), y = y_lab()) + 
       fishset_theme() +
       ggplot2::theme(legend.position = "bottom")
     

@@ -586,6 +586,7 @@ num_breaks <- function(per) {
   #'
   #'@param per period to set breaks for.
   #'@export
+  #'@keywords internal
   #'
   i <- length(unique(per))
   

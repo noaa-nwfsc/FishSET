@@ -73,9 +73,9 @@
 #' @export species_catch
 #' @import ggplot2
 #' @importFrom stats reformulate
-#' @importFrom reshape2 dcast melt
+#' @importFrom tidyr pivot_longer pivot_wider
 #' @importFrom rlang expr sym
-#' @importFrom scales percent 
+#' @importFrom scales label_percent breaks_extended
 #' @importFrom shiny isRunning
 
 species_catch <- function(dat, project, species, date = NULL, period = NULL, fun = "sum", 
@@ -240,8 +240,8 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
   
   if (length(species) > 1) { # melt table if multiple species columns entered (for ggplot)
     
-    table_out <- reshape2::melt(table_out, measure.vars = species, variable.name = "species", 
-                                value.name = "catch")
+    table_out <- tidyr::pivot_longer(table_out, cols = species, names_to = "species", 
+                                     values_to = "catch")
     
     rev <- ifelse(position == "dodge", TRUE, FALSE)
     table_out <- order_factor(table_out, "species", "catch", rev = rev)
@@ -298,8 +298,8 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
       warning("Cannot convert to percentage. Change 'fun' argument to 'sum'.")
     }
   } 
-  
-  row.names(table_out) <- 1:nrow(table_out)
+  # table_out <- as.data.frame(table_out)
+  # row.names(table_out) <- 1:nrow(table_out)
   
   
   if (output %in% c("plot", "tab_plot")) {
@@ -376,7 +376,6 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
         }
       }
       
-      
       linetype_exp <- function() {
         
         if (length(species) == 1) {
@@ -446,13 +445,34 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
       
     }  
     
+    x_lab <- function() {
+      
+      if (!is.null(period)) {
+        paste(period, date)
+      } else if (is.null(group) & length(species) == 1) {
+        NULL
+      } else {
+        rlang::as_string(xaxis_exp())
+      }
+    }  
+      
+    y_lab <- function() paste(fun, f_catch(), ifelse(tran == "identity", "", paste0("(", tran, ")")))
+    
+    scale_lab <- function() if (value == "percent") scales::label_percent(scale = 1) else ggplot2::waiver()
+    
+    y_breaks <- function() {
+      if (tran != "identity") {
+        scales::breaks_extended(n = 7) 
+      } else {
+        ggplot2::waiver()
+      }
+    }
     
     # plot ----
     s_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = !!xaxis_exp(), y = !!catch_exp())) +
       fishset_theme() +
       ggplot2::theme(legend.position = "bottom") +
-      ggplot2::scale_y_continuous(labels = if (value == "percent") scales::percent else ggplot2::waiver(),
-                                  trans = tran)
+      ggplot2::scale_y_continuous(labels = scale_lab(), trans = tran, breaks = y_breaks())
     
     if (type == "bar") {
       
@@ -488,7 +508,6 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
       } else {
         s_plot <- s_plot + ggplot2::facet_grid(fm, scales = scale)
       }
-      
     }
     
     if (!is.null(period)) {
@@ -503,6 +522,15 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
         s_plot <- s_plot + ggplot2::scale_x_discrete(labels = d_labs)
       }
     }
+    
+    # remove legend if
+    if (is.null(period) & is.null(group) & length(species) > 1) {
+      
+      s_plot <- s_plot + theme(legend.position = "none")
+    }
+    
+    # add labels
+    s_plot <- s_plot  + ggplot2::labs(x = x_lab(), y = y_lab())
     
     save_plot(project, "species_catch")
   }
@@ -526,7 +554,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
     
     if (length(species) > 1) {
       
-      table_out <- reshape2::dcast(table_out, ... ~ species, value.var = "catch", fill = 0)
+      table_out <- tidyr::pivot_wider(table_out, names_from = species, values_from = catch)
     }
   }
   
