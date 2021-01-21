@@ -67,7 +67,7 @@
 #' @import ggplot2
 #' @importFrom stats reformulate
 #' @importFrom rlang sym expr
-#' @importFrom scales percent
+#' @importFrom scales label_percent breaks_extended
 #' @importFrom shiny isRunning
 
 vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group = NULL, 
@@ -317,11 +317,30 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
       linetype_exp <- function() NULL
     }
     
+    x_lab <- function() {
+      if (!is.null(period)) {
+        paste(period, date)
+      } else if (is.null(group)) {
+        NULL
+      } else {
+        rlang::as_string(xaxis_exp())
+      }
+    }
+    
+    scale_lab <- function() if (value == "percent") scales::label_percent(scale = 1) else ggplot2::waiver()
+    
+    y_breaks <- function() {
+      if (tran != "identity") {
+        scales::breaks_extended(n = 7) 
+      } else {
+        ggplot2::waiver()
+      }
+    }
+    
     v_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = !!xaxis_exp(), y = !!vessel_exp())) +
       FishSET:::fishset_theme() +
       ggplot2::theme(legend.position = "bottom") +
-      ggplot2::scale_y_continuous(labels = if (value == "percent") scales::percent else ggplot2::waiver(),
-                                  trans = tran)
+      ggplot2::scale_y_continuous(labels = scale_lab(), trans = tran, breaks = y_breaks())
     
     if (type == "bar") {
       
@@ -354,8 +373,8 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
       v_plot <- v_plot + ggplot2::facet_grid(fm, scales = scale)
       }
     }
-    
-    v_plot <- v_plot + ggplot2::labs(y = "active vessels")
+    # add labels 
+    v_plot <- v_plot + ggplot2::labs(x = x_lab(), y = "active vessels")
     
     if (!is.null(period)) {
       # adjust x-axis breaks 
