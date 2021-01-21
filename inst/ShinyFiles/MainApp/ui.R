@@ -469,7 +469,8 @@ source("map_viewer_app.R", local = TRUE)
                                 refreshUI("fleet"),
                                 noteUI("fleet"),
                                 closeAppUI("fleet"),
-                                uiOutput("run_fleet_fun"),
+                                conditionalPanel("input.fleet_tab == 'fleet_summary'",
+                                                uiOutput("run_fleet_fun")),
 
                                 conditionalPanel("input.fleet_tab == 'fleet_assign'",
 

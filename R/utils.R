@@ -563,14 +563,13 @@ subset_var <- function(dataset, filter_by = NULL, filter_value = NULL, filter_ex
     dataset
   } 
 
-
+fishset_theme <- function() {
 #' Default FishSET plot theme
 #' 
 #' @keywords internal
 #' @export
 #' @import ggplot2
-fishset_theme <- function() {
-  
+
   ggplot2::theme(
   panel.grid.major = ggplot2::element_blank(),
   panel.grid.minor = ggplot2::element_blank(),
