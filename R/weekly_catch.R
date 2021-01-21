@@ -77,8 +77,8 @@
 #' }
 #' @export weekly_catch
 #' @importFrom stats reformulate
-#' @importFrom reshape2 melt dcast
-#' @importFrom scales percent
+#' @importFrom tidyr pivot_longer pivot_wider
+#' @importFrom scales label_percent breaks_extended
 #' @importFrom rlang sym expr
 #' @importFrom shiny isRunning
 #' @import ggplot2
@@ -218,8 +218,8 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
   
   if (length(species) > 1) {
     
-    table_out <- reshape2::melt(table_out, measure.vars = species, variable.name = "species", 
-                                value.name = "catch")
+    table_out <- tidyr::pivot_longer(table_out, cols = species, names_to = "species", 
+                                     values_to = "catch")
     
     rev <- ifelse(position == "dodge", TRUE, FALSE)
     table_out <- order_factor(table_out, "species", "catch", rev = rev)
@@ -262,8 +262,6 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
       warning("Cannot convert to percentage. Change 'fun' argument to 'sum'.")
     } 
   }
-  
-  row.names(table_out) <- 1:nrow(table_out)
   
   # plot section ----
   if (output %in% c("plot", "tab_plot")) {
@@ -334,15 +332,26 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
         group1_sym
       }
     }
+
+    x_lab <- function() paste("week", date)
+    y_lab <- function() paste(fun, f_catch(), ifelse(tran == "identity", "", paste0("(", tran, ")")))
+    scale_lab <- function() if (value == "percent") scales::label_percent(scale = 1) else ggplot2::waiver()
+    y_breaks <- function() {
+      if (tran != "identity") {
+        scales::breaks_extended(n = 7) 
+      } else {
+        ggplot2::waiver()
+      }
+    }
     
     w_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = week, y = !!y_axis_exp())) +
       fishset_theme() +
       ggplot2::theme(legend.position = "bottom") +
-      ggplot2::scale_y_continuous(labels = if (value == "percent") scales::percent else ggplot2::waiver(),
-                                  trans = tran) +
+      ggplot2::scale_y_continuous(labels = scale_lab(), trans = tran, breaks = y_breaks()) +
       ggplot2::scale_x_continuous(breaks = num_breaks(table_out$week), 
                                   labels = week_labeller(num_breaks(table_out$week), 
-                                                         year = table_out$year))
+                                                         year = table_out$year)) +
+      ggplot2::labs(x = x_lab(), y = y_lab())
     
     if (type == "bar") {
       
@@ -375,11 +384,15 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
       
       w_plot <- w_plot + ggplot2::facet_grid(fm, scales = scale)
     }
+    
+    if (!is.null(filter_date)) {
+      w_plot <- date_title(w_plot, filter_date, filter_value)
+    }
   }
   
   if (length(species) > 1 & format_tab == "wide") {
     
-    table_out <- reshape2::dcast(table_out, ... ~ species, value.var = "catch", fill = 0)
+    table_out <- tidyr::pivot_wider(table_out, names_from = species, values_from = catch)
   }
   # log function
   weekly_catch_function <- list()

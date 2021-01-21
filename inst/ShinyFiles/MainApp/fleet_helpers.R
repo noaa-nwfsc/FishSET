@@ -72,7 +72,7 @@ validate_date <- function(date = NULL, period = NULL, filter_date = NULL, fct = 
   
   if (!is.null(grp)) {
     
-    if (grp %in% c("week", "month", "year") & is.null(date)) {
+    if (any(grp %in% c("week", "month", "year")) & is.null(date)) {
       
       validate("Please enter a date variable.")
     }
