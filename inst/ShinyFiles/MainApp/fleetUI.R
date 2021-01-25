@@ -756,8 +756,20 @@ trip_lengthUI <- function(id) {
   
   ns <- NS(id)
   tagList(
+    p("Trip_length assumes the data is at trip level."),
     selectInput(ns("out"), "View table and/or plot",
                 choices = c("plot and table" = "tab_plot", "plot", "table")),
+    
+    checkboxInput(ns("haul_trp"), strong("Convert to trip-level (optional)"),
+                  value = FALSE),
+    
+    conditionalPanel("input.haul_trp", ns = ns, style = "margin-left:19px;",
+                     
+                     uiOutput(ns("htp_select")),
+                     selectInput(ns("fun_time"), "Collapse temporal variables using", 
+                                 choices = c("min", "mean", "max")),
+                     selectInput(ns("fun_numeric"), "Collapse numeric variables using",
+                                 choices = c("min", "mean", "max", "sum"))),
     
     uiOutput(ns("start_select")),
     
@@ -829,13 +841,6 @@ trip_lengthUI <- function(id) {
         selectInput(ns("scale"), "Split plot scale",
                     choices = c("fixed", "free y-axis" = "free_y",
                                 "free x-axis" = "free_x", "free")),
-        
-        checkboxInput(ns("haul_trp"), "Convert to trip-level",
-                      value = FALSE),
-        
-        conditionalPanel("input.haul_trp", ns = ns, style = "margin-left:19px;",
-                         
-                         uiOutput(ns("kwargs_select"))),
         
         selectInput(ns("format"), "Table format",
                     choices = c("wide", "long")))
@@ -954,11 +959,18 @@ fleet_assignUI <- function(id) {
   
   tagList(
     
+    actionButton(ns("fun_run"), "Assign fleets",
+                 style = "color: #fff; background-color: #6da363; border-color: #800000;"),
+    
+    tags$br(), tags$br(),
+    
     p(strong("Steps:")),
     p(strong("1)"), "Load definition table from database."),
     p(strong("2)"), "Assign fleets."),
     
-    h4(strong("Import table")),
+    tags$br(), 
+    
+    p(strong("Import table")),
     
     actionButton(ns("refresh_tabs"), "Load tables", icon = icon("refresh"), style = "color: blue;"),
     
@@ -969,15 +981,12 @@ fleet_assignUI <- function(id) {
     
     tags$br(), tags$br(),
     
-    h4(strong("Options")),
+    p(strong("Options")),
     
     checkboxInput(ns("overlap"), "Allow overlapping fleet assignments"),
     
-    selectInput(ns("format"), "Table format",
-                choices = c("long", "wide")),
-    
-    actionButton(ns("fun_run"), "Assign fleets",
-                 style = "color: #fff; background-color: #6da363; border-color: #800000;"),
+    selectInput(ns("format"), "Fleet variable type",
+                choices = c("string (single column)" = "long", "dummy variable (multi columns)" = "wide")),
     
     tags$br(), tags$br()
   )
@@ -1002,6 +1011,14 @@ fleet_tableOut <- function(id) {
   ns <- NS(id)
   tagList(
     h4(strong("Fleet Definition Table")),
+    
+    fluidRow(
+     
+      column(6,
+        div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; margin-bottom: 2em;",
+          p("Double-click to edit table. Press Crtl + Enter to save changes, Esc to exit edit mode.")))
+      
+    ),
     
     fluidRow(
       

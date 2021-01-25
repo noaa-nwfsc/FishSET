@@ -46,10 +46,11 @@
 #' @param remove_neg Logical, whether to remove negative trip durations from the plot and table. 
 #' @param output Options include 'table', 'plot', or 'tab_plot' (both table and plot,
 #'   the default).
-#' @param haul_to_trip Logical, whether to convert \code{dat} from haul level data to
-#'   trip level. See \code{\link{haul_to_trip}} for details.
-#' @param ... Additional arguments passed to \code{\link{haul_to_trip}}. These should
-#'   be the column(s) that uniquely identify trips.
+#' @param tripID Column(s) that identify the individual trip.
+#' @param fun.time How to collapse temporal data. For example, \code{min}, \code{mean}, \code{max}. 
+#'   Cannot be \code{sum} for temporal variables.
+#' @param fun.numeric How to collapse numeric or temporal data. For example, \code{min}, \code{mean}, 
+#'    \code{max}, \code{sum}. Defaults to \code{mean}.
 #' @return \code{trip_length()} calculates vessel trip duration given a start and end date,
 #'   converts trip length to the desired unit of time (e.g. weeks, days, or hours),
 #'   and returns a table and/or plot. There is an option for calculating CPUE and
@@ -85,7 +86,7 @@ trip_length <- function(dat, project, start, end, units = "days", catch = NULL,
                         filter_by = NULL, filter_value = NULL, filter_expr = NULL,
                         facet_by = NULL, type = "hist", bins = 30, density = TRUE, 
                         scale = "fixed", tran = "identity", pages = "single", remove_neg = FALSE,
-                        output = "tab_plot", haul_to_trip = FALSE, ...) {
+                        output = "tab_plot", tripID = NULL, fun.time = NULL, fun.numeric = NULL) {
   out <- data_pull(dat)
   dataset <- out$dataset
   
@@ -93,6 +94,12 @@ trip_length <- function(dat, project, start, end, units = "days", catch = NULL,
     if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
   } else { 
     if (!is.character(dat)) dat <- deparse(substitute(dat)) }
+  
+  # convert hauls to trips
+  if (!is.null(tripID)) {
+    dataset <- haul_to_trip(dataset, project = project, tripID = tripID, 
+                            fun.numeric = fun.numeric, fun.time = fun.time)
+  }
   
   # cleaning dates ----
   dataset <- date_check(dataset, start)
@@ -104,11 +111,6 @@ trip_length <- function(dat, project, start, end, units = "days", catch = NULL,
   
   if (anyNA(dataset[[start]]) | anyNA(dataset[[end]])) {
     warning("NAs detected in dates.")
-  }
-  
-  # convert hauls to trips
-  if (haul_to_trip == TRUE) {
-    dataset <- haul_to_trip(dataset, project = project, ...)
   }
   
   # filter by variable/expression 
@@ -542,8 +544,7 @@ trip_length <- function(dat, project, start, end, units = "days", catch = NULL,
                                     group, filter_date, date_value, filter_by, 
                                     filter_value, filter_expr, facet_by, type,
                                     bins, density, scale, tran, pages, remove_neg,
-                                    output, haul_to_trip)
-  trip_length_function$kwargs <- list(...)
+                                    output, tripID, fun.time, fun.numeric)
   log_call(trip_length_function)
   
   if (output == "table") {

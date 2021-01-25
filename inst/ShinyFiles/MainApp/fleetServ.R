@@ -1344,8 +1344,8 @@ trip_serv <- function(id, values, project) {
                      multiple = TRUE, options = list(maxItems = 2, placeholder = "Limit 2"))
     })
     
-    output$kwargs_select <- renderUI({
-      selectizeInput(ns("htp_kwargs"), "Columns indentifying unique trips",
+    output$htp_select <- renderUI({
+      selectizeInput(ns("tripID"), "Columns indentifying unique trips",
                      choices = colnames(values$dataset), multiple = TRUE)
     })
     
@@ -1419,6 +1419,12 @@ trip_serv <- function(id, values, project) {
       }
     })
     
+    # reset haul to trip 
+    observeEvent(input$haul_trp == FALSE, {
+      
+      updateSelectizeInput(session, "tripID", choices = colnames(values$dataset))
+    })
+    
     # reset subset inputs if unchecked
     observeEvent(input$subset_cb == FALSE, {
       
@@ -1461,8 +1467,8 @@ trip_serv <- function(id, values, project) {
                   filter_by = input$filter_by, filter_value = input$filter_by_val, 
                   filter_expr = input$filter_expr, facet_by = input$fct, density = input$dens, tran = input$tran,
                   scale = input$scale, output = input$out, pages = input$pages, remove_neg = input$rm_neg,
-                  type = input$type, format_tab = input$format, bins = input$bins,
-                  haul_to_trip = input$haul_trp, input$htp_kwargs)
+                  type = input$type, bins = input$bins, tripID = input$tripID, 
+                  fun.time = input$fun_time, fun.numeric = input$fun_numeric)
     })
     
     tabplot <- eventReactive(input$fun_run, {
@@ -1579,9 +1585,7 @@ fleet_table_serv <- function(id, values, project) {
                                                            placeholder = "Select or type value name",
                                                            create = TRUE))
           }
-        
       }
-    
     })
     
     # insert new expression line when blue plus button is clicked
@@ -1617,21 +1621,24 @@ fleet_table_serv <- function(id, values, project) {
         
         if (is_value_empty(input[[val]]) == FALSE) {
           
-          var_class <- class(values$dataset[[input[[var]]]])
-          
-         # check if var should be wrapped in quotes
-          if (any(var_class %in% c("character", "factor", "Date", "POSIXct", "POSIXt"))) {
+          if (input[[oper]] == "%in%") { # if "Contains" selected (multiple values)
             
-            value <- paste0('"', input[[val]], '"') # add single quotes
-          } else {
-            value <- input[[val]] # otherwise, assign original value
-          }
-          
-          if (input[[oper]] == "%in%") {
-            
+            value <- input[[val]]
             value <- as.list(value)
             val_expr <- rlang::expr(c(!!!value))
             value <- rlang::expr_text(val_expr)
+          
+          } else {
+            
+            var_class <- class(values$dataset[[input[[var]]]])
+            
+            # check if var should be wrapped in quotes
+            if (any(var_class %in% c("character", "factor", "Date", "POSIXct", "POSIXt"))) {
+              
+              value <- paste0('"', input[[val]], '"') # add quotes
+            } else {
+              value <- input[[val]] # otherwise, assign original value
+            }
           }
         }
         
