@@ -1488,8 +1488,9 @@ nexpr_row_server <- function(id, values) {
     ns <- session$ns
     
     output$varUI <- renderUI({
-      selectInput(ns("var"), "", 
-                  choices = colnames(values$dataset), multiple = FALSE)
+      selectizeInput(ns("var"), "", 
+                  choices = colnames(values$dataset), multiple = TRUE, 
+                  options = list(maxIems = 1))
     })
     
     unique_values  <- reactive({
@@ -1542,7 +1543,8 @@ fleet_table_serv <- function(id, values, project) {
     output$select_var <- renderUI({
       
       selectizeInput(ns("nexpr_1-var"), "Variable", 
-                  choices = colnames(values$dataset), multiple = TRUE, options = list(maxIems = 1))
+                  choices = colnames(values$dataset), multiple = TRUE, 
+                  options = list(maxIems = 1))
     })
     
     # used for value input
@@ -1621,18 +1623,23 @@ fleet_table_serv <- function(id, values, project) {
         
         if (is_value_empty(input[[val]]) == FALSE) {
           
+          var_class <- class(values$dataset[[input[[var]]]])
+          
           if (input[[oper]] == "%in%") { # if "Contains" selected (multiple values)
             
             value <- input[[val]]
             value <- as.list(value)
-            val_expr <- rlang::expr(c(!!!value))
-            value <- rlang::expr_text(val_expr)
+            value <- rlang::expr(c(!!!value))
+            value <- rlang::expr_text(value)
+            
+            # remove quotes if numeric
+            if (any(var_class %in% c("numeric", "integer", "double"))) {
+              value <- gsub('"', "", value)
+            }
           
           } else {
             
-            var_class <- class(values$dataset[[input[[var]]]])
-            
-            # check if var should be wrapped in quotes
+            # check if value should be wrapped in quotes
             if (any(var_class %in% c("character", "factor", "Date", "POSIXct", "POSIXt"))) {
               
               value <- paste0('"', input[[val]], '"') # add quotes
@@ -1708,13 +1715,13 @@ fleet_table_serv <- function(id, values, project) {
           
           upload[[i]] <- as.character(upload[[i]])
         }
+      }
         
-        f_r$f_DT <- upload
-        f_r$row <- upload[1, ]
-        
-        for (i in seq_along(f_r$row)) {
-          f_r$row[[i]] <- "enter value"
-        }
+      f_r$f_DT <- upload
+      f_r$row <- upload[1, ]
+      
+      for (i in seq_along(f_r$row)) {
+        f_r$row[[i]] <- "enter value"
       }
     })
     
@@ -1809,6 +1816,10 @@ fleet_table_serv <- function(id, values, project) {
               if (nrow(rv$cond_ind) > 1) rv$cond_ind <- rv$cond_ind[order(rv$cond_ind[, 1]), ] # order by row 
            
               f_r$f_DT[rv$cond_ind[1, 1], rv$cond_ind[1, 2]] <- expr() # insert expr into next available cell
+              
+              # add row
+              colnames(f_r$row) <- colnames(f_r$f_DT)
+              f_r$f_DT <- rbind(f_r$f_DT, f_r$row)
             }
           }
       }
@@ -1862,15 +1873,23 @@ fleet_assign_serv <- function(id, values, project) {
                   choices = fleet_tab_db()) 
     })
     
+    f_tab <- reactiveValues()
     
-    tab_view <- eventReactive(input$load_btn, table_view(input$tab))
+    observeEvent(input$load_btn, {
+      
+      f_tab$tab <- table_view(input$tab)
+    })
     
-    output$tab_preview <- DT::renderDT(tab_view())
+    output$tab_preview <- DT::renderDT(f_tab$tab,
+                                       selection = list(target = "row"),
+                                       escape = FALSE)
     
     fa_out <- eventReactive(input$fun_run, {
+      validate(need(f_tab$tab, "Please upload a fleet table."))
       
-      fleet_assign(values$dataset, project = project(), input$tab, 
-                   overlap = input$overlap, format_tab = input$format)
+      fleet_assign(values$dataset, project = project(), fleet_tab = input$tab, 
+                   overlap = input$overlap, format_var = input$format, 
+                   assign = input$tab_preview_rows_selected)
     })
     
     observeEvent(input$fun_run, {
@@ -1880,30 +1899,68 @@ fleet_assign_serv <- function(id, values, project) {
     
     output$final_tab <- DT::renderDT({fa_out()})
     
-    output$plot <- renderPlot({
+    # table of fleet counts for plot
+    observeEvent(input$fun_run, {
       
-      if (input$format == "long") {
+      if (input$format == "string") {
+        # assumes last column is fleet column
+        fleet_col <- names(fa_out())[ncol(fa_out())]
         
-        fleet_col <- rlang::sym(names(fa_out())[ncol(fa_out())])
-        ggplot2::ggplot(fa_out(), ggplot2::aes(!!fleet_col, fill = !!fleet_col)) + 
-          ggplot2::geom_bar() + ggplot2::coord_flip() +
-          ggplot2::labs(y = "No. of obs.") +
-          fishset_theme() + ggplot2::theme(legend.position = "none")
+        fleet_names <- f_tab$tab$fleet
+        
+        if (!is.null(input$tab_preview_rows_selected)) {
+          
+          fleet_names <- fleet_names[input$tab_preview_rows_selected]
+        }
+        
+        if (input$overlap) fleet_names <- c(fleet_names, "other")
+        
+        fleet_count <- vapply(fleet_names, function(x) {
+          sum(fa_out()[fleet_col] == x)
+        }, numeric(1))
+        
+        fleet_count <- sort(fleet_count, decreasing = TRUE)
+        fleet_count <- data.frame(fleet = names(fleet_count), count = fleet_count)
+        row.names(fleet_count) <- NULL
+        fleet_count$fleet <- factor(fleet_count$fleet, 
+                                    levels = sort(fleet_count$fleet, decreasing = TRUE),
+                                    ordered = TRUE)
+        f_tab$count <- fleet_count
         
       } else {
         
-        value <- vapply(fa_out()[tab_view()$fleet], sum, FUN.VALUE = numeric(1))
-        df <- data.frame(fleet = tab_view()$fleet, value = value)
-        # include "other" fleet
-        if (input$overlap) {
-          other <- data.frame(value = nrow(fa_out()) - sum(value), fleet = "other")
-          df <- rbind(df, other)
-        }
+        fleet_cols <- gsub(" ", "_", trimws(f_tab$tab$fleet))
         
-        ggplot2::ggplot(df, ggplot2::aes(fleet, value, fill = fleet)) + 
+        if (!is.null(input$tab_preview_rows_selected)) {
+          
+          fleet_cols <- fleet_cols[input$tab_preview_rows_selected]
+        }
+        # include "other" fleet
+        if (input$overlap) fleet_cols <- c(fleet_cols, "other")
+        
+        fleet_count <- vapply(fa_out()[fleet_cols], sum, FUN.VALUE = numeric(1))
+        df <- data.frame(fleet = fleet_cols, count = fleet_count)
+        df <- df[order(df$count, decreasing = TRUE), ]  
+        df$fleet <- factor(df$fleet, levels = sort(df$fleet, decreasing = TRUE),
+                           ordered = TRUE)
+        row.names(df) <- NULL
+        
+        f_tab$count <- df
+      }
+    })
+    
+    # table of fleet frequencies
+    output$tab_count <- DT::renderDT(f_tab$count)
+    
+    # plot of fleet frequencies 
+    output$plot_count <- renderPlot({
+      
+      if (!is.null(f_tab$count)) {
+      
+        ggplot2::ggplot(f_tab$count, ggplot2::aes(x = fleet, y = count, fill = fleet)) +
           ggplot2::geom_col() + ggplot2::coord_flip() +
-          ggplot2::labs(y = "No. of obs.") +
-          fishset_theme() + ggplot2::theme(legend.position = "none") 
+          ggplot2::labs(x = "", y = "# of obs.") +
+          fishset_theme() + ggplot2::theme(legend.position = "none")
       }
     })
   })
