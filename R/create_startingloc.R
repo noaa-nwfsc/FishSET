@@ -23,9 +23,8 @@
 #' @export create_startingloc
 #' @return Primary dataset with starting location variable added.
 #' @details Function creates the \code{startloc} vector that is required for the full information model with Dahl's correction \code{\link{logit_correction}}. 
-#'   The vector is the zone location of a vessel when the decision of where to fish next was mdade. Generally, the first zone of a trip is the departure port. 
-#'   The \code{\link{assignment_column}} function is called to assign starting port locations and haul locations to zones. The starting port 
-#'   the location at the start of the trip.
+#'   The vector is the zone location of a vessel when the decision of where to fish next was made. Generally, the first zone of a trip is the departure port. 
+#'   The \code{\link{assignment_column}} function is called to assign starting port locations and haul locations to zones.
 #' @examples
 #' \dontrun{
 #' pcodMainDataTable <- create_startingloc(pcodMainDataTable, map2, "pcodPortTable", "TRIP_SEQ",

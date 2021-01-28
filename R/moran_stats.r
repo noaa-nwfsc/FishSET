@@ -20,10 +20,10 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
   #' @details Measure degree of spatial autocorrelation. Function utilizes the \code{\link[spdep]{localmoran}}
   #' and \code{\link[spdep]{knearneigh}} functions from the spdep package. The spatial input is a row-standardized spatial
   #' weights matrix for computed nearest neighbor matrix, which is the null setting for the \code{\link[spdep]{nb2listw}}
-  #' function. The function requires a map file with lat/lon defining boundaries of area/zones and variable of interest
+  #' function. The function requires a map file with lat/lon defining boundaries of area/zones and \code{varofint}
   #' for to test for spatial autocorrelation. If zonal centroid is not included in the map file, then the \code{\link{find_centroid}}
   #' function is called to calculate the centroid of each zone. If the variable of interest is not associated with an
-  #' area/zone than \code{\link{assignment_column}} is called to assign each observation to a zone. Arguments
+  #' area/zone then \code{\link{assignment_column}} is called to assign each observation to a zone. Arguments
   #' to identify centroid and assign variable of interest to area/zone are optional and default to NULL.
   #' @return Returns a plot and map of Moran’s I. Output is saved to the Output folder.
   #' @import ggplot2
