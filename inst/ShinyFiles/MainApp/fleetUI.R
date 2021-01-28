@@ -882,10 +882,12 @@ fleet_tableUI <- function(id) {
     
     tags$br(), tags$br(),
     
-    textInput(ns("colname"), label = NULL, placeholder = "Enter new column name"),
-
-    actionButton(ns("colname_btn"), "Change column name",
-                 style = "color: white; background-color: blue;"),
+    conditionalPanel("input.upload > 0", ns = ns,
+      textInput(ns("colname"), label = NULL, placeholder = "Enter new column name"),
+      
+      actionButton(ns("colname_btn"), "Change column name",
+                   style = "color: white; background-color: blue;")
+    ),
     
     tags$br(), tags$br()
   )
@@ -904,10 +906,10 @@ nexpr_row_ui <- function(id) {
           
           column(3, uiOutput(ns("varUI"))),
           
-          column(3, selectInput(ns("oper"), "", 
+          column(3, selectizeInput(ns("oper"), "", 
                                 choices = c("less than" = "<", "greater than" = ">", "less than or equal to" = "<=", 
                                             "greater than or equal to" = ">=", "equal to" = "==", "not equal to" = "!=",
-                                            "contains" = "%in%"))),
+                                            "contains" = "%in%"),  multiple = TRUE, options = list(maxIems = 1))),
           
           column(4, uiOutput(ns("valueUI")))
         )
@@ -986,7 +988,7 @@ fleet_assignUI <- function(id) {
     checkboxInput(ns("overlap"), "Allow overlapping fleet assignments"),
     
     selectInput(ns("format"), "Fleet variable type",
-                choices = c("string (single column)" = "long", "dummy variable (multi columns)" = "wide")),
+                choices = c("string (single column)" = "string", "dummy variable (multi columns)" = "dummy")),
     
     tags$br(), tags$br()
   )
@@ -1017,23 +1019,26 @@ fleet_tableOut <- function(id) {
       column(6,
         div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; margin-bottom: 2em;",
           p("Double-click to edit table. Press Crtl + Enter to save changes, Esc to exit edit mode.")))
-      
     ),
     
     fluidRow(
       
-      div(style = "margin-left:19px;",
+      div(style = "margin-left: 19px;",
           actionButton(ns("addrow"), "Add row",
                    style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
-      
-      actionButton(ns("addcol"), "Add column",
-                   style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
-      
-      actionButton(ns("deleterow"), "Delete row",
-                   style = "color: #fff; background-color: #EB8C34; border-color:#000000;"),
-    
-      actionButton(ns("deletecol"), "Delete column",
-                   style = "color: #fff; background-color: #EB8C34; border-color:#000000;"))),
+          
+          actionButton(ns("deleterow"), "Delete row",
+                       style = "color: #fff; background-color: #EB8C34; border-color:#000000;"),
+          
+          conditionalPanel("input.upload > 0", ns = ns,
+            
+            actionButton(ns("addcol"), "Add column",
+                         style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
+            
+            actionButton(ns("deletecol"), "Delete column",
+                         style = "color: #fff; background-color: #EB8C34; border-color:#000000;"))
+          )
+      ),
     
     tags$br(),
     
@@ -1080,6 +1085,11 @@ fleet_assignOut <- function(id) {
     h4(strong("Dataset")),
     shinycssloaders::withSpinner(DT::DTOutput(ns("final_tab"))),
     h4(strong("Fleet Frequency")),
-    shinycssloaders::withSpinner(plotOutput(ns("plot")))
+    fluidRow(
+    column(8,
+           shinycssloaders::withSpinner(plotOutput(ns("plot_count")))),
+    column(4,
+           shinycssloaders::withSpinner(DT::DTOutput(ns("tab_count"))))
+    )
   )
 }
