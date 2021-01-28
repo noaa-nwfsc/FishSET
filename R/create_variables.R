@@ -211,16 +211,16 @@ dummy_matrix <- function(dat, x) {
 #'
 #' Create a factor variable from numeric data.  Numeric variable is split into categories based on quantile categories.
 #'
-set_quants <- function(dat, x, quant.cat = c(0.2, 0.25, 0.4), custom.quant = NULL, name = "set_quants") {
+set_quants <- function(dat, x, quant.cat = c(0.1, 0.2, 0.25, 0.4), custom.quant = NULL, name = "set_quants") {
   #' @param dat Primary data containing information on hauls or trips.
   #' Table in FishSET database contains the string 'MainDataTable'.
   #' @param x Variable to transform into quantiles.
   #' @param quant.cat Quantile options: \code{"0.2"}, \code{"0.25"}, and \code{"0.4"}
   #' \itemize{
-  #'   \item{.1:  (0\%, 10\%, 20\%, 30\%, 40\%, 50\%, 60\%, 70\%, 80\%, 90\%, 100\%)}
-  #'   \item{.2:  (0\%, 20\%, 40\%, 60\%, 80\%, 100\%)}
-  #'   \item{.25: (0\%, 25\%, 50\%, 75\%, 100\%)}
-  #'   \item{.4:  (0\%, 10\%, 50\%, 90\%, 100\%)}
+  #'   \item{0.1:  (0\%, 10\%, 20\%, 30\%, 40\%, 50\%, 60\%, 70\%, 80\%, 90\%, 100\%)}
+  #'   \item{0.2:  (0\%, 20\%, 40\%, 60\%, 80\%, 100\%)}
+  #'   \item{0.25: (0\%, 25\%, 50\%, 75\%, 100\%)}
+  #'   \item{0.4:  (0\%, 10\%, 50\%, 90\%, 100\%)}
   #'   }
   #' @param custom.quant Vector, user defined quantiles.
   #' @param name String, name of created vector. Defaults to name of the function if not defined.
