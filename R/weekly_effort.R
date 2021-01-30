@@ -44,15 +44,13 @@
 #'   (the default) and 'long'.
 #' @return \code{weekly_effort()} calculates mean CPUE by week. This function doesn't 
 #'   calculate CPUE; the CPUE variable must be created in advance (see \code{\link{cpue}}).
-#'   There are types of filters that can be applied to the data: date filters and variable filters.
-#'   \code{filter_date}
-#'   specifies how the data should be filtered--by year, period (i.e. "month" or "week"), or year-period.
-#'   \code{date_value} should contain the values (as integers) to filter
-#'   the data by. Grouping variables can
-#'   be merged into one variable using \code{combine = TRUE}. Any number of
-#'   variables can be combined, but no more than three is recommended. For faceting,
-#'   any variable (including ones listed in \code{group}) can be used, but "year" and
-#'   "month" are also available. Currently, combined variables cannot be faceted.
+#'   There are two types of filters that can be applied to the data: date filters and variable filters.
+#'   \code{filter_date} specifies how the data should be filtered--by year, 
+#'  period (i.e. "month" or "week"), or year-period. \code{date_value} should contain the 
+#'   values (as integers) to filter the data by. Grouping variables can be merged into one variable using
+#'   \code{combine = TRUE}. Any number of variables can be combined, but no more than 
+#'   three is recommended. For faceting, any variable (including ones listed in \code{group}) 
+#'  can be used, but "year" and "month" are also available. Currently, combined variables cannot be faceted.
 #'   A list containing a table and plot are printed to the console and viewer by default, 
 #'   this changed by setting \code{output} to "table" or "plot".  
 #' @examples 
