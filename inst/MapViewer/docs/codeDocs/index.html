@@ -1,13 +1,13 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-  <meta charset='utf-8' />
+  <meta charset='utf-8'>
   <title>  | Documentation</title>
   <meta name='viewport' content='width=device-width,initial-scale=1'>
-  <link href='assets/bass.css' rel='stylesheet' />
-  <link href='assets/style.css' rel='stylesheet' />
-  <link href='assets/github.css' rel='stylesheet' />
-  <link href='assets/split.css' rel='stylesheet' />
+  <link href='assets/bass.css' rel='stylesheet'>
+  <link href='assets/style.css' rel='stylesheet'>
+  <link href='assets/github.css' rel='stylesheet'>
+  <link href='assets/split.css' rel='stylesheet'>
 </head>
 <body class='documentation m0'>
     <div class='flex'>
@@ -19,6 +19,9 @@
             placeholder='Filter'
             id='filter-input'
             class='col12 block input'
+            spellcheck='false'
+            autocapitalize='off'
+            autocorrect='off'
             type='text' />
           <div id='toc'>
             <ul class='list-reset h5 py1-ul'>
@@ -28,6 +31,56 @@
                   href='#loadconfig'
                   class="">
                   loadConfig
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#choosen_scatter'
+                  class="">
+                  choosen_scatter
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#accesstoken'
+                  class="">
+                  accessToken
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#mapdrop'
+                  class="">
+                  mapdrop
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#scatterdata'
+                  class="">
+                  scatterData
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#area_info'
+                  class="">
+                  area_info
                   
                 </a>
                 
@@ -65,9 +118,9 @@
               
                 
                 <li><a
-                  href='#creategriddropdowncallback'
+                  href='#createdropdowngridinit'
                   class="">
-                  createGridDropDownCallback
+                  createDropDownGridInit
                   
                 </a>
                 
@@ -128,6 +181,36 @@
                   href='#initlowerbarchart'
                   class="">
                   initLowerBarChart
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#scatterplot'
+                  class="">
+                  scatterPlot
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#longconvert'
+                  class="">
+                  longConvert
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#gridlayeroff'
+                  class="">
+                  gridLayerOff
                   
                 </a>
                 
@@ -218,6 +301,259 @@
   
 
   
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='choosen_scatter'>
+      choosen_scatter
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Set up config information</p>
+
+    <div class='pre p1 fill-light mt0'>choosen_scatter</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='accesstoken'>
+      accessToken
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Initatite Map simply</p>
+
+    <div class='pre p1 fill-light mt0'>accessToken</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='mapdrop'>
+      mapdrop
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Create droppdown menus for choices</p>
+
+    <div class='pre p1 fill-light mt0'>mapdrop</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='scatterdata'>
+      scatterData
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>convert CSV data to geojson for Scatter Data
+convert any positive longitudes to negative</p>
+
+    <div class='pre p1 fill-light mt0'>scatterData</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='area_info'>
+      area_info
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>create SET of Areas used by data</p>
+
+    <div class='pre p1 fill-light mt0'>area_info</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
 </section>
 
           
@@ -236,7 +572,8 @@
   </div>
   
 
-  
+  <p>based onthe choice in the zone dropdwon , calculates the aggregation choosen and associated the color for the zone</p>
+
     <div class='pre p1 fill-light mt0'>setZoneHist(choosen_scatter: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, drop_down_hist: any, area_set: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Set">Set</a>, quantileScaleHist: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, zoneLegend: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, drop_down_hit: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></div>
   
   
@@ -318,6 +655,8 @@
 
       
     
+  
+
   
 
   
@@ -445,6 +784,8 @@
   
 
   
+
+  
 </section>
 
           
@@ -465,7 +806,7 @@
 
   <p>sets the colors of the zonal histograms and the associated barchart and legend</p>
 
-    <div class='pre p1 fill-light mt0'>resetzones(choosen_scatter: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, choosen_grid_hist: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, area_set: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Set">Set</a>, quantileScaleHist: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, zoneLegend: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, svgInfo: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, area_variable_map: any)</div>
+    <div class='pre p1 fill-light mt0'>resetzones(maplayer: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, choosen_scatter: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, choosen_grid_hist: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, area_set: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Set">Set</a>, quantileScaleHist: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, zoneLegend: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, svgInfo: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, area_variable_map: any)</div>
   
   
 
@@ -479,6 +820,15 @@
   
     <div class='py1 quiet mt1 prose-big'>Parameters</div>
     <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>maplayer</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    the name of the Grid map choosen
+
+          </div>
+          
+        </div>
       
         <div class='space-bottom0'>
           <div>
@@ -560,6 +910,8 @@
   
 
   
+
+  
 </section>
 
           
@@ -570,8 +922,8 @@
   
   <div class='clearfix'>
     
-    <h3 class='fl m0' id='creategriddropdowncallback'>
-      createGridDropDownCallback
+    <h3 class='fl m0' id='createdropdowngridinit'>
+      createDropDownGridInit
     </h3>
     
     
@@ -580,7 +932,7 @@
 
   <p>creates a listener for the choices in the dropdown for area as it is reset consitatnly</p>
 
-    <div class='pre p1 fill-light mt0'>createGridDropDownCallback(choosen_scatter: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, area_set: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Set">Set</a>, quantileScaleHist: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, zoneLegend: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, svgInfo: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>)</div>
+    <div class='pre p1 fill-light mt0'>createDropDownGridInit(choosen_scatter: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, numeric_vars: any, area_set: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Set">Set</a>, quantileScaleHist: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, zoneLegend: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, svgInfo: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>)</div>
   
   
 
@@ -600,6 +952,14 @@
             <span class='code bold'>choosen_scatter</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
 	    the variable that is being plotted as scatter
 
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>numeric_vars</span> <code class='quiet'>(any)</code>
+	    
           </div>
           
         </div>
@@ -659,6 +1019,8 @@
   
 
   
+
+  
 </section>
 
           
@@ -679,7 +1041,7 @@
 
   <p>set up the map with inital data, use basic colors for faster loading</p>
 
-    <div class='pre p1 fill-light mt0'>makeTheMap(grid_file: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, allScatterData: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>)</div>
+    <div class='pre p1 fill-light mt0'>makeTheMap(multi_grid: any, allScatterData: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, grid_file: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</div>
   
   
 
@@ -696,9 +1058,8 @@
       
         <div class='space-bottom0'>
           <div>
-            <span class='code bold'>grid_file</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
-	    the filename that contains the geojson grid file
-
+            <span class='code bold'>multi_grid</span> <code class='quiet'>(any)</code>
+	    
           </div>
           
         </div>
@@ -712,7 +1073,18 @@
           
         </div>
       
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>grid_file</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    the filename that contains the geojson grid file
+
+          </div>
+          
+        </div>
+      
     </div>
+  
+
   
 
   
@@ -750,7 +1122,7 @@
 
   <p>creates inital map view state after styles load from mapbox</p>
 
-    <div class='pre p1 fill-light mt0'>afterMapLoadsInit(data: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, choosen_scatter: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, uniqueID: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, numeric_vars: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, id_vars: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, quantileScaleHist: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, scatterLegend: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, area_set: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Set">Set</a>, zoneLegend: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, svgInfo: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, area_variable_map: any)</div>
+    <div class='pre p1 fill-light mt0'>afterMapLoadsInit(data: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, choosen_scatter: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, uniqueID: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, numeric_vars: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, id_vars: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, quantileScaleHist: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, scatterLegend: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, area_set: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Set">Set</a>, zoneLegend: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, svgInfo: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, svgInfoScatter: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, multi_grid: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>, zoneObjectAll: any, null-null: zoneObjectAll)</div>
   
   
 
@@ -854,13 +1226,42 @@
       
         <div class='space-bottom0'>
           <div>
-            <span class='code bold'>area_variable_map</span> <code class='quiet'>(any)</code>
+            <span class='code bold'>svgInfoScatter</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>)</code>
+	    svg that points to the scatter plot
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>multi_grid</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>)</code>
+	    the dictionary of maps avaialable to plot
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>zoneObjectAll</span> <code class='quiet'>(any)</code>
 	    
           </div>
           
         </div>
       
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>null-null</span> <code class='quiet'>(zoneObjectAll)</code>
+	    object contianing all the ID's to maps
+
+          </div>
+          
+        </div>
+      
     </div>
+  
+
   
 
   
@@ -955,6 +1356,8 @@
   
 
   
+
+  
 </section>
 
           
@@ -1009,6 +1412,8 @@
         </div>
       
     </div>
+  
+
   
 
   
@@ -1096,6 +1501,8 @@
   
 
   
+
+  
 </section>
 
           
@@ -1114,9 +1521,9 @@
   </div>
   
 
-  <p>initate the svg for the bar chart that shows the spatial histogram</p>
+  <p>initate the svg for the lower charts</p>
 
-    <div class='pre p1 fill-light mt0'>initLowerBarChart()</div>
+    <div class='pre p1 fill-light mt0'>initLowerBarChart(whichViz: any, whcichViz: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>)</div>
   
   
 
@@ -1125,6 +1532,249 @@
   
   
   
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>whichViz</span> <code class='quiet'>(any)</code>
+	    
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>whcichViz</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a>)</code>
+	    the svg info that points to the necessary graph
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='scatterplot'>
+      scatterPlot
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Createa a scatter plot of data</p>
+
+    <div class='pre p1 fill-light mt0'>scatterPlot(whichViz: any, scatterArrayIDs: any, scatterColor: any, null: any, null: any, null: any)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>whichViz</span> <code class='quiet'>(any)</code>
+	    
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>scatterArrayIDs</span> <code class='quiet'>(any)</code>
+	    
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>scatterColor</span> <code class='quiet'>(any)</code>
+	    
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>null</span> <code class='quiet'>(any)</code>
+	    (whichViz) - svg info of the chart initated
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>null</span> <code class='quiet'>(any)</code>
+	    (scatterArrayIds) - includes UniquesIDs as Keys and value for data
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>null</span> <code class='quiet'>(any)</code>
+	    (scatterColor) - includes UniquesIDs as Keys and color for data
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='longconvert'>
+      longConvert
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Convert any Longitudes that are poisitve to MOD -360</p>
+
+    <div class='pre p1 fill-light mt0'>longConvert(x: any)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>x</span> <code class='quiet'>(any)</code>
+	    
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='gridlayeroff'>
+      gridLayerOff
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Toggle color layer of zonal histogram</p>
+
+    <div class='pre p1 fill-light mt0'>gridLayerOff()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
   
 
   

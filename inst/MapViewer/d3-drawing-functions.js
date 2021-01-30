@@ -8,10 +8,9 @@
  */
 function loadConfig(error, config, data){
 
-    let area_variable_column = config['area_variable_column'];
-    let area_variable_map = config['area_variable_map'];
+    /** Set up config information
+    */
     let choosen_scatter = config['choosen_scatter'];
-
     let numeric_vars = config['numeric_vars'];
     let id_vars =config['id_vars'];
     let time_vars = config['temporal_vars'];
@@ -20,10 +19,34 @@ function loadConfig(error, config, data){
     let latitude_start = config['latitude_start'];
     let longitude_end = config['longitude_end'];
     let latitude_end = config['latitude_end'];
+    let longitude_pt = config['longitude_pt'];
+    let latitude_pt = config['latitude_pt'];
     let grid_file = config['grid_file'];
     let uniqueID = config['uniqueID']
     let access_token = config['mapbox_token'];
 
+    let multi_grid = config['multi_grid'];
+    let maps_available = multi_grid.map(a=>{return a['mapfile']});
+
+    /** Create switch for points and lines to be drawn
+
+    */
+    let drawLines = false;
+    let drawPt = false;
+
+    if (typeof longitude_start !== 'undefined'
+        & typeof latitude_start !== 'undefined'
+        & typeof longitude_end !== 'undefined'
+        & typeof latitude_end !== 'undefined'  ){
+        drawLines = true;
+    }
+
+    if (typeof longitude_pt !== 'undefined'&
+         typeof latitude_pt !== 'undefined'){
+     drawPt = true;
+     }
+    /** Initatite Map simply
+    */
     mapboxgl.accessToken = access_token;
     map = new mapboxgl.Map({
         container: 'map',
@@ -32,6 +55,20 @@ function loadConfig(error, config, data){
         center: [-150.447, 45.753]
     });
 
+
+    /** Create droppdown menus for choices
+    */
+    let mapdrop = document.getElementById('grid');
+    mapdrop.length = 0;
+    mapdrop.selectedIndex = 0;
+
+    let map_option;
+    for (let i = 0; i < maps_available.length; i++) {
+      map_option = document.createElement('option');
+      map_option.text = maps_available[i];
+      map_option.value = maps_available[i];
+      mapdrop.add(map_option);
+    }
 
 
 
@@ -46,45 +83,82 @@ function loadConfig(error, config, data){
       option = document.createElement('option');
       option.text = layers[i];
       option.value = layers[i]
+
       dropdown.add(option);
+      if (layers[i]==choosen_scatter ){
+          dropdown.selectedIndex = i;//set current scatter option
+      }
     }
 
-
+    /* Initate Legend Variables
+    */
     let scatterLegend = legendInit('.scatterLegend');
     let zoneLegend = legendInit('.zoneLegend');
-
-    let columns = Object.keys(data[0]);
-
-    let scatterData =[];
-
     let quantileScaleHist = d3.scaleQuantile();
-    // var ordinalScatter = d3.scaleOrdinal();
 
+    /*Initate Lower Bar Graphs
+    */
+    let svgInfo = initLowerBarChart('#viz');
+    let svgInfoScatter = initLowerBarChart('#scatterviz');
+
+
+
+    /** convert CSV data to geojson for Scatter Data
+    * convert any positive longitudes to negative
+    */
+    let scatterLine =[];
+    let scatterPt =[];
 
     data.forEach(function(d){
 
-       // scatterData.push(turf.lineString([[Number(d['LonLat_START_LON']),Number(d['LonLat_START_LAT'])],[Number(d['LonLat_END_LON']),Number(d['LonLat_END_LAT'])]], {UID: d['uniqueID'],'scatterValue':Number(d[choosen_scatter]),'scatterColor': quantileScaleScatter(Number(d[choosen_scatter]))}))
-        scatterData.push(turf.lineString([[Number(d[longitude_start]),Number(d[latitude_start])],[Number(d[longitude_end]),Number(d[latitude_end])]], {UID: Number(d[uniqueID])},{id:Number(d[uniqueID])}));
+        if (drawLines){
+            scatterLine.push(turf.lineString([[longConvert(Number(d[longitude_start])),Number(d[latitude_start])],[longConvert(Number(d[longitude_end])),Number(d[latitude_end])]], {UID: Number(d[uniqueID])},{id:Number(d[uniqueID])}));
+            allScatterData =  turf.featureCollection(scatterLine);
+        }
+        if (drawPt){
+            scatterPt.push(turf.point([longConvert(Number(d[longitude_pt])),Number(d[latitude_pt])], {UID: Number(d[uniqueID])},{id:Number(d[uniqueID])}));
+            allScatterData =  turf.featureCollection(scatterPt);
+        }
     })
-    allScatterData =  turf.featureCollection(scatterData);
+    // allScatterData =  turf.featureCollection(scatterLine); // GEOJSON of CSV Data
 
-    const area_info = data.map(function(d) {
-            return Number(d[area_variable_column])
-        });
 
-    const area_set  = new Set(area_info);
-    area_set.forEach(function(e){
-        zoneObject[e] = data.filter(function(d){
-            return Number(d[area_variable_column]) == e
-
-        })
-
+    /** create SET of Areas used by data
+    */
+    const area_info = multi_grid.map(function(i) {
+            let a = i['area_variable_column'];
+            return data.map(function(d) {
+                return Number(d[a])
+            });
     })
-    let scatterColor = setScatterColor(data, numeric_vars, choosen_scatter, scatterLegend, uniqueID);
-    // map.once('style.load', function(e) {
 
-    makeTheMap(grid_file, allScatterData);
+    const area_set = area_info.map(i=>{return new Set(i)})
 
+    let  zoneObjectAll = {}; //for all grids create dictionary of IDs and values
+    for(let a=0; a<area_set.length; a++){
+        let zoneObjectIndi = {};
+                area_set[a].forEach(function(e){
+                    zoneObjectIndi[e] = data.filter(function(d){
+                        return Number(d[multi_grid[a]['area_variable_column']]) == e
+
+                    })
+
+                })
+                zoneObjectAll[a]= zoneObjectIndi;
+
+    }
+
+
+    /* associate the colors for the legend to the scatter data and save values, color and ID's
+    */
+    let [scatterArray, scatterColor, temporalArray, num_or_id] = setScatterColor(data, numeric_vars, time_vars, id_vars, choosen_scatter, scatterLegend, uniqueID);
+
+    /* paint the geojson layers of bathymetry, zones and scatter
+    */
+    makeTheMap(multi_grid, allScatterData);
+
+    /* Add mouseover for scatter data to show info in right hand column and highlight data on lower bar graph
+    */
     map.on("mousemove", "scatterLayer", function(e) {
             var scatter_left_info;
 
@@ -94,56 +168,62 @@ function loadConfig(error, config, data){
 
 
                     map.setFeatureState({source: 'scatterLayer', id: hoveredStateId}, { hover: false});
+                   d3.selectAll ("#id"+String(hoveredStateId)).attr("r", '2')// turn off scatter graph highlight
                     scatter_left_info = data.filter(function(d){
                     return d[uniqueID] == hoveredStateId
                    })
+
                 }
                 hoveredStateId = e.features[0].id;
 
 
                 let allinfo = document.getElementById('allinfo');
-                allinfo.innerText = JSON.stringify(scatter_left_info[0], undefined, 2);
+                if (scatter_left_info){
+                    allinfo.innerText = JSON.stringify(scatter_left_info[0], undefined, 2);
+                }
                 map.setFeatureState({source: 'scatterLayer', id: hoveredStateId}, { hover: true});
+                d3.selectAll("#id"+String(hoveredStateId)).attr("r", '10')// turn off
 
 
             }
         });
-    map.on("click", "GridLayerColor", function(e) {
-            if (e.features.length > 0) {
-                // if (hoveredStateId) {
-                //    //console.log(zoneHistInfo[hoveredStateId] )
-                // }
 
-                var description = e.features[0].properties;
+    /* Set up callbacks for dropdowns
+    */
+    afterMapLoadsInit(data, choosen_scatter, uniqueID, numeric_vars, time_vars, id_vars, quantileScaleHist, scatterLegend, area_set, zoneLegend, svgInfo, svgInfoScatter, multi_grid, zoneObjectAll, drawLines, drawPt)
 
-                new mapboxgl.Popup()
-                    .setLngLat(e.lngLat)
-                    .setHTML(JSON.stringify(description))
-                    .addTo(map);
-
-            }
-        });
-
-
-
-
-    // map.once('style.load', function(e) {
-    let svgInfo = initLowerBarChart();
-    afterMapLoadsInit(data, choosen_scatter, uniqueID, numeric_vars, id_vars, quantileScaleHist, scatterLegend, area_set, zoneLegend, svgInfo, area_variable_map)
-    // })
-    // resetzones(choosen_scatter, "# of observations", area_set, quantileScaleHist, zoneLegend, svgInfo, map)
-     // map.on('styledata', function(e){
+    /* Call starting values for map
+    */
     map.on('load', function(e){
-        scatterColor = setScatterColor(data, numeric_vars, id_vars, choosen_scatter, scatterLegend, uniqueID);
+        //turn on grid visibility to inital grid and call inital functions
+        let maplayer ='gridLayer' + String(0)
+        map.setLayoutProperty(maplayer, 'visibility', 'visible');
+        map.setLayoutProperty(maplayer+'Color', 'visibility', 'visible');
+        zoneObject = zoneObjectAll[0]
+        area_variable_map = multi_grid[0]['area_variable_map'];// for inital load use first grid only
 
-        map.setPaintProperty('scatterLayer','line-color',['case',
-              ['has',['to-string', ['get', 'UID']],['literal',scatterColor]],
-              [ 'get',['to-string', ['get', 'UID']],['literal', scatterColor]],
-              "rgba(1,1,1,0)"
-            ]
-        )
-    createDropDownGridInit(choosen_scatter, numeric_vars, area_set, quantileScaleHist, zoneLegend, svgInfo, map);
-    resetzones(choosen_scatter, "# of observations", area_set, quantileScaleHist, zoneLegend, svgInfo, area_variable_map)
+
+
+        [scatterArray, scatterColor, temporalArray, num_or_id] = setScatterColor(data, numeric_vars, time_vars, id_vars, choosen_scatter, scatterLegend, uniqueID);
+        if(drawLines){
+            map.setPaintProperty('scatterLayer','line-color',['case',
+                  ['has',['to-string', ['get', 'UID']],['literal',scatterColor]],
+                  [ 'get',['to-string', ['get', 'UID']],['literal', scatterColor]],
+                  "rgba(1,1,1,0)"
+                ]
+            )
+         }
+         if(drawPt){
+            map.setPaintProperty('scatterLayer','circle-color',['case',
+                  ['has',['to-string', ['get', 'UID']],['literal',scatterColor]],
+                  [ 'get',['to-string', ['get', 'UID']],['literal', scatterColor]],
+                  "rgba(1,1,1,0)"
+                ]
+            )
+         }
+    createDropDownGridInit(choosen_scatter, numeric_vars);
+    resetzones(maplayer, choosen_scatter, "# of observations", area_set[0], quantileScaleHist, zoneLegend, svgInfo, area_variable_map)
+    scatterPlot(svgInfoScatter, scatterArray, scatterColor, temporalArray, num_or_id)//TURN on for scatter
     })
 
 
@@ -157,6 +237,8 @@ function loadConfig(error, config, data){
 
 
 /**
+ based onthe choice in the zone dropdwon , calculates the aggregation choosen and associated the color for the zone
+
 * @param {string} choosen_scatter - the variable that is being plotted as scatter
 * @param {string} drop_down_hit - the value in the drop down menu choosen
 * @param {Set} area_set - a Set object that has all the zones which have data
@@ -168,6 +250,7 @@ function setZoneHist(choosen_scatter, drop_down_hist, area_set, quantileScaleHis
 
 
     let zoneHistColor={};
+    zoneHistInfo = {};// reset
     switch(drop_down_hist){
         case '# of observations':
             area_set.forEach(function(e){
@@ -231,7 +314,7 @@ function setZoneHist(choosen_scatter, drop_down_hist, area_set, quantileScaleHis
         zoneHistColor[d] = quantileScaleHist(zoneHistInfo[d]);
 
     })
-    createLegend(quantileScaleHist,zoneLegend);
+    createLegend(quantileScaleHist, zoneLegend);
 
     return zoneHistColor
 }
@@ -245,18 +328,29 @@ function setZoneHist(choosen_scatter, drop_down_hist, area_set, quantileScaleHis
 * @param {string} uniqueID - the variable name pointing to the row id
 * @returns {object}  the object with colors for each line of the scatter plot
 */
-function setScatterColor(data, numeric_vars, id_vars, choosen_scatter, scatterLegend, uniqueID){
+function setScatterColor(data, numeric_vars, time_vars, id_vars, choosen_scatter, scatterLegend, uniqueID){
 
 
-    let scatterColor ={};
+    let scatterColor = {};
+    let scatterArray = {};
+    let scatterUnique = data.map(function(d){
+            return d[uniqueID]
+
+        });
+    let temporalArray = data.map(function(d){
+        return d[time_vars[0]]
+    })
+    let num_or_id = false;
+
     if (numeric_vars.includes(choosen_scatter)){
-        let scatter_array = data.map(function(d){
+        scatterArray = data.map(function(d){
             return Number(d[choosen_scatter])
 
         })
+
          var quantileScaleScatter = d3.scaleQuantile();
         quantileScaleScatter
-        .domain(scatter_array)
+        .domain(scatterArray)
         .range(['#feebe2',
                '#fcc5c0',
                 '#fa9fb5',
@@ -264,40 +358,64 @@ function setScatterColor(data, numeric_vars, id_vars, choosen_scatter, scatterLe
                 '#dd3497',
                '#ae017e',
                 '#7a0177']);
+
         data.forEach(function(d) {
             scatterColor[d[uniqueID]] = quantileScaleScatter(Number(d[choosen_scatter]));
         });
 
         createLegend(quantileScaleScatter, scatterLegend);
+        num_or_id = 'num';
     }
     else if (id_vars.includes(choosen_scatter)){
-        let scatter_array = data.map(function(d){
+        scatterArray = data.map(function(d){
             return d[choosen_scatter]
 
         })
-        var ordinalScatter = d3.scaleOrdinal();
+         // var ordinalScatter = d3.scaleOrdinal(d3.schemeCategory20c);
+         var ordinalScatter = d3.scaleOrdinal();
 
-        let ordinal_types = new Set(scatter_array);
+        let ordinal_types = new Set(scatterArray);
+
+        // ordinalScatter
+        // .domain(ordinal_types) // change colors to based on set //FIXME
+        // .range(['#feebe2',
+        //        '#fcc5c0',
+        //         '#fa9fb5',
+        //        '#f768a1',
+        //         '#dd3497',
+        //        '#ae017e',
+        //         '#7a0177']);
 
         ordinalScatter
-        .domain(scatter_array) // change colors to based on set
-        .range(['#feebe2',
-               '#fcc5c0',
-                '#fa9fb5',
-               '#f768a1',
-                '#dd3497',
-               '#ae017e',
-                '#7a0177']);
+        .domain(ordinal_types) // change colors to based on set //FIXME
+        .range(['#a6cee3',
+                '#1f78b4',
+                '#b2df8a',
+                '#33a02c',
+                '#fb9a99',
+                '#e31a1c',
+                '#fdbf6f',
+                '#ff7f00',
+                '#cab2d6',
+                '#6a3d9a',
+                '#ffff99',
+                '#b15928'])
+
+        // ordinalScatter= d3.scaleSequential(d3.interpolateInferno)
+        // .domain(ordinal_types)
+
         data.forEach(function(d) {
             scatterColor[d[uniqueID]] = ordinalScatter(d[choosen_scatter]);
         });
 
         createLegend(ordinalScatter, scatterLegend);
+        num_or_id = 'id';
 
     }
      var prop = document.getElementById('prop');
+    let scatterArrayID=Object.fromEntries(scatterUnique.map((_, i) => [scatterUnique[i], scatterArray[i]]))
 
-    return scatterColor;
+    return [scatterArrayID, scatterColor, temporalArray, num_or_id]
 }
 
 
@@ -305,6 +423,7 @@ function setScatterColor(data, numeric_vars, id_vars, choosen_scatter, scatterLe
 /**
 sets the colors of the zonal histograms and the associated barchart and legend
 
+* @param {string} maplayer - the name of the Grid map choosen
 * @param {string} choosen_scatter - the variable that is being plotted as scatter
 * @param {string} choosen_grid_hist - the value in the drop down menu choosen
 * @param {Set} area_set - a Set object that has all the zones whih have data
@@ -314,14 +433,14 @@ sets the colors of the zonal histograms and the associated barchart and legend
 * @global {object} map
 
 **/
-function resetzones(choosen_scatter, choosen_grid_hist, area_set, quantileScaleHist, zoneLegend, svgInfo, area_variable_map){
+function resetzones(maplayer, choosen_scatter, choosen_grid_hist, area_set, quantileScaleHist, zoneLegend, svgInfo, area_variable_map){
 
 
-        zoneHistColor = setZoneHist(choosen_scatter, choosen_grid_hist, area_set, quantileScaleHist, zoneLegend);
+        zoneHistColor = setZoneHist(choosen_scatter, choosen_grid_hist,  area_set, quantileScaleHist, zoneLegend);
 
         createLowerBarChart(quantileScaleHist,svgInfo);
 
-        map.setPaintProperty('GridLayerColor',
+        map.setPaintProperty(maplayer + 'Color',
             "fill-color",//["get",["to-string", ["get", "OBJECTID"]], ["literal", zoneColor]]
                 ['case',
                   ['has',['to-string', ['get', area_variable_map]],['literal',zoneHistColor]],
@@ -343,18 +462,9 @@ creates a listener for the choices in the dropdown for area as it is reset consi
 
 
 **/
-function createGridDropDownCallback(choosen_scatter, area_set, quantileScaleHist, zoneLegend, svgInfo){
 
-    let gridHist = document.getElementById('gridType');
 
-    gridHist.addEventListener('change', function() {
-
-        resetzones(choosen_scatter, this.value, area_set, quantileScaleHist, zoneLegend, svgInfo)
-
-    });
-}
-
-function createDropDownGridInit(choosen_scatter, numeric_vars, area_set, quantileScaleHist, zoneLegend, svgInfo){
+function createDropDownGridInit(choosen_scatter, numeric_vars){
     let dropdown = document.getElementById('gridType');
         dropdown.length = 0; //reset menu
         // dropdown.selectedIndex =0;
@@ -383,39 +493,23 @@ function createDropDownGridInit(choosen_scatter, numeric_vars, area_set, quantil
         }
 }
 
-/**
-set up the map with inital data, use basic colors for faster loading
-@param {string} grid_file - the filename that contains the geojson grid file
-@param {object} allScatterData -
-@global {object} map
-*/
-function makeTheMap(grid_file, allScatterData){
 
-
-    map.on('load', function () {
-        map.addSource('statsArea', {
+function create_source_draw_grid(gridLayer, gridinfo){
+    map.addSource(gridLayer, {
             'type': 'geojson',
-             'data':grid_file,
+             'data':gridinfo['mapfile'],
              'tolerance':1.0,
              'buffer':0
         });
 
-        // map.addSource('statsArea', {
-
-        //           "type": "vector",
-        //           "tiles": ["http://localhost:8080/data/Groundfish_Statistical_Areas_2001/{z}/{x}/{y}.pbf"],
-        //           'minzoom': 1,
-        //             'maxzoom': 17
-
-
-        // });
 
         map.addLayer({
-            "id":'GridLayer',
+            "id":gridLayer,
             "type":"fill",
-            "source":'statsArea',
-            // "source-layer":'Groundfish_Statistical_Areas_2001',
-            "layout": {},
+            "source":gridLayer,
+            "layout": {
+                "visibility":"none"
+            },
             "paint": {
                 "fill-outline-color": "rgba(100,100,100,1)",
                 "fill-color": "rgba(1,1,1,0.1)"
@@ -425,31 +519,55 @@ function makeTheMap(grid_file, allScatterData){
         });
 
         map.addLayer({
-            "id":'GridLayerColor',
+            "id": gridLayer + 'Color',
             "type":"fill",
-            "source":'statsArea',
-            // "source-layer":'Groundfish_Statistical_Areas_2001',
-            "layout": {},
+            "source":gridLayer,
+            "layout": {
+                "visibility":"none"
+            },
             "paint": {
                 "fill-outline-color": "rgba(1,1,1,0)",
                 "fill-color":"transparent",
-                // "fill-color": //["get",["to-string", ["get", "OBJECTID"]], ["literal", zoneColor]]
-                //     ['case',
-                //       ['has',['to-string', ['get', 'NMFS_AREA']],['literal',zoneHistColor]],
-                //       [ 'get',['to-string', ['get', 'NMFS_AREA']],['literal', zoneHistColor]],
-                //       "rgba(1,1,1,0)"
-                //     ],
-                // "fill-opacity": ["case",
-                //     ["boolean", ["feature-state", "hover"], false],
-                //     1,
-                //     0.5
-                // ]
                 "fill-opacity": 0.8,
 
             }
 
 
         });
+
+
+     map.on("click", gridLayer + 'Color', function(e) {
+            if (e.features.length > 0) {
+                // if (hoveredStateId) {
+                //    //console.log(zoneHistInfo[hoveredStateId] )
+                // }
+
+                var description = e.features[0].properties;
+
+                new mapboxgl.Popup()
+                    .setLngLat(e.lngLat)
+                    .setHTML(JSON.stringify(description))
+                    .addTo(map);
+
+            }
+        });
+
+}
+
+/**
+set up the map with inital data, use basic colors for faster loading
+@param {string} grid_file - the filename that contains the geojson grid file
+@param {object} allScatterData -
+@global {object} map
+*/
+function makeTheMap(multi_grid, allScatterData){
+
+
+    map.on('load', function () {
+        multi_grid.forEach((e, i) => {
+            create_source_draw_grid('gridLayer'+String(i), e)
+
+        })
 
         map.addSource('10m-bathymetry-81bsvj', {
             type: 'vector',
@@ -478,64 +596,51 @@ function makeTheMap(grid_file, allScatterData){
             }
         }, 'barrier_line-land-polygon');
 
+            if(allScatterData.features[0].geometry.type == 'LineString'){
+                map.addLayer({
+                    'id': 'scatterLayer',
+                    'type': 'line',
+                    'source': {
+                       'type': 'geojson',
+                    'data':allScatterData
+                    },
+                    "layout": {
+                        "line-cap": "square"
+                    },
+                    'paint': {
+                        'line-color':'white',
+                        "line-width": ["case",
+                        ["boolean", ["feature-state", "hover"], false],
+                        5,
+                        0.5
+                        ]
+                    },
+                     'tolerance':1.0,
+                     'buffer':0
+                });
+            }
 
-            // map.addSource('scatterLayer', {
+            if(allScatterData.features[0].geometry.type == 'Point'){
+                map.addLayer({
+                    'id': 'scatterLayer',
+                    'type': 'circle',
+                    'source': {
+                       'type': 'geojson',
+                    'data':allScatterData
+                    },
+                    'paint': {
+                        'circle-color':'white',
+                        "circle-radius": ["case",
+                        ["boolean", ["feature-state", "hover"], false],
+                        7,
+                        2.0
+                        ]
+                    },
+                     'tolerance':1.0,
+                     'buffer':0
+                });
+            }
 
-            //       "type": "vector",
-            //       "tiles": ["http://localhost:8080/data/scatter/{z}/{x}/{y}.pbf"],
-            //       'minzoom': 1,
-            //         'maxzoom': 17
-            //     })
-            // map.addLayer({
-            //     'id': 'scatterLayer',
-            //     'type': 'line',
-            //     'source': 'scatterLayer',
-            //     'source-layer':'scatterLayer',
-            //     "layout": {
-            //         "line-cap": "square"
-            //     },
-            //     'paint': {
-            //         'line-color':'white',
-            //         "line-width": ["case",
-            //         ["boolean", ["feature-state", "hover"], false],
-            //         5,
-            //         0.5
-            //         ]
-            //            }
-            //     // },
-            //     //  'tolerance':1.0,
-            //     //  'buffer':0
-            // });
-
-            map.addLayer({
-                'id': 'scatterLayer',
-                'type': 'line',
-                'source': {
-                   'type': 'geojson',
-                'data':allScatterData
-                },
-                "layout": {
-                    "line-cap": "square"
-                },
-                'paint': {
-                    'line-color':'white',
-                     // 'line-color':
-                     //     ['get', 'scatterColor']
-                    //  'line-color':
-                    //  ['case',
-                    //   ['has',['to-string', ['get', 'UID']],['literal',scatterColor]],
-                    //   [ 'get',['to-string', ['get', 'UID']],['literal', scatterColor]],
-                    //   "rgba(1,1,1,0)"
-                    // ],
-                    "line-width": ["case",
-                    ["boolean", ["feature-state", "hover"], false],
-                    5,
-                    0.5
-                    ]
-                },
-                 'tolerance':1.0,
-                 'buffer':0
-            });
             //show location of cursur in lower map corner
             map.on('mousemove', function (e) {
             document.getElementById('info').innerHTML =
@@ -566,18 +671,49 @@ creates inital map view state after styles load from mapbox
 * @param {Set} area_set - a Set object that has all the zones whih have data
 * @param {object} zoneLegend - object that points to the legend for zones
 * @param {object} svgInfo - svg that pojnts to the bar chart
+* @param {object} svgInfoScatter - svg that points to the scatter plot
+* @param {object} multi_grid - the dictionary of maps avaialable to plot
+* @param {zoneObjectAll} -  object contianing all the ID's to maps
+* @param {boolean} drawLines- flag for using linear features
+* @param {boolean} drawPy- flag for using point features
 * @global {object} map
 
 **/
-function afterMapLoadsInit(data, choosen_scatter, uniqueID, numeric_vars, id_vars, quantileScaleHist, scatterLegend, area_set, zoneLegend, svgInfo, area_variable_map){
+function afterMapLoadsInit(data, choosen_scatter, uniqueID, numeric_vars, time_vars, id_vars, quantileScaleHist, scatterLegend, area_set, zoneLegend, svgInfo, svgInfoScatter, multi_grid, zoneObjectAll, drawLines, drawPt){
 // after map loads
-
-
+        let mapdrop = document.getElementById('grid');
         let gridHist = document.getElementById('gridType');
 
-        gridHist.addEventListener('change', function() {
+        mapdrop.addEventListener('change', function(){
+            let mapChoice = this.selectedIndex;
+            area_variable_map = multi_grid[mapChoice]['area_variable_map'];// for inital load use first grid only
+            let maplayer = 'gridLayer' + String(mapChoice);
 
-            resetzones(choosen_scatter, this.value, area_set, quantileScaleHist, zoneLegend, svgInfo, area_variable_map)
+            for(let i = 0; i < this.length; i++) {
+                if (i == this.selectedIndex){
+                    map.setLayoutProperty('gridLayer' + String(i), 'visibility', 'visible');
+                    map.setLayoutProperty('gridLayer' + String(i)+'Color', 'visibility', 'visible');
+                } else{
+                    map.setLayoutProperty('gridLayer' + String(i), 'visibility', 'none');
+                    map.setLayoutProperty('gridLayer' + String(i)+'Color', 'visibility', 'none');
+                }
+            }
+            zoneObject = zoneObjectAll[mapChoice];
+            resetzones(maplayer, choosen_scatter, gridHist.value, area_set[mapChoice], quantileScaleHist, zoneLegend, svgInfo, area_variable_map)
+
+
+
+        })
+
+
+
+
+        gridHist.addEventListener('change', function() {
+            let mapChoice = mapdrop.selectedIndex;
+            area_variable_map = multi_grid[mapChoice]['area_variable_map'];// for inital load use first grid only
+            let maplayer = 'gridLayer' + String(mapChoice);
+
+            resetzones(maplayer, choosen_scatter, this.value, area_set[mapChoice], quantileScaleHist, zoneLegend, svgInfo, area_variable_map)
 
         });
 
@@ -585,19 +721,35 @@ function afterMapLoadsInit(data, choosen_scatter, uniqueID, numeric_vars, id_var
 
             choosen_scatter = prop.value;
 
-            let scatterColor = setScatterColor(data, numeric_vars, id_vars, choosen_scatter, scatterLegend, uniqueID);
+            let mapChoice = mapdrop.selectedIndex;
+            area_variable_map = multi_grid[mapChoice]['area_variable_map'];// for inital load use first grid only
+            let maplayer = 'gridLayer' + String(mapChoice);
 
-            map.setPaintProperty('scatterLayer','line-color',['case',
-                  ['has',['to-string', ['get', 'UID']],['literal',scatterColor]],
-                  [ 'get',['to-string', ['get', 'UID']],['literal', scatterColor]],
-                  "rgba(1,1,1,0)"
-                ]
-            )
-            createDropDownGridInit(choosen_scatter, numeric_vars, area_set, quantileScaleHist, zoneLegend, svgInfo);
-            resetzones(choosen_scatter, "# of observations", area_set, quantileScaleHist, zoneLegend, svgInfo, area_variable_map)
+            let [scatterArray, scatterColor, temporalArray, num_or_id] = setScatterColor(data, numeric_vars, time_vars, id_vars, choosen_scatter, scatterLegend, uniqueID);
 
+
+            if(drawLines){
+                map.setPaintProperty('scatterLayer','line-color',['case',
+                      ['has',['to-string', ['get', 'UID']],['literal',scatterColor]],
+                      [ 'get',['to-string', ['get', 'UID']],['literal', scatterColor]],
+                      "rgba(1,1,1,0)"
+                    ]
+                )
+             }
+             if(drawPt){
+                map.setPaintProperty('scatterLayer','circle-color',['case',
+                      ['has',['to-string', ['get', 'UID']],['literal',scatterColor]],
+                      [ 'get',['to-string', ['get', 'UID']],['literal', scatterColor]],
+                      "rgba(1,1,1,0)"
+                    ]
+                )
+             }
+            createDropDownGridInit(choosen_scatter, numeric_vars);
+            resetzones(maplayer, choosen_scatter, "# of observations", area_set[mapChoice], quantileScaleHist, zoneLegend, svgInfo, area_variable_map)
+            scatterPlot(svgInfoScatter, scatterArray, scatterColor, temporalArray, num_or_id)//turn on for scatter
 
         })
+
 
 
 
@@ -626,7 +778,7 @@ function createLowerBarChart(colorsScale, svgInfo){
 
     // Adjusting data by assigning domain to the range of the scale
     xScale.domain(xgroup);
-    yScale.domain([0, d3.max(values)]);
+    yScale.domain([d3.min(values), d3.max(values)]);
 
     if(svgInfo){svgInfo.g.selectAll('g').remove()}
 
@@ -641,6 +793,7 @@ function createLowerBarChart(colorsScale, svgInfo){
         .attr("dx", "-.8em")
         .attr("dy", ".15em")
         .attr("transform", "rotate(-65)");
+
 
 
     // Appending Y axis
@@ -690,30 +843,31 @@ function createLegend(scale, svgVar) {
 function legendInit(whichLegend){
 
 
-  let div = d3.select(whichLegend).append("div")
-    .attr("class", "column");
+  let div = d3.select(whichLegend)
 
 
-  let  svg = div.append("svg");
+
+  let  svg = div.append("svg").attr("height","700");
 
   svg.append("g")
     .attr("class", "legendQuant")
-    .attr("transform", "translate(20,20)");
+    .attr("transform", "translate(20,20)")
 
   return svg
 }
 
 /**
- *initate the svg for the bar chart that shows the spatial histogram
+ *initate the svg for the lower charts
+ *@param {object} whcichViz - the svg info that points to the necessary graph
  */
-function initLowerBarChart(){
+function initLowerBarChart(whichViz){
 
+    let chartHolder = document.getElementById(whichViz.substring(1));
+    let margin = {top: 10, right: 50, bottom: 30, left: 50},
+        width = chartHolder.clientWidth - margin.left - margin.right,
+        height = 150 - margin.top - margin.bottom;
 
-    let margin = {top: 50, right: 30, bottom: 30, left: 50},
-        width = 700 - margin.left - margin.right,
-        height = 200 - margin.top - margin.bottom;
-
-    let svgChart = d3.select('#viz').selectAll('svg')
+    let svgChart = d3.select(whichViz).selectAll('svg')
         .attr('width', width + margin.left + margin.right)
         .attr('height', height + margin.top + margin.bottom)
 
@@ -724,8 +878,132 @@ function initLowerBarChart(){
     return {'g':g,'width':width,'height':height}
 }
 
-function sum(a,b){
- return a+b;
+
+
+/** Createa a scatter plot of data
+* @param(whichViz) - svg info of the chart initated
+* @param(scatterArrayIds) - includes UniquesIDs as Keys and value for data
+* @param(scatterColor) - includes UniquesIDs as Keys and color for data
+*/
+function scatterPlot(whichViz, scatterArrayIDs, scatterColor, temporalArray, num_or_id){
+    let uniqueIDs = Object.keys(scatterArrayIDs);
+    let allscat = Object.values(scatterArrayIDs);
+    let zipData = uniqueIDs.map((e)=>{
+        return {'color':scatterColor[e],'number':scatterArrayIDs[e],'id':e, 'time':temporalArray[e]}
+    })
+
+    let height = whichViz.height;
+
+    let ids = Array.from(new Set(allscat));
+
+    if (num_or_id == 'id'){
+      var y = d3.scaleBand()
+        .domain(ids)
+        .range([height, 0]);
+
+    }
+    else{
+
+         var y = d3.scaleLinear()
+    .domain([d3.min(allscat), d3.max(allscat)])
+    .range([ height, 0]);
+
+
+    }
+
+
+    var parseTime = d3.timeParse("%Y-%m-%d %H:%M:%S");
+   // var parseTime = d3.timeParse("%y-%b-%d");
+    var format = d3.timeFormat("%Y%m%d");
+
+
+
+
+    var x = d3.scaleTime()
+      .domain(d3.extent(temporalArray, function(d) { return parseTime(d); }))
+      .range([ 0, whichViz.width ]);
+
+   if(whichViz){whichViz.g.selectAll('g').remove()}
+
+    // Appending X axis and formatting the text
+    whichViz.g.append("g")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(x));
+
+  // Add Y axis
+
+  whichViz.g.append("g")
+    .call(d3.axisLeft(y));
+
+  // Add dots
+  whichViz.g.append('g')
+    .selectAll("dot")
+    .data(zipData)
+    .enter()
+    .append("circle")
+      .attr("cx", function (d) { return x(parseTime(d.time)); } )
+      .attr("cy", function (d) { return y(d.number); } )
+      .attr("id", function(d){ return "id" + String(d.id); })
+      .attr("r", 2)
+      .style("fill", function(d){return d.color})
+
+
+
 }
+
+/** Convert any Longitudes that are poisitve to MOD -360
+*/
+function longConvert(x){
+        if(x>0){
+            return x-360
+        }
+        else{
+            return x
+        }
+}
+
+/** Toggle color layer of zonal histogram
+*/
+function gridLayerOff(){
+    let gridLayerCheck = document.getElementById("gridLayerCheck");
+    let mapdrop = document.getElementById('grid');
+    let layer = 'gridLayer' + String(mapdrop.selectedIndex)+'Color';
+
+  if (gridLayerCheck.checked == true){
+    // find color map grid and turn on
+    map.setLayoutProperty(layer, 'visibility', 'visible');
+  } else {
+     // find color map grid and turn on
+     map.setLayoutProperty(layer, 'visibility', 'none');
+  }
+}
+
+//P1
+//TODO make time axis available to different time types
+//add axis labels
+//TODO add scatter graph for non numeric data
+//FIX ORDINAL more then 5 colors
+
+//P2
+//TODO fix grid pop up
+//todo connect click grid to lower graph
+
+//P3
+//add please wait while loading
+// move points to new place
+// filtering
+
+//Done
+//try big data
+//set long data to 360 data
+//toggle grid on/off
+//time axis for y-m-d
+
+
+
+
+
+
+
 
 

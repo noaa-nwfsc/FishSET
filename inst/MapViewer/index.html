@@ -15,36 +15,64 @@
 </head>
 <body>
 
-
-<div id='map'></div>
-
-<pre id='info'></pre>
-<div id = "allinfo">Hover on Haul Lines for Data
-    </div>
-<div class='map-overlay top'>
-    <div class='map-overlay-inner'>
-        <div class ='spacing'>
-                <label><b>Select property</b></label>
-                <select id='prop' name='prop'>
-                </select>
-
-        </div>
-        <div class = 'scatterLegend'></div>
-        <div class ='spacing'>
-             <label><b>Select Grid Bin Type</b></label>
-            <select id='gridType' name='gridType'>
-            </select>
+<div class = "container">
 
 
-        </div>
-        <div class = 'zoneLegend'>
-        </div>
-
-
-
+    <div id='map'>
 
     </div>
-    <div id='viz'> <svg width="700" height="200"></svg></div>
+    <pre id='info'></pre>
+    <div id = "allinfo">
+        Hover on Haul Lines for Data
+    </div>
+
+
+
+
+<!--     <div class='map-overlay-outer'> -->
+        <div class='map-overlay'>
+            <div class='map-overlay-inner'>
+                <div class ='spacing'>
+                        <label><b>Select Grid</b></label>
+                        <select id='grid' name='grid'>
+                        </select>
+
+                </div>
+                <div class ='spacing'>
+                        <label><b>Select property</b></label>
+                        <select id='prop' name='prop'>
+                        </select>
+
+                </div>
+                <div class = 'scatterLegend'></div>
+                <div class ='spacing'>
+                    <input type="checkbox" id="gridLayerCheck"  checked onclick="gridLayerOff()">
+                     <label><b>Select Grid Bin Type</b></label>
+                    <select id='gridType' name='gridType'>
+                    </select>
+
+
+                </div>
+                <div class = 'zoneLegend'>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+        <div class ='spacing2'>
+
+        <div id='viz'> <svg width="700" height="300"></svg></div>
+         <div id='scatterviz'> <svg width="700" height="300"></svg></div>
+         </div>
+
+    <!-- </div> -->
+
+
+
+
 </div>
 <!-- <div id="chart" ></div> -->
 
@@ -57,13 +85,14 @@
 <script>
 
 
-var map;  // gloabl map variable for mapbox
+var map;  // global map variable for mapbox
 
 queue()
     .defer(d3.json, 'map_config.json') //loads a file and waits
-    // .defer(d3.csv, 'fake_data_combined.csv') // lods file and waits
-    .defer(d3.csv, 'datafile.csv') // lods file and waits
-    .await(loadConfig); // runs loadCOnfig ince two above files are loaded fully
+    //.defer(d3.csv, 'fake_data_combined1.csv') // loads file and waits
+    .defer(d3.csv, 'datafile.csv')
+   // .defer(d3.csv, 'datafile_mhdrop.csv') // loads file and waits
+    .await(loadConfig); // runs loadCOnfig once two above files are loaded fully
 
 
 
