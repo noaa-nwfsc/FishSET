@@ -52,14 +52,15 @@
 #' @param fun.numeric How to collapse numeric or temporal data. For example, \code{min}, \code{mean}, 
 #'    \code{max}, \code{sum}. Defaults to \code{mean}.
 #' @return \code{trip_length()} calculates vessel trip duration given a start and end date,
-#'   converts trip length to the desired unit of time (e.g. weeks, days, or hours),
+#'   converts trip duration to the desired unit of time (e.g. weeks, days, or hours),
 #'   and returns a table and/or plot. There is an option for calculating CPUE and
-#'   hauls per unit of time as well. The data can be filtered using
-#'   two arguments: \code{filter_date} and \code{date_value}. \code{filter_date}
+#'   hauls per unit of time as well. Data can be collapsed from haul to trip level by specifying how to 
+#'   collapse temporal variables (\code{fun.time}) and numeric variables (\code{fun.numeric}). 
+#'   The data can be filtered using two arguments: \code{filter_date} and \code{date_value}. \code{filter_date}
 #'   specifies how the data should be filtered--by year, period (i.e. "month" or "week"), or year-period.
 #'   \code{date_value} should contain the values (as integers) to filter
 #'   the data by. If multiple grouping variables are given then they are combined
-#'   into one variable. no more than three is recommended. Any variable in the dataset 
+#'   into one variable. No more than three is recommended. Any variable in the dataset 
 #'   can be used for faceting, but "year", "month", and "week" are also available. 
 #'   Distribution plots can be combined on a single page or printed individually with \code{pages}.
 #' @export trip_length
