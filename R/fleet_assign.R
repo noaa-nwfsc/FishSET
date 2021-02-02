@@ -37,7 +37,7 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
   #' \tabular{lllll}{
   #' condition                 \tab fleet\cr
   #' 'GEAR == 8'               \tab 'A'\cr
-  #' 'species == 'cod''        \tab 'B'\cr
+  #' 'species == 'cod'         \tab 'B'\cr
   #' 'area \%in\% c(640, 620)' \tab 'C'\cr
   #' }
   #'
@@ -180,8 +180,8 @@ fleet_assign <- function(dat, project, fleet_tab, assign = NULL, overlap = FALSE
   #'   If \code{assign = NULL} (the default), all fleet definitions in the table will be used.  
   #' @param overlap Logical; whether overlapping fleet assignments are allowed. Defaults to
   #'   \code{FALSE}.
-  #' @param format_var String. If \code{format_var = "string"}, a single 'fleet' 
-  #'   column will be added to `MainDataTable`. If \code{overlap = TRUE},
+  #' @param format_var String. If \code{format_var = "string"}, a single column named 
+  #' "fleet" will be added to `MainDataTable`. If \code{overlap = TRUE},
   #'   observations with multiple fleet assignments are duplicated. \code{format_var ="dummy"} 
   #'   outputs a binary column for each fleet in the fleet table. Defaults to \code{"string"}.
   #' @importFrom tidyr pivot_longer
@@ -240,9 +240,10 @@ fleet_assign <- function(dat, project, fleet_tab, assign = NULL, overlap = FALSE
     # check for overlapping fleet assignments
     ovrlp <- which(apply(cond_tab, 1, function(x) sum(x) > 1))
     
-    if (overlap == FALSE & length(ovrlp) > 0) {
+    if (length(ovrlp) > 0) {
       warning(paste(length(ovrlp), "overlapping fleet assingments detected."))
-      end <- TRUE
+      
+      if (overlap == FALSE) end <- TRUE
     }
     
     if (end == FALSE) {
@@ -256,8 +257,6 @@ fleet_assign <- function(dat, project, fleet_tab, assign = NULL, overlap = FALSE
       }
       
       colnames(cond_tab) <- fleet_names
-      
-      #cond_tab <- apply(cond_tab, 2, as.numeric)
       
       # check if any fleet names are identical to dataset colnames
       if (any(colnames(cond_tab) %in% colnames(dataset))) {
@@ -277,22 +276,11 @@ fleet_assign <- function(dat, project, fleet_tab, assign = NULL, overlap = FALSE
         }
         
         value <- NULL
-        #dataset <- reshape2::melt(dataset, measure.vars = colnames(cond_tab), variable.name = "fleet")
         dataset <- tidyr::pivot_longer(dataset, cols = !!fleet_names, names_to = fleet_nm)
         
         dataset <- subset(dataset, value > 0)
         
         dataset$value <- NULL
-        
-        #row.names(dataset) <- 1:nrow(dataset)
-        
-        dup <- which(duplicated(dataset[, -which(names(dataset) %in% "fleet")]))
-        
-        if (length(dup) > 0) {
-          warning(paste(length(dup), "overlapping fleet assignments detected."))
-        }
-      } else if (format_var == "dummy" & length(ovrlp) > 0) {
-        warning(paste(length(ovrlp), "overlapping fleet assingments detected."))
       }
       
       fleet_assign_function <- list()

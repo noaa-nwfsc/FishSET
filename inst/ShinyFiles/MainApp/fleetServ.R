@@ -1322,15 +1322,9 @@ trip_serv <- function(id, values, project) {
                   choices = c(date_cols(values$dataset)))
     })
     
-    output$catch_select <- renderUI({
-      selectizeInput(ns("catch"), "Select catch variable(s) (optional)",
+    output$vpue_select <- renderUI({
+      selectizeInput(ns("vpue"), "Calculate value per unit effort (optional)",
                      choices = c(numeric_cols(values$dataset)), multiple = TRUE)
-    })
-    
-    output$haul_select <- renderUI({
-      selectizeInput(ns("haul"), "Select haul variable (optional)",
-                     choices = c(numeric_cols(values$dataset)), multiple = TRUE,
-                     options = list(maxItems = 1))
     })
     
     output$grp_select <- renderUI({
@@ -1423,6 +1417,7 @@ trip_serv <- function(id, values, project) {
     observeEvent(input$haul_trp == FALSE, {
       
       updateSelectizeInput(session, "tripID", choices = colnames(values$dataset))
+      updateCheckboxInput(session, "haul_count", value = FALSE)
     })
     
     # reset subset inputs if unchecked
@@ -1462,7 +1457,7 @@ trip_serv <- function(id, values, project) {
                need(input$end, "Please select an end date variable."))
       
       trip_length(values$dataset, project = project(), start = input$start, end = input$end,
-                  units = input$unit, catch = input$catch, hauls = input$haul,
+                  units = input$unit, vpue = input$vpue, haul_count = input$haul_count,
                   group = input$grp, filter_date = input$filter_date, date_value = date_value(),
                   filter_by = input$filter_by, filter_value = input$filter_by_val, 
                   filter_expr = input$filter_expr, facet_by = input$fct, density = input$dens, tran = input$tran,
@@ -1894,7 +1889,13 @@ fleet_assign_serv <- function(id, values, project) {
     
     observeEvent(input$fun_run, {
       
-      values$dataset <- fa_out()
+      if (is.null(fa_out())) {
+        showNotification("Overlap detected, no fleets assigned.", type = "warning")
+      
+      } else {
+        
+        values$dataset <- fa_out()
+      }
     })
     
     output$final_tab <- DT::renderDT({fa_out()})
@@ -1902,62 +1903,65 @@ fleet_assign_serv <- function(id, values, project) {
     # table of fleet counts for plot
     observeEvent(input$fun_run, {
       
-      if (input$format == "string") {
-        # assumes last column is fleet column
-        fleet_col <- names(fa_out())[ncol(fa_out())]
+      if (!is.null(fa_out())) {
         
-        fleet_names <- f_tab$tab$fleet
-        
-        if (!is.null(input$tab_preview_rows_selected)) {
+        if (input$format == "string") {
+          # assumes last column is fleet column
+          fleet_col <- names(fa_out())[ncol(fa_out())]
           
-          fleet_names <- fleet_names[input$tab_preview_rows_selected]
-        }
-        
-        if (input$overlap) fleet_names <- c(fleet_names, "other")
-        
-        fleet_count <- vapply(fleet_names, function(x) {
-          sum(fa_out()[fleet_col] == x)
-        }, numeric(1))
-        
-        fleet_count <- sort(fleet_count, decreasing = TRUE)
-        fleet_count <- data.frame(fleet = names(fleet_count), count = fleet_count)
-        row.names(fleet_count) <- NULL
-        fleet_count$fleet <- factor(fleet_count$fleet, 
-                                    levels = sort(fleet_count$fleet, decreasing = TRUE),
-                                    ordered = TRUE)
-        f_tab$count <- fleet_count
-        
-      } else {
-        
-        fleet_cols <- gsub(" ", "_", trimws(f_tab$tab$fleet))
-        
-        if (!is.null(input$tab_preview_rows_selected)) {
+          fleet_names <- f_tab$tab$fleet
           
-          fleet_cols <- fleet_cols[input$tab_preview_rows_selected]
+          if (!is.null(input$tab_preview_rows_selected)) {
+            
+            fleet_names <- fleet_names[input$tab_preview_rows_selected]
+          }
+          # add "other" category
+          fleet_names <- c(fleet_names, "other")
+          
+          fleet_count <- vapply(fleet_names, function(x) {
+            sum(fa_out()[fleet_col] == x)
+          }, numeric(1))
+          
+          fleet_count <- sort(fleet_count, decreasing = TRUE)
+          fleet_count <- data.frame(fleet = names(fleet_count), counts = fleet_count)
+          row.names(fleet_count) <- NULL
+          f_tab$count <- fleet_count
+          
+        } else {
+          
+          fleet_cols <- gsub(" ", "_", trimws(f_tab$tab$fleet))
+          
+          if (!is.null(input$tab_preview_rows_selected)) {
+            
+            fleet_cols <- fleet_cols[input$tab_preview_rows_selected]
+          }
+          # include "other" fleet
+          fleet_cols <- c(fleet_cols, "other")
+          
+          fleet_count <- vapply(fa_out()[fleet_cols], sum, FUN.VALUE = numeric(1))
+          df <- data.frame(fleet = fleet_cols, counts = fleet_count)
+          df <- df[order(df$counts, decreasing = TRUE), ] 
+          row.names(df) <- NULL
+          
+          f_tab$count <- df
         }
-        # include "other" fleet
-        if (input$overlap) fleet_cols <- c(fleet_cols, "other")
-        
-        fleet_count <- vapply(fa_out()[fleet_cols], sum, FUN.VALUE = numeric(1))
-        df <- data.frame(fleet = fleet_cols, count = fleet_count)
-        df <- df[order(df$count, decreasing = TRUE), ]  
-        df$fleet <- factor(df$fleet, levels = sort(df$fleet, decreasing = TRUE),
-                           ordered = TRUE)
-        row.names(df) <- NULL
-        
-        f_tab$count <- df
       }
     })
     
     # table of fleet frequencies
-    output$tab_count <- DT::renderDT(f_tab$count)
+    output$tab_count <- DT::renderDT(
+      if (!is.null(fa_out())) {
+       
+        f_tab$count 
+      }
+     )
     
     # plot of fleet frequencies 
     output$plot_count <- renderPlot({
       
-      if (!is.null(f_tab$count)) {
+      if (!is.null(fa_out())) {
       
-        ggplot2::ggplot(f_tab$count, ggplot2::aes(x = fleet, y = count, fill = fleet)) +
+        ggplot2::ggplot(f_tab$count, ggplot2::aes(x = reorder(fleet, counts), y = counts, fill = fleet)) +
           ggplot2::geom_col() + ggplot2::coord_flip() +
           ggplot2::labs(x = "", y = "# of obs.") +
           fishset_theme() + ggplot2::theme(legend.position = "none")
