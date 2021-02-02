@@ -769,7 +769,8 @@ trip_lengthUI <- function(id) {
                      selectInput(ns("fun_time"), "Collapse temporal variables using", 
                                  choices = c("min", "mean", "max")),
                      selectInput(ns("fun_numeric"), "Collapse numeric variables using",
-                                 choices = c("min", "mean", "max", "sum"))),
+                                 choices = c("min", "mean", "max", "sum")),
+                     checkboxInput(ns("haul_count"), strong("Create hauls per trip variable"), value = TRUE)),
     
     uiOutput(ns("start_select")),
     
@@ -779,9 +780,7 @@ trip_lengthUI <- function(id) {
                 choices = c("minutes" = "mins", "hours", "days", "weeks"),
                 selected = "hours"),
     
-    uiOutput(ns("catch_select")),
-    
-    uiOutput(ns("haul_select")),
+    uiOutput(ns("vpue_select")),
     
     checkboxInput(ns("subset_cb"), strong("Subset (optional)"), value = FALSE),
     
@@ -1081,6 +1080,12 @@ fleet_assignOut <- function(id) {
   ns <- NS(id)
   tagList(
     h4(strong("Fleet Definition Table")),
+    fluidRow(
+      column(6, 
+        div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; margin-bottom: 2em;", 
+          p("Assign specific definitions by clicking on the table row.
+            The entire table will be used if no rows are selected.")))
+      ),
     shinycssloaders::withSpinner(DT::DTOutput(ns("tab_preview"))),
     h4(strong("Dataset")),
     shinycssloaders::withSpinner(DT::DTOutput(ns("final_tab"))),
