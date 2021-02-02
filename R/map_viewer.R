@@ -75,15 +75,14 @@ if(!is.null(lon_end)){
   map_config <- list()
   map_config$mapbox_token <- "pk.eyJ1IjoibWhhcnNjaDEyNSIsImEiOiJjazZ2NXh6dXUwZ25vM25wYXJ6bHFpOGc1In0.nAdb9QQybVd9ESgtr0fjZg"
   map_config$choosen_scatter <- num_vars[1]
-  map_config$numeric_vars <- if (length(num_vars) == 1) list(num_vars) else num_vars
-  map_config$temporal_vars <- temp_vars
-  map_config$id_vars <- id_vars
+  map_config$numeric_vars <- list(num_vars)#if (length(num_vars) == 1) list(num_vars) else num_vars
+  map_config$temporal_vars <- list(temp_vars)
+  map_config$id_vars <- list(id_vars)
   map_config$longitude_start <- lon_start
   map_config$latitude_start <- lat_start
   map_config$longitude_end <- lon_end
   map_config$latitude_end <- lat_end
   map_config$uniqueID <- "uniqueID"
-  map_config$grid_file = "spatdat.geojson"
   multi_grid <- list(list(
     'mapfile' = "spatdat.geojson",
     'area_variable_map' = avm,
@@ -95,12 +94,11 @@ if(!is.null(lon_end)){
   map_config$mapbox_token <- "pk.eyJ1IjoibWhhcnNjaDEyNSIsImEiOiJjazZ2NXh6dXUwZ25vM25wYXJ6bHFpOGc1In0.nAdb9QQybVd9ESgtr0fjZg"
   map_config$choosen_scatter <- num_vars[1]
    map_config$numeric_vars <- if (length(num_vars) == 1) list(num_vars) else num_vars
-  map_config$temporal_vars <- temp_vars
-  map_config$id_vars <- id_vars
+  map_config$temporal_vars <- list(temp_vars)
+  map_config$id_vars <- list(id_vars)
   map_config$longitude_pt <- lon_start
   map_config$latitude_pt <- lat_start
   map_config$uniqueID <- "uniqueID"
-  map_config$grid_file <- 'spatdat.geojson'
   multi_grid <- list(list(
     'mapfile' = "spatdat.geojson",
     'area_variable_map' = avm,
@@ -121,7 +119,9 @@ if(!is.null(lon_end)){
   # working directory
   if (shiny::isRunning()) {
     
-    map_url <- servr::httd(dir = loc_map(), browser = FALSE)$url
+    map_url <- 
+      servr::httd(dir = loc_map(), browser=FALSE)$url
+     #
     
     return(map_url)
     
@@ -130,3 +130,4 @@ if(!is.null(lon_end)){
     utils::browseURL(servr::httd(dir = loc_map(), browser = FALSE)$url)
   }
 }
+
