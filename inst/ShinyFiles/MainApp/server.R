@@ -1147,7 +1147,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           empty_vars_filter(values$dataset, project = input$projectname, remove=FALSE)
 
         } else if(input$checks=='Lat_Lon units'){
-          degree(values$dataset, lat=NULL, lon=NULL, latsign=FALSE, lonsign=FALSE, replace=FALSE)
+          degree(values$dataset, lat=NULL, lon=NULL, latsign=NULL, lonsign=NULL, replace=FALSE)
         } else {
           'Make a selection in the left hand column'
         } 
@@ -1594,7 +1594,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
       
       observeEvent(input$Outlier_Filter,{
-          values$dataset <- outlier_remove(values$dataset, x=input$column_check, dat.remove = input$dat.remove, remove = T, over_write=FALSE)
+          values$dataset <- outlier_remove(values$dataset, x=input$column_check, dat.remove = input$dat.remove, over_write=FALSE)
       })
       
       observeEvent(input$Unique_Filter,{
@@ -1609,7 +1609,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             values$dataset <- degree(values$dataset, 
                                      if(input$LatDirection=='None') { lat=NULL } else { lat=input$LatDirection},
                                      if(input$LonDirection=='None') { lon=NULL } else { lon=input$LonDirection},
-                                     latsign=input$LatLon_Filter_Lat, lonsign=input$LatLon_Filter_Lon, replace=TRUE
+                                     if(input$input$LatLon_Filter_Lat=='None') { latsign=NULL } else { latsign=input$input$LatLon_Filter_Lat},
+                                     if(input$input$LatLon_Filter_Lon=='None') { lonsign=NULL } else { lonsign=input$input$LatLon_Filter_Lon}, 
+                                     replace=TRUE
                                       ) 
       })
       

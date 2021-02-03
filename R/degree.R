@@ -5,14 +5,21 @@ degree <- function(dat, lat = NULL, lon = NULL, latsign = FALSE, lonsign = FALSE
   #' @param dat Dataset containing latitude and longitude data.
   #' @param lat Variable containing latitude data.
   #' @param lon Variable containing longitude data.
-  #' @param latsign Logical, should the sign value of latitude be changed?
-  #' @param lonsign Logical, should the sign value of longitude be changed?
-  #' @param replace Logical, should \code{lat} and \code{lon} be modified in \code{dat}. Defaults to TRUE. Set to FALSE if only checking for errors.
+  #' @param latsign How should the sign value of \code{lat} be changed? Choices are \code{NULL}, no change, 
+  #'    \code{"all"}, change all values, \code{"neg"}, convert all positive values to negative, or 
+  #'    \code{"pos"}, convert all negative values to positive.
+  #' @param lonsign How should the sign value of \code{lon} be changed? Choices are \code{NULL}, no change, 
+  #'    \code{"all"}, change all values, \code{"neg"}, convert all positive values to negative, or 
+  #'    \code{"pos"}, convert all negative values to positive.
+  #' @param replace Logical, should \code{lat} and \code{lon} in \code{dat} be converted to decimal degrees? 
+  #'   Defaults to TRUE. Set to FALSE if checking for compliance
   #' @export degree
   #' @importFrom OSMscale degree
   #' @importFrom stringr str_replace
-  #' @details Uses the degree function to convert latitude and longitude coordinates to decimal degrees. 
-  #'   Set \code{replace} to FALSE to first check lat/lon format and sign. FishSET requires that latitude and longitude 
+  #' @details First checks whether any variables containing 'lat' or 'lon' in their names are numeric. Returns 
+  #'   a message on results. To convert a variable to decimal degrees, identify the \code{lat} or \code{lon}
+  #'   variable(s) and set \code{replace} to TRUE. To change the sign, set \code{latsign} (for \code{lat}) 
+  #'   or \code{lonsign} (for \code{lon} to TRUE. FishSET requires that latitude and longitude 
   #'   be in decimal degrees.
   #' @return Returns the primary dataset with the latitudes and longitudes converted to decimal degrees. 
   #'    Changing the sign, transforms all values in the variable.
@@ -97,14 +104,24 @@ degree <- function(dat, lat = NULL, lon = NULL, latsign = FALSE, lonsign = FALSE
       }
     }
 
-    if (latsign == TRUE & !is.null(lat)) {
+    ##Change latsign
+    if (latsign == "all" & !is.null(lat)) {
       dataset[[lat]] <- -1 * dataset[[lat]]
+    } else if(latsign == "neg" & !is.null(lat)) {
+      dataset[dataset[lat]> 0,lat] <- -1 * dataset[dataset[lat]> 0,lat]
+    } else if(latsign == "post" & !is.null(lat)) {
+      dataset[dataset[lat]< 0,lat] <- -1 * dataset[dataset[lat]< 0,lat]
     } else {
       dataset <- dataset
     }
-    if (lonsign == TRUE & !is.null(lon)) {
+    ##Change lonsign
+    if (lonsign == all & !is.null(lon)) {
       dataset[[lon]] <- -1 * dataset[[lon]]
-    } else {
+    } else if(lonsign == "neg" & !is.null(lon)) {
+      dataset[dataset[lon]> 0,lon] <- -1 * dataset[dataset[lon]> 0,lon]
+    } else if(lonsign == "post" & !is.null(lon)) {
+      dataset[dataset[lon]< 0,lon] <- -1 * dataset[dataset[lon]< 0,lon]
+      } else {
       dataset <- dataset
     }
     return(dataset)
