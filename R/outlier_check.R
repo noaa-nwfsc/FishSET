@@ -13,11 +13,11 @@ outlier_table <- function(dat, project, x) {
   #' @keywords outliers
   #' @export outlier_table
   #' @return Table for evaluating whether outliers may exist in the selected data column.
-  #' @details The returned table provides summary statistics (mean, median, standard deviation, minimum,
-  #'  maximum, number of NAs, and skew of the data) for the data based on each method to remove
-  #'  outliers (data outside the 5 to 95 percent quantiles, data outside the 25-75\% quantile,
-  #'  data outside mean +/-2SD, data outside the mean +/-3SD, data outside the median +/-2SD,
-  #'  data outside the median +/-3SD).
+  #' @details Returns a table of summary statistics (mean, median, standard deviation, minimum,
+  #'  maximum, number of NAs, and skew of the data) for \code{x} after values outside the outlier measure have been
+  #'  removed. Outlier measures include 5-95\% quantiles, 25-75\% quantiles,
+  #'  mean +/-2SD, mean +/-3SD, median +/-2SD, and median +/-3SD. Only one variable can be checked at a time.
+  #'  Table is saved to the Output folder.
   #' @examples
   #' \dontrun{
   #' outlier_table(pollockMainDataTable, 'pollock', 'HAUL')
@@ -118,12 +118,12 @@ outlier_table <- function(dat, project, x) {
 outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FALSE) {
   #' Evaluate outliers
   #'
-  #' Visualize spread of data and impact of outlier removal options.
+  #' Visualize spread of data and measures to identify outliers.
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
   #' @param x Variable in \code{dat} to check for outliers.
-  #' @param dat.remove Defines method to subset the data. Choices include: \code{"none"}, \code{"5_95_quant"},
+  #' @param dat.remove Outlier measure. Values outside the measure are removed. Choices include: \code{"none"}, \code{"5_95_quant"},
   #' \code{"25_75_quant"}, \code{"mean_2SD"}, \code{"median_2SD"}, \code{"mean_3SD"}, \code{"median_3SD"}.
   #'    See the \emph{Details} section for more information.
   #' @param x.dist Distribution of the data. Choices include: \code{"normal"}, \code{"lognormal"},
@@ -134,11 +134,13 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FA
   #' @importFrom stats dnorm dpois dweibull rnorm dbinom dlnorm dexp dnbinom
   # @importFrom ggpubr annotate_figure text_grob
   #' @importFrom  ggplot2 ggplot geom_point aes_string theme geom_histogram labs aes geom_abline geom_abline
-  #' @details  The function returns three plots: the data, a probability plot, and a Q-Q plot. The data plot is the value of
-  #'  \code{x} against row number. Red points are all the data without any points removed.
-  #'  The blue points are the subset of the data. If \code{dat.remove} is \code{"none"}, then only blue points will be shown.
-  #'  The probability plot is a histogram of the data with the fitted probability distribution
-  #'  based on \code{x.dist}. The Q-Q plot plots are sampled quantiles against theoretical quantiles. \cr\cr
+  #' @details  The function returns three plots: the data, a probability plot, and a Q-Q plot. 
+  #'  The \emph{data plot} returns \code{x} against row number. Red points are data points that would be removed 
+  #'  based on \code{dat.remove}. Blue points are data points within the bounds of \code{dat.remove}.
+  #'  If \code{dat.remove} is \code{"none"}, then only blue points will be shown.
+  #'  The \emph{probability plot} is a histogram of the data, after applying \code{dat.remove}, with the fitted probability distribution
+  #'  based on \code{x.dist}. The \emph{Q-Q plot} plots are sampled quantiles against theoretical quantiles, 
+  #'  after applying \code{dat.remove}. \cr\cr
   #'  The \code{dat.remove} choices are:
   #'  \itemize{
   #'  \item{none:        No data points are removed}
@@ -325,17 +327,15 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FA
 }
 
 ## ---------------------------##
-outlier_remove <- function(dat, x, dat.remove = "none", remove = T, over_write = FALSE) {
+outlier_remove <- function(dat, x, dat.remove = "none", over_write = FALSE) {
   #' Remove outliers from dataset
   #'
-  #' Remove outliers based on method.
+  #' Remove outliers based on outlier measure.
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param x Variable in \code{dat} containing potential outliers.
-  #' @param dat.remove Defines method to subset the data. Choices include: \code{"none"},
+  #' @param dat.remove Defines measure to subset the data. Choices include: \code{"none"},
   #'    \code{"5_95_quant"}, \code{"25_75_quant"}, \code{"mean_2SD"}, \code{"median_2SD"}, \code{"mean_3SD"}, \code{"median_3SD"}.
-  #' @param remove Save data with outliers removed. If TRUE, the revised data table,
-  #'    with values removed outside the \code{dat.remove} expression, is returned.
   #' @param over_write Logical, If TRUE, saves data over previously saved data table in the FishSET database.
   #' @export outlier_remove
   #' @return Returns the modified primary dataset. Modified dataset will be saved to the FishSET database.
@@ -363,36 +363,27 @@ outlier_remove <- function(dat, x, dat.remove = "none", remove = T, over_write =
 
   if (is.numeric(dataset[, x]) == T) {
     # Begin outlier check
-    if (remove == TRUE) {
-      # log actions
-
 
       if (dat.remove == "none") {
         dataset <- dataset
       } else if (dat.remove == "5_95_quant") {
-        dataset <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.95, na.rm = TRUE) & dataset[, x] > stats::quantile(dataset[, x], 0.05,
-          na.rm = TRUE
-        ), ]
+        dataset <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.95, na.rm = TRUE) & 
+                             dataset[, x] > stats::quantile(dataset[, x], 0.05, na.rm = TRUE), ]
       } else if (dat.remove == "25_75_quant") {
-        dataset <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.75, na.rm = TRUE) & dataset[, x] > stats::quantile(dataset[, x], 0.25,
-          na.rm = TRUE
-        ), ]
+        dataset <- dataset[dataset[, x] < stats::quantile(dataset[, x], 0.75, na.rm = TRUE) & 
+                             dataset[, x] > stats::quantile(dataset[, x], 0.25, na.rm = TRUE), ]
       } else if (dat.remove == "mean_2SD") {
-        dataset <- dataset[dataset[, x] < (mean(dataset[, x], na.rm = T) + 2 * stats::sd(dataset[, x], na.rm = T)) & dataset[, x] > (mean(dataset[
-          ,
-          x
-        ], na.rm = T) - 2 * stats::sd(dataset[, x], na.rm = T)), ]
+        dataset <- dataset[dataset[, x] < (mean(dataset[, x], na.rm = T) + 2 * stats::sd(dataset[, x], na.rm = T)) & 
+                             dataset[, x] > (mean(dataset[,x], na.rm = T) - 2 * stats::sd(dataset[, x], na.rm = T)), ]
       } else if (dat.remove == "median_2SD") {
-        dataset <- dataset[dataset[, x] < (stats::median(dataset[, x], na.rm = T) + 2 * stats::sd(dataset[, x], na.rm = T)) & dataset[, x] >
-          (stats::median(dataset[, x], na.rm = T) - 2 * stats::sd(dataset[, x], na.rm = T)), ]
+        dataset <- dataset[dataset[, x] < (stats::median(dataset[, x], na.rm = T) + 2 * stats::sd(dataset[, x], na.rm = T)) & 
+                             dataset[, x] > (stats::median(dataset[, x], na.rm = T) - 2 * stats::sd(dataset[, x], na.rm = T)), ]
       } else if (dat.remove == "mean_3SD") {
-        dataset <- dataset[dataset[, x] < (mean(dataset[, x], na.rm = T) + 3 * stats::sd(dataset[, x], na.rm = T)) & dataset[, x] > (mean(dataset[
-          ,
-          x
-        ], na.rm = T) - 3 * stats::sd(dataset[, x], na.rm = T)), ]
+        dataset <- dataset[dataset[, x] < (mean(dataset[, x], na.rm = T) + 3 * stats::sd(dataset[, x], na.rm = T)) & 
+                             dataset[, x] > (mean(dataset[,x], na.rm = T) - 3 * stats::sd(dataset[, x], na.rm = T)), ]
       } else if (dat.remove == "median_3SD") {
-        dataset <- dataset[dataset[, x] < (stats::median(dataset[, x], na.rm = T) + 3 * stats::sd(dataset[, x], na.rm = T)) & dataset[, x] >
-          (stats::median(dataset[, x], na.rm = T) - 3 * stats::sd(dataset[, x], na.rm = T)), ]
+        dataset <- dataset[dataset[, x] < (stats::median(dataset[, x], na.rm = T) + 3 * stats::sd(dataset[, x], na.rm = T)) & 
+                             dataset[, x] > (stats::median(dataset[, x], na.rm = T) - 3 * stats::sd(dataset[, x], na.rm = T)), ]
       }
 
 
@@ -401,9 +392,10 @@ outlier_remove <- function(dat, x, dat.remove = "none", remove = T, over_write =
         DBI::dbWriteTable(fishset_db, deparse(substitute(dat)), dataset, overwrite = over_write)
         DBI::dbDisconnect(fishset_db)
       }
+    
       outlier_remove_function <- list()
       outlier_remove_function$functionID <- "outlier_remove"
-      outlier_remove_function$args <- c(dat, deparse(substitute(x)), dat.remove, remove, over_write)
+      outlier_remove_function$args <- c(dat, deparse(substitute(x)), dat.remove, over_write)
       outlier_remove_function$kwargs <- list()
       outlier_remove_function$output <- c("")
       outlier_remove_function$msg <- paste("outliers removed using", dat.remove)
@@ -411,16 +403,9 @@ outlier_remove <- function(dat, x, dat.remove = "none", remove = T, over_write =
 
       return(dataset)
     } # End Outlier check
-    if (remove == FALSE) {
-      return(dataset)
-      print("No modifications made.")
-    }
-  } else {
-    outlier_remove_function <- list()
-    outlier_remove_function$functionID <- "outlier_remove"
-    outlier_remove_function$args <- list(dat, x, dat.remove, remove, over_write)
-
-    log_call(outlier_remove_function)
+    
+ else {
+    
     # Actions to take if data is not numeric
     print("Data is not numeric. Outliers cannot be checked.")
   }

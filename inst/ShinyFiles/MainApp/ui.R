@@ -290,10 +290,14 @@ source("map_viewer_app.R", local = TRUE)
                                            uiOutput('LatLonDir'),
                                           
                                           conditionalPanel("input.checks=='Lat_Lon units'",
-                                            checkboxInput('LatLon_Filter_Lat', 'Change sign for latitude direction', value=FALSE)
+                                            selectInput('LatLon_Filter_Lat', 'Change sign for latitude direction', 
+                                                        choices=c('None', 'All values'='all', 'Positve to negative'='neg', 
+                                                        'Negative to positive'='pos'), selected='None')
                                           ),
                                           conditionalPanel("input.checks=='Lat_Lon units'",
-                                            checkboxInput('LatLon_Filter_Lon', 'Change sign for longitude direction', value=FALSE)
+                                            selectInput('LatLon_Filter_Lon', 'Change sign for longitude direction', 
+                                                        choices=c('None', 'All values'='all', 'Positve to negative'='neg', 
+                                                                  'Negative to positive'='pos'), selected='None')
                                           ),
                                           conditionalPanel(
                                             condition ="input.checks=='Lat_Lon units'",
