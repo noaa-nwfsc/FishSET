@@ -593,7 +593,7 @@ source("map_viewer_app.R", local = TRUE)
 
                                                     conditionalPanel("input.fleet_fun == 'density_plot'",
 
-                                                                     density_plotOut("den"))
+                                                                     fleetOut("den"))
                                 )
                                 )
                               )
