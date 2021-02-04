@@ -602,7 +602,7 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
   trip_length_function <- list()
   trip_length_function$functionID <- "trip_length"
   trip_length_function$args <- list(dat, project, start, end, units, vpue,
-                                    group, filter_date, date_value, filter_by, 
+                                    group, combine, filter_date, date_value, filter_by, 
                                     filter_value, filter_expr, facet_by, type,
                                     bins, density, scale, tran, pages, remove_neg,
                                     output, tripID, fun.time, fun.numeric)
