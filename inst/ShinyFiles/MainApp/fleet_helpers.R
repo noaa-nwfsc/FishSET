@@ -25,6 +25,15 @@ numeric_cols <- function(dat) {
   colnames(dat)[vapply(dat,  FUN = is.numeric, FUN.VALUE = logical(1))]
 }
 
+category_cols <- function(dat) {
+  
+  class_list <- lapply(dat, class) 
+  cat_class <- c("factor", "character", "integer", "logical")
+  choices <- vapply(class_list, function(x) any(cat_class %in% x), FUN.VALUE = logical(1))
+  
+  names(choices[choices])
+}
+
 
 yearRange <- function(dat, yr, type) {
   
@@ -52,9 +61,12 @@ validate_date <- function(date = NULL, period = NULL, filter_date = NULL, fct = 
   #   validate("Please enter a period to summarize by.")
   # }
   
-  if (is.null(date) & !is.null(period)) {
+  if (!is.null(period)) {
     
-    validate("Please enter a date variable.")
+    if (is.null(date)) {
+      
+      validate("Please enter a date variable.")
+    }
   }
   
   if (!is.null(filter_date) & is.null(date)) {
@@ -73,7 +85,7 @@ validate_date <- function(date = NULL, period = NULL, filter_date = NULL, fct = 
   if (!is.null(grp)) {
     
     if (any(grp %in% c("week", "month", "year")) & is.null(date)) {
-      
+     
       validate("Please enter a date variable.")
     }
   }
