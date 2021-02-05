@@ -6,11 +6,11 @@
 #' @param dat  Required, main data frame containing data on hauls or trips.
 #'   Table in FishSET database should contain the string `MainDataTable`.
 #' @param project Required, name of project
-#' @param alt_var String, identifies how to find lat/lon for starting point (must have a lon/lat associated with it).
-#' \code{alt_var} may be the ‘centroid of zonal assignment’, a port variable or lon/lat variable(s) in the primary dataset.
+#' @param occasion String, identifies how to find lat/lon for starting point (must have a lon/lat associated with it).
+#' \code{occasion} may be the ‘centroid of zonal assignment’, a port variable or lon/lat variable(s) in the primary dataset.
 #' If a port variable is defined, a corresponding port table must exist which contains the port name and the longitude and
 #' latitude of each port. For lon/lat variables, longitude must be specified first.
-#' @param occasion Identifies how to find lat/lon for alternative choices. Occasion may be the centroid of zonal assignment 
+#' @param alt_var Identifies how to find lat/lon for alternative choices. alt_var may be the centroid of zonal assignment 
 #'  \code{"Centroid"}, or lon/lat variables in the primary dataset. Longitude must be specified first.
 #' @param griddedDat Data must contain a variable that varies by the spatial dataset \code{gridfile}.
 #'  First variable in \code{griddedDat} should match a column in \code{dat}. The remaining columns should match the
@@ -60,8 +60,8 @@
 #'   between observed and alternative fishing choices (where they could have fished but did not). 
 #'   The distance matrix is calculated by the \code{\link{make_model_design}} function.
 #'   The distance matrix can come from \code{dat} or from the gridded data frame \code{griddedDat}.
-#'   If the distance matrix is to come from \code{dat}, then \code{alt_var} (observed fishing location) and 
-#'   \code{occasion} (alternative fishing location) must be specified. \code{griddedDat}, if used, must be a variable that varies 
+#'   If the distance matrix is to come from \code{dat}, then \code{occasion} (observed fishing location) and 
+#'   \code{alt_var} (alternative fishing location) must be specified. \code{griddedDat}, if used, must be a variable that varies 
 #'   by the spatial dataset, such as wind speed. Each column must be a unique zone that matches the zones in \code{dat}. \cr
 #'   
 #'   Parts of the alternative choice list are pulled by \code{\link{create_expectations}}, 
@@ -78,14 +78,14 @@
 #'         numOfNecessary: \tab Minimum number of hauls for zone to be included\cr
 #'         altChoiceUnits: \tab Set to miles\cr
 #'         altChoiceType: \tab Set to distance\cr
-#'         alt_var: \tab Identifies how to find latitude and longitude for starting point\cr
-#'         occasion: \tab Identifies how to find latitude and longitude for alternative choice \cr
+#'         occasion: \tab Identifies how to find latitude and longitude for starting point\cr
+#'         alt_var: \tab Identifies how to find latitude and longitude for alternative choice \cr
 #'         zoneRow: \tab Zones and choices array\cr
 #'         int: \tab Centroid for each zone. Generated from \code{\link{find_centroid}}\cr
 #'         matrix: \tab Distance matrix is alternative choices comes from gridded dataset
 #'         }
 
-create_alternative_choice <- function(dat, project, alt_var='centroid', occasion='centroid', griddedDat = NULL, 
+create_alternative_choice <- function(dat, project, occasion='centroid', alt_var='centroid', griddedDat = NULL, 
                                       dist.unit = "miles", min.haul=0, gridfile, cat=NULL, 
                                       lon.dat=NULL, lat.dat=NULL, hull.polygon = FALSE,
                                       closest.pt = FALSE, lon.grid = NULL, lat.grid = NULL,
@@ -198,8 +198,8 @@ create_alternative_choice <- function(dat, project, alt_var='centroid', occasion
       choice = choice,
       altChoiceUnits = dist.unit, # miles
       altChoiceType = "distance",
-      alt_var = alt_var, # altToLocal1
-      occasion = occasion, # altToLocal2
+      occasion = occasion, # altToLocal1
+      alt_var = alt_var, # altToLocal2
       startingloc = startingloc,
       zoneHist = zoneHist,
       zoneRow = zoneHist[greaterNZ, 3], # zones and choices array
@@ -302,7 +302,7 @@ create_alternative_choice <- function(dat, project, alt_var='centroid', occasion
     create_alternative_choice_function$functionID <- "create_alternative_choice"
     create_alternative_choice_function$args <- list(
       dat, project, deparse(substitute(gridfile)), min.haul,
-      alt_var, occasion, dist.unit, lon.dat, lat.dat, cat,
+      occasion, alt_var, dist.unit, lon.dat, lat.dat, cat,
       hull.polygon, closest.pt
     )
     create_alternative_choice_function$kwargs <- list("lon.grid" = lon.grid, "lat.grid" = lat.grid, "griddedDat" = griddedDat, "weight.var" = weight.var)

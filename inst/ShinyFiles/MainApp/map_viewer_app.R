@@ -20,7 +20,8 @@ map_viewer_serv <- function(id, dat, spatdat) {
       
       tagList(
         
-        shinycssloaders::withSpinner(htmlOutput(ns("iframe"))),
+       # shinycssloaders::withSpinner(
+        htmlOutput(ns("iframe")),
         
         fluidRow(
           
@@ -33,7 +34,7 @@ map_viewer_serv <- function(id, dat, spatdat) {
                              choices = colnames(dat$dataset), selected = "NMFS_AREA"),
                  
                  selectInput(ns("avm"), "area variable (map)",
-                             choices = colnames(spatdat$dataset))),
+                             choices = colnames(spatdat$dataset), selected='zoneID')),
           
           column(3,
                  
@@ -48,19 +49,19 @@ map_viewer_serv <- function(id, dat, spatdat) {
           
           column(3,
                  
-                 selectInput(ns("lon_start"), "starting longitude",
+                 selectInput(ns("lon_start"), "longitude point or starting longitude",
                              choices = colnames(dat$dataset[ ,grep('lon', colnames(dat$dataset), ignore.case = TRUE)])),
                  
-                 selectInput(ns("lat_start"), "starting latiitude",
+                 selectInput(ns("lat_start"), "latitude point or starting latitude",
                              choices = colnames(dat$dataset[ ,grep('lat', colnames(dat$dataset), ignore.case = TRUE)])),
                  
-                 selectInput(ns("lon_end"), "ending longitude",
-                             choices = colnames(dat$dataset[ ,grep('lon', colnames(dat$dataset), ignore.case = TRUE)]))),
+                 selectInput(ns("lon_end"), "NULL or ending longitude",
+                             choices = c(NULL, colnames(dat$dataset[ ,grep('lon', colnames(dat$dataset), ignore.case = TRUE)])))),
           
           column(3,
                  
-                 selectInput(ns("lat_end"), "ending latiitude",
-                             choices = colnames(dat$dataset[ ,grep('lat', colnames(dat$dataset), ignore.case = TRUE)])))
+                 selectInput(ns("lat_end"), "NULL or ending latitude",
+                             choices = c(NULL, colnames(dat$dataset[ ,grep('lat', colnames(dat$dataset), ignore.case = TRUE)]))))
         )
       )
     })

@@ -2805,12 +2805,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                          tagList(
                           h5(tags$b('Define how alternative fishing choices are calculated between')),
                            div(style="display: inline-block;vertical-align:top; width: 160px;",
-                               selectizeInput('alt_var_ac', 'occurrence:', 
+                               selectizeInput('occasion_ac', 'occurrence:', 
                                            choices=c('Centroid of zonal assignment'='centroid', 
                                                       names(values$dataset)[grep('lat|lon|port', names(values$dataset), ignore.case=TRUE)]),
                                            selected='', options = list(maxItems=2))), #Identifies how to find lat/lon for starting point (must have a lat/lon associated with it) 
                            div(style="display: inline-block;vertical-align:top; width: 170px;",
-                               selectizeInput('occasion_ac', 'and alternative location', 
+                               selectizeInput('alt_var_ac', 'and alternative location', 
                                               choices=c('Centroid of zonal assignment'='centroid', 
                                                        names(values$dataset)[grep('lat|lon', names(values$dataset), ignore.case=TRUE)]), 
                                               selected='', options = list(maxItems = 2))),
