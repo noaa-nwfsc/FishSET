@@ -170,13 +170,28 @@ density_serv <- function(id, values, project) {
     output$grp_select <- renderUI({
       
       selectizeInput(ns("grp"), "grouping variables",
-                     choices = c("year", "month", "week", colnames(values$dataset)),
+                     choices = c("year", "month", "week", category_cols(values$dataset)),
                      multiple = TRUE)
     })
     
+    output$grp_date_UI <- renderUI({
+      
+      if (!is.null(input$grp)) {
+        if (any(input$grp %in% c("year", "month", "week"))) {
+          if(is.null(input$date) & is.null(input$fct_date)) {
+            
+            selectizeInput(ns("grp_date"), "Date variable",
+                           choices = c(date_cols(values$dataset)),
+                           multiple = TRUE, options = list(maxItems = 1))
+          }
+        }
+      }
+    })
+    
+    
     output$date_select <- renderUI({
       
-      selectizeInput(ns("date"), "Date variable (optional)",
+      selectizeInput(ns("date"), "Date variable",
                      choices = c(date_cols(values$dataset)),
                      multiple = TRUE, options = list(maxItems = 1))
     })
@@ -184,8 +199,22 @@ density_serv <- function(id, values, project) {
     output$fct_select <- renderUI({
       
       selectizeInput(ns("fct"), "Split plot by",
-                     choices = c("year", "month", "week", colnames(values$dataset)),
+                     choices = c("year", "month", "week", category_cols(values$dataset)),
                      multiple = TRUE, options = list(maxItems = 2))
+    })
+    
+    output$fct_date_UI <- renderUI({
+      
+      if (!is.null(input$fct)) {
+        if (any(input$fct %in% c("year", "month", "week"))) {
+          if (is.null(input$date) & is.null(input$grp_date)) {
+            
+            selectizeInput(ns("fct_date"), "Date variable",
+                           choices = c(date_cols(values$dataset)),
+                           multiple = TRUE, options = list(maxItems = 1))
+          }
+        }
+      }
     })
     
     filter_val <- reactive({
@@ -206,7 +235,7 @@ density_serv <- function(id, values, project) {
     
     output$filter_by_UIOutput <- renderUI({
       
-      selectizeInput(ns("filter_by"), "Subset by variable",
+      selectizeInput(ns("filter_by"), "Select variable",
                      choices = names(values$dataset), multiple = TRUE, options = list(maxItems = 1)) 
     })
     
@@ -259,14 +288,30 @@ density_serv <- function(id, values, project) {
       }
     })
     
+    # date col for subset, group, and split sections
+    date_sgs <- reactive({
+      
+      cols <- c(input$date, input$grp_date, input$fct_date)
+      if (!is.null(cols)) {
+        cols
+      } else {
+        NULL
+      }
+    }) 
+    
+    output$test <- renderPrint(date_sgs())
+    
     # reset if subset is unchecked
     observeEvent(input$subset_cb == FALSE, {
       
-      updateSelectizeInput(session, "filter_by", choices = names(values$dataset),
-                           options = list(maxItems = 1), selected = NULL)
+      updateCheckboxInput(session, "date_subset_cb", value = FALSE)
+      updateCheckboxInput(session, "var_subset_cb", value = FALSE)
+    })
+    
+    observeEvent(input$date_subset_cb == FALSE, {
       
-      updateTextInput(session, "filter_expr", value = character(0), 
-                      placeholder = "e.g. GEAR_TYPE == 2")
+      updateSelectizeInput(session, "date", choices = c(date_cols(values$dataset)),
+                           options = list(maxItems = 1))
       
       updateSelectizeInput(session, "filter_date",
                            choices = c("date range" = "date_range", "year-month",
@@ -274,33 +319,54 @@ density_serv <- function(id, values, project) {
                            options = list(maxItems = 1), selected = NULL)
     })
     
+    observeEvent(input$var_subset_cb == FALSE, {
+      
+      updateSelectizeInput(session, "filter_by", choices = names(values$dataset),
+                           options = list(maxItems = 1), selected = NULL)
+    })
+    
     # reset if group is unchecked
     observeEvent(input$group_cb == FALSE, {
       
-      updateSelectizeInput(session, "grp", choices = colnames(values$dataset), 
+      updateSelectizeInput(session, "grp", choices = c("year", "month", "week", 
+                                                       category_cols(values$dataset)), 
                            options = list(create = TRUE))
+      
+      updateSelectizeInput(session, "grp_date", choices = c(date_cols(values$dataset)),
+                           options = list(maxItems = 1))
     })
     
     # reset if split is unchecked
     observeEvent(input$split_cb == FALSE, {
       
       updateSelectizeInput(session, "fct", choices = c("year", "month", "week", 
-                                                       colnames(values$dataset)),
+                                                       category_cols(values$dataset)),
                            options = list(maxItems = 2))
+      
+      updateSelectizeInput(session, "fct_date", choices = c(date_cols(values$dataset)),
+                           options = list(maxItems = 1))
     })
     
     den_out <- eventReactive(input$fun_run, {
       
-      validate_date(input$date, input$filter_date, input$fct, input$grp)
+      validate_date(date = date_sgs(), filter_date = input$filter_date, 
+                    fct = input$fct, grp = input$grp)
       
       density_plot(values$dataset, project = project(), var = input$var, type = input$type, 
-                   group = input$grp,date = input$date, filter_date = input$filter_date, 
-                   date_value = date_value(), filter_by = input$filter_by, filter_value = input$filter_by_val, 
-                   filter_expr = input$filter_expr, facet_by = input$fct, scale = input$scale, 
-                   tran = input$tran, bw = input$bw, position = input$position) 
+                   group = input$grp, combine = input$combine, date = date_sgs(), 
+                   filter_date = input$filter_date, date_value = date_value(), 
+                   filter_by = input$filter_by, filter_value = input$filter_by_val, 
+                   facet_by = input$fct, scale = input$scale, tran = input$tran, 
+                   bw = input$bw, position = input$position, pages = input$pages) 
     })
     
-    output$plot <- renderPlot({den_out()})
+    
+    plot_output <- eventReactive(input$fun_run, {
+      n_plot_output(den_out())
+    })
+    
+   # output$plot <- renderPlot({den_out()})
+    output$output <- renderUI(plot_output())
   })
 }
 
