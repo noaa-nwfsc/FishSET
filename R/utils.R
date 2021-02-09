@@ -438,15 +438,17 @@ agg_helper <- function(dataset, value, period = NULL, group = NULL, fun = "sum")
   
   agg_fm <- stats::reformulate(by_fm, val_fm)
   
-  stats::aggregate(agg_fm, data = dataset, FUN = fun)
+  stats::aggregate(agg_fm, data = dataset, FUN = fun, na.action = NULL)
 }
 
 
-add_missing_dates <- function(dataset, date, value, group = NULL, facet_by = NULL) {
+add_missing_dates <- function(dataset, date = NULL, value, sub_date = NULL, group = NULL, 
+                              facet_by = NULL, fun = "sum") {
   #' Add missing dates to `MainDataTable`.
   #'
   #' @param dataset Object containing `MainDataTable`. 
   #' @param date String, name of date variable to find missing days.
+  #' @param sub_date String, name of date variable to subset by. 
   #' @param value String, name of value variable to be aggregated by \code{agg_helper}.
   #' @param group String, name of grouping variable(s).
   #' @param facet_by String, name of variables(s) to be facetted (split). 
@@ -454,32 +456,65 @@ add_missing_dates <- function(dataset, date, value, group = NULL, facet_by = NUL
   #' @keywords internal
   #' @importFrom dplyr anti_join
   
-  dataset[[date]] <- date_parser(dataset[[date]])
-  
-  cols <- c(date, group, facet_by)
-  
-  full_dates <- seq.Date(from = min(dataset[[date]], na.rm = TRUE), 
-                         to = max(dataset[[date]], na.rm = TRUE), 
-                         by = "day")
-  
-  grp_fct <- c(group, facet_by)
-  
-  missing <- lapply(dataset[grp_fct], function(x) unique(x))
-  
-  missing[[date]] <- full_dates
-  
-  missing <- do.call(expand.grid, list(missing))
-  
-  missing <- dplyr::anti_join(missing, dataset[cols])
-  
-  if (nrow(missing) > 0) {
+  if (is.null(date) & is.null(group) & is.null(facet_by)) {
     
-    missing[value] <- 0
+    dataset
+  
+  } else {
     
-    dataset <- rbind(dataset[c(cols, value)], missing)
+    if (!is.null(date) | !is.null(sub_date)) {
+      
+      dataset[unique(c(date, sub_date))] <- 
+        lapply(dataset[unique(c(date, sub_date))], function(x) {
+          
+          if (any(!(class(x) %in% c("Date", "POSIXct", "POSIXt")))) {
+            date_parser(x)
+          } else {
+            x
+          }
+        })
+    } 
+    
+    cols <- unique(c(date, sub_date, group, facet_by))
+    
+    if (!is.null(date)) {
+      
+      full_dates <- seq.Date(from = min(dataset[[date]], na.rm = TRUE), 
+                             to = max(dataset[[date]], na.rm = TRUE), 
+                             by = "day")
+    }
+    
+    if (!is.null(sub_date) & !is.null(date)) {
+      if (date == sub_date) {
+        sub_date <- NULL
+      }
+    }
+    
+    aux <- c(group, facet_by)
+    
+    missing <- lapply(dataset[aux], function(x) unique(x))
+    
+    if (!is.null(date)) missing[[date]] <- full_dates
+    
+    missing <- do.call(expand.grid, list(missing))
+    
+    missing <- dplyr::anti_join(missing, dataset[cols])
+    
+    if (nrow(missing) > 0) {
+      
+      if (!is.null(sub_date)) missing[sub_date] <- NA
+      
+      if (fun == "sum") {
+        missing[value] <- 0
+      } else if (fun == "count") {
+        missing[value] <- NA # agg_helper will treat this as zero
+      }
+      
+      dataset <- rbind(dataset[c(cols, value)], missing)
+    }
+    
+    dataset
   }
-  
-  dataset
 }
 
 
@@ -687,9 +722,7 @@ order_factor <- function(dat, fac, val, rev = FALSE) {
   #'
   agg <- stats::aggregate(stats::reformulate(fac, val), dat, FUN = sum)
 
-  ord <- unique(agg[[fac]][order(agg[[val]])])
-
-  if (rev == TRUE) ord <- rev(levels(ord))
+  ord <- unique(agg[[fac]][order(agg[[val]], decreasing = rev)])
 
   dat[[fac]] <- factor(dat[[fac]], levels = ord)
 

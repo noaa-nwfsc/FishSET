@@ -16,7 +16,6 @@ date_cols <- function(dat) {
   if (any(grepl("date", colnames(dat), ignore.case = TRUE))) {
     
     grep("date", colnames(dat), ignore.case = TRUE, value = TRUE)
-    
   }
 }
 
@@ -34,6 +33,14 @@ category_cols <- function(dat) {
   names(choices[choices])
 }
 
+fleet_col <- function(cols) {
+  
+  if (any(grepl("fleet", cols, ignore.case = TRUE))) {
+    grep("fleet", cols, ignore.case = TRUE, value = TRUE)[1]
+  } else {
+    cols[1]
+  }
+}
 
 yearRange <- function(dat, yr, type) {
   
@@ -54,13 +61,15 @@ yearRange <- function(dat, yr, type) {
   }
 }
 
-validate_date <- function(date = NULL, period = NULL, filter_date = NULL, fct = NULL, grp = NULL) {
+validate_date <- function(date = NULL, period = NULL, sub_date = NULL, 
+                          filter_date = NULL, fct = NULL, grp = NULL) {
   
-  # if (!is.null(date) & is.null(period)) {
-  #   
-  #   validate("Please enter a period to summarize by.")
-  # }
-  
+  if (!is.null(period)) {
+    if (period == "no_period") {
+      period <- NULL
+    }
+  }
+
   if (!is.null(period)) {
     
     if (is.null(date)) {
@@ -69,14 +78,14 @@ validate_date <- function(date = NULL, period = NULL, filter_date = NULL, fct = 
     }
   }
   
-  if (!is.null(filter_date) & is.null(date)) {
+  if (!is.null(filter_date) & is.null(sub_date)) {
     
     validate("Please enter a date variable.")
   }
   
   if (!is.null(fct)) {
     
-    if (fct %in% c("week", "month", "year") & is.null(date)) {
+    if (fct %in% c("week", "month", "year") & is.null(sub_date)) {
       
       validate("Please enter a date variable.")
     }
@@ -84,7 +93,7 @@ validate_date <- function(date = NULL, period = NULL, filter_date = NULL, fct = 
   
   if (!is.null(grp)) {
     
-    if (any(grp %in% c("week", "month", "year")) & is.null(date)) {
+    if (any(grp %in% c("week", "month", "year")) & is.null(sub_date)) {
      
       validate("Please enter a date variable.")
     }
