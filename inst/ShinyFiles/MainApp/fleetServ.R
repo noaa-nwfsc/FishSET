@@ -299,8 +299,6 @@ density_serv <- function(id, values, project) {
       }
     }) 
     
-    output$test <- renderPrint(date_sgs())
-    
     # reset if subset is unchecked
     observeEvent(input$subset_cb == FALSE, {
       
@@ -332,8 +330,9 @@ density_serv <- function(id, values, project) {
                                                        category_cols(values$dataset)), 
                            options = list(create = TRUE))
       
-      updateSelectizeInput(session, "grp_date", choices = c(date_cols(values$dataset)),
-                           options = list(maxItems = 1))
+      updateSelectizeInput(session, "grp_date", choices = date_cols(values$dataset),
+                           options = list(maxItems = 1, create = TRUE, 
+                                          placeholer = "select or type column name"))
     })
     
     # reset if split is unchecked
@@ -365,7 +364,6 @@ density_serv <- function(id, values, project) {
       n_plot_output(den_out())
     })
     
-   # output$plot <- renderPlot({den_out()})
     output$output <- renderUI(plot_output())
   })
 }
@@ -390,22 +388,65 @@ vessel_serv <- function(id, values, project) {
     
     output$date_select <- renderUI({
       
-          selectizeInput(ns("date"), "Date variable (optional)", 
-                      choices = date_cols(values$dataset), multiple = TRUE,
-                      options = list(maxItems = 1, create = TRUE,
-                                     placeholder='Select or type variable name'))
+      selectizeInput(ns("date"), "Date variable",
+                     choices = c(date_cols(values$dataset)), multiple = TRUE,
+                     options = list(maxItems = 1, create = TRUE,
+                                    placeholder = "Select or type variable name"))
+    })
+    
+    output$sub_date_select <- renderUI({
+      
+      selectizeInput(ns("sub_date"), "Date variable", 
+                     choices = date_cols(values$dataset), multiple = TRUE,
+                     options = list(maxItems = 1, create = TRUE,
+                                    placeholder = "Select or type variable name"))
     })
     
     output$grp_select <- renderUI({
       
-      selectizeInput(ns("grp"), "Select group variables", choices = colnames(values$dataset), 
-                     multiple = TRUE, options = list(create = TRUE))
+      selectizeInput(ns("grp"), "Select group variables", 
+                     choices = c("year", "month", "week", category_cols(values$dataset)), 
+                     multiple = TRUE, options = list(create = TRUE, 
+                                                     placeholder = "Select or type variable name"))
+    })
+    
+    output$grp_date_UI <- renderUI({
+      
+      if (!is.null(input$grp)) {
+        if (any(input$grp %in% c("year", "month", "week"))) {
+          if(is.null(input$sub_date) & is.null(input$fct_date)) {
+            
+            selectizeInput(ns("grp_date"), "Date variable",
+                           choices = date_cols(values$dataset),
+                           multiple = TRUE, options = list(maxItems = 1, create = TRUE, 
+                                                           placeholder = "Select or type variable name"))
+          }
+        }
+      }
     })
     
     output$fct_select <- renderUI({
       
-      selectizeInput(ns("fct"), "Split plot by", choices = c("year", "month", "week", colnames(values$dataset)),
-                     multiple = TRUE, options = list(maxItems = 2))
+      selectizeInput(ns("fct"), "Split plot by", 
+                     choices = c("year", "month", "week", category_cols(values$dataset)),
+                     selected = fleet_col(category_cols(values$dataset)),
+                     multiple = TRUE, options = list(maxItems = 2, create = TRUE, 
+                                                     placeholder = "Select or type variable name"))
+    })
+    
+    output$fct_date_UI <- renderUI({
+      
+      if (!is.null(input$fct)) {
+        if (any(input$fct %in% c("year", "month", "week"))) {
+          if (is.null(input$sub_date) & is.null(input$grp_date)) {
+            
+            selectizeInput(ns("fct_date"), "Date variable",
+                           choices = date_cols(values$dataset),
+                           multiple = TRUE, options = list(maxItems = 1, create = TRUE, 
+                                                           placeholder = "Select or type variable name"))
+          }
+        }
+      }
     })
     
     filter_val <- reactive({
@@ -444,51 +485,64 @@ vessel_serv <- function(id, values, project) {
     
     output$filter_date_UIOutput <- renderUI({
       
-        if (!is.null(input$date)) {
+        if (!is.null(input$sub_date)) {
           if (!is.null(input$filter_date)) {
             if (input$filter_date == "date_range") {
               
               dateRangeInput(ns("date_range"), label = "Date range",
-                             start = min(values$dataset[[input$date]], na.rm = TRUE),
-                             end = max(values$dataset[[input$date]], na.rm = TRUE))
+                             start = min(values$dataset[[input$sub_date]], na.rm = TRUE),
+                             end = max(values$dataset[[input$sub_date]], na.rm = TRUE))
               
             } else if (input$filter_date != "date_range") {
               
-              filter_periodUI(id, values$dataset, input$date, input$filter_date)
+              filter_periodUI(id, values$dataset, input$sub_date, input$filter_date)
             }
           }
         }
     })
     
-    # reset period to null if date isn't selected
-    observeEvent(is.null(input$date), {
+    # reset date if not summing over period
+    observeEvent(input$period == "no_period", {
       
-      updateSelectizeInput(session, "period", choices = c("year-month" = "year_month", "month-year" = "month_year", 
-                                                          "year", "month", "weeks", "day of the month" = "day",
-                                                          "day of the year" = "day_of_year", "weekday"),
-                           options = list(maxItems = 1), selected = NULL)
+      updateSelectInput(session, "date",  choices = date_cols(values$dataset))
     })
     
     # reset if subset is unchecked
     observeEvent(input$subset_cb == FALSE, {
       
-      updateSelectizeInput(session, "filter_by", choices = names(values$dataset),
-                           options = list(maxItems = 1), selected = NULL)
+      updateCheckboxInput(session, "date_subset_cb", value = FALSE)
+      updateCheckboxInput(session, "var_subset_cb", value = FALSE)
+    })
+    
+    observeEvent(input$date_subset_cb == FALSE, {
       
-      updateTextInput(session, "filter_expr", value = character(0), 
-                      placeholder = "e.g. GEAR_TYPE == 2")
+      updateSelectizeInput(session, "sub_date", choices = date_cols(values$dataset), 
+                           options = list(maxItems = 1, create = TRUE,
+                                          placeholder = "Select or type variable name"))
       
       updateSelectizeInput(session, "filter_date",
-                     choices = c("date range" = "date_range", "year-month",
-                                 "year-week", "year-day", "year", "month", "week", "day"),
-                     options = list(maxItems = 1), selected = NULL)
+                           choices = c("date range" = "date_range", "year-month",
+                                       "year-week", "year-day", "year", "month", "week", "day"),
+                           options = list(maxItems = 1), selected = NULL)
+    })
+    
+    observeEvent(input$var_subset_cb == FALSE, {
+      
+      updateSelectizeInput(session, "filter_by", choices = names(values$dataset),
+                           options = list(maxItems = 1), selected = NULL)
     })
     
     # reset if group is unchecked
     observeEvent(input$group_cb == FALSE, {
       
-      updateSelectizeInput(session, "grp", choices = colnames(values$dataset), 
-                           options = list(create = TRUE))
+      updateSelectizeInput(session, "grp", 
+                           choices = c("year", "month", "week", category_cols(values$dataset)), 
+                           options = list(create = TRUE, placeholder = "Select or type variable name"))
+      
+      updateSelectizeInput(session, "grp_date", choices = date_cols(values$dataset),
+                           options = list(maxItems = 1, create = TRUE,
+                                          placeholder = "Select or type variable name"))
+      
       updateCheckboxInput(session, "combine", value = FALSE)
     })
     
@@ -496,13 +550,18 @@ vessel_serv <- function(id, values, project) {
     observeEvent(input$split_cb == FALSE, {
       
       updateSelectizeInput(session, "fct", choices = c("year", "month", "week", 
-                                                       colnames(values$dataset)),
+                                                       category_cols(values$dataset)),
+                           selected = fleet_col(category_cols(values$dataset)),
                            options = list(maxItems = 2))
+      
+      updateSelectizeInput(session, "fct_date", choices = date_cols(values$dataset),
+                           options = list(maxItems = 1, create = TRUE, 
+                                          placeholder = "Select or type variable name"))
     })
     
     date_value <- reactive({
       
-      if (!is.null(input$date) & !is.null(input$filter_date)) {
+      if (!is.null(input$sub_date) & !is.null(input$filter_date)) {
         
         if (input$filter_date == "date_range") {
           
@@ -519,13 +578,26 @@ vessel_serv <- function(id, values, project) {
       }
     })
     
+    # date col for subset, group, and split sections
+    sub_date_col <- reactive({
+      
+      cols <- c(input$sub_date, input$grp_date, input$fct_date)
+      if (!is.null(cols)) {
+        cols
+      } else {
+        NULL
+      }
+    }) 
+    
     v_out <- eventReactive(input$fun_run, {
       
-      validate_date(input$date, input$period, input$filter_date, input$fct, input$grp)
+      validate_date(date = input$date, sub_date = sub_date_col(), period = input$period, 
+                    filter_date = input$filter_date, fct = input$fct, grp = input$grp)
       
       vessel_count(values$dataset, project = project(), v_id = input$var, date = input$date,
-                   period = input$period, group = input$grp, filter_date = input$filter_date,
-                   date_value = date_value(), filter_by = input$filter_by, filter_value = input$filter_by_val, 
+                   period = input$period, group = input$grp, sub_date = sub_date_col(),
+                   filter_date = input$filter_date, date_value = date_value(), 
+                   filter_by = input$filter_by, filter_value = input$filter_by_val, 
                    filter_expr = input$filter_expr, facet_by = input$fct, combine = input$combine,
                    position = input$position, tran = input$tran, value = input$value,
                    scale = input$scale, type = input$type, output = input$out)
@@ -559,22 +631,65 @@ species_serv <- function(id, values, project) {
     
     output$date_select <- renderUI({
       
-       selectizeInput(ns("date"), "Date variable (optional)",
+       selectizeInput(ns("date"), "Date variable",
                     choices = c(date_cols(values$dataset)), multiple = TRUE,
-                    options = list(maxItems = 1, create = TRUE))
+                    options = list(maxItems = 1, create = TRUE,
+                                   placeholder = "Select or type variable name"))
+    })
+    
+    output$sub_date_select <- renderUI({
+      
+      selectizeInput(ns("sub_date"), "Date variable", 
+                     choices = date_cols(values$dataset), multiple = TRUE,
+                     options = list(maxItems = 1, create = TRUE,
+                                    placeholder = "Select or type variable name"))
     })
     
     output$grp_select <- renderUI({
       
       selectizeInput(ns("grp"), "Select group variables",
-                     choices = c(colnames(values$dataset)), multiple = TRUE)
+                     choices = c("year", "month", "week", category_cols(values$dataset)), 
+                     multiple = TRUE, options = list(create = TRUE, 
+                                                     placeholder = "Select or type variable name"))
+    })
+    
+    output$grp_date_UI <- renderUI({
+      
+      if (!is.null(input$grp)) {
+        if (any(input$grp %in% c("year", "month", "week"))) {
+          if(is.null(input$sub_date) & is.null(input$fct_date)) {
+            
+            selectizeInput(ns("grp_date"), "Date variable",
+                           choices = date_cols(values$dataset),
+                           multiple = TRUE, options = list(maxItems = 1, create = TRUE, 
+                                                           placeholder = "Select or type variable name"))
+          }
+        }
+      }
     })
     
     output$fct_select <- renderUI({
       
       selectizeInput(ns("fct"), "split plot by",
-                     choices = c("year", "month", "week", "species", colnames(values$dataset)),
-                     multiple = TRUE, options = list(maxItems = 2))
+                     choices = c("year", "month", "week", "species", category_cols(values$dataset)),
+                     selected = fleet_col(category_cols(values$dataset)),
+                     multiple = TRUE, options = list(maxItems = 2, create = TRUE, 
+                                                     placeholder = "Select or type variable name"))
+    })
+    
+    output$fct_date_UI <- renderUI({
+      
+      if (!is.null(input$fct)) {
+        if (any(input$fct %in% c("year", "month", "week"))) {
+          if (is.null(input$sub_date) & is.null(input$grp_date)) {
+            
+            selectizeInput(ns("fct_date"), "Date variable",
+                           choices = date_cols(values$dataset),
+                           multiple = TRUE, options = list(maxItems = 1, create = TRUE, 
+                                                           placeholder = "Select or type variable name"))
+          }
+        }
+      }
     })
     
     filter_val <- reactive({
@@ -614,39 +729,40 @@ species_serv <- function(id, values, project) {
     output$filter_date_UIOutput <- renderUI({
      
       
-       if (!is.null(input$date)) {
+       if (!is.null(input$sub_date)) {
         if (!is.null(input$filter_date)) {
           if (input$filter_date == "date_range") {
 
             dateRangeInput(ns("date_range"), label = "Date range",
-                           start = min(values$dataset[[input$date]], na.rm = TRUE),
-                           end = max(values$dataset[[input$date]], na.rm = TRUE))
+                           start = min(values$dataset[[input$sub_date]], na.rm = TRUE),
+                           end = max(values$dataset[[input$sub_date]], na.rm = TRUE))
 
           } else if (input$filter_date != "date_range") {
 
-            filter_periodUI(id, values$dataset, input$date, input$filter_date)
+            filter_periodUI(id, values$dataset, input$sub_date, input$filter_date)
           }
         }
        }
     })
     
-    # reset period to null if date isn't selected
-    observeEvent(is.null(input$date), {
+    # reset date if not summing over period
+    observeEvent(input$period == "no_period", {
       
-      updateSelectizeInput(session, "period", choices = c("year-month" = "year_month", "month-year" = "month_year",
-                                                          "year", "month", "weeks", "day of the month" = "day",
-                                                          "day of the year" = "day_of_year", "weekday"),
-                           options = list(maxItems = 1), selected = NULL)
+      updateSelectInput(session, "date",  choices = date_cols(values$dataset))
     })
     
-    # reset subset inputs if unchecked
+    # reset if subset is unchecked
     observeEvent(input$subset_cb == FALSE, {
       
-      updateSelectizeInput(session, "filter_by", choices = names(values$dataset),
-                           options = list(maxItems = 1), selected = NULL)
+      updateCheckboxInput(session, "date_subset_cb", value = FALSE)
+      updateCheckboxInput(session, "var_subset_cb", value = FALSE)
+    })
+    
+    observeEvent(input$date_subset_cb == FALSE, {
       
-      updateTextInput(session, "filter_expr", value = character(0), 
-                      placeholder = "e.g. GEAR_TYPE == 2")
+      updateSelectizeInput(session, "sub_date", choices = date_cols(values$dataset), 
+                           options = list(maxItems = 1, create = TRUE,
+                                          placeholder = "Select or type variable name"))
       
       updateSelectizeInput(session, "filter_date",
                            choices = c("date range" = "date_range", "year-month",
@@ -654,25 +770,42 @@ species_serv <- function(id, values, project) {
                            options = list(maxItems = 1), selected = NULL)
     })
     
-    # reset group inputs if unchecked
+    observeEvent(input$var_subset_cb == FALSE, {
+      
+      updateSelectizeInput(session, "filter_by", choices = names(values$dataset),
+                           options = list(maxItems = 1), selected = NULL)
+    })
+    
+    # reset if group is unchecked
     observeEvent(input$group_cb == FALSE, {
       
-      updateSelectizeInput(session, "grp", choices = colnames(values$dataset), 
-                           options = list(create = TRUE))
+      updateSelectizeInput(session, "grp", 
+                           choices = c("year", "month", "week", category_cols(values$dataset)), 
+                           options = list(create = TRUE, placeholder = "Select or type variable name"))
+      
+      updateSelectizeInput(session, "grp_date", choices = date_cols(values$dataset),
+                           options = list(maxItems = 1, create = TRUE,
+                                          placeholder = "Select or type variable name"))
+      
       updateCheckboxInput(session, "combine", value = FALSE)
     })
     
-    # reset split inputs if unchecked 
+    # reset if split is unchecked
     observeEvent(input$split_cb == FALSE, {
       
-      updateSelectizeInput(session, "fct", choices = c("year", "month", "week", 
-                                                       colnames(values$dataset)),
+      updateSelectizeInput(session, "fct", choices = c("year", "month", "week", "species",
+                                                       category_cols(values$dataset)),
+                           selected = fleet_col(category_cols(values$dataset)),
                            options = list(maxItems = 2))
+      
+      updateSelectizeInput(session, "fct_date", choices = date_cols(values$dataset),
+                           options = list(maxItems = 1, create = TRUE, 
+                                          placeholder = "Select or type variable name"))
     })
     
     date_value <- reactive({
       
-      if (!is.null(input$date) & !is.null(input$filter_date)) {
+      if (!is.null(input$sub_date) & !is.null(input$filter_date)) {
       
       if (input$filter_date == "date_range") {
         
@@ -689,14 +822,26 @@ species_serv <- function(id, values, project) {
       }
     })
     
+    # date col for subset, group, and split sections
+    sub_date_col <- reactive({
+      
+      cols <- c(input$sub_date, input$grp_date, input$fct_date)
+      if (!is.null(cols)) {
+        cols
+      } else {
+        NULL
+      }
+    }) 
+    
     spec_out <- eventReactive(input$fun_run, {
       
-      validate(need(input$var, "Please select a species catch variable."))
+      validate(need(input$var, "Please select a catch variable."))
       
-      validate_date(input$date, input$period, input$filter_date, input$fct, input$grp)
+      validate_date(date = input$date, sub_date = sub_date_col(), period = input$period, 
+                    filter_date = input$filter_date, fct = input$fct, grp = input$grp)
       
       species_catch(values$dataset, project = project(), species = input$var, date = input$date,
-                    period = input$period, fun = input$fun, group = input$grp,
+                    period = input$period, fun = input$fun, group = input$grp, sub_date = sub_date_col(),
                     filter_date = input$filter_date, date_value = date_value(),
                     filter_by = input$filter_by, filter_value = input$filter_by_val, 
                     filter_expr = input$filter_expr, facet_by = input$fct, combine = input$combine,
@@ -852,7 +997,7 @@ roll_serv <- function(id, values, project) {
     roll_out <- eventReactive(input$fun_run, {
       
       validate(need(input$date, "Please select a date variable."),
-               need(input$var, "Please select a species catch variable."))
+               need(input$var, "Please select a catch variable."))
       
       validate_date(input$date, input$filter_date, input$fct, input$grp)
       
@@ -891,21 +1036,63 @@ weekly_catch_serv <- function(id, values, project) {
     
     output$date_select <- renderUI({
       
-      selectInput(ns("date"), "Date variable (x-axis)",
-                  choices = c(date_cols(values$dataset)))
+      selectInput(ns("date"), "Date variable (x-axis)", 
+                  choices = date_cols(values$dataset), multiple = FALSE)
+    })
+    
+    output$sub_date_select <- renderUI({
+      
+      selectizeInput(ns("sub_date"), "Date variable", 
+                     choices = date_cols(values$dataset), multiple = TRUE,
+                     options = list(maxItems = 1, create = TRUE,
+                                    placeholder = "Select or type variable name"))
     })
     
     output$grp_select <- renderUI({
       
       selectizeInput(ns("grp"), "Select group variables",
-                     choices = c(colnames(values$dataset)), multiple = TRUE)
+                     choices = c("year", "month", "week", category_cols(values$dataset)), 
+                     multiple = TRUE, options = list(create = TRUE, 
+                                                     placeholder = "Select or type variable name"))
+    })
+    
+    output$grp_date_UI <- renderUI({
+      
+      if (!is.null(input$grp)) {
+        if (any(input$grp %in% c("year", "month", "week"))) {
+          if(is.null(input$sub_date) & is.null(input$fct_date)) {
+            
+            selectizeInput(ns("grp_date"), "Date variable",
+                           choices = date_cols(values$dataset),
+                           multiple = TRUE, options = list(maxItems = 1, create = TRUE, 
+                                                           placeholder = "Select or type variable name"))
+          }
+        }
+      }
     })
     
     output$fct_select <- renderUI({
       
-      selectizeInput(ns("fct"), "Split plot by",
-                     choices = c("year", "month", "species", colnames(values$dataset)),
-                     multiple = TRUE, options = list(maxItems = 2))
+      selectizeInput(ns("fct"), "split plot by",
+                     choices = c("year", "month", "week", "species", category_cols(values$dataset)),
+                     selected = fleet_col(category_cols(values$dataset)),
+                     multiple = TRUE, options = list(maxItems = 2, create = TRUE, 
+                                                     placeholder = "Select or type variable name"))
+    })
+    
+    output$fct_date_UI <- renderUI({
+      
+      if (!is.null(input$fct)) {
+        if (any(input$fct %in% c("year", "month", "week"))) {
+          if (is.null(input$sub_date) & is.null(input$grp_date)) {
+            
+            selectizeInput(ns("fct_date"), "Date variable",
+                           choices = date_cols(values$dataset),
+                           multiple = TRUE, options = list(maxItems = 1, create = TRUE, 
+                                                           placeholder = "Select or type variable name"))
+          }
+        }
+      }
     })
     
     filter_val <- reactive({
@@ -949,12 +1136,12 @@ weekly_catch_serv <- function(id, values, project) {
         if (input$filter_date == "date_range") {
           
           dateRangeInput(ns("date_range"), label = "Date range",
-                         start = min(values$dataset[[input$date]], na.rm = TRUE),
-                         end = max(values$dataset[[input$date]], na.rm = TRUE))
+                         start = min(values$dataset[[input$sub_date]], na.rm = TRUE),
+                         end = max(values$dataset[[input$sub_date]], na.rm = TRUE))
           
         } else {
           
-          filter_periodUI(id, values$dataset, input$date, input$filter_date)
+          filter_periodUI(id, values$dataset, input$sub_date, input$filter_date)
         }
       }
     })
@@ -978,14 +1165,19 @@ weekly_catch_serv <- function(id, values, project) {
       }
     })
     
-    # reset subset inputs if unchecked
+    # reset if subset is unchecked
     observeEvent(input$subset_cb == FALSE, {
       
-      updateSelectizeInput(session, "filter_by", choices = names(values$dataset),
-                           options = list(maxItems = 1), selected = NULL)
+      updateCheckboxInput(session, "date_subset_cb", value = FALSE)
+      updateCheckboxInput(session, "var_subset_cb", value = FALSE)
+    })
+    
+    # reset subset inputs if unchecked
+    observeEvent(input$date_subset_cb == FALSE, {
       
-      updateTextInput(session, "filter_expr", value = character(0), 
-                      placeholder = "e.g. GEAR_TYPE == 2")
+      updateSelectizeInput(session, "sub_date", choices = date_cols(values$dataset), 
+                           options = list(maxItems = 1, create = TRUE,
+                                          placeholder = "Select or type variable name"))
       
       updateSelectizeInput(session, "filter_date",
                            choices = c("date range" = "date_range", "year-month",
@@ -993,28 +1185,51 @@ weekly_catch_serv <- function(id, values, project) {
                            options = list(maxItems = 1), selected = NULL)
     })
     
-    # reset group inputs if unchecked
+    # reset if group is unchecked
     observeEvent(input$group_cb == FALSE, {
       
-      updateSelectizeInput(session, "grp", choices = colnames(values$dataset), 
-                           options = list(create = TRUE))
+      updateSelectizeInput(session, "grp", 
+                           choices = c("year", "month", "week", category_cols(values$dataset)), 
+                           options = list(create = TRUE, placeholder = "Select or type variable name"))
+      
+      updateSelectizeInput(session, "grp_date", choices = date_cols(values$dataset),
+                           options = list(maxItems = 1, create = TRUE,
+                                          placeholder = "Select or type variable name"))
+      
       updateCheckboxInput(session, "combine", value = FALSE)
     })
     
-    # reset split inputs if unchecked 
+    # reset if split is unchecked
     observeEvent(input$split_cb == FALSE, {
       
-      updateSelectizeInput(session, "fct", choices = c("year", "month", "week", 
-                                                       colnames(values$dataset)),
+      updateSelectizeInput(session, "fct", choices = c("year", "month", "week", "species",
+                                                       category_cols(values$dataset)),
+                           selected = fleet_col(category_cols(values$dataset)),
                            options = list(maxItems = 2))
+      
+      updateSelectizeInput(session, "fct_date", choices = date_cols(values$dataset),
+                           options = list(maxItems = 1, create = TRUE, 
+                                          placeholder = "Select or type variable name"))
     })
+    
+    # date col for subset, group, and split sections
+    sub_date_col <- reactive({
+      
+      cols <- c(input$sub_date, input$grp_date, input$fct_date)
+      if (!is.null(cols)) {
+        cols
+      } else {
+        NULL
+      }
+    }) 
     
     wc_out <- eventReactive(input$fun_run, {
       
       validate(need(input$date, "Please select a date variable."),
-               need(input$var, "Please select a species catch variable."))
+               need(input$var, "Please select a catch variable."))
       
-      validate_date(input$date, input$filter_date, input$fct, input$grp)
+      validate_date(date = input$date, sub_date = sub_date_col(), filter_date = input$filter_date, 
+                    fct = input$fct, grp = input$grp)
       
       weekly_catch(values$dataset, project = project(), species = input$var, date = input$date,
                    fun = input$fun, group = input$grp, filter_date = input$filter_date, 
