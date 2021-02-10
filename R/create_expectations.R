@@ -320,7 +320,6 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
       meanCatch <- meanCatchSimple[, -c(1, 2)]
     }
 
-
     bi <- match(tiDataFloor, unique(tiData), nomatch = 0) # [~,bi]=ismember(tiDataFloor,tLine)
 
     # this is the time for each alternative ('occurence level')
@@ -339,7 +338,7 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
       # if ~isinf(B(C(w),end))
       col <- B[C[w], 2]
       # the following is the output that is NROWS by number of alternatives
-      newCatch[which(cit == cit[w]), col] <- meanCatch[which(rownames(meanCatch)==col), which(sub("^[^.]*.","",colnames(meanCatch))==tiDataFloor[i])] ## loop shouldn't be necessary but no loop results in out of memory issue
+      newCatch[which(cit == cit[w]), col] <- meanCatch[which(rownames(meanCatchSimple)==paste0(B[C[w],2], B[C[w],1])), which(sub("^[^.]*.","", colnames(meanCatch))==tiDataFloor[w])] ## loop shouldn't be necessary but no loop results in out of memory issue
     }
 
     if (is_empty(empty.expectation)) {
