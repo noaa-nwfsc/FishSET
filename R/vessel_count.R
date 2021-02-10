@@ -165,6 +165,18 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
     } 
   }
   
+  # filter date ----
+  if (!is.null(filter_date)) {
+    
+    dataset <- subset_date(dataset, sub_date, filter_date, date_value)
+    
+    if (nrow(dataset) == 0) {
+      
+      warning("Filtered data table has zero rows. Check filter parameters.")
+      end <- TRUE
+    }
+  }
+  
   # facet date ----
   if (!is.null(facet_by)) {
     if (length(facet_date) > 0) {
@@ -280,23 +292,6 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
     }
   }
   
-  # filter date ----
-  if (!is.null(filter_date)) {
-    
-    dataset <- subset_date(dataset, sub_date, filter_date, date_value)
-    
-    if (!is.null(date)) {
-      
-      if (sub_date != date) dataset[[sub_date]] <- NULL
-    }
-    
-    if (nrow(dataset) == 0) {
-      
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      end <- TRUE
-    }
-  }
-  
   if (end == FALSE) {
     
     # summary table ----
@@ -403,9 +398,15 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
       }
       
       x_lab <- function() {
+        
         if (!is.null(period)) {
+          
+          p_lab <- switch(period, "year_month" = "year-month", "month_year" = "month-year",
+          "year" = "year", "month" = "month", "weeks" = "weeks", "day_of_month" = "day of the month",
+          "day_of_year" = "day of the year")
+        
           if (period != date) {
-            paste(period, date)
+            paste0(date, " (", p_lab, ")")
           } else {
             date
           }
