@@ -105,11 +105,11 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
   
   if(!is.null(gridfile)){
     if(is.character(gridfile)){
-      if(table_exists(paste0(gridfile, 'centroid'))==FALSE){
-        warning('Table', paste0(gridfile, 'centroid'),'not found in FishSET database. 
+      if(table_exists(paste0(gridfile, 'Centroid'))==FALSE){
+        warning('Table', paste0(gridfile, 'Centroid'),'not found in FishSET database. 
                 Zonal centroid must be defined from a dataset')
       } else {
-      int <- table_view(paste0(gridfile, 'centroid'))
+      int <- table_view(paste0(gridfile, 'Centroid'))
       }
     } else {
   int <- find_centroid(
