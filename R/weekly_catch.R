@@ -198,8 +198,8 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
   
   # facet date ----
   # add year and week columns
-  dataset$year <- format(dataset[[date]], "%Y")
-  dataset$week <- format(dataset[[date]], "%U")
+  dataset$year <- as.integer(format(dataset[[date]], "%Y"))
+  dataset$week <- as.integer(format(dataset[[date]], "%U"))
   
   if (!is.null(facet_date)) {
     
@@ -207,10 +207,6 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
       
       dataset$month <- factor(format(dataset[[sub_date]], "%b"), levels = month.abb, 
                               ordered = TRUE)
-      
-    } else if ("week" %in% facet_date) {
-      
-      dataset$week <- as.integer(format(dataset[[sub_date]], "%U"))
     }
   }
   
@@ -237,7 +233,8 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
   }
   
   dataset <- add_missing_dates(dataset, date = date, sub_date = sub_date, 
-                               value = species, group = c("year", "week", group), facet_by = facet)
+                               value = species, group = c("year", "week", group), 
+                               facet_by = facet)
   
   # group ----
   if (!is.null(group)) {
@@ -269,8 +266,6 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
     
     table_out <- agg_helper(dataset, value = species, period = c("year", "week"), 
                             group = agg_grp, fun = fun)
-    
-    table_out[c("year", "week")] <- lapply(table_out[c("year", "week")], as.integer)
     
     if (length(species) > 1) {
       
@@ -389,7 +384,7 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
         }
       }
   
-      x_lab <- function() paste("week", date)
+      x_lab <- function() paste0(date, " (week)")
       y_lab <- function() paste(fun, f_catch(), ifelse(tran == "identity", "", paste0("(", tran, ")")))
       scale_lab <- function() if (value == "percent") scales::label_percent(scale = 1) else ggplot2::waiver()
       y_breaks <- function() {
@@ -427,15 +422,15 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
                               size = 1)
       }
       
-      if (!is.null(facet)) {
+      if (!is.null(facet_by)) {
         
-        if (length(facet) == 1) {
+        if (length(facet_by) == 1) {
           
-          fm <- stats::reformulate(".", facet)
+          fm <- stats::reformulate(".", facet_by)
           
-        } else if (length(facet) == 2) {
+        } else if (length(facet_by) == 2) {
           
-          fm <- paste(facet, sep = " ~ ")
+          fm <- paste(facet_by, sep = " ~ ")
         }
         
         w_plot <- w_plot + ggplot2::facet_grid(fm, scales = scale)
@@ -448,7 +443,8 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
     
     if (length(species) > 1 & format_tab == "wide") {
       
-      table_out <- tidyr::pivot_wider(table_out, names_from = species, values_from = catch)
+      table_out <- tidyr::pivot_wider(table_out, names_from = species, 
+                                      values_from = catch)
     }
     # log function
     weekly_catch_function <- list()

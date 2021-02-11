@@ -17,25 +17,31 @@
 #' @param names An optional string of species names that will be used in the plot. If
 #'   \code{NULL}, then species names from \code{catch} will be used. 
 #' @param group A categorical variable in \code{dat} to group by.
-#' @param filter_date The type of filter to apply to table. The "date_range" option will subset 
-#'   the data by two date values entered in \code{filter_val}. Other options include "year-day", 
-#'   "year-week", "year-month", "year", "month", "week", or "day". The argument filter_value must 
-#'   be provided. 
-#' @param date_value String containing a start and end date if using filter_date = "date_range", 
-#'   e.g. c("2011-01-01", "2011-03-15"). If filter_date = "period" or "year-period", use integers 
-#'   (4 digits if year, 1-2 if day, month, or week). Use a list if using a two-part filter, e.g. "year-week",
-#'   with the format \code{list(year, period)} or a vector if using a single period, \code{c(period)}. 
-#'   For example, \code{list(2011:2013, 5:7)} will filter the data table from weeks 5 through 7 for 
-#'   years 2011-2013 if filter_date = "year-week".\code{c(2:5)} will filter the data
-#'   February through May when filter_date = "month".
-#' @param filter_by String, variable name to filter by.
+#' @param sub_date Date variable used for subsetting, grouping, or splitting by date.
+#' @param filter_date The type of filter to apply to `MainDataTable`. To filter by a 
+#'   range of dates, use \code{filter_date = "date_range"}. To filter by a given period, use
+#'   "year-day", "year-week", "year-month", "year", "month", "week", or "day". 
+#'   The argument \code{date_value} must be provided. 
+#' @param date_value This argument is paired with \code{filter_date}. If \code{filter_date = "date_range"}, 
+#'   enter a string containing a start- and end-date, e.g. \code{date_value = c("2011-01-01", "2011-03-15")}. 
+#'   If filtering by period (e.g. "year", "year-month"), use integers 
+#'   (4 digits if year, 1-2 digits if referencing a day, month, or week). Use a 
+#'   list if using a year-period type filter, e.g. "year-week", with the format: 
+#'   \code{list(year, period)}. Use a vector if using a single period (e.g. "month"): 
+#'   \code{c(period)}. For example, \code{date_value = list(2011:2013, 5:7)} will 
+#'   filter the data table from May through July for years 2011-2013 if \code{filter_date = "year-month"}.
+#'   \code{date_value = c(2:5)} will filter the data from February through May when 
+#'   \code{filter_date = "month"}.
+#' @param filter_by String, variable name to filter `MainDataTable` by. the argument 
+#'   \code{filter_value} must be provided.
 #' @param filter_value A vector of values to filter `MainDataTable` by using the variable 
-#'   in \code{filter_by}. 
+#'   in \code{filter_by}. For example, if \code{filter_by = "GEAR_TYPE"}, \code{filter_value = 1} 
+#'   will include only observations with a gear type of 1. 
 #' @param filter_expr String, a valid R expression to filter `MainDataTable` by using the variable 
 #'   in \code{filter_by}. 
-#' @param facet_by Variable name to facet by. This can be a variable that exists in 
-#'   the dataset, or a variable created by \code{bycatch()} such as \code{"year"}, 
-#'   \code{"month"}, or \code{"week"}.  
+#' @param facet_by Variable name to facet by. Accepts up to two variables. Facetting 
+#'   by \code{"year"}, \code{"month"}, or \code{"week"} is available if a date variable 
+#'   is added to \code{sub_date}.
 #' @param value Whether to return raw catch ("raw") or share of total catch ('stc'). 
 #' @param tran A function to transform the y-axis. Options include log, log2, log10, sqrt.
 #' @param combine Logical, whether to combine variables listed in \code{group}. 
@@ -44,20 +50,22 @@
 #' @param output Output type. Options include 'table' or 'plot'.
 #' @param format_tab How table output should be formatted. Options include \code{'wide'}
 #'   (the default) and \code{'long'}.
-#' @details Returns a plot or table of the mean CPUE and share of total catch or raw count for each species entered.
-#'  For optimal plot size in an R Notebook/Markdown document, we recommend including no more than four species.
-#'  The order of variables in the \code{cpue} and \code{catch} arguments must be in the same order as in the \code{names} argument.
-#'  The \code{names} argument is used to join the \code{catch} and \code{cpue} variables together.
+#' @details Returns a plot and/or table of the mean CPUE and share of total catch or 
+#'  raw count for each species entered. For optimal plot size in an R Notebook/Markdown 
+#'  document, we recommend including no more than four species. The order of variables 
+#'  in the \code{cpue} and \code{catch} arguments must be in the same order as in the 
+#'  \code{names} argument. The \code{names} argument is used to join the \code{catch} 
+#'  and \code{cpue} variables together.
 #' @return \code{bycatch()} compares the average CPUE and catch total/share of total
-#' catch between one or more species. The data can be filtered using two arguments: 
-#'   \code{filter_date} and \code{filter_value}. \code{filter_date} specifies how the data  
-#'   should be filtered--by year, period (i.e. "month" or "week"), or year-period.
-#'   \code{filter_value} should contain the values (as integers) to filter the data 
-#'   by. It is often useful to facet by year when using \code{filter_date}.
-#'   Only one grouping variable will be displayed; however, any number of
-#'   variables can be combined by using \code{combine = TRUE}, but no more than
-#'   three is recommended. For faceting, any variable in the dataset can be used,
-#'   but "year" and "month" are also available. Generally, no more than four species
+#'   catch between one or more species. The data can be filtered by date and/or by a 
+#'   variable. \code{filter_date} specifies the type of date filter to apply--by 
+#'   date-range or by period. \code{date_value} should contain the values to filter 
+#'   the data by. To filter by a variable, enter its name as a string in \code{filter_by}
+#'   and include the values to filter by in \code{filter_value}. Only one grouping 
+#'   variable will be displayed; however, any number of variables can be combined 
+#'   by using \code{combine = TRUE}, but no more than three is recommended. For faceting, 
+#'   any variable in the dataset can be used, but "year" and "month" are also available 
+#'   provided a date variable is added to \code{sub_date}. Generally, no more than four species
 #'   should be compared, and even fewer when faceting due to limited plot space.
 #'   A list containing a table and plot are printed to the console and viewer by default.
 #'   For optimal plot size in an R Notebook/Markdown document, use the chunk option
@@ -71,7 +79,8 @@
 #' bycatch(pollockMainDataTable, "myproject", cpue = c("f1_cpue", "f2_cpue", "f3_cpue", "f4_cpue"),
 #'   catch = c("f1", "f2", "f3", "f4"), date = "FISHING_START_DATE",
 #'   names = c("fish_1", "fish_2", "fish_3", "fish_4"), period = "month",
-#'   year = 2011, value = "stc", output = "table"
+#'   date_filter = "year", date_value = 2011
+#'   , value = "stc", output = "table"
 #' )
 #' }
 #' @export bycatch
@@ -86,8 +95,8 @@
 #' @importFrom shiny isRunning
 
 bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NULL, 
-                    group = NULL, filter_date = NULL, date_value = NULL, filter_by = NULL,
-                    filter_value = NULL, filter_expr = NULL, facet_by = NULL, 
+                    group = NULL, sub_date = NULL, filter_date = NULL, date_value = NULL, 
+                    filter_by = NULL, filter_value = NULL, filter_expr = NULL, facet_by = NULL, 
                     tran = "identity", value = "stc", combine = FALSE, scale = "fixed",
                     output = "tab_plot", format_tab = "wide") {
   
@@ -100,67 +109,125 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
   } else { 
     if (!is.character(dat)) dat <- deparse(substitute(dat)) }
 
-  # facet setup ----
-  if (!is.null(facet_by)) {
-    # if facet_by contains "species", "year", "month", or "week"
-    special_facet <- ifelse(any(!(facet_by %in% names(dataset))), TRUE, FALSE) 
+  end <- FALSE
+  
+  group_date <- group[group %in% c("year")]
+  facet_date <- facet_by[facet_by %in% c("year")]
+  
+  # date ----
+  # convert date and/or sub_date to date class
+  if (!is.null(date) | !is.null(sub_date)) {
     
-    if (special_facet == TRUE) {
-      
-      facet <- facet_by
-      facet_by <- facet_by[facet_by %in% names(dataset)]
-      
-      if (length(facet_by) == 0) {
+    dataset[unique(c(date, sub_date))] <- 
+      lapply(dataset[unique(c(date, sub_date))], function(x) {
         
-        facet_by <- NULL
+        if (any(!(class(x) %in% c("Date", "POSIXct", "POSIXt")))) {
+          date_parser(x)
+        } else {
+          x
+        }
+      })
+  } 
+  
+  # sub_date ----
+  # check if sub_date is needed
+  if (!is.null(filter_date)) {
+    if (is.null(sub_date)) {
+      if (!is.null(date)) {
+        sub_date <- date
+      } else {
+        warning("Argument 'sub_date' required when subsetting by date.")
+        end <- TRUE
       }
-      
-    } else {
-      
-      facet <- facet_by
     }
-    
-  } else {
-    
-    facet <- NULL
   }
   
-  facet_date <- facet[facet %in% c("year", "month", "week")]
+  if (!is.null(facet_by)) {
+    if (any(facet_by %in% c("year"))) {
+      if (is.null(sub_date)) {
+        if (!is.null(date)) {
+          sub_date <- date
+        } else {
+          warning("Spliting by year requires a date variable.")
+          end <- TRUE
+        }
+      }
+    } 
+  }
   
-  # group setup ----
+  if (!is.null(group)) {
+    if (any(group %in% c("year"))) {
+      if (is.null(sub_date)) {
+        if (!is.null(date)) {
+          sub_date <- date
+        } else {
+          warning("Grouping by year requires a date variable.")
+          end <- TRUE
+        }
+      }
+    } 
+  }
+  
+  # filter date ----
+  if (!is.null(filter_date)) {
+    
+    dataset <- subset_date(dataset, sub_date, filter_date, date_value)
+    
+    if (nrow(dataset) == 0) {
+      
+      warning("Filtered data table has zero rows. Check filter parameters.")
+      end <- TRUE
+    }
+  }
+  
+  # facet date ----
+  if (!is.null(facet_by)) {
+    if (length(facet_date) > 0) {
+      # if summarizing over period
+      if (!is.null(period)) {
+        
+        if (period != "month" & any("month" %in% facet_date)) {
+          
+          dataset$month <- factor(format(dataset[[sub_date]], "%b"), 
+                                  levels = month.abb, ordered = TRUE)
+          
+        } else if (period != "week" & any("week" %in% facet_date)) {
+          
+          dataset$week <- as.integer(format(dataset[[sub_date]], "%U"))
+        }
+        
+      } else {
+        # if not summarizing over period
+        dataset[facet_date] <- lapply(facet_date, function(x) {
+          fp <- switch(x, "year" = "%Y", "month" = "%b", "week" = "%U")
+          if (fp == "%b") {
+            factor(format(dataset[[sub_date]], fp), levels = month.abb, ordered = TRUE) 
+          } else {
+            as.integer(format(dataset[[sub_date]], fp))
+          }
+        })
+      }
+    }
+  }
+  
+  # group date ----
   if (!is.null(group)) {
     
-    if (combine == TRUE) {
+    if (length(group_date) > 0) {
       
-      dataset <- ID_var(dataset, vars = group, type = "string")
-      group <- gsub(" ", "", paste(group, collapse = "_"))
-      group2 <- NULL
+      if (length(group_date[!(group_date %in% facet_date)]) > 0) {
+        
+        for (i in group_date) {
+          x <- switch(i, "year" = "%Y", "month" = "%b", "week" = "%U")
+          
+          dataset[[i]] <- format(dataset[[sub_date]], x)
+          
+          if (i == "month") {
+            dataset[[i]] <- factor(dataset[[i]], levels = month.abb, ordered = TRUE)
+          }
+        }
+      }
     }
-    
-    dataset[group] <- lapply(dataset[group], as.factor)
-    group1 <- group[1]
-    
-    if (length(group) == 1) group2 <- NULL else group2 <- group[2]
-    
-    if (length(group) > 1 & combine == FALSE) {
-      
-      warning("Only the first grouping variable will be displayed in plot.")
-    }
-    
-  } else {
-    
-    group1 <- NULL
-    group2 <- NULL
-  }
-  
-  # Names joining table ----
-  if (is.null(names)) {
-    
-    name_tab <- data.frame(species = catch, species_catch = catch, species_cpue = cpue)
-    
-  } else {
-    
-    name_tab <- data.frame(species = names, species_catch = catch, species_cpue = cpue)
   }
   
   # filter by variable ----
@@ -175,20 +242,31 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
     }
   }
   
-  # date setup ----
+  # Names joining table ----
+  if (is.null(names)) {
+    
+    name_tab <- data.frame(species = catch, species_catch = catch, species_cpue = cpue)
+    
+  } else {
+    
+    name_tab <- data.frame(species = names, species_catch = catch, species_cpue = cpue)
+  }
+  
+  # period ----
   periods <- c("year", "month", "weeks")
   
   if (period %in% periods == FALSE) {
     
-    stop("Invalid period. Please select a valid period name (see documentation for details).")
-    
+    warning("Invalid period. Please select a valid period name (see documentation for details).")
+    end <- TRUE
   } else {
     
     p <- switch(period, year = "%Y", month = "%b", weeks = "%U")
   }
   
-  dataset <- add_missing_dates(dataset, date, value = c(cpue, catch), 
-                               group = group, facet_by = facet_by)
+  # add missing ----
+  dataset <- add_missing_dates(dataset, date = date, sub_date = sub_date, 
+                               value = c(cpue, catch), group = group, facet_by = facet_by)
   
   if (period != "year") {
     
@@ -197,44 +275,30 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
   
   dataset[[period]] <- format(dataset[[date]], p)
   
-  if (!is.null(facet_date)) {
+  # group ----
+  if (!is.null(group)) {
     
-    if (period != "month" & any("month" %in% facet_date)) {
+    if (combine == TRUE & length(group) > 1) { 
       
-      dataset$month <- factor(format(dataset[[date]], "%b"), levels = month.abb, ordered = TRUE)
+      dataset <- ID_var(dataset, vars = group, type = "string")
+      group <- gsub(" ", "", paste(group, collapse = "_"))
+      group1 <- group
+      group2 <- NULL
       
+    } else {
       
-    } else if (period != "week" & any("week" %in% facet_date)) {
+      dataset[group] <- lapply(dataset[group], as.factor)
+      group1 <- group[1]
+    }
+    
+    if (length(group) == 1) group2 <- NULL else group2 <- group[2]
+    
+    if (length(group) > 2) {
       
-      dataset$week <- as.integer(format(dataset[[date]], "%U"))
+      warning("Only the first two grouping variables will be displayed in plot.")
     }
   }
-  
-  # filter by date ----
-  if (!is.null(filter_date)) {
-    
-    dataset <- subset_date(dataset, date, filter_date, date_value)
-    
-    if (nrow(dataset) == 0) {
-      
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      end <- TRUE
-    }
-  }
-  # add facet date vars if applicable
-  if (!is.null(facet_date)) {
-    
-    if (period != "month" & any("month" %in% facet)) {
-      
-      dataset$month <- factor(format(dataset[[date]], "%b"), levels = month.abb, ordered = TRUE)
-      
-      
-    } else if (period != "week" & any("week" %in% facet)) {
-      
-      dataset$week <- as.integer(format(dataset[[date]], "%U"))
-    }
-  }
-  
+
   # Mean CPUE summary table ----
   agg_grp <- c("year", group, facet_by, facet_date)
   
@@ -261,7 +325,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
   
   if (value == "stc") {
     
-    stc_tab <- agg_helper(catch_tab, value = f_catch(), group = c(catch_grp()), 
+    stc_tab <- agg_helper(catch_tab, value = f_catch(), group = catch_grp(), 
                           fun = function(x) x/sum(x))
     
     if (is.vector(stc_tab$catch)) {
@@ -332,15 +396,15 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
                        axis.text = ggplot2::element_text(size = 7), 
                        legend.position = "none")
       
-      if (!is.null(facet)) {
+      if (!is.null(facet_by)) {
         
-        if (length(facet) == 1) {
+        if (length(facet_by) == 1) {
           
-          fm <- stats::reformulate(".", facet)
+          fm <- stats::reformulate(".", facet_by)
           
-        } else if (length(facet) == 2) {
+        } else if (length(facet_by) == 2) {
           
-          fm <- paste(facet, sep = " ~ ")
+          fm <- paste(facet_by, sep = " ~ ")
         }
         
         cp_plot <- cp_plot + ggplot2::facet_grid(fm, scales = scale)
@@ -392,15 +456,15 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
         ggplot2::scale_y_continuous(labels = if (value == "stc") scales::percent else ggplot2::waiver(),
                                     trans = tran)
       
-      if (!is.null(facet)) {
+      if (!is.null(facet_by)) {
         
-        if (length(facet) == 1) {
+        if (length(facet_by) == 1) {
           
-          fm <- stats::reformulate(".", facet)
+          fm <- stats::reformulate(".", facet_by)
           
-        } else if (length(facet) == 2) {
+        } else if (length(facet_by) == 2) {
           
-          fm <- paste(facet, sep = " ~ ")
+          fm <- paste(facet_by, sep = " ~ ")
         }
         
         ca_plot <- ca_plot + ggplot2::facet_grid(fm, scales = scale)
@@ -470,8 +534,9 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
   bycatch_function <- list()
   bycatch_function$functionID <- "bycatch"
   bycatch_function$args <- list(dat, project, cpue, catch, date, period, names, group, 
-                                filter_date, date_value, filter_by, filter_value, filter_expr,
-                                facet_by, tran, value, combine, scale, output, format_tab)
+                                sub_date, filter_date, date_value, filter_by, filter_value, 
+                                filter_expr, facet_by, tran, value, combine, scale, 
+                                output, format_tab)
   log_call(bycatch_function)
   
   if (output == "plot") {
