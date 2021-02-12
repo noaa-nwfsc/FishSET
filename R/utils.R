@@ -490,7 +490,7 @@ add_missing_dates <- function(dataset, date = NULL, value, sub_date = NULL, grou
       }
     }
     
-    aux <- c(group, facet_by)
+    aux <- unique(c(group, facet_by))
     
     missing <- lapply(dataset[aux], function(x) unique(x))
     
@@ -795,6 +795,8 @@ week_labeller <- function(breaks, year) {
   #' @keywords internal
   #' @importFrom lubridate weeks
   #'
+  
+  if (is.factor(year)) year <- as.character(year)
   
   min_year <- min(year)
   wk_lab <- as.Date(paste0(min_year, "-01-01"))
