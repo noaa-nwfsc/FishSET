@@ -18,31 +18,34 @@
 #'   range of dates, use \code{filter_date = "date_range"}. To filter by a given period, use
 #'   "year-day", "year-week", "year-month", "year", "month", "week", or "day". 
 #'   The argument \code{date_value} must be provided. 
-#' @param date_value This argument is paired with \code{filter_date}. If \code{filter_date = "date_range"}, 
-#'   enter a string containing a start- and end-date, e.g. \code{date_value = c("2011-01-01", "2011-03-15")}. 
-#'   If filtering by period (e.g. "year", "year-month"), use integers 
-#'   (4 digits if year, 1-2 digits if referencing a day, month, or week). Use a 
-#'   list if using a year-period type filter, e.g. "year-week", with the format: 
-#'   \code{list(year, period)}. Use a vector if using a single period (e.g. "month"): 
-#'   \code{c(period)}. For example, \code{date_value = list(2011:2013, 5:7)} will 
-#'   filter the data table from May through July for years 2011-2013 if \code{filter_date = "year-month"}.
+#' @param date_value This argument is paired with \code{filter_date}. If 
+#'   \code{filter_date = "date_range"}, enter a string containing a start- and end-date, 
+#'   e.g. \code{date_value = c("2011-01-01", "2011-03-15")}. If filtering by period 
+#'   (e.g. "year", "year-month"), use integers (4 digits if year, 1-2 digits if 
+#'   referencing a day, month, or week). Use a list if using a year-period type filter, 
+#'   e.g. "year-week", with the format: \code{list(year, period)}. Use a vector if 
+#'   using a single period (e.g. "month"): \code{c(period)}. For example, 
+#'   \code{date_value = list(2011:2013, 5:7)} will filter the data table from May 
+#'   through July for years 2011-2013 if \code{filter_date = "year-month"}.
 #'   \code{date_value = c(2:5)} will filter the data from February through May when 
 #'   \code{filter_date = "month"}.
 #' @param filter_by String, variable name to filter `MainDataTable` by. the argument 
 #'   \code{filter_value} must be provided.
-#' @param filter_value A vector of values to filter `MainDataTable` by using the variable 
-#'   in \code{filter_by}. For example, if \code{filter_by = "GEAR_TYPE"}, \code{filter_value = 1} 
-#'   will include only observations with a gear type of 1. 
-#' @param filter_expr String, a valid R expression to filter `MainDataTable` by using the variable 
-#'   in \code{filter_by}. 
-#' @param facet_by Variable name to facet by. Accepts up to two variables. Facetting by
-#'   \code{"year"} is available if a date variable is added to \code{sub_date}. Facetting 
-#'   by \code{"species"} is available if multiple cpue columns are included in \code{"cpue"}.
-#'   The first variable is facetted by row and the second by column.   
-#' @param tran A function to transform the y-axis. Options include log, log2, log10, sqrt.
+#' @param filter_value A vector of values to filter `MainDataTable` by using the 
+#'   variable in \code{filter_by}. For example, if \code{filter_by = "GEAR_TYPE"}, 
+#'   \code{filter_value = 1} will include only observations with a gear type of 1. 
+#' @param filter_expr String, a valid R expression to filter `MainDataTable` by 
+#'   using the variable in \code{filter_by}. 
+#' @param facet_by Variable name to facet by. Accepts up to two variables. Facetting 
+#'   by \code{"year"} is available if a date variable is added to \code{sub_date}. 
+#'   Facetting by \code{"species"} is available if multiple cpue columns are included 
+#'   in \code{"cpue"}. The first variable is facetted by row and the second by column.   
+#' @param tran A function to transform the y-axis. Options include log, log2, log10, 
+#'   sqrt.
 #' @param combine Whether to combine variables listed in \code{group}. This is passed
 #'   to the "color" aesthetic for plots. 
-#' @param scale Scale argument passed to \code{\link[ggplot2]{facet_grid}}. Defaults to \code{"fixed"}.
+#' @param scale Scale argument passed to \code{\link[ggplot2]{facet_grid}}. Defaults 
+#'   to \code{"fixed"}.
 #' @param output Whether to display \code{"plot"}, \code{"table"}. Defaults 
 #'   to both (\code{"tab_plot"}).
 #' @param format_tab How table output should be formatted. Options include 'wide' 
@@ -96,8 +99,10 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
     
     end <- FALSE 
     
-    group_date <- group[group %in% c("year")]
-    facet_date <- facet_by[facet_by %in% c("year")]
+    group_date <- group[group %in% c("year", "month", "week")]
+    facet_date <- facet_by[facet_by %in% c("year", "month", "week")]
+    facet_no_date <- facet_by[!(facet_by %in% c("year", "month", "week"))]
+    group_no_date <- group[!(group %in% c("year", "month", "week"))]
     
     # filter by variable ----
     if (!is.null(filter_by) | !is.null(filter_expr)) {
@@ -140,12 +145,13 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
     }
     
     if (!is.null(facet_by)) {
-        if (any(facet_by %in% c("year"))) {
+        if (any(facet_by %in% c("year", "month", "week"))) {
             if (is.null(sub_date)) {
                 if (!is.null(date)) {
                     sub_date <- date
                 } else {
-                    warning("Spliting by year requires a date variable.")
+                    warning("Spliting by a function-created date variable ('year', ",
+                            "'month', or 'week') requires a date variable.")
                     end <- TRUE
                 }
             }
@@ -153,12 +159,13 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
     }
     
     if (!is.null(group)) {
-        if (any(group %in% c("year"))) {
+        if (any(group %in% c("year", "month", "week"))) {
             if (is.null(sub_date)) {
                 if (!is.null(date)) {
                     sub_date <- date
                 } else {
-                    warning("Grouping by year requires a date variable.")
+                    warning("Grouping by a function-created date variable ('year', ",
+                            "'month', or 'week') requires a date variable.")
                     end <- TRUE
                 }
             }
@@ -177,15 +184,10 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
         }
     }
     
-    # facet date ----
-    # add year and week columns
-    dataset$year <- as.integer(format(dataset[[date]], "%Y"))
-    dataset$week <- as.integer(format(dataset[[date]], "%U"))
-    
     # add missing ---- 
     if ("species" %in% facet_by) {
         
-        facet <- facet_by[facet_by != "species"]
+        facet <- facet_no_date[facet_no_date != "species"]
         
         if (length(facet) == 0) {
             facet <- NULL
@@ -196,8 +198,31 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
     }
     
     dataset <- add_missing_dates(dataset, date = date, sub_date = sub_date, 
-                                 value = cpue, group = c("year", "week", group), 
+                                 value = cpue, group = group_no_date, 
                                  facet_by = facet)
+    
+    # add year and week columns
+    dataset$year <- as.integer(format(dataset[[date]], "%Y"))
+    dataset$week <- as.integer(format(dataset[[date]], "%U"))
+    
+    # facet date ----
+    if (!is.null(facet_date)) {
+        
+        if ("month" %in% facet_date) {
+            
+            dataset$month <- factor(format(dataset[[sub_date]], "%b"), levels = month.abb, 
+                                    ordered = TRUE)
+        }
+    }
+    
+    # group date ----
+    if (length(group_date) > 0) {
+        
+        if ("month" %in% group_date & !("month" %in% facet_date)) {
+            dataset$month <- factor(format(dataset[[sub_date]], "%b"), levels = month.abb, 
+                                    ordered = TRUE)
+        }
+    }
     
     # group ----
     if (!is.null(group)) {
@@ -212,7 +237,6 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
         } else {
                 
             dataset[group] <- lapply(dataset[group], as.factor)
-            
             group1 <- group[1]
         }
         
@@ -234,7 +258,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
         
         if (length(cpue) > 1) {
             
-            table_out <- tidyr::pivot_longer(table_out, cols = cpue, names_to = "species", 
+            table_out <- tidyr::pivot_longer(table_out, cols = !!cpue, names_to = "species", 
                                              values_to = "mean_cpue")
         }
         
@@ -321,11 +345,13 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
             x_lab <- function() paste0(date, " (week)")
             y_lab <- function() paste(f_cpue(), ifelse(tran == "identity", "", paste0("(", tran, ")")))
             
-            e_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = week, y = !!y_axis_exp())) +
+            e_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = week, 
+                                                                     y = !!y_axis_exp())) +
                 ggplot2::geom_line(ggplot2::aes(group = !!interaction_exp(), 
                                                 color = !!color_exp(), 
                                                 linetype = !!linetype_exp())) +
-                ggplot2::geom_point(ggplot2::aes(group = !!interaction_exp(), color = !!color_exp()), size = 1) +
+                ggplot2::geom_point(ggplot2::aes(group = !!interaction_exp(), 
+                                                 color = !!color_exp()), size = 1) +
                 ggplot2::scale_x_continuous(breaks = num_breaks(table_out$week), 
                                             labels = week_labeller(num_breaks(table_out$week), 
                                                                    year = table_out$year)) +
