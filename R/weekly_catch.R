@@ -96,11 +96,11 @@
 #' @import ggplot2
 
 weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL, 
-                         sub_date = NULL, filter_date = NULL, date_value = NULL, filter_by = NULL, 
-                         filter_value = NULL, filter_expr = NULL, facet_by = NULL, 
-                         type = "bar", conv = "none", tran = "identity", value = "count", 
-                         position = "stack", combine = FALSE, scale = "fixed",
-                         output = "tab_plot", format_tab = "wide") {
+                         sub_date = NULL, filter_date = NULL, date_value = NULL, 
+                         filter_by = NULL, filter_value = NULL, filter_expr = NULL, 
+                         facet_by = NULL, type = "bar", conv = "none", tran = "identity", 
+                         value = "count", position = "stack", combine = FALSE, 
+                         scale = "fixed", output = "tab_plot", format_tab = "wide") {
   
   # Call in datasets
   out <- data_pull(dat)
@@ -115,6 +115,8 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
   
   group_date <- group[group %in% c("year", "month", "week")]
   facet_date <- facet_by[facet_by %in% c("year", "month", "week")]
+  facet_no_date <- facet_by[!(facet_by %in% c("year", "month", "week"))]
+  group_no_date <- group[!(group %in% c("year", "month", "week"))]
 
   # filter by variable ----
   if (!is.null(filter_by) | !is.null(filter_expr)) {
@@ -196,6 +198,23 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
     }
   }
   
+  # add missing ---- 
+  if ("species" %in% facet_by) {
+    
+    facet <- facet_no_date[facet_no_date != "species"]
+    
+    if (length(facet) == 0) {
+      facet <- NULL
+    }
+  } else {
+    
+    facet <- facet_no_date
+  }
+  
+  dataset <- add_missing_dates(dataset, date = date, sub_date = sub_date, 
+                               value = species, group = group_no_date, 
+                               facet_by = facet)
+  
   # facet date ----
   # add year and week columns
   dataset$year <- as.integer(format(dataset[[date]], "%Y"))
@@ -218,23 +237,6 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
                               ordered = TRUE)
     }
   }
-  
-  # add missing ---- 
-  if ("species" %in% facet_by) {
-    
-    facet <- facet_by[facet_by != "species"]
-    
-    if (length(facet) == 0) {
-      facet <- NULL
-    }
-  } else {
-    
-    facet <- facet_by
-  }
-  
-  dataset <- add_missing_dates(dataset, date = date, sub_date = sub_date, 
-                               value = species, group = c("year", "week", group), 
-                               facet_by = facet)
   
   # group ----
   if (!is.null(group)) {
@@ -269,7 +271,7 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
     
     if (length(species) > 1) {
       
-      table_out <- tidyr::pivot_longer(table_out, cols = species, names_to = "species", 
+      table_out <- tidyr::pivot_longer(table_out, cols = !!species, names_to = "species", 
                                        values_to = "catch")
       
       rev <- ifelse(position == "dodge", TRUE, FALSE)
@@ -380,7 +382,11 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
             NULL
           }
         } else if (length(species) > 1) {
-          group1_sym
+          if (length(group) > 0) {
+            group1_sym
+          } else {
+            NULL
+          }
         }
       }
   
@@ -395,10 +401,12 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
         }
       }
       
-      w_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = week, y = !!y_axis_exp())) +
+      w_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = week, 
+                                                               y = !!y_axis_exp())) +
         fishset_theme() +
         ggplot2::theme(legend.position = "bottom") +
-        ggplot2::scale_y_continuous(labels = scale_lab(), trans = tran, breaks = y_breaks()) +
+        ggplot2::scale_y_continuous(labels = scale_lab(), trans = tran, 
+                                    breaks = y_breaks()) +
         ggplot2::scale_x_continuous(breaks = num_breaks(table_out$week), 
                                     labels = week_labeller(num_breaks(table_out$week), 
                                                            year = table_out$year)) +
@@ -418,7 +426,8 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
         w_plot <- w_plot + ggplot2::geom_line(ggplot2::aes(group = !!interaction_exp(),
                                                            color = !!color_exp(), 
                                                            linetype = !!linetype_exp())) +
-          ggplot2::geom_point(ggplot2::aes(group = !!interaction_exp(), color = !!color_exp()), 
+          ggplot2::geom_point(ggplot2::aes(group = !!interaction_exp(), 
+                                           color = !!color_exp()), 
                               size = 1)
       }
       

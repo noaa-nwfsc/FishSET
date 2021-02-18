@@ -119,6 +119,8 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
   
   group_date <- group[group %in% c("year", "month", "week")]
   facet_date <- facet_by[facet_by %in% c("year", "month", "week")]
+  facet_no_date <- facet_by[!(facet_by %in% c("year", "month", "week"))]
+  group_no_date <- group[!(group %in% c("year", "month", "week"))]
   
   # date ----
   # convert date and/or sub_date to date class
@@ -188,6 +190,62 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
     }
   }
   
+  # filter by variable ----
+  if (!is.null(filter_by) | !is.null(filter_expr)) {
+    
+    dataset <- subset_var(dataset, filter_by, filter_value, filter_expr)
+    
+    if (nrow(dataset) == 0) {
+      
+      warning("Filtered data table has zero rows. Check filter parameters.")
+      end <- TRUE
+    }
+  }
+  
+  # period ----
+  if (!is.null(period)) {
+    
+    if (is.null(date)) warning("Please enter a date variable.")
+    
+    periods <- c("year_month", "month_year", "year", "month", "weeks", 
+                 "weekday", "day_of_month", "day_of_year", "cal_date")
+    
+    if (period %in% periods == FALSE) {
+      
+      warning("Invalid period. Please select a valid period name (see documentation for details).")
+      end <- TRUE
+      
+    } else {
+      
+      p <- switch(period, year_month = "%Y-%m", month_year = "%Y-%m", year = "%Y",
+                  month = "%b", weeks = "%U", weekday = "%a", day_of_month = "%d", 
+                  day_of_year = "%j", cal_date = NULL)
+    }
+  }
+
+  # add missing ----
+  if ("species" %in% facet_by) {
+    
+    facet <- facet_no_date[facet_no_date != "species"]
+    
+    if (length(facet) == 0) {
+      facet <- NULL
+    }
+  } else {
+    
+    facet <- facet_no_date
+  }
+
+  dataset <- add_missing_dates(dataset, date = date, sub_date = sub_date, 
+                               value = species, group = group_no_date, 
+                               facet_by = facet)
+  
+  if (!is.null(period)) {
+    if (period != "cal_date") {
+      dataset[[period]] <- format(dataset[[date]], p)
+    }
+  }
+  
   # facet date ----
   if (!is.null(facet_by)) {
     if (length(facet_date) > 0) {
@@ -223,9 +281,11 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
     
     if (length(group_date) > 0) {
       
-      if (length(group_date[!(group_date %in% facet_date)]) > 0) {
+      group_date2 <- group_date[!(group_date %in% facet_date)]
+      
+      if (length(group_date2) > 0) {
         
-        for (i in group_date) {
+        for (i in group_date2) {
           x <- switch(i, "year" = "%Y", "month" = "%b", "week" = "%U")
           
           dataset[[i]] <- format(dataset[[sub_date]], x)
@@ -235,60 +295,6 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
           }
         }
       }
-    }
-  }
-  
-  # filter by variable ----
-  if (!is.null(filter_by) | !is.null(filter_expr)) {
-    
-    dataset <- subset_var(dataset, filter_by, filter_value, filter_expr)
-    
-    if (nrow(dataset) == 0) {
-      
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      end <- TRUE
-    }
-  }
-  # period ----
-  if (!is.null(period)) {
-    
-    if (is.null(date)) warning("Please enter a date variable.")
-    
-    periods <- c("year_month", "month_year", "year", "month", "weeks", 
-                 "weekday", "day_of_month", "day_of_year", "cal_date")
-    
-    if (period %in% periods == FALSE) {
-      
-      warning("Invalid period. Please select a valid period name (see documentation for details).")
-      end <- TRUE
-      
-    } else {
-      
-      p <- switch(period, year_month = "%Y-%m", month_year = "%Y-%m", year = "%Y",
-                  month = "%b", weeks = "%U", weekday = "%a", day_of_month = "%d", 
-                  day_of_year = "%j", cal_date = NULL)
-    }
-  }
-
-  # add missing ----
-  if ("species" %in% facet_by) {
-    
-    facet <- facet_by[facet_by != "species"]
-    
-    if (length(facet) == 0) {
-      facet <- NULL
-    }
-  } else {
-    
-    facet <- facet_by
-  }
-
-  dataset <- add_missing_dates(dataset, date = date, sub_date = sub_date, 
-                               value = species, group = group, facet_by = facet)
-  
-  if (!is.null(period)) {
-    if (period != "cal_date") {
-      dataset[[period]] <- format(dataset[[date]], p)
     }
   }
   
@@ -331,7 +337,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
     
     if (length(species) > 1) { # melt table if multiple species columns entered (for ggplot)
       
-      table_out <- tidyr::pivot_longer(table_out, cols = species, names_to = "species", 
+      table_out <- tidyr::pivot_longer(table_out, cols = !!species, names_to = "species", 
                                        values_to = "catch")
       
       rev <- ifelse(position == "dodge", TRUE, FALSE)
@@ -391,8 +397,6 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
         warning("Cannot convert to percentage. Change 'fun' argument to 'sum'.")
       }
     } 
-    # table_out <- as.data.frame(table_out)
-    # row.names(table_out) <- 1:nrow(table_out)
     
     if (output %in% c("plot", "tab_plot")) {
       
@@ -542,8 +546,8 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
         if (!is.null(period)) {
           
           p_lab <- switch(period, "year_month" = "year-month", "month_year" = "month-year",
-                          "year" = "year", "month" = "month", "weeks" = "weeks", "day_of_month" = "day of the month",
-                          "day_of_year" = "day of the year")
+                          "year" = "year", "month" = "month", "weeks" = "weeks", 
+                          "day_of_month" = "day of the month", "day_of_year" = "day of the year")
           
           if (period != date) {
             paste0(date, " (", p_lab, ")")
@@ -570,10 +574,12 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
       }
       
       # plot ----
-      s_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = !!xaxis_exp(), y = !!catch_exp())) +
+      s_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = !!xaxis_exp(), 
+                                                               y = !!catch_exp())) +
         fishset_theme() +
         ggplot2::theme(legend.position = "bottom") +
-        ggplot2::scale_y_continuous(labels = scale_lab(), trans = tran, breaks = y_breaks())
+        ggplot2::scale_y_continuous(labels = scale_lab(), trans = tran, 
+                                    breaks = y_breaks())
       
       if (type == "bar") {
         
@@ -658,10 +664,10 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
       
       if (length(species) > 1) {
         
-        table_out <- tidyr::pivot_wider(table_out, names_from = species, values_from = catch)
+        table_out <- tidyr::pivot_wider(table_out, names_from = species, 
+                                        values_from = catch)
       }
     }
-    
     
     save_table(table_out, project, "species_catch")
     
