@@ -490,35 +490,53 @@ roll_catchUI <- function(id) {
     
   checkboxInput(ns("subset_cb"), strong("Subset (optional)"), value = FALSE),
     
-    conditionalPanel("input.subset_cb", ns = ns, style = "margin-left:19px;",
-                     
-                     uiOutput(ns("filter_by_UIOutput")), 
-                     
-                     uiOutput(ns("filter_by_val_UIOutput")),
-                     
-                     textInput(ns("filter_expr"), "Subset expression",
-                               value = NULL, placeholder = "e.g. GEAR_TYPE == 2"),
-                     
-                     selectizeInput(ns("filter_date"), "Subset by date",
-                                    choices = c("date range" = "date_range", "year-month", 
-                                                "year-week", "year-day", "year", "month", "week", "day"),
-                                    multiple = TRUE, options = list(maxItems = 1)),
-                     
-                     uiOutput(ns("filter_date_UIOutput"))
-    ),
-    checkboxInput(ns("group_cb"), strong("Group (optional)"), value = FALSE),
-    
-    conditionalPanel("input.group_cb",  ns = ns, style = "margin-left:19px;",
-                     
-                     uiOutput(ns("grp_select"))
-    ),
-    
-    checkboxInput(ns("split_cb"), strong("Split (optional)"), value = FALSE),
-    
-    conditionalPanel("input.split_cb",  ns = ns, style = "margin-left:19px;",
-                     
-                     uiOutput(ns("fct_select"))        
-    ),
+  conditionalPanel("input.subset_cb", ns = ns, style = "margin-left:19px;",
+                   
+                   checkboxInput(ns("date_subset_cb"), strong("Subset by date")),
+                   
+                   conditionalPanel("input.date_subset_cb", ns = ns, 
+                                    style = "margin-left:19px;",
+                                    
+                                    uiOutput(ns("sub_date_select")),
+                                    
+                                    conditionalPanel("typeof input.sub_date !== 'undefined' && input.sub_date.length > 0", ns = ns,
+                                                     selectizeInput(ns("filter_date"), "Subset type",
+                                                                    choices = c("date range" = "date_range", "year-month", 
+                                                                                "year-week", "year-day", "year", "month", "week", "day"),
+                                                                    multiple = TRUE, options = list(maxItems = 1))
+                                    ),
+                                    
+                                    uiOutput(ns("filter_date_UIOutput"))
+                   ),
+                   
+                   checkboxInput(ns("var_subset_cb"), strong("Subset by variable")),
+                   
+                   conditionalPanel("input.var_subset_cb", ns = ns, 
+                                    style = "margin-left:19px;",
+                                    
+                                    uiOutput(ns("filter_by_UIOutput")), 
+                                    
+                                    uiOutput(ns("filter_by_val_UIOutput")),
+                   )
+  ),
+  
+  checkboxInput(ns("group_cb"), strong("Group (optional)"), value = FALSE),
+  
+  conditionalPanel("input.group_cb",  ns = ns, style = "margin-left:19px;",
+                   
+                   uiOutput(ns("grp_select")),
+                   
+                   uiOutput(ns("grp_date_UI")),
+                   
+                   checkboxInput(ns("combine"), "Combine group variables", value = FALSE)),
+  
+  checkboxInput(ns("split_cb"), strong("Split (optional)"), value = FALSE),
+  
+  conditionalPanel("input.split_cb",  ns = ns, style = "margin-left:19px;",
+                   
+                   uiOutput(ns("fct_select")),
+                   uiOutput(ns("fct_date_UI")),
+  ),
     
     checkboxInput(ns("options_cb"), strong("Plot options (optional)"), value = FALSE),
     
