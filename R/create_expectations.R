@@ -338,7 +338,8 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
       # if ~isinf(B(C(w),end))
       col <- B[C[w], 2]
       # the following is the output that is NROWS by number of alternatives
-      newCatch[which(cit == cit[w]), col] <- meanCatch[which(rownames(meanCatchSimple)==paste0(B[C[w],2], B[C[w],1])), which(sub("^[^.]*.","", colnames(meanCatch))==tiDataFloor[w])] ## loop shouldn't be necessary but no loop results in out of memory issue
+      newCatch[which(cit == cit[w]), col] <- meanCatch[which(rownames(meanCatchSimple)==paste0(B[C[w],2], B[C[w],1])), 
+                                                       which(sub("^[^.]*.","", colnames(meanCatch))==tiDataFloor[w])] ## loop shouldn't be necessary but no loop results in out of memory issue
     }
 
     if (is_empty(empty.expectation)) {
