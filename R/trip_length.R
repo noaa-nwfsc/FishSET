@@ -19,26 +19,29 @@
 #' @param haul_count Logical, whether to include hauls per trip in table and/or plot 
 #'   (this can only be used if collapsing data to trip level using \code{tripID}. If 
 #'   data is already at trip level, add your haul frequency variable to \code{vpue}).
+#' @param sub_date Date variable used for subsetting, grouping, or splitting by date.
 #' @param filter_date The type of filter to apply to `MainDataTable`. To filter by a 
 #'   range of dates, use \code{filter_date = "date_range"}. To filter by a given period, use
 #'   "year-day", "year-week", "year-month", "year", "month", "week", or "day". 
 #'   The argument \code{date_value} must be provided. 
-#' @param date_value This argument is paired with \code{filter_date}. If \code{filter_date = "date_range"}, 
-#'   enter a string containing a start- and end-date, e.g. \code{date_value = c("2011-01-01", "2011-03-15")}. 
-#'   If filtering by period (e.g. "year", "year-month"), use integers 
-#'   (4 digits if year, 1-2 digits if referencing a day, month, or week). Use a list if using a year-period type filter, e.g. "year-week",
-#'   with the format: \code{list(year, period)}. Use a vector if using a single period (e.g. "month"): \code{c(period)}. 
-#'   For example, \code{date_value = list(2011:2013, 5:7)} will filter the data table from May through July for 
-#'   years 2011-2013 if \code{filter_date = "year-month"}.\code{date_value = c(2:5)} will filter the data
+#' @param date_value This argument is paired with \code{filter_date}. If 
+#'   \code{filter_date = "date_range"}, enter a string containing a start- and end-date, 
+#'   e.g. \code{date_value = c("2011-01-01", "2011-03-15")}. If filtering by period 
+#'   (e.g. "year", "year-month"), use integers (4 digits if year, 1-2 digits if referencing 
+#'   a day, month, or week). Use a list if using a year-period type filter, e.g. "year-week",
+#'   with the format: \code{list(year, period)}. Use a vector if using a single period 
+#'   (e.g. "month"): \code{c(period)}. For example, \code{date_value = list(2011:2013, 5:7)} 
+#'   will filter the data table from May through July for years 2011-2013 if 
+#'   \code{filter_date = "year-month"}.\code{date_value = c(2:5)} will filter the data
 #'   from February through May when \code{filter_date = "month"}.
-#' @param filter_by String, variable name to filter `MainDataTable` by. the argument \code{filter_value} must be provided.
+#' @param filter_by String, variable name to filter `MainDataTable` by. the argument 
+#'   \code{filter_value} must be provided.
 #' @param filter_value A vector of values to filter `MainDataTable` by using the variable 
 #'   in \code{filter_by}. For example, if \code{filter_by = "GEAR_TYPE"}, \code{filter_value = 1} 
 #'   will include only observations with a gear type of 1. 
 #' @param filter_expr String, a valid R expression to filter `MainDataTable` by. 
-#' @param facet_by Variable name to facet by. This can be a variable that exists in
-#'   the dataset, or a variable created by \code{trip_length()} such as \code{"year"},
-#'   \code{"month"}, or \code{"week"}.
+#' @param facet_by Variable name to facet by. Facetting by \code{"year"}, \code{"month"}, 
+#' or \code{"week"} provided a date variable is added to \code{sub_date}.
 #' @param type The type of plot. Options include histogram (\code{"hist"}, the default) and
 #'   frequency polygon (\code{"freq_poly"}).
 #' @param bins The number of bins used in histogram/freqency polygon. 
@@ -62,15 +65,15 @@
 #'   converts trip duration to the desired unit of time (e.g. weeks, days, or hours),
 #'   and returns a table and/or plot. There is an option for calculating vpue (value 
 #'   per unit of effort) as well. The data can be filtered by date and/or by a variable.
-#'    \code{filter_date} specifies the type of date filter to apply--by date-range or by
-#'    period. \code{date_value} should contain the values to filter
-#'   the data by. To filter by a variable, enter its name as a string in \code{filter_by} and
-#'   include the values to filter by in \code{filter_value}. 
-#'   If multiple grouping variables are given then they are combined
-#'   into one variable  unless \code{combine = FALSE} and \code{type = "freq_poly"}.
+#'   \code{filter_date} specifies the type of date filter to apply--by date-range or by
+#'   period. \code{date_value} should contain the values to filter the data by. To filter 
+#'   by a variable, enter its name as a string in \code{filter_by} and include the values 
+#'   to filter by in \code{filter_value}. If multiple grouping variables are given then 
+#'   they are combined into one variable  unless \code{combine = FALSE} and \code{type = "freq_poly"}.
 #'   No more than three grouping variables is recommended if \code{pages = "single"}. 
-#'   Any variable in the dataset can be used for faceting, but "year", "month", and "week" are also available. 
-#'   Distribution plots can be combined on a single page or printed individually with \code{pages}.
+#'   Any variable in the dataset can be used for faceting, but "year", "month", and 
+#'   "week" are also available. Distribution plots can be combined on a single page 
+#'   or printed individually with \code{pages}.
 #' @export trip_length
 #' @seealso \code{\link{haul_to_trip}}
 #' @examples
@@ -80,7 +83,7 @@
 #'   units = "days", vpue = "OFFICIAL_TOTAL_CATCH", output = "plot",
 #'   tripID = c("PERMIT", "TRIP_SEQ"), fun.numeric = sum, fun.time = min
 #' )
-#' #'
+#' 
 #' }
 #' @importFrom lubridate is.Date is.POSIXt
 #' @importFrom stats reformulate
@@ -92,11 +95,13 @@
 #' @import ggplot2
 
 trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
-                        group = NULL, combine = TRUE, haul_count = TRUE, filter_date = NULL, date_value = NULL,
-                        filter_by = NULL, filter_value = NULL, filter_expr = NULL,
-                        facet_by = NULL, type = "hist", bins = 30, density = TRUE, 
-                        scale = "fixed", tran = "identity", pages = "single", remove_neg = FALSE,
-                        output = "tab_plot", tripID = NULL, fun.time = NULL, fun.numeric = NULL) {
+                        group = NULL, combine = TRUE, haul_count = TRUE, sub_date = NULL,
+                        filter_date = NULL, date_value = NULL, filter_by = NULL, 
+                        filter_value = NULL, filter_expr = NULL, facet_by = NULL, 
+                        type = "hist", bins = 30, density = TRUE, scale = "fixed", 
+                        tran = "identity", pages = "single", remove_neg = FALSE,
+                        output = "tab_plot", tripID = NULL, fun.time = NULL, 
+                        fun.numeric = NULL) {
   out <- data_pull(dat)
   dataset <- out$dataset
   
@@ -131,7 +136,66 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
     warning("NAs detected in dates.")
   }
   
-  # filter by variable/expression 
+  # sub_date ----
+  
+  # convert date and/or sub_date to date class
+  if (!is.null(sub_date)) {
+    
+    dataset[sub_date] <- 
+      lapply(dataset[sub_date], date_parser)
+  } 
+  
+  # check if sub_date is needed
+  if (!is.null(filter_date)) {
+    if (is.null(sub_date)) {
+      if (!is.null(start)) {
+        sub_date <- start
+      } else {
+        warning("Argument 'sub_date' required when subsetting by date.")
+        end <- TRUE
+      }
+    }
+  }
+  
+  if (!is.null(facet_by)) {
+    if (any(facet_by %in% c("year", "month", "week"))) {
+      if (is.null(sub_date)) {
+        if (!is.null(start)) {
+          sub_date <- start
+        } else {
+          warning("Spliting by year requires 'sub_date' argument.")
+          end <- TRUE
+        }
+      }
+    } 
+  }
+  
+  if (!is.null(group)) {
+    if (any(group %in% c("year", "month", "week"))) {
+      if (is.null(sub_date)) {
+        if (!is.null(date)) {
+          sub_date <- date
+        } else {
+          warning("Grouping by year requires 'sub_date' argument.")
+          end <- TRUE
+        }
+      }
+    } 
+  }
+  
+  # filter by date ----
+  if (!is.null(filter_date)) {
+    
+    dataset <- subset_date(dataset, start, filter_date, date_value)
+    
+    if (nrow(dataset) == 0) {
+      
+      warning("Filtered data table has zero rows. Check filter parameters.")
+      end <- TRUE
+    }
+  }
+  
+  # filter by variable/expression ----
   if (!is.null(filter_value) | !is.null(filter_expr)) {
     
     dataset <- subset_var(dataset, filter_by, filter_value, filter_expr)
@@ -143,17 +207,6 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
     }
   }
   
-  # filter by date
-  if (!is.null(filter_date)) {
-    
-    dataset <- subset_date(dataset, start, filter_date, date_value)
-    
-    if (nrow(dataset) == 0) {
-      
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      end <- TRUE
-    }
-  }
   # calculate trip duration ----
   if (lubridate::is.POSIXt(dataset[[start]]) | lubridate::is.POSIXt(dataset[[end]])) {
     trip <- round(as.numeric(difftime(dataset[[end]], dataset[[start]]), units = units), 3)
@@ -198,36 +251,19 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
     vpue_nm <- NULL
   }
   
-  # facet setup ----
-  facet_date <- facet_by[facet_by %in% c("year", "month", "week")]
+  # add sub_date to trip_tab
+  if (!is.null(sub_date)) trip_tab[[sub_date]] <- dataset[[sub_date]]
   
-  if (!is.null(facet_by)) {
-    facet_spec <- any(!(facet_by %in% names(dataset)))
-    
-    if (facet_spec == TRUE) {
-      facet_s_id <- facet_by[!(facet_by %in% names(dataset))]
-      
-      if (all(facet_s_id %in% c("year", "month", "week")) == FALSE) {
-        warning("Invalid facet variable.")
-      } else {
-        facet_by <- facet_by
-        
-        if (length(facet_by) == 0) {
-          facet_by <- NULL
-        }
-      }
-    }
-  }
-  # group setup ----
-  group_date <- group[group %in% c("year", "month", "week")]
-  trip_tab[group[!(group %in% group_date)]]  <- dataset[group[!(group %in% group_date)]]
-  trip_tab[facet_by] <- dataset[facet_by]
+  # facet date ----
+  facet_date <- facet_by[facet_by %in% c("year", "month", "week")]
+  # add non-function-created facet vars to trip_tab
+  trip_tab[facet_by[!(facet_by %in% facet_date)]] <- dataset[facet_by[!(facet_by %in% facet_date)]]
   
   if (length(facet_date) > 0) {
     for (i in facet_date) {
-      x <- switch(i, "year" = "%Y", "month" = "%m", "week" = "%U")
+      x <- switch(i, "year" = "%Y", "month" = "%b", "week" = "%U")
       
-      trip_tab[[i]] <- format(trip_tab$start, x)
+      trip_tab[[i]] <- format(trip_tab[[sub_date]], x)
       
       if (i == "month") {
         trip_tab[[i]] <- factor(trip_tab[[i]], levels = month.abb, ordered = TRUE)
@@ -237,21 +273,25 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
     }
   }
   
+  # group date ----
+  group_date <- group[group %in% c("year", "month", "week")]
+  
+  # add non-function-created group variables to trip_tab
+  trip_tab[group[!(group %in% group_date)]]  <- dataset[group[!(group %in% group_date)]]
+  
+  
   if (!is.null(group)) {
-    group_date <- NULL
-    
-    if (any(group %in% c("year", "month", "week"))) {
-      group_date <- group[group %in% c("year", "month", "week")]
+    # group date vars that aren't in facet_date
+    group_date2 <- group_date[!(group_date %in% facet_date)]
+    if (length(group_date2) > 0) {
       
-      if (length(group_date[!(group_date %in% facet_date)]) > 0) {
-        for (i in group_date) {
-          x <- switch(i, "year" = "%Y", "month" = "%b", "week" = "%U")
-          
-          trip_tab[[i]] <- format(trip_tab$start, x)
-          
-          if (i == "month") {
-            trip_tab[[i]] <- factor(trip_tab[[i]], levels = month.abb, ordered = TRUE)
-          }
+      for (i in group_date2) {
+        x <- switch(i, "year" = "%Y", "month" = "%b", "week" = "%U")
+        
+        trip_tab[[i]] <- format(trip_tab[[sub_date]], x)
+        
+        if (i == "month") {
+          trip_tab[[i]] <- factor(trip_tab[[i]], levels = month.abb, ordered = TRUE)
         }
       }
     }
@@ -602,10 +642,10 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
   trip_length_function <- list()
   trip_length_function$functionID <- "trip_length"
   trip_length_function$args <- list(dat, project, start, end, units, vpue,
-                                    group, combine, filter_date, date_value, filter_by, 
-                                    filter_value, filter_expr, facet_by, type,
-                                    bins, density, scale, tran, pages, remove_neg,
-                                    output, tripID, fun.time, fun.numeric)
+                                    group, combine, haul_count, sub_date, filter_date, 
+                                    date_value, filter_by, filter_value, filter_expr,
+                                    facet_by, type, bins, density, scale, tran, pages, 
+                                    remove_neg, output, tripID, fun.time, fun.numeric)
   log_call(trip_length_function)
   
   if (output == "table") {

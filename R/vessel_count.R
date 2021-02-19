@@ -83,8 +83,9 @@
 vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group = NULL, 
                          sub_date = NULL, filter_date = NULL, date_value = NULL, 
                          filter_by = NULL, filter_value = NULL, filter_expr = NULL, 
-                         facet_by = NULL, combine = FALSE, position = "stack", tran = "identity", 
-                         value = "count", type = "bar", scale = "fixed", output = "tab_plot") {
+                         facet_by = NULL, combine = FALSE, position = "stack",
+                         tran = "identity", value = "count", type = "bar", 
+                         scale = "fixed", output = "tab_plot") {
   
   # Call in datasets
   out <- data_pull(dat)
@@ -108,20 +109,15 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
   
   group_date <- group[group %in% c("year", "month", "week")]
   facet_date <- facet_by[facet_by %in% c("year", "month", "week")]
+  facet_no_date <- facet_by[!(facet_by %in% c("year", "month", "week"))]
+  group_no_date <- group[!(group %in% c("year", "month", "week"))]
   
   # date ----
   # convert date and/or sub_date to date class
   if (!is.null(date) | !is.null(sub_date)) {
     
     dataset[unique(c(date, sub_date))] <- 
-      lapply(dataset[unique(c(date, sub_date))], function(x) {
-        
-        if (any(!(class(x) %in% c("Date", "POSIXct", "POSIXt")))) {
-          date_parser(x)
-        } else {
-          x
-        }
-      })
+      lapply(dataset[unique(c(date, sub_date))], date_parser)
   } 
   
   # sub_date ----
@@ -176,6 +172,48 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
       end <- TRUE
     }
   }
+ 
+  # filter by variable ----
+  if (!is.null(filter_by) | !is.null(filter_expr)) {
+    
+    dataset <- subset_var(dataset, filter_by, filter_value, filter_expr)
+    
+    if (nrow(dataset) == 0) {
+      
+      warning("Filtered data table has zero rows. Check filter parameters.")
+      end <- TRUE
+    }
+  }
+  # period ----
+  if (!is.null(period)) {
+    
+    if (is.null(date)) warning("Please enter a date variable.")
+    
+    periods <- c("year_month", "month_year", "year", "month", "weeks", 
+                 "weekday", "day_of_month", "day_of_year", "cal_date")
+    
+    if (period %in% periods == FALSE) {
+      
+      warning("Invalid period. Please select a valid period name (see documentation for details).")
+      end <- TRUE
+      
+    } else {
+      
+      p <- switch(period, year_month = "%Y-%m", month_year = "%Y-%m", year = "%Y",
+                  month = "%b", weeks = "%U", weekday = "%a", day_of_month = "%d", 
+                  day_of_year = "%j", cal_date = NULL)
+    }
+  }
+  # add missing ----
+  dataset <- add_missing_dates(dataset, date = date, value = v_id, sub_date = sub_date,
+                               group = group_no_date, facet_by = facet_no_date, 
+                               fun = "count")
+
+    if (!is.null(period)) {
+      if (period != "cal_date") {
+        dataset[[period]] <- format(dataset[[date]], p)
+      }
+    }
   
   # facet date ----
   if (!is.null(facet_by)) {
@@ -212,7 +250,9 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
     
     if (length(group_date) > 0) {
       
-      if (length(group_date[!(group_date %in% facet_date)]) > 0) {
+      group_date2 <- group_date[!(group_date %in% facet_date)]
+      
+      if (length(group_date2) > 0) {
         
         for (i in group_date) {
           x <- switch(i, "year" = "%Y", "month" = "%b", "week" = "%U")
@@ -226,47 +266,6 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
       }
     }
   }
- 
-  # filter by variable ----
-  if (!is.null(filter_by) | !is.null(filter_expr)) {
-    
-    dataset <- subset_var(dataset, filter_by, filter_value, filter_expr)
-    
-    if (nrow(dataset) == 0) {
-      
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      end <- TRUE
-    }
-  }
-  # period ----
-  if (!is.null(period)) {
-    
-    if (is.null(date)) warning("Please enter a date variable.")
-    
-    periods <- c("year_month", "month_year", "year", "month", "weeks", 
-                 "weekday", "day_of_month", "day_of_year", "cal_date")
-    
-    if (period %in% periods == FALSE) {
-      
-      warning("Invalid period. Please select a valid period name (see documentation for details).")
-      end <- TRUE
-      
-    } else {
-      
-      p <- switch(period, year_month = "%Y-%m", month_year = "%Y-%m", year = "%Y",
-                  month = "%b", weeks = "%U", weekday = "%a", day_of_month = "%d", 
-                  day_of_year = "%j", cal_date = NULL)
-    }
-  }
-  # add missing ----
-  dataset <- add_missing_dates(dataset, date = date, value = v_id, sub_date = sub_date,
-                               group = group, facet_by = facet_by, fun = "count")
-
-    if (!is.null(period)) {
-      if (period != "cal_date") {
-        dataset[[period]] <- format(dataset[[date]], p)
-      }
-    }
   
   # group ----
   if (!is.null(group)) {
@@ -446,7 +445,8 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
                                                                y = !!vessel_exp())) +
         fishset_theme() +
         ggplot2::theme(legend.position = "bottom") +
-        ggplot2::scale_y_continuous(labels = scale_lab(), trans = tran, breaks = y_breaks())
+        ggplot2::scale_y_continuous(labels = scale_lab(), trans = tran, 
+                                    breaks = y_breaks())
       
       if (type == "bar") {
         
@@ -459,9 +459,11 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
         
       } else if (type == "line") {
         
-        v_plot <- v_plot + ggplot2::geom_line(ggplot2::aes(group = !!interaction_exp(), color = !!color_exp(), 
+        v_plot <- v_plot + ggplot2::geom_line(ggplot2::aes(group = !!interaction_exp(), 
+                                                           color = !!color_exp(), 
                                                            linetype = !!linetype_exp())) +
-          ggplot2::geom_point(ggplot2::aes(group = !!interaction_exp(), color = !!color_exp()), size = point_size())
+          ggplot2::geom_point(ggplot2::aes(group = !!interaction_exp(), 
+                                           color = !!color_exp()), size = point_size())
       }
       
       if (!is.null(facet_by)) {
