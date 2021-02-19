@@ -169,7 +169,7 @@ density_serv <- function(id, values, project) {
     
     output$grp_select <- renderUI({
       
-      selectizeInput(ns("grp"), "grouping variables",
+      selectizeInput(ns("grp"), "Group by",
                      choices = c("year", "month", "week", category_cols(values$dataset)),
                      multiple = TRUE)
     })
@@ -245,7 +245,7 @@ density_serv <- function(id, values, project) {
         conditionalPanel("typeof input.filter_by !== 'undefined' && input.filter_by.length > 0", ns = ns,
                          style = "margin-left:19px;",
                          
-                         selectizeInput(ns("filter_by_val"), "Select values to subset by",
+                         selectizeInput(ns("filter_by_val"), "Select values",
                                         choices = filter_val(),
                                         multiple = TRUE, options = list(maxOptions = 15, placeholder = "Select or type value name")))
       )
@@ -406,7 +406,7 @@ vessel_serv <- function(id, values, project) {
     
     output$grp_select <- renderUI({
       
-      selectizeInput(ns("grp"), "Select group variables", 
+      selectizeInput(ns("grp"), "Group by", 
                      choices = c("year", "month", "week", category_cols(values$dataset)), 
                      multiple = TRUE, options = list(create = TRUE, 
                                                      placeholder = "Select or type variable name"))
@@ -469,7 +469,7 @@ vessel_serv <- function(id, values, project) {
     
     output$filter_by_UIOutput <- renderUI({
       
-      selectizeInput(ns("filter_by"), "Subset by variable",
+      selectizeInput(ns("filter_by"), "Select variable",
                      choices = names(values$dataset), multiple = TRUE, options = list(maxItems = 1)) 
     })
     
@@ -479,7 +479,7 @@ vessel_serv <- function(id, values, project) {
         conditionalPanel("typeof input.filter_by !== 'undefined' && input.filter_by.length > 0", ns = ns,
                          style = "margin-left:19px;",
                          
-                         selectizeInput(ns("filter_by_val"), "Select values to subset by",
+                         selectizeInput(ns("filter_by_val"), "Select value(s)",
                                         choices = filter_val(),
                                         multiple = TRUE, options = list(maxOptions = 15, placeholder = "Select or type value name")))
       )
@@ -649,7 +649,7 @@ species_serv <- function(id, values, project) {
     
     output$grp_select <- renderUI({
       
-      selectizeInput(ns("grp"), "Select group variables",
+      selectizeInput(ns("grp"), "Group by",
                      choices = c("year", "month", "week", category_cols(values$dataset)), 
                      multiple = TRUE, options = list(create = TRUE, 
                                                      placeholder = "Select or type variable name"))
@@ -712,7 +712,7 @@ species_serv <- function(id, values, project) {
     
     output$filter_by_UIOutput <- renderUI({
      
-        selectizeInput(ns("filter_by"), "Subset by variable",
+        selectizeInput(ns("filter_by"), "Select variable",
         choices = names(values$dataset), multiple = TRUE, options = list(maxItems = 1)) 
     })
     
@@ -722,7 +722,7 @@ species_serv <- function(id, values, project) {
         conditionalPanel("typeof input.filter_by !== 'undefined' && input.filter_by.length > 0", ns = ns,
                          style = "margin-left:19px;",
         
-        selectizeInput(ns("filter_by_val"), "Select values to subset by",
+        selectizeInput(ns("filter_by_val"), "Select values",
                     choices = filter_val(),
                     multiple = TRUE, options = list(maxOptions = 15, placeholder = "Select or type value name")))
       )
@@ -894,7 +894,7 @@ roll_serv <- function(id, values, project) {
     
     output$grp_select <- renderUI({
       
-      selectizeInput(ns("grp"), "Select group variables",
+      selectizeInput(ns("grp"), "Group by",
                      choices = c("year", "month", "week", category_cols(values$dataset)), 
                      multiple = TRUE, options = list(create = TRUE, 
                                                      placeholder = "Select or type variable name"))
@@ -957,7 +957,7 @@ roll_serv <- function(id, values, project) {
     
     output$filter_by_UIOutput <- renderUI({
       
-      selectizeInput(ns("filter_by"), "Subset by variable",
+      selectizeInput(ns("filter_by"), "Select variable",
                      choices = names(values$dataset), multiple = TRUE, options = list(maxItems = 1)) 
     })
     
@@ -967,7 +967,7 @@ roll_serv <- function(id, values, project) {
         conditionalPanel("typeof input.filter_by !== 'undefined' && input.filter_by.length > 0", ns = ns,
                          style = "margin-left:19px;",
                          
-                         selectizeInput(ns("filter_by_val"), "Select values to subset by",
+                         selectizeInput(ns("filter_by_val"), "Select values",
                                         choices = filter_val(),
                                         multiple = TRUE, options = list(maxOptions = 15, placeholder = "Select or type value name")))
       )
@@ -1129,7 +1129,7 @@ weekly_catch_serv <- function(id, values, project) {
     
     output$grp_select <- renderUI({
       
-      selectizeInput(ns("grp"), "Select group variables",
+      selectizeInput(ns("grp"), "Group by",
                      choices = c("year", "month", "week", category_cols(values$dataset)), 
                      multiple = TRUE, options = list(create = TRUE, 
                                                      placeholder = "Select or type variable name"))
@@ -1192,7 +1192,7 @@ weekly_catch_serv <- function(id, values, project) {
     
     output$filter_by_UIOutput <- renderUI({
       
-      selectizeInput(ns("filter_by"), "Subset by variable",
+      selectizeInput(ns("filter_by"), "Select variable",
                      choices = names(values$dataset), multiple = TRUE, options = list(maxItems = 1)) 
     })
     
@@ -1202,7 +1202,7 @@ weekly_catch_serv <- function(id, values, project) {
         conditionalPanel("typeof input.filter_by !== 'undefined' && input.filter_by.length > 0", ns = ns,
                          style = "margin-left:19px;",
                          
-                         selectizeInput(ns("filter_by_val"), "Select values to subset by",
+                         selectizeInput(ns("filter_by_val"), "Select values",
                                         choices = filter_val(),
                                         multiple = TRUE, options = list(maxOptions = 15, 
                                                                         placeholder = "Select or type value name")))
@@ -1359,7 +1359,7 @@ weekly_effort_serv <- function(id, values, project) {
     
     output$grp_select <- renderUI({
       
-      selectizeInput(ns("grp"), "Select group variables",
+      selectizeInput(ns("grp"), "Group by",
                      choices = c("year", "month", "weeks", category_cols(values$dataset)), 
                      multiple = TRUE, options = list(create = TRUE, 
                                                      placeholder = "Select or type variable name"))
@@ -1422,7 +1422,7 @@ weekly_effort_serv <- function(id, values, project) {
     
     output$filter_by_UIOutput <- renderUI({
       
-      selectizeInput(ns("filter_by"), "Subset by variable",
+      selectizeInput(ns("filter_by"), "Select variable",
                      choices = names(values$dataset), multiple = TRUE, options = list(maxItems = 1)) 
     })
     
@@ -1432,7 +1432,7 @@ weekly_effort_serv <- function(id, values, project) {
         conditionalPanel("typeof input.filter_by !== 'undefined' && input.filter_by.length > 0", ns = ns,
                          style = "margin-left:19px;",
                          
-                         selectizeInput(ns("filter_by_val"), "Select values to subset by",
+                         selectizeInput(ns("filter_by_val"), "Select values",
                                         choices = filter_val(),
                                         multiple = TRUE, options = list(maxOptions = 15, 
                                                                         placeholder = "Select or type value name")))
@@ -1593,7 +1593,7 @@ bycatch_serv <- function(id, values, project) {
     
     output$grp_select <- renderUI({
       
-      selectizeInput(ns("grp"), "Select group variables",
+      selectizeInput(ns("grp"), "Group by",
                      choices = c("year", "month", "weeks", category_cols(values$dataset)), 
                      multiple = TRUE, options = list(create = TRUE, 
                                                      placeholder = "Select or type variable name"))
@@ -1656,7 +1656,7 @@ bycatch_serv <- function(id, values, project) {
     
     output$filter_by_UIOutput <- renderUI({
       
-      selectizeInput(ns("filter_by"), "Subset by variable",
+      selectizeInput(ns("filter_by"), "Select variable",
                      choices = names(values$dataset), multiple = TRUE, options = list(maxItems = 1)) 
     })
     
@@ -1666,7 +1666,7 @@ bycatch_serv <- function(id, values, project) {
         conditionalPanel("typeof input.filter_by !== 'undefined' && input.filter_by.length > 0", ns = ns,
                          style = "margin-left:19px;",
                          
-                         selectizeInput(ns("filter_by_val"), "Select values to subset by",
+                         selectizeInput(ns("filter_by_val"), "Select values",
                                         choices = filter_val(),
                                         multiple = TRUE, options = list(maxOptions = 15, 
                                                                         placeholder = "Select or type value name")))
@@ -1839,7 +1839,7 @@ trip_serv <- function(id, values, project) {
     
     output$grp_select <- renderUI({
       
-      selectizeInput(ns("grp"), "Select group variables",
+      selectizeInput(ns("grp"), "Group by",
                      choices = c("year", "month", "week", category_cols(values$dataset)), 
                      multiple = TRUE, options = list(create = TRUE, 
                                                      placeholder = "Select or type variable name"))
@@ -1907,7 +1907,7 @@ trip_serv <- function(id, values, project) {
     
     output$filter_by_UIOutput <- renderUI({
       
-      selectizeInput(ns("filter_by"), "Subset by variable",
+      selectizeInput(ns("filter_by"), "Select variable",
                      choices = names(values$dataset), multiple = TRUE, options = list(maxItems = 1)) 
     })
     
@@ -1917,7 +1917,7 @@ trip_serv <- function(id, values, project) {
         conditionalPanel("typeof input.filter_by !== 'undefined' && input.filter_by.length > 0", ns = ns,
                          style = "margin-left:19px;",
                          
-                         selectizeInput(ns("filter_by_val"), "Select values to subset by",
+                         selectizeInput(ns("filter_by_val"), "Select values",
                                         choices = filter_val(),
                                         multiple = TRUE, options = list(maxOptions = 15, 
                                                                         placeholder = "Select or type value name")))
@@ -2064,7 +2064,7 @@ nexpr_row_server <- function(id, values) {
     output$varUI <- renderUI({
       selectizeInput(ns("var"), "", 
                   choices = colnames(values$dataset), multiple = TRUE, 
-                  options = list(maxIems = 1))
+                  options = list(maxItems = 1))
     })
     
     unique_values  <- reactive({
@@ -2083,20 +2083,26 @@ nexpr_row_server <- function(id, values) {
     
     output$valueUI <- renderUI({
       
-      if (input$oper == "%in%") {
+      if (!is.null(input$oper)) {
+      
+        if (input$oper == "%in%") {
+          
+          selectizeInput(ns("value"), "",
+                         choices = unique_values(),
+                         multiple = TRUE, options = list(maxOptions = 15,
+                                                         placeholder = "Select or type value name",
+                                                         create = TRUE))
+        } else {
+          
+          selectizeInput(ns("value"), "",
+                         choices = unique_values(),   
+                         multiple = TRUE, options = list(maxOptions = 15, maxItems = 1, 
+                                                         placeholder = "Select or type value name",
+                                                         create = TRUE))
+        }
         
-        selectizeInput(ns("value"), "",
-                       choices = unique_values(),
-                       multiple = TRUE, options = list(maxOptions = 15,
-                                                       placeholder = "Select or type value name",
-                                                       create = TRUE))
       } else {
-        
-        selectizeInput(ns("value"), "",
-                       choices = unique_values(),   
-                       multiple = TRUE, options = list(maxOptions = 15, maxItems = 1, 
-                                                       placeholder = "Select or type value name",
-                                                       create = TRUE))
+        selectizeInput(ns("value"), "", choices = "") # placeholder widget
       }
     })
   })
@@ -2118,7 +2124,7 @@ fleet_table_serv <- function(id, values, project) {
       
       selectizeInput(ns("nexpr_1-var"), "Variable", 
                   choices = colnames(values$dataset), multiple = TRUE, 
-                  options = list(maxIems = 1))
+                  options = list(maxItems = 1))
     })
     
     # used for value input

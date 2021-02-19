@@ -121,14 +121,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
   if (!is.null(date) | !is.null(sub_date)) {
     
     dataset[unique(c(date, sub_date))] <- 
-      lapply(dataset[unique(c(date, sub_date))], function(x) {
-        
-        if (any(!(class(x) %in% c("Date", "POSIXct", "POSIXt")))) {
-          date_parser(x)
-        } else {
-          x
-        }
-      })
+      lapply(dataset[unique(c(date, sub_date))], date_parser)
   } 
   
   # sub_date ----
