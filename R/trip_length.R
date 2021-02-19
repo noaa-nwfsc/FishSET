@@ -142,15 +142,9 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
   if (!is.null(sub_date)) {
     
     dataset[sub_date] <- 
-      lapply(dataset[sub_date], function(x) {
-        
-        if (any(!(class(x) %in% c("Date", "POSIXct", "POSIXt")))) {
-          date_parser(x)
-        } else {
-          x
-        }
-      })
+      lapply(dataset[sub_date], date_parser)
   } 
+  
   # check if sub_date is needed
   if (!is.null(filter_date)) {
     if (is.null(sub_date)) {
