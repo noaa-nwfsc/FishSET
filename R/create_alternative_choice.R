@@ -98,11 +98,14 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
   dat <- out$dat
   dataset <- out$dataset
   
+
+  
   if(is.null(cat)){
     cat <- 'ZoneID'
   }
   
-  
+
+ 
   if(!is.null(gridfile)){
     if(is.character(gridfile)){
       if(table_exists(paste0(gridfile, 'Centroid'))==FALSE){
@@ -112,7 +115,8 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
       int <- table_view(paste0(gridfile, 'Centroid'))
       }
     } else {
-  int <- find_centroid(
+# browser()  
+      int <- find_centroid(
     dat = dataset, gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.grid,
     lat.dat = lat.dat, lon.dat = lon.dat, cat = cat, weight.var = weight.var
   )
@@ -120,7 +124,7 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
   } else {
     warning("Zonal centroid must be defined.")
   }
-  
+ 
   if (!is.null(gridfile) & !is.character(gridfile)) {
     int.data <- assignment_column(
       dat = dataset, gridfile = gridfile, hull.polygon = hull.polygon,
@@ -140,6 +144,7 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
     warning(paste("No zone identified for", sum(is.na(g)), "observations. 
                   These observations will be removed in future analyses."))
   }
+  
 
   choice <- data.frame(g)
   startingloc <- if (!"startingloc" %in% int.data) {
