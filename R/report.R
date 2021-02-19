@@ -890,7 +890,7 @@ model_out_summary <- function(project, output = "print") {
   #'
   #' @param project Name of project
   #' @param output Output type. "print" returns formatted notes. "table" returns a 
-  #'   dataframe. "print" is reccomended for displaying summary table in a report.
+  #'   dataframe. "print" is recommended for displaying summary table in a report.
   #' @export
   #' @importFrom pander pander pandoc.table
   #' @keywords internal
@@ -945,7 +945,7 @@ model_error_summary <- function(project, output = "print") {
   #'
   #' @param project Name of project
   #' @param output Output type. "print" returns formatted notes. "table" returns a 
-  #'   dataframe. "print" is reccomended for displaying summary table in a report.
+  #'   dataframe. "print" is recommended for displaying summary table in a report.
   #' @export
   #' @importFrom pander pander pandoc.table
   #' @keywords internal
@@ -1001,7 +1001,7 @@ model_fit_summary <- function(project, output = "print") {
   #'
   #' @param project Name of project
   #' @param output Output type. "print" returns formatted notes. "table" returns a 
-  #'   dataframe. "print" is reccomended for displaying summary table in a report.
+  #'   dataframe. "print" is recommended for displaying summary table in a report.
   #' @export
   #' @importFrom pander pander pandoc.table
   #' @keywords internal
