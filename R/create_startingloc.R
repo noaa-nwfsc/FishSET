@@ -4,27 +4,33 @@
 #'
 #' @param dat  Primary data containing information on hauls or trips.
 #'   Table in FishSET database contains the string 'MainDataTable'.
-#' @param gridfile Spatial data. Shape, json, geojson, and csv formats are supported.
+#' @param gridfile Spatial data. Required if \emph{ZoneID} does not exists in \code{dat}.
+#'   Shape, json, geojson, and csv formats are supported.
 #' @param portTable Port data. Contains columns: Port_Name, Port_Long, Port_Lat. Table is generated using
 #'   the \code{\link{load_port}} and saved in the FishSET database as the project and PortTable, for example 'pollockPortTable'.
 #' @param trip_id Variable in \code{dat} that identifies unique trips.
 #' @param haul_order Variable in \code{dat} containing information on the order that hauls occur within a trip. Can be time, coded variable, etc.
 #' @param starting_port Variable in \code{dat} to identify port at start of trip.
-#' @param lon.dat Longitude variable from \code{dat}.
-#' @param lat.dat Latitude variable from \code{dat}.
+#' @param lon.dat Longitude variable from \code{dat}. Required if \emph{ZoneID} does not exist in \code{dat}.
+#' @param lat.dat Latitude variable from \code{dat}. Required if \emph{ZoneID} does not exist in \code{dat}.
 #' @param cat Variable or list in \code{gridfile} that identifies the individual areas or zones. 
+#'   Required if \emph{ZoneID} does not exist in \code{dat}.
 #'   If \code{gridfile} is class sf, \code{cat} should be name of list containing information on zones.
 #' @param name String, name of created variable. Defaults to name of the function if not defined.
-#' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required for csv files. 
+#' @param lon.grid Variable or list from \code{gridfile} containing longitude data. 
+#'   Required if \emph{ZoneID} does not exist in \code{dat}. Required for csv files. 
 #'   Leave as NULL if \code{gridfile} is a shape or json file.
-#' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files. 
+#' @param lat.grid Variable or list from \code{gridfile} containing latitude data. 
+#'   Required if \emph{ZoneID} does not exist in \code{dat}. Required for csv files. 
 #'   Leave as NULL if \code{gridfile} is a shape or json file.
 #' @importFrom DBI dbExecute
 #' @export create_startingloc
 #' @return Primary dataset with starting location variable added.
 #' @details Function creates the \code{startloc} vector that is required for the full information model with Dahl's correction \code{\link{logit_correction}}. 
 #'   The vector is the zone location of a vessel when the decision of where to fish next was made. Generally, the first zone of a trip is the departure port. 
-#'   The \code{\link{assignment_column}} function is called to assign starting port locations and haul locations to zones.
+#'   The \code{\link{assignment_column}} function is called to assign starting port locations and haul locations to zones. 
+#'   If ZoneID exists in \code{dat}, \code{\link{assignment_column}} is not called and the following arguments are not required:
+#'   \code{gridfile, lon.dat, lat.dat, cat, lon.grid, lat.grid}. 
 #' @examples
 #' \dontrun{
 #' pcodMainDataTable <- create_startingloc(pcodMainDataTable, map2, "pcodPortTable", "TRIP_SEQ",
@@ -49,11 +55,15 @@ create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, st
     lat.dat = "Port_Lat", cat = cat, closest.pt = TRUE
   )
 
-  int.data <- assignment_column(
-    dat = dataset, gridfile = gridfile, hull.polygon = FALSE, lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat,
-    lat.dat = lat.dat, cat = cat, closest.pt = TRUE
-  )
-
+  if("ZoneID" %in% names(dataset) == TRUE){
+    int.data <- dataset
+  } else {
+    int.data <- assignment_column(
+      dat = dataset, gridfile = gridfile, hull.polygon = FALSE, lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat,
+      lat.dat = lat.dat, cat = cat, closest.pt = TRUE
+    )
+  }
+  
   # Create starting loc variable
   if (is.null(trip_id)) {
     int.data <- int.data[order(int.data[[haul_order]]), ]
