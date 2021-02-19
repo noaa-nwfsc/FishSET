@@ -1030,7 +1030,7 @@ nexpr_row_ui <- function(id) {
           column(3, selectizeInput(ns("oper"), "", 
                                 choices = c("less than" = "<", "greater than" = ">", "less than or equal to" = "<=", 
                                             "greater than or equal to" = ">=", "equal to" = "==", "not equal to" = "!=",
-                                            "contains" = "%in%"),  multiple = TRUE, options = list(maxIems = 1))),
+                                            "contains" = "%in%"),  multiple = TRUE, options = list(maxItems = 1))),
           
           column(4, uiOutput(ns("valueUI")))
         )
@@ -1052,7 +1052,7 @@ fleet_exprUI <- function(id) {
                  selectizeInput(ns("nexpr_1-oper"), "Operator", 
                              choices = c("less than" = "<","greater than" = ">", "less than or equal to" = "<=", 
                                          "greater than or equal to" = ">=", "equal to" = "==", "not equal to" = "!=",
-                                         "contains" = "%in%"), multiple = TRUE, options = list(maxIems = 1))
+                                         "contains" = "%in%"), multiple = TRUE, options = list(maxItems = 1))
                  ),
           
           column(4, uiOutput(ns("valueUI")))
