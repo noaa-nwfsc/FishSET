@@ -34,7 +34,7 @@ find_centroid <- function(dat, gridfile, cat, lon.dat = NULL, lat.dat = NULL,
   cat("", file = tmp, append = TRUE)
   x <- 0
 
-  if (any(class(gridfile) == "sp")) {
+    if (any(class(gridfile) == "sp")) {
     if (is_empty(lon.grid) | is_empty(lat.grid)) {
       warning("lat.grid and lon.grid must be supplied to convert sp object to a sf object.")
       x <- 1
@@ -158,7 +158,7 @@ find_centroid <- function(dat, gridfile, cat, lon.dat = NULL, lat.dat = NULL,
 
   
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-  DBI::dbWriteTable(fishset_db, paste0(gridfile, "Centroid"), int, overwrite = TRUE)
+  DBI::dbWriteTable(fishset_db, paste0(deparse(substitute(gridfile)), "Centroid"), int, overwrite = TRUE)
   DBI::dbDisconnect(fishset_db)
   
   return(int)
