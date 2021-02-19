@@ -88,9 +88,9 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, combine 
   
   # convert date var if not date/date-time class
   if (!is.null(date)) {
-    if (any(!(class(dataset[[date]]) %in% c("Date", "POSIXct", "POSIXt")))) {
-      dataset[[date]] <- date_parser(dataset[[date]])
-    }
+    
+    dataset[date] <- 
+      lapply(dataset[date], date_parser)
   } 
   
   # facet setup ----
