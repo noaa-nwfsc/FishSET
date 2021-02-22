@@ -2757,11 +2757,15 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                            h5(tags$b('Select latitude then longitude from main dataset for assigning observations to zones')),
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
                                selectizeInput('lat_dat_ac', '',
-                                              choices=c(input$latBase, names(values$dataset)[grep('lat', names(values$dataset), ignore.case=TRUE)]), 
-                                              selected=c(input$latBase), options = list(create = TRUE, placeholder='Select or type LATITUDE variable name'))),
+                                              choices = c(names(values$dataset)[which(stringr::str_count(names(values$dataset), "(?i)lat")
+                                                                          ==max(stringr::str_count(names(values$dataset), "(?i)lat")))][1]),
+                                              #choices=c(names(values$dataset)[grep('lat', names(values$dataset), ignore.case=TRUE)]), 
+                                              options = list(create = TRUE, placeholder='Select or type LATITUDE variable name'))),
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
-                               selectizeInput('lon_dat_ac', '', choices=c(input$lonBase, names(values$dataset)[grep('lon', names(values$dataset), ignore.case=TRUE)]), 
-                                              selected=c(input$lonBase), options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name'))),
+                               selectizeInput('lon_dat_ac', '', 
+                                              choices=c(names(values$dataset)[which(stringr::str_count(names(values$dataset), "(?i)lon")
+                                                                                    ==max(stringr::str_count(names(values$dataset), "(?i)lon")))][1]), 
+                                              options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name'))),
                            selectInput('cat_altc', 'Individual areas/zones from the spatial data set', choices=names(as.data.frame(spatdat$dataset))),
                            selectInput('weight_var_ac', 'If desired, variable for use in calculating weighted centroids', 
                                        choices=c('none'="", colnames(values$dataset))), #variable weighted centroids
@@ -2775,6 +2779,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               values$dataset <-  q_test(dat=values$dataset, gridfile=spatdat$dataset, lon.dat=input$lon_dat_ac, lat.dat=input$lat_dat_ac, 
                                              cat=input$cat_altc, closest.pt = input$closest_pt_ac, lon.grid=NULL,
                                               lat.grid=NULL, hull.polygon = input$hull_polygon_ac, epsg=NULL)
+              if('ZoneID' %in% names(values$dataset)){
+              showNotification('Zone assignment completed', duration=5, type='message')
+              } else {
+                showNotification('Zone assignment could not be completed', type='message', duration=5)
+              }
       })
        
       output$cond2 <- renderUI({
@@ -2989,7 +2998,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         if(!exists("Alt")) {
         if(!exists('AltMatrixName')) {
           if(DBI::dbExistsTable( DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0(input$projectname, 'altmatrix'))){
-          return(unserialize(DBI::dbGetQuery( DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0("SELECT AlternativeMatrix FROM ", 
+          return(unserialize(DBI::dbExecute( DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0("SELECT AlternativeMatrix FROM ", 
                                                                                               input$projectname, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]]))
           } else {
             warning("Alternative Choice Matrix does not exist. Please run the createAlternativeChoice() function.")
@@ -3078,8 +3087,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       #})
       counter <- reactiveValues(countervalue = 0) # Defining & initializing the reactiveValues object
       rv <- reactiveValues(
-        data = data.frame('mod_name'='', 'likelihood'='', 'alternatives'='', 'optimOpts'='', 'inits'='', 
-                          'vars1'='','vars2'='', 'catch'='', 'lon'='', 'lat'='', 'project'='', 'price'='', 
+        data = data.frame('mod_name'='', 'likelihood'='', 'optimOpts'='', 'inits'='', 
+                          'vars1'='','vars2'='', 'catch'='', 'project'='', 'price'='', 
                           'startloc'='', 'polyn'=''),
         #model_table,
         deletedRows = NULL,
@@ -3116,14 +3125,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         if(is.null(input$gridVariablesInclude)|is.null(input$indeVarsForModel)) {
           rv$data <- rbind(data.frame('mod_name'='', 
                                 'likelihood'='',
-                                'alternatives'='',
                                 'optimOpts'='',
                                 'inits'='',
                                 'vars1'= '',
                                 'vars2'='', 
                                 'catch'='',
-                                'lon'='', 
-                                'lat'='', 
                                 'project'=input$projectname, 
                                 'price'='',
                                 'startloc'='',
@@ -3132,20 +3138,17 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         } else {
           rv$data = rbind(data.frame('mod_name'=paste0('mod',counter$countervalue), 
                                'likelihood'=input$model, 
-                               'alternatives'=input$alternatives,
                                'optimOpts'=paste(input$mIter,input$relTolX, input$reportfreq, input$detailreport),
                                'inits'=paste(int_name(), collapse=','),#noquote(paste0('input$int',1:numInits())),
                                'vars1'= paste(input$indeVarsForModel, collapse=', '),
                                'vars2'=input$gridVariablesInclude, 
                                'catch'=input$catch,
-                               'lon'=input$lon, 
-                               'lat'=input$lat,
                                'project'=input$projectname, 
                                'price'=input$price,
                                'startloc'=if(input$startlocdefined=='exists'){input$startloc_mod} else {'startingloc'}, 
                                'polyn'=input$polyn)
                     , rv$data)#model_table())
-          print(rv$data)
+          #print(rv$data)
         }
       #  rv$data(t)#model_table(t)
         
@@ -3159,7 +3162,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         
         if(DBI::dbExistsTable(fishset_db, paste0(input$projectname, 'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))==FALSE){
           DBI::dbExecute(fishset_db, paste0("CREATE TABLE ", paste0(input$projectname,'modelDesignTable', format(Sys.Date(), format="%Y%m%d")),
-                                            "(mod_name TEXT, likelihood TEXT, alternatives TEXT, optimOpts TEXT, inits TEXT, vars1 TEXT, vars2 TEXT,  
+                                            "(mod_name TEXT, likelihood TEXT, optimOpts TEXT, inits TEXT, vars1 TEXT, vars2 TEXT,  
                                             catch TEXT, lon TEXT, lat TEXT, project TEXT, price TEXT, startloc TEXT, polyn TEXT)"))
         }
         # Construct the update query by looping over the data fields
@@ -3172,7 +3175,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                                           )), 1, paste, collapse="','"), ncol=1), collapse=',', "')")
         )
         # Submit the update query and disconnect
-        DBI::dbGetQuery(fishset_db, query)
+        DBI::dbExecute(fishset_db, query)
         DBI::dbDisconnect(fishset_db)
         
         
@@ -3182,6 +3185,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 #        shinyjs::reset("form")
 #      })
       
+      parseDeleteEvent <- function(idstr) {
+        res <- as.integer(sub(".*_([0-9]+)", "\\1", idstr))
+        if (! is.na(res)) res
+      }
       
       observeEvent(input$deletePressed, {
         rowNum <- parseDeleteEvent(input$deletePressed)
@@ -3196,10 +3203,34 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         rv$data <- rv$data[-rowNum,]
       })
       
+      deleteButtonColumn <- function(df, id, ...) {
+        # function to create one action button as string
+        f <- function(i) {
+          as.character(
+            actionButton(
+              # The id prefix with index
+              paste(id, i, sep="_"),
+              label = NULL,
+              icon = icon('trash'),
+              onclick = 'Shiny.setInputValue(\"deletePressed\", this.id, {priority: "event"})'))
+        }
+        
+        deleteCol <- unlist(lapply(seq_len(nrow(df)), f))
+        
+        # Return a data table
+        DT::datatable(cbind(delete = deleteCol, df),
+                      # Need to disable escaping for html as string to work
+                      escape = FALSE,
+                      options = list(
+                        # Disable sorting for the delete column
+                        columnDefs = list(
+                          list(targets = 1, sortable = FALSE))
+                      ))
+      }
       
       output$mod_param_table <- DT::renderDataTable(
         # Add the delete button column
-        deleteButtonColumn(rv$data, 'delete_button')
+       deleteButtonColumn(as.data.frame(rv$data), 'delete_button')
       )
     
 #         output$mod_param_table <- DT::renderDT(
@@ -3258,7 +3289,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       temp <- isolate(paste0(input$projectname, "modelfit"))
       this_table <- reactive(
         if(DBI::dbExistsTable(fishset_db, paste0(input$projectname, 'modelfit'))){
-          data.frame(t(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), locdatabase()), 
+          data.frame(t(DBI::dbExecute(DBI::dbConnect(RSQLite::SQLite(), locdatabase()), 
                                        paste0("SELECT * FROM ", paste0(input$projectname, "modelfit")))))
         } else {
           data.frame('X1'=NA, 'X2'=NA, 'X3'=NA, 'X4'=NA)
@@ -3276,7 +3307,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       # datatable with checkbox
       output$mytable <- DT::renderDT({
-        data.frame(this_table(),Select=shinyInput(checkboxInput,nrow(this_table()),"cbox_"))
+        data.frame(this_table(), select=shinyInput(checkboxInput,nrow(this_table()),"cbox_"))
       }, colnames=c('Model','AIC','AICc','BIC','PseudoR2','Selected'),  filter='top', server = TRUE, escape = FALSE, options = list( 
         dom = 't', paging=FALSE,
         preDrawCallback = DT::JS('function() { 
@@ -3332,7 +3363,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           paste0("('", matrix(apply(as.data.frame(isolate(checkedsave())), 1, paste, collapse="','"), ncol=1), collapse=',', "')")
         )
         # Submit the update query and disconnect
-        DBI::dbGetQuery(fishset_db, query)
+        DBI::dbExecute(fishset_db, query)
         
         showNotification("Table saved to database")
       })
@@ -3387,13 +3418,15 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       #Run functions ----
       #---
       observeEvent(input$saveALT, {
+              showNotification('Function can take a couple minutes. A message will appear when done.',
+                               type='message', duration=20)
               q_test <- quietly_test(create_alternative_choice)
               q_test(values$dataset, project=input$projectname, gridfile=spatdat$dataset, alt_var=input$alt_var_ac, 
                                   occasion=input$occasion_ac, griddedDat=NULL, dist.unit=input$dist_ac, min.haul=input$min_haul_ac,
                                   cat=input$cat_altc, lon.dat=input$lon_dat_ac, lat.dat=input$lat_dat_ac,
                                   hull.polygon=input$hull_polygon_ac, lon.grid=input$long_grid_altc, lat.grid=input$lat_grid_altc, 
-                                  closest.pt=input$closest_pt_ac,  weight.var=input$weight_var_ac) 
-              showNotification('Alternative choice matrix updated', type='message', duration=10)
+                                  closest.pt=input$closest_pt_ac,  weight.var=input$weight_var_ac )
+              showNotification('Completed. Alternative choice matrix updated', type='message', duration=10)
       }, ignoreInit = F) 
       
       observeEvent(input$submitE, {
@@ -3695,7 +3728,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         if(colnames(values$dataset)[1]!='var1'){
           #---
         updateSelectInput(session, "alt_var_ac", selected = bookmarkedstate()$alt_var_ac) 
-        updateSelectInput(session, "alternatives", selected = bookmarkedstate()$alternatives) 
         updateSelectInput(session, "calc_method", selected = bookmarkedstate()$calc_method) 
         updateSelectInput(session, "cat", selected = bookmarkedstate()$cat) 
         updateSelectInput(session, "cat_altc", selected = bookmarkedstate()$cat_altc) 
