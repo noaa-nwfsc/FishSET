@@ -132,16 +132,11 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
     if (is.factor(initparams)) {
       inits <- initparams[i]
       starts2 <-as.numeric(unlist(strsplit(as.character(inits), ","))) # inits
-<<<<<<< HEAD
     } else if(is.list(initparams)){
-=======
-    } else {
->>>>>>> 5da85259cc50be660f10eb5ed4948029782d7a75
       starts2 <- unlist(initparams[i])
     } else {
       inits <- initparams
       starts2 <-as.numeric(unlist(strsplit(as.character(inits), ","))) # inits
-      
     }
 
     # remove unnecessary lists
