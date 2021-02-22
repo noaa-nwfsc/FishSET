@@ -5,9 +5,11 @@
 #'
 #' @param project  String, name of project.
 # Working modelInputData table (table without date) will be pulled from fishset_db database.
-#' @param initparams Vector, initial parameter estimates for revenue/location-specific covariates then cost/distance.
+#' @param initparams String or list, initial parameter estimates for revenue/location-specific covariates then cost/distance.
 #'   The number of parameter estimate varies by likelihood function. See Details section for more information.
-#' @param optimOpt  String, optimization options [max function evaluations, max iterations, (reltol) tolerance of x, trace].
+#'   If running multiple models, include initial parameter values as a list. For example, list(c(0.5, 0.5), c(0,-0.5)).
+#' @param optimOpt  String or, optimization options [max function evaluations, max iterations, (reltol) tolerance of x, 
+#'    trace]. If running multiple models, include as a list. For example, list(c(100000, 1.00000000000000e-08, 1, 1), c(100000, 1.00000000000000e-08, 1, 1))
 #' @param methodname String, optimization method (see \code{\link[stats]{optim}} options). Defaults to \code{"BFGS"}.
 #' @param mod.name String, name of model run for model result output table.
 #' @param select.model Return an interactive data table that allows users to select and save table of best models based on measures of fit.
@@ -121,13 +123,21 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
 
     if (is.factor(optimOpt)) {
       opt <- as.numeric(unlist(strsplit(as.character(optimOpt[i]), " ")))
+    } else if(is.list(optimOpt)){
+      opt <- as.numeric(unlist(optimOpt[i]))
     } else {
       opt <- as.numeric(unlist(strsplit(as.character(optimOpt), " ")))
     }
+    
     if (is.factor(initparams)) {
       inits <- initparams[i]
+      starts2 <-as.numeric(unlist(strsplit(as.character(inits), ","))) # inits
+    } else {
+      starts2 <- unlist(initparams[i])
     } else {
       inits <- initparams
+      starts2 <-as.numeric(unlist(strsplit(as.character(inits), ","))) # inits
+      
     }
 
     # remove unnecessary lists
@@ -142,7 +152,7 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
 
     d <- shift_sort_x(dataCompile, choice, catch, distance, max(choice), ab)
 
-    starts2 <- as.numeric(unlist(strsplit(as.character(inits), ","))) # inits
+   # starts2 <-as.numeric(unlist(strsplit(as.character(inits), ","))) # inits
 
     ### Data needs will vary by the likelihood function ###
     if (grepl("epm", find_original_name(match.fun(as.character(fr))))) {
