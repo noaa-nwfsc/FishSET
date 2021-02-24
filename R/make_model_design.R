@@ -7,8 +7,6 @@
 #' @param catchID  String, variable from \code{dat} that contains catch data.
 #' @param replace Logical, should the model design file be replaced? If false, appends to existing model design file. 
 #'   Defaults to TRUE.
-#' @param PortTable Optional. String, name of data table in FishSET database containing the port table with lat/lon for each port. 
-#'   Define if \code{alt_var} is a port.
 #' @param likelihood String, name of likelihood function. Details on likelihood specific initial parameter specification 
 #'   can be found in \code{\link{discretefish_subroutine}} documentation.
 #' \tabular{rlll}{
@@ -19,14 +17,19 @@
 #'  epm_weibull: \tab Expected profit model with Weibull catch function \cr
 #'  epm_lognormal: \tab  Expected profit model with lognormal catch function  \cr
 #'  }
-
+#' @param initparams String or list, initial parameter estimates for revenue/location-specific covariates then cost/distance.
+#'   The number of parameter estimate varies by likelihood function. See Details section for more information.
+#' @param optimOpt  String, optimization options [max function evaluations, max iterations, (reltol) tolerance of x, trace].
+#' @param methodname String, optimization method (see \code{\link[stats]{optim}} options). Defaults to \code{"BFGS"}.
+#' @param mod.name String, name of model run for model result output table.
 #' @param vars1  Character string, additional ‘travel-distance’ variables to include in the model. 
 #'   These depend on the likelihood. See the Details section for how to specify for each likelihood function.
 #' @param vars2 Character string, additional variables to include in the model. These depend on the likelihood.
 #'   See the Details section for how to specify for each likelihood function.
 #' @param priceCol Variable in \code{dat} containing price information. Required if specifying an expected profit model 
 #'   for the likelihood (epm_normal, epm_weibull, epm_lognormal).
-#' @param startloc Variable in \code{dat} identifying the location when choice of where to fish next was made. Required for logit_correction likelihood.
+#' @param startloc Variable in \code{dat} identifying the location when choice of where to fish next was made.
+#'   Required for logit_correction likelihood.
 #'   Use the \code{\link{create_startingloc}} function to create the starting location vector.
 #' @param polyn Numeric, correction polynomial degree.  Required for logit_correction likelihood.
 #' @importFrom geosphere distm
@@ -149,6 +152,10 @@
 #'     choice: \tab Data corresponding to actual zonal choice\cr
 #'     catch: \tab Data corresponding to actual zonal catch\cr
 #'     scales: \tab Scale vectors to put catch data, zonal data, and other data on same scale\cr
+#'     initparms: \tab Initial parameter values\cr
+#'     optimOpt: \tab Optimization options\cr
+#'     methodname: \tab Optimization method\cr
+#'     mod.name: \tab Model name for referencing\cr
 #'     distance: \tab Data corresponding to distance\cr
 #'     instances: \tab Number of observations\cr
 #'     alt: \tab Number of alternative zones\cr
@@ -165,12 +172,16 @@
 #'   }
 #' @examples
 #' \dontrun{
-#' make_model_design(pollockMainDataTable ,"pollock", catchID= "OFFICIAL_TOTAL_CATCH", 
-#' likelihood='logit_c')
+#' make_model_design(pollockMainDataTable, "pollock", catchID= "OFFICIAL_TOTAL_CATCH",  
+#'   replace=F, likelihood='logit_avgcat', initparams=c(-0.5,0.5),1
+#'   optimOpt=c(100000, 1.0e-08, 1, 1), methodname = "BFGS", mod.name = "logit4"
+#' )
 #' }
 #'
-make_model_design <- function(dat, project, catchID, replace = TRUE, PortTable = NULL, likelihood = NULL, 
-                              vars1 = NULL, vars2 = NULL, priceCol = NULL, startloc = NULL, polyn = NULL) {
+make_model_design <- function(dat, project, catchID, replace = TRUE, likelihood = NULL, 
+                              initparams, optimOpt=c(100000, 1.0e-08, 1, 1), methodname="BFGS", 
+                              mod.name=NULL, vars1 = NULL, vars2 = NULL, 
+                              priceCol = NULL, startloc = NULL, polyn = NULL) {
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
   # Call in datasets
   out <- data_pull(dat)
@@ -179,7 +190,7 @@ make_model_design <- function(dat, project, catchID, replace = TRUE, PortTable =
 
   x0 <- 0
 
-  # Script necessary to ensure paramers generated in shiny app are in correct format
+  # Script necessary to ensure parameters generated in shiny app are in correct format
   if (is_empty(vars1) || vars1 == "none") {
     indeVarsForModel <- NULL
   } else {
@@ -199,6 +210,12 @@ make_model_design <- function(dat, project, catchID, replace = TRUE, PortTable =
     startloc <- NULL
   } else {
     startloc <- startloc
+  }
+  
+  if(is_empty(mod.name)) {
+    mod.name <- paste0(likelihood, Sys.time())
+  } else {
+    mod.name <- mod.name
   }
   # lon.dat <- as.character(lon.dat)
   # lat.dat <- as.character(lat.dat)
@@ -244,9 +261,13 @@ make_model_design <- function(dat, project, catchID, replace = TRUE, PortTable =
   units <- Alt[["altChoiceUnits"]]
 
   if (any(grepl("Port", alt_var, ignore.case = TRUE) == T)) {
-    pt <- data_pull(PortTable)
+    pt <- data_pull(paste0(project, 'PortTable'))
+    if(exists('pt')){
     ptname <- pt$dat
     port <- pt$dataset
+    } else {
+      "Port table not found in database. Check spelling and ensure port table is loaded into the FishSET database."
+    }
   } else {
     ptname <- NULL
     port <- NULL
@@ -267,8 +288,8 @@ make_model_design <- function(dat, project, catchID, replace = TRUE, PortTable =
   #
   if (is_empty(indeVarsForModel)) {
     bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, indeVarsForModel = as.data.frame(rep(1, nrow(choice))))
-    bColumnsWant <- ""
-    bInterAct <- ""
+#    bColumnsWant <- ""
+#    bInterAct <- ""
   } else {
     if (any(indeVarsForModel %in% c("Miles * Miles", "Miles*Miles, Miles x Miles"),
       ignore.case = TRUE
@@ -515,6 +536,10 @@ make_model_design <- function(dat, project, catchID, replace = TRUE, PortTable =
       likelihood = likelihood,
       catch = catch,
       choice = choice[which(dataZoneTrue == 1), ],
+      initparams = initparams, 
+      optimOpt = optimOpt, 
+      methodname = methodname, 
+      mod.name  = mod.name,
       startingloc = startingloc[which(dataZoneTrue == 1)],
       scales = c(catch = yscale, zonal = mscale, data = dscale),
       distance = X,
@@ -568,6 +593,7 @@ make_model_design <- function(dat, project, catchID, replace = TRUE, PortTable =
     make_model_design_function$functionID <- "make_model_design"
     make_model_design_function$args <- list(
       dat, project, catchID, replace, ptname, likelihood,
+      initparams, optimOpt, methodname, as.character(mod.name), 
       vars1, vars2, priceCol, startloc, polyn
     )
     make_model_design_function$kwargs <- list()

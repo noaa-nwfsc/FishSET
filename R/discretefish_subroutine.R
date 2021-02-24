@@ -5,13 +5,13 @@
 #'
 #' @param project  String, name of project.
 # Working modelInputData table (table without date) will be pulled from fishset_db database.
-#' @param initparams String or list, initial parameter estimates for revenue/location-specific covariates then cost/distance.
-#'   The number of parameter estimate varies by likelihood function. See Details section for more information.
-#'   If running multiple models, include initial parameter values as a list. For example, list(c(0.5, 0.5), c(0,-0.5)).
-#' @param optimOpt  String or, optimization options [max function evaluations, max iterations, (reltol) tolerance of x, 
-#'    trace]. If running multiple models, include as a list. For example, list(c(100000, 1.00000000000000e-08, 1, 1), c(100000, 1.00000000000000e-08, 1, 1))
-#' @param methodname String, optimization method (see \code{\link[stats]{optim}} options). Defaults to \code{"BFGS"}.
-#' @param mod.name String, name of model run for model result output table.
+# @param initparams String or list, initial parameter estimates for revenue/location-specific covariates then cost/distance.
+#   The number of parameter estimate varies by likelihood function. See Details section for more information.
+#   If running multiple models, include initial parameter values as a list. For example, list(c(0.5, 0.5), c(0,-0.5)).
+# @param optimOpt  String or, optimization options [max function evaluations, max iterations, (reltol) tolerance of x, 
+#    trace]. If running multiple models, include as a list. For example, list(c(100000, 1.00000000000000e-08, 1, 1), c(100000, 1.00000000000000e-08, 1, 1))
+# @param methodname String, optimization method (see \code{\link[stats]{optim}} options). Defaults to \code{"BFGS"}.
+# @param mod.name String, name of model run for model result output table.
 #' @param select.model Return an interactive data table that allows users to select and save table of best models based on measures of fit.
 #' @export discretefish_subroutine
 #' @importFrom DT DTOutput
@@ -87,13 +87,10 @@
 # # griddatfin <- list(predicted_catch=modelInputData$gridVaryingVariables$matrix)
 # # intdatfin <- list(modelInputData$bCHeader[[-1]])
 #' \dontrun{
-#' results <- discretefish_subroutine("pcod", initparams = c(0.5, -2.8),
-#'   optimOpt = c(100000, 1.00000000000000e-08, 1, 1), methodname = "BFGS",
-#'   mod.name = "newlogit4", select.model = TRUE)
+#' results <- discretefish_subroutine("pcod", select.model = TRUE)
 #' }
 #'
-discretefish_subroutine <- function(project, initparams, optimOpt, methodname, mod.name,
-                                    select.model = FALSE) {
+discretefish_subroutine <- function(project,select.model = FALSE) {
 
   # Call in datasets
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
@@ -107,7 +104,27 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
     distance <- data.frame(x_temp[[i]][["distance"]])
     startingloc <- x_temp[[i]][["startingloc"]]
     # otherdat <- list(griddat=list(griddatfin=x[['gridVaryingVariables']][['matrix']]), intdat=list(x[['bCHeader']][[-1]]), pricedata=list(epmDefaultPrice))
-
+    mod.name <- unlist(x_temp[[i]][["mod.name"]])
+    opt <- unlist(x_temp[[i]][["optimOpt"]])
+    starts2 <- unlist(x_temp[[i]][["initparams"]])
+#if (is.factor(optimOpt)) {
+#      opt <- as.numeric(unlist(strsplit(as.character(optimOpt[i]), " ")))
+#    } else if(is.list(optimOpt)){
+#      opt <- as.numeric(unlist(optimOpt[i]))
+#    } else {
+#      opt <- as.numeric(unlist(strsplit(as.character(optimOpt), " ")))
+#    }
+    
+#    if (is.factor(initparams)) {
+#      inits <- initparams[i]
+#      starts2 <-as.numeric(unlist(strsplit(as.character(inits), ","))) # inits
+#    } else if(is.list(initparams)){
+#      starts2 <- unlist(initparams[i])
+#    } else {
+#      inits <- initparams
+#      starts2 <-as.numeric(unlist(strsplit(as.character(inits), ","))) # inits
+#    }
+    
     choice.table <- as.matrix(choice, as.numeric(factor(choice)))
     choice <- data.frame(as.matrix(as.numeric(factor(choice))))
     ab <- max(choice) + 1 # no interactions in create_logit_input - interact distances in likelihood function instead
@@ -121,23 +138,7 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
     fr <- x_temp[[i]][["likelihood"]] # func  #e.g. logit_c
     fr.name <- match.fun(find_original_name(match.fun(as.character(fr))))
 
-    if (is.factor(optimOpt)) {
-      opt <- as.numeric(unlist(strsplit(as.character(optimOpt[i]), " ")))
-    } else if(is.list(optimOpt)){
-      opt <- as.numeric(unlist(optimOpt[i]))
-    } else {
-      opt <- as.numeric(unlist(strsplit(as.character(optimOpt), " ")))
-    }
-    
-    if (is.factor(initparams)) {
-      inits <- initparams[i]
-      starts2 <-as.numeric(unlist(strsplit(as.character(inits), ","))) # inits
-    } else if(is.list(initparams)){
-      starts2 <- unlist(initparams[i])
-    } else {
-      inits <- initparams
-      starts2 <-as.numeric(unlist(strsplit(as.character(inits), ","))) # inits
-    }
+   
 
     # remove unnecessary lists
     x_temp[[i]][["gridVaryingVariables"]] <- Filter(Negate(function(x) is.null(unlist(x))), x_temp[[i]][["gridVaryingVariables"]])
@@ -192,7 +193,7 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
       }
 
 
-      LL_start <- fr.name(starts2, d, otherdat, max(choice), project, expname, as.character(mod.name[i]))
+      LL_start <- fr.name(starts2, d, otherdat, max(choice), project, expname, as.character(mod.name))
 
       if (is.null(LL_start) || is.nan(LL_start) || is.infinite(LL_start)) {
         # haven't checked what happens when error yet
@@ -213,8 +214,8 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
       res <- tryCatch(
         {
           stats::optim(starts2, fr.name,
-            dat = d, otherdat = otherdat, alts = max(choice), method = methodname,
-            control = controlin, hessian = TRUE, project = project, expname = expname, mod.name = as.character(mod.name[i])
+            dat = d, otherdat = otherdat, alts = max(choice), method = x_temp[[i]][['methodname']],
+            control = controlin, hessian = TRUE, project = project, expname = expname, mod.name = as.character(x_temp[[i]][['mod.name']])
           )
         },
         error = function(e) {
@@ -252,10 +253,10 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
         mod.out <- data.frame(matrix(NA, nrow = 4, ncol = 1))
         mod.out[, 1] <- c(AIC, AICc, BIC, PseudoR2)
         rownames(mod.out) <- c("AIC", "AICc", "BIC", "PseudoR2")
-        colnames(mod.out) <- paste0(expname, mod.name[i])
+        colnames(mod.out) <- paste0(expname, x_temp[[i]][["mod.name"]])
       } else {
         temp <- data.frame(c(AIC, AICc, BIC, PseudoR2))
-        colnames(temp) <- paste0(expname, mod.name[i])
+        colnames(temp) <- paste0(expname, x_temp[[i]][["mod.name"]])
       }
 
       fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
@@ -466,7 +467,7 @@ discretefish_subroutine <- function(project, initparams, optimOpt, methodname, m
   #############################################################################
   discretefish_subroutine_function <- list()
   discretefish_subroutine_function$functionID <- "discretefish_subroutine"
-  discretefish_subroutine_function$args <- list(project, initparams, optimOpt, methodname, as.character(mod.name), select.model)
+  discretefish_subroutine_function$args <- list(project, select.model)
   discretefish_subroutine_function$kwargs <- list()
   log_call(discretefish_subroutine_function)
   #############################################################################

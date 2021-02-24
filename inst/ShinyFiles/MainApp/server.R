@@ -2871,8 +2871,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                       choices=c(input$catchBase, colnames(values$dataset[,grep('haul|mt|lb|metric|pounds|catch', colnames(values$dataset), ignore.case=TRUE)])),
                       selected=input$catchBase),
           selectizeInput('price', 'If expected revenue is to be calculated, variable containing price or value data', 
-                         choices=c(input$priceBase, "none", colnames(values$dataset[,grep('value|dollar', colnames(values$dataset), ignore.case=TRUE)]),
-                                   options = list(create = TRUE, placeholder='Select or type variable name'))),
+                         choices=c(input$priceBase, "none", colnames(values$dataset[,grep('value|dollar', colnames(values$dataset), ignore.case=TRUE)])),
+                                   options = list(create = TRUE, placeholder='Select or type variable name')),
           selectizeInput('group','Choose variable that defines groups',
                          choices=c('Fleet (no group)', names(values$dataset[, !sapply(values$dataset, is.numeric)])))
         )
@@ -3087,9 +3087,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       #})
       counter <- reactiveValues(countervalue = 0) # Defining & initializing the reactiveValues object
       rv <- reactiveValues(
-        data = data.frame('mod_name'='', 'likelihood'='', 'optimOpts'='', 'inits'='', 
-                          'vars1'='','vars2'='', 'catch'='', 'project'='', 'price'='', 
-                          'startloc'='', 'polyn'=''),
+        data = data.frame('mod_name'='', 'likelihood'='', 'optimOpt'='', 'inits'='', 
+                          'methodname'='', 'vars1'='','vars2'='', 'catch'='',
+                           'project'='', 'price'='', 'startloc'='', 'polyn'=''),
         #model_table,
         deletedRows = NULL,
         deletedRowIndices = list()
@@ -3125,8 +3125,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         if(is.null(input$gridVariablesInclude)|is.null(input$indeVarsForModel)) {
           rv$data <- rbind(data.frame('mod_name'='', 
                                 'likelihood'='',
-                                'optimOpts'='',
+                                'optimOpt'='',
                                 'inits'='',
+                                'methodname' = '', 
                                 'vars1'= '',
                                 'vars2'='', 
                                 'catch'='',
@@ -3136,10 +3137,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                 'polyn'='')
                      , rv$data)#model_table())
         } else {
-          rv$data = rbind(data.frame('mod_name'=paste0('mod',counter$countervalue), 
+          rv$data = rbind(data.frame('mod_name'=paste0('mod', counter$countervalue), 
                                'likelihood'=input$model, 
-                               'optimOpts'=paste(input$mIter,input$relTolX, input$reportfreq, input$detailreport),
+                               'optimOpt'=paste(input$mIter,input$relTolX, input$reportfreq, input$detailreport),
                                'inits'=paste(int_name(), collapse=','),#noquote(paste0('input$int',1:numInits())),
+                               'methodname' = input$optmeth, 
                                'vars1'= paste(input$indeVarsForModel, collapse=', '),
                                'vars2'=input$gridVariablesInclude, 
                                'catch'=input$catch,
@@ -3162,8 +3164,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         
         if(DBI::dbExistsTable(fishset_db, paste0(input$projectname, 'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))==FALSE){
           DBI::dbExecute(fishset_db, paste0("CREATE TABLE ", paste0(input$projectname,'modelDesignTable', format(Sys.Date(), format="%Y%m%d")),
-                                            "(mod_name TEXT, likelihood TEXT, optimOpts TEXT, inits TEXT, vars1 TEXT, vars2 TEXT,  
-                                            catch TEXT, lon TEXT, lat TEXT, project TEXT, price TEXT, startloc TEXT, polyn TEXT)"))
+                                            "(mod_name TEXT, likelihood TEXT, optimOpt TEXT, inits TEXT, 
+                                            optmeth TEXT, vars1 TEXT, vars2 TEXT,   catch TEXT, 
+                                           lon TEXT, lat TEXT, project TEXT, price TEXT, startloc TEXT, polyn TEXT)"))
         }
         # Construct the update query by looping over the data fields
         query <- sprintf(
@@ -3230,7 +3233,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       output$mod_param_table <- DT::renderDataTable(
         # Add the delete button column
-       deleteButtonColumn(as.data.frame(rv$data), 'delete_button')
+       deleteButtonColumn(as.data.frame(rv$data[-9]), 'delete_button')
       )
     
 #         output$mod_param_table <- DT::renderDT(
@@ -3249,14 +3252,18 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           i <- 1
           showNotification(paste('1 of', times, 'model design files created.'), type='message', duration=10)
           q_test(values$dataset, project=rv$data$project[i], catchID=rv$data$catch[i],  
-                            replace=TRUE, PortTable = input$port.datMD, likelihood=rv$data$likelihood[i], vars1=rv$data$vars1[i],
-                            vars2=rv$data$vars2[i], priceCol=rv$data$price[i], startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
+                            replace=TRUE, likelihood=rv$data$likelihood[i], optimOpt=rv$data$optimOpt[i], 
+                            inits=rv$data$inits[i], methodname = rv$data$optmeth[i], mod.name = rv$data$mod_name[i], 
+                            vars1=rv$data$vars1[i], vars2=rv$data$vars2[i], 
+                            priceCol=rv$data$price[i], startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
           
           if(times>1){
           for(i in 2:times){
             q_test(values$dataset, project=rv$data$project[i], catchID=rv$data$catch[i], 
-                              replace=FALSE,  PortTable = input$port.datMD, likelihood=rv$data$likelihood[i], vars1=rv$data$vars1[i],
-                              vars2=rv$data$vars2[i], priceCol=rv$data$price[i], startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
+                              replace=FALSE, likelihood=rv$data$likelihood[i], optimOpt=rv$data$optimOpt[i], 
+                              inits=rv$data$inits[i], methodname =rv$data$optmeth[i], mod.name = rv$data$mod_name[i], 
+                              vars1=rv$data$vars1[i], vars2=rv$data$vars2[i], 
+                              priceCol=rv$data$price[i], startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
             showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
           }
           }
@@ -3265,8 +3272,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                 showNotification('Model is running. Models can take 30 minutes.
                                   All buttons are inactive while model function is running.
                                   Check R console for progress.', type='message', duration=30)
-                discretefish_subroutine(input$projectname, initparams=rv$data$inits, optimOpt=rv$data$optimOpt,  
-                                  methodname=input$optmeth, mod.name=rv$data$mod_name, select.model=FALSE) #, name='discretefish_subroutine')              
+                discretefish_subroutine(input$projectname, select.model=FALSE) #, name='discretefish_subroutine')              
         #    ), type='message', duration=10)
                 showNotification('Model run is complete. Check the `Compare Models` subtab to view output', type='message', duration=10)
           toggle_inputs(input_list,T)

@@ -12,6 +12,8 @@
 #' latitude of each port. For lon/lat variables, longitude must be specified first.
 #' @param alt_var Identifies how to find lat/lon for alternative choices. alt_var may be the centroid of zonal assignment 
 #'  \code{"Centroid"}, or lon/lat variables in the primary dataset. Longitude must be specified first.
+# @param PortTable Optional. String, name of data table in FishSET database containing the port table with lat/lon for each port. 
+#   Define if \code{alt_var} is a port.
 #' @param griddedDat Data must contain a variable that varies by the spatial dataset \code{gridfile}.
 #'  First variable in \code{griddedDat} should match a column in \code{dat}. The remaining columns should match the
 #'  zone IDs in the \code{gridfile}.
