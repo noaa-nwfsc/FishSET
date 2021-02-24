@@ -63,7 +63,7 @@
 #' }
 #'
 roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE, 
-                       k = 10, fun = "mean", sub_date = NULL, filter_date = NULL, 
+                       k = 10, fun = "mean", filter_date = NULL, 
                        date_value = NULL, filter_by = NULL, filter_value = NULL, 
                        filter_expr = NULL, facet_by = NULL, scale = "fixed", 
                        align = "center", convr = FALSE, tran = "identity", 

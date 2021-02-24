@@ -337,7 +337,7 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
     # if only displaying trip durations
     if (is.null(vpue)) {
       
-      trip_freq <- hist(trip_tab[[t_nm]], breaks = bins, include.lowest = TRUE, plot = FALSE)
+      trip_freq <- graphics::hist(trip_tab[[t_nm]], breaks = bins, include.lowest = TRUE, plot = FALSE)
       
       h_labs <- paste(trip_freq$breaks, "-", dplyr::lead(trip_freq$breaks))
       h_labs <- h_labs[-length(h_labs)]
@@ -392,7 +392,7 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
       
       table_out <- lapply(p_nm, function(x) {
         
-        trip_freq <- hist(trip_tab[[x]], breaks = bins, include.lowest = TRUE, plot = FALSE)
+        trip_freq <- graphics::hist(trip_tab[[x]], breaks = bins, include.lowest = TRUE, plot = FALSE)
         
         h_labs <- paste(trip_freq$breaks, "-", dplyr::lead(trip_freq$breaks))
         h_labs <- h_labs[-length(h_labs)]

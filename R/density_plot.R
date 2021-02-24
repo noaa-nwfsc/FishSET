@@ -46,7 +46,7 @@
 #' @param bw Adjusts KDE bandwidth. Defaults to 1.
 #' @param position The position of the grouped variable for KDE plot. Options include
 #'   "identity", "stack", and "fill".
-#'  @param pages Whether to output plots on a single page (\code{"single"}, the default) 
+#' @param pages Whether to output plots on a single page (\code{"single"}, the default) 
 #'    or multiple pages (\code{"multi"}). 
 #' @return Returns a KDE, empirical CDF, or CDF of a selected variable.
 #'   The data can be filtered by date or by variable (see \code{filter_date} and
