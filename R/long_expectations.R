@@ -39,7 +39,7 @@ long_expectations <- function(dat, project, catch, price, defineGroup, temp.var,
 
   dataZoneTrue <- Alt[["dataZoneTrue"]] # used for catch and other variables
   choice <- Alt[["choice"]] # used for catch and other variables
-  zoneRow <- Alt[["zoneRow"]]
+ 
 
   # check whether defining a group or using all fleet averaging
   if (defineGroup == "fleet") {
@@ -52,10 +52,18 @@ long_expectations <- function(dat, project, catch, price, defineGroup, temp.var,
 
 
 
-  if (temp.var == "none" | is_empty(temp.var)) {
-    temp.var <- colnames(dataset)[grep("date", colnames(dataset), ignore.case = TRUE)[1]]
+  if(temp.var=='none' || is_empty(temp.var)){
+    is.convertible.to.date <- function(x) !is.na(as.Date(as.character(x), tz = 'UTC', format = '%Y-%m-%d'))
+    temp.var <- names(which(apply(dataset, 2, is.convertible.to.date)[1,]==TRUE)[1])
+    print(paste('temp.var was not specified. Using', temp.var, 'instead.'))
   }
-
+  #  if (temp.var == "none" | is_empty(temp.var)) {
+  #    temp.var <- colnames(dataset)[grep("date", colnames(dataset), ignore.case = TRUE)[1]]
+  #    if (length(grep("date", colnames(dataset), ignore.case = TRUE)) > 1) {
+  #      warning("More than one column matches argument. First column will be used to define temporal variable.")
+  #    }
+  #  }
+  
   numData <- as.data.frame(numData)[which(dataZoneTrue == 1), ] # (Alt.dataZoneTrue,:)
   spData <- choice[which(dataZoneTrue == 1), ] # mapping to to the map file
   spNAN <- which(is.na(spData) == T)
@@ -78,18 +86,19 @@ long_expectations <- function(dat, project, catch, price, defineGroup, temp.var,
   }
   # Time variable not chosen if temp.var is empty
   tiData <- as.Date(dataset[[temp.var]][which(dataZoneTrue == 1)], origin = "1970-01-01") # (ti(get(mp3V1,'Value'))).dataColumn(Alt.dataZoneTrue,:) # this part involves time which is more complicated
-  if (temporal == "daily") {
+  if (temporal[1] == "daily") {
     # daily time line
     tiDataFloor <- lubridate::floor_date(as.Date(tiData), unit = "day") # assume, we are talking day of for time
     tLine <- sort(unique(tiDataFloor)) # min(tiDataFloor):max(tiDataFloor)
     tLine <- data.frame(as.Date(min(tLine):max(tLine), origin = "1970-01-01"))
-  } else if (temporal == "sequential") {
+  } else if (temporal[1] == "sequential") {
     # case u1 # observation time line
     tiDataFloor <- tiData # just keeping things consistent
     tLine <- data.frame(sort(unique(tiData))) # unique(tiData)
   } else {
     tiDataFloor <- lubridate::floor_date(as.Date(tiData), unit = "day") # assume, we are talking day of for time
     tLine <- sort(unique(tiDataFloor)) # min(tiDataFloor):max(tiDataFloor)
+    tLine <- data.frame(as.Date(min(tLine):max(tLine), origin = "1970-01-01"))
     warning("Temporal time frame not specified. Using daily time line.")
   }
 
@@ -115,7 +124,7 @@ long_expectations <- function(dat, project, catch, price, defineGroup, temp.var,
 
   if (length(which(duplicated(df2$ID) == TRUE)) == 0) {
     lagTime <- 0
-    warning("Selected groups and choice data results in only single observations. Cannot use lag time for choosen group and choice data.
+    warning("Selected groups and choice data results in only single observations. Cannot use lag time for chosen group and choice data.
             Setting lag time to 0.")
   } else if ((length(which(duplicated(df2$ID) == TRUE)) / length(df2$ID)) < .25) {
     lagTime <- 0
@@ -143,7 +152,7 @@ long_expectations <- function(dat, project, catch, price, defineGroup, temp.var,
   df2$ra <- mapply(myfunc_ave, df2$tiData, df2$ID)
 
   # #Replace empty values
-  if (empty.catch == "NA" | is_empty(empty.catch)) {
+  if (empty.catch == "NA" || is_empty(empty.catch)) {
     myfunc_emp <- function(x) {
       mean(df2[lubridate::year(df2$tiData) >= format(as.Date(x), format = "%Y") &
         lubridate::year(df2$tiData) < lubridate::year(x) + 1, "lag.value"], na.rm = TRUE)
@@ -227,7 +236,8 @@ long_expectations <- function(dat, project, catch, price, defineGroup, temp.var,
     # if ~isinf(B(C(w),end))
     col <- B[C[w], 2]
     # the following is the output that is NROWS by number of alternatives
-    newCatch[which(cit == cit[w]), col] <- meanCatch[which(rownames(meanCatch)==col), which(sub("^[^.]*.","",colnames(meanCatch))==tiDataFloor[i])] ## loop shouldn't be necessary but no loop results in out of memory issue
+    newCatch[which(cit == cit[w]), col] <-  meanCatch[which(rownames(meanCatchSimple)==paste0(B[C[w],2], B[C[w],1])), 
+                                                      which(sub("^[^.]*.","", colnames(meanCatch))==tiDataFloor[w])]
   }
 
   if (is_empty(empty.expectation)) {
@@ -268,7 +278,7 @@ long_expectations <- function(dat, project, catch, price, defineGroup, temp.var,
 
 
     # replaceEmptyExpAll=get(dp2V5,'String')# replace empty catch
-    if (empty.expectation == "NA" | is_empty(empty.expectation)) {
+    if (is_empty(empty.expectation)) {
       newCatch[is.na(newCatch)] <- 0.0001
     } else if (empty.expectation == 0.0001) {
       newCatch[is.na(newCatch)] <- 0.0001

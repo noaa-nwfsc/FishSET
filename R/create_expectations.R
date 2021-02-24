@@ -160,14 +160,14 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
   C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*")) # C = row ID of those unique items
 
   catchData <- as.numeric(dataset[[catch]][which(dataZoneTrue == 1)])
-#  if (price != "none" && !is_empty(price)) {
-#    priceData <- as.numeric(dataset[[price]][which(dataZoneTrue == 1)])
-#    catchData <- catchData * priceData
-#  }
+  if (price != "none" && !is_empty(price)) {
+    priceData <- as.numeric(dataset[[price]][which(dataZoneTrue == 1)])
+    catchData <- catchData * priceData
+  }
 
   # Time variable not chosen if temp.var is empty
   # NOTE currently doesn't allow dummy or other options if no time detected
-  if (temp.var == "none" | is_empty(temp.var)) {
+  if (temp.var == "none" || is_empty(temp.var)) {
     # temp.var <-  colnames(dataset)[grep("date", colnames(dataset), ignore.case=TRUE)[1]]
     #  }
 
@@ -225,7 +225,7 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
     # Lag time
     if (length(which(duplicated(df2$ID) == TRUE)) == 0) {
       lagTime <- 0
-      warning("Selected groups and choice data results in only single observations. Cannot use lag time for choosen group and choice data.
+      warning("Selected groups and choice data results in only single observations. Cannot use lag time for chosen group and choice data.
               Setting lag time to 0.")
     } else if ((length(which(duplicated(df2$ID) == TRUE)) / length(df2$ID)) < .25) {
       lagTime <- 0
@@ -255,7 +255,7 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
     df2$ra <- mapply(myfunc_ave, df2$tiData, df2$ID)
 
     # #Replace empty values
-    if (empty.catch == "NA" | is_empty(empty.catch)) {
+    if (empty.catch == "NA" || is_empty(empty.catch)) {
       myfunc_emp <- function(x) {
         mean(df2[lubridate::year(df2$tiData) >= format(as.Date(x), format = "%Y") &
           lubridate::year(df2$tiData) < lubridate::year(x) + 1, "lag.value"], na.rm = TRUE)
