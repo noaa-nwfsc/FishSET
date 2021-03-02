@@ -197,23 +197,32 @@ source("map_viewer_app.R", local = TRUE)
                                column(width=8, offset=2,
                                       uiOutput('ui.actionP2'))
                              ),
+                             # combining port tables
+                             uiOutput("portAddTable"),
+                             
+                             uiOutput("PortAddtableMerge"),
+                             
                              fluidRow(
                                column(4, radioButtons('loadspatialsource', "Source spatial data from:", choices=c( 'Upload new file'), selected='Upload new file', inline=TRUE)),
                                                       #,'FishSET database')
                                uiOutput('spatial_upload')
                              ),
+                             
                              fluidRow(
                                  column(4, radioButtons('loadgridsource', "Source gridded data from:", choices=c( 'Upload new file','FishSET database'), selected='Upload new file', inline=TRUE)),
                                  uiOutput('grid_upload')
                                ),
+                             
+                             uiOutput('gridded_uploaded'),
+                             
+                             tags$br(),
+                            
                              fluidRow(
                                column(4, radioButtons('loadauxsource', "Source auxiliary data from:", choices=c( 'Upload new file','FishSET database'), selected='Upload new file', inline=TRUE)),
                                uiOutput('aux_upload')
                              ), 
                              
-                             checkboxInput("mergeAux", label = "Merge aux data"),
-                             
-                             uiOutput('mergeUI'),
+                             mergeUI("aux", dat_type = "aux"),
                              
                              #uiOutput("SaveButtonsUpload"),
                              #  downloadLink("downloadTextUp", label=''),
@@ -350,7 +359,7 @@ source("map_viewer_app.R", local = TRUE)
                            sidebarLayout(
                              sidebarPanel(width=2,
                                           tags$br(),tags$br(),
-                                          conditionalPanel("input.plot_table=='Plots'",
+                                          conditionalPanel("input.plot_table=='Plots' && input.SelectDatasetExplore != 'grid'",
                                             #uiOutput('SaveButtonsExplore')),
                                             downloadLink('downloadplotEXPLOREHIDE', label=''),
                                             actionButton('downloadplotExplore', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
@@ -358,6 +367,10 @@ source("map_viewer_app.R", local = TRUE)
                                             conditionalPanel("input.plot_type=='Spatial'",
                                                              actionButton('downloadTableExplore', label ='Save table to folder as csv'))
                                             ),
+                                          conditionalPanel("input.plot_table=='Plots' && input.SelectDatasetExplore == 'grid'",
+                                                           
+                                                plotSaveUI("grid_plot")           
+                                                           ),
                                             #  downloadLink("downloadTextExplore", label=''),
                                           conditionalPanel("input.plot_table=='Table'",
                                             actionButton('subsetData', 'Remove variable from data set')
@@ -379,8 +392,9 @@ source("map_viewer_app.R", local = TRUE)
                                           tags$br(), tags$br(),
                                           textInput('notesExplore', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. 
                                                     Text can be inserted into report later.'),
-                                          selectInput("SelectDatasetExplore", "Select a dataset", 
-                                                      choices = c("main", "port", "auxiliary", "grid")),
+                                          
+                                          uiOutput("SelectDatasetExploreUI"), 
+                                          
                                           conditionalPanel("input.SelectDatasetExplore=='main' || input.SelectDatasetExplore=='grid'",
                                           selectInput('plot_table', 'View data table or plots', choices=c('Table','Plots'), selected='Table')
                                           ),
