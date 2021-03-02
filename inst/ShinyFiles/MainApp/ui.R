@@ -102,6 +102,7 @@ source("map_viewer_app.R", local = TRUE)
                                       uiOutput('UploadTabsText'),
                                       uiOutput('ExploreTabsText'),
                                       uiOutput('DQTabsText'),
+                                      uiOutput('FleetText'),
                                       uiOutput('AnalTabsText'),
                                       uiOutput('NewVarsTabsText'),
                                       uiOutput('ZonalTabsText'),
@@ -1060,7 +1061,7 @@ source("map_viewer_app.R", local = TRUE)
                                                  numericInput("mIter", "max iterations", value = 100000),
                                                  numericInput("relTolX", "tolerance of x", value = 0.00000001),
                                                  numericInput("reportfreq", "report frequency", value = 1),
-                                                 numericInput("detailreport", "detailed report", value = 1)
+                                                 numericInput("detailreport", "detailed report", value = 1, max=6)
                                      )
                                    ),
                                    fluidRow(
