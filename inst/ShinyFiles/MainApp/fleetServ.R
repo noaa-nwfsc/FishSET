@@ -109,6 +109,91 @@ saveOutputServ <- function(id, fun_id, project, fun_name, tab_plot, out) {
   })
 }
 
+plotSaveServ <- function(id, project, fun_name, plot = NULL, in_list) {
+  
+  moduleServer(id, function(input, output, session) {
+
+    plot_save <- reactive({
+      
+      if (!is.null(plot)) {
+        
+        if (in_list) {
+          
+          plot$plot
+          
+        } else {
+          
+          plot
+        } 
+      
+      } else {
+        
+          NULL
+      }
+    })
+    
+    observeEvent(input$downloadplot, {
+      
+      if (!is.null(plot_save())) {
+        
+      output$downloadplotHIDE <<- downloadHandler(
+        filename = function() {
+          paste0(locoutput(),  project(), "_", fun_name, '.png')
+        },
+        content = function(file) {
+          ggplot2::ggsave(file, plot = plot_save())
+        })
+      jsinject <- paste0("setTimeout(function(){window.open($('#", id, 
+                         "-downloadplotHIDE').attr('href'))}, 100);")
+      session$sendCustomMessage(type = 'jsCode', list(value = jsinject))
+      showNotification('Plot saved.', type = 'message', duration = 10)
+      
+      } else {
+        
+        showNotification('Plot not found.', type = 'message', duration = 10)
+      }
+    })
+
+  })
+}
+
+tableSaveServ <- function(id, project, fun_name, tab = NULL, in_list) {
+  
+  moduleServer(id, function(input, output, session) {
+    
+    table_save <- reactive({
+      
+      if (!is.null(tab)) {
+        
+        if (in_list) {
+         
+           tab$table
+          
+        } else {
+          
+          tab
+        } 
+        
+      } else {
+        
+        NULL
+      }
+    })
+    
+    observeEvent(input$downloadTable, {
+      
+      if (!is.null(table_save())) {
+        
+        write.csv(table_save(), paste0(locoutput(), project(), "_", fun_name, '.csv'))
+        showNotification('Table saved.', type = 'message', duration = 10)
+        
+      } else {
+        
+        showNotification('Table not found.', type = 'message', duration = 10)
+      }
+    })
+  })
+}
 
 saveDataTableServ <- function(id, values, project) {
   
@@ -145,6 +230,89 @@ closeAppServ <-  function(id) {
   moduleServer(id, function(input, output, session) {
     
     observeEvent(input$close, { stopApp() })
+  })
+}
+
+mergeServer <- function(id, main, other, project, merge_type, dat_type, show = NULL) {
+  
+  moduleServer(id, function(input, output, session) {
+    
+    ns <- session$ns
+    dat_type <- switch(dat_type, "aux" = "auxiliary", "port" = "port", 
+                       "grid" = "gridded", "spat" = "spatial")
+    
+    output$mergeUI <- renderUI({
+      
+      tagList(
+        conditionalPanel("input.merge_cb", ns = ns, 
+                         
+         fluidRow(
+           column(3,
+                  selectInput(ns("main_key"), "Main table keys",
+                              choices = colnames(main$dataset), multiple = TRUE)),
+           column(3, 
+                  selectInput(ns("other_key"), paste(dat_type, "table keys"),
+                              choices = colnames(other$dataset), multiple = TRUE))),
+         fluidRow(
+           column(8,
+                  verbatimTextOutput(ns("mergeBy")))),
+         fluidRow(
+           column(3,
+                  actionButton(ns("mergeOK"), "Merge", 
+                               style = "background-color: blue; color: #FFFFFF;"))),
+         tags$br(), tags$br()) 
+      )
+      
+    })
+    
+    # show keys in app
+    show_merge_by <- reactive({
+      req(input$main_key, input$other_key)
+      
+      unlist(purrr::pmap(list(m = input$main_key, o = input$other_key), 
+                         function(m, o) {
+                           paste0(m, " = ", o, "\n")
+                         }))
+      
+    })
+    
+    output$mergeBy <- renderText(show_merge_by())
+    
+    merge_by <- reactive({
+      req(input$main_key, input$other_key)
+      if (length(input$main_key) != length(input$other_key)) {
+        
+        showNotification("Key lengths must match.", type = "error")
+        return()
+      } else {
+        
+        stats::setNames(input$other_key, c(input$main_key))
+      }
+    })
+    
+    observeEvent(input$mergeOK, {
+      
+      if (!is.null(merge_by())) {
+        
+        main$dataset <- merge_dat(main$dataset, other$dataset, project(), 
+                                  input$main_key, input$other_key, dat_type, merge_type)
+        
+        if (!is.null(show$save)) {
+          show$save <- TRUE
+        }
+        
+        showNotification(paste(dat_type, "table merged to primary table."), 
+                         type = "message")
+      }
+    }, ignoreInit = TRUE, ignoreNULL = TRUE)
+    
+    # reset keys if merge box is unchecked
+    observeEvent(input$merge_cb == FALSE, {
+      
+      updateSelectInput(session, "main_key", choices = colnames(main$dataset))
+      updateSelectInput(session, "other_key", choices = colnames(other$dataset))
+    }, ignoreInit = TRUE, ignoreNULL = TRUE)
+    
   })
 }
 

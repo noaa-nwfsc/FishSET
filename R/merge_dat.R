@@ -1,30 +1,36 @@
 
 
-merge_dat <- function(dat, aux, project, mainKey, auxKey) {
+merge_dat <- function(dat, other, project, main_key, other_key, other_type = NULL, 
+                      merge_type = "left") {
   #'
   #' Merge datasets using a left join
   #'
   #' @param dat Primary data containing information on hauls or trips. Table in the FishSET
   #' database contains the string 'MainDataTable'.
-  #' @param aux Auxiliary data table to join to MainDataTable. Use string if referencing 
+  #' @param other A second data table to join to MainDataTable. Use string if referencing 
   #'   a table saved in the FishSET database. 
   #' @param project String, name of project. 
-  #' @param mainKey String, name of column(s) in MainDataTable to join by. The number
-  #'   of columns must match "auxKey".  
-  #' @param auxKey String, name of column(s) in the Auxiliary table to join by. The number
-  #'   of columns must match "mainKey". 
-  #' @importFrom dplyr left_join
+  #' @param main_key String, name of column(s) in MainDataTable to join by. The number
+  #'   of columns must match "other_key".  
+  #' @param other_key String, name of column(s) in the \code{other} table to join by. The number
+  #'   of columns must match "main_key".
+  #' @param other_type String, the type of secondary data being merged. Options 
+  #'   include "aux" (auxiliary), "grid" (gridded), "spat" (spatial), and "port". 
+  #' @param merge_type String, the type of merge to perform. \code{"left"} keeps all
+  #'   rows from \code{dat} and merges shared rows from \code{other}. \code{"full"}
+  #'   keeps all rows from each table. 
+  #' @importFrom dplyr left_join full_join
   #' @importFrom purrr pmap pmap_lgl
   #' @importFrom stats setNames
   #' @export
   #' @details 
   #'   This function merges two datasets using a left join: all columns and rows from the
-  #'   MainDataTable are kept while only matching columns and rows from the auxiliary table 
+  #'   MainDataTable are kept while only matching columns and rows from the secondary table 
   #'   are joined. 
   #' @examples
   #' \dontrun{
   #'  merge_dat("pollockMainDataTable", "pollockPortTable", 
-  #'            mainKey = "PORT_CODE", auxKey = "PORT_CODE")
+  #'            main_key = "PORT_CODE", other_key = "PORT_CODE")
   #' } 
 
   # pull main data
@@ -32,44 +38,47 @@ merge_dat <- function(dat, aux, project, mainKey, auxKey) {
   dataset <- out$dataset
   
   if (shiny::isRunning()) {
-    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
+    dat <- get("dat_name")
   } else { 
     if (!is.character(dat)) dat <- deparse(substitute(dat)) }
   
-  # pull aux data
-  aux_out <- data_pull(aux)
-  aux_dat <- aux_out$dataset
+  # pull secondary data
+  other_out <- data_pull(other)
+  other_dat <- other_out$dataset
   
   if (shiny::isRunning()) {
-    if (deparse(substitute(aux)) == "aux$dataset") aux <- get("aux_name")
+    if (other_type == "aux") other <- get("aux_name")
+    else if (other_type == "grid") other <- get("grid_name")
+    else if (other_type == "port") other <- get("port_name")
+    else if (other_type == "spat") other <- get("spat_name")
   } else { 
-    if (!is.character(aux)) aux <- deparse(substitute(aux)) }
+    if (!is.character(other)) other <- deparse(substitute(other)) }
   
   end <- FALSE 
 
-  if (length(mainKey) != length(auxKey)) {
+  if (length(main_key) != length(other_key)) {
     
     warning("Key lengths must match.")
     end <- TRUE
   } else {
     
-    merge_by <- stats::setNames(auxKey, c(mainKey))
+    merge_by <- stats::setNames(other_key, c(main_key))
   }
   # determine class of key columns
-  m_class <- lapply(mainKey, function(x) class(dataset[[x]]))
-  a_class <- lapply(auxKey, function(x) class(aux_dat[[x]]))
+  m_class <- lapply(main_key, function(x) class(dataset[[x]]))
+  o_class <- lapply(other_key, function(x) class(other_dat[[x]]))
   
   # find key(s) classes that don't match
-  no_match_class <- purrr::pmap(list(m = seq_along(m_class), a = seq_along(a_class)), 
-                                function(m, a) !all(m_class[[m]] == a_class[[a]]))
+  no_match_class <- purrr::pmap(list(m = seq_along(m_class), o = seq_along(o_class)), 
+                                function(m, o) !all(m_class[[m]] == o_class[[o]]))
   
   if (any(unlist(no_match_class))) {
     
     # define exceptions for mismatched classes
-    except_match <- purrr::pmap_lgl(list(m = m_class, a = a_class), function(m, a) {
+    except_match <- purrr::pmap_lgl(list(m = m_class, o = o_class), function(m, o) {
       
-      (m %in% c("character", "factor")) & (a %in% c("character", "factor")) |
-        (m %in% c("numeric", "integer")) & (a %in% c("numeric", "integer"))
+      (m %in% c("character", "factor")) & (o %in% c("character", "factor")) |
+        (m %in% c("numeric", "integer")) & (o %in% c("numeric", "integer"))
     })
     
     if (any(!except_match)) {
@@ -78,8 +87,8 @@ merge_dat <- function(dat, aux, project, mainKey, auxKey) {
       
       class_error <- vapply(ind, FUN = function(x) {
         
-        paste0("'", mainKey[x], "' and '", auxKey[x], "' class types are incompatible (", 
-               class(dataset[[mainKey[x]]]), "/", class(aux_dat[[auxKey[x]]]), 
+        paste0("'", main_key[x], "' and '", other_key[x], "' class types are incompatible (", 
+               class(dataset[[main_key[x]]]), "/", class(other_dat[[other_key[x]]]), 
                "). Unable to merge datasets.")
         
       }, FUN.VALUE = character(1))
@@ -95,26 +104,39 @@ merge_dat <- function(dat, aux, project, mainKey, auxKey) {
     is_factor_char <- function(x) (is.character(x) | is.factor(x)) 
     
     # if key is character or factor class, trim white spaces
-    if (any(vapply(dataset[mainKey], FUN = is_factor_char, FUN.VALUE = logical(1)))) {
+    if (any(vapply(dataset[main_key], FUN = is_factor_char, FUN.VALUE = logical(1)))) {
       
-      dataset[mainKey] <- lapply(mainKey, function(x) trimws(dataset[[x]]))
+      dataset[main_key] <- lapply(main_key, function(x) trimws(dataset[[x]]))
     }
     
-    if (any(vapply(aux_dat[auxKey], FUN = is_factor_char, FUN.VALUE = logical(1)))) {
+    if (any(vapply(other_dat[other_key], FUN = is_factor_char, FUN.VALUE = logical(1)))) {
       
-      aux_dat[auxKey] <- lapply(auxKey, function(x) trimws(aux_dat[[x]]))
+      other_dat[other_key] <- lapply(other_key, function(x) trimws(other_dat[[x]]))
     }
     
-    dataset <-
-      dplyr::left_join(dataset,
-                       aux_dat,
-                       by = merge_by,
-                       suffix = c("_MAIN", "_AUX"))
+    if (merge_type == "left") {
+      
+      dataset <-
+        dplyr::left_join(dataset,
+                         other_dat,
+                         by = merge_by,
+                         suffix = c("_main", paste0("_", other_type)))
+    
+    } else if (merge_type == "full") {
+      
+      dataset <-
+        dplyr::full_join(dataset,
+                         other_dat,
+                         by = merge_by,
+                         suffix = c("_main", paste0("_", other_type)))
+    }
+    
     
     # Log function
     merge_dat_function <- list()
     merge_dat_function$functionID <- "merge_dat"
-    merge_dat_function$args <- list(dat, aux, project, mainKey, auxKey)
+    merge_dat_function$args <- list(dat, other, project, main_key, other_key, 
+                                    other_type, merge_type)
     log_call(merge_dat_function)
     
     dataset
