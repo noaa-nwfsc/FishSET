@@ -14,6 +14,26 @@ saveOutputUI <- function(id) {
   )
 }
 
+plotSaveUI <- function(id) {
+  ns <- NS(id)
+  
+  tagList(
+    downloadLink(ns('downloadplotHIDE'), label = ''),
+    actionButton(ns('downloadplot'), label = 'Save plot to folder',
+                 style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+  )
+}
+
+tableSaveUI <- function(id) {
+  ns <- NS(id)
+  
+  tagList(
+    downloadLink(ns('downloadTableHIDE'), label = ''),
+    actionButton(ns('downloadTable'), label = 'Save table to folder as csv',
+                 style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+  )
+}
+
 noteUI <- function(id) {
   
   ns <- NS(id)
@@ -170,6 +190,18 @@ filter_periodOut <- function(id, type, input) {
     NULL
   }
 }
+
+mergeUI <- function(id, dat_type) {
+  
+  dat_type <- switch(dat_type, "aux" = "auxiliary", "port" = "port", "grid" = "gridded", 
+                     "spat" = "spatial")
+  ns <- NS(id)
+  tagList(
+    checkboxInput(ns("merge_cb"), label = paste("Merge", dat_type, "table")),
+    uiOutput(ns("mergeUI"))
+  )
+}
+
 
 density_plotUI <- function(id, dat) {
   
@@ -482,7 +514,8 @@ roll_catchUI <- function(id) {
                 choices = c("plot and table" = "tab_plot", "plot", "table")),
     
     selectInput(ns("fun"), "Summary function",
-                choices = c("mean", "sum", "sd", "median", "min", "max", "IQR")),
+                choices = c("mean", "sum", "sd", "median", "min", "max", 
+                            "interquartile range")),
     
     uiOutput(ns("var_select")),
     
