@@ -103,7 +103,7 @@ model_out_view <- function(table) {
   #' }
   #
   if (table_exists(table) == FALSE) {
-    return("Table not found. Check spelling.")
+    return("Table not found. Check spelling or tables in database using 'tables_database()'.")
   } else {
     suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
     x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", table, " LIMIT 1"))$data[[1]])
@@ -117,8 +117,10 @@ globalcheck_view <- function(table) {
   #'
   #' Returns error output from running the discretefish_subroutine function.
   #' The table argument must be the full name of the table name in the FishSET database.
+  #' Use 'tables_database()' to view table names in FishSET database.
   #'
-  #' @param table  Table name in FishSET database. Should contain the phrase modelout. 
+  #' @param table  Table name in FishSET database. Should contain the project, the 
+  #'    phrase 'ldglobalcheck', and a date in YMD format (20200101). 
   #'  Table name must be in quotes.
   #' @export
   #' @examples
@@ -127,7 +129,7 @@ globalcheck_view <- function(table) {
   #' }
 
   if (table_exists(table) == FALSE) {
-    return("Table not found. Check spelling.")
+    return("Table not found. Check spelling or view available tables with 'tables_database()'.")
   } else {
     suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
     x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", table, " LIMIT 1"))$data[[1]])
