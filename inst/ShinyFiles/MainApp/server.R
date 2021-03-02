@@ -338,6 +338,175 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           )
         }
       })
+      
+      output$FleetText <- renderUI({
+        if(input$QuickStartChoices=='FleetTab'){ 
+          p(tags$br(), tags$br(),
+            tags$strong('Purpose:'), tags$br(), 
+            'The', tags$em(' Fleet Assignment and Summary'), 'tab is used to define fleets and explore data at a fleet level.',
+            tags$br(), tags$br(),
+            'The tab is divided into two subtabs, the', tags$em('Fleet assignment'), 'subtab where fleet definitions are created  
+            and vessels assigned to fleets and the', tags$em('Fleet summary'), 'subtab where users can summarize and return fleet 
+            information as tables and plots. Data can be treated as a single fleet or as multiple fleets. The', 
+            tags$em('Fleet assignment'), 'subtab can be skipped if the entire data table reflects a single fleet or if a fleet 
+            identifier variable already exists in the dataframe.',
+            tags$br(),
+            'Working with', tags$em('Fleet assignment'), 'functions is described first.',
+            tags$br(),tags$br(),
+            tags$strong('Fleet Assignment Subtab'), tags$br(),
+            'In this subtab, users first define fleets and then assign vessels to fleets. A fleet definition table must be 
+            created or loaded before running the fleet assignment function. Use the', tags$code('Select task'), 
+            'menu on the sidebar (arrow 1) to switch between defining and assigning fleets.',
+            tags$br(),
+              tags$li(
+                tags$strong('Fleet Definition Table'), tags$br(),
+                'A fleet definition table consists of a fleet definition column and a fleet name column. Each row of the table 
+                is a different fleet. The fleet definition column contains a logical condition that defines a fleet. 
+                New fleet definition tables can be created with the', tags$code('Expression Builder'), 'or by entering logical conditions 
+                directly into the', tags$em('Fleet Definition Table.'), 'Existing fleet definition tables that are not saved to the FishSET 
+                database can be loaded using', tags$code('Import table from local file'), 'browser button at the bottom of the left panel. 
+                Click the blue', tags$code('Import table'), 'button to load the table into the main panel of the app.',
+                tags$br(),
+                tags$strong('Expression builder'), tags$br(),
+                'The', tags$code('Expression builder'), '(located in the top-half of the main panel) is a tool that allows users to 
+                create fleet definitions quickly and accurately. It is used to fill in the condition column of the ',
+                tags$code('Fleet Definition Table.'), 'The expression builder consists of a Variable, Operator, and Value menu. 
+                To begin constructing an expression, first select a', tags$code('variable.'), 'Next, select an', tags$code('operation'), 
+                'to apply; these are written out as phrases such as “equal to” and “less than or equal to”. Lastly, 
+                select a', tags$code('value.'), 'Value lists the first 15 unique values present in the variable. If you do not 
+                see the value you want to include, type the value into the list and select “add”.', 
+                tags$br(),
+                'If the expression is done, click the green', tags$code('Insert expression'), 'button (arrow 3). 
+                Else, you can add additional expressions to make a condition.  To chain multiple expressions together, 
+                click the blue', tags$code('Add to expression'), 'button beneath the drop-down menus (arrow 2). This will 
+                add a new line to the expression builder with an additional menu on the left side. The new menu contains 
+                two logical operators:', tags$em('AND'), 'and', tags$em('OR'), 'which determine whether the proceeding 
+                expression will be required (“AND”) or optional (“OR”).',
+                tags$br(),
+                'As the condition is being created, a text box beneath the builder menu will appear, showing the condition 
+                in its current state. This is the condition statement that will be added to the fleet definition table.',
+                tags$br(),
+                'When finished, select', tags$code('Insert expression'), '(arrow 3) and the condition will be added to the', 
+                tags$em('fleet definition table.'), 'A fleet name for the condition must manually entered into the table. 
+                Double-clicking the appropriate cell in the fleet column and type in a name. To save your changes you', 
+                tags$strong('MUST'), 'enter', tags$code('Ctrl+Enter.'), 'Pressing', tags$code('Esc'), 'or', 
+                tags$code('Enter'), 'will exit without saving.',
+                tags$br(),
+                'To add additional fleet conditions, select', tags$code('Reset expression'), 'to start the steps over.',
+                tags$br(), tags$br(),
+                tags$strong('Defining Conditions'), tags$br(),
+                'Instead of using the', tags$code('Expression Builder,'), 'conditions can be written directly into the', 
+                tags$code('Fleet Definition Table.'), 'The condition must be a valid logical expression that outputs a 
+                TRUE or FALSE value and contains a variable name, an operator, and a value (numeric or string). 
+                For example,', tags$code('GEAR_TYPE == 1.'), 'To combine multiple expressions into one fleet definition, 
+                add a logical operator (e.g. “&” or  “|”) between the expressions:', 
+                tags$code('GEAR_TYPE == 2 & VESSEL_TYPE == ‘CP’.'), tags$br(),
+                'Use quotes (single or double) when referencing a categorical variable in an expression. For example,', 
+                tags$code('season == “A”'), 'is acceptable but', tags$code('season == A'), 'will produce errors. 
+                A reference table of operators is provided below the fleet definition table.', 
+                tags$br(), tags$br(),
+                tags$strong('Editing the Fleet Definition Table'), tags$br(),
+                'Conditions in the', tags$em('fleet definition table'), 'can be edited by inserting a new condition 
+                expression into the desired cell. After the expression has been built, click on the select cell button 
+                above the fleet table, then select a cell within a condition column, finally click', tags$code('Insert expression.'),
+                tags$br(),
+                'Rows and columns can be added to the table by clicking the', tags$code('Add row'), 'and', tags$code('Add column'), 
+                'buttons.', tags$br(),
+                'To remove a row, click the', tags$code('Select rows'), 'button, click on one or more rows, then click',
+                tags$code('Delete row.'), 'To delete a column, click', tags$code('select columns,'), 'select a column, 
+                then click', tags$code('Delete column.'), 
+                tags$br(),
+                'Columns can be renamed by selecting a column, entering a valid column name into the', 
+                tags$code('New column name'), 'text box--either “condition” or “fleet”--then clicking', 
+                tags$code('Change column name.'), 'Note: A fleet table may only have two columns: “condition” and “fleet”.', 
+                tags$br(),
+                'Any unused rows in the fleet table will be removed before being saved--these include cells containing no values 
+                and empty strings.', tags$br(),
+                'After completing a fleet table, save it to the FishSET database by clicking', 
+                tags$code('Save table to FishSET database'), '(arrow 4). Once saved, fleet tables can be reused for future projects.'
+              ),#end line indent
+            tags$strong('Fleet Assign'), tags$br(),
+            'To assign vessels to fleets, select', tags$code('Fleet assignment'), 'in the', tags$code('Select Tasks'), 
+            'drawdown box in the left hand panel.', 
+            tags$br(),
+            'Select a fleet table saved in the FishSET database using the', tags$code('Available fleet tables'), 
+            'menu (arrow 1). Click the blue', tags$code('Load table'), 'button to load the fleet table into the app.',
+            tags$br(),
+            'To select a subset of fleet conditions to apply, click on the desired rows of the fleet definition table in the 
+            main panel. All highlighted rows will be used. All fleet definitions will be applied if no rows are selected.',
+            tags$br(),
+            'To allow vessels to have multiple fleet assignments, check', tags$code('Allow overlapping fleet assignments.'),
+            'Otherwise, output will not be generated if overlap between observations is detected.',
+            tags$br(),
+            'Next, select from the', tags$code('Fleet variable type'), 'dropdown box whether fleet assignment should be a 
+            single column containing fleet names', tags$em('(String)'), 'or', tags$em('n'), 'binary columns, one for each 
+            fleet name', tags$em('(Dummy variable)'), '(arrow 2) .', tags$br(),
+            'Click the green', tags$code('Assign fleets'), 'button (arrow 3) to add the fleet assignment variables(s) to 
+            the dataset.',
+            tags$br(),tags$br(),
+            tags$strong('Summary Functions'), tags$br(),
+            'The', tags$em('Fleet Summary'), 'subtab contains eight functions that displays summarized fleet data in plots 
+            and tables. Use the', tags$code('Select function'), 'menu (arrow 1) to navigate between them.',
+            tags$br(),
+            tags$ul(tags$em('Vessel Count:'), 'Number of unique vessels'),
+            tags$ul(tags$em('Species Catch:'), 'Summarizes catch'),
+            tags$ul(tags$em('Rolling Catch:'), 'A moving window function summarizing catch over time'), 
+            tags$ul(tags$em('Weekly Catch:'), 'Summarizes catch by week'),
+            tags$ul(tags$em('Bycatch:'), 'Compares species bycatch using CPUE and share of total catch'),
+            tags$ul(tags$em('Weekly Effort:'), 'Displays average daily CPUE by week'), 
+            tags$ul(tags$em('Trip Length:'), 'Displays the distribution of trip duration'),
+            tags$ul(tags$em('Density Plot:'), 'Displays the distribution of a variable using a kernel density estimate, 
+                    cumulative distribution function, or empirical cumulative distribution function'),
+            tags$br(),
+            'Populate options and then press the green', tags$code('Run Function'), 'button to run the function and 
+            display the chosen output. Press the green', tags$code('Save plot to folder'), 'and', 
+            tags$code('Save table to folder buttons'), 'to save output to Output folder.',
+            tags$br(),
+            'There are four optional features that apply to each of these functions (arrow 2).  
+            These options are to subset the data, group the data, split plots, and other plot options.',
+            tags$li(tags$strong('Subset'),
+                    'Subset data by a variable value and/or by time (arrow 3).', tags$br(),
+                    'To subset by a variable value, go to', tags$code('Subset'), 'then check', tags$code('Subset by variable'),
+                    'then choose a variable to subset by. A box will appear below the variable where you can select or type 
+                    the value(s) to include in the table/plot.', tags$br(),
+                    'To subset by date, go to', tags$code('Subset'), 'then check', tags$code('Subset by date'),
+                    'and enter a date variable and a subset type. There are two ways to subset by time: using a date range or 
+                    by period selection.', tags$br(),
+                    tags$em('Date ranges'), 'will only display data within a start and end date. To use this feature, 
+                    enter a start and end date either by browsing the pop-up calendar or by typing into the calendar textbox 
+                    using YYYY-MM-DD format.', tags$br(),
+                    tags$em('Period subsetting'), 'allows users to quickly subset their data by specified periods using a slider bar. 
+                    Period options include year, month, week, year-month, and year-week.', tags$br(),tags$br(),
+                    tags$strong('Group'), tags$br(),
+                    'Aggregate data by one or more categorical variables (arrow 4).', tags$br(),
+                    'Go to', tags$code('Group'), 'then click on', tags$code('Group by'), 
+                    'to add grouping variables. The', tags$code('Group by'), 'menu will include all non-continuous variables 
+                    in the dataset, plus three variables that can be created by the function: year, month, and week 
+                    (date variable required).', tags$br(),
+                    'For plots, each group variable is assigned to a color or line type. Which aesthetic a grouping variable 
+                    is assigned to depends on the function, plot type, and the order in which the grouping variables are added. 
+                    Generally, the first grouping variable is represented by color and the second group by line type. 
+                    Barplots will not display a second grouping variable, but the variable will be included in the table output.', 
+                    tags$br(),
+                    'Grouping variables can also be combined by checking the', tags$code('Combine group variables'), 
+                    'box. There is no limit to the number of grouping variables that can be combined, but no more than 
+                    three is recommended.', tags$br(),
+                    tags$strong('Split'), tags$br(),
+                    'Divide a plot by a categorical variable (arrow 5). Each unique value in the split variable is given its 
+                    own plot within a grid. Splitting variables are assigned to either rows or columns in the grid.
+                    If a single splitting variable is selected, the plot is divided by row. If two splitting variables are 
+                    selected (the maximum allowed), the first is assigned to rows and second to columns. 
+                    Splitting by year, month, and week is available if a date variable is provided. 
+                    For catch-related functions, splitting by species is available if multiple catch columns have been entered. 
+                    ', tags$br(),
+                    tags$strong('Plot options'),
+                    'Several parameters are available for adjusting plots, including plot type, scale transformation, 
+                    scale positioning, and aesthetic positioning. Options vary by function. Experiment with these to 
+                    improve the plot appearance.'
+            ) 
+          ) #end paragraph
+        }
+      })
                    
       output$ExploreTabsText <- renderUI({
         if(input$QuickStartChoices=='ExplorTab'){ 
@@ -453,7 +622,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 				tags$br(),tags$br(),
             tags$div(style="display: inline-block; align:center", img(src="NewVar.png", height="75%", width="75%")),
 				tags$br(), tags$br(),
-				tags$strong('Function category descriptions'),
+				tags$strong('Function category descriptions'), tags$br(),
 				tags$em('Arithmetic'), 'functions focus on creating variables based on numeric calculations (i.e., plus, minus) 
 				          between two variables and catch per unit effort (CPUE).',
 				tags$em('Data transformations'), 'functions focus on transforming data into coded variables. These functions can be used to 
