@@ -718,31 +718,132 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         dataset = data.frame('var1'=0, 'var2'=0)
       )
       
-      observeEvent(input$loadDat, {
-        if(input$projectname==''){
-          showNotification("Please enter a project name.", type='message', duration=10)
+      ptdat_temp <- reactiveValues(
+        dataset = data.frame('var1' = 0, 'var2' = 0)
+      )
+      
+      show <- reactiveValues(port_combine = FALSE, port_merge = FALSE, save = FALSE)
+      
+      observeEvent(input$loadDat, { 
+        
+        if (input$projectname == '') {
+          
+          showNotification("Please enter a project name.", type = 'message', duration = 10)
         }
+        
         req(input$projectname)
-        if(input$loadportsource=='FishSET database'){
-          if(table_exists(paste0(input$projectname, 'PortTable'))==FALSE){
-            showNotification('Table not found in FishSET database. Check project spelling.', type='message', duration=15)
+        
+        if (input$loadportsource == 'FishSET database') {
+          
+          if (table_exists(paste0(input$projectname, 'PortTable')) == FALSE) {
+            
+            showNotification('Table not found in FishSET database. Check project spelling.', 
+                             type = 'message', duration = 15)
+            
           } else {
-          ptdat$dataset <- table_view(paste0(input$projectname, 'PortTable'))
-          port_name <<- paste0(input$projectname, 'PortTable')
+            
+            ptdat$dataset <- table_view(paste0(input$projectname, 'PortTable'))
+            port_name <<- paste0(input$projectname, 'PortTable')
           }
-        } else if(input$loadportsource=='Upload new file' & !is.null(input$portdat)){
-         ptdat$dataset <- read_dat(input$portdat$datapath)
-         q_test <- quietly_test(load_port)
-         q_test(ptdat$dataset, port_name=input$port_name, over_write=TRUE, project=input$projectname, compare=FALSE, y=NULL)
-         showNotification("Port data saved to database.", type = "message", duration = 10)
-         port_name <<- paste0(input$projectname, 'PortTable')
-          }else {
-          ptdat$dataset <- ptdat$dataset
+          
+        } else if (input$loadportsource == 'Upload new file' & !is.null(input$portdat)) {
+          # skip new file upload if user already merged multiple tables
+          if (is.null(input$port_combine_save)) {
+            
+            ptdat$dataset <- read_dat(input$portdat$datapath)
+            q_test <- quietly_test(load_port)
+            q_test(ptdat$dataset, port_name = input$port_name, over_write = TRUE, 
+                   project = input$projectname, compare = FALSE, y = NULL)
+            showNotification("Port data saved to database.", type = "message", 
+                             duration = 10)
+            port_name <<- paste0(input$projectname, 'PortTable')
           }
-        if(names(ptdat$dataset)[1]!='var1'){
-          showNotification("Port data loaded.", type='message', duration=10)
         }
+        
+        if (names(ptdat$dataset)[1] != 'var1') {
+          
+          showNotification("Port data loaded.", type = 'message', duration = 10)
+          show$port_combine <- TRUE
+        }
+        
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
+      
+      # conditional panel for importing additional port tables
+      output$portAddTable <- renderUI({
+        
+        if (show$port_combine) {
+          tagList(
+            
+            checkboxInput("port_combine_cb", "Import and combine additional port table",
+                          value = FALSE),
+            
+            conditionalPanel("input.port_combine_cb",
+                             
+             fileInput("port_combine_fi", "Import additional port table"),
+             fluidRow(
+               actionButton("port_combine_load", "Load table"),
+               
+               shinyjs::disabled(
+                 actionButton("port_combine_save", "Save combined port table to FishSET Database",
+                              style = "color: white; background-color: blue;")
+                             )
+                           ))
+          )
+        }
+      })
+     
+      
+      # conditional panel for merging port tables
+      output$PortAddtableMerge <- renderUI({
+        
+        if (show$port_merge) {
+          # merge UI module see fleetUI.R)
+          mergeUI("port_combine", dat_type = "port")
+        }
+      })
+      # merge server module (see fleetServ.R)
+      mergeServer("port_combine", main = ptdat, other = ptdat_temp, 
+                  reactive(input$projectname), merge_type = "full", 
+                  dat_type = "port", show)
+      
+      # load additional port table
+      observeEvent(input$port_combine_load, {
+        
+        if (!is.null(input$port_combine_fi)) {
+          
+          ptdat_temp$dataset <- read_dat(input$port_combine_fi$datapath)
+          
+          show$port_merge <- TRUE 
+          show$save <- FALSE
+          showNotification("Additional port table loaded", type = "message")
+        }
+        
+      }, ignoreInit = TRUE, ignoreNULL = TRUE)
+      
+      
+      # enable save combined port table button
+      observe({
+        shinyjs::toggleState("port_combine_save", condition = {show$save == TRUE})
+      })
+      
+      
+      # save combined port table to FishSET DB
+      observeEvent(input$port_combine_save, {
+        
+        q_test <- quietly_test(load_port)
+        q_test(ptdat$dataset, port_name = "Port_Name", over_write = TRUE, 
+               project = input$projectname, compare = FALSE, y = NULL)
+        
+        showNotification("Combined port table saved to database.", type = "message", 
+                         duration = 10)
+        # so column names match with DB version
+        ptdat$dataset <- table_view(paste0(input$projectname, 'PortTable'))  
+      
+        port_name <<- paste0(input$projectname, 'PortTable')
+        show$save <- FALSE
+        show$port_merge <- FALSE
+        
+      }, ignoreInit = TRUE, ignoreNULL = TRUE)
       
 
   #Spatial
@@ -818,28 +919,49 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
      #   )
       })
       
-      grddat <- reactiveValues(
-        dataset = data.frame('var1'=0, 'var2'=0)
-      )
+      grddat <- reactiveValues()
       
       observeEvent(input$loadDat, {
-        if(input$loadgridsource=='FishSET database'){
+        
+        if (length(names(grddat)) == 0) {
+          grid_name <<- list() 
+        }
+        
+        if (input$loadgridsource == 'FishSET database') {
+          
           req(input$griddattext)
-          grddat$dataset <- table_view(paste0(input$projectname, input$griddattext))
-          grid_name <<- paste0(input$projectname, input$griddattext)
-        } else if(input$loadgridsource=='Upload new file' & !is.null(input$griddat)) {
+          
+          grid_name_app <- paste0(input$projectname, input$griddattext)
+          grddat[[grid_name_app]] <- table_view(grid_name_app)
+          grid_name[[grid_name_app]] <<- grid_name_app 
+          
+        } else if (input$loadgridsource == 'Upload new file' & !is.null(input$griddat)) {
+          
           showNotification('Gridded data saved to database.', type = 'message', duration = 10)
-          grddat$dataset <- read_dat(input$griddat$datapath)        
+          grid_name_app <- paste0(input$projectname, input$GridName)
+          grddat[[grid_name_app]] <- read_dat(input$griddat$datapath)        
+          
           q_test <- quietly_test(load_grid)
-          q_test(paste0(input$projectname, 'MainDataTable'), grid = grddat$dataset, x = input$GridName, over_write=TRUE, project=input$projectname)
-          grid_name <<- paste0(input$projectname, input$griddattext)
-        } else {
-          grddat$dataset <- grddat$dataset
+          
+          q_test(paste0(input$projectname, 'MainDataTable'), grid = grddat[[grid_name_app]], 
+                 x = input$GridName, over_write = TRUE, project = input$projectname)
+          
+          grid_name[[grid_name_app]] <<- grid_name_app
         }
-        if(names(grddat$dataset)[1]!='var1'){
-          showNotification("Gridded data loaded.", type='message', duration=10)
+        
+        if (length(names(grddat)) > 0) {
+          
+          showNotification("Gridded data loaded.", type = 'message', duration = 10)
         }
-      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
+        
+      }, ignoreInit = TRUE, ignoreNULL = TRUE)
+      
+      output$gridded_uploaded <- renderUI({
+        tagList(
+          p(strong("Gridded data tables uploaded:")),
+          renderText(paste(names(grddat), collapse = ", "))
+        )
+      })
     
       #Auxiliary      
       output$ui.actionA <- renderUI({
@@ -892,75 +1014,14 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           showNotification("Auxiliary data loaded.", type='message', duration=10)
         }
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
+      
       ###---
-
-      #Merge aux with main ---
-  
       #MERGE ----
       ###---      
-      merge <- reactiveValues(show = FALSE, end = FALSE)
-      
-      observeEvent(input$mergeAux, merge$show <- TRUE)
-      
-      observeEvent(input$mergeCancel, merge$show <- FALSE)
-      
       # Merge aux with main ---
-
-      output$mergeUI <- renderUI({
-        
-        tagList(
-          conditionalPanel("input.mergeAux",
-                           
-                           fluidRow(
-                             column(3,
-                                    selectInput("mainKey", "Main data keys",
-                                                choices = colnames(values$dataset), multiple = TRUE)),
-                             column(3, 
-                                    selectInput("auxKey", "Auxiliary data keys",
-                                                choices = colnames(aux$dataset), multiple = TRUE))),
-                           fluidRow(
-                             column(8,
-                                    verbatimTextOutput("mergeBy"))),
-                           fluidRow(
-                             column(3,
-                                    actionButton("mergeOK", "Merge", style = "background-color: blue; color: #FFFFFF;"))),
-                           tags$br(), tags$br()) 
-        )
-        
-      })
+      mergeServer("aux", values, aux, reactive(input$projectname), 
+                  merge_type = "left", dat_type = "aux")
       
-      show_merge_by <- reactive({
-        req(input$mainKey, input$auxKey)
-        
-        unlist(purrr::pmap(list(m = input$mainKey, a = input$auxKey), function(m, a) {
-          paste0(m, " = ", a, "\n")
-        }))
-      })
-      
-      output$mergeBy <- renderText(show_merge_by())
-      
-      merge_by <- reactive({
-        req(input$mainKey, input$auxKey)
-        if (length(input$mainKey) != length(input$auxKey)) {
-          
-          showNotification("Key lengths must match.", type = "error")
-          return()
-        } else {
-
-          stats::setNames(input$auxKey, c(input$mainKey))
-        }
-      })
-      
-      observeEvent(input$mergeOK, {
-        
-        if (!is.null(merge_by())) {
-          
-          values$dataset <- merge_dat(values$dataset, aux$dataset, input$projectname, input$mainKey, input$auxKey)
-          
-          showNotification("Auxiliary data merged to primary table.", type = "message")
-        }
-      })
-
       
       ###---
       
@@ -1621,17 +1682,34 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       ###---
       #1. TABLE
       
+      output$SelectDatasetExploreUI <- renderUI({
+        
+        tagList(
+          selectInput("SelectDatasetExplore", "Select a dataset", 
+                      choices = c("main", "port", "auxiliary", "gridded" = "grid")),
+          
+          conditionalPanel("input.SelectDatasetExplore == 'grid'",
+                           selectInput("grid_select", "select gridded table", 
+                                       choices = names(grddat))
+          )
+        )
+        
+      })
   
       explore_temp <- reactive({
+          
+        if (input$SelectDatasetExplore != "grid") {
+          
+          switch(input$SelectDatasetExplore,
+                 "main" = values$dataset,
+                 "port" = ptdat$dataset,
+                 "auxiliary" = aux$dataset)
         
-         switch(input$SelectDatasetExplore,
-                       "main" = values$dataset,
-                       "port" = ptdat$dataset,
-                       "grid" = grddat$dataset,
-                       "auxiliary" = aux$dataset)
+        } else {
+          
+         grddat[[input$grid_select]] 
+        }
       })
-      
-     # cell_change <- reactive(unlist(input$output_table_exploration_cell_clicked))
       
       observeEvent(c(input$subsetData,
                      input$output_table_exploration_search_columns), {
@@ -1641,11 +1719,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         } else if (input$SelectDatasetExplore == "port") {
           ptdat$dataset <- explore_temp()
         } else if (input$SelectDatasetExplore == "grid") {
-          grddat$dataset <- explore_temp()
+          grddat[[input$grid_select]] <- explore_temp()
         } else if (input$SelectDatasetExplore == "aux") {
           aux$dataset <- explore_temp()
         }
-      })
+      }, ignoreInit = TRUE)
       
       output$output_table_exploration <- DT::renderDT(
         if(colnames(explore_temp())[1] == 'var1') {
@@ -2013,15 +2091,15 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           actionButton("run_grid", "Plot grid",
                        style = "color: #fff; background-color: #6da363; border-color: #800000;"),
           selectInput("grid_lon", "Longitude", 
-                      choices = find_lon(grddat$dataset)),
+                      choices = FishSET:::find_lon(grddat[[input$grid_select]])),
           selectInput("grid_lat", "Latitude", 
-                      choices = find_lat(grddat$dataset)),
+                      choices = FishSET:::find_lat(grddat[[input$grid_select]])),
           selectInput("grid_value", "Value", 
-                      choices = numeric_cols(grddat$dataset)),
+                      choices = numeric_cols(grddat[[input$grid_select]])),
           selectInput("grid_split", "Split plot by",
-                      choices = c("none", colnames(grddat$dataset))),
+                      choices = c("none", colnames(grddat[[input$grid_select]]))),
           selectInput("grid_agg", "Group mean value by",
-                      choices = c("latlon", colnames(grddat$dataset)),
+                      choices = c("latlon", colnames(grddat[[input$grid_select]])),
                       multiple = TRUE)
         )
       })
@@ -2034,22 +2112,22 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         
         if (is.logical(grid_values$bbox)) {
           
-          grid_values$bbox <- ggmap::make_bbox(grddat$dataset[[input$grid_lon]], 
-                                               grddat$dataset[[input$grid_lat]])
+          grid_values$bbox <- ggmap::make_bbox(grddat[[input$grid_select]][[input$grid_lon]], 
+                                               grddat[[input$grid_select]][[input$grid_lat]])
           
-          grid_values$gmap <- retrieve_map(grddat$dataset, 
+          grid_values$gmap <- retrieve_map(grddat[[input$grid_select]], 
                                            input$grid_lon, 
                                            input$grid_lat) 
           
         } else {
           
-          incoming_bbox <- ggmap::make_bbox(grddat$dataset[[input$grid_lon]], 
-                                            grddat$dataset[[input$grid_lat]])
+          incoming_bbox <- ggmap::make_bbox(grddat[[input$grid_select]][[input$grid_lon]], 
+                                            grddat[[input$grid_select]][[input$grid_lat]])
           
           same_bbox <- all(round(grid_values$bbox) == round(incoming_bbox))
           
           if (same_bbox == FALSE) { # retrieve new map if bbox changes, else keep existing map
-            grid_values$gmap <- retrieve_map(grddat$dataset,
+            grid_values$gmap <- retrieve_map(grddat[[input$grid_select]],
                                              input$grid_lon, 
                                              input$grid_lat) 
             
@@ -2058,7 +2136,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }
         
         grid_values$plot <-
-          view_grid_dat(gridfile = grddat$dataset, project = input$projectname,
+          view_grid_dat(gridfile = grddat[[input$grid_select]], project = input$projectname,
                       lon = input$grid_lon, lat = input$grid_lat,
                       value = input$grid_value, split_by = input$grid_split,
                       agg_by = input$grid_agg, gmap = grid_values$gmap)
@@ -3653,6 +3731,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         jsinject <- "setTimeout(function(){window.open($('#downloadplotEXPLOREHIDE').attr('href'))}, 100);"
         session$sendCustomMessage(type = 'jsCode', list(value = jsinject)) 
       })
+      
+      # save grid plot in Explore tab
+      plotSaveServ("grid_plot", reactive(input$projectname), "view_grid_dat", grid_values, in_list = TRUE)
       
       observeEvent(input$downloadTableExplore, {
         write.csv(gtmt_table(), paste0(locoutput(), input$projectname, '_', 'GetisOrdMoransI.csv'))
