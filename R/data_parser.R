@@ -75,6 +75,92 @@ read_dat <- function(x, data.type=NULL, is.map = F, ...) {
   }
 }
 
+write_dat <- function (dat, file, file_type = "csv", project, ...) {
+  #' Write a dataset to local file
+  #'
+  #'@param dat Name of data frame in working environment to save to file. 
+  #'@param file String, file or connection to write to.
+  #'@param file_type String, the type of file to write to. Options include \code{"csv"},
+  #'  \code{"txt"} (tab-separated text file), \code{"xlsx"} (excel), \code{"rdata"}, \code{"json"}, 
+  #'  \code{"stata"}, \code{"spss"},
+  #'  \code{"sas"}, and \code{"matlab"}.
+  #'@param project String, project name. 
+  #'@param ... Additional arguments passed to writing function. See "details" for 
+  #'  the list of functions. 
+  #'@importFrom openxlsx write.xlsx
+  #'@importFrom jsonlite write_json
+  #'@importFrom haven write_dta write_sav write_sas
+  #'@importFrom R.matlab writeMat
+  #'@importFrom shiny isRunning
+  #'@export
+  #'@details  See \code{\link[utils]{write.csv}} for saving csv files, \code{\link[utils]{write.table}}
+  #'  for tab-separated files, \code{\link[base]{save}} for R data files, \code{\link[openxlsx]{write.xlsx}},
+  #'  \code{\link[jsonlite]{read_json}} for json files, \code{\link[haven]{write_dta}} 
+  #'  for Stata files, \code{\link[haven]{write_sav}} for SPSS files, \code{\link[haven]{write_sas}}
+  #'  for SAS files, and \code{\link[R.matlab]{writeMat}} for Matlab files. 
+  #'@examples
+  #'\dontrun{
+  #' write_dat(pollockMainDataTable, file = "C://data/pollock_dataset.csv", type = "csv", "pollock")
+  #' }
+  
+  out <- data_pull(dat)
+  dataset <- out$dataset
+  
+  if (shiny::isRunning()) {
+    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
+  } else { 
+    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
+  
+  
+  if (file_type == "csv") {
+    
+    write.csv(dataset, file = file, row.names = FALSE, ...)
+    
+  } else if (file_type == "txt") { 
+    
+    write.table(dataset, file = file, sep = "\t", row.names = FALSE, ...)
+    
+  } else if (file_type == "xlsx") {
+    
+    openxlsx::write.xlsx(dataset, file = file, ...)
+    
+  } else if (file_type == "rdata") {
+    
+    save(dataset, file = file, ...)
+    
+  } else if (file_type == "json") {
+    
+    jsonlite::write_json(dataset, path = file, ...)
+    
+  } else if (file_type == "stata") {
+    
+    haven::write_dta(dataset, path = file, ...)
+    
+  } else if (file_type == "spss") {
+    
+    haven::write_sav(data = dataset, path = file, ...)
+    
+  } else if (file_type == "sas") {
+    # has column length restriction
+    haven::write_sas(dataset, path = file, ...)
+    
+  } else if (file_type == "matlab") {
+    # has column length restriction (32 characters)
+    R.matlab::writeMat(con = file, dataset, ...)
+    
+  } else {
+    warning("Data extention not recognized.")
+  }
+  
+  # Log the function
+  write_dat_function <- list()
+  write_dat_function$functionID <- "write_data"
+  write_dat_function$args <- list(dat, file, file_type, project)
+  write_dat_function$kwargs <- list(...)
+  
+  log_call(write_dat_function)
+}
+
 # Read in main data table from database into working environment
 load_data <- function(project, name = NULL) {
   #' Load data from FishSET database into working environment

@@ -238,7 +238,7 @@ mergeServer <- function(id, main, other, project, merge_type, dat_type, show = N
   moduleServer(id, function(input, output, session) {
     
     ns <- session$ns
-    dat_type <- switch(dat_type, "aux" = "auxiliary", "port" = "port", 
+    dat_type_lab <- switch(dat_type, "aux" = "auxiliary", "port" = "port", 
                        "grid" = "gridded", "spat" = "spatial")
     
     output$mergeUI <- renderUI({
@@ -251,7 +251,7 @@ mergeServer <- function(id, main, other, project, merge_type, dat_type, show = N
                   selectInput(ns("main_key"), "Main table keys",
                               choices = colnames(main$dataset), multiple = TRUE)),
            column(3, 
-                  selectInput(ns("other_key"), paste(dat_type, "table keys"),
+                  selectInput(ns("other_key"), paste(dat_type_lab, "table keys"),
                               choices = colnames(other$dataset), multiple = TRUE))),
          fluidRow(
            column(8,
@@ -301,7 +301,7 @@ mergeServer <- function(id, main, other, project, merge_type, dat_type, show = N
           show$save <- TRUE
         }
         
-        showNotification(paste(dat_type, "table merged to primary table."), 
+        showNotification(paste(dat_type_lab, "table merged to primary table."), 
                          type = "message")
       }
     }, ignoreInit = TRUE, ignoreNULL = TRUE)
