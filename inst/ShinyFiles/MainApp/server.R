@@ -313,7 +313,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             'The', tags$em('Data Quality and Evaluation'), 'tab is used to identify and correct common data quality issues such as erroneous outliers and missing values.',
 				tags$br(),tags$br(),
 				    'Users can view data classes for variables, check for missing values, empty variables, duplicate data, erroneous outliers, and that lat/lon variables 
-				    are in the correct format. Output from most data evaluation checks appear as a statement of check results at the top of the main panel. 
+				    are in the correct format.',tags$br(), 
+            'Output from most data evaluation checks appear as a statement of check results at the top of the main panel. 
             For the', tags$em('Variable class'), 'and', tags$em('Outliers'), 'options, interactive tables and plots are displayed.', 
        tags$br(), tags$br(),
           'Options to address data quality issues are specific to each data evaluation check option and are displayed 
@@ -321,11 +322,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 				Evaluation statements outputs are automatically saved to the log file and notes file.',
 			tags$br(), tags$br(),
           'For the variable class option, select the correct variable data class if the wrong class is shown. For instance, a variable containing 
-          all numbers should generally be classed as numeric and not character. Click the', tags$code('Change variable class'), 'button when
-			    selections are done. The data will not be changed but the variable data class will.', tags$br(),
-          tags$br(),
+          all numbers should generally be classed as numeric and not character.', 
+			    tags$br(), 'Click the', tags$code('Change variable class'), 'button when selections are done. 
+			    The data will not be changed but the variable data class will.', 
+          tags$br(), tags$br(),
           'For the outlier option, a data table and three plots are displayed. The plots show the distribution of the data in three 
-				   different ways. You can click on the data table to view the impact of removing a defined subset of the data. Click on individual points 
+				   different ways.', tags$br(), 'You can click on the data table to view the impact of removing a defined subset of the data. Click on individual points 
          in the first plot to view the point value or zoom in to a highlighted area by double clicking. Further details on the outlier 
 			    checks are in the Help Manual.',
             tags$div(style="display: inline-block; align:center", img(src="dq.png", height="75%", width="75%")),
@@ -358,7 +360,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             created or loaded before running the fleet assignment function. Use the', tags$code('Select task'), 
             'menu on the sidebar (arrow 1) to switch between defining and assigning fleets.',
             tags$br(),
-              tags$li(
+              tags$ul(
                 tags$strong('Fleet Definition Table'), tags$br(),
                 'A fleet definition table consists of a fleet definition column and a fleet name column. Each row of the table 
                 is a different fleet. The fleet definition column contains a logical condition that defines a fleet. 
@@ -366,8 +368,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                 directly into the', tags$em('Fleet Definition Table.'), 'Existing fleet definition tables that are not saved to the FishSET 
                 database can be loaded using', tags$code('Import table from local file'), 'browser button at the bottom of the left panel. 
                 Click the blue', tags$code('Import table'), 'button to load the table into the main panel of the app.',
-                tags$br(),
-                tags$strong('Expression builder'), tags$br(),
+                tags$br(),tags$br(),
+                tags$ul(tags$strong('Expression builder'), tags$br(),
                 'The', tags$code('Expression builder'), '(located in the top-half of the main panel) is a tool that allows users to 
                 create fleet definitions quickly and accurately. It is used to fill in the condition column of the ',
                 tags$code('Fleet Definition Table.'), 'The expression builder consists of a Variable, Operator, and Value menu. 
@@ -425,6 +427,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                 'After completing a fleet table, save it to the FishSET database by clicking', 
                 tags$code('Save table to FishSET database'), '(arrow 4). Once saved, fleet tables can be reused for future projects.'
               ),#end line indent
+            tags$br(),
             tags$strong('Fleet Assign'), tags$br(),
             'To assign vessels to fleets, select', tags$code('Fleet assignment'), 'in the', tags$code('Select Tasks'), 
             'drawdown box in the left hand panel.', 
@@ -442,45 +445,50 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             single column containing fleet names', tags$em('(String)'), 'or', tags$em('n'), 'binary columns, one for each 
             fleet name', tags$em('(Dummy variable)'), '(arrow 2) .', tags$br(),
             'Click the green', tags$code('Assign fleets'), 'button (arrow 3) to add the fleet assignment variables(s) to 
-            the dataset.',
+            the dataset.'),
             tags$br(),tags$br(),
             tags$strong('Summary Functions'), tags$br(),
             'The', tags$em('Fleet Summary'), 'subtab contains eight functions that displays summarized fleet data in plots 
             and tables. Use the', tags$code('Select function'), 'menu (arrow 1) to navigate between them.',
-            tags$br(),
-            tags$ul(tags$em('Vessel Count:'), 'Number of unique vessels'),
-            tags$ul(tags$em('Species Catch:'), 'Summarizes catch'),
-            tags$ul(tags$em('Rolling Catch:'), 'A moving window function summarizing catch over time'), 
-            tags$ul(tags$em('Weekly Catch:'), 'Summarizes catch by week'),
-            tags$ul(tags$em('Bycatch:'), 'Compares species bycatch using CPUE and share of total catch'),
-            tags$ul(tags$em('Weekly Effort:'), 'Displays average daily CPUE by week'), 
-            tags$ul(tags$em('Trip Length:'), 'Displays the distribution of trip duration'),
-            tags$ul(tags$em('Density Plot:'), 'Displays the distribution of a variable using a kernel density estimate, 
+            tags$br(),tags$br(),
+            tags$ul(tags$em('Vessel Count:'), 'Number of unique vessels', tags$br(),
+              tags$em('Species Catch:'), 'Summarizes catch', tags$br(),
+              tags$em('Rolling Catch:'), 'A moving window function summarizing catch over time', tags$br(),
+              tags$em('Weekly Catch:'), 'Summarizes catch by week', tags$br(),
+              tags$em('Bycatch:'), 'Compares species bycatch using CPUE and share of total catch', tags$br(),
+              tags$em('Weekly Effort:'), 'Displays average daily CPUE by week', tags$br(),
+              tags$em('Trip Length:'), 'Displays the distribution of trip duration', tags$br(),
+              tags$em('Density Plot:'), 'Displays the distribution of a variable using a kernel density estimate, 
                     cumulative distribution function, or empirical cumulative distribution function'),
             tags$br(),
             'Populate options and then press the green', tags$code('Run Function'), 'button to run the function and 
-            display the chosen output. Press the green', tags$code('Save plot to folder'), 'and', 
+            display the chosen output.', tags$br(), 
+            'Press the green', tags$code('Save plot to folder'), 'and', 
             tags$code('Save table to folder buttons'), 'to save output to Output folder.',
-            tags$br(),
+            tags$br(),tags$br(),
             'There are four optional features that apply to each of these functions (arrow 2).  
             These options are to subset the data, group the data, split plots, and other plot options.',
-            tags$li(tags$strong('Subset'),
+            tags$br(),tags$br(),
+            tags$ul(tags$strong('Subset'),
                     'Subset data by a variable value and/or by time (arrow 3).', tags$br(),
-                    'To subset by a variable value, go to', tags$code('Subset'), 'then check', tags$code('Subset by variable'),
-                    'then choose a variable to subset by. A box will appear below the variable where you can select or type 
+                    'To subset by a variable value, go to', tags$code('Subset'), 'check', tags$code('Subset by variable,'),
+                    'then choose a variable to subset by.', tags$br(), 
+                    'A box will appear below the variable where you can select or type 
                     the value(s) to include in the table/plot.', tags$br(),
-                    'To subset by date, go to', tags$code('Subset'), 'then check', tags$code('Subset by date'),
-                    'and enter a date variable and a subset type. There are two ways to subset by time: using a date range or 
-                    by period selection.', tags$br(),
+                    'To subset by date, go to', tags$code('Subset'), 'check', tags$code('Subset by date'),
+                    'and enter a date variable and a subset type.', tags$br(), 
+                    'There are two ways to subset by time: using a date range or by period selection.',
+                     tags$br(),
                     tags$em('Date ranges'), 'will only display data within a start and end date. To use this feature, 
                     enter a start and end date either by browsing the pop-up calendar or by typing into the calendar textbox 
                     using YYYY-MM-DD format.', tags$br(),
                     tags$em('Period subsetting'), 'allows users to quickly subset their data by specified periods using a slider bar. 
-                    Period options include year, month, week, year-month, and year-week.', tags$br(),tags$br(),
+                    Period options include year, month, week, year-month, and year-week.', 
+                    tags$br(),tags$br(),
                     tags$strong('Group'), tags$br(),
                     'Aggregate data by one or more categorical variables (arrow 4).', tags$br(),
-                    'Go to', tags$code('Group'), 'then click on', tags$code('Group by'), 
-                    'to add grouping variables. The', tags$code('Group by'), 'menu will include all non-continuous variables 
+                    'Go to', tags$code('Group,'), 'and click on', tags$code('Group by'), 'to add grouping variables.',
+                    tags$br(), 'The', tags$code('Group by'), 'menu will include all non-continuous variables 
                     in the dataset, plus three variables that can be created by the function: year, month, and week 
                     (date variable required).', tags$br(),
                     'For plots, each group variable is assigned to a color or line type. Which aesthetic a grouping variable 
@@ -490,15 +498,19 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                     tags$br(),
                     'Grouping variables can also be combined by checking the', tags$code('Combine group variables'), 
                     'box. There is no limit to the number of grouping variables that can be combined, but no more than 
-                    three is recommended.', tags$br(),
+                    three is recommended.',
+                    tags$br(),tags$br(),
                     tags$strong('Split'), tags$br(),
-                    'Divide a plot by a categorical variable (arrow 5). Each unique value in the split variable is given its 
-                    own plot within a grid. Splitting variables are assigned to either rows or columns in the grid.
-                    If a single splitting variable is selected, the plot is divided by row. If two splitting variables are 
-                    selected (the maximum allowed), the first is assigned to rows and second to columns. 
-                    Splitting by year, month, and week is available if a date variable is provided. 
-                    For catch-related functions, splitting by species is available if multiple catch columns have been entered. 
-                    ', tags$br(),
+                    'Divide a plot by a categorical variable (arrow 5).', tags$br(),
+                    'Each unique value in the split variable is given its own plot within a grid. 
+                    Splitting variables are assigned to either rows or columns in the grid.', tags$br(), 'If a single 
+                    splitting variable is selected, the plot is divided by row. If two splitting variables are 
+                    selected (the maximum allowed), the first is assigned to rows and second to columns.', 
+                    tags$br(), 'Splitting by year, month, and week is available if a date variable is provided.', 
+                    tags$br(), 
+                    'For catch-related functions, splitting by species is available if multiple catch 
+                    columns have been entered.',  
+                    tags$br(),tags$br(),
                     tags$strong('Plot options'),
                     'Several parameters are available for adjusting plots, including plot type, scale transformation, 
                     scale positioning, and aesthetic positioning. Options vary by function. Experiment with these to 
@@ -510,63 +522,62 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                    
       output$ExploreTabsText <- renderUI({
         if(input$QuickStartChoices=='ExplorTab'){ 
-          tags$div(
-            tags$br(), tags$br(),
-            tags$p(tags$strong('Purpose:'), tags$br(), 
+            p(tags$br(), tags$br(),
+            tags$strong('Purpose:'), tags$br(), 
                    'The', tags$em('Data Exploration'), 'tab is used to view and explore the loaded data.',
                    tags$br(),tags$br(),
                   'Data can be viewed in table or plot format. Plots show the temporal and spatial distribution of the data 
                    and the relationship between two variables.',
                  'Use the', tags$code('View data or plots'), 'dropdown box to select between viewing data as a table or as plots.',
             tags$br(),tags$br(),
-            "We describe usage of the table option first and then of plots."
-            ),
-            tags$p(HTML(paste(tags$h4('Table:'), 
-                              tags$h5('The table is used to edit individual cells, filter the data, 
+            "We describe usage of the table option first and then of plots.",
+            tags$br(), tags$br(),
+            #tags$p(#HTML(paste(tags$h4('Table:'), 
+             #                 tags$h5(
+              tags$strong('Table:'), tags$br(),
+              tags$ul('The table is used to edit individual cells, filter the data, 
                                       and remove variables from the dataset that are redundant or 
                                       will not be used in analyses or modeling. In addition, the 
                                       other data types (plot, auxilliary, gridded), can also be viewed 
-                                      and edited using the', tags$code('Select a dataset'), 'dropdown box.' 
-                                      ))),
+                                      and edited using the', tags$code('Select a dataset'), 'dropdown box.',
 				    tags$br(),
-				    tags$strong('Edit cells'), 'by double-clicking a cell.'
-				    ),
+				    tags$strong('Edit cells'), 'by double-clicking a cell.',
 				    tags$br(),
 			      tags$div(style="display: inline-block; align:center", img(src="Correct.png", height="75%", width="75%")),
 			    	tags$br(),tags$br(),
-			tags$p(tags$strong('Remove variables'), 'by clicking on a column, then clicking the', tags$code('Remove variable'), 'button. 
-              Save the edited data table to the FishSET database by clicking the', tags$code('Save data'), 
-				'button. Press the', tags$code('Refresh data'), 'button to load the original, unaltered data table.'),
-				tags$br(), 
-			tags$div(style="display: inline-block; align:center", img(src="DeleteVar.png", height="75%", width="75%")),
-				tags$br(),tags$br(),
-			tags$p(tags$strong('Filter data'), 'using the', tags$em('boxes'), 'between the variable name the first row of data. Filters are saved when the', 
-				tags$code('Save data to FishSET database'), 'button is pushed. The altered data is also saved as the project,
-				"MainDataTable", and the date.'),
-				tags$br(), 
-			tags$div(style="display: inline-block; align:center", img(src="Filter.png", height="75%", width="75%")),
-				tags$br(),tags$br(),
-			tags$p(tags$h4('Plots:'),
-				'Temporal, spatial, and x-y plots are available.'), 
-			tags$p('The temporal plots show the relationship of the selected variable by date.',
+			      tags$strong('Remove variables'), 'by clicking on a column, then clicking the', tags$code('Remove variable'), 'button.', 
+              tags$br(), 'Save the edited data table to the FishSET database by clicking the', tags$code('Save data'), 
+				      'button.', tags$br(), 'Press the', tags$code('Refresh data'), 'button to load the original, unaltered data table.',
+				    tags$br(), 
+			      tags$div(style="display: inline-block; align:center", img(src="DeleteVar.png", height="75%", width="75%")),
+				    tags$br(),tags$br(),
+			      tags$strong('Filter data'), 'using the', tags$em('boxes'), 'between the variable name the first row of data. Filters are saved when the', 
+				    tags$code('Save data to FishSET database'), 'button is pushed. The altered data is also 
+            saved as the project, "MainDataTable", and the date.',
+			    	tags$br(), 
+			      tags$div(style="display: inline-block; align:center", img(src="Filter.png", height="75%", width="75%"))
+				    ), #End indent
+				    tags$p(tags$br(),tags$br(),
+			      tags$h4('Plots:'),
+				    'Temporal, spatial, and x-y plots are available.'), 
+			      'The temporal plots show the relationship of the selected variable by date.',
 			       tags$br(),tags$br(),
 			       'The spatial plots show the distribution of hauls in the map region and hot spots of activity.',
 			       tags$br(),
-			       'You can zoom in on the', 
-			       tags$em('Observed location'), 'spatial plot by double-clicking a highlighted area or view the latitude and longitude of a point
-			       by single clicking on the point. To reset the map, double-click outside the highlighted area. 
-			       This map can be saved. A more detailed spatial map can be viewed on the', tags$code('Map Viewer'),
+			       'You can zoom in on the', tags$em('Observed location'), 
+			       'spatial plot by double-clicking a highlighted area or view the latitude and longitude of a point
+			       by single clicking on the point.', tags$br(), 'To reset the map, double-click outside the highlighted area.', 
+			       tags$br(), 'This map can be saved.', tags$br(), 'A more detailed spatial map can be viewed on the', tags$code('Map Viewer'),
 			       'tab.', 
 			       tags$br(),
 			       	tags$div(style="display: inline-block; align:center", img(src="MapZoom.png", height="75%", width="75%")),
-				tags$br(),tags$br(),
-			tags$p("A measure of spatial autocorrelation (global Moran's I) and of spatial clustering (GetisOrd statistic) will display below the 
-      plots once selections below plot type are made. The table can be saved."
-				),
+				    tags$br(),tags$br(),
+			      "A measure of spatial autocorrelation (global Moran's I) and of spatial clustering (GetisOrd statistic) will display below the 
+            plots once selections below plot type are made. The table can be saved.",
 			       tags$br(), tags$br(),
-			       'The finaly plot type, x-y plots, shows the relationship between two selected variables. 
-			To assess the degree of correlation between variables or the fit of the relationship, visit the', tags$code('Simple Analyses'), 'tab.'
-			)
+			       'The final plot type, x-y plots, shows the relationship between two selected variables.', tags$br(),
+			        'To assess the degree of correlation between variables or the fit of the relationship, visit the', 
+				    tags$code('Simple Analyses'), 'tab.'
           )
         }
       })
@@ -608,13 +619,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             tags$li('Trip-level'),
 				tags$br(),tags$br(),
 				    'We describe first how to run functons, view the created variable, and save the altered data. We then describe the 
-				    functions in the six variable createion categories.',
+				    functions in the six variable creation categories.',
 				tags$br(), tags$br(),
             'To run a function, click the', tags$code('Run function'), 'button (arrow 1). This will run the selected function and
             generate the output.',
 				tags$br(),
 				    'The new variable can then be viewed in the displayed data table (arrow 2). It will be the last 
-				    variable in the data table. Default variable names will be provided if the', 
+				    variable in the data table.', tags$br(), 'Default variable names will be provided if the', 
             tags$code('Name of new variable'), 'box is left empty (arrow 3).', 
 				tags$br(),
             'Save the revised data by pressing the', tags$code('Save data'), 'button. If the data is not saved the created variables will 
@@ -623,19 +634,35 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             tags$div(style="display: inline-block; align:center", img(src="NewVar.png", height="75%", width="75%")),
 				tags$br(), tags$br(),
 				tags$strong('Function category descriptions'), tags$br(),
-				tags$em('Arithmetic'), 'functions focus on creating variables based on numeric calculations (i.e., plus, minus) 
+				tags$em('Arithmetic'), 
+            'functions focus on creating variables based on numeric calculations (i.e., plus, minus) 
 				          between two variables and catch per unit effort (CPUE).',
-				tags$em('Data transformations'), 'functions focus on transforming data into coded variables. These functions can be used to 
+				tags$br(), tags$br(),
+				tags$em('Data transformations'), 
+            'functions focus on transforming data into coded variables. These functions can be used to 
 				        transform confidential data.',
-				tags$em('Dummy variables'), 'functions focus on creating binary variables. These are useful for contrasting between two states, such 
-				        as caught at least 50 metric tons or not, before versus after a policy was enacted, or fishery zone was open versus closed.',
-				tags$em('Nominal ID'), 'functions focus on creating identifiers - haul, trip, or fishery season.',
-				tags$em('Temporal'), 'functions focus on converting a date variable into the needed unit of time and calculated duration of time 
-				        between two temporal variables',
-        tags$em('Spatial'), 'functions focus on creating variables that vary over space, such as haul midpoint and distance between points.
+				tags$br(), tags$br(),
+				tags$em('Dummy variables'),
+            'functions focus on creating binary variables.',tags$br(), 
+              'These are useful for contrasting between two states, such as caught at least 50 metric tons or not, 
+				        before versus after a policy was enacted, or fishery zone was open versus closed.',
+				tags$br(), tags$br(),
+				tags$em('Nominal ID'), 
+				      'functions focus on creating identifiers - haul, trip, or fishery season.',
+				tags$br(), tags$br(),
+        tags$em('Temporal'), 
+            'functions focus on converting a date variable into the needed unit of time and calculated duration of time 
+				        between two temporal variables.',
+				tags$br(), tags$br(),
+        tags$em('Spatial'), 
+        'functions focus on creating variables that vary over space, such as haul midpoint and distance between points.
 				        A spatial data file is required. ',
-				tags$em('Trip-level'), 'functions focus on trip-level variables including trip distance and trip centroid. A function to collapse 
-				        data from haul level to trip level is also included.'
+				tags$br(), tags$br(),
+				tags$em('Trip-level'), 
+        'functions focus on trip-level variables including trip distance and trip centroid. A function to collapse 
+				        data from haul level to trip level is also included.',
+				
+				tags$br()
             )
         }
       })
@@ -678,7 +705,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 	                    is provided to assess variance in the amount of data between hauls. Observations from zones with insufficient zones can be 
 	                   removed from analyses by setting the minimum haul number in the', tags$code('Include zones with more hauls than'), 'box.'),
 				    tags$br(),
-             tags$li('(Optional) Select catch and price variable. This can be done here or in the', tags$em('Expected Catch/Revenue'), 
+             tags$li('(Optional) Select catch and price variables. This can be done here or in the', tags$em('Expected Catch/Revenue'), 
 					'or', tags$em('Models'), 'tabs.')
 	         )
           )
@@ -690,11 +717,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           p(tags$br(), tags$br(),
             tags$strong('Purpose:'), tags$br(), 
             'The', tags$em('Expected Catch/Revenue'), 'tab is used to calculate the expected catch or revenue matrix for alternative
-            fishing zones. 
-            This matrix is required to run the conditional logit model.',
+            fishing zones (zones where fishing could have happened but did not). A', tags$code('catch variable'), 
+            'is required. Include a', tags$code('price or value'), 'variable if you want  expected revenue. Price is 
+			      multiplied against catch to produce revenue. If a revenue variable exists in the dataset, it can be used for 
+			      the', tags$code('Catch Variable.'), 'This matrix is required to run the conditional logit model.',
 			  tags$br(), tags$br(),
-			  'The function takes that The output is saved to the FishSET database and called in the models tab.', 
-        
+				
 			  #  'The primary choices are whether to treat data as a fleet or to group the data', tags$strong('defineGroup'), 'and the time
 			  #  frame of catch data for calculating expected catch. Catch is averaged along a daily or sequential timeline',
 			  #  tags$strong('temporal'), 'using a rolling average.', tags$strong('temp.window'), 'and tags$strong('temp.lat') determine the window size and
@@ -706,13 +734,41 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 			  #  are considered times when fishing activity occurred but with no catch. These points are included in the averaging
 			  #  and dummy creation as points in time when fishing occurred.' 
 			  tags$br(), tags$br(),
-            'The function returns four expected catch or expected revenue data frames based on selected parameters:', 
+            'The function returns four expected catch or expected revenue matrices based on selected parameters:', 
 				tags$br(),
 				    tags$ul('selected temporal parameters'),
             tags$ul('expected catch/revenue based the previous two days (short-term) catch,'), 
             tags$ul('expected catch/revenue based the previous seven days (medium-term) catch,'), 
-            tags$ul('and expected catch/revenue based the previous years (long-term) catch.')
-            )
+            tags$ul('and expected catch/revenue based the previous years (long-term) catch.'),
+
+        tags$br(),tags$br(),	
+				'There are a number of choices. The first choice is whether to calculate expected catch/revenue over the entire dataset (“fleet”) 
+        or within groups using the', tags$code('Choose viable that defines group'), 'dropdown box.', 
+				tags$br(),
+				'Next are', tags$em('Temporal options.'), 'First, identify the', tags$code('Method to sort time.'), 'Options are', 
+				tags$em('Entire record of time, Sequential,'), 'or', tags$em('Daily.'), 'No additional temporal options are required if', 
+				tags$code('Method to sort time'), 'is the', tags$code('Entire record of time'), '(temporal patterns of catch are not taken 
+        into account). If using', tags$em('Sequential'), 'or', tags$em('Daily'), 'select the', 
+        tags$code('Temporal variable for averaging'), 'and populate choices defining the window size (in days) and time lags 
+        (in years and days) for averaging.', tags$br(),
+				'Using the specified moving window parameters, a matrix of average catch is created with', tags$em('zone*group'), 'as the rows and date 
+        the columns. This is the standard average catch (calc.method = “standardAverage”). Alternatively, you can use the simple lag 
+          regression of the mean (calc.method = “simpleLag”), which returns the predicted value for each', tags$em('zone*group'),
+				'and date given regression coefficients', tags$em('p'), 'for each', tags$em('zone*group.'),
+				'The', tags$code('method to average across time steps,'), 'can be to regress over the', 
+				tags$code('entire time period'), 'or', tags$em('grouped time periods.'), tags$br(), tags$br(),
+				'The expected catch matrix is pulled from the matrix of calculated catches for each date and zone. The matrix is of dimensions',
+        tags$em('(number of rows of the primary data)*(number of alternatives).'), 'Expected catch is filled out by mapping the 
+        calculated catch for each zone given the observed date (if specified) and group (if specified) in the primary dataset.',
+				tags$br(), tags$br(),
+				'Note that empty catch values are considered to be times of no fishing activity. These values are not included. Values of 0 
+        in the catch variable are considered times when fishing activity occurred but with no catch, should these exist. 
+        These zero values are included in calculations. Sparsity in data should be considered when deciding how to take into account 
+        that catch may vary over time. A sparsity table will appear in the main panel.  If data is sparse, a broader window size 
+        or using the entire temporal record may be necessary. Empty catch values and empty expected catch values can be filled but 
+        only on a limited basis as doing so can lead to biased or misleading results. If there are a lot of empty values, consider 
+        changing the temporal arguments to reduce data sparsity.'
+				)
         }
       })
       
