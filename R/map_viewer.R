@@ -59,7 +59,8 @@ map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars,
   }
 
   # 2 Create data file
-
+#Start with path option
+if(!is.null(lon_end)){  
   # remove NAs from lat and lon
   dataset <- dataset[!is.na(dataset[[lon_start]]) & !is.na(dataset[[lat_start]]) & 
                        !is.na(dataset[[lon_end]]) & !is.na(dataset[[lat_end]]), ]
@@ -71,7 +72,7 @@ map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars,
   write.csv(dataset, paste0(loc_map(), "/datafile.csv"))
 
   # 3. Create map config
-if(!is.null(lon_end)){
+
   map_config <- list()
   map_config$mapbox_token <- "pk.eyJ1IjoibWhhcnNjaDEyNSIsImEiOiJjazZ2NXh6dXUwZ25vM25wYXJ6bHFpOGc1In0.nAdb9QQybVd9ESgtr0fjZg"
   map_config$choosen_scatter <- num_vars[1]
@@ -90,6 +91,13 @@ if(!is.null(lon_end)){
   ))
   map_config$multi_grid <- multi_grid
 } else {
+  dataset <- dataset[!is.na(dataset[[lon_start]]) & !is.na(dataset[[lat_start]]), ]
+  
+  dataset <- unique(dataset[, c(avd, num_vars, temp_vars, id_vars, lon_start, lat_start)])
+  dataset$uniqueID <- 1:nrow(dataset)
+  
+  write.csv(dataset, paste0(loc_map(), "/datafile.csv"))
+  
   map_config <- list()
   map_config$mapbox_token <- "pk.eyJ1IjoibWhhcnNjaDEyNSIsImEiOiJjazZ2NXh6dXUwZ25vM25wYXJ6bHFpOGc1In0.nAdb9QQybVd9ESgtr0fjZg"
   map_config$choosen_scatter <- num_vars[1]
