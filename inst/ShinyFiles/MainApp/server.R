@@ -750,10 +750,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 				tags$code('Method to sort time'), 'is the', tags$code('Entire record of time'), '(temporal patterns of catch are not taken 
         into account). If using', tags$em('Sequential'), 'or', tags$em('Daily'), 'select the', 
         tags$code('Temporal variable for averaging'), 'and populate choices defining the window size (in days) and time lags 
-        (in years and days) for averaging.', tags$br(),
+        (in years and days) for averaging.', 
+				tags$br(),tags$br(),
 				'Using the specified moving window parameters, a matrix of average catch is created with', tags$em('zone*group'), 'as the rows and date 
         the columns. This is the standard average catch (calc.method = “standardAverage”). Alternatively, you can use the simple lag 
-          regression of the mean (calc.method = “simpleLag”), which returns the predicted value for each', tags$em('zone*group'),
+          regression of the mean, which returns the predicted value for each', tags$em('zone*group'),
 				'and date given regression coefficients', tags$em('p'), 'for each', tags$em('zone*group.'),
 				'The', tags$code('method to average across time steps,'), 'can be to regress over the', 
 				tags$code('entire time period'), 'or', tags$em('grouped time periods.'), tags$br(), tags$br(),
@@ -2283,7 +2284,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                 lon.dat=input$gtmt_lonlat[2], lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat, lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$getistable
           mt <- moran_stats(values$dataset, project=input$projectname, varofint=input$varofint, spat=spatdat$dataset, 
                             lon.dat=input$gtmt_lonlat[2], lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat, lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$morantable
-          print(gt)
           return(as.data.frame(merge(gt, mt)))
         }
       }) 
