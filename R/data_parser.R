@@ -21,8 +21,7 @@ read_dat <- function(x, data.type=NULL, is.map = F, ...) {
   #'   Supported data types include shape, csv, json, matlab, R, spss, and stata files.
   #'   Additional arguments can be added, such as the seperator agument \code{sep='\\t'} for  
   #'   reading in tab deliminated files. For more details, see \code{\link[base]{load}} for loading R objects, 
-  #'   \code{\link{read.csv}} for reading in comma deliminated files,
-  #'   \code{\link[utils]{read.table}} for reading in tab deliminated files, 
+  #'   \code{\link[utils]{read.csv}} for reading in comma and tab deliminated files,
   #'   \code{\link[readxl]{read_excel}} for reading in excel files (xls, xlsx), 
   #'   \code{\link[sf]{st_read}} for reading in shape or geojson files, 
   #'   \code{\link[R.matlab]{readMat}} for reading in matlab data files,
@@ -93,11 +92,15 @@ write_dat <- function (dat, file, file_type = "csv", project, ...) {
   #'@importFrom R.matlab writeMat
   #'@importFrom shiny isRunning
   #'@export
-  #'@details  See \code{\link[utils]{write.csv}} for saving csv files, \code{\link[utils]{write.table}}
-  #'  for tab-separated files, \code{\link[base]{save}} for R data files, \code{\link[openxlsx]{write.xlsx}},
-  #'  \code{\link[jsonlite]{read_json}} for json files, \code{\link[haven]{write_dta}} 
-  #'  for Stata files, \code{\link[haven]{write_sav}} for SPSS files, \code{\link[haven]{write_sas}}
-  #'  for SAS files, and \code{\link[R.matlab]{writeMat}} for Matlab files. 
+  #'@details  See \code{\link[utils]{write.csv}} for saving csv files, 
+  #'   \code{\link[utils]{write.table}}  for tab-separated files, 
+  #'   \code{\link[base]{save}} for R data files, 
+  #'   \code{\link[openxlsx]{write.xlsx}},
+  #'    \code{\link[jsonlite]{read_json}} for json files, 
+  #'    \code{\link[haven]{write_dta}} for Stata files, 
+  #'    \code{\link[haven]{write_sav}} for SPSS files, 
+  #'    \code{\link[haven]{write_sas}} for SAS files, and 
+  #'    \code{\link[R.matlab]{writeMat}} for Matlab files. 
   #'@examples
   #'\dontrun{
   #' write_dat(pollockMainDataTable, file = "C://data/pollock_dataset.csv", type = "csv", "pollock")
