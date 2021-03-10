@@ -82,7 +82,7 @@ function loadConfig(error, config, data){
     for (let i = 0; i < layers.length; i++) {
       option = document.createElement('option');
       option.text = layers[i];
-      option.value = layers[i]
+      option.value = layers[i];
 
       dropdown.add(option);
       if (layers[i]==choosen_scatter ){
@@ -119,7 +119,7 @@ function loadConfig(error, config, data){
             scatterPt.push(turf.point([longConvert(Number(d[longitude_pt])),Number(d[latitude_pt])], {UID: Number(d[uniqueID])},{id:Number(d[uniqueID])}));
             allScatterData =  turf.featureCollection(scatterPt);
         }
-    })
+    });
     // allScatterData =  turf.featureCollection(scatterLine); // GEOJSON of CSV Data
 
 
@@ -128,9 +128,9 @@ function loadConfig(error, config, data){
     const area_info = multi_grid.map(function(i) {
             let a = i['area_variable_column'];
             return data.map(function(d) {
-                return Number(d[a])
+                return Number(d[a]);
             });
-    })
+    });
 
     const area_set = area_info.map(i=>{return new Set(i)})
 
@@ -141,7 +141,7 @@ function loadConfig(error, config, data){
                     zoneObjectIndi[e] = data.filter(function(d){
                         return Number(d[multi_grid[a]['area_variable_column']]) == e
 
-                    })
+                    });
 
                 })
                 zoneObjectAll[a]= zoneObjectIndi;
@@ -168,7 +168,7 @@ function loadConfig(error, config, data){
 
 
                     map.setFeatureState({source: 'scatterLayer', id: hoveredStateId}, { hover: false});
-                   d3.selectAll ("#id"+String(hoveredStateId)).attr("r", '2')// turn off scatter graph highlight
+                   d3.selectAll ("#id"+String(hoveredStateId)).attr("r", '2');// turn off scatter graph highlight
                     scatter_left_info = data.filter(function(d){
                     return d[uniqueID] == hoveredStateId
                    })
@@ -836,7 +836,7 @@ function createLegend(scale, svgVar) {
 };
 
 /**
- *inititilize the svg for the legend
+ *initialize the svg for the legend
  *@param {string} whichLegend - the class for the legend
  *@returns {object} the svg object of the legend
  */
@@ -880,7 +880,7 @@ function initLowerBarChart(whichViz){
 
 
 
-/** Createa a scatter plot of data
+/** Create a scatter plot of data
 * @param(whichViz) - svg info of the chart initated
 * @param(scatterArrayIds) - includes UniquesIDs as Keys and value for data
 * @param(scatterColor) - includes UniquesIDs as Keys and color for data
