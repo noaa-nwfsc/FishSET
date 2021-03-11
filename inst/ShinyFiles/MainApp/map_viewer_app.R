@@ -38,14 +38,14 @@ map_viewer_serv <- function(id, dat, spatdat) {
           
           column(3,
                  
-                 selectizeInput(ns("num"), "Numeric variables",
+                 selectizeInput(ns("num"), "Numeric variables (required)",
                                 choices = numeric_cols(dat$dataset), multiple = TRUE),
                  
                  selectizeInput(ns("temp"), "Temporal variables",
-                                choices = colnames(dat$dataset), multiple = TRUE),
+                                choices = date_cols(dat$dataset), multiple = TRUE),
                  
                  selectizeInput(ns("id_vars"), "ID variables",
-                                choices = colnames(dat$dataset), multiple = TRUE)),
+                                choices = category_cols(dat$dataset), multiple = TRUE)),
           
           column(3,
                  selectInput(ns("point_path"), "Show vessel points or path",
