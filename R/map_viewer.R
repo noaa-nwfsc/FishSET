@@ -76,9 +76,9 @@ if(!is.null(lon_end)){
   map_config <- list()
   map_config$mapbox_token <- "pk.eyJ1IjoibWhhcnNjaDEyNSIsImEiOiJjazZ2NXh6dXUwZ25vM25wYXJ6bHFpOGc1In0.nAdb9QQybVd9ESgtr0fjZg"
   map_config$choosen_scatter <- num_vars[1]
-  map_config$numeric_vars <- list(num_vars)#if (length(num_vars) == 1) list(num_vars) else num_vars
-  map_config$temporal_vars <- list(temp_vars)
-  map_config$id_vars <- list(id_vars)
+  map_config$numeric_vars <- if (length(num_vars) == 1) list(num_vars) else num_vars
+  map_config$temporal_vars <- if (length(temp_vars) == 1) list(temp_vars) else temp_vars
+  map_config$id_vars <- if(length(id_vars) == 1) list(id_vars) else id_vars
   map_config$longitude_start <- lon_start
   map_config$latitude_start <- lat_start
   map_config$longitude_end <- lon_end
@@ -102,8 +102,8 @@ if(!is.null(lon_end)){
   map_config$mapbox_token <- "pk.eyJ1IjoibWhhcnNjaDEyNSIsImEiOiJjazZ2NXh6dXUwZ25vM25wYXJ6bHFpOGc1In0.nAdb9QQybVd9ESgtr0fjZg"
   map_config$choosen_scatter <- num_vars[1]
    map_config$numeric_vars <- if (length(num_vars) == 1) list(num_vars) else num_vars
-  map_config$temporal_vars <- list(temp_vars)
-  map_config$id_vars <- list(id_vars)
+  map_config$temporal_vars <- if (length(temp_vars) == 1) list(temp_vars) else temp_vars
+  map_config$id_vars <- if (length(id_vars) == 1 ) list(id_vars) else id_vars
   map_config$longitude_pt <- lon_start
   map_config$latitude_pt <- lat_start
   map_config$uniqueID <- "uniqueID"
