@@ -13,10 +13,11 @@ date_select <- function(dat) {
 
 date_cols <- function(dat) {
   
-  if (any(grepl("date", colnames(dat), ignore.case = TRUE))) {
+#  if (any(grepl("date", colnames(dat), ignore.case = TRUE))) {
     
-    grep("date", colnames(dat), ignore.case = TRUE, value = TRUE)
-  }
+#    grep("date", colnames(dat), ignore.case = TRUE, value = TRUE)
+  names(dat)[which(!is.na(as.Date(as.character(dat[1,]), tz = 'UTC', format = '%Y-%m-%d')))]
+#  }
 }
 
 numeric_cols <- function(dat) {

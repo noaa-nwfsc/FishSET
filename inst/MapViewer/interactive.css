@@ -1,14 +1,14 @@
  body { margin:0; padding:0; }
 #map {
-  width: 80vw;
-  height: 100vh;
+  width: 100%;
+  height: 120vh;
     }
 
 
 #allinfo {
     box-sizing: border-box;
     width: 22vw;
-    height: 30vh;
+    height: 40vh;
     right: 0;
     position: absolute;
     overflow-y: scroll;
@@ -46,36 +46,38 @@
   left: 10px;
   margin-left: 2px;
   margin-top: 2px;
-  margin-bottom: 2px;
+  margin-bottom: 0px;
   margin-right: 5px;
   z-index: 1;
   font: 15px arial, sans-serif;
-   height:100vh;
+   height:120vh;
 
 }
 
 .map-overlay .map-overlay-inner {
   background: rgba(10, 10, 10, .2);
+  width: 300px;
+  height: 120vh;
   color: #fff;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.10);
   border-radius: 2px;
-  margin-bottom: 0px;
+  margin-bottom: 0;
   z-index: 1;
-
+  position: absolute;
 }
 
 .spacing{
-  margin-top:8px;
+  margin-top:6px;
 }
 .spacing2{
   box-sizing: border-box;
   bottom: 0;
-  width:30vw;
-  position: absolute;
+  width: 30vw;
+  /*position: absolute;*/
   background: rgba(10, 10, 10, .2);
   }
 
-#info {
+/*#info {
   margin-right: 2px;
   text-align: right;
   right: 30vw;
@@ -89,28 +91,28 @@
   position: absolute;
   z-index: 1;
 
-}
+} */
+
 .scatterLegend, .zoneLegend{
 background-color: transparent;
 border-radius: 1px;
-margin: 10px;
+margin: 6px;
 box-shadow: 0 1px 2px rgba(0,0,0,0.10);
 font: 13px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
 
 right: 2px;
 z-index: 1;
 height: 140px;
-/*overflow: auto !important;*/
+overflow: auto; /*!important;*/
 }
 
 svg {
 font-size: 13px;
 
-
 }
 
 .legendQuant{
-  width:200px;
+  width:30vw;
 }
 
 .bar {
@@ -125,7 +127,7 @@ border-radius: 4px;
 
     border: none;
     width: 100%;
-    height: 100%;
+    /*height: 70vh;*/
     z-index: 1;
 
 }

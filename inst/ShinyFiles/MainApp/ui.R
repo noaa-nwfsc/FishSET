@@ -254,7 +254,6 @@ source("map_viewer_app.R", local = TRUE)
                                           ),
                                           
                                           actionButton("refresh1", "Refresh data", 
-                                                       icon = icon("fa fa-refresh"),
                                                        style = "color: white; background-color: blue;" 
                                           ),
                                           tags$br(), tags$br(),
@@ -386,7 +385,6 @@ source("map_viewer_app.R", local = TRUE)
                                             "Close app"
                                           ),
                                           actionButton("refresh", "Refresh data", 
-                                                       icon = icon("fa fa-refresh"),
                                                        style = "color: white; background-color: blue;" 
                                           ),
                                           tags$br(), tags$br(),
@@ -638,7 +636,6 @@ source("map_viewer_app.R", local = TRUE)
                                  "Close app"
                                ),
                                actionButton("refresh2", "Refresh data", 
-                                            icon = icon("fa fa-refresh"),
                                             style = "color: white; background-color: blue;" 
                                ),
                                tags$br(),tags$br(),
@@ -693,7 +690,6 @@ source("map_viewer_app.R", local = TRUE)
                                  "Close app"
                                ),
                                actionButton("refreshNew", "Refresh data", 
-                                            icon = icon("fa fa-refresh"),
                                             style = "color: white; background-color: blue;"),
                                actionButton('runNew',"Run function",
                                             style="color: #fff; background-color: #6da363; border-color: #800000;"),
@@ -863,7 +859,6 @@ source("map_viewer_app.R", local = TRUE)
                                  "Close app"
                                ),
                                actionButton("refreshZ", "Refresh data", 
-                                            icon = icon("fa fa-refresh"),
                                             style = "color: white; background-color: blue;" 
                                ),
                                #runcodeUI (code='', type='ace'),
@@ -928,7 +923,6 @@ source("map_viewer_app.R", local = TRUE)
                                  "Close app"
                                ),
                                actionButton("refreshEC", "Refresh data", 
-                                            icon = icon("fa fa-refresh"),
                                             style = "color: white; background-color: blue;" 
                                ),
                                tags$br(),
