@@ -105,6 +105,7 @@ source("map_viewer_app.R", local = TRUE)
                                       uiOutput('FleetText'),
                                       uiOutput('AnalTabsText'),
                                       uiOutput('NewVarsTabsText'),
+                                      uiOutput('MapTabsText'),
                                       uiOutput('ZonalTabsText'),
                                       uiOutput('ExpectedTabsText'),
                                       uiOutput('ModelTabsText'),
