@@ -667,6 +667,59 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }
       })
       
+      output$MapTabsText <- renderUI({
+        if(input$QuickStartChoices=='MapTab'){ 
+          p(tags$br(), tags$br(),
+            tags$strong('Purpose:'), tags$br(), 
+            'The', tags$em("Map Viewer"),'tab is used to view the spatial distribution of hauls.',
+            tags$br(), tags$br(),
+            'The Map Viewer requires a spatial data set containing zone polygons. Go to the', 
+              tags$strong('Upload Data'), 'tab to load the file if necessary. The map viewer also requires  
+            the zone identifier, which links the primary dataset to the spatial dataset. Go to the', 
+            tags$strong('Zonal Definition'), 'tab to assign observations to zones if a zonal identifier does 
+            not exist in the primary dataset.',
+            tags$br(), tags$br(),
+            'There are a number of required and suggested choices. Once all choices have been made, 
+            press the green', tags$code('Run'), 'button. An interactive map will appear at the top of the page. 
+            To display information on individual points in the top right-hand corner of the map, hover over 
+            a point. Other informational plots are shown in the left-hand side of the map. This map cannot be saved.',
+            tags$br(), tags$br(),
+            tags$strong('Choices'),
+            tags$ul(
+              tags$em('Area variable (data):'), 'Variable in primary data containing zone identifier such as ZoneID',
+              tags$br(),
+              tags$em('Area variable (map):'), 'Name of the property in the spatial data file that identifies the zones. 
+                    Links to Area variable (data).',
+              tags$br(),
+              tags$em('Numeric variables:'), 'Numeric variables to include in plotting. This variable is required. 
+                    Points on the map are color coded based on the numeric variable value. Multiple variables can be chosen 
+                    but only one variable will be plotted at a time.',
+              tags$br(),
+              tags$em('Temporal variables (recommended):'), 'Temporal variables to plot the numeric variable against. 
+                      Scatter plot is provided in the left-hand side of the map. Multiple temporal variables can be included but 
+                      only one will be plotted at a time.',
+              tags$br(),
+              tags$em('ID variables (recommended):'), 'Categorical variables for grouping in plots. Multiple ID variables 
+                    can be included but only one will be plotted at a time.', 
+              tags$br(),
+              tags$em('Location point or path:'), 'Should the map show hauls as individual points or paths?', 
+              tags$br(),
+                tags$ul('If points are to be plotted',
+                    tags$ul('Longitude point'),
+                    tags$ul('Latitude point')
+                ),
+                tags$ul('If path is to be plotted',
+                    tags$ul('Starting longitude'),
+                    tags$ul('Starting latitude'),
+                    tags$ul('Ending longitude'),
+                    tags$ul('Ending latitude')
+                )
+              
+            )
+          )
+        }
+      })
+      
       output$ZonalTabsText <- renderUI({
         if(input$QuickStartChoices=='ZonalTab'){ 
           p(tags$br(), tags$br(),
