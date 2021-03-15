@@ -46,7 +46,13 @@ read_dat <- function(x, data.type=NULL, is.map = F, ...) {
   }
   
   if (data.type == 'rdata' | data.type == "r") {
-    return(as.data.frame(get(load(x))))
+    out <- get(load(x))
+    if (any(c("sf", "sp") %in% class(out))) {
+      out
+    } else {
+      return(as.data.frame(out))
+    }
+    
   } else if (data.type == "mat" | data.type == 'matlab') {
     cat('Data returned as named list structure. Further processing is required.')
     R.matlab::readMat(x, ...)

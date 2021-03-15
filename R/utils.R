@@ -204,6 +204,75 @@ find_last <- function(y) {
   names(g)[which(g2 == max(g2, na.rm = TRUE))[1]]
 }
 
+qaqc_helper <-function(dat, fun, output = "logical") {
+  #' Helper function for testing data quality issues in MainDataTable
+  #' @param dat Dataframe to test for quality issues. 
+  #' @param fun A function or custom function that returns a single logical value 
+  #'   to apply to each column in \code{dat}. There are three quick options for 
+  #'   common checks: \code{"NA"}, \code{"NaN"}, and \code{"Inf"}. 
+  #' @param output \code{"logical"} returns a single logical value for each column in
+  #'   \code{dat}. \code{"names"} returns the column names that evaluate to \code{TRUE}.
+  #' @keywords internal
+  #' @details Returns a vector of logical values (\code{output = "logical"}) or a vector of 
+  #'   column names where the condition evaluated by \code{fun} returns TRUE 
+  #'   (\code{output = "names"}). 
+  #' @examples 
+  #' \dontrun{
+  #' qaqc_helper(pollockMainDataTable, "NA", "names") # outputs names of columns containing NAs
+  #' qaqc_helper(pollockMainDataTable, is.character) # outputs logical vector of columns containing strings
+  #' qaqc_helper(pollockMainDataTable, function(x) = all(is.na(x)), "names") # custom function example
+  #' }
+  
+  end <- FALSE
+  
+  fun_value <- function() {
+    if (output %in% c("logical", "names")) logical(1)
+    else if (output == "value") numeric(1)
+  }
+  
+  if (is.character(fun)) {
+    
+    if (fun %in% c("NA", "NaN", "Inf")) {
+      
+      qaqc_fun <- switch(fun, "NA" = function(x) anyNA(x), 
+                         "NaN" = function(x) any(is.nan(x)), 
+                         "Inf" = function(x) any(is.infinite(x)))
+      
+    } else if (is.function(match.fun(fun))) {
+      
+      qaqc_fun <- fun
+      
+    } else {
+      
+      end <- TRUE
+      warning("Invalid function entered into qaqc_helper()")
+    }
+    
+  } else if (is.function(fun)) {
+    
+    qaqc_fun <- fun
+    
+  } else {
+    
+    end <- TRUE
+    warning("Invalid function entered into qaqc_helper()")
+  }
+  
+  if (end == FALSE) {
+    
+    out <- vapply(dat, qaqc_fun, FUN.VALUE = fun_value())
+    
+   if (output == "names") {
+      
+      names(which(out))
+     
+   } else {
+      
+     out
+    }
+  }
+}
+
 accumarray <- function(subs, val, sz = NULL, func = sum, fillval = 0) {
   #' Accumarray function
   #' @param subs subs
