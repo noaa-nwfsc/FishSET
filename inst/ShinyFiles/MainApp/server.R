@@ -1476,10 +1476,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           }
         } else if(input$checks=='NAs'){
           #na(values$dataset)
-          na_filter(values$dataset, x=names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), 
+          na_filter(values$dataset, x=qaqc_helper(values$dataset, "NA", "names"), 
                     replace = FALSE, remove = FALSE, rep.value=NA, over_write=FALSE)
         } else if(input$checks=='NaNs'){
-          nan_filter(values$dataset, x=names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), 
+          nan_filter(values$dataset, x=qaqc_helper(values$dataset, "NaN", "names"), 
                      replace = FALSE, remove = FALSE, rep.value=NA,  over_write=FALSE)
         } else if(input$checks=='Unique observations'){
           unique_filter(values$dataset, project = input$projectname, remove=FALSE)
@@ -1525,55 +1525,75 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                     }, "removed.\n"))
             }
           } else if(input$checks=='NAs'){
-            if(any(apply(values$dataset, 2, function(x) anyNA(x)))==TRUE) {
-              if(input$NA_Filter_all==0&input$NA_Filter_mean==0){
-                #case_to_print$dataQuality <- c(case_to_print$dataQuality, 
-                g <- paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.na(x)))==TRUE)), collapse = ", ")),
-                      "variables contain",  sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
-                                                                                     function(x) length(which(is.na(x)==TRUE))), collapse=", ")), 
-                      "missing values, respectively.", length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
-                                                                function(x) anyNA(x))==TRUE))], 2, function(x) which(is.na(x)==TRUE))))), "rows have missing values. Missing values were not removed or replaced.\n")#) 
-              }} else {
+            
+            na_names <- qaqc_helper(values$dataset, "NA", "names")
+            na_quantity <- qaqc_helper(values$dataset[na_names], 
+                                       function(x) sum(is.na(x)), "value")
+            
+            nan_names <- qaqc_helper(values$dataset, "NaN", "names")
+            nan_quantity <- qaqc_helper(values$dataset[nan_names], 
+                                        function(x) sum(is.nan(x)), "value")
+           
+            if (any(qaqc_helper(values$dataset, "NA"))) {
+      
+              if(input$NA_Filter_all==0&input$NA_Filter_mean==0){ 
+                g <- paste("Occurrence of missing values checked. The",
+                           sub(",([^,]*)$", ", and\\1", paste(na_names, collapse = ", ")),
+                           "variables contain",  sub(",([^,]*)$", ", and\\1", paste(na_quantity, collapse=", ")),
+                           "missing values, respectively.", 
+                           length(unique(unlist(lapply(values$dataset[na_names], function(x) which(is.na(x)==TRUE))))), 
+                           "rows have missing values. Missing values were not removed or replaced.\n")
+              }
+              
+            } else {
+              
                 if(input$NA_Filter_all==0&input$NA_Filter_mean==0){
                  # case_to_print$dataQuality <- c(case_to_print$dataQuality, 
                   g <- paste("Occurrence of missing values checked. No columns in the data set contain missing values.\n")#)
                 } else {
                   if(input$NA_Filter_all>0){
                     #case_to_print$dataQuality <- c(case_to_print$dataQuality, 
-                   g<- paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), collapse = ", ")), "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
-                                                                                                                                                                                                                                                                function(x) length(which(is.na(x)==TRUE))), collapse=", ")), "missing values.", length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
-                                                                                                                                                                                                                                                                                                                                                                                                             function(x) anyNA(x))==TRUE))], 2, function(x) which(is.na(x)==TRUE))))), "rows containing missing values were removed from the data set.\n")#)
+                   g<- paste("Occurrence of missing values checked. The", 
+                             sub(",([^,]*)$", ", and\\1", paste(na_names, collapse = ", ")), 
+                             "variables contained", sub(",([^,]*)$", ", and\\1", paste(na_quantity, collapse=", ")), 
+                             "missing values.", length(unique(unlist(lapply(values$dataset[na_names], function(x) which(is.na(x)==TRUE))))), 
+                             "rows containing missing values were removed from the data set.\n")#)
                   } else if(input$NA_Filter_mean>0){
                     #case_to_print$dataQuality <- c(case_to_print$dataQuality, 
-                    g <- paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), collapse = ", ")), "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
+                    g <- paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(qaqc_helper(values$dataset, "NA", "names"), collapse = ", ")), "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
                                                                                                                                                                                                                                                                 function(x) length(which(is.na(x)==TRUE))), collapse=", ")), "missing values. Missing values were replaced with the mean values of", names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), "respectively.\n")#)
                   }
-                } }
+                } 
+              }
  
-            if(any(apply(values$dataset, 2, function(x) any(is.nan(x))))==TRUE) {
+            if (any(qaqc_helper(values$dataset, "NaN"))) {
+           
               if(input$NAN_Filter_all==0 & input$NAN_Filter_mean==0){
-                case_to_print$dataQuality <- c(case_to_print$dataQuality, paste(g, "Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")),
+                case_to_print$dataQuality <- c(case_to_print$dataQuality, 
+                      paste(g, "Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1", paste(nan_names, collapse = ", ")),
                       "variables contain", 
-                      sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE))], 2, 
-                                                               function(x) length(which(is.nan(x)==TRUE))), collapse=", ")), "non-numbers, respectively.", 
-                      length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
-                                                                                   function(x) any(is.nan(x)))==TRUE))], 2, function(x) which(is.nan(x)==TRUE))))), "rows have non-numbers. No action was taken to remove or replace non-numbers.\n")) 
-              }} else {
+                      sub(",([^,]*)$", ", and\\1", paste(nan_quantity, collapse=", ")), "non-numbers, respectively.", 
+                      length(unique(unlist(lapply(values$dataset[nan_names], function(x) which(is.nan(x)==TRUE))))), 
+                      "rows have non-numbers. No action was taken to remove or replace non-numbers.\n")) 
+              }
+              } else {
                 if(input$NAN_Filter_all==0&input$NAN_Filter_mean==0){
                   case_to_print$dataQuality <- c(case_to_print$dataQuality, paste(g, "Occurruence of non-numbers checked. No columns in the data set contain non-numbers.\n"))
                 } else {
                   if(input$NAN_Filter_all>0){
-                    case_to_print$dataQuality <- c(case_to_print$dataQuality, paste(g, "Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")), "variables contained", 
-                          sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE))], 2, 
-                                                                   function(x) length(which(is.nan(x)==TRUE))), collapse=", ")), "non-numbers.", 
-                          length(unique(unlist(apply(values$dataset[,names(which(apply(values$dataset, 2, 
-                                                                                       function(x) any(is.nan(x)))==TRUE))], 2, function(x) which(is.nan(x)==TRUE))))), "rows containing non-numbers were removed from the data set.\n"))
+                    case_to_print$dataQuality <- c(case_to_print$dataQuality, 
+                        paste(g, "Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1", paste(nan_names, collapse = ", ")), 
+                          "variables contained", sub(",([^,]*)$", ", and\\1", paste(nan_quantity, collapse=", ")), "non-numbers.", 
+                          length(unique(unlist(lapply(values$dataset[nan_names], function(x) which(is.nan(x)==TRUE))))), 
+                          "rows containing non-numbers were removed from the data set.\n"))
+                    
                   } else if(input$NAN_Filter_mean>0){
-                    case_to_print$dataQuality <- c(case_to_print$dataQuality, paste(g, "Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1",paste(names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), collapse = ", ")), "variables contained", 
-                          sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE))], 2, 
-                                                                   function(x) length(which(is.nan(x)==TRUE))), collapse=", ")), "non-numbers.\n"))
+                    case_to_print$dataQuality <- c(case_to_print$dataQuality,
+                        paste(g, "Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1", paste(nan_names, collapse = ", ")), 
+                              "variables contained", sub(",([^,]*)$", ", and\\1", paste(nan_quantity, collapse=", ")), "non-numbers.\n"))
                   }
-                } }
+                } 
+              }
           } else if(input$checks=='Unique observations'){
             if(dim(values$dataset)[1] == dim(unique(values$dataset))[1]) {
               case_to_print$dataQuality <- c(case_to_print$dataQuality, "Each row is a unique choice occurrence.\n")
@@ -1585,19 +1605,26 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               }
             }
           } else if(input$checks=='Empty variables'){
-            if(any(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)) {
+            
+            if(any(qaqc_helper(values$dataset, function(x) all(is.na(x))))) {
+              
+              empty_names <- qaqc_helper(values$dataset, function(x) all(is.na(x)), "names")
+              
               if(input$Empty_Filter==0){
-                case_to_print$dataQuality <- c(case_to_print$dataQuality, paste('Occurrence of empty variables was checked and the', names(which(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)), 
+                case_to_print$dataQuality <- c(case_to_print$dataQuality, 
+                      paste('Occurrence of empty variables was checked and the', empty_names, 
                       "variable is empty. The varible was not removed from the data set.\n"))
               } else {
-                case_to_print$dataQuality <- c(case_to_print$dataQuality, paste('Occurrence of empty variables was checked and the', names(which(apply(values$dataset, 2, function(x) all(is.na(x))) == TRUE)), 
+                case_to_print$dataQuality <- c(case_to_print$dataQuality, 
+                      paste('Occurrence of empty variables was checked and the', empty_names, 
                       "was empty and was removed from the data set.\n"))
               }
             } else {
               case_to_print$dataQuality <- c(case_to_print$dataQuality, "Occurrence of empty variables was checked and not found in the data set.\n")
             }
           } else if(input$checks=='Lat_Lon units'){
-            if(any(apply(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=TRUE)], 2, function(x) !is.numeric(x))==TRUE)==TRUE){
+            
+            if(any(qaqc_helper(values$dataset[find_lonlat(values$dataset)], function(x) !is.numeric(x)))){
               if(input$LatLon_Filter==FALSE){
                 case_to_print$dataQuality <- c(case_to_print$dataQuality, 'Latitude and longitude units were checked and are not in decimal degrees.\n')
               } else {
@@ -1636,7 +1663,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                          f_table = character(0), f_assign = character(0)),
                             analysis = "Simple analysis: ",
                             new = "Create new variable: ",
-                            zone = "Zone definition: ",
+                            altchoice = "Alternative choice: ",
                             ec = "Expected catch/revenue: ",
                             models = "Models: ",
                             book = "Bookmark URL: ")
@@ -1647,7 +1674,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                      input$callTextDownloadUp,
                      input$callTextDownloadNew,
                      input[["fleet-callTextDownload"]],
-                     input$callTextDownloadZone,
+                     input$callTextDownloadAlt,
                      input$callTextDownloadEC,
                      input$callTextDownloadModels,
                      input$callTextDownloadBook), {
@@ -1676,9 +1703,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           if (!is.null(input$notesNew)) {
             notes$new <- c(notes$new, paste0(input$notesNew, '\n'))
           }
-        } else if (input$tabs == 'zone') {
-          if (!is.null(input$notesZone)) {
-            notes$zone <- c(notes$zone, paste0(input$notesZone, "\n"))
+        } else if (input$tabs == 'altc') {
+          if (!is.null(input$notesAltc)) {
+            notes$altchoice <- c(notes$altchoice, paste0(input$notesAltc, "\n"))
           } 
         } else if (input$tabs == 'expectedCatch') {
           if (!is.null(input$notesEC)) {
@@ -2733,6 +2760,45 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                                                   choices = names(values$dataset[,grep("date|min|hour|week|month|TRIP_START|TRIP_END", names(values$dataset), ignore.case = TRUE)]),
                                                                   options = list(create = TRUE, placeholder='Select or type variable name')))
       })
+      
+      output$zone_assign_1 <- renderUI({
+        conditionalPanel(condition="input.dist=='zone'",
+                         tagList(
+                           #fileInput("fileGridExC", "Choose data file containing spatial data defining zones (shape, json, and csv formats are supported)",
+                           #          multiple = FALSE, placeholder = ''),
+                           if(names(spatdat$dataset)[1]=='var1'){
+                             tags$div(h4('Map file not loaded. Please load on Upload Data tab', style="color:red"))
+                           },
+                           h5(tags$b('Select latitude then longitude from main dataset for assigning observations to zones')),
+                           div(style="display: inline-block;vertical-align:top; width: 200px;",
+                               selectizeInput('lat_dat_zone', '', choices = FishSET:::find_lat(values$dataset),
+                                              options = list(create = TRUE, placeholder='Select or type LATITUDE variable name'))),
+                           div(style="display: inline-block;vertical-align:top; width: 200px;",
+                               selectizeInput('lon_dat_zone', '', choices = FishSET:::find_lon(values$dataset),
+                                              options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name'))),
+                           selectInput('cat_zone', 'Individual areas/zones from the spatial data set', choices=names(as.data.frame(spatdat$dataset))),
+                           # selectInput('weight_var_ac', 'If desired, variable for use in calculating weighted centroids', 
+                           #             choices=c('none'="", colnames(values$dataset))), #variable weighted centroids
+                           checkboxInput('hull_polygon_zone', 'Use convex hull method to create polygon?', value=FALSE),
+                           checkboxInput('closest_pt_zone', 'Use closest polygon to point?', value=FALSE) 
+                         ) )
+      })  
+      
+      output$zone_assign_2 <- renderUI({
+        conditionalPanel(condition="input.dist=='zone'",
+                         if(!('sf' %in% class(spatdat$dataset))) {
+                           tagList(
+                             h5(tags$b('Select vector containing latitude then longitude from spatial data set')),
+                             div(style="display: inline-block;vertical-align:top; width: 200px;",
+                                 selectizeInput('lat_grid_zone', '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE)),
+                             div(style="display: inline-block;vertical-align:top; width: 200px;",
+                                 selectizeInput('long_grid_zone',  '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE))
+                           )
+                         }
+        ) 
+      })
+      
+      
       output$dist_between_input <- renderUI({
         tagList(
          if(names(spatdat$dataset)[1]=='var1'){
@@ -3018,6 +3084,18 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             values$dataset <- create_duration(values$dataset, start=input$dur_start2, end=input$dur_end2, units=input$dur_units2, name='dur')
             values$dataset <- q_test(values$dataset, xWeight=input$xWeight, xTime='dur', name=input$varname)
           }
+        } else if (input$VarCreateTop=='Spatial functions' & input$dist=='zone'){
+          q_test <- quietly_test(assignment_column)
+          values$dataset <- q_test(dat=values$dataset, input$projectname, gridfile=spatdat$dataset, 
+                                    lon.dat=input$lon_dat_zone, lat.dat=input$lat_dat_zone, 
+                                    cat=input$cat_zone, closest.pt = input$closest_pt_zone, lon.grid=input$lon_grid_zone,
+                                    lat.grid=input$lat_grid_zone, hull.polygon = input$hull_polygon_zone, epsg=NULL)
+          if ('ZoneID' %in% names(values$dataset)){
+            showNotification('Zone assignment completed', duration=5, type='message')
+          } else {
+            showNotification('Zone assignment could not be completed', type='message', duration=5)
+          }
+          
         } else if(input$VarCreateTop=='Spatial functions' & input$dist=='create_dist_between'){
           #'Zonal centroid', 'Port', 'Lat/lon coordinates'
           if(input$start=='Lat/lon coordinates'){
@@ -3102,59 +3180,56 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                               selected='', options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name')))
                          ))
       })
-      output$conditionalInput2 <- renderUI({
-        conditionalPanel(condition="input.choiceTab=='zone'",
-                         tagList(
-                           #fileInput("fileGridExC", "Choose data file containing spatial data defining zones (shape, json, and csv formats are supported)",
-                           #          multiple = FALSE, placeholder = ''),
-                           if(names(spatdat$dataset)[1]=='var1'){
-                             tags$div(h4('Map file not loaded. Please load on Upload Data tab', style="color:red"))
-                           },
-                           h5(tags$b('Select latitude then longitude from main dataset for assigning observations to zones')),
-                           div(style="display: inline-block;vertical-align:top; width: 200px;",
-                               selectizeInput('lat_dat_ac', '',
-                                              choices = c(names(values$dataset)[which(stringr::str_count(names(values$dataset), "(?i)lat")
-                                                                          ==max(stringr::str_count(names(values$dataset), "(?i)lat")))][1]),
-                                              #choices=c(names(values$dataset)[grep('lat', names(values$dataset), ignore.case=TRUE)]), 
-                                              options = list(create = TRUE, placeholder='Select or type LATITUDE variable name'))),
-                           div(style="display: inline-block;vertical-align:top; width: 200px;",
-                               selectizeInput('lon_dat_ac', '', 
-                                              choices=c(names(values$dataset)[which(stringr::str_count(names(values$dataset), "(?i)lon")
-                                                                                    ==max(stringr::str_count(names(values$dataset), "(?i)lon")))][1]), 
-                                              options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name'))),
-                           selectInput('cat_altc', 'Individual areas/zones from the spatial data set', choices=names(as.data.frame(spatdat$dataset))),
-                           selectInput('weight_var_ac', 'If desired, variable for use in calculating weighted centroids', 
-                                       choices=c('none'="", colnames(values$dataset))), #variable weighted centroids
-                           checkboxInput('hull_polygon_ac', 'Use convex hull method to create polygon?', value=FALSE),
-                           checkboxInput('closest_pt_ac', 'Use closest polygon to point?', value=FALSE) 
-                         ) )
-      })  
-      
-       observeEvent(input$runCentroid, {
-              q_test <- quietly_test(assignment_column)
-              values$dataset <-  q_test(dat=values$dataset, gridfile=spatdat$dataset, lon.dat=input$lon_dat_ac, lat.dat=input$lat_dat_ac, 
-                                             cat=input$cat_altc, closest.pt = input$closest_pt_ac, lon.grid=NULL,
-                                              lat.grid=NULL, hull.polygon = input$hull_polygon_ac, epsg=NULL)
-              if('ZoneID' %in% names(values$dataset)){
-              showNotification('Zone assignment completed', duration=5, type='message')
-              } else {
-                showNotification('Zone assignment could not be completed', type='message', duration=5)
-              }
-      })
-       
-      output$cond2 <- renderUI({
-        conditionalPanel(condition="input.choiceTab=='zone'",
-                         if(any(class(spatdat$dataset)=='sf')==FALSE){
-                           tagList(
-                             h5(tags$b('Select vector containing latitude then longitude from spatial data set')),
-                             div(style="display: inline-block;vertical-align:top; width: 200px;",
-                                 selectizeInput('lat_grid_altc', '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE)),
-                             div(style="display: inline-block;vertical-align:top; width: 200px;",
-                                 selectizeInput('long_grid_altc',  '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE))
-                           )
-                         }
-        ) 
-      })
+      # output$conditionalInput2 <- renderUI({
+      #   conditionalPanel(condition="input.choiceTab=='zone'",
+      #                    tagList(
+      #                      #fileInput("fileGridExC", "Choose data file containing spatial data defining zones (shape, json, and csv formats are supported)",
+      #                      #          multiple = FALSE, placeholder = ''),
+      #                      if(names(spatdat$dataset)[1]=='var1'){
+      #                        tags$div(h4('Map file not loaded. Please load on Upload Data tab', style="color:red"))
+      #                      },
+      #                      h5(tags$b('Select latitude then longitude from main dataset for assigning observations to zones')),
+      #                      div(style="display: inline-block;vertical-align:top; width: 200px;",
+      #                          selectizeInput('lat_dat_ac', '',
+      #                                         choices = find_lat(values$dataset),
+      #                                         options = list(create = TRUE, placeholder='Select or type LATITUDE variable name'))),
+      #                      div(style="display: inline-block;vertical-align:top; width: 200px;",
+      #                          selectizeInput('lon_dat_ac', '',
+      #                                         choices = find_lon(values$dataset),
+      #                                         options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name'))),
+      #                      selectInput('cat_altc', 'Individual areas/zones from the spatial data set', choices=names(as.data.frame(spatdat$dataset))),
+      #                      selectInput('weight_var_ac', 'If desired, variable for use in calculating weighted centroids',
+      #                                  choices=c('none'="", colnames(values$dataset))), #variable weighted centroids
+      #                      checkboxInput('hull_polygon_ac', 'Use convex hull method to create polygon?', value=FALSE),
+      #                      checkboxInput('closest_pt_ac', 'Use closest polygon to point?', value=FALSE)
+      #                    ) )
+      # })
+      # 
+      #  observeEvent(input$runCentroid, {
+      #         q_test <- quietly_test(assignment_column)
+      #         values$dataset <-  q_test(dat=values$dataset, gridfile=spatdat$dataset, lon.dat=input$lon_dat_ac, lat.dat=input$lat_dat_ac, 
+      #                                        cat=input$cat_altc, closest.pt = input$closest_pt_ac, lon.grid=NULL,
+      #                                         lat.grid=NULL, hull.polygon = input$hull_polygon_ac, epsg=NULL)
+      #         if('ZoneID' %in% names(values$dataset)){
+      #         showNotification('Zone assignment completed', duration=5, type='message')
+      #         } else {
+      #           showNotification('Zone assignment could not be completed', type='message', duration=5)
+      #         }
+      # })
+      #  
+      # output$cond2 <- renderUI({
+      #   conditionalPanel(condition="input.choiceTab=='zone'",
+      #                    if(!('sf' %in% class(spatdat$dataset))){
+      #                      tagList(
+      #                        h5(tags$b('Select vector containing latitude then longitude from spatial data set')),
+      #                        div(style="display: inline-block;vertical-align:top; width: 200px;",
+      #                            selectizeInput('lat_grid_altc', '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE)),
+      #                        div(style="display: inline-block;vertical-align:top; width: 200px;",
+      #                            selectizeInput('long_grid_altc',  '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE))
+      #                      )
+      #                    }
+      #   )
+      # })
 
       output$conditionalInput3a <- renderUI({
         conditionalPanel(condition="input.choiceTab=='distm'",
@@ -3886,8 +3961,74 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         )
       })
       
+      # Export data ----
+      file_ext <- reactive({
+        
+        switch(input$export_type, "csv" = ".csv", "txt" = ".txt", "rdata" = ".RData", 
+               "xlsx" = ".xlsx", "json" = ".json", "stata" = ".dta", "sas" = ".sas", "spss" = ".sav",  
+               "matlab" = ".mat")
+      })
       
+      output$exportData <- downloadHandler(
+        filename = function() {
+          paste0(input$projectname, "MainDataTable", file_ext())
+        },
+        content = function(file) {
+          write_dat(values$dataset, file = file, file_type = input$export_type, input$projectname)
+        }
+      )
       
+      # Save final Dataset ----
+      save_final <- reactiveValues()
+      observeEvent(input$save_final_modal, {
+        
+        showModal(
+          modalDialog(title = "Save the final version of the data before modeling",
+                      selectInput("final_uniqueID", "Select column containing unique occurrence identifier",
+                                  choices = names(values$dataset)),
+                      
+                      shinycssloaders::withSpinner(uiOutput("checkMsg")),
+                      
+                      footer = tagList(
+                        modalButton("Close"),
+                        actionButton("save_final_table", "Save", 
+                                     style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+                      )
+          )
+        )
+      })
+      
+      observeEvent(input$save_final_table, {
+        
+        q_test <- quietly_test(check_model_data)
+        save_final$out <- q_test(dat = values$dataset, 
+                                 dataindex = paste0(input$projectname, "MainDataTableInfo"), 
+                                 uniqueID = input$final_uniqueID)
+        
+      })
+      
+      output$checkMsg <- renderUI({
+        
+        if (!is.null(save_final$out$save_out)) {
+          
+          if (save_final$out$save_out) {
+            
+            div(p("Final table saved"), style = "color: green;")
+            
+          } else {
+            
+            tagList(
+              div(p("Final table was not saved:"), style = "color: red;"),
+              renderText(paste(save_final$out$msg, collapse = "\n"))
+            )
+          }
+          
+        } else {
+          
+          p("")
+        }
+      })
+
 
       #Downloads ====  
     savedText <- reactiveValues(answers = logical(0))
@@ -3898,7 +4039,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                    input$callTextDownloadUp,
                    input$callTextDownloadNew,
                    input[["fleet-callTextDownload"]],
-                   input$callTextDownloadZone,
+                   input$callTextDownloadAlt,
                    input$callTextDownloadEC,
                    input$callTextDownloadModels,
                    input$callTextDownloadBook),{
@@ -3926,7 +4067,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                        placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
                        updateTextInput(session, 'notesNew', "Notes", value = "",
                                        placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
-                       updateTextInput(session, 'notesZone', "Notes", value = "", 
+                       updateTextInput(session, 'notesAltc', "Notes", value = "", 
                                        placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
                        updateTextInput(session, 'notesEC', "Notes", value = "",
                                        placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
@@ -4266,7 +4407,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                     input[["fleet-callTextDownload"]],
                     input$callTextDownloadUp,
                     input$callTextDownloadNew,
-                    input$callTextDownloadZone,
+                    input$callTextDownloadAlt,
                     input$callTextDownloadEC,
                     input$callTextDownloadModels,
                     input$callTextDownloadBook))) > 0) {
