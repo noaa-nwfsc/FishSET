@@ -19,71 +19,92 @@
 #' }
 #'
 check_model_data <- function(dat, dataindex, uniqueID, save.file = TRUE) {
-  x <- 0
+  
+  end <- FALSE
 
   # Call in data sets
-  dataset <- dat
-  dat <- deparse(substitute(dat))
-
+  out <- data_pull(dat)
+  dataset <- out$dataset
+  
+  if (shiny::isRunning()) {
+    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
+  } else { 
+    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
+  
   # update dataindex
   dataindex_update(dataset, dataindex)
 
   tmp <- tempfile()
-
-  if (any(apply(dataset, 2, function(x) any(is.nan(x))) == TRUE)) {
-    cat("\nNaNs are present in", names(which(apply(dataset, 2, function(x) any(is.nan(x))) == TRUE)), file = tmp, append = T)
-    cat("\nNaNs are present in", names(which(apply(dataset, 2, function(x) any(is.nan(x))) == TRUE)))
-    x <- 1
+  
+  if (any(qaqc_helper(dataset, "NaN"))) {
+    
+    nan_cols <- qaqc_helper(dataset, "NaN", "names")
+    nan_msg <- paste("\nNaNs are present in", paste(nan_cols, collapse = ", "))
+    cat(nan_msg, file = tmp, append = TRUE)
+    warning(nan_msg)
+    end <- TRUE
   }
 
-  if (any(apply(dataset, 2, function(x) anyNA(x)) == TRUE)) {
-    cat(paste("\nNAs are present in", names(which(apply(dataset, 2, function(x) anyNA(x)) == TRUE))), file = tmp, append = T)
-    cat("\nNAs are present in", names(which(apply(dataset, 2, function(x) anyNA(x)) == TRUE)))
-    x <- 1
+  if (any(qaqc_helper(dataset, "NA"))) {
+    
+    na_cols <- qaqc_helper(dataset, "NA", "names")
+    na_msg <- paste("\nNAs are present in", paste(na_cols, collapse = ", "))
+    cat(na_msg, file = tmp, append = TRUE)
+    warning(na_msg)
+    end <- TRUE
   }
-
 
   # is.inf
-  if (any(apply(dataset, 2, function(x) any(is.infinite(x))) == TRUE)) {
-    cat(paste("\nInfinite values are present in", names(which(apply(dataset, 2, function(x) any(is.infinite(x))) == TRUE))), file = tmp, append = T)
-
-    cat("\nInfinite values are present in", names(which(apply(dataset, 2, function(x) any(is.infinite(x))) == TRUE)))
-    x <- 1
+  if (any(qaqc_helper(dataset, "Inf"))) {
+    inf_cols <- qaqc_helper(dataset, "Inf", "names")
+    inf_msg <- paste("\nInfinite values are present in", paste(inf_cols, collapse = ", "))
+    cat(inf_msg, file = tmp, append = TRUE)
+    warning(inf_msg)
+    end <- TRUE
   }
 
   if (length(dataset[[uniqueID]]) != length(unique(dataset[[uniqueID]]))) {
-    cat("\nThe uniqueID variable should define the length of unique occurrences in the dataset. Use the haul_to_trip function to collapse data.",
-      file = tmp, append = T
-    )
-
-    cat("\nThe uniqueID variable should define the length of unique occurrences in the dataset. 
-         Use the haul_to_trip function to collapse data.")
-    x <- 1
+    
+    unique_msg <- "\nThe uniqueID variable should define the length of unique occurrences in the dataset. Use the haul_to_trip function to collapse data."
+    cat(unique_msg, file = tmp, append = TRUE)
+    warning(unique_msg)
+    end <- TRUE
   }
 
-  if (x == 1) {
-    suppressWarnings(readLines(tmp))
+  if (end) {
+    
     warning("At least one test did not pass. Data set will not be saved.")
   }
-  if (x == 0) {
+  
+  if (end == FALSE) {
     if (save.file == TRUE) {
-      cat(paste("\nModified data set saved to fishset_db database"), file = tmp, append = T)
+      cat(paste("\nModified data set saved to fishset_db database"), file = tmp, append = TRUE)
       fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-      single_sql <- paste0("final_", deparse(substitute(dat)))
+      single_sql <- paste0(dat, "_final")
       DBI::dbWriteTable(fishset_db, single_sql, dataset, overwrite = TRUE)
       DBI::dbDisconnect(fishset_db)
-      # logging function information
     }
   }
+  # logging function information
+  check_model_data_function <- list()
+  check_model_data_function$functionID <- "check_model_data"
+  check_model_data_function$args <- list(dat, dataindex, uniqueID, save.file)
+  check_model_data_function$msg <- tmp
+  
+  if (file.exists(tmp)) {
+    # if checks are passed but save.file = FALSE
+    check_model_data_function$msg <- suppressWarnings(readLines(tmp))
 
-  checkModelData_function <- list()
-  checkModelData_function$functionID <- "check_model_data"
-  checkModelData_function$args <- list(dat, dataindex, uniqueID, save.file)
-  checkModelData_function$msg <- suppressWarnings(readLines(tmp))
+    } else {
 
-  suppressWarnings(readLines(tmp))
+    check_model_data_function$msg <- ""
+  }
+  
+  log_call(check_model_data_function)
 
-  log_call(checkModelData_function)
-
-  rm(tmp)
+  fun_out <- list(msg = check_model_data_function$msg,
+                  save_out = (end == FALSE & save.file == TRUE))
+  
+  on.exit(rm(tmp), add = TRUE)
+  invisible(fun_out)
 }

@@ -129,7 +129,7 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
  
   if (!is.null(gridfile) & !is.character(gridfile)) {
     int.data <- assignment_column(
-      dat = dataset, gridfile = gridfile, hull.polygon = hull.polygon,
+      dat = dataset, project, gridfile = gridfile, hull.polygon = hull.polygon,
       lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat,
       lat.dat = lat.dat, cat = cat, closest.pt = closest.pt
     )

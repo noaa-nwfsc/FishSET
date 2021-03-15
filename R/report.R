@@ -430,19 +430,19 @@ pull_notes <- function(project, date = NULL, output = "print") {
   #' @param date String, date to pull notes from. If NULL, most recent note file is 
   #'   retrieved.
   #' @param output Output type. "print" returns formatted notes. "string" returns a 
-  #'   character vector of the notes. "print" is reccomended for displaying notes in a report.  
+  #'   character vector of the notes. "print" is recommended for displaying notes in a report.  
   #' @export
   #' @importFrom stringi stri_omit_empty
   #' @importFrom stringr str_extract
   #' @details Notes are saved to the output folder by project name and date. If date is not
   #'   specified then the most recent notes file with the project name is pulled. Notes are
-  #'   are also saved by FishSET app session; if more than one session occured in the same day, each 
+  #'   are also saved by FishSET app session; if more than one session occurred in the same day, each 
   #'   session's notes are pulled and listed in chronological order. 
   
   out <- pull_output(project = project, date = date, type = "notes")
   
   note_names <- c("Data quality evaluation: ", "Simple analysis: ", "Data exploration: ", "Upload data: ", "Fleet functions: ",
-                  "Create new variable: ", "Zone definition: ", "Expected catch/revenue: ", "Models: ", "Bookmark URL: ")
+                  "Create new variable: ", "Alternative choice: ", "Expected catch/revenue: ", "Models: ", "Bookmark URL: ")
   
   if (length(out) == 1) {
     
@@ -493,13 +493,13 @@ parse_notes <- function(project, date = NULL, section, output = "print") {
   #' 
   #' @param project The project name.
   #' @param date Date to pull notes from. If NULL then the most recent version of notes
-  #'   from the project are retreived. 
+  #'   from the project are retrieved. 
   #' @param section The note section to display. Options include "upload" for Upload data,
   #'   "quality" for Data quality evaluation, "explore" for Data exploration, "fleet" for
   #'   Fleet functions, "analysis" for Simple analysis, "new_variable" for Create new variable,
-  #'   "zone" for Zone definition, "models", and "bookmark". 
+  #'   "alt_choice" for Alternative choice, "models", and "bookmark". 
   #' @param output Output type. "print" returns formatted notes. "string" returns a 
-  #'   character vector of the notes. "print" is reccomended for displaying notes in a report.
+  #'   character vector of the notes. "print" is recommended for displaying notes in a report.
   #' @export
   #' @examples 
   #' \dontrun{
@@ -519,7 +519,7 @@ parse_notes <- function(project, date = NULL, section, output = "print") {
     note_type <-  switch(section, "upload" = "Upload data: ", "quality" = "Data quality evaluation: ", 
                          "explore" = "Data exploration: ", "fleet" = "Fleet functions: ", 
                          "analysis" =  "Simple analysis: ","new_variable" = "Create new variable: ", 
-                         "zone" =  "Zone definition: ", "expected_catch" = "Expected catch/revenue: ", 
+                         "alt_choice" =  "Alternative choice: ", "expected_catch" = "Expected catch/revenue: ", 
                          "models" = "Models: ", "bookmark" = "Bookmark URL: ")
     
     notes <- grep(note_type, split, value = TRUE)
@@ -541,7 +541,7 @@ summary_table <- function(project, output = "print") {
   #'
   #' @param project Name of project.
   #' @param output Output type. "print" returns formatted notes. "table" returns a 
-  #'   dataframe. "print" is reccomended for displaying summary table in a report.
+  #'   dataframe. "print" is recommended for displaying summary table in a report.
   #' @export
   #' @keywords internal
   #' @importFrom tibble rownames_to_column
@@ -596,7 +596,7 @@ function_summary <- function(date = NULL, type = "dat_load", show = "all") {
   #' @param date Character string; the date of the log file ("%Y-%m-%d" format) to
   #'   retrieve. If \code{NULL} the most recent log is pulled.
   #' @param type The type of function to display. "dat_load", "dat_quality", "dat_create",
-  #'   "dat_exploration", "fleet", "zonal_def", and "model".
+  #'   "dat_exploration", "fleet", "alt_choice", and "model".
   #' @param show Whether to display \code{"all"} calls, the \code{"last"} (most recent) call, or
   #' the \code{"first"} (oldest) function call from the log file.
   #' @importFrom dplyr bind_rows
@@ -641,7 +641,7 @@ function_summary <- function(date = NULL, type = "dat_load", show = "all") {
     "sum_catch", "weekly_catch", "weekly_effort", "trip_length", "roll_catch"
   )
 
-  zonal_def <- c("create_alternative_choice", "find_centroid", "assignment_column")
+  alt_choice <- c("create_alternative_choice", "find_centroid", "assignment_column")
 
   model <- c(
     "sparsetable", "sparsplot", "create_expectations", "make_model_design",
@@ -650,7 +650,7 @@ function_summary <- function(date = NULL, type = "dat_load", show = "all") {
 
   fun_vector <- switch(type, "dat_load" = dat_load, "dat_quality" = dat_quality,
     "dat_create" = dat_create, "dat_exploration" = dat_exploration,
-    "fleet" = fleet, "zonal_def" = zonal_def, "model" = model
+    "fleet" = fleet, "alt_choice" = alt_choice, "model" = model
   )
 
 
