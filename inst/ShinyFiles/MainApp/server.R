@@ -680,9 +680,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             not exist in the primary dataset.',
             tags$br(), tags$br(),
             'There are a number of required and suggested choices. Once all choices have been made, 
-            press the green', tags$code('Run'), 'button. An interactive map will appear at the top of the page. 
-            To display information on individual points in the top right-hand corner of the map, hover over 
-            a point. Other informational plots are shown in the left-hand side of the map. This map cannot be saved.',
+            press the green', tags$code('Run'), 'button. An interactive map will appear at the top of the page.',
+            tags$br(),
+              'To display information on individual points in the top right-hand corner of the map, hover over 
+              a point. Other informational plots are shown in the left-hand side of the map.',
+            tags$br(),
+              'This map cannot be saved.',
             tags$br(), tags$br(),
             tags$strong('Choices'),
             tags$ul(
