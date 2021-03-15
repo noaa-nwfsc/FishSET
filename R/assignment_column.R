@@ -3,6 +3,7 @@
 #' @description Assign each observation in the primary dataset to a fishery management or regulatory zone. 
 #'    Function is primarily called by other functions that require zone assignment but can also be used on its own.
 #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+#' @param @param project name of project.
 #' @param gridfile Spatial data containing information on fishery management or regulatory zones. 
 #'    Shape, json, geojson, and csv formats are supported.
 #' @param hull.polygon Logical, if TRUE, creates convex hull polygon. Use if spatial data creating polygon 
@@ -31,12 +32,23 @@
 #' @export
 
 
-assignment_column <- function(dat, gridfile, lon.dat, lat.dat, cat, closest.pt = FALSE, lon.grid = NULL, lat.grid = NULL, 
-                              hull.polygon = FALSE, epsg = NULL) {
+assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, closest.pt = FALSE, 
+                              lon.grid = NULL, lat.grid = NULL, hull.polygon = FALSE, epsg = NULL) {
 
   # Call in data sets
-  dataset <- dat
-  dat <- deparse(substitute(dat))
+  out <- data_pull(dat)
+  dataset <- out$dataset
+  
+  if (shiny::isRunning()) {
+    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
+  } else { 
+    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
+  
+
+  gridout <- data_pull(gridfile)
+  grid <- gridout$dataset
+  
+gridfile <- deparse(substitute(dat))
 
   dataset[[lat.dat]] <- as.numeric(as.vector(dataset[[lat.dat]]))
   dataset[[lon.dat]] <- as.numeric(as.vector(dataset[[lon.dat]]))
@@ -55,29 +67,29 @@ assignment_column <- function(dat, gridfile, lon.dat, lat.dat, cat, closest.pt =
 
   if (x == 0) {
     # For json and shape files
-    if (any(class(gridfile) %in% "sf") || any(class(gridfile) %in% c("sp", "SpatialPolygonsDataFrame"))) {
+    if (any(class(grid) %in% "sf") || any(class(grid) %in% c("sp", "SpatialPolygonsDataFrame"))) {
       # map2 <- sf::st_read('Z:/OLDFishSET/NMFS_RA.json')
       dat_sub <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), crs = "+proj=longlat +datum=WGS84")
 
-      if (raster::projection(gridfile) != raster::projection(dat_sub)) {
+      if (raster::projection(grid) != raster::projection(dat_sub)) {
         warning("Projection does not match. Consider transforming data to same epsg.")
       }
       if (!is.null(epsg)) {
         dat_sub <- sf::st_transform(dat_sub, epsg)
-        gridfile <- sf::st_transform(gridfile, epsg)
+        grid <- sf::st_transform(grid, epsg)
       } else {
-        gridfile <- sf::st_transform(gridfile, "+proj=longlat +datum=WGS84")
+        grid <- sf::st_transform(grid, "+proj=longlat +datum=WGS84")
       }
-      pts <- as.data.frame(as.numeric(sf::st_intersects(dat_sub, gridfile)))
+      pts <- as.data.frame(as.numeric(sf::st_intersects(dat_sub, grid)))
       colnames(pts) <- "col.id"
-      pts$ID <- gridfile[[cat]][pts$col.id]
+      pts$ID <- grid[[cat]][pts$col.id]
     } else {
       # sort data
-      gridfile <- as.data.frame(gridfile)
-      gridfile <- gridfile[order(gridfile[, cat], gridfile[, lon.grid], gridfile[, lat.grid]), ]
+      grid <- as.data.frame(grid)
+      grid <- grid[order(grid[, cat], grid[, lon.grid], grid[, lat.grid]), ]
 
       # Create spatial polygon dataframe from grid data make a list
-      map_list <- split(gridfile[, c(lon.grid, lat.grid, cat)], gridfile[[cat]])
+      map_list <- split(grid[, c(lon.grid, lat.grid, cat)], grid[[cat]])
       # only want lon-lats in the list, not the names
       map_list <- lapply(map_list, function(x) {
         x[cat] <- NULL
@@ -127,6 +139,12 @@ assignment_column <- function(dat, gridfile, lon.dat, lat.dat, cat, closest.pt =
 
     pts <- cbind(dataset, ZoneID = pts$ID)
 
+    assignment_column_function <- list()
+    assignment_column_function$functionID <- "assignment_column"
+    assignment_column_function$args <- list(dat, project, gridfile, lon.dat, lat.dat, 
+                                            cat, closest.pt, lon.grid, lat.grid, 
+                                            hull.polygon, epsg)
+    log_call(assignment_column_function)
 
     pts <- as.data.frame(pts)
     return(pts)

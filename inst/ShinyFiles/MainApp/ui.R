@@ -677,6 +677,18 @@ source("map_viewer_app.R", local = TRUE)
                            sidebarLayout(
                              sidebarPanel(
                                #uiOutput('SaveButtonsNew'),
+                                
+                                downloadButton("exportData", "Download data"),
+                                
+                                selectInput("export_type", "Export data as:",
+                                            choices = c("csv", "txt", "rdata", "xlsx", 
+                                                        "json", "stata", "sas", "spss", "matlab")),
+                                
+                                actionButton("save_final_modal", "Save final table to FishSET DB",
+                                             style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
+                                
+                                tags$hr(style = "border-top: 3px solid #bbb;"),
+                                
                                 downloadLink('downloadplotNew', label=''),
                                 actionButton('downloadplotNew', label='Save plot to folder'),
                                 actionButton('callTextDownloadNew','Save notes'),
@@ -731,7 +743,8 @@ source("map_viewer_app.R", local = TRUE)
                                                             selected = 'From variable', multiple=FALSE)),
                                conditionalPanel("input.VarCreateTop=='Spatial functions'",
                                                 selectInput('dist','Functions', 
-                                                            choices = c('Distance between two points'='create_dist_between',
+                                                            choices = c('Assign observations to zones'='zone', 
+                                                                        'Distance between two points'='create_dist_between',
                                                                         'Midpoint location (lon/lat) for each haul'='create_mid_haul',
                                                                         'Zone when choice of where to go next was made'='create_startingloc'),
                                                             selected='create_dist_between', multiple = FALSE)),
@@ -802,7 +815,12 @@ source("map_viewer_app.R", local = TRUE)
                                uiOutput('dummy_select'),
                                uiOutput('dummy_sub'),
                                
-                               #More sub choices Spatial functions  
+                               #More sub choices Spatial functions 
+                        
+                               ## runs assignment column
+                               uiOutput('zone_assign_1'),
+                               uiOutput('zone_assign_2'),
+                               
                                uiOutput('dist_between_input'),
                                uiOutput('dist_betwn_opts'),
                                conditionalPanel("input.VarCreateTop=='Spatial functions'&&input.dist=='create_dist_between'",
@@ -848,7 +866,7 @@ source("map_viewer_app.R", local = TRUE)
                   #----   
                   #Zonal definition tabset panel
                   #-----
-                  tabPanel('Zonal Definition', value = "zone",
+                  tabPanel('Alternative Choice', value = "altc",
                            sidebarLayout(
                              sidebarPanel(
                                tags$button(
@@ -865,17 +883,19 @@ source("map_viewer_app.R", local = TRUE)
                                #runcodeUI (code='', type='ace'),
                                # actionButton("eval", "Evaluate"),
                                radioButtons('choiceTab', '', choices=c( #basic parameters to populate elsewhere like catch, price
-                                                                       'Calculate zonal centroid and assign observations to zones'='zone', #calculate zonal centroid
+                                                                       #'Calculate zonal centroid and assign observations to zones'='zone', #calculate zonal centroid
                                                                        'Select variables that define alternative fishing choices'='distm',
                                                                        'Select catch and price variables'='primary')),#, #calculate distance matrix
                                #checkboxInput('ExpedCatch', 'Define variables to calculate expected catch', value=FALSE)
-                               conditionalPanel("input.choiceTab=='zone'",  
-                                                actionButton('runCentroid','Assign observations to zones', 
-                                                             style = "color: white; background-color: green;")),
+                               
+                               # conditionalPanel("input.choiceTab=='zone'",  
+                               #                  actionButton('runCentroid','Assign observations to zones', 
+                               #                               style = "color: white; background-color: green;")),
+                               
                                conditionalPanel("input.choiceTab=='distm'",
                                                 actionButton('saveALT','Save choices', style = "color: white; background-color: green;")),
-                               actionButton('callTextDownloadZone','Save notes'),
-                               textInput('notesZone', "Notes", value=NULL, 
+                               actionButton('callTextDownloadAlt','Save notes'),
+                               textInput('notesAltc', "Notes", value=NULL, 
                                          placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
                                ##Inline scripting 
                                textInput("exprZ", label = "Enter an R expression",
@@ -891,8 +911,8 @@ source("map_viewer_app.R", local = TRUE)
                               
                                #--------#
                                #CENTROID
-                               uiOutput('conditionalInput2'),
-                               uiOutput('cond2'),
+                               # uiOutput('conditionalInput2'),
+                               # uiOutput('cond2'),
                                #runs assignment column and find_centroid functions
                                #--------#
                                #DISTANCE MATRIX
