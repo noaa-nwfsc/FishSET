@@ -34,7 +34,7 @@ find_centroid <- function(dat, gridfile, cat, lon.dat = NULL, lat.dat = NULL,
   cat("", file = tmp, append = TRUE)
   x <- 0
 
-    if (any(class(gridfile) == "sp")) {
+    if (any(grepl("Spatial", class(gridfile)))) {
     if (is_empty(lon.grid) | is_empty(lat.grid)) {
       warning("lat.grid and lon.grid must be supplied to convert sp object to a sf object.")
       x <- 1
@@ -75,7 +75,7 @@ find_centroid <- function(dat, gridfile, cat, lon.dat = NULL, lat.dat = NULL,
       # Weighted variables
       if (x != 1) {
         int <- assignment_column(
-          dat = dataset, gridfile = gridfile, lon.grid = lon.grid,
+          dat = dataset, project, gridfile = gridfile, lon.grid = lon.grid,
           lat.grid = lat.grid, lon.dat = lon.dat, lat.dat = lat.dat, cat = cat
         )
         int$cent.lon <- stats::ave(int[c(lon.dat, weight.var)], int$ZoneID,
@@ -126,7 +126,7 @@ find_centroid <- function(dat, gridfile, cat, lon.dat = NULL, lat.dat = NULL,
         if (is.data.frame(int) == T) {
           if (!is.null(gridfile)) {
             int <- assignment_column(
-              dat = dataset, gridfile = gridfile, lon.grid = lon.grid,
+              dat = dataset, project, gridfile = gridfile, lon.grid = lon.grid,
               lat.grid = lat.grid, lon.dat = lon.dat, lat.dat = lat.dat, cat = cat
             )
             int$cent.lon <- stats::ave(int[c(lon.dat, weight.var)], int$ZoneID,
