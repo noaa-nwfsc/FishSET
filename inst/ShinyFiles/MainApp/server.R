@@ -208,10 +208,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         )
        # refresh data
       observeEvent(c(input$refresh,input$refresh1,input$refresh2,input$refreshNew), {
-        req(input$projectname)
-        temp <- tables_database()[grep(paste0(input$projectname, 'MainDataTable\\d+'), tables_database())][which(
-                      unlist(stringr::str_extract_all(tables_database()[grep(paste0(input$projectname, 'MainDataTable\\d+'), 
-                      tables_database())], "\\d+"))==max((unlist(stringr::str_extract_all(tables_database()[grep(paste0(input$projectname, 
+        req(project$name)
+        temp <- tables_database()[grep(paste0(project$name, 'MainDataTable\\d+'), tables_database())][which(
+                      unlist(stringr::str_extract_all(tables_database()[grep(paste0(project$name, 'MainDataTable\\d+'), 
+                      tables_database())], "\\d+"))==max((unlist(stringr::str_extract_all(tables_database()[grep(paste0(project$name, 
                       'MainDataTable\\d+'), tables_database())], "\\d+")))))]
         values$dataset <- table_view(temp)
         showNotification("Data refreshed", type='message', duration=10)
@@ -879,23 +879,67 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       #DATA UPLOAD FUNCTIONS ----
       ###---
       
-      output$main_upload <- renderUI({     
-        tagList( 
-          conditionalPanel("input.loadmainsource=='Upload new file'", 
-                           tagList(
-                             fluidRow(
-                                 column(5, fileInput("maindat", "Choose primary data file",
-                                            multiple = FALSE, placeholder = 'Required data'))#,
-                               # column(2, uiOutput('ui.action'))
-                           ))
-          ),     
-          conditionalPanel("input.loadmainsource=='FishSET database'", 
-                             fluidRow(
-                               column(5, textInput("maindatabasedat", "Name of data table in FishSET database",
-                                                   value='', placeholder = 'Optional. Use if loading modified data table'))
-                               
-                             )
-          ))
+      output$projects <- renderUI({
+        
+        if (input$loadmainsource == 'Upload new file') {
+          
+          textInput('projectname', 'Name of project')
+          
+        } else if (input$loadmainsource == 'FishSET database') {
+          
+          if (length(projects()) > 0) {
+            
+            selectInput("project_select", "Select project", choices = projects())
+            
+          } else {
+            
+            p("No projects found in FishSET Database. Create a project by uploading a new file")
+          }
+        }
+        
+      })
+      # project name 
+      project <- reactiveValues()
+      
+      observeEvent(c(input$loadmainsource, input$project_select, input$loadDat), {
+        
+        if (input$loadmainsource == 'Upload new file') {
+          
+          project$name <- input$projectname
+          
+        } else if (input$loadmainsource == 'FishSET database') {
+          
+          project$name <- input$project_select
+        }
+      })
+      
+      output$main_upload <- renderUI({    
+        
+        if (input$loadmainsource=='Upload new file') {
+          
+          tagList(
+            fluidRow(
+              column(5, fileInput("maindat", "Choose primary data file",
+                                  multiple = FALSE, placeholder = 'Required data'))
+            ))
+          
+        } else if (input$loadmainsource=='FishSET database') {
+          
+          tagList(
+            fluidRow(
+              column(5,
+                     selectInput("main_tables", "Choose a table",
+                                 choices = main_tables(project$name))
+                     
+                     # column(5,
+                     # textInput("maindatabasedat", "Name of data table in FishSET database",
+                     #              value='', placeholder = 'Optional. Use if loading modified data table')
+                     # )
+              )
+            )
+          )
+        }
+        
       })
       #output$ui.action <- renderUI({
       #  if(is.null(input$maindat)) return()
@@ -914,24 +958,36 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
      #Add in reactive values once data  call is is not empty
       observeEvent(input$loadDat, {
-        if(input$projectname==''){
-          showNotification("Please enter a project name.", type='message', duration=10)
+        
+        if (!isTruthy(project$name)) {
+          
+          if (input$loadmainsource == 'FishSET database') {
+            
+            showNotification("No project found. Please upload a new file.", 
+                             type = 'message', duration = 10)
+            
+          } else if (input$loadmainsource=='Upload new file') {
+            
+            showNotification("Please enter a project name.", type='message', duration=10)
+          }
         }
-        req(input$projectname)
+        
+        req(project$name)
+        
         if(input$loadmainsource=='FishSET database'){
-          if(table_exists(paste0(input$projectname, 'MainDataTable'))==FALSE){
+          if(table_exists(paste0(project$name, 'MainDataTable'))==FALSE){
             showNotification('Primary data table not found in FishSET database. Check project spelling.', type='message', duration=15)
           } else {
-        values$dataset <- table_view(paste0(input$projectname, 'MainDataTable'))
-        dat_name <<- paste0(input$projectname, 'MainDataTable')
+        values$dataset <- table_view(paste0(project$name, 'MainDataTable'))
+        dat_name <<- paste0(project$name, 'MainDataTable')
           }
         } else if(input$loadmainsource=='Upload new file' & !is.null(input$maindat)){
            values$dataset <- read_dat(input$maindat$datapath)
            df_y <- input$compare
           df_compare <- ifelse(nchar(input$compare)>0, TRUE, FALSE)
           q_test <- quietly_test(load_maindata)
-          q_test(values$dataset, over_write=input$over_write, project=input$projectname, compare=df_compare, y=df_y)
-          dat_name <<- paste0(input$projectname, 'MainDataTable')
+          q_test(values$dataset, over_write=input$over_write, project=project$name, compare=df_compare, y=df_y)
+          dat_name <<- paste0(project$name, 'MainDataTable')
 
 #           if(input$uploadMain == 0){
 #             showNotification('Data not saved to database. Press the Save to Database button.', type='warning', duration=20)
@@ -1008,24 +1064,25 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       observeEvent(input$loadDat, { 
         
-        if (input$projectname == '') {
+        #if (input$projectname == '') {
+        if (!isTruthy(project$name)) {
           
           showNotification("Please enter a project name.", type = 'message', duration = 10)
         }
         
-        req(input$projectname)
+        req(project$name)
         
         if (input$loadportsource == 'FishSET database') {
           
-          if (table_exists(paste0(input$projectname, 'PortTable')) == FALSE) {
+          if (table_exists(paste0(project$name, 'PortTable')) == FALSE) {
             
             showNotification('Table not found in FishSET database. Check project spelling.', 
                              type = 'message', duration = 15)
             
           } else {
             
-            ptdat$dataset <- table_view(paste0(input$projectname, 'PortTable'))
-            port_name <<- paste0(input$projectname, 'PortTable')
+            ptdat$dataset <- table_view(paste0(project$name, 'PortTable'))
+            port_name <<- paste0(project$name, 'PortTable')
           }
           
         } else if (input$loadportsource == 'Upload new file' & !is.null(input$portdat)) {
@@ -1035,10 +1092,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             ptdat$dataset <- read_dat(input$portdat$datapath)
             q_test <- quietly_test(load_port)
             q_test(ptdat$dataset, port_name = input$port_name, over_write = TRUE, 
-                   project = input$projectname, compare = FALSE, y = NULL)
+                   project = project$name, compare = FALSE, y = NULL)
             showNotification("Port data saved to database.", type = "message", 
                              duration = 10)
-            port_name <<- paste0(input$projectname, 'PortTable')
+            port_name <<- paste0(project$name, 'PortTable')
           }
         }
         
@@ -1085,7 +1142,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
       # merge server module (see fleetServ.R)
       mergeServer("port_combine", main = ptdat, other = ptdat_temp, 
-                  reactive(input$projectname), merge_type = "full", 
+                  reactive(project$name), merge_type = "full", 
                   dat_type = "port", show)
       
       # load additional port table
@@ -1114,14 +1171,14 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         
         q_test <- quietly_test(load_port)
         q_test(ptdat$dataset, port_name = "Port_Name", over_write = TRUE, 
-               project = input$projectname, compare = FALSE, y = NULL)
+               project = project$name, compare = FALSE, y = NULL)
         
         showNotification("Combined port table saved to database.", type = "message", 
                          duration = 10)
         # so column names match with DB version
-        ptdat$dataset <- table_view(paste0(input$projectname, 'PortTable'))  
+        ptdat$dataset <- table_view(paste0(project$name, 'PortTable'))  
       
-        port_name <<- paste0(input$projectname, 'PortTable')
+        port_name <<- paste0(project$name, 'PortTable')
         show$save <- FALSE
         show$port_merge <- FALSE
         
@@ -1213,20 +1270,20 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           
           req(input$griddattext)
           
-          grid_name_app <- paste0(input$projectname, input$griddattext)
+          grid_name_app <- paste0(project$name, input$griddattext)
           grddat[[grid_name_app]] <- table_view(grid_name_app)
           grid_name[[grid_name_app]] <<- grid_name_app 
           
         } else if (input$loadgridsource == 'Upload new file' & !is.null(input$griddat)) {
           
           showNotification('Gridded data saved to database.', type = 'message', duration = 10)
-          grid_name_app <- paste0(input$projectname, input$GridName)
+          grid_name_app <- paste0(project$name, input$GridName)
           grddat[[grid_name_app]] <- read_dat(input$griddat$datapath)        
           
           q_test <- quietly_test(load_grid)
           
-          q_test(paste0(input$projectname, 'MainDataTable'), grid = grddat[[grid_name_app]], 
-                 x = input$GridName, over_write = TRUE, project = input$projectname)
+          q_test(paste0(project$name, 'MainDataTable'), grid = grddat[[grid_name_app]], 
+                 x = input$GridName, over_write = TRUE, project = project$name)
           
           grid_name[[grid_name_app]] <<- grid_name_app
         }
@@ -1280,15 +1337,15 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       observeEvent(input$loadDat, {
         #req(input$auxdattext)
         if(input$loadauxsource=='FishSET database'){
-          aux$dataset <- table_view(paste0(input$projectname, input$auxdattext))
-          aux_name <<- paste0(input$projectname, input$auxdattext)
+          aux$dataset <- table_view(paste0(project$name, input$auxdattext))
+          aux_name <<- paste0(project$name, input$auxdattext)
         } else if(input$loadauxsource=='Upload new file' & !is.null(input$auxdat)){
             showNotification('Auxiliary data saved to FishSET database.', type = 'message', duration = 10)
            aux$dataset <-read_dat(input$auxdat$datapath)
            q_test <- quietly_test(load_aux)
-            q_test(paste0(input$projectname, 'MainDataTable'), aux=aux$dataset, x = input$AuxName, over_write=TRUE,
-                   project=input$projectname)
-            aux_name <<- paste0(input$projectname, input$auxdattext)
+            q_test(paste0(project$name, 'MainDataTable'), aux=aux$dataset, x = input$AuxName, over_write=TRUE,
+                   project=project$name)
+            aux_name <<- paste0(project$name, input$auxdattext)
         } else {
           aux$dataset <- aux$dataset
           }
@@ -1301,7 +1358,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       #MERGE ----
       ###---      
       # Merge aux with main ---
-      mergeServer("aux", values, aux, reactive(input$projectname), 
+      mergeServer("aux", values, aux, reactive(project$name), 
                   merge_type = "left", dat_type = "aux")
       
       
@@ -1386,7 +1443,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         xn <- which(changecode()!="no changes")
         x <- colnames(values$dataset)[xn]
         newclass <- changecode()[xn]
-        values$dataset <- changeclass(values$dataset, project=input$projectname, x=x, newclass=newclass, savedat=FALSE)
+        values$dataset <- changeclass(values$dataset, project=project$name, x=x, newclass=newclass, savedat=FALSE)
         showNotification('Variable class changed.', type='message', duration=10)
       })
       
@@ -1416,7 +1473,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
         } else if (input$checks=='Outliers') {
-          table <- outlier_table(values$dataset, project=input$projectname, x=input$column_check)
+          table <- outlier_table(values$dataset, project=project$name, x=input$column_check)
           rownames(table)=table[,2]
           table <- table[,3:10]
           #table <<- table
@@ -1485,9 +1542,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           nan_filter(values$dataset, x=FishSET:::qaqc_helper(values$dataset, "NaN", "names"), 
                      replace = FALSE, remove = FALSE, rep.value=NA,  over_write=FALSE)
         } else if(input$checks=='Unique observations'){
-          unique_filter(values$dataset, project = input$projectname, remove=FALSE)
+          unique_filter(values$dataset, project = project$name, remove=FALSE)
         } else if(input$checks=='Empty variables'){
-          empty_vars_filter(values$dataset, project = input$projectname, remove=FALSE)
+          empty_vars_filter(values$dataset, project = project$name, remove=FALSE)
 
         } else if(input$checks=='Lat_Lon units'){
           degree(values$dataset, lat=NULL, lon=NULL, latsign=NULL, lonsign=NULL, replace=FALSE)
@@ -1627,7 +1684,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             }
           } else if(input$checks=='Lat_Lon units'){
             
-            if(any(FishSET:::qaqc_helper(values$dataset[find_lonlat(values$dataset)], function(x) !is.numeric(x)))){
+            if(any(FishSET:::qaqc_helper(values$dataset[FishSET:::find_lonlat(values$dataset)], function(x) !is.numeric(x)))){
               if(input$LatLon_Filter==FALSE){
                 case_to_print$dataQuality <- c(case_to_print$dataQuality, 'Latitude and longitude units were checked and are not in decimal degrees.\n')
               } else {
@@ -1740,7 +1797,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           return(NULL)
         } else if(input$checks=='Summary table'|input$checks=='NAs') { 
           #temp <- values$dataset
-          stable <- summary_stats(temp, input$projectname) 
+          stable <- summary_stats(temp, project$name) 
           nums <- unlist(lapply(temp, is.numeric))
           stable  <- apply(stable[nums], 2, function(x) gsub(".*:","", x))
           rownames(stable)=c('Min', 'Median','Mean', 'Max',"Missing",'Unique Obs.', "No. 0's")
@@ -1772,7 +1829,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
         } else if(input$checks=='Outliers'){
-          table <- outlier_table(values$dataset, project=input$projectname, x=input$column_check)
+          table <- outlier_table(values$dataset, project=project$name, x=input$column_check)
           rownames(table)=table[,2]
           table <- table[,3:10]
           #table <<- table
@@ -1968,11 +2025,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
       
       observeEvent(input$Unique_Filter,{
-        values$dataset <- unique_filter(values$dataset, project=input$projectname, remove=TRUE)
+        values$dataset <- unique_filter(values$dataset, project=project$name, remove=TRUE)
       })
       
       observeEvent(input$Empty_Filter,{
-        values$dataset <- empty_vars_filter(values$dataset,  project=input$projectname, remove=TRUE)            
+        values$dataset <- empty_vars_filter(values$dataset,  project=project$name, remove=TRUE)            
         })
       
       observeEvent(input$LatLon_Filter, {
@@ -2067,18 +2124,18 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           if(length(default_sub)==0){
             NULL
           } else {
-            if(table_exists(paste0(input$projectname, "FilterTable")) == F) {
+            if(table_exists(paste0(project$name, "FilterTable")) == F) {
               FilterTable <- data.frame(dataframe = NA, vector = NA, FilterFunction = NA)
             } else {
-              FilterTable <- table_view(paste0(input$projectname, "FilterTable"))
+              FilterTable <- table_view(paste0(project$name, "FilterTable"))
             }
             for(i in 1:length(default_sub)){
               if( grepl("\\..\\.", default_search_columns[default_sub[i]])==TRUE){
-                FilterTable <- rbind(FilterTable, c(paste0(input$projectname, table_type), (colnames(explore_temp()[default_sub])[i]), 
+                FilterTable <- rbind(FilterTable, c(paste0(project$name, table_type), (colnames(explore_temp()[default_sub])[i]), 
                                                     paste(colnames(explore_temp()[default_sub])[i], '>', as.numeric(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), head, 1)), '&', 
                                                           colnames(explore_temp()[default_sub])[i], '<', as.numeric(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), tail, 1)))))
               } else {
-                FilterTable <- rbind(FilterTable, c(paste0(input$projectname, table_type), (colnames(explore_temp()[default_sub])[i]), 
+                FilterTable <- rbind(FilterTable, c(paste0(project$name, table_type), (colnames(explore_temp()[default_sub])[i]), 
                                                     paste0("grepl('", default_search_columns[default_sub[i]],"', ", colnames(explore_temp()[default_sub])[i],")")))
               }
             }
@@ -2087,21 +2144,21 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             
             filter_data_function <- list()
             filter_data_function$functionID <- 'filter_table'
-            filter_data_function$args <- c(paste0(input$projectname, table_type), input$projectname, FilterTable$vector[nrow(FilterTable)],  FilterTable$FilterFunction[nrow(FilterTable)])
+            filter_data_function$args <- c(paste0(project$name, table_type), project$name, FilterTable$vector[nrow(FilterTable)],  FilterTable$FilterFunction[nrow(FilterTable)])
             filter_data_function$kwargs <- list()
             filter_data_function$output <- c('')
             filter_data_function$msg <- FilterTable
             log_call(filter_data_function)
             
             fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-            DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'FilterTable'),  FilterTable, overwrite=TRUE)
+            DBI::dbWriteTable(fishset_db, paste0(project$name, 'FilterTable'),  FilterTable, overwrite=TRUE)
             DBI::dbDisconnect(fishset_db)
           }  
       })
       
       observeEvent(input$saveDataNew,{
         fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-        DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'FilterTable'),  FilterTable, overwrite=TRUE)
+        DBI::dbWriteTable(fishset_db, paste0(project$name, 'FilterTable'),  FilterTable, overwrite=TRUE)
         DBI::dbDisconnect(fishset_db)
       })
       
@@ -2268,7 +2325,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           return(NULL)
         } else {
           if(input$plot_table=='Plots'&input$plot_type=='Spatial'){
-            return(map_kernel(values$dataset, project=input$projectname, type='gradient', 
+            return(map_kernel(values$dataset, project=project$name, type='gradient', 
                        latlon=c(which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', 
                                                                                 ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1], 
                                                which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', 
@@ -2363,9 +2420,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         if(input$mtgtcat==''){
           return( NULL)
         } else {
-          gt <- getis_ord_stats(values$dataset, project=input$projectname, varofint=input$varofint, spat=spatdat$dataset, 
+          gt <- getis_ord_stats(values$dataset, project=project$name, varofint=input$varofint, spat=spatdat$dataset, 
                                 lon.dat=input$gtmt_lonlat[2], lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat, lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$getistable
-          mt <- moran_stats(values$dataset, project=input$projectname, varofint=input$varofint, spat=spatdat$dataset, 
+          mt <- moran_stats(values$dataset, project=project$name, varofint=input$varofint, spat=spatdat$dataset, 
                             lon.dat=input$gtmt_lonlat[2], lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat, lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$morantable
           return(as.data.frame(merge(gt, mt)))
         }
@@ -2444,7 +2501,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }
         
         grid_values$plot <-
-          view_grid_dat(gridfile = grddat[[input$grid_select]], project = input$projectname,
+          view_grid_dat(gridfile = grddat[[input$grid_select]], project = project$name,
                       lon = input$grid_lon, lat = input$grid_lat,
                       value = input$grid_value, split_by = input$grid_split,
                       agg_by = input$grid_agg, gmap = grid_values$gmap)
@@ -2465,34 +2522,34 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         saveOutputUI(paste0(fleet_id(), "-saveOut"))
         })
 
-      saveDataTableServ("fleet", values, reactive(input$projectname))
+      saveDataTableServ("fleet", values, reactive(project$name))
 
       closeAppServ("fleet")
 
-      refreshServ("fleet", values, reactive(input$projectname))
+      refreshServ("fleet", values, reactive(project$name))
       
       output$run_fleet_fun <- renderUI(runFunUI(fleet_id()))
       
       # server modules
-      density_serv("den", values, reactive(input$projectname))
+      density_serv("den", values, reactive(project$name))
 
-      vessel_serv("ves",  values, reactive(input$projectname))
+      vessel_serv("ves",  values, reactive(project$name))
 
-      species_serv("spec", values, reactive(input$projectname))
+      species_serv("spec", values, reactive(project$name))
 
-      roll_serv("roll", values, reactive(input$projectname))
+      roll_serv("roll", values, reactive(project$name))
 
-      weekly_catch_serv("wc", values, reactive(input$projectname))
+      weekly_catch_serv("wc", values, reactive(project$name))
 
-      weekly_effort_serv("we", values, reactive(input$projectname))
+      weekly_effort_serv("we", values, reactive(project$name))
 
-      bycatch_serv("by", values, reactive(input$projectname))
+      bycatch_serv("by", values, reactive(project$name))
 
-      trip_serv("trip", values, reactive(input$projectname))
+      trip_serv("trip", values, reactive(project$name))
 
-      fleet_table_serv("f_table", values, reactive(input$projectname))
+      fleet_table_serv("f_table", values, reactive(project$name))
 
-      fleet_assign_serv("f_assign", values, reactive(input$projectname))
+      fleet_assign_serv("f_assign", values, reactive(project$name))
 
       # R expr output
       #RexpressionServ("fleet", values)
@@ -2579,7 +2636,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         } else if(length(input$corr_select)>2){
           ggcorrplot::ggcorrplot(round(cor(values$dataset[,input$corr_select], use="complete.obs"), 2), 
                                  type='lower',outline.color = 'white', hc.order=TRUE,show.diag=TRUE,
-                                 title = paste("Correlation matrix plot for", input$projectname, "data"),
+                                 title = paste("Correlation matrix plot for", project$name, "data"),
                                  ggtheme=ggplot2::theme_minimal())
         } 
         }
@@ -3065,15 +3122,15 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                                use.geartype=input$use_geartype, sp.col=input$sp_col, target=input$target)
         } else if(input$VarCreateTop=='Data transformations'&input$trans=='group_perc'){
           q_test <- quietly_test(group_perc)
-          values$dataset <- q_test(values$dataset, project=input$projectname, id_group=input$perc_id_grp, group=input$perc_grp,
+          values$dataset <- q_test(values$dataset, project=project$name, id_group=input$perc_id_grp, group=input$perc_grp,
                                    value=input$perc_value, name=input$varname, create_group_ID=input$perc_id_col, drop_total_col=input$perc_drop)
         } else if(input$VarCreateTop=='Data transformations'&input$trans=='group_diff'){
           q_test <- quietly_test(group_diff)
-          values$dataset <- q_test(values$dataset, project=input$projectname, group=input$diff_grp,  sort_by=input$diff_sort,
+          values$dataset <- q_test(values$dataset, project=project$name, group=input$diff_grp,  sort_by=input$diff_sort,
                                    value=input$diff_value, name=input$varname, create_group_ID=input$diff_id_col, drop_total_col=input$diff_drop)
         } else if(input$VarCreateTop=='Data transformations'&input$trans=='group_cumsum'){
           q_test <- quietly_test(group_cumsum)
-          values$dataset <- q_test(values$dataset, project=input$projectname, group=input$cumsum_grp,  sort_by=input$cumsum_sort,
+          values$dataset <- q_test(values$dataset, project=project$name, group=input$cumsum_grp,  sort_by=input$cumsum_sort,
                                    value=input$cumsum_value, name=input$varname, create_group_ID=input$cumsum_id_col, drop_total_col=input$cumsum_drop)
         } else if(input$VarCreateTop=='Arithmetic functions'&input$numfunc=='create_var_num'){
               q_test <- quietly_test(create_var_num)
@@ -3089,7 +3146,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           }
         } else if (input$VarCreateTop=='Spatial functions' & input$dist=='zone'){
           q_test <- quietly_test(assignment_column)
-          values$dataset <- q_test(dat=values$dataset, input$projectname, gridfile=spatdat$dataset, 
+          values$dataset <- q_test(dat=values$dataset, project$name, gridfile=spatdat$dataset, 
                                     lon.dat=input$lon_dat_zone, lat.dat=input$lat_dat_zone, 
                                     cat=input$cat_zone, closest.pt = input$closest_pt_zone, lon.grid=input$lon_grid_zone,
                                     lat.grid=input$lat_grid_zone, hull.polygon = input$hull_polygon_zone, epsg=NULL)
@@ -3133,7 +3190,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                                                 input$lat_dat_SL, input$cat_SL, input$varname, input$lon_grid_SL, input$lat_grid_SL)
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='haul_to_trip'){
               q_test <- quietly_test(haul_to_trip)
-              values$dataset <- q_test(values$dataset, project=input$projectname, input$fun_numeric, input$fun_time, input$Haul_Trip_IDVar)
+              values$dataset <- q_test(values$dataset, project=project$name, input$fun_numeric, input$fun_time, input$Haul_Trip_IDVar)
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='trip_distance'){
               q_test <- quietly_test(create_trip_distance)
               values$dataset <- q_test(values$dataset, PortTable = input$port_dat_dist, trip_id = input$trip_ID, 
@@ -3326,7 +3383,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         } else if(input$temp_var=='none'){
           return()
         } else{
-          sparsetable(values$dataset, project=input$projectname, timevar=input$temp_var, zonevar='ZoneID', var=input$catche)
+          sparsetable(values$dataset, project=project$name, timevar=input$temp_var, zonevar='ZoneID', var=input$catche)
         }
       })
       
@@ -3339,7 +3396,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         } else if(input$temp_var=='none'){
           return()
         } else {
-          print(sparsplot(sparstable_dat(), input$projectname))
+          print(sparsplot(sparstable_dat(), project$name))
         }
       })
       
@@ -3357,11 +3414,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       # enable model saving if final table exists
       observeEvent(input$tabs == 'models', {
         shinyjs::toggleState("submit", 
-                             condition = {table_exists(paste0(input$projectname, "MainDataTable_final"))})
+                             condition = {table_exists(paste0(project$name, "MainDataTable_final"))})
       })
       
       output$disableMsg <- renderUI({
-        if (!table_exists(paste0(input$projectname, "MainDataTable_final"))) {
+        if (!table_exists(paste0(project$name, "MainDataTable_final"))) {
           
           div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; text-align: justify; padding: 5px;",
               p("Final dataset must be saved before modeling"))
@@ -3445,9 +3502,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       Alt_vars <- reactive({
         if(!exists("Alt")) {
         if(!exists('AltMatrixName')) {
-          if(DBI::dbExistsTable( DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0(input$projectname, 'altmatrix'))){
+          if(DBI::dbExistsTable( DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0(project$name, 'altmatrix'))){
           return(unserialize(DBI::dbExecute( DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0("SELECT AlternativeMatrix FROM ", 
-                                                                                              input$projectname, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]]))
+                                                                                              project$name, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]]))
           } else {
             warning("Alternative Choice Matrix does not exist. Please run the createAlternativeChoice() function.")
             return(data.frame('choice'=NA, 'X2'=NA, 'X3'=NA))
@@ -3579,7 +3636,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                 'vars1'= '',
                                 'vars2'='', 
                                 'catch'='',
-                                'project'=input$projectname, 
+                                'project'=project$name, 
                                 'price'='',
                                 'startloc'='',
                                 'polyn'='')
@@ -3593,7 +3650,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                'vars1'= paste(input$indeVarsForModel, collapse=', '),
                                'vars2'=input$gridVariablesInclude, 
                                'catch'=input$catch,
-                               'project'=input$projectname, 
+                               'project'=project$name, 
                                'price'=input$price,
                                'startloc'=if(input$startlocdefined=='exists'){input$startloc_mod} else {'startingloc'}, 
                                'polyn'=input$polyn)
@@ -3606,12 +3663,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         ###Now save table to sql database. Will overwrite each time we add a model
         fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
         #First, remove any old instances of the table
-        if(DBI::dbExistsTable(fishset_db, paste0(input$projectname,'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))==TRUE){
-          DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0(input$projectname, 'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))
+        if(DBI::dbExistsTable(fishset_db, paste0(project$name,'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))==TRUE){
+          DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0(project$name, 'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))
         }
         
-        if(DBI::dbExistsTable(fishset_db, paste0(input$projectname, 'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))==FALSE){
-          DBI::dbExecute(fishset_db, paste0("CREATE TABLE ", paste0(input$projectname,'modelDesignTable', format(Sys.Date(), format="%Y%m%d")),
+        if(DBI::dbExistsTable(fishset_db, paste0(project$name, 'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))==FALSE){
+          DBI::dbExecute(fishset_db, paste0("CREATE TABLE ", paste0(project$name,'modelDesignTable', format(Sys.Date(), format="%Y%m%d")),
                                             "(mod_name TEXT, likelihood TEXT, optimOpt TEXT, inits TEXT, 
                                             optmeth TEXT, vars1 TEXT, vars2 TEXT,   catch TEXT, 
                                            lon TEXT, lat TEXT, project TEXT, price TEXT, startloc TEXT, polyn TEXT)"))
@@ -3619,7 +3676,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         # Construct the update query by looping over the data fields
         query <- sprintf(
           "INSERT INTO %s (%s) VALUES %s",
-          paste0(input$projectname,'modelDesignTable', format(Sys.Date(), format="%Y%m%d")),
+          paste0(project$name,'modelDesignTable', format(Sys.Date(), format="%Y%m%d")),
           paste(names(data.frame(as.data.frame(isolate(rv$data #model_table()
                                                        )))), collapse = ", "),
           paste0("('", matrix(apply(as.data.frame(isolate(rv$data #model_table()
@@ -3720,7 +3777,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                 showNotification('Model is running. Models can take 30 minutes.
                                   All buttons are inactive while model function is running.
                                   Check R console for progress.', type='message', duration=30)
-                discretefish_subroutine(input$projectname, select.model=FALSE) #, name='discretefish_subroutine')              
+                discretefish_subroutine(project$name, select.model=FALSE) #, name='discretefish_subroutine')              
         #    ), type='message', duration=10)
                 showNotification('Model run is complete. Check the `Compare Models` subtab to view output', type='message', duration=10)
           toggle_inputs(input_list,T)
@@ -3740,11 +3797,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         inputs 
       } 
       
-      temp <- isolate(paste0(input$projectname, "modelfit"))
+      temp <- isolate(paste0(project$name, "modelfit"))
       this_table <- reactive(
-        if(DBI::dbExistsTable(fishset_db, paste0(input$projectname, 'modelfit'))){
+        if(DBI::dbExistsTable(fishset_db, paste0(project$name, 'modelfit'))){
           data.frame(t(DBI::dbExecute(DBI::dbConnect(RSQLite::SQLite(), locdatabase()), 
-                                       paste0("SELECT * FROM ", paste0(input$projectname, "modelfit")))))
+                                       paste0("SELECT * FROM ", paste0(project$name, "modelfit")))))
         } else {
           data.frame('X1'=NA, 'X2'=NA, 'X3'=NA, 'X4'=NA)
         }
@@ -3827,8 +3884,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       #Add in two more tables for model evaulations
       fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
       mod_sum_out <- reactive({
-        if(DBI::dbExistsTable(fishset_db, paste0(input$projectname, 'modelOut', format(Sys.Date(), format="%Y%m%d")))){#pollockmodelOut20190610#))
-          model_out_view(paste0(input$projectname, 'modelOut', format(Sys.Date(), format="%Y%m%d")))#pollockmodelOut20190610))#
+        if(DBI::dbExistsTable(fishset_db, paste0(project$name, 'modelOut', format(Sys.Date(), format="%Y%m%d")))){#pollockmodelOut20190610#))
+          model_out_view(paste0(project$name, 'modelOut', format(Sys.Date(), format="%Y%m%d")))#pollockmodelOut20190610))#
       } else {
          data.frame('var1'=0, 'var2'=0)
       }
@@ -3875,7 +3932,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               showNotification('Function can take a couple minutes. A message will appear when done.',
                                type='message', duration=20)
               q_test <- quietly_test(create_alternative_choice)
-              q_test(values$dataset, project=input$projectname, gridfile=spatdat$dataset, alt_var=input$alt_var_ac, 
+              q_test(values$dataset, project=project$name, gridfile=spatdat$dataset, alt_var=input$alt_var_ac, 
                                   occasion=input$occasion_ac, griddedDat=NULL, dist.unit=input$dist_ac, min.haul=input$min_haul_ac,
                                   cat=input$cat_altc, lon.dat=input$lon_dat_ac, lat.dat=input$lat_dat_ac,
                                   hull.polygon=input$hull_polygon_ac, lon.grid=input$long_grid_altc, lat.grid=input$lat_grid_altc, 
@@ -3885,7 +3942,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       observeEvent(input$submitE, {
                 q_test <- quietly_test(create_expectations)
-                q_test(values$dataset, input$projectname, input$catche, price=input$price, 
+                q_test(values$dataset, project$name, input$catche, price=input$price, 
                                     defineGroup=if(grepl('no group',input$group)){'fleet'} else {input$group},  
                             temp.var=input$temp_var, temporal = input$temporal, calc.method = input$calc_method, lag.method = input$lag_method,
                             empty.catch = input$empty_catch, empty.expectation = input$empty_expectation, temp.window = input$temp_window,  
@@ -3908,13 +3965,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
         
         if (input$SelectDatasetExplore == "main") {
-          DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'MainDataTable'), values$dataset, overwrite=TRUE)
+          DBI::dbWriteTable(fishset_db, paste0(project$name, 'MainDataTable'), values$dataset, overwrite=TRUE)
         } else if (input$SelectDatasetExplore == "port") {
-          DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'PortTable'), ptdat$dataset, overwrite=TRUE)
+          DBI::dbWriteTable(fishset_db, paste0(project$name, 'PortTable'), ptdat$dataset, overwrite=TRUE)
         } else if (input$SelectDatasetExplore == "grid") {
-          DBI::dbWriteTable(fishset_db, paste0(input$projectname, input$GridName), grddat$dataset, overwrite=TRUE)
+          DBI::dbWriteTable(fishset_db, paste0(project$name, input$GridName), grddat$dataset, overwrite=TRUE)
         } else if (input$SelectDatasetExplore == "auxiliary") {
-          DBI::dbWriteTable(fishset_db, paste0(input$projectname, input$AuxName), aux$dataset, overwrite=TRUE)
+          DBI::dbWriteTable(fishset_db, paste0(project$name, input$AuxName), aux$dataset, overwrite=TRUE)
         }
         DBI::dbDisconnect(fishset_db)
         showNotification('Data saved to FishSET database', type='message', duration=10)
@@ -3922,7 +3979,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       observeEvent(input$saveDataQ, {
         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-        DBI::dbWriteTable(fishset_db, paste0(input$projectname, 'MainDataTable'), values$dataset, overwrite=TRUE)
+        DBI::dbWriteTable(fishset_db, paste0(project$name, 'MainDataTable'), values$dataset, overwrite=TRUE)
         DBI::dbDisconnect(fishset_db) 
         showNotification('Data saved to FishSET database', type='message', duration=10)
         
@@ -3988,10 +4045,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       output$exportData <- downloadHandler(
         filename = function() {
-          paste0(input$projectname, "MainDataTable", file_ext())
+          paste0(project$name, "MainDataTable", file_ext())
         },
         content = function(file) {
-          write_dat(values$dataset, file = file, file_type = input$export_type, input$projectname)
+          write_dat(values$dataset, file = file, file_type = input$export_type, project$name)
         }
       )
       
@@ -4019,7 +4076,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         
         q_test <- quietly_test(check_model_data)
         save_final$out <- q_test(dat = values$dataset, 
-                                 dataindex = paste0(input$projectname, "MainDataTableInfo"), 
+                                 dataindex = paste0(project$name, "MainDataTableInfo"), 
                                  uniqueID = input$final_uniqueID)
         
       })
@@ -4061,7 +4118,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                    input$callTextDownloadModels,
                    input$callTextDownloadBook),{
                     
-                     if (input$projectname == "") {
+                     if (!isTruthy(project$name)) {
+                       
                        showNotification("Enter a project name. Note not saved.", type = 'message', duration = 5)
                        
                      } else {
@@ -4100,10 +4158,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       observeEvent(input$downloadplot, {
         output$downloadplotHIDE <<- downloadHandler(
           filename = function() {
-            paste0(locoutput(), input$projectname, "_", 'Outlier.png')
+            paste0(locoutput(), project$name, "_", 'Outlier.png')
           },
           content = function(file) {
-            ggplot2::ggsave(file, plot=outlier_plot(values$dataset, input$projectname, input$column_check, input$dat.remove, input$x_dist))
+            ggplot2::ggsave(file, plot=outlier_plot(values$dataset, project$name, input$column_check, input$dat.remove, input$x_dist))
           })
         jsinject <- "setTimeout(function(){window.open($('#downloadplotHIDE').attr('href'))}, 100);"
         session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
@@ -4113,9 +4171,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         output$downloadplotAnalHIDE <<- downloadHandler(
           filename = function() {
             if(input$corr_reg=='Correlation'){
-              paste0(locoutput(), input$projectname, "_", 'CorrelationPlot.png')
+              paste0(locoutput(), project$name, "_", 'CorrelationPlot.png')
             } else {
-              paste0(locoutput(), input$projectname,"_", 'RegressionPlot.png')
+              paste0(locoutput(), project$name,"_", 'RegressionPlot.png')
             }
           },
           content = function(file) {
@@ -4134,11 +4192,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           filename = function() {
             if(input$plot_type=='Temporal'){
               
-              paste0(locoutput(), input$projectname, "_", 'TemporalPlot.png')
+              paste0(locoutput(), project$name, "_", 'TemporalPlot.png')
             } else if(input$plot_type=='Spatial') {
-              paste0(locoutput(), input$projectname,"_", 'SpatialPlot.png') 
+              paste0(locoutput(), project$name,"_", 'SpatialPlot.png') 
             } else {
-              paste0(locoutput(), input$projectname,"_", 'x-yPlot.png') 
+              paste0(locoutput(), project$name,"_", 'x-yPlot.png') 
             }
           },
           content = function(file) {
@@ -4169,30 +4227,30 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
       
       # save grid plot in Explore tab
-      plotSaveServ("grid_plot", reactive(input$projectname), "view_grid_dat", grid_values, in_list = TRUE)
+      plotSaveServ("grid_plot", reactive(project$name), "view_grid_dat", grid_values, in_list = TRUE)
       
       observeEvent(input$downloadTableExplore, {
-        write.csv(gtmt_table(), paste0(locoutput(), input$projectname, '_', 'GetisOrdMoransI.csv'))
+        write.csv(gtmt_table(), paste0(locoutput(), project$name, '_', 'GetisOrdMoransI.csv'))
       })
       
       observeEvent(input$downloaddata, {
         if(input$checks=='Summary table'){
-          write.csv(tableInputSummary(), paste0(locoutput(), input$projectname, '_', 'summary_table.csv'))
+          write.csv(tableInputSummary(), paste0(locoutput(), project$name, '_', 'summary_table.csv'))
         } else if(input$checks=='Outliers'){
-          write.csv(tableInputOutlier(), paste0(locoutput(), input$projectname, '_', 'outlier_table.csv'))
+          write.csv(tableInputOutlier(), paste0(locoutput(), project$name, '_', 'outlier_table.csv'))
         }
       })
       
       observeEvent(input$downloaddataAnal, {
         if(input$corr_reg=='Correlation'){
         if(length(input$corr_select)>2){
-            write.csv(tableInputCorr(), paste0(locoutput(), input$projectname,'_', 'correlation_table.csv'))
+            write.csv(tableInputCorr(), paste0(locoutput(), project$name,'_', 'correlation_table.csv'))
         } else {
-            sink(paste0(locoutput(),input$projectname, "_", 'correlation_analysis_output.csv'))
+            sink(paste0(locoutput(),project$name, "_", 'correlation_analysis_output.csv'))
             print(cor.test(values$dataset[[input$corr_select[1]]], values$dataset[[input$corr_select[2]]]))
             sink()
        }} else {
-            sink(paste0(locoutput(), input$projectname,'_', 'regression_model_output.csv'))
+            sink(paste0(locoutput(), project$name,'_', 'regression_model_output.csv'))
             print(p2())
             sink()
         }
@@ -4233,21 +4291,21 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           req(bookmarkedstate()$loadDat==1)
           if(bookmarkedstate()$loadmainsource=="FishSET database"){
           updateTextInput(session, 'projectname', value = bookmarkedstate()$projectname)
-          #values$dataset <- table_view(paste0(input$projectname, 'MainDataTable'))
+          #values$dataset <- table_view(paste0(project$name, 'MainDataTable'))
           }
       })
       
       observe({
         req(input$uploadbookmark)
-        req(input$projectname)
+        req(project$name)
         req(bookmarkedstate()$loadDat==1)
         if(bookmarkedstate()$loadmainsource=="FishSET database"){
-          values$dataset <- table_view(paste0(input$projectname, 'MainDataTable'))
+          values$dataset <- table_view(paste0(project$name, 'MainDataTable'))
         }
       })
       
       observeEvent(input$uploadbookmark, {
-        req(input$projectname)
+        req(project$name)
         if(colnames(values$dataset)[1]!='var1'){
           #---
         updateSelectInput(session, "alt_var_ac", selected = bookmarkedstate()$alt_var_ac) 
@@ -4416,7 +4474,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
      
       onStop(function() {
         
-        if (isolate(input$projectname) != "") {
+       # if (isolate(input$projectname) != "") {
+        if (isTruthy(isolate(project$name))) {
         
           if (sum(isolate(c(input$callTextDownload,
                     input$callTextDownloadAnal,
@@ -4431,16 +4490,16 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
   
             notes_out <- unlist(isolate(savedText$answers))
   
-            filename <- paste0(locoutput(), isolate(input$projectname), "_notes_", Sys.Date(), ".txt")
+            filename <- paste0(locoutput(), isolate(project$name), "_notes_", Sys.Date(), ".txt")
     
             if (file.exists(filename)) {
     
-              note_pd <- paste0(isolate(input$projectname), "_notes_", Sys.Date())
+              note_pd <- paste0(isolate(project$name), "_notes_", Sys.Date())
     
               note_int <- sum(grepl(note_pd, current_out()))
     
               writeLines(notes_out,
-                         con = paste0(locoutput(), isolate(input$projectname),
+                         con = paste0(locoutput(), isolate(project$name),
                                       "_notes_", Sys.Date(), "(", (note_int + 1), ").txt"))
     
             } else {
