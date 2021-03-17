@@ -154,6 +154,32 @@ model_fit <- function(project) {
   DBI::dbDisconnect(fishset_db)
 }
 
+projects <- function() {
+  #' Display projects names
+  #' @export
+  #' @details Lists the unique project names currently in the FishSET Database. 
+  #' @importFrom stringr str_extract
+  #' @examples 
+  #' \dontrun{
+  #' projects()
+  #' } 
+  p_tabs <- grep("MainDataTable", tables_database(), value = TRUE)
+  
+  if (length(p_tabs) == 0) {
+    
+    warning("No projects found. Upload a new file to create a project.")
+  
+  } else {
+    
+    p_tabs <- stringr::str_extract(p_tabs, "^.+MainDataTable")
+    
+    p_names <- gsub("MainDataTable", "", p_tabs)
+    p_names <- unique(p_names)
+    
+    p_names
+  }
+}
+
 project_tables <- function(project, ...) {
   #' Display database table names by project
   #' 
@@ -175,5 +201,40 @@ project_tables <- function(project, ...) {
   } else {
     
     out
+  }
+}
+
+main_tables <- function(project = NULL) {
+  #' Display MainDataTables
+  #' 
+  #' @param project A project name to filter main tables by. Returns all MainDataTables
+  #'   if \code{NULL}.
+  #' @export
+  #' @examples 
+  #' \dontrun{
+  #' main_tables()
+  #' main_tables("pollock")
+  #' }
+  
+  if (is.null(project)) {
+    
+    p_tabs <- grep("MainDataTable", tables_database(), value = TRUE)
+    p_tabs <- p_tabs[!grepl("MainDataTableInfo", p_tabs)]
+    
+    p_tabs
+    
+  } else {
+    
+    if (project %in% projects()) {
+      
+      p_tabs <- grep(paste0(project, "MainDataTable"), tables_database(), value = TRUE)
+      p_tabs <- p_tabs[!grepl("MainDataTableInfo", p_tabs)]
+      
+      p_tabs
+      
+    } else {
+      
+      warning("Project name not found in FishSET Database. Check spelling.")
+    }
   }
 }
