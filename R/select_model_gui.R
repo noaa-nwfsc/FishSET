@@ -19,7 +19,7 @@
 #'   The 'modelChosen' table is not used in any functions. The purpose of this function and the 'modelChosen' table is to save a reference of the preferred model.
 #' @examples
 #' \dontrun{
-#' select_model("pollockmodelfit", overwrite_table = FALSE)
+#' select_model("pollock", overwrite_table = FALSE)
 #' }
 #'
 select_model <- function(project, overwrite_table=FALSE) {
