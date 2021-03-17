@@ -1045,10 +1045,18 @@ source("map_viewer_app.R", local = TRUE)
                                  "Close app"
                                ),
                                tags$br(),
-                               actionButton("addModel", "Save model and add new model", style="color: #fff; background-color: #337ab7; border-color: #800000;"),
+                               
+                               # Models can't be run if final dataset not detected
+                               uiOutput("disableMsg"),
+                               
+                                 actionButton("addModel", "Save model and add new model", 
+                                              style="color: #fff; background-color: #337ab7; border-color: #800000;"),
+                               
                                tags$br(),
                                conditionalPanel("input.addModel!='0'",
+                                  shinyjs::disabled(
                                    actionButton("submit", "Run model(s)", style="color: #fff; background-color: #6da363; border-color: #800000;")
+                                  )
                                ),
                                tags$br(),tags$br(),
                                tags$p(tags$strong("More information"), tags$br(),

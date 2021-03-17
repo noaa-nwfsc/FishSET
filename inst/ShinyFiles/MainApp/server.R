@@ -1479,10 +1479,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           }
         } else if(input$checks=='NAs'){
           #na(values$dataset)
-          na_filter(values$dataset, x=qaqc_helper(values$dataset, "NA", "names"), 
+          na_filter(values$dataset, x=FishSET:::qaqc_helper(values$dataset, "NA", "names"), 
                     replace = FALSE, remove = FALSE, rep.value=NA, over_write=FALSE)
         } else if(input$checks=='NaNs'){
-          nan_filter(values$dataset, x=qaqc_helper(values$dataset, "NaN", "names"), 
+          nan_filter(values$dataset, x=FishSET:::qaqc_helper(values$dataset, "NaN", "names"), 
                      replace = FALSE, remove = FALSE, rep.value=NA,  over_write=FALSE)
         } else if(input$checks=='Unique observations'){
           unique_filter(values$dataset, project = input$projectname, remove=FALSE)
@@ -1529,15 +1529,15 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             }
           } else if(input$checks=='NAs'){
             
-            na_names <- qaqc_helper(values$dataset, "NA", "names")
-            na_quantity <- qaqc_helper(values$dataset[na_names], 
+            na_names <- FishSET:::qaqc_helper(values$dataset, "NA", "names")
+            na_quantity <- FishSET:::qaqc_helper(values$dataset[na_names], 
                                        function(x) sum(is.na(x)), "value")
             
-            nan_names <- qaqc_helper(values$dataset, "NaN", "names")
-            nan_quantity <- qaqc_helper(values$dataset[nan_names], 
+            nan_names <- FishSET:::qaqc_helper(values$dataset, "NaN", "names")
+            nan_quantity <- FishSET:::qaqc_helper(values$dataset[nan_names], 
                                         function(x) sum(is.nan(x)), "value")
            
-            if (any(qaqc_helper(values$dataset, "NA"))) {
+            if (any(FishSET:::qaqc_helper(values$dataset, "NA"))) {
       
               if(input$NA_Filter_all==0&input$NA_Filter_mean==0){ 
                 g <- paste("Occurrence of missing values checked. The",
@@ -1563,13 +1563,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                              "rows containing missing values were removed from the data set.\n")#)
                   } else if(input$NA_Filter_mean>0){
                     #case_to_print$dataQuality <- c(case_to_print$dataQuality, 
-                    g <- paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(qaqc_helper(values$dataset, "NA", "names"), collapse = ", ")), "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
+                    g <- paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(FishSET:::qaqc_helper(values$dataset, "NA", "names"), collapse = ", ")), "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
                                                                                                                                                                                                                                                                 function(x) length(which(is.na(x)==TRUE))), collapse=", ")), "missing values. Missing values were replaced with the mean values of", names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), "respectively.\n")#)
                   }
                 } 
               }
  
-            if (any(qaqc_helper(values$dataset, "NaN"))) {
+            if (any(FishSET:::qaqc_helper(values$dataset, "NaN"))) {
            
               if(input$NAN_Filter_all==0 & input$NAN_Filter_mean==0){
                 case_to_print$dataQuality <- c(case_to_print$dataQuality, 
@@ -1609,9 +1609,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             }
           } else if(input$checks=='Empty variables'){
             
-            if(any(qaqc_helper(values$dataset, function(x) all(is.na(x))))) {
+            if(any(FishSET:::qaqc_helper(values$dataset, function(x) all(is.na(x))))) {
               
-              empty_names <- qaqc_helper(values$dataset, function(x) all(is.na(x)), "names")
+              empty_names <- FishSET:::qaqc_helper(values$dataset, function(x) all(is.na(x)), "names")
               
               if(input$Empty_Filter==0){
                 case_to_print$dataQuality <- c(case_to_print$dataQuality, 
@@ -1627,7 +1627,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             }
           } else if(input$checks=='Lat_Lon units'){
             
-            if(any(qaqc_helper(values$dataset[find_lonlat(values$dataset)], function(x) !is.numeric(x)))){
+            if(any(FishSET:::qaqc_helper(values$dataset[find_lonlat(values$dataset)], function(x) !is.numeric(x)))){
               if(input$LatLon_Filter==FALSE){
                 case_to_print$dataQuality <- c(case_to_print$dataQuality, 'Latitude and longitude units were checked and are not in decimal degrees.\n')
               } else {
@@ -3353,6 +3353,20 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       inline = function (x) {
         tags$div(style="display:inline-block;", x)
       }
+      
+      # enable model saving if final table exists
+      observeEvent(input$tabs == 'models', {
+        shinyjs::toggleState("submit", 
+                             condition = {table_exists(paste0(input$projectname, "MainDataTable_final"))})
+      })
+      
+      output$disableMsg <- renderUI({
+        if (!table_exists(paste0(input$projectname, "MainDataTable_final"))) {
+          
+          div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; text-align: justify; padding: 5px;",
+              p("Final dataset must be saved before modeling"))
+        }
+      })
       
       output$catch_out <- renderUI({
         tagList(
