@@ -183,7 +183,8 @@ source("map_viewer_app.R", local = TRUE)
                              ),
                              tags$br(), tags$br(),
                              fluidRow(
-                               textInput('projectname', 'Name of project'),
+                              
+                                uiOutput("projects"), # define project name
                                column(4, radioButtons('loadmainsource', "Source primary data from:", choices=c( 'Upload new file','FishSET database'), selected='Upload new file', inline=TRUE)),
                                uiOutput('main_upload')),
                            
