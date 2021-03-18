@@ -332,7 +332,7 @@ density_serv <- function(id, values, project) {
     output$var_select <- renderUI({
       
       selectInput(ns("var"), "Select variable",
-                  choices = c(numeric_cols(values$dataset)))
+                  choices = c(FishSET:::numeric_cols(values$dataset)))
     })
     
     output$grp_select <- renderUI({
@@ -559,7 +559,7 @@ vessel_serv <- function(id, values, project) {
     output$date_select <- renderUI({
       
       selectizeInput(ns("date"), "Date variable",
-                     choices = c(date_cols(values$dataset)), multiple = TRUE,
+                     choices = c(FishSET:::date_cols(values$dataset)), multiple = TRUE,
                      options = list(maxItems = 1, create = TRUE,
                                     placeholder = "Select or type variable name"))
     })
@@ -567,7 +567,7 @@ vessel_serv <- function(id, values, project) {
     output$sub_date_select <- renderUI({
       
       selectizeInput(ns("sub_date"), "Date variable", 
-                     choices = date_cols(values$dataset), multiple = TRUE,
+                     choices = FishSET:::date_cols(values$dataset), multiple = TRUE,
                      options = list(maxItems = 1, create = TRUE,
                                     placeholder = "Select or type variable name"))
     })
@@ -587,7 +587,7 @@ vessel_serv <- function(id, values, project) {
           if(is.null(input$sub_date) & is.null(input$fct_date)) {
             
             selectizeInput(ns("grp_date"), "Date variable",
-                           choices = date_cols(values$dataset),
+                           choices = FishSET:::date_cols(values$dataset),
                            multiple = TRUE, options = list(maxItems = 1, create = TRUE, 
                                                            placeholder = "Select or type variable name"))
           }
@@ -611,7 +611,7 @@ vessel_serv <- function(id, values, project) {
           if (is.null(input$sub_date) & is.null(input$grp_date)) {
             
             selectizeInput(ns("fct_date"), "Date variable",
-                           choices = date_cols(values$dataset),
+                           choices = FishSET:::date_cols(values$dataset),
                            multiple = TRUE, options = list(maxItems = 1, create = TRUE, 
                                                            placeholder = "Select or type variable name"))
           }
@@ -674,7 +674,7 @@ vessel_serv <- function(id, values, project) {
     # reset date if not summing over period
     observeEvent(input$period == "no_period", {
       
-      updateSelectInput(session, "date",  choices = date_cols(values$dataset))
+      updateSelectInput(session, "date",  choices = FishSET:::date_cols(values$dataset))
     })
     
     # reset if subset is unchecked
@@ -686,7 +686,7 @@ vessel_serv <- function(id, values, project) {
     
     observeEvent(input$date_subset_cb == FALSE, {
       
-      updateSelectizeInput(session, "sub_date", choices = date_cols(values$dataset), 
+      updateSelectizeInput(session, "sub_date", choices = FishSET:::date_cols(values$dataset), 
                            options = list(maxItems = 1, create = TRUE,
                                           placeholder = "Select or type variable name"))
       
@@ -709,7 +709,7 @@ vessel_serv <- function(id, values, project) {
                            choices = c("year", "month", "week", category_cols(values$dataset)), 
                            options = list(create = TRUE, placeholder = "Select or type variable name"))
       
-      updateSelectizeInput(session, "grp_date", choices = date_cols(values$dataset),
+      updateSelectizeInput(session, "grp_date", choices = FishSET:::date_cols(values$dataset),
                            options = list(maxItems = 1, create = TRUE,
                                           placeholder = "Select or type variable name"))
       
@@ -724,7 +724,7 @@ vessel_serv <- function(id, values, project) {
                            selected = NULL,
                            options = list(maxItems = 2))
       
-      updateSelectizeInput(session, "fct_date", choices = date_cols(values$dataset),
+      updateSelectizeInput(session, "fct_date", choices = FishSET:::date_cols(values$dataset),
                            options = list(maxItems = 1, create = TRUE, 
                                           placeholder = "Select or type variable name"))
     })
@@ -796,13 +796,13 @@ species_serv <- function(id, values, project) {
     output$var_select <- renderUI({
       
       selectizeInput(ns("var"), "Catch variable",
-                     choices = c(numeric_cols(values$dataset)), multiple = TRUE)
+                     choices = c(FishSET:::numeric_cols(values$dataset)), multiple = TRUE)
     })
     
     output$date_select <- renderUI({
       
        selectizeInput(ns("date"), "Date variable",
-                    choices = c(date_cols(values$dataset)), multiple = TRUE,
+                    choices = c(FishSET:::date_cols(values$dataset)), multiple = TRUE,
                     options = list(maxItems = 1, create = TRUE,
                                    placeholder = "Select or type variable name"))
     })
@@ -810,7 +810,7 @@ species_serv <- function(id, values, project) {
     output$sub_date_select <- renderUI({
       
       selectizeInput(ns("sub_date"), "Date variable", 
-                     choices = date_cols(values$dataset), multiple = TRUE,
+                     choices = FishSET:::date_cols(values$dataset), multiple = TRUE,
                      options = list(maxItems = 1, create = TRUE,
                                     placeholder = "Select or type variable name"))
     })
@@ -830,7 +830,7 @@ species_serv <- function(id, values, project) {
           if(is.null(input$sub_date) & is.null(input$fct_date)) {
             
             selectizeInput(ns("grp_date"), "Date variable",
-                           choices = date_cols(values$dataset),
+                           choices = FishSET:::date_cols(values$dataset),
                            multiple = TRUE, options = list(maxItems = 1, create = TRUE, 
                                                            placeholder = "Select or type variable name"))
           }
@@ -854,7 +854,7 @@ species_serv <- function(id, values, project) {
           if (is.null(input$sub_date) & is.null(input$grp_date)) {
             
             selectizeInput(ns("fct_date"), "Date variable",
-                           choices = date_cols(values$dataset),
+                           choices = FishSET:::date_cols(values$dataset),
                            multiple = TRUE, options = list(maxItems = 1, create = TRUE, 
                                                            placeholder = "Select or type variable name"))
           }
@@ -918,7 +918,7 @@ species_serv <- function(id, values, project) {
     # reset date if not summing over period
     observeEvent(input$period == "no_period", {
       
-      updateSelectInput(session, "date",  choices = date_cols(values$dataset))
+      updateSelectInput(session, "date",  choices = FishSET:::date_cols(values$dataset))
     })
     
     # reset if subset is unchecked
@@ -930,7 +930,7 @@ species_serv <- function(id, values, project) {
     
     observeEvent(input$date_subset_cb == FALSE, {
       
-      updateSelectizeInput(session, "sub_date", choices = date_cols(values$dataset), 
+      updateSelectizeInput(session, "sub_date", choices = FishSET:::date_cols(values$dataset), 
                            options = list(maxItems = 1, create = TRUE,
                                           placeholder = "Select or type variable name"))
       
@@ -953,7 +953,7 @@ species_serv <- function(id, values, project) {
                            choices = c("year", "month", "week", category_cols(values$dataset)), 
                            options = list(create = TRUE, placeholder = "Select or type variable name"))
       
-      updateSelectizeInput(session, "grp_date", choices = date_cols(values$dataset),
+      updateSelectizeInput(session, "grp_date", choices = FishSET:::date_cols(values$dataset),
                            options = list(maxItems = 1, create = TRUE,
                                           placeholder = "Select or type variable name"))
       
@@ -968,7 +968,7 @@ species_serv <- function(id, values, project) {
                            selected = NULL,
                            options = list(maxItems = 2))
       
-      updateSelectizeInput(session, "fct_date", choices = date_cols(values$dataset),
+      updateSelectizeInput(session, "fct_date", choices = FishSET:::date_cols(values$dataset),
                            options = list(maxItems = 1, create = TRUE, 
                                           placeholder = "Select or type variable name"))
     })
@@ -1043,19 +1043,19 @@ roll_serv <- function(id, values, project) {
     output$var_select <- renderUI({
       
       selectizeInput(ns("var"), "Select catch variable",
-                     choices = numeric_cols(values$dataset), multiple = TRUE)
+                     choices = FishSET:::numeric_cols(values$dataset), multiple = TRUE)
     })
     
     output$date_select <- renderUI({
       
       selectInput(ns("date"), "Date variable (x-axis)",
-                  choices = date_cols(values$dataset))
+                  choices = FishSET:::date_cols(values$dataset))
     })
     
     output$sub_date_select <- renderUI({
       
       selectizeInput(ns("sub_date"), "Date variable", 
-                     choices = date_cols(values$dataset), multiple = TRUE,
+                     choices = FishSET:::date_cols(values$dataset), multiple = TRUE,
                      options = list(maxItems = 1, create = TRUE,
                                     placeholder = "Select or type variable name"))
     })
@@ -1075,7 +1075,7 @@ roll_serv <- function(id, values, project) {
           if(is.null(input$sub_date) & is.null(input$fct_date)) {
             
             selectizeInput(ns("grp_date"), "Date variable",
-                           choices = date_cols(values$dataset),
+                           choices = FishSET:::date_cols(values$dataset),
                            multiple = TRUE, options = list(maxItems = 1, create = TRUE, 
                                                            placeholder = "Select or type variable name"))
           }
@@ -1099,7 +1099,7 @@ roll_serv <- function(id, values, project) {
           if (is.null(input$sub_date) & is.null(input$grp_date)) {
             
             selectizeInput(ns("fct_date"), "Date variable",
-                           choices = date_cols(values$dataset),
+                           choices = FishSET:::date_cols(values$dataset),
                            multiple = TRUE, options = list(maxItems = 1, create = TRUE, 
                                                            placeholder = "Select or type variable name"))
           }
@@ -1185,7 +1185,7 @@ roll_serv <- function(id, values, project) {
     
     observeEvent(input$date_subset_cb == FALSE, {
       
-      updateSelectizeInput(session, "sub_date", choices = date_cols(values$dataset), 
+      updateSelectizeInput(session, "sub_date", choices = FishSET:::date_cols(values$dataset), 
                            options = list(maxItems = 1, create = TRUE,
                                           placeholder = "Select or type variable name"))
       
@@ -1208,7 +1208,7 @@ roll_serv <- function(id, values, project) {
                            choices = c("year", "month", "week", category_cols(values$dataset)), 
                            options = list(create = TRUE, placeholder = "Select or type variable name"))
       
-      updateSelectizeInput(session, "grp_date", choices = date_cols(values$dataset),
+      updateSelectizeInput(session, "grp_date", choices = FishSET:::date_cols(values$dataset),
                            options = list(maxItems = 1, create = TRUE,
                                           placeholder = "Select or type variable name"))
       
@@ -1278,7 +1278,7 @@ weekly_catch_serv <- function(id, values, project) {
     output$var_select <- renderUI({
       
       selectizeInput(ns("var"), "Select catch variable",
-                     choices = c(numeric_cols(values$dataset)), multiple = TRUE)
+                     choices = c(FishSET:::numeric_cols(values$dataset)), multiple = TRUE)
     })
     
     output$date_select <- renderUI({
@@ -1509,7 +1509,7 @@ weekly_effort_serv <- function(id, values, project) {
     output$var_select <- renderUI({
       
       selectizeInput(ns("var"), "Select CPUE variable",
-                     choices = numeric_cols(values$dataset), multiple = TRUE)
+                     choices = FishSET:::numeric_cols(values$dataset), multiple = TRUE)
     })
     
     output$date_select <- renderUI({
@@ -1738,12 +1738,12 @@ bycatch_serv <- function(id, values, project) {
     
     output$cpue_select <- renderUI({
       selectizeInput(ns("cpue"), "Select CPUE variable(s)",
-                     choices = numeric_cols(values$dataset), multiple = TRUE)
+                     choices = FishSET:::numeric_cols(values$dataset), multiple = TRUE)
     })
     
     output$catch_select <- renderUI({
       selectizeInput(ns("catch"), "Select catch variable(s)",
-                     choices = numeric_cols(values$dataset), multiple = TRUE)
+                     choices = FishSET:::numeric_cols(values$dataset), multiple = TRUE)
     })
     
     output$date_select <- renderUI({
@@ -1994,7 +1994,7 @@ trip_serv <- function(id, values, project) {
     
     output$vpue_select <- renderUI({
       selectizeInput(ns("vpue"), "Calculate value per unit effort (optional)",
-                     choices = c(numeric_cols(values$dataset)), multiple = TRUE)
+                     choices = c(FishSET:::numeric_cols(values$dataset)), multiple = TRUE)
     })
     
     output$sub_date_select <- renderUI({

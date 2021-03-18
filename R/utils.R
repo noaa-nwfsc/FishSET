@@ -1247,6 +1247,83 @@ find_lonlat <- function(dat) {
   grep("lon|lat", colnames(dat), ignore.case = TRUE, value = TRUE)
 }
 
+numeric_cols <- function(dat, out = "names") {
+  #' Find numeric columns in data frame
+  #' 
+  #' @param dat MainDataTable, dataframe, or list to check.
+  #' @param out Whether to return the column \code{"names"} (the default) or a logical vector 
+  #'   (\code{"logical"}).
+  #' @export
+  #' @keywords internal
+  #' @examples 
+  #' \dontrun{
+  #' numeric_cols(pollockMainDataTable)
+  #' }
+  
+  num_cols <- vapply(dat,  FUN = is.numeric, FUN.VALUE = logical(1))
+  
+  if (out == "names") names(num_cols[num_cols])
+  else if (out == "logical") num_cols
+}
+
+date_cols <- function(dat, out = "names") {
+  #' Find columns that can be converted to Date class
+  #' 
+  #' @param dat MainDataTable or dataframe to check.
+  #' @param out Whether to return the column \code{"names"} (the default) or a logical vector 
+  #'   (\code{"logical"}).
+  #' @export
+  #' @keywords internal
+  #' @importFrom stringr str_trim str_remove
+  #' @importFrom purrr map_lgl
+  #' @importFrom rlang expr
+  #' @importFrom lubridate mdy dmy ymd ydm dym
+  #' @examples 
+  #' \dontrun{
+  #' date_cols(pollockMainDataTable) # returns column names
+  #' date_cols(pollockMainDataTable, "logical")
+  #' }
+  
+  # named logical vector to preserve col order
+  date_lgl <- logical(ncol(dat))
+  names(date_lgl) <- names(dat)
+  
+  # lubridate functions to test for
+  date_funs <- list(lubridate::mdy, lubridate::dmy, lubridate::ymd, 
+                    lubridate::ydm, lubridate::dym)
+  
+  date_helper <- function(dates, fun) {
+    
+    dates <- stringr::str_trim(dates)
+    
+    # remove time info
+    dates <- stringr::str_remove(dates, "\\s\\d{2}:\\d{2}:\\d{2}$")
+    
+    out <- rlang::expr(!all(is.na(suppressWarnings((!!fun)(!!dates)))))
+    
+    eval(out)
+  }
+  
+  # apply each function to date vector
+  date_apply <- function(dates) {
+    
+    any(purrr::map_lgl(date_funs, function(fun) date_helper(dates, fun)))
+  }
+  
+  # find cols that can be successfully converted to date
+  # numeric cols excluded for efficiency and to prevent false positives  
+  date_cols <- purrr::map_lgl(dat[!numeric_cols(dat, "logical")], date_apply)
+  
+  date_cols <- date_cols[date_cols]
+  
+  if (out == "names") names(date_cols)
+  else if (out == "logical") {
+    date_lgl[names(date_cols)] <- date_cols # replace w/ TRUE
+    date_lgl
+  }
+}
+
+
 # shiny_running = function () {
 # Look for `runApp` call somewhere in the call stack.
 #  frames = sys.frames()
