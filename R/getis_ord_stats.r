@@ -94,7 +94,8 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
       names(int)[3] = "centroid_lat"
       names(int)[4] = "varofint"
     }
-    # 4. Identify variable of interest 5.
+    
+    #  Identify variable of interest 
     int[["varofint"]] <- with(int, ave(int[["varofint"]], ZoneID, FUN = function(x) mean(x, na.rm = TRUE)))
     uniquedatatomap <- int[!duplicated(int$ZoneID), c("ZoneID", "centroid_lon", "centroid_lat", "varofint")]
 
