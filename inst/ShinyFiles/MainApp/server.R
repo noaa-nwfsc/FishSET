@@ -2187,7 +2187,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       output$column_select <- renderUI({
       #  tags$div(align = 'left', class = 'multicol', 
                  selectInput("col_select", "Select variable", choices = names(values$dataset), 
-                              selected = numeric_cols(values$dataset)[1], 
+                              selected = FishSET:::numeric_cols(values$dataset)[1], 
                               multiple=FALSE, selectize = TRUE)#)
       })
       
@@ -2460,7 +2460,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           selectInput("grid_lat", "Latitude", 
                       choices = FishSET:::find_lat(grddat[[input$grid_select]])),
           selectInput("grid_value", "Value", 
-                      choices = numeric_cols(grddat[[input$grid_select]])),
+                      choices = FishSET:::numeric_cols(grddat[[input$grid_select]])),
           selectInput("grid_split", "Split plot by",
                       choices = c("none", colnames(grddat[[input$grid_select]]))),
           selectInput("grid_agg", "Group mean value by",
@@ -2725,7 +2725,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                          selectInput('perc_grp', 'Select secondary grouping variable(s)',
                                      choices = colnames(values$dataset), multiple = TRUE),
                          selectInput('perc_value', 'Select numeric variable',
-                                     choices = numeric_cols(values$dataset)),
+                                     choices = FishSET:::numeric_cols(values$dataset)),
                          checkboxInput('perc_id_col', 'Create an ID variable'),
                          checkboxInput('perc_drop', 'Drop total columns'))
       })
@@ -2738,7 +2738,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                          selectInput('diff_grp', 'Select secondary grouping variable(s)',
                                      choices = colnames(values$dataset), multiple = TRUE),
                          selectInput('diff_value', 'Select numeric variable',
-                                     choices = numeric_cols(values$dataset)),
+                                     choices = FishSET:::numeric_cols(values$dataset)),
                          checkboxInput('diff_id_col', 'Create an ID variable'),
                          checkboxInput('diff_drop', 'Drop total columns'))
       })
@@ -2751,7 +2751,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                          selectInput('cumsum_grp', 'Select secondary grouping variable(s)',
                                      choices = colnames(values$dataset), multiple = TRUE),
                          selectInput('cumsum_value', 'Select numeric variable',
-                                     choices = numeric_cols(values$dataset)),
+                                     choices = FishSET:::numeric_cols(values$dataset)),
                          checkboxInput('cumsum_id_col', 'Create an ID variable'),
                          checkboxInput('cumsum_drop', 'Drop total columns'))
       })
