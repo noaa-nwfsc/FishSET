@@ -11,20 +11,6 @@ date_select <- function(dat) {
   }
 }
 
-date_cols <- function(dat) {
-  
-#  if (any(grepl("date", colnames(dat), ignore.case = TRUE))) {
-    
-#    grep("date", colnames(dat), ignore.case = TRUE, value = TRUE)
-  names(dat)[which(!is.na(as.Date(as.character(dat[1,]), tz = 'UTC', format = '%Y-%m-%d')))]
-#  }
-}
-
-numeric_cols <- function(dat) {
-  
-  colnames(dat)[vapply(dat,  FUN = is.numeric, FUN.VALUE = logical(1))]
-}
-
 category_cols <- function(dat) {
   
   class_list <- lapply(dat, class) 
