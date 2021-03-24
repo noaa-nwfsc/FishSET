@@ -120,6 +120,7 @@ write_dat <- function (dat, file, file_type = "csv", project, ...) {
   } else { 
     if (!is.character(dat)) dat <- deparse(substitute(dat)) }
   
+  end <- FALSE
   
   if (file_type == "csv") {
     
@@ -159,15 +160,28 @@ write_dat <- function (dat, file, file_type = "csv", project, ...) {
     
   } else {
     warning("Data extention not recognized.")
+    end <- TRUE
   }
   
-  # Log the function
-  write_dat_function <- list()
-  write_dat_function$functionID <- "write_data"
-  write_dat_function$args <- list(dat, file, file_type, project)
-  write_dat_function$kwargs <- list(...)
-  
-  log_call(write_dat_function)
+  if (end == FALSE) {
+    
+    file <- path.expand(file)
+    
+    # Log the function
+    write_dat_function <- list()
+    write_dat_function$functionID <- "write_data"
+    write_dat_function$args <- list(dat, file, file_type, project)
+    write_dat_function$kwargs <- list(...)
+    
+    log_call(write_dat_function)
+    
+    message(paste("Table saved to", file))
+    invisible(TRUE)
+    
+  } else {
+    
+    invisible(FALSE)
+  }
 }
 
 # Read in main data table from database into working environment

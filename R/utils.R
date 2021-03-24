@@ -441,15 +441,6 @@ date_check <- function(dat, date) {
   }
 }
 
-date_cols <- function(dat) {
-  #' Find columns that can be converted to date variables
-  #' @param dat Name of dataframe
-  #' @keywords internal
-  #' @export  
-  names(dat)[which(!is.na(as.Date(as.character(dat[1,]), tz = 'UTC', format = '%Y-%m-%d')))]
-}
-
-
 find_original_name <- function(fun) {
   #' find original name
   #' @param fun function
