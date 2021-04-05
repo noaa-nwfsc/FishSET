@@ -147,3 +147,42 @@ filter_select <- function(dataset, col) {
    
   }
 }
+
+date_cols <- function(dat) {
+  
+  # named logical vector to preserve col order
+  date_lgl <- logical(ncol(dat))
+  names(date_lgl) <- names(dat)
+  
+  # lubridate functions to test for
+  date_funs <- list(lubridate::mdy, lubridate::dmy, lubridate::ymd, 
+                    lubridate::ydm, lubridate::dym)
+  
+  date_helper <- function(dates, fun) {
+    
+    dates <- stringr::str_trim(dates)
+    
+    # remove time info
+    dates <- stringr::str_remove(dates, "\\s\\d{2}:\\d{2}:\\d{2}$")
+    
+    out <- rlang::expr(!all(is.na(suppressWarnings((!!fun)(!!dates)))))
+    
+    eval(out)
+  }
+  
+  # apply each function to date vector
+  date_apply <- function(dates) {
+    
+    any(purrr::map_lgl(date_funs, function(fun) date_helper(dates, fun)))
+  }
+  
+  # find cols that can be successfully converted to date
+  # numeric cols excluded for efficiency and to prevent false positives  
+  date_cols <- purrr::map_lgl(dat[!numeric_cols(dat, "logical")], date_apply)
+  
+  date_cols <- date_cols[date_cols]
+  
+  names(date_cols)
+
+}
+

@@ -3,7 +3,7 @@
 #' @description Assign each observation in the primary dataset to a fishery management or regulatory zone. 
 #'    Function is primarily called by other functions that require zone assignment but can also be used on its own.
 #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
-#' @param @param project name of project.
+#' @param project name of project.
 #' @param gridfile Spatial data containing information on fishery management or regulatory zones. 
 #'    Shape, json, geojson, and csv formats are supported.
 #' @param hull.polygon Logical, if TRUE, creates convex hull polygon. Use if spatial data creating polygon 

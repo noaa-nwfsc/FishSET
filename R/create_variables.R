@@ -1037,7 +1037,7 @@ randomize_value_row <- function(dat, project, value) {
   #'   for randomly assigning ID values between observations. 
   #' @examples
   #' \dontrun{
-  #' randomize_value_row(pollockMainDataTable, "PERMIT")
+  #' randomize_value_row(pollockMainDataTable, "pollock", "PERMIT")
   #' }
   
   out <- data_pull(dat)
