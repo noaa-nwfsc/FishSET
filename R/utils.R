@@ -218,9 +218,12 @@ qaqc_helper <-function(dat, fun, output = "logical") {
   #'   (\code{output = "names"}). 
   #' @examples 
   #' \dontrun{
-  #' qaqc_helper(pollockMainDataTable, "NA", "names") # outputs names of columns containing NAs
-  #' qaqc_helper(pollockMainDataTable, is.character) # outputs logical vector of columns containing strings
-  #' qaqc_helper(pollockMainDataTable, function(x) = all(is.na(x)), "names") # custom function example
+  #'  outputs names of columns containing NAs
+  #'     qaqc_helper(pollockMainDataTable, "NA", "names")
+  #'  outputs logical vector of columns containing strings
+  #'      qaqc_helper(pollockMainDataTable, is.character)
+  #' custom function example
+  #'      qaqc_helper(pollockMainDataTable, function(x) = all(is.na(x)), "names") 
   #' }
   
   end <- FALSE

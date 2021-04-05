@@ -2,7 +2,7 @@
 
 
 view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL, agg_by = NULL, gmap = FALSE) {
-  #' Visualize gridded data
+  #' Visualize gridded data on a map
   #' 
   #' 
   #' @param gridfile Gridded data table to visualize. Use string if visualizing a gridded data
@@ -28,9 +28,9 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL, a
   #' }
   #'
   #
-  
+
   #color gradient for mapping
-  map_color <- colors$temperature
+ # map_color <- colors$temperature
   
   out <- data_pull(gridfile)
   grid <- out$dataset
@@ -87,8 +87,8 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL, a
                          alpha = .85) + # slight transparency for maps feature visibility
     ggplot2::coord_fixed(ratio = 1.5, xlim = xlim, ylim = ylim) +
     fishset_theme() + 
-    ggplot2::labs(x = "longitude", y = "latitude") +
-    ggplot2::scale_fill_gradientn(colors = map_color, na.value = NA) 
+    ggplot2::labs(x = "longitude", y = "latitude") #+
+#    ggplot2::scale_fill_gradientn(colors = map_color, na.value = NA) 
   
   # check # of unique values in split_by, if high use facet_wrap
   if (!is.null(split_by)) {
@@ -124,10 +124,12 @@ retrieve_map <- function(grid, lon, lat) {
   #' @param lon String, variable name containing longitude.
   #' @param lat String, variable name containing latitude.
   #' @import ggmap
+  #' @keywords internal
   #' @export
   #' @details This is a wrapper for \code{\link[ggmap]{get_stamenmap}}
   
   # make bounding box
+  
   bbox <- ggmap::make_bbox(lon, lat, grid)
   
   # Find ideal zoom level

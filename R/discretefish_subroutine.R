@@ -330,9 +330,9 @@ discretefish_subroutine <- function(project,select.model = FALSE) {
         }
 
         if (H1[1] != "Error, singular, check 'ldglobalcheck'") {
-          outmat2 <- t(q2)
-          seoutmat2 <- t(se2)
-          optoutput <- output
+          outmat2 <- t(q2) #best set of parameters found
+          seoutmat2 <- t(se2) #standard errors
+          optoutput <- output #optimization info - counts, convergence, optimization error
           tLogit <- t(outmat2 / se2)
           OutLogit <- cbind(t(outmat2), as.matrix(se2), (tLogit))
         }

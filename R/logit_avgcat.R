@@ -118,8 +118,8 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
     ld <- .Machine$double.xmax
   }
 
-  ldsumglobalcheck <- ld
-  paramsglobalcheck <- starts3
+  ldsumglobalcheck <- ld      #-log(rowSums(exp(profx)))
+  paramsglobalcheck <- starts3   #starting parameters
   ldglobalcheck <- unlist(as.matrix(ldchoice))
 
   ldglobalcheck <- list(model = paste0(project, expname, mod.name), ldsumglobalcheck = ldsumglobalcheck, paramsglobalcheck = paramsglobalcheck, ldglobalcheck = ldglobalcheck)

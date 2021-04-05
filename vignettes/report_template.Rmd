@@ -158,12 +158,11 @@ General code chunk options:
 
 Use code chunk figure options to adjust the appearance of figures in the final document.
 `fig.cap = “...”`   Add a caption to graphical results.
-`fig.height = VALUE`	
 `dev= ‘png’`    R function that will be used as a graphical device to record plot. Default is ‘png’.
 `dpi = 72`    When applicable, dots per inch in graphics
 `fig.align = ‘default’`   Align graphics to ‘left’, ‘right’, or  ‘center’.
-fig.height    Adjust figure height (in inches)
-fig.width   Adjust figure width (in inches)
+`fig.height = VALUE`   Adjust figure height (in inches)
+`fig.width = VALUE`  Adjust figure width (in inches)
 
 
 ## Report functions

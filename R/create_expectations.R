@@ -41,7 +41,7 @@
 #' @importFrom stats aggregate reshape coef lm
 #' @importFrom signal polyval
 #' @export create_expectations
-#' @return Function returns a list of expected catch data frames. The list includes the expected catch matrix from the 
+#' @return Function returns a list of expected catch matrices. The list includes the expected catch matrix from the 
 #'   user-defined choices, the near-term, the medium-term, and the long-term expected catch matrices.  
 #'   Additional expected catch cases can be added to the list by specifying \code{replace.output} to FALSE. The model 
 #'   run function will run through each expected catch case provided. The list is automatically saved to the FishSET 

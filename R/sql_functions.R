@@ -155,7 +155,7 @@ model_fit <- function(project) {
 }
 
 projects <- function() {
-  #' Display projects names
+  #' Display projects n  ames
   #' @export
   #' @details Lists the unique project names currently in the FishSET Database. 
   #' @importFrom stringr str_extract
