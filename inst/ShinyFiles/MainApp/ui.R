@@ -181,6 +181,10 @@ source("map_viewer_app.R", local = TRUE)
                                class = "btn action-button",
                                "Load data"
                              ),
+                             
+                             actionButton("confid_modal", "Confidentiality",
+                                          style = "color: white; background-color: blue;"),
+                             
                              tags$br(), tags$br(),
                              fluidRow(
                               
