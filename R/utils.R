@@ -484,6 +484,37 @@ data_pull <- function(dat) {
   return(list(dat = dat, dataset = dataset))
 }
 
+parse_data_name <- function(dat, type) {
+  
+  #' Parse data name for logging 
+  #' 
+  #' @param dat Data table to be parsed. 
+  #' @param type String, the data type: "main", "aux", "grid", "port", or "spat".
+  #' @importFrom shiny isRunning
+  #' @importFrom rlang caller_env
+  #' @keywords internal
+  #' @details If called while the shiny app is running, the data table name is pulled from 
+  #'   the FishSET environment (`fishset_env`). Otherwise, the data table from the caller 
+  #'   environment is used. 
+  #' @export
+  
+  dat_type <- switch(type, "main" = "dat_name", "aux" = "aux_name", 
+                   "grid" = "grid_name", "port" = "port_name", "spat" = "spat_name")
+  
+  if (shiny::isRunning()) {
+    
+    dat <- get_fishset_env(dat_type)
+    
+  } else { 
+    
+    if (!is.character(dat)) {
+      
+      dat <- deparse(substitute(dat, rlang::caller_env())) 
+    }
+  }
+  
+  dat
+}
 
 agg_helper <- function(dataset, value, period = NULL, group = NULL, fun = "sum") {
   #' Aggregating function 
@@ -511,6 +542,35 @@ agg_helper <- function(dataset, value, period = NULL, group = NULL, fun = "sum")
   agg_fm <- stats::reformulate(by_fm, val_fm)
   
   stats::aggregate(agg_fm, data = dataset, FUN = fun, na.action = NULL)
+}
+
+perc_of_total <- function(dat, value_var, group = NULL) {
+  
+  #' Calculate grouped percentages 
+  #' 
+  #' @param dat Data table to summarize.
+  #' @param value_var String, variable name(s) for calculating total. 
+  #' @param group String, grouping variable(s) to group `value_var` by. 
+  #' @importFrom dplyr group_by across mutate ungroup
+  #' @importFrom purrr map2
+  #' @importFrom magrittr %>%
+  #' @keywords internal
+  #' 
+ 
+  val_total <- paste0(value_var, "_total") 
+  val_perc <- paste0(value_var, "_perc")
+  
+  dat <- 
+    dat %>% 
+    {if (!is.null(group)) dplyr::group_by(., dplyr::across(group)) else .} %>% 
+    
+    dplyr::mutate(dplyr::across(value_var, sum, .names = "{.col}_total")) %>% 
+    dplyr::ungroup() 
+  
+  dat[val_perc] <- 
+    purrr::map2(dat[value_var], dat[val_total], ~ (.x / .y) * 100)
+  
+  dat
 }
 
 
@@ -547,8 +607,6 @@ add_missing_dates <- function(dataset, date = NULL, value, sub_date = NULL, grou
         })
     } 
     
-    cols <- unique(c(date, sub_date, group, facet_by))
-    
     if (!is.null(date)) {
       
       full_dates <- seq.Date(from = min(dataset[[date]], na.rm = TRUE), 
@@ -562,7 +620,15 @@ add_missing_dates <- function(dataset, date = NULL, value, sub_date = NULL, grou
       }
     }
     
+    cols <- unique(c(date, sub_date, group, facet_by))
     aux <- unique(c(group, facet_by))
+    
+    if (run_confid_check()) {
+      
+     check <- get_confid_check()
+     cols <- unique(c(cols, check$v_id))
+     aux <- unique(c(aux, check$v_id))
+    }
     
     missing <- lapply(dataset[aux], function(x) unique(x))
     
@@ -792,6 +858,7 @@ order_factor <- function(dat, fac, val, rev = FALSE) {
   #' @export
   #' @keywords internal
   #'
+  
   agg <- stats::aggregate(stats::reformulate(fac, val), dat, FUN = sum)
 
   ord <- unique(agg[[fac]][order(agg[[val]], decreasing = rev)])

@@ -2,7 +2,7 @@ context("Data import")
 
 test_that("Test that data can be uploaded", {
   
-  expect_message(load_maindata(PollockData, over_write = TRUE, project = "testload"))
+  expect_true(load_maindata(PollockData, over_write = TRUE, project = "testload"))
 
   on.exit({
     lapply(project_tables("testload"), table_remove)
