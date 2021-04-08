@@ -336,7 +336,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
             f_cpue <- function() if (length(cpue) == 1) cpue else "CPUE" 
             
             x_lab <- function() paste0(date, " (week)")
-            y_lab <- function() paste(f_cpue(), ifelse(tran == "identity", "", paste0("(", tran, ")")))
+            y_lab <- function() paste("mean", f_cpue(), ifelse(tran == "identity", "", paste0("(", tran, ")")))
             
             e_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = week, 
                                                                      y = !!y_axis_exp())) +

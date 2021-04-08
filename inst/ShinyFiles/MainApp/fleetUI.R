@@ -273,7 +273,7 @@ density_plotUI <- function(id, dat) {
                      
       tagList(
     
-        numericInput(ns("bw"), "Kernel banwidth",
+        numericInput(ns("bw"), "Kernel bandwidth",
                      value = 1),
         
         selectInput(ns("tran"), "Transformation function",

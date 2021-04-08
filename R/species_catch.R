@@ -104,10 +104,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
   out <- data_pull(dat)
   dataset <- out$dataset
   
-  if (shiny::isRunning()) {
-    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
-  } else { 
-    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
+  dat <- parse_data_name(dat, "main")
   
   end <- FALSE 
   
@@ -301,11 +298,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
       group1 <- group
       group2 <- NULL
       
-    } else {
-      
-      dataset[group] <- lapply(dataset[group], as.factor)
-      group1 <- group[1]
-    }
+    } else group1 <- group[1]
     
     if (length(group) == 1) group2 <- NULL else group2 <- group[2]
     
@@ -325,22 +318,48 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
       if (period == "cal_date") period <- date
     }
     
-    table_out <- agg_helper(dataset, value = species, period = period, group = agg_grp, fun = fun)
+    table_out <- agg_helper(dataset, value = species, period = period, 
+                            group = agg_grp, fun = fun)
     
+    # melt table if multiple species columns entered (for ggplot)
+    if (length(species) > 1) { 
+      
+      table_out <- tidyr::pivot_longer(table_out, cols = !!species, 
+                                       names_to = "species", values_to = "catch")
+    }
     
-    if (length(species) > 1) { # melt table if multiple species columns entered (for ggplot)
+    f_catch <- function() if (length(species) == 1) species else "catch"
+    
+    # confidentiality checks ----
+    if (run_confid_check()) {
       
-      table_out <- tidyr::pivot_longer(table_out, cols = !!species, names_to = "species", 
-                                       values_to = "catch")
+      cc_par <- get_confid_check()
       
-      rev <- ifelse(position == "dodge", TRUE, FALSE)
+      check_table <- 
+        check_confidentiality(dataset = dataset, cc_par$v_id, value_var = species, 
+                              rule = cc_par$rule, group = c(period, agg_grp), 
+                              value = cc_par$value, names_to = "species", 
+                              values_to = "catch")
+      
+      if (check_table$suppress) {
+        
+        table_out <- suppress_table(check_table$table, table_out, value_var = f_catch(), 
+                                    group = c(period, agg_grp), rule = cc_par$rule)
+      }
+    }
+    
+    # create ordered factor for plots
+    if (!is.null(group)) table_out[group] <- lapply(table_out[group], as.factor)
+    rev <- ifelse(position == "dodge", TRUE, FALSE)
+    
+    if (length(species) > 1) {
+      
       table_out <- order_factor(table_out, "species", "catch", rev = rev)
-      
+    
     } else {
       
       if (!is.null(group)) {
         
-        rev <- ifelse(position == "dodge", TRUE, FALSE)
         table_out <- order_factor(table_out, group1, species, rev = rev)
       }
     }
@@ -360,8 +379,6 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
       
       table_out <- table_out[order(table_out[[period]]), ]
     }
-    
-    f_catch <- function() if (length(species) == 1) species else "catch"
     
     if (conv != "none") {
       
@@ -553,7 +570,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
           rlang::as_string(xaxis_exp())
         }
       }  
-        
+       # use rlang::expr_text to convert funs to text
       y_lab <- function() paste(fun, f_catch(), ifelse(tran == "identity", "", paste0("(", tran, ")")))
       
       scale_lab <- function() if (value == "percent") scales::label_percent(scale = 1) else ggplot2::waiver()
@@ -566,9 +583,11 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
         }
       }
       
+      
       # plot ----
-      s_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = !!xaxis_exp(), 
-                                                               y = !!catch_exp())) +
+      s_plot <- ggplot2::ggplot(data = replace_sup_code(table_out, f_catch()), 
+                                ggplot2::aes(x = !!xaxis_exp(),
+                                             y = !!catch_exp())) +
         fishset_theme() +
         ggplot2::theme(legend.position = "bottom") +
         ggplot2::scale_y_continuous(labels = scale_lab(), trans = tran, 
