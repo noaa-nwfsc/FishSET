@@ -92,7 +92,7 @@ source("map_viewer_app.R", local = TRUE)
                                                                                        'Simple Analyses tab'='AnalTab',
                                                                                        'Compute New Variables tab'='NewVarsTab',
                                                                                        'Map Viewer tab' = 'MapTab',
-                                                                                       'Zonal Definition tab'='ZonalTab',
+                                                                                       'Define Alternative Fishing Choices'='ZonalTab',
                                                                                        'Expected Catch/Revenue tab'='ExpectedTab',
                                                                                        'Models tab'='ModelTab',
                                                                                        'Bookmark Choices tab'='BookmarkTab'
@@ -867,7 +867,7 @@ source("map_viewer_app.R", local = TRUE)
                   #----   
                   #Zonal definition tabset panel
                   #-----
-                  tabPanel('Alternative Choice', value = "altc",
+                  tabPanel('Define Alternative Fishing Choices', value = "altc",
                            sidebarLayout(
                              sidebarPanel(
                                tags$button(

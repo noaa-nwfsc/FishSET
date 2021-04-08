@@ -656,7 +656,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 				tags$br(), tags$br(),
         tags$em('Spatial'), 
         'functions focus on creating variables that vary over space, such as haul midpoint and distance between points.
-				        A spatial data file is required. ',
+				        A spatial data file is required.', tags$br(), 'The function to assign observations to fishery or regulatory zones 
+				        is in this function category.',
 				tags$br(), tags$br(),
 				tags$em('Trip-level'), 
         'functions focus on trip-level variables including trip distance and trip centroid. A function to collapse 
@@ -727,43 +728,37 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         if(input$QuickStartChoices=='ZonalTab'){ 
           p(tags$br(), tags$br(),
            tags$strong('Purpose:'), tags$br(), 
-           'The', tags$em("Zonal Definition"),'tab is used to assign observations (e.g., hauls) to zones and define alternative fishing choices.',
+           'The', tags$em("Define Alternative Fishing Choices"),'tab is used to define alternative fishing choices.',
 				tags$br(), tags$br(),
-	        'There are three sets of functions that can be run on this tab.',
-				tags$br(), tags$br(),
-	        tags$div(style="display: inline-block; align:center", img(src="zonal.png", height="75%", width="75%")),
-				tags$br(), tags$br(),
-	        tags$ol(	         
-	           tags$li('(Required) Identify fishery zones or management areas, calculate zone or fishing centroids, and assign each observations 
-                      in the main data set to zones. FishSET defaults to geographic centroids. 
-					             To use fishing centroids, select a weighting variable in the weighted centroid box. Points that fall outside of 
-	                    any zones can be assigned to the closest zone by checking the', tags$code('Use closest polygon to point'), 'box. 
-	                    If spatial data creating polygons are sparse or irregular, the', tags$code('Use convex hull method'),'is recommended. 
-                    '),
-	           tags$br(),
-	           tags$li('(Required) Define the alternative fishing choices. These choices are used to develop the matrix of distances 
+	        #$div(style="display: inline-block; align:center", img(src="zonal.png", height="75%", width="75%")),
+#	           tags$li('(Required) Identify fishery zones or management areas, calculate zone or fishing centroids, and assign each observations 
+#                      in the main data set to zones. FishSET defaults to geographic centroids. #
+#					             To use fishing centroids, select a weighting variable in the weighted centroid box. Points that fall outside of 
+#	                    any zones can be assigned to the closest zone by checking the', tags$code('Use closest polygon to point'), 'box. 
+#	                    If spatial data creating polygons are sparse or irregular, the', tags$code('Use convex hull method'),'is recommended. 
+#                    '),
+	           'The choices on this page are used to develop the matrix of distances 
 	                   between observed and alternative fishing choices (where they could have fished but did not). 
                      The distance matrix can be generated from the data or from gridded data. We describe generating the distance matrix 
                      from the data first.',
-	                   tags$br(),
+	                   tags$br(), tags$br(),
                      'If the distance matrix comes from the primary haul-level data, the function requires defining how the 
                      starting location (in longitude and latitude) should be found. Choices are the centroid of the zone where the haul occurred,
-                     port, or other lon/lat variable such as haul starting location. Next, define how to find 
+                     port, or other lon/lat variable such as haul starting location.', tags$br(), 'Next, define how to find 
                      the location of the alternative fishing locations. Choices are the centroid of 
                      each of the alternative zones or a lon/lat location in the primary dataset, such as haul ending 
-                     location. The distance matrix is then calculated between defined starting and alternative choice locations. 
+                     location.',tags$br(), 'The distance matrix is then calculated between defined starting and alternative choice locations. 
                      Distance can be returned in miles, kilometers, or meters.', 
-	                   tags$br(),
+	                   tags$br(),tags$br(),
 	                   'Alternatively, the the distance matrix can be generated from a gridded dataset, such as sea surface temperature. 
 	                   Columns in the gridded data file must be individual zones.',
             tags$br(),
                      'The number of observed hauls can vary considerably between zones. The histogram at the bottom of the page 
 	                    is provided to assess variance in the amount of data between hauls. Observations from zones with insufficient zones can be 
-	                   removed from analyses by setting the minimum haul number in the', tags$code('Include zones with more hauls than'), 'box.'),
-				    tags$br(),
-             tags$li('(Optional) Select catch and price variables. This can be done here or in the', tags$em('Expected Catch/Revenue'), 
-					'or', tags$em('Models'), 'tabs.')
-	         )
+	                   removed from analyses by setting the minimum haul number in the', tags$code('Include zones with more hauls than'), 'box.',
+				    tags$br(),tags$br(),
+             'Select catch and price variables. This can be done here or in the', tags$em('Expected Catch/Revenue'), 
+					'or', tags$em('Models'), 'tabs.'
           )
         }
       })
