@@ -9,6 +9,12 @@ if(!exists("default_search")) {default_search <- ""}
 # default column search values
 if (!exists("default_search_columns")) {default_search_columns <- NULL}
 
+# create fishset_env
+if (fishset_env_exists() == FALSE)  create_fishset_env()
+
+# reset confidentiality
+set_confid_check(check = FALSE)
+
     ### SERVER SIDE    
     server = function(input, output, session) {
       options(shiny.maxRequestSize = 8000*1024^2)
@@ -974,7 +980,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             showNotification('Primary data table not found in FishSET database. Check project spelling.', type='message', duration=15)
           } else {
         values$dataset <- table_view(paste0(project$name, 'MainDataTable'))
-        dat_name <<- paste0(project$name, 'MainDataTable')
+        edit_fishset_env("dat_name", paste0(project$name, 'MainDataTable'))
           }
         } else if(input$loadmainsource=='Upload new file' & !is.null(input$maindat)){
            values$dataset <- read_dat(input$maindat$datapath)
@@ -982,7 +988,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           df_compare <- ifelse(nchar(input$compare)>0, TRUE, FALSE)
           q_test <- quietly_test(load_maindata)
           q_test(values$dataset, over_write=input$over_write, project=project$name, compare=df_compare, y=df_y)
-          dat_name <<- paste0(project$name, 'MainDataTable')
 
 #           if(input$uploadMain == 0){
 #             showNotification('Data not saved to database. Press the Save to Database button.', type='warning', duration=20)
@@ -1077,7 +1082,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           } else {
             
             ptdat$dataset <- table_view(paste0(project$name, 'PortTable'))
-            port_name <<- paste0(project$name, 'PortTable')
+            edit_fishset_env("port_name", paste0(project$name, 'PortTable'))
           }
           
         } else if (input$loadportsource == 'Upload new file' & !is.null(input$portdat)) {
@@ -1090,7 +1095,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                    project = project$name, compare = FALSE, y = NULL)
             showNotification("Port data saved to database.", type = "message", 
                              duration = 10)
-            port_name <<- paste0(project$name, 'PortTable')
           }
         }
         
@@ -1173,7 +1177,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         # so column names match with DB version
         ptdat$dataset <- table_view(paste0(project$name, 'PortTable'))  
       
-        port_name <<- paste0(project$name, 'PortTable')
+        #port_name <<- paste0(project$name, 'PortTable')
+        edit_fishset_env("port_name", paste0(project$name, 'PortTable'))
         show$save <- FALSE
         show$port_merge <- FALSE
         
@@ -1257,30 +1262,23 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       observeEvent(input$loadDat, {
         
-        if (length(names(grddat)) == 0) {
-          grid_name <<- list() 
-        }
-        
         if (input$loadgridsource == 'FishSET database') {
           
           req(input$griddattext)
           
-          grid_name_app <- paste0(project$name, input$griddattext)
-          grddat[[grid_name_app]] <- table_view(grid_name_app)
-          grid_name[[grid_name_app]] <<- grid_name_app 
+          grid_name <- paste0(project$name, input$griddattext)
+          grddat[[grid_name]] <- table_view(grid_name)
           
         } else if (input$loadgridsource == 'Upload new file' & !is.null(input$griddat)) {
           
           showNotification('Gridded data saved to database.', type = 'message', duration = 10)
-          grid_name_app <- paste0(project$name, input$GridName)
-          grddat[[grid_name_app]] <- read_dat(input$griddat$datapath)        
+          grid_name <- paste0(project$name, input$GridName)
+          grddat[[grid_name]] <- read_dat(input$griddat$datapath)        
           
           q_test <- quietly_test(load_grid)
           
-          q_test(paste0(project$name, 'MainDataTable'), grid = grddat[[grid_name_app]], 
+          q_test(paste0(project$name, 'MainDataTable'), grid = grddat[[grid_name]], 
                  x = input$GridName, over_write = TRUE, project = project$name)
-          
-          grid_name[[grid_name_app]] <<- grid_name_app
         }
         
         if (length(names(grddat)) > 0) {
@@ -1333,14 +1331,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         #req(input$auxdattext)
         if(input$loadauxsource=='FishSET database'){
           aux$dataset <- table_view(paste0(project$name, input$auxdattext))
-          aux_name <<- paste0(project$name, input$auxdattext)
+          edit_fishset_env("aux_name", paste0(project$name, input$auxdattext))
         } else if(input$loadauxsource=='Upload new file' & !is.null(input$auxdat)){
             showNotification('Auxiliary data saved to FishSET database.', type = 'message', duration = 10)
            aux$dataset <-read_dat(input$auxdat$datapath)
            q_test <- quietly_test(load_aux)
             q_test(paste0(project$name, 'MainDataTable'), aux=aux$dataset, x = input$AuxName, over_write=TRUE,
                    project=project$name)
-            aux_name <<- paste0(project$name, input$auxdattext)
         } else {
           aux$dataset <- aux$dataset
           }
@@ -1356,6 +1353,51 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       mergeServer("aux", values, aux, reactive(project$name), 
                   merge_type = "left", dat_type = "aux")
       
+      
+      # confidentiality check----
+      confid_vals <- reactiveValues(check = FALSE, v_id = NULL, rule = "n", value = 3)
+      
+      observeEvent(input$confid_modal, {
+        
+        showModal(
+          modalDialog(title = "Check Confidentiality",
+                      checkboxInput("confid_check", "Check for confidentiality",
+                                    value = confid_vals$check),
+                      
+                      conditionalPanel("input.confid_check", 
+                                       selectInput("confid_vid", "Select vessel identifier column",
+                                                   choices = names(values$dataset),
+                                                   selected = confid_vals$v_id),
+                                       selectInput("confid_rule", "Select rule", choices = c("n", "k"),
+                                                   selected = confid_vals$rule),
+                                       numericInput("confid_value", "Threshold", value = confid_vals$value,
+                                                    min = 0, max = 100)
+                                       ),
+                
+                      footer = tagList(
+                        modalButton("Close"),
+                        actionButton("save_confid", "Save", 
+                                     style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+                      ),
+                      easyClose = TRUE
+          )
+        )
+      })
+      
+      observeEvent(input$save_confid, {
+        
+        pass_check <-
+        set_confid_check(check = input$confid_check, v_id = input$confid_vid,
+                          rule = input$confid_rule, value = input$confid_value)
+        
+        if (pass_check) showNotification("Confidentiality settings saved.", type = "message")
+        else showNotification("Confidentiality settings not saved. Invalid threshold value.", type = "warning")
+        
+        confid_vals$check <- input$confid_check
+        confid_vals$v_id <- input$confid_vid
+        confid_vals$rule <- input$confid_rule
+        confid_vals$value <- input$confid_value
+      })
       
       ###---
       
@@ -2494,6 +2536,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             grid_values$bbox <- incoming_bbox # update bbox
           }
         }
+        edit_fishset_env("grid_name", input$grid_select) # update fishset_env
         
         grid_values$plot <-
           view_grid_dat(gridfile = grddat[[input$grid_select]], project = project$name,
@@ -4505,9 +4548,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 
         # map viewer -- add check to see if run w/ servr::daemon_list()
         servr::daemon_stop()
-        
-        #rm("dat_name", envir = rlang::global_env())
-        
       }) 
        
     }
