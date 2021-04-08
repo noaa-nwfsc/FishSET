@@ -366,6 +366,7 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
   if(check == 1) { 
     warning('Dataset not saved. Check that column names are case-insensitive unique and that latitude/longitude
           or area/zone are included.')
+    invisible(FALSE)
   } else {
       
     n <- grep("DATE", colnames(dataset), ignore.case = TRUE)
@@ -442,9 +443,15 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
    message("\n! Data saved to database as ", paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d")), " (raw) and ", 
        paste0(project, "MainDataTable"), " (working). \nTable is also in the working environment. !"
   )
-
+  # add to fishset_env
+   if (fishset_env_exists() == FALSE)  create_fishset_env()
+   
+  edit_fishset_env("dat_name", paste0(project, 'MainDataTable'))
+  invisible(TRUE)
+  
   } else {
     warning(paste0(project, "MainDataTable was not saved. Table already exists in database. Set over_write to TRUE."))
+    invisible(FALSE)
   }
   DBI::dbDisconnect(fishset_db)
 
@@ -591,6 +598,10 @@ load_port <- function(dat, port_name, over_write = TRUE, project = NULL, compare
     if (table_exists(paste0(project, "PortTable")) == FALSE | over_write == TRUE) {
       DBI::dbWriteTable(fishset_db, paste0(project, "PortTable", format(Sys.Date(), format = "%Y%m%d")), x, overwrite = over_write)
       DBI::dbWriteTable(fishset_db, paste0(project, "PortTable"), x, overwrite = over_write)
+      
+      if (fishset_env_exists() == FALSE)  create_fishset_env()
+      edit_fishset_env("port_name", paste0(project, "PortTable"))
+      
     } else {
       warning(paste("Table not saved.", paste0(project, "PortTable"), "exists in database, and overwrite is FALSE."))
     }
@@ -680,6 +691,10 @@ load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
     if (table_exists(paste0(project, x)) == FALSE | over_write == TRUE) {
       DBI::dbWriteTable(fishset_db, paste0(project, x, format(Sys.Date(), format = "%Y%m%d")), aux, overwrite = over_write)
       DBI::dbWriteTable(fishset_db, paste0(project, x), aux, overwrite = over_write)
+      
+      if (fishset_env_exists() == FALSE)  create_fishset_env()
+      edit_fishset_env("aux_name", paste0(project, x))
+      
       print("Data saved to database")
     } else {
       warning(paste("Table not saved.", paste0(project, x), "exists in database, and overwrite is FALSE."))
@@ -762,6 +777,10 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
     fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
     if (table_exists(paste0(project, x)) == FALSE | over_write == TRUE) {
       DBI::dbWriteTable(fishset_db, paste0(project, x), grid, overwrite = over_write)
+      
+      if (fishset_env_exists() == FALSE)  create_fishset_env()
+      edit_fishset_env("grid_name", paste0(project, x))
+      
       print("Data saved to database")
     } else {
       warning(paste("Table not saved.", paste0(project, x), "exists in database, and overwrite is FALSE."))
