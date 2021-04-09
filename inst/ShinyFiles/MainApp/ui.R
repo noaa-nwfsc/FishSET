@@ -182,21 +182,26 @@ source("map_viewer_app.R", local = TRUE)
                                "Load data"
                              ),
                              
+                             conditionalPanel("input.loadDat%2==1",
                              actionButton("confid_modal", "Confidentiality",
-                                          style = "color: white; background-color: blue;"),
+                                          style = "color: white; background-color: blue;")),
                              
                              tags$br(), tags$br(),
                              fluidRow(
                               
                                 uiOutput("projects"), # define project name
-                               column(4, radioButtons('loadmainsource', "Source primary data from:", choices=c( 'Upload new file','FishSET database'), selected='Upload new file', inline=TRUE)),
+                               column(4, radioButtons('loadmainsource', "Source primary data from:",
+                                                      choices=c( 'Upload new file','FishSET database'),
+                                                      selected='FishSET database', inline=TRUE)),
                                uiOutput('main_upload')),
                            
                              fluidRow( 
                                column(width = 8, offset = 2,
                                       uiOutput('ui.action2'))),
                              fluidRow(
-                               column(4, radioButtons('loadportsource', "Source port data from:", choices=c( 'Upload new file','FishSET database'), selected='Upload new file', inline=TRUE)),
+                               column(4, radioButtons('loadportsource', "Source port data from:", 
+                                                      choices=c( 'Upload new file','FishSET database'), 
+                                                       inline=TRUE)),
                                uiOutput('port_upload')
                              ),
                              fluidRow(
