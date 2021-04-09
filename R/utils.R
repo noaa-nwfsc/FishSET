@@ -1233,6 +1233,7 @@ simpleCap <- function(x) {
   #' Convert case to upper
   #' @param x Variable
   #' @keywords internal
+  #' @export
   s <- strsplit(x, " ")[[1]]
   paste(toupper(substring(s, 1,1)), substring(s, 2),
         sep="", collapse=" ")
@@ -1270,6 +1271,7 @@ parseDeleteEvent <- function(idstr) {
   #' Extracts the row id number from the id string
 #' @param idstr the id string formated as id_INDEX
 #' @return INDEX from the id string id_INDEX
+#' @export
 #' @keywords internal
 
   res <- as.integer(sub(".*_([0-9]+)", "\\1", idstr))
@@ -1280,6 +1282,7 @@ find_lon <- function(dat) {
  #' Find columns that may be longitude data
  #' @param dat Dataset to search over
  #' @keywords internal
+ #' @export
  
   cols <- colnames(dat)
   lon_match <- stringi::stri_count_regex(cols, '(?=LON|Lon|lon)')
