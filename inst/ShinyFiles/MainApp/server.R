@@ -261,17 +261,23 @@ set_confid_check(check = FALSE)
 			      tags$br(), tags$br(),
            tags$p(tags$strong('Purpose:'), tags$br(), 'The', tags$em('Upload Data'), 'tab is used to load data (primary, port, map, gridded, auxiliary) from the FishSET database or 
                         from a local file location.'), 
-	         tags$p("To get started, first write a project name in the", tags$code('Name of project'), "text box.",
+	         tags$p("To get started, first write or select a project name in the", tags$code('Name of project'), "text box.",
 	                tags$ul("The project name is a user-created unique identifier for all data tables  and outputs (plots, model results, etc) 
                  associated with the analysis. Example project names are 'pollock2019' and 'AKGOA'.")
 	                ),
           tags$p('Next, load data.',
             tags$ul('To load from a local file location, select the', tags$code('Upload new file'), 'radio button and then browse to file location.'), 
-	          tags$ul('To load from the FishSET database, select the', tags$code('FishSET database'), 'radio button. Fill out the optional', 
-				tags$code('Name of data table in FishSET database'), 'text box if using a data table other than the original, unmodified table first loaded into the FishSET database.')
+	          tags$ul('To load from the FishSET database, select the', tags$code('FishSET database'), 'radio button. If more than one version of the data table exists, select the 
+	                  desired version.')
 				), 
 	         tags$p('Finally, press the', tags$code('Load data'), 'button.'),
            # tags$div(style="display: inline-block; align:center", img(src="upload.png",  height="75%", width="75%"))
+			tags$br(), tags$br(),
+			tags$p('Once data is loaded an option to identify whether confidentiality issues should be checked and then to 
+			       define the confidentiality rules. Two confidential rules can be applied to summarized data, 
+            the rule of n and the rule of k. The rule of n specifies the minimum number of unique observational units (such as vessels)
+			        required for summarized data to be displayed. The rule of k checks that no single observation units accounts for 
+			       k% of the summarized valued.'),
 			tags$br(), tags$br(),
 			tags$p(tags$strong("Data:"),
 			       tags$ul('primary (required)'), 
@@ -879,6 +885,8 @@ set_confid_check(check = FALSE)
       
       #DATA UPLOAD FUNCTIONS ----
       ###---
+       # project name 
+      project <- reactiveValues()
       
       output$projects <- renderUI({
         
@@ -899,8 +907,7 @@ set_confid_check(check = FALSE)
         }
         
       })
-      # project name 
-      project <- reactiveValues()
+     
       
       observeEvent(c(input$loadmainsource, input$project_select, input$loadDat), {
         
@@ -1370,8 +1377,12 @@ set_confid_check(check = FALSE)
                                                    selected = confid_vals$v_id),
                                        selectInput("confid_rule", "Select rule", choices = c("n", "k"),
                                                    selected = confid_vals$rule),
-                                       numericInput("confid_value", "Threshold", value = confid_vals$value,
-                                                    min = 0, max = 100)
+                                       conditionalPanel("input.confid_rule=='n'",
+                                          numericInput("confid_value", "Threshold", value = confid_vals$value,
+                                                    min = 0, max = 100)),
+                                       conditionalPanel("input.confid_rule=='k'",
+                                                        numericInput("confid_value", "Threshold", value = 90,
+                                                                     min = 0, max = 100, step=5))
                                        ),
                 
                       footer = tagList(
