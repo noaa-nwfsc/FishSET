@@ -3,7 +3,7 @@ check_confid_par <- function(rule, value) {
   #' 
   #' @param rule String, \code{"n"} for rule of n, \code{"k"} for n/k. 
   #' @param value Numeric, for \code{rule = "n"} must be an integer of at least 
-  #'   3. For \code{rule = "k"} any numeric value from 0 to 100. 
+  #'   2. For \code{rule = "k"} any numeric value from 0 to 100. 
   #' @keywords internal
   #' @return \code{TRUE} if confidentiality parameters are valid, \code{FALSE} 
   #'   if not. 
@@ -15,9 +15,9 @@ check_confid_par <- function(rule, value) {
       warning("Value must be an integer for rule = n")
       FALSE
       
-    } else if (value < 3) {
+    } else if (value < 2) {
       
-      warning("Value cannot be below 3 vessels")
+      warning("Value cannot be below 2 vessels")
       FALSE
       
     } else {
@@ -62,14 +62,14 @@ set_confid_check <- function(check = TRUE, v_id = NULL, rule = "n", value = NULL
   #'   \code{rule = "k"} suppresses values where a single vessel contains k percent 
   #'   or more of the total catch. 
   #' @param value The threshold for confidentiality. for \code{rule = "n"} must 
-  #'   be an integer of at least 3. For \code{rule = "k"} any numeric value from 
+  #'   be an integer of at least 2. For \code{rule = "k"} any numeric value from 
   #'   0 to 100. 
   #' @export
   #' @details \code{rule = "n"} counts the number of vessel in each strata 
   #'   and suppresses values where fewer than n vessels are present. For
-  #'   \code{rule = "k"} each vessel's share of catch is calculated by strata. If  
-  #'   any vessel's total catch share is greater than or equal to k percent the
-  #'   value is suppressed.
+  #'   \code{rule = "k"}, or the "Majority allocation rule", each vessel's share of 
+  #'   catch is calculated by strata. If any vessel's total catch share is greater 
+  #'   than or equal to k percent the value is suppressed.
   #' @examples 
   #' \dontrun{
   #' set_confid_check(check = TRUE, v_id = "PERMIT", rule = "n", value = 3L)
@@ -169,8 +169,8 @@ check_confidentiality <- function(dataset, v_id, value_var, group = NULL,
   
   #' Create confidentiality check table
   #' 
-  #' This function creates a "check" table: a table of suppression conditions to be
-  #' applied to a summary table. 
+  #' This function checks for confidential values in a summary table and creates 
+  #' a table of suppression conditions, or "check table".
   #' 
   #' @param dataset The dataset used to create a summary table. This must include 
   #'   the vessel identifier column. 
@@ -178,9 +178,10 @@ check_confidentiality <- function(dataset, v_id, value_var, group = NULL,
   #' @param value_var String, the name(s) of the value variable(s). 
   #' @param group String, the name(s) of the grouping variable(s). This should 
   #'   include the `period` name if summarizing over time. 
-  #' @param rule String, the confidentiality rule to apply. \code{rule = "n"} suppresses
-  #'   values containing fewer than n vessels. \code{rule = "k"} suppresses values 
-  #'   where a single vessel contains k percent or more of the total catch. 
+  #' @param rule String, the confidentiality rule to apply. \code{rule = "n"} 
+  #'   suppresses values containing fewer than n vessels. \code{rule = "k"} (the 
+  #'   "majority allocation rule") suppresses values where a single vessel contains 
+  #'   k percent or more of the total catch. 
   #' @param value The threshold for confidentiality. for \code{rule = "n"} must 
   #'   be an integer of at least 3. For \code{rule = "k"} any double value from
   #'   0 to 100. 
@@ -209,7 +210,7 @@ check_confidentiality <- function(dataset, v_id, value_var, group = NULL,
     
     if (rule == "n") {
       
-      if (value < 3) value <- 3 
+      if (value < 2) value <- 2 
       
       check <- agg_helper(dataset, v_id, group, fun = function(x) length(unique(x)))
       
@@ -248,7 +249,7 @@ check_confidentiality <- function(dataset, v_id, value_var, group = NULL,
 
 suppress_table <- function(check, output, value_var, group, rule, type = "table") {
   
-  #' Suppress values in table
+  #' Suppress confidential values in summary table
   #' 
   #' This function suppresses values in a summary table based on suppression 
   #' conditions found in the check table (see \code{link{check_confidentiality}})
@@ -258,9 +259,10 @@ suppress_table <- function(check, output, value_var, group, rule, type = "table"
   #' @param value_var String, the name(s) of the value variable(s).
   #' @param group String, the name(s) of the grouping variables(s). This includes
   #'   `period` and `facet_by` from summary function. 
-  #' @param rule String, the confidentiality rule to apply. \code{rule = "n"} suppresses
-  #'   values containing fewer than n vessels. \code{rule = "k"} suppresses values 
-  #'   where a single vessel contains k percent or more of the total catch. 
+  #' @param rule String, the confidentiality rule to apply. \code{rule = "n"} 
+  #'   suppresses values containing fewer than n vessels. \code{rule = "k"} (the 
+  #'   "majority allocation rule") suppresses values where a single vessel contains 
+  #'   k percent or more of the total catch. 
   #' @param type String, \code{"table"} if the `output` will be used as a summary table, 
   #'   \code{"plot"} if `output` will be used for generating a plot. Summary tables
   #'   show suppressed values as `-999`, plot tables code suppressed values as `NA`.
@@ -270,6 +272,17 @@ suppress_table <- function(check, output, value_var, group, rule, type = "table"
   # convert check table to expression list
   group <- names(output)[names(output) != value_var]
   len <- length(group) - 1
+  
+  # check for factors
+  check[group] <- lapply(check[group], function(x) {
+    
+    if ("factor" %in% class(x)) {
+      
+      if (any(grepl("[[:alpha:]]", levels(x)))) as.character(x)
+      else x
+      
+    } else x
+  })
   
   paste_quote <- function(vec) {
     if ("character" %in% class(vec)) paste0("'", vec, "'") 
@@ -321,8 +334,8 @@ replace_sup_code <- function(output, value_var, code = NA) {
   #' 
   #' @param output Table containing suppressed values
   #' @param value_var String, name of the value variable. 
-  #' @param code The replacement suppression code. \code{code = NA} by default; this
-  #'   is ideal for plotting as ggplot automatically removes NAs. 
+  #' @param code The replacement suppression code. \code{code = NA} by default; 
+  #'   this is ideal for plotting as ggplot automatically removes NAs. 
   #' @export
   #' @examples 
   #' \dontrun{

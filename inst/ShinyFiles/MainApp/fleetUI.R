@@ -306,7 +306,7 @@ vessel_countUI <- function(id) {
               
     selectizeInput(ns("period"), "Show counts by (optional)",
                 choices = c("do not count by period" = "no_period", "year-month" = "year_month", "month-year" = "month_year",
-                            "year", "month", "weeks", "day of the month" = "day_of_month",
+                            "year", "month", "week", "day of the month" = "day_of_month",
                             "day of the year" = "day_of_year", "calender date" = "cal_date", 
                             "weekday"),
                 multiple = FALSE, selected = "year_month"),
@@ -408,7 +408,7 @@ species_catchUI <- function(id) {
     
     selectizeInput(ns("period"), "Show counts by (optional)",
                    choices = c("do not count by period" = "no_period", "year-month" = "year_month", "month-year" = "month_year",
-                               "year", "month", "weeks", "day of the month" = "day_of_month",
+                               "year", "month", "week", "day of the month" = "day_of_month",
                                "day of the year" = "day_of_year", "calender date" = "cal_date", 
                                "weekday"),
                    multiple = FALSE, selected = "year_month"),
@@ -801,7 +801,7 @@ bycatchUI <- function(id) {
     uiOutput(ns("date_select")),
     
     selectInput(ns("period"), "Show counts by",
-                choices = c("year", "month", "weeks")),
+                choices = c("year", "month", "week")),
     
     checkboxInput(ns("subset_cb"), strong("Subset (optional)"), value = FALSE),
     conditionalPanel("input.subset_cb", ns = ns, style = "margin-left:19px;",
