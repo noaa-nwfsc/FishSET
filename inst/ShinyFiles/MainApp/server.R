@@ -274,10 +274,11 @@ set_confid_check(check = FALSE)
            # tags$div(style="display: inline-block; align:center", img(src="upload.png",  height="75%", width="75%"))
 			tags$br(), tags$br(),
 			tags$p('Once data is loaded an option to identify whether confidentiality issues should be checked and then to 
-			       define the confidentiality rules. Two confidential rules can be applied to summarized data, 
-            the rule of n and the rule of k. The rule of n specifies the minimum number of unique observational units (such as vessels)
-			        required for summarized data to be displayed. The rule of k checks that no single observation units accounts for 
-			       k% of the summarized valued.'),
+			       define the confidentiality rules. Two confidential rules can be applied to summarized data,',
+			       tags$em('n'), 'and', tags$em('k.'),
+            'The', tags$em('(rule of n)'), tags$code('rule n'),'specifies the minimum number of unique observational units (such as vessels)
+			        required for summarized data to be displayed. The', tag$em('majority allocation rule'), tags$code('(rule k)'),
+              'checks that no single observation units accounts for', tags$em('k%'), 'of the summarized valued.'),
 			tags$br(), tags$br(),
 			tags$p(tags$strong("Data:"),
 			       tags$ul('primary (required)'), 
