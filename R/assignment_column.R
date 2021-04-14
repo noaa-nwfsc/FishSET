@@ -39,16 +39,12 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
   out <- data_pull(dat)
   dataset <- out$dataset
   
-  if (shiny::isRunning()) {
-    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
-  } else { 
-    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
-  
+  dat <- parse_data_name(dat, "main")
 
   gridout <- data_pull(gridfile)
   grid <- gridout$dataset
   
-gridfile <- deparse(substitute(dat))
+  gridfile <- parse_data_name(dat, "grid")
 
   dataset[[lat.dat]] <- as.numeric(as.vector(dataset[[lat.dat]]))
   dataset[[lon.dat]] <- as.numeric(as.vector(dataset[[lon.dat]]))
