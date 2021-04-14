@@ -92,7 +92,7 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
   dataset <- out$dataset
   
   if (shiny::isRunning()) {
-    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
+    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name", envir = fishset_env)
   } else { 
     if (!is.character(dat)) dat <- deparse(substitute(dat)) }
   

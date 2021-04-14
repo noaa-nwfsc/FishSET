@@ -36,7 +36,7 @@ sum_catch <- function(dat, project, catch, v_id, species = NULL, exp, val = c("r
     dataset <- out$dataset
     
     if (shiny::isRunning()) {
-        if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
+        if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name", envir = fishset_env)
     } else { 
         if (!is.character(dat)) dat <- deparse(substitute(dat)) }
     
