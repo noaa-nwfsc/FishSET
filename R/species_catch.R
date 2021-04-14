@@ -487,7 +487,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
             
             else if (length(group) > 1) {
               
-              lang::expr(interaction(species, !!rlang::sym(group2)))
+              rlang::expr(interaction(species, !!rlang::sym(group2)))
             }
           }
         }

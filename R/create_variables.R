@@ -29,6 +29,8 @@ cpue <- function(dat, xWeight, xTime, name = "cpue") {
   dataset <- dat
   dat <- deparse(substitute(dat))
 
+  dat <- parse_data_name(dat, "main")
+  
   tmp <- 0
 
   if (!is.numeric(dataset[[xTime]]) | !is.numeric(dataset[[xWeight]])) {
@@ -99,8 +101,11 @@ dummy_num <- function(dat, var, value, opts = "more_less", name = "dummy_num") {
 
 
   # Pull in data
-  dataset <- dat
-  dat <- deparse(substitute(dat))
+  out <- data_pull(dat)
+  dataset <- out$dataset
+  
+  dat <- parse_data_name(dat, "main")
+  
 
   if (grepl("dat|year", var, ignore.case = TRUE)) {
     if (length(value) == 6) {
@@ -150,8 +155,10 @@ dummy_var <- function(dat, DumFill = "TRUE", name = "dummy_var") {
   #' }
 
   # Pull in data
-  dataset <- dat
-  dat <- deparse(substitute(dat))
+  out <- data_pull(dat)
+  dataset <- out$dataset
+  
+  dat <- parse_data_name(dat, "main")
 
   newvar <- as.vector(rep(DumFill, nrow(dataset)))
   
@@ -184,8 +191,10 @@ dummy_matrix <- function(dat, x) {
   #' }
 
 
-  dataset <- dat
-  dat <- deparse(substitute(dat))
+  out <- data_pull(dat)
+  dataset <- out$dataset
+  
+  dat <- parse_data_name(dat, "main")
 
   # create the matrix
   factor.levels <- levels(as.factor(dataset[[x]]))
@@ -233,10 +242,9 @@ set_quants <- function(dat, x, quant.cat = c(0.1, 0.2, 0.25, 0.4), custom.quant 
   #' }
   #
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
-  # dataset <- dat
-  # dat <- deparse(substitute(dat))
+  
+  dat <- parse_data_name(dat, "main")
 
   tmp <- 0
 
@@ -299,8 +307,10 @@ bin_var <- function(dat, project, var, br, name, labs = NULL, ...) {
   #'  pollockMainDataTable <- bin_var(pollockMainDataTable, 'pollock', 'HAUL', c(5,10), 'HAULCAT')
   #' }
 
-  dataset <- dat
-  dat <- deparse(substitute(dat))
+  out <- data_pull(dat)
+  dataset <- out$dataset
+  
+  dat <- parse_data_name(dat, "main")
 
   tmp <- 0
 
@@ -369,6 +379,8 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   
   out <- data_pull(dat)
   dataset <- out$dataset
+  
+  dat <- parse_data_name(dat, "main")
   
   if (shiny::isRunning()) {
     if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
@@ -443,6 +455,8 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   
   out <- data_pull(dat)
   dataset <- out$dataset
+  
+  dat <- parse_data_name(dat, "main")
   
   if (shiny::isRunning()) {
     if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
@@ -523,6 +537,8 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
   out <- data_pull(dat)
   dataset <- out$dataset
   
+  dat <- parse_data_name(dat, "main")
+  
   if (shiny::isRunning()) {
     if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
   } else { 
@@ -584,8 +600,10 @@ create_var_num <- function(dat, x, y, method, name = "create_var_num") {
   #'     y = 'HAUL_CHUM', method = 'sum', name = 'tot_salmon')
   #' }
 
-  dataset <- dat
-  dat <- deparse(substitute(dat))
+  out <- data_pull(dat)
+  dataset <- out$dataset
+  
+  dat <- parse_data_name(dat, "main")
 
   tmp <- 0
 
@@ -644,9 +662,11 @@ create_mid_haul <- function(dat, start = c("lon", "lat"), end = c("lon", "lat"),
   #' }
   #
 
-  dataset <- dat
-  dat <- deparse(substitute(dat))
-
+  out <- data_pull(dat)
+  dataset <- out$dataset
+  
+  dat <- parse_data_name(dat, "main")
+  
   tmp <- 0
 
   if (is_empty(start) || is_empty(end)) {
@@ -708,8 +728,10 @@ create_trip_centroid <- function(dat, lon, lat, weight.var = NULL, ...) {
   #'   'LonLat_START_LAT', weight.var = NULL, 'DISEMBARKED_PORT', 'EMBARKED_PORT')
   #' }
 
-  dataset <- dat
-  dat <- deparse(substitute(dat))
+  out <- data_pull(dat)
+  dataset <- out$dataset
+  
+  dat <- parse_data_name(dat, "main")
 
   x <- 0
   if (any(abs(dataset[[lon]]) > 180)) {
@@ -842,9 +864,11 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
 
     # Call in datasets
-    dataset <- dat
-    dat <- deparse(substitute(dat))
-
+    out <- data_pull(dat)
+    dataset <- out$dataset
+    
+    dat <- parse_data_name(dat, "main")
+    
     if (any(grepl("port", c(start[1], end[1]), ignore.case = TRUE))) {
       # in port table
       fun <- function() {
@@ -985,8 +1009,10 @@ create_duration <- function(dat, start, end, units = c("week", "day", "hour", "m
   #' }
 
   # Call in datasets
-  dataset <- dat
-  dat <- deparse(substitute(dat))
+  out <- data_pull(dat)
+  dataset <- out$dataset
+  
+  dat <- parse_data_name(dat, "main")
 
 
   if (any(grepl("date|min|hour|week|month|TRIP_START|TRIP_END", start, ignore.case = TRUE)) == FALSE) {
@@ -1041,8 +1067,9 @@ randomize_value_row <- function(dat, project, value) {
   #' }
   
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
+  
+  dat <- parse_data_name(dat, "main")  
   
   dataset[[value]] <- sample(dataset[[value]], size = nrow(dataset), replace = FALSE)
   
@@ -1074,8 +1101,9 @@ randomize_value_range <- function(dat, project, value, perc = NULL) {
   #' } 
   
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
+  
+  dat <- parse_data_name(dat, "main")
   
   end <- FALSE
   
@@ -1139,8 +1167,9 @@ jitter_lonlat <- function(dat, project, lon, lat, factor = 1, amount = NULL) {
   #' }
   
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
+  
+  dat <- parse_data_name(dat, "main") 
   
   j_list <- 
     lapply(c(lon, lat), function(x) {
@@ -1188,12 +1217,15 @@ randomize_lonlat_zone <- function(dat, project, spat, lon, lat, zone) {
   #' }
   
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
   
+  dat <- parse_data_name(dat, "main")
+  
   spat_out <- data_pull(spat)
-  spat <- spat_out$dat
   spatdat <- spat_out$dataset
+
+  spat <- parse_data_name(spat, 'spat')
+ 
   
   if (!("sf" %in% class(spatdat))) {
     spatdat <- sf::st_as_sf(x = spatdat, crs = "+proj=longlat +datum=WGS84")
@@ -1285,12 +1317,13 @@ lonlat_to_centroid <- function(dat, project, lon, lat, spat, zone) {
   #' 
   
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
+  
+  dat <- parse_data_name(dat, "main")
   
   spat_out <- data_pull(spat)
   spat <- spat_out$dat
-  spatdat <- spat_out$dataset
+  spatdat <- parse_data_name(spat, 'spat')
   
   if (!("sf" %in% class(spatdat))) {
     spatdat <- sf::st_as_sf(x = spatdat, crs = "+proj=longlat +datum=WGS84")
