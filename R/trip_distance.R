@@ -43,8 +43,8 @@ create_trip_distance <- function(dat, PortTable, trip_id, starting_port, startin
   port.table <- out$dataset
   
   if (shiny::isRunning()) 
-    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
-  if (deparse(substitute(PortTable)) == "ptdat$dataset") PortTable <- get("port_name")
+    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name", envir = fishset_env)
+  if (deparse(substitute(PortTable)) == "ptdat$dataset") PortTable <- get("port_name", envir = fishset_env)
   
   else 
     if (!is.character(dat)) dat <- deparse(substitute(dat))
