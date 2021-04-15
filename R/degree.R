@@ -30,11 +30,10 @@ degree <- function(dat, lat = NULL, lon = NULL, latsign = FALSE, lonsign = FALSE
   #' }
   #'
 
-  # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
-
+  dat <- parse_data_name(dat, "main")
+  
   tmp <- tempfile()
 
   if (any(apply(dataset[, grep("lat|lon", names(dataset), ignore.case = TRUE)], 2, function(x) !is.numeric(x)) == TRUE) == TRUE) {

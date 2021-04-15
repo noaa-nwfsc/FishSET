@@ -104,11 +104,8 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
                         fun.numeric = NULL) {
   out <- data_pull(dat)
   dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
   
-  if (shiny::isRunning()) {
-    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name", envir = fishset_env)
-  } else { 
-    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
   
   if (any(units %in% c("secs", "minutes", "hours", "days", "weeks")) == FALSE) {
     

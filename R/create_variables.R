@@ -1318,7 +1318,6 @@ lonlat_to_centroid <- function(dat, project, lon, lat, spat, zone) {
   
   out <- data_pull(dat)
   dataset <- out$dataset
-  
   dat <- parse_data_name(dat, "main")
   
   spat_out <- data_pull(spat)

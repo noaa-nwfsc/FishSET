@@ -200,7 +200,7 @@ source("map_viewer_app.R", local = TRUE)
                                       uiOutput('ui.action2'))),
                              fluidRow(
                                column(4, radioButtons('loadportsource', "Source port data from:", 
-                                                      choices=c( 'Upload new file','FishSET database'), 
+                                                      choices=c('Upload new file','FishSET database'), 
                                                        inline=TRUE)),
                                uiOutput('port_upload')
                              ),

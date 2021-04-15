@@ -45,19 +45,23 @@ create_dist_between_for_gui <- function(dat, start, end, units, name = "DistBetw
   if (start[1] == end[1]) {
     warning("Starting and ending vectors are identical.")
   } else {
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+ #   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
 
     # Call in datasets
-    dataset <- dat
-    dat <- deparse(substitute(dat))
+    out <- data_pull(dat)
+    dataset <- out$dataset
+    dat <- parse_data_name(dat, "main")
 
+    if(!exists('project')){
+      project <- sub("\\MainDataTable", "", dat)
+    }
 
     # Get location data for centroid or port
     x <- 0
 
     if (grepl("centroid", start[1], ignore.case = TRUE) | grepl("centroid", end[1], ignore.case = TRUE)) {
       dat2 <- assignment_column(
-        dat = dataset, gridfile = gridfile, hull.polygon = FALSE, lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat,
+        dat = dataset, project=project, gridfile = gridfile, hull.polygon = FALSE, lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat,
         lat.dat = lat.dat, cat = cat, closest.pt = TRUE
       )
       int <- find_centroid(dat2,

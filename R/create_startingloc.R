@@ -41,17 +41,23 @@
 create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, starting_port, lon.dat, lat.dat,
                                cat, name = "startingloc", lon.grid = NULL, lat.grid = NULL) {
   # Call in datasets
-  dataset <- dat
-  dat <- deparse(substitute(dat))
+  out <- data_pull(dat)
+  dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
+  
 
   # in port table
   out <- data_pull(portTable)
-  PortTable <- out$dat
+  PortTable <- parse_data_name(portTable, 'port')
   port.table <- out$dataset
-
+  
+  if(!exists('project')){
+  project <- sub("\\MainDataTable", "", dat)
+  }
+  
   # DBI::dbDisconnect(fishset_db)
   port <- assignment_column(
-    dat = port.table, gridfile = gridfile, hull.polygon = FALSE, lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = "Port_Long",
+    dat = port.table, project = project, gridfile = gridfile, hull.polygon = FALSE, lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = "Port_Long",
     lat.dat = "Port_Lat", cat = cat, closest.pt = TRUE
   )
 
@@ -59,7 +65,7 @@ create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, st
     int.data <- dataset
   } else {
     int.data <- assignment_column(
-      dat = dataset, gridfile = gridfile, hull.polygon = FALSE, lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat,
+      dat = dataset, project = project, gridfile = gridfile, hull.polygon = FALSE, lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat,
       lat.dat = lat.dat, cat = cat, closest.pt = TRUE
     )
   }

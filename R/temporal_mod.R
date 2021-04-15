@@ -37,9 +37,9 @@ temporal_mod <- function(dat, x, define.format, name = NULL) {
 
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
-
+  dat <- parse_data_name(dat, "main")
+  
 
   if (!define.format %in% c("year", "month", "day", "hour", "minute")) {
     # User defines the format of the time variable

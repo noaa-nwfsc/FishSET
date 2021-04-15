@@ -26,9 +26,9 @@ outlier_table <- function(dat, project, x) {
 
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
-
+  dat <- parse_data_name(dat, "main")
+  
 
   x.name <- x
 
@@ -171,9 +171,9 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FA
 
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
-
+  dat <- parse_data_name(dat, "main")
+  
   if (is.numeric(dataset[, x]) == T) {
     # Begin outlier check
     dataset$y <- 1:length(dataset[, x])
@@ -357,9 +357,9 @@ outlier_remove <- function(dat, x, dat.remove = "none", over_write = FALSE) {
 
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
-
+  dat <- parse_data_name(dat, "main")
+  
 
   if (is.numeric(dataset[, x]) == T) {
     # Begin outlier check

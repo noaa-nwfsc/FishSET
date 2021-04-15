@@ -27,9 +27,9 @@ map_plot <- function(dat, project, lat, lon, minmax = NULL, percshown = NULL) {
 
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
-
+  dat <- parse_data_name(dat, "main")
+  
   x <- 0
 
   if (any(abs(dataset[[lon]]) > 180)) {

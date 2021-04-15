@@ -185,8 +185,9 @@ make_model_design <- function(dat, project, catchID, replace = TRUE, likelihood 
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
+  
 
   x0 <- 0
 

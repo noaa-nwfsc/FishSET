@@ -30,14 +30,11 @@ haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, trip
 
   out <- data_pull(dat)
   dataset <- out$dataset
-  
-  if (shiny::isRunning()) {
-    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
-  } else { 
-    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
+  dat <- parse_data_name(dat, "main")
+   browser()
   
   # Load in dataindex
-  dataIndex <- dataindex_update(dataset, pull_info_data(project))
+  #dataIndex <- dataindex_update(dataset, pull_info_data(project))
   
   # create rowID variable
   int <- ID_var(dataset, vars = tripID, type = "integer", name = "rowID", 
@@ -54,18 +51,25 @@ haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, trip
   
   row_ind <- which(colnames(int) == "rowID")
   
-  if (length(drop_empty) > 0) {
+#  if (length(drop_empty) > 0) {
     
-    DI_mod <- dataIndex[!(dataIndex$variable_name %in% drop_empty), 
-                        c("variable_name", "generalType")] 
+#    DI_mod <- dataIndex[!(dataIndex$variable_name %in% drop_empty), 
+#                        c("variable_name", "generalType")] 
     
-  } else {
+#  } else {
     
-    DI_mod <- dataIndex[c("variable_name", "generalType")] 
-  }
+     
+#  }
   
-  DI_var <- DI_mod$variable_name
-  DI_type <- DI_mod$generalType
+  DI_var <-  colnames(dataset)
+  DI_type <- c(ifelse(grepl("DATE|MIN", colnames(dataset), ignore.case = TRUE), "Time", 
+                      ifelse(grepl("IFQ", colnames(dataset), ignore.case = TRUE), "Flag", 
+                             ifelse(grepl("ID", colnames(dataset),ignore.case = TRUE), "Code", 
+                                    ifelse(grepl("Long|Lat", colnames(dataset), ignore.case = TRUE), "Latitude", 
+                                           ifelse(grepl("TYPE|PROCESSOR|LOCATION|METHOD",colnames(dataset), ignore.case = TRUE), "Code String", 
+                                                  ifelse(grepl("CHINOOK|CHUM|FATHOMS|DOLLARS|LBS|PROPORTION|VALUE|PERCENT|MT", colnames(dataset), ignore.case = TRUE), "Other Numeric", 
+                                                         ifelse(grepl("HAUL|AREA|PERFORMANCE|PERMIT", colnames(dataset), ignore.case = TRUE), "Code Numeric", NA)
+                                                  )))))))
   
   # Collapse data based on rowID and defined function
   out <- data.frame(drop = rep(0, length(unique(int$rowID))))

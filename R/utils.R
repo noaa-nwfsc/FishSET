@@ -213,6 +213,7 @@ qaqc_helper <-function(dat, fun, output = "logical") {
   #' @param output \code{"logical"} returns a single logical value for each column in
   #'   \code{dat}. \code{"names"} returns the column names that evaluate to \code{TRUE}.
   #' @keywords internal
+  #' @export
   #' @details Returns a vector of logical values (\code{output = "logical"}) or a vector of 
   #'   column names where the condition evaluated by \code{fun} returns TRUE 
   #'   (\code{output = "names"}). 
@@ -555,6 +556,7 @@ perc_of_total <- function(dat, value_var, group = NULL) {
   #' @importFrom purrr map2
   #' @importFrom magrittr %>%
   #' @keywords internal
+  #' @export
   #' 
  
   val_total <- paste0(value_var, "_total") 
@@ -1234,6 +1236,7 @@ simpleCap <- function(x) {
   #' @param x Variable
   #' @keywords internal
   #' @export
+  
   s <- strsplit(x, " ")[[1]]
   paste(toupper(substring(s, 1,1)), substring(s, 2),
         sep="", collapse=" ")
@@ -1247,6 +1250,7 @@ deleteButtonColumn <- function(df, id, ...) {
 #' @return A DT::datatable with escaping turned off that has the delete buttons in the first column 
 #'   and \code{df} in the other function to create one action button as string
 #' @keywords internal
+#' @export
 
   f <- function(i) {
     # https://shiny.rstudio.com/articles/communicating-with-js.html
@@ -1295,6 +1299,7 @@ find_lat <- function(dat) {
   #' Find columns that may be latitude data
   #' @param dat Dataset to search over
   #' @keywords internal
+  #' @export
   
   cols <- colnames(dat)
   lat_match <- stringi::stri_count_regex(cols, '(?=LAT|Lat|lat)')
@@ -1307,6 +1312,7 @@ find_lonlat <- function(dat) {
   #' Find columns that may be longitude or latitude data
   #' @param dat Dataset to search over
   #' @keywords internal
+  #' @export
   
   grep("lon|lat", colnames(dat), ignore.case = TRUE, value = TRUE)
 }
@@ -1406,5 +1412,4 @@ date_cols <- function(dat, out = "names") {
 #  namespace_frame = parent.env(target_frame)
 #  isNamespace(namespace_frame) && environmentName(namespace_frame) == 'shiny'
 # }
-
 

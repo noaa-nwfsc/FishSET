@@ -1,7 +1,6 @@
 #' Check for common data quality issues affecting modeling functions
 #'
 #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
-#' @param dataindex Data table that contains information on each column of the main data frame. In the FishSET database the table will contain the phrase `MainDataTableInfo`
 #' @param uniqueID Variable in \code{dat} containing unique occurrence identifier.
 #' @param save.file Logical, if TRUE and no data issues are identified, the dataset is saved to the FishSET database. Defaults to TRUE.
 #' @return Returns statements of data quality issues in the data. Saves table to FishSET database.
@@ -18,22 +17,15 @@
 #' check_model_data(MainDataTable, "MainDataTableInfo", uniqueID = "uniqueID_Code", save.file = TRUE)
 #' }
 #'
-check_model_data <- function(dat, dataindex, uniqueID, save.file = TRUE) {
+check_model_data <- function(dat, uniqueID, save.file = TRUE) {
   
   end <- FALSE
 
   # Call in data sets
   out <- data_pull(dat)
   dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
   
-  if (shiny::isRunning()) {
-    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
-  } else { 
-    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
-  
-  # update dataindex
-  dataindex_update(dataset, dataindex)
-
   tmp <- tempfile()
   
   if (any(qaqc_helper(dataset, "NaN"))) {
@@ -88,7 +80,7 @@ check_model_data <- function(dat, dataindex, uniqueID, save.file = TRUE) {
   # logging function information
   check_model_data_function <- list()
   check_model_data_function$functionID <- "check_model_data"
-  check_model_data_function$args <- list(dat, dataindex, uniqueID, save.file)
+  check_model_data_function$args <- list(dat, uniqueID, save.file)
   check_model_data_function$msg <- tmp
   
   if (file.exists(tmp)) {

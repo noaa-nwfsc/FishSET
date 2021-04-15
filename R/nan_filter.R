@@ -18,9 +18,9 @@ nan_identify <- function(dat) {
 
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
-
+  dat <- parse_data_name(dat, "main")
+  
   tmp <- tempfile()
   # Check for NAs
   if (any(apply(dataset, 2, function(x) anyNA(x)) == TRUE)) {
@@ -96,8 +96,9 @@ nan_filter <- function(dat, x=NULL, replace = F, remove = F, rep.value = NA, ove
 
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
+  
 
   int <- dataset
   tmp <- tempfile()
@@ -197,8 +198,9 @@ na_filter <- function(dat, x=NULL, replace = F, remove = F, rep.value = NA, over
 
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
+  
 
   int <- dataset
   tmp <- tempfile()

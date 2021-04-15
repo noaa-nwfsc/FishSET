@@ -38,14 +38,10 @@
 changeclass <- function(dat, project, x=NULL, newclass=NULL, savedat=FALSE){
 
 # Call in datasets
-out <- data_pull(dat)
-dataset <- out$dataset
-
-if (shiny::isRunning()) {
-  if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
-} else { 
-  if (!is.character(dat)) dat <- deparse(substitute(dat)) }
-
+  out <- data_pull(dat)
+  dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
+  
 
   #change data
     #Conversion is based on starting and ending class

@@ -36,11 +36,8 @@ merge_dat <- function(dat, other, project, main_key, other_key, other_type = NUL
   # pull main data
   out <- data_pull(dat)
   dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
   
-  if (shiny::isRunning()) {
-    dat <- get("dat_name")
-  } else { 
-    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
   
   # pull secondary data
   other_out <- data_pull(other)
@@ -175,16 +172,18 @@ split_dat <- function(dat, project, aux = NULL, split_by = NULL, key, output = "
 
   # pull main data
   out <- data_pull(dat)
-  dat <- out$dat
+  out <- data_pull(dat)
   dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
+  
  
   aux_dat <- NULL
   
   if (!is.null(aux)) { 
     # pull aux data
     out_aux <- data_pull(aux)
-    aux <- out_aux$aux
     aux_dat <- out_aux$dataset
+    aux <- parse_data_name(aux, 'aux')
   }
   
   end <- FALSE

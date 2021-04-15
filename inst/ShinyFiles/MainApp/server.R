@@ -212,7 +212,10 @@ set_confid_check(check = FALSE)
       values <- reactiveValues(
         dataset = data.frame('var1'=0, 'var2'=0)
         )
-       # refresh data
+       # project name 
+      project <- reactiveValues()
+      
+      # refresh data   
       observeEvent(c(input$refresh,input$refresh1,input$refresh2,input$refreshNew), {
         req(project$name)
         temp <- tables_database()[grep(paste0(project$name, 'MainDataTable\\d+'), tables_database())][which(
@@ -886,8 +889,7 @@ set_confid_check(check = FALSE)
       
       #DATA UPLOAD FUNCTIONS ----
       ###---
-       # project name 
-      project <- reactiveValues()
+    
       
       output$projects <- renderUI({
         

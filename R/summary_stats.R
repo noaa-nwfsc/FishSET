@@ -21,8 +21,9 @@ summary_stats <- function(dat, project, x = NULL) {
 
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
+  
 
   # Min apply(dataset, 2, function(x) min(x, na.rm=T)) 1st Quartile apply(dataset, 2, function(x) quantile(x)[2]) Median apply(dataset, 2, function(x)
   # median(x, na.rm=T)) Mean apply(dataset, 2, function(x) mean(x, na.rm=TRUE)) 3rd Quartile apply(dataset, 2, function(x) length(unique(x))) Max

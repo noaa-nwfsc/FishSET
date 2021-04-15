@@ -25,11 +25,8 @@ ID_var <- function(dat, vars, name = NULL, type = "string", drop = FALSE) {
   # Call in datasets
   out <- data_pull(dat)
   dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
   
-  if (shiny::isRunning()) {
-    if (deparse(substitute(dat)) %in% c("dataset", "values$dataset")) dat <- get("dat_name")
-  } else { 
-    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
 
   if (is.null(name))  name <- paste0(vars, collapse = "_")
   else name <- make.names(name)

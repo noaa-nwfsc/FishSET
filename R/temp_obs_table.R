@@ -31,19 +31,19 @@
 #'   )
 #' }
 #'
-temp_obs_table <- function(dat, project, gridfile, x, lon.dat, lat.dat, cat, lon.grid = NULL, lat.grid = NULL) {
+temp_obs_table <- function(dat, project,  x, gridfile=NULL,lon.dat=NULL, lat.dat=NULL, cat=NULL, lon.grid = NULL, lat.grid = NULL) {
 
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
-
+  dat <- parse_data_name(dat, "main")
+  
 
   if ("ZoneID" %in% names(dat)) {
     out <- dataset
   } else {
-    out <- assignment_column(dataset,
-      gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.dat, lon.dat = lon.dat, lat.dat = lat.dat, cat = cat,
+    out <- assignment_column(dataset, project=project, gridfile = gridfile, 
+     lon.grid = lon.grid, lat.grid = lat.dat, lon.dat = lon.dat, lat.dat = lat.dat, cat = cat,
       closest.pt = FALSE, hull.polygon = TRUE, epsg = NULL
     )
   }

@@ -40,23 +40,26 @@
 create_seasonal_ID <- function(dat, seasonal.dat, use.location = c(TRUE, FALSE), use.geartype = c(TRUE, FALSE), sp.col, target = NULL) {
 
   # Call in datasets
-  dataset <- dat
-  dat <- deparse(substitute(dat))
+  out <- data_pull(dat)
+  dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
 
-  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-
-  if (is.character(seasonal.dat) == TRUE) {
-    if (is.null(seasonal.dat) == TRUE | table_exists(seasonal.dat) == FALSE) {
-      print(tables_database())
-      stop(paste(seasonal.dat, "not defined or does not exist. Consider using one of the tables listed above that exist in the database."))
-    } else {
-      seasonaldat <- seasonal.dat
-    }
-  } else {
-    seasonal.dat <- seasonal.dat
-    deparse(substitute(seasonal.dat))
-  }
-  DBI::dbDisconnect(fishset_db)
+  out <- data_pull(seasonal.dat)
+  seasonaldat <- out$dataset
+  seasonal.dat <- parse_data_name(seasonal.dat, "aux")
+  
+#  if (is.character(seasonal.dat) == TRUE) {
+#    if (is.null(seasonal.dat) == TRUE | table_exists(seasonal.dat) == FALSE) {
+#      print(tables_database())
+#      stop(paste(seasonal.dat, "not defined or does not exist. Consider using one of the tables listed above that exist in the database."))
+#    } else {
+#      seasonaldat <- seasonal.dat
+#    }
+#  } else {
+#    seasonaldat <- seasonal.dat
+#    seasonal.dat <- deparse(substitute(seasonal.dat))
+# }
+#  DBI::dbDisconnect(fishset_db)
 
 
   # Test that location_data match
