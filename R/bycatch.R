@@ -104,10 +104,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
   out <- data_pull(dat)
   dataset <- out$dataset
   
-  if (shiny::isRunning()) {
-    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name", envir = fishset_env)
-  } else { 
-    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
+  dat <- parse_data_name(dat, "main")
 
   end <- FALSE
   
@@ -190,14 +187,9 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
   }
   
   # Names joining table ----
-  if (is.null(names)) {
-    
-    name_tab <- data.frame(species = catch, species_catch = catch, species_cpue = cpue)
-    
-  } else {
-    
-    name_tab <- data.frame(species = names, species_catch = catch, species_cpue = cpue)
-  }
+  name_tab <- data.frame(species = catch, species_catch = catch, species_cpue = cpue)
+  
+  if (!is.null(names)) name_tab$species <- names
   
   # period ----
   periods <- c("year", "month", "weeks")
@@ -206,10 +198,9 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
     
     warning("Invalid period. Please select a valid period name (see documentation for details).")
     end <- TRUE
-  } else {
-    
-    p <- switch(period, year = "%Y", month = "%b", weeks = "%U")
-  }
+  
+  } else p_code <- switch(period, year = "%Y", month = "%b", weeks = "%U")
+
   
   # add missing ----
   dataset <- add_missing_dates(dataset, date = date, sub_date = sub_date, 
@@ -221,7 +212,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
     dataset$year <- as.integer(format(dataset[[date]], "%Y"))
   }
   
-  dataset[[period]] <- format(dataset[[date]], p)
+  dataset[[period]] <- format(dataset[[date]], p_code)
   
   # facet date ----
   if (!is.null(facet_by)) {
@@ -301,8 +292,8 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
     
     if (length(catch) > 1) {
       
-      catch_tab <- tidyr::pivot_longer(catch_tab, cols = !!catch, names_to = "species_catch", 
-                                       values_to = "catch")
+      catch_tab <- tidyr::pivot_longer(catch_tab, cols = !!catch, 
+                                       names_to = "species_catch", values_to = "catch")
     }
     # STC conversion ---- 
     f_catch <- function() if (length(catch) > 1) "catch" else catch
@@ -310,18 +301,9 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
     
     if (value == "stc") {
       
-      stc_tab <- agg_helper(catch_tab, value = f_catch(), group = catch_grp(), 
-                            fun = function(x) x/sum(x))
-      
-      if (is.vector(stc_tab$catch)) {
-        catch_tab$stc <- stc_tab$catch
-      } else {
-        if (nrow(stc_tab$catch) == 1) {
-          catch_tab$stc <- as.vector(stc_tab$catch) 
-        } else {
-          catch_tab$stc <- as.vector(t(stc_tab$catch))
-        }
-      }
+      catch_tab <- perc_of_total(catch_tab, value_var = f_catch(), 
+                                 group = NULL, drop = TRUE, val_type = "prop")
+      names(catch_tab)[ncol(catch_tab)] <- "stc"
     }
     
     # Join catch and effort tables ----
@@ -336,188 +318,93 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
                                   by = unique(c(period, agg_grp, "species_catch")))
     }
     
-    if (p == "%b") {
+    if (p_code == "%b") bycatch <- date_factorize(bycatch, period, p_code)
       
-      bycatch <- date_factorize(bycatch, period, p)
-      
-    } else {
-      
-      bycatch[[period]] <- as.integer(bycatch[[period]])
-    }
+    else bycatch[[period]] <- as.integer(bycatch[[period]])
     
     bycatch <- bycatch[order(bycatch[[period]]), ]
     
+    # Confidentiality checks ----
+    cpue_exp <- function() {
+      if (length(cpue) > 1) rlang::sym("mean_cpue") else rlang::sym(cpue)
+    }
+    
+    f_stc <- function() if (value == "stc") "stc" else NULL
+    
+    if (run_confid_check()) {
+      
+      cc_par <- get_confid_check()
+      
+      check_catch <- 
+        check_confidentiality(dataset = dataset, cc_par$v_id, value_var = catch, 
+                              rule = cc_par$rule, group = c(period, agg_grp), 
+                              value = cc_par$value, names_to = "species_catch", 
+                              values_to = "catch")
+      
+      if (cc_par$rule == "n") {
+        
+        check_cpue <- 
+          check_confidentiality(dataset = dataset, cc_par$v_id, value_var = cpue, 
+                                rule = cc_par$rule, group = c(period, agg_grp), 
+                                value = cc_par$value, names_to = "species_cpue", 
+                                values_to = "mean_cpue")
+      
+      } else check_cpue <- list(suppress = FALSE)
+      
+      if (check_catch$suppress | check_cpue$suppress) {
+        
+        check_out <- bycatch
+        
+        if (check_catch$suppress) {
+          
+          check_out <- suppress_table(check_catch$table, check_out, 
+                                      value_var = c(f_catch(), f_stc()),
+                                      group = c(period, agg_grp), rule = cc_par$rule)
+          
+        }
+        
+        if (check_cpue$suppress) {
+          
+          check_out <- suppress_table(check_cpue$table, check_out, 
+                                      value_var = cpue_exp(),
+                                      group = c(period, agg_grp), rule = cc_par$rule)
+        }
+        
+        save_table(check_out, project, "bycatch_confid")
+      }
+    }
     
     if (output %in% c("tab_plot", "plot")) {
       
-      # plot functions ----
-      species_exp <- function() if (length(catch) > 1) rlang::sym("species") else NULL
-      species_exp2 <- function() if (!is.null(species_exp())) rlang::as_string(species_exp()) else NULL
-      group_exp <- function() if (is.null(group)) 1 else rlang::sym(group1)
-      color_exp <- function() if (is.null(group)) NULL else rlang::sym(group1)
-      names <- as.character(name_tab$species)
-      
-      # Plots ----
-      cpue_plots <- lapply(names, function(x) { # plot for each species 
-        
-        cpue_exp <- function() if (length(cpue) > 1) rlang::sym("mean_cpue") else rlang::sym(cpue)
-        cpue_cols <- unique(c(period, agg_grp, species_exp2(), rlang::as_string(cpue_exp())))
-        
-        if (length(cpue) == 1) {
-          cpue_dat <- bycatch[cpue_cols]
-        } else {
-          cpue_dat <- bycatch[bycatch$species == x, cpue_cols]
-        }
-        
-        cp_plot <- ggplot2::ggplot(cpue_dat, ggplot2::aes(!!rlang::sym(period), 
-                                                          !!cpue_exp(), 
-                                                          group = !!group_exp(),
-                                                          color = !!color_exp())) + 
-          ggplot2::geom_point(size = 1) + 
-          ggplot2::geom_line(size = 0.65) + 
-          ggplot2::labs(title = "CPUE", y = "average CPUE") + 
-          fishset_theme() + 
-          ggplot2::scale_y_continuous(trans = tran) +
-          ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, size = 9), 
-                         axis.title = ggplot2::element_text(size = 7), 
-                         axis.text = ggplot2::element_text(size = 7), 
-                         legend.position = "none")
-        
-        if (!is.null(facet_by)) {
-          
-          if (length(facet_by) == 1) {
-            
-            fm <- stats::reformulate(".", facet_by)
-            
-          } else if (length(facet_by) == 2) {
-            
-            fm <- paste(facet_by, sep = " ~ ")
-          }
-          
-          cp_plot <- cp_plot + ggplot2::facet_grid(fm, scales = scale)
-        }
-        
-        if (period == "year") {
-          
-          cp_plot <- cp_plot + 
-            ggplot2::scale_x_continuous(breaks = num_breaks(cpue_dat[[period]]))
-          
-        } else if (period == "weeks") {
-          
-          cp_plot <- cp_plot + 
-            ggplot2::scale_x_continuous(breaks = num_breaks(cpue_dat[[period]]), 
-                                        labels = week_labeller(num_breaks(cpue_dat[[period]]),
-                                                               cpue_dat$year))
-        }
-        
-        cp_plot
-      })
-      
-      catch_plots <- lapply(names, function(x) {
-        
-        catch_exp <- function() {
-          if (value == "stc") {
-            rlang::sym("stc") 
-          } else if (length(catch) > 1) {
-            rlang::sym("catch") 
-          } else { 
-            rlang::sym(catch)
-          }
-        }
-        catch_cols <- unique(c(period, agg_grp, species_exp2(), rlang::as_string(catch_exp())))
-        
-        if (length(catch) == 1) {
-          catch_dat <- bycatch[catch_cols] 
-        } else {
-          catch_dat <- bycatch[bycatch$species == x, catch_cols] 
-        }
-        
-        ca_plot <- ggplot2::ggplot(catch_dat, ggplot2::aes(!!rlang::sym(period), 
-                                                           !!catch_exp(), 
-                                                           group = !!group_exp(), 
-                                                           color = !!color_exp())) + 
-          ggplot2::geom_point(size = 1) + 
-          ggplot2::geom_line(size = 0.65) + 
-          ggplot2::labs(title = if (value != "stc") "Total" else "STC", 
-                        y = if (value == "total")  "total catch" else "share of catch") + 
-          fishset_theme() + ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, size = 9), 
-                                           axis.title = ggplot2::element_text(size = 7),
-                                           axis.text = ggplot2::element_text(size = 7), 
-                                           legend.position = "none") +
-          ggplot2::scale_y_continuous(labels = if (value == "stc") scales::percent else ggplot2::waiver(),
-                                      trans = tran)
-        
-        if (!is.null(facet_by)) {
-          
-          if (length(facet_by) == 1) {
-            
-            fm <- stats::reformulate(".", facet_by)
-            
-          } else if (length(facet_by) == 2) {
-            
-            fm <- paste(facet_by, sep = " ~ ")
-          }
-          
-          ca_plot <- ca_plot + ggplot2::facet_grid(fm, scales = scale)
-        }
-        
-        if (period == "year") {
-          
-          ca_plot <- 
-            ca_plot + ggplot2::scale_x_continuous(breaks = num_breaks(catch_dat[[period]]))
-          
-        } else if (period == "weeks") {
-          
-          ca_plot <- ca_plot + 
-            ggplot2::scale_x_continuous(breaks = num_breaks(catch_dat[[period]]),
-                                                           labels = week_labeller(num_breaks(catch_dat[[period]]),
-                                                                                  catch_dat$year))
-        }
-        
-        ca_plot
-      })
-      
-      # combine catch and cpue plots by species
-      plot_list <- 
-        purrr::pmap(list(x = cpue_plots, y = catch_plots, p_nm = names), 
-                    function(x, y, p_nm) {
-        
-        gridExtra::arrangeGrob(x, y, nrow = 1, top = p_nm)
-      })
-      # combine all species plots into one 
-      by_plot <- do.call(gridExtra::arrangeGrob, c(plot_list, ncol = 1))
-      
-      if (!is.null(group)) {
-        # add grouping var
-        grp <- ggplot2::ggplot(bycatch, ggplot2::aes(0, 0, color = !!rlang::sym(group1))) + 
-          ggplot2::geom_point() + 
-          ggplot2::theme(legend.position = "bottom")
-        
-        # extract legend
-        tmp <- ggplot2::ggplot_gtable(ggplot2::ggplot_build(grp))
-        leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
-        legend <- tmp$grobs[[leg]]
-        
-        by_plot <- gridExtra::arrangeGrob(by_plot, legend, ncol = 1, heights = c(.9, .1))
-      }
+      by_plot <- bycatch_plot(bycatch, cpue, catch, period, group, facet_by, 
+                              names = name_tab$species, value, scale, tran)
       
       f_plot <- function() {
-        if (shiny::isRunning()) {
-          by_plot
-        } else {
-          gridExtra::grid.arrange(by_plot, ncol = 1)
-        }
+        if (shiny::isRunning()) by_plot
+        else gridExtra::grid.arrange(by_plot, ncol = 1)
       }
       
       save_plot(project, "bycatch", by_plot)
+      
+      if (run_confid_check()) {
+        if (check_catch$suppress | check_cpue$suppress) {
+          
+          check_out <- replace_sup_code(check_out)
+          
+          conf_plot <- 
+            bycatch_plot(check_out, cpue, catch, period, group, facet_by, 
+                         names = name_tab$species, value, scale, tran)
+          
+          save_plot(project, "bycatch_conf", plot = conf_plot)
+        }
+      }
     }
     # remove extra cols used for joining 
     bycatch[c("species_catch", "species_cpue")] <- NULL
     
     if (format_tab == "long") {
      
-      stc <- if (value == "stc") "stc" else NULL
-      cols <- c("mean_cpue", "catch", stc)
+      cols <- c("mean_cpue", "catch", f_stc())
   
       bycatch <- tidyr::pivot_longer(bycatch, cols = !!cols, names_to = "measure", 
                                      values_to = "value")
@@ -534,15 +421,11 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
                                   output, format_tab)
     log_call(bycatch_function)
     
-    if (output == "plot") {
+    if (output == "plot") f_plot()
       
-      f_plot()
+    else if (output == "table") bycatch
       
-    } else if (output == "table") {
-      
-      bycatch
-      
-    } else {
+    else {
       
       out_list <- list(table = bycatch,
                        plot = f_plot())
@@ -550,3 +433,153 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
     }
   }
 }
+
+bycatch_plot <- function(dat, cpue, catch, period, group, facet_by, names,
+                         value, scale, tran) {
+  
+  if (!is.null(group)) group1 <- group[1] else group1 <- NULL
+  facet_date <- facet_by[facet_by %in% c("year", "month", "week")]
+  agg_grp <- c("year", group, facet_by, facet_date)
+  
+  # plot functions ----
+  species_exp <- function() if (length(catch) > 1) rlang::sym("species") else NULL
+  species_exp2 <- function() {
+    if (!is.null(species_exp())) rlang::as_string(species_exp()) else NULL
+  }
+  group_exp <- function() if (is.null(group)) 1 else rlang::sym(group1)
+  color_exp <- function() if (is.null(group)) NULL else rlang::sym(group1)
+  #names <- as.character(name_tab$species)
+  
+  # Plots ----
+  cpue_plots <- lapply(names, function(x) { # plot for each species 
+    
+    cpue_exp <- function() {
+      if (length(cpue) > 1) rlang::sym("mean_cpue") else rlang::sym(cpue)
+    }
+    
+    cpue_cols <- unique(c(period, agg_grp, species_exp2(), 
+                          rlang::as_string(cpue_exp())))
+    
+    if (length(cpue) == 1) cpue_dat <- dat[cpue_cols]
+    else cpue_dat <- dat[dat$species == x, cpue_cols]
+    
+    cp_plot <- ggplot2::ggplot(cpue_dat, ggplot2::aes(!!rlang::sym(period), 
+                                                      !!cpue_exp(), 
+                                                      group = !!group_exp(),
+                                                      color = !!color_exp())) + 
+      ggplot2::geom_point(size = 1) + 
+      ggplot2::geom_line(size = 0.65) + 
+      ggplot2::labs(title = "CPUE", y = "average CPUE") + 
+      fishset_theme() + 
+      ggplot2::scale_y_continuous(trans = tran) +
+      ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, size = 9), 
+                     axis.title = ggplot2::element_text(size = 7), 
+                     axis.text = ggplot2::element_text(size = 7), 
+                     legend.position = "none")
+    
+    if (!is.null(facet_by)) {
+      
+      if (length(facet_by) == 1) fm <- stats::reformulate(".", facet_by)
+      
+      else if (length(facet_by) == 2)  fm <- paste(facet_by, sep = " ~ ")
+      
+      cp_plot <- cp_plot + ggplot2::facet_grid(fm, scales = scale)
+    }
+    
+    if (period == "year") {
+      
+      cp_plot <- cp_plot + 
+        ggplot2::scale_x_continuous(breaks = num_breaks(cpue_dat[[period]]))
+      
+    } else if (period == "weeks") {
+      
+      cp_plot <- cp_plot + 
+        ggplot2::scale_x_continuous(breaks = num_breaks(cpue_dat[[period]]), 
+                                    labels = week_labeller(num_breaks(cpue_dat[[period]]),
+                                                           cpue_dat$year))
+    }
+    
+    cp_plot
+  })
+  
+  catch_plots <- lapply(names, function(x) {
+    
+    catch_exp <- function() {
+      if (value == "stc")  rlang::sym("stc")
+      else if (length(catch) > 1) rlang::sym("catch")
+      else rlang::sym(catch)
+    }
+    catch_cols <- unique(c(period, agg_grp, species_exp2(), 
+                           rlang::as_string(catch_exp())))
+    
+    if (length(catch) == 1) catch_dat <- dat[catch_cols] 
+    else catch_dat <- dat[dat$species == x, catch_cols] 
+    
+    ca_plot <- ggplot2::ggplot(catch_dat, ggplot2::aes(!!rlang::sym(period), 
+                                                       !!catch_exp(), 
+                                                       group = !!group_exp(), 
+                                                       color = !!color_exp())) + 
+      ggplot2::geom_point(size = 1) + 
+      ggplot2::geom_line(size = 0.65) + 
+      ggplot2::labs(title = if (value != "stc") "Total" else "STC", 
+                    y = if (value == "total")  "total catch" else "share of catch") + 
+      fishset_theme() + ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, size = 9), 
+                                       axis.title = ggplot2::element_text(size = 7),
+                                       axis.text = ggplot2::element_text(size = 7), 
+                                       legend.position = "none") +
+      ggplot2::scale_y_continuous(labels = if (value == "stc") scales::percent else ggplot2::waiver(),
+                                  trans = tran)
+    
+    if (!is.null(facet_by)) {
+      
+      if (length(facet_by) == 1) fm <- stats::reformulate(".", facet_by)
+      
+      else if (length(facet_by) == 2) fm <- paste(facet_by, sep = " ~ ")
+      
+      ca_plot <- ca_plot + ggplot2::facet_grid(fm, scales = scale)
+    }
+    
+    if (period == "year") {
+      
+      ca_plot <- 
+        ca_plot + ggplot2::scale_x_continuous(breaks = num_breaks(catch_dat[[period]]))
+      
+    } else if (period == "weeks") {
+      
+      ca_plot <- ca_plot + 
+        ggplot2::scale_x_continuous(breaks = num_breaks(catch_dat[[period]]),
+                                    labels = week_labeller(num_breaks(catch_dat[[period]]),
+                                                           catch_dat$year))
+    }
+    
+    ca_plot
+  })
+  
+  # combine catch and cpue plots by species
+  plot_list <- 
+    purrr::pmap(list(x = cpue_plots, y = catch_plots, p_nm = names), 
+                function(x, y, p_nm) {
+                  
+                  gridExtra::arrangeGrob(x, y, nrow = 1, top = p_nm)
+                })
+  # combine all species plots into one 
+  by_plot <- do.call(gridExtra::arrangeGrob, c(plot_list, ncol = 1))
+  
+  if (!is.null(group)) {
+    # add grouping var
+    grp <- ggplot2::ggplot(dat, ggplot2::aes(0, 0, color = !!rlang::sym(group1))) + 
+      ggplot2::geom_point() + 
+      ggplot2::theme(legend.position = "bottom")
+    
+    # extract legend
+    tmp <- ggplot2::ggplot_gtable(ggplot2::ggplot_build(grp))
+    leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+    legend <- tmp$grobs[[leg]]
+    
+    by_plot <- gridExtra::arrangeGrob(by_plot, legend, ncol = 1, heights = c(.9, .1))
+  }
+  
+  by_plot
+}
+
+
