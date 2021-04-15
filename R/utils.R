@@ -545,14 +545,18 @@ agg_helper <- function(dataset, value, period = NULL, group = NULL, fun = "sum")
   stats::aggregate(agg_fm, data = dataset, FUN = fun, na.action = NULL)
 }
 
-perc_of_total <- function(dat, value_var, group = NULL) {
+perc_of_total <- function(dat, value_var, group = NULL, drop = FALSE, 
+                          val_type = "perc") {
   
   #' Calculate grouped percentages 
   #' 
   #' @param dat Data table to summarize.
   #' @param value_var String, variable name(s) for calculating total. 
   #' @param group String, grouping variable(s) to group `value_var` by. 
-  #' @importFrom dplyr group_by across mutate ungroup
+  #' @param drop Logical, whether to drop the total column. 
+  #' @param val_type String, whether to convert value output to percentage 
+  #'   \code{"perc"} or proportion \code{"prop"}. 
+  #' @importFrom dplyr group_by across mutate ungroup select all_of
   #' @importFrom purrr map2
   #' @importFrom magrittr %>%
   #' @keywords internal
@@ -569,8 +573,12 @@ perc_of_total <- function(dat, value_var, group = NULL) {
     dplyr::mutate(dplyr::across(value_var, sum, .names = "{.col}_total")) %>% 
     dplyr::ungroup() 
   
+  p_val <- ifelse(val_type == "perc", 100, 1)
+  
   dat[val_perc] <- 
-    purrr::map2(dat[value_var], dat[val_total], ~ (.x / .y) * 100)
+    purrr::map2(dat[value_var], dat[val_total], ~ (.x / .y) * p_val)
+  
+  if (drop) dat <- dplyr::select(dat, -dplyr::all_of(val_total))
   
   dat
 }
@@ -585,7 +593,7 @@ add_missing_dates <- function(dataset, date = NULL, value, sub_date = NULL, grou
   #' @param sub_date String, name of date variable to subset by. 
   #' @param value String, name of value variable to be aggregated by \code{agg_helper}.
   #' @param group String, name of grouping variable(s).
-  #' @param facet_by String, name of variables(s) to be facetted (split). 
+  #' @param facet_by String, name of variable(s) to be facetted (split). 
   #' @export
   #' @keywords internal
   #' @importFrom dplyr anti_join
@@ -603,9 +611,7 @@ add_missing_dates <- function(dataset, date = NULL, value, sub_date = NULL, grou
           
           if (any(!(class(x) %in% c("Date", "POSIXct", "POSIXt")))) {
             date_parser(x)
-          } else {
-            x
-          }
+          } else x
         })
     } 
     
@@ -644,11 +650,8 @@ add_missing_dates <- function(dataset, date = NULL, value, sub_date = NULL, grou
       
       if (!is.null(sub_date)) missing[sub_date] <- NA
       
-      if (fun == "sum") {
-        missing[value] <- 0
-      } else if (fun == "count") {
-        missing[value] <- NA # agg_helper will treat this as zero
-      }
+      if (fun == "sum") missing[value] <- 0
+      else if (fun == "count") missing[value] <- NA # agg_helper will treat this as zero
       
       dataset <- rbind(dataset[c(cols, value)], missing)
     }
@@ -910,6 +913,43 @@ date_factorize <- function(dataset, date_col, date_code) {
   } else {
     stop("Date format is not character type")
   }
+  dataset
+}
+
+facet_period <- function(dataset, facet_date, date, period = NULL) {
+  #' Create date variables for facetting
+  #' 
+  #' @param dataset Dataset used to create tables/plots in function.
+  #' @param facet_date String, period to facet by ("year", "month", and "week").
+  #' @param date String, Data variable used to convert to periods.
+  #' @param period String, period name. Only needed if summarizing over time. 
+  #' @keywords internal
+  
+  # checks for duplicates 
+  if (!is.null(period)) {
+    
+    if (any(period == facet_date)) facet_date <- facet_date[-which(facet_date == period)]
+  } 
+  
+  if (any(facet_date %in% names(dataset))) {
+    
+    facet_date <- facet_date[-which(facet_date %in% names(dataset))]
+  }
+  
+  if (!is_value_empty(facet_date)) {
+    
+    dataset[facet_date] <- lapply(facet_date, function(x) {
+      
+      per <- switch(x, "year" = "%Y", "month" = "%b", "week" = "%U")
+      
+      if (per == "%b") {
+        
+        factor(format(dataset[[date]], per), levels = month.abb, ordered = TRUE) 
+        
+      } else as.integer(format(dataset[[date]], per))
+    })
+  }
+  
   dataset
 }
 
