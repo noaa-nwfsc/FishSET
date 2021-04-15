@@ -97,8 +97,8 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
   
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
   
 
   
@@ -129,7 +129,7 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
  
   if (!is.null(gridfile) & !is.character(gridfile)) {
     int.data <- assignment_column(
-      dat = dataset, project, gridfile = gridfile, hull.polygon = hull.polygon,
+      dat = dataset, project=project, gridfile = gridfile, hull.polygon = hull.polygon,
       lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat,
       lat.dat = lat.dat, cat = cat, closest.pt = closest.pt
     )

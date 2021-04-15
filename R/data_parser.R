@@ -114,13 +114,8 @@ write_dat <- function (dat, file, file_type = "csv", project, ...) {
   
   out <- data_pull(dat)
   dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
   
-  if (shiny::isRunning()) {
-    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
-  } else { 
-    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
-  
-  end <- FALSE
   
   if (file_type == "csv") {
     
@@ -375,49 +370,9 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
     }
 
 
-  ## --------- MainDataTableInfo -------------- ##
-  MainDataTableInfo <- data.frame(
-    variable_name = colnames(dataset), 
-    units = c(ifelse(grepl("DATE|TRIP_END|TRIP_START", colnames(dataset), ignore.case = TRUE), "yyyymmdd", 
-                     ifelse(grepl("MIN", colnames(dataset), ignore.case = TRUE), "min", 
-                            ifelse(grepl("FATHOMS", colnames(dataset)), "fathoms", 
-                                   ifelse(grepl("HOURS|CHINOOK|CHUM|PROPORTION|SIZE", colnames(dataset), ignore.case = TRUE), "numeric", 
-                                          ifelse(grepl("DOLLARS", colnames(dataset), ignore.case = TRUE), "dollars", 
-                                                 ifelse(grepl("POUNDS|LBS", colnames(dataset), ignore.case = TRUE), "lbs", 
-                                                        ifelse(grepl("Lon|Lat|", colnames(dataset), ignore.case = TRUE), "decimal degrees", 
-                                                               ifelse(grepl("PERCENT",colnames(dataset), ignore.case = TRUE), "percent", 
-                                                                      ifelse(grepl("MT", colnames(dataset), ignore.case = TRUE), "metric tons", 
-                                                                             ifelse(grepl("WEEK",colnames(dataset), ignore.case = TRUE), "WK", 
-                                                                                    ifelse(grepl("WEEK", colnames(dataset), ignore.case = TRUE), "Y/N", NA)))))))))))), 
-    generalType = c(ifelse(grepl("DATE|MIN", colnames(dataset), ignore.case = TRUE), "Time", 
-                           ifelse(grepl("IFQ", colnames(dataset), ignore.case = TRUE), "Flag", 
-                                  ifelse(grepl("ID", colnames(dataset),ignore.case = TRUE), "Code", 
-                                         ifelse(grepl("Long|Lat", colnames(dataset), ignore.case = TRUE), "Latitude", 
-                                                ifelse(grepl("TYPE|PROCESSOR|LOCATION|METHOD",colnames(dataset), ignore.case = TRUE), "Code String", 
-                                                       ifelse(grepl("CHINOOK|CHUM|FATHOMS|DOLLARS|LBS|PROPORTION|VALUE|PERCENT|MT", colnames(dataset), ignore.case = TRUE), "Other Numeric", 
-                                                              ifelse(grepl("HAUL|AREA|PERFORMANCE|PERMIT", colnames(dataset), ignore.case = TRUE), "Code Numeric", NA)))))))),
-    isXY = ifelse(grepl("HOURS|CHINOOK|CHUM|PROPORTION|SIZE", colnames(dataset), ignore.case = TRUE), 1, 0), 
-    isID = ifelse(grepl("ID", colnames(dataset), ignore.case = TRUE), 1, 0),
-    variable_link = rep(NA, length(colnames(dataset))), 
-    isTime = ifelse(grepl("DATE|MIN", colnames(dataset), ignore.case = TRUE),1, 0), 
-    isCatch = ifelse(grepl("CATCH|POUNDS|LBS", colnames(dataset), ignore.case = TRUE), 1, 0), 
-    isEffort = ifelse(grepl("DURATION", colnames(dataset),ignore.case = TRUE), 1, 0), 
-    isCPUE = rep(0, length(colnames(dataset))), 
-    isLon = ifelse(grepl("LON", colnames(dataset), ignore.case = TRUE),1, 0), 
-    isLat = ifelse(grepl("LAT", colnames(dataset), ignore.case = TRUE), 1, 0), 
-    isValue = ifelse(grepl("DOLLARS", colnames(dataset), ignore.case = TRUE), 1, 0), 
-    isZoneArea = ifelse(grepl("AREA", colnames(dataset), ignore.case = TRUE), 1, 0), 
-    isPort = ifelse(grepl("PORT", colnames(dataset), ignore.case = TRUE), 1, 0), 
-    isPrice = rep(0, length(colnames(dataset)), ignore.case = TRUE), 
-    isTrip = ifelse(grepl("TRIP", colnames(dataset), ignore.case = TRUE), 1, 0), 
-    isHaul = ifelse(grepl("HAUL", colnames(dataset), ignore.case = TRUE), 1, 0),
-    isOther = rep(0, length(colnames(dataset))), 
-    tableLink = rep(NA, length(colnames(dataset)))
-  )
 
   if (table_exists(paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d"))) == FALSE | over_write == TRUE) {
     DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d")), dataset, overwrite = over_write)
-    DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTableInfo", format(Sys.Date(), format = "%Y%m%d")), MainDataTableInfo, overwrite = over_write)
     print("Table saved to database")
   } else { 
     warning(paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d"), " was not saved. Table exists in database. Set over_write to TRUE."))
@@ -425,7 +380,6 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
   if (table_exists(paste0(project, "MainDataTable")) == FALSE | over_write == TRUE) {
     DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable_raw"), dataset, overwrite = over_write)
     DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable"), dataset, overwrite = over_write)
-    DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTableInfo"), MainDataTableInfo, overwrite = over_write)
 
      # log function
   load_maindata_function <- list()
@@ -805,6 +759,7 @@ dataindex_update <- function(dat, dataindex) {
   #'   Table name is usually the project and ‘MainDataTableInfo’. Name must be in quotes.
   #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
   #' @export
+  #' @keywords internal
   #' @details The MainDataTableInfo table is first created when the MainDataTable is loaded and saved to the
   #'   FishSET database. However, this table may not match the variables in \code{dat} after the FishSET variable
   #'   creation functions have been run. It may be necessary to update the MainDataTableInfo table in the FishSET database.

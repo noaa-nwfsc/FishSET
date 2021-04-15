@@ -20,9 +20,9 @@ data_verification <- function(dat, project) {
 
   # Call in datasets Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
-
+  dat <- parse_data_name(dat, "main")
+  
   check <- 0
 
   tmp <- tempfile()
@@ -120,9 +120,9 @@ unique_filter <- function(dat, project, remove = FALSE) {
 
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
-
+  dat <- parse_data_name(dat, "main")
+  
   tmp <- tempfile()
   cat("Unique filter checks for", project, "project using", dat, "dataset on", format(Sys.Date(), format = "%Y%m%d"), file = tmp, append = TRUE)
 
@@ -177,9 +177,9 @@ empty_vars_filter <- function(dat, project, remove = FALSE) {
 
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
-
+  dat <- parse_data_name(dat, "main")
+  
 
   tmp <- tempfile()
   cat("Empty vars checks for", project, "project using", dat, "dataset on", format(Sys.Date(), format = "%Y%m%d"), file = tmp, append = TRUE)

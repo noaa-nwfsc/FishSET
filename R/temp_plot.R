@@ -39,9 +39,9 @@ temp_plot <- function(dat, project, var.select, len.fun = c("length", "unique", 
   
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
-
+  dat <- parse_data_name(dat, "main")
+  
   # Date var - NULL or use the first one
   if (is.null(date.var)) {
     date.y.var <- colnames(dataset)[grep("date", colnames(dataset), ignore.case = TRUE)[1]]

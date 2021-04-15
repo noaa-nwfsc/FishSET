@@ -25,10 +25,10 @@ find_centroid <- function(dat, gridfile, cat, lon.dat = NULL, lat.dat = NULL,
                           lon.grid = NULL, lat.grid = NULL, weight.var = NULL) {
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
 
-
+    project <- sub("\\MainDataTable", "", dat)
 
   tmp <- tempfile()
   cat("", file = tmp, append = TRUE)
@@ -75,7 +75,7 @@ find_centroid <- function(dat, gridfile, cat, lon.dat = NULL, lat.dat = NULL,
       # Weighted variables
       if (x != 1) {
         int <- assignment_column(
-          dat = dataset, project, gridfile = gridfile, lon.grid = lon.grid,
+          dat = dataset, project=project, gridfile = gridfile, lon.grid = lon.grid,
           lat.grid = lat.grid, lon.dat = lon.dat, lat.dat = lat.dat, cat = cat
         )
         int$cent.lon <- stats::ave(int[c(lon.dat, weight.var)], int$ZoneID,

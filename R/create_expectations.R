@@ -89,8 +89,8 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
 
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
   Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])

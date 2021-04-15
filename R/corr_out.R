@@ -23,8 +23,10 @@ corr_out <- function(dat, project, variables, ...) {
 
 
   # Call in datasets
-  dataset <- dat
-  dat <- deparse(substitute(dat))
+  out <- data_pull(dat)
+  dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
+  
 
   if (variables == "all") {
     variables <- colnames(dataset)

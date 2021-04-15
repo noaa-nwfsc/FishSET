@@ -19,9 +19,10 @@ spatial_hist <- function(dat, project, group) {
 
   requireNamespace("ggplot2")
 
-  dataset <- dat
-  dat <- deparse(substitute(dat))
-
+  out <- data_pull(dat)
+  dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
+  
 
   dataset <- dataset[, c(dataset[[group]], grep("lon|lat", names(dataset), ignore.case = TRUE))]
   melt.dat <- reshape2::melt(dataset)
@@ -95,13 +96,14 @@ spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs"
   #'        cat = 'NMFS_AREA')
   #' }
 
-  dataset <- dat
-  dat <- deparse(substitute(dat))
-
+  out <- data_pull(dat)
+  dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
+  
   if ("ZoneID" %in% names(dataset) == FALSE) {
     dataset <- assignment_column(
-      dat = dataset, gridfile = gridfile, hull.polygon = TRUE, lon.grid, lat.grid,
-      lon.dat, lat.dat, cat, closest.pt = TRUE, epsg = NULL
+      dat = dataset, project=project, gridfile = gridfile, hull.polygon = TRUE, 
+      lon.grid, lat.grid, lon.dat, lat.dat, cat, closest.pt = TRUE, epsg = NULL
     )
   }
 

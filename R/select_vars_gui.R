@@ -26,9 +26,9 @@ select_vars <- function(dat, project) {
 
 
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
-
+  dat <- parse_data_name(dat, "main")
+  
   shinyApp(
     ui = fluidPage(
       # tweaks, a list object to set up multicols for checkboxGroupInput

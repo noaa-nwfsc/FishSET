@@ -27,9 +27,9 @@ long_expectations <- function(dat, project, catch, price, defineGroup, temp.var,
 
   # Call in datasets
   out <- data_pull(dat)
-  dat <- out$dat
   dataset <- out$dataset
-
+  dat <- parse_data_name(dat, "main")
+  
 
   if (!exists("Alt")) {
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())

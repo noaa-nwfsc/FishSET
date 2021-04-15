@@ -91,11 +91,8 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
   # Call in datasets
   out <- data_pull(dat)
   dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
   
-  if (shiny::isRunning()) {
-    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name", envir = fishset_env)
-  } else { 
-    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
   
   end <- FALSE 
   

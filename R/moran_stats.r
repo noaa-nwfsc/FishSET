@@ -44,17 +44,13 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
   # Call in datasets
   out <- data_pull(dat)
   dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
   
   spat_out <- data_pull(spat)
   spatdat <- spat_out$dataset
+  spat <- parse_data_name(spat, 'spat')
   
-  if (shiny::isRunning()) {
-    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
-    if (deparse(substitute(spat)) == "spatdat$dataset") spat <- get("spat_name")
-  } else { 
-    if (!is.character(dat)) dat <- deparse(substitute(dat))
-    if (!is.character(spat)) spat <- deparse(substitute(spat)) }
-
+ 
   x <- 0
   if (any(abs(dataset[[lon.dat]]) > 180)) {
     warning("Longitude is not valid (outside -180:180). Function not run")
