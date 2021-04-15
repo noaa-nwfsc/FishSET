@@ -229,34 +229,9 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
   }
   
   # facet date ----
-  if (!is.null(facet_by)) {
-    if (length(facet_date) > 0) {
-      # if summarizing over period
-      if (!is.null(period)) {
-        
-        if (period != "month" & any("month" %in% facet_date)) {
-          
-          dataset$month <- factor(format(dataset[[sub_date]], "%b"), 
-                                  levels = month.abb, ordered = TRUE)
-          
-        } else if (period != "week" & any("week" %in% facet_date)) {
-          
-          dataset$week <- as.integer(format(dataset[[sub_date]], "%U"))
-        }
-        
-      } else {
-        # if not summarizing over period
-        dataset[facet_date] <- lapply(facet_date, function(x) {
-          fp <- switch(x, "year" = "%Y", "month" = "%b", "week" = "%U")
-          if (fp == "%b") {
-            factor(format(dataset[[sub_date]], fp), levels = month.abb, ordered = TRUE) 
-          } else {
-            as.integer(format(dataset[[sub_date]], fp))
-          }
-        })
-      }
-    }
-  }
+  
+  dataset <- facet_period(dataset, facet_date = facet_date, date = sub_date, 
+                          period = period)
   
   # group date ----
   if (!is.null(group)) {
