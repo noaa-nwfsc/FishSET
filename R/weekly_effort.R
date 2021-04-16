@@ -93,7 +93,6 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
-  
   end <- FALSE 
   
   group_date <- group[group %in% c("year", "month", "week")]
@@ -252,6 +251,33 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
                                        values_to = "mean_cpue")
     }
     
+    f_cpue <- function() if (length(cpue) == 1) cpue else "CPUE" 
+    
+    # Confidentiality checks ----
+    if (run_confid_check()) {
+      
+      cc_par <- get_confid_check()
+      
+      if (cc_par$rule == "n") {
+        
+        check_table <- 
+          check_confidentiality(dataset = dataset, cc_par$v_id, value_var = cpue, 
+                                rule = "n", group = c("year", "week", agg_grp), 
+                                value = cc_par$value, names_to = "species", 
+                                values_to = "mean_cpue")
+        
+        if (check_table$suppress) {
+          
+          check_out <- 
+            suppress_table(check_table$table, table_out, value_var = f_cpue(),
+                           group = c("year", "week", agg_grp), rule = cc_par$rule)
+          save_table(check_out, project, "weekly_effort_confid")
+        }
+      }
+    }
+    
+    #if (!is.null(group)) dataset[group] <- lapply(dataset[group], as.factor)
+    
     # plot section ----
     if (output %in% c("plot", "tab_plot")) {
       
@@ -271,27 +297,26 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
         if (length(group) > 1) group2_sym <- rlang::sym(group2)
       }
       
-      y_axis_exp <- function() if (length(cpue) == 1) single_cpue_sym else multi_cpue_sym
+      y_axis_exp <- function() {
+        if (length(cpue) == 1) single_cpue_sym else multi_cpue_sym
+      }
       
       interaction_exp <- function() {
         if (length(cpue) == 1) {
-          if (is.null(group)) {
-            1
+          if (is.null(group)) 1
             
-          } else {
-            if (length(group) == 1) {
-              group1_sym
+          else {
+            if (length(group) == 1) group1_sym
               
-            } else if (length(group) > 1) {
+            else if (length(group) > 1) {
               rlang::expr(interaction(!!group1_sym, !!group2_sym))
             }
           }
           
         } else if (length(cpue) > 1) {
-          if (is.null(group)) {
-            species_sym
+          if (is.null(group)) species_sym
             
-          } else if (length(group) == 1) {
+          else if (length(group) == 1) {
             rlang::expr(interaction(!!species_sym, !!group1_sym))
             
           } else if (length(group) > 1) {
@@ -303,37 +328,29 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
       color_exp <- function() {
         
         if (length(cpue) == 1) {
-          if (!is.null(group)) {
-            group1_sym
-          } else {
-            NULL
-          }
-        } else if (length(cpue) > 1) {
-          species_sym
-        }
+          if (!is.null(group)) group1_sym
+          else NULL
+          
+        } else if (length(cpue) > 1) species_sym
       }
       
       linetype_exp <- function() {
         
         if (length(cpue) == 1) {
-          if (length(group) > 1) {
-            group2_sym
-          } else {
-            NULL
-          }
+          if (length(group) > 1) group2_sym
+          else NULL
+          
         } else if (length(cpue) > 1) {
-          if (!is.null(group)) {
-            group1_sym
-          } else {
-            NULL
-          }
+          if (!is.null(group)) group1_sym
+          else NULL
         }
       }
       
-      f_cpue <- function() if (length(cpue) == 1) cpue else "CPUE" 
-      
       x_lab <- function() paste0(date, " (week)")
-      y_lab <- function() paste("mean", f_cpue(), ifelse(tran == "identity", "", paste0("(", tran, ")")))
+      y_lab <- function() {
+        paste("mean", f_cpue(), 
+              ifelse(tran == "identity", "", paste0("(", tran, ")")))
+      }
       
       e_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = week, 
                                                                y = !!y_axis_exp())) +
@@ -351,19 +368,28 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
       
       if (!is.null(facet_by)) {
         
-        if (length(facet_by) == 1) {
+        if (length(facet_by) == 1) fm <- stats::reformulate(".", facet_by)
           
-          fm <- stats::reformulate(".", facet_by)
-          
-        } else if (length(facet_by) == 2) {
-          
-          fm <- paste(facet_by, sep = " ~ ")
-        }
+        else if (length(facet_by) == 2) fm <- paste(facet_by, sep = " ~ ")
         
         e_plot <- e_plot + ggplot2::facet_grid(fm, scales = scale)
       }
       
       save_plot(project, "weekly_effort", e_plot)
+      
+      if (run_confid_check()) {
+        
+        if (cc_par$rule == "n") {
+          
+          if (check_table$suppress) {
+            
+            conf_plot <- e_plot
+            conf_plot$data <- replace_sup_code(check_out, f_cpue())
+            save_plot(project, "weekly_effort_confid", plot = conf_plot)
+          }
+        }
+      }
+      
     }
     
     if (length(cpue) > 1 & format_tab == "wide") {
@@ -382,13 +408,11 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
     
     save_table(table_out, project, "weekly_effort")
     
-    if (output == "plot") {
+    if (output == "plot") plot
       
-      plot
+    else if (output == "table") table_out
       
-    } else if (output == "table") {
-      
-    } else {
+    else {
       
       out_list <- list(table = table_out,
                        plot = e_plot)
