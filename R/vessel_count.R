@@ -92,7 +92,6 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
-  
   end <- FALSE 
  
    if (!is.null(period)) {
@@ -251,7 +250,7 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
       
       if (length(group_date2) > 0) {
         
-        for (i in group_date) {
+        for (i in group_date2) {
           x <- switch(i, "year" = "%Y", "month" = "%b", "week" = "%U")
           
           dataset[[i]] <- format(dataset[[sub_date]], x)

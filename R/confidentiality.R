@@ -20,10 +20,7 @@ check_confid_par <- function(rule, value) {
       warning("Value cannot be below 2 vessels")
       FALSE
       
-    } else {
-      
-      TRUE
-    }
+    } else TRUE
     
   } else if (rule == "k") {
     
@@ -37,10 +34,7 @@ check_confid_par <- function(rule, value) {
       warning("Value must be between 0 and 100")
       FALSE
       
-    } else {
-      
-      TRUE
-    }
+    } else TRUE
     
   } else {
     
@@ -217,11 +211,6 @@ check_confidentiality <- function(dataset, v_id, value_var, group = NULL,
       # filter for obs below threshold
       ind <- check[[v_id]] < value
       
-      supr_vals <- ifelse(sum(ind) > 0, TRUE, FALSE)
-      
-      check <- tibble::as_tibble(check)
-      check <- check[ind, group]
-      
     } else {
       
       check <- agg_helper(dataset, value_var, group = c(v_id, group), fun = sum)
@@ -230,20 +219,31 @@ check_confidentiality <- function(dataset, v_id, value_var, group = NULL,
       
       val_perc <- paste0(value_var, "_perc")
     
-      ind <- unique(sort(which(check[[val_perc]] >= value)))
+      ind <- check[[val_perc]] >= value
+    }
+  
+  supr_vals <- ifelse(sum(ind) > 0, TRUE, FALSE)
+    
+  if (supr_vals) {
+    
+    if (is.null(group)) group <- v_id
+    
+    if (include_val) {
       
-      supr_vals <- ifelse(length(ind) > 0, TRUE, FALSE)
-      
-      check <- check[ind, group]
-
-      if (include_val) check$value <- value_var
-      
-      check <- dplyr::distinct(check)
+      check$value_var <- value_var
+      group <- c(group, "value_var")
     }
     
+    check <- tibble::as_tibble(check)
+    
+    check <- check[ind, group]
+    
+    check <- dplyr::distinct(check)
+    
     cache_check_table(check)
+  }
   
-  list(table = check,
+  list(table = if (supr_vals) check else NULL,
        suppress = supr_vals) 
 }
 
@@ -256,8 +256,8 @@ suppress_table <- function(check, output, value_var, group, rule, type = "table"
   #' 
   #' @param check The check table containing suppression conditions.
   #' @param output The summary table to be edited based on check table.
-  #' @param value_var String, the name(s) of the value variable(s).
-  #' @param group String, the name(s) of the grouping variables(s). This includes
+  #' @param value_var String, value variable name(s).
+  #' @param group String, grouping variable name(s). This includes
   #'   `period` and `facet_by` from summary function. 
   #' @param rule String, the confidentiality rule to apply. \code{rule = "n"} 
   #'   suppresses values containing fewer than n vessels. \code{rule = "k"} (the 
@@ -270,7 +270,10 @@ suppress_table <- function(check, output, value_var, group, rule, type = "table"
   #' @importFrom rlang parse_exprs
   
   # convert check table to expression list
-  group <- names(output)[names(output) != value_var]
+  #group <- names(output)[names(output) != value_var]
+  
+  if (is.null(group)) group <- get_confid_check()$v_id
+  
   len <- length(group) - 1
   
   # check for factors
@@ -306,23 +309,54 @@ suppress_table <- function(check, output, value_var, group, rule, type = "table"
   # convert strings to list of exprs
   check_exp <- rlang::parse_exprs(check_exp)
   
-  # evaluate each expr inside output and replace with suppression code
-  suppress <- function(conf_exp, output, value_var, rule, type) {
-    
-    for (i in seq_along(conf_exp)) {
-      
-      output[eval(conf_exp[[i]], envir = output), value_var] <- ifelse(type == "table", -999, NA)
-    }
-    
-    output
-  }
+  # eval exprs and create index
+  check_ind <- lapply(check_exp, function(x) which(eval(x, envir = output)))
   
-  output <- suppress(check_exp, output, value_var, rule, type)
+  check_ind <- unique(sort(unlist(check_ind)))
+  
+  #output[[value_var]][check_ind] <- ifelse(type == "table", -999, NA)
+  output[check_ind, value_var] <- ifelse(type == "table", -999, NA)
   
   output
 }
 
-replace_sup_code <- function(output, value_var, code = NA) {
+check_and_suppress <- function(dat, v_id, value_var, group = NULL, rule, value,
+                               names_to = "name", values_to = "value") {
+  
+  #'Check and suppress data
+  #'
+  #' @param dataset The dataset used to create a summary table. This must include 
+  #'   the vessel identifier column. 
+  #' @param v_id String, the name of the vessel identifier column.
+  #' @param value_var String, the name(s) of the value variable(s). 
+  #' @param group String, the name(s) of the grouping variable(s). This should 
+  #'   include the `period` name if summarizing over time. 
+  #' @param rule String, the confidentiality rule to apply. \code{rule = "n"} 
+  #'   suppresses values containing fewer than n vessels. \code{rule = "k"} (the 
+  #'   "majority allocation rule") suppresses values where a single vessel contains 
+  #'   k percent or more of the total catch. 
+  #' @param value The threshold for confidentiality. for \code{rule = "n"} must 
+  #'   be an integer of at least 3. For \code{rule = "k"} any double value from
+  #'   0 to 100. 
+  #' @param names_to String, the name for the column containing the names of value 
+  #'   variables when `value_var` has two or more columns.
+  #' @param values_to String, the name for the column containing the values from the
+  #'   variables listed in `names_to`.
+  #' @keywords internal
+  
+  check <- 
+    check_confidentiality(dat, v_id, value_var, group, rule, value, names_to, 
+                          values_to)
+  
+  if (check$suppress) {
+    
+    dat <- suppress_table(check$table, dat, value_var, group, rule)
+    
+    dat
+  }
+}
+
+replace_sup_code <- function(output, code = NA) {
   
   #' Replace suppression code
   #' 
@@ -332,21 +366,18 @@ replace_sup_code <- function(output, value_var, code = NA) {
   #' for plotting. NAs -- the default in `replace_sup_code()`-- are a better 
   #' alternative for plots as they can easily be removed. 
   #' 
-  #' @param output Table containing suppressed values
-  #' @param value_var String, name of the value variable. 
+  #' @param output Table containing suppressed values.
   #' @param code The replacement suppression code. \code{code = NA} by default; 
   #'   this is ideal for plotting as ggplot automatically removes NAs. 
   #' @export
   #' @examples 
   #' \dontrun{
-  #' summary_tab <- replace_sup_code(summary_tab, "catch", code = NA)
+  #' summary_tab <- replace_sup_code(summary_tab, code = NA)
   #' }
   
-  ind <- which(output[[value_var]] == -999)
+  ind <- which(output == -999, arr.ind = TRUE)
   
-  if (length(ind) > 0) {
-    output[ind, value_var] <- code
-  }
-  
+  if (nrow(ind) > 0) output[unique(ind[, 1]), unique(ind[, 2])] <- code
+
   output
 }
