@@ -74,7 +74,7 @@ source("map_viewer_app.R", local = TRUE)
                                                                tags$em('Compute New Variables'), 'tabs.   
                                                                 Plots and table outputs are saved in an output folder within the FishSET R package. 
                                                               Function calls, including chosen parameters, are saved to the', tags$em('Logs'), 'folder in the FishSET package folder. 
-                                                              The', tags$em('Quickstart Guide'), 'subtab provides further assistance on using the FishSET Shiny application.'),
+                                                              The', tags$em('Quick start Guide'), 'subtab provides further assistance on using the FishSET Shiny application.'),
                                                         tags$p('For questions and comments please contact: FishSET@noaa.gov'))
                                         )
                                       )
@@ -275,8 +275,8 @@ source("map_viewer_app.R", local = TRUE)
                                           #),
                                           #h4('Select data check functions to run'),
                                           #Checkbox input widget  
-                                           radioButtons("checks", "Select data quality check functions to run", choices = c('Variable class', 'Summary table', 'Outliers', 'NAs', 'NaNs', 
-                                                                                  'Unique observations', 'Empty variables', 'Lat_Lon units')),
+                                           radioButtons("checks", "Select data quality check function to run", choices = c('Variable class', 'Summary table', 'Outliers', 'NAs', 'NaNs', 
+                                                                                  'Unique observations', 'Empty variables', 'Latitude and Longitude'='Lat_Lon units')),
                                           uiOutput("checks_dataset"),
                                           conditionalPanel(
                                             condition = "input.checks == 'Variable class'",
@@ -1219,7 +1219,7 @@ source("map_viewer_app.R", local = TRUE)
                                     
                                     conditionalPanel("input.new_dat_cb",
                                                      
-                                                     selectizeInput("new_dat", "Choose main table", 
+                                                     selectizeInput("new_dat", "Choose primary table", 
                                                                     choices = list_MainDataTables(), multiple = TRUE,
                                                                     options = list(maxItems = 1)), # sets dat to NULL by default
                                                      

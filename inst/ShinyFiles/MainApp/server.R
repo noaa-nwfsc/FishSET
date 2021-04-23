@@ -237,16 +237,16 @@ set_confid_check(check = FALSE)
                  tags$p('All tabs have the following elements:',
                   tags$ul(
                     tags$li('Buttons that enable you to close the app and refresh the data.', 
-                            tags$ul('Refreshing the data pulls the original data loaded into the FishSET database. Instead of refreshing to the original state, you can refresh the 
-                            data to an intermediate state by entering the name of the data table in the', tags$code('Optional text'),
-                            'input box then the', tags$code('FishSET database'), 'radio button is chosen on the', tags$code('Upload Data'), 'tab. Intermediate 
-                            data will contain a date in the table name, such as', tags$em('ExampleMainDataTable01012020.'))
+                            tags$ul('Refreshing the data pulls the original SQL data table loaded into the FishSET database. 
+                            Instead of refreshing to the original state, you can refresh the 
+                            data to an intermediate state by reloading a data table on the', tags$code('Upload Data'), 'tab. 
+                            Select the desired data table in the', tags$code('Choose a table'), 'box.')
                           ),
-                    tags$li('Buttons that allow you to save plots and tables to the output folder in the FishSET folder.'), 
-                    tags$li("A", tags$code('notes'), "section and a button to save notes to the output folder in the FishSET folder.")
+                    tags$li('Buttons that allow you to save plots and tables to the', tags$em('output folder'), 'in the FishSET folder.'), 
+                    tags$li("A", tags$code('notes'), "section and a button to save notes to the", tags$em('output folder'), "in the FishSET folder.")
                           ,
                     tags$li('An', tags$code('R expression'), 'area where you can enter and run R code. 
-                        Within the FishSET Shiny application, the primary data is called', tags$em('values$dataset.')), 
+                        Within the FishSET Shiny application, the primary data frame is called', tags$em('values$dataset.')), 
                     tags$ul(tags$ul('Some examples:'), 
                          tags$ul(tags$code('mean(values$dataset[,5])'), 'displays the mean of the fifth column.'),
                          tags$ul(tags$code('summary(values$dataset$Vessel_Length)'), 'displays summary details of a column called Vessel_Length.')
@@ -262,26 +262,26 @@ set_confid_check(check = FALSE)
         if(input$QuickStartChoices=='UploadTab'){ 
           tags$div(
 			      tags$br(), tags$br(),
-           tags$p(tags$strong('Purpose:'), tags$br(), 'The', tags$em('Upload Data'), 'tab is used to load data (primary, port, map, gridded, auxiliary) from the FishSET database or 
+            tags$p(tags$strong('Purpose:'), tags$br(), 'The', tags$em('Upload Data'), 
+                        'tab is used to load data (primary, port, map, gridded, auxiliary) from the FishSET database or 
                         from a local file location.'), 
-	         tags$p("To get started, first write or select a project name in the", tags$code('Name of project'), "text box.",
-	                tags$ul("The project name is a user-created unique identifier for all data tables  and outputs (plots, model results, etc) 
+	          tags$p("To get started, first write or select a project name in the", tags$code('Name of project'), "text box.",
+	                tags$ul("The project name is a user-created unique identifier for all data tables  and outputs (plots, model results, etc.) 
                  associated with the analysis. Example project names are 'pollock2019' and 'AKGOA'.")
 	                ),
           tags$p('Next, load data.',
             tags$ul('To load from a local file location, select the', tags$code('Upload new file'), 'radio button and then browse to file location.'), 
-	          tags$ul('To load from the FishSET database, select the', tags$code('FishSET database'), 'radio button. If more than one version of the data table exists, select the 
-	                  desired version.')
-				), 
+	          tags$ul('To load from the FishSET database, select the', tags$code('FishSET database'), 'radio button. Select the 
+	                  desired data table.')
+				      ), 
 	         tags$p('Finally, press the', tags$code('Load data'), 'button.'),
            # tags$div(style="display: inline-block; align:center", img(src="upload.png",  height="75%", width="75%"))
-			tags$br(), tags$br(),
-			tags$p('Once data is loaded an option to identify whether confidentiality issues should be checked and then to 
-			       define the confidentiality rules. Two confidential rules can be applied to summarized data,',
-			       tags$em('n'), 'and', tags$em('k.'),
-            'The', tags$em('(rule of n)'), tags$code('rule n'),'specifies the minimum number of unique observational units (such as vessels)
-			        required for summarized data to be displayed. The', tag$em('majority allocation rule'), tags$code('(rule k)'),
-              'checks that no single observation units accounts for', tags$em('k%'), 'of the summarized valued.'),
+			    tags$br(), tags$br(),
+		    	tags$p('Once data is loaded, confidentiality rules can be defined. Two confidentiality rules can be applied to summarized data,
+		    	       the rule of n', tags$em('(n)'),'and the majority allocation rule', tags$em('(k).'),
+              'The', tags$em('(rule of n)'),'specifies the minimum number of unique observational units (such as vessels)
+			        required for summarized data to be displayed. The', tags$em('majority allocation rule'), 
+              'checks that no single observation units accounts for more than', tags$em('k%'), 'of the summarized valued.'),
 			tags$br(), tags$br(),
 			tags$p(tags$strong("Data:"),
 			       tags$ul('primary (required)'), 
@@ -290,32 +290,33 @@ set_confid_check(check = FALSE)
 			       tags$ul('auxiliary (optional)'), 
 			       tags$ul('gridded (optional)'), 
 			       tags$br(),
-			       "The", tags$strong('primary data'), " file is a flat data file containing the core data used in models. It must contain at least one vector containing information on 
-             ports (id, name), date (haul, trip start), catch amount (metric tons, kg), and fishing location (latitude/longitude, zone/area). 
+			       "The", tags$strong('primary data'), "contains the core data used in models. The data file must include vectors containing information on 
+             ports (e.g., id, name), date (e.g., haul, trip start), catch amount (e.g., metric tons, kg), and fishing location (e.g., latitude/longitude, zone/area). 
 			       Additional information such as price, species caught, and vessel characteristics may be included in the primary data file or added later. 
-			       Each row of the primary data file should be a unique observation and each column a unique variable. Single or double apostrophes, commas other than as 
+			       Each row of the primary data file should be a unique observation and each column a unique vector. Single or double apostrophes, commas other than as 
              CSV separators, and periods other than as decimal points, should not be included in the file. Use underscores rather than spaces in column names and use NA or leave 
              cells empty to represent no or missing data.",
 			       tags$br(),tags$br(),
-			       "The", tags$strong('port data'), "file contains the location (lat/lon) of ports in the primary data file and a variable containing port name or ID that links to the 
-			       primary data file. Values in the port name variable must exactly match values in the primary data port variable. 
-			       Check spelling, capitalization, and spaces if port data is not successfully merged into the primary dataset.
+			       "The", tags$strong('port data'), "file contains the location (lat/lon) of ports in the primary data file and a vector containing port name or ID that links to the 
+			       primary data file. Values in the port name vector must exactly match values in the primary data port vector. 
+			       Check spelling, capitalization, and spaces if port data is not successfully merged into the primary data frame.
 			       Location variables (latitude and longitude) must be in decimal degrees with cardinal direction indicated by sign.",
 			       tags$br(), tags$br(),
 			       "The", tags$strong('spatial or map data'), "file is an essential file that contains the latitude and longitude points defining fishery zone polygons. 
               The preferred file format is geojson but other formats are accepted. In FishSET, multiple zones with the same ID are combined and treated as a single zone,
-              even if spatially separated. FishSET imports your map file as is, even if the zone outlines cover land. 
+              even if spatially separated. FishSET imports your spatial data file as is, even if the zone outlines cover land. 
               The land will not be subtracted out by FishSET.",
 			       tags$br(),tags$br(),
 			      tags$strong("Auxiliary data"), "files are optional and can contain anything you want to merge with the primary data file within FishSET 
-			       (ex. prices by date, vessel characteristics). Each column should be a unique variable and each row a unique observation. 
-            Auxiliary data does not need to be at the haul or trip level but does need to contain a variable in common with 
+			       (e.g., prices by date, vessel characteristics). Each column should be a unique vector and each row a unique observation. 
+            Auxiliary data does not need to be at the haul or trip level but must contain a vector in common with 
 			       the primary data file. Auxiliary data files are useful when a set of data is common across multiple primary data files, 
-			       or as an efficient way to include data that is not haul or trip level specific.",
+			       or as an efficient way to include data that is not haul- or trip-level specific.",
 			       tags$br(),tags$br(),
-			       "The", tags$strong("gridded data"), "is an optional file that contains a variable that varies by the map grid and, optionally, by a second 
-              dimension (e.g., date/time). Both dimensions in the gridded data file need to be variables in the primary data file. 
-              The grid locations (zones) must define the columns and the optional second dimension defines the rows. The row variable must have the exact name as the variable in the primary data file that it will be linked to. 
+			       "The", tags$strong("gridded data"), "is an optional file that contains a variable that varies by fishery zone and, optionally, by a second 
+              dimension (e.g., date/time). Both dimensions in the gridded data file need to be vectors in the primary data file. 
+              The grid locations (zones) must define the columns and the optional second dimension defines the rows. 
+              The row values must match the values of the vector in the primary data file that it will be linked to. 
               Examples of gridded data include sea surface temperature, ice cover, and wind speed."
           )
           )
@@ -367,7 +368,7 @@ set_confid_check(check = FALSE)
             and vessels assigned to fleets and the', tags$em('Fleet summary'), 'subtab where users can summarize and return fleet 
             information as tables and plots. Data can be treated as a single fleet or as multiple fleets. The', 
             tags$em('Fleet assignment'), 'subtab can be skipped if the entire data table reflects a single fleet or if a fleet 
-            identifier variable already exists in the dataframe.',
+            identifier variable already exists in the data frame.',
             tags$br(),
             'Working with', tags$em('Fleet assignment'), 'functions is described first.',
             tags$br(),tags$br(),
@@ -426,11 +427,11 @@ set_confid_check(check = FALSE)
                 tags$strong('Editing the Fleet Definition Table'), tags$br(),
                 'Conditions in the', tags$em('fleet definition table'), 'can be edited by inserting a new condition 
                 expression into the desired cell. After the expression has been built, click on the select cell button 
-                above the fleet table, then select a cell within a condition column, finally click', tags$code('Insert expression.'),
+                above the fleet table, and then select a cell within a condition column, finally click', tags$code('Insert expression.'),
                 tags$br(),
                 'Rows and columns can be added to the table by clicking the', tags$code('Add row'), 'and', tags$code('Add column'), 
                 'buttons.', tags$br(),
-                'To remove a row, click the', tags$code('Select rows'), 'button, click on one or more rows, then click',
+                'To remove a row, click the', tags$code('Select rows'), 'button, click on one or more rows, and then click',
                 tags$code('Delete row.'), 'To delete a column, click', tags$code('select columns,'), 'select a column, 
                 then click', tags$code('Delete column.'), 
                 tags$br(),
@@ -461,7 +462,7 @@ set_confid_check(check = FALSE)
             single column containing fleet names', tags$em('(String)'), 'or', tags$em('n'), 'binary columns, one for each 
             fleet name', tags$em('(Dummy variable)'), '(arrow 2) .', tags$br(),
             'Click the green', tags$code('Assign fleets'), 'button (arrow 3) to add the fleet assignment variables(s) to 
-            the dataset.'),
+            the data table.'),
             tags$br(),tags$br(),
             tags$strong('Summary Functions'), tags$br(),
             'The', tags$em('Fleet Summary'), 'subtab contains eight functions that displays summarized fleet data in plots 
@@ -505,12 +506,12 @@ set_confid_check(check = FALSE)
                     'Aggregate data by one or more categorical variables (arrow 4).', tags$br(),
                     'Go to', tags$code('Group,'), 'and click on', tags$code('Group by'), 'to add grouping variables.',
                     tags$br(), 'The', tags$code('Group by'), 'menu will include all non-continuous variables 
-                    in the dataset, plus three variables that can be created by the function: year, month, and week 
+                    in the data table, plus three variables that can be created by the function: year, month, and week 
                     (date variable required).', tags$br(),
                     'For plots, each group variable is assigned to a color or line type. Which aesthetic a grouping variable 
                     is assigned to depends on the function, plot type, and the order in which the grouping variables are added. 
                     Generally, the first grouping variable is represented by color and the second group by line type. 
-                    Barplots will not display a second grouping variable, but the variable will be included in the table output.', 
+                    Bar plots will not display a second grouping variable, but the variable will be included in the table output.', 
                     tags$br(),
                     'Grouping variables can also be combined by checking the', tags$code('Combine group variables'), 
                     'box. There is no limit to the number of grouping variables that can be combined, but no more than 
@@ -552,22 +553,22 @@ set_confid_check(check = FALSE)
              #                 tags$h5(
               tags$strong('Table:'), tags$br(),
               tags$ul('The table is used to edit individual cells, filter the data, 
-                                      and remove variables from the dataset that are redundant or 
+                                      and remove columns from the data frame that are redundant or 
                                       will not be used in analyses or modeling. In addition, the 
-                                      other data types (plot, auxilliary, gridded), can also be viewed 
-                                      and edited using the', tags$code('Select a dataset'), 'dropdown box.',
+                                      other data types (plot, auxiliary, gridded), can also be viewed 
+                                      and edited using the', tags$code('Select a data file type'), 'dropdown box.',
 				    tags$br(),
 				    tags$strong('Edit cells'), 'by double-clicking a cell.',
 				    tags$br(),
 			      tags$div(style="display: inline-block; align:center", img(src="Correct.png", height="75%", width="75%")),
 			    	tags$br(),tags$br(),
-			      tags$strong('Remove variables'), 'by clicking on a column, then clicking the', tags$code('Remove variable'), 'button.', 
+			      tags$strong('Remove columns'), 'by clicking on a column, then clicking the', tags$code('Remove variable'), 'button.', 
               tags$br(), 'Save the edited data table to the FishSET database by clicking the', tags$code('Save data'), 
 				      'button.', tags$br(), 'Press the', tags$code('Refresh data'), 'button to load the original, unaltered data table.',
 				    tags$br(), 
 			      tags$div(style="display: inline-block; align:center", img(src="DeleteVar.png", height="75%", width="75%")),
 				    tags$br(),tags$br(),
-			      tags$strong('Filter data'), 'using the', tags$em('boxes'), 'between the variable name the first row of data. Filters are saved when the', 
+			      tags$strong('Filter data'), 'using the', tags$em('boxes'), 'between the columns name and the first row of data. Filters are saved when the', 
 				    tags$code('Save data to FishSET database'), 'button is pushed. The altered data is also 
             saved as the project, "MainDataTable", and the date.',
 			    	tags$br(), 
@@ -623,7 +624,7 @@ set_confid_check(check = FALSE)
         if(input$QuickStartChoices=='NewVarsTab'){ 
           p(tags$br(), tags$br(),
             tags$strong('Purpose:'), tags$br(),
-            'The', tags$em('Compute New Variables'), 'tab is used to modify or create new variables such as CPUE or trip mid-point.',
+            'The', tags$em('Compute New Variables'), 'tab is used to transform variables and derive new variables such as CPUE or trip mid-point.',
 				tags$br(),tags$br(),
             'Functions are grouped into seven categories:',
             tags$li('Arithmetic'), 
@@ -634,7 +635,7 @@ set_confid_check(check = FALSE)
             tags$li('Spatial'), 
             tags$li('Trip-level'),
 				tags$br(),tags$br(),
-				    'We describe first how to run functons, view the created variable, and save the altered data. We then describe the 
+				    'We describe first how to run functions, view the generated variable, and save the altered data. We then describe the 
 				    functions in the six variable creation categories.',
 				tags$br(), tags$br(),
             'To run a function, click the', tags$code('Run function'), 'button (arrow 1). This will run the selected function and
@@ -651,12 +652,12 @@ set_confid_check(check = FALSE)
 				tags$br(), tags$br(),
 				tags$strong('Function category descriptions'), tags$br(),
 				tags$em('Arithmetic'), 
-            'functions focus on creating variables based on numeric calculations (i.e., plus, minus) 
-				          between two variables and catch per unit effort (CPUE).',
+            'functions focus on deriving variables based on numeric calculations (i.e., plus, minus) 
+				          between two variables.',
 				tags$br(), tags$br(),
 				tags$em('Data transformations'), 
             'functions focus on transforming data into coded variables. These functions can be used to 
-				        transform confidential data.',
+				        mask confidential data.',
 				tags$br(), tags$br(),
 				tags$em('Dummy variables'),
             'functions focus on creating binary variables.',tags$br(), 
@@ -690,11 +691,12 @@ set_confid_check(check = FALSE)
             tags$strong('Purpose:'), tags$br(), 
             'The', tags$em("Map Viewer"),'tab is used to view the spatial distribution of hauls.',
             tags$br(), tags$br(),
-            'The Map Viewer requires a spatial data set containing zone polygons. Go to the', 
+            'The Map Viewer requires a spatial data file containing zone polygons. Go to the', 
               tags$strong('Upload Data'), 'tab to load the file if necessary. The map viewer also requires  
-            the zone identifier, which links the primary dataset to the spatial dataset. Go to the', 
-            tags$strong('Zonal Definition'), 'tab to assign observations to zones if a zonal identifier does 
-            not exist in the primary dataset.',
+            the zone identifier, which links the primary data frame to the spatial data file. Go to the', 
+            tags$strong('Spatial'), 'functions on the', tags$strong('Compute New Variables'), 'tab to 
+              assign observations to zones if a zonal identifier does 
+            not exist in the primary data table.',
             tags$br(), tags$br(),
             'There are a number of required and suggested choices. Once all choices have been made, 
             press the green', tags$code('Run'), 'button. An interactive map will appear at the top of the page.',
@@ -715,7 +717,7 @@ set_confid_check(check = FALSE)
                     Points on the map are color coded based on the numeric variable value. Multiple variables can be chosen 
                     but only one variable will be plotted at a time.',
               tags$br(),
-              tags$em('Temporal variables (recommended):'), 'Temporal variables to plot the numeric variable against. 
+              tags$em('Temporal variables:'), 'Temporal variables to plot the numeric variable against. 
                       Scatter plot is provided in the left-hand side of the map. Multiple temporal variables can be included but 
                       only one will be plotted at a time.',
               tags$br(),
@@ -748,7 +750,7 @@ set_confid_check(check = FALSE)
 				tags$br(), tags$br(),
 	        #$div(style="display: inline-block; align:center", img(src="zonal.png", height="75%", width="75%")),
 #	           tags$li('(Required) Identify fishery zones or management areas, calculate zone or fishing centroids, and assign each observations 
-#                      in the main data set to zones. FishSET defaults to geographic centroids. #
+#                      in the main data table to zones. FishSET defaults to geographic centroids. #
 #					             To use fishing centroids, select a weighting variable in the weighted centroid box. Points that fall outside of 
 #	                    any zones can be assigned to the closest zone by checking the', tags$code('Use closest polygon to point'), 'box. 
 #	                    If spatial data creating polygons are sparse or irregular, the', tags$code('Use convex hull method'),'is recommended. 
@@ -762,11 +764,11 @@ set_confid_check(check = FALSE)
                      starting location (in longitude and latitude) should be found. Choices are the centroid of the zone where the haul occurred,
                      port, or other lon/lat variable such as haul starting location.', tags$br(), 'Next, define how to find 
                      the location of the alternative fishing locations. Choices are the centroid of 
-                     each of the alternative zones or a lon/lat location in the primary dataset, such as haul ending 
+                     each of the alternative zones or a lon/lat location in the primary data table, such as haul ending 
                      location.',tags$br(), 'The distance matrix is then calculated between defined starting and alternative choice locations. 
                      Distance can be returned in miles, kilometers, or meters.', 
 	                   tags$br(),tags$br(),
-	                   'Alternatively, the the distance matrix can be generated from a gridded dataset, such as sea surface temperature. 
+	                   'Alternatively, the distance matrix can be generated from a gridded data table, such as sea surface temperature. 
 	                   Columns in the gridded data file must be individual zones.',
             tags$br(),
                      'The number of observed hauls can vary considerably between zones. The histogram at the bottom of the page 
@@ -786,7 +788,7 @@ set_confid_check(check = FALSE)
             'The', tags$em('Expected Catch/Revenue'), 'tab is used to calculate the expected catch or revenue matrix for alternative
             fishing zones (zones where fishing could have happened but did not). A', tags$code('catch variable'), 
             'is required. Include a', tags$code('price or value'), 'variable if you want  expected revenue. Price is 
-			      multiplied against catch to produce revenue. If a revenue variable exists in the dataset, it can be used for 
+			      multiplied against catch to produce revenue. If a revenue variable exists in the data table, it can be used for 
 			      the', tags$code('Catch Variable.'), 'This matrix is required to run the conditional logit model.',
 			  tags$br(), tags$br(),
 				
@@ -809,8 +811,8 @@ set_confid_check(check = FALSE)
             tags$ul('and expected catch/revenue based the previous years (long-term) catch.'),
 
         tags$br(),tags$br(),	
-				'There are a number of choices. The first choice is whether to calculate expected catch/revenue over the entire dataset (“fleet”) 
-        or within groups using the', tags$code('Choose viable that defines group'), 'dropdown box.', 
+				'There are a number of choices. The first choice is whether to calculate expected catch/revenue over the entire data table (“fleet”) 
+        or within groups using the', tags$code('Choose variable that defines group'), 'dropdown box.', 
 				tags$br(),
 				'Next are', tags$em('Temporal options.'), 'First, identify the', tags$code('Method to sort time.'), 'Options are', 
 				tags$em('Entire record of time, Sequential,'), 'or', tags$em('Daily.'), 'No additional temporal options are required if', 
@@ -827,7 +829,7 @@ set_confid_check(check = FALSE)
 				tags$code('entire time period'), 'or', tags$em('grouped time periods.'), tags$br(), tags$br(),
 				'The expected catch matrix is pulled from the matrix of calculated catches for each date and zone. The matrix is of dimensions',
         tags$em('(number of rows of the primary data)*(number of alternatives).'), 'Expected catch is filled out by mapping the 
-        calculated catch for each zone given the observed date (if specified) and group (if specified) in the primary dataset.',
+        calculated catch for each zone given the observed date (if specified) and group (if specified) in the primary data table.',
 				tags$br(), tags$br(),
 				'Note that empty catch values are considered to be times of no fishing activity. These values are not included. Values of 0 
         in the catch variable are considered times when fishing activity occurred but with no catch, should these exist. 
@@ -848,7 +850,7 @@ set_confid_check(check = FALSE)
             and then run model and compare output.',
 				tags$br(),tags$br(),
 				    'First, we describe how to define model parameters in the', tags$code('Run models'), 'subtab and then we describe 
-            the output in the', tags$code('Compare models'), 'substab.',
+            the output in the', tags$code('Compare models'), 'subtab.',
 				tags$br(), tags$br(),
 				    tags$strong('Run Models'),
 				
@@ -868,8 +870,8 @@ set_confid_check(check = FALSE)
       output$BookmarkTabsText <- renderUI({
         if(input$QuickStartChoices=='BookmarkTab'){ 
           p(tags$br(), tags$br(),
-            'Purpose:', tags$br(),
-            'The', tags$em('Bookmark Choices'), 'tabs is to save choices made in the FishSET R Shiny application and enable current application state to be reloaded at a later date.',
+            tags$strong('Purpose:'), tags$br(),
+            'The', tags$em('Bookmark Choices'), 'tab is used to save choices made in the FishSET R Shiny application and enable current application state to be reloaded at a later date.',
 				tags$br(), tags$br(),
 				    'Reloading a bookmarked state will restore the last selections in the application. The data will not be automatically loaded 
             and no functions will be applied to the data. It is best to save the data before bookmarking the current application state. 
@@ -1236,7 +1238,7 @@ set_confid_check(check = FALSE)
           spatdat$dataset <- spatdat$dataset
           }
         if(names(spatdat$dataset)[1]!='var1'){
-          showNotification("Map file loaded but not currently able to save to database.", type='message', duration=10)
+          showNotification("Spatial data file loaded but not currently able to save to database.", type='message', duration=10)
         }
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
 
@@ -1276,8 +1278,23 @@ set_confid_check(check = FALSE)
           
           req(input$griddattext)
           
-          grid_name <- paste0(project$name, input$griddattext)
-          grddat[[grid_name]] <- table_view(grid_name)
+          if(table_exists(input$auxdattext) == TRUE) {
+            grid_name <-input$griddattext
+            grddat[[grid_name]] <- table_view(grid_name)
+          } else {
+            if(length(unlist(stringr::str_extract_all(input$griddattext, project$name)))>1) {
+              grid_name <- paste0(project$name, stringr::word(input$griddattext, -1, sep = project$name))
+              grddat[[grid_name]] <- table_view(grid_name)
+            } else if (table_exists(paste0(project$name, input$griddattext))) {
+              grid_name <- paste0(project$name, input$griddattext)
+              grddat[[grid_name]] <- table_view(grid_name)
+            }else {
+              showNotification('Gridded data table not found FishSET database', type='message', duration=10)
+            }
+          }
+          
+          #grid_name <- paste0(project$name, input$griddattext)
+          #grddat[[grid_name]] <- table_view(grid_name)
           
         } else if (input$loadgridsource == 'Upload new file' & !is.null(input$griddat)) {
           
@@ -1305,11 +1322,11 @@ set_confid_check(check = FALSE)
         )
       })
     
-      #Auxiliary      
+  #Auxiliary      
       output$ui.actionA <- renderUI({
         if(is.null(input$auxdat)) return()
         tagList(
-        textInput("AuxName", "Auxiliary table name." ),
+        textInput("AuxName", "Auxiliary table name:" ),
         #actionButton("uploadAux", label = "Save to database", 
         #             style = "color: white; background-color: blue;", size = "extra-small"),
         )
@@ -1340,11 +1357,24 @@ set_confid_check(check = FALSE)
       observeEvent(input$loadDat, {
         #req(input$auxdattext)
         if(input$loadauxsource=='FishSET database'){
-          aux$dataset <- table_view(paste0(project$name, input$auxdattext))
-          edit_fishset_env("aux_name", paste0(project$name, input$auxdattext))
+          if(table_exists(input$auxdattext) == TRUE) {
+            aux$dataset <- table_view(input$auxdattext)
+            edit_fishset_env("aux_name", input$auxdattext)
+          } else {
+            if(length(unlist(stringr::str_extract_all(input$auxdattext, project$name)))>1) {
+              aux$dataset <- table_view(paste0(project$name, stringr::word(input$auxdattext, -1, sep = project$name)))
+              edit_fishset_env("aux_name", paste0(project$name, stringr::word(input$auxdattext, -1, sep = project$name)))
+            } else if (table_exists(paste0(project$name, input$auxdatatext))) {
+              aux$dataset <- table_view(paste0(project$name, input$auxdattext))
+              edit_fishset_env("aux_name", paste0(project$name, input$auxdattext))
+              }else {
+              showNotification('Auxiliary table not found FishSET database', type='message', duration=10)
+            }
+          }
+         #edit_fishset_env("aux_name", paste0(project$name, input$auxdattext))
         } else if(input$loadauxsource=='Upload new file' & !is.null(input$auxdat)){
             showNotification('Auxiliary data saved to FishSET database.', type = 'message', duration = 10)
-           aux$dataset <-read_dat(input$auxdat$datapath)
+           aux$dataset <- read_dat(input$auxdat$datapath)
            q_test <- quietly_test(load_aux)
             q_test(paste0(project$name, 'MainDataTable'), aux=aux$dataset, x = input$AuxName, over_write=TRUE,
                    project=project$name)
@@ -1375,7 +1405,7 @@ set_confid_check(check = FALSE)
                                     value = confid_vals$check),
                       
                       conditionalPanel("input.confid_check", 
-                                       selectInput("confid_vid", "Select vessel identifier column",
+                                       selectInput("confid_vid", "Select vessel identifier variable",
                                                    choices = names(values$dataset),
                                                    selected = confid_vals$v_id),
                                        selectInput("confid_rule", "Select rule", choices = c("n", "k"),
@@ -1419,7 +1449,7 @@ set_confid_check(check = FALSE)
       ###---     
 #      output$checks_dataset <- renderUI({
 #        if (input$SelectDatasetDQ == "main") {
-#          radioButtons("checks", "", choices = c('Variable class', 'Summary table', 'Outliers', 'NAs', 'NaNs', 'Unique observations', #                                                 'Empty variables', 'Lat_Lon units'))
+#          radioButtons("checks", "", choices = c('Variable class', 'Summary table', 'Outliers', 'NAs', 'NaNs', 'Unique observations', 'Empty variables', 'Lat_Lon units'))
 #        } else {
 #          radioButtons("checks", "", choices = c('Summary table'))
 #        }
@@ -1565,12 +1595,12 @@ set_confid_check(check = FALSE)
         if(input$checks == 'Variable class'){
           "Check and change variable data classes."
         }else if(input$checks=='Summary table') {
-          "Summary table of NUMERIC variables in data set."
+          "Summary table of NUMERIC variables in data table."
         } else if(input$checks=='Outliers'){
           if(input$dat.remove=='none'){
-            HTML('Table to assess outliers.', input$column_check, "shown. <br>Zoom in to plot by highlighting desired area and double clicking. <br>Double click again to reset plot. <br>")
+            HTML('Table to assess outliers.', input$column_check, "shown. <br>Zoom in on plot by highlighting desired area and double clicking. <br>Double click again to reset plot. <br>")
           } else {
-            HTML('Table to assess outliers.', input$column_check, 'shown. <br>Zoom in to plot by highlighting desired area and double clicking. <br>Double click again to reset plot. 
+            HTML('Table to assess outliers.', input$column_check, 'shown. <br>Zoom in on plot by highlighting desired area and double clicking. <br>Double click again to reset plot. 
                   <br>Excluding points that fall outside the',  if(input$dat.remove=='5_95_quant'){
                     '5th and 95th quantiles'
           } else if(input$dat.remove=='25_75_quant') {
@@ -1583,7 +1613,7 @@ set_confid_check(check = FALSE)
             'median +/- 2SD'
           } else if(input$dat.remove=='median_3SD'){
             'median +/- 3SD'
-          }, "results in removing", nrow(values$dataset)-tableInputOutlier()[which(rownames(tableInputOutlier())==input$dat.remove),1] ,"points from the data set.")
+          }, "results in removing", nrow(values$dataset)-tableInputOutlier()[which(rownames(tableInputOutlier())==input$dat.remove),1] ,"points from the data table.")
           }
         } else if(input$checks=='NAs'){
           #na(values$dataset)
@@ -1641,9 +1671,6 @@ set_confid_check(check = FALSE)
             na_quantity <- FishSET:::qaqc_helper(values$dataset[na_names], 
                                        function(x) sum(is.na(x)), "value")
             
-            nan_names <- FishSET:::qaqc_helper(values$dataset, "NaN", "names")
-            nan_quantity <- FishSET:::qaqc_helper(values$dataset[nan_names], 
-                                        function(x) sum(is.nan(x)), "value")
            
             if (any(FishSET:::qaqc_helper(values$dataset, "NA"))) {
       
@@ -1660,7 +1687,7 @@ set_confid_check(check = FALSE)
               
                 if(input$NA_Filter_all==0&input$NA_Filter_mean==0){
                  # case_to_print$dataQuality <- c(case_to_print$dataQuality, 
-                  g <- paste("Occurrence of missing values checked. No columns in the data set contain missing values.\n")#)
+                  g <- paste("Occurrence of missing values checked. No columns in the data table contain missing values.\n")#)
                 } else {
                   if(input$NA_Filter_all>0){
                     #case_to_print$dataQuality <- c(case_to_print$dataQuality, 
@@ -1668,20 +1695,26 @@ set_confid_check(check = FALSE)
                              sub(",([^,]*)$", ", and\\1", paste(na_names, collapse = ", ")), 
                              "variables contained", sub(",([^,]*)$", ", and\\1", paste(na_quantity, collapse=", ")), 
                              "missing values.", length(unique(unlist(lapply(values$dataset[na_names], function(x) which(is.na(x)==TRUE))))), 
-                             "rows containing missing values were removed from the data set.\n")#)
+                             "rows containing missing values were removed from the data table.\n")#)
                   } else if(input$NA_Filter_mean>0){
                     #case_to_print$dataQuality <- c(case_to_print$dataQuality, 
-                    g <- paste("Occurrence of missing values checked. The", sub(",([^,]*)$", ", and\\1",paste(FishSET:::qaqc_helper(values$dataset, "NA", "names"), collapse = ", ")), "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
-                                                                                                                                                                                                                                                                function(x) length(which(is.na(x)==TRUE))), collapse=", ")), "missing values. Missing values were replaced with the mean values of", names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), "respectively.\n")#)
+                    g <- paste("Occurrence of missing values checked. The",
+                               sub(",([^,]*)$", ", and\\1", paste(FishSET:::qaqc_helper(values$dataset, "NA", "names"), collapse = ", ")),
+                               "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
+                               function(x) length(which(is.na(x)==TRUE))), collapse=", ")), "missing values. Missing values were replaced with the 
+                               mean values of", names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), "respectively.\n")#)
                   }
                 } 
-              }
- 
-            if (any(FishSET:::qaqc_helper(values$dataset, "NaN"))) {
+            }
+          } else if(input$checks=='NaNs'){
+            nan_names <- FishSET:::qaqc_helper(values$dataset, "NaN", "names")
+            nan_quantity <- FishSET:::qaqc_helper(values$dataset[nan_names], 
+                                        function(x) sum(is.nan(x)), "value")
+                if (any(FishSET:::qaqc_helper(values$dataset, "NaN"))) {
            
               if(input$NAN_Filter_all==0 & input$NAN_Filter_mean==0){
                 case_to_print$dataQuality <- c(case_to_print$dataQuality, 
-                      paste(g, "Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1", paste(nan_names, collapse = ", ")),
+                    g<-   paste("Occurrence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1", paste(nan_names, collapse = ", ")),
                       "variables contain", 
                       sub(",([^,]*)$", ", and\\1", paste(nan_quantity, collapse=", ")), "non-numbers, respectively.", 
                       length(unique(unlist(lapply(values$dataset[nan_names], function(x) which(is.nan(x)==TRUE))))), 
@@ -1689,18 +1722,19 @@ set_confid_check(check = FALSE)
               }
               } else {
                 if(input$NAN_Filter_all==0&input$NAN_Filter_mean==0){
-                  case_to_print$dataQuality <- c(case_to_print$dataQuality, paste(g, "Occurruence of non-numbers checked. No columns in the data set contain non-numbers.\n"))
+                  case_to_print$dataQuality <- c(case_to_print$dataQuality, 
+                      g <-  paste("Occurrence of non-numbers checked. No columns in the data table contain non-numbers.\n"))
                 } else {
                   if(input$NAN_Filter_all>0){
                     case_to_print$dataQuality <- c(case_to_print$dataQuality, 
-                        paste(g, "Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1", paste(nan_names, collapse = ", ")), 
+                       g<-  paste("Occurrence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1", paste(nan_names, collapse = ", ")), 
                           "variables contained", sub(",([^,]*)$", ", and\\1", paste(nan_quantity, collapse=", ")), "non-numbers.", 
                           length(unique(unlist(lapply(values$dataset[nan_names], function(x) which(is.nan(x)==TRUE))))), 
-                          "rows containing non-numbers were removed from the data set.\n"))
+                          "rows containing non-numbers were removed from the data frame.\n"))
                     
                   } else if(input$NAN_Filter_mean>0){
                     case_to_print$dataQuality <- c(case_to_print$dataQuality,
-                        paste(g, "Occurruence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1", paste(nan_names, collapse = ", ")), 
+                      g <-  paste("Occurrence of non-numbers checked. The", sub(",([^,]*)$", ", and\\1", paste(nan_names, collapse = ", ")), 
                               "variables contained", sub(",([^,]*)$", ", and\\1", paste(nan_quantity, collapse=", ")), "non-numbers.\n"))
                   }
                 } 
@@ -1710,9 +1744,9 @@ set_confid_check(check = FALSE)
               case_to_print$dataQuality <- c(case_to_print$dataQuality, "Each row is a unique choice occurrence.\n")
             } else {
               if(input$Unique_Filter==0){
-                case_to_print$dataQuality <- c(case_to_print$dataQuality, "Each row in data set is not a unique choice occurrence at haul or trip level. No action taken.\n")
+                case_to_print$dataQuality <- c(case_to_print$dataQuality, "Each row in the data frame is not a unique choice occurrence at haul or trip level. No action taken.\n")
               } else {
-                case_to_print$dataQuality <- c(case_to_print$dataQuality, "Duplicate choice occurrence at haul or trip level existed in the data set and have been removed.\n")
+                case_to_print$dataQuality <- c(case_to_print$dataQuality, "Duplicate choice occurrence at haul or trip level existed in the data frame and have been removed.\n")
               }
             }
           } else if(input$checks=='Empty variables'){
@@ -1723,42 +1757,56 @@ set_confid_check(check = FALSE)
               
               if(input$Empty_Filter==0){
                 case_to_print$dataQuality <- c(case_to_print$dataQuality, 
-                      paste('Occurrence of empty variables was checked and the', empty_names, 
-                      "variable is empty. The varible was not removed from the data set.\n"))
+                                              paste('Occurrence of empty columns was checked and the', empty_names, 
+                                              "column is empty. The column was not removed from the data frame\n"))
               } else {
                 case_to_print$dataQuality <- c(case_to_print$dataQuality, 
-                      paste('Occurrence of empty variables was checked and the', empty_names, 
-                      "was empty and was removed from the data set.\n"))
+                                                paste('Occurrence of empty columns was checked and the', empty_names, 
+                                                "was empty and was removed from the data frame.\n"))
               }
             } else {
-              case_to_print$dataQuality <- c(case_to_print$dataQuality, "Occurrence of empty variables was checked and not found in the data set.\n")
+              case_to_print$dataQuality <- c(case_to_print$dataQuality, "Occurrence of empty columns was checked and not found in the data frame.\n")
             }
           } else if(input$checks=='Lat_Lon units'){
             
             if(any(FishSET:::qaqc_helper(values$dataset[FishSET:::find_lonlat(values$dataset)], function(x) !is.numeric(x)))){
               if(input$LatLon_Filter==FALSE){
-                case_to_print$dataQuality <- c(case_to_print$dataQuality, 'Latitude and longitude units were checked and are not in decimal degrees.\n')
+                case_to_print$dataQuality <- c(case_to_print$dataQuality, 
+                                              'Latitude and longitude units were checked and are not in decimal degrees.\n')
               } else {
-                case_to_print$dataQuality <- c(case_to_print$dataQuality, 'Latitude or longitude units not in decimal degrees were converted to decimal degrees.\n')
+                case_to_print$dataQuality <- c(case_to_print$dataQuality, 
+                                              'Latitude or longitude units not in decimal degrees were converted to decimal degrees.\n')
               }
             } else {
-              case_to_print$dataQuality <- c(case_to_print$dataQuality, 'Latitude and longitude units were checked and are in decimal degrees.\n')
+              case_to_print$dataQuality <- c(case_to_print$dataQuality, 
+                                              'Latitude and longitude units were checked and are in decimal degrees.\n')
             }
           }
         } else if(input$tabs=='explore'){
           if(input$plot_table=='Plots'& input$plot_type=='Temporal'){
-            case_to_print$explore <- c(case_to_print$explore, paste0("Viewed plots of ", input$col_select, ' against time for raw points, the ', input$p2fun, ", and the ",  input$p3fun, ' value.\n'))
+            case_to_print$explore <- c(case_to_print$explore, paste0("Viewed plots of ", input$col_select, 
+                                                                     ' against time for raw points, the ', 
+                                                                     input$p2fun, ", and the ",  input$p3fun, 
+                                                                     ' value.\n'))
           } else if(input$plot_table=='Plots'& input$plot_type=='Spatial'){
-            case_to_print$explore <- c(case_to_print$explore, paste0("Viewed spatial distribution of occurrence points and spatial density of occurrence points.\n
-                   Getis-ord and Moran's I statistics provided for ", input$varofint, ". Default settings for spdep functions are used."))
+            case_to_print$explore <- c(case_to_print$explore, paste0("Viewed spatial distribution of occurrence 
+                                                                      points and spatial density of occurrence points.\n
+                                                                      Getis-ord and Moran's I statistics provided for ", 
+                                                                      input$varofint, ". Default settings for
+                                                                     spdep functions are used."))
           } else if(input$plot_table=='Plots'& input$plot_type=='x-y plot'){
-            case_to_print$explore <- c(case_to_print$explore, paste0("Viewed plotted relationship between ", input$x_y_select1,  ' and ', input$x_y_select2, '.\n'))
+            case_to_print$explore <- c(case_to_print$explore, paste0("Viewed plotted relationship between ", 
+                                                                      input$x_y_select1,  ' and ', input$x_y_select2, '.\n'))
           } 
         } else if(input$tabs=='analysis'){
           if(input$corr_reg=='Correlation'){
-            case_to_print$analysis <- c(case_to_print$analysis, paste0("Viewed correlation matrix for ",  isolate({sub(",([^,]*)$", ", and\\1",paste(input$corr_select, collapse = ", "))}), '.\n'))
+            case_to_print$analysis <- c(case_to_print$analysis, paste0("Viewed correlation matrix for ",  
+                                                                        isolate({sub(",([^,]*)$", ", and\\1",
+                                                                      paste(input$corr_select, collapse = ", "))}), '.\n'))
           } else if(input$corr_reg=='Regression'){
-            case_to_print$analysis <- c(case_to_print$analysis, paste0('Viewed plot and linear regression test output for ',input$reg_exp_select, ' on ', input$reg_resp_select,'.\n')) 
+            case_to_print$analysis <- c(case_to_print$analysis, paste0('Viewed plot and linear regression test 
+                                                                       output for ',input$reg_exp_select, ' on ', 
+                                                                       input$reg_resp_select,'.\n')) 
           } 
         }
       })
@@ -2102,11 +2150,12 @@ set_confid_check(check = FALSE)
       output$SelectDatasetExploreUI <- renderUI({
         
         tagList(
-          selectInput("SelectDatasetExplore", "Select a dataset", 
-                      choices = c("main", "port", "auxiliary", "gridded" = "grid")),
-          
+          conditionalPanel("input.plot_table=='Table'",
+                          selectInput("SelectDatasetExplore", "Select a data file type", 
+                                        choices = c("Primary"="main", "Port"="port", "Auxiliary"="auxiliary", "Gridded" = "grid"))
+          ),
           conditionalPanel("input.SelectDatasetExplore == 'grid'",
-                           selectInput("grid_select", "select gridded table", 
+                           selectInput("grid_select", "select gridded data file", 
                                        choices = names(grddat))
           )
         )
@@ -2237,7 +2286,7 @@ set_confid_check(check = FALSE)
       
       output$column_select <- renderUI({
       #  tags$div(align = 'left', class = 'multicol', 
-                 selectInput("col_select", "Select variable", choices = names(values$dataset), 
+                 selectInput("col_select", "Select column name", choices = names(values$dataset), 
                               selected = FishSET:::numeric_cols(values$dataset)[1], 
                               multiple=FALSE, selectize = TRUE)#)
       })
@@ -2443,7 +2492,7 @@ set_confid_check(check = FALSE)
         tagList( 
           h4('Further options to display measures of spatial autocorrelation'),
           if(names(spatdat$dataset)[1]=='var1'){
-            tags$div(h5('Map file not loaded. Please load on Upload Data tab', style="color:red"))
+            tags$div(h5('Spatial data file not loaded. Please load on Upload Data tab', style="color:red"))
           },
           conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial'",
                            style = "margin-left:19px;", selectizeInput('varofint', 'Variable to test for spatial autocorrelation',
@@ -2879,16 +2928,16 @@ set_confid_check(check = FALSE)
                            #fileInput("fileGridExC", "Choose data file containing spatial data defining zones (shape, json, and csv formats are supported)",
                            #          multiple = FALSE, placeholder = ''),
                            if(names(spatdat$dataset)[1]=='var1'){
-                             tags$div(h4('Map file not loaded. Please load on Upload Data tab', style="color:red"))
+                             tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab', style="color:red"))
                            },
-                           h5(tags$b('Select latitude then longitude from main dataset for assigning observations to zones')),
+                           h5(tags$b('Select latitude then longitude from primary data frame for assigning observations to zones')),
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
                                selectizeInput('lat_dat_zone', '', choices = FishSET:::find_lat(values$dataset),
                                               options = list(create = TRUE, placeholder='Select or type LATITUDE variable name'))),
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
                                selectizeInput('lon_dat_zone', '', choices = FishSET:::find_lon(values$dataset),
                                               options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name'))),
-                           selectInput('cat_zone', 'Individual areas/zones from the spatial data set', choices=names(as.data.frame(spatdat$dataset))),
+                           selectInput('cat_zone', 'Individual areas/zones from the spatial data file', choices=names(as.data.frame(spatdat$dataset))),
                            # selectInput('weight_var_ac', 'If desired, variable for use in calculating weighted centroids', 
                            #             choices=c('none'="", colnames(values$dataset))), #variable weighted centroids
                            checkboxInput('hull_polygon_zone', 'Use convex hull method to create polygon?', value=FALSE),
@@ -2900,7 +2949,7 @@ set_confid_check(check = FALSE)
         conditionalPanel(condition="input.dist=='zone'",
                          if(!('sf' %in% class(spatdat$dataset))) {
                            tagList(
-                             h5(tags$b('Select vector containing latitude then longitude from spatial data set')),
+                             h5(tags$b('Select vector containing latitude then longitude from spatial data file')),
                              div(style="display: inline-block;vertical-align:top; width: 200px;",
                                  selectizeInput('lat_grid_zone', '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE)),
                              div(style="display: inline-block;vertical-align:top; width: 200px;",
@@ -2915,7 +2964,7 @@ set_confid_check(check = FALSE)
         tagList(
          if(names(spatdat$dataset)[1]=='var1'){
            conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'",
-                              tags$div(h4('Map file not loaded. Please load on Upload Data tab', style="color:red")))
+                              tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab', style="color:red")))
           },
          conditionalPanel("input.VarCreateTop=='Spatial functions'&&input.dist=='create_dist_between'",
                            style = "margin-left:19px;", selectInput('start', 'Starting location',choices = c('Zonal centroid', 'Port', 'Lat/lon coordinates'))),
@@ -2952,7 +3001,7 @@ set_confid_check(check = FALSE)
         tagList(
            conditionalPanel("(input.VarCreateTop=='Spatial functions'&&input.dist=='create_dist_between'&&input.start=='Zonal centroid')||
                            (input.VarCreateTop=='Spatial functions'&&input.dist=='create_dist_between'&&input.end=='Zonal centroid')" ,
-                           style = "margin-left:19px;",  selectizeInput('lon_dat', 'Select lat then lon from data set to assign observations to zone', 
+                           style = "margin-left:19px;",  selectizeInput('lon_dat', 'Select lat then lon columns from data frame to assign observations to zone', 
                                                                      choices=names(values$dataset[,grep('lat|lon', names(values$dataset), ignore.case=T)]),
                                                                      multiple=TRUE, options = list(maxItems = 2, create = TRUE, placeholder='Select or type variable name'))),
             conditionalPanel("input.VarCreateTop=='Spatial functions'&&input.dist=='create_dist_between'&&input.start=='Zonal centroid'||
@@ -2961,7 +3010,7 @@ set_confid_check(check = FALSE)
           if(any(class(spatdat$dataset)=='sf')==FALSE){
             conditionalPanel("input.VarCreateTop=='Spatial functions'&&input.dist=='create_dist_between'&&input.start=='Zonal centroid'||
                              (input.VarCreateTop=='Spatial functions'&&input.dist=='create_dist_between'&&input.end=='Zonal centroid')" , 
-                             style = "margin-left:19px;", selectizeInput('long_grid', 'Select vector containing latitude then longitude from spatial data set',
+                             style = "margin-left:19px;", selectizeInput('long_grid', 'Select vector containing latitude then longitude from spatial data file',
                                                                       choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE, 
                                                                       options = list(maxItems = 2,create = TRUE, placeholder='Select or type variable name')))
           }
@@ -2985,27 +3034,27 @@ set_confid_check(check = FALSE)
         tagList(
           if(names(spatdat$dataset)[1]=='var1'){
             conditionalPanel("input.VarCreateTop=='Spatial functions'&&input.dist=='create_startingloc'",
-                             tags$div(h4('Map file not loaded. Please load on Upload Data tab', style="color:red")))
+                             tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab', style="color:red")))
           },
           conditionalPanel("input.VarCreateTop=='Spatial functions'&&input.dist=='create_startingloc'",
-                           style = "margin-left:19px;", selectInput('trip_id_SL', 'Variable in primary data set to identify unique trips', choices=c('',names(values$dataset)), selectize=TRUE)),
+                           style = "margin-left:19px;", selectInput('trip_id_SL', 'Variable that identifies unique trips', choices=c('',names(values$dataset)), selectize=TRUE)),
           conditionalPanel("input.VarCreateTop=='Spatial functions'&&input.dist=='create_startingloc'",
-                           style = "margin-left:19px;", selectInput('haul_order_SL', 'Variable in primary data set defining haul order within a trip. Can be time, coded variable, etc.',
+                           style = "margin-left:19px;", selectInput('haul_order_SL', 'Variable defining haul order within a trip. Can be time, coded variable, etc.',
                                                                     choices=c('', names(values$dataset)), selectize=TRUE)),
           conditionalPanel("input.VarCreateTop=='Spatial functions'&&input.dist=='create_startingloc'",
-                           style = "margin-left:19px;", selectizeInput('starting_port_SL',  "Variable in primary data set identifying port at start of trip", 
+                           style = "margin-left:19px;", selectizeInput('starting_port_SL',  "Variable that identifies port at start of trip", 
                                                                     choices=names(values$dataset[,grep('port',names(values$dataset), ignore.case = TRUE)]), 
                                                                     options = list(create = TRUE, placeholder='Select or type variable name'))),
           conditionalPanel("input.VarCreateTop=='Spatial functions'&&input.dist=='create_startingloc'",
-                           style = "margin-left:19px;", selectizeInput('lon_dat_SL', "Longitude variable in primary data set", 
+                           style = "margin-left:19px;", selectizeInput('lon_dat_SL', "Longitude variable in primary data table", 
                                                                     choices= names(values$dataset[,grep("lon", names(values$dataset), ignore.case = TRUE)]), 
                                                                     options = list(create = TRUE, placeholder='Select or type variable name'))), 
           conditionalPanel("input.VarCreateTop=='Spatial functions'&&input.dist=='create_startingloc'",
-                           style = "margin-left:19px;", selectizeInput('lat_dat_SL', "Latitude variable in primary data set", 
+                           style = "margin-left:19px;", selectizeInput('lat_dat_SL', "Latitude variable in primary data table", 
                                                                     choices= names(values$dataset[,grep("lat", names(values$dataset), ignore.case = TRUE)]),
                                                                     options = list(create = TRUE, placeholder='Select or type variable name'))),
           conditionalPanel("input.VarCreateTop=='Spatial functions'&&input.dist=='create_startingloc'",
-                           style = "margin-left:19px;",  selectInput("port.dat", "Choose file from the FishSET database containing port data", 
+                           style = "margin-left:19px;",  selectInput("port.dat", "Choose port table from the FishSET database", 
                                                                      choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE))#,
           #conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
           #                 style = "margin-left:19px;", fileInput("grid.dat", "Choose data file containing map shapefile (shape, json, and csv formats are supported)",
@@ -3015,16 +3064,16 @@ set_confid_check(check = FALSE)
         tagList(
           if(any(class(spatdat$dataset)=='sf')==FALSE){
             conditionalPanel("input.VarCreateTop=='Spatial functions'&&input.dist=='create_startingloc'",
-                             style = "margin-left:19px;", selectInput('lat_grid_SL', 'Select vector containing latitude from spatial data set', 
+                             style = "margin-left:19px;", selectInput('lat_grid_SL', 'Select vector containing latitude from spatial data file', 
                                                                       choices= names(as.data.frame(spatdat$dataset)), multiple=TRUE))
           },
           if(any(class(spatdat$dataset)=='sf')==FALSE){
             conditionalPanel("input.VarCreateTop=='Spatial functions'&&input.dist=='create_startingloc'",
-                             style = "margin-left:19px;", selectInput('lon_grid_SL', 'Select vector containing longitude from spatial data set', 
+                             style = "margin-left:19px;", selectInput('lon_grid_SL', 'Select vector containing longitude from spatial data file', 
                                                                       choices= names(as.data.frame(spatdat$dataset)), multiple=TRUE, selectize=TRUE))
           },
           conditionalPanel("input.VarCreateTop=='Spatial functions'&&input.dist=='create_startingloc'",
-                           style = "margin-left:19px;", selectInput('cat_SL', "Variable defining zones or areas", choices= names(as.data.frame(spatdat$dataset)), selectize=TRUE))
+                           style = "margin-left:19px;", selectInput('cat_SL', "Property from spatial data file that identifies zones or areas names", choices= names(as.data.frame(spatdat$dataset)), selectize=TRUE))
         )
       })
       
@@ -3036,47 +3085,47 @@ set_confid_check(check = FALSE)
       output$input_trip_dist_vars <- renderUI({
         tagList(
           conditionalPanel("input.VarCreateTop=='Trip-level functions'&&input.dist=='trip_distance'" ,
-                           style = "margin-left:19px;", selectInput("port_dat_dist", "Choose file from the FishSET database containing port data", 
+                           style = "margin-left:19px;", selectInput("port_dat_dist", "Choose port table from the FishSET database", 
                                                                     choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE)),
           #
           conditionalPanel("input.VarCreateTop=='Trip-level functions'&&input.trip=='trip_distance'",
-                           style = "margin-left:19px;", varSelectInput('trip_ID','Variable in data file to identify unique trips', data = values$dataset,
+                           style = "margin-left:19px;", varSelectInput('trip_ID','Variable that identifies unique trips', data = values$dataset,
                                                                        multiple = FALSE)),
           conditionalPanel("input.VarCreateTop=='Trip-level functions'&&input.trip=='trip_distance'",
-                           style = "margin-left:19px;", selectInput('starting_port','Variable in data file to identify port at START of trip',multiple = FALSE, 
+                           style = "margin-left:19px;", selectInput('starting_port','Variable that identifies port at START of trip', multiple = FALSE, 
                                                                     choices = names(values$dataset)[grep('port', names(values$dataset), ignore.case=TRUE)], selectize=TRUE)),
           conditionalPanel("input.VarCreateTop=='Trip-level functions'&&input.trip=='trip_distance'",
-                           style = "margin-left:19px;", selectizeInput('starting_haul','Select variables containing LAT the LON at START of haul',multiple = TRUE, 
+                           style = "margin-left:19px;", selectizeInput('starting_haul','Select LAT then LON variables at START of haul', multiple = TRUE, 
                                                                     choices = names(values$dataset)[grep('lat|long', names(values$dataset), ignore.case=TRUE)], 
                                                                     options = list(maxItems = 2,create = TRUE, placeholder='Select or type variable name'))),
           conditionalPanel("input.VarCreateTop=='Trip-level functions'&&input.trip=='trip_distance'",
-                           style = "margin-left:19px;", selectizeInput('ending_haul','Select variables containing LAT then LON at END of haul',multiple = TRUE, 
+                           style = "margin-left:19px;", selectizeInput('ending_haul','Select LAT then LON variables at END of haul', multiple = TRUE, 
                                                                     choices = names(values$dataset)[grep('lat|long', names(values$dataset), ignore.case=TRUE)],
                                                                     options = list(maxItems = 2, create = TRUE, placeholder='Select or type variable name'))),
           conditionalPanel("input.VarCreateTop=='Trip-level functions'&&input.trip=='trip_distance'",
-                           style = "margin-left:19px;", selectizeInput('ending_port','Variable in data file to identify port at END of trip',multiple = FALSE, 
+                           style = "margin-left:19px;", selectizeInput('ending_port','Variables that identifies port at END of trip', multiple = FALSE, 
                                                                     choices = names(values$dataset)[grep('port', names(values$dataset), ignore.case=TRUE)],
                                                                     options = list(create = TRUE, placeholder='Select or type variable name'))),
           conditionalPanel("input.VarCreateTop=='Trip-level functions'&&input.trip=='trip_distance'",
-                           style = "margin-left:19px;", varSelectizeInput('haul_order','Variable in data file containing information on the order that hauls occur within a trip.',
+                           style = "margin-left:19px;", varSelectizeInput('haul_order','Variables that identifies the order of hauls within a trip.',
                                                                     data = values$dataset, multiple = FALSE))
         )
       })
       output$input_tri_cent <-  renderUI({
         tagList(
           conditionalPanel("input.VarCreateTop=='Trip-level functions'&&input.trip=='trip_centroid'",
-                           style = "margin-left:19px;", selectizeInput('trip_cent_lon','Vector containing longitudinal data', 
+                           style = "margin-left:19px;", selectizeInput('trip_cent_lon','Column name containing longitudinal data', 
                                                                     choices =names(values$dataset)[grep('lon|lat', names(values$dataset), ignore.case=TRUE)], 
                                                                     multiple = FALSE,  options = list(create = TRUE, placeholder='Select or type variable name'))),
           conditionalPanel("input.VarCreateTop=='Trip-level functions'&&input.trip=='trip_centroid'",
-                           style = "margin-left:19px;", selectizeInput('trip_cent_lat', 'Vector containing latitudinal data', 
+                           style = "margin-left:19px;", selectizeInput('trip_cent_lat', 'Column name containing latitudinal data', 
                                                                     choices =names(values$dataset)[grep('lon|lat', names(values$dataset), ignore.case=TRUE)], 
                                                                     multiple = FALSE,  options = list(create = TRUE, placeholder='Select or type variable name'))),
           conditionalPanel("input.VarCreateTop=='Trip-level functions'&&input.trip=='trip_centroid'",
                            style = "margin-left:19px;", selectInput('trip_cent_weight','Variable for weighted average', multiple = FALSE, 
                                                                     choices=c('', names(values$dataset)), selected='', selectize=TRUE)),
           conditionalPanel("input.VarCreateTop=='Trip-level functions'&&input.trip=='trip_centroid'",
-                           style = "margin-left:19px;", varSelectInput('trip_cent_id','Column(s) that identify the individual trip', data = values$dataset,
+                           style = "margin-left:19px;", varSelectInput('trip_cent_id','Variable(s) that identify the individual trip', data = values$dataset,
                                                                        multiple = TRUE))
         )
       })
@@ -3084,7 +3133,8 @@ set_confid_check(check = FALSE)
         tagList(
           conditionalPanel("input.VarCreateTop=='Dummy variables'&&input.dummyfunc=='From variable'",
                            style = "margin-left:19px;", 
-                           selectInput('dummyvarfunc','Select variable', multiple=FALSE, choices=c(NULL, names(values$dataset)), selectize=TRUE)),
+                           selectInput('dummyvarfunc','Select varaible', multiple=FALSE, 
+                                       choices=c(NULL, names(values$dataset)), selectize=TRUE)),
           conditionalPanel("input.VarCreateTop=='Dummy variables'&&input.dummyfunc=='From policy dates'",
                            style = "margin-left:19px;", selectInput('dummypolyfunc','Select policy', multiple=FALSE, 
                                                                    choices=c('User defined', 'Central GOA Rockfish Cooperative (2004)'='Rockfish', 'Amendment 80 Alaska (2008)'='Amen80' ,
@@ -3278,18 +3328,18 @@ set_confid_check(check = FALSE)
       output$conditionalInput1 <- renderUI({
         conditionalPanel("input.choiceTab=='primary'",
                          tagList(
-                           selectizeInput('catchBase','Variable containing catch data',
+                           selectizeInput('catchBase','Column name containing catch data',
                                           choices=colnames(values$dataset[,grep('haul|mt|lb|metric|pounds|catch', colnames(values$dataset), ignore.case=TRUE)]),
-                                          options = list(create = TRUE, placeholder='Select or type variable name')),
-                           selectizeInput('priceBase', 'Variable containing price or value data', 
+                                          options = list(create = TRUE, placeholder='Select or type column name')),
+                           selectizeInput('priceBase', 'Column name containing price or value data', 
                                           choices=c('none selected'='none', colnames(values$dataset[,grep('value|dollar', colnames(values$dataset), ignore.case=TRUE)])),
-                                          selected='none', options = list(create = TRUE, placeholder='Select or type variable name')),
+                                          selected='none', options = list(create = TRUE, placeholder='Select or type column name')),
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
                                selectizeInput('latBase', 'Occurrence latitude', choices=c('',colnames(values$dataset[,grep('lat', colnames(values$dataset), ignore.case=TRUE)])), 
-                                           selected='', options = list(create = TRUE, placeholder='Select or type LATITUDE variable name'))),
+                                           selected='', options = list(create = TRUE, placeholder='Select or type LATITUDE column name'))),
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
                                selectizeInput('lonBase', 'Occurrence longitude', choices=c('',colnames(values$dataset[,grep('lon', colnames(values$dataset), ignore.case=TRUE)])),
-                                              selected='', options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name')))
+                                              selected='', options = list(create = TRUE, placeholder='Select or type LONGITUDE column name')))
                          ))
       })
       # output$conditionalInput2 <- renderUI({
@@ -3309,7 +3359,7 @@ set_confid_check(check = FALSE)
       #                          selectizeInput('lon_dat_ac', '',
       #                                         choices = find_lon(values$dataset),
       #                                         options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name'))),
-      #                      selectInput('cat_altc', 'Individual areas/zones from the spatial data set', choices=names(as.data.frame(spatdat$dataset))),
+      #                      selectInput('cat_altc', 'Individual areas/zones from the spatial dataset', choices=names(as.data.frame(spatdat$dataset))),
       #                      selectInput('weight_var_ac', 'If desired, variable for use in calculating weighted centroids',
       #                                  choices=c('none'="", colnames(values$dataset))), #variable weighted centroids
       #                      checkboxInput('hull_polygon_ac', 'Use convex hull method to create polygon?', value=FALSE),
@@ -3333,7 +3383,7 @@ set_confid_check(check = FALSE)
       #   conditionalPanel(condition="input.choiceTab=='zone'",
       #                    if(!('sf' %in% class(spatdat$dataset))){
       #                      tagList(
-      #                        h5(tags$b('Select vector containing latitude then longitude from spatial data set')),
+      #                        h5(tags$b('Select vector containing latitude then longitude from spatial dataset')),
       #                        div(style="display: inline-block;vertical-align:top; width: 200px;",
       #                            selectizeInput('lat_grid_altc', '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE)),
       #                        div(style="display: inline-block;vertical-align:top; width: 200px;",
@@ -3346,7 +3396,7 @@ set_confid_check(check = FALSE)
       output$conditionalInput3a <- renderUI({
         conditionalPanel(condition="input.choiceTab=='distm'",
                          selectInput('distMsource', 'Should distance matrix come from', 
-                                     choices=c('Primary haul- or trip-level data'='primary', 'Gridded dataset'='gridded'), 
+                                     choices=c('Primary haul- or trip-level data'='primary', 'Gridded data'='gridded'), 
                                      selected='primary')
         )
       })
@@ -3413,19 +3463,19 @@ set_confid_check(check = FALSE)
           selectInput('catche','Catch variable for averaging',
                       choices=c(input$catchBase, colnames(values$dataset[,grep('haul|mt|lb|metric|pounds|catch', colnames(values$dataset), ignore.case=TRUE)])),
                       selected=input$catchBase),
-          selectizeInput('price', 'If expected revenue is to be calculated, variable containing price or value data', 
+          selectizeInput('price', 'If expected revenue is to be calculated, column name containing price or value data', 
                          choices=c(input$priceBase, "none", colnames(values$dataset[,grep('value|dollar', colnames(values$dataset), ignore.case=TRUE)])),
-                                   options = list(create = TRUE, placeholder='Select or type variable name')),
-          selectizeInput('group','Choose variable that defines groups',
+                                   options = list(create = TRUE, placeholder='Select or type column name')),
+          selectizeInput('group','Choose column name containing data that defines groups',
                          choices=c('Fleet (no group)', names(values$dataset[, !sapply(values$dataset, is.numeric)])))
         )
       })
       output$expcatch <-  renderUI({
         conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'",
                          style = "margin-left:19px;font-size: 12px", 
-                         selectizeInput('temp_var', 'Temporal variable for averaging', 
+                         selectizeInput('temp_var', 'Column name containing temporal data for averaging', 
                                      choices=c('none', names(values$dataset)[grep('date|year|hour|day', colnames(values$dataset), ignore.case = TRUE)]),
-                                     selected='none', options = list(create = TRUE, placeholder='Select or type variable name')))
+                                     selected='none', options = list(create = TRUE, placeholder='Select or type column name')))
       })
       sparstable_dat <- reactive({
         if(!any(colnames(values$dataset)=='ZoneID')){
@@ -3473,13 +3523,13 @@ set_confid_check(check = FALSE)
         if (!table_exists(paste0(project$name, "MainDataTable_final"))) {
           
           div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; text-align: justify; padding: 5px;",
-              p("Final dataset must be saved before modeling"))
+              p("Finalized dataset must be saved before modeling."))
         }
       })
       
       output$catch_out <- renderUI({
         tagList(
-          selectInput('catch','Variable containing catch data',
+          selectInput('catch','Column name containing catch data',
                       choices=c(input$catchBase, colnames(values$dataset[,grep('haul|mt|lb|metric|pounds|catch', colnames(values$dataset), ignore.case=TRUE)])), 
                       selected=input$catchBase),
           conditionalPanel(
@@ -3492,7 +3542,7 @@ set_confid_check(check = FALSE)
           conditionalPanel(condition="input.model=='logit_correction'",
             numericInput('polyn', 'Correction polynomial degree', value=2)),
           conditionalPanel(condition="input.model=='logit_correction'",
-                           radioButtons('startlocdefined', 'Starting location variable', choices=c('Exists in data set'='exists', 'Create variable'='create'))
+                           radioButtons('startlocdefined', 'Starting location variable', choices=c('Exists in data frame'='exists', 'Create variable'='create'))
         ))
         })
         output$logit_correction_extra <- renderUI({
@@ -3503,37 +3553,37 @@ set_confid_check(check = FALSE)
                         multiple=FALSE)),
             conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
                               if(names(spatdat$dataset)[1]=='var1'){
-                                                 tags$div(h4('Map file not loaded. Please load on Upload Data tab', style="color:red"))
+                                                 tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab', style="color:red"))
                               }),
             conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             selectInput('trip_id_SL_mod', 'Variable in primary data set to identify unique trips', choices=c('',names(values$dataset)), selectize=TRUE)),
+                             selectInput('trip_id_SL_mod', 'Variable that identifies unique trips', choices=c('',names(values$dataset)), selectize=TRUE)),
             conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             selectInput('haul_order_SL_mod', 'Variable in primary data set defining haul order within a trip. Can be time, coded variable, etc.',
+                             selectInput('haul_order_SL_mod', 'Variable that identifies haul order within a trip. Can be time, coded variable, etc.',
                                             choices=c('', names(values$dataset)), selectize=TRUE)),
             conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             selectizeInput('starting_port_SL_mod',  "Variable in primary data set identifying port at start of trip", 
+                             selectizeInput('starting_port_SL_mod',  "Variable that identifies port at start of trip", 
                                             choices=names(values$dataset[,grep('port',names(values$dataset), ignore.case = TRUE)]), 
                                             options = list(create = TRUE, placeholder='Select or type variable name'))),
             conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             selectizeInput('lon_dat_SL_mod', "Longitude variable in primary data set", 
+                             selectizeInput('lon_dat_SL_mod', "Longitude variable in primary data table", 
                                             choices= names(values$dataset[,grep("lon", names(values$dataset), ignore.case = TRUE)]), 
                                             options = list(create = TRUE, placeholder='Select or type variable name'))), 
             conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             selectizeInput('lat_dat_SL_mod', "Latitude variable in primary data set", 
+                             selectizeInput('lat_dat_SL_mod', "Latitude variable in primary data table", 
                                             choices= names(values$dataset[,grep("lat", names(values$dataset), ignore.case = TRUE)]), 
                                             options = list(create = TRUE, placeholder='Select or type variable name'))),
             conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
                            if(any(class(spatdat$dataset)=='sf')==FALSE){
-                                                selectInput('lat_grid_SL_mod', 'Select vector containing latitude from spatial data set',
+                                                selectInput('lat_grid_SL_mod', 'Select vector containing latitude data from spatial data',
                                                             choices= names(as.data.frame(spatdat$dataset)), multiple=TRUE)
                               }),
             conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
                              if(any(class(spatdat$dataset)=='sf')==FALSE){
-                                selectInput('lon_grid_SL_mod', 'Select vector containing longitude from spatial data set', 
+                                selectInput('lon_grid_SL_mod', 'Select vector containing longitude data from spatial data', 
                                                              choices= names(as.data.frame(spatdat$dataset)), multiple=TRUE, selectize=TRUE)
                               }),
             conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
-                             selectInput('cat_SL_mod', "Variable defining zones or areas", choices= names(as.data.frame(spatdat$dataset)), selectize=TRUE)
+                             selectInput('cat_SL_mod', "Property from spatial data file identifying zones or areas", choices= names(as.data.frame(spatdat$dataset)), selectize=TRUE)
                          
                         )
         )
