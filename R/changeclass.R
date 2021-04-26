@@ -1,6 +1,6 @@
 
 
-#' Change data class
+#' Change varialble data class
 #'
 #' View data class for each variable and call appropriate functions to change data class as needed.
 #'

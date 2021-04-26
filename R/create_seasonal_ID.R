@@ -1,7 +1,5 @@
 # create_seasonal_ID
-#' Create fishery season identifier
-#'
-#' Creates a fishery season identifier variable.
+#' Create fishery season identifier variable
 #'
 #' @param dat Primary data containing information on hauls or trips.
 #'   Table in the FishSET database contains the string 'MainDataTable'.

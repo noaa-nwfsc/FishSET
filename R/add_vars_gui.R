@@ -1,5 +1,5 @@
 # Data selection tool
-# Add variables from raw data set back into the working data set.
+# Add variables from raw data set back into the working data set - interactive version
 
 # add_vars_gui
 #' Add removed variables back into dataset

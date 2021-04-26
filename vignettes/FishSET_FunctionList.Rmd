@@ -3,7 +3,7 @@ title: "FishSET R package functions"
 output:
    rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{FishSET R packagte functions} 
+  %\VignetteIndexEntry{FishSET R package functions} 
   %\VignetteEngine{knitr::rmarkdown}  
   %\VignetteEncoding{UTF-8}  
 ---
