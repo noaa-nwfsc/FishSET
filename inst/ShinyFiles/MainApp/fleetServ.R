@@ -415,7 +415,8 @@ density_serv <- function(id, values, project) {
                          
                          selectizeInput(ns("filter_by_val"), "Select values",
                                         choices = filter_val(),
-                                        multiple = TRUE, options = list(maxOptions = 15, placeholder = "Select or type value name")))
+                                        multiple = TRUE, options = list(maxOptions = 15, 
+                                                                        placeholder = "Select or type value name")))
       )
     })
     
@@ -460,11 +461,8 @@ density_serv <- function(id, values, project) {
     date_sgs <- reactive({
       
       cols <- c(input$date, input$grp_date, input$fct_date)
-      if (!is.null(cols)) {
-        cols
-      } else {
-        NULL
-      }
+      if (!is.null(cols)) cols
+      else NULL
     }) 
     
     # reset if subset is unchecked
@@ -521,12 +519,13 @@ density_serv <- function(id, values, project) {
       validate_date(sub_date = date_sgs(), filter_date = input$filter_date, 
                     fct = input$fct, grp = input$grp)
       
-      density_plot(values$dataset, project = project(), var = input$var, type = input$type, 
-                   group = input$grp, combine = input$combine, date = date_sgs(), 
-                   filter_date = input$filter_date, date_value = date_value(), 
-                   filter_by = input$filter_by, filter_value = input$filter_by_val, 
-                   facet_by = input$fct, scale = input$scale, tran = input$tran, 
-                   bw = input$bw, position = input$position, pages = input$pages) 
+      q_test <- quietly_test(density_plot)
+      q_test(values$dataset, project = project(), var = input$var, type = input$type, 
+             group = input$grp, combine = input$combine, date = date_sgs(), 
+             filter_date = input$filter_date, date_value = date_value(), 
+             filter_by = input$filter_by, filter_value = input$filter_by_val, 
+             facet_by = input$fct, scale = input$scale, tran = input$tran, 
+             bw = input$bw, position = input$position, pages = input$pages) 
     })
     
     
@@ -558,10 +557,14 @@ vessel_serv <- function(id, values, project) {
     
     output$date_select <- renderUI({
       
-      selectizeInput(ns("date"), "Date variable",
-                     choices = c(FishSET:::date_cols(values$dataset)), multiple = TRUE,
-                     options = list(maxItems = 1, create = TRUE,
-                                    placeholder = "Select or type variable name"))
+      if (input$period != "no_period") {
+        
+        selectizeInput(ns("date"), "Date variable",
+                       choices = FishSET:::date_cols(values$dataset), multiple = TRUE,
+                       options = list(maxItems = 1, create = TRUE,
+                                      placeholder = "Select or type variable name"))
+      }
+    
     })
     
     output$sub_date_select <- renderUI({
@@ -621,11 +624,9 @@ vessel_serv <- function(id, values, project) {
     
     filter_val <- reactive({
       
-      if (is.null(input$filter_by)) {
+      if (is.null(input$filter_by)) NULL
         
-        NULL
-        
-      } else {
+      else {
         
         out <- unique(values$dataset[[input$filter_by]])
         
@@ -649,7 +650,8 @@ vessel_serv <- function(id, values, project) {
                          
                          selectizeInput(ns("filter_by_val"), "Select value(s)",
                                         choices = filter_val(),
-                                        multiple = TRUE, options = list(maxOptions = 15, placeholder = "Select or type value name")))
+                                        multiple = TRUE, 
+                                        options = list(maxOptions = 15, placeholder = "Select or type value name")))
       )
     })
     
@@ -672,61 +674,53 @@ vessel_serv <- function(id, values, project) {
     })
     
     # reset date if not summing over period
-    observeEvent(input$period == "no_period", {
-      
-      updateSelectInput(session, "date",  choices = FishSET:::date_cols(values$dataset))
+    observeEvent(req(input$period == "no_period"), {
+        cat("\nno_period selected")
+        updateSelectizeInput(session, "date", choices = FishSET:::date_cols(values$dataset))
+    
     })
     
     # reset if subset is unchecked
-    observeEvent(input$subset_cb == FALSE, {
+    observeEvent(req(input$subset_cb == FALSE), {
       
       updateCheckboxInput(session, "date_subset_cb", value = FALSE)
       updateCheckboxInput(session, "var_subset_cb", value = FALSE)
     })
     
-    observeEvent(input$date_subset_cb == FALSE, {
+    observeEvent(req(input$date_subset_cb == FALSE), {
       
-      updateSelectizeInput(session, "sub_date", choices = FishSET:::date_cols(values$dataset), 
-                           options = list(maxItems = 1, create = TRUE,
-                                          placeholder = "Select or type variable name"))
+      updateSelectizeInput(session, "sub_date", choices = FishSET:::date_cols(values$dataset))
       
       updateSelectizeInput(session, "filter_date",
                            choices = c("date range" = "date_range", "year-month",
                                        "year-week", "year-day", "year", "month", "week", "day"),
-                           options = list(maxItems = 1), selected = NULL)
+                          selected = NULL)
     })
     
-    observeEvent(input$var_subset_cb == FALSE, {
+    observeEvent(req(input$var_subset_cb == FALSE), {
       
       updateSelectizeInput(session, "filter_by", choices = names(values$dataset),
-                           options = list(maxItems = 1), selected = NULL)
+                           selected = NULL)
     })
     
     # reset if group is unchecked
-    observeEvent(input$group_cb == FALSE, {
+    observeEvent(req(input$group_cb == FALSE), {
       
       updateSelectizeInput(session, "grp", 
-                           choices = c("year", "month", "week", category_cols(values$dataset)), 
-                           options = list(create = TRUE, placeholder = "Select or type variable name"))
+                           choices = c("year", "month", "week", category_cols(values$dataset)))
       
-      updateSelectizeInput(session, "grp_date", choices = FishSET:::date_cols(values$dataset),
-                           options = list(maxItems = 1, create = TRUE,
-                                          placeholder = "Select or type variable name"))
+      updateSelectizeInput(session, "grp_date", choices = FishSET:::date_cols(values$dataset))
       
       updateCheckboxInput(session, "combine", value = FALSE)
     })
     
     # reset if split is unchecked
-    observeEvent(input$split_cb == FALSE, {
+    observeEvent(req(input$split_cb == FALSE), {
       
       updateSelectizeInput(session, "fct", choices = c("year", "month", "week", 
-                                                       category_cols(values$dataset)),
-                           selected = NULL,
-                           options = list(maxItems = 2))
+                                                       category_cols(values$dataset)))
       
-      updateSelectizeInput(session, "fct_date", choices = FishSET:::date_cols(values$dataset),
-                           options = list(maxItems = 1, create = TRUE, 
-                                          placeholder = "Select or type variable name"))
+      updateSelectizeInput(session, "fct_date", choices = FishSET:::date_cols(values$dataset))
     })
     
     date_value <- reactive({
@@ -742,35 +736,30 @@ vessel_serv <- function(id, values, project) {
           filter_periodOut(id, input$filter_date, input)
         }
         
-      } else {
-        
-        NULL
-      }
+      } else NULL
     })
     
     # date col for subset, group, and split sections
     sub_date_col <- reactive({
       
       cols <- c(input$sub_date, input$grp_date, input$fct_date)
-      if (!is.null(cols)) {
-        cols
-      } else {
-        NULL
-      }
+      if (!is.null(cols)) cols
+      else NULL
     }) 
     
     v_out <- eventReactive(input$fun_run, {
       
-      validate_date(date = input$date, sub_date = sub_date_col(), period = input$period, 
+      validate_date(date = input$date, sub_date = sub_date_col(), period = input$period,
                     filter_date = input$filter_date, fct = input$fct, grp = input$grp)
       
-      vessel_count(values$dataset, project = project(), v_id = input$var, date = input$date,
-                   period = input$period, group = input$grp, sub_date = sub_date_col(),
-                   filter_date = input$filter_date, date_value = date_value(), 
-                   filter_by = input$filter_by, filter_value = input$filter_by_val, 
-                   filter_expr = input$filter_expr, facet_by = input$fct, combine = input$combine,
-                   position = input$position, tran = input$tran, value = input$value,
-                   scale = input$scale, type = input$type, output = input$out)
+      q_test <- quietly_test(vessel_count)
+      q_test(values$dataset, project = project(), v_id = input$var, date = input$date,
+             period = input$period, group = input$grp, sub_date = sub_date_col(),
+             filter_date = input$filter_date, date_value = date_value(), 
+             filter_by = input$filter_by, filter_value = input$filter_by_val, 
+             filter_expr = input$filter_expr, facet_by = input$fct, combine = input$combine,
+             position = input$position, tran = input$tran, value = input$value,
+             scale = input$scale, type = input$type, output = input$out)
     })
     
     tabplot <- eventReactive(input$fun_run, {
@@ -864,11 +853,9 @@ species_serv <- function(id, values, project) {
     
     filter_val <- reactive({
 
-      if (is.null(input$filter_by)) {
-        
-        NULL
+      if (is.null(input$filter_by)) NULL
 
-      } else {
+      else {
         
         out <- unique(values$dataset[[input$filter_by]])
         
@@ -986,21 +973,15 @@ species_serv <- function(id, values, project) {
         filter_periodOut(id, input$filter_date, input)
       }
         
-      } else {
-        
-        NULL
-      }
+      } else NULL
     })
     
     # date col for subset, group, and split sections
     sub_date_col <- reactive({
       
       cols <- c(input$sub_date, input$grp_date, input$fct_date)
-      if (!is.null(cols)) {
-        cols
-      } else {
-        NULL
-      }
+      if (!is.null(cols)) cols
+      else NULL
     }) 
     
     spec_out <- eventReactive(input$fun_run, {
@@ -1010,18 +991,19 @@ species_serv <- function(id, values, project) {
       validate_date(date = input$date, sub_date = sub_date_col(), period = input$period, 
                     filter_date = input$filter_date, fct = input$fct, grp = input$grp)
       
-      species_catch(values$dataset, project = project(), species = input$var, date = input$date,
-                    period = input$period, fun = input$fun, group = input$grp, sub_date = sub_date_col(),
-                    filter_date = input$filter_date, date_value = date_value(),
-                    filter_by = input$filter_by, filter_value = input$filter_by_val, 
-                    filter_expr = input$filter_expr, facet_by = input$fct, combine = input$combine,
-                    position = input$position, tran = input$tran, value = input$value,
-                    scale = input$scale, type = input$type, output = input$out,
-                    format_tab = input$format)
+      q_test <- quietly_test(species_catch)
+      q_test(values$dataset, project = project(), species = input$var, date = input$date,
+             period = input$period, fun = input$fun, group = input$grp, sub_date = sub_date_col(),
+             filter_date = input$filter_date, date_value = date_value(),
+             filter_by = input$filter_by, filter_value = input$filter_by_val, 
+             filter_expr = input$filter_expr, facet_by = input$fct, combine = input$combine,
+             position = input$position, tran = input$tran, value = input$value,
+             scale = input$scale, type = input$type, output = input$out,
+             format_tab = input$format)
     })
     
     tabplot <- eventReactive(input$fun_run, {
-      
+
       tabplot_output(spec_out(), input$out)
     })
     
@@ -1247,12 +1229,13 @@ roll_serv <- function(id, values, project) {
       validate_date(date = input$date, sub_date = sub_date_col(), 
                     filter_date = input$filter_date, fct = input$fct, grp = input$grp)
       
-      roll_catch(values$dataset, project = project(), catch = input$var, date = input$date,
-                 fun = input$fun, group = input$grp, combine = input$combine, 
-                 sub_date = sub_date_col(), filter_date = input$filter_date,
-                 date_value = date_value(), filter_by = input$filter_by, 
-                 filter_value = input$filter_by_val, filter_expr = input$filter_expr, 
-                 facet_by = input$fct, tran = input$tran, scale = input$scale, output = input$out)
+      q_test <- quietly_test(roll_catch)
+      q_test(values$dataset, project = project(), catch = input$var, date = input$date,
+             fun = input$fun, group = input$grp, combine = input$combine, 
+             sub_date = sub_date_col(), filter_date = input$filter_date,
+             date_value = date_value(), filter_by = input$filter_by, 
+             filter_value = input$filter_by_val, filter_expr = input$filter_expr, 
+             facet_by = input$fct, tran = input$tran, scale = input$scale, output = input$out)
     })
     
     tabplot <- eventReactive(input$fun_run, {
@@ -1478,12 +1461,12 @@ weekly_catch_serv <- function(id, values, project) {
       validate_date(date = input$date, sub_date = sub_date_col(), 
                     filter_date = input$filter_date, fct = input$fct, grp = input$grp)
       
-      weekly_catch(values$dataset, project = project(), species = input$var, date = input$date,
-                   fun = input$fun, group = input$grp, sub_date = sub_date_col(),
-                   filter_date = input$filter_date, filter_expr = input$filter_expr, 
-                   facet_by = input$fct, combine = input$combine, position = input$position, 
-                   tran = input$tran, value = input$value, scale = input$scale, 
-                   type = input$type, output = input$out, format_tab = input$format)
+      q_test <- quietly_test(weekly_catch)
+      q_test(values$dataset, project = project(), species = input$var, date = input$date,
+             fun = input$fun, group = input$grp, sub_date = sub_date_col(),
+             filter_date = input$filter_date, filter_expr = input$filter_expr, 
+             tran = input$tran, value = input$value, scale = input$scale, 
+             type = input$type, output = input$out, format_tab = input$format)
     })
     
     tabplot <- eventReactive(input$fun_run, {
@@ -1708,12 +1691,13 @@ weekly_effort_serv <- function(id, values, project) {
       validate_date(date = input$date, sub_date = sub_date_col(), 
                     filter_date = input$filter_date, fct = input$fct, grp = input$grp)
       
-      weekly_effort(values$dataset, project = project(), cpue = input$var, date = input$date,
-                    group = input$grp, sub_date = sub_date_col(), filter_date = input$filter_date, 
-                    date_value = date_value(), filter_by = input$filter_by, 
-                    filter_value = input$filter_by_val,  filter_expr = input$filter_expr, 
-                    facet_by = input$fct, combine = input$combine, tran = input$tran, 
-                    scale = input$scale, output = input$out, format_tab = input$format)
+      q_test <- quietly_test(weekly_effort)
+      q_test(values$dataset, project = project(), cpue = input$var, date = input$date,
+             group = input$grp, sub_date = sub_date_col(), filter_date = input$filter_date, 
+             date_value = date_value(), filter_by = input$filter_by,
+             filter_value = input$filter_by_val,  filter_expr = input$filter_expr, 
+             facet_by = input$fct, combine = input$combine, tran = input$tran, 
+             scale = input$scale, output = input$out, format_tab = input$format)
     })
     
     tabplot <- eventReactive(input$fun_run, {
@@ -1952,13 +1936,14 @@ bycatch_serv <- function(id, values, project) {
       validate_date(date = input$date, sub_date = sub_date_col(), 
                     filter_date = input$filter_date, fct = input$fct, grp = input$grp)
       
-      bycatch(values$dataset, project = project(), cpue = input$cpue, catch = input$catch, 
-              date = input$date, group = input$grp, names = names$names, period = input$period,
-              sub_date = sub_date_col(), filter_date = input$filter_date, date_value = date_value(),
-              filter_by = input$filter_by, filter_value = input$filter_by_val, 
-              filter_expr = input$filter_expr,  facet_by = input$fct,value = input$value, 
-              combine = input$combine, tran = input$tran,scale = input$scale, 
-              output = input$out, format_tab = input$format)
+      q_test <- quietly_test(bycatch)
+      q_test(values$dataset, project = project(), cpue = input$cpue, catch = input$catch, 
+             date = input$date, group = input$grp, names = names$names, period = input$period,
+             sub_date = sub_date_col(), filter_date = input$filter_date, date_value = date_value(),
+             filter_by = input$filter_by, filter_value = input$filter_by_val, 
+             filter_expr = input$filter_expr,  facet_by = input$fct,value = input$value, 
+             combine = input$combine, tran = input$tran,scale = input$scale, 
+             output = input$out, format_tab = input$format)
     })
     
     tabplot <- eventReactive(input$fun_run, {
@@ -2202,15 +2187,16 @@ trip_serv <- function(id, values, project) {
       validate(need(input$start, "Please select a start date variable."),
                need(input$end, "Please select an end date variable."))
       
-      trip_length(values$dataset, project = project(), start = input$start, end = input$end,
-                  units = input$unit, vpue = input$vpue, haul_count = input$haul_count,
-                  group = input$grp, sub_date = sub_date_col(), filter_date = input$filter_date, 
-                  date_value = date_value(), filter_by = input$filter_by, 
-                  filter_value = input$filter_by_val, filter_expr = input$filter_expr, 
-                  facet_by = input$fct, density = input$dens, tran = input$tran,
-                  scale = input$scale, output = input$out, pages = input$pages, 
-                  remove_neg = input$rm_neg, type = input$type, bins = input$bins,
-                  tripID = input$tripID, fun.time = input$fun_time, fun.numeric = input$fun_numeric)
+      q_test <- quietly_test(trip_length)
+      q_test(values$dataset, project = project(), start = input$start, end = input$end,
+             units = input$unit, vpue = input$vpue, haul_count = input$haul_count,
+             group = input$grp, sub_date = sub_date_col(), filter_date = input$filter_date, 
+             date_value = date_value(), filter_by = input$filter_by, 
+             filter_value = input$filter_by_val, filter_expr = input$filter_expr, 
+             facet_by = input$fct, density = input$dens, tran = input$tran,
+             scale = input$scale, output = input$out, pages = input$pages, 
+             remove_neg = input$rm_neg, type = input$type, bins = input$bins,
+             tripID = input$tripID, fun.time = input$fun_time, fun.numeric = input$fun_numeric)
     })
     
     tabplot <- eventReactive(input$fun_run, {

@@ -267,7 +267,7 @@ density_plotUI <- function(id, dat) {
                      uiOutput(ns("fct_date_UI")),
     ),
     
-    checkboxInput(ns("options_cb"), strong("Plot options (optional)"), value = FALSE),
+    checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
     
     conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
                      
@@ -304,17 +304,17 @@ vessel_countUI <- function(id) {
      
     uiOutput(ns("var_select")),
               
-    selectizeInput(ns("period"), "Show counts by (optional)",
+    selectInput(ns("period"), "Show counts by (optional)",
                 choices = c("do not count by period" = "no_period", "year-month" = "year_month", "month-year" = "month_year",
                             "year", "month", "week", "day of the month" = "day_of_month",
                             "day of the year" = "day_of_year", "calender date" = "cal_date", 
                             "weekday"),
                 multiple = FALSE, selected = "year_month"),
     
-    conditionalPanel("input.period !== 'no_period'", 
-                     ns = ns, style = "margin-left:19px;",
+    # conditionalPanel("input.period !== 'no_period'", 
+    #                  ns = ns, style = "margin-left:19px;",
       
-      uiOutput(ns("date_select"))),
+      uiOutput(ns("date_select")),#),
     
     checkboxInput(ns("subset_cb"), strong("Subset (optional)"), value = FALSE),
     
@@ -366,7 +366,7 @@ vessel_countUI <- function(id) {
                      uiOutput(ns("fct_date_UI")),
     ),
     
-    checkboxInput(ns("options_cb"), strong("Plot options (optional)"), value = FALSE),
+    checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
     
     conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
                      
@@ -468,7 +468,7 @@ species_catchUI <- function(id) {
                      uiOutput(ns("fct_date_UI")),
     ),
     
-    checkboxInput(ns("options_cb"), strong("Plot options (optional)"), value = FALSE),
+    checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
     
     conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
         
@@ -571,7 +571,7 @@ roll_catchUI <- function(id) {
                    uiOutput(ns("fct_date_UI")),
   ),
     
-    checkboxInput(ns("options_cb"), strong("Plot options (optional)"), value = FALSE),
+    checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
     
     conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
                      
@@ -666,7 +666,7 @@ weekly_catchUI <- function(id) {
                      uiOutput(ns("fct_date_UI")),
     ),
     
-    checkboxInput(ns("options_cb"), strong("Plot options (optional)"), value = FALSE),
+    checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
     
     conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
                      
@@ -765,7 +765,7 @@ weekly_effortUI <- function(id) {
                      uiOutput(ns("fct_date_UI")),
     ),
     
-    checkboxInput(ns("options_cb"), strong("Plot options (optional)"), value = FALSE),
+    checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
     
     conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
                      
@@ -852,7 +852,7 @@ bycatchUI <- function(id) {
                      uiOutput(ns("fct_date_UI")),
     ),
     
-    checkboxInput(ns("options_cb"), strong("Plot options  (optional)"), value = FALSE),
+    checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
     
     conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
                        
@@ -970,7 +970,7 @@ trip_lengthUI <- function(id) {
                      uiOutput(ns("fct_date_UI")),
     ),
     
-    checkboxInput(ns("options_cb"), strong("Plot options (optional)"), value = FALSE),
+    checkboxInput(ns("options_cb"), strong("Plot options"), value = FALSE),
     
     conditionalPanel("input.options_cb", ns = ns, style = "margin-left:19px;",
                      
