@@ -92,7 +92,6 @@
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @importFrom scales label_percent breaks_extended
 #' @importFrom rlang sym expr
-#' @importFrom shiny isRunning
 #' @import ggplot2
 
 weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL, 
@@ -450,7 +449,7 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
         if (check_table$suppress) {
           
           conf_plot <- w_plot
-          conf_plot$data <- replace_sup_code(check_out, f_catch())
+          conf_plot$data <- replace_sup_code(check_out)
           save_plot(project, "weekly_catch_confid", plot = conf_plot)
         }
       }
