@@ -12,6 +12,7 @@ create_fishset_env <- function() {
   #'   well. 
   #' @seealso \code{\link{delete_fishset_env}}
   #' @export
+  #' @keywords internal
   
   assign("fishset_env",
          value = rlang::new_environment(data = list(
@@ -33,6 +34,7 @@ fishset_env_exists <- function() {
   #' @return `TRUE` if `fishset_env` exists, `FALSE` if not.
   #' @importFrom rlang global_env 
   #' @export
+  #' @keywords internal
   
   fish <- exists("fishset_env", envir = rlang::global_env(), 
                  mode = "environment")
@@ -52,6 +54,7 @@ edit_fishset_env <- function(name, value) {
   #' 
   #' @param name String, the name of the new or existing object.
   #' @param value The value for the new or reassigned object. 
+  #' @keywords internal
   #' @importFrom rlang env_poke
   #' @seealso \code{\link{show_fishset_env}}
   #' @export
@@ -73,6 +76,7 @@ get_fishset_env <- function(name) {
   #' @param name String, the name of a `fishset_env` object.
   #' @importFrom rlang env_get
   #' @export 
+  #' @keywords internal
   #' @seealso \code{\link{show_fishset_env}}
   #' @examples 
   #' \dontrun{

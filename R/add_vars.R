@@ -1,7 +1,7 @@
 # Data selection tool
 
 # add_vars
-#' Add removed variables back into dataset
+#' Add removed variables back into dataset - non-interactive version
 #' 
 #' Add columns that have been removed from the primary dataset back into the primary dataset. 
 #'

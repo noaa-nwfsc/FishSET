@@ -987,9 +987,9 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
 }
 
 ## ---- Temporal  Variables ----##
-#' Create vector of duration of time
+#' Create duration of time variable
 create_duration <- function(dat, start, end, units = c("week", "day", "hour", "minute"), name = "create_duration") {
-  #' @description  Create vector of duration of time based on start and ending dates in desired temporal units.
+  #' @description  Create duration of time variable based on start and ending dates in desired temporal units.
   #' @param dat Primary data containing information on hauls or trips.
   #' Table in FishSET database contains the string 'MainDataTable'.
   #' @param start Date variable from \code{dat} indicating start of time period.
@@ -1084,7 +1084,7 @@ randomize_value_row <- function(dat, project, value) {
 
 randomize_value_range <- function(dat, project, value, perc = NULL) {
   #' 
-  #' Randomize value by percentage range
+  #' Randomize variable value by percentage range
   #' 
   #' @param dat Main data frame over which to apply function. Table in FishSET 
   #'   database should contain the string `MainDataTable`.
@@ -1148,7 +1148,7 @@ randomize_value_range <- function(dat, project, value, perc = NULL) {
 
 jitter_lonlat <- function(dat, project, lon, lat, factor = 1, amount = NULL) {
   #'
-  #' Jitter longitude and latitude 
+  #' Jitter longitude and latitude variables
   #'
   #' @param dat Main data frame over which to apply function. Table in FishSET 
   #'   database should contain the string `MainDataTable`.

@@ -1,0 +1,207 @@
+---
+title: "FishSET GUI"
+author: "ESSR"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{FishSET GUI Vignette} 
+  %\VignetteEngine{knitr::rmarkdown}  
+  %\VignetteEncoding{UTF-8}
+---
+<!--output: html_document: default -->
+<!--  pdf_document: default -->
+<!-- word_document: inst/doc -->
+<!--   pdf_document: inst/doc -->
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+The Spatial Economics Toolbox for Fisheries (FishSET) is a set of statistical programming and data management tools developed to achieve the following goals:
+ 
+  1. Standardize data management and organization. 
+ 
+  1. Provide easily accessible tools to enable location choice models to provide input to the management of key fisheries.
+ 
+  1. Organize statistical code so that predictions of fisher behavior developed by the field’s leading innovators can be incorporated and transparent to all users.
+
+
+The FishSET package provides functions for:
+
+* Data management
+* Data analysis
+* Mapping
+* Statistical modeling
+* Reproducibility
+  
+This vignette contains a short description of using the FishSET GUI. A more detailed manual is available at the FishSET **WEBSITE**. 
+
+The FishSET GUI is a user-friendly interface that guides users through the steps necessary to run discrete choice models. The FishSET GUI requires no knowledge of coding or R.   
+
+This vignette walks through the steps of:
+
+  1. Installing R
+  1. Installing and loading the FishSET package
+  1. Opening the FishSET GUI
+  1. Using the FishSET GUI
+  1. Using the *Report template* to generate a report.
+
+## Installing R
+To use the FishSET GUI, users must first install R and RStudio.
+
+R can be installed from <https://cloud.r-project.org>.  
+RStudio from <https://rstudio.com/products/rstudio/download/#download>. 
+
+Installation files for both R and RStudio are platform specific.   
+Install the most recent version of R and RStudio available.     
+Default settings do not need to be changed. 
+
+
+## Installing the FishSET package
+We recommend using the following commands to install FishSET:
+
+  1. Open R Studio
+  1. Install **devtools** package (This package is necessary to install and build FishSET).
+  1. Install FishSET package
+
+Once R Studio is open, run the following script in the R console
+:  Install devtools  
+  `install.packages("devtools")`   
+  `library(devtools)`
+
+:  Install FishSET from GitHUB  
+  `devtools::install_github("name/FishSET")`     
+  `library(FishSET)`
+
+**GITHUB SITE TO BE FILLED IN**
+
+See the Help Manual ** ADD LINK** if you experience any issues when installing the **devtools** or **FishSET** packages.
+	  
+## Opening the FishSET GUI
+To open the FishSET GUI type or paste the following script in the R console
+
+`run_fishset_gui()`
+
+## Using the FishSET GUI
+The FishSET GUI is divided into 12 tabs. Although the tab order is designed to guide users through the necessary steps to build and run a discrete choice model, they can be used in any order. Below we detail the purpose of each tab and how to use the tabs.
+
+### Information
+
+The information tab has four subtabs
+
+ 1.  Background
+    * Purpose of FishSET
+    * General information on FishSET.
+ 1.  Quickstart Guide
+    * Brief detail on how to use each of the FishSET GUI tabs. 
+ 1.  Alaska Details
+    * Information on the Alaskan fisheries.
+ 1.  FishSET Background
+    * Links to partners.
+
+### Upload Data
+The Upload Data tab is used to load data (primary, port, map, gridded, auxiliary) from the FishSET database or from a local file location.
+
+  1. Select or fill in project name
+  1. For primary, port, auxiliary, and gridded data files select to 
+      * `Upload new file` from local file directory then 
+          * `Browse` to file directory location
+      * Load data from `FishSET database` then
+          * `Choose a table`
+  1. For spatial data files, the only option is to
+     * Browse to file directory location
+  1. To load the data, click the `Load Data` button
+  1. Merge auxiliary data with primary data 
+    * Check `Merge auxiliary table`
+    * Select `Main table keys` and `Auxiliary table keys`  
+    These are column names to merge the two data tables by.
+  1. If including confidentiality checks:
+    * Click blue `Confidentiality` button.
+    * Check the `Check for confidentiality` box
+    * From `Select vessel identifier column`, select the column name containing identifier of unique observational units.
+    * Select a `Rule` (`n`: rule of n  or `k`: majority allocation )
+    * Select a `Threshold` value such as 3 for rule of n or 90% for majority allocation.
+    * Click `Save` and repeat until all desired rules have been completed.
+    * Click `Close` button.
+
+### Data Quality Evaluation
+The Data Quality and Evaluation tab is used to identify and correct common data quality issues such as erroneous outliers and missing values. 
+
+  1. Variable class  
+    * Check and change variable classes  
+      Classes are numeric, character, factor, and date
+  1. Summary table  
+    * View minimum, median, mean, maximum, no. missing, no. unique observations, no. 0s.
+  1. Outliers  
+     View tables and plots to assess if outliers exist
+    * `Choose variable` to assess
+    *  Select `Method to subset the data` by:
+        * none 
+        * 5_95_quant   (remove values outside 5th and 95th quantiles)
+        * 25_75_quant  (remove values outside 25th and 75th quantiles)
+        * mean_2SD  (remove values outside 2 standard deviations from the mean)
+        * mean_3SD  (remove values outside 3 standard deviations from the mean)
+        * median_2SD  (remove values outside 2 standard deviations from the median)
+        * median_3SD  (remove values outside 3 standard deviations from the median)
+    * Select `Distribution` of data
+        * Normal
+        * Lognormal
+        * Exponential
+        * Weibull
+        * Poisson
+        * Negative binomial
+  1. NAs
+      * Displays table of variables containing missing values.
+      * To correct, remove or replace NAs
+          * `Remove NAs` removes the entire row of data containing NAs
+          * `Replace NAs with mean values` replaces NAs
+  1. NaNs
+      * Displays table of variables containing non-numbers. 
+      * To correct, remove or replace NaNs
+          * `Remove NaNs` removes the entire row of data containing NaN 
+          *  `Replace NaNs with mean values` replaces NaNs
+  1. Unique observations
+      * Returns values of test that all rows of the data table are unique.
+      * To remove, select `Remove non-unique rows`.
+  1. Empty variables
+      * Returns a list of variables that are empty.
+      * To remove, press `Remove empty variables`.
+  1. Latitude and Longitude units
+      * Returns the first six rows of all latitude and longitude variables.  
+      * Check whether values are in decimal degree and that sign is correct.
+      * Select variable and action to make corrections
+
+### Data Exploration
+The Data Exploration tab is used to view and explore the loaded data. 
+
+### Fleet Assignment and Summary
+The Fleet Assignment and Summary tab is used to define fleets and explore data at a fleet level. 
+
+### Simple Analyses
+The Simple Analyses tab is used to view correlation and simple linear regression among selected variables. 
+
+
+### Compute New Variables
+The Compute New Variables tab is used to modify or create new variables such as CPUE or trip mid-point. 
+
+### Map Viewer
+The Map Viewer tab is used to view the spatial distribution of hauls. 
+
+### Define Alternative Fishing Choices
+The Define Alternative Fishing Choices tab is used to define alternative fishing choices. 
+
+### Expected Catch/Revenue
+The Expected Catch/Revenue tab is used to calculate the expected catch or revenue matrix for alternative fishing zones (zones where fishing could have happened but did not). A catch variable is required. Include a price or value variable if you want expected revenue. Price is multiplied against catch to produce revenue. If a revenue variable exists in the dataset, it can be used for the Catch Variable. This matrix is required to run the conditional logit model. 
+
+
+### Models
+The Models tab is used to define model parameters (including the likelihood function), and then run model and compare output. 
+
+### Bookmark Choices
+The Bookmark Choices tabs is to save choices made in the FishSET R Shiny application and enable current application state to be reloaded at a later date. 
+
+
+## Generating reports

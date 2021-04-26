@@ -4,7 +4,7 @@ author: "ESSR"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{FishSET Vignette} 
+  %\VignetteIndexEntry{Introduction to FishSET} 
   %\VignetteEngine{knitr::rmarkdown}  
   %\VignetteEncoding{UTF-8}
 ---
@@ -35,69 +35,45 @@ The FishSET package provides functions for:
 * Data analysis
 * Mapping
 * Statistical modeling
+* Reproducibility
   
-This vignette contains a short description of the goals of FishSET, the functions within FishSET, and how to use the FishSET package. A longer manual is in development. 
+This vignette contains a short description the FishSET package. A more detailed manual is available at the FishSET **WEBSITE**. 
 
 ## Installing
-Devtools is currently required to install and build FishSET. It will need to be installed and loaded before FishSET can be installed.
 We recommend using the following commands to install FishSET
+First, install **devtools**.  This package is necessary to install and build FishSET.  
 
-    install.packages("devtools") 
-    library(devtools)
-	  install("PATH/TO/Directory/Containing/FishSET")
-	  library(FishSET)
+Install devtools  
+: `install.packages("devtools")`   
+ `library(devtools)`
+
+Install FishSET  
+    
+: To install FishSET from GitHUB  
+  `devtools::install_github("name/FishSET")`     
+
+: To install FishSET from the R console  
+    `install("PATH/TO/Directory/Containing/FishSET")`  
+    `library(FishSET)`
 	  
 ## Before you begin
-We have included an RMarkdown Notebook file. This file takes you through to the basic steps in FishSET from data loading to modeling. We recommend opening this file as a tutorial.
-
-### Notebooks 
-In addition, we are recommending the use of either Jupyter Notebooks or RMarkdown Notebooks for reproducing workflow and producing a report that incorporates code, text, and output. Jupyter Notebooks can be used in both a standard R terminal and an RStudio terminal. RMarkdown Notebooks can only be used in an RStudio terminal. In an RStudio session open and begin working in a notebook environment by clicking *File -> New File -> R Notebook*. If asked to add or update packages, click yes. A new file should soon appear with `output: html_notebook` at the top of the file. 
-
-
-```{r fig1, echo=FALSE, fig.cap="Opening a new R Notebook file", out.width = '1%'}
-knitr::include_graphics('C:/Users/melanie.harsch/Pictures/Screenshots/OpeningNotebook.png')
-```
-
-
-
-At this point, you can begin adding text and code chunks. To output the Notebook file, you will need to first save the file. Then click the *preview* button to view the document in the viewer. If the document does not appear in the view, click the *gear* icon and make sure the *Preview in viewer pane* is checked. To publish the document, select one of the *knit* options in the *preview* dropdown or add lines similar to the one below to the first chunk in your notebook file. See [Chapter 3 of RMarkdown: The Definitive Guide]( https://bookdown.org/yihui/rmarkdown/notebook.html) for more information.
-
-```
----
-title: "Notebook Example"
-output: pdf_document
-html_notebook:toc: yes
----
-```
-
-In the regular R terminal, you will need to the Jupyter notebook. Follow [these directions](https://www.datacamp.com/community/blog/jupyter-notebook-r?utm_source=adwords_ppc&utm_campaignid=1565261270&utm_adgroupid=67750485268&utm_device=c&utm_keyword=&utm_matchtype=b&utm_network=g&utm_adpostion=1t1&utm_creative=332661264371&utm_targetid=dsa-473406574235&utm_loc_interest_ms=&utm_loc_physical_ms=9033316&gclid=EAIaIQobChMIxLzM6JaK4gIVDy2GCh2Vowc7EAAYASAAEgLJUvD_BwE) to load and activate an IRKernel and begin working with R in a notebook environment. Please note, these directions are for the regular R terminal and will not work in an RStudio terminal.
+**THIS WILL NEED TO BE UPDATED**
+FishSET includes a worked example. This file takes you through to the basic steps in FishSET from data loading to modeling. We recommend opening this file as a tutorial.
 
 
 ## Storing data and project delineation
-FishSET is designed for reproducibility. All data is stored in a SQL database called fishset_db and all function calls are logged in a log file. 
-Both the database and log folder are created in the working directory when the FishSET package is first loaded. The purpose of saving data and function calls is to allow users to rerun previous steps with the saved data or with updated data. 
+FishSET is designed for reproducibility. All data is stored in a SQLite database called fishset_db and all function calls are logged in a *Logs* folder. Output (plots, table, messages, notes) are saved in an *Output* folder.
+The database, output folder, and log folder are created in the working directory when the FishSET package is first loaded. The output can be called into the report template. The saved function calls can be called to rerun the analysis with updated or new data. 
 
-All FishSET function calls are saved in dated log files. These log files are useful for documenting which functions were run and the parameter choices. They are also useful for rerunning analyes with updated data. Note that new log files will be saved each day FishSET functions are run. However, the list of saved functions to be logged will not reset between days if the FishSET package is not closed between days. This allows work completed over multiple days to be saved in the same file. To reset the list of saved function calls run `log_reset()`. 
+Function calls require a `project` argument in the function call. The `project` argument is important to distinguish output and log calls between analyses. 
 
 ```{r figLog, echo=FALSE, , out.width = '1%'}
 knitr::include_graphics('C:/Users/melanie.harsch/Pictures/Screenshots/LogFolder.png')
 ```
 
-Saving tables and lists to the database requires a call to open a connection to the SQLite database, a call to write the table to the database, and a final call to close the connection to the database. These three calls are done within the function. For instance, the `load_maindata` function opens a data set, runs a set of checks on the data set, and then saves the data set to the fishset_db database. Embedded in the function are the lines of code that save the table to the database.
 
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), "fishset_db.sqlite")
-    DBI::dbWriteTable(fishset_db, paste0(project, 'MainDataTableInfo', Sys.Date()), MainDataTableInfo, overwrite=over_write)
-    DBI::dbDisconnect(fishset_db)
-
-
-In this example, the user must provide the `project` parameter in the function call. Because all data and function calls are saved, it is important to distinguish between projects and/or years. Function calls that call or save data have a `project` parameter. For example, in the SQL database we could have two primary data tables called `pcodMainDataTable` and `salmonMainDataTable` where the project was pcod and salmon respectively. The project can be any descriptive string such as fishery name, location, year, a combination of these, etc.
-
-When data is loaded into R using the data import functions (see below), a raw and working table is saved (`pcodMainDataTable20190419`, `pcodMainDataTable`). Any cleaning and analysis to the data are done on the working table. Tables associated with model runs are also created, including the model design file and model output tables. Again, these are saved with the project name preceding the default table name followed by the date it was created.
-
-Function calls are saved in dated files in the log folder. The log files saves the function name, the parameter values, including input data, and output. It is important to use the naming convention for tables saved to the SQL database. For instance,  use `pcodMainDataTable` rather than ambiguous names such as *dat*. Using the database naming conventions allows for easier recognition of the data and project along with ability to rerun the function using the log file. Note that the list of function calls is reset when either the FishSET library is closed or the R session is closed. Thus, although a new log file will be created each day that FishSET functions are called, the new function calls will be added to the list of functions called and saved the previous day. This is useful if the users is working on a project over multiple days but wants to keep all function calls within a single file. To reset the function list saved to the log file, use `log_reset()`.
-
-## Data
-There are five types of data files that can be imported into FishSET. All optional data files must be able to be linked to the primary data file.
+### Data
+There are four types of data files that can be imported into FishSET. All optional data files must be linkable to the primary data file.
 
 ```{r table1, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
 tabl <- "  
@@ -108,8 +84,6 @@ tabl <- "
 | Port data        | Required file with the latitude and longitude locations of ports.           |
 | Gridded data     | Optional file that contains additional data that varies by two dimensions.  |
 | Auxiliary data   | Optional file that contains additional data to link to the primary data.    |
-|------------------|-----------------------------------------------------------------------------|
-
 "
 cat(tabl) # output the table in a format good for HTML/PDF/docx conversion
 ```
@@ -125,29 +99,65 @@ FishSET will accept several data formats including:
   * spss files
   * R files
 
+###Using FishSET
+FishSET functions can be called in the R console or through the FishSET GUI. The FishSET GUI is a user-friendly guided user interface that requires no coding knowledge to run FishSET functions. To open the FishSET GUI type `run_fishset_gui()` in the R console. More details on using the FishSET GUI are provided in the **FishSET Help Manual** **ADD LINK** or **FishSET GUI vignette**. This vignette focuses on calling functions in the R console.  
 
-Use the `read_dat` function to read in these files.
+### Saving, loading and reading in data 
 
-### Saving data tables to SQLite database
-Data are saved in the SQLite database, fishset_db.
+####Saving
+All data should be saved to the FishSET database and checked for issues that can affect saving the data table to an SQL database. 
 
-  Data can be imported, checked that required columns are defined, optionally compared against previously saved versions of the data, and then saved into the database using:
+Saved into the database using:
   
-     load_maindata Save main data file and creates main data information table. 
-     load_port     Data set with latitude and longitude of ports. 
-     load_aux      Additional data such as vessel characteristics and fishery season. 
-     load_grid     Additional data that varies over two dimensions such as SST and wind speed.
- 
+     load_maindata() Save main data file and creates main data information table. 
+     load_port()     Data set with latitude and longitude of ports. 
+     load_aux ()     Additional data such as vessel characteristics and fishery season. 
+     load_grid()     Additional data that varies over two dimensions such as SST and wind speed.
+
+When the primary data is saved, two versions of the data are created, a raw table with the orignal data and a working table on which all analyses will be conducted. The working table will also be available in the global environment.
+
+
+####Loading
+Data saved to the FishSET database, can be reloaded into the global environment using 
+`load_data()`.
+
+`load_data(pollock, name="pollockMainDataTable20200101")` loads the primary data from project *pollock*. *name* is optional and is used to specify a specific dated version of the data table.  
+
+####Reading
+Read data tables into the working environment without saving to the FIshSET database using `read_dat()`. This function is necessary for spatial data files which cannot be saved to the FishSET database at this time. 
+
+`read_dat()` calls the appropriate function to read in data.   
+Supported data types are:  
+
+  *	csv 
+  *	geojson
+  *	json 
+  *	matlab 
+  *	R files
+  *	shape 
+  *	spss 
+  *	stata
+  *	txt
+  *	xls, xlsx
+
+
+####Working in the FishSET database 
  Once data are saved in the fishset_db database, they can be accessed and viewed using:
  
-     tables_database() View tables in the fishset_db database.
-     table_fields(x)   View fields in table x.
-     table_view(x)     View table x from the fishset_db database.
+     tables_database()      View tables in the fishset_db database.
+     table_fields(x)        View fields in table x.
+     table_view(x)          View table x from the fishset_db database.
+     table_exists(x)	      Check whether table x exists in the FishSET database.
+     table_remove(x)	      Remove a table from FishSET database.
+     list_MainDataTables()	View list of MainDataTables in FishSET database.
+     list_PortTables()	    View list of PortTables in FishSET database.
+     list_logs()		        View list of all log files
+
      
  Model output files can be view in the fishset_db database using:
      
-     globalcheck_view(table)  View error output generated from discrete choice models
-     model_out_view(table)    View output from discrete choice models for models that converged
+     globalcheck_view(table)  View error output discrete choice models
+     model_out_view(table)    Load discrete choice model output
  
 
 ### Data management functions

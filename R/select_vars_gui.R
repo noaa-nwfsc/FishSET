@@ -2,7 +2,7 @@
 # Select which variables to include in the further analyses and modeling.
 
 # select_vars
-#' Interactive app to select variables to include/exclude in primary dataset
+#' Interactive application to select variables to include/exclude in primary dataset
 #'
 #' Opens an R Shiny web application. With the application select on
 #'   variables in the primary dataset that should be retained.

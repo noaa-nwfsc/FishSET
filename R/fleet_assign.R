@@ -49,16 +49,11 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
   #'             ) 
   #' }
   #' 
-
+  
   out <- data_pull(dat)
   dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
   
-  if (shiny::isRunning()) {
-    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
-  } else { 
-    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
-  
-  end <- FALSE
   
   if (!is.null(table) & (!is.null(cond) | !is.null(fleet_val))) {
    

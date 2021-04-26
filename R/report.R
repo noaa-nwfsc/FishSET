@@ -140,7 +140,7 @@ project_files <- function(project) {
 
 pull_output <- function(project, fun = NULL, date = NULL, type = "plot") {
   #'
-  #' Retrieve output file name by project, function, and type.
+  #' Retrieve output file name by project, function, and type
   #'
   #' @param project Name of project
   #' @param fun Name of function.

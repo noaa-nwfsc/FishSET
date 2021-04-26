@@ -1,4 +1,4 @@
-#' Create alternative choice list
+#' Define alternative fishing choice 
 #'
 #' Required step. Creates a list defining how alternative fishing choices should be defined. Output is saved to the FishSET database.
 #'  Run this function before running models.  
@@ -117,7 +117,6 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
       int <- table_view(paste0(gridfile, 'Centroid'))
       }
     } else {
-# browser()  
       int <- find_centroid(
     dat = dataset, gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.grid,
     lat.dat = lat.dat, lon.dat = lon.dat, cat = cat, weight.var = weight.var
