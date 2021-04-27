@@ -7,7 +7,7 @@
 #' @param project String, name of project.
 #' @param v_id Variable in \code{dat} containing vessel identifier to count.
 #' @param date Date variable to aggregate by.
-#' @param period Time period to aggregate by. Options include \code{"year"}, \code{"month"}, \code{"weeks"} 
+#' @param period Time period to aggregate by. Options include \code{"year"}, \code{"month"}, \code{"week"} 
 #'   (weeks in the year), \code{"weekday"}, \code{"weekday_abv"}, \code{"day_of_month"}, 
 #'   \code{"day_of_year"}, and \code{"cal_date"} (calender date).
 #' @param group Names of grouping variables. For line plots two grouping variables 
@@ -78,7 +78,6 @@
 #' @importFrom stats reformulate
 #' @importFrom rlang sym expr as_string
 #' @importFrom scales label_percent breaks_extended
-#' @importFrom shiny isRunning
 
 vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group = NULL, 
                          sub_date = NULL, filter_date = NULL, date_value = NULL, 
@@ -95,9 +94,7 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
   end <- FALSE 
  
    if (!is.null(period)) {
-    if(period == "no_period") {
-      period <- NULL
-    }
+    if(period == "no_period") period <- NULL
   }
   
   # Convert to string if v_id is a factor
@@ -185,7 +182,7 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
     
     if (is.null(date)) warning("Please enter a date variable.")
     
-    periods <- c("year_month", "month_year", "year", "month", "weeks", 
+    periods <- c("year_month", "month_year", "year", "month", "week", 
                  "weekday", "day_of_month", "day_of_year", "cal_date")
     
     if (period %in% periods == FALSE) {
@@ -196,7 +193,7 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
     } else {
       
       p <- switch(period, year_month = "%Y-%m", month_year = "%Y-%m", year = "%Y",
-                  month = "%b", weeks = "%U", weekday = "%a", day_of_month = "%d", 
+                  month = "%b", week = "%U", weekday = "%a", day_of_month = "%d", 
                   day_of_year = "%j", cal_date = NULL)
     }
   }
@@ -212,34 +209,8 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
     }
   
   # facet date ----
-  if (!is.null(facet_by)) {
-    if (length(facet_date) > 0) {
-      # if summarizing over period
-      if (!is.null(period)) {
-        
-        if (period != "month" & any("month" %in% facet_date)) {
-          
-          dataset$month <- factor(format(dataset[[sub_date]], "%b"), 
-                                  levels = month.abb, ordered = TRUE)
-          
-        } else if (period != "week" & any("week" %in% facet_date)) {
-          
-          dataset$week <- as.integer(format(dataset[[sub_date]], "%U"))
-        }
-        
-      } else {
-        # if not summarizing over period
-        dataset[facet_date] <- lapply(facet_date, function(x) {
-          fp <- switch(x, "year" = "%Y", "month" = "%b", "week" = "%U")
-          if (fp == "%b") {
-            factor(format(dataset[[sub_date]], fp), levels = month.abb, ordered = TRUE) 
-          } else {
-            as.integer(format(dataset[[sub_date]], fp))
-          }
-        })
-      }
-    }
-  }
+  dataset <- facet_period(dataset, facet_date = facet_date, date = sub_date, 
+                          period = period)
   
   # group date ----
   if (!is.null(group)) {
@@ -250,15 +221,16 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
       
       if (length(group_date2) > 0) {
         
-        for (i in group_date2) {
-          x <- switch(i, "year" = "%Y", "month" = "%b", "week" = "%U")
+        dataset[group_date2] <- lapply(group_date2, function(x) {
           
-          dataset[[i]] <- format(dataset[[sub_date]], x)
+          per <- switch(x, "year" = "%Y", "month" = "%b", "week" = "%U")
           
-          if (i == "month") {
-            dataset[[i]] <- factor(dataset[[i]], levels = month.abb, ordered = TRUE)
-          }
-        }
+          if (per == "%b") {
+            
+            factor(format(dataset[[sub_date]], per), levels = month.abb, ordered = TRUE) 
+            
+          } else as.integer(format(dataset[[sub_date]], per))
+        })
       }
     }
   }
@@ -333,22 +305,39 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
     
     row.names(table_out) <- 1:nrow(table_out)
     
+    # confidentiality check ----
+    if (run_confid_check()) {
+      
+      cc_par <- get_confid_check()
+      
+      if (cc_par$rule == "n") {
+        
+        check_out <- table_out
+        ind <- check_out[[v_id]] < cc_par$value & check_out[[v_id]] > 0
+        
+        if (sum(ind) > 0) {
+          
+          cache_check_table(check_out[c(period, agg_grp)])
+          check_out[ind, v_id] <- -999
+          save_table(check_out, project, "vessel_count_confid")
+        }
+      }
+    }
+    
+    # plot ----
     if (output %in% c("plot", "tab_plot")) {
       
       # plot functions ----
-      vessel_exp <- function() if (value == "percent") rlang::sym(v_id_perc) else rlang::sym(v_id)
+      vessel_exp <- function() {
+        if (value == "percent") rlang::sym(v_id_perc) else rlang::sym(v_id)
+      }
       
       xaxis_exp <- function() {
-        if (!is.null(period)) { 
-          rlang::sym(period)
+        if (!is.null(period)) rlang::sym(period)
           
-        } else { 
-          
-          if (!is.null(group)) {
-            rlang::sym(group1) 
-          } else {
-            v_id
-          }
+        else { 
+          if (!is.null(group)) rlang::sym(group1) 
+          else v_id
         }
       }
       
@@ -360,7 +349,10 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
         interaction_exp <- function() {
           if (is.null(group)) 1
           else if (!is.null(group) & length(group) == 1) group1_exp()
-          else if (length(group) > 1) rlang::expr(interaction(!!group1_exp(), !!group2_exp())) }
+          else if (length(group) > 1) {
+            rlang::expr(interaction(!!group1_exp(), !!group2_exp())) 
+          }
+        }
         
         color_exp <- function() {
           if (is.null(group)) NULL
@@ -375,13 +367,9 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
       } else {
         
         interaction_exp <- function() {
-          if (is.null(group)) {
-            NULL
-          } else if (!is.null(group) & length(group) == 1) {
-            1
-          } else if (length(group) > 1) {
-            group2_exp()
-          }
+          if (is.null(group))  NULL
+          else if (!is.null(group) & length(group) == 1) 1
+          else if (length(group) > 1) group2_exp()
         }
         
         color_exp <- function() {
@@ -397,44 +385,34 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
         if (!is.null(period)) {
           
           p_lab <- switch(period, "year_month" = "year-month", "month_year" = "month-year",
-          "year" = "year", "month" = "month", "weeks" = "weeks", "day_of_month" = "day of the month",
+          "year" = "year", "month" = "month", "week" = "week", "day_of_month" = "day of the month",
           "day_of_year" = "day of the year")
         
-          if (period != date) {
-            paste0(date, " (", p_lab, ")")
-          } else {
-            date
-          }
-        } else if (is.null(group)) {
-          NULL
-        } else {
-          rlang::as_string(xaxis_exp())
-        }
+          if (period != date) paste0(date, " (", p_lab, ")")
+          else date
+      
+        } else if (is.null(group)) NULL
+        else rlang::as_string(xaxis_exp())
       }
       
-      scale_lab <- function() if (value == "percent") scales::label_percent(scale = 1) else ggplot2::waiver()
+      scale_lab <- function() {
+        if (value == "percent") scales::label_percent(scale = 1) 
+        else ggplot2::waiver()
+      }
       
       y_breaks <- function() {
-        if (tran != "identity") {
-          scales::breaks_extended(n = 7) 
-        } else {
-          ggplot2::waiver()
-        }
+        if (tran != "identity") scales::breaks_extended(n = 7) 
+        else ggplot2::waiver()
       }
      
       point_size <- function() {
         
         if (!is.null(period)) {
-          if (is.null(p)) {
-            .5
-          } else if (period == "weeks") {
-            1
-          } else {
-            2
-          }
-        } else {
-          2
-        }
+          if (is.null(p)) .5
+          else if (period == "week") 1
+          else 2
+    
+        } else 2
       }
       
       v_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = !!xaxis_exp(), 
@@ -464,14 +442,9 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
       
       if (!is.null(facet_by)) {
         
-        if (length(facet_by) == 1) {
-          
-          fm <- stats::reformulate(".", facet_by)
-          
-        } else if (length(facet_by) == 2) {
-          
-          fm <- paste(facet_by, sep = " ~ ")
-        }
+        if (length(facet_by) == 1) fm <- stats::reformulate(".", facet_by)
+        else if (length(facet_by) == 2) fm <- paste(facet_by, sep = " ~ ")
+      
         if (is.null(period)) {
           v_plot <- v_plot + ggplot2::facet_wrap(fm, scales = scale)
         } else {
@@ -498,6 +471,16 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
       }
       
       save_plot(project, "vessel_count", v_plot)
+      
+      if (run_confid_check()) {
+        
+        if (exists("check_out")) {
+          
+          conf_plot <- v_plot
+          conf_plot$data <- replace_sup_code(check_out)
+          save_plot(project, "vessel_count_confid", plot = conf_plot)
+        }
+      }
     }
     
     if (!is.null(period)) {
@@ -516,15 +499,11 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
     # Output folder
     save_table(table_out, project, "vessel_count")
     
-    if (output == "table") {
+    if (output == "table") table_out
       
-      table_out
+    else if (output == "plot") v_plot
       
-    } else if (output == "plot") {
-      
-      v_plot
-      
-    } else {
+    else {
       
       out_list <- list(table = table_out,
                        plot = v_plot)
