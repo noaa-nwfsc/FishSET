@@ -639,7 +639,7 @@ create_var_num <- function(dat, x, y, method, name = "create_var_num") {
 
 ## ---- Spatial  Variables ----##
 
-#' Calculate haul midpoint latitude and longitude variables
+#' Creates haul midpoint latitude and longitude variables
 create_mid_haul <- function(dat, start = c("lon", "lat"), end = c("lon", "lat"), name = "mid_haul") {
   #' @description Calculates latitude and longitude of the haul midpoint and adds two variables
   #' to the primary dataset: the midpoint latitude and the midpoint longitude.
@@ -710,7 +710,7 @@ create_trip_centroid <- function(dat, lon, lat, weight.var = NULL, ...) {
   ## ----trip centroid-----#
   #' Create trip centroid variable
   #'
-  #' Create latitude and longitude variables containing the centroid of each trip.
+  #' Create latitude and longitude variables containing the centroid of each trip
   #'
   #' @param dat Primary data containing information on hauls or trips. Table in the FishSET database contains the string 'MainDataTable'.
   #' @param lat Variable in \code{dat} containing latitudinal data.
@@ -787,9 +787,9 @@ create_trip_centroid <- function(dat, lon, lat, weight.var = NULL, ...) {
 }
 
 
-#' Create distance between points variable - interactive version
+#' Interactive application to create distance between points variable
 create_dist_between <- function(dat, start, end, units = c("miles", "meters", "km", "midpoint"), name = "distBetween") {
-  #' @param dat Main data frame over which to apply function.
+  #' @param dat Primary data frame over which to apply function.
   #'   Table in FishSET database should contain the string `MainDataTable`.
   #' @param start Starting location. Should be a port, lat/lon location, or the centroid of fishing zone
   #'   or area. If port is desired, start should be the column name in the \code{dat} containing the port

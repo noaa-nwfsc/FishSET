@@ -32,13 +32,10 @@
 
 sum_catch <- function(dat, project, catch, v_id, species = NULL, exp, val = c("raw", "per"), output = c("logical", "table")) {
     
-    out <- data_pull(dat)
-    dataset <- out$dataset
-    
-    if (shiny::isRunning()) {
-        if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name", envir = fishset_env)
-    } else { 
-        if (!is.character(dat)) dat <- deparse(substitute(dat)) }
+  out <- data_pull(dat)
+  dataset <- out$dataset
+  dat <- parse_data_name(dat, "main")
+  
     
     dataset$temp_row_id <- 1:nrow(dataset)
     

@@ -68,13 +68,10 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
                        filter_expr = NULL, facet_by = NULL, scale = "fixed", 
                        align = "center", convr = FALSE, tran = "identity", 
                        output = "tab_plot", ...) {
-  out <- data_pull(dat)
+
+    out <- data_pull(dat)
   dataset <- out$dataset
-  
-  if (shiny::isRunning()) {
-    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
-  } else { 
-    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
+  dat <- parse_data_name(dat, "main")
   
   #Empty variable
   Index <- NULL

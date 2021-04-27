@@ -383,7 +383,7 @@ source("map_viewer_app.R", local = TRUE)
                                                            ),
                                             #  downloadLink("downloadTextExplore", label=''),
                                           conditionalPanel("input.plot_table=='Table'",
-                                            actionButton('subsetData', 'Remove variable from data set')
+                                            actionButton('subsetData', 'Remove variable from dataset')
                                           ),
                                           actionButton('callTextDownloadExplore','Save notes'),
                                           actionButton('saveData','Save data to FishSET database'),
@@ -495,8 +495,8 @@ source("map_viewer_app.R", local = TRUE)
                                 uiOutput("fleetSaveOutputUI"),
                                 saveDataTableUI("fleet"),
                                 refreshUI("fleet"),
-                                noteUI("fleet"),
                                 closeAppUI("fleet"),
+                                noteUI("fleet"),
                                 conditionalPanel("input.fleet_tab == 'fleet_summary'",
                                                 uiOutput("run_fleet_fun")),
 
@@ -819,7 +819,7 @@ source("map_viewer_app.R", local = TRUE)
                                uiOutput('input_xTime'),
                                uiOutput('dur_add'),
                                
-                               #dummy_var        Vector of TRUE or FALSE the length  (rows) of the data set. 
+                               #dummy_var        Vector of TRUE or FALSE the length  (rows) of the dataset. 
                                #dummy_matrix     Matrix with same dimensions at the data set filled with TRUE or FALSE.
                                #More sub choices for dummy functions
                                uiOutput('dummy_select'),
