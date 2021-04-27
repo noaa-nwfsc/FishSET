@@ -596,7 +596,7 @@ add_missing_dates <- function(dataset, date = NULL, value, sub_date = NULL, grou
   #' @param facet_by String, name of variable(s) to be facetted (split). 
   #' @export
   #' @keywords internal
-  #' @importFrom dplyr anti_join
+  #' @importFrom dplyr anti_join bind_rows
   
   if (is.null(date) & is.null(group) & is.null(facet_by)) {
     
@@ -653,7 +653,7 @@ add_missing_dates <- function(dataset, date = NULL, value, sub_date = NULL, grou
       if (fun == "sum") missing[value] <- 0
       else if (fun == "count") missing[value] <- NA # agg_helper will treat this as zero
       
-      dataset <- rbind(dataset[c(cols, value)], missing)
+      dataset <- dplyr::bind_rows(dataset[unique(c(cols, value))], missing)
     }
     
     dataset

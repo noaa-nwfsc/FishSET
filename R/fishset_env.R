@@ -7,6 +7,7 @@ create_fishset_env <- function() {
   #' located in the global environment. 
   #' 
   #' @importFrom rlang new_environment global_env
+  #' @importFrom grDevices dev.size
   #' @details \code{create_fishset_env} is run when the FishSET app is opened. 
   #'   \code{fishset_env} can be reset by running \code{create_fishset_env} as 
   #'   well. 
@@ -23,7 +24,10 @@ create_fishset_env <- function() {
                                         grid_name = NULL,
                                         aux_name = NULL,
                                         confid_check = NULL,
-                                        confid_cache = NULL)),
+                                        confid_cache = NULL,
+                                        user_locoutput = NULL,
+                                        plot_size = grDevices::dev.size())
+                                        ),
          pos = rlang::global_env())
 }
 

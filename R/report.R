@@ -12,18 +12,12 @@ user_locoutput <- function() {
   
   if (exists("locuser")) {
     
-    if (!dir.exists(locuser)) {
-      
-      warning("Invalid directory.")
-      
-    } else {
-      
-      locuser
-    }
+    if (!dir.exists(locuser)) warning("Invalid directory.")
+    else locuser
     
   } else {
     
-    cat("User directory unspecified. Please set object 'locuser' to desired folder directory.")
+    message("User directory unspecified. Please set object 'locuser' to desired folder directory.")
   }
 }
 
@@ -72,21 +66,24 @@ pull_log <- function(log_date = NULL) {
   end <- FALSE
 
   if (is.null(log_date)) {
+    
     log <- jsonlite::fromJSON(paste0(loclog(), current_log()), simplifyVector = FALSE)
-  } else {
-    if (file.exists(paste0(loclog(), log_date, ".json"))) {
-      log <- jsonlite::fromJSON(paste0(loclog(), log_date, ".json"),
-        simplifyVector = FALSE
-      )
+  
     } else {
+      
+    if (file.exists(paste0(loclog(), log_date, ".json"))) {
+      
+      log <- jsonlite::fromJSON(paste0(loclog(), log_date, ".json"), 
+                                simplifyVector = FALSE)
+      
+    } else {
+      
       warning("Log file does not exist.")
       end <- TRUE
     }
   }
 
-  if (end == FALSE) {
-    log
-  }
+  if (end == FALSE) log
 }
 
 
@@ -130,15 +127,14 @@ project_files <- function(project) {
   
   if (length(proj) == 0) {
     
-    paste0("No output files found for project ", project)
+    message("No output files found for project ", "'", project, "'. ", sep = "")
+    invisible(NULL)
   
-  } else {
-    proj
-  }
+  } else proj
 }
 
 
-pull_output <- function(project, fun = NULL, date = NULL, type = "plot") {
+pull_output <- function(project, fun = NULL, date = NULL, type = "plot", conf = TRUE) {
   #'
   #' Retrieve output file name by project, function, and type
   #'
@@ -148,38 +144,45 @@ pull_output <- function(project, fun = NULL, date = NULL, type = "plot") {
   #'   the most recent output file is pulled.
   #' @param type Whether to return the \code{"plot"} (.png), \code{"table"} (.csv),
   #'  "notes" (.txt) or \code{"all"} files matching the project name, function, and date.
+  #'  @param conf Logical, whether to return suppressed confidential data. 
+  #'    Unsuppressed output will be pulled if suppressed output is not available. 
   #' @export
   #' @examples
   #' \dontrun{
   #' pull_output("pollock", "species_catch", type = "plot")
   #' }
   end <- FALSE
-  outs <- list.files(locoutput())
+  
+  outs <- project_files(project)
   ext <- switch(type, "plot" = ".*\\.png$", "table" = ".*\\.csv$", "notes" = ".*\\.txt$")
   
-  out <- grep(paste0("^", project, "_", ext), outs, value = TRUE)
+  out <- grep(ext, outs, value = TRUE)
   
   if (length(out) == 0) {
-    cat("No ", type, " found for project '", project,"'.", sep = "")
+    
+    message("No ", type, " found for project '", project,"'.", sep = "")
     end <- TRUE
   }
   
   if (!end) {
     
     if (!is.null(fun)) {
+      
       out <- grep(paste0("_", fun, "_"), out, value = TRUE)
       
       if (length(out) == 0) {
-        cat("No", type, "output for function", fun, "exists for project", paste0("'", project, "'. "))
+        
+        message("No ", type, " output for function ", fun, " exists for project ",
+                "'", project, "'. ", sep = "")
         end <- TRUE
       }
-    } else {
-      out <- grep("_notes_", out, value = TRUE)
-    }
+      
+    } else out <- grep("_notes_", out, value = TRUE)
     
     if (!end) {
       
       if (is.null(date)) {
+        
         dates <- stringr::str_extract_all(out, "\\d{4}-\\d{2}-\\d{2}", simplify = TRUE)
         dates <- gsub("[^0-9]", "", dates)
         out <- out[which(dates == max(dates))]
@@ -189,18 +192,33 @@ pull_output <- function(project, fun = NULL, date = NULL, type = "plot") {
         out <- grep(date, out, value = TRUE)
         
         if (length(out) == 0) {
-          cat("No", type, "output from", date, "exists for project", paste0("'", project, "'. "))
+          
+          message("No ", type, " output from ", date, " exists for project ", "'", 
+                  project, "'. ", sep = "")
           end <- TRUE
         }
       }
+      
       if (!end) {
+        # check for suppressed output
+        conf_ind <- grepl("_confid_", out)
+        
+        if (conf) {
+          
+          if (sum(conf_ind) > 0) out <- out[conf_ind]
+          
+        } else {
+          
+          if (sum(!conf_ind) > 0) out <- out[!conf_ind]
+        }
+        
         out
       }
     }
   }
 }
 
-pull_table <- function(project, fun, date = NULL) {
+pull_table <- function(project, fun, date = NULL, conf = TRUE) {
   #' 
   #' Import and format table to notebook file
   #' 
@@ -208,26 +226,26 @@ pull_table <- function(project, fun, date = NULL) {
   #' @param fun String, the name of the function that created the table. 
   #' @param date the date the table was created. If NULL, then the most recent version
   #'   is retrieved. 
+  #' @param conf Logical, whether to return suppressed confidential data. 
+  #'    Unsuppressed output will be pulled if suppressed output is not available.
   #' @export
   #' @examples
   #' \dontrun{
   #' pull_table("pollock", "vessel_count")
   #' }
   #' 
-  out <- pull_output(project = project, fun = fun, date = date, type = "table")
+  out <- pull_output(project = project, fun = fun, date = date, type = "table",
+                     conf = conf)
   
-  if (fun == "summary_stats") {
+  if (!is.null(out)) {
     
-    summary_table(project)
-  
-    } else {
-  
-  table_format(out)
+    if (fun == "summary_stats") summary_table(project)
+    else table_format(out)
   }
 }
 
 
-pull_plot <- function(project, fun, date = NULL) {
+pull_plot <- function(project, fun, date = NULL, conf = TRUE) {
   #' 
   #' Import and format plots to notebook file
   #' 
@@ -235,6 +253,8 @@ pull_plot <- function(project, fun, date = NULL) {
   #' @param fun String, the name of the function that created the plot. 
   #' @param date the date the plot was created. If NULL, then the most recent version
   #'   is retrieved. 
+  #' @param conf Logical, whether to return suppressed confidential data. 
+  #'   Unsuppressed output will be pulled if suppressed output is not available.
   #' @export
   #' @importFrom knitr include_graphics
   #' @examples
@@ -242,16 +262,13 @@ pull_plot <- function(project, fun, date = NULL) {
   #' pull_plot("pollock", "density_plot")
   #' }
   
-  out <- pull_output(project = project, fun = fun, date = date, type = "plot")
+  out <- pull_output(project = project, fun = fun, date = date, type = "plot", 
+                     conf = conf)
   
   if (!is.null(out)) {
     
     knitr::include_graphics(paste0(locoutput(), out))
-    
-  } else {
-    
-    cat("Plot not found.")
-  }
+  } 
 }
 
 list_MainDataTables <- function() {
@@ -340,7 +357,19 @@ table_format <- function(x) {
   #' table_format(pull_output("pollock", "species_catch", type = "table"))
   #' }
 
-  tab_int <- read.csv(paste0(locoutput(), x))
+  if (length(x) == 1) {
+    
+    tab_int <- read.csv(paste0(locoutput(), x))
+  
+  } else {
+    
+    tab_int <- lapply(x, function(i) {
+      
+      read.csv(file = paste0(locoutput(), i))
+    })
+    
+  }
+  
   pander::panderOptions("table.alignment.default", function(df) {
     ifelse(sapply(df, is.numeric), "right", "left")
   })
@@ -348,10 +377,13 @@ table_format <- function(x) {
   pander::panderOptions("table.split.table", Inf)
   pander::panderOptions("graph.fontsize", 8)
   pander::panderOptions("table.style", "multiline")
-  if (grepl("summary", x)) {
+  
+  if (all(grepl("summary", x))) {
     colnames(tab_int)[1] <- "Variable"
     pander::pander(tab_int)
+    
   } else {
+    
     pander::pander(tab_int)
   }
 }
@@ -391,10 +423,7 @@ insert_plot <- function(out) {
       
       knitr::include_graphics(paste0(user_locoutput(), out))
       
-    } else {
-      
-      cat("Plot not found.")
-    }
+    } else message("Plot not found.")
   }
 }
 
@@ -412,7 +441,7 @@ insert_table <- function(out) {
     
     if (!file.exists(paste0(user_locoutput(), out))) {
       
-      cat("Table not found.")
+      message("Table not found.")
       
     } else {
       
@@ -441,8 +470,10 @@ pull_notes <- function(project, date = NULL, output = "print") {
   
   out <- pull_output(project = project, date = date, type = "notes")
   
-  note_names <- c("Data quality evaluation: ", "Simple analysis: ", "Data exploration: ", "Upload data: ", "Fleet functions: ",
-                  "Create new variable: ", "Alternative choice: ", "Expected catch/revenue: ", "Models: ", "Bookmark URL: ")
+  note_names <- c("Data quality evaluation: ", "Simple analysis: ",
+                  "Data exploration: ", "Upload data: ", "Fleet functions: ",
+                  "Create new variable: ", "Alternative choice: ", 
+                  "Expected catch/revenue: ", "Models: ", "Bookmark URL: ")
   
   if (length(out) == 1) {
     
@@ -477,13 +508,8 @@ pull_notes <- function(project, date = NULL, output = "print") {
       }
     }
     
-    if (output == "string") {
-      paste(unlist(notes), collapse = "\n")
-      
-    } else if (output == "print") {
-      
-      cat(unlist(notes), sep = "\n")
-    }
+    if (output == "string") paste(unlist(notes), collapse = "\n")
+    else if (output == "print") cat(unlist(notes), sep = "\n")
   }
 }
 
@@ -510,7 +536,7 @@ parse_notes <- function(project, date = NULL, section, output = "print") {
   
   if (length(notes) == 0) {
     
-    paste("No notes found for project", project, date)
+    message("No notes found for project", project, date)
   
   } else {
   
@@ -524,14 +550,8 @@ parse_notes <- function(project, date = NULL, section, output = "print") {
     
     notes <- grep(note_type, split, value = TRUE)
     
-    if (output == "string") {
-      
-      notes
-      
-    } else if (output == "print") {
-      
-      cat(notes, sep = "\n")
-    }
+    if (output == "string") notes
+    else if (output == "print") cat(notes, sep = "\n")
   }
 }
 
@@ -554,17 +574,15 @@ summary_table <- function(project, output = "print") {
   
   if (length(sum_out) == 0) {
     
-    paste("Summary table for project", project, "not found.")
+    message("Summary table for project '", project, "' not found.", sep = "")
   
   } else {
 
     sum_tab <- read.csv(paste0(locoutput(), sum_out),
       strip.white = TRUE, check.names = FALSE)
   
-    rownames(sum_tab) <- c(
-      "Min", "Median", "Mean", "Max", "Missing",
-      "Unique Obs.", "No. 0's"
-    )
+    rownames(sum_tab) <- c("Min", "Median", "Mean", "Max", "Missing", "Unique Obs.", 
+                           "No. 0's")
   
     sum_tab <- apply(sum_tab, 2, function(x) gsub(".*:", "", x))
   
@@ -581,10 +599,8 @@ summary_table <- function(project, output = "print") {
       pander::pander(
         pander::pandoc.table(sum_tab, style = "simple", row.names = FALSE, split.tables = Inf)
       )
-    } else if (output == "table") {
-      
-      sum_tab
-    }
+    
+    } else if (output == "table") sum_tab
   }
 }
 
@@ -669,14 +685,15 @@ function_summary <- function(date = NULL, type = "dat_load", show = "all") {
   ind <- lapply(c_vars, function(x) grep(x, fun_calls))
 
   if (length(ind) == 0) {
-    cat("No functions of type", type, "found in log.")
+    
+    message("No functions of type", type, "found in log.")
+    
   } else if (length(ind) > 0) {
+    
     fun_list <- lapply(ind, function(x) {
-      lapply(x, function(i) {
-        log$fishset_run[[2]]$function_calls[[i]]
-      })
+      
+      lapply(x, function(i) log$fishset_run[[2]]$function_calls[[i]])
     })
-
 
     names(fun_list) <- c_vars
 
@@ -688,7 +705,9 @@ function_summary <- function(date = NULL, type = "dat_load", show = "all") {
     names(arg_len) <- c_vars
 
     arg_match <- sapply(names(arg_len), function(x) {
+      
       sapply(seq_along(fun_list[[x]]), function(i) {
+        
         arg_len[x] == length(fun_list[[x]][[i]]$args)
       }, USE.NAMES = TRUE, simplify = FALSE)
     }, USE.NAMES = TRUE, simplify = FALSE)
@@ -874,14 +893,8 @@ view_model_design <- function(project, date = NULL) {
   
   if (!is.null(date)) tab_name <- paste0(tab_name, gsub("-", "", date))
   
-  if (!table_exists(tab_name)) {
-    
-    paste0(tab_name, " not found.")
-  
-    } else {
-    
-    table_view(tab_name)
-  }
+  if (!table_exists(tab_name)) message(tab_name, "not found.")
+  else table_view(tab_name)
 }
 
 model_out_summary <- function(project, output = "print") {
@@ -903,7 +916,7 @@ model_out_summary <- function(project, output = "print") {
   
   if (pull_out$exists == FALSE) {
     
-    paste0(project, "modelOut", " not found.")
+    message(project, "modelOut not found.")
   
   } else {
     
@@ -931,10 +944,7 @@ model_out_summary <- function(project, output = "print") {
         pander::pandoc.table(modeltab, style = "simple", row.names = FALSE, split.table = Inf)
       )
       
-    } else if (output == "table") {
-      
-      modeltab
-    }
+    } else if (output == "table") modeltab
   }
 }
 
@@ -958,7 +968,7 @@ model_error_summary <- function(project, output = "print") {
 
   if (pull_out$exists == FALSE) {
     
-    paste0(project, "modelOut", " not found.")
+    message(project, "modelOut not found.")
     
   } else {
     
@@ -987,10 +997,7 @@ model_error_summary <- function(project, output = "print") {
         pander::pandoc.table(error_out, style = "simple", row.names = FALSE, split.table = Inf)
       )
       
-    } else if (output == "table") {
-      
-      error_out
-    }
+    } else if (output == "table") error_out
   }
 }
 
@@ -1014,7 +1021,7 @@ model_fit_summary <- function(project, output = "print") {
   
   if (pull_out$exists == FALSE) {
     
-    paste0(project, "modelOut", " not found.")
+    message(project, "modelOut not found.")
   
   } else {
     
@@ -1041,10 +1048,7 @@ model_fit_summary <- function(project, output = "print") {
         pander::pandoc.table(fit_tab, style = "simple", row.names = FALSE, split.table = Inf)
       )
       
-    } else if (output == "table") {
-      
-      fit_tab
-    }
+    } else if (output == "table") fit_tab
   }
 }
 
@@ -1070,7 +1074,5 @@ view_fleet_table <- function(project) {
         style = "simple", row.names = FALSE, split.table = Inf)
     )
     
-  } else {
-    cat("No fleet table found.")
-  }
+  } else message("No fleet table found.")
 }
