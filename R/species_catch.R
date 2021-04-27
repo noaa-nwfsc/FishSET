@@ -91,7 +91,6 @@
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @importFrom rlang expr sym
 #' @importFrom scales label_percent breaks_extended
-#' @importFrom shiny isRunning
 
 species_catch <- function(dat, project, species, date = NULL, period = NULL, fun = "sum", 
                           group = NULL, sub_date = NULL, filter_date = NULL, date_value = NULL, 
@@ -242,15 +241,16 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
       
       if (length(group_date2) > 0) {
         
-        for (i in group_date2) {
-          x <- switch(i, "year" = "%Y", "month" = "%b", "week" = "%U")
+        dataset[group_date2] <- lapply(group_date2, function(x) {
           
-          dataset[[i]] <- format(dataset[[sub_date]], x)
+          per <- switch(x, "year" = "%Y", "month" = "%b", "week" = "%U")
           
-          if (i == "month") {
-            dataset[[i]] <- factor(dataset[[i]], levels = month.abb, ordered = TRUE)
-          }
-        }
+          if (per == "%b") {
+            
+            factor(format(dataset[[sub_date]], per), levels = month.abb, ordered = TRUE) 
+            
+          } else as.integer(format(dataset[[sub_date]], per))
+        })
       }
     }
   }
@@ -591,7 +591,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
         if (check_table$suppress) {
           
           conf_plot <- s_plot
-          conf_plot$data <- replace_sup_code(check_out, f_catch())
+          conf_plot$data <- replace_sup_code(check_out)
           save_plot(project, "species_catch_confid", plot = conf_plot)
         }
       }

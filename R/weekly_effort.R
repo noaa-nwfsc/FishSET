@@ -80,7 +80,6 @@
 #' @importFrom stats reformulate
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @importFrom rlang expr sym
-#' @importFrom shiny isRunning
 
 weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NULL, 
                           filter_date = NULL, date_value = NULL, filter_by = NULL, 
@@ -384,7 +383,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
           if (check_table$suppress) {
             
             conf_plot <- e_plot
-            conf_plot$data <- replace_sup_code(check_out, f_cpue())
+            conf_plot$data <- replace_sup_code(check_out)
             save_plot(project, "weekly_effort_confid", plot = conf_plot)
           }
         }
