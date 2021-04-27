@@ -76,13 +76,8 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, combine 
                          pages = "single") {
   out <- data_pull(dat)
   dataset <- out$dataset
-
-  if (shiny::isRunning()) {
-    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name", envir = fishset_env)
-  } else { 
-    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
+  dat <- parse_data_name(dat, "main")
   
-  end <- FALSE
 
   if (!is.null(date)) dataset[[date]] <- date_parser(dataset[[date]])
   
