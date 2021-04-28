@@ -873,7 +873,7 @@ set_confid_check(check = FALSE)
             tags$strong('Purpose:'), tags$br(),
             'The', tags$em('Bookmark Choices'), 'tab is used to save choices made in the FishSET R Shiny application and enable current application state to be reloaded at a later date.',
 				tags$br(), tags$br(),
-				    'Reloading a bookmarked state will restore the last selections in the application. The data will not be automatically loaded 
+				    'Reloading a bookmarked state will restore the last selections in the application. The data will need to be reloaded 
             and no functions will be applied to the data. It is best to save the data before bookmarking the current application state. 
 				    After the application is reloaded, load the saved data.',  
 				    tags$br(), tags$br(),
@@ -3750,12 +3750,12 @@ set_confid_check(check = FALSE)
                                'inits'=paste(int_name(), collapse=','),#noquote(paste0('input$int',1:numInits())),
                                'methodname' = input$optmeth, 
                                'vars1'= paste(input$indeVarsForModel, collapse=', '),
-                               'vars2'=input$gridVariablesInclude, 
-                               'catch'=input$catch,
-                               'project'=project$name, 
-                               'price'=input$price,
-                               'startloc'=if(input$startlocdefined=='exists'){input$startloc_mod} else {'startingloc'}, 
-                               'polyn'=input$polyn)
+                               'vars2'= input$gridVariablesInclude, 
+                               'catch'= input$catch,
+                               'project'= project$name, 
+                               'price'= input$price,
+                               'startloc'= if(input$startlocdefined=='exists'){input$startloc_mod} else {'startingloc'}, 
+                               'polyn'= input$polyn)
                     , rv$data)#model_table())
           #print(rv$data)
         }
@@ -3772,7 +3772,7 @@ set_confid_check(check = FALSE)
         if(DBI::dbExistsTable(fishset_db, paste0(project$name, 'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))==FALSE){
           DBI::dbExecute(fishset_db, paste0("CREATE TABLE ", paste0(project$name,'modelDesignTable', format(Sys.Date(), format="%Y%m%d")),
                                             "(mod_name TEXT, likelihood TEXT, optimOpt TEXT, inits TEXT, 
-                                            optmeth TEXT, vars1 TEXT, vars2 TEXT,   catch TEXT, 
+                                            methodname TEXT, vars1 TEXT, vars2 TEXT,   catch TEXT, 
                                            lon TEXT, lat TEXT, project TEXT, price TEXT, startloc TEXT, polyn TEXT)"))
         }
         # Construct the update query by looping over the data fields

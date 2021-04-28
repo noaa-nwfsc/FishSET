@@ -1159,7 +1159,7 @@ source("map_viewer_app.R", local = TRUE)
                            
                      tabsetPanel(id = "boomark_tab", 
                      
-                     tabPanel("bookmark", value = "bookmark_page",
+                     tabPanel("Bookmark", value = "bookmark_page",
                            
                            tags$br(),
                            tags$button(
@@ -1187,15 +1187,19 @@ source("map_viewer_app.R", local = TRUE)
                            tags$br(),
                            tags$p('This application can be reopened at a saved state by following the following steps:'),
                            tags$ul('Saving current state:'),
-                           tags$ul(tags$ul(tags$li('Click bookmark button and copy and save url address'))),
-                           tags$ul(tags$ul(tags$li('Save url address in chosen location or in notes section of application'))),
+                           tags$ul(tags$ul(tags$li('Click bookmark button and close the pop-up window.'))),
                            tags$ul('Reopen saved state:'),
                            tags$ul(tags$ul(tags$li('Reopen the app'))),
-                           tags$ul(tags$ul(tags$li('Open a tab in a web browser'))),
-                           tags$ul(tags$ul(tags$li('Paste saved url in web browser. The saved application can then be used in the web browser.')))
+                           tags$ul(tags$ul(tags$li('Return to the bookmark tab'))),
+                           tags$ul(tags$ul(tags$li('Browse to the saved bookmark file (ends in .rds)'))),
+                           tags$ul(tags$ul(tags$li('Double click on input.rds'))),
+                           tags$ul(tags$ul(tags$li('Reload the data in the Upload Data tab.'))),
+                           tags$ul(tags$ul(tags$li('Selections and inputs will be reloaded but function calls will not be
+                                                   run. Go to the', tags$em('log rerun'),
+                                                   'subtab to rerun logged function calls.')))
                      ),
                      
-                     tabPanel("log rerun", value = "log_rerun",
+                     tabPanel("Rerun logged function calls", value = "log_rerun",
                               
                               sidebarLayout(
                                  
