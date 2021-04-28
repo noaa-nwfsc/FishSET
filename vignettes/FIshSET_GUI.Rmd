@@ -39,7 +39,7 @@ The FishSET package provides functions for:
   
 This vignette contains a short description of using the FishSET GUI. A more detailed manual is available at the FishSET **WEBSITE**. 
 
-The FishSET GUI is a user-friendly interface that guides users through the steps necessary to run discrete choice models. The FishSET GUI requires no knowledge of coding or R.   
+The FishSET GUI is a user-friendly interface that guides users through the steps necessary to run discrete choice models. The FishSET GUI requires no knowledge of coding or R as all steps to preparing and running discrete choice models can be run in the FishSET GUI apart from writing the report. The report template must be opened in the R console. 
 
 This vignette walks through the steps of:
 
@@ -83,14 +83,31 @@ See the Help Manual ** ADD LINK** if you experience any issues when installing t
 ## Opening the FishSET GUI
 To open the FishSET GUI type or paste the following script in the R console
 
-`run_fishset_gui()`
+: `run_fishset_gui()`
 
 ## Using the FishSET GUI
-The FishSET GUI is divided into 12 tabs. Although the tab order is designed to guide users through the necessary steps to build and run a discrete choice model, they can be used in any order. Below we detail the purpose of each tab and how to use the tabs.
+The FishSET GUI is divided into 12 tabs. The tabs are ordered in the suggested order of steps to build and run a discrete choice model but do not have to be used in a specific order. Below we detail the purpose of each tab and how to use the tabs.
 
+### General information across all tabs
+ 1. Save plot and table buttons
+    * Output Output is automatically saved to the `Output` folder when generated. 
+    * Use these buttons to save output to a location other than the `Output` folder. 
+ 1. Refresh data
+    * Pulls the primary data table from the FishSET database
+    * Refresh to a specific data table version, go to the `Upload data` tab.
+    * All unsaved changes will be lost
+ 1. Close app
+    * Close the FishSET GUI
+ 1. Notes 
+    * Write observations, comments, or other notes in the `Notes` box. 
+    * Press `Save notes` to save the notes in the Output folder.
+ 1. Running R expressions
+    * Located at the bottom of the land-hand panel
+    * Enter and run R code 
+ 
 ### Information
 
-The information tab has four subtabs
+The `Information tab` has four subtabs:
 
  1.  Background
     * Purpose of FishSET
@@ -103,7 +120,22 @@ The information tab has four subtabs
     * Links to partners.
 
 ### Upload Data
-The Upload Data tab is used to load data (primary, port, map, gridded, auxiliary) from the FishSET database or from a local file location.
+The `Upload Data` tab is used to load data (primary, port, spatial, gridded, auxiliary) from the FishSET database or from a local file location.  
+
+Data files types:  
+
+  1. Primary (Required)  
+      Contains the main data for the model.
+  1. Port (Required)  
+      Contains the latitude and longitude locations of ports. 
+  1. Spatial (Required)  
+      Spatial data set defining boundaries of fishing zones.
+  1. Auxiliary (Optional)  
+      Contains additional data that varies by two dimensions.  
+  1. Gridded (Optional)   
+      Contains additional data that links to the primary data.
+
+Steps to upload data:
 
   1. Select or fill in project name
   1. For primary, port, auxiliary, and gridded data files select to 
@@ -128,11 +160,11 @@ The Upload Data tab is used to load data (primary, port, map, gridded, auxiliary
     * Click `Close` button.
 
 ### Data Quality Evaluation
-The Data Quality and Evaluation tab is used to identify and correct common data quality issues such as erroneous outliers and missing values. 
+The `Data Quality and Evaluation` tab is used to identify and correct common data quality issues such as erroneous outliers and missing values. 
 
   1. Variable class  
     * Check and change variable classes  
-      Classes are numeric, character, factor, and date
+    * Classes are numeric, character, factor, and date
   1. Summary table  
     * View minimum, median, mean, maximum, no. missing, no. unique observations, no. 0s.
   1. Outliers  
@@ -175,33 +207,299 @@ The Data Quality and Evaluation tab is used to identify and correct common data 
       * Select variable and action to make corrections
 
 ### Data Exploration
-The Data Exploration tab is used to view and explore the loaded data. 
+The `Data Exploration` tab is used to view and explore the loaded data. 
+
+  First, select to view data tables or plots
+  
+  1. Tables  
+      *  Select data file type to view
+      *  Edit cells
+          * Double click on a cell to edit
+      *  Filter table
+          * Add and apply filters in the boxes between column names and first row of data.
+      *  Remove variables
+          * Click anywhere on a column to highlight column. Multiple columns can be selected at a time.
+          * Press the `Remove data from dataset` to remove the variables from the dataset.
+      * Changes will not be saved until the `Save to FishSET database` button is pressed.
+  1. Plots
+      * Temporal  
+          Displays three plots for the selected variable.  
+          The first data variable in the data set will used for the plot x-axis.
+      * Spatial  
+          * Two plots are shown
+          * The first can be zoomed in and out. Individual points can be identified by hovering over them.  
+          * Fill out the further options in the left-hand panel to show Getis-ord and Moran's I statistics
+      * x-y  
+          Plot selected `x` variable against selected `y` variable.
+
 
 ### Fleet Assignment and Summary
-The Fleet Assignment and Summary tab is used to define fleets and explore data at a fleet level. 
+The `Fleet Assignment and Summary` tab is used to define fleets and explore data at a fleet level. 
 
+There are two subtabs, fleet assignment and the fleet summary.
+
+#### Fleet assignment
+Under `Select task` (in left-hand panel), select `Define Fleets`.
+
+  1. Expression Builder
+      * Select a variable, operator, and value to create an expression. 
+      * Select `Add to expression` to expand the expression if needed.
+      * Select `Insert expression` to insert an expression into the Fleet Definition Table. 
+  1. Fleet Definition Table
+      * To insert into a specific cell, click `Select cell`, choose a cell, then select `Insert expression`.
+      * Double-click the definition table and enter a fleet name. Press Ctrl+Enter to save the name.
+      * Click `Reset expression` button to create a new expression.
+      * To edit the definition table double-click on the cell. 
+      * Press Ctrl+Enter to save changes.
+      * Click the `Save table to FishSET database` button to save the table.
+
+Under `Select task` (in left-hand panel), select `Fleet Assignment`.
+
+  1. Load fleet defintion table.
+    * Select from available fleet tables
+        * If no tables are shown or the desired table is not shown, press `Refresh saved tables`.
+    * Press `Load table`
+      The table should now be in the main panel. 
+        * Repeat the previous steps if the loaded table is not the desired table. 
+  1. Press the `Assign fleets` button to assign vessels to defined fleets.
+  
+  
+#### Fleet Summary
+
+Functions:
+
+  1. Vessel count   
+    View number of vessels by fleet and/or group	
+  1. Species catch   
+    Aggregate species catch by time period	
+  1. Rolling catch   
+    Rolling catch (specify window size and summary statistic)	
+  1. Weekly catch    
+    View catch variable summarized over weeks	
+  1. Weekly effort   
+    View mean weekly catch per unit effort	
+  1. Bycatch    
+    Compare average CPUE and catch total/share of total catch between one or more species	
+  1. Trip length   
+    View trip duration 	
+  1. Density plot  
+    View density plot  
+
+Plotting options:
+
+  1. View table and/or plot
+  1. Subset
+      * Subset by date
+      * Subset by variable
+  1. Group
+      * Select grouping variable or time period
+  1. Split
+      * Select variable or time period to split plot by
+  1. Plot options
+      * Change format, adjust axes, etc.
+      * Adjust table (wide <-> long)
+      
+Populate additional function-specific options
+
+Click `Run function` button to run function and display output.
+
+  
 ### Simple Analyses
-The Simple Analyses tab is used to view correlation and simple linear regression among selected variables. 
+The `Simple Analyses` tab is used to view correlation and simple linear regression among selected variables. 
 
+
+  1. Select to show correlations or simple linear regression
+      * Option in left-hand panel
+  1. Correlations
+      * Select variables to include in correlation test
+          * To remove a variable, click on it and press `Delete` or `Backspace`
+          * To add variables back in click on an empty space and then click on the desired variable to add in
+      * Table shows correlation values
+      * Correlation matrix plot
+          * Color strength represents strength of correlation
+          * Red is positively correlated
+          * Blue is negatively correlated
+  1. Linear regression
+      * Select a reponse variable
+      * Select an explanatory variable
 
 ### Compute New Variables
-The Compute New Variables tab is used to modify or create new variables such as CPUE or trip mid-point. 
+The `Compute New Variables` tab is used to transform or derive new variables. 
+
+Steps:
+
+  1. Select to `Create variables based` the desired broad categories
+  1. Select a function
+  1. Populate options
+  1. Press the `Run Function` button.  
+      * The new variable will be added to the end of the table.
+  1. Save the finalized dataset before moving on to modeling functions
+      * Click `Save final table to FishSET DB` to save to the FishSET database.
+      * Select a file format in the `Export data as:` box and click `Download data` to save to local file directory.
+ 
+
+Functions:
+
+  1. Arithmetic	
+      * Numeric functions	(add, subtract, mulitply, divide two variables)
+      * Catch per unit 
+  1. Data transformations	
+      * Within-group percentage	
+      * Within-group lagged difference	
+      * Within-group running sum	
+      * Coded variable basaed on quartiles
+  1. Dummy
+      * From variable	
+      * From policy dates	
+      * From area/zone closures	
+  1. Nominal ID		
+      * Create distinct haul or trip ID	 
+      * Create fishery season identifier	
+  1. Spatial	
+      * Assign observations to zones	
+      * Distance between two points	
+      * Midpoint location (lat/lon) for each haul
+      * Zone when choice of where to go next was made	
+  1. Temporal	
+      * Change time unit (convert or extract)
+      * Duration of time between two temporal variables	
+  1. Trip-level	
+      * Collapse data from haul-level to trip-level	
+      * Calculate trip distance	
+      * Calculate trip centroid	
+
 
 ### Map Viewer
-The Map Viewer tab is used to view the spatial distribution of hauls. 
+The `Map Viewer` tab is used to view the spatial distribution of hauls. 
+
+Required:
+
+  1. Spatial data file 
+  1. Zone identifier variable in primary dataset
+
+Choices:
+
+  1. Area variable (data)
+      Variable in primary data containing zone identifier such as ZoneID
+  1. Area variable (map) 
+      Name of the property in the spatial data file that identifies the zones. Links to Area variable (data).
+  1. Numeric variables (required)
+      Points on the map are color coded based on the numeric variable value. Multiple numeric variables can be included but only one will be plotted at a time.
+  1. Temporal variables (required)
+      Used in scatter plot. Temporal variable is plotted against numeric variable. Multiple temporal variables can be included but only one will be plotted at a time. 
+  1. ID variables (recommended)
+      Categorical variables for grouping in plots. Multiple ID variables can be included but only one will be plotted at a time. 
+  1. Location point or path:  Should the map show hauls as individual points or paths?
+		  * Points 
+          Longitude point 
+          Latitude point
+      * Path
+        Starting longitude 
+        Starting latitude 
+        Ending longitude
+        Ending latitude
+
 
 ### Define Alternative Fishing Choices
-The Define Alternative Fishing Choices tab is used to define alternative fishing choices. 
+The `Define Alternative Fishing Choices` tab is used to define how the distance matrix between observed fishing locations and alternative fishing locations should be calculated. 
+
+Steps:
+
+  1. Should distance matrix come from
+      * Primary haul- or trip-level data
+      * Gridded data file
+  If data come from the primary dataset
+  1. Define how alternative fishing choices are calculated between:
+      * occurrence
+      * and alternative locations
+  1. Select the distance units
+  1. Select the minimum number of hauls required for the zone to be included
+  1. Press `Save choices`
 
 ### Expected Catch/Revenue
-The Expected Catch/Revenue tab is used to calculate the expected catch or revenue matrix for alternative fishing zones (zones where fishing could have happened but did not). A catch variable is required. Include a price or value variable if you want expected revenue. Price is multiplied against catch to produce revenue. If a revenue variable exists in the dataset, it can be used for the Catch Variable. This matrix is required to run the conditional logit model. 
+The `Expected Catch/Revenue` tab is used to calculate the expected catch or revenue matrix for alternative fishing zones (zones where fishing could have happened but did not). A catch variable is required. Include a price or value variable if you want expected revenue. 
 
+Steps:
 
+  1. Select catch variable
+  1. Select price or value variable if calculating expected revenue
+      Price is multiplied against catch to produce revenue. If a revenue variable exists in the dataset, it can be used for the Catch Variable. This matrix is required to run the conditional logit model. 
+  1. Decide whether to account for potential that catch differs between groups 
+      * Select `Fleet (no group)` or column name containing group identifier.
+  1. Decide whether temporal patterns in catch should be taken into account
+      * If taking temporal patterns into account select:
+          * Temporal variable
+          * Time lags
+          * Window for averaging
+          * Populate other options
+  1. Decide how to hand empty expected catch values
+  1. Press `Run expected catch/revenue function`
+  
+  Four expected catch or expected revenue matrices will be generated and saved to the FishSET database based on *predefined window size and lags in days and years* and all other user-defined arguments: 
+
+  1. Selected temporal arguments
+  1. Expected catch/revenue based the previous two days (short-term) catch,
+  1. Expected catch/revenue based the previous seven days (medium-term) catch,
+  1. Expected catch/revenue based on the previous years (long-term) catch.
+
+    
+    
 ### Models
-The Models tab is used to define model parameters (including the likelihood function), and then run model and compare output. 
+The `Models` tab is used to define model parameters (including the likelihood function), run models, and compare output. 
+
+Steps:
+
+  1. Select a likelihood function
+  1. Select optimization method
+  1. Select variables to include in the model
+  1. Select optimization methods
+  1. Select initial parameter values
+      The number of required parameter values will auto populate. 
+      See function documentation for order of parameters.
+      Parameter starting values should be within the bounds of the variable data. 
+  1. Press `Save model and add new model`
+      The model will appear in the table.
+  1. If more models are to be defined, repeat the above steps until all have been specified.
+        Models can be removed using the table.
+  1. When done, press `Run model(s)`
+  
+The models may take several minutes to run.   
+When the models are completed, the tables in the `Compare models` subtab will be populated.  
+Use these tables to assess convergence, fit, and select the preferred model for future analyses.
 
 ### Bookmark Choices
-The Bookmark Choices tabs is to save choices made in the FishSET R Shiny application and enable current application state to be reloaded at a later date. 
+The `Bookmark Choices` tabs is restore choices and steps made in the FishSET R Shiny application and enable current application state to be reloaded at a later date. 
+
+#### Bookmark subtab
+
+Restore selections made in the FishSET GUI. 
+Data must be reloaded.
+Previous actions, such as deriving variables, will not be rerun.
+
+#### Rerun logged function subtab
+
+Rerun previous actions, including loading data, data corrections, and modifying or deriving variables.
 
 
 ## Generating reports
+
+FishSET includes a report template that guides users through the process of writing a reproducible report and inserting output from the FishSET GUI into the report.
+
+This report cannot be written in the FishSET GUI. It must be opened in the R console.
+
+Steps:
+
+  1. Open RStudio
+  1. Locate the report template file location.
+      * In the Console paste
+:        `system.file('rmd', 'report_template.Rmd', package='FishSET')`
+  1. Browse to file location
+       * Press Ctrl+O
+       * Browse to file and click Open
+  1. Resave the report template
+      * Click `File`
+            * Select `Save As...`
+            * Provide an informtive project-specific name
+  1. Begin writing
+      * The template provides guidance and how to format and build (knit) the document.
+      * Example functions to insert figures, tables, and notes are provided.
