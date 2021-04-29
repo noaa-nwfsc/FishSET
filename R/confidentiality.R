@@ -241,13 +241,15 @@ check_confidentiality <- function(dataset, v_id, value_var, group = NULL,
     check <- dplyr::distinct(check)
     
     cache_check_table(check)
+    warning("Confidential data detected.")
   }
   
   list(table = if (supr_vals) check else NULL,
        suppress = supr_vals) 
 }
 
-suppress_table <- function(check, output, value_var, group, rule, type = "table") {
+suppress_table <- function(check, output, value_var, group, rule, type = "code",
+                           as_vector = FALSE) {
   
   #' Suppress confidential values in summary table
   #' 
@@ -263,16 +265,18 @@ suppress_table <- function(check, output, value_var, group, rule, type = "table"
   #'   suppresses values containing fewer than n vessels. \code{rule = "k"} (the 
   #'   "majority allocation rule") suppresses values where a single vessel contains 
   #'   k percent or more of the total catch. 
-  #' @param type String, \code{"table"} if the `output` will be used as a summary table, 
-  #'   \code{"plot"} if `output` will be used for generating a plot. Summary tables
-  #'   show suppressed values as `-999`, plot tables code suppressed values as `NA`.
+  #' @param type String, the value used to replace confidential data. \code{"code"} 
+  #'   replaces values with \code{-999}, \code{"NA"} (with quotes) replaces with 
+  #'   \code{NA}, and \code{"zero"} replaces with 0. 
+  #' @param as_vector Logical, whether to return the suppressed values as a vector.
+  #'   If \code{as_vector == FALSE} the output table is returned. 
   #' @keywords internal
   #' @importFrom rlang parse_exprs
   
   # convert check table to expression list
   #group <- names(output)[names(output) != value_var]
   
-  if (is.null(group)) group <- get_confid_check()$v_id
+  #if (is.null(group)) group <- get_confid_check()$v_id
   
   len <- length(group) - 1
   
@@ -281,14 +285,14 @@ suppress_table <- function(check, output, value_var, group, rule, type = "table"
     
     if ("factor" %in% class(x)) {
       
-      if (any(grepl("[[:alpha:]]", levels(x)))) as.character(x)
+      if (any(grepl("\\D", levels(x)))) as.character(x)
       else x
       
     } else x
   })
   
   paste_quote <- function(vec) {
-    if ("character" %in% class(vec)) paste0("'", vec, "'") 
+    if (any(c("character", "Date") %in% class(vec))) paste0("'", vec, "'") 
     else vec
   }
   
@@ -314,10 +318,12 @@ suppress_table <- function(check, output, value_var, group, rule, type = "table"
   
   check_ind <- unique(sort(unlist(check_ind)))
   
-  #output[[value_var]][check_ind] <- ifelse(type == "table", -999, NA)
-  output[check_ind, value_var] <- ifelse(type == "table", -999, NA)
+  supr_code <- switch(type, "NA" = NA, "code" = -999, "zero" = 0)
   
-  output
+  output[check_ind, value_var] <- supr_code
+  
+  if (as_vector) output[[value_var]]
+  else output
 }
 
 check_and_suppress <- function(dat, v_id, value_var, group = NULL, rule, value,
@@ -353,7 +359,7 @@ check_and_suppress <- function(dat, v_id, value_var, group = NULL, rule, value,
     dat <- suppress_table(check$table, dat, value_var, group, rule)
     
     dat
-  }
+  } else check
 }
 
 replace_sup_code <- function(output, code = NA) {
