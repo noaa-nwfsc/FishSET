@@ -102,15 +102,20 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
   # Call in datasets
   out <- data_pull(dat)
   dataset <- out$dataset
-  
   dat <- parse_data_name(dat, "main")
   
   end <- FALSE 
   
-  if (!is.null(period)) {
-    if(period == "no_period") period <- NULL
+  not_num <- vapply(dataset[species], function(x) !is.numeric(x), logical(1))
+  
+  if (any(not_num)) {
+    
+    warning("'species' must be numeric.")
+    end <- TRUE
   }
   
+  if (!is.null(period)) if (period == "no_period") period <- NULL
+
   group_date <- group[group %in% c("year", "month", "week")]
   facet_date <- facet_by[facet_by %in% c("year", "month", "week")]
   facet_no_date <- facet_by[!(facet_by %in% c("year", "month", "week"))]
@@ -209,77 +214,55 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
                        day_of_year = "%j", cal_date = NULL)
     }
   }
-
-  # add missing ----
-  if ("species" %in% facet_by) {
-    
-    facet <- facet_no_date[facet_no_date != "species"]
-    
-    if (length(facet) == 0) facet <- NULL
-    
-  } else facet <- facet_no_date
-  
-  dataset <- add_missing_dates(dataset, date = date, sub_date = sub_date, 
-                               value = species, group = group_no_date, 
-                               facet_by = facet)
-  
-  if (!is.null(period)) {
-    if (period != "cal_date") dataset[[period]] <- format(dataset[[date]], p_code)
-  }
-  
-  # facet date ----
-  
-  dataset <- facet_period(dataset, facet_date = facet_date, date = sub_date, 
-                          period = period)
-  
-  # group date ----
-  if (!is.null(group)) {
-    
-    if (length(group_date) > 0) {
-      
-      group_date2 <- group_date[!(group_date %in% facet_date)]
-      
-      if (length(group_date2) > 0) {
-        
-        dataset[group_date2] <- lapply(group_date2, function(x) {
-          
-          per <- switch(x, "year" = "%Y", "month" = "%b", "week" = "%U")
-          
-          if (per == "%b") {
-            
-            factor(format(dataset[[sub_date]], per), levels = month.abb, ordered = TRUE) 
-            
-          } else as.integer(format(dataset[[sub_date]], per))
-        })
-      }
-    }
-  }
-  
-  # group ----
-  if (!is.null(group)) {
-    
-    if (combine == TRUE & length(group) > 1) { 
-      
-      dataset <- ID_var(dataset, vars = group, type = "string")
-      group <- gsub(" ", "", paste(group, collapse = "_"))
-      group1 <- group
-      group2 <- NULL
-      
-    } else group1 <- group[1]
-    
-    if (length(group) == 1) group2 <- NULL else group2 <- group[2]
-    
-    if (length(group) > 2) {
-      
-      warning("Only the first two grouping variables will be displayed in plot.")
-    }
-  }
   
   if (end == FALSE) {
+    # add missing ----
+    if ("species" %in% facet_by) {
+      
+      facet <- facet_no_date[facet_no_date != "species"]
+      
+      if (length(facet) == 0) facet <- NULL
+      
+    } else facet <- facet_no_date
     
+    dataset <- add_missing_dates(dataset, date = date, sub_date = sub_date, 
+                                 value = species, group = group_no_date, 
+                                 facet_by = facet)
+    
+    if (!is.null(period)) {
+      if (period != "cal_date") dataset[[period]] <- format(dataset[[date]], p_code)
+    }
+    
+    # facet/group date ----
+    if (!is.null(facet_date) | !is.null(group_date)) {
+      
+      dataset <- facet_period(dataset, facet_date = unique(c(facet_date, group_date)),
+                              date = sub_date, period = period)
+    }
+    
+    # group ----
+    if (!is.null(group)) {
+      
+      if (combine == TRUE & length(group) > 1) { 
+        
+        dataset <- ID_var(dataset, vars = group, type = "string")
+        group <- gsub(" ", "", paste(group, collapse = "_"))
+        group1 <- group
+        group2 <- NULL
+        
+      } else group1 <- group[1]
+      
+      if (length(group) == 1) group2 <- NULL else group2 <- group[2]
+      
+      if (length(group) > 2) {
+        
+        warning("Only the first two grouping variables will be displayed in plot.")
+      }
+    }
+     
     # summary table ----
     agg_grp <- c(group, facet, facet_date)
-    
+
     if (!is.null(period)) {
       
       if (period == "cal_date") period <- date
@@ -370,7 +353,8 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
       if (check_table$suppress) {
         
         check_out <- suppress_table(check_table$table, table_out, value_var = f_catch(), 
-                                    group = c(period, agg_grp), rule = cc_par$rule)
+                                    group = c(period, agg_grp), rule = cc_par$rule,
+                                    type = "code")
         save_table(check_out, project, "species_catch_confid")
       }
     }

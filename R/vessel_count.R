@@ -208,33 +208,10 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
       }
     }
   
-  # facet date ----
-  dataset <- facet_period(dataset, facet_date = facet_date, date = sub_date, 
-                          period = period)
-  
-  # group date ----
-  if (!is.null(group)) {
-    
-    if (length(group_date) > 0) {
-      
-      group_date2 <- group_date[!(group_date %in% facet_date)]
-      
-      if (length(group_date2) > 0) {
-        
-        dataset[group_date2] <- lapply(group_date2, function(x) {
-          
-          per <- switch(x, "year" = "%Y", "month" = "%b", "week" = "%U")
-          
-          if (per == "%b") {
-            
-            factor(format(dataset[[sub_date]], per), levels = month.abb, ordered = TRUE) 
-            
-          } else as.integer(format(dataset[[sub_date]], per))
-        })
-      }
-    }
-  }
-  
+  # facet/group date ----
+  dataset <- facet_period(dataset, facet_date = unique(c(facet_date, group_date)),
+                          date = sub_date, period = period)
+
   # group ----
   if (!is.null(group)) {
     

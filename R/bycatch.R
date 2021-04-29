@@ -220,39 +220,12 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
     dataset[[period]] <- format(dataset[[date]], p_code)
     
     # facet date ----
-    if (!is.null(facet_by)) {
-      if (length(facet_date) > 0) {
-        
-        if (period != "month" & any("month" %in% facet_date)) {
-          
-          dataset$month <- factor(format(dataset[[sub_date]], "%b"), 
-                                  levels = month.abb, ordered = TRUE)
-          
-        } else if (period != "week" & any("week" %in% facet_date)) {
-          
-          dataset$week <- as.integer(format(dataset[[sub_date]], "%U"))
-        } 
-      }
-    }
     
-    # group date ----
-    if (!is.null(group)) {
+    # facet/group date ----
+    if (!is.null(facet_date) | !is.null(group_date)) {
       
-      if (length(group_date) > 0) {
-        
-        if (length(group_date[!(group_date %in% facet_date)]) > 0) {
-          
-          for (i in group_date) {
-            x <- switch(i, "year" = "%Y", "month" = "%b", "week" = "%U")
-            
-            dataset[[i]] <- format(dataset[[sub_date]], x)
-            
-            if (i == "month") {
-              dataset[[i]] <- factor(dataset[[i]], levels = month.abb, ordered = TRUE)
-            }
-          }
-        }
-      }
+      dataset <- facet_period(dataset, facet_date = unique(c(facet_date, group_date)),
+                              date = sub_date, period = period)
     }
     
     # group ----

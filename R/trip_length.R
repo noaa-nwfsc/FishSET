@@ -268,7 +268,7 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
     trip_tab[facet_by[!(facet_by %in% facet_date)]] <- 
       dataset[facet_by[!(facet_by %in% facet_date)]]
     
-    trip_tab <- facet_period(trip_tab, facet_date = facet_date, date = sub_date)
+   
     
     # group date ----
     group_date <- group[group %in% c("year", "month", "week")]
@@ -277,23 +277,10 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
     trip_tab[group[!(group %in% group_date)]]  <- 
       dataset[group[!(group %in% group_date)]]
     
+    trip_tab <- facet_period(trip_tab, facet_date = unique(c(facet_date, group_date)), 
+                             date = sub_date)
+    
     if (!is.null(group)) {
-      # group date vars that aren't in facet_date
-      group_date2 <- group_date[!(group_date %in% facet_date)]
-      if (length(group_date2) > 0) {
-        
-        trip_tab[group_date2] <- lapply(group_date2, function(x) {
-          
-          per <- switch(x, "year" = "%Y", "month" = "%b", "week" = "%U")
-          
-          if (per == "%b") {
-            
-            factor(format(trip_tab[[sub_date]], per), levels = month.abb, 
-                   ordered = TRUE) 
-            
-          } else as.integer(format(trip_tab[[sub_date]], per))
-        })
-      }
       
       if (length(group) > 1) {
         
