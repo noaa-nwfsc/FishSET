@@ -109,6 +109,14 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
   
   end <- FALSE 
   
+  not_num <- vapply(dataset[species], function(x) !is.numeric(x), logical(1))
+  
+  if (any(not_num)) {
+    
+    warning("'species' must be numeric.")
+    end <- TRUE
+  }
+  
   group_date <- group[group %in% c("year", "month", "week")]
   facet_date <- facet_by[facet_by %in% c("year", "month", "week")]
   facet_no_date <- facet_by[!(facet_by %in% c("year", "month", "week"))]
@@ -313,7 +321,8 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
         
         check_out <- 
           suppress_table(check_table$table, table_out, value_var = f_catch(),
-                         group = c("year", "week", agg_grp), rule = cc_par$rule)
+                         group = c("year", "week", agg_grp), rule = cc_par$rule,
+                         type = "code")
         save_table(check_out, project, "weekly_catch_confid")
       }
     }
