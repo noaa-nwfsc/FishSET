@@ -994,10 +994,7 @@ trip_lengthUI <- function(id) {
         
         selectInput(ns("scale"), "Split plot scale",
                     choices = c("fixed", "free y-axis" = "free_y",
-                                "free x-axis" = "free_x", "free")),
-        
-        selectInput(ns("format"), "Table format",
-                    choices = c("wide", "long")))
+                                "free x-axis" = "free_x", "free")))
     )
   )
 }
