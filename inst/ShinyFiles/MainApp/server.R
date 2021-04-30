@@ -2276,114 +2276,44 @@ set_confid_check(check = FALSE)
       
       #2. Temporal PLOTS
       output$xy_select1 <- renderUI({
-        selectInput('x_y_select1', 'Select x-axis variable', choices= names(which(lapply(values$dataset, is.numeric)==TRUE)), 
-                    selected= names(which(lapply(values$dataset, is.numeric)==TRUE))[1], multiple=FALSE, selectize=TRUE)
+        selectInput('x_y_select1', 'Select x-axis variable', choices= numeric_cols(values$dataset), 
+                    selected= numeric_cols(values$dataset)[1], multiple=FALSE, selectize=TRUE)
       })
       output$xy_select2 <- renderUI({
-        selectInput('x_y_select2', 'Select y-axis variable', choices= names(which(lapply(values$dataset, is.numeric)==TRUE)), 
-                    selected= names(which(lapply(values$dataset, is.numeric)==TRUE))[2], multiple=FALSE, selectize=TRUE)
+        selectInput('x_y_select2', 'Select y-axis variable', choices= numeric_cols(values$dataset), 
+                    selected= numeric_cols(values$dataset)[2], multiple=FALSE, selectize=TRUE)
       })
       
       output$column_select <- renderUI({
       #  tags$div(align = 'left', class = 'multicol', 
+        tagList(
                  selectInput("col_select", "Select column name", choices = names(values$dataset), 
                               selected = FishSET:::numeric_cols(values$dataset)[1], 
-                              multiple=FALSE, selectize = TRUE)#)
-      })
-      
-      t2 = reactive({
-        if(length(unique(lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]]))))>1){
-          'Year'
-        } else { 
-          'Month'}
-      })
-      
-      df2l=reactive({
-        if(input$p2fun=='No. observations'){
-          if(length(unique(lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]]))))>1){
-            aggregate(values$dataset[[input$col_select]]~
-                        lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])), FUN=length)
-          } else {
-            aggregate(values$dataset[[input$col_select]]~
-                        lubridate::month(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])), FUN=length)
-          }
-        } else if(input$p2fun=='No. unique observations'){
-          if(length(unique(lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]]))))>1){
-            aggregate(values$dataset[[input$col_select]]~
-                        lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])), FUN=function(x) length(unique(x)))
-          } else {
-            aggregate(values$dataset[[input$col_select]]~
-                        lubridate::month(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])), FUN=function(x) length(unique(x)))
-          }
-        } else {
-          if(length(unique(lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]]))))>1){
-            aggregate(values$dataset[[input$col_select]]~
-                        lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])), FUN=function(x) round(length(x)/nrow(values$dataset)*100,2))
-          } else {
-            aggregate(values$dataset[[input$col_select]]~
-                        lubridate::month(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])), FUN=function(x) round(length(x)/nrow(values$dataset)*100,2))
-          }
-        }
-      })
-      
-      df2m = reactive({
-        if(length(unique(lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]]))))>1){
-          aggregate(values$dataset[[input$col_select]]~
-                      lubridate::year(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])), FUN=input$p3fun, na.rm=T)
-        } else {
-          aggregate(values$dataset[[input$col_select]]~
-                      lubridate::month(date_parser(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]])), FUN=input$p3fun, na.rm=T)
-        }
+                              multiple=FALSE, selectize = TRUE), #)
+                 
+                 selectInput("date_select", "Select date column", choices = date_cols(values$dataset))
+        )
       })
       
       plotInput_time <-  reactive({
-        if(is.null(values$dataset)) {
-          return(NULL)
-        } else if(colnames(values$dataset)[1] == 'var1') {
-          return(NULL)
-        } else {
-        if(grepl('date', input$col_select[1], ignore.case=T)==TRUE){
-          p1 <- ggplot2::ggplot(values$dataset, 
-                       ggplot2::aes_string(x=as.Date(values$dataset[,grep('date',  colnames(values$dataset), ignore.case = TRUE)[1]], origin='01-01-1970'),
-                                  y=as.Date(values$dataset[[input$col_select]], origin='01-01-1970'))) + ggplot2::geom_point()+
-            ggplot2::labs(subtitle=paste(input$col_select, 'by Date'), x="Date", y=input$col_select) +
-            ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
-                  panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text=ggplot2::element_text(size=11),
-                  axis.title=ggplot2::element_text(size=11)) 
-        } else {
-          p1 <- ggplot2::ggplot(values$dataset, 
-                       ggplot2::aes_string(x=as.Date(values$dataset[,grep('date', colnames(values$dataset), ignore.case = TRUE)[1]], origin='01-01-1970'),
-                                  y=input$col_select)) + ggplot2::geom_point()+
-            ggplot2::labs(subtitle=paste(input$col_select, 'by Date'), x="Date", y=input$col_select) +
-            ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
-                  panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text=ggplot2::element_text(size=11),
-                  axis.title=ggplot2::element_text(size=11))
+        
+        if(is.null(values$dataset)) return(NULL)
+        else if(colnames(values$dataset)[1] == 'var1') return(NULL)
+        else {
+    
+        len_fun <- switch(input$p2fun, "No. observations" = "length",
+                          'No. unique observations' = "unique",
+                          '% of total observations' = "percent")
+        
+          q_test <- quietly_test(temp_plot)
+          q_test(values$dataset, project$name, input$col_select, len.fun = len_fun,
+                 agg.fun = input$p3fun, date.var = input$date_select)
         }
-        p2 <- ggplot2::ggplot(df2l(), ggplot2::aes_string(x=df2l()[,1], y=df2l()[,2]))+ ggplot2::geom_bar(stat='identity')+
-          ggplot2::labs(subtitle=paste(input$p2fun, 'by', tolower(t2())), x=t2(),y='')+
-          ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
-                panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text=ggplot2::element_text(size=11),
-                axis.title=ggplot2::element_text(size=11))
-        if(!is.numeric(values$dataset[[input$col_select]])) {
-          p3 <- NULL
-        } else {
-          p3 <- ggplot2::ggplot(df2m(), ggplot2::aes_string(x=df2m()[,1], y=df2m()[,2]))+ ggplot2::geom_bar(stat='identity')+
-            ggplot2::labs(subtitle=paste(simpleCap(input$p3fun), 'of value by', tolower(t2())), x=t2(), y='')+
-            ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
-                  panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text=ggplot2::element_text(size=11),
-                  axis.title=ggplot2::element_text(size=11))
-        } 
-       
-          # if(input$plot_table=='Plots'&input$plot_type=='Temporal'){
-          #  return(NULL)
-          # } else {
-          return(suppressWarnings(ggpubr::ggarrange(p1,p2,p3, ncol=3, nrow=1)))
-        }
-        #}
       })
       
       output$plot_time <- renderPlot({
-        print(plotInput_time())
+        
+        if (!is.null(plotInput_time())) plotInput_time()
       })
       
       #3. SPATIAL DISTRIBUTION
