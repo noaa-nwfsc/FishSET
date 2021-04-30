@@ -94,6 +94,14 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
   
   end <- FALSE 
   
+  not_num <- vapply(dataset[cpue], function(x) !is.numeric(x), logical(1))
+  
+  if (any(not_num)) {
+    
+    warning("'cpue' must be numeric.")
+    end <- TRUE
+  }
+  
   group_date <- group[group %in% c("year", "month", "week")]
   facet_date <- facet_by[facet_by %in% c("year", "month", "week")]
   facet_no_date <- facet_by[!(facet_by %in% c("year", "month", "week"))]
@@ -172,72 +180,72 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
     }
   }
   
-  # add missing ---- 
-  if ("species" %in% facet_by) {
-    
-    facet <- facet_no_date[facet_no_date != "species"]
-    
-    if (length(facet) == 0) {
-      facet <- NULL
-    }
-  } else {
-    
-    facet <- facet_by
-  }
-  
-  dataset <- add_missing_dates(dataset, date = date, sub_date = sub_date, 
-                               value = cpue, group = group_no_date, 
-                               facet_by = facet)
-  
-  # add year and week columns
-  dataset$year <- as.integer(format(dataset[[date]], "%Y"))
-  dataset$week <- as.integer(format(dataset[[date]], "%U"))
-  
-  # facet date ----
-  if (!is.null(facet_date)) {
-    
-    if ("month" %in% facet_date) {
-      
-      dataset$month <- factor(format(dataset[[sub_date]], "%b"), levels = month.abb, 
-                              ordered = TRUE)
-    }
-  }
-  
-  # group date ----
-  if (length(group_date) > 0) {
-    
-    if ("month" %in% group_date & !("month" %in% facet_date)) {
-      dataset$month <- factor(format(dataset[[sub_date]], "%b"), levels = month.abb, 
-                              ordered = TRUE)
-    }
-  }
-  
-  # group ----
-  if (!is.null(group)) {
-    
-    if (combine == TRUE & length(group) > 1) { 
-      
-      dataset <- ID_var(dataset, vars = group, type = "string")
-      group <- gsub(" ", "", paste(group, collapse = "_"))
-      group1 <- group
-      group2 <- NULL
-      
-    } else {
-      
-      dataset[group] <- lapply(dataset[group], as.factor)
-      group1 <- group[1]
-    }
-    
-    if (length(group) == 1) group2 <- NULL else group2 <- group[2]
-    
-    if (length(group) > 2) {
-      
-      warning("Only the first two grouping variables will be displayed in plot.")
-    }
-  }
-  
   if (end == FALSE) {
     
+    # add missing ---- 
+    if ("species" %in% facet_by) {
+      
+      facet <- facet_no_date[facet_no_date != "species"]
+      
+      if (length(facet) == 0) {
+        facet <- NULL
+      }
+    } else {
+      
+      facet <- facet_by
+    }
+    
+    dataset <- add_missing_dates(dataset, date = date, sub_date = sub_date, 
+                                 value = cpue, group = group_no_date, 
+                                 facet_by = facet)
+    
+    # add year and week columns
+    dataset$year <- as.integer(format(dataset[[date]], "%Y"))
+    dataset$week <- as.integer(format(dataset[[date]], "%U"))
+    
+    # facet date ----
+    if (!is.null(facet_date)) {
+      
+      if ("month" %in% facet_date) {
+        
+        dataset$month <- factor(format(dataset[[sub_date]], "%b"), levels = month.abb, 
+                                ordered = TRUE)
+      }
+    }
+    
+    # group date ----
+    if (length(group_date) > 0) {
+      
+      if ("month" %in% group_date & !("month" %in% facet_date)) {
+        dataset$month <- factor(format(dataset[[sub_date]], "%b"), levels = month.abb, 
+                                ordered = TRUE)
+      }
+    }
+    
+    # group ----
+    if (!is.null(group)) {
+      
+      if (combine == TRUE & length(group) > 1) { 
+        
+        dataset <- ID_var(dataset, vars = group, type = "string")
+        group <- gsub(" ", "", paste(group, collapse = "_"))
+        group1 <- group
+        group2 <- NULL
+        
+      } else {
+        
+        dataset[group] <- lapply(dataset[group], as.factor)
+        group1 <- group[1]
+      }
+      
+      if (length(group) == 1) group2 <- NULL else group2 <- group[2]
+      
+      if (length(group) > 2) {
+        
+        warning("Only the first two grouping variables will be displayed in plot.")
+      }
+    }
+
     # summary table ----
     agg_grp <- c(group, facet, facet_date)
     
@@ -269,7 +277,8 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
           
           check_out <- 
             suppress_table(check_table$table, table_out, value_var = f_cpue(),
-                           group = c("year", "week", agg_grp), rule = cc_par$rule)
+                           group = c("year", "week", agg_grp), rule = cc_par$rule,
+                           type = "code")
           save_table(check_out, project, "weekly_effort_confid")
         }
       }
