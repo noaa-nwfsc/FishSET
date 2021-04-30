@@ -84,7 +84,7 @@
 #'     "HAUL_LBS_270_POLLOCK_LBS",
 #'     "HAUL_LBS_110_PACIFIC_COD_LBS",  "HAUL_LBS_OTHER_LBS"
 #'   ), date = "DATE_FISHING_BEGAN",
-#'   convert_to_tons = T, year = 2011, output = "plot"
+#'   conv = "tons", year = 2011, output = "plot"
 #' )
 #' }
 #' @export weekly_catch

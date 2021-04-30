@@ -83,7 +83,7 @@
 #' \dontrun{
 #' species_catch('pollockMainDataTable', species = c('HAUL_LBS_270_POLLOCK_LBS', 
 #' 'HAUL_LBS_110_PACIFIC_COD_LBS', 'HAUL_LBS_OTHER_LBS'), date = 'HAUL_DATE', 
-#' value = 'count', period = 'month_num', output = 'plot', year = 2011, convert_to_tons = TRUE)
+#' value = 'count', period = 'month_num', output = 'plot', year = 2011, conv='tons')
 #' }
 #' @export species_catch
 #' @import ggplot2

@@ -10,7 +10,7 @@
 #' @param lag.method  Use regression over entire group (simple) or for grouped time periods (grouped)
 #' @param empty.catch Replace empty catch with NA, 0, mean of all catch (allCatch), or mean of grouped catch(groupCatch)
 #' @param empty.expectation Do not replace (NULL) or replace with 0.0001 or 0
-#' @param dummy.exp T/F. Defaults to False. If false, no dummy variable is outputted. If true, output dummy variable for originally missing value.
+#' @param dummy.exp Logical, should dummy variable be outputted. If true, output dummy variable for originally missing value.
 #' @importFrom lubridate floor_date
 #' @importFrom zoo rollapply
 #' @importFrom DBI dbGetQuery

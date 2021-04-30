@@ -27,8 +27,8 @@
 #' @param temp.lag Numeric, temporal lag time. If \code{temp.var} is not NULL, how far back to lag \code{temp.window}.
 #' @param year.lag If expected catch should be based on catch from previous year(s), set year.lag to the number
 #'   of years to go back.
-#' @param dummy.exp Logical, should a dummy variable be created? If true, output dummy variable for originally
-#'   missing value. If false, no dummy variable is outputted. Defaults to False.
+#' @param dummy.exp Logical, should a dummy variable be created? If TRUE, output dummy variable for originally
+#'   missing value. If FALSE, no dummy variable is outputted. Defaults to FALSE
 #' @param project String, name of project.
 #' @param defineGroup Optional, variable from \code{dat} that defines how to split the fleet. Defaults to
 #'   treating entire dataframe \code{dat} as a fleet.

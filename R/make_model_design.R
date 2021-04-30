@@ -173,7 +173,7 @@
 #' @examples
 #' \dontrun{
 #' make_model_design(pollockMainDataTable, "pollock", catchID= "OFFICIAL_TOTAL_CATCH",  
-#'   replace=F, likelihood='logit_avgcat', initparams=c(-0.5,0.5),1
+#'   replace=FALSE, likelihood='logit_avgcat', initparams=c(-0.5,0.5),1
 #'   optimOpt=c(100000, 1.0e-08, 1, 1), methodname = "BFGS", mod.name = "logit4"
 #' )
 #' }

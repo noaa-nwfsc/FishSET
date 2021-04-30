@@ -31,7 +31,7 @@
 #'   )
 #' }
 #'
-temp_obs_table <- function(dat, project,  x, gridfile=NULL,lon.dat=NULL, lat.dat=NULL, cat=NULL, lon.grid = NULL, lat.grid = NULL) {
+temp_obs_table <- function(dat, project, x, gridfile=NULL, lon.dat=NULL, lat.dat=NULL, cat=NULL, lon.grid = NULL, lat.grid = NULL) {
 
   # Call in datasets
   out <- data_pull(dat)
