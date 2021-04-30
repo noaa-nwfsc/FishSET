@@ -11,6 +11,7 @@
 #'   "_". "integer" returns an integer vector where each value corresponds to a unique
 #'   group in \code{vars}.
 #' @param drop Logical, whether to drop columns in \code{vars}.  
+#' @param sep Symbol used to combined variables. 
 #' @export ID_var
 #' @return Returns the `MainDataTable` with the ID variable included.
 #' @details ID variable can be based on a single or multiple variables.
@@ -20,7 +21,7 @@
 #' pcodMainDataTable <- ID_var(pcodMainDataTable, name = "PermitID", c("GEAR_TYPE", "TRIP_SEQ"))
 #' }
 #'
-ID_var <- function(dat, vars, name = NULL, type = "string", drop = FALSE) {
+ID_var <- function(dat, vars, name = NULL, type = "string", drop = FALSE, sep = "_") {
 
   # Call in datasets
   out <- data_pull(dat)
@@ -28,14 +29,14 @@ ID_var <- function(dat, vars, name = NULL, type = "string", drop = FALSE) {
   dat <- parse_data_name(dat, "main")
   
 
-  if (is.null(name))  name <- paste0(vars, collapse = "_")
+  if (is.null(name))  name <- paste0(vars, collapse = sep)
   else name <- make.names(name)
   
   n <- length(vars) - 1
   
   plist <- lapply(vars, function(x) trimws(dataset[[x]]))
   
-  plist[1:n] <- lapply(seq_along(n), function(x) paste0(plist[[x]], "_"))
+  plist[1:n] <- lapply(seq_along(n), function(x) paste0(plist[[x]], sep))
   
   dataset[[name]] <- do.call(paste0, plist)
   
