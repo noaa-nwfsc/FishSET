@@ -1,7 +1,7 @@
 #  Import data
 #str_trim
 
-read_dat <- function(x, data.type=NULL, is.map = F, ...) {
+read_dat <- function(x, data.type=NULL, is.map = FALSE, ...) {
   #' Import data into R
   #' @param x Name and path of dataset to be read in.
   #' @param data.type Optional. Data type can be defined by user or based on the file extension,
@@ -412,7 +412,8 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
    }
 }
 
-main_mod <- function(dat, x, new.unit = NULL, new.type = NULL, new.class = NULL) {
+#This is no longer necessary
+#main_mod <- function(dat, x, new.unit = NULL, new.type = NULL, new.class = NULL) {
   #' Modify the data index table
   #'
   #' Modify the data index (MainDataTableInfo) table
@@ -430,7 +431,6 @@ main_mod <- function(dat, x, new.unit = NULL, new.type = NULL, new.class = NULL)
   #'   class \code{(new.class)} of the MainDataTableInfo table. Updated MainDataTableInfo file is saved to the
   #'   FishSET database. It is advisable to use the working table and not the raw table as the
   #'   modifications will automatically be saved over the input table name.
-  #' @export
   #' @examples
   #' \dontrun{
   #' main_mod('pollockMainDataTableInfo01012011', x = 'DISEMBARKED_PORT',
@@ -748,7 +748,8 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
   }
 }
 
-dataindex_update <- function(dat, dataindex) {
+#THis is no longer needed
+#dataindex_update <- function(dat, dataindex) {
   #' Update MainDataTableInfo
   #'
   #' Automates updating the dataindex (MainDataTableInfo) table saved to the FishSET database after modifying the primary dataset. Function should be run after variables have been added or removed from the primary dataset.
@@ -758,8 +759,8 @@ dataindex_update <- function(dat, dataindex) {
   #' @param dataindex String, dataindex table name in the FishSET database.
   #'   Table name is usually the project and ‘MainDataTableInfo’. Name must be in quotes.
   #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
-  #' @export
-  #' @keywords internal
+  # @export
+  # @keywords internal
   #' @details The MainDataTableInfo table is first created when the MainDataTable is loaded and saved to the
   #'   FishSET database. However, this table may not match the variables in \code{dat} after the FishSET variable
   #'   creation functions have been run. It may be necessary to update the MainDataTableInfo table in the FishSET database.

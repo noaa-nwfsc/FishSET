@@ -458,6 +458,7 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
   }
 }
   
+
 roll_catch_plot <- function(roll_tab, catch, date, group, facet_by, fun, k, tran,
                             scale) {
   # roll_catch plot helper

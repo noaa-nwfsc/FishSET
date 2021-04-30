@@ -13,6 +13,7 @@ freq_table <- function(dataset, var, group = NULL, bins = 30, type = "dens",
   #' @param type String, the type of binned frequency table to create. \code{"freq"}
   #'   creates a frequency table, \code{"perc"} creates a relative frequency table,
   #'   and \code{"dens"} creates a density table. 
+  #' @param fortmat_tab Format table "wide" or "long"
   #' @export
   #' @importFrom graphics hist
   #' @importFrom dplyr lead anti_join bind_rows
@@ -120,6 +121,7 @@ nfreq_table <- function(dataset, var, group = NULL, bins = 30, type = "dens",
   #' @param type String, the type of binned frequency table to create. \code{"freq"}
   #'   creates a frequency table, \code{"perc"} creates a relative frequency table,
   #'   and \code{"dens"} creates a density table. 
+  #' @param format_tab Format table "wide" or "long"
   #' @export
   
   if (length(var) > 1) {
