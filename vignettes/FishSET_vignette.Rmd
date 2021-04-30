@@ -23,9 +23,7 @@ knitr::opts_chunk$set(
 The Spatial Economics Toolbox for Fisheries (FishSET) is a set of statistical programming and data management tools developed to achieve the following goals:
  
   1. Standardize data management and organization. 
- 
   1. Provide easily accessible tools to enable location choice models to provide input to the management of key fisheries.
- 
   1. Organize statistical code so that predictions of fisher behavior developed by the field’s leading innovators can be incorporated and transparent to all users.
 
 
@@ -37,43 +35,44 @@ The FishSET package provides functions for:
 * Statistical modeling
 * Reproducibility
   
-This vignette contains a short description the FishSET package. A more detailed manual is available at the FishSET **WEBSITE**. 
+FishSET is designed for reproducibility. 
 
-## Installing
-We recommend using the following commands to install FishSET
-First, install **devtools**.  This package is necessary to install and build FishSET.  
+* Data is stored in a SQLite database in the FishSET package directory called fishset_db. 
+* Function calls are logged in a *Logs* folder.
+* Output (plots, table, messages, notes) are saved in an *Output* folder. 
+* Folders are located in the FishET package directory.
 
-Install devtools  
+This vignette contains a brief description of the FishSET functions. A more detailed manual is available at the FishSET **WEBSITE**. 
+
+## Getting started
+To use FishSET you first need to install devtools and then FishSET.
+
+Install devtools  (required to install FishSET)
 : `install.packages("devtools")`   
  `library(devtools)`
 
 Install FishSET  
-    
 : To install FishSET from GitHUB  
   `devtools::install_github("name/FishSET")`     
 
 : To install FishSET from the R console  
     `install("PATH/TO/Directory/Containing/FishSET")`  
     `library(FishSET)`
+    
+Be sure to install dependencies.
 	  
-## Before you begin
-**THIS WILL NEED TO BE UPDATED**
-FishSET includes a worked example. This file takes you through to the basic steps in FishSET from data loading to modeling. We recommend opening this file as a tutorial.
+##Using FishSET
+FishSET functions can be called in the R console or through the FishSET GUI. The FishSET GUI is a user-friendly guided user interface that requires no coding knowledge to run FishSET functions. To open the FishSET GUI type `run_fishset_gui()` in the R console. More details on using the FishSET GUI are provided in the *Quickstart Guide* tab in the FishSET GUI or the *FishSET GUI* vignette. This vignette focuses on calling functions in the R console.  
 
-
-## Storing data and project delineation
-FishSET is designed for reproducibility. All data is stored in a SQLite database called fishset_db and all function calls are logged in a *Logs* folder. Output (plots, table, messages, notes) are saved in an *Output* folder.
-The database, output folder, and log folder are created in the working directory when the FishSET package is first loaded. The output can be called into the report template. The saved function calls can be called to rerun the analysis with updated or new data. 
-
-Function calls require a `project` argument in the function call. The `project` argument is important to distinguish output and log calls between analyses. 
+## Project
+Distinct analyses and output are grouped by projects. The project name is attached to data and output. It is used to extract the correct the correct plots, tables, and notes when writing a report. The `project` argument can be any string.
 
 ```{r figLog, echo=FALSE, , out.width = '1%'}
 knitr::include_graphics('C:/Users/melanie.harsch/Pictures/Screenshots/LogFolder.png')
 ```
 
-
-### Data
-There are four types of data files that can be imported into FishSET. All optional data files must be linkable to the primary data file.
+## Data
+FishSET uses five data types. 
 
 ```{r table1, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
 tabl <- "  
@@ -84,77 +83,85 @@ tabl <- "
 | Port data        | Required file with the latitude and longitude locations of ports.           |
 | Gridded data     | Optional file that contains additional data that varies by two dimensions.  |
 | Auxiliary data   | Optional file that contains additional data to link to the primary data.    |
+| Spatial data     | Required file defining boundaries of fishery or regulatory zones.           |
 "
 cat(tabl) # output the table in a format good for HTML/PDF/docx conversion
 ```
 
+All optional data files must be linkable to the primary data file.    
+The spatial data file cannot be saved to the FishSET database.
 
 FishSET will accept several data formats including:
 
   * csv files
-  * txt files
+  * geojson files
   * json files
   * matlab files
+  * R files  
   * shape files
   * spss files
-  * R files
+  * stata files
+  * txt files
+  * xls, xlsx files
 
-###Using FishSET
-FishSET functions can be called in the R console or through the FishSET GUI. The FishSET GUI is a user-friendly guided user interface that requires no coding knowledge to run FishSET functions. To open the FishSET GUI type `run_fishset_gui()` in the R console. More details on using the FishSET GUI are provided in the **FishSET Help Manual** **ADD LINK** or **FishSET GUI vignette**. This vignette focuses on calling functions in the R console.  
+###Saving to FishSET database
+All data should be saved to the FishSET database and checked for issues that can affect saving the dataset to an SQL database. 
 
-### Saving, loading and reading in data 
+The load functions check that the data file can be saved to an the FishSET database and, if all checks pass, saves the data table.
 
-####Saving
-All data should be saved to the FishSET database and checked for issues that can affect saving the data table to an SQL database. 
-
-Saved into the database using:
+Functons:
   
-     load_maindata() Save main data file and creates main data information table. 
-     load_port()     Data set with latitude and longitude of ports. 
-     load_aux ()     Additional data such as vessel characteristics and fishery season. 
-     load_grid()     Additional data that varies over two dimensions such as SST and wind speed.
+     load_maindata() Primary data file. 
+     load_port()     SPort data file. 
+     load_aux ()     Auxiliary data file. 
+     load_grid()     Gridded data file.
 
 When the primary data is saved, two versions of the data are created, a raw table with the orignal data and a working table on which all analyses will be conducted. The working table will also be available in the global environment.
 
+###Reading data into R
+The spatial data file cannot be saved to the FishSET database but must be read into R. 
+To read spatial data files and other data into the working environment without saving to the FishSET database use `read_dat(x, data.type = NULL, is.map = F, ...)`. `x` is the name and path of the dataset to be read in. `data.type` is the data extensions and is optional. `is.map` should be TRUE is the dataset is a spatial data file. `...` is used to add additional extension-specific arguments. See function documentation for more details.  
 
-####Loading
-Data saved to the FishSET database, can be reloaded into the global environment using 
-`load_data()`.
-
-`load_data(pollock, name="pollockMainDataTable20200101")` loads the primary data from project *pollock*. *name* is optional and is used to specify a specific dated version of the data table.  
-
-####Reading
-Read data tables into the working environment without saving to the FIshSET database using `read_dat()`. This function is necessary for spatial data files which cannot be saved to the FishSET database at this time. 
-
-`read_dat()` calls the appropriate function to read in data.   
-Supported data types are:  
+Supported data extensions are:  
 
   *	csv 
   *	geojson
   *	json 
-  *	matlab 
-  *	R files
-  *	shape 
+  *	mat
+  *	R 
+  *	shp 
   *	spss 
-  *	stata
+  *	dta
   *	txt
-  *	xls, xlsx
+  *	xls
+  * xlsx
+
+###Loading data from FishSET database
+Data saved to the FishSET database, can be reloaded into the global environment using 
+:   `load_data(project, name=NULL)`. 
+
+Specify the project name (`project`) and the table name (`name`). For example,
+: `load_data("pollock"", name="pollockMainDataTable20200101")` 
+loads the primary data from project *pollock*. `name` is optional and is used to specify a specific dated version of the data table.  
 
 
-####Working in the FishSET database 
- Once data are saved in the fishset_db database, they can be accessed and viewed using:
+####Working in the FishSET database  
+List tables are in the FishSET database, remove tables, view table attributes, and display the table in the R Console.
+
+
+Basic functions:
  
-     tables_database()      View tables in the fishset_db database.
-     table_fields(x)        View fields in table x.
-     table_view(x)          View table x from the fishset_db database.
-     table_exists(x)	      Check whether table x exists in the FishSET database.
-     table_remove(x)	      Remove a table from FishSET database.
+     tables_database()      View list of all tables in the FishSET database.
      list_MainDataTables()	View list of MainDataTables in FishSET database.
      list_PortTables()	    View list of PortTables in FishSET database.
-     list_logs()		        View list of all log files
+     list_logs()		        View list of all log files.
+     table_fields(x)        View fields in specified table.
+     table_view(x)          Display specified table.
+     table_exists(x)	      Check whether specified table exists in the FishSET database.
+     table_remove(x)	      Remove specified table table from the FishSET database.
 
      
- Model output files can be view in the fishset_db database using:
+ Model output files can be viewed in the FishSET database using:
      
      globalcheck_view(table)  View error output discrete choice models
      model_out_view(table)    Load discrete choice model output
