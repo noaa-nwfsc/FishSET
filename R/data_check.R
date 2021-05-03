@@ -11,11 +11,10 @@
 #' @details Prints summary stats for all variables in \code{dat}. Prints column names that contain NaNs or NAs. Checks 
 #'   for outliers for specified variable \code{x}. Checks that all column names are unique, whether any columns in 
 #'    \code{dat} are empty, whether each row is a unique choice occurrence at the haul or trip level, that data for 
-#'    either lat/lon or fishing area are included, and whether specialized variables and units have been identified 
-#'    in the dataindex table. The function is also called by other functions.
+#'    either lat/lon or fishing area are included. The function is also called by other functions.
 #' @examples
 #' \dontrun{
-#' data_check(pcodMainDataTable, "OFFICIAL_TOTAL_CATCH_MT", "pcodMainDataTableInfo")
+#' data_check(pcodMainDataTable, "OFFICIAL_TOTAL_CATCH_MT")
 #' }
 #'
 data_check <- function(dat, project, x){#, dataindex) {
@@ -63,10 +62,10 @@ data_check <- function(dat, project, x){#, dataindex) {
   cat("\nData verification checks.\n")
   data_verification(dataset, project)
   # Table_verification_function
-  allNecFields <- c(
-    "name", "units", "general", "XY", "ID", "Time", "Catch", "Effort", "CPUE", "Lat", "Value", "Area", "Port", "Price", "Trip", "Haul",
-    "Other"
-  )
+#  allNecFields <- c(
+#    "name", "units", "general", "XY", "ID", "Time", "Catch", "Effort", "CPUE", "Lat", "Value", "Area", "Port", "Price", "Trip", "Haul",
+#    "Other"
+#  )
 #  indx <- colSums(sapply(allNecFields, grepl, colnames(dataindex2), ignore.case = TRUE))
 #
 #  if (length(which(colSums(sapply(allNecFields, grepl, colnames(dataindex2))) == 0)) < 1) {

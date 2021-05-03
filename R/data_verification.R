@@ -109,7 +109,6 @@ unique_filter <- function(dat, project, remove = FALSE) {
   #' @details Output is determined by \code{remove}. If \code{remove} is TRUE then
   #' non-unique rows are removed. If \code{remove} is FALSE then only a statement is
   #' returned regarding the number of rows that are not unique.
-  #' @keywords unique
   #' @return Returns the modified primary dataset with non-unique rows removed if \code{remove} is TRUE.
   #' @export unique_filter
   #' @examples
@@ -166,7 +165,6 @@ empty_vars_filter <- function(dat, project, remove = FALSE) {
   #' @param remove Logical, whether to remove empty variables. Defaults to FALSE.
   #' @details Function checks for empty variables and prints an outcome message to the console. 
   #'   If empty variables are present and \code{remove} = TRUE, then empty variables will be removed from the dataset.
-  #' @keywords empty
   #' @return Returns the dataset with empty variables removed if \code{remove} is TRUE.
   #' @export empty_vars_filter
   #' @examples
