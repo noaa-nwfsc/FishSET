@@ -11,12 +11,10 @@
 #' @param haul_count Logical, whether to return a column of the number of hauls per trip. 
 #' @export haul_to_trip
 #' @return Returns the primary dataset where each row is a trip.
-#' @details Collapses primary dataset from haul to trip level. Requires the MainDataTableInfo
-#'   table associated with the primary dataset. Unique trips are defined based on selected column(s), for 
+#' @details Collapses primary dataset from haul to trip level. Unique trips are defined based on selected column(s), for 
 #'   example, landing permit number and disembarked port. This id column is used to collapse the
 #'   data to trip level.  \code{fun.numeric} and \code{fun.time} define how multiple observations for a trip
-#'   are collapsed. For variables that are not numeric or dates, the first observation is used. The
-#'   MainDataTableInfo table is updated using \code{\link{dataindex_update}}.
+#'   are collapsed. For variables that are not numeric or dates, the first observation is used.
 #'
 #' @examples
 #' \dontrun{
@@ -31,7 +29,6 @@ haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, trip
   out <- data_pull(dat)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
-   browser()
   
   # Load in dataindex
   #dataIndex <- dataindex_update(dataset, pull_info_data(project))

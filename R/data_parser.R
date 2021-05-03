@@ -318,9 +318,9 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
   #' @details Runs the \code{fishset_compare} function if \code{compare} is TRUE and calls the
   #'  \code{\link{data_verification}} function to check for common data issues and that latitude
   #'  and longitude are defined. Then generates an index table that contains units,
-  #'  data format, and information on specialized variables. Finally, the datasets (main and index tables)
-  #'  are saved in the FishSET database as raw and working tables. In both cases, the table name is the \code{project}
-  #'  and the table type, 'MainDataTable' or 'MainDataTableInfo'. Date is also attached to the name for the
+  #'  data format, and information on specialized variables. Finally, the dataset
+  #'  is saved in the FishSET database as raw and working tables. The table name is the \code{project}
+  #'  and the table type, 'MainDataTable'. Date is also attached to the name for the
   #'  raw data. The main data is also loaded into the working environment as ‘projectMainDataTable’.
   #'
   #' @examples
@@ -412,70 +412,6 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
    }
 }
 
-#This is no longer necessary
-#main_mod <- function(dat, x, new.unit = NULL, new.type = NULL, new.class = NULL) {
-  #' Modify the data index table
-  #'
-  #' Modify the data index (MainDataTableInfo) table
-  #' 
-  #' @param dat Table containing information on variables in the primary dataset.
-  #'   Table in FishSET database should contain the string 'MainDataTableInfo'.
-  #' @param x Name of variable in the MainDataTableInfo table that is to be modified.
-  #' @param new.unit Units. Categories include: \code{"fathoms"}, \code{"decimal degrees"}, \code{"dollars"}, \code{"lbs"}, \code{"metric tons"},
-  #'   \code{"min"}, \code{"numeric"}, \code{"percent"}, \code{"WK"}, \code{"Y/N"}, \code{"yyyymmdd"}.
-  #' @param new.type General type. Categories include: \code{"Time"}, \code{"Flag"}, \code{"Code"}, \code{"Latitude"}, \code{"Code String"}, \code{"Other Numeric"},
-  #'   \code{"Code Numeric"}.
-  #' @param new.class Specialized variable category. Standard categories include: \code{"isCPUE"}, \code{"isLon"}, \code{"isLat"},
-  #'   \code{"isValue"}, \code{"isZoneArea"}, \code{"isPort"}.
-  #' @details  Modify the units \code{(new.unit)}, data format \code{(new.type)}, and specialized variable
-  #'   class \code{(new.class)} of the MainDataTableInfo table. Updated MainDataTableInfo file is saved to the
-  #'   FishSET database. It is advisable to use the working table and not the raw table as the
-  #'   modifications will automatically be saved over the input table name.
-  #' @examples
-  #' \dontrun{
-  #' main_mod('pollockMainDataTableInfo01012011', x = 'DISEMBARKED_PORT',
-  #'          new.unit = 'yyyymmdd', new.type = 'Other', new.class = 'isPort')
-  #' }
-
-  # Call in data sets
-  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-  if (is.character(dat) == TRUE) {
-    if (is.null(dat) == TRUE | table_exists(dat) == FALSE) {
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, "not defined or does not exist. Consider using one of the tables listed above that exist in the database."))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat
-  }
-  DBI::dbDisconnect(fishset_db)
-
-
-  if (!is.null(new.unit)) {
-    dataset[dataset[["variable_name"]] == x, "units"] <- new.unit
-  }
-  if (!is.null(new.type)) {
-    dataset[dataset[["variable_name"]] == x, "generalType"] <- new.type
-  }
-  if (!is.null(new.class)) {
-    dataset[dataset[["variable_name"]] == x, c(4, 5, 7:19)] <- 0
-    dataset[dataset[["variable_name"]] == x, new.class] <- 1
-  }
-
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
-  DBI::dbWriteTable(fishset_db, dataset, dataset, overwrite = TRUE)
-  DBI::dbDisconnect(fishset_db)
-  print("Data saved to database")
-
-  # log function
-  main_mod_function <- list()
-  main_mod_function$functionID <- "main_mod"
-  main_mod_function$args <- list(deparse(substitute(dat)), deparse(substitute(x)), new.unit, new.type, new.class)
-
-  log_call(main_mod_function)
-  return(dataset)
-}
 
 load_port <- function(dat, port_name, over_write = TRUE, project = NULL, compare = FALSE, y = NULL) {
   #' Load, parse, and save port data to FishSET database
@@ -748,89 +684,4 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
   }
 }
 
-#THis is no longer needed
-#dataindex_update <- function(dat, dataindex) {
-  #' Update MainDataTableInfo
-  #'
-  #' Automates updating the dataindex (MainDataTableInfo) table saved to the FishSET database after modifying the primary dataset. Function should be run after variables have been added or removed from the primary dataset.
-  #'
-  #' @param  dat Primary data containing information on hauls or trips.
-  #'   Table in the FishSET database contains the string 'MainDataTable'.
-  #' @param dataindex String, dataindex table name in the FishSET database.
-  #'   Table name is usually the project and ‘MainDataTableInfo’. Name must be in quotes.
-  #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
-  # @export
-  # @keywords internal
-  #' @details The MainDataTableInfo table is first created when the MainDataTable is loaded and saved to the
-  #'   FishSET database. However, this table may not match the variables in \code{dat} after the FishSET variable
-  #'   creation functions have been run. It may be necessary to update the MainDataTableInfo table in the FishSET database.
-  #'   Running this function adds information on variables created using the FishSET data creation functions.
-  #' @examples
-  #' \dontrun{
-  #' dataindex_update(dat = pcodMainDataTable, dataindex = 'pcodMainDataTableInfo')
-  #' }
 
-  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-  if (is.character(dat) == TRUE) {
-    if (is.null(dat) == TRUE | table_exists(dat) == FALSE) {
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, "not defined or does not exist. Consider using one of the tables listed above that exist in the database."))
-    } else {
-      dataset <- table_view(dat)
-    }
-  } else {
-    dataset <- dat
-  }
-
-  MainDataTableInfo <- data.frame(
-    variable_name = colnames(dataset), units = c(ifelse(grepl("DATE|TRIP_END|TRIP_START", colnames(dataset), ignore.case = TRUE),
-      "yyyymmdd", ifelse(grepl("MIN", colnames(dataset), ignore.case = TRUE), "min", ifelse(grepl("FATHOMS", colnames(dataset)), "fathoms", ifelse(grepl("HOURS|CHINOOK|CHUM|PROPORTION|SIZE",
-        colnames(dataset),
-        ignore.case = TRUE
-      ), "numeric", ifelse(grepl("DOLLARS", colnames(dataset), ignore.case = TRUE), "dollars", ifelse(grepl("POUNDS|LBS",
-        colnames(dataset),
-        ignore.case = TRUE
-      ), "lbs", ifelse(grepl("Lon|Lat|", colnames(dataset), ignore.case = TRUE), "decimal degrees", ifelse(grepl("PERCENT",
-        colnames(dataset),
-        ignore.case = TRUE
-      ), "percent", ifelse(grepl("MT", colnames(dataset), ignore.case = TRUE), "metric tons", ifelse(grepl("WEEK",
-        colnames(dataset),
-        ignore.case = TRUE
-      ), "WK", ifelse(grepl("WEEK", colnames(dataset), ignore.case = TRUE), "Y/N", NA))))))))))
-    )), generalType = c(ifelse(grepl("DATE|MIN",
-      colnames(dataset),
-      ignore.case = TRUE
-    ), "Time", ifelse(grepl("IFQ", colnames(dataset), ignore.case = TRUE), "Flag", ifelse(grepl("ID", colnames(dataset),
-      ignore.case = TRUE
-    ), "Code", ifelse(grepl("Long|Lat", colnames(dataset), ignore.case = TRUE), "Latitude", ifelse(grepl("TYPE|PROCESSOR|LOCATION|METHOD",
-      colnames(dataset),
-      ignore.case = TRUE
-    ), "Code String", ifelse(grepl("CHINOOK|CHUM|FATHOMS|DOLLARS|LBS|PROPORTION|VALUE|PERCENT|MT", colnames(dataset),
-      ignore.case = TRUE
-    ), "Other Numeric", ifelse(grepl("HAUL|AREA|PERFORMANCE|PERMIT", colnames(dataset), ignore.case = TRUE), "Code Numeric", NA)))))))),
-    isXY = ifelse(grepl("HOURS|CHINOOK|CHUM|PROPORTION|SIZE", colnames(dataset), ignore.case = TRUE), 1, 0), isID = ifelse(grepl("ID", colnames(dataset),
-      ignore.case = TRUE
-    ), 1, 0), variable_link = rep(NA, length(colnames(dataset))), isTime = ifelse(grepl("DATE|MIN", colnames(dataset), ignore.case = TRUE),
-      1, 0
-    ), isCatch = ifelse(grepl("CATCH|POUNDS|LBS", colnames(dataset), ignore.case = TRUE), 1, 0), isEffort = ifelse(grepl("DURATION", colnames(dataset),
-      ignore.case = TRUE
-    ), 1, 0), isCPUE = rep(0, length(colnames(dataset))), isLon = ifelse(grepl("LON", colnames(dataset), ignore.case = TRUE),
-      1, 0
-    ), isLat = ifelse(grepl("LAT", colnames(dataset), ignore.case = TRUE), 1, 0), isValue = ifelse(grepl("DOLLARS", colnames(dataset), ignore.case = TRUE),
-      1, 0
-    ), isZoneArea = ifelse(grepl("AREA", colnames(dataset), ignore.case = TRUE), 1, 0), isPort = ifelse(grepl("PORT", colnames(dataset), ignore.case = TRUE),
-      1, 0
-    ), isPrice = rep(0, length(colnames(dataset)), ignore.case = TRUE), isTrip = ifelse(grepl("TRIP", colnames(dataset), ignore.case = TRUE),
-      1, 0
-    ), isHaul = ifelse(grepl("HAUL", colnames(dataset), ignore.case = TRUE), 1, 0), isOther = rep(0, length(colnames(dataset))), tableLink = rep(
-      NA,
-      length(colnames(dataset))
-    )
-  )
-
-
-  DBI::dbWriteTable(fishset_db, dataindex, MainDataTableInfo, overwrite = TRUE)
-  DBI::dbDisconnect(fishset_db)
-
-  return(MainDataTableInfo)
-}
