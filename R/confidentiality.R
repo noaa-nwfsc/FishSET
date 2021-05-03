@@ -276,7 +276,7 @@ suppress_table <- function(check, output, value_var, group, rule, type = "code",
   # convert check table to expression list
   #group <- names(output)[names(output) != value_var]
   
-  #if (is.null(group)) group <- get_confid_check()$v_id
+  #if (is.null(group)) group <- get_confid_check()$v_id # throws error for roll_catch
   
   len <- length(group) - 1
   
@@ -326,13 +326,15 @@ suppress_table <- function(check, output, value_var, group, rule, type = "code",
   else output
 }
 
-check_and_suppress <- function(dat, v_id, value_var, group = NULL, rule, value,
-                               names_to = "name", values_to = "value") {
+check_and_suppress <- function(dat, output, v_id, value_var, group = NULL, rule, value,
+                               type = "code", names_to = "name", values_to = "value") {
   
   #'Check and suppress data
   #'
-  #' @param dataset The dataset used to create a summary table. This must include 
+  #' @param dat The dataset used to create a summary table. This must include 
   #'   the vessel identifier column. 
+  #' @param output The output table to be suppressed. If \code{output = NULL}, 
+  #'   \code{dat} is used. 
   #' @param v_id String, the name of the vessel identifier column.
   #' @param value_var String, the name(s) of the value variable(s). 
   #' @param group String, the name(s) of the grouping variable(s). This should 
@@ -344,6 +346,9 @@ check_and_suppress <- function(dat, v_id, value_var, group = NULL, rule, value,
   #' @param value The threshold for confidentiality. for \code{rule = "n"} must 
   #'   be an integer of at least 3. For \code{rule = "k"} any double value from
   #'   0 to 100. 
+  #' @param type String, the value used to replace confidential data. \code{"code"} 
+  #'   replaces values with \code{-999}, \code{"NA"} (with quotes) replaces with 
+  #'   \code{NA}, and \code{"zero"} replaces with 0. 
   #' @param names_to String, the name for the column containing the names of value 
   #'   variables when `value_var` has two or more columns.
   #' @param values_to String, the name for the column containing the values from the
@@ -356,9 +361,18 @@ check_and_suppress <- function(dat, v_id, value_var, group = NULL, rule, value,
   
   if (check$suppress) {
     
-    dat <- suppress_table(check$table, dat, value_var, group, rule)
+    if (!is.null(output)) {
+      
+      dat <- suppress_table(check$table, output, value_var = value_var, group, rule, 
+                            type = type)
     
-    dat
+    } else {
+      
+      dat <- suppress_table(check$table, dat, value_var = value_var, group, rule,
+                            type = type)
+    }
+    
+   list(table = dat, suppress = TRUE)
   } else check
 }
 
