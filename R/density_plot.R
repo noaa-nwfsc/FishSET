@@ -80,6 +80,7 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, combine 
   dat <- parse_data_name(dat, "main")
 
   end <- FALSE
+  suppress <- FALSE
   
   if (!is.numeric(dataset[[var]])) {
     
@@ -197,8 +198,12 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, combine 
       if (cc_par$rule == "n") {
         
         check_out <- 
-          check_and_suppress(dataset, cc_par$v_id, value_var = var, group = group,
-                             rule = "n", value = cc_par$value)
+          check_and_suppress(dataset[c(cc_par$v_id, var, group, facet_by)], 
+                             output = NULL, cc_par$v_id, value_var = var,
+                             group = group, rule = "n", value = cc_par$value, 
+                             type = "NA")
+        
+        suppress <- check_out$suppress
       }
     }
     # remove unnecessary columns
@@ -213,25 +218,20 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, combine 
       dens_plot_helper(dataset, var, group_list, date, facet_by, filter_date, 
                        date_value, type, bw, tran, position, pages)
     
-    if (run_confid_check()) {
+    if (suppress) {
       
-      if (cc_par$rule == "n") {
+      conf_plot <- 
+        suppressWarnings(
+          dens_plot_helper(check_out$table, var, group_list, date, facet_by, filter_date, 
+                           date_value, type, bw, tran, position, pages)
+        )
         
-        if (check_out$suppress) {
-          
-          check_out <- replace_sup_code(check_out)
-          conf_plot <- 
-            dens_plot_helper(check_out, var, group_list, date, facet_by, filter_date, 
-                             date_value, type, bw, tran, position, pages)
-          
-          if (pages == "multi") {
-            lapply(seq_along(conf_plot$multi), function(x) {
-              save_plot(project, paste0("density_plot_confid_", x), d_plot$multi[[x]])
-            })
-            
-          } else save_plot(project, "density_plot_confid", d_plot$single)
-        }
-      }
+      if (pages == "multi") {
+        lapply(seq_along(conf_plot$multi), function(x) {
+          save_plot(project, paste0("density_plot_confid_", x), conf_plot$multi[[x]])
+        })
+        
+      } else save_plot(project, "density_plot_confid", conf_plot$single)
     }
     
     print_plot <- function() {
