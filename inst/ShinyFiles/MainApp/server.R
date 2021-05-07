@@ -2318,24 +2318,35 @@ set_confid_check(check = FALSE)
       
       #3. SPATIAL DISTRIBUTION
       ranges_spatial <- reactiveValues(x = NULL, y=NULL)
-      observeEvent(input$plot_type,{
-        ranges_spatial$x <- c(ifelse((min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')))[1]], na.rm=TRUE)-abs(min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')))[1]], na.rm=TRUE)/10) < -180), 
-                                     -180, min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')))[1]], na.rm=TRUE)-abs(min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')))[1]], na.rm=TRUE)/10)), 
-                              ifelse((max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')))[1]], na.rm=TRUE)+abs(max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')))[1]], na.rm=TRUE)/10) > 180), 
-                                     180, max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')))[1]], na.rm=TRUE)+abs(max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')))[1]], na.rm=TRUE)/10))) 
-        ranges_spatial$y <-c(ifelse((min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')))[1]], na.rm=TRUE)-abs(min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')))[1]], na.rm=TRUE)/10) < -90), 
-                                    -90, min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')))[1]], na.rm=TRUE)-abs(min(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')))[1]], na.rm=TRUE)/10)), 
-                             ifelse((max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')))[1]], na.rm=TRUE)+abs(max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')))[1]], na.rm=TRUE)/10) > 90),
-                                    90, max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')))[1]], na.rm=TRUE)+abs(max(values$dataset[, which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')))[1]], na.rm=TRUE)/10)))
+      observeEvent(input$plot_type, {
+        
+        lon_count <- stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')
+        min_lon <- min(values$dataset[which(lon_count==max(lon_count))[1]], na.rm=TRUE)
+        max_lon <- max(values$dataset[which(lon_count==max(lon_count))[1]], na.rm=TRUE)
+        
+        lat_count <- stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')
+        min_lat <- min(values$dataset[which(lat_count==max(lat_count))[1]], na.rm=TRUE)
+        max_lat <- max(values$dataset[which(lat_count==max(lat_count))[1]], na.rm=TRUE)
+        
+        ranges_spatial$x <- 
+          c(ifelse((min_lon - abs(min_lon/10) < -180), -180, min_lon - abs(min_lon/10)), 
+            ifelse((max_lon + abs(max_lon/10) > 180), 180, max_lon + abs(max_lon/10))) 
+        
+        ranges_spatial$y <-
+          c(ifelse((min_lat - abs(min_lat/10) < -90), -90, min_lat - abs(min_lat/10)), 
+            ifelse((max_lat + abs(max_lat/10) > 90), 90, max_lat + abs(max_lat/10)))
       })
+      
       output$plot_spatial <- renderPlot({#plotInput_spatial <-  reactive({
         if(is.null(values$dataset)) {
           return(NULL)
         } else if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
         } else {
-          longitude <- which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1]
-          latitude <- which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]
+          lon_count <- stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')
+          lat_count <- stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')
+          longitude <- which(lon_count==max(lon_count))[1]
+          latitude <- which(lat_count==max(lat_count))[1]
           cf <- ggplot2::coord_fixed()
           cf$default <- TRUE
           ggplot2::ggplot(data = ggplot2::map_data("world"), mapping = ggplot2::aes(x = long, y = lat, group=group)) + 
@@ -2355,11 +2366,12 @@ set_confid_check(check = FALSE)
           return(NULL)
         } else {
           if(input$plot_table=='Plots'&input$plot_type=='Spatial'){
-            return(map_kernel(values$dataset, project=project$name, type='gradient', 
-                       latlon=c(which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', 
-                                                                                ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1], 
-                                               which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', 
-                                                                                 ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1])))
+            
+            lon_count <- stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')
+            lat_count <- stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')
+            
+            return(map_kernel(values$dataset, project=project$name, type='gradient',
+                              latlon=c(which(lat_count==max(lat_count))[1], which(lon_count==max(lon_count))[1])))
           } else {
             return(NULL)
           }
@@ -2405,8 +2417,8 @@ set_confid_check(check = FALSE)
           ranges_spatial$y <- c(brush$ymin, brush$ymax)
           
         } else {
-          longitude <- which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1]
-          latitude <- which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]
+          longitude <- which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')))[1]
+          latitude <- which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')))[1]
           ranges_spatial$x <- c(ifelse((min(values$dataset[, longitude], na.rm=TRUE)-abs(min(values$dataset[, longitude], na.rm=TRUE)/10) < -180), 
                                        -180, min(values$dataset[, longitude], na.rm=TRUE)-abs(min(values$dataset[, longitude], na.rm=TRUE)/10)), 
                                 ifelse((max(values$dataset[, longitude], na.rm=TRUE)+abs(max(values$dataset[, longitude], na.rm=TRUE)/10) > 180), 
@@ -2883,7 +2895,7 @@ set_confid_check(check = FALSE)
                              div(style="display: inline-block;vertical-align:top; width: 200px;",
                                  selectizeInput('lat_grid_zone', '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE)),
                              div(style="display: inline-block;vertical-align:top; width: 200px;",
-                                 selectizeInput('long_grid_zone',  '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE))
+                                 selectizeInput('lon_grid_zone',  '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE))
                            )
                          }
         ) 
@@ -3272,30 +3284,30 @@ set_confid_check(check = FALSE)
                                               selected='', options = list(create = TRUE, placeholder='Select or type LONGITUDE column name')))
                          ))
       })
-      # output$conditionalInput2 <- renderUI({
-      #   conditionalPanel(condition="input.choiceTab=='zone'",
-      #                    tagList(
-      #                      #fileInput("fileGridExC", "Choose data file containing spatial data defining zones (shape, json, and csv formats are supported)",
-      #                      #          multiple = FALSE, placeholder = ''),
-      #                      if(names(spatdat$dataset)[1]=='var1'){
-      #                        tags$div(h4('Map file not loaded. Please load on Upload Data tab', style="color:red"))
-      #                      },
-      #                      h5(tags$b('Select latitude then longitude from main dataset for assigning observations to zones')),
-      #                      div(style="display: inline-block;vertical-align:top; width: 200px;",
-      #                          selectizeInput('lat_dat_ac', '',
-      #                                         choices = find_lat(values$dataset),
-      #                                         options = list(create = TRUE, placeholder='Select or type LATITUDE variable name'))),
-      #                      div(style="display: inline-block;vertical-align:top; width: 200px;",
-      #                          selectizeInput('lon_dat_ac', '',
-      #                                         choices = find_lon(values$dataset),
-      #                                         options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name'))),
-      #                      selectInput('cat_altc', 'Individual areas/zones from the spatial dataset', choices=names(as.data.frame(spatdat$dataset))),
-      #                      selectInput('weight_var_ac', 'If desired, variable for use in calculating weighted centroids',
-      #                                  choices=c('none'="", colnames(values$dataset))), #variable weighted centroids
-      #                      checkboxInput('hull_polygon_ac', 'Use convex hull method to create polygon?', value=FALSE),
-      #                      checkboxInput('closest_pt_ac', 'Use closest polygon to point?', value=FALSE)
-      #                    ) )
-      # })
+      output$conditionalInput2 <- renderUI({
+        conditionalPanel(condition="input.choiceTab=='zone'",
+                         tagList(
+                           #fileInput("fileGridExC", "Choose data file containing spatial data defining zones (shape, json, and csv formats are supported)",
+                           #          multiple = FALSE, placeholder = ''),
+                           if(names(spatdat$dataset)[1]=='var1'){
+                             tags$div(h4('Map file not loaded. Please load on Upload Data tab', style="color:red"))
+                           },
+                           h5(tags$b('Select latitude then longitude from main dataset for assigning observations to zones')),
+                           div(style="display: inline-block;vertical-align:top; width: 200px;",
+                               selectizeInput('lat_dat_ac', '',
+                                              choices = find_lat(values$dataset),
+                                              options = list(create = TRUE, placeholder='Select or type LATITUDE variable name'))),
+                           div(style="display: inline-block;vertical-align:top; width: 200px;",
+                               selectizeInput('lon_dat_ac', '',
+                                              choices = find_lon(values$dataset),
+                                              options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name'))),
+                           selectInput('cat_altc', 'Individual areas/zones from the spatial dataset', choices=names(as.data.frame(spatdat$dataset))),
+                           selectInput('weight_var_ac', 'If desired, variable for use in calculating weighted centroids',
+                                       choices=c('none'="", colnames(values$dataset))), #variable weighted centroids
+                           checkboxInput('hull_polygon_ac', 'Use convex hull method to create polygon?', value=FALSE),
+                           checkboxInput('closest_pt_ac', 'Use closest polygon to point?', value=FALSE)
+                         ) )
+      })
       # 
       #  observeEvent(input$runCentroid, {
       #         q_test <- quietly_test(assignment_column)
@@ -3309,19 +3321,19 @@ set_confid_check(check = FALSE)
       #         }
       # })
       #  
-      # output$cond2 <- renderUI({
-      #   conditionalPanel(condition="input.choiceTab=='zone'",
-      #                    if(!('sf' %in% class(spatdat$dataset))){
-      #                      tagList(
-      #                        h5(tags$b('Select vector containing latitude then longitude from spatial dataset')),
-      #                        div(style="display: inline-block;vertical-align:top; width: 200px;",
-      #                            selectizeInput('lat_grid_altc', '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE)),
-      #                        div(style="display: inline-block;vertical-align:top; width: 200px;",
-      #                            selectizeInput('long_grid_altc',  '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE))
-      #                      )
-      #                    }
-      #   )
-      # })
+      output$cond2 <- renderUI({
+        conditionalPanel(condition="input.choiceTab=='zone'",
+                         if(!('sf' %in% class(spatdat$dataset))){
+                           tagList(
+                             h5(tags$b('Select vector containing latitude then longitude from spatial dataset')),
+                             div(style="display: inline-block;vertical-align:top; width: 200px;",
+                                 selectizeInput('lat_grid_altc', '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE)),
+                             div(style="display: inline-block;vertical-align:top; width: 200px;",
+                                 selectizeInput('long_grid_altc',  '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE))
+                           )
+                         }
+        )
+      })
 
       output$conditionalInput3a <- renderUI({
         conditionalPanel(condition="input.choiceTab=='distm'",
@@ -3344,7 +3356,7 @@ set_confid_check(check = FALSE)
                            div(style="display: inline-block;vertical-align:top; width: 170px;",
                                selectizeInput('alt_var_ac', 'and alternative location', 
                                               choices=c('Centroid of zonal assignment'='centroid', 
-                                                       names(values$dataset)[grep('lat|lon', names(values$dataset), ignore.case=TRUE)]), 
+                                                       find_lonlat(values$dataset)), 
                                               selected='', options = list(maxItems = 2))),
                           h5(tags$em('Longitude must be specified before latitude.')),
                            selectizeInput('dist_ac','Distance units', choices=c('miles','kilometers','meters'), selected='miles'),
@@ -3535,7 +3547,7 @@ set_confid_check(check = FALSE)
         if(!exists("Alt")) {
         if(!exists('AltMatrixName')) {
           if(DBI::dbExistsTable( DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0(project$name, 'altmatrix'))){
-          return(unserialize(DBI::dbExecute( DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0("SELECT AlternativeMatrix FROM ", 
+          return(unserialize(DBI::dbGetQuery( DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0("SELECT AlternativeMatrix FROM ", 
                                                                                               project$name, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]]))
           } else {
             warning("Alternative Choice Matrix does not exist. Please run the createAlternativeChoice() function.")
@@ -3779,8 +3791,7 @@ set_confid_check(check = FALSE)
  
   
       # Run models shiny
-      observe({
-        if(input$submit > 0) {
+      observeEvent(input$submit, {
           input_list <- reactiveValuesToList(input)
           toggle_inputs(input_list,F)
           #print('call model design function, call discrete_subroutine file')
@@ -3813,7 +3824,6 @@ set_confid_check(check = FALSE)
         #    ), type='message', duration=10)
                 showNotification('Model run is complete. Check the `Compare Models` subtab to view output', type='message', duration=10)
           toggle_inputs(input_list,T)
-        }
       })
       
       
@@ -4107,8 +4117,7 @@ set_confid_check(check = FALSE)
       observeEvent(input$save_final_table, {
         
         q_test <- quietly_test(check_model_data)
-        save_final$out <- q_test(dat = values$dataset, 
-                                 dataindex = paste0(project$name, "MainDataTableInfo"), 
+        save_final$out <- q_test(dat = values$dataset,  
                                  uniqueID = input$final_uniqueID)
         
       })
