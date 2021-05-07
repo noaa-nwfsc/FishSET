@@ -55,18 +55,35 @@ check_model_data <- function(dat, uniqueID, save.file = TRUE) {
     end <- TRUE
   }
 
+  # unique rows
   if (length(dataset[[uniqueID]]) != length(unique(dataset[[uniqueID]]))) {
     
-    unique_msg <- "\nThe uniqueID variable should define the length of unique occurrences in the dataset. Use the haul_to_trip function to collapse data."
+    unique_msg <- paste("\nThe uniqueID variable should define the length of unique",
+                        "occurrences in the dataset. Use the haul_to_trip function to collapse data.")
     cat(unique_msg, file = tmp, append = TRUE)
     warning(unique_msg)
     end <- TRUE
   }
-
-  if (end) {
+  
+  # lat/lon degree format
+  lat_lon <- grep("lat|lon", names(dataset), ignore.case = TRUE)
+  num_ll <- qaqc_helper(dataset[lat_lon], function(x) !is.numeric(x))
+  deg_ll <- qaqc_helper(dataset[lat_lon], function(x) any(nchar(trunc(abs(x))) > 3)) 
+  
+  if (any(c(deg_ll, num_ll))) {
     
-    warning("At least one test did not pass. Data set will not be saved.")
+    deg_ind <- which(deg_ll)
+    num_ind <- which(deg_ll)
+    degree_msg <- 
+      paste("The following latitude/longitude variables are not in decimal degrees:", 
+            paste(names(dat)[unique(c(num_ind, deg_ind))], collapse = ","))
+    
+    cat(degree_msg, file = tmp, append = TRUE)
+    warning(degree_msg)
+    end <- TRUE
   }
+
+  if (end) warning("At least one test did not pass. Data set will not be saved.")
   
   if (end == FALSE) {
     if (save.file == TRUE) {
