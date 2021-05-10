@@ -35,16 +35,22 @@ degree <- function(dat, lat = NULL, lon = NULL, latsign = FALSE, lonsign = FALSE
   dat <- parse_data_name(dat, "main")
   
   tmp <- tempfile()
-
-  if (any(apply(dataset[, grep("lat|lon", names(dataset), ignore.case = TRUE)], 2, function(x) !is.numeric(x)) == TRUE) == TRUE) {
-    cat("At least one latitude or longitude variable is not in decimal degrees. Select a lat and lon variable below and then select a conversion option on the the left to convert to decimal degrees.",
-      file = tmp
-    )
-  } else if (any(apply(dataset[, grep("lat|lon", names(dataset), ignore.case = TRUE)], 2, function(x) nchar(trunc(abs(x)))) > 3) == TRUE) {
-    cat("At least one latitude or longitude variable is not in decimal degrees. Select a lat and lon variable below and then select a conversion option on the the left to convert to decimal degrees.",
-      file = tmp
-    )
+  
+  lat_lon <- grep("lat|lon", names(dat), ignore.case = TRUE)
+  num_ll <- qaqc_helper(dat[lat_lon], function(x) !is.numeric(x))
+  deg_ll <- qaqc_helper(dat[lat_lon], function(x) any(nchar(trunc(abs(x))) > 3)) 
+  
+  if (any(c(deg_ll, num_ll))) {
+    
+    deg_ind <- which(deg_ll)
+    num_ind <- which(deg_ll)
+    cat(paste("The following latitude/longitude variables are not in decimal degrees:", 
+              paste(names(dat)[unique(c(num_ind, deg_ind))], collapse = ","), 
+              "Select a lat and lon variable below and then select a conversion",
+              "option on the the left to convert to decimal degrees."), 
+        file = tmp)
   } else {
+    
     cat("Latitude and longitude variables in decimal degrees. No further action required.", file = tmp)
   }
 

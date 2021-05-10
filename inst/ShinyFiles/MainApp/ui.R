@@ -893,7 +893,7 @@ source("map_viewer_app.R", local = TRUE)
                                #runcodeUI (code='', type='ace'),
                                # actionButton("eval", "Evaluate"),
                                radioButtons('choiceTab', '', choices=c( #basic parameters to populate elsewhere like catch, price
-                                                                       #'Calculate zonal centroid and assign observations to zones'='zone', #calculate zonal centroid
+                                                                       'Calculate zonal centroid'='zone', #calculate zonal centroid
                                                                        'Select variables that define alternative fishing choices'='distm',
                                                                        'Select catch and price variables'='primary')),#, #calculate distance matrix
                                #checkboxInput('ExpedCatch', 'Define variables to calculate expected catch', value=FALSE)
@@ -921,8 +921,8 @@ source("map_viewer_app.R", local = TRUE)
                               
                                #--------#
                                #CENTROID
-                               # uiOutput('conditionalInput2'),
-                               # uiOutput('cond2'),
+                               uiOutput('conditionalInput2'),
+                               uiOutput('cond2'),
                                #runs assignment column and find_centroid functions
                                #--------#
                                #DISTANCE MATRIX
