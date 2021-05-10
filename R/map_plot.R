@@ -9,9 +9,9 @@ map_plot <- function(dat, project, lat, lon, minmax = NULL, percshown = NULL) {
   #' @param minmax Optional map extent argument, a vector (num) of length four
   #' corresponding to c(minlat, maxlat, minlon, maxlon).
   #' @param percshown Whole number, percent of points to show. Use this option if there are a lot of data points.
-  #' @keywords map
   #' @description Plot observed locations on a map. For large datasets, it is best to plot a subset of points.
-  #' Use \code{percshown} to randomly subset the number of points. If the predefined map extent needs adjusting, use \code{minmax}.
+  #' Use \code{percshown} to randomly subset the number of points. If the predefined map extent needs adjusting,
+  #'  use \code{minmax}.
   #' @return mapout: ggplot2 object
   #' @import ggplot2
   #' @importFrom maps map
