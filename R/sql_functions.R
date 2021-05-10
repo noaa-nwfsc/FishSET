@@ -238,3 +238,63 @@ main_tables <- function(project = NULL) {
     }
   }
 }
+
+list_tables <- function(project = NULL, type = "main") {
+  #' Display tables in fishset_db by project and type.
+  #' 
+  #' @param project A project name to filter main tables by. Returns all tables
+  #'   of \code{type} if \code{NULL}.
+  #' @param type the type of fishset_db table to search for. Options include 
+  #'   "main" (MainDataTable), "ec" (ExpectedCatch),  "altc" (altmatrix), 
+  #'   "port", "info" (MainDataTableInfo), "gc" (ldglobalcheck), "fleet" (FleetTable), 
+  #'   "model" (modelOut), "model_data" (modelinputdata), and "model_design" 
+  #'   (modelDesignTable).
+  #' @export
+  #' @examples 
+  #' \dontrun{
+  #' list_tables(type = "main")
+  #' list_tables("pollock", "ec")
+  #' }
+  
+  sql_tab <- 
+    switch(type, 
+           "main" = "MainDataTable", "ec" = "ExpectedCatch",  "altc" = "altmatrix", 
+           "port" = "port", "info" = "MainDataTableInfo", "gc" = "ldglobalcheck", 
+           "fleet" = "FleetTable", "model" = "modelOut", "model_data" = "modelinputdata", 
+           "model_design" = "modelDesignTable")
+  
+  if (is.null(project)) {
+    
+    tabs <- grep(sql_tab, tables_database(), value = TRUE)
+    
+    if (type == "main") tabs <- tabs[!grepl("MainDataTableInfo", tabs)]
+    
+    if (length(tabs) > 0) tabs
+    else {
+      
+      warning("No ", sql_tab, " tables were found")
+      invisible(NULL)
+    }
+    
+  } else {
+    
+    if (project %in% projects()) {
+      
+      tabs <- grep(paste0(project, sql_tab), tables_database(), value = TRUE)
+      
+      if (type == "main") tabs <- tabs[!grepl("MainDataTableInfo", tabs)]
+      
+      if (length(tabs) > 0) tabs
+      else {
+        
+        warning("No ", sql_tab, " tables were found for project '", project, "'")
+        invisible(NULL)
+      }
+      
+    } else {
+      
+      warning("Project name not found in FishSET Database. Check spelling.")
+      invisible(NULL)
+    }
+  }
+}
