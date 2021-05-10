@@ -2,7 +2,6 @@
 #'
 #' Create a list containing likelihood function, parameters, and data to be pass to model call function
 #'
-#' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
 #' @param project String, name of project.
 #' @param catchID  String, variable from \code{dat} that contains catch data.
 #' @param replace Logical, should the model design file be replaced? If false, appends to existing model design file. 
@@ -172,24 +171,29 @@
 #'   }
 #' @examples
 #' \dontrun{
-#' make_model_design(pollockMainDataTable, "pollock", catchID= "OFFICIAL_TOTAL_CATCH",  
+#' make_model_design("pollock", catchID= "OFFICIAL_TOTAL_CATCH",  
 #'   replace=FALSE, likelihood='logit_avgcat', initparams=c(-0.5,0.5),1
 #'   optimOpt=c(100000, 1.0e-08, 1, 1), methodname = "BFGS", mod.name = "logit4"
 #' )
 #' }
 #'
-make_model_design <- function(dat, project, catchID, replace = TRUE, likelihood = NULL, 
+make_model_design <- function(project, catchID, replace = TRUE, likelihood = NULL, 
                               initparams, optimOpt=c(100000, 1.0e-08, 1, 1), methodname="BFGS", 
                               mod.name=NULL, vars1 = NULL, vars2 = NULL, 
                               priceCol = NULL, startloc = NULL, polyn = NULL) {
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
-  # Call in datasets
-  out <- data_pull(dat)
-  dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
   
-
-  x0 <- 0
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+  end <- FALSE
+  
+  if (!table_exists(paste0(project, "MainDataTable_final"))) {
+    
+    warning("Final dataset does not exist. Run check_model_data() to save the final",
+            " dataset to the FishSET Database before modeling.")
+    end <- TRUE
+  } else {
+    
+    dataset <- table_view(paste0(project, "MainDataTable_final"))
+  }
 
   # Script necessary to ensure parameters generated in shiny app are in correct format
   if (is_empty(vars1) || vars1 == "none") {
@@ -224,7 +228,7 @@ make_model_design <- function(dat, project, catchID, replace = TRUE, likelihood 
 #  if (any(!is_empty(lonlat))) {
 #    if (lonlat[1] == lonlat[2]) {
 #      warning("Longitude and Latitude variables are identical.")
-#      x0 <- 1
+#      end <- TRUE
 #    }
 #  }
   # indeVarsForModel = vars1
@@ -235,7 +239,7 @@ make_model_design <- function(dat, project, catchID, replace = TRUE, likelihood 
       Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
       if (!exists("Alt")) {
         warning("Alternative Choice Matrix does not exist. Please run the createAlternativeChoice() function.")
-        x0 <- 1
+        end <- TRUE
       }
     }
   }
@@ -245,360 +249,366 @@ make_model_design <- function(dat, project, catchID, replace = TRUE, likelihood 
   }
   if (!exists("ExpectedCatch")) {
     ExpectedCatch <- ""
-    warning("Expected Catch Matrix does not exist. Please run the create_expectations function if expected catch will be included in the model.")
-    x0 <- 1
-  }
-
-  alt_var <- Alt[["alt_var"]]
-  occasion <- Alt[["occasion"]]
-  dataZoneTrue <- Alt[["dataZoneTrue"]]
-  int <- Alt[["int"]]
-  choice <- Alt[["choice"]]
-  startingloc <- if (!is.null(startloc) & all(is.na(Alt$startingloc))) {
-    dataset[[startloc]]
-  } else {
-    Alt[["startingloc"]]
-  }
-  units <- Alt[["altChoiceUnits"]]
-
-  if (any(grepl("Port", alt_var, ignore.case = TRUE) == T)) {
-    pt <- data_pull(paste0(project, 'PortTable'))
-    if(exists('pt')){
-    ptname <- pt$dat
-    port <- pt$dataset
-    } else {
-      "Port table not found in database. Check spelling and ensure port table is loaded into the FishSET database."
-    }
-  } else {
-    ptname <- NULL
-    port <- NULL
-  }
-
-  if (is_empty(gridVariablesInclude)) {
-    gridVariablesInclude <- as.data.frame(matrix(1, nrow = nrow(choice), ncol = 1)) # max(as.numeric(as.factor(unlist(choice))))))
-  } else {
-    gridVariablesInclude
-  }
-
-  if (is_empty(ExpectedCatch$newDumV)) {
-    newDumV <- 1
-  } else {
-    newDumV <- ExpectedCatch[["newDumV"]]
-    # bCHeader <- list(bCHeader, newDumV)
-  }
-  #
-  if (is_empty(indeVarsForModel)) {
-    bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, indeVarsForModel = as.data.frame(rep(1, nrow(choice))))
-#    bColumnsWant <- ""
-#    bInterAct <- ""
-  } else {
-    if (any(indeVarsForModel %in% c("Miles * Miles", "Miles*Miles, Miles x Miles"),
-      ignore.case = TRUE
-    )) {
-      bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, lapply(indeVarsForModel[-1], function(x) dataset[[x]][which(dataZoneTrue == 1)]))
-    } else {
-      bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, lapply(indeVarsForModel, function(x) dataset[[x]][which(dataZoneTrue == 1)]))
-    }
-  }
-
-
-  ################### 
-  #Steps if alternative matrix come from gridded data file 
-   #The distance matrix is the gridded data file
-  if (exists(Alt[["matrix"]])) {
-    X <- Alt[["matrix"]]
-
-    altChoiceUnits <- Alt[["altChoiceUnits"]]
     
-  #Identify if using centroid or other for altToLocal2
-    allZP <- dataset[, grep("AREA|zone", colnames(dataset), ignore.case =T)[1]] # get zonal type variables
-    if (all(is.null(allZP)) || Alt[["alt_var"]] > length(allZP)) {
-      v2 <- 0 # zonal centroid
-    } else {
-      v2 <- allZP(Alt[["alt_var"]]) #
+    if (likelihood == "logit_c") {
+      
+      warning("Expected Catch Matrix does not exist. Please run the create_expectations function if expected catch will be included in the model.")
+      end <- TRUE
     }
-    if (v2 == 0) {
-      altToLocal1 <- ""
-      altToLocal2 <- "Centroid of Zonal Assignment"
+  }
+  
+  if (end == FALSE) {
+    
+    alt_var <- Alt[["alt_var"]]
+    occasion <- Alt[["occasion"]]
+    dataZoneTrue <- Alt[["dataZoneTrue"]]
+    int <- Alt[["int"]]
+    choice <- Alt[["choice"]]
+    startingloc <- if (!is.null(startloc) & all(is.na(Alt$startingloc))) {
+      dataset[[startloc]]
     } else {
-      altToLocal1 <- ""
-      altToLocal2 <- alt_var
+      Alt[["startingloc"]]
     }
-    altChoiceType <- "loaded grid data matrix"
-    B <- Alt[["zoneRow"]]
-    choiceZ <- ""
-# End Grid Matrix
-  } else {
-
-    # steps if alternative matrix comes from loaded data (expectations)
-    ##### ---Begin Alt Var--###
-    if (any(grepl("zon", alt_var, ignore.case = T))) {
-      # (alt_var==c('Zonal centroid')){ #(v1==0){ #Zonal centroid toXY1 <-
-      # assignmentColumn()
-      # #M.CentroidArcView(grindInfo['assignmentColumn',,][which(dataZoneTrue==1)])
-      # #gridInfo.assignmentColumn(dataZoneTrue),:) # toXY1 <-
-      # toXY1[,c('cent.long','cen.lat','ID')][which(is.data.frame(dataZoneTrue)==1)]
-      temp <- as.matrix(dataset[["ZoneID"]])
-      colnames(temp) <- "ZoneID"
-      temp <- merge(temp, int)
-      toXY1 <- temp[which(dataZoneTrue == 1), 2:3]
-
-      altToLocal1 <- "Centroid of Zonal Assignment"
-    } else {
-      # Port (isfield(data,'isPort') && data(v1).isPort){ Data from dataframe
-      if (any(grepl("Port", alt_var, ignore.case = TRUE) == T)) {
-        if (is.data.frame(dataset)) {
-          if (any(is_empty(dataset[[alt_var]]))) {
-            warning("alt_var does not exist in dataset")
-            x0 <- 1
-          }
-
-          toXYa <- data.frame(dataset[[alt_var]][which(dataZoneTrue == 1)]) #  data[[altToLocal1]]data(v1).dataColumn(dataZoneTrue,:)      #subset data to when dataZoneTrue==1
-
-          colnames(toXYa) <- c(alt_var)
-          toXYa[[alt_var]] <- trimws(toXYa[[alt_var]])
-          colnames(port)[1] <- alt_var
-          port[[alt_var]] <- trimws(port[[alt_var]])
-
-
-
-          if (any(unique(toXYa[[alt_var]]) %in% unique(port[[alt_var]]) == FALSE)) {
-       #     if (any(is_empty(lonlat))) {
-              warning("At least one port not included in PortTable.") #Specify starting lat/lon in lonlat variable to use mean lat/lon.")
-              x0 <- 1
-      #      } else {
-      #        warning("At least one port not included in PortTable. 
-      #                Using vessel lon/lat at", alt_var, "to calculate mean lon/lat of undefined ports.")
-      #        unport <- unique(toXYa[[alt_var]])[which(unique(toXYa[[alt_var]]) %in% unique(port[[alt_var]]) == FALSE)]
-      #        dataset[[alt_var]] <- trimws(dataset[[alt_var]])
-      #        temp <- dataset[dataset[[alt_var]] %in% unport, ]
-#
-      #        temp <- data.frame(
-      #          unique(temp[[alt_var]]), tapply(temp[[lonlat[1]]], temp[[alt_var]], mean),
-      #          tapply(temp[[lonlat[2]]], temp[[alt_var]], mean)
-     #         )
-      #        colnames(temp) <- colnames(port)
-     #         port <- rbind(port, temp)
-      #      }
-          }
-
-          toXY1 <- merge(toXYa, port) # portLL(toXYa,:)
-
-
-          # toXY1 <- unique(toXY1)
-          # Data from list
-        } else {
-          toXYa <- data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn[which(dataZoneTrue == 1)]) # data.frame(dataset[[alt_var]][which(dataZoneTrue==1)])#  data[[altToLocal1]]data(v1).dataColumn(dataZoneTrue,:)
-          colnames(toXYa) <- c(alt_var)
-          # portLL <- data[[alt_var]].codeID[,2] # Extract lat long for selected port variable,
-          # cell2mat(data(v1).codeID(:,2)) # convert cell array to an ordinary array
-          temp <- data.frame(
-            unique(data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn)),
-            tapply(
-              data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn)[, 1],
-              data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn), mean
-            ),
-            tapply(
-              data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn)[, 2],
-              data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn), mean
-            )
-          )
-          colnames(temp) <- c(alt_var, "LON", "LAT")
-          toXY1 <- merge(toXYa, temp)
-        }
-        # Lat/Lon
+    units <- Alt[["altChoiceUnits"]]
+    
+    if (any(grepl("Port", alt_var, ignore.case = TRUE) == T)) {
+      pt <- data_pull(paste0(project, 'PortTable'))
+      if(exists('pt')){
+        ptname <- pt$dat
+        port <- pt$dataset
       } else {
-        # Data is from a dataframe or matrix
-        if (is.data.frame(dataset)) {
-          if (length(alt_var) < 2) {
-            warning("Please define both lat and long in alt_var parameter of create_alternative_choice function.")
-            x0 <- 1
+        "Port table not found in database. Check spelling and ensure port table is loaded into the FishSET database."
+      }
+    } else {
+      ptname <- NULL
+      port <- NULL
+    }
+    
+    if (is_empty(gridVariablesInclude)) {
+      gridVariablesInclude <- as.data.frame(matrix(1, nrow = nrow(choice), ncol = 1)) # max(as.numeric(as.factor(unlist(choice))))))
+    } else {
+      gridVariablesInclude
+    }
+    
+    if (is_empty(ExpectedCatch$newDumV)) {
+      newDumV <- 1
+    } else {
+      newDumV <- ExpectedCatch[["newDumV"]]
+      # bCHeader <- list(bCHeader, newDumV)
+    }
+    #
+    if (is_empty(indeVarsForModel)) {
+      bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, indeVarsForModel = as.data.frame(rep(1, nrow(choice))))
+      #    bColumnsWant <- ""
+      #    bInterAct <- ""
+    } else {
+      if (any(indeVarsForModel %in% c("Miles * Miles", "Miles*Miles, Miles x Miles"),
+              ignore.case = TRUE
+      )) {
+        bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, lapply(indeVarsForModel[-1], function(x) dataset[[x]][which(dataZoneTrue == 1)]))
+      } else {
+        bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, lapply(indeVarsForModel, function(x) dataset[[x]][which(dataZoneTrue == 1)]))
+      }
+    }
+    
+    
+    ################### 
+    #Steps if alternative matrix come from gridded data file 
+    #The distance matrix is the gridded data file
+    if (exists(Alt[["matrix"]])) {
+      X <- Alt[["matrix"]]
+      
+      altChoiceUnits <- Alt[["altChoiceUnits"]]
+      
+      #Identify if using centroid or other for altToLocal2
+      allZP <- dataset[, grep("AREA|zone", colnames(dataset), ignore.case =T)[1]] # get zonal type variables
+      if (all(is.null(allZP)) || Alt[["alt_var"]] > length(allZP)) {
+        v2 <- 0 # zonal centroid
+      } else {
+        v2 <- allZP(Alt[["alt_var"]]) #
+      }
+      if (v2 == 0) {
+        altToLocal1 <- ""
+        altToLocal2 <- "Centroid of Zonal Assignment"
+      } else {
+        altToLocal1 <- ""
+        altToLocal2 <- alt_var
+      }
+      altChoiceType <- "loaded grid data matrix"
+      B <- Alt[["zoneRow"]]
+      choiceZ <- ""
+      # End Grid Matrix
+    } else {
+      
+      # steps if alternative matrix comes from loaded data (expectations)
+      ##### ---Begin Alt Var--###
+      if (any(grepl("zon", alt_var, ignore.case = T))) {
+        # (alt_var==c('Zonal centroid')){ #(v1==0){ #Zonal centroid toXY1 <-
+        # assignmentColumn()
+        # #M.CentroidArcView(grindInfo['assignmentColumn',,][which(dataZoneTrue==1)])
+        # #gridInfo.assignmentColumn(dataZoneTrue),:) # toXY1 <-
+        # toXY1[,c('cent.long','cen.lat','ID')][which(is.data.frame(dataZoneTrue)==1)]
+        temp <- as.matrix(dataset[["ZoneID"]])
+        colnames(temp) <- "ZoneID"
+        temp <- merge(temp, int)
+        toXY1 <- temp[which(dataZoneTrue == 1), 2:3]
+        
+        altToLocal1 <- "Centroid of Zonal Assignment"
+      } else {
+        # Port (isfield(data,'isPort') && data(v1).isPort){ Data from dataframe
+        if (any(grepl("Port", alt_var, ignore.case = TRUE) == T)) {
+          if (is.data.frame(dataset)) {
+            if (any(is_empty(dataset[[alt_var]]))) {
+              warning("alt_var does not exist in dataset")
+              end <- TRUE
+            }
+            
+            toXYa <- data.frame(dataset[[alt_var]][which(dataZoneTrue == 1)]) #  data[[altToLocal1]]data(v1).dataColumn(dataZoneTrue,:)      #subset data to when dataZoneTrue==1
+            
+            colnames(toXYa) <- c(alt_var)
+            toXYa[[alt_var]] <- trimws(toXYa[[alt_var]])
+            colnames(port)[1] <- alt_var
+            port[[alt_var]] <- trimws(port[[alt_var]])
+            
+            
+            
+            if (any(unique(toXYa[[alt_var]]) %in% unique(port[[alt_var]]) == FALSE)) {
+              #     if (any(is_empty(lonlat))) {
+              warning("At least one port not included in PortTable.") #Specify starting lat/lon in lonlat variable to use mean lat/lon.")
+              end <- TRUE
+              #      } else {
+              #        warning("At least one port not included in PortTable. 
+              #                Using vessel lon/lat at", alt_var, "to calculate mean lon/lat of undefined ports.")
+              #        unport <- unique(toXYa[[alt_var]])[which(unique(toXYa[[alt_var]]) %in% unique(port[[alt_var]]) == FALSE)]
+              #        dataset[[alt_var]] <- trimws(dataset[[alt_var]])
+              #        temp <- dataset[dataset[[alt_var]] %in% unport, ]
+              #
+              #        temp <- data.frame(
+              #          unique(temp[[alt_var]]), tapply(temp[[lonlat[1]]], temp[[alt_var]], mean),
+              #          tapply(temp[[lonlat[2]]], temp[[alt_var]], mean)
+              #         )
+              #        colnames(temp) <- colnames(port)
+              #         port <- rbind(port, temp)
+              #      }
+            }
+            
+            toXY1 <- merge(toXYa, port) # portLL(toXYa,:)
+            
+            
+            # toXY1 <- unique(toXY1)
+            # Data from list
+          } else {
+            toXYa <- data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn[which(dataZoneTrue == 1)]) # data.frame(dataset[[alt_var]][which(dataZoneTrue==1)])#  data[[altToLocal1]]data(v1).dataColumn(dataZoneTrue,:)
+            colnames(toXYa) <- c(alt_var)
+            # portLL <- data[[alt_var]].codeID[,2] # Extract lat long for selected port variable,
+            # cell2mat(data(v1).codeID(:,2)) # convert cell array to an ordinary array
+            temp <- data.frame(
+              unique(data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn)),
+              tapply(
+                data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn)[, 1],
+                data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn), mean
+              ),
+              tapply(
+                data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn)[, 2],
+                data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn), mean
+              )
+            )
+            colnames(temp) <- c(alt_var, "LON", "LAT")
+            toXY1 <- merge(toXYa, temp)
           }
+          # Lat/Lon
+        } else {
+          # Data is from a dataframe or matrix
+          if (is.data.frame(dataset)) {
+            if (length(alt_var) < 2) {
+              warning("Please define both lat and long in alt_var parameter of create_alternative_choice function.")
+              end <- TRUE
+            }
             toXY1 <- data.frame(
               dataset[[alt_var[1]]][which(dataZoneTrue == 1)],
               dataset[[alt_var[2]]][which(dataZoneTrue == 1)]
             )
           } else {
-           toXY1 <- dataset[[alt_var]][which(dataZoneTrue == 1)]
-           
-          # Data from a list
-        } #else {
+            toXY1 <- dataset[[alt_var]][which(dataZoneTrue == 1)]
+            
+            # Data from a list
+          } #else {
           #toXY1 <- data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn)[which(dataZoneTrue == 1), ] # data.frame(dataset[[alt_var]][which(dataZoneTrue==1)])#  data[[altToLocal1]]data(v1).dataColumn(dataZoneTrue,:)      #subset data to when dataZoneTrue==1
-       # }
+          # }
+        }
+        altToLocal1 <- alt_var
       }
-      altToLocal1 <- alt_var
-    }
-    ### --End Alt Var---###
-    #### ---Begin Occasion Var--##
-    if (any(grepl("zon|cent", occasion, ignore.case = T))) {
-      # (v2==0){ #Zonal centroid [B,I,choiceZ] <-
-      # unique(gridInfo.assignmentColumn(dataZoneTrue))#
-      B <- int[int$ZoneID %in% unique(choice[which(dataZoneTrue == 1), ]), 1]
-      choiceZ <- match(int$ZoneID[which(dataZoneTrue == 1)], unique(int$ZoneID[which(dataZoneTrue == 1)]))
-
-      centersZone <- int[int$ZoneID %in% unique(choice[which(dataZoneTrue == 1), ]), 2:3] # M.CentroidArcView[B,] #Lat and Long
-      altToLocal2 <- "Centroid of Zonal Assignment"
-    } else {
-      if (is.data.frame(dataset)) {
-        if (length(occasion) < 2) {
-          warning("Please define both lat and long in parameter variable of create_alternative_choice function.")
-          x0 <- 1
-        }
-
-        if (any(is_empty(dataset[[occasion[1]]]))) {
-          warning("Occasion does not exist in dataset")
-          x0 <- 1
-        }
-        if (any(is_empty(dataset[[occasion[2]]]))) {
-          warning("Occasion does not exist in dataset")
-          x0 <- 1
-        }
-        toXY2 <- data.frame(
-          dataset[[occasion[1]]][which(dataZoneTrue == 1)],
-          dataset[[occasion[2]]][which(dataZoneTrue == 1)]
-        )
+      ### --End Alt Var---###
+      #### ---Begin Occasion Var--##
+      if (any(grepl("zon|cent", occasion, ignore.case = T))) {
+        # (v2==0){ #Zonal centroid [B,I,choiceZ] <-
+        # unique(gridInfo.assignmentColumn(dataZoneTrue))#
+        B <- int[int$ZoneID %in% unique(choice[which(dataZoneTrue == 1), ]), 1]
+        choiceZ <- match(int$ZoneID[which(dataZoneTrue == 1)], unique(int$ZoneID[which(dataZoneTrue == 1)]))
+        
+        centersZone <- int[int$ZoneID %in% unique(choice[which(dataZoneTrue == 1), ]), 2:3] # M.CentroidArcView[B,] #Lat and Long
+        altToLocal2 <- "Centroid of Zonal Assignment"
       } else {
-        toXY2 <- dataset[[occasion]][which(dataZoneTrue == 1)] # MUST be a LAT/LONG data(v2).dataColumn(dataZoneTrue,:)
+        if (is.data.frame(dataset)) {
+          if (length(occasion) < 2) {
+            warning("Please define both lat and long in parameter variable of create_alternative_choice function.")
+            end <- TRUE
+          }
+          
+          if (any(is_empty(dataset[[occasion[1]]]))) {
+            warning("Occasion does not exist in dataset")
+            end <- TRUE
+          }
+          if (any(is_empty(dataset[[occasion[2]]]))) {
+            warning("Occasion does not exist in dataset")
+            end <- TRUE
+          }
+          toXY2 <- data.frame(
+            dataset[[occasion[1]]][which(dataZoneTrue == 1)],
+            dataset[[occasion[2]]][which(dataZoneTrue == 1)]
+          )
+        } else {
+          toXY2 <- dataset[[occasion]][which(dataZoneTrue == 1)] # MUST be a LAT/LONG data(v2).dataColumn(dataZoneTrue,:)
+        }
+        # [Bb,I,choiceZ] <-
+        # unique(cbind(gridInfo['assignmentColumn',,][which(dataZoneTrue==1)],toXY),'rows')
+        # #unique([gridInfo.assignmentColumn(dataZoneTrue),toXY],'rows')#
+        Bb <- unique(cbind(data.frame(choice[which(dataZoneTrue == 1), ]), data.frame(toXY2)))
+        B <- Bb[, 1] # Assignment column
+        centersZone <- Bb[, 2:3] # Latitude aned Longitude
+        altToLocal2 <- occasion
+      } ## -End Occasion Var--##
+    } # End From loaded data
+    
+    ## ------ Generate Distance Matrix ----##
+    # Test for potential issues with data
+    if (any(do.call(cbind, lapply(toXY1, is.nan)))) {
+      warning(paste("NaN found in ", altToLocal1, ". Design file aborted."))
+      end <- TRUE
+    }
+    if (any(do.call(cbind, lapply(centersZone, is.nan)))) {
+      warning(paste("NaN found in ", altToLocal2, ". Design file aborted."))
+      end <- TRUE
+    }
+    
+    if (end == FALSE) {
+      # Generate distances using distm function [distAll,!,!] <-
+      # #m_idist(toXY1[q,1],toXY1[q,2], centersZone[,1], centersZone[,2])
+      if (dim(toXY1)[2] > 2) {
+        toXY1[, 2] <- as.numeric(toXY1[, 2])
+        toXY1[, 3] <- as.numeric(toXY1[, 3])
+        distMatrix <- geosphere::distm(toXY1[, 2:3], centersZone[, 1:2])
+      } else {
+        toXY1[, 1] <- as.numeric(toXY1[, 1])
+        toXY1[, 2] <- as.numeric(toXY1[, 2])
+        distMatrix <- geosphere::distm(toXY1[, 1:2], centersZone[, 1:2])
       }
-      # [Bb,I,choiceZ] <-
-      # unique(cbind(gridInfo['assignmentColumn',,][which(dataZoneTrue==1)],toXY),'rows')
-      # #unique([gridInfo.assignmentColumn(dataZoneTrue),toXY],'rows')#
-      Bb <- unique(cbind(data.frame(choice[which(dataZoneTrue == 1), ]), data.frame(toXY2)))
-      B <- Bb[, 1] # Assignment column
-      centersZone <- Bb[, 2:3] # Latitude aned Longitude
-      altToLocal2 <- occasion
-    } ## -End Occasion Var--##
-  } # End From loaded data
-
-  ## ------ Generate Distance Matrix ----##
-  # Test for potential issues with data
-  if (any(do.call(cbind, lapply(toXY1, is.nan)))) {
-    warning(paste("NaN found in ", altToLocal1, ". Design file aborted."))
-    x0 <- 1
-  }
-  if (any(do.call(cbind, lapply(centersZone, is.nan)))) {
-    warning(paste("NaN found in ", altToLocal2, ". Design file aborted."))
-    x0 <- 1
-  }
-
-  if (x0 == 0) {
-    # Generate distances using distm function [distAll,!,!] <-
-    # #m_idist(toXY1[q,1],toXY1[q,2], centersZone[,1], centersZone[,2])
-    if (dim(toXY1)[2] > 2) {
-      toXY1[, 2] <- as.numeric(toXY1[, 2])
-      toXY1[, 3] <- as.numeric(toXY1[, 3])
-      distMatrix <- geosphere::distm(toXY1[, 2:3], centersZone[, 1:2])
-    } else {
-      toXY1[, 1] <- as.numeric(toXY1[, 1])
-      toXY1[, 2] <- as.numeric(toXY1[, 2])
-      distMatrix <- geosphere::distm(toXY1[, 1:2], centersZone[, 1:2])
+      
+      altChoiceType <- "distance"
+      
+      if (Alt[["altChoiceUnits"]] %in% c("meters", "M", "m")) {
+        X <- distMatrix
+        altChoiceUnits <- "meters"
+      } else if (Alt[["altChoiceUnits"]] %in% c("kilometers", "KM", "km")) {
+        X <- distMatrix / 1000
+        altChoiceUnits <- "kilometers"
+      } else if (Alt[["altChoiceUnits"]] == "miles") {
+        X <- distMatrix * 0.000621371192237334 # meter* miles/meter
+        altChoiceUnits <- "miles"
+      }
+      
+      
+      
+      
+      ### ---- add special terms: ----### add only for EPM model
+      catch <- dataset[which(dataZoneTrue == 1), as.vector(catchID)]
+      r <- nchar(sub("\\.[0-9]+", "", max(catch, na.rm = T)))
+      yscale <- 10^(r - 1)
+      
+      
+      # Some models need price data
+      if (is_empty(priceCol) || is.null(priceCol) || priceCol == "") {
+        epmDefaultPrice <- ""
+      } else {
+        epmDefaultPrice <- dataset[which(dataZoneTrue == 1), as.character(priceCol)]
+      }
+      
+      # scales zonal
+      r <- nchar(sub("\\.[0-9]+", "", max(max(X, na.rm = T), na.rm = T)))
+      mscale <- 10^(r - 1)
+      
+      # scales data r in
+      # regexp(arrayfun(@num2str,nanmax(dataPerZone),'UniformOutput',false),'\\.','split')){){
+      # dscale <- cellfun(@(x) 10^length(x{1}-1),r)
+      dscale <- 1
+      
+      ### -- Create output list --- ###
+      modelInputData_tosave <- list(
+        likelihood = likelihood,
+        catch = catch,
+        choice = choice[which(dataZoneTrue == 1), ],
+        initparams = initparams, 
+        optimOpt = optimOpt, 
+        methodname = methodname, 
+        mod.name  = mod.name,
+        startingloc = startingloc[which(dataZoneTrue == 1)],
+        scales = c(catch = yscale, zonal = mscale, data = dscale),
+        distance = X,
+        instances = dim(X)[1],
+        alts = dim(X)[2],
+        epmDefaultPrice = epmDefaultPrice,
+        dataZoneTrue <- dataZoneTrue,
+        typeOfNecessary = Alt[["zoneType"]],
+        altChoiceType = altChoiceType,
+        altChoiceUnits = altChoiceUnits,
+        altToLocal1 = altToLocal1,
+        altToLocal2 = altToLocal2,
+        bCHeader = bCHeader,
+        startloc = startloc,
+        polyn = polyn,
+        gridVaryingVariables = ExpectedCatch
+      )
+      
+      single_sql <- paste0(project, "modelinputdata")
+      date_sql <- paste0(project, "modelinputdata", format(Sys.Date(), format = "%Y%m%d"))
+      if (table_exists(single_sql) & replace == FALSE) {
+        # modelInputData <- table_view()
+        modelInputData <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
+        modelInputData[[length(modelInputData) + 1]] <- modelInputData_tosave
+      } else {
+        modelInputData <- list()
+        modelInputData[[length(modelInputData) + 1]] <- modelInputData_tosave
+      }
+      
+      single_sql <- paste0(project, "modelinputdata")
+      if (table_exists(single_sql)) {
+        table_remove(single_sql)
+      }
+      if (table_exists(date_sql)) {
+        table_remove(date_sql)
+      }
+      
+      DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(ModelInputData MODELINPUTDATA)"))
+      DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:ModelInputData)"),
+                     params = list(ModelInputData = list(serialize(modelInputData, NULL)))
+      )
+      DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", date_sql, "(ModelInputData MODELINPUTDATA)"))
+      DBI::dbExecute(fishset_db, paste("INSERT INTO", date_sql, "VALUES (:ModelInputData)"),
+                     params = list(ModelInputData = list(serialize(modelInputData, NULL)))
+      )
+      DBI::dbDisconnect(fishset_db)
+      
+      
+      make_model_design_function <- list()
+      make_model_design_function$functionID <- "make_model_design"
+      make_model_design_function$args <- list(
+        project, catchID, replace, ptname, likelihood,
+        initparams, optimOpt, methodname, as.character(mod.name), 
+        vars1, vars2, priceCol, startloc, polyn
+      )
+      make_model_design_function$kwargs <- list()
+      
+      log_call(make_model_design_function)
     }
-
-    altChoiceType <- "distance"
-
-    if (Alt[["altChoiceUnits"]] %in% c("meters", "M", "m")) {
-      X <- distMatrix
-      altChoiceUnits <- "meters"
-    } else if (Alt[["altChoiceUnits"]] %in% c("kilometers", "KM", "km")) {
-      X <- distMatrix / 1000
-      altChoiceUnits <- "kilometers"
-    } else if (Alt[["altChoiceUnits"]] == "miles") {
-      X <- distMatrix * 0.000621371192237334 # meter* miles/meter
-      altChoiceUnits <- "miles"
-    }
-
-
-
-
-    ### ---- add special terms: ----### add only for EPM model
-    catch <- dataset[which(dataZoneTrue == 1), as.vector(catchID)]
-    r <- nchar(sub("\\.[0-9]+", "", max(catch, na.rm = T)))
-    yscale <- 10^(r - 1)
-
-
-    # Some models need price data
-    if (is_empty(priceCol) || is.null(priceCol) || priceCol == "") {
-      epmDefaultPrice <- ""
-    } else {
-      epmDefaultPrice <- dataset[which(dataZoneTrue == 1), as.character(priceCol)]
-    }
-
-    # scales zonal
-    r <- nchar(sub("\\.[0-9]+", "", max(max(X, na.rm = T), na.rm = T)))
-    mscale <- 10^(r - 1)
-
-    # scales data r in
-    # regexp(arrayfun(@num2str,nanmax(dataPerZone),'UniformOutput',false),'\\.','split')){){
-    # dscale <- cellfun(@(x) 10^length(x{1}-1),r)
-    dscale <- 1
-
-    ### -- Create output list --- ###
-    modelInputData_tosave <- list(
-      likelihood = likelihood,
-      catch = catch,
-      choice = choice[which(dataZoneTrue == 1), ],
-      initparams = initparams, 
-      optimOpt = optimOpt, 
-      methodname = methodname, 
-      mod.name  = mod.name,
-      startingloc = startingloc[which(dataZoneTrue == 1)],
-      scales = c(catch = yscale, zonal = mscale, data = dscale),
-      distance = X,
-      instances = dim(X)[1],
-      alts = dim(X)[2],
-      epmDefaultPrice = epmDefaultPrice,
-      dataZoneTrue <- dataZoneTrue,
-      typeOfNecessary = Alt[["zoneType"]],
-      altChoiceType = altChoiceType,
-      altChoiceUnits = altChoiceUnits,
-      altToLocal1 = altToLocal1,
-      altToLocal2 = altToLocal2,
-      bCHeader = bCHeader,
-      startloc = startloc,
-      polyn = polyn,
-      gridVaryingVariables = ExpectedCatch
-    )
-
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
-    single_sql <- paste0(project, "modelinputdata")
-    date_sql <- paste0(project, "modelinputdata", format(Sys.Date(), format = "%Y%m%d"))
-    if (table_exists(single_sql) & replace == FALSE) {
-      # modelInputData <- table_view()
-      modelInputData <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
-      modelInputData[[length(modelInputData) + 1]] <- modelInputData_tosave
-    } else {
-      modelInputData <- list()
-      modelInputData[[length(modelInputData) + 1]] <- modelInputData_tosave
-    }
-
-    single_sql <- paste0(project, "modelinputdata")
-    if (table_exists(single_sql)) {
-      table_remove(single_sql)
-    }
-    if (table_exists(date_sql)) {
-      table_remove(date_sql)
-    }
-
-    DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(ModelInputData MODELINPUTDATA)"))
-    DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:ModelInputData)"),
-      params = list(ModelInputData = list(serialize(modelInputData, NULL)))
-    )
-    DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", date_sql, "(ModelInputData MODELINPUTDATA)"))
-    DBI::dbExecute(fishset_db, paste("INSERT INTO", date_sql, "VALUES (:ModelInputData)"),
-      params = list(ModelInputData = list(serialize(modelInputData, NULL)))
-    )
-    DBI::dbDisconnect(fishset_db)
-
-
-    make_model_design_function <- list()
-    make_model_design_function$functionID <- "make_model_design"
-    make_model_design_function$args <- list(
-      dat, project, catchID, replace, ptname, likelihood,
-      initparams, optimOpt, methodname, as.character(mod.name), 
-      vars1, vars2, priceCol, startloc, polyn
-    )
-    make_model_design_function$kwargs <- list()
-
-    log_call(make_model_design_function)
   }
 }

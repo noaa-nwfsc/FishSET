@@ -649,7 +649,7 @@ function_summary <- function(date = NULL, type = "dat_load", show = "all") {
 
   dat_exploration <- c(
     "map_plot", "map_kernel", "getis_ord_stats", "moran_stats", "temp_plot", 
-    "xy_plot", "corr_out"
+    "xy_plot", "corr_out", "map_viewer"
   )
 
   fleet <- c(
