@@ -37,115 +37,92 @@
 
 changeclass <- function(dat, project, x=NULL, newclass=NULL, savedat=FALSE){
 
-# Call in datasets
+  # Call in datasets
   out <- data_pull(dat)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
-
   #change data
-    #Conversion is based on starting and ending class
-if(!is.null(x)){
-  origclass <- sapply(x, function(v) class(dataset[[v]]))
-  origclass <- toupper(origclass)
-}
-if(!is.null(newclass)){
-  newclass <- toupper(newclass)
-}
+  #Conversion is based on starting and ending class
+  if (!is.null(x)) {
+    origclass <- vapply(x, function(v) class(dataset[[v]]), FUN.VALUE = character(1))
+    origclass <- toupper(origclass)
+  }
+  
+  if (!is.null(newclass)) newclass <- toupper(newclass)
+  
+  cd_n <-  names(which((origclass == "CHARACTER" | origclass == "DATE") & (newclass=="NUMERIC")))
+  f_n <- names(which((origclass == "FACTOR") & (newclass=="NUMERIC")))
+  n_c <- names(which((origclass == "NUMERIC") & (newclass=="CHARACTER")))
+  f_c <- names(which((origclass == "FACTOR") & (newclass=="CHARACTER")))
+  d_c <- names(which((origclass == "DATE") & (newclass=="CHARACTER")))
+  ncd_f <- names(which((origclass == "NUMERIC" | origclass == "CHARACTER" | origclass == "DATE") & (newclass=="FACTOR")))
+  ncf_d <- names(which((origclass == "NUMERIC" | origclass == "CHARACTER" | origclass == "FACTOR") & (newclass=="DATE")))
   
   #Change to numeric
-    #from character and date
-      if(length(which((origclass == 'CHARACTER' | origclass == 'DATE') & (newclass=='NUMERIC')))==1){
-          dataset[,names(which((origclass=='CHARACTER'|origclass=='DATE')&(newclass=='NUMERIC')))] <- 
-            as.numeric(dataset[,names(which((origclass=='CHARACTER'|origclass=='DATE')&(newclass=='NUMERIC')))])
-      }
-      if(length(which((origclass == 'CHARACTER' | origclass == 'DATE') & (newclass=='NUMERIC')))>1){
-          dataset[,names(which((origclass=='CHARACTER'|origclass=='DATE')&(newclass=='NUMERIC')))] <- 
-            apply(dataset[,names(which((origclass=='CHARACTER'|origclass=='DATE')&(newclass=='NUMERIC')))], 2, function(x) as.numeric(x))
-      }
-    #from factor
-      if(length(which((origclass == 'FACTOR')&(newclass=='NUMERIC')))>1){
-        dataset[,names(which((origclass=='FACTOR')&(newclass=='NUMERIC')))] <- 
-          apply(dataset[,names(which((origclass=='FACTOR')&(newclass=='NUMERIC')))], 2, function(x) as.numeric(as.character(x)))
-      }
-      if(length(which((origclass == 'FACTOR')&(newclass=='NUMERIC')))==1){
-        dataset[,names(which((origclass=='FACTOR')&(newclass=='NUMERIC')))] <- 
-          as.numeric(dataset[,names(which((origclass=='FACTOR')&(newclass=='NUMERIC')))])
-      }
-
+  #from character and date
+  if (length(cd_n) > 0) {
+    
+    dataset[cd_n] <- lapply(cd_n, function(x) as.numeric(dataset[[x]]))
+  }
+  
+  #from factor
+  if (length(f_n) > 0) {
+    
+    #dataset[f_n] <- lapply(names(f_n), function(x) as.numeric(as.character(dataset[[x]])))
+    dataset[f_n] <- lapply(f_n, function(x) as.numeric(levels(dataset[[x]]))[dataset[[x]]])
+  }
+  
   #Change to character    
-    #numeric
-    if(length(which((origclass == 'NUMERIC')&(newclass=='CHARACTER')))>1){
-      dataset[,names(which((origclass=='NUMERIC')&(newclass=='CHARACTER')))] <- 
-        apply(dataset[,names(which((origclass=='NUMERIC')&(newclass=='CHARACTER')))], 2, function(x) as.character(x))
-    }
-    if(length(which((origclass == 'NUMERIC')&(newclass=='CHARACTER')))==1){
-      dataset[,names(which((origclass=='NUMERIC')&(newclass=='CHARACTER')))] <- 
-        as.character(dataset[,names(which((origclass=='NUMERIC')&(newclass=='CHARACTER')))])
-    }
-    #factor
-    if(length(which((origclass == 'FACTOR')&(newclass=='CHARACTER')))>1){
-      dataset[,names(which((origclass=='FACTOR')&(newclass=='CHARACTER')))] <- 
-        apply(dataset[,names(which((origclass=='FACTOR')&(newclass=='CHARACTER')))], 2, function(x) as.character.factor(x))
-    }
-    if(length(which((origclass == 'FACTOR')&(newclass=='CHARACTER')))==1){
-      dataset[,names(which((origclass=='FACTOR')&(newclass=='CHARACTER')))] <- 
-        as.character.factor(dataset[,names(which((origclass=='FACTOR')&(newclass=='CHARACTER')))])
-    }
-    #date
-    if(length(which((origclass == 'DATE')&(newclass=='CHARACTER')))>1){
-      dataset[,names(which((origclass=='DATE')&(newclass=='CHARACTER')))] <- 
-        apply(dataset[,names(which((origclass=='DATE')&(newclass=='CHARACTER')))], 2, function(x) as.character.Date(x))
-    }
-    if(length(which((origclass == 'DATE')&(newclass=='CHARACTER')))==1){
-      dataset[,names(which((origclass=='DATE')&(newclass=='CHARACTER')))] <- 
-        as.character.Date(dataset[,names(which((origclass=='DATE')&(newclass=='CHARACTER')))])
-    }
-
+  #numeric
+  if (length(n_c) > 0) {
+    
+    dataset[n_c] <- lapply(n_c, function(x) as.character(dataset[[x]]))
+  }
+  
+  #factor
+  if (length(f_c) > 0) {
+    
+    dataset[f_c] <- lapply(f_c, function(x) as.character.factor(dataset[[x]]))
+  }
+  
+  #date
+  if (length(d_c) > 0) {
+    
+    dataset[d_c] <- lapply(d_c, function(x) as.character.Date(dataset[[x]]))
+  }
+  
   #Change to factor
-    #numeric, character, date
-    if(length(which((origclass == 'NUMERIC' | origclass == 'CHARACTER' | origclass == 'DATE') & (newclass=='FACTOR')))==1){
-      dataset[,names(which((origclass == 'NUMERIC' | origclass=='CHARACTER'|origclass=='DATE') & (newclass=='FACTOR')))] <- 
-        as.factor(dataset[,names(which((origclass == 'NUMERIC' | origclass=='CHARACTER'|origclass=='DATE') & (newclass=='FACTOR')))])
-    }
-    if(length(which((origclass == 'NUMERIC' | origclass == 'CHARACTER' | origclass == 'DATE') & (newclass=='FACTOR')))>1){
-      g <- names(which((origclass=='NUMERIC'| origclass == 'CHARACTER' | origclass == 'DATE') & (newclass=='FACTOR')))
-      for(i in 1:length(g)){
-        dataset[,g[i]] <- as.factor(dataset[,g[i]])
-      }
-    }
-
+  #numeric, character, date
+  if (length(ncd_f) > 0) {
+    
+    dataset[ncd_f] <- lapply(ncd_f, function(x) as.factor(dataset[[x]]))
+  }
+  
   #Change to date  
-    #numeric  #character #factor
-    #as.Date.numeric(x)
-    if(length(which((origclass == 'NUMERIC' | origclass == 'CHARACTER' | origclass == 'FACTOR') & (newclass=='DATE')))==1){
-      dataset[,names(which((origclass=='NUMERIC'| origclass == 'CHARACTER' | origclass == 'FACTOR') & (newclass=='DATE')))] <- 
-        as.POSIXct(dataset[,names(which((origclass=='NUMERIC'| origclass == 'CHARACTER' | origclass == 'FACTOR') & (newclass=='DATE')))])
-    }
-    if(length(which((origclass == 'NUMERIC'| origclass == 'CHARACTER' | origclass == 'FACTOR') & (newclass=='DATE'))) > 1){
-      g <- names(which((origclass=='NUMERIC'| origclass == 'CHARACTER' | origclass == 'FACTOR') & (newclass=='DATE')))
-      for(i in 1:length(g)){
-      dataset[,g[i]] <- as.POSIXct(dataset[,g[i]])
-      }
-    }
- 
-
-#Print table  
-  if(any(newclass == "DATE")){
+  #numeric  #character #factor
+  #as.Date.numeric(x)
+  if (length(ncf_d) > 0) {
+    
+    dataset[ncf_d] <- lapply(ncf_d, function(x) as.POSIXct(dataset[[x]]))
+  }
+  
+  #Print table  
+  if (any(newclass == "DATE")) {
+    
     temp <- as.data.frame(sapply(dataset, class))[2, ] 
     temp <- droplevels(temp)
-    g <- data.frame(cbind(t(temp), t(dataset[1,])))
-    colnames(g)=c('Class', 'Value')
+    g <- data.frame(cbind(t(temp), t(dataset[1, ])))
+    colnames(g)=c("Class", "Value")
     print(g)
   } else {
-   g<- as.data.frame(cbind(sapply(dataset, class), t(dataset[1,])))
-   colnames(g) = c('Class', 'Value')
+    g <- as.data.frame(cbind(sapply(dataset, class), t(dataset[1, ])))
+    colnames(g) = c("Class", "Value")
     print(g)
   }
-
-
+  
   #save data
-  if(savedat==TRUE & (is.null(x) & is.null(newclass)) == FALSE){
+  if(savedat == TRUE & (is.null(x) & is.null(newclass)) == FALSE){
     suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
     DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable"), dataset, overwrite = TRUE)
     DBI::dbDisconnect(fishset_db)
@@ -157,7 +134,7 @@ if(!is.null(newclass)){
   changeclass_function$args <- list(dat, project, x, newclass, savedat)
   log_call(changeclass_function)
   
-  if((is.null(x) & is.null(newclass)) == FALSE){
-  return(dataset)
+  if ((is.null(x) & is.null(newclass)) == FALSE) {
+    return(dataset)
   }
 }
