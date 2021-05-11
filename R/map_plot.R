@@ -24,35 +24,30 @@ map_plot <- function(dat, project, lat, lon, minmax = NULL, percshown = NULL) {
   requireNamespace("ggplot2")
   world <- ggplot2::map_data("world")
 
-
   # Call in datasets
   out <- data_pull(dat)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
-  x <- 0
+  end <- FALSE
 
   if (any(abs(dataset[[lon]]) > 180)) {
     warning("Longitude is not valid (outside -180:180). Function not run.")
-    x <- 1
+    end <- TRUE
   }
   if (any(abs(dataset[[lat]]) > 90)) {
     warning("Latitude is not valid (outside -90:90. Function not run.")
-    x <- 1
+    end <- TRUE
   }
 
-
-
-  if (x == 0) {
+  if (end == FALSE) {
     datatomap <- as.data.frame(cbind(dataset[[lat]], dataset[[lon]]))
     colnames(datatomap) <- c("lat", "lon")
 
     if (!is.null(percshown)) {
       datatomap <- datatomap[sample(nrow(datatomap), nrow(datatomap) / percshown), ]
     }
-  }
 
-  if (x == 0) {
     if (is.null(minmax)) {
       if (min(datatomap$lat) < 0 & max(datatomap$lat) < 0) {
         minlat <- min(datatomap$lat) * 1.005
@@ -87,48 +82,45 @@ map_plot <- function(dat, project, lat, lon, minmax = NULL, percshown = NULL) {
         warning("Variable minmax wrong dimensions")
       }
     }
+
+    if (is.null(percshown)) {
+      gptitle <- "Observed locations"
+    } else {
+      gptitle <- paste0("Observed locations. ", percshown, "% of points shown.")
+    }
+    
+    cf <- ggplot2::coord_fixed()
+    cf$default <- TRUE
+  
+    m_plot <- 
+      ggplot2::ggplot() +
+      ggplot2::geom_map(data = world, map = world, 
+                        ggplot2::aes(map_id = region), 
+                        fill = "grey", color = "black", size = 0.375) +
+      ggplot2::geom_point(data = datatomap, ggplot2::aes(x = lon, y = lat), 
+                          size = 1, alpha = 0.25, color = "red") +
+      cf + ggplot2::coord_fixed(xlim = c(minlon, maxlon), ylim = c(minlat, maxlat), 
+                                ratio=1.3, expand = TRUE) +
+      # ggplot2::xlim(minlon, maxlon) +
+      # ggplot2::ylim(minlat, maxlat) +
+      ggplot2::labs(title = gptitle, x = "Longitude", y = "Latitude") +
+      ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size = 10))) +
+      ggplot2::theme(panel.grid.major = ggplot2::element_blank(), 
+                     panel.grid.minor = ggplot2::element_blank(), 
+                     panel.background = ggplot2::element_blank(),  
+                     axis.text=ggplot2::element_text(size=12),
+                     axis.title=ggplot2::element_text(size=12),
+                     panel.border = ggplot2::element_rect(colour = "black", fill = NA, size = 1))
+  
+    # Log the function
+    map_plot_function <- list()
+    map_plot_function$functionID <- "map_plot"
+    map_plot_function$args <- list(dat, project, lat, lon, minmax, percshown)
+    log_call(map_plot_function)
+  
+    # Save output
+    save_plot(project, "map_plot")
+  
+    m_plot
   }
-
-  if (is.null(percshown)) {
-    gptitle <- "Observed locations"
-  } else {
-    gptitle <- paste0("Observed locations. ", percshown, "% of points shown.")
-  }
-
-  plot <- ggplot2::ggplot() +
-    ggplot2::geom_map(
-      data = world, map = world, ggplot2::aes(x = world$long, y = world$lat, map_id = world$region), fill = "grey", color = "black",
-      size = 0.375
-    ) +
-    ggplot2::geom_point(data = datatomap, ggplot2::aes(x = lon, y = lat), size = 1, alpha = 0.25, color = "red") +
-    ggplot2::xlim(
-      minlon,
-      maxlon
-    ) +
-    ggplot2::ylim(minlat, maxlat) +
-    ggplot2::ggtitle(gptitle) +
-    ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size = 10))) +
-    ggplot2::theme(
-      text = ggplot2::element_text(size = 12), axis.title.y = ggplot2::element_text(vjust = 1.5), legend.title = ggplot2::element_blank(),
-      panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), panel.background = ggplot2::element_blank(), panel.border = ggplot2::element_rect(
-        colour = "black",
-        fill = NA, size = 1
-      )
-    ) +
-    ggplot2::xlab("Longitude") +
-    ggplot2::ylab("Latitude")
-
-
-  # Log the function
-
-  map_plot_function <- list()
-  map_plot_function$functionID <- "map_plot"
-  map_plot_function$args <- list(dat, project, lat, lon, minmax, percshown)
-  log_call(map_plot_function)
-
-  # Save output
-
-  save_plot(project, "map_plot")
-
-  plot
 }
