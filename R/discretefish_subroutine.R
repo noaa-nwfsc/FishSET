@@ -93,10 +93,13 @@
 discretefish_subroutine <- function(project, select.model = FALSE) {
   
   end <- FALSE
-  check <- checklist(project)
   
-  end <- any(vapply(check, function(x) x$pass == FALSE, logical(1)))
-  
+  if (!isRunning()) { # if run in console
+    
+    check <- checklist(project)
+    end <- any(vapply(check, function(x) x$pass == FALSE, logical(1)))
+  }
+ 
   if (end == FALSE) {
     
     # Call in datasets
