@@ -3455,9 +3455,9 @@ set_confid_check(check = FALSE)
         tags$div(style="display:inline-block;", x)
       }
       
-      # enable model saving if final table exists
+      # enable run model (modal) button if final table exists
       observeEvent(input$tabs == 'models', {
-        shinyjs::toggleState("submit", 
+        shinyjs::toggleState("submit_modal", 
                              condition = {table_exists(paste0(project$name, "MainDataTable_final"))})
       })
       
@@ -3467,6 +3467,106 @@ set_confid_check(check = FALSE)
           div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; text-align: justify; padding: 5px;",
               p("Finalized dataset must be saved before modeling."))
         }
+      })
+      
+      cList <- reactiveValues(out = NULL, pass = NULL)
+      
+      # checklist modal
+      observeEvent(input$submit_modal, {
+
+        showModal(
+          modalDialog(title = "",
+
+                      uiOutput("checklistMsg"),
+
+                      footer = tagList(
+                        modalButton("Close"),
+                        # shinyjs::disabled( # this approach doesn't work consistently
+                        #   actionButton("submit", "Run model(s)",
+                        #                style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+                        # )
+                        uiOutput("CLRun")
+                      ),
+                      easyClose = FALSE
+          )
+        )
+        
+        q_test <- quietly_test(checklist)
+        cList$out <- q_test(project$name, rv$data)
+        cList$pass <- all(vapply(cList$out, function(x) x$pass, logical(1)))
+        # find expected catch matrices (if logit_c used)
+        
+        output$CLRun <- renderUI({
+          if (cList$pass) {
+
+              actionButton("submit", "Run model(s)",
+                           style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+          }
+        })
+        
+        #shinyjs::toggleState("submit", condition = {cList$pass == TRUE})
+        
+        ec_required <- FALSE
+        e_catch <- list_tables(project$name, type = "ec") 
+        ec_exists <- ifelse(length(e_catch) > 0, TRUE, FALSE)
+        
+        if (any(rv$data$likelihood %in% "logit_c")) ec_required <- TRUE
+        
+        # message functions
+        passed <- function(type) cList$out[[type]]$pass
+        
+        pass_icon <- function(type) {
+          
+          if (passed(type)) {
+            if (type == "expect_catch" & ec_required==FALSE & ec_exists==FALSE) {
+              
+              icon("exclamation-triangle")
+            } else icon("check")
+            
+          } else icon("times")
+        }
+        
+        show_msg <- function(type) {
+          if (!passed(type)) tags$ul(tags$li(cList$out[[type]]$msg))
+        }
+        
+        qaqc_msg <- function() {
+          
+          if (passed("qaqc")) {
+            
+            out <- lapply(cList$out$qaqc$msg, function(x) tags$li(icon("check"), x))
+            
+            tags$ul(out, id = "cl-unorList")
+          }
+        }
+        
+        ec_msg <- function() {
+          
+          if (ec_required == FALSE & ec_exists == FALSE) {
+            tags$ul(tags$li(cList$out$expect_catch$msg))
+          }
+        }
+        
+        # checklist message
+        output$checklistMsg <- renderUI({
+          tags$div(
+            
+            tags$h1("Model Checklist"),
+            tags$ul(
+              
+              tags$li(pass_icon("qaqc"), tags$strong("Data quality checks")),
+              show_msg("qaqc"),
+              qaqc_msg(),
+              tags$li(pass_icon("occur_pnts"), tags$strong("Valid occurrence points")),
+              show_msg("occur_pnts"),
+              tags$li(pass_icon("alt_choice"), tags$strong("Alternative choice matrix created")),
+              show_msg("alt_choice"),
+              tags$li(pass_icon("expect_catch"), tags$strong("Expected catch/revenue matrix created")),
+              show_msg("expect_catch"),
+              ec_msg()
+            )
+          )
+        })
       })
       
       output$catch_out <- renderUI({
@@ -3792,6 +3892,8 @@ set_confid_check(check = FALSE)
   
       # Run models shiny
       observeEvent(input$submit, {
+        
+          removeModal()
           input_list <- reactiveValuesToList(input)
           toggle_inputs(input_list,F)
           #print('call model design function, call discrete_subroutine file')
@@ -3799,19 +3901,19 @@ set_confid_check(check = FALSE)
           times <- nrow(rv$data)-1
           i <- 1
           showNotification(paste('1 of', times, 'model design files created.'), type='message', duration=10)
-          q_test(values$dataset, project=rv$data$project[i], catchID=rv$data$catch[i],  
-                            replace=TRUE, likelihood=rv$data$likelihood[i], optimOpt=rv$data$optimOpt[i], 
-                            inits=rv$data$inits[i], methodname = rv$data$optmeth[i], mod.name = rv$data$mod_name[i], 
-                            vars1=rv$data$vars1[i], vars2=rv$data$vars2[i], 
-                            priceCol=rv$data$price[i], startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
+          q_test(project=rv$data$project[i], catchID=rv$data$catch[i], replace=TRUE, 
+                 likelihood=rv$data$likelihood[i], optimOpt=rv$data$optimOpt[i],
+                 vars1=rv$data$vars1[i], vars2=rv$data$vars2[i], priceCol=rv$data$price[i], 
+                 startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
           
           if(times>1){
           for(i in 2:times){
-            q_test(values$dataset, project=rv$data$project[i], catchID=rv$data$catch[i], 
-                              replace=FALSE, likelihood=rv$data$likelihood[i], optimOpt=rv$data$optimOpt[i], 
-                              inits=rv$data$inits[i], methodname =rv$data$optmeth[i], mod.name = rv$data$mod_name[i], 
-                              vars1=rv$data$vars1[i], vars2=rv$data$vars2[i], 
-                              priceCol=rv$data$price[i], startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
+            q_test(project=rv$data$project[i], catchID=rv$data$catch[i], replace=FALSE, 
+                   likelihood=rv$data$likelihood[i], optimOpt=rv$data$optimOpt[i], 
+                   inits=rv$data$inits[i], methodname =rv$data$optmeth[i], 
+                   mod.name = rv$data$mod_name[i], vars1=rv$data$vars1[i], 
+                   vars2=rv$data$vars2[i], priceCol=rv$data$price[i], 
+                   startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
             showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
           }
           }
@@ -4303,21 +4405,13 @@ set_confid_check(check = FALSE)
       
       #Stop shiny ----
       ##---
-      observe({
-        if(input$close > 0) stopApp()
-      })
-      observe({
-        if(input$close1 > 0) stopApp()
-      })
-      observe({
-        if(input$close2 > 0) stopApp()
-      })
-      observe({
-        if(input$closeNew > 0) stopApp()
-      })
-      
-      
-     
+      observeEvent(c(input$closeDat, input$closeQAQC, input$closeExplore, 
+                     input$closeAnalysis, input$closeNew, input$closeAlt, 
+                     input$closeEC, input$closeModel, input$closeCM, input$closeB, 
+                     input$closeRerun), {
+        stopApp()
+      }, ignoreInit = TRUE)
+
        ###---
      
       #Update From Bookmarked state----
@@ -4510,7 +4604,6 @@ set_confid_check(check = FALSE)
         showNotification("Log has been successfully rerun.", type = "message", duration = 10)
       })
       
-      observeEvent(input$rerun_close, stopApp())
       ###---
      
       onStop(function() {
