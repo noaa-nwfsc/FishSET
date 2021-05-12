@@ -29,6 +29,23 @@ source("map_viewer_app.R", local = TRUE)
                               }
                               .sidebar { height: 90vh; overflow-y: auto; }
                               .dataTables_wrapper { overflow-x: scroll; }
+                               
+                              .fa-check {
+                                 color:green;
+                                 font-size: 1.5em;
+                              }     
+                              .fa-times {
+                                 color:red;
+                                 font-size: 1.5em;
+                              }
+                              .fa-exclamation-triangle {
+                                 color: #FFCC00;
+                                 font-size: 1.5em;
+                              }
+                              #cl-unorList {
+                                 list-style-type: none;
+                                 text-align: justify;
+                              }
                     " )),
                 tags$script(HTML('Shiny.addCustomMessageHandler("jsCode",
                                  function(message) {
@@ -256,7 +273,7 @@ source("map_viewer_app.R", local = TRUE)
                                           actionButton('saveDataQ','Save data to FishSET database'),
                                           tags$br(),
                                           tags$button(
-                                            id = 'close1',
+                                            id = 'closeQAQC',
                                             type = "button",
                                             style="color: #fff; background-color: #FF6347; border-color: #800000;",
                                             class = "btn action-button",
@@ -388,7 +405,7 @@ source("map_viewer_app.R", local = TRUE)
                                           actionButton('callTextDownloadExplore','Save notes'),
                                           actionButton('saveData','Save data to FishSET database'),
                                           tags$button(
-                                            id = 'close',
+                                            id = 'closeExplore',
                                             type = "button",
                                             style="color: #fff; background-color: #FF6347; border-color: #800000;",
                                             class = "btn action-button",
@@ -639,7 +656,7 @@ source("map_viewer_app.R", local = TRUE)
                                 #  downloadLink("downloadTextAnal", label=''),
                                 actionButton('callTextDownloadAnal','Save notes'),
                                tags$button(
-                                 id = 'close2',
+                                 id = 'closeAnalysis',
                                  type = "button",
                                  style="color: #fff; background-color: #FF6347; border-color: #800000;",
                                  class = "btn action-button",
@@ -880,7 +897,7 @@ source("map_viewer_app.R", local = TRUE)
                            sidebarLayout(
                              sidebarPanel(
                                tags$button(
-                                 id = 'closeZ',
+                                 id = 'closeAlt',
                                  type = "button",
                                  style="color: #fff; background-color: #FF6347; border-color: #800000;",
                                  class = "btn action-button",
@@ -1047,7 +1064,7 @@ source("map_viewer_app.R", local = TRUE)
                            sidebarLayout(
                              sidebarPanel(
                                tags$button(
-                                 id = 'close',
+                                 id = 'closeModel',
                                  type = "button",
                                  style="color: #fff; background-color: #FF6347; border-color: #800000;",
                                  class = "btn action-button",
@@ -1065,7 +1082,7 @@ source("map_viewer_app.R", local = TRUE)
                                tags$br(),
                                conditionalPanel("input.addModel!='0'",
                                   shinyjs::disabled(
-                                   actionButton("submit", "Run model(s)", style="color: #fff; background-color: #6da363; border-color: #800000;")
+                                   actionButton("submit_modal", "Run model(s)", style="color: #fff; background-color: #6da363; border-color: #800000;")
                                   )
                                ),
                                tags$br(),tags$br(),
@@ -1129,7 +1146,7 @@ source("map_viewer_app.R", local = TRUE)
                                         actionButton("submit_ms", "Save table", style="color: #fff; background-color: #337ab7; border-color: #2e6da4;"),
                                         tags$br(),tags$br(),
                                         tags$button(
-                                          id = 'close',
+                                          id = 'closeCM',
                                           type = "button",
                                           style="color: #fff; background-color: #FF6347; border-color: #800000;",
                                           class = "btn action-button",
@@ -1206,7 +1223,7 @@ source("map_viewer_app.R", local = TRUE)
                                  sidebarPanel(
                                     
                                     tags$button(
-                                       id = "rerun_close",
+                                       id = "closeRerun",
                                        type = "button",
                                        style="color: #fff; background-color: #FF6347; border-color: #800000;",
                                        class = "btn action-button",

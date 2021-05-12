@@ -14,7 +14,6 @@ checklist <- function(project, modDesignTab = NULL) {
   
   check <- list(qaqc = list(pass = FALSE, msg = NULL),
                 occur_pnts = list(pass = FALSE, msg = NULL),
-               # lat_lon = list(pass = FALSE, msg = NULL),
                 alt_choice = list(pass = FALSE, msg = NULL),
                 expect_catch = list(pass = FALSE, msg = NULL))
   
@@ -26,10 +25,10 @@ checklist <- function(project, modDesignTab = NULL) {
                            UR = "All rows are unique.",
                            LL = "Latitude and Longitude variables are in decimal degrees.")
   } else {
-    check$qaqc$msg <- paste("No final data set for project '", project,"' has been",
-    "saved to FishSET Database. Run check_model_data() in the console or click ",
-    "'Save final table to FishSET DB' on the 'Compute New Variables' tab before",
-    " running model.")
+    check$qaqc$msg <- paste("No final data set for project \"", project,"\" has been",
+    "saved to FishSET Database. Run check_model_data() in the console or click",
+    "\"Save final table to FishSET DB\" on the \"Compute New Variables\" tab before",
+    "running model.")
   }
   
   # check that map_plot, map_kernel, or map_viewer has been run
@@ -41,7 +40,7 @@ checklist <- function(project, modDesignTab = NULL) {
   else {
     
     check$occur_pnts$msg <- 
-      paste("Neither map_viewer, map_plot, or map_kernel functions have been run.",
+      paste("map_viewer, map_plot, or map_kernel functions have not been run.",
             "Run at least one of these functions to determine whether occurrence points",
             "are valid.")
   }
@@ -53,7 +52,7 @@ checklist <- function(project, modDesignTab = NULL) {
   else {
     
     check$alt_choice$msg <-
-      paste0("No alternative choice matrix found for project '", project, "'.")
+      paste0("No alternative choice matrix found for project \"", project, "\".")
   }
   
   # find expected catch matrices (if logit_c used)
@@ -66,21 +65,21 @@ checklist <- function(project, modDesignTab = NULL) {
     if (any(modDesignTab$likelihood %in% "logit_c")) ec_required <- TRUE
   }
   
- if (ec_required & ec_exists == FALSE) {
+ if (ec_required == TRUE & ec_exists == FALSE) {
    
    check$expect_catch$msg <-
-     paste("ExpectedCatch matrix is required for logit_c likelihood function.",
-            "Run create_expectations() or go to the 'Expected Catch/Revenue'", 
+     paste("ExpectedCatch matrix is required for conditional logit (logit_c) likelihood function.",
+            "Run create_expectations() in the console or go to the \"Expected Catch/Revenue\"", 
             "tab of the app.")
    check$expect_catch$pass <- FALSE
  
-  } else if (ec_exists == FALSE) {
+  } else if (ec_required == FALSE & ec_exists == FALSE) {
     
     check$expect_catch$msg <- 
-      paste0("an ExpectedCatch matrix does not exist for project '", project,"'.",
-             "Only required for the logit_c likelihood function. To include an ",
+      paste0("ExpectedCatch matrix does not exist for project '", project,"'.",
+             " (Only required for the logit_c likelihood function). To include an ",
              "ExpectedCatch matrix in your model, run create_expectations() in ", 
-             "the console or go to the 'Expected Catch/Revenue' tab of the app.")
+             "the console or go to the \"Expected Catch/Revenue\" tab of the app.")
     check$expect_catch$pass <- TRUE
   
   } else check$expect_catch$pass <- TRUE
@@ -186,7 +185,7 @@ checklist <- function(project, modDesignTab = NULL) {
               show_msg("occur_pnts"),
               tags$li(pass_icon("alt_choice"), tags$strong("Alternative choice matrix created")),
               show_msg("alt_choice"),
-              tags$li(pass_icon("expect_catch"), tags$strong("Expected Catch matrix created")),
+              tags$li(pass_icon("expect_catch"), tags$strong("Expected catch/revenue matrix created")),
               show_msg("expect_catch"),
               ec_msg()
             )

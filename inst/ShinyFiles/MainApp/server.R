@@ -2337,7 +2337,7 @@ set_confid_check(check = FALSE)
             ifelse((max_lat + abs(max_lat/10) > 90), 90, max_lat + abs(max_lat/10)))
       })
       
-      output$plot_spatial <- renderPlot({#plotInput_spatial <-  reactive({
+      plotInput_spatial <- reactive({
         if(is.null(values$dataset)) {
           return(NULL)
         } else if(colnames(values$dataset)[1] == 'var1') {
@@ -2347,18 +2347,14 @@ set_confid_check(check = FALSE)
           lat_count <- stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')
           longitude <- which(lon_count==max(lon_count))[1]
           latitude <- which(lat_count==max(lat_count))[1]
-          cf <- ggplot2::coord_fixed()
-          cf$default <- TRUE
-          ggplot2::ggplot(data = ggplot2::map_data("world"), mapping = ggplot2::aes(x = long, y = lat, group=group)) + 
-            ggplot2::geom_polygon(color = "black", fill = "gray") + 
-            ggplot2::geom_point(data = values$dataset, ggplot2::aes(x = values$dataset[,longitude], y = values$dataset[,latitude], group=rep(1, nrow(values$dataset))), color = "red", size = 1) +
-            cf + ggplot2::coord_fixed(xlim = ranges_spatial$x, ylim = ranges_spatial$y, ratio=1.3, expand = TRUE)+
-            ggplot2::labs(x='Longitude', y='Latitude', subtitle='Observed locations')+
-            ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
-                  panel.background = ggplot2::element_blank(),  axis.text=ggplot2::element_text(size=12),
-                  axis.title=ggplot2::element_text(size=12),panel.border = ggplot2::element_rect(colour = "black", fill=NA, size=1) )
+          
+          map_plot(values$dataset, project$name, lat = latitude, lon = longitude,
+                   minmax = c(ranges_spatial$y, ranges_spatial$x))
         } 
       })
+      
+      output$plot_spatial <- renderPlot(plotInput_spatial())
+      
       plotInput_kernel <- reactive ({
         if(is.null(values$dataset)) {
           return(NULL)
@@ -2481,17 +2477,13 @@ set_confid_check(check = FALSE)
         } else if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
         } else {
-          ggplot2::ggplot(values$dataset, ggplot2::aes_string(x=values$dataset[[input$x_y_select1]], y=values$dataset[[input$x_y_select2]])) + 
-            ggplot2::geom_point()+
-            ggplot2::labs(subtitle=paste(input$x_y_select1, 'by', input$x_y_select2), x=input$x_y_select1, y=input$x_y_select2) +
-            ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
-                  panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text = ggplot2::element_text(size=11),
-                  axis.title=ggplot2::element_text(size=11))
+          
+          xy_plot(values$dataset, project$name, input$x_y_select1, input$x_y_select2, 
+                  regress = FALSE)
         } 
       })
-      output$plot_xy <- renderPlot({
-        print(plotInput_xy())
-      })
+      
+      output$plot_xy <- renderPlot(plotInput_xy())
       
       output$plot_grid_args <- renderUI({
         tagList(
@@ -3455,9 +3447,9 @@ set_confid_check(check = FALSE)
         tags$div(style="display:inline-block;", x)
       }
       
-      # enable model saving if final table exists
+      # enable run model (modal) button if final table exists
       observeEvent(input$tabs == 'models', {
-        shinyjs::toggleState("submit", 
+        shinyjs::toggleState("submit_modal", 
                              condition = {table_exists(paste0(project$name, "MainDataTable_final"))})
       })
       
@@ -3467,6 +3459,106 @@ set_confid_check(check = FALSE)
           div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; text-align: justify; padding: 5px;",
               p("Finalized dataset must be saved before modeling."))
         }
+      })
+      
+      cList <- reactiveValues(out = NULL, pass = NULL)
+      
+      # checklist modal
+      observeEvent(input$submit_modal, {
+
+        showModal(
+          modalDialog(title = "",
+
+                      uiOutput("checklistMsg"),
+
+                      footer = tagList(
+                        modalButton("Close"),
+                        # shinyjs::disabled( # this approach doesn't work consistently
+                        #   actionButton("submit", "Run model(s)",
+                        #                style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+                        # )
+                        uiOutput("CLRun")
+                      ),
+                      easyClose = FALSE
+          )
+        )
+        
+        q_test <- quietly_test(checklist)
+        cList$out <- q_test(project$name, rv$data)
+        cList$pass <- all(vapply(cList$out, function(x) x$pass, logical(1)))
+        # find expected catch matrices (if logit_c used)
+        
+        output$CLRun <- renderUI({
+          if (cList$pass) {
+
+              actionButton("submit", "Run model(s)",
+                           style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+          }
+        })
+        
+        #shinyjs::toggleState("submit", condition = {cList$pass == TRUE})
+        
+        ec_required <- FALSE
+        e_catch <- list_tables(project$name, type = "ec") 
+        ec_exists <- ifelse(length(e_catch) > 0, TRUE, FALSE)
+        
+        if (any(rv$data$likelihood %in% "logit_c")) ec_required <- TRUE
+        
+        # message functions
+        passed <- function(type) cList$out[[type]]$pass
+        
+        pass_icon <- function(type) {
+          
+          if (passed(type)) {
+            if (type == "expect_catch" & ec_required==FALSE & ec_exists==FALSE) {
+              
+              icon("exclamation-triangle")
+            } else icon("check")
+            
+          } else icon("times")
+        }
+        
+        show_msg <- function(type) {
+          if (!passed(type)) tags$ul(tags$li(cList$out[[type]]$msg))
+        }
+        
+        qaqc_msg <- function() {
+          
+          if (passed("qaqc")) {
+            
+            out <- lapply(cList$out$qaqc$msg, function(x) tags$li(icon("check"), x))
+            
+            tags$ul(out, id = "cl-unorList")
+          }
+        }
+        
+        ec_msg <- function() {
+          
+          if (ec_required == FALSE & ec_exists == FALSE) {
+            tags$ul(tags$li(cList$out$expect_catch$msg))
+          }
+        }
+        
+        # checklist message
+        output$checklistMsg <- renderUI({
+          tags$div(
+            
+            tags$h1("Model Checklist"),
+            tags$ul(
+              
+              tags$li(pass_icon("qaqc"), tags$strong("Data quality checks")),
+              show_msg("qaqc"),
+              qaqc_msg(),
+              tags$li(pass_icon("occur_pnts"), tags$strong("Valid occurrence points")),
+              show_msg("occur_pnts"),
+              tags$li(pass_icon("alt_choice"), tags$strong("Alternative choice matrix created")),
+              show_msg("alt_choice"),
+              tags$li(pass_icon("expect_catch"), tags$strong("Expected catch/revenue matrix created")),
+              show_msg("expect_catch"),
+              ec_msg()
+            )
+          )
+        })
       })
       
       output$catch_out <- renderUI({
@@ -3792,6 +3884,8 @@ set_confid_check(check = FALSE)
   
       # Run models shiny
       observeEvent(input$submit, {
+        
+          removeModal()
           input_list <- reactiveValuesToList(input)
           toggle_inputs(input_list,F)
           #print('call model design function, call discrete_subroutine file')
@@ -3799,19 +3893,19 @@ set_confid_check(check = FALSE)
           times <- nrow(rv$data)-1
           i <- 1
           showNotification(paste('1 of', times, 'model design files created.'), type='message', duration=10)
-          q_test(values$dataset, project=rv$data$project[i], catchID=rv$data$catch[i],  
-                            replace=TRUE, likelihood=rv$data$likelihood[i], optimOpt=rv$data$optimOpt[i], 
-                            inits=rv$data$inits[i], methodname = rv$data$optmeth[i], mod.name = rv$data$mod_name[i], 
-                            vars1=rv$data$vars1[i], vars2=rv$data$vars2[i], 
-                            priceCol=rv$data$price[i], startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
+          q_test(project=rv$data$project[i], catchID=rv$data$catch[i], replace=TRUE, 
+                 likelihood=rv$data$likelihood[i], optimOpt=rv$data$optimOpt[i],
+                 vars1=rv$data$vars1[i], vars2=rv$data$vars2[i], priceCol=rv$data$price[i], 
+                 startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
           
           if(times>1){
           for(i in 2:times){
-            q_test(values$dataset, project=rv$data$project[i], catchID=rv$data$catch[i], 
-                              replace=FALSE, likelihood=rv$data$likelihood[i], optimOpt=rv$data$optimOpt[i], 
-                              inits=rv$data$inits[i], methodname =rv$data$optmeth[i], mod.name = rv$data$mod_name[i], 
-                              vars1=rv$data$vars1[i], vars2=rv$data$vars2[i], 
-                              priceCol=rv$data$price[i], startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
+            q_test(project=rv$data$project[i], catchID=rv$data$catch[i], replace=FALSE, 
+                   likelihood=rv$data$likelihood[i], optimOpt=rv$data$optimOpt[i], 
+                   inits=rv$data$inits[i], methodname =rv$data$optmeth[i], 
+                   mod.name = rv$data$mod_name[i], vars1=rv$data$vars1[i], 
+                   vars2=rv$data$vars2[i], priceCol=rv$data$price[i], 
+                   startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
             showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
           }
           }
@@ -4244,20 +4338,7 @@ set_confid_check(check = FALSE)
             if(input$plot_type=='Temporal'){
               ggplot2::ggsave(file, plot=plotInput_time(), device=function(..., width, height) grDevices::png(..., width = 12, height = 4, res = 300, units = "in")) 
             } else if(input$plot_type=='Spatial'){
-              longitude <- which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1]
-              latitude <- which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]
-              cf <- ggplot2::coord_fixed()
-              cf$default <- TRUE
-              p1 <- ggplot2::ggplot(data = ggplot2::map_data("world"), mapping = ggplot2::aes(x = long, y = lat, group=group)) + 
-                ggplot2::geom_polygon(color = "black", fill = "gray") + 
-                ggplot2::geom_point(data = values$dataset, ggplot2::aes(x = values$dataset[,longitude], y = values$dataset[,latitude], group=rep(1, nrow(values$dataset))), color = "red", size = 1) +
-                cf + ggplot2::coord_fixed(xlim = ranges_spatial$x, ylim = ranges_spatial$y, ratio=1.3, expand = TRUE)+
-                ggplot2::labs(x='Longitude', y='Latitude', subtitle='Observed locations')+
-                ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
-                      panel.background = ggplot2::element_blank(),  axis.text=ggplot2::element_text(size=12),
-                      axis.title=ggplot2::element_text(size=12),panel.border = ggplot2::element_rect(colour = "black", fill=NA, size=1) )
-              
-              ggplot2::ggsave(file, plot=suppressWarnings(ggpubr::ggarrange(p1, plotInput_kernel(),ncol =2, nrow = 1)), 
+              ggplot2::ggsave(file, plot=suppressWarnings(ggpubr::ggarrange(plotInput_spatial(), plotInput_kernel(), ncol =2, nrow = 1)),
                               device=function(..., width, height) grDevices::png(..., width = 12, height = 4, res = 300, units = "in"))
             } else if(input$plot_type=='x-y plot'){
               ggplot2::ggsave(file, plot=plotInput_xy(), device=function(..., width, height) grDevices::png(..., width = 12, height = 4, res = 300, units = "in"))
@@ -4303,21 +4384,13 @@ set_confid_check(check = FALSE)
       
       #Stop shiny ----
       ##---
-      observe({
-        if(input$close > 0) stopApp()
-      })
-      observe({
-        if(input$close1 > 0) stopApp()
-      })
-      observe({
-        if(input$close2 > 0) stopApp()
-      })
-      observe({
-        if(input$closeNew > 0) stopApp()
-      })
-      
-      
-     
+      observeEvent(c(input$closeDat, input$closeQAQC, input$closeExplore, 
+                     input$closeAnalysis, input$closeNew, input$closeAlt, 
+                     input$closeEC, input$closeModel, input$closeCM, input$closeB, 
+                     input$closeRerun), {
+        stopApp()
+      }, ignoreInit = TRUE)
+
        ###---
      
       #Update From Bookmarked state----
@@ -4510,7 +4583,6 @@ set_confid_check(check = FALSE)
         showNotification("Log has been successfully rerun.", type = "message", duration = 10)
       })
       
-      observeEvent(input$rerun_close, stopApp())
       ###---
      
       onStop(function() {
