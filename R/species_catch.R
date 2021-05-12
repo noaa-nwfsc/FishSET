@@ -104,6 +104,8 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
+  catch <- NA
+  
   end <- FALSE 
   
   not_num <- vapply(dataset[species], function(x) !is.numeric(x), logical(1))

@@ -92,6 +92,11 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
+  catch <- NA
+  species <- NA
+  mean_cpue <- NA
+  week <- NA
+  
   end <- FALSE 
   
   not_num <- vapply(dataset[cpue], function(x) !is.numeric(x), logical(1))

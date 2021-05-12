@@ -141,11 +141,11 @@ haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, trip
   }
   
   # Not in the dataIndex file
-  not_in_DI <- names(int)[!(names(int)[-row_ind] %in% dataIndex$variable_name)]
+#  not_in_DI <- names(int)[!(names(int)[-row_ind] %in% dataIndex$variable_name)]
   
-  if (length(not_in_DI) > 0) {
-    out[not_in_DI] <- aggregate(int[not_in_DI], by = list(int$rowID), FUN = head, 1)[, -1]
-  }
+#  if (length(not_in_DI) > 0) {
+#    out[not_in_DI] <- aggregate(int[not_in_DI], by = list(int$rowID), FUN = head, 1)[, -1]
+#  }
   
   # Add hauls per trip 
   if (haul_count) {

@@ -605,6 +605,7 @@ trip_length_plot <- function(trip_tab, trp_nms, vpue, group, facet_by, units, ty
   group1 <- group$group1
   group2 <- group$group2
   group <- group$group
+  density <- NA
   
   unit_print <- switch(units, "secs" = "sec", "minutes" = "minute", 
                        "hours" = "hour", "days" = "day", "weeks" = "week")

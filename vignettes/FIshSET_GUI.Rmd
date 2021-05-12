@@ -2,15 +2,16 @@
 title: "FishSET GUI"
 author: "ESSR"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{FishSET GUI Vignette} 
-  %\VignetteEngine{knitr::rmarkdown}  
+output:
+  rmarkdown::html_vignette: default
+vignette: |
+  %\VignetteIndexEntry{FishSET GUI}  
+  %\VignetteEngine{knitr::rmarkdown}   
   %\VignetteEncoding{UTF-8}
 ---
 <!--output: html_document: default -->
 <!--  pdf_document: default -->
-<!-- word_document: inst/doc -->
+<!-- : inst/doc -->
 <!--   pdf_document: inst/doc -->
 
 ```{r setup, include = FALSE}
@@ -63,7 +64,7 @@ Default settings do not need to be changed.
 ## Installing the FishSET package
 We recommend the following steps to install FishSET:
 
-  1. Open R Studio
+  1. Open RStudio
   1. Install **devtools** package (this package is necessary to install and build FishSET)  
 :  In the RStudio Console paste the following code  
   `install.packages("devtools")`   
@@ -110,7 +111,7 @@ The `Information tab` has four subtabs:
  1.  Background
     * Details purpose of FishSET.
     * Provides general information on FishSET.
- 1.  Quickstart Guide
+ 1.  Quick Start Guide
     * Brief detail on how to use each of the FishSET GUI tabs. 
  1.  Alaska Details
     * Information on the Alaskan fisheries.
@@ -226,7 +227,7 @@ The `Data Exploration` tab is used to view and explore the loaded data.
       * Spatial  
           * Two plots are shown.
           * The first can be zoomed in and out. Individual points can be identified by hovering over them.  
-          * Fill out the additional options in the left-hand panel to show Getis-ord and Moran's I statistics.
+          * Fill out the additional options in the left-hand panel to show Getis-Ord and Moran's I statistics.
       * x-y  
           * Plot selected `x` variable against selected `y` variable.
 
@@ -258,7 +259,7 @@ Select `Fleet Assignment` under `Select task` (in left-hand panel).
   1. Load fleet definition table.
     * Select from available fleet tables.
         * If no tables are shown or the desired table is not shown, press `Refresh saved tables`.
-    * Press `Load table`
+    * Press `Load table`  
       The table should now be in the main panel. 
         * Repeat the previous steps if the loaded table is not the desired table. 
   1. Press the `Assign fleets` button to assign vessels to defined fleets.
@@ -334,14 +335,14 @@ Steps:
   1. Press the `Run Function` button.  
       * The new variable will be added to the end of the table.
   1. Save the finalized dataset before moving on to modeling functions.
-      * To save the FishSET database, click `Save final table to FishSET DB` .
+      * To save the FishSET database, click `Save final table to FishSET DB`.
       * To save to local file directory, select a file format in the `Export data as:` box and click `Download data`.
  
 
 Functions:
 
   * Arithmetic	
-      * Numeric functions	(add, subtract, mulitply, divide two variables)
+      * Numeric functions	(add, subtract, multiply, divide two variables)
       * Catch per unit 
   * Data transformations	
       * Within-group percentage	
@@ -358,7 +359,7 @@ Functions:
   * Spatial	
       * Assign observations to zones	
       * Distance between two points	
-      * Midpoint location (lat/lon) for each haul
+      * Midpoint location (lon/lat) for each haul
       * Zone when choice of where to go next was made	
   * Temporal	
       * Change time unit (convert or extract)
@@ -511,7 +512,7 @@ Steps:
   1. Resave the report template
     * Click `File`.
       * Select `Save As...`.
-      * Provide an informtive project-specific name.
+      * Provide an informative project-specific name.
   1. Begin writing
       * The template provides guidance and how to format and build (knit) the document.
       * Example functions to insert figures, tables, and notes are provided.
