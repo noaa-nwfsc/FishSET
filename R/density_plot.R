@@ -302,6 +302,7 @@ dens_plot_helper <- function(dataset, var, group, date, facet_by, filter_date,
   group1 <- group$group1
   group2 <- group$group2
   group <- group$group
+  cdf <- NULL
   
   facet_date <- facet_by[facet_by %in% c("year", "month", "week")]
   

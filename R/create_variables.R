@@ -389,6 +389,8 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   
   if (create_group_ID) dataset <- ID_var(dataset, vars = c(id_group, group))
   
+  . <- group_total <- total_value <- NULL
+  
   if (is.null(group)) {
     
     dataset <- 
@@ -442,6 +444,7 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   #' @export
   #' @importFrom dplyr across arrange left_join mutate group_by select summarize ungroup
   #' @importFrom shiny isRunning
+  #' @importFrom rlang :=
   #' @details \code{group_diff} creates a grouped lagged difference variable. \code{value}
   #'   is first summed by the variable(s) in \code{group}, then the difference within-group is 
   #'   calculated. The "group_total" variable gives the total value by group and can
@@ -462,6 +465,9 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
     if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
   } else { 
     if (!is.character(dat)) dat <- deparse(substitute(dat)) }
+  
+  . <- group_total <- NULL
+
   
   if (create_group_ID) dataset <- ID_var(dataset, vars = group)
   
@@ -543,6 +549,8 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
     if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
   } else { 
     if (!is.character(dat)) dat <- deparse(substitute(dat)) }
+  
+  . <- group_total <- NULL
   
   if (create_group_ID) dataset <- ID_var(dataset, vars = group)
   
@@ -1235,6 +1243,8 @@ randomize_lonlat_zone <- function(dat, project, spat, lon, lat, zone) {
   spatdat <- 
     spatdat %>% 
     dplyr::arrange(dplyr::across(zone))
+  
+  temp_row_id <- NA
   
   # temporary row id to preserve order
   dataset$temp_row_id <- 1:nrow(dataset)

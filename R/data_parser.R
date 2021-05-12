@@ -97,6 +97,7 @@ write_dat <- function (dat, file, file_type = "csv", project, ...) {
   #'@importFrom haven write_dta write_sav write_sas
   #'@importFrom R.matlab writeMat
   #'@importFrom shiny isRunning
+  #'@importFrom utils write.table
   #'@export
   #'@details  See \code{\link[utils]{write.csv}} for saving csv files, 
   #'   \code{\link[utils]{write.table}}  for tab-separated files, 
@@ -123,7 +124,7 @@ write_dat <- function (dat, file, file_type = "csv", project, ...) {
     
   } else if (file_type == "txt") { 
     
-    write.table(dataset, file = file, sep = "\t", row.names = FALSE, ...)
+    utils::write.table(dataset, file = file, sep = "\t", row.names = FALSE, ...)
     
   } else if (file_type == "xlsx") {
     

@@ -47,7 +47,8 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE, 
   
 
   x <- 0
-
+  level <- NA
+  
   #Empty variables
   year <- NULL
   month <- NULL

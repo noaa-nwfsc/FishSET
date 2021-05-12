@@ -563,6 +563,8 @@ perc_of_total <- function(dat, value_var, group = NULL, drop = FALSE,
   #' @export
   #' 
  
+  . <- NULL
+  
   val_total <- paste0(value_var, "_total") 
   val_perc <- paste0(value_var, "_perc")
   

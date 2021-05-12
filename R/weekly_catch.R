@@ -107,6 +107,9 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
   
   dat <- parse_data_name(dat, "main")
   
+  week <- NA
+  catch <- NA
+  
   end <- FALSE 
   
   not_num <- vapply(dataset[species], function(x) !is.numeric(x), logical(1))
