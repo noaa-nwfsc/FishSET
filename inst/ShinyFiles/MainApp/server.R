@@ -2337,7 +2337,7 @@ set_confid_check(check = FALSE)
             ifelse((max_lat + abs(max_lat/10) > 90), 90, max_lat + abs(max_lat/10)))
       })
       
-      output$plot_spatial <- renderPlot({#plotInput_spatial <-  reactive({
+      plotInput_spatial <- reactive({
         if(is.null(values$dataset)) {
           return(NULL)
         } else if(colnames(values$dataset)[1] == 'var1') {
@@ -2347,18 +2347,14 @@ set_confid_check(check = FALSE)
           lat_count <- stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')
           longitude <- which(lon_count==max(lon_count))[1]
           latitude <- which(lat_count==max(lat_count))[1]
-          cf <- ggplot2::coord_fixed()
-          cf$default <- TRUE
-          ggplot2::ggplot(data = ggplot2::map_data("world"), mapping = ggplot2::aes(x = long, y = lat, group=group)) + 
-            ggplot2::geom_polygon(color = "black", fill = "gray") + 
-            ggplot2::geom_point(data = values$dataset, ggplot2::aes(x = values$dataset[,longitude], y = values$dataset[,latitude], group=rep(1, nrow(values$dataset))), color = "red", size = 1) +
-            cf + ggplot2::coord_fixed(xlim = ranges_spatial$x, ylim = ranges_spatial$y, ratio=1.3, expand = TRUE)+
-            ggplot2::labs(x='Longitude', y='Latitude', subtitle='Observed locations')+
-            ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
-                  panel.background = ggplot2::element_blank(),  axis.text=ggplot2::element_text(size=12),
-                  axis.title=ggplot2::element_text(size=12),panel.border = ggplot2::element_rect(colour = "black", fill=NA, size=1) )
+          
+          map_plot(values$dataset, project$name, lat = latitude, lon = longitude,
+                   minmax = c(ranges_spatial$y, ranges_spatial$x))
         } 
       })
+      
+      output$plot_spatial <- renderPlot(plotInput_spatial())
+      
       plotInput_kernel <- reactive ({
         if(is.null(values$dataset)) {
           return(NULL)
@@ -2481,17 +2477,13 @@ set_confid_check(check = FALSE)
         } else if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
         } else {
-          ggplot2::ggplot(values$dataset, ggplot2::aes_string(x=values$dataset[[input$x_y_select1]], y=values$dataset[[input$x_y_select2]])) + 
-            ggplot2::geom_point()+
-            ggplot2::labs(subtitle=paste(input$x_y_select1, 'by', input$x_y_select2), x=input$x_y_select1, y=input$x_y_select2) +
-            ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
-                  panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text = ggplot2::element_text(size=11),
-                  axis.title=ggplot2::element_text(size=11))
+          
+          xy_plot(values$dataset, project$name, input$x_y_select1, input$x_y_select2, 
+                  regress = FALSE)
         } 
       })
-      output$plot_xy <- renderPlot({
-        print(plotInput_xy())
-      })
+      
+      output$plot_xy <- renderPlot(plotInput_xy())
       
       output$plot_grid_args <- renderUI({
         tagList(
@@ -4346,20 +4338,7 @@ set_confid_check(check = FALSE)
             if(input$plot_type=='Temporal'){
               ggplot2::ggsave(file, plot=plotInput_time(), device=function(..., width, height) grDevices::png(..., width = 12, height = 4, res = 300, units = "in")) 
             } else if(input$plot_type=='Spatial'){
-              longitude <- which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)', ignore.case=TRUE)))[1]
-              latitude <- which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)', ignore.case=TRUE)))[1]
-              cf <- ggplot2::coord_fixed()
-              cf$default <- TRUE
-              p1 <- ggplot2::ggplot(data = ggplot2::map_data("world"), mapping = ggplot2::aes(x = long, y = lat, group=group)) + 
-                ggplot2::geom_polygon(color = "black", fill = "gray") + 
-                ggplot2::geom_point(data = values$dataset, ggplot2::aes(x = values$dataset[,longitude], y = values$dataset[,latitude], group=rep(1, nrow(values$dataset))), color = "red", size = 1) +
-                cf + ggplot2::coord_fixed(xlim = ranges_spatial$x, ylim = ranges_spatial$y, ratio=1.3, expand = TRUE)+
-                ggplot2::labs(x='Longitude', y='Latitude', subtitle='Observed locations')+
-                ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
-                      panel.background = ggplot2::element_blank(),  axis.text=ggplot2::element_text(size=12),
-                      axis.title=ggplot2::element_text(size=12),panel.border = ggplot2::element_rect(colour = "black", fill=NA, size=1) )
-              
-              ggplot2::ggsave(file, plot=suppressWarnings(ggpubr::ggarrange(p1, plotInput_kernel(),ncol =2, nrow = 1)), 
+              ggplot2::ggsave(file, plot=suppressWarnings(ggpubr::ggarrange(plotInput_spatial(), plotInput_kernel(), ncol =2, nrow = 1)),
                               device=function(..., width, height) grDevices::png(..., width = 12, height = 4, res = 300, units = "in"))
             } else if(input$plot_type=='x-y plot'){
               ggplot2::ggsave(file, plot=plotInput_xy(), device=function(..., width, height) grDevices::png(..., width = 12, height = 4, res = 300, units = "in"))
