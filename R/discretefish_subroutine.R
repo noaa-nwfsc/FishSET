@@ -479,7 +479,7 @@ discretefish_subroutine <- function(project, select.model = FALSE) {
     discretefish_subroutine_function$functionID <- "discretefish_subroutine"
     discretefish_subroutine_function$args <- list(project, select.model)
     discretefish_subroutine_function$kwargs <- list()
-    log_call(discretefish_subroutine_function)
+    log_call(project, discretefish_subroutine_function)
     #############################################################################
     single_sql <- paste0(project, "modelOut", format(Sys.Date(), format = "%Y%m%d"))
     if (table_exists(single_sql)) {

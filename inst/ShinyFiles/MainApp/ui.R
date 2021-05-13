@@ -1241,11 +1241,11 @@ source("map_viewer_app.R", local = TRUE)
                                     conditionalPanel("input.new_dat_cb",
                                                      
                                                      selectizeInput("new_dat", "Choose primary table", 
-                                                                    choices = list_MainDataTables(), multiple = TRUE,
+                                                                    choices = main_tables(), multiple = TRUE,
                                                                     options = list(maxItems = 1)), # sets dat to NULL by default
                                                      
                                                      selectizeInput("new_port", "Choose port table", 
-                                                                    choices = list_PortTables(), multiple = TRUE,
+                                                                    choices = list_tables(type = "port"), multiple = TRUE,
                                                                     options = list(maxItems = 1)),
                                                      
                                                      selectizeInput("new_aux", "Choose aux table", 

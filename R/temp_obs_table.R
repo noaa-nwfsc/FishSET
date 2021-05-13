@@ -68,7 +68,7 @@ temp_obs_table <- function(dat, project, x, gridfile=NULL, lon.dat=NULL, lat.dat
   temp_obs_table_function <- list()
   temp_obs_table_function$functionID <- "temp_obs_table"
   temp_obs_table_function$args <- list(dat, project, gridfile, x, lon.dat, lat.dat, cat, lon.grid, lat.grid)
-  log_call(temp_obs_table_function)
+  log_call(project, temp_obs_table_function)
 
 
   # save_table(out, project, "temp_obs_table")

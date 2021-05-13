@@ -293,7 +293,7 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
           
         } else {
           
-          trip_tab <- ID_var(trip_tab, vars = group, drop = TRUE)
+          trip_tab <- ID_var(trip_tab, project = project, vars = group, drop = TRUE)
           group <- paste(group, collapse = "_")
         }
         
@@ -558,7 +558,7 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
                                       date_value, filter_by, filter_value, filter_expr,
                                       facet_by, type, bins, density, scale, tran, pages, 
                                       remove_neg, output, tripID, fun.time, fun.numeric)
-    log_call(trip_length_function)
+    log_call(project, trip_length_function)
     
     if (output == "table") table_out
     else if (output == "plot") f_plot()

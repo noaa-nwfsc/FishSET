@@ -314,6 +314,6 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
     create_alternative_choice_function$kwargs <- list("lon.grid" = lon.grid, "lat.grid" = lat.grid, "griddedDat" = griddedDat, "weight.var" = weight.var)
     create_alternative_choice_function$output <- list()
 
-    log_call(create_alternative_choice_function)
+    log_call(project, create_alternative_choice_function)
   }
 }

@@ -87,7 +87,7 @@ data_verification <- function(dat, project) {
   data_verification_function$args <- list(dat, project)
   data_verification_function$kwargs <- list()
   data_verification_function$msg <- suppressWarnings(readLines(tmp))
-  log_call(data_verification_function)
+  log_call(project, data_verification_function)
   rm(tmp)
 
   if (check == 1) {
@@ -144,7 +144,7 @@ unique_filter <- function(dat, project, remove = FALSE) {
   unique_filter_function$args <- list(dat, project, remove)
   unique_filter_function$output <- c(dat)
   unique_filter_function$msg <- suppressWarnings(readLines(tmp))
-  log_call(unique_filter_function)
+  log_call(project, unique_filter_function)
 
   rm(tmp)
   if (remove == TRUE) {
@@ -205,7 +205,7 @@ empty_vars_filter <- function(dat, project, remove = FALSE) {
   empty_vars_filter_function$args <- list(dat, project, remove)
   empty_vars_filter_function$output <- list(dat)
   empty_vars_filter_function$msg <- suppressWarnings(readLines(tmp))
-  log_call(empty_vars_filter_function)
+  log_call(project, empty_vars_filter_function)
 
   rm(tmp)
   if (remove == TRUE) {
