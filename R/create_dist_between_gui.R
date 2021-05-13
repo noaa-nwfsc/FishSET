@@ -150,7 +150,7 @@ create_dist_between_for_gui <- function(dat, start, end, units, name = "DistBetw
       create_dist_between_function$kwargs <- list(portTable, deparse(substitute(gridfile)), lon.dat, lat.dat, cat, lon.grid, lat.grid)
       create_dist_between_function$output <- list(dat)
 
-      log_call(create_dist_between_function)
+      log_call(project, create_dist_between_function)
 
       return(cbind(dataset, name))
     }

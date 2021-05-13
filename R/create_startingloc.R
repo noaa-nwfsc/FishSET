@@ -98,7 +98,7 @@ create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, st
   create_startingloc_function$kwargs <- list("lon.grid" = lon.grid, "lat.grid" = lat.grid)
   create_startingloc_function$output <- list(dat)
 
-  log_call(create_startingloc_function)
+  log_call(project, create_startingloc_function)
 
   return(cbind(dataset, name))
 }

@@ -34,7 +34,7 @@ haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, trip
   #dataIndex <- dataindex_update(dataset, pull_info_data(project))
   
   # create rowID variable
-  int <- ID_var(dataset, vars = tripID, type = "integer", name = "rowID", 
+  int <- ID_var(dataset, project = project, vars = tripID, type = "integer", name = "rowID", 
                 drop = FALSE)
   
   cat(length(unique(int$rowID)), "unique trips were identified using", tripID, "\n")
@@ -161,7 +161,7 @@ haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, trip
   haul_to_trip_function$args <- list(dat, project, deparse(substitute(fun.numeric)), 
                                      deparse(substitute(fun.time)), tripID, haul_count)
   haul_to_trip_function$output <- list(dat)
-  log_call(haul_to_trip_function)
+  log_call(project, haul_to_trip_function)
   
   return(out)
 }

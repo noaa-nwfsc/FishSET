@@ -608,7 +608,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       )
       make_model_design_function$kwargs <- list()
       
-      log_call(make_model_design_function)
+      log_call(project, make_model_design_function)
     }
   }
 }
