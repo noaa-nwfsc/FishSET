@@ -34,29 +34,46 @@ list_logs <- function(chron = FALSE) {
   else logs[order(as.numeric(ord))]
 }
 
-
-current_log <- function() {
-  #'
-  #' Lists most recent log file
-  #'
-  #' @keywords internal
+project_logs <- function(project) {
+  #' List logs by project
+  #' @param project Name of project.
   #' @export
-  #' @details Prints the name of the most recent log file, but not the filepath.
-
-  logs <- list.files(loclog())
-
-  g <- gsub("[^0-9]", "", logs)
-
-  log <- logs[which(g == max(g))]
-
-  log
+  
+  logs <- list_logs()
+  logs <- grep(project, logs, value = TRUE)
+  ord <- gsub("[^0-9]", "", logs)
+  
+  if (length(logs) == 0) message("Project \"", project, "\" not found")
+  else logs[order(-as.numeric(ord))]
 }
 
 
-pull_log <- function(log_date = NULL) {
+current_log <- function(project = NULL) {
+  #'
+  #' Lists most recent log file
+  #' @param project Project name. 
+  #' @keywords internal
+  #' @export
+  #' @details Prints the name of the most recent log file, but not the filepath.
+  
+  if (!is.null(project)) logs <- project_logs(project)
+  else logs <- list.files(loclog())
+
+  if (!is.null(logs)) {
+    g <- gsub("[^0-9]", "", logs)
+    log <- logs[which(g == max(g))]
+    
+    log
+    
+  } else invisible(NULL)
+}
+
+
+pull_log <- function(project, log_date = NULL) {
   #'
   #'  pull log file
   #'
+  #' @param project Project name. 
   #' @param log_date Date of log to be pulled. If \code{NULL}, then most recent log file
   #'   is retrieved.
   #' @importFrom jsonlite fromJSON
@@ -67,14 +84,17 @@ pull_log <- function(log_date = NULL) {
 
   if (is.null(log_date)) {
     
-    log <- jsonlite::fromJSON(paste0(loclog(), current_log()), simplifyVector = FALSE)
+    log <- jsonlite::fromJSON(paste0(loclog(), current_log(project)), 
+                              simplifyVector = FALSE)
   
     } else {
       
-    if (file.exists(paste0(loclog(), log_date, ".json"))) {
+      log_file <- grep(log_date, project_logs(project), value = TRUE)
       
-      log <- jsonlite::fromJSON(paste0(loclog(), log_date, ".json"), 
-                                simplifyVector = FALSE)
+    #if (file.exists(paste0(loclog(), log_date, ".json"))) {
+    if (length(log_file) > 0) {
+      
+      log <- jsonlite::fromJSON(paste0(loclog(), log_file), simplifyVector = FALSE)
       
     } else {
       
@@ -102,11 +122,11 @@ current_out <- function() {
 
   outs <- list.files(locoutput())
 
-  c <- stringr::str_extract_all(outs, "\\d{4}-\\d{2}-\\d{2}", simplify = TRUE)
+  cur <- stringr::str_extract_all(outs, "\\d{4}-\\d{2}-\\d{2}", simplify = TRUE)
 
-  c <- gsub("[^0-9]", "", c)
+  cur <- gsub("[^0-9]", "", cur)
 
-  outs <- outs[which(c == max(c))]
+  outs <- outs[which(cur == max(cur))]
 
   outs
 }
@@ -271,25 +291,6 @@ pull_plot <- function(project, fun, date = NULL, conf = TRUE) {
   } 
 }
 
-list_MainDataTables <- function() {
-  #' List MainDataTables
-  #' @export 
-
-  tab <- tables_database()
-  tab <- grep("MainDataTable", tab, value = TRUE)
-  tab <- tab[!grepl("(Info)", tab)]
-  
-  tab
-}
-
-list_PortTables <- function() {
-  #' List PortTables 
-  #' @export
-  tab <- tables_database()
-  tab <- grep("PortTable", tab, value = TRUE)
-  
-  tab
-}
 
 current_db_table <- function(project, table) {
   #'
@@ -605,21 +606,21 @@ summary_table <- function(project, output = "print") {
 }
 
 
-function_summary <- function(date = NULL, type = "dat_load", show = "all") {
+function_summary <- function(project, date = NULL, type = "dat_load", show = "all") {
   #'
   #' Display summary of function calls
   #'
+  #' @param project Project name. 
   #' @param date Character string; the date of the log file ("%Y-%m-%d" format) to
   #'   retrieve. If \code{NULL} the most recent log is pulled.
   #' @param type The type of function to display. "dat_load", "dat_quality", "dat_create",
-  #'   "dat_exploration", "fleet", "alt_choice", and "model".
+  #'   "dat_exploration", "fleet", and "model".
   #' @param show Whether to display \code{"all"} calls, the \code{"last"} (most recent) call, or
   #' the \code{"first"} (oldest) function call from the log file.
   #' @importFrom dplyr bind_rows
   #' @details Displays a list of functions by type and their arguments from a log file.
   #'   If no date is entered the most recent log file is pulled.
   #' @export
-  #' @keywords internal
   #' @seealso \code{\link{filter_summary}}
   #' @examples
   #' \dontrun{
@@ -627,29 +628,32 @@ function_summary <- function(date = NULL, type = "dat_load", show = "all") {
   #' }
 
   dat_load <- c(
-    "load_data", "load_maindata", "main_mod", "load_port", "load_aux",
-    "load_gridded", "merge_dat", "split_dat"
+    "load_data", "load_maindata", "load_port", "load_aux","load_gridded", 
+    "merge_dat", "split_dat", "write_dat"
   )
 
   dat_quality <- c(
     "data_verification", "data_check", "nan_identify", "nan_filter", "na_filter",
     "outlier_table", "outlier_plot", "outlier_remove", "degree", "unique_filter",
     "empty_vars_filter", "check_model_data", "filter_table", "filter_dat",
-    "add_vars", "changeclass"
+    "add_vars", "changeclass", "summary_stats"
   )
 
   dat_create <- c(
-    "temp_mod", "ID_var", "create_seasonal_ID", "cpue", "dummy_var",
+    "temporal_mod", "ID_var", "create_seasonal_ID", "cpue", "dummy_var",
     "dummy_num", "dummy_matrix", "set_quants", "bin_var", "create_var_num",
     "create_mid_haul", "create_trip_centroid", "create_dist_between",
-    "create_duration", "create_startingloc", "haul_to_trip", "create_TD",
+    "create_duration", "create_startingloc", "haul_to_trip", 
     "randomize_value_row", "randomize_value_range", "jitter_lonlat", 
-    "randomize_lonlat_zone", "lonlat_to_centroid"
+    "randomize_lonlat_zone", "lonlat_to_centroid", "assignment_column",
+    "create_dist_between_for_gui", "group_perc", "group_diff", "group_cumsum",
+    "create_trip_distance" 
   )
 
   dat_exploration <- c(
     "map_plot", "map_kernel", "getis_ord_stats", "moran_stats", "temp_plot", 
-    "xy_plot", "corr_out", "map_viewer"
+    "xy_plot", "corr_out", "map_viewer", "spatial_hist", "spatial_summary",
+    "view_grid_dat"
   )
 
   fleet <- c(
@@ -657,11 +661,12 @@ function_summary <- function(date = NULL, type = "dat_load", show = "all") {
     "sum_catch", "weekly_catch", "weekly_effort", "trip_length", "roll_catch"
   )
 
-  alt_choice <- c("create_alternative_choice", "find_centroid", "assignment_column")
+  alt_choice <- c("create_alternative_choice")
 
   model <- c(
     "sparsetable", "sparsplot", "create_expectations", "make_model_design",
-    "discretefish_subroutine", "check_model_data", "log_func_model"
+    "discretefish_subroutine", "check_model_data", "log_func_model",
+    "create_alternative_choice", "temp_obs_table"
   )
 
   fun_vector <- switch(type, "dat_load" = dat_load, "dat_quality" = dat_quality,
@@ -669,10 +674,13 @@ function_summary <- function(date = NULL, type = "dat_load", show = "all") {
     "fleet" = fleet, "alt_choice" = alt_choice, "model" = model
   )
 
+  end <- FALSE
 
-  log <- pull_log(log_date = date)
+  log <- pull_log(project, log_date = date)
+  
+  if (is.null(log)) end <- TRUE
+  
   log_date <- log[[1]][[1]]$info[[1]]$rundate
-
 
   # grab all function calls
   fun_calls <- lapply(
@@ -686,9 +694,11 @@ function_summary <- function(date = NULL, type = "dat_load", show = "all") {
 
   if (length(ind) == 0) {
     
-    message("No functions of type", type, "found in log.")
-    
-  } else if (length(ind) > 0) {
+    message("No functions of type \"", type, "\" found in log.")
+    end <- TRUE
+  } 
+  
+  if (end == FALSE) {
     
     fun_list <- lapply(ind, function(x) {
       
