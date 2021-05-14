@@ -1,8 +1,9 @@
-degree <- function(dat, lat = NULL, lon = NULL, latsign = FALSE, lonsign = FALSE, replace = TRUE) {
+degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE, lonsign = FALSE, replace = TRUE) {
   #' Check and correct lat/lon format
   #'
   #' Check that latitude and longitude are in decimal degrees and the variable sign is correct. Correct lat/lon if required.
   #' @param dat Dataset containing latitude and longitude data.
+  #' @param project Project name. 
   #' @param lat Variable containing latitude data.
   #' @param lon Variable containing longitude data.
   #' @param latsign How should the sign value of \code{lat} be changed? Choices are \code{NULL}, no change, 
@@ -25,7 +26,7 @@ degree <- function(dat, lat = NULL, lon = NULL, latsign = FALSE, lonsign = FALSE
   #'    Changing the sign, transforms all values in the variable.
   #' @examples
   #' \dontrun{
-  #' pollockMainDataTable <- degree(pollockMainDataTable, 'LatLon_START_LAT', 'LatLon_START_LON',
+  #' pollockMainDataTable <- degree(pollockMainDataTable, 'pollock', 'LatLon_START_LAT', 'LatLon_START_LON',
   #'        latsign=FALSE, lonsign=FALSE, replace=TRUE)
   #' }
   #'
@@ -58,10 +59,10 @@ degree <- function(dat, lat = NULL, lon = NULL, latsign = FALSE, lonsign = FALSE
 
   degree_function <- list()
   degree_function$functionID <- "degree"
-  degree_function$args <- list(dat, lat, lon, latsign, lonsign, replace)
+  degree_function$args <- list(dat, project, lat, lon, latsign, lonsign, replace)
   degree_function$output <- list(dat)
   degree_function$msg <- suppressWarnings(readLines(tmp))
-  log_call(degree_function)
+  log_call(project, degree_function)
 
   if (replace == TRUE) {
     if (!is.null(lat)) {

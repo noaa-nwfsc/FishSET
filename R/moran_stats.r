@@ -66,10 +66,13 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
   if (x == 0) {
     # Assign data to zone
     if (!is.null(cat)) {
-      dataset <- assignment_column(dataset, spatdat, hull.polygon = TRUE, lon.dat, lat.dat, cat, closest.pt = TRUE, lon.grid, lat.grid, epsg = NULL)
+      dataset <- assignment_column(dataset, project, spatdat, hull.polygon = TRUE, 
+                                   lon.dat, lat.dat, cat, closest.pt = TRUE, lon.grid, 
+                                   lat.grid, epsg = NULL)
 
       # Idenfity centroid of zone
-      int <- find_centroid(dataset, spatdat, lon.dat, lat.dat, cat, lon.grid, lat.grid, weight.var = NULL)
+      int <- find_centroid(dataset, spatdat, lon.dat, lat.dat, cat, 
+                           lon.grid, lat.grid, weight.var = NULL)
     }
 
     # Create dataset
@@ -148,7 +151,7 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
     moran_stats_function <- list()
     moran_stats_function$functionID <- "moran_stats"
     moran_stats_function$args <- list(dat, project, varofint, spat, lon.dat, lat.dat, cat, lon.grid, lat.grid)
-    log_call(moran_stats_function)
+    log_call(project, moran_stats_function)
 
     return(list(moranmap = moranmap, morantable = uniquedatatomap[, c("ZoneID", "Morans_I")]))
 

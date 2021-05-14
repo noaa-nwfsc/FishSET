@@ -55,7 +55,7 @@ sparsetable <- function(dat, project, timevar, zonevar, var) {
   sparsetable_function <- list()
   sparsetable_function$functionID <- "sparsetable"
   sparsetable_function$args <- list(dat, project, timevar, zonevar, var)
-  log_call(sparsetable_function)
+  log_call(project, sparsetable_function)
 
 
   save_table(sparstable, project, "sparstable")
@@ -97,7 +97,7 @@ sparsplot <- function(x, project) {
   sparsplot_function <- list()
   sparsplot_function$functionID <- "sparsplot"
   sparsplot_function$args <- list(x, project)
-  log_call(sparsplot_function)
+  log_call(project, sparsplot_function)
 
   save_plot(project, "sparsplot", g)
   return(g)
