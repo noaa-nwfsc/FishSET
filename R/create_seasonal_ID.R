@@ -3,6 +3,7 @@
 #'
 #' @param dat Primary data containing information on hauls or trips.
 #'   Table in the FishSET database contains the string 'MainDataTable'.
+#' @param project Project name.
 #' @param seasonal.dat Name of table containing date of fishery season(s). Can be pulled from the FishSET database.
 #' @param use.location  Logical, should fishery season dates depend on fishery location? Column names containing
 #'   location in \code{dat} and \code{seasonal.dat} must match.
@@ -35,7 +36,7 @@
 #' )
 #' }
 #'
-create_seasonal_ID <- function(dat, seasonal.dat, use.location = c(TRUE, FALSE), use.geartype = c(TRUE, FALSE), sp.col, target = NULL) {
+create_seasonal_ID <- function(dat, project, seasonal.dat, use.location = c(TRUE, FALSE), use.geartype = c(TRUE, FALSE), sp.col, target = NULL) {
 
   # Call in datasets
   out <- data_pull(dat)
@@ -288,10 +289,10 @@ create_seasonal_ID <- function(dat, seasonal.dat, use.location = c(TRUE, FALSE),
 
   create_seaonal_ID_function <- list()
   create_seaonal_ID_function$functionID <- "create_seaonal_ID"
-  create_seaonal_ID_function$args <- list(dat, seasonal.dat, use.location, use.geartype, sp.col)
+  create_seaonal_ID_function$args <- list(dat, project, seasonal.dat, use.location, use.geartype, sp.col)
   create_seaonal_ID_function$kwargs <- list(target = target)
   create_seaonal_ID_function$output <- dat
-  log_call(create_seaonal_ID_function)
+  log_call(project, create_seaonal_ID_function)
 
   return(dataset)
 }

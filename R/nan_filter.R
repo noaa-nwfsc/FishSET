@@ -1,19 +1,20 @@
 # Filters NaN's from variable
 
 
-nan_identify <- function(dat) {
+nan_identify <- function(dat, project) {
   #' Check whether any columns in the primary dataset contain NAs or NaNs.
   #' 
   #' @description Check whether any columns in the primary dataset contain NAs or NaNs. 
   #'   Returns column names containing NAs or NaNs.
   #' @param dat Primary data containing information on hauls or trips. 
   #'   Table in the FishSET database contains the string 'MainDataTable'.
+  #' @param project Project name. 
   #' @keywords NaN, NA
   #' @return Returns names of columns containing NAs or NaNs, if any.
   #' @export nan_identify
   #' @examples
   #' \dontrun{
-  #' nan_identify(pcodMainDataTable)
+  #' nan_identify(pcodMainDataTable, "pcod")
   #' }
 
   # Call in datasets
@@ -55,21 +56,22 @@ nan_identify <- function(dat) {
 
   nan_identify_function <- list()
   nan_identify_function$functionID <- "nan_identify"
-  nan_identify_function$args <- list(dat)
+  nan_identify_function$args <- list(dat, project)
   nan_identify_function$msg <- suppressWarnings(readLines(tmp))
-  log_call(nan_identify_function)
+  log_call(project, nan_identify_function)
 
   rm(tmp)
 }
 
 
 # Replaces nans in the data column with the chosen value or removes rows containing NaNs
-nan_filter <- function(dat, x=NULL, replace = FALSE, remove = FALSE, rep.value = NA, over_write = FALSE) {
+nan_filter <- function(dat, project, x=NULL, replace = FALSE, remove = FALSE, rep.value = NA, over_write = FALSE) {
   #' Remove NaNs
   #'
   #' Remove or replace NaNs in primary dataset.
   #'
   #' @param dat Primary data containing information on hauls or trips. Table in the FishSET database contains the string 'MainDataTable'.
+  #' @param project Project name.
   #' @param x  Character string of variables to remove or replace NaNs.
   #' @param replace Logical, If TRUE, NaNs are replaced. Defaults to FALSE.
   #' @param remove  Logical, if TRUE, removes the entire row of the dataset where NaN is present? Defaults to FALSE.
@@ -87,10 +89,10 @@ nan_filter <- function(dat, x=NULL, replace = FALSE, remove = FALSE, rep.value =
   #' @examples
   #' \dontrun{
   #' nan_identify(pcodMainDataTable)
-  #' mod.dat <- nan_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT')
-  #' mod.dat <- nan_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=TRUE)
-  #' mod.dat <- nan_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=TRUE, rep.value=0)
-  #' mod.dat <- nan_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', remove=TRUE)
+  #' mod.dat <- nan_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT')
+  #' mod.dat <- nan_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT', replace=TRUE)
+  #' mod.dat <- nan_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT', replace=TRUE, rep.value=0)
+  #' mod.dat <- nan_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT', remove=TRUE)
   #' }#
 
 
@@ -155,10 +157,10 @@ nan_filter <- function(dat, x=NULL, replace = FALSE, remove = FALSE, rep.value =
   
   nan_filter_function <- list()
   nan_filter_function$functionID <- "nan_filter"
-  nan_filter_function$args <- list(dat, x, replace, remove, rep.value, over_write)
+  nan_filter_function$args <- list(dat, project, x, replace, remove, rep.value, over_write)
   nan_filter_function$output <- list(dat)
   nan_filter_function$msg <- suppressWarnings(readLines(tmp))
-  log_call(nan_filter_function)
+  log_call(project, nan_filter_function)
 
   rm(tmp)
   if (remove == TRUE | replace == T) {
@@ -169,10 +171,11 @@ nan_filter <- function(dat, x=NULL, replace = FALSE, remove = FALSE, rep.value =
 
 #### ----
 # Replaces NAs in the dataColumn with the chosen value or removes rows containing NAs
-na_filter <- function(dat, x=NULL, replace = FALSE, remove = FALSE, rep.value = NA, over_write = FALSE) {
+na_filter <- function(dat, project, x=NULL, replace = FALSE, remove = FALSE, rep.value = NA, over_write = FALSE) {
   #' Identify, remove or replace NAs 
   #'
   #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+  #' @param project Project name. 
   #' @param x Character string. Column(s) in \code{dat} in which to remove or replace NAs.
   #' @param replace Logical, if TRUE, replaces NAs in a vector with \code{rep.value}. Defaults to FALSE.
   #' @param remove Logical, if TRUE removes the entire row of the \code{dat} where NA is present in a \code{dat}. Defaults to FALSE.
@@ -190,10 +193,10 @@ na_filter <- function(dat, x=NULL, replace = FALSE, remove = FALSE, rep.value = 
   #' @examples
   #' \dontrun{
   #' na_filter(pcodMainDataTable)
-  #' mod.dat <- na_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT')
-  #' mod.dat <- na_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=TRUE)
-  #' mod.dat <- na_filter(pcodMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=TRUE, rep.value=0)
-  #' mod.dat <- na_filter(pcodMainDataTable, c('OFFICIAL_TOTAL_CATCH_MT', 'CATCH_VALUE'), remove=TRUE)
+  #' mod.dat <- na_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT')
+  #' mod.dat <- na_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT', replace=TRUE)
+  #' mod.dat <- na_filter(pcodMainDataTable,'pcod', 'OFFICIAL_TOTAL_CATCH_MT', replace=TRUE, rep.value=0)
+  #' mod.dat <- na_filter(pcodMainDataTable, 'pcod', c('OFFICIAL_TOTAL_CATCH_MT', 'CATCH_VALUE'), remove=TRUE)
   #' }
 
   # Call in datasets
@@ -260,10 +263,10 @@ na_filter <- function(dat, x=NULL, replace = FALSE, remove = FALSE, rep.value = 
 }
   na_filter_function <- list()
   na_filter_function$functionID <- "na_filter"
-  na_filter_function$args <- list(dat, x, replace, remove, rep.value, over_write)
+  na_filter_function$args <- list(dat, project, x, replace, remove, rep.value, over_write)
   na_filter_function$output <- list(dat)
   na_filter_function$msg <- suppressWarnings(readLines(tmp))
-  log_call(na_filter_function)
+  log_call(project, na_filter_function)
 
   rm(tmp)
 

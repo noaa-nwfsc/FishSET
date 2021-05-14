@@ -233,7 +233,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
       
       if (combine == TRUE & length(group) > 1) { 
         
-        dataset <- ID_var(dataset, vars = group, type = "string")
+        dataset <- ID_var(dataset, project,vars = group, type = "string")
         group <- gsub(" ", "", paste(group, collapse = "_"))
         group1 <- group
         group2 <- NULL
@@ -399,7 +399,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
                                   sub_date, filter_date, date_value, filter_by, filter_value, 
                                   filter_expr, facet_by, tran, value, combine, scale, 
                                   output, format_tab)
-    log_call(bycatch_function)
+    log_call(project, bycatch_function)
     
     if (output == "plot") f_plot()
       

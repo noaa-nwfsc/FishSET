@@ -1,11 +1,12 @@
 
 # map viewer
-map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars, 
+map_viewer <- function(dat, project, gridfile, avd, avm, num_vars, temp_vars, id_vars, 
                        lon_start, lat_start, lon_end=NULL, lat_end=NULL) {
   #' Interactive vessel locations and fishery zones map
   #'
   #' View vessel locations and fishery zones on interactive map.
   #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+  #' @param project Project name. 
   #' @param gridfile Spatial data containing information on fishery management or regulatory zones. Shape, json, geojson, and csv formats are supported.
   #' @param avd Variable name in \code{dat} that gives the unique ID associated to the polygon.
   #' @param avm The name of the property in the GeoJson file that identifies the polygon to cross reference to \code{dat}. Often a list of zones.
@@ -33,13 +34,13 @@ map_viewer <- function(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars,
   #' @examples
   #' \dontrun{
   #' #Plot haul path
-  #' map_viewer(pollockMainDataTable, gridfile=spatdat, area_variable_column='NMFS_AREA',
+  #' map_viewer(pollockMainDataTable, 'pollock', gridfile=spatdat, area_variable_column='NMFS_AREA',
   #' area_variable_map='NMFS_AREA', num_vars=c('HAUL','OFFICIAL_TOTAL_CATCH'),
   #' temp_vars='HAUL_DATE', id_vars=c('GEAR_TYPE', 'PORT'), 
   #'        'Lon_Start', 'Lat_Start', 'Lon_End', 'Lat_End')
   #' 
   #' #Plot haul midpoint
-  #' map_viewer(pollockMainDataTable, gridfile=spatdat, area_variable_column='NMFS_AREA',
+  #' map_viewer(pollockMainDataTable, 'pollock', gridfile=spatdat, area_variable_column='NMFS_AREA',
   #' area_variable_map='NMFS_AREA', num_vars=c('HAUL','OFFICIAL_TOTAL_CATCH'),
   #' temp_vars='HAUL_DATE', id_vars=c('GEAR_TYPE', 'PORT'), 'Lon_Mid', 'Lat_Mid')
   
@@ -121,8 +122,8 @@ if(!is.null(lon_end)){
   # log function
   map_viewer_function <- list()
   map_viewer_function$functionID <- "map_viewer"
-  map_viewer_function$args <- list(dat, spatname, avd, avm, num_vars, temp_vars, id_vars, lon_start, lat_start, lon_end, lat_end)
-  log_call(map_viewer_function)
+  map_viewer_function$args <- list(dat, project, spatname, avd, avm, num_vars, temp_vars, id_vars, lon_start, lat_start, lon_end, lat_end)
+  log_call(project, map_viewer_function)
 
   # working directory
   if (shiny::isRunning()) {

@@ -217,7 +217,7 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
     
     if (combine == TRUE & length(group) > 1) { 
       
-      dataset <- ID_var(dataset, vars = group, type = "string")
+      dataset <- ID_var(dataset, project = project, vars = group, type = "string")
       group <- gsub(" ", "", paste(group, collapse = "_"))
       group1 <- group
       group2 <- NULL
@@ -471,7 +471,7 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
     vessel_count_function$args <- list(dat, project, v_id, date, period, group, sub_date, filter_date,
                                        date_value, filter_by, filter_value, filter_expr, facet_by, 
                                        combine, position, tran,  value, type, scale, output)
-    log_call(vessel_count_function)
+    log_call(project, vessel_count_function)
     
     # Output folder
     save_table(table_out, project, "vessel_count")

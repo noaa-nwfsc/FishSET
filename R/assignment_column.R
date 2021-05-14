@@ -138,7 +138,7 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
     assignment_column_function$args <- list(dat, project, gridfile, lon.dat, lat.dat, 
                                             cat, closest.pt, lon.grid, lat.grid, 
                                             hull.polygon, epsg)
-    log_call(assignment_column_function)
+    log_call(project, assignment_column_function)
 
     pts <- as.data.frame(pts)
     return(pts)

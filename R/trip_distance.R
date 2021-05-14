@@ -2,6 +2,7 @@
 #'
 #' @param dat Primary data containing information on hauls or trips.
 #' Table in the FishSET database contains the string 'MainDataTable'.
+#' @param project Project name. 
 #' @param PortTable Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat.
 #' Table is generated using the \code{\link{load_port}} function and saved in the FishSET database as the project and PortTable,
 #' for example 'pollockPortTable'.
@@ -25,14 +26,14 @@
 #'  (\url{https://cran.r-project.org/web/packages/geosphere/geosphere.pdf}).
 #' @examples
 #' \dontrun{
-#' pcodMainDataTable <- create_trip_distance(pcodMainDataTable, "pcodPortTable", 
+#' pcodMainDataTable <- create_trip_distance(pcodMainDataTable, "pcod", "pcodPortTable", 
 #'   "TRIP_SEQ", "DISEMBARKED_PORT", c("LonLat_START_LON", "LonLat_START_LAT"),
 #'   c("LonLat_END_LON", "LonLat_END_LAT"), "EMBARKED_PORT", "HAUL_SEQ", "TripDistance"
 #' )
 #' }
 #'
 #' #
-create_trip_distance <- function(dat, PortTable, trip_id, starting_port, starting_haul = c("Lon", "Lat"), ending_haul = c("Lon", "Lat"),
+create_trip_distance <- function(dat, project, PortTable, trip_id, starting_port, starting_haul = c("Lon", "Lat"), ending_haul = c("Lon", "Lat"),
                                  ending_port, haul_order, name = "TripDistance", a = 6378137, f = 1 / 298.257223563) {
 
   # Call in datasets
@@ -144,10 +145,10 @@ create_trip_distance <- function(dat, PortTable, trip_id, starting_port, startin
 
     create_TD_function <- list()
     create_TD_function$functionID <- "create_trip_distance"
-    create_TD_function$args <- list(dat, PortTable, trip_id, starting_port, starting_haul, 
+    create_TD_function$args <- list(dat, project, PortTable, trip_id, starting_port, starting_haul, 
                                     ending_haul, ending_port, haul_order, name, a, f)
     create_TD_function$output <- list(dat)
-    log_call(create_TD_function)
+    log_call(project, create_TD_function)
 
     return(dataset)
   }

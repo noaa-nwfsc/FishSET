@@ -132,7 +132,7 @@ changeclass <- function(dat, project, x=NULL, newclass=NULL, savedat=FALSE){
   changeclass_function <- list()
   changeclass_function$functionID <- "changeclass"
   changeclass_function$args <- list(dat, project, x, newclass, savedat)
-  log_call(changeclass_function)
+  log_call(project, changeclass_function)
   
   if ((is.null(x) & is.null(newclass)) == FALSE) {
     return(dataset)

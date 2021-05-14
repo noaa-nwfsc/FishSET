@@ -450,5 +450,5 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
   )
   create_expectations_function$kwargs <- list()
 
-  log_call(create_expectations_function)
+  log_call(project, create_expectations_function)
 }

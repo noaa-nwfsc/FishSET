@@ -67,7 +67,7 @@ corr_out <- function(dat, project, variables, ...) {
     corr_out_function <- list()
     corr_out_function$functionID <- "corr_out"
     corr_out_function$args <- list(dat, project, variables)
-    log_call(corr_out_function)
+    log_call(project, corr_out_function)
 
     # Save output
 

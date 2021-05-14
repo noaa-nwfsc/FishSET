@@ -4,6 +4,7 @@
 #' from a date variable.
 #' @param dat Primary data containing information on hauls or trips.
 #' Table in FishSET database contains the string 'MainDataTable'.
+#' @param project Project name.
 #' @param x Time variable to modify from \code{dat}.
 #' @param define.format Format of temporal data. Format can be user-defined or from pre-defined choices. Format follows \code{\link{as.Date}} format.
 #' See Details for more information.
@@ -27,13 +28,13 @@
 #' @export temporal_mod
 #' @examples
 #' \dontrun{
-#' pcodMainDataTable <- temporal_mod(pcodMainDataTable, "DATE_LANDED", define.format = "%Y%m%d")
-#' pcodMainDataTable <- temporal_mod(pcodMainDataTable, "DATE_LANDED", define.format = "year")
+#' pcodMainDataTable <- temporal_mod(pcodMainDataTable, "pcod", "DATE_LANDED", define.format = "%Y%m%d")
+#' pcodMainDataTable <- temporal_mod(pcodMainDataTable, "pcod", "DATE_LANDED", define.format = "year")
 #' }
 #'
 #'
 #' # Change to Year, month, day, minutes
-temporal_mod <- function(dat, x, define.format, name = NULL) {
+temporal_mod <- function(dat, project, x, define.format, name = NULL) {
 
   # Call in datasets
   out <- data_pull(dat)
@@ -68,7 +69,7 @@ temporal_mod <- function(dat, x, define.format, name = NULL) {
   temp_mod_function$functionID <- "temporal_mod"
   temp_mod_function$args <- list(dat, x, define.format, deparse(substitute(name)))
   temp_mod_function$output <- list(dat)
-  log_call(temp_mod_function)
+  log_call(project, temp_mod_function)
   
   if (is.null(name)) name <- paste0("temp_mod_", define.format)
 

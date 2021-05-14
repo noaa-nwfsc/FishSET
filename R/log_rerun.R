@@ -20,134 +20,145 @@ log_rerun <- function(log_file, dat = NULL, portTable = NULL, aux = NULL,
   #' @importFrom rlang call2
   #' @examples 
   #' \dontrun{
-  #' log_rerun("2020-10-23.json", run = TRUE) # reruns entire log with original data table
+  #' log_rerun("pollock_2020-10-23.json", run = TRUE) # reruns entire log with original data table
   #' # runs log with new data table
-  #' log_rerun("2020-10-23.json", dat = "pollockMainDataTable", run = TRUE) 
+  #' log_rerun("pollock_2020-10-23.json", dat = "pollockMainDataTable", run = TRUE) 
   #' }
   
-  out <- jsonlite::fromJSON(paste0(loclog(), log_file), simplifyVector = FALSE) # import as list, preserves class type
+  end <- FALSE
   
-  out <- out$fishset_run[[2]]$function_calls # list of just function calls
-  
-  # check if logged args match function formals 
-  fun_name <- vapply(seq_along(out), function(i) out[[i]]$functionID, character(1))
-  
-  log_arg_len <- vapply(seq_along(out), function(i) length(out[[i]]$args), numeric(1))
-  fun_arg_len <- vapply(seq_along(out), function(i) {
+  if (!file.exists(paste0(loclog(), log_file))) {
     
+    warning(log_file, " does not exist. Run list_logs() or project_logs().")
+    end <- TRUE
+  } 
+  
+  if (end == FALSE) {
+    
+    out <- jsonlite::fromJSON(paste0(loclog(), log_file), simplifyVector = FALSE) # import as list, preserves class type
+    
+    out <- out$fishset_run[[2]]$function_calls # list of just function calls
+    
+    # check if logged args match function formals 
+    fun_name <- vapply(seq_along(out), function(i) out[[i]]$functionID, character(1))
+    
+    log_arg_len <- vapply(seq_along(out), function(i) length(out[[i]]$args), numeric(1))
+    fun_arg_len <- vapply(seq_along(out), function(i) {
+      
       arg_nm <- names(formals(out[[i]]$functionID))
       length(arg_nm[arg_nm != "..."])
     },  numeric(1))
-  
-  if (any(log_arg_len != fun_arg_len)) {
     
-    fun_name <- unique(fun_name[log_arg_len != fun_arg_len])
-    
-    if (shiny::isRunning()) { # if app is running
+    if (any(log_arg_len != fun_arg_len)) {
       
-      shiny::showNotification("Logged arguments do not match function formals for the following functions: ", 
-                       paste(fun_name, collapse = ", "), type = "warning", duration = 10)
-    } 
-    
-    warning("Logged arguments do not match formals for the following functions: ", 
-            paste(fun_name, collapse = ", "))
-  }
- 
-  # add names to args
-  for (i in seq_along(out)) {
-    
-    arg_names <- names(formals(out[[i]]$functionID))
-    names(out[[i]]$args) <- arg_names[arg_names != "..."] 
-  }
-
-  # handling args containing a vector or list 
-  for (i in seq_along(out)) {
-    
-    for (j in names(out[[i]]$args)) {
+      fun_name <- unique(fun_name[log_arg_len != fun_arg_len])
       
-      if (length(out[[i]]$args[[j]]) > 1) {
+      if (shiny::isRunning()) { # if app is running
         
-        if (all(vapply(out[[i]]$args[[j]], FUN = length, numeric(1)) == 1)) { # case for vectors
+        shiny::showNotification("Logged arguments do not match function formals for the following functions: ", 
+                                paste(fun_name, collapse = ", "), type = "warning", duration = 10)
+      } 
+      
+      warning("Logged arguments do not match formals for the following functions: ", 
+              paste(fun_name, collapse = ", "))
+    }
+    
+    # add names to args
+    for (i in seq_along(out)) {
+      
+      arg_names <- names(formals(out[[i]]$functionID))
+      names(out[[i]]$args) <- arg_names[arg_names != "..."] 
+    }
+    
+    # handling args containing a vector or list 
+    for (i in seq_along(out)) {
+      
+      for (j in names(out[[i]]$args)) {
+        
+        if (length(out[[i]]$args[[j]]) > 1) {
           
-          out[[i]]$args[[j]] <- unlist(out[[i]]$args[[j]]) # collapse list to vector
-        
+          if (all(vapply(out[[i]]$args[[j]], FUN = length, numeric(1)) == 1)) { # case for vectors
+            
+            out[[i]]$args[[j]] <- unlist(out[[i]]$args[[j]]) # collapse list to vector
+            
           } else { # case for lists
-          
-          arg_list <-
-            lapply(out[[i]]$args[[j]], function(x) {
-              
-              if (length(x) > 1) unlist(x) # collapse to single list
-              else x
-            })
-          
-          out[[i]]$args[[j]] <- arg_list
+            
+            arg_list <-
+              lapply(out[[i]]$args[[j]], function(x) {
+                
+                if (length(x) > 1) unlist(x) # collapse to single list
+                else x
+              })
+            
+            out[[i]]$args[[j]] <- arg_list
+          }
         }
       }
     }
-  }
-
-  # concatenate kwargs list to args list
-  for (i in seq_along(out)) {
     
-    out[[i]]$args <- c(out[[i]]$args, out[[i]]$kwargs)
-  }
-  
-  # convert args to call
-  call_list <- 
-    lapply(seq_along(out), function(i) {
+    # concatenate kwargs list to args list
+    for (i in seq_along(out)) {
       
-      rlang::call2(out[[i]]$functionID, !!!out[[i]]$args)
-    })
-  
-  replace_dat <- function(clist, dat_type, new_dat) {
+      out[[i]]$args <- c(out[[i]]$args, out[[i]]$kwargs)
+    }
     
-    for (i in seq_along(clist)) {
-      
-      for (j in names(clist[[i]])) {
+    # convert args to call
+    call_list <- 
+      lapply(seq_along(out), function(i) {
         
-        if (j == dat_type) {
+        rlang::call2(out[[i]]$functionID, !!!out[[i]]$args)
+      })
+    
+    replace_dat <- function(clist, dat_type, new_dat) {
+      
+      for (i in seq_along(clist)) {
+        
+        for (j in names(clist[[i]])) {
           
-          clist[[i]][j] <- new_dat
+          if (j == dat_type) {
+            
+            clist[[i]][j] <- new_dat
+          }
         }
       }
+      clist
     }
-    clist
-  }
-
-  if (!is.null(dat)) {
     
-    call_list <- replace_dat(call_list, "dat", new_dat = dat)
-  }
-  
-  # change port table
-  if (!is.null(portTable)) {
+    if (!is.null(dat)) {
+      
+      call_list <- replace_dat(call_list, "dat", new_dat = dat)
+    }
     
-    call_list <- replace_dat(call_list, "portTable", new_dat = portTable)
-  }
-  
-  # change aux table
-  if (!is.null(aux)) {
+    # change port table
+    if (!is.null(portTable)) {
+      
+      call_list <- replace_dat(call_list, "portTable", new_dat = portTable)
+    }
     
-    call_list <- replace_dat(call_list, "aux", new_dat = aux)
-  }
-  
-  # change gridded table
-  if (!is.null(gridfile)) {
+    # change aux table
+    if (!is.null(aux)) {
+      
+      call_list <- replace_dat(call_list, "aux", new_dat = aux)
+    }
     
-    call_list <- replace_dat(call_list, "gridfile", new_dat = gridfile)
-  }
-  
-  # change spatial table
-  if (!is.null(spat)) {
+    # change gridded table
+    if (!is.null(gridfile)) {
+      
+      call_list <- replace_dat(call_list, "gridfile", new_dat = gridfile)
+    }
     
-    call_list <- replace_dat(call_list, "spat", new_dat = spat)
+    # change spatial table
+    if (!is.null(spat)) {
+      
+      call_list <- replace_dat(call_list, "spat", new_dat = spat)
+    }
+    
+    # index of calls to run 
+    if (!is.null(ind)) call_list <- call_list[ind]
+    
+    if (run == TRUE) lapply(call_list, eval)
+    else call_list
   }
-  
-  # index of calls to run 
-  if (!is.null(ind)) call_list <- call_list[ind]
-  
-  if (run == TRUE) lapply(call_list, eval)
-  else call_list
 }
 
 
@@ -194,11 +205,11 @@ log_rerun_gui <- function() {
           conditionalPanel("input.new_dat_cb",
                            
                            selectizeInput("new_dat", "Choose main table", 
-                                          choices = list_MainDataTables(), multiple = TRUE,
+                                          choices = main_tables(), multiple = TRUE,
                                           options = list(maxItems = 1)), # sets dat to NULL by default
                            
                            selectizeInput("new_port", "Choose port table", 
-                                          choices = list_PortTables(), multiple = TRUE,
+                                          choices = list_tables(type = "port"), multiple = TRUE,
                                           options = list(maxItems = 1)),
                            
                            selectizeInput("new_aux", "Choose aux table", 
