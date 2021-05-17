@@ -21,7 +21,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, ...) {
   #'   Supported data types include shape, csv, json, matlab, R, spss, and stata files.
   #'   Additional arguments can be added, such as the seperator agument \code{sep='\\t'} for  
   #'   reading in tab deliminated files. For more details, see \code{\link[base]{load}} for loading R objects, 
-  #'   \code{\link[utils]{read.csv}} for reading in comma and tab deliminated files,
+  #'   \code{\link[utils]{read.table}} for reading in comma and tab deliminated files,
   #'   \code{\link[readxl]{read_excel}} for reading in excel files (xls, xlsx), 
   #'   \code{\link[sf]{st_read}} for reading in shape or geojson files, 
   #'   \code{\link[R.matlab]{readMat}} for reading in matlab data files,
@@ -99,14 +99,14 @@ write_dat <- function (dat, file, file_type = "csv", project, ...) {
   #'@importFrom shiny isRunning
   #'@importFrom utils write.table
   #'@export
-  #'@details  See \code{\link[utils]{write.csv}} for saving csv files, 
-  #'   \code{\link[utils]{write.table}}  for tab-separated files, 
-  #'   \code{\link[base]{save}} for R data files, 
-  #'   \code{\link[openxlsx]{write.xlsx}},
+  #'@details  
+  #'See \code{\link[utils]{write.table}}  for csv and tab-separated files, 
+  #'    \code{\link[base]{save}} for R data files, 
+  #'    \code{\link[openxlsx]{write.xlsx}},
   #'    \code{\link[jsonlite]{read_json}} for json files, 
-  #'    \code{\link[haven]{write_dta}} for Stata files, 
-  #'    \code{\link[haven]{write_sav}} for SPSS files, 
-  #'    \code{\link[haven]{write_sas}} for SAS files, and 
+  #'    \code{\link[haven]{read_dta}} for Stata files, 
+  #'    \code{\link[haven]{read_spss}} for SPSS files, 
+  #'    \code{\link[haven]{read_sas}} for SAS files, and 
   #'    \code{\link[R.matlab]{writeMat}} for Matlab files. 
   #'@examples
   #'\dontrun{
@@ -197,7 +197,12 @@ load_data <- function(project, name = NULL) {
   #' load_data('pollock')
   #' load_data('pollock', 'pollockMainDataTable20190101')
   #' }
-
+ hack <- function(key, val, pos){
+      assign(key,val, envir=as.environment(pos)
+      )} 
+  
+ dat <- NULL
+ 
   if (is.null(name)) {
     if (table_exists(paste0(project, "MainDataTable")) == FALSE) {
       warning("Table not found")
@@ -212,15 +217,12 @@ load_data <- function(project, name = NULL) {
     } else {
       dat <- table_view(name)
     }
-    hack <- function(key, val, pos){
-      assign(key,val, envir=as.environment(pos)
-      )} 
-    hack(paste0(project, "MainDataTable"), dat, 1L)
-    #
+   
+   #
    # assign(paste0(project, "MainDataTable"), dat, envir = .GlobalEnv)
   }
-
-
+ if(!is.null(dat)) hack(paste0(project, "MainDataTable"), dat, 1L)
+ 
   # Log the function
   load_data_function <- list()
   load_data_function$functionID <- "load_data"
@@ -228,7 +230,7 @@ load_data <- function(project, name = NULL) {
 
   log_call(load_data_function)
 
-  return(dat)
+ # return(dat)
 }
 
 # Save modified data to FishSET database

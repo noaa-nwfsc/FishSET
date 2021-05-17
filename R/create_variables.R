@@ -26,9 +26,8 @@ cpue <- function(dat, xWeight, xTime, name = "cpue") {
   #' }
 
   # Call in datasets
-  dataset <- dat
-  dat <- deparse(substitute(dat))
-
+  out <- data_pull(dat)
+  dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
   tmp <- 0
@@ -382,11 +381,7 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   
   dat <- parse_data_name(dat, "main")
   
-  if (shiny::isRunning()) {
-    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
-  } else { 
-    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
-  
+ 
   if (create_group_ID) dataset <- ID_var(dataset, vars = c(id_group, group))
   
   . <- group_total <- total_value <- NULL
@@ -428,7 +423,7 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
                        lag = 1, create_group_ID = FALSE, drop_total_col = FALSE) {
   #' Create a within-group lagged difference variable
   #' 
-  #' @param dat Main data frame over which to apply function. Table in FishSET 
+  #' @param dat Primary data frame over which to apply function. Table in FishSET 
   #'   database should contain the string `MainDataTable`.
   #' @param project String, project name.
   #' @param group String, the grouping variable(s) to sum \code{value} by. Used to create the 
@@ -460,11 +455,6 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main")
-  
-  if (shiny::isRunning()) {
-    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
-  } else { 
-    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
   
   . <- group_total <- NULL
 
@@ -510,7 +500,7 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
                          create_group_ID = FALSE, drop_total_col = FALSE) {
   #' Create a within-group running sum variable
   #' 
-  #' @param dat Main data frame over which to apply function. Table in FishSET 
+  #' @param dat Primaryy data frame over which to apply function. Table in FishSET 
   #'   database should contain the string `MainDataTable`.
   #' @param project String, project name.
   #' @param group String, the grouping variable(s) to sum \code{value} by. Used to create the 
@@ -542,13 +532,7 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
 
   out <- data_pull(dat)
   dataset <- out$dataset
-  
   dat <- parse_data_name(dat, "main")
-  
-  if (shiny::isRunning()) {
-    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
-  } else { 
-    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
   
   . <- group_total <- NULL
   

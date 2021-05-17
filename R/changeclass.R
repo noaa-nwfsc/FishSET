@@ -31,7 +31,7 @@
 #' 
 #' #Change class for multiple variables and save data table to FishSET database
 #' changeclass(pollockMainDataTable, "myproject", x = c("HAUL","DISEMBARKED_PORT"),
-#'  newclass = c('numeric', fact'or), savedat=TRUE)
+#'  newclass = c('numeric', 'factor'), savedat=TRUE)
 #' }
 #' @export changeclass
 
