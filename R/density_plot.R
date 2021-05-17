@@ -154,7 +154,7 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, combine 
         dataset[group] <- lapply(dataset[group], as.factor)
       } else {
        
-        dataset <- ID_var(dataset, vars = group, type = "string")
+        dataset <- ID_var(dataset, project = project, vars = group, type = "string")
         group <- paste(group, collapse = "_")
       } 
       
@@ -216,14 +216,14 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, combine 
     
     d_plot <- 
       dens_plot_helper(dataset, var, group_list, date, facet_by, filter_date, 
-                       date_value, type, bw, tran, position, pages)
+                       date_value, type, bw, tran, scale, position, pages)
     
     if (suppress) {
       
       conf_plot <- 
         suppressWarnings(
           dens_plot_helper(check_out$table, var, group_list, date, facet_by, filter_date, 
-                           date_value, type, bw, tran, position, pages)
+                           date_value, type, bw, tran, scale, position, pages)
         )
         
       if (pages == "multi") {
@@ -255,7 +255,7 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, combine 
       dat, project, var, type, group, combine, date, filter_date, date_value, filter_by, 
       filter_value, filter_expr, facet_by, tran, scale, bw, position, pages)
     
-    log_call(density_plot_function)
+    log_call(project, density_plot_function)
     
     # Save output
     if (pages == "multi") {
@@ -272,7 +272,7 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, combine 
   
 
 dens_plot_helper <- function(dataset, var, group, date, facet_by, filter_date, 
-                             date_value, type, bw, tran, position, pages) {
+                             date_value, type, bw, tran, scale, position, pages) {
   #' density_plot helper function
   #' 
   #' Creates and formats plots
@@ -287,6 +287,8 @@ dens_plot_helper <- function(dataset, var, group, date, facet_by, filter_date,
   #' @param type String, plot type(s) passed from \code{density_plot}.
   #' @param bw Numeric, bandwidth passed from \code{density_plot}.
   #' @param tran String, scale transformation passed from \code{density_plot}.
+  #' @param scale Scale argument passed to \code{\link{facet_grid}}. Defaults to "fixed". 
+  #'   Other options include "free_y", "free_x", and "free".
   #' @param position String, plot position passed from \code{density_plot}.
   #' @param pages String, single or multiple plots passed from \code{density_plot}.
   #'

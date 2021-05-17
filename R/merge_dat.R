@@ -1,15 +1,15 @@
 
 
-merge_dat <- function(dat, other, project, main_key, other_key, other_type = NULL, 
+merge_dat <- function(dat, project, other, main_key, other_key, other_type = NULL, 
                       merge_type = "left") {
   #'
   #' Merge datasets using a left join
   #'
   #' @param dat Primary data containing information on hauls or trips. Table in the FishSET
   #' database contains the string 'MainDataTable'.
+  #' @param project Project name. 
   #' @param other A second data table to join to MainDataTable. Use string if referencing 
   #'   a table saved in the FishSET database. 
-  #' @param project String, name of project. 
   #' @param main_key String, name of column(s) in MainDataTable to join by. The number
   #'   of columns must match "other_key".  
   #' @param other_key String, name of column(s) in the \code{other} table to join by. The number
@@ -29,7 +29,7 @@ merge_dat <- function(dat, other, project, main_key, other_key, other_type = NUL
   #'   are joined. 
   #' @examples
   #' \dontrun{
-  #'  merge_dat("pollockMainDataTable", "pollockPortTable", 
+  #'  merge_dat("pollockMainDataTable", "pollock", "pollockPortTable", 
   #'            main_key = "PORT_CODE", other_key = "PORT_CODE")
   #' } 
 
@@ -132,9 +132,9 @@ merge_dat <- function(dat, other, project, main_key, other_key, other_type = NUL
     # Log function
     merge_dat_function <- list()
     merge_dat_function$functionID <- "merge_dat"
-    merge_dat_function$args <- list(dat, other, project, main_key, other_key, 
+    merge_dat_function$args <- list(dat, project, other, project, main_key, other_key, 
                                     other_type, merge_type)
-    log_call(merge_dat_function)
+    log_call(project, merge_dat_function)
     
     dataset
   }
@@ -167,7 +167,7 @@ split_dat <- function(dat, project, aux = NULL, split_by = NULL, key, output = "
   #'   the "aux" or the "split_by" method. Defaults to "aux" method if both arguments are used.
   #' @examples 
   #' \dontrun{
-  #' split_dat("pollockMainDataTable", aux = "pollockPortTable", key = "PORT_CODE")
+  #' split_dat("pollockMainDataTable", "pollock", aux = "pollockPortTable", key = "PORT_CODE")
   #' }
 
   # pull main data
@@ -234,7 +234,7 @@ split_dat <- function(dat, project, aux = NULL, split_by = NULL, key, output = "
     split_dat_function <- list()
     split_dat_function$functionID <- "split_dat"
     split_dat_function$args <- list(dat, project, aux, split_by, key, output)
-    log_call(split_dat_function)
+    log_call(project, split_dat_function)
       
     if (output == "main") {
       

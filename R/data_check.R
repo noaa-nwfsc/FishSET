@@ -95,5 +95,5 @@ data_check <- function(dat, project, x){#, dataindex) {
   data_check_function$args <- list(dat, project, x)#, dataindex)
   data_check_function$kwargs <- list()
   data_check_function$output <- list()
-  log_call(data_check_function)
+  log_call(project, data_check_function)
 }

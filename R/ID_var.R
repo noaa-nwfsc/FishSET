@@ -4,6 +4,7 @@
 #'
 #' @param dat Primary data containing information on hauls or trips.
 #' Table in FishSET database contains the string `MainDataTable`.
+#' @param project Project name.
 #' @param vars Character string, additional column(s) in \code{dat} that define unique observations.
 #' @param name String, name of new ID column.
 #' @param type String, the class type of the new ID column. Choices are "string" or "integar".
@@ -19,11 +20,11 @@
 #'  Use \code{sep = TRUE} if dropping variables that create the ID variable. 
 #' @examples
 #' \dontrun{
-#' pcodMainDataTable <- ID_var(pcodMainDataTable, name = "PermitID", 
+#' pcodMainDataTable <- ID_var(pcodMainDataTable, "pcod", name = "PermitID", 
 #'         vars = c("GEAR_TYPE", "TRIP_SEQ"), type = 'integar')
 #' }
 #'
-ID_var <- function(dat, vars, name = NULL, type = "string", drop = FALSE, sep = "_") {
+ID_var <- function(dat, project, vars, name = NULL, type = "string", drop = FALSE, sep = "_") {
 
   # Call in datasets
   out <- data_pull(dat)
@@ -51,14 +52,13 @@ ID_var <- function(dat, vars, name = NULL, type = "string", drop = FALSE, sep = 
     
     dataset[vars] <- NULL
   }
-
  
   ID_var_function <- list()
   ID_var_function$functionID <- "ID_var"
-  ID_var_function$args <- list(dat, vars, name, type, drop, sep)
+  ID_var_function$args <- list(dat, project, vars, name, type, drop, sep)
   ID_var_function$ouput <- list(dat)
 
-  log_call(ID_var_function)
+  log_call(project, ID_var_function)
   
   dataset
 }

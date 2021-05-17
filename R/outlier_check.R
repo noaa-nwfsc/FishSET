@@ -105,7 +105,7 @@ outlier_table <- function(dat, project, x) {
   outlier_table_function$functionID <- "outlier_table"
   outlier_table_function$args <- list(dat, project, x)
 
-  log_call(outlier_table_function)
+  log_call(project, outlier_table_function)
   
   if(is.numeric(dataset[,x])){
     save_table(dat.table, project, "outlier_table")
@@ -312,7 +312,7 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FA
     outlier_plot_function <- list()
     outlier_plot_function$functionID <- "outlier_plot"
     outlier_plot_function$args <- list(dat, project, x, dat.remove, x.dist, output.screen)
-    log_call(outlier_plot_function)
+    log_call(project, outlier_plot_function)
 
 
     plot(fig)
@@ -327,12 +327,13 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FA
 }
 
 ## ---------------------------##
-outlier_remove <- function(dat, x, dat.remove = "none", over_write = FALSE) {
+outlier_remove <- function(dat, project, x, dat.remove = "none", over_write = FALSE) {
   #' Remove outliers from dataset
   #'
   #' Remove outliers based on outlier measure.
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in the FishSET database contains the string 'MainDataTable'.
+  #' @param project Project name. 
   #' @param x Variable in \code{dat} containing potential outliers.
   #' @param dat.remove Defines measure to subset the data. Choices include: \code{"none"},
   #'    \code{"5_95_quant"}, \code{"25_75_quant"}, \code{"mean_2SD"}, \code{"median_2SD"}, \code{"mean_3SD"}, \code{"median_3SD"}.
@@ -351,7 +352,7 @@ outlier_remove <- function(dat, x, dat.remove = "none", over_write = FALSE) {
   #'  }
   #' @examples
   #' \dontrun{
-  #' pollockMainDataTable <- outlier_remove(pollockMainDataTable, 'dist', 
+  #' pollockMainDataTable <- outlier_remove(pollockMainDataTable, 'pollock', 'dist', 
   #'    dat.remove = 'mean_2SD', save.output = TRUE)
   #' }
 
@@ -395,11 +396,11 @@ outlier_remove <- function(dat, x, dat.remove = "none", over_write = FALSE) {
     
       outlier_remove_function <- list()
       outlier_remove_function$functionID <- "outlier_remove"
-      outlier_remove_function$args <- c(dat, deparse(substitute(x)), dat.remove, over_write)
+      outlier_remove_function$args <- c(dat, project, deparse(substitute(x)), dat.remove, over_write)
       outlier_remove_function$kwargs <- list()
       outlier_remove_function$output <- c("")
       outlier_remove_function$msg <- paste("outliers removed using", dat.remove)
-      log_call(outlier_remove_function)
+      log_call(project, outlier_remove_function)
 
       return(dataset)
     } # End Outlier check

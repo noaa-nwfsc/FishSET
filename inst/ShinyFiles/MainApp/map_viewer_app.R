@@ -10,7 +10,7 @@ map_viewerUI <- function(id) {
   )
 }  
 
-map_viewer_serv <- function(id, dat, spatdat) {
+map_viewer_serv <- function(id, dat, spatdat, project) {
   
   moduleServer(id, function(input, output, session) { 
     
@@ -76,14 +76,14 @@ map_viewer_serv <- function(id, dat, spatdat) {
     
     url <- eventReactive(input$run, {
       if(input$point_path=="Path"){
-      return(map_viewer(dat$dataset, gridfile = spatdat$dataset, avm = input$avm,
-                 avd = input$avd, num_vars = input$num,
-                 temp_vars = input$temp, id_vars = input$id_vars,
-                 lon_start = input$lon_start, lat_start =  input$lat_start,
-                 lon_end = input$lon_end, lat_end = input$lat_end))
+      return(map_viewer(dat$dataset, project = project(), gridfile = spatdat$dataset, 
+                        avm = input$avm, avd = input$avd, num_vars = input$num,
+                        temp_vars = input$temp, id_vars = input$id_vars,
+                        lon_start = input$lon_start, lat_start =  input$lat_start,
+                        lon_end = input$lon_end, lat_end = input$lat_end))
       } else {
-        return(map_viewer(dat$dataset, gridfile = spatdat$dataset, avm = input$avm,
-                          avd = input$avd, num_vars = input$num,
+        return(map_viewer(dat$dataset, project = project(), gridfile = spatdat$dataset, 
+                          avm = input$avm, avd = input$avd, num_vars = input$num,
                           temp_vars = input$temp, id_vars = input$id_vars,
                           lon_start = input$lon_start, lat_start =input$lat_start,
                           lon_end = NULL, lat_end = NULL))

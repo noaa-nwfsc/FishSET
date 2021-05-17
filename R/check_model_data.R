@@ -1,6 +1,7 @@
 #' Check for common data quality issues affecting modeling functions
 #'
 #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+#' @param project Project name. 
 #' @param uniqueID Variable in \code{dat} containing unique occurrence identifier.
 #' @param save.file Logical, if TRUE and no data issues are identified, the dataset is saved to the FishSET database. Defaults to TRUE.
 #' @return Returns statements of data quality issues in the data. Saves table to FishSET database.
@@ -17,7 +18,7 @@
 #' check_model_data(MainDataTable, uniqueID = "uniqueID_Code", save.file = TRUE)
 #' }
 #'
-check_model_data <- function(dat, uniqueID, save.file = TRUE) {
+check_model_data <- function(dat, project, uniqueID, save.file = TRUE) {
   
   end <- FALSE
 
@@ -97,7 +98,7 @@ check_model_data <- function(dat, uniqueID, save.file = TRUE) {
   # logging function information
   check_model_data_function <- list()
   check_model_data_function$functionID <- "check_model_data"
-  check_model_data_function$args <- list(dat, uniqueID, save.file)
+  check_model_data_function$args <- list(dat, project, uniqueID, save.file)
   check_model_data_function$msg <- tmp
   
   if (file.exists(tmp)) {
@@ -109,7 +110,7 @@ check_model_data <- function(dat, uniqueID, save.file = TRUE) {
     check_model_data_function$msg <- ""
   }
   
-  log_call(check_model_data_function)
+  log_call(project, check_model_data_function)
 
   fun_out <- list(msg = check_model_data_function$msg,
                   save_out = (end == FALSE & save.file == TRUE))

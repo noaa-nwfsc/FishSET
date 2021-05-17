@@ -66,7 +66,7 @@ add_vars <- function(working_dat, raw_dat, vars, project) {
     add_vars_function$functionID <- "add_vars"
     add_vars_function$args <- list(work_dat_name, raw_dat_name, vars, project)
     add_vars_function$output <- work_dat_name
-    log_call(add_vars_function)
+    log_call(project, add_vars_function)
 
     return(dataset)
   }

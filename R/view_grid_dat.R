@@ -107,7 +107,7 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL, a
   view_grid_dat_function <- list()
   view_grid_dat_function$functionID <- "view_grid_dat"
   view_grid_dat_function$args <- list(gridfile, project, lon, lat, value, split_by, agg_by, gmap)
-  log_call(view_grid_dat_function)
+  log_call(project, view_grid_dat_function)
   
   map_out
 }
