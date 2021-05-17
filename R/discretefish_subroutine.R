@@ -202,7 +202,6 @@ discretefish_subroutine <- function(project, select.model = FALSE) {
           )
         }
         
-        
         LL_start <- fr.name(starts2, d, otherdat, max(choice), project, expname, as.character(mod.name))
         
         if (is.null(LL_start) || is.nan(LL_start) || is.infinite(LL_start)) {
@@ -490,3 +489,4 @@ discretefish_subroutine <- function(project, select.model = FALSE) {
     }
   }
 }
+

@@ -79,17 +79,17 @@ loc_map <- function() {
   }
 }
 
-pull_info_data <- function(project) {
-  #' Pull the most recent data index file for given project
-  #' @keywords internal
-  #' @export
-  #' @param project Name of project, such as pollock
+#pull_info_data <- function(project) {
+#  #' Pull the most recent data index file for given project
+#  #' @keywords internal
+#  #' @export
+#  #' @param project Name of project, such as pollock
 
-  g <- tables_database()
-  g <- g[grep(paste0("Info.*", project, "|", project, ".*Info"), g)]
-  g <- gsub("[^0-9\\.]", "", g[grep("Info.", g)])[which(gsub("[^0-9\\.]", "", g[grep("Info.", g)]) == max(gsub("[^0-9\\.]", "", g[grep("Info.", g)])))]
-  paste0(project, "MainDataTableInfo", g)
-}
+#  g <- tables_database()
+#  g <- g[grep(paste0("Info.*", project, "|", project, ".*Info"), g)]
+#  g <- gsub("[^0-9\\.]", "", g[grep("Info.", g)])[which(gsub("[^0-9\\.]", "", g[grep("Info.", g)]) == max(gsub("[^0-9\\.]", "", g[grep("Info.", g)])))]
+#  paste0(project, "MainDataTableInfo", g)
+#}
 
 vgsub <- function(pattern, replacement, x, ...) {
   #' vgsub function

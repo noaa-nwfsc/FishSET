@@ -172,7 +172,6 @@ split_dat <- function(dat, project, aux = NULL, split_by = NULL, key, output = "
 
   # pull main data
   out <- data_pull(dat)
-  out <- data_pull(dat)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   

@@ -191,11 +191,7 @@ fleet_assign <- function(dat, project, fleet_tab, assign = NULL, overlap = FALSE
 
   out <- data_pull(dat)
   dataset <- out$dataset
-  
-  if (shiny::isRunning()) {
-    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
-  } else { 
-    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
+  dat <- parse_data_name(dat, "main")
   
   end <- FALSE
   
