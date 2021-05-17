@@ -247,7 +247,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
       
       if (combine == TRUE & length(group) > 1) { 
         
-        dataset <- ID_var(dataset, vars = group, type = "string")
+        dataset <- ID_var(dataset, project = project, vars = group, type = "string")
         group <- gsub(" ", "", paste(group, collapse = "_"))
         group1 <- group
         group2 <- NULL
@@ -598,7 +598,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
                                         filter_value, filter_expr, facet_by, type, 
                                         conv, tran, value, position, combine, scale, 
                                         output, format_tab)
-    log_call(species_catch_function)
+    log_call(project, species_catch_function)
     
     if (format_tab == "wide") {
       

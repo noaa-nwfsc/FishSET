@@ -1,13 +1,14 @@
 # Create variables or matrix.
 
 ## --- CPUE ----##
-cpue <- function(dat, xWeight, xTime, name = "cpue") {
+cpue <- function(dat, project, xWeight, xTime, name = "cpue") {
   #' Create catch per unit effort variable
   #' 
   #' @description Add catch per unit effort (CPUE) variable to the primary dataset. Catch should be a weight variable 
   #'   but can be a count. Effort should be in a duration of time, such as days, hours, or minutes.
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in FishSET database contains the string 'MainDataTable'.
+  #' @param project Project name. 
   #' @param xWeight Catch variable in \code{dat}. Variable should be a measure of weight 
   #'   (pounds, metric tons, etc) but can also be count.
   #' @param xTime Duration of time variable in \code{dat} representing effort, such as
@@ -21,7 +22,7 @@ cpue <- function(dat, xWeight, xTime, name = "cpue") {
   #' @return Returns primary dataset with CPUE variable added.
   #' @examples
   #' \dontrun{
-  #' pollockMainDataTable <- cpue(pollockMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', 
+  #' pollockMainDataTable <- cpue(pollockMainDataTable, 'pollock', 'OFFICIAL_TOTAL_CATCH_MT', 
   #'     'DURATION_IN_MIN', 'cpue')
   #' }
 
@@ -53,21 +54,22 @@ cpue <- function(dat, xWeight, xTime, name = "cpue") {
     
     create_var_cpue_function <- list()
     create_var_cpue_function$functionID <- "cpue"
-    create_var_cpue_function$args <- list(dat, xWeight, xTime, deparse(substitute(name)))
+    create_var_cpue_function$args <- list(dat, project, xWeight, xTime, deparse(substitute(name)))
     create_var_cpue_function$kwargs <- list()
     create_var_cpue_function$output <- list(dat)
 
-    log_call(create_var_cpue_function)
+    log_call(project, create_var_cpue_function)
     return(g)
   }
 }
 
 ## ---- Dummy  Variables ----##
 # dummy_num
-dummy_num <- function(dat, var, value, opts = "more_less", name = "dummy_num") {
+dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dummy_num") {
   #' Create a dummy vector from numeric characterization of variable
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in the FishSET database contains the string 'MainDataTable'.
+  #' @param project Project name. 
   #' @param var Variable in \code{dat} to create dummy variable from.
   #' @param value String, value to set dummy variable by. If \code{var} is a date, value should be a year,
   #'   If \code{var} is a factor, value should be a factor level. If \code{var} is numeric, value should be a single
@@ -95,7 +97,7 @@ dummy_num <- function(dat, var, value, opts = "more_less", name = "dummy_num") {
   #' @export
   #' @examples
   #' \dontrun{
-  #' pollockMainDataTable <- dummy_num(pollockMainDataTable, 'Haul_date', 2008, 'more_less', 'amend80')
+  #' pollockMainDataTable <- dummy_num(pollockMainDataTable, 'pollock', 'Haul_date', 2008, 'more_less', 'amend80')
   #' }
 
 
@@ -131,18 +133,19 @@ dummy_num <- function(dat, var, value, opts = "more_less", name = "dummy_num") {
   
   create_var_dummy_num_function <- list()
   create_var_dummy_num_function$functionID <- "dummy_num"
-  create_var_dummy_num_function$args <- list(dat, var, value, opts, deparse(substitute(name)))
+  create_var_dummy_num_function$args <- list(dat, project, var, value, opts, deparse(substitute(name)))
   create_var_dummy_num_function$kwargs <- list()
   create_var_dummy_num_function$output <- list(dat)
 
-  log_call(create_var_dummy_num_function)
+  log_call(project, create_var_dummy_num_function)
   return(g)
 }
 
 #' Create dummy variable
-dummy_var <- function(dat, DumFill = "TRUE", name = "dummy_var") {
+dummy_var <- function(dat, project, DumFill = "TRUE", name = "dummy_var") {
   #' @param dat Primary data containing information on hauls or trips.
   #' Table in the FishSET database contains the string 'MainDataTable'.
+  #' @param project Project name. 
   #' @param DumFill Fill the dummy variable with TRUE or FALSE
   #' @param name String, name of created dummy variable. Defaults to name of the function if not defined.
   #' @return Primary dataset with dummy variable added.
@@ -150,7 +153,7 @@ dummy_var <- function(dat, DumFill = "TRUE", name = "dummy_var") {
   #' @details Creates a dummy variable of either FALSE or TRUE with length of the number of rows of the data set.
   #' @examples
   #' \dontrun{
-  #' pollockMainDataTable <- dummy_var(pollockMainDataTable, DumFill=TRUE, 'dummyvar')
+  #' pollockMainDataTable <- dummy_var(pollockMainDataTable, 'pollock', DumFill=TRUE, 'dummyvar')
   #' }
 
   # Pull in data
@@ -166,19 +169,20 @@ dummy_var <- function(dat, DumFill = "TRUE", name = "dummy_var") {
   
   create_var_dummy_var_function <- list()
   create_var_dummy_var_function$functionID <- "dummy_var"
-  create_var_dummy_var_function$args <- list(dat, DumFill, deparse(substitute(name)))
+  create_var_dummy_var_function$args <- list(dat, project, DumFill, deparse(substitute(name)))
   create_var_dummy_var_function$kwargs <- list()
   create_var_dummy_var_function$output <- list(dat)
 
-  log_call(create_var_dummy_var_function)
+  log_call(project, create_var_dummy_var_function)
 
   return(g)
 }
 
 #' Create dummy matrix from a coded ID variable
-dummy_matrix <- function(dat, x) {
+dummy_matrix <- function(dat, project, x) {
   #' @param dat Primary data containing information on hauls or trips.
   #' Table in FishSET database contains the string 'MainDataTable'.
+  #' @param project Project name.
   #' @param x Variable in \code{dat} used to generate dummy matrix.
   #' @export dummy_matrix
   #' @details Creates a dummy matrix of TRUE/FALSE with dimensions \emph{[(number of observations in dataset) x
@@ -186,7 +190,7 @@ dummy_matrix <- function(dat, x) {
   #' column matches the column factor level and FALSE otherwise.
   #' @examples
   #' \dontrun{
-  #' PortMatrix <- dummy_matrix(pollockMainDataTable, 'PORT_CODE')
+  #' PortMatrix <- dummy_matrix(pollockMainDataTable, 'pollock', 'PORT_CODE')
   #' }
 
 
@@ -206,10 +210,10 @@ dummy_matrix <- function(dat, x) {
 
   create_var_dummy_matrix_function <- list()
   create_var_dummy_matrix_function$functionID <- "dummy_matrix"
-  create_var_dummy_matrix_function$args <- list(dat, x)
+  create_var_dummy_matrix_function$args <- list(dat, project, x)
   create_var_dummy_matrix_function$kwargs <- list()
   create_var_dummy_matrix_function$output <- list()
-  log_call(create_var_dummy_matrix_function)
+  log_call(project, create_var_dummy_matrix_function)
 
   return(int)
 }
@@ -219,9 +223,10 @@ dummy_matrix <- function(dat, x) {
 #'
 #' Create a factor variable from numeric data.  Numeric variable is split into categories based on quantile categories.
 #'
-set_quants <- function(dat, x, quant.cat = c(0.1, 0.2, 0.25, 0.4), custom.quant = NULL, name = "set_quants") {
+set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25, 0.4), custom.quant = NULL, name = "set_quants") {
   #' @param dat Primary data containing information on hauls or trips.
   #' Table in FishSET database contains the string 'MainDataTable'.
+  #' @param project Project name.
   #' @param x Variable to transform into quantiles.
   #' @param quant.cat Quantile options: \code{"0.2"}, \code{"0.25"}, and \code{"0.4"}
   #' \itemize{
@@ -237,7 +242,7 @@ set_quants <- function(dat, x, quant.cat = c(0.1, 0.2, 0.25, 0.4), custom.quant 
   #'
   #' @examples
   #' \dontrun{
-  #' pollockMainDataTable <- set_quants(pollockMainDataTable, 'HAUL', quant.cat=.2, 'haul.quant')
+  #' pollockMainDataTable <- set_quants(pollockMainDataTable, 'pollock', 'HAUL', quant.cat=.2, 'haul.quant')
   #' }
   #
   out <- data_pull(dat)
@@ -274,11 +279,11 @@ set_quants <- function(dat, x, quant.cat = c(0.1, 0.2, 0.25, 0.4), custom.quant 
     
     create_var_set_quants_function <- list()
     create_var_set_quants_function$functionID <- "set_quants"
-    create_var_set_quants_function$args <- list(dat, x, quant.cat, custom.quant, deparse(substitute(name)))
+    create_var_set_quants_function$args <- list(dat, project, x, quant.cat, custom.quant, deparse(substitute(name)))
     create_var_set_quants_function$kwargs <- list()
     create_var_set_quants_function$output <- list(dat)
 
-    log_call(create_var_set_quants_function)
+    log_call(project, create_var_set_quants_function)
     return(g)
   }
 }
@@ -308,7 +313,6 @@ bin_var <- function(dat, project, var, br, name, labs = NULL, ...) {
 
   out <- data_pull(dat)
   dataset <- out$dataset
-  
   dat <- parse_data_name(dat, "main")
 
   tmp <- 0
@@ -330,7 +334,7 @@ bin_var <- function(dat, project, var, br, name, labs = NULL, ...) {
     bin_var_function$args <- c(dat, project, var, project, br, deparse(substitute(name)), labs)
     bin_var_function$kwargs <- list()
     bin_var_function$output <- list(dat)
-    log_call(bin_var_function)
+    log_call(project, bin_var_function)
 
     return(g)
   }
@@ -360,6 +364,7 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   #' @export
   #' @importFrom dplyr across mutate group_by select ungroup
   #' @importFrom shiny isRunning
+  #' @importFrom magrittr %>% 
   #' @details \code{group_perc} creates a within-group percentage variable using a primary
   #'   group ID (\code{id_group}) and secondary group (\code{group}). The total value of 
   #'   \code{id_group} is stored in the "total_value" variable, and the within-group total
@@ -381,8 +386,14 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   
   dat <- parse_data_name(dat, "main")
   
- 
-  if (create_group_ID) dataset <- ID_var(dataset, vars = c(id_group, group))
+
+  if (shiny::isRunning()) {
+    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
+  } else { 
+    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
+  
+  if (create_group_ID) dataset <- ID_var(dataset, project, vars = c(id_group, group))
+
   
   . <- group_total <- total_value <- NULL
   
@@ -413,7 +424,7 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   group_perc_function$functionID <- "group_perc"
   group_perc_function$args <- list(dat, project, id_group, group, value, name, 
                                    create_group_ID, drop_total_col) 
-  log_call(group_perc_function)
+  log_call(project, group_perc_function)
   
   dataset
 }
@@ -440,6 +451,7 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   #' @importFrom dplyr across arrange left_join mutate group_by select summarize ungroup
   #' @importFrom shiny isRunning
   #' @importFrom rlang :=
+  #' @importFrom magrittr %>% 
   #' @details \code{group_diff} creates a grouped lagged difference variable. \code{value}
   #'   is first summed by the variable(s) in \code{group}, then the difference within-group is 
   #'   calculated. The "group_total" variable gives the total value by group and can
@@ -459,7 +471,7 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   . <- group_total <- NULL
 
   
-  if (create_group_ID) dataset <- ID_var(dataset, vars = group)
+  if (create_group_ID) dataset <- ID_var(dataset, project, vars = group)
   
    alt_diff <- function(x, lag) c(0, diff(x, lag = lag))
    
@@ -491,7 +503,7 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   group_diff_function$functionID <- "group_diff"
   group_diff_function$args <- list(dat, project, group, sort_by, value, name, lag,
                                    create_group_ID, drop_total_col) 
-  log_call(group_diff_function)
+  log_call(project, group_diff_function)
   
   dataset
 }
@@ -515,6 +527,7 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
   #' @export
   #' @importFrom dplyr across arrange left_join mutate group_by select summarize ungroup
   #' @importFrom shiny isRunning
+  #' @importFrom magrittr %>% 
   #' @details \code{group_cumsum} sums \code{value} by \code{group}, then cumulatively
   #'   sums within groups. For example, a running sum by trip variable can be made 
   #'   by entering
@@ -536,7 +549,7 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
   
   . <- group_total <- NULL
   
-  if (create_group_ID) dataset <- ID_var(dataset, vars = group)
+  if (create_group_ID) dataset <- ID_var(dataset, project, vars = group)
   
   if (all(!(class(dataset[[sort_by]]) %in% c("Date","POSIXct", "POSIXt")))) {
     
@@ -566,17 +579,18 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
   group_cumsum_function$functionID <- "group_cumsum"
   group_cumsum_function$args <- list(dat, project, group, sort_by, value, name,
                                      create_group_ID, drop_total_col) 
-  log_call(group_cumsum_function)
+  log_call(project, group_cumsum_function)
   
   dataset
 }
 
 ## ---- Numeric  Variables ----##
 #' Create numeric variable using arithmetic expression
-create_var_num <- function(dat, x, y, method, name = "create_var_num") {
+create_var_num <- function(dat, project, x, y, method, name = "create_var_num") {
   #' @description Creates a new variable based on the arithmetic operation between two variables.  Function is useful for creating rate variables or the summation of two related variables.
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in the FishSET database contains the string 'MainDataTable'.
+  #' @param project Project name. 
   #' @param x Variable in \code{dat}. Variable will be the numerator if \code{method} is division.
   #' @param y Variable  in \code{dat}. Variable will be the denominator if \code{method} is division.
   #' @param method String, arithmetic expression. Options include: \code{"sum"}, addition (\code{"add"}),
@@ -588,7 +602,7 @@ create_var_num <- function(dat, x, y, method, name = "create_var_num") {
   #' @return Returns primary dataset with new variable added.
   #' @examples
   #' \dontrun{
-  #' pollockMainDataTable <- create_var_num(pollockMainDataTable, x = 'HAUL_CHINOOK',
+  #' pollockMainDataTable <- create_var_num(pollockMainDataTable, 'pollock', x = 'HAUL_CHINOOK',
   #'     y = 'HAUL_CHUM', method = 'sum', name = 'tot_salmon')
   #' }
 
@@ -620,10 +634,10 @@ create_var_num <- function(dat, x, y, method, name = "create_var_num") {
     
     create_var_num_function <- list()
     create_var_num_function$functionID <- "create_var_num"
-    create_var_num_function$args <- list(dat, x, y, method, deparse(substitute(name)))
+    create_var_num_function$args <- list(dat, project, x, y, method, deparse(substitute(name)))
     create_var_num_function$kwargs <- list()
     create_var_num_function$output <- list(dat)
-    log_call(create_var_num_function)
+    log_call(project, create_var_num_function)
 
     return(g)
   }
@@ -632,12 +646,13 @@ create_var_num <- function(dat, x, y, method, name = "create_var_num") {
 ## ---- Spatial  Variables ----##
 
 #' Creates haul midpoint latitude and longitude variables
-create_mid_haul <- function(dat, start = c("lon", "lat"), end = c("lon", "lat"), name = "mid_haul") {
+create_mid_haul <- function(dat, project, start = c("lon", "lat"), end = c("lon", "lat"), name = "mid_haul") {
   #' @description Calculates latitude and longitude of the haul midpoint and adds two variables
   #' to the primary dataset: the midpoint latitude and the midpoint longitude.
   #'
   #' @param dat Primary data containing information on hauls or trips.
   #' Table in the FishSET database contains the string 'MainDataTable'.
+  #' @param project Project name. 
   #' @param start Character string, variables in \code{dat} defining the longitude and latitude of
   #' the starting location of haul. Must be in decimal degrees.
   #' @param end Character string, variables in \code{dat} defining the longitude and latitude of the
@@ -649,7 +664,7 @@ create_mid_haul <- function(dat, start = c("lon", "lat"), end = c("lon", "lat"),
   #' @export
   #' @examples
   #' \dontrun{
-  #' pollockMainDataTable <- create_mid_haul(pollockMainDataTable, start = c('LonLat_START_LON',
+  #' pollockMainDataTable <- create_mid_haul(pollockMainDataTable, 'pollock', start = c('LonLat_START_LON',
   #'    'LonLat_START_LAT'), end = c('LonLat_END_LON', 'LonLat_END_LAT'), name = 'mid_haul')
   #' }
   #
@@ -689,22 +704,23 @@ create_mid_haul <- function(dat, start = c("lon", "lat"), end = c("lon", "lat"),
 
     create_mid_haul_function <- list()
     create_mid_haul_function$functionID <- "create_mid_haul"
-    create_mid_haul_function$args <- list(dat, start, end, name)
+    create_mid_haul_function$args <- list(dat, project, start, end, name)
     create_mid_haul_function$kwargs <- list()
     create_mid_haul_function$output <- list(dat)
-    log_call(create_mid_haul_function)
+    log_call(project, create_mid_haul_function)
 
     return(out)
   }
 }
 
-create_trip_centroid <- function(dat, lon, lat, weight.var = NULL, ...) {
+create_trip_centroid <- function(dat, project, lon, lat, weight.var = NULL, ...) {
   ## ----trip centroid-----#
   #' Create trip centroid variable
   #'
   #' Create latitude and longitude variables containing the centroid of each trip
   #'
   #' @param dat Primary data containing information on hauls or trips. Table in the FishSET database contains the string 'MainDataTable'.
+  #' @param project Project name. 
   #' @param lat Variable in \code{dat} containing latitudinal data.
   #' @param lon Variable in \code{dat} containing longitudinal data.
   #' @param weight.var Variable in \code{dat} for computing the weighted average.
@@ -716,7 +732,7 @@ create_trip_centroid <- function(dat, lon, lat, weight.var = NULL, ...) {
   #' @export
   #' @examples
   #' \dontrun{
-  #' pollockMainDataTable <- create_trip_centroid(pollockMainDataTable, 'LonLat_START_LON', 
+  #' pollockMainDataTable <- create_trip_centroid(pollockMainDataTable, 'pollock', 'LonLat_START_LON', 
   #'   'LonLat_START_LAT', weight.var = NULL, 'DISEMBARKED_PORT', 'EMBARKED_PORT')
   #' }
 
@@ -769,10 +785,10 @@ create_trip_centroid <- function(dat, lon, lat, weight.var = NULL, ...) {
 
     create_trip_centroid_function <- list()
     create_trip_centroid_function$functionID <- "create_trip_centroid"
-    create_trip_centroid_function$args <- list(dat, dat, lon, lat, weight.var, argList)
+    create_trip_centroid_function$args <- list(dat, project, lon, lat, weight.var, argList)
     create_trip_centroid_function$kwargs <- list()
     create_trip_centroid_function$output <- list(dat)
-    log_call(create_trip_centroid_function)
+    log_call(project, create_trip_centroid_function)
 
     return(int)
   }
@@ -780,9 +796,10 @@ create_trip_centroid <- function(dat, lon, lat, weight.var = NULL, ...) {
 
 
 #' Interactive application to create distance between points variable
-create_dist_between <- function(dat, start, end, units = c("miles", "meters", "km", "midpoint"), name = "distBetween") {
+create_dist_between <- function(dat, project, start, end, units = c("miles", "meters", "km", "midpoint"), name = "distBetween") {
   #' @param dat Primary data frame over which to apply function.
   #'   Table in FishSET database should contain the string `MainDataTable`.
+  #' @param project Project name. 
   #' @param start Starting location. Should be a port, lat/lon location, or the centroid of fishing zone
   #'   or area. If port is desired, start should be the column name in the \code{dat} containing the port
   #'   names. Latitude and longitude for the port are extracted from the port table. If a lat/lon location is
@@ -812,13 +829,13 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
   #'   \code{lat.dat}, \code{cat}, \code{lon.grid}, and \code{lat.grid} must be specified to obtain latitude and longitude.
   #' @examples
   #' \dontrun{
-  #' pollockMainDataTable <- create_dist_between(pollockMainDataTable, 'centroid',
+  #' pollockMainDataTable <- create_dist_between(pollockMainDataTable, 'pollock', 'centroid',
   #'  'EMBARKED_PORT', units = 'miles', 'DistCentPort')
   #' 
-  #' pollockMainDataTable <- create_dist_between(pollockMainDataTable, c('LonLat_START_LON',
+  #' pollockMainDataTable <- create_dist_between(pollockMainDataTable, 'pollock', c('LonLat_START_LON',
   #'  'LonLat_START_LAT'), c('LonLat_END_LON','LonLat_END_LAT'), units='midpoint', 'DistLocLock')
   #'  
-  #' pollockMainDataTable <- create_dist_between(pollockMainDataTable,'DISEMBARKED_PORT',
+  #' pollockMainDataTable <- create_dist_between(pollockMainDataTable, 'pollock', 'DISEMBARKED_PORT',
   #'   'EMBARKED_PORT', units='meters', 'DistPortPort')
   #' }
   #' @details
@@ -896,7 +913,7 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
       }
 
       dataset <- assignment_column(
-        dat = dataset, gridfile = eval(parse(text = vars[1])), hull.polygon = FALSE, lon.grid = gsub("\"|'", "", vars[2]),
+        dat = dataset, project = project, gridfile = eval(parse(text = vars[1])), hull.polygon = FALSE, lon.grid = gsub("\"|'", "", vars[2]),
         lat.grid = gsub("\"|'", "", vars[3]), lon.dat = gsub("\"|'", "", vars[4]), lat.dat = gsub("\"|'", "", vars[5]), cat = gsub(
           "\"|'", "",
           vars[6]
@@ -968,11 +985,11 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
       # Log the function
       create_dist_between_function <- list()
       create_dist_between_function$functionID <- "create_dist_between"
-      create_dist_between_function$args <- list(dat, start, end, units, deparse(substitute(name)))
+      create_dist_between_function$args <- list(dat, project, start, end, units, deparse(substitute(name)))
       create_dist_between_function$kwargs <- list(vars)
       create_dist_between_function$output <- list(dat)
 
-      log_call(create_dist_between_function)
+      log_call(project, create_dist_between_function)
       return(g)
     }
   }
@@ -980,10 +997,11 @@ create_dist_between <- function(dat, start, end, units = c("miles", "meters", "k
 
 ## ---- Temporal  Variables ----##
 #' Create duration of time variable
-create_duration <- function(dat, start, end, units = c("week", "day", "hour", "minute"), name = "create_duration") {
+create_duration <- function(dat, project, start, end, units = c("week", "day", "hour", "minute"), name = "create_duration") {
   #' @description  Create duration of time variable based on start and ending dates in desired temporal units.
   #' @param dat Primary data containing information on hauls or trips.
   #' Table in FishSET database contains the string 'MainDataTable'.
+  #' @param project Project name.
   #' @param start Date variable from \code{dat} indicating start of time period.
   #' @param end Date variable from \code{dat} indicating end of time period.
   #' @param units String, unit of time for calculating duration. Must be \code{"week"}, \code{"day"}, \code{"hour"}, or \code{"minute"}.
@@ -996,7 +1014,7 @@ create_duration <- function(dat, start, end, units = c("week", "day", "hour", "m
   #' A duration of time variable is required for other functions, such as \code{\link{cpue}}.
   #' @examples
   #' \dontrun{
-  #' pollockMainDataTable <- create_duration(pollockMainDataTable, 'TRIP_START', 'TRIP_END',
+  #' pollockMainDataTable <- create_duration(pollockMainDataTable, 'pollock', 'TRIP_START', 'TRIP_END',
   #'   units = 'minute', name = 'TripDur')
   #' }
 
@@ -1031,10 +1049,10 @@ create_duration <- function(dat, start, end, units = c("week", "day", "hour", "m
  
   create_var_temp_function <- list()
   create_var_temp_function$functionID <- "create_duration"
-  create_var_temp_function$args <- list(dat, start, end, units, deparse(substitute(name)))
+  create_var_temp_function$args <- list(dat, project, start, end, units, deparse(substitute(name)))
   create_var_temp_function$kwargs <- list()
   create_var_temp_function$output <- list(dat)
-  log_call(create_var_temp_function)
+  log_call(project, create_var_temp_function)
 
   return(g)
 }
@@ -1068,7 +1086,7 @@ randomize_value_row <- function(dat, project, value) {
   randomize_value_row_function <- list()
   randomize_value_row_function$functionID <- "randomize_value_row"
   randomize_value_row_function$args <- list(dat, project, value) 
-  log_call(randomize_value_row_function)
+  log_call(project, randomize_value_row_function)
   
   dataset
 }
@@ -1089,7 +1107,7 @@ randomize_value_range <- function(dat, project, value, perc = NULL) {
   #'   value by randomly sampling a range of percentages provided in the "perc" argument. 
   #' @examples 
   #' \dontrun{
-  #' randomize_value_range(pollockMainDataTable, "LBS_270_POLLOCK_LBS")
+  #' randomize_value_range(pollockMainDataTable, "pollock", "LBS_270_POLLOCK_LBS")
   #' } 
   
   out <- data_pull(dat)
@@ -1131,7 +1149,7 @@ randomize_value_range <- function(dat, project, value, perc = NULL) {
     randomize_value_range_function <- list()
     randomize_value_range_function$functionID <- "randomize_value_range"
     randomize_value_range_function$args <- list(dat, project, value, c(perc[1], perc[length(perc)])) 
-    log_call(randomize_value_range_function)
+    log_call(project, randomize_value_range_function)
     
     dataset
   }
@@ -1154,7 +1172,7 @@ jitter_lonlat <- function(dat, project, lon, lat, factor = 1, amount = NULL) {
   #'   longitude and latitude using the base R function \code{\link[base]{jitter}}. 
   #' @examples 
   #' \dontrun{
-  #' jitter_lonlat(pollockMainDataTable, 
+  #' jitter_lonlat(pollockMainDataTable, "pollock",
   #'               lon = "LonLat_START_LON", lat = "LonLat_START_LAT")
   #' }
   
@@ -1176,7 +1194,7 @@ jitter_lonlat <- function(dat, project, lon, lat, factor = 1, amount = NULL) {
   jitter_lonlat_function <- list()
   jitter_lonlat_function$functionID <- "jitter_lonlat"
   jitter_lonlat_function$args <- list(dat, project, lon, lat, factor, amount) 
-  log_call(jitter_lonlat_function)
+  log_call(project, jitter_lonlat_function)
   
   dataset
 }
@@ -1197,13 +1215,14 @@ randomize_lonlat_zone <- function(dat, project, spat, lon, lat, zone) {
   #'   for both the spatial data table and MainDataTable. 
   #' @export
   #' @importFrom dplyr across arrange count
+  #' @importFrom magrittr %>% 
   #' @importFrom sf st_coordinates st_sample
   #' @details This is one of the FishSET confidentiality functions. It replaces 
   #'   longitude and latitude values with randomly sampled coordinates from the
   #'   regulatory zone the observation occurred in. 
   #' @examples 
   #' \dontrun{
-  #' randomize_lonlat_zone(pollockMainDataTable, spatdat, 
+  #' randomize_lonlat_zone(pollockMainDataTable, "pollock", spatdat, 
   #'                    lon = "LonLat_START_LON", lat = "LonLat_START_LAT",
   #'                    zone = "NMFS_AREA")
   #' }
@@ -1278,7 +1297,7 @@ randomize_lonlat_zone <- function(dat, project, spat, lon, lat, zone) {
   randomize_lonlat_zone_function <- list()
   randomize_lonlat_zone_function$functionID <- "randomize_lonlat_zone"
   randomize_lonlat_zone_function$args <- list(dat, project, spat, lon, lat, zone) 
-  log_call(randomize_lonlat_zone_function)
+  log_call(project, randomize_lonlat_zone_function)
   
   dataset
 }
@@ -1304,7 +1323,7 @@ lonlat_to_centroid <- function(dat, project, lon, lat, spat, zone) {
   #'   from a spatial data table. 
   #' @examples 
   #' \dontrun{
-  #' lonlat_to_centroid(pollockMainDataTable, spatdat, 
+  #' lonlat_to_centroid(pollockMainDataTable, "pollock", spatdat, 
   #'                   lon = "LonLat_START_LON", lat = "LonLat_START_LAT",
   #'                   zone = "NMFS_AREA")
   #' }
@@ -1337,7 +1356,7 @@ lonlat_to_centroid <- function(dat, project, lon, lat, spat, zone) {
   lonlat_to_centroid_function <- list()
   lonlat_to_centroid_function$functionID <- "lonlat_to_centroid"
   lonlat_to_centroid_function$args <- list(dat, project, spat, lon, lat, zone) 
-  log_call(lonlat_to_centroid_function)
+  log_call(project, lonlat_to_centroid_function)
   
   dataset
 }

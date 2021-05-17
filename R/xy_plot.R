@@ -65,7 +65,7 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
   xy_plot_function <- list()
   xy_plot_function$functionID <- "xy_plot"
   xy_plot_function$args <- list(dat, project, var1, var2, regress)
-  log_call(xy_plot_function)
+  log_call(project, xy_plot_function)
 
   # Save output
   save_plot(project, "xy_plot")

@@ -1645,10 +1645,10 @@ set_confid_check(check = FALSE)
           }
         } else if(input$checks=='NAs'){
           #na(values$dataset)
-          na_filter(values$dataset, x=FishSET:::qaqc_helper(values$dataset, "NA", "names"), 
+          na_filter(values$dataset, project = project$name, x=FishSET:::qaqc_helper(values$dataset, "NA", "names"), 
                     replace = FALSE, remove = FALSE, rep.value=NA, over_write=FALSE)
         } else if(input$checks=='NaNs'){
-          nan_filter(values$dataset, x=FishSET:::qaqc_helper(values$dataset, "NaN", "names"), 
+          nan_filter(values$dataset, project = project$name, x=FishSET:::qaqc_helper(values$dataset, "NaN", "names"), 
                      replace = FALSE, remove = FALSE, rep.value=NA,  over_write=FALSE)
         } else if(input$checks=='Unique observations'){
           unique_filter(values$dataset, project = project$name, remove=FALSE)
@@ -1656,7 +1656,7 @@ set_confid_check(check = FALSE)
           empty_vars_filter(values$dataset, project = project$name, remove=FALSE)
 
         } else if(input$checks=='Lat_Lon units'){
-          degree(values$dataset, lat=NULL, lon=NULL, latsign=NULL, lonsign=NULL, replace=FALSE)
+          degree(values$dataset, project = project$name, lat=NULL, lon=NULL, latsign=NULL, lonsign=NULL, replace=FALSE)
         } else {
           'Make a selection in the left hand column'
         } 
@@ -2109,7 +2109,7 @@ set_confid_check(check = FALSE)
       
       observeEvent(input$NA_Filter_all,{
           if(any(apply(values$dataset, 2, function(x) anyNA(x)))==TRUE){
-            values$dataset <- na_filter(values$dataset, x=names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), 
+            values$dataset <- na_filter(values$dataset, project = project$name, x=names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), 
                                         replace = FALSE, remove = TRUE, rep.value=NA, over_write=FALSE)  
           } else {
             values$dataset <- values$dataset
@@ -2119,7 +2119,7 @@ set_confid_check(check = FALSE)
       
       observeEvent(input$NA_Filter_mean,{
           if(any(apply(values$dataset, 2, function(x) anyNA(x)))==TRUE){
-            values$dataset <- na_filter(values$dataset,  x=names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), 
+            values$dataset <- na_filter(values$dataset, project = project$name, x=names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), 
                                         replace = TRUE, remove = FALSE, rep.value=NA, over_write=FALSE)
           } else {
             values$dataset <- values$dataset
@@ -2129,7 +2129,7 @@ set_confid_check(check = FALSE)
       
       observeEvent(input$NAN_Filter_all,{
           if(any(apply(values$dataset, 2, function(x) any(is.nan(x))))==TRUE){
-            values$dataset <- nan_filter(values$dataset, x=names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), 
+            values$dataset <- nan_filter(values$dataset, project = project$name, x=names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), 
                                          replace = FALSE, remove = TRUE, rep.value=NA, over_write=FALSE)  
           } else{
             values$dataset <- values$dataset
@@ -2139,7 +2139,7 @@ set_confid_check(check = FALSE)
       
       observeEvent(input$NAN_Filter_mean,{
           if(any(apply(values$dataset, 2, function(x) any(is.nan(x))))==TRUE){
-            values$dataset <- nan_filter(values$dataset, x=names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), 
+            values$dataset <- nan_filter(values$dataset, project = project$name, x=names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), 
                                          replace = TRUE, remove = FALSE, rep.value=NA, over_write=FALSE)
           } else {
             values$dataset <- values$dataset
@@ -2148,7 +2148,7 @@ set_confid_check(check = FALSE)
       })
       
       observeEvent(input$Outlier_Filter,{
-          values$dataset <- outlier_remove(values$dataset, x=input$column_check, dat.remove = input$dat.remove, over_write=FALSE)
+          values$dataset <- outlier_remove(values$dataset, project = project$name, x=input$column_check, dat.remove = input$dat.remove, over_write=FALSE)
       })
       
       observeEvent(input$Unique_Filter,{
@@ -2276,7 +2276,7 @@ set_confid_check(check = FALSE)
             filter_data_function$kwargs <- list()
             filter_data_function$output <- c('')
             filter_data_function$msg <- FilterTable
-            log_call(filter_data_function)
+            log_call(project$name, filter_data_function)
             
             fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
             DBI::dbWriteTable(fishset_db, paste0(project$name, 'FilterTable'),  FilterTable, overwrite=TRUE)
@@ -3167,22 +3167,22 @@ set_confid_check(check = FALSE)
       observeEvent(input$runNew, {
         if(input$VarCreateTop=='Dummy variables'&input$dummyfunc=='From policy dates') {
               q_test <- quietly_test(dummy_num)
-              values$dataset <- q_test(values$dataset, var=input$dummypolydate, value=dum_pol_year(), opts='more_less', name=input$varname)
+              values$dataset <- q_test(values$dataset, project = project$name, var=input$dummypolydate, value=dum_pol_year(), opts='more_less', name=input$varname)
         } else if(input$VarCreateTop=='Dummy variables'&input$dummyfunc=='From variable') {
               q_test <- quietly_test(dummy_num)
-              values$dataset <- q_test(values$dataset, var=input$dummyvarfunc, value=input$select.val, opts=input$dumsubselect, name=input$varname)
+              values$dataset <- q_test(values$dataset, project = project$name, var=input$dummyvarfunc, value=input$select.val, opts=input$dumsubselect, name=input$varname)
         } else if(input$VarCreateTop=='Temporal functions'&input$tempfunc=='temp_mod') {
               q_test <- quietly_test(temporal_mod)
-              values$dataset <- q_test(values$dataset, x=input$TimeVar, define.format=input$define_format, name=input$varname)
+              values$dataset <- q_test(values$dataset, project = project$name, x=input$TimeVar, define.format=input$define_format, name=input$varname)
         } else if(input$VarCreateTop=='Data transformations'&input$trans=='set_quants'){
               q_test <- quietly_test(set_quants)
-              values$dataset <- q_test(values$dataset, x=input$trans_var_name, quant.cat = input$quant_cat, name=input$varname)
+              values$dataset <- q_test(values$dataset, project = project$name, x=input$trans_var_name, quant.cat = input$quant_cat, name=input$varname)
         } else if(input$VarCreateTop=='Nominal ID'&input$ID=='ID_var'){
               q_test <- quietly_test(ID_var)
-              values$dataset <- q_test(values$dataset, name=input$varname, vars=input$unique_identifier, type=input$ID_type)
+              values$dataset <- q_test(values$dataset, project = project$name, name=input$varname, vars=input$unique_identifier, type=input$ID_type)
         } else if(input$VarCreateTop=='Nominal ID'&input$ID=='create_seasonal_ID'){
               q_test <- quietly_test(create_seasonal_ID)
-              values$dataset <- q_test(values$dataset, seasonal.dat=seasonalData(), use.location=input$use_location, 
+              values$dataset <- q_test(values$dataset, project = project$name, seasonal.dat=seasonalData(), use.location=input$use_location, 
                                                use.geartype=input$use_geartype, sp.col=input$sp_col, target=input$target)
         } else if(input$VarCreateTop=='Data transformations'&input$trans=='group_perc'){
           q_test <- quietly_test(group_perc)
@@ -3198,14 +3198,14 @@ set_confid_check(check = FALSE)
                                    value=input$cumsum_value, name=input$varname, create_group_ID=input$cumsum_id_col, drop_total_col=input$cumsum_drop)
         } else if(input$VarCreateTop=='Arithmetic functions'&input$numfunc=='create_var_num'){
               q_test <- quietly_test(create_var_num)
-              values$dataset <- q_test(values$dataset, x=input$var_x, y=input$var_y, method=input$create_method, name=input$varname)
+              values$dataset <- q_test(values$dataset, project = project$name, x=input$var_x, y=input$var_y, method=input$create_method, name=input$varname)
         } else if(input$VarCreateTop=='Arithmetic functions'&input$numfunc=='cpue') {
           if(input$xTime!='Calculate duration'){
               q_test <- quietly_test(cpue)
-              values$dataset <- q_test(values$dataset, xWeight=input$xWeight, xTime=input$xTime, name=input$varname)
+              values$dataset <- q_test(values$dataset, project = project$name, xWeight=input$xWeight, xTime=input$xTime, name=input$varname)
           } else {
             q_test <- quietly_test(cpue)
-            values$dataset <- create_duration(values$dataset, start=input$dur_start2, end=input$dur_end2, units=input$dur_units2, name='dur')
+            values$dataset <- create_duration(values$dataset, project = project$name, start=input$dur_start2, end=input$dur_end2, units=input$dur_units2, name='dur')
             values$dataset <- q_test(values$dataset, xWeight=input$xWeight, xTime='dur', name=input$varname)
           }
         } else if (input$VarCreateTop=='Spatial functions' & input$dist=='zone'){
@@ -3237,12 +3237,12 @@ set_confid_check(check = FALSE)
             enddist <- 'centroid'
           }
             q_test <- quietly_test(create_dist_between_for_gui)
-            values$dataset <- q_test(values$dataset, start=startdist, end=enddist, units$input$units,  name=input$varname, portTable=input$filePort, 
-                                                                         gridfile=spatdat$dataset,lon.dat=input$lon_dat[2], lat.dat=input$lon_dat[1], 
-                                                                         input$cat, lon.grid=input$long_grid[2], lat.grid=input$long_grid[1])
+            values$dataset <- q_test(values$dataset, project = project$name, start=startdist, end=enddist, units$input$units,  
+                                     name=input$varname, portTable=input$filePort, gridfile=spatdat$dataset,lon.dat=input$lon_dat[2], 
+                                     lat.dat=input$lon_dat[1],  input$cat, lon.grid=input$long_grid[2], lat.grid=input$long_grid[1])
            } else if(input$VarCreateTop=='Spatial functions' & input$dist=='create_mid_haul'){
               q_test <- quietly_test(create_mid_haul)
-              values$dataset <- q_test(values$dataset, start=c(input$mid_start[2], input$mid_start[1]), 
+              values$dataset <- q_test(values$dataset, project = project$name, start=c(input$mid_start[2], input$mid_start[1]), 
                                        end=c(input$mid_end[2], input$mid_end[1]), name=input$varname)
         } else if(input$VarCreateTop=='Temporal functions' & input$tempfunc=='create_duration'){
               q_test <- quietly_test(create_duration)
@@ -3257,14 +3257,14 @@ set_confid_check(check = FALSE)
               values$dataset <- q_test(values$dataset, project=project$name, input$fun_numeric, input$fun_time, input$Haul_Trip_IDVar)
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='trip_distance'){
               q_test <- quietly_test(create_trip_distance)
-              values$dataset <- q_test(values$dataset, PortTable = input$port_dat_dist, trip_id = input$trip_ID, 
+              values$dataset <- q_test(values$dataset, project = project$name, PortTable = input$port_dat_dist, trip_id = input$trip_ID, 
                                        staring_port = input$starting_port, starting_haul = c(input$starting_haul[2], input$starting_haul[1]), 
                                       ending_haul = c(input$ending_haul[2],input$ending_haul[1]), ending_port = input$ending_port, 
                                        haul_order = input$haul_order, name = input$varname)
         } else if(input$VarCreateTop=='Trip-level functions'&input$trip=='trip_centroid'){
               q_test <- quietly_test(create_trip_centroid)
-              values$dataset <- q_test(values$dataset, lon=input$trip_cent_lon, lat=input$trip_cent_lat, weight.var=input$trip_cent_weight, 
-                                                 input$trip_cent_id)
+              values$dataset <- q_test(values$dataset, project = project$name, lon=input$trip_cent_lon, 
+                                       lat=input$trip_cent_lat, weight.var=input$trip_cent_weight,  input$trip_cent_id)
         }
       })
       
@@ -3279,7 +3279,7 @@ set_confid_check(check = FALSE)
       
       #Map Viewer ====
       
-      map_viewer_serv("map", values, spatdat)
+      map_viewer_serv("map", values, spatdat, reactive(project$name))
       #onStop(function() servr::daemon_stop()) 
       
       

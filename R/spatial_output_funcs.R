@@ -38,7 +38,7 @@ spatial_hist <- function(dat, project, group) {
   spatial_hist_function$args <- list(dat, project, group)
   spatial_hist_function$kwargs <- list()
   spatial_hist_function$output <- c()
-  log_call(spatial_hist_function)
+  log_call(project, spatial_hist_function)
 
   save_plot(project, "spatial_hist")
 
@@ -159,7 +159,7 @@ spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs"
   spatial_summary_function$args <- list(dat, project, stat.var, variable, gridfile, lon.dat, lat.dat, cat, lon.grid, lat.grid)
   spatial_summary_function$kwargs <- list()
   spatial_summary_function$output <- c()
-  log_call(spatial_summary_function)
+  log_call(project, spatial_summary_function)
 
   save_plot(project, "spatial_summary")
   plotout

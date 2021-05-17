@@ -169,7 +169,7 @@ write_dat <- function (dat, file, file_type = "csv", project, ...) {
     write_dat_function$args <- list(dat, file, file_type, project)
     write_dat_function$kwargs <- list(...)
     
-    log_call(write_dat_function)
+    log_call(project, write_dat_function)
     
     message(paste("Table saved to", file))
     invisible(TRUE)
@@ -228,7 +228,7 @@ load_data <- function(project, name = NULL) {
   load_data_function$functionID <- "load_data"
   load_data_function$args <- list(project, name)
 
-  log_call(load_data_function)
+  log_call(project, load_data_function)
 
  # return(dat)
 }
@@ -389,7 +389,7 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
   load_maindata_function$functionID <- "load_maindata"
   load_maindata_function$args <- list(deparse(substitute(dat)), over_write, project, compare, y)
 
-  log_call(load_maindata_function)
+  log_call(project, load_maindata_function)
   
   #Make data availlable
   makeavail <- function(key, val, pos){
@@ -506,7 +506,7 @@ load_port <- function(dat, port_name, over_write = TRUE, project = NULL, compare
     load_port_function$args <- list(deparse(substitute(dat)), deparse(substitute(port_name)), over_write, project, compare, deparse(substitute(y)))
     load_port_function$kwargs <- list()
     load_port_function$output <- c("")
-    log_call(load_port_function)
+    log_call(project, load_port_function)
   }
 }
 
@@ -598,7 +598,7 @@ load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
     load_aux_function <- list()
     load_aux_function$functionID <- "load_aux"
     load_aux_function$args <- list(deparse_name(dat), deparse_name(aux), x, over_write, project)
-    log_call(load_aux_function)
+    log_call(project, load_aux_function)
   }
 }
 
@@ -683,7 +683,7 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
     load_gridded_function <- list()
     load_gridded_function$functionID <- "load_grid"
     load_gridded_function$args <- list(deparse_name(dat), deparse_name(grid), x, over_write, project)
-    log_call(load_gridded_function)
+    log_call(project, load_gridded_function)
   }
 }
 

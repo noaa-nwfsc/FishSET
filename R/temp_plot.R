@@ -192,7 +192,7 @@ temp_plot <- function(dat, project, var.select, len.fun = c("length", "unique", 
     temp_plot_function$functionID <- "temp_plot"
     temp_plot_function$args <- list(dat, project, var.select, len.fun, agg.fun, 
                                     date.var)
-    log_call(temp_plot_function)
+    log_call(project, temp_plot_function)
     
     # Save output
     save_plot(project, "temp_plot", plot = t_plot)

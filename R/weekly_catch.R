@@ -235,7 +235,7 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
     
     if (combine == TRUE & length(group) > 1) { 
       
-      dataset <- ID_var(dataset, vars = group, type = "string")
+      dataset <- ID_var(dataset, project = project, vars = group, type = "string")
       group <- gsub(" ", "", paste(group, collapse = "_"))
       group1 <- group
       group2 <- NULL
@@ -480,7 +480,7 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
                                        filter_date, date_value, filter_by, filter_value, 
                                        filter_expr, facet_by, type, conv, tran, value, 
                                        position, combine, scale,  output, format_tab)
-    log_call(weekly_catch_function)
+    log_call(project, weekly_catch_function)
     
     save_table(table_out, project, "weekly_catch")
     
