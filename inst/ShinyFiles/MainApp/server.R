@@ -226,7 +226,18 @@ set_confid_check(check = FALSE)
         showNotification("Data refreshed", type='message', duration=10)
       }, ignoreInit = TRUE, ignoreNULL=TRUE) 
      
-        
+      #Track Times tab selected
+      vars<-reactiveValues()
+      vars = reactiveValues(counter = 0)
+      observe({
+        input$tabs
+        if(input$tabs == 'upload'){
+          isolate({
+            vars$counter <- vars$counter + 1
+          })
+        }
+        print(vars$counter)
+      })
       
       #Landing Page ----
       ###---
@@ -894,7 +905,8 @@ set_confid_check(check = FALSE)
     
       
       output$projects <- renderUI({
-        
+        req(vars$counter)
+        req(input$loadmainsource)
         if (input$loadmainsource == 'Upload new file') {
           
           textInput('projectname', 'Name of project')
@@ -913,9 +925,21 @@ set_confid_check(check = FALSE)
         
       })
      
+      output$main1 <- renderUI({
+       if(vars$counter>1){
+         radioButtons('loadmainsource', "Source primary data from:",
+                   choices=c('Upload new file','FishSET database'),
+                   selected='Upload new file' , inline=TRUE)
+       } else {
+         radioButtons('loadmainsource', "Source primary data from:",
+                      choices=c('Upload new file','FishSET database'), 
+                      selected='FishSET database', inline=TRUE)
+         }
+      })
       
       observeEvent(c(input$loadmainsource, input$project_select, input$loadDat), {
-        
+        req(vars$counter)
+        req(input$loadmainsource)
         if (input$loadmainsource == 'Upload new file') {
           
           project$name <- input$projectname
@@ -926,9 +950,12 @@ set_confid_check(check = FALSE)
         }
       })
       
+      
       output$main_upload <- renderUI({    
-        
-        if (input$loadmainsource=='Upload new file') {
+        req(vars$counter)
+        req(input$loadmainsource)
+
+      if (input$loadmainsource=='Upload new file') {
           
           tagList(
             fluidRow(
@@ -1481,14 +1508,14 @@ set_confid_check(check = FALSE)
         }
       })
         
-      changecode <- reactive({
-        if(input$checks=='Variable class'){
-          g <- c('class', 'first value', 'no changes', 'numeric', 'character', 'factor', 'date')
-          g <- g[as.numeric(as.vector(sapply(names(values$dataset), function(i) input[[i]])))]
-        } else {
-          NULL
-        }
-      })   
+#      changecode <- reactive({
+#        if(input$checks=='Variable class'){
+#          g <- c('class', 'first value', 'no changes', 'numeric', 'character', 'factor', 'date')
+#          g <- g[as.numeric(as.vector(sapply(names(values$dataset), function(i) input[[i]])))]
+#        } else {
+#          NULL
+#        }
+#      })   
       
       output$changetable <- DT::renderDataTable(
         if(colnames(values$dataset)[1] == 'var1') {
@@ -1515,6 +1542,7 @@ set_confid_check(check = FALSE)
         } else if(input$checks=='Variable class'){
           g <- c('class', 'first value', 'no changes', 'numeric', 'character', 'factor', 'date')
           g <- g[as.numeric(as.vector(sapply(names(values$dataset), function(i) input[[i]])))]
+          return(g)
         } else {
           NULL
         } 
@@ -1667,12 +1695,12 @@ set_confid_check(check = FALSE)
             }
           } else if(input$checks=='NAs'){
             
-            na_names <- FishSET:::qaqc_helper(values$dataset, "NA", "names")
-            na_quantity <- FishSET:::qaqc_helper(values$dataset[na_names], 
+            na_names <- qaqc_helper(values$dataset, "NA", "names")
+            na_quantity <- qaqc_helper(values$dataset[na_names], 
                                        function(x) sum(is.na(x)), "value")
             
            
-            if (any(FishSET:::qaqc_helper(values$dataset, "NA"))) {
+            if (any(qaqc_helper(values$dataset, "NA"))) {
       
               if(input$NA_Filter_all==0&input$NA_Filter_mean==0){ 
                 g <- paste("Occurrence of missing values checked. The",
@@ -1699,7 +1727,7 @@ set_confid_check(check = FALSE)
                   } else if(input$NA_Filter_mean>0){
                     #case_to_print$dataQuality <- c(case_to_print$dataQuality, 
                     g <- paste("Occurrence of missing values checked. The",
-                               sub(",([^,]*)$", ", and\\1", paste(FishSET:::qaqc_helper(values$dataset, "NA", "names"), collapse = ", ")),
+                               sub(",([^,]*)$", ", and\\1", paste(qaqc_helper(values$dataset, "NA", "names"), collapse = ", ")),
                                "variables contained", sub(",([^,]*)$", ", and\\1", paste(apply(values$dataset[,names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE))], 2, 
                                function(x) length(which(is.na(x)==TRUE))), collapse=", ")), "missing values. Missing values were replaced with the 
                                mean values of", names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), "respectively.\n")#)
@@ -1707,10 +1735,10 @@ set_confid_check(check = FALSE)
                 } 
             }
           } else if(input$checks=='NaNs'){
-            nan_names <- FishSET:::qaqc_helper(values$dataset, "NaN", "names")
-            nan_quantity <- FishSET:::qaqc_helper(values$dataset[nan_names], 
+            nan_names <- qaqc_helper(values$dataset, "NaN", "names")
+            nan_quantity <- qaqc_helper(values$dataset[nan_names], 
                                         function(x) sum(is.nan(x)), "value")
-                if (any(FishSET:::qaqc_helper(values$dataset, "NaN"))) {
+                if (any(qaqc_helper(values$dataset, "NaN"))) {
            
               if(input$NAN_Filter_all==0 & input$NAN_Filter_mean==0){
                 case_to_print$dataQuality <- c(case_to_print$dataQuality, 
@@ -2857,7 +2885,7 @@ set_confid_check(check = FALSE)
       })
       
       output$zone_assign_1 <- renderUI({
-        conditionalPanel(condition="input.dist=='zone'",
+        conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='zone'",
                          tagList(
                            #fileInput("fileGridExC", "Choose data file containing spatial data defining zones (shape, json, and csv formats are supported)",
                            #          multiple = FALSE, placeholder = ''),
@@ -2880,7 +2908,7 @@ set_confid_check(check = FALSE)
       })  
       
       output$zone_assign_2 <- renderUI({
-        conditionalPanel(condition="input.dist=='zone'",
+        conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='zone'",
                          if(!('sf' %in% class(spatdat$dataset))) {
                            tagList(
                              h5(tags$b('Select vector containing latitude then longitude from spatial data file')),
@@ -4195,7 +4223,11 @@ set_confid_check(check = FALSE)
         showModal(
           modalDialog(title = "Save the final version of the data before modeling",
                       selectInput("final_uniqueID", "Select column containing unique occurrence identifier",
-                                  choices = names(values$dataset)),
+                                  if(any(duplicated(values$dataset))==FALSE){
+                                    choices = c(RowID = rownames(values$dataset), names(values$dataset))
+                                    } else {
+                                      choices = names(values$dataset)
+                                      }),
                       
                       shinycssloaders::withSpinner(uiOutput("checkMsg")),
                       

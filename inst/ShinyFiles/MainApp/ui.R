@@ -207,9 +207,7 @@ source("map_viewer_app.R", local = TRUE)
                              fluidRow(
                               
                                 uiOutput("projects"), # define project name
-                               column(4, radioButtons('loadmainsource', "Source primary data from:",
-                                                      choices=c( 'Upload new file','FishSET database'),
-                                                      selected='FishSET database', inline=TRUE)),
+                               column(4, uiOutput('main1')),
                                uiOutput('main_upload')),
                            
                              fluidRow( 
@@ -739,7 +737,7 @@ source("map_viewer_app.R", local = TRUE)
                                selectInput('VarCreateTop', "Create variables based on", multiple=FALSE,  
                                            choices=c('Nominal ID', 'Arithmetic functions', 'Dummy variables', 'Temporal functions',
                                                      'Spatial functions', 'Trip-level functions', 'Data transformations'),
-                                           selected = 'Arithmetic functions'),
+                                           selected = 'Spatial functions'),
                                
                                ## Function options              
                                conditionalPanel("input.VarCreateTop=='Data transformations'",
@@ -774,7 +772,7 @@ source("map_viewer_app.R", local = TRUE)
                                                                         'Distance between two points'='create_dist_between',
                                                                         'Midpoint location (lon/lat) for each haul'='create_mid_haul',
                                                                         'Zone when choice of where to go next was made'='create_startingloc'),
-                                                            selected='create_dist_between', multiple = FALSE)),
+                                                            selected='zone', multiple = FALSE)),
                                conditionalPanel("input.VarCreateTop=='Trip-level functions'",
                                                 selectInput('trip','Functions', 
                                                             choices = c('Collapse haul to trip'='haul_to_trip','Calculate trip distance'='trip_distance',
