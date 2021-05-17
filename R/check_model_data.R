@@ -14,7 +14,7 @@
 #' will be saved in the FishSET database with the prefix ‘final’. The data index table will also be updated and saved.
 #' @examples
 #' \dontrun{
-#' check_model_data(MainDataTable, "MainDataTableInfo", uniqueID = "uniqueID_Code", save.file = TRUE)
+#' check_model_data(MainDataTable, uniqueID = "uniqueID_Code", save.file = TRUE)
 #' }
 #'
 check_model_data <- function(dat, uniqueID, save.file = TRUE) {

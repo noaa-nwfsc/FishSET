@@ -1,6 +1,6 @@
 
 
-#' Change varialble data class
+#' Change variable data class
 #'
 #' View data class for each variable and call appropriate functions to change data class as needed.
 #'
@@ -11,7 +11,7 @@
 #'   One ore more variables may be included. Default set to NULL.   
 #' @param newclass A character string of data classes that \code{x} should be changed to. Length of \code{newclass}
 #'   should match the length of \code{x} unless all variables in \code{x} should be the same \code{newclass}.
-#'   Defaults to NULL. Options are "numeric", "factor", "date", "character".
+#'   Defaults to NULL. Options are "numeric", "factor", "date", "character". Must be in quotes.
 #' @param savedat Logical. Should the data table be saved in the FishSET database, replacing the working data table
 #'  in the database? Defaults to FALSE.
 #' @details Returns a table with data class for each variable in \code{dat} and changes variable classes.   
@@ -27,20 +27,23 @@
 #' changeclass(pollockMainDataTable, "myproject")
 #'
 #' #Change class for a single variable and save data table to FishSET database
-#' changeclass(pollockMainDataTable, "myproject", x = "HAUL", newclass = numeric, savedat=TRUE)
+#' changeclass(pollockMainDataTable, "myproject", x = "HAUL", newclass = 'numeric', savedat=TRUE)
 #' 
 #' #Change class for multiple variables and save data table to FishSET database
 #' changeclass(pollockMainDataTable, "myproject", x = c("HAUL","DISEMBARKED_PORT"),
-#'  newclass = c(numeric, factor), savedat=TRUE)
+#'  newclass = c('numeric', fact'or), savedat=TRUE)
 #' }
 #' @export changeclass
 
 changeclass <- function(dat, project, x=NULL, newclass=NULL, savedat=FALSE){
-
+ 
   # Call in datasets
   out <- data_pull(dat)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
+  
+ end <- FALSE
+  
   
   #change data
   #Conversion is based on starting and ending class
@@ -49,8 +52,15 @@ changeclass <- function(dat, project, x=NULL, newclass=NULL, savedat=FALSE){
     origclass <- toupper(origclass)
   }
   
-  if (!is.null(newclass)) newclass <- toupper(newclass)
+  if (!is.null(newclass)) {
+    if(is.character(newclass)|is.list(newclass)){
+     newclass <- toupper(newclass)
+    } else {
+    end <- TRUE
+    }
+  }
   
+  if(end == FALSE){
   cd_n <-  names(which((origclass == "CHARACTER" | origclass == "DATE") & (newclass=="NUMERIC")))
   f_n <- names(which((origclass == "FACTOR") & (newclass=="NUMERIC")))
   n_c <- names(which((origclass == "NUMERIC") & (newclass=="CHARACTER")))
@@ -58,6 +68,7 @@ changeclass <- function(dat, project, x=NULL, newclass=NULL, savedat=FALSE){
   d_c <- names(which((origclass == "DATE") & (newclass=="CHARACTER")))
   ncd_f <- names(which((origclass == "NUMERIC" | origclass == "CHARACTER" | origclass == "DATE") & (newclass=="FACTOR")))
   ncf_d <- names(which((origclass == "NUMERIC" | origclass == "CHARACTER" | origclass == "FACTOR") & (newclass=="DATE")))
+  
   
   #Change to numeric
   #from character and date
@@ -104,22 +115,14 @@ changeclass <- function(dat, project, x=NULL, newclass=NULL, savedat=FALSE){
   #as.Date.numeric(x)
   if (length(ncf_d) > 0) {
     
-    dataset[ncf_d] <- lapply(ncf_d, function(x) as.POSIXct(dataset[[x]]))
+    dataset[ncf_d] <- lapply(ncf_d, function(x) as.Date(as.POSIXct(dataset[[x]])))
   }
   
   #Print table  
-  if (any(newclass == "DATE")) {
-    
-    temp <- as.data.frame(sapply(dataset, class))[2, ] 
-    temp <- droplevels(temp)
-    g <- data.frame(cbind(t(temp), t(dataset[1, ])))
-    colnames(g)=c("Class", "Value")
-    print(g)
-  } else {
     g <- as.data.frame(cbind(sapply(dataset, class), t(dataset[1, ])))
     colnames(g) = c("Class", "Value")
     print(g)
-  }
+
   
   #save data
   if(savedat == TRUE & (is.null(x) & is.null(newclass)) == FALSE){
@@ -133,8 +136,10 @@ changeclass <- function(dat, project, x=NULL, newclass=NULL, savedat=FALSE){
   changeclass_function$functionID <- "changeclass"
   changeclass_function$args <- list(dat, project, x, newclass, savedat)
   log_call(changeclass_function)
-  
+  }
+    
   if ((is.null(x) & is.null(newclass)) == FALSE) {
     return(dataset)
   }
 }
+
