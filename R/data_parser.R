@@ -209,6 +209,7 @@ load_data <- function(project, name = NULL) {
       tables_database()
     } else {
       dat <- table_view(paste0(project, "MainDataTable"))
+      if (fishset_env_exists() == FALSE)  create_fishset_env()
     }
   } else {
     if (table_exists(paste0(name)) == FALSE) {
@@ -216,6 +217,7 @@ load_data <- function(project, name = NULL) {
       tables_database()
     } else {
       dat <- table_view(name)
+      if (fishset_env_exists() == FALSE)  create_fishset_env()
     }
    
    #
