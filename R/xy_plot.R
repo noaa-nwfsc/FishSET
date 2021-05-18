@@ -35,17 +35,17 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
 
   if (regress == FALSE) {
     
-    plot <- ggplot2::ggplot(dataset, ggplot2::aes(x = x_sym, y = y_sym)) +
+    x_plot <- ggplot2::ggplot(dataset, ggplot2::aes(x = !!x_sym, y = !!y_sym)) +
       ggplot2::geom_point() +
       ggplot2::labs(subtitle = paste(var1, "by", var2), x = var1, y = var2) +
       fishset_theme()
     
   } else {
     
-    plot <- 
+    x_plot <- 
       ggpubr::annotate_figure(
         ggpubr::ggarrange(
-          ggplot2::ggplot(dataset, ggplot2::aes(x = x_sym, y = y_sym)) +
+          ggplot2::ggplot(dataset, ggplot2::aes(x = !!x_sym, y = !!y_sym)) +
             ggplot2::geom_point() +
             ggplot2::geom_smooth(method = lm) +
             ggplot2::labs(subtitle = paste(var1, "against", var2), x = var1, y = var2) +
@@ -70,6 +70,6 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
   # Save output
   save_plot(project, "xy_plot")
 
-  if (regress == TRUE) list(plot = plot, refout = refout)
-  else plot
+  if (regress == TRUE) list(plot = x_plot, refout = refout)
+  else x_plot
 }
