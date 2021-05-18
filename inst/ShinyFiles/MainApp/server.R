@@ -14,6 +14,7 @@ if (fishset_env_exists() == FALSE)  create_fishset_env()
 
 # reset confidentiality
 set_confid_check(check = FALSE)
+conf_cache_len <- length(get_confid_cache())
 
     ### SERVER SIDE    
     server = function(input, output, session) {
@@ -1414,14 +1415,15 @@ set_confid_check(check = FALSE)
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
       ###---
-      #MERGE ----
+      ## MERGE ----
       ###---      
       # Merge aux with main ---
       mergeServer("aux", values, aux, reactive(project$name), 
                   merge_type = "left", dat_type = "aux")
       
       
-      # confidentiality check----
+      ## confidentiality check----
+      
       confid_vals <- reactiveValues(check = FALSE, v_id = NULL, rule = "n", value = 3)
       
       observeEvent(input$confid_modal, {
@@ -1468,7 +1470,58 @@ set_confid_check(check = FALSE)
         confid_vals$v_id <- input$confid_vid
         confid_vals$rule <- input$confid_rule
         confid_vals$value <- input$confid_value
+        
+        removeModal()
       })
+      
+      ## reset log ----
+      observeEvent(input$reset_modal, {
+        
+        showModal(
+          modalDialog(title = "Reset Log",
+                      
+                      uiOutput("overwriteUI"),
+                      DT::DTOutput("logreset_table"),
+                      
+                      footer = tagList(
+                        modalButton("Close"),
+                        actionButton("reset_log", "Reset log", 
+                                     style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+                      ),
+                      easyClose = TRUE
+          )
+        )
+        
+        last_log <- current_log(project$name)
+        today_log <- paste0(project$name, "_", Sys.Date(), ".json")
+        
+        output$overwriteUI <- renderUI({
+     
+          if (last_log == today_log) {
+            
+            checkboxInput("log_overwrite", paste("Overwrite", last_log), value = FALSE)
+          }
+       })
+        
+        log_tab <- project_logs(project$name, modified = TRUE)
+        
+        output$logreset_table <- DT::renderDT(log_tab)
+      })
+      
+      observeEvent(input$reset_log, {
+        
+        q_test <- quietly_test(log_reset)
+        log_reset_pass <- q_test(project$name, over_write = input$log_overwrite)
+      
+        if (log_reset_pass) {
+        
+        showNotification(paste0("Log has been reset for project \"", project$name, "\""),
+                         type = "message")
+        removeModal()
+      }
+      })
+      
+      
       
       ###---
       
@@ -4264,10 +4317,7 @@ set_confid_check(check = FALSE)
             )
           }
           
-        } else {
-          
-          p("")
-        }
+        } else p("")
       })
 
 
@@ -4410,6 +4460,51 @@ set_confid_check(check = FALSE)
         }
       })
       
+      # confid pop up ----
+      conf_rv <- reactiveValues(current_len = conf_cache_len,
+                                last_len = conf_cache_len)
+      
+      conf_event <- reactive({
+        
+        # fleet functions
+        f_nm <- grep("-fun_run", names(input), value = TRUE)
+        f_nm <- f_nm[!("f_assign-fun_run" %in% f_nm)]
+        
+        vapply(f_nm, function(x) input[[x]], numeric(1))
+      })
+      
+      observeEvent(c(conf_event(), input$col_select, input$date_select), {
+        
+        c_rule <- get_confid_check()
+        
+        if (c_rule$check) {
+
+          conf_rv$current_len <- length(get_confid_cache())
+
+          if (conf_rv$current_len > conf_rv$last_len) { # if cache list increased, show popup
+            
+            conf_tab <- get_confid_cache()[[length(get_confid_cache())]]
+            c_lab <- paste(c_rule$rule, "=", c_rule$value)
+            
+            shinyjs::delay(500, {  # delay so conf_tab can load
+              showModal(
+                modalDialog(title = paste0("Confidential data detected (rule: ", c_lab,")"),
+                            
+                            DT::DTOutput("conf_table"),
+                            
+                            footer = tagList(
+                              modalButton("Close")),
+                            easyClose = TRUE
+                )
+              )
+            })
+            
+            output$conf_table <- DT::renderDT(conf_tab)
+          }
+          
+          conf_rv$last_len <- conf_rv$current_len
+        }
+      }, ignoreInit = TRUE, ignoreNULL = TRUE, priority = -1)
       
       
       ##---
