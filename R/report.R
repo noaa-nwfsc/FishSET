@@ -1,23 +1,49 @@
 
-user_locoutput <- function() {
+set_user_locoutput <- function(loc_dir) {
+  #'
+  #' Set user folder directory
+  #' 
+  #' @export
+  #' @details This function saves the local user directory to `fishset_env`. 
+  #'  with a valid folder directory. This directory path is used for inserting plots 
+  #'  and tables from a folder outside the FishSET package into the FishSET RMarkdown 
+  #'  Template. 
+  #' @seealso \code{\link{insert_plot}} \code{\link{insert_table}} \code{\link{show_fishset_env}}
+  
+  if (fishset_env_exists()) {
+    
+    if (!dir.exists(loc_dir)) warning("Invalid directory.")
+    else {
+      if (!grepl("/$", loc_dir)) loc_dir <- paste0(loc_dir, "/")
+      edit_fishset_env("user_locoutput", loc_dir)
+    }
+  }
+}
+
+get_user_locoutput <- function() {
   #'
   #'Print user folder directory
   #'
   #'@export
   #'@keywords internal
-  #'@details This function looks for an object named "locuser" with a valid folder directory. 
-  #'  if it doesn't find one, it asks user to set a valid directory. This is used for
-  #'  inserting plots and tables from a folder outside the FishSET package. 
+  #'@details This function prints the local user directory saved in `fishset_env`. 
+  #'  This directory path is used for inserting plots and tables from a folder outside 
+  #'  the FishSET package into the FishSET RMarkdown Template. 
   #'  
   
-  if (exists("locuser")) {
+  if (fishset_env_exists()) {
     
-    if (!dir.exists(locuser)) warning("Invalid directory.")
-    else locuser
+    locOutput <- get_fishset_env("user_locoutput")
     
-  } else {
-    
-    message("User directory unspecified. Please set object 'locuser' to desired folder directory.")
+    if (!is.null(locOutput)) {
+      
+      if (!dir.exists(locOutput)) warning("Invalid directory.")
+      else locOutput
+      
+    } else {
+      
+      message("User directory unspecified. Run set_user_locouput() to desired folder directory.")
+    }
   }
 }
 
@@ -34,9 +60,11 @@ list_logs <- function(chron = FALSE) {
   else logs[order(as.numeric(ord))]
 }
 
-project_logs <- function(project) {
+project_logs <- function(project, modified = FALSE) {
   #' List logs by project
   #' @param project Name of project.
+  #' @param modified Logical, whether to show modification date. Returns a data
+  #'  frame.
   #' @export
   
   logs <- list_logs()
@@ -44,7 +72,16 @@ project_logs <- function(project) {
   ord <- gsub("[^0-9]", "", logs)
   
   if (length(logs) == 0) message("Project \"", project, "\" not found")
-  else logs[order(-as.numeric(ord))]
+  else {
+    
+    if (modified) {
+      
+      log_mod <- file.mtime(paste0(loclog(), logs))
+      log_df <- data.frame(log = logs, modified = log_mod)
+      log_df
+      
+    } else logs
+  }
 }
 
 
@@ -418,11 +455,11 @@ insert_plot <- function(out) {
   #' insert_plot("pollock_plot.png")
   #' }
   
-  if (!is.null(user_locoutput())){
+  if (!is.null(get_user_locoutput())){
     
-    if (file.exists(paste0(user_locoutput(), out))) {
+    if (file.exists(paste0(get_user_locoutput(), out))) {
       
-      knitr::include_graphics(paste0(user_locoutput(), out))
+      knitr::include_graphics(paste0(get_user_locoutput(), out))
       
     } else message("Plot not found.")
   }
@@ -438,15 +475,15 @@ insert_table <- function(out) {
   #' \dontrun{
   #' insert_table("pollock_table.csv")
   #' }
-  if (!is.null(user_locoutput())) {
+  if (!is.null(get_user_locoutput())) {
     
-    if (!file.exists(paste0(user_locoutput(), out))) {
+    if (!file.exists(paste0(get_user_locoutput(), out))) {
       
       message("Table not found.")
       
     } else {
       
-      tab <- read.csv(paste0(user_locoutput(), out))
+      tab <- read.csv(paste0(get_user_locoutput(), out))
       tab
     }
   }
@@ -676,16 +713,16 @@ function_summary <- function(project, date = NULL, type = "dat_load", show = "al
 
   end <- FALSE
 
-  log <- pull_log(project, log_date = date)
+  p_log <- pull_log(project, log_date = date)
   
-  if (is.null(log)) end <- TRUE
+  if (is.null(p_log)) end <- TRUE
   
-  log_date <- log[[1]][[1]]$info[[1]]$rundate
+  log_date <- p_log[[1]][[1]]$info[[1]]$rundate
 
   # grab all function calls
   fun_calls <- lapply(
-    seq_along(log$fishset_run[[2]]$function_calls),
-    function(x) log$fishset_run[[2]]$function_calls[[x]]$functionID
+    seq_along(p_log$fishset_run[[2]]$function_calls),
+    function(x) p_log$fishset_run[[2]]$function_calls[[x]]$functionID
   )
 
   c_vars <- unique(unlist(fun_calls[unlist(lapply(fun_vector, function(x) grep(x, fun_calls)))]))
@@ -702,7 +739,7 @@ function_summary <- function(project, date = NULL, type = "dat_load", show = "al
     
     fun_list <- lapply(ind, function(x) {
       
-      lapply(x, function(i) log$fishset_run[[2]]$function_calls[[i]])
+      lapply(x, function(i) p_log$fishset_run[[2]]$function_calls[[i]])
     })
 
     names(fun_list) <- c_vars

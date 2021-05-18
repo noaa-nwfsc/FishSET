@@ -52,36 +52,27 @@ saveOutputServ <- function(id, fun_id, project, fun_name, tab_plot, out) {
   moduleServer(id, function(input, output, session) {
     
     table_save <- reactive({
-      if (out() == "table") {
-        
-        tab_plot() 
-      } else if (out()  == "tab_plot") {
-        
-        tab_plot()$table
-      } else {
-        NULL 
-      }
+      if (out() == "table") tab_plot() 
+      else if (out()  == "tab_plot") tab_plot()$table
+      else NULL 
     })
     
     plot_save <- reactive({
-      if (out() == "plot") {
-        
-        tab_plot() 
-      } else if (out() == "tab_plot") {
-        
-        tab_plot()$plot
-      } else {
-        NULL 
-      }
+      if (out() == "plot") tab_plot() 
+      else if (out() == "tab_plot") tab_plot()$plot
+      else NULL 
     })
     
     observeEvent(input$downloadplot, {
+      
+      if (!is.null(get_user_locoutput())) dir_loc <- get_user_locoutput()
+      else dir_loc <- locoutput()
       
       if (any(out() %in% c("plot", "tab_plot"))) {
         
         output$downloadplotHIDE <<- downloadHandler(
           filename = function() {
-            paste0(locoutput(),  project(), "_", fun_name, '.png')
+            paste0(dir_loc,  project(), "_", fun_name, '.png')
           },
           content = function(file) {
             ggplot2::ggsave(file, plot = plot_save())
@@ -97,9 +88,20 @@ saveOutputServ <- function(id, fun_id, project, fun_name, tab_plot, out) {
     
     observeEvent(input$downloadTable, {
       
+      if (!is.null(get_user_locoutput())) dir_loc <- get_user_locoutput()
+      else dir_loc <- locoutput()
+      
       if (any(out() %in% c("table", "tab_plot"))) {
         
-        write.csv(table_save(), paste0(locoutput(), project(), "_", fun_name, '.csv'))
+        output$downloadTableHIDE <<- downloadHandler(
+          filename = function() {
+            paste0(dir_loc,  project(), "_", fun_name, '.csv')
+          },
+          content = function(file) {
+            write.csv(table_save(), file, row.names = FALSE)
+          })
+        jsinject <- paste0("setTimeout(function(){window.open($('#", fun_id, "-", id, "-downloadTableHIDE').attr('href'))}, 100);")
+        session$sendCustomMessage(type = 'jsCode', list(value = jsinject))
         showNotification('Table saved.', type = 'message', duration = 10)
         
       } else {
@@ -117,19 +119,10 @@ plotSaveServ <- function(id, project, fun_name, plot = NULL, in_list) {
       
       if (!is.null(plot)) {
         
-        if (in_list) {
-          
-          plot$plot
-          
-        } else {
-          
-          plot
-        } 
+        if (in_list) plot$plot
+        else plot
       
-      } else {
-        
-          NULL
-      }
+      } else NULL
     })
     
     observeEvent(input$downloadplot, {
@@ -165,26 +158,25 @@ tableSaveServ <- function(id, project, fun_name, tab = NULL, in_list) {
       
       if (!is.null(tab)) {
         
-        if (in_list) {
-         
-           tab$table
-          
-        } else {
-          
-          tab
-        } 
+        if (in_list) tab$table
+        else tab
         
-      } else {
-        
-        NULL
-      }
+      } else NULL
     })
     
     observeEvent(input$downloadTable, {
       
       if (!is.null(table_save())) {
         
-        write.csv(table_save(), paste0(locoutput(), project(), "_", fun_name, '.csv'))
+        output$downloadTableHIDE <<- downloadHandler(
+          filename = function() {
+            paste0(locoutput(), project(), "_", fun_name, '.csv')
+          },
+          content = function(file) {
+            write.csv(table_save(), file, row.names = FALSE)
+          })
+        jsinject <- paste0("setTimeout(function(){window.open($('#", id, "-downloadTableHIDE').attr('href'))}, 100);")
+        session$sendCustomMessage(type = 'jsCode', list(value = jsinject))
         showNotification('Table saved.', type = 'message', duration = 10)
         
       } else {

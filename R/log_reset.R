@@ -23,7 +23,7 @@ log_reset <- function(project, over_write = FALSE) {
   
   if (!(project %in% projects())) {
     
-    message("log_reset() only applies to existing projects. Project \"", project, 
+    warning("log_reset() only applies to existing projects. Project \"", project, 
             "\" does not exist.")
     end <- TRUE
   }
@@ -32,7 +32,7 @@ log_reset <- function(project, over_write = FALSE) {
   
   if (log_file %in% project_logs(project) & over_write == FALSE) {
     
-    message("The log file \"", log_file, "\" already exists. Set over_write = TRUE to reset log.")
+    warning("The log file \"", log_file, "\" already exists. Set over_write = TRUE to reset log.")
     end <- TRUE
   }
   
@@ -57,7 +57,11 @@ log_reset <- function(project, over_write = FALSE) {
                        na = "string"), 
       paste0(loclog(), log_file)
     )
-  }
+    
+    message("Log has been reset for project \"", project, "\"")
+    invisible(TRUE)
+ 
+   } else invisible(FALSE)
 }
 
 log_call <- function(project, fun.name) {
