@@ -32,7 +32,7 @@ checklist <- function(project, modDesignTab = NULL) {
   }
   
   # check that map_plot, map_kernel, or map_viewer has been run
-  sum_list <- function_summary(date = NULL, type = "dat_exploration")
+  sum_list <- function_summary(project = project, date = NULL, type = "dat_exploration")
   nms <- names(sum_list)
   m_nms <- c("map_viewer", "map_plot", "map_kernel")
   

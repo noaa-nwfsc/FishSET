@@ -199,8 +199,10 @@ source("map_viewer_app.R", local = TRUE)
                                "Load data"
                              ),
                              
-                             conditionalPanel("input.loadDat%2==1",
+                             conditionalPanel("input.loadDat > 0",
                              actionButton("confid_modal", "Confidentiality",
+                                          style = "color: white; background-color: blue;"),
+                             actionButton("reset_modal", "Reset log",
                                           style = "color: white; background-color: blue;")),
                              
                              tags$br(), tags$br(),
