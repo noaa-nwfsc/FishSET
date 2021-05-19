@@ -2,7 +2,7 @@
 set_user_locoutput <- function(loc_dir) {
   #'
   #' Set user folder directory
-  #' 
+  #' @param loc_dir Local user directory
   #' @export
   #' @details This function saves the local user directory to `fishset_env`. 
   #'  with a valid folder directory. This directory path is used for inserting plots 
