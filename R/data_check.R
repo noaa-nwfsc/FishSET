@@ -30,7 +30,7 @@ data_check <- function(dat, project, x){#, dataindex) {
   #dataindex2 <- out$dataset
 
   # Run checks
-  print(summary_stats(dataset, project))
+  print(summary_stats(dataset, project, log_fun = FALSE))
   cat("\nNA checks\n")
   if (any(apply(dataset, 2, function(x) anyNA(x))) == TRUE) {
     cat("The", names(which(apply(dataset, 2, function(x) anyNA(x)) == TRUE)), "columns contain NAs. Consider using na_filter to replace or remove NAs")
@@ -50,17 +50,17 @@ data_check <- function(dat, project, x){#, dataindex) {
   cat("\n Use the table and plot printed below to assess whether whether outlying points may exist in the selected variable.\n
          If further checking is needed use the outlier_plot function to assess the impact of removing points.")
   print("The outlier table shows basic summary statistics for subsets of the selected variable.")
-  print(outlier_table(dataset, project, x))
+  print(outlier_table(dataset, project, x, log_fun = FALSE))
   cat("\n")
   cat("\n")
-  outlier_plot(dataset, project, x, dat.remove = "none", x.dist = "normal", output.screen = TRUE)
+  outlier_plot(dataset, project, x, dat.remove = "none", x.dist = "normal", output.screen = TRUE, log_fun = FALSE)
   cat("The plot shows the data with no adjustments (distribution specified or points removed). 
          If potential outliers are visible on the null plot, consider further visualizing the data with outlier_plot. 
          Start by using the outlier_plot function ans subsetting the data using the most conservative method: outlier_plot(dataset, x, dat.remove = \"5_95_quant\"). 
          If outliers are present, remove with the outlier_remove function.")
   cat("\n")
   cat("\nData verification checks.\n")
-  data_verification(dataset, project)
+  data_verification(dataset, project, log_fun = FALSE)
   # Table_verification_function
 #  allNecFields <- c(
 #    "name", "units", "general", "XY", "ID", "Time", "Catch", "Effort", "CPUE", "Lat", "Value", "Area", "Port", "Price", "Trip", "Haul",

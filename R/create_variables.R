@@ -392,7 +392,8 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   } else { 
     if (!is.character(dat)) dat <- deparse(substitute(dat)) }
   
-  if (create_group_ID) dataset <- ID_var(dataset, project, vars = c(id_group, group))
+  if (create_group_ID) dataset <- ID_var(dataset, project, vars = c(id_group, group), 
+                                         log_fun = FALSE)
 
   
   . <- group_total <- total_value <- NULL
@@ -471,7 +472,8 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   . <- group_total <- NULL
 
   
-  if (create_group_ID) dataset <- ID_var(dataset, project, vars = group)
+  if (create_group_ID) dataset <- ID_var(dataset, project, vars = group, 
+                                         log_fun = FALSE)
   
    alt_diff <- function(x, lag) c(0, diff(x, lag = lag))
    
@@ -549,7 +551,8 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
   
   . <- group_total <- NULL
   
-  if (create_group_ID) dataset <- ID_var(dataset, project, vars = group)
+  if (create_group_ID) dataset <- ID_var(dataset, project, vars = group, 
+                                         log_fun = FALSE)
   
   if (all(!(class(dataset[[sort_by]]) %in% c("Date","POSIXct", "POSIXt")))) {
     
@@ -917,7 +920,7 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
         lat.grid = gsub("\"|'", "", vars[3]), lon.dat = gsub("\"|'", "", vars[4]), lat.dat = gsub("\"|'", "", vars[5]), cat = gsub(
           "\"|'", "",
           vars[6]
-        ), closest.pt = TRUE
+        ), closest.pt = TRUE, log.fun = FALSE
       )
       int <- find_centroid(dat=dataset, gridfile = eval(parse(text = vars[1])), 
                            lon.dat = gsub("\"|'", "", vars[4]), lat.dat = gsub("\"|'", "", vars[5]), 
