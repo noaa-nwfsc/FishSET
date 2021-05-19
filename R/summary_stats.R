@@ -7,6 +7,7 @@
 #' @param x Optional. Variable in \code{dat} to apply function over. If not defined, summary stats
 #'   are displayed for all columns in the dataset.
 #' @param project Name of project
+#' @param log_fun Logical, whether to log function call (for internal use).
 #' @keywords summary statistics
 #' @export summary_stats
 #' @details Prints summary statistics for each variable in the data set. If \code{x} is specified, summary stats will be returned only for that variable.
@@ -17,7 +18,7 @@
 #' summary_stats(pcodMainDataTable, x = "HAUL")
 #' }
 #'
-summary_stats <- function(dat, project, x = NULL) {
+summary_stats <- function(dat, project, x = NULL, log_fun = TRUE) {
 
   # Call in datasets
   out <- data_pull(dat)
@@ -61,10 +62,13 @@ summary_stats <- function(dat, project, x = NULL) {
     }
   }
 
-  summary_stats_function <- list()
-  summary_stats_function$functionID <- "summary_stats"
-  summary_stats_function$args <- list(dat, project, x)
-  log_call(project, summary_stats_function)
+  if (log_fun) {
+    
+    summary_stats_function <- list()
+    summary_stats_function$functionID <- "summary_stats"
+    summary_stats_function$args <- list(dat, project, x, log_fun)
+    log_call(project, summary_stats_function)
+  }
 
   save_table(sum_table, project, "summary_stats")
   return(sum_table)
