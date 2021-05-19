@@ -89,6 +89,7 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
   # get number of variables
 
   obsnum <- dim(griddat)[1]
+  
 
   starts3 <- as.matrix(starts3)
   gridcoef <- as.matrix(starts3[1:(gridnum * (alts - 1)), ])

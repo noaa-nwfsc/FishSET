@@ -115,25 +115,23 @@ discretefish_subroutine <- function(project, select.model = FALSE) {
       startingloc <- x_temp[[i]][["startingloc"]]
       # otherdat <- list(griddat=list(griddatfin=x[['gridVaryingVariables']][['matrix']]), intdat=list(x[['bCHeader']][[-1]]), pricedata=list(epmDefaultPrice))
       mod.name <- unlist(x_temp[[i]][["mod.name"]])
-      opt <- unlist(x_temp[[i]][["optimOpt"]])
-      starts2 <- unlist(x_temp[[i]][["initparams"]])
-      #if (is.factor(optimOpt)) {
-      #      opt <- as.numeric(unlist(strsplit(as.character(optimOpt[i]), " ")))
-      #    } else if(is.list(optimOpt)){
-      #      opt <- as.numeric(unlist(optimOpt[i]))
-      #    } else {
-      #      opt <- as.numeric(unlist(strsplit(as.character(optimOpt), " ")))
-      #    }
+      #opt <- unlist(x_temp[[i]][["optimOpt"]])
+      #starts2 <- unlist(x_temp[[i]][["initparams"]])
+      if (is.factor(x_temp[[i]][["optimOpt"]])) {
+            opt <- as.numeric(unlist(strsplit(as.character(x_temp[[i]][["optimOpt"]]), " ")))
+          } else if(is.list(x_temp[[i]][["optimOpt"]])){
+            opt <- as.numeric(unlist(x_temp[[i]][["optimOpt"]]))
+          } else {
+            opt <- as.numeric(unlist(strsplit(as.character(x_temp[[i]][["optimOpt"]]), " ")))
+          }
       
-      #    if (is.factor(initparams)) {
-      #      inits <- initparams[i]
-      #      starts2 <-as.numeric(unlist(strsplit(as.character(inits), ","))) # inits
-      #    } else if(is.list(initparams)){
-      #      starts2 <- unlist(initparams[i])
-      #    } else {
-      #      inits <- initparams
-      #      starts2 <-as.numeric(unlist(strsplit(as.character(inits), ","))) # inits
-      #    }
+          if (is.factor(x_temp[[i]][["initparams"]])) {
+            starts2 <- as.numeric(unlist(strsplit(as.character(x_temp[[i]][["initparams"]]), ","))) # inits
+          } else if(is.list(x_temp[[i]][["initparams"]])){
+            starts2 <- unlist(x_temp[[i]][["initparams"]])
+          } else {
+            starts2 <-as.numeric(unlist(strsplit(as.character(x_temp[[i]][["initparams"]]), ","))) # inits
+          }
       
       choice.table <- as.matrix(choice, as.numeric(factor(choice)))
       choice <- data.frame(as.matrix(as.numeric(factor(choice))))
@@ -165,15 +163,15 @@ discretefish_subroutine <- function(project, select.model = FALSE) {
       # starts2 <-as.numeric(unlist(strsplit(as.character(inits), ","))) # inits
       
       ### Data needs will vary by the likelihood function ###
-      if (grepl("epm", find_original_name(match.fun(as.character(fr))))) {
+      if (grepl("epm", fr)) {
         otherdat <- list(
           griddat = list(griddatfin = as.data.frame(x_temp[[i]][["bCHeader"]][["gridVariablesInclude"]])),
           intdat = list(as.data.frame(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]])),
           pricedat = as.data.frame(x_temp[[i]][["epmDefaultPrice"]])
         )
         nexpcatch <- 1
-        expname <- find_original_name(match.fun(as.character(fr)))
-      } else if (find_original_name(match.fun(as.character(fr))) == "logit_correction") {
+        expname <- fr
+      } else if (fr == "logit_correction") {
         otherdat <- list(
           griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))), # x[['bCHeader']][['gridVariablesInclude']]),
           intdat = list(as.data.frame(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]])),
@@ -181,25 +179,26 @@ discretefish_subroutine <- function(project, select.model = FALSE) {
           polyn = as.data.frame(x_temp[[i]][["polyn"]])
         )
         nexpcatch <- 1
-        expname <- find_original_name(match.fun(as.character(fr)))
-      } else if (find_original_name(match.fun(as.character(fr))) == "logit_avgcat") {
+        expname <- fr
+      } else if (fr == "logit_avgcat") {
         otherdat <- list(
           griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))), # x[['bCHeader']][['gridVariablesInclude']]),
           intdat = list(as.data.frame(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]]))
         )
         nexpcatch <- 1
-        expname <- find_original_name(match.fun(as.character(fr)))
-      } else if (find_original_name(match.fun(as.character(fr))) == "logit_c") {
+        expname <- fr
+      } else if (fr == "logit_c") {
         nexpcatch <- length(names(x_temp[[i]][["gridVaryingVariables"]]))
       }
       # Begin loop
       for (j in 1:nexpcatch) {
-        if (find_original_name(match.fun(as.character(fr))) == "logit_c") {
-          expname <- paste0(names(x_temp[[i]][["gridVaryingVariables"]])[j], "_", find_original_name(match.fun(as.character(fr))))
+        if (fr == "logit_c") {
+          expname <- paste0(names(x_temp[[i]][["gridVaryingVariables"]])[j], "_", fr)
           otherdat <- list(
             griddat = list(griddatfin = as.data.frame(x_temp[[i]][["gridVaryingVariables"]][[names(x_temp[[i]][["gridVaryingVariables"]])[j]]])),
             intdat = list(as.data.frame(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]]))
           )
+          }
         }
         
         LL_start <- fr.name(starts2, d, otherdat, max(choice), project, expname, as.character(mod.name))
@@ -370,7 +369,7 @@ discretefish_subroutine <- function(project, select.model = FALSE) {
         DBI::dbExecute(fishset_db, second_sql, params = list(data = list(serialize(modelOut, NULL))))
         DBI::dbDisconnect(fishset_db)
       }
-      #### End looping through expectated catch cases
+      #### End looping through expected catch cases
     } # end looping through model choices
     
     # out.mod <<- out.mod
