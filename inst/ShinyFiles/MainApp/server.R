@@ -237,7 +237,6 @@ conf_cache_len <- length(get_confid_cache())
             vars$counter <- vars$counter + 1
           })
         }
-        print(vars$counter)
       })
       
       #Landing Page ----
@@ -2186,7 +2185,7 @@ conf_cache_len <- length(get_confid_cache())
                                          replace = FALSE, remove = TRUE, rep.value=NA, over_write=FALSE)  
           } else{
             values$dataset <- values$dataset
-            print('No non-numbers to remove.')
+            message('No non-numbers to remove.')
           }
       })
       
@@ -2196,7 +2195,7 @@ conf_cache_len <- length(get_confid_cache())
                                          replace = TRUE, remove = FALSE, rep.value=NA, over_write=FALSE)
           } else {
             values$dataset <- values$dataset
-            print('No non-numbers to remove.')
+            message('No non-numbers to remove.')
           }
       })
       
@@ -3466,7 +3465,7 @@ conf_cache_len <- length(get_confid_cache())
         } else if(input$temp_var=='none'){
           return()
         } else {
-          print(sparsplot(sparstable_dat(), project$name))
+          message(sparsplot(sparstable_dat(), project$name))
         }
       })
       
@@ -3951,7 +3950,7 @@ conf_cache_len <- length(get_confid_cache())
                                   Check R console for progress.', type='message', duration=30)
                 discretefish_subroutine(project$name, select.model=FALSE) #, name='discretefish_subroutine')              
         #    ), type='message', duration=10)
-                showNotification('Model run is complete. Check the `Compare Models` subtab to view output', type='message', duration=10)
+                showNotification('Model run is complete. Check the `Compare Models` subtab to view output', type='message', duration=30)
           toggle_inputs(input_list,T)
       })
       
@@ -4405,11 +4404,11 @@ conf_cache_len <- length(get_confid_cache())
             write.csv(InputCorr()$table, paste0(locoutput(), project$name,'_', 'correlation_table.csv'))
         } else {
             sink(paste0(locoutput(),project$name, "_", 'correlation_analysis_output.csv'))
-            print(cor.test(values$dataset[[input$corr_select[1]]], values$dataset[[input$corr_select[2]]]))
+            message(cor.test(values$dataset[[input$corr_select[1]]], values$dataset[[input$corr_select[2]]]))
             sink()
        }} else {
             sink(paste0(locoutput(), project$name,'_', 'regression_model_output.csv'))
-            print(InputReg()$refout)
+            message(InputReg()$refout)
             sink()
         }
       })
