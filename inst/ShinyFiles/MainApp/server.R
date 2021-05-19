@@ -2694,37 +2694,17 @@ conf_cache_len <- length(get_confid_cache())
           }
         }
       })
-      
-      
-
-      
-      
-      ##
+       
       ###---    
       
       #DATA ANALYSIS FUNCTIONS ----
       ###---
       output$corr_out <- renderUI({
         selectInput('corr_select', 'Select variables to include in correlation test', 
-                    choices= names(which(lapply(values$dataset[,which(lapply(values$dataset, is.numeric)==TRUE)], var, na.rm=TRUE)>0)), 
-                    selected= names(which(lapply(values$dataset[,which(lapply(values$dataset, is.numeric)==TRUE)], var, na.rm=TRUE)>0)), multiple=TRUE, selectize=TRUE, width='90%')
+                    choices = numeric_cols(values$dataset),
+                    selected = numeric_cols(values$dataset),
+                    multiple=TRUE, selectize=TRUE, width='90%')
       })
-      
-      tableInputCorr <- reactive({
-        if(length(input$corr_select)>2){
-          c1 <- round(cor(values$dataset[,input$corr_select], use="complete.obs"), 2)
-          colnames(c1)=gsub("_","-", colnames(c1))
-          return(c1)
-        } else {
-          NULL
-        } 
-      })
-      
-      output$output_table_corr <- DT::renderDT(
-        tableInputCorr(),  server=TRUE, extensions = list('Scroller'), 
-        options=list(autoWidth = TRUE, scrollX=TRUE, deferRender = T,
-                     scrollY = 'auto', scroller = TRUE, scrollX = T, pageLength = 25)
-      )
       
       output$output_text_corr <- renderPrint(
         if(colnames(values$dataset)[1] == 'var1') {
@@ -2736,78 +2716,51 @@ conf_cache_len <- length(get_confid_cache())
          }
       )
       
-      plotInputcorr <- reactive({
-        if(is.null(values$dataset)) {
-          return(NULL)
-        } else if(colnames(values$dataset)[1] == 'var1') {
-          return(NULL)
-          } else {
-        if(length(input$corr_select)==2){
-          ggplot2::ggplot(values$dataset, ggplot2::aes_string(x=values$dataset[[input$corr_select[1]]], y=values$dataset[[input$corr_select[2]]])) + 
-            ggplot2::geom_point()+
-            ggplot2::geom_smooth(method=lm)+ggplot2::labs(subtitle=paste(input$corr_select[1], 'by', input$corr_select[2]), x=input$corr_select[1], y=input$corr_select[2])+
-            ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
-                  panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text=ggplot2::element_text(size=11),
-                  axis.title=ggplot2::element_text(size=11))
-        } else if(length(input$corr_select)>2){
-          ggcorrplot::ggcorrplot(round(cor(values$dataset[,input$corr_select], use="complete.obs"), 2), 
-                                 type='lower',outline.color = 'white', hc.order=TRUE,show.diag=TRUE,
-                                 title = paste("Correlation matrix plot for", project$name, "data"),
-                                 ggtheme=ggplot2::theme_minimal())
-        } 
+      InputCorr <- reactive({
+        if (is.null(values$dataset)) return(NULL)
+        else if (colnames(values$dataset)[1] == 'var1') return(NULL)
+        else {
+          q_test <- quietly_test(corr_out)
+          q_test(values$dataset, project$name, input$corr_select)
         }
       })
       
-      output$output_plot_corr <- renderPlot({
-        plotInputcorr()
-      })
+      output$output_table_corr <- DT::renderDT(
+        InputCorr()$table, server=TRUE, extensions = list('Scroller'), 
+        options=list(autoWidth = TRUE, scrollX=TRUE, deferRender = T,
+                     scrollY = 'auto', scroller = TRUE, scrollX = T, pageLength = 25)
+      )
+      
+      output$output_plot_corr <- renderPlot(InputCorr()$plot)
       
       output$reg_resp_out <- renderUI({
-        varSelectInput('reg_resp_select', 'Select response variable', data = values$dataset[,unlist(lapply(values$dataset, is.numeric))], 
+        
+        selectInput('reg_resp_select', 'Select response variable', 
+                       choices = numeric_cols(values$dataset), 
                        multiple = FALSE, selectize = TRUE)
       })
       
       output$reg_exp_out <- renderUI({
-        varSelectInput('reg_exp_select', 'Select explanatory variable', data= values$dataset, 
-                    selected= "", multiple=FALSE, selectize=TRUE)
+        
+        selectInput('reg_exp_select', 'Select explanatory variable', 
+                    choices = names(values$dataset), multiple = FALSE, selectize = TRUE)
       })
       
-      ## Add regression component
-      #Run model
-      p2 <- reactive({
-        summary(lm(values$dataset[[input$reg_resp_select]]~values$dataset[[input$reg_exp_select]]))
-        })
-      
-      output$output_text_reg <- renderPrint(
-        p2()
-      )
-      
-      plotInputreg <- reactive({
-        if(colnames(values$dataset)[1] == 'var1') {
-          return(NULL)
-        } else if(length(input$reg_exp_select)!=1){
-          return(NULL)
-        }  else {
-          ggpubr::annotate_figure(ggpubr::ggarrange(ggplot2::ggplot(values$dataset, ggplot2::aes_string(x=input$reg_exp_select, y=input$reg_resp_select)) + 
-                                                      ggplot2::geom_point()+ ggplot2::geom_smooth(method=lm)+
-                                                      ggplot2::labs(subtitle=paste(input$reg_resp_select, 'against', input$reg_exp_select), x=input$reg_exp_select, y=input$reg_resp_select)+
-                                                      ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
-                                                            panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text=ggplot2::element_text(size=11),
-                                                            axis.title = ggplot2::element_text(size=11)),
-                                                    ggplot2::ggplot(lm(values$dataset[[input$reg_resp_select]]~values$dataset[[input$reg_exp_select]])) + 
-                                                      ggplot2::geom_point(ggplot2::aes(x=.fitted, y=.resid)) + 
-                                                      ggplot2::labs(subtitle = 'Residuals against fitted values', x='Fitted',y='Residuals')+
-                                                      ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
-                                                            panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), 
-                                                            axis.text = ggplot2::element_text(size=11),
-                                                            axis.title=ggplot2::element_text(size=11)),
-                                                    ncol=2, nrow=1), top=ggpubr::text_grob('Simple linear regression plots', size=14))
+      inputReg <- reactive({
+        if(colnames(values$dataset)[1] == 'var1') return(NULL)
+        else if(length(input$reg_exp_select)!=1) return(NULL)
+        else {
+
+          q_test <- quietly_test(xy_plot)
+          q_test(values$dataset, project$name, input$reg_exp_select, 
+                 input$reg_resp_select, regress = TRUE)
         }
       })
       
-      output$output_plot_reg <- renderPlot({
-        print(plotInputreg())
-      })    
+      output$output_text_reg <- renderPrint(inputReg()$refout)
+      
+      output$output_plot_reg <- renderPlot(inputReg()$plot)
+      
       ###---
       
       #DATA CREATION/MODIFICATION FUNCTIONS----
@@ -4395,9 +4348,9 @@ conf_cache_len <- length(get_confid_cache())
           },
           content = function(file) {
             if(input$corr_reg=='Correlation'){
-              ggplot2::ggsave(file, plot=plotInputcorr(), device=function(..., width, height) grDevices::png(..., width = 12, height = 4, res = 300, units = "in"))
+              ggplot2::ggsave(file, plot=InputCorr()$plot, device=function(..., width, height) grDevices::png(..., width = 12, height = 4, res = 300, units = "in"))
             } else if(input$corr_reg=='Regression'){
-              ggplot2::ggsave(file, plot=plotInputreg(), device=function(..., width, height) grDevices::png(..., width = 12, height = 4, res = 300, units = "in"))
+              ggplot2::ggsave(file, plot=inputReg()$plot, device=function(..., width, height) grDevices::png(..., width = 12, height = 4, res = 300, units = "in"))
             }
           })
         jsinject <- "setTimeout(function(){window.open($('#downloadplotAnalHIDE').attr('href'))}, 100);"
@@ -4448,14 +4401,14 @@ conf_cache_len <- length(get_confid_cache())
       observeEvent(input$downloaddataAnal, {
         if(input$corr_reg=='Correlation'){
         if(length(input$corr_select)>2){
-            write.csv(tableInputCorr(), paste0(locoutput(), project$name,'_', 'correlation_table.csv'))
+            write.csv(InputCorr()$table, paste0(locoutput(), project$name,'_', 'correlation_table.csv'))
         } else {
             sink(paste0(locoutput(),project$name, "_", 'correlation_analysis_output.csv'))
             print(cor.test(values$dataset[[input$corr_select[1]]], values$dataset[[input$corr_select[2]]]))
             sink()
        }} else {
             sink(paste0(locoutput(), project$name,'_', 'regression_model_output.csv'))
-            print(p2())
+            print(InputReg()$refout)
             sink()
         }
       })

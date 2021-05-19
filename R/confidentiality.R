@@ -135,6 +135,7 @@ get_confid_cache <- function() {
   #' 
   #' @return A list of tables containing suppression conditions. 
   #' @export
+  #' @seealso \code{\link{reset_confid_cache}}
   
   get_fishset_env("confid_cache")
 }
@@ -155,6 +156,22 @@ cache_check_table <- function(check) {
   cache[[ind]] <- check
   
   edit_fishset_env("confid_cache", cache)
+}
+
+reset_confid_cache <- function() {
+#' Reset confidentiality cache tables in `fishset_env`
+#' 
+#' This function deletes all confidentiality check tables stored in `fishset_env`. 
+#' Resetting this cache is recommended when switching to a new project or after 
+#' a long period of use as check tables can accumulate over time.
+#' 
+#' @export
+#' @seealso \code{\link{get_confid_cache}}
+  
+  if (fishset_env_exists()) {
+    
+    edit_fishset_env("confid_cache", NULL)
+  }
 }
 
 check_confidentiality <- function(dataset, v_id, value_var, group = NULL, 
