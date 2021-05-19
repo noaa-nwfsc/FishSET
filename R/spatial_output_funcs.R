@@ -103,7 +103,8 @@ spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs"
   if ("ZoneID" %in% names(dataset) == FALSE) {
     dataset <- assignment_column(
       dat = dataset, project=project, gridfile = gridfile, hull.polygon = TRUE, 
-      lon.grid, lat.grid, lon.dat, lat.dat, cat, closest.pt = TRUE, epsg = NULL
+      lon.grid, lat.grid, lon.dat, lat.dat, cat, closest.pt = TRUE, epsg = NULL, 
+      log.fun = FALSE
     )
   }
 

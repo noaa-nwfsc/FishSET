@@ -58,7 +58,7 @@ create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, st
   # DBI::dbDisconnect(fishset_db)
   port <- assignment_column(
     dat = port.table, project = project, gridfile = gridfile, hull.polygon = FALSE, lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = "Port_Long",
-    lat.dat = "Port_Lat", cat = cat, closest.pt = TRUE
+    lat.dat = "Port_Lat", cat = cat, closest.pt = TRUE, log.fun = FALSE
   )
 
   if("ZoneID" %in% names(dataset) == TRUE){
@@ -66,7 +66,7 @@ create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, st
   } else {
     int.data <- assignment_column(
       dat = dataset, project = project, gridfile = gridfile, hull.polygon = FALSE, lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat,
-      lat.dat = lat.dat, cat = cat, closest.pt = TRUE
+      lat.dat = lat.dat, cat = cat, closest.pt = TRUE, log.fun = FALSE
     )
   }
   

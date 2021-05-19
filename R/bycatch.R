@@ -233,7 +233,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
       
       if (combine == TRUE & length(group) > 1) { 
         
-        dataset <- ID_var(dataset, project,vars = group, type = "string")
+        dataset <- ID_var(dataset, project,vars = group, type = "string", log_fun = FALSE)
         group <- gsub(" ", "", paste(group, collapse = "_"))
         group1 <- group
         group2 <- NULL

@@ -132,7 +132,8 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
   # convert hauls to trips
   if (!is.null(tripID)) {
     dataset <- haul_to_trip(dataset, project = project, tripID = tripID, 
-                            fun.numeric = fun.numeric, fun.time = fun.time)
+                            fun.numeric = fun.numeric, fun.time = fun.time, 
+                            log_fun = FALSE)
   }
   
   # cleaning dates ----
@@ -293,7 +294,8 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
           
         } else {
           
-          trip_tab <- ID_var(trip_tab, project = project, vars = group, drop = TRUE)
+          trip_tab <- ID_var(trip_tab, project = project, vars = group, drop = TRUE,
+                             log_fun = FALSE)
           group <- paste(group, collapse = "_")
         }
         
