@@ -3976,14 +3976,15 @@ conf_cache_len <- length(get_confid_cache())
           showNotification(paste('1 of', times, 'model design files created.'), type='message', duration=10)
           q_test(project=rv$data$project[i], catchID=rv$data$catch[i], replace=TRUE, 
                  likelihood=rv$data$likelihood[i], optimOpt=rv$data$optimOpt[i],
+                 initparams=rv$data$inits[i], methodname =rv$data$optmeth[i], mod.name = rv$data$mod_name[i],
                  vars1=rv$data$vars1[i], vars2=rv$data$vars2[i], priceCol=rv$data$price[i], 
                  startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
-          
+
           if(times>1){
           for(i in 2:times){
             q_test(project=rv$data$project[i], catchID=rv$data$catch[i], replace=FALSE, 
                    likelihood=rv$data$likelihood[i], optimOpt=rv$data$optimOpt[i], 
-                   inits=rv$data$inits[i], methodname =rv$data$optmeth[i], 
+                   initparams=rv$data$inits[i], methodname =rv$data$optmeth[i], 
                    mod.name = rv$data$mod_name[i], vars1=rv$data$vars1[i], 
                    vars2=rv$data$vars2[i], priceCol=rv$data$price[i], 
                    startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
