@@ -34,7 +34,7 @@
 #'   treating entire dataframe \code{dat} as a fleet.
 #' @param replace.output Logical, replace existing saved expected catch data frame with new expected catch data
 #'   frame? If FALSE, new expected catch data frames appended to previously saved expected catch data frames.
-#'   Default is FALSE.
+#'   Default is TRUE
 #' @importFrom lubridate floor_date
 #' @importFrom zoo rollapply
 #' @importFrom DBI dbGetQuery
@@ -74,10 +74,10 @@
 #' @return newGridVar,  newDumV
 #' @examples
 #' \dontrun{
-#' create_expectations(pcodMainDataTable, "adfg", "OFFICIAL_TOTAL_CATCH_MT",
+#' create_expectations(pollockMainDataTable, "pollock", "OFFICIAL_TOTAL_CATCH_MT",
 #'   price = NULL, defineGroup = "fleet", temp.var = "DATE_FISHING_BEGAN",
-#'   temporal = "daily", calc.method = "standard average", lag.method = "simple",
-#'   empty.catch = "all catch", empty.expectation = 0.0001, temp.window = 4,
+#'   temporal = "daily", calc.method = "standardAverage", lag.method = "simple",
+#'   empty.catch = "allCatch", empty.expectation = 0.0001, temp.window = 4,
 #'   temp.lag = 2, year.lag = 0, dummy.exp = FALSE, replace.output = FALSE
 #' )
 #' }
@@ -85,7 +85,7 @@
 create_expectations <- function(dat, project, catch, price = NULL, defineGroup = "fleet", temp.var = NULL, temporal = c("daily", "sequential"),
                                 calc.method = c("standardAverage", "simpleLag", "weights"), lag.method = c("simple", "grouped"),
                                 empty.catch = c(NULL, 0, "allCatch", "groupedCatch"), empty.expectation = c(NULL, 1e-04, 0),
-                                temp.window = 7, temp.lag = 0, year.lag = 0, dummy.exp = FALSE, replace.output = FALSE) {
+                                temp.window = 7, temp.lag = 0, year.lag = 0, dummy.exp = FALSE, replace.output = TRUE) {
 
   # Call in datasets
   out <- data_pull(dat)
@@ -113,8 +113,9 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
     }
   }
   
+  
   ## 1. Option 1. Short-term, individual grouping t - 2 (window)
-  short_exp <- short_expectations(
+ short_exp <- short_expectations(
     dat = dataset, project = project, catch = catch, price = price, defineGroup = defineGroup, temp.var = temp.var,
     temporal = temporal, calc.method = calc.method, lag.method = lag.method, empty.catch = empty.catch,
     empty.expectation = empty.expectation, dummy.exp = FALSE
@@ -285,13 +286,11 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
     # reshape catch data to wide format with date as columns
     meanCatchSimple <- stats::reshape(df2[, c("numData", "spData", "tiData", "ra")],
       idvar = c("numData", "spData"), timevar = "tiData", direction = "wide")
-    rownames(meanCatchSimple) <- meanCatchSimple$spData
+    rownames(meanCatchSimple) <- paste0(meanCatchSimple$spData, meanCatchSimple$numData)
     
     dummyTrack <- meanCatchSimple[, -c(1, 2)] # preallocate for tracking no value
 
-    if (calc.method == "standardAverage") {
-      meanCatch <- meanCatchSimple[, -c(1, 2)]
-    } else if (calc.method == "simpleLag") {
+    if (calc.method == "simpleLag") {
       # at this point could use means to get a regression compared to a lag of the same calculation at all zones, then use that to predict...
 
       # need to multiply polys by constant
@@ -315,8 +314,10 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
           as.data.frame(meanCatchSimple[, 3:(ncol(meanCatchSimple) - 1)]), 1, mean, na.rm = T) # polys[, ncol(polys)]
         meanCatch <- meanCatchSimple[, -c(1, 2)] * polys
       }
-    } else if (calc.method == "weights") {
+    } else if(calc.method == "weights") {
       print("do nothing?")
+      meanCatch <- meanCatchSimple[, -c(1, 2)]
+    } else {
       meanCatch <- meanCatchSimple[, -c(1, 2)]
     }
 
@@ -333,7 +334,7 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
 
     newCatch <- data.frame(matrix(NA, nrow = length(bi), ncol = length(unique(B[, 2]))))
     colnames(newCatch) <- names(table(B[, 2]))
-
+    
     for (w in 1:length(bi)) {
       # if ~isinf(B(C(w),end))
       col <- B[C[w], 2]
@@ -397,13 +398,6 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
 
   r <- nchar(sub("\\.[0-9]+", "", mean(as.matrix(newCatch), na.rm = T))) # regexp(num2str(nanmax(nanmax(newCatch))),'\.','split')
   sscale <- 10^(r - 1)
-  #    g<- function(catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation){
-  #      paste(catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation, sep='_')
-  #    }
-  #    h <- function(emp.window, temp.lag, year.lag){
-  #     paste(emp.window, temp.lag, year.lag, sep="_")
-  #    }
-
 
   ExpectedCatch <- list(
     short_exp = short_exp[1], # , g( p[1rice, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation), '2', '0', '0', sep='_')
@@ -423,7 +417,7 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
   single_sql <- paste0(project, "ExpectedCatch")
 
-  if (replace.output == TRUE) {
+  if (replace.output == FALSE) {
     if (table_exists(single_sql)) {
       ExpectedCatchOld <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", project, "ExpectedCatch LIMIT 1"))$data[[1]])
       ExpectedCatch <- c(ExpectedCatchOld, ExpectedCatch)

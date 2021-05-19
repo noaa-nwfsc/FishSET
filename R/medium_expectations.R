@@ -173,20 +173,25 @@ medium_expectations <- function(dat, project, catch, price, defineGroup, temp.va
     }
     df2$ra[which(is.na(df2$ra) == TRUE)] <- mapply(myfunc_GC, df2$tiData[which(is.na(df2$ra) == TRUE)], df2$ID[which(is.na(df2$ra) == TRUE)])
     # replaceValue <- aggregate(catchData, list(C), mean, na.rm = T)
+  } else {
+    myfunc_emp <- function(x) {
+      mean(df2[lubridate::year(df2$tiData) >= format(as.Date(x), format = "%Y") &
+                 lubridate::year(df2$tiData) < lubridate::year(x) + 1, "lag.value"], na.rm = TRUE)
+    }
+    df2$ra[which(is.na(df2$ra) == TRUE)] <- unlist(lapply(df2$tiData[which(is.na(df2$ra) == TRUE)], myfunc_emp))
+    
   }
 
   # meanCatchSimple <- left_join(df, rolledAvg) reshape catch data to wide format
   meanCatchSimple <- stats::reshape(df2[, c("numData", "spData", "tiData", "ra")],
     idvar = c("numData", "spData"), timevar = "tiData", direction = "wide"
   )
-  rownames(meanCatchSimple) <- meanCatchSimple$spData
+  rownames(meanCatchSimple) <- paste0(meanCatchSimple$spData, meanCatchSimple$numData)
   
   dummyTrack <- meanCatchSimple[, -c(1, 2)] # preallocate for tracking no value
 
 
-  if (calc.method == "standardAverage") {
-    meanCatch <- meanCatchSimple[, -c(1, 2)]
-  } else if (calc.method == "simpleLag") {
+  if (calc.method == "simpleLag") {
     # at this point could use means to get a regression compared to a lag of the same calculation at all zones, then use that to predict...
 
     # need to multiply polys by constant
@@ -213,6 +218,8 @@ medium_expectations <- function(dat, project, catch, price, defineGroup, temp.va
   } else if (calc.method == "weights") {
     print("do nothing?")
     meanCatch <- meanCatchSimple[, -c(1, 2)]
+  } else {
+    meanCatch <- meanCatchSimple[, -c(1, 2)] 
   }
 
   bi <- match(tiDataFloor, unique(tiData), nomatch = 0) # [~,bi]=ismember(tiDataFloor,tLine)

@@ -199,7 +199,6 @@ discretefish_subroutine <- function(project, select.model = FALSE) {
             intdat = list(as.data.frame(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]]))
           )
           }
-        }
         
         LL_start <- fr.name(starts2, d, otherdat, max(choice), project, expname, as.character(mod.name))
         
