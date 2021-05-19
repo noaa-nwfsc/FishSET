@@ -64,6 +64,7 @@ explore_startparams <- function(project, space, startsr, dev) {
     choice <- x_temp[[i]][["choice"]]
     distance <- data.frame(x_temp[[i]][["distance"]])
     choice <- data.frame(as.matrix(as.numeric(factor(choice))))
+    startsr <- x_temp[[i]]["initparams"]
     ab <- max(choice) + 1 # no interactions in create_logit_input - interact distances in likelihood function instead
     fr <- x_temp[[i]][["likelihood"]] # func  #e.g. logit_c
     fr.name <- match.fun(find_original_name(match.fun(as.character(fr))))
@@ -81,15 +82,15 @@ explore_startparams <- function(project, space, startsr, dev) {
 
 
     ### Data needs will vary by the likelihood function ###
-    if (grepl("epm", find_original_name(match.fun(as.character(fr))))) {
+    if (grepl("epm", fr)) {
       otherdat <- list(
         griddat = list(griddatfin = as.data.frame(x_temp[[i]][["bCHeader"]][["gridVariablesInclude"]])),
         intdat = list(as.data.frame(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]])),
         pricedat = as.data.frame(x_temp[[i]][["epmDefaultPrice"]])
       )
       nexpcatch <- 1
-      expname <- find_original_name(match.fun(as.character(fr)))
-    } else if (find_original_name(match.fun(as.character(fr))) == "logit_correction") {
+      expname <- fr
+    } else if (fr == "logit_correction") {
       otherdat <- list(
         griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))), # x[['bCHeader']][['gridVariablesInclude']]),
         intdat = list(as.data.frame(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]])),
@@ -97,21 +98,21 @@ explore_startparams <- function(project, space, startsr, dev) {
         polyn = as.data.frame(x_temp[[i]][["polyn"]])
       )
       nexpcatch <- 1
-      expname <- find_original_name(match.fun(as.character(fr)))
-    } else if (find_original_name(match.fun(as.character(fr))) == "logit_avgcat") {
+      expname <- fr
+    } else if (fr == "logit_avgcat") {
       otherdat <- list(
         griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))), # x[['bCHeader']][['gridVariablesInclude']]),
         intdat = list(as.data.frame(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]]))
       )
       nexpcatch <- 1
-      expname <- find_original_name(match.fun(as.character(fr)))
+      expname <- fr
     } else if (find_original_name(match.fun(as.character(fr))) == "logit_c") {
       nexpcatch <- length(names(x_temp[[i]][["gridVaryingVariables"]]))
     }
     # Begin loop
     for (j in 1:nexpcatch) {
-      if (find_original_name(match.fun(as.character(fr))) == "logit_c") {
-        expname <- paste0(names(x_temp[[i]][["gridVaryingVariables"]])[j], "_", find_original_name(match.fun(as.character(fr))))
+      if (fr == "logit_c") {
+        expname <- paste0(names(x_temp[[i]][["gridVaryingVariables"]])[j], "_", fr)
         otherdat <- list(
           griddat = list(griddatfin = as.data.frame(x_temp[[i]][["gridVaryingVariables"]][[names(x_temp[[i]][["gridVaryingVariables"]])[j]]])),
           intdat = list(as.data.frame(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]]))
@@ -127,8 +128,8 @@ explore_startparams <- function(project, space, startsr, dev) {
       savestarts <- list()
       saveLLstarts <- list()
 
-      savestarts[[1]] <- startsr[[i]]
-      saveLLstarts[[1]] <- fr.name(startsr[[i]], d, otherdat, max(choice))
+      savestarts[[1]] <- startsr
+      saveLLstarts[[1]] <- fr.name(startsr, d, otherdat, max(choice))
 
       for (k in 2:space[[i]]) {
         savestarts[[k]] <- rnorm(length(startsr[[i]]), startsr[[i]], dev[[i]])

@@ -252,6 +252,11 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
 
   if (table_exists(paste0(project, "ExpectedCatch"))) {
     ExpectedCatch <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", project, "ExpectedCatch LIMIT 1"))$data[[1]])
+    
+    if(dim(as.data.frame(ExpectedCatch[[1]]))[[1]] != dim(Alt[["choice"]])[[1]]){
+      warning('Number of observations in Expected catch matrix and catch data do not match. Model design file cannot be created.')
+      end <- TRUE
+    }
   }
   if (!exists("ExpectedCatch")) {
     ExpectedCatch <- ""
@@ -379,6 +384,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
         polyn = polyn,
         gridVaryingVariables = ExpectedCatch
       )
+
       
       single_sql <- paste0(project, "modelinputdata")
       date_sql <- paste0(project, "modelinputdata", format(Sys.Date(), format = "%Y%m%d"))
@@ -391,7 +397,6 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
         modelInputData[[length(modelInputData) + 1]] <- modelInputData_tosave
       }
       
-      single_sql <- paste0(project, "modelinputdata")
       if (table_exists(single_sql)) {
         table_remove(single_sql)
       }
@@ -423,3 +428,4 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     }
 
 }
+
