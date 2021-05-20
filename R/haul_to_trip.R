@@ -9,6 +9,7 @@
 #'    \code{max}, \code{sum}. Defaults to \code{mean}.
 #' @param tripID Column(s) that identify the individual trip.
 #' @param haul_count Logical, whether to return a column of the number of hauls per trip. 
+#' @param log_fun Logical, whether to log function call (for internal use).
 #' @export haul_to_trip
 #' @return Returns the primary dataset where each row is a trip.
 #' @details Collapses primary dataset from haul to trip level. Unique trips are defined based on selected column(s), for 
@@ -23,7 +24,8 @@
 #'     )
 #' }
 #'
-haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, tripID, haul_count = TRUE) {
+haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, tripID, 
+                         haul_count = TRUE, log_fun = TRUE) {
   # fun.time = min, Create a column that indicates unique trip levels
 
   out <- data_pull(dat)
@@ -35,7 +37,7 @@ haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, trip
   
   # create rowID variable
   int <- ID_var(dataset, project = project, vars = tripID, type = "integer", name = "rowID", 
-                drop = FALSE)
+                drop = FALSE, log_fun = FALSE)
   
   cat(length(unique(int$rowID)), "unique trips were identified using", tripID, "\n")
   
@@ -156,12 +158,16 @@ haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, trip
   # remove "drop" column
   out$drop <- NULL
   
-  haul_to_trip_function <- list()
-  haul_to_trip_function$functionID <- "haul_to_trip"
-  haul_to_trip_function$args <- list(dat, project, deparse(substitute(fun.numeric)), 
-                                     deparse(substitute(fun.time)), tripID, haul_count)
-  haul_to_trip_function$output <- list(dat)
-  log_call(project, haul_to_trip_function)
-  
+  if (log_fun) {
+    
+    haul_to_trip_function <- list()
+    haul_to_trip_function$functionID <- "haul_to_trip"
+    haul_to_trip_function$args <- list(dat, project, deparse(substitute(fun.numeric)), 
+                                       deparse(substitute(fun.time)), tripID, haul_count, 
+                                       log_fun)
+    haul_to_trip_function$output <- list(dat)
+    log_call(project, haul_to_trip_function)
+  }
+
   return(out)
 }

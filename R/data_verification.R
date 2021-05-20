@@ -4,6 +4,7 @@
 #' @param dat Primary data containing information on hauls or trips.
 #' Table in FishSET database contains the string 'MainDataTable'.
 #' @param project String, name of project.
+#' @param log_fun Logical, whether to log function call (for internal use).
 #' @return Statements as to whether data quality issues may exist.
 #' @keywords internal
 #' @importFrom stringi stri_count_regex
@@ -16,7 +17,7 @@
 #' data_verification(pollockMainDataTable, 'pollock')
 #' }
 #'
-data_verification <- function(dat, project) {
+data_verification <- function(dat, project, log_fun = TRUE) {
 
   # Call in datasets Call in datasets
   out <- data_pull(dat)
@@ -81,14 +82,16 @@ data_verification <- function(dat, project) {
 
   print(suppressWarnings(readLines(tmp)))
 
-
-  data_verification_function <- list()
-  data_verification_function$functionID <- "data_verification"
-  data_verification_function$args <- list(dat, project)
-  data_verification_function$kwargs <- list()
-  data_verification_function$msg <- suppressWarnings(readLines(tmp))
-  log_call(project, data_verification_function)
-  rm(tmp)
+  if (log_fun) {
+    
+    data_verification_function <- list()
+    data_verification_function$functionID <- "data_verification"
+    data_verification_function$args <- list(dat, project, log_fun)
+    data_verification_function$kwargs <- list()
+    data_verification_function$msg <- suppressWarnings(readLines(tmp))
+    log_call(project, data_verification_function)
+    rm(tmp)
+  }
 
   if (check == 1) {
     stop("At least one error exists")

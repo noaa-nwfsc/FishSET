@@ -14,6 +14,7 @@
 #'   group in \code{vars}.
 #' @param drop Logical, whether to drop columns in \code{vars}.  
 #' @param sep Symbol used to combined variables. 
+#' @param log_fun Logical, whether to log function call (for internal use).
 #' @export ID_var
 #' @return Returns the `MainDataTable` with the ID variable included.
 #' @details ID variable can be based on a single or multiple variables.
@@ -24,7 +25,8 @@
 #'         vars = c("GEAR_TYPE", "TRIP_SEQ"), type = 'integar')
 #' }
 #'
-ID_var <- function(dat, project, vars, name = NULL, type = "string", drop = FALSE, sep = "_") {
+ID_var <- function(dat, project, vars, name = NULL, type = "string", drop = FALSE, 
+                   sep = "_", log_fun = TRUE) {
 
   # Call in datasets
   out <- data_pull(dat)
@@ -48,17 +50,17 @@ ID_var <- function(dat, project, vars, name = NULL, type = "string", drop = FALS
     dataset[[name]] <- as.integer(as.factor(dataset[[name]]))
   }
   
-  if (drop == TRUE) {
-    
-    dataset[vars] <- NULL
-  }
+  if (drop == TRUE) dataset[vars] <- NULL
  
-  ID_var_function <- list()
-  ID_var_function$functionID <- "ID_var"
-  ID_var_function$args <- list(dat, project, vars, name, type, drop, sep)
-  ID_var_function$ouput <- list(dat)
-
-  log_call(project, ID_var_function)
+  if (log_fun) {
+    
+    ID_var_function <- list()
+    ID_var_function$functionID <- "ID_var"
+    ID_var_function$args <- list(dat, project, vars, name, type, drop, sep, log_fun)
+    ID_var_function$ouput <- list(dat)
+    
+    log_call(project, ID_var_function)
+  }
   
   dataset
 }

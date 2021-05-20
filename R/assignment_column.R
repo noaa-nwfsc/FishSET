@@ -19,6 +19,7 @@
 #' @param epsg EPSG number. See \url{http://spatialreference.org/} to help identify optimal epsg number.
 #' @param closest.pt  Logical, if true, observations that fall outside zones are classed as the closest 
 #'    zone polygon to the point.
+#' @param log.fun Logical, whether to log function call (for internal use).
 #' @importFrom sp CRS Polygons Polygon SpatialPolygons SpatialPolygonsDataFrame coordinates
 #' @importFrom rgeos gDistance
 #' @importFrom grDevices chull
@@ -33,7 +34,8 @@
 
 
 assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, closest.pt = FALSE, 
-                              lon.grid = NULL, lat.grid = NULL, hull.polygon = FALSE, epsg = NULL) {
+                              lon.grid = NULL, lat.grid = NULL, hull.polygon = FALSE, epsg = NULL,
+                              log.fun = TRUE) {
 
   # Call in data sets
   out <- data_pull(dat)
@@ -133,12 +135,15 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
 
     pts <- cbind(dataset, ZoneID = pts$ID)
 
-    assignment_column_function <- list()
-    assignment_column_function$functionID <- "assignment_column"
-    assignment_column_function$args <- list(dat, project, gridfile, lon.dat, lat.dat, 
-                                            cat, closest.pt, lon.grid, lat.grid, 
-                                            hull.polygon, epsg)
-    log_call(project, assignment_column_function)
+    if (log.fun) {
+      
+      assignment_column_function <- list()
+      assignment_column_function$functionID <- "assignment_column"
+      assignment_column_function$args <- list(dat, project, gridfile, lon.dat, lat.dat, 
+                                              cat, closest.pt, lon.grid, lat.grid, 
+                                              hull.polygon, epsg, log.fun)
+      log_call(project, assignment_column_function)
+    }
 
     pts <- as.data.frame(pts)
     return(pts)

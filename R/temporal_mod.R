@@ -9,6 +9,7 @@
 #' @param define.format Format of temporal data. Format can be user-defined or from pre-defined choices. Format follows \code{\link{as.Date}} format.
 #' See Details for more information.
 #' @param name String, name of created variables. Defaults to `TempMod`.
+#' @param log_fun Logical, whether to log function call (for internal use).
 #' @keywords Date as.Date
 #' @return Primary dataset with new variable added.
 #' @details Converts a date variable to desired units using \code{\link[base]{as.Date}}. \code{\link{date_parser}} is
@@ -34,7 +35,7 @@
 #'
 #'
 #' # Change to Year, month, day, minutes
-temporal_mod <- function(dat, project, x, define.format, name = NULL) {
+temporal_mod <- function(dat, project, x, define.format, name = NULL, log_fun = TRUE) {
 
   # Call in datasets
   out <- data_pull(dat)
@@ -65,12 +66,16 @@ temporal_mod <- function(dat, project, x, define.format, name = NULL) {
     }
   }
 
-  temp_mod_function <- list()
-  temp_mod_function$functionID <- "temporal_mod"
-  temp_mod_function$args <- list(dat, x, define.format, deparse(substitute(name)))
-  temp_mod_function$output <- list(dat)
-  log_call(project, temp_mod_function)
-  
+  if (log_fun) {
+    
+    temp_mod_function <- list()
+    temp_mod_function$functionID <- "temporal_mod"
+    temp_mod_function$args <- list(dat, x, define.format, deparse(substitute(name)),
+                                   log_fun)
+    temp_mod_function$output <- list(dat)
+    log_call(project, temp_mod_function)
+  }
+
   if (is.null(name)) name <- paste0("temp_mod_", define.format)
 
   dataset[[name]] <- temp_out
