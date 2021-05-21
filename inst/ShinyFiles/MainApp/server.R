@@ -32,6 +32,33 @@ conf_cache_len <- length(get_confid_cache())
       #inline scripting ----
       #---
       r <- reactiveValues(done = 0, ok = TRUE, output = "")
+      
+      observeEvent(input$runUp, {
+        shinyjs::hide("error")
+        r$ok <- FALSE
+        tryCatch(
+          {
+            r$output <- isolate(
+              paste(utils::capture.output(eval(parse(text = input$exprUp))), collapse = '\n')
+            )
+            r$ok <- TRUE
+          },
+          error = function(err) {r$output <- err$message}
+        )
+        r$done <- r$done + 1
+      })
+      output$resultUp <- renderUI({
+        if(r$done > 0 ) { 
+          content <- paste(paste(">", isolate(input$expr)), r$output, sep = '\n')
+          if(r$ok) {
+            pre(content)
+          } else {
+            pre( style = "color: red; font-weight: bold;", content)
+          }
+        }
+      })
+      
+      
       observeEvent(input$runI, {
         shinyjs::hide("error")
         r$ok <- FALSE
@@ -934,7 +961,7 @@ conf_cache_len <- length(get_confid_cache())
          radioButtons('loadmainsource', "Source primary data from:",
                       choices=c('Upload new file','FishSET database'), 
                       selected='FishSET database', inline=TRUE)
-         }
+      }
       })
       
       observeEvent(c(input$loadmainsource, input$project_select, input$loadDat), {
@@ -948,7 +975,7 @@ conf_cache_len <- length(get_confid_cache())
           
           project$name <- input$project_select
         }
-      })
+      }, priority = 1)
       
       
       output$main_upload <- renderUI({    
@@ -1421,31 +1448,88 @@ conf_cache_len <- length(get_confid_cache())
                   merge_type = "left", dat_type = "aux")
       
       
-      ## delete tables ----
-      dbTab <- reactiveValues()
+      ## delete DB tables ----
+      dbTab <- reactiveValues(tabs = fishset_tables())
       
-      observeEvent(input$delete_tabs_bttn, {
+      show_delete_modal <- function() {
         
         showModal(
           modalDialog(title = "Manage Database Tables",
                       
-                      selectInput("tab_filter", "Project", choices = c("all", projects())),
-                      
-                      DT::DTOutput("DBTables"),
+                      DT::DTOutput("dbTables"),
                       
                       footer = tagList(
                         modalButton("Close"),
-                        actionButton("delete_tab", "Delete", 
-                                     style = "color: #fff; background-color: orange; border-color:#000000;")
+                        actionButton("delete_tab_mod", "Next", 
+                                     style = "color: white; background-color: blue;")
                       ),
-                      easyClose = TRUE, size = "l"
-          )
-        )
+                      easyClose = FALSE, size = "l"))
+      }
+      
+      observeEvent(input$delete_tabs_bttn, {
         
-        dbTab$tabs <- data.frame(tables = tables_database())
-        output$DBTables <- DT::renderDT(dbTab$tabs)
+        show_delete_modal()
         
+        output$dbTables <- DT::renderDT(dbTab$tabs,
+                                        filter = "top", style = 'bootstrap', 
+                                        class = 'table-bordered table-condensed table-hover table-striped')
       })
+      
+      observeEvent(input$delete_tab_mod, {
+        
+        showModal(
+          modalDialog(title = "Delete these tables?",
+                      
+                      tagList(
+                      uiOutput("delete_warn_msg"),
+                      
+                      shinycssloaders::withSpinner(DT::DTOutput("dbTables_confirm"))),
+                      
+                      footer = tagList(
+                        actionButton("cancel_delete", "Cancel"),
+                        actionButton("delete_tab_confirm", "Delete", 
+                                     style = "color: #fff; background-color: red; border-color:#000000;")
+                      ),
+                      easyClose = FALSE, size = "m"))
+        
+        warn_ind <- which(dbTab$tabs$type %in% c("final table", "raw table"))
+        warn_colors <- ifelse(input$dbTables_rows_selected %in% warn_ind, "#FFC20A", "white") # "#E66100" (orange)
+        
+        output$dbTables_confirm <- DT::renderDT({
+          
+          if (length(input$dbTables_rows_selected) > 0) {
+            
+            DT::formatStyle(
+              DT::datatable(dbTab$tabs[input$dbTables_rows_selected, ]),
+              "table", target = "row", 
+              backgroundColor = DT::styleEqual(dbTab$tabs$table[input$dbTables_rows_selected], warn_colors))
+          
+          } else {
+            
+            data.frame(table = "No tables selected")
+          } 
+        })
+          
+          output$delete_warn_msg <- renderUI({
+
+            if (any(warn_ind %in% input$dbTables_rows_selected)) {
+
+              div(style = "background-color: #FFC20A;", 
+                  h4("Warning: final and/or raw tables selected."))
+            }
+          })
+      })
+      
+      observeEvent(input$delete_tab_confirm, {
+        
+        lapply(dbTab$tabs$table[input$dbTables_rows_selected], table_remove)
+        
+        dbTab$tabs <- fishset_tables()
+        showNotification("Table(s) deleted.")
+        show_delete_modal()
+      })
+      
+      observeEvent(input$cancel_delete, show_delete_modal())
       
       ## confidentiality check ----
       
