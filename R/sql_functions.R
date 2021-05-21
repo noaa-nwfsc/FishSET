@@ -70,6 +70,7 @@ table_remove <- function(table) {
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
   DBI::dbRemoveTable(fishset_db, table)
   DBI::dbDisconnect(fishset_db)
+  invisible(TRUE)
 }
 
 table_exists <- function(table) {
@@ -259,7 +260,7 @@ list_tables <- function(project = NULL, type = "main") {
   sql_tab <- 
     switch(type, 
            "main" = "MainDataTable", "ec" = "ExpectedCatch",  "altc" = "altmatrix", 
-           "port" = "port", "info" = "MainDataTableInfo", "gc" = "ldglobalcheck", 
+           "port" = "PortTable", "info" = "MainDataTableInfo", "gc" = "ldglobalcheck", 
            "fleet" = "FleetTable", "model" = "modelOut", "model_data" = "modelinputdata", 
            "model_design" = "modelDesignTable")
   
@@ -297,4 +298,55 @@ list_tables <- function(project = NULL, type = "main") {
       invisible(NULL)
     }
   }
+}
+
+
+fishset_tables <- function() {
+  #' Show all SQL Tables in fishset_db with project name and table type
+  #' 
+  #' Returns a data frame containing all tables along with their project names
+  #' and table type.
+  #'
+  #'@importFrom stringr str_extract
+  #'@export
+  
+  # dataframe containing all sql tables 
+  db_tabs <- data.frame(table = tables_database())
+  
+  # add a project column
+  p_regex <- paste0(projects(), collapse = "|")
+  
+  p_str <- stringr::str_extract(db_tabs$table, p_regex)
+  p_str[is.na(p_str)] <- "no project"
+  db_tabs$project <- p_str
+  
+  # add a type column (order matters)
+  db_type <- c("MainDataTableInfo", "MainDataTable_raw", "MainDataTable_final", 
+               "MainDataTable", "ExpectedCatch", "altmatrix", "PortTable", "port", 
+               "ldglobalcheck", "FleetTable", "modelOut", "modelfit", "modelinputdata", 
+               "modelDesignTable", "FilterTable")
+  
+  t_regex <- paste0(db_type, collapse = "|")
+  t_str <- stringr::str_extract(db_tabs$table, t_regex)
+  t_str[is.na(t_str)] <- "other"
+  
+  t_str <- 
+    vapply(t_str, function(i) {
+      
+      switch(i, 
+             "MainDataTable" = "main table", "MainDataTable_final" = "final table", 
+             "MainDataTable_raw" = "raw table", "ExpectedCatch" = "expected catch matrix", 
+             "altmatrix" = "alt choice matrix", "PortTable" = "port table", 
+             "port" = "port table", "MainDataTableInfo" = "info table",
+             "FilterTable" = "filter table", "ldglobalcheck" = "global check", 
+             "FleetTable" = "fleet table", "modelOut" = "model output", 
+             "modelfit" = "model fit", "modelinputdata" = "model data", 
+             "modelDesignTable" = "model design", "other" = "other")
+    }, character(1))
+  
+  db_tabs$type <- t_str
+  
+  db_tabs[c("project", "type")] <- lapply(db_tabs[c("project", "type")], as.factor)
+  
+  db_tabs
 }
