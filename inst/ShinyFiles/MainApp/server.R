@@ -1456,6 +1456,7 @@ conf_cache_len <- length(get_confid_cache())
         showModal(
           modalDialog(title = "Manage Database Tables",
                       
+                      h5("Click on rows to select tables."),
                       DT::DTOutput("dbTables"),
                       
                       footer = tagList(
@@ -1807,10 +1808,10 @@ conf_cache_len <- length(get_confid_cache())
           }
         } else if(input$checks=='NAs'){
           #na(values$dataset)
-          na_filter(values$dataset, project = project$name, x=FishSET:::qaqc_helper(values$dataset, "NA", "names"), 
+          na_filter(values$dataset, project = project$name, x=qaqc_helper(values$dataset, "NA", "names"), 
                     replace = FALSE, remove = FALSE, rep.value=NA, over_write=FALSE)
         } else if(input$checks=='NaNs'){
-          nan_filter(values$dataset, project = project$name, x=FishSET:::qaqc_helper(values$dataset, "NaN", "names"), 
+          nan_filter(values$dataset, project = project$name, x=qaqc_helper(values$dataset, "NaN", "names"), 
                      replace = FALSE, remove = FALSE, rep.value=NA,  over_write=FALSE)
         } else if(input$checks=='Unique observations'){
           unique_filter(values$dataset, project = project$name, remove=FALSE)
@@ -1941,9 +1942,9 @@ conf_cache_len <- length(get_confid_cache())
             }
           } else if(input$checks=='Empty variables'){
             
-            if(any(FishSET:::qaqc_helper(values$dataset, function(x) all(is.na(x))))) {
+            if(any(qaqc_helper(values$dataset, function(x) all(is.na(x))))) {
               
-              empty_names <- FishSET:::qaqc_helper(values$dataset, function(x) all(is.na(x)), "names")
+              empty_names <- qaqc_helper(values$dataset, function(x) all(is.na(x)), "names")
               
               if(input$Empty_Filter==0){
                 case_to_print$dataQuality <- c(case_to_print$dataQuality, 
@@ -1959,7 +1960,7 @@ conf_cache_len <- length(get_confid_cache())
             }
           } else if(input$checks=='Lat_Lon units'){
             
-            if(any(FishSET:::qaqc_helper(values$dataset[FishSET:::find_lonlat(values$dataset)], function(x) !is.numeric(x)))){
+            if(any(qaqc_helper(values$dataset[find_lonlat(values$dataset)], function(x) !is.numeric(x)))){
               if(input$LatLon_Filter==FALSE){
                 case_to_print$dataQuality <- c(case_to_print$dataQuality, 
                                               'Latitude and longitude units were checked and are not in decimal degrees.\n')
@@ -2478,7 +2479,7 @@ conf_cache_len <- length(get_confid_cache())
       #  tags$div(align = 'left', class = 'multicol', 
         tagList(
                  selectInput("col_select", "Select column name", choices = names(values$dataset), 
-                              selected = FishSET:::numeric_cols(values$dataset)[1], 
+                              selected = numeric_cols(values$dataset)[1], 
                               multiple=FALSE, selectize = TRUE), #)
                  
                  selectInput("date_select", "Select date column", choices = date_cols(values$dataset))
@@ -2680,11 +2681,11 @@ conf_cache_len <- length(get_confid_cache())
           actionButton("run_grid", "Plot grid",
                        style = "color: #fff; background-color: #6da363; border-color: #800000;"),
           selectInput("grid_lon", "Longitude", 
-                      choices = FishSET:::find_lon(grddat[[input$grid_select]])),
+                      choices = find_lon(grddat[[input$grid_select]])),
           selectInput("grid_lat", "Latitude", 
-                      choices = FishSET:::find_lat(grddat[[input$grid_select]])),
+                      choices = find_lat(grddat[[input$grid_select]])),
           selectInput("grid_value", "Value", 
-                      choices = FishSET:::numeric_cols(grddat[[input$grid_select]])),
+                      choices = numeric_cols(grddat[[input$grid_select]])),
           selectInput("grid_split", "Split plot by",
                       choices = c("none", colnames(grddat[[input$grid_select]]))),
           selectInput("grid_agg", "Group mean value by",
@@ -2903,7 +2904,7 @@ conf_cache_len <- length(get_confid_cache())
                          selectInput('perc_grp', 'Select secondary grouping variable(s)',
                                      choices = colnames(values$dataset), multiple = TRUE),
                          selectInput('perc_value', 'Select numeric variable',
-                                     choices = FishSET:::numeric_cols(values$dataset)),
+                                     choices = numeric_cols(values$dataset)),
                          checkboxInput('perc_id_col', 'Create an ID variable'),
                          checkboxInput('perc_drop', 'Drop total columns'))
       })
@@ -2916,7 +2917,7 @@ conf_cache_len <- length(get_confid_cache())
                          selectInput('diff_grp', 'Select secondary grouping variable(s)',
                                      choices = colnames(values$dataset), multiple = TRUE),
                          selectInput('diff_value', 'Select numeric variable',
-                                     choices = FishSET:::numeric_cols(values$dataset)),
+                                     choices = numeric_cols(values$dataset)),
                          checkboxInput('diff_id_col', 'Create an ID variable'),
                          checkboxInput('diff_drop', 'Drop total columns'))
       })
@@ -2929,7 +2930,7 @@ conf_cache_len <- length(get_confid_cache())
                          selectInput('cumsum_grp', 'Select secondary grouping variable(s)',
                                      choices = colnames(values$dataset), multiple = TRUE),
                          selectInput('cumsum_value', 'Select numeric variable',
-                                     choices = FishSET:::numeric_cols(values$dataset)),
+                                     choices = numeric_cols(values$dataset)),
                          checkboxInput('cumsum_id_col', 'Create an ID variable'),
                          checkboxInput('cumsum_drop', 'Drop total columns'))
       })
@@ -3009,10 +3010,10 @@ conf_cache_len <- length(get_confid_cache())
                            },
                            h5(tags$b('Select latitude then longitude from primary data frame for assigning observations to zones')),
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
-                               selectizeInput('lat_dat_zone', '', choices = FishSET:::find_lat(values$dataset),
+                               selectizeInput('lat_dat_zone', '', choices = find_lat(values$dataset),
                                               options = list(create = TRUE, placeholder='Select or type LATITUDE variable name'))),
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
-                               selectizeInput('lon_dat_zone', '', choices = FishSET:::find_lon(values$dataset),
+                               selectizeInput('lon_dat_zone', '', choices = find_lon(values$dataset),
                                               options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name'))),
                            selectInput('cat_zone', 'Individual areas/zones from the spatial data file', choices=names(as.data.frame(spatdat$dataset))),
                            # selectInput('weight_var_ac', 'If desired, variable for use in calculating weighted centroids', 
