@@ -91,9 +91,7 @@
 #' }
 #'
 discretefish_subroutine <- function(project, select.model = FALSE) {
-  
-  end <- FALSE
-  
+
   if (!isRunning()) { # if run in console
     
     check <- checklist(project)
@@ -105,6 +103,7 @@ discretefish_subroutine <- function(project, select.model = FALSE) {
     # Call in datasets
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
     x_temp <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
+    
     
     for (i in 1:length(x_temp)) {
       x <- x_temp[i]
@@ -145,8 +144,6 @@ discretefish_subroutine <- function(project, select.model = FALSE) {
       H1 <- NULL
       fr <- x_temp[[i]][["likelihood"]] # func  #e.g. logit_c
       fr.name <- match.fun(find_original_name(match.fun(as.character(fr))))
-      
-      
       
       # remove unnecessary lists
       x_temp[[i]][["gridVaryingVariables"]] <- Filter(Negate(function(x) is.null(unlist(x))), x_temp[[i]][["gridVaryingVariables"]])
@@ -222,7 +219,7 @@ discretefish_subroutine <- function(project, select.model = FALSE) {
           {
             stats::optim(starts2, fr.name,
                          dat = d, otherdat = otherdat, alts = max(choice), method = x_temp[[i]][['methodname']],
-                         control = controlin, hessian = TRUE, project = project, expname = expname, mod.name = as.character(x_temp[[i]][['mod.name']])
+                         control = controlin, hessian = TRUE, project = project, expname = expname, mod.name = as.character(unlist(x_temp[[i]][['mod.name']]))
             )
           },
           error = function(e) {
@@ -359,13 +356,20 @@ discretefish_subroutine <- function(project, select.model = FALSE) {
             seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table = choice.table
           )
         }
+        raw_sql <- paste0(project, "modelOut")
         single_sql <- paste0(project, "modelOut", format(Sys.Date(), format = "%Y%m%d"))
         if (table_exists(single_sql)) {
           table_remove(single_sql)
         }
+        if (table_exists(raw_sql)) {
+          table_remove(raw_sql)
+        }
         second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
+        raw_second_sql <- paste("INSERT INTO", raw_sql, "VALUES (:data)")
         DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(data modelOut)"))
         DBI::dbExecute(fishset_db, second_sql, params = list(data = list(serialize(modelOut, NULL))))
+        DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", raw_sql, "(data modelOut)"))
+        DBI::dbExecute(fishset_db, raw_second_sql, params = list(data = list(serialize(modelOut, NULL))))
         DBI::dbDisconnect(fishset_db)
       }
       #### End looping through expected catch cases

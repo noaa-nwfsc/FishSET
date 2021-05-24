@@ -99,8 +99,6 @@ logit_c <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
   gridbetas <- (matrix(rep(gridcoef, each = alts), obsnum, alts * gridnum, byrow = TRUE) * griddat)
   dim(gridbetas) <- c(nrow(gridbetas), alts, gridnum)
   gridbetas <- rowSums(gridbetas, dims = 2)
-
-  browser()
   
   intbetas <- .rowSums(intdat * matrix(intcoef, obsnum, intnum, byrow = TRUE), obsnum, intnum)
 
