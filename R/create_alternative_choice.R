@@ -118,7 +118,7 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
       }
     } else {
       int <- find_centroid(
-    dat = dataset, gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.grid,
+    dat = dataset, project = project, gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.grid,
     lat.dat = lat.dat, lon.dat = lon.dat, cat = cat, weight.var = weight.var
   )
     }
