@@ -154,7 +154,8 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, combine 
         dataset[group] <- lapply(dataset[group], as.factor)
       } else {
        
-        dataset <- ID_var(dataset, project = project, vars = group, type = "string")
+        dataset <- ID_var(dataset, project = project, vars = group, type = "string", 
+                          log_fun = FALSE)
         group <- paste(group, collapse = "_")
       } 
       

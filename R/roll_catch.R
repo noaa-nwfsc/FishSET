@@ -272,8 +272,8 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
       if (!is.null(agg_grp)) {
         
         check_out$table <- 
-          ID_var(check_out$table, project = project,
-                 vars = c(agg_grp, "name"), sep = "__", name = "name")
+          ID_var(check_out$table, project = project, vars = c(agg_grp, "name"), 
+                 sep = "__", name = "name", log_fun = FALSE)
         check_out$table <- check_out$table[c(date, "name")]
         agg_cols <- names(sum_tab)[-which(names(sum_tab) == date)]
         
@@ -358,10 +358,12 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
       
       if (combine == TRUE & length(group) > 1) {
         
-        roll_tab <- ID_var(roll_tab, project = project, vars = group, type = "string", drop = TRUE)
+        roll_tab <- ID_var(roll_tab, project = project, vars = group, type = "string", 
+                           drop = TRUE, log_fun = FALSE)
         
         if (suppress) {
-          check_table <- ID_var(check_table, project = project, vars = group, type = "string", drop = TRUE)
+          check_table <- ID_var(check_table, project = project, vars = group, 
+                                type = "string", drop = TRUE, log_fun = FALSE)
         }
         
         group <- gsub(" ", "", paste(group, collapse = "_"))
