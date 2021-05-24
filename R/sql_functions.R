@@ -259,7 +259,7 @@ list_tables <- function(project = NULL, type = "main") {
   sql_tab <- 
     switch(type, 
            "main" = "MainDataTable", "ec" = "ExpectedCatch",  "altc" = "altmatrix", 
-           "port" = "port", "info" = "MainDataTableInfo", "gc" = "ldglobalcheck", 
+           "port" = "PortTable", "info" = "MainDataTableInfo", "gc" = "ldglobalcheck", 
            "fleet" = "FleetTable", "model" = "modelOut", "model_data" = "modelinputdata", 
            "model_design" = "modelDesignTable")
   

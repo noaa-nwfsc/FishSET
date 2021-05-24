@@ -1237,7 +1237,7 @@ source("map_viewer_app.R", local = TRUE)
                                     
                                     conditionalPanel("input.new_dat_cb",
                                                      
-                                                     selectizeInput("new_dat", "Choose primary table", 
+                                                     selectizeInput("new_dat", "Choose primary table",  
                                                                     choices = main_tables(), multiple = TRUE,
                                                                     options = list(maxItems = 1)), # sets dat to NULL by default
                                                      
