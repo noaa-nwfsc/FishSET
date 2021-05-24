@@ -31,7 +31,8 @@
 #'   )
 #' }
 #'
-temp_obs_table <- function(dat, project, x, gridfile=NULL, lon.dat=NULL, lat.dat=NULL, cat=NULL, lon.grid = NULL, lat.grid = NULL) {
+temp_obs_table <- function(dat, project, x, gridfile=NULL, lon.dat=NULL, 
+                           lat.dat=NULL, cat=NULL, lon.grid = NULL, lat.grid = NULL) {
 
   # Call in datasets
   out <- data_pull(dat)
@@ -44,12 +45,12 @@ temp_obs_table <- function(dat, project, x, gridfile=NULL, lon.dat=NULL, lat.dat
   } else {
     out <- assignment_column(dataset, project=project, gridfile = gridfile, 
      lon.grid = lon.grid, lat.grid = lat.dat, lon.dat = lon.dat, lat.dat = lat.dat, cat = cat,
-      closest.pt = FALSE, hull.polygon = TRUE, epsg = NULL
+      closest.pt = FALSE, hull.polygon = TRUE, epsg = NULL, log.fun = FALSE
     )
   }
 
-  out <- temporal_mod(dataset, x, "year", "YEAR")
-  out <- temporal_mod(dataset, x, "%m", "MONTH")
+  out <- temporal_mod(dataset, x, "year", "YEAR", log_fun = FALSE)
+  out <- temporal_mod(dataset, x, "%m", "MONTH", log_fun = FALSE)
 
   cat("Number of observations by year")
   print(table(out$YEAR))

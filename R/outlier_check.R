@@ -1,12 +1,13 @@
 # Outlier check functions.
 
-outlier_table <- function(dat, project, x) {
+outlier_table <- function(dat, project, x, log_fun = TRUE) {
   #' Evaluate outliers in a table format
   #'
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
   #' @param x Variable or column number in \code{dat} to check for outliers.
+  #' @param log_fun Logical, whether to log function call (for internal use).
   #' @importFrom stats quantile sd var na.pass model.matrix
   #' @importFrom utils file_test
   #' @importFrom grDevices dev.off pdf
@@ -101,12 +102,15 @@ outlier_table <- function(dat, project, x) {
     print("Data is not numeric.")
   }
 
-  outlier_table_function <- list()
-  outlier_table_function$functionID <- "outlier_table"
-  outlier_table_function$args <- list(dat, project, x)
+  if (log_fun) {
+    
+    outlier_table_function <- list()
+    outlier_table_function$functionID <- "outlier_table"
+    outlier_table_function$args <- list(dat, project, x, log_fun)
+    
+    log_call(project, outlier_table_function)
+  }
 
-  log_call(project, outlier_table_function)
-  
   if(is.numeric(dataset[,x])){
     save_table(dat.table, project, "outlier_table")
   } else  {
@@ -115,7 +119,8 @@ outlier_table <- function(dat, project, x) {
 }
 
 ## ---------------------------##
-outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FALSE) {
+outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FALSE,
+                         log_fun = TRUE) {
   #' Evaluate outliers
   #'
   #' Visualize spread of data and measures to identify outliers.
@@ -129,6 +134,7 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FA
   #' @param x.dist Distribution of the data. Choices include: \code{"normal"}, \code{"lognormal"},
   #'  \code{"exponential"}, \code{"Weibull"}, \code{"Poisson"}, \code{"negative binomial"}.
   #' @param output.screen Logical, if true, return plots to the screen. If false, returns plot to the 'inst/output' folder as a png file.
+  #' @param log_fun Logical, whether to log function call (for internal use).
   #' @keywords outlier
   #' @importFrom graphics points
   #' @importFrom stats dnorm dpois dweibull rnorm dbinom dlnorm dexp dnbinom
@@ -309,12 +315,15 @@ outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FA
     ), size = 10))
 
     # Log function
-    outlier_plot_function <- list()
-    outlier_plot_function$functionID <- "outlier_plot"
-    outlier_plot_function$args <- list(dat, project, x, dat.remove, x.dist, output.screen)
-    log_call(project, outlier_plot_function)
-
-
+    if (log_fun) {
+      
+      outlier_plot_function <- list()
+      outlier_plot_function$functionID <- "outlier_plot"
+      outlier_plot_function$args <- list(dat, project, x, dat.remove, x.dist, 
+                                         output.screen, log_fun)
+      log_call(project, outlier_plot_function)
+    }
+   
     plot(fig)
     # Close the pdf file
     if (output.screen == FALSE) {

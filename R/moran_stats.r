@@ -68,7 +68,7 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
     if (!is.null(cat)) {
       dataset <- assignment_column(dataset, project, spatdat, hull.polygon = TRUE, 
                                    lon.dat, lat.dat, cat, closest.pt = TRUE, lon.grid, 
-                                   lat.grid, epsg = NULL)
+                                   lat.grid, epsg = NULL, log.fun = FALSE)
 
       # Idenfity centroid of zone
       int <- find_centroid(dataset, spatdat, lon.dat, lat.dat, cat, 

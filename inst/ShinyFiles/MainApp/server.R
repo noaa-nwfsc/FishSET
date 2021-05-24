@@ -1421,7 +1421,33 @@ conf_cache_len <- length(get_confid_cache())
                   merge_type = "left", dat_type = "aux")
       
       
-      ## confidentiality check----
+      ## delete tables ----
+      dbTab <- reactiveValues()
+      
+      observeEvent(input$delete_tabs_bttn, {
+        
+        showModal(
+          modalDialog(title = "Manage Database Tables",
+                      
+                      selectInput("tab_filter", "Project", choices = c("all", projects())),
+                      
+                      DT::DTOutput("DBTables"),
+                      
+                      footer = tagList(
+                        modalButton("Close"),
+                        actionButton("delete_tab", "Delete", 
+                                     style = "color: #fff; background-color: orange; border-color:#000000;")
+                      ),
+                      easyClose = TRUE, size = "l"
+          )
+        )
+        
+        dbTab$tabs <- data.frame(tables = tables_database())
+        output$DBTables <- DT::renderDT(dbTab$tabs)
+        
+      })
+      
+      ## confidentiality check ----
       
       confid_vals <- reactiveValues(check = FALSE, v_id = NULL, rule = "n", value = 3)
       
