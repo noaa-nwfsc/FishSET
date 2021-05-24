@@ -2343,7 +2343,8 @@ conf_cache_len <- length(get_confid_cache())
         tagList(
           conditionalPanel("input.plot_table=='Table'",
                           selectInput("SelectDatasetExplore", "Select a data file type", 
-                                        choices = c("Primary"="main", "Port"="port", "Auxiliary"="auxiliary", "Gridded" = "grid"))
+                                        choices = c("Primary"="main", "Port"="port", "Auxiliary"="auxiliary", "Gridded" = "grid"),
+                                      selected='main')
           ),
           conditionalPanel("input.SelectDatasetExplore == 'grid'",
                            selectInput("grid_select", "select gridded data file", 
@@ -2354,17 +2355,17 @@ conf_cache_len <- length(get_confid_cache())
       })
   
       explore_temp <- reactive({
+        require(input$SelectDatasetExplore)
+        if (input$SelectDatasetExplore == "grid") {
           
-        if (input$SelectDatasetExplore != "grid") {
-          
+         grddat[[input$grid_select]]  
+        
+        } else {
           switch(input$SelectDatasetExplore,
                  "main" = values$dataset,
                  "port" = ptdat$dataset,
                  "auxiliary" = aux$dataset)
-        
-        } else {
-          
-         grddat[[input$grid_select]] 
+         
         }
       })
       
@@ -3403,6 +3404,7 @@ conf_cache_len <- length(get_confid_cache())
       
       #Zonal definition ----
       #---
+      #Choose variables to pass on
       output$conditionalInput1 <- renderUI({
         conditionalPanel("input.choiceTab=='primary'",
                          tagList(
@@ -3420,15 +3422,18 @@ conf_cache_len <- length(get_confid_cache())
                                               selected='', options = list(create = TRUE, placeholder='Select or type LONGITUDE column name')))
                          ))
       })
+      #Zonal centroid options
       output$conditionalInput2 <- renderUI({
         conditionalPanel(condition="input.choiceTab=='zone'",
                          tagList(
-                           #fileInput("fileGridExC", "Choose data file containing spatial data defining zones (shape, json, and csv formats are supported)",
-                           #          multiple = FALSE, placeholder = ''),
                            if(names(spatdat$dataset)[1]=='var1'){
                              tags$div(h4('Map file not loaded. Please load on Upload Data tab', style="color:red"))
                            },
-                           h5(tags$b('Select latitude then longitude from main dataset for assigning observations to zones')),
+                            selectInput('cat_altc', 'Individual areas/zones from the spatial dataset', choices=names(as.data.frame(spatdat$dataset))),
+                           
+                           h5(tags$b('Additional arguments required for calculating weighted centroid')),
+                           selectInput('weight_var_ac', 'Weighting variable from the primary dataset',
+                                       choices=c('none'="", colnames(values$dataset))), #variable weighted centroids
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
                                selectizeInput('lat_dat_ac', '',
                                               choices = find_lat(values$dataset),
@@ -3436,27 +3441,11 @@ conf_cache_len <- length(get_confid_cache())
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
                                selectizeInput('lon_dat_ac', '',
                                               choices = find_lon(values$dataset),
-                                              options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name'))),
-                           selectInput('cat_altc', 'Individual areas/zones from the spatial dataset', choices=names(as.data.frame(spatdat$dataset))),
-                           selectInput('weight_var_ac', 'If desired, variable for use in calculating weighted centroids',
-                                       choices=c('none'="", colnames(values$dataset))), #variable weighted centroids
-                           checkboxInput('hull_polygon_ac', 'Use convex hull method to create polygon?', value=FALSE),
-                           checkboxInput('closest_pt_ac', 'Use closest polygon to point?', value=FALSE)
+                                              options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name')))
+                          
                          ) )
       })
-      # 
-      #  observeEvent(input$runCentroid, {
-      #         q_test <- quietly_test(assignment_column)
-      #         values$dataset <-  q_test(dat=values$dataset, gridfile=spatdat$dataset, lon.dat=input$lon_dat_ac, lat.dat=input$lat_dat_ac, 
-      #                                        cat=input$cat_altc, closest.pt = input$closest_pt_ac, lon.grid=NULL,
-      #                                         lat.grid=NULL, hull.polygon = input$hull_polygon_ac, epsg=NULL)
-      #         if('ZoneID' %in% names(values$dataset)){
-      #         showNotification('Zone assignment completed', duration=5, type='message')
-      #         } else {
-      #           showNotification('Zone assignment could not be completed', type='message', duration=5)
-      #         }
-      # })
-      #  
+  
       output$cond2 <- renderUI({
         conditionalPanel(condition="input.choiceTab=='zone'",
                          if(!('sf' %in% class(spatdat$dataset))){
@@ -3766,17 +3755,6 @@ conf_cache_len <- length(get_confid_cache())
                         )
         )
       })
-#      output$latlonB <- renderUI({
-#        conditionalPanel(
-#          condition="input.alternatives=='loadedData'",
-#          div(style="display: inline-block;vertical-align:top; width: 200px;",
-#              selectizeInput('lat', 'Occurrence latitude', choices=c(input$latBase, colnames(values$dataset[,grep('lat', colnames(values$dataset), ignore.case=TRUE)])), 
-#                          selected='', options = list(create = TRUE, placeholder='Select or type variable name'))),
-#          div(style="display: inline-block;vertical-align:top; width: 200px;",
-#              selectizeInput('lon', 'Occurrence longitude', choices=c(input$lonBase, colnames(values$dataset[,grep('lon', colnames(values$dataset), ignore.case=TRUE)])), 
-#                          selected='', options = list(create = TRUE, placeholder='Select or type variable name')))
-#        )
-#      })
       # Data needed
       ## Alternative choices
       Alt_vars <- reactive({
@@ -4033,34 +4011,37 @@ conf_cache_len <- length(get_confid_cache())
           input_list <- reactiveValuesToList(input)
           toggle_inputs(input_list,F)
           #print('call model design function, call discrete_subroutine file')
+
           q_test <- quietly_test(make_model_design)
+          
           times <- nrow(rv$data)-1
-          i <- 1
+         
           showNotification(paste('1 of', times, 'model design files created.'), type='message', duration=10)
-          q_test(project=rv$data$project[i], catchID=rv$data$catch[i], replace=TRUE, 
-                 likelihood=rv$data$likelihood[i], optimOpt=rv$data$optimOpt[i],
-                 initparams=rv$data$inits[i], methodname =rv$data$optmeth[i], mod.name = rv$data$mod_name[i],
-                 vars1=rv$data$vars1[i], vars2=rv$data$vars2[i], priceCol=rv$data$price[i], 
-                 startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
+          q_test(project=rv$data$project[1], catchID=rv$data$catch[1], replace=TRUE, 
+                 likelihood=rv$data$likelihood[1], optimOpt=rv$data$optimOpt[1],
+                 initparams=rv$data$inits[1], methodname =rv$data$methodname[1], mod.name = rv$data$mod_name[1],
+                 vars1=rv$data$vars1[1], vars2=rv$data$vars2[1], priceCol=rv$data$price[1], 
+                 startloc=rv$data$startloc[1], polyn=rv$data$polyn[1])
 
           if(times>1){
           for(i in 2:times){
             q_test(project=rv$data$project[i], catchID=rv$data$catch[i], replace=FALSE, 
                    likelihood=rv$data$likelihood[i], optimOpt=rv$data$optimOpt[i], 
-                   initparams=rv$data$inits[i], methodname =rv$data$optmeth[i], 
+                   initparams=rv$data$inits[i], methodname =rv$data$methodname[i], 
                    mod.name = rv$data$mod_name[i], vars1=rv$data$vars1[i], 
                    vars2=rv$data$vars2[i], priceCol=rv$data$price[i], 
                    startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
             showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
           }
           }
-         # showNotification(
-         #   capture.output(
+
                 showNotification('Model is running. Models can take 30 minutes.
                                   All buttons are inactive while model function is running.
                                   Check R console for progress.', type='message', duration=30)
-                discretefish_subroutine(project$name, select.model=FALSE) #, name='discretefish_subroutine')              
-        #    ), type='message', duration=10)
+          
+                discretefish_subroutine(project$name, select.model=FALSE)             
+                
+
                 showNotification('Model run is complete. Check the `Compare Models` subtab to view output', type='message', duration=30)
           toggle_inputs(input_list,T)
       })
@@ -4081,12 +4062,15 @@ conf_cache_len <- length(get_confid_cache())
       temp <- isolate(paste0(project$name, "modelfit"))
       this_table <- reactive(
         if(DBI::dbExistsTable(fishset_db, paste0(project$name, 'modelfit'))){
-          data.frame(t(DBI::dbExecute(DBI::dbConnect(RSQLite::SQLite(), locdatabase()), 
-                                       paste0("SELECT * FROM ", paste0(project$name, "modelfit")))))
+          data.frame(t(model_fit(project$name)))
         } else {
           data.frame('X1'=NA, 'X2'=NA, 'X3'=NA, 'X4'=NA)
         }
         )#,Select=shinyInput(checkboxInput,nrow(t(out.mod)),"cbox_")))
+      
+      observeEvent(input$reload_btn, {
+        this_table() <- this_table()
+      },ignoreInit = TRUE)
       
       observeEvent(input$delete_btn, {
         t = this_table()
@@ -4100,8 +4084,8 @@ conf_cache_len <- length(get_confid_cache())
       # datatable with checkbox
       output$mytable <- DT::renderDT({
         data.frame(this_table(), select=shinyInput(checkboxInput,nrow(this_table()),"cbox_"))
-      }, colnames=c('Model','AIC','AICc','BIC','PseudoR2','Selected'),  filter='top', server = TRUE, escape = FALSE, options = list( 
-        dom = 't', paging=FALSE,
+      }, colnames=c('Model','AIC','AICc','BIC','PseudoR2','Selected'),  filter='top', server = TRUE, escape = FALSE,
+          options = list(dom = 't', paging=FALSE,
         preDrawCallback = DT::JS('function() { 
                                  Shiny.unbindAll(this.api().table().node()); }'), 
         drawCallback = DT::JS('function() { 
@@ -4158,22 +4142,23 @@ conf_cache_len <- length(get_confid_cache())
         DBI::dbExecute(fishset_db, query)
         
         showNotification("Table saved to database")
-      })
       DBI::dbDisconnect(fishset_db)
+      })
       
-    
+
       #Add in two more tables for model evaulations
-      fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
       mod_sum_out <- reactive({
-        if(DBI::dbExistsTable(fishset_db, paste0(project$name, 'modelOut', format(Sys.Date(), format="%Y%m%d")))){#pollockmodelOut20190610#))
-          model_out_view(paste0(project$name, 'modelOut', format(Sys.Date(), format="%Y%m%d")))#pollockmodelOut20190610))#
+        if(DBI::dbExistsTable(suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase())), 
+                              paste0(project$name, 'modelOut', format(Sys.Date(), format="%Y%m%d")))){
+          model_out_view(paste0(project$name, 'modelOut', format(Sys.Date(), format="%Y%m%d")))#
       } else {
          data.frame('var1'=0, 'var2'=0)
       }
       })
       
       output$modeltab <- DT::renderDT({
-        modeltab <- data.frame(Model_name=rep(NA, length(mod_sum_out())), covergence=rep(NA, length(mod_sum_out())), Stand_Errors=rep(NA, length(mod_sum_out())), Hessian=rep(NA, length(mod_sum_out())))
+        modeltab <- data.frame(Model_name=rep(NA, length(mod_sum_out())), Covergence=rep(NA, length(mod_sum_out())), 
+                               Stand_Errors=rep(NA, length(mod_sum_out())), Hessian=rep(NA, length(mod_sum_out())))
         #if(dim(mod_sum_out())[2]>2){
         #  modeltab[i,1] <- mod_sum_out()[[i]]$name
         if(is.data.frame(mod_sum_out())){
@@ -4185,7 +4170,7 @@ conf_cache_len <- length(get_confid_cache())
           modeltab[i,3] <- toString(round(mod_sum_out()[[i]]$seoutmat2,3))
           modeltab[i,4] <- toString(round(mod_sum_out()[[i]]$H1,5))
         }}
-        #return(modeltab)
+        return(modeltab)
       })
       
       
@@ -4193,7 +4178,7 @@ conf_cache_len <- length(get_confid_cache())
 
           error_out <- data.frame(Model_name=rep(NA, length(mod_sum_out())), Model_error=rep(NA, length(mod_sum_out())), Optimization_error=rep(NA, length(mod_sum_out())))
           #if(dim(mod_sum_out())[2]>2){ 
-          if(colnames(mod_sum_out())[1]=='var1'){
+          if(is.data.frame(mod_sum_out())){
             error_out <- error_out
           } else {
           for(i in 1: length(mod_sum_out())){
@@ -4201,7 +4186,7 @@ conf_cache_len <- length(get_confid_cache())
               error_out[i,2] <- ifelse(is.null(mod_sum_out()[[i]]$errorExplain), 'No error reported', toString(mod_sum_out()[[i]]$errorExplain))
               error_out[i,3] <- ifelse(is.null(mod_sum_out()[[i]]$optoutput$optim_message), 'No message reported', toString(mod_sum_out()[[i]]$optoutput$optim_message))
             }}
-          #return(error_out)
+          return(error_out)
       })
       
       
@@ -4221,6 +4206,14 @@ conf_cache_len <- length(get_confid_cache())
               showNotification('Completed. Alternative choice matrix updated', type='message', duration=10)
       }, ignoreInit = F) 
       
+      observeEvent(input$savecentroid, {
+        q_test <- quietly_test(find_centroid)
+        q_test(values$dataset, project = project$name, gridfile=spatdat$dataset, cat = input$cat_altc, lon.dat = input$lon_dat_ac, 
+               lat.dat = input$lat_dat_ac, lon.grid = input$long_grid_altc, lat.grid = input$lat_grid_altc, weight.var = input$weight_var_ac)
+        showNotification('Zonal centroid calculated and saved')
+      }, ignoreInit = FALSE)
+      
+                    
       observeEvent(input$submitE, {
                 q_test <- quietly_test(create_expectations)
                 q_test(values$dataset, project$name, input$catche, price=input$price, 

@@ -1,28 +1,30 @@
 #'  Identify centroid of fishery management or regulatory zone
 
 #' @param dat  Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+#' @param project Name of project
 #' @param gridfile Spatial data containing information on fishery management or regulatory zones. Can be shape file, json, geojson, data frame, or list.
-#' @param lon.dat Longitude variable in \code{dat}.
-#' @param lat.dat Latitude variable in \code{dat}.
+#' @param cat Variable or list in \code{gridfile} that identifies the individual areas or zones. If \code{gridfile} is class sf, \code{cat} should be name of list containing information on zones.
 #' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
 #' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
-#' @param cat Variable or list in \code{gridfile} that identifies the individual areas or zones. If \code{gridfile} is class sf, \code{cat} should be name of list containing information on zones.
 #' @param weight.var Variable from \code{dat} for weighted average.
+#' @param lon.dat Longitude variable in \code{dat}. Required for calculating weighted centroid.
+#' @param lat.dat Latitude variable in \code{dat}. Required for calculating weighted centroid.
 #' @keywords centroid, zone, polygon
 #' @importFrom sf st_centroid  st_as_sf
 #' @importFrom rgeos gCentroid
 #' @importFrom stats ave weighted.mean
 #' @importFrom methods as
-#' @return Returns a data frame where each row is a unique zone and columns are the zone ID and the latitude and longitude defining the centroid of each zone.
+#' @return Returns a data frame where each row is a unique zone and columns are the zone ID and the latitude and longitude 
+#'   defining the centroid of each zone.
 #' @export find_centroid
 #' @details Zonal centroids are required for many functions. Functions that require zonal centroids call this function.
 #' The default setting is to return the fishing centroid. The \code{weight.var} is used to calculate weighted centroid.
-#' Calls \code{\link{assignment_column}} function.
+#' Calls \code{\link{assignment_column}} function if calculating weighted centroid.
 
 
 
-find_centroid <- function(dat, gridfile, cat, lon.dat = NULL, lat.dat = NULL, 
-                          lon.grid = NULL, lat.grid = NULL, weight.var = NULL) {
+find_centroid <- function(dat, project, gridfile,  cat, lon.grid = NULL, lat.grid = NULL,
+                           weight.var = NULL,lon.dat = NULL, lat.dat = NULL) {
   # Call in datasets
   out <- data_pull(dat)
   dataset <- out$dataset

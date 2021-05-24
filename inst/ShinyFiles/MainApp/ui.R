@@ -920,17 +920,13 @@ source("map_viewer_app.R", local = TRUE)
                                #runcodeUI (code='', type='ace'),
                                # actionButton("eval", "Evaluate"),
                                radioButtons('choiceTab', '', choices=c( #basic parameters to populate elsewhere like catch, price
-                                                                       'Calculate zonal centroid'='zone', #calculate zonal centroid
                                                                        'Select variables that define alternative fishing choices'='distm',
+                                                                       'Calculate zonal centroid'='zone', #calculate zonal centroid
                                                                        'Select catch and price variables'='primary')),#, #calculate distance matrix
-                               #checkboxInput('ExpedCatch', 'Define variables to calculate expected catch', value=FALSE)
-                               
-                               # conditionalPanel("input.choiceTab=='zone'",  
-                               #                  actionButton('runCentroid','Assign observations to zones', 
-                               #                               style = "color: white; background-color: green;")),
-                               
                                conditionalPanel("input.choiceTab=='distm'",
                                                 actionButton('saveALT','Save choices', style = "color: white; background-color: green;")),
+                               conditionalPanel("input.choiceTab=='zone'",
+                                                actionButton('savecentroid','Calculate zonal centroid', style = "color: white; background-color: green;")),
                                actionButton('callTextDownloadAlt','Save notes'),
                                textInput('notesAltc', "Notes", value=NULL, 
                                          placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
@@ -1151,6 +1147,7 @@ source("map_viewer_app.R", local = TRUE)
                                     sidebarLayout(
                                       sidebarPanel(
                                         tags$br(),tags$br(),
+                                        actionButton("reload_btn", "Reload model output"),
                                         actionButton("delete_btn", "Delete row"),
                                         h3(''),
                                         actionButton("submit_ms", "Save table", style="color: #fff; background-color: #337ab7; border-color: #2e6da4;"),
