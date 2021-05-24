@@ -903,7 +903,6 @@ conf_cache_len <- length(get_confid_cache())
       #DATA UPLOAD FUNCTIONS ----
       ###---
     
-      
       output$projects <- renderUI({
         req(vars$counter)
         req(input$loadmainsource)
@@ -1480,14 +1479,14 @@ conf_cache_len <- length(get_confid_cache())
                       easyClose = TRUE
           )
         )
-      })
+      }, ignoreInit = TRUE)
       
       observeEvent(input$save_confid, {
         
         pass_check <-
         set_confid_check(check = input$confid_check, v_id = input$confid_vid,
                           rule = input$confid_rule, value = input$confid_value)
-        
+
         if (pass_check) showNotification("Confidentiality settings saved.", type = "message")
         else showNotification("Confidentiality settings not saved. Invalid threshold value.", type = "warning")
         
@@ -1497,7 +1496,7 @@ conf_cache_len <- length(get_confid_cache())
         confid_vals$value <- input$confid_value
         
         removeModal()
-      })
+      }, ignoreInit=FALSE)
       
       ## reset log ----
       observeEvent(input$reset_modal, {
@@ -2270,7 +2269,7 @@ conf_cache_len <- length(get_confid_cache())
       })
   
       explore_temp <- reactive({
-        require(input$SelectDatasetExplore)
+        req(input$SelectDatasetExplore)
         if (input$SelectDatasetExplore == "grid") {
           
          grddat[[input$grid_select]]  
@@ -2539,10 +2538,10 @@ conf_cache_len <- length(get_confid_cache())
           if(names(spatdat$dataset)[1]=='var1'){
             tags$div(h5('Spatial data file not loaded. Please load on Upload Data tab', style="color:red"))
           },
-          conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial'",
+          conditionalPanel("input.plot_table=='Plots' && input.plot_type=='Spatial'",
                            style = "margin-left:19px;", selectizeInput('varofint', 'Variable to test for spatial autocorrelation',
                                                                     choices=colnames(values$dataset[,sapply(values$dataset,is.numeric)]))),
-          conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial'",
+          conditionalPanel("input.plot_table=='Plots' && input.plot_type=='Spatial'",
                            style = "margin-left:19px;",  selectizeInput('gtmt_lonlat', 'Select lat then lon from data frame to assign observations to zone', 
                                                                      choices=c(NULL, names(values$dataset)[grep('lon|lat', names(values$dataset), ignore.case=TRUE)]), 
                                                                      multiple = TRUE, options = list(maxItems = 2, create = TRUE, placeholder='Select or type variable name')))#, 
@@ -2552,10 +2551,10 @@ conf_cache_len <- length(get_confid_cache())
       })    
       output$mtgt_out2 <- renderUI({
         tagList(
-          conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial'",
+          conditionalPanel("input.plot_table=='Plots' && input.plot_type=='Spatial'",
                            style = "margin-left:19px;", selectInput('mtgtcat',  "Variable defining zones or areas", 
                                                                     choices= c('', names(as.data.frame(spatdat$dataset))), selected='')),
-          conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial'",
+          conditionalPanel("input.plot_table=='Plots' && input.plot_type=='Spatial'",
                            style = "margin-left:19px;", selectizeInput('mtgtlonlat', 'Select vector containing latitude then longitude from spatial data frame', 
                                                                     choices= c(NULL, names(as.data.frame(spatdat$dataset))), multiple=TRUE,
                                                                     options = list(maxItems = 2,create = TRUE, placeholder='Select or type variable name')))
