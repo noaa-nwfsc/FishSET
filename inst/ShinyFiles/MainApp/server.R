@@ -32,6 +32,33 @@ conf_cache_len <- length(get_confid_cache())
       #inline scripting ----
       #---
       r <- reactiveValues(done = 0, ok = TRUE, output = "")
+      
+      observeEvent(input$runUp, {
+        shinyjs::hide("error")
+        r$ok <- FALSE
+        tryCatch(
+          {
+            r$output <- isolate(
+              paste(utils::capture.output(eval(parse(text = input$exprUp))), collapse = '\n')
+            )
+            r$ok <- TRUE
+          },
+          error = function(err) {r$output <- err$message}
+        )
+        r$done <- r$done + 1
+      })
+      output$resultUp <- renderUI({
+        if(r$done > 0 ) { 
+          content <- paste(paste(">", isolate(input$expr)), r$output, sep = '\n')
+          if(r$ok) {
+            pre(content)
+          } else {
+            pre( style = "color: red; font-weight: bold;", content)
+          }
+        }
+      })
+      
+      
       observeEvent(input$runI, {
         shinyjs::hide("error")
         r$ok <- FALSE
@@ -933,7 +960,7 @@ conf_cache_len <- length(get_confid_cache())
          radioButtons('loadmainsource', "Source primary data from:",
                       choices=c('Upload new file','FishSET database'), 
                       selected='FishSET database', inline=TRUE)
-         }
+      }
       })
       
       observeEvent(c(input$loadmainsource, input$project_select, input$loadDat), {
@@ -947,7 +974,7 @@ conf_cache_len <- length(get_confid_cache())
           
           project$name <- input$project_select
         }
-      })
+      }, priority = 1)
       
       
       output$main_upload <- renderUI({    
@@ -1420,31 +1447,89 @@ conf_cache_len <- length(get_confid_cache())
                   merge_type = "left", dat_type = "aux")
       
       
-      ## delete tables ----
-      dbTab <- reactiveValues()
+      ## delete DB tables ----
+      dbTab <- reactiveValues(tabs = fishset_tables())
       
-      observeEvent(input$delete_tabs_bttn, {
+      show_delete_modal <- function() {
         
         showModal(
           modalDialog(title = "Manage Database Tables",
                       
-                      selectInput("tab_filter", "Project", choices = c("all", projects())),
-                      
-                      DT::DTOutput("DBTables"),
+                      h5("Click on rows to select tables."),
+                      DT::DTOutput("dbTables"),
                       
                       footer = tagList(
                         modalButton("Close"),
-                        actionButton("delete_tab", "Delete", 
-                                     style = "color: #fff; background-color: orange; border-color:#000000;")
+                        actionButton("delete_tab_mod", "Next", 
+                                     style = "color: white; background-color: blue;")
                       ),
-                      easyClose = TRUE, size = "l"
-          )
-        )
+                      easyClose = FALSE, size = "l"))
+      }
+      
+      observeEvent(input$delete_tabs_bttn, {
         
-        dbTab$tabs <- data.frame(tables = tables_database())
-        output$DBTables <- DT::renderDT(dbTab$tabs)
+        show_delete_modal()
         
+        output$dbTables <- DT::renderDT(dbTab$tabs,
+                                        filter = "top", style = 'bootstrap', 
+                                        class = 'table-bordered table-condensed table-hover table-striped')
       })
+      
+      observeEvent(input$delete_tab_mod, {
+        
+        showModal(
+          modalDialog(title = "Delete these tables?",
+                      
+                      tagList(
+                      uiOutput("delete_warn_msg"),
+                      
+                      shinycssloaders::withSpinner(DT::DTOutput("dbTables_confirm"))),
+                      
+                      footer = tagList(
+                        actionButton("cancel_delete", "Cancel"),
+                        actionButton("delete_tab_confirm", "Delete", 
+                                     style = "color: #fff; background-color: red; border-color:#000000;")
+                      ),
+                      easyClose = FALSE, size = "m"))
+        
+        warn_ind <- which(dbTab$tabs$type %in% c("final table", "raw table"))
+        warn_colors <- ifelse(input$dbTables_rows_selected %in% warn_ind, "#FFC20A", "white") # "#E66100" (orange)
+        
+        output$dbTables_confirm <- DT::renderDT({
+          
+          if (length(input$dbTables_rows_selected) > 0) {
+            
+            DT::formatStyle(
+              DT::datatable(dbTab$tabs[input$dbTables_rows_selected, ]),
+              "table", target = "row", 
+              backgroundColor = DT::styleEqual(dbTab$tabs$table[input$dbTables_rows_selected], warn_colors))
+          
+          } else {
+            
+            data.frame(table = "No tables selected")
+          } 
+        })
+          
+          output$delete_warn_msg <- renderUI({
+
+            if (any(warn_ind %in% input$dbTables_rows_selected)) {
+
+              div(style = "background-color: #FFC20A;", 
+                  h4("Warning: final and/or raw tables selected."))
+            }
+          })
+      })
+      
+      observeEvent(input$delete_tab_confirm, {
+        
+        lapply(dbTab$tabs$table[input$dbTables_rows_selected], table_remove)
+        
+        dbTab$tabs <- fishset_tables()
+        showNotification("Table(s) deleted.")
+        show_delete_modal()
+      })
+      
+      observeEvent(input$cancel_delete, show_delete_modal())
       
       ## confidentiality check ----
       
@@ -1722,10 +1807,10 @@ conf_cache_len <- length(get_confid_cache())
           }
         } else if(input$checks=='NAs'){
           #na(values$dataset)
-          na_filter(values$dataset, project = project$name, x=FishSET:::qaqc_helper(values$dataset, "NA", "names"), 
+          na_filter(values$dataset, project = project$name, x=qaqc_helper(values$dataset, "NA", "names"), 
                     replace = FALSE, remove = FALSE, rep.value=NA, over_write=FALSE)
         } else if(input$checks=='NaNs'){
-          nan_filter(values$dataset, project = project$name, x=FishSET:::qaqc_helper(values$dataset, "NaN", "names"), 
+          nan_filter(values$dataset, project = project$name, x=qaqc_helper(values$dataset, "NaN", "names"), 
                      replace = FALSE, remove = FALSE, rep.value=NA,  over_write=FALSE)
         } else if(input$checks=='Unique observations'){
           unique_filter(values$dataset, project = project$name, remove=FALSE)
@@ -1856,9 +1941,9 @@ conf_cache_len <- length(get_confid_cache())
             }
           } else if(input$checks=='Empty variables'){
             
-            if(any(FishSET:::qaqc_helper(values$dataset, function(x) all(is.na(x))))) {
+            if(any(qaqc_helper(values$dataset, function(x) all(is.na(x))))) {
               
-              empty_names <- FishSET:::qaqc_helper(values$dataset, function(x) all(is.na(x)), "names")
+              empty_names <- qaqc_helper(values$dataset, function(x) all(is.na(x)), "names")
               
               if(input$Empty_Filter==0){
                 case_to_print$dataQuality <- c(case_to_print$dataQuality, 
@@ -1874,7 +1959,7 @@ conf_cache_len <- length(get_confid_cache())
             }
           } else if(input$checks=='Lat_Lon units'){
             
-            if(any(FishSET:::qaqc_helper(values$dataset[FishSET:::find_lonlat(values$dataset)], function(x) !is.numeric(x)))){
+            if(any(qaqc_helper(values$dataset[find_lonlat(values$dataset)], function(x) !is.numeric(x)))){
               if(input$LatLon_Filter==FALSE){
                 case_to_print$dataQuality <- c(case_to_print$dataQuality, 
                                               'Latitude and longitude units were checked and are not in decimal degrees.\n')
@@ -2394,7 +2479,7 @@ conf_cache_len <- length(get_confid_cache())
       #  tags$div(align = 'left', class = 'multicol', 
         tagList(
                  selectInput("col_select", "Select column name", choices = names(values$dataset), 
-                              selected = FishSET:::numeric_cols(values$dataset)[1], 
+                              selected = numeric_cols(values$dataset)[1], 
                               multiple=FALSE, selectize = TRUE), #)
                  
                  selectInput("date_select", "Select date column", choices = date_cols(values$dataset))
@@ -2596,11 +2681,11 @@ conf_cache_len <- length(get_confid_cache())
           actionButton("run_grid", "Plot grid",
                        style = "color: #fff; background-color: #6da363; border-color: #800000;"),
           selectInput("grid_lon", "Longitude", 
-                      choices = FishSET:::find_lon(grddat[[input$grid_select]])),
+                      choices = find_lon(grddat[[input$grid_select]])),
           selectInput("grid_lat", "Latitude", 
-                      choices = FishSET:::find_lat(grddat[[input$grid_select]])),
+                      choices = find_lat(grddat[[input$grid_select]])),
           selectInput("grid_value", "Value", 
-                      choices = FishSET:::numeric_cols(grddat[[input$grid_select]])),
+                      choices = numeric_cols(grddat[[input$grid_select]])),
           selectInput("grid_split", "Split plot by",
                       choices = c("none", colnames(grddat[[input$grid_select]]))),
           selectInput("grid_agg", "Group mean value by",
@@ -2819,7 +2904,7 @@ conf_cache_len <- length(get_confid_cache())
                          selectInput('perc_grp', 'Select secondary grouping variable(s)',
                                      choices = colnames(values$dataset), multiple = TRUE),
                          selectInput('perc_value', 'Select numeric variable',
-                                     choices = FishSET:::numeric_cols(values$dataset)),
+                                     choices = numeric_cols(values$dataset)),
                          checkboxInput('perc_id_col', 'Create an ID variable'),
                          checkboxInput('perc_drop', 'Drop total columns'))
       })
@@ -2832,7 +2917,7 @@ conf_cache_len <- length(get_confid_cache())
                          selectInput('diff_grp', 'Select secondary grouping variable(s)',
                                      choices = colnames(values$dataset), multiple = TRUE),
                          selectInput('diff_value', 'Select numeric variable',
-                                     choices = FishSET:::numeric_cols(values$dataset)),
+                                     choices = numeric_cols(values$dataset)),
                          checkboxInput('diff_id_col', 'Create an ID variable'),
                          checkboxInput('diff_drop', 'Drop total columns'))
       })
@@ -2845,7 +2930,7 @@ conf_cache_len <- length(get_confid_cache())
                          selectInput('cumsum_grp', 'Select secondary grouping variable(s)',
                                      choices = colnames(values$dataset), multiple = TRUE),
                          selectInput('cumsum_value', 'Select numeric variable',
-                                     choices = FishSET:::numeric_cols(values$dataset)),
+                                     choices = numeric_cols(values$dataset)),
                          checkboxInput('cumsum_id_col', 'Create an ID variable'),
                          checkboxInput('cumsum_drop', 'Drop total columns'))
       })
@@ -2925,10 +3010,10 @@ conf_cache_len <- length(get_confid_cache())
                            },
                            h5(tags$b('Select latitude then longitude from primary data frame for assigning observations to zones')),
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
-                               selectizeInput('lat_dat_zone', '', choices = FishSET:::find_lat(values$dataset),
+                               selectizeInput('lat_dat_zone', '', choices = find_lat(values$dataset),
                                               options = list(create = TRUE, placeholder='Select or type LATITUDE variable name'))),
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
-                               selectizeInput('lon_dat_zone', '', choices = FishSET:::find_lon(values$dataset),
+                               selectizeInput('lon_dat_zone', '', choices = find_lon(values$dataset),
                                               options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name'))),
                            selectInput('cat_zone', 'Individual areas/zones from the spatial data file', choices=names(as.data.frame(spatdat$dataset))),
                            # selectInput('weight_var_ac', 'If desired, variable for use in calculating weighted centroids', 

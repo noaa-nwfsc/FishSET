@@ -199,6 +199,9 @@ source("map_viewer_app.R", local = TRUE)
                                "Load data"
                              ),
                              
+                             actionButton("delete_tabs_bttn", "Manage Tables",
+                                          style = "color: white; background-color: blue;"),
+                             
                              conditionalPanel("input.loadDat > 0",
                              actionButton("confid_modal", "Confidentiality",
                                           style = "color: white; background-color: blue;"),
@@ -255,7 +258,14 @@ source("map_viewer_app.R", local = TRUE)
                              #uiOutput("SaveButtonsUpload"),
                              #  downloadLink("downloadTextUp", label=''),
                              actionButton('callTextDownloadUp','Save notes'),
-                             textInput('notesUp', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.')
+                             textInput('notesUp', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                             
+                             textInput("exprUp", label = "Enter an R expression",
+                                       value = "values$dataset"),
+                             actionButton("runUp", "Run", class = "btn-success"),
+                             div(style = "margin-top: 2em;",
+                                 uiOutput('resultUp')
+                             ) 
                            )),
                   #-----
                   #Data quality evaluation tabset panel   
