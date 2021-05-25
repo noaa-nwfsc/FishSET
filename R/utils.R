@@ -517,6 +517,20 @@ parse_data_name <- function(dat, type) {
   dat
 }
 
+msg_print <- function(temp_file) {
+  #' Display temporary file using message or print
+  #' 
+  #' If shiny is running, prints. Otherwise, uses message. 
+  #'
+  #' @param temp_file temporary file to display. 
+  #' @keywords internal
+  #' @importFrom shiny isRunning
+  #'
+  
+  if (shiny::isRunning()) print(suppressWarnings(readLines(temp_file)))
+  else message(paste(readLines(temp_file), collapse = "\n"))
+}
+
 agg_helper <- function(dataset, value, period = NULL, group = NULL, fun = "sum") {
   #' Aggregating function 
   #'
@@ -531,18 +545,32 @@ agg_helper <- function(dataset, value, period = NULL, group = NULL, fun = "sum")
   #' @importFrom stringi stri_isempty
   #' @importFrom stats aggregate reformulate
   
-  by_fm <- paste(unique(c(period, group)), collapse = " + ")
+  end <- FALSE
+  agg_cols <- c(value, period, group)
   
-  value <- rlang::syms(value)
-  val_fm <- rlang::expr(cbind(!!!value))
-  val_fm <- rlang::expr_text(val_fm)
+  if (any(!(agg_cols %in% names(dataset)))) {
+    
+    warning("The column(s) ",
+      paste(agg_cols[!(agg_cols %in% names(dataset))], collapse = ", "),
+            " are not in data table.")
+    end <- TRUE
+  }
   
-  # if period and group are NULL
-  if (stringi::stri_isempty(by_fm)) by_fm <- val_fm
-  
-  agg_fm <- stats::reformulate(by_fm, val_fm)
-  
-  stats::aggregate(agg_fm, data = dataset, FUN = fun, na.action = NULL)
+  if (end == FALSE) {
+    
+    by_fm <- paste(unique(c(period, group)), collapse = " + ")
+    
+    value <- rlang::syms(value)
+    val_fm <- rlang::expr(cbind(!!!value))
+    val_fm <- rlang::expr_text(val_fm)
+    
+    # if period and group are NULL
+    if (stringi::stri_isempty(by_fm)) by_fm <- val_fm
+    
+    agg_fm <- stats::reformulate(by_fm, val_fm)
+    
+    stats::aggregate(agg_fm, data = dataset, FUN = fun, na.action = NULL)
+  }
 }
 
 perc_of_total <- function(dat, value_var, group = NULL, drop = FALSE, 
