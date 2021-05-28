@@ -43,13 +43,10 @@ merge_dat <- function(dat, project, other, main_key, other_key, other_type = NUL
   other_out <- data_pull(other)
   other_dat <- other_out$dataset
   
-  if (shiny::isRunning()) {
-    if (other_type == "aux") other <- get("aux_name")
-    else if (other_type == "grid") other <- get("grid_name")
-    else if (other_type == "port") other <- get("port_name")
-    else if (other_type == "spat") other <- get("spat_name")
-  } else { 
-    if (!is.character(other)) other <- deparse(substitute(other)) }
+  if (other_type == "aux") other <- parse_data_name(other, "aux")
+  else if (other_type == "grid") other <- parse_data_name(other, "grid")
+  else if (other_type == "port") other <- parse_data_name(other, "port")
+  else if (other_type == "spat") other <- parse_data_name(other, "spat")
   
   end <- FALSE 
 
@@ -57,6 +54,7 @@ merge_dat <- function(dat, project, other, main_key, other_key, other_type = NUL
     
     warning("Key lengths must match.")
     end <- TRUE
+    
   } else {
     
     merge_by <- stats::setNames(other_key, c(main_key))
