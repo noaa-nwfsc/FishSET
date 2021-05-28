@@ -60,7 +60,7 @@ changeclass <- function(dat, project, x=NULL, newclass=NULL, savedat=FALSE){
     }
   }
   
-  if(end == FALSE){
+  if(end == FALSE) {
   cd_n <-  names(which((origclass == "CHARACTER" | origclass == "DATE") & (newclass=="NUMERIC")))
   f_n <- names(which((origclass == "FACTOR") & (newclass=="NUMERIC")))
   n_c <- names(which((origclass == "NUMERIC") & (newclass=="CHARACTER")))
@@ -80,8 +80,13 @@ changeclass <- function(dat, project, x=NULL, newclass=NULL, savedat=FALSE){
   #from factor
   if (length(f_n) > 0) {
     
-    #dataset[f_n] <- lapply(names(f_n), function(x) as.numeric(as.character(dataset[[x]])))
-    dataset[f_n] <- lapply(f_n, function(x) as.numeric(levels(dataset[[x]]))[dataset[[x]]])
+    dataset[f_n] <- lapply(f_n, function(x) {
+      
+      out <- suppressWarnings(as.numeric(levels(dataset[[x]]))[dataset[[x]]]) # returns original values back to numeric
+      
+      if (anyNA(out)) out <- as.numeric(dataset[[x]]) # returns factor levels as numeric values
+      out
+     })
   }
   
   #Change to character    
@@ -131,17 +136,13 @@ changeclass <- function(dat, project, x=NULL, newclass=NULL, savedat=FALSE){
     DBI::dbDisconnect(fishset_db)
   }
   
-  #Log the function
-  changeclass_function <- list()
-  changeclass_function$functionID <- "changeclass"
-  changeclass_function$args <- list(dat, project, x, newclass, savedat)
-
-  log_call(changeclass_function)
-  }
-    
-
-  log_call(project, changeclass_function)
+    #Log the function
+    changeclass_function <- list()
+    changeclass_function$functionID <- "changeclass"
+    changeclass_function$args <- list(dat, project, x, newclass, savedat)
   
+    log_call(project, changeclass_function)
+  }
 
   if ((is.null(x) & is.null(newclass)) == FALSE) {
     return(dataset)
