@@ -205,41 +205,6 @@ project_tables <- function(project, ...) {
   }
 }
 
-main_tables <- function(project = NULL) {
-  #' Display MainDataTables
-  #' 
-  #' @param project A project name to filter main tables by. Returns all MainDataTables
-  #'   if \code{NULL}.
-  #' @export
-  #' @examples 
-  #' \dontrun{
-  #' main_tables()
-  #' main_tables("pollock")
-  #' }
-  
-  if (is.null(project)) {
-    
-    p_tabs <- grep("MainDataTable", tables_database(), value = TRUE)
-    p_tabs <- p_tabs[!grepl("MainDataTableInfo", p_tabs)]
-    
-    p_tabs
-    
-  } else {
-    
-    if (project %in% projects()) {
-      
-      p_tabs <- grep(paste0(project, "MainDataTable"), tables_database(), value = TRUE)
-      p_tabs <- p_tabs[!grepl("MainDataTableInfo", p_tabs)]
-      
-      p_tabs
-      
-    } else {
-      
-      warning("Project name not found in FishSET Database. Check spelling.")
-    }
-  }
-}
-
 list_tables <- function(project = NULL, type = "main") {
   #' Display tables in fishset_db by project and type.
   #' 
@@ -259,10 +224,10 @@ list_tables <- function(project = NULL, type = "main") {
   
   sql_tab <- 
     switch(type, 
-           "main" = "MainDataTable", "ec" = "ExpectedCatch",  "altc" = "altmatrix", 
-           "port" = "PortTable", "info" = "MainDataTableInfo", "gc" = "ldglobalcheck", 
+           "info" = "MainDataTableInfo", "main" = "MainDataTable", "ec" = "ExpectedCatch", 
+           "altc" = "altmatrix", "port" = "PortTable", "gc" = "ldglobalcheck", 
            "fleet" = "FleetTable", "model" = "modelOut", "model_data" = "modelinputdata", 
-           "model_design" = "modelDesignTable")
+           "model_design" = "modelDesignTable", "grid" = "GridTable", "aux" = "AuxTable")
   
   if (is.null(project)) {
     
@@ -281,7 +246,8 @@ list_tables <- function(project = NULL, type = "main") {
     
     if (project %in% projects()) {
       
-      tabs <- grep(paste0(project, sql_tab), tables_database(), value = TRUE)
+      tabs <- grep(paste0("^", project), tables_database(), value = TRUE)
+      tabs <- grep(sql_tab, tabs, value = TRUE)
       
       if (type == "main") tabs <- tabs[!grepl("MainDataTableInfo", tabs)]
       
@@ -298,6 +264,30 @@ list_tables <- function(project = NULL, type = "main") {
       invisible(NULL)
     }
   }
+}
+
+main_tables <- function(project = NULL, show_all = TRUE) {
+  #' Display MainDataTables
+  #' 
+  #' @param project A project name to filter main tables by. Returns all MainDataTables
+  #'   if \code{NULL}.
+  #' @param show_all Logical, whether to show all main tables (including raw and final 
+  #'   tables) or just editable tables. 
+  #' @export
+  #' @examples 
+  #' \dontrun{
+  #' main_tables()
+  #' main_tables("pollock")
+  #' }
+  
+  m_tabs <- list_tables(project = project, type = "main")
+  
+  if (show_all == FALSE) {
+    
+    m_tabs <- m_tabs[!grepl("_raw|_final", m_tabs)]
+  }
+  
+  m_tabs
 }
 
 
@@ -324,7 +314,7 @@ fishset_tables <- function() {
   db_type <- c("MainDataTableInfo", "MainDataTable_raw", "MainDataTable_final", 
                "MainDataTable", "ExpectedCatch", "altmatrix", "PortTable", "port", 
                "ldglobalcheck", "FleetTable", "modelOut", "modelfit", "modelinputdata", 
-               "modelDesignTable", "FilterTable")
+               "modelDesignTable", "FilterTable", "GridTable", "AuxTable")
   
   t_regex <- paste0(db_type, collapse = "|")
   t_str <- stringr::str_extract(db_tabs$table, t_regex)
@@ -341,7 +331,8 @@ fishset_tables <- function() {
              "FilterTable" = "filter table", "ldglobalcheck" = "global check", 
              "FleetTable" = "fleet table", "modelOut" = "model output", 
              "modelfit" = "model fit", "modelinputdata" = "model data", 
-             "modelDesignTable" = "model design", "other" = "other")
+             "modelDesignTable" = "model design", "other" = "other",
+             "GridTable" = "grid table", "AuxTable" = "aux table")
     }, character(1))
   
   db_tabs$type <- t_str
