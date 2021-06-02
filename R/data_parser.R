@@ -74,7 +74,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, ...) {
   } else if (data.type == "xls" | data.type == 'xlsx' | data.type == 'excel'){
     as.data.frame(readxl::read_excel(x, ...))
   } else if (data.type == 'txt') {
-    utils::read.table(x, sep='\t', header=T, ...)
+    utils::read.table(x, sep='\t', header=TRUE, ...)
   } else {
     cat('Data extension not recognized.')
   }
@@ -520,7 +520,9 @@ load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param aux File name, including path of auxiliary data.
-  #' @param x Name auxiliary data should be saved as in FishSET database.
+  #' @param x Name auxiliary data should be saved as in FishSET database. The name will
+  #'   begin with the project name (if provided) and will be appended with "AuxTable",
+  #'   for example: "projectauxnameAuxTable" or "auxnameAuxTable". 
   #' @param over_write Logical, If TRUE, saves data over previously
   #'   saved data table in the FishSET database.
   #' @param project String, name of project.
@@ -563,6 +565,7 @@ load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
     warning("No shared columns. Column names do not match between two data sets.")
     val <- 1
   }
+  
   if (val == 0) {
     #data_verification_call(x, project)
     #unique rows
@@ -570,29 +573,39 @@ load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
       print('Duplicate rows found and removed.')
       aux <- unique(aux)
     }
+    
     #unique column names
     if(length(toupper(colnames(aux))) != length(unique(toupper(colnames(aux))))){
       print('Duplicate case-insensitive column names found. Duplicate column names adjusted.')
       colnames(aux)[which(duplicated(colnames(aux)))] <- paste0(colnames(aux)[which(duplicated(colnames(aux)))], '.1')
     }
+    
     #empty variables
-    if (any(apply(aux, 2, function(x) all(is.na(x))) == TRUE)) {
-      print(names(which(apply(aux, 2, function(x) all(is.na(x))) == TRUE)), 'is empty and was removed.')
-      aux <- aux[,-(which(apply(aux, 2, function(x) all(is.na(x))) == TRUE))]
+    empty_ind <- qaqc_helper(aux, function(x) all(is.na(x)))
+    
+    if (any(empty_ind)) {
+      
+      empty_vars <- names(aux[empty_ind])
+      print(empty_vars, 'is empty and was removed.')
+      aux <- aux[-empty_ind]
     }
     
 
     fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-    if (table_exists(paste0(project, x)) == FALSE | over_write == TRUE) {
-      DBI::dbWriteTable(fishset_db, paste0(project, x, format(Sys.Date(), format = "%Y%m%d")), aux, overwrite = over_write)
-      DBI::dbWriteTable(fishset_db, paste0(project, x), aux, overwrite = over_write)
+    
+    aux_name <- paste0(project, x, "AuxTable")
+    
+    if (table_exists(aux_name) == FALSE | over_write == TRUE) {
+      
+      DBI::dbWriteTable(fishset_db, paste0(aux_name, format(Sys.Date(), format = "%Y%m%d")), aux, overwrite = over_write)
+      DBI::dbWriteTable(fishset_db, aux_name, aux, overwrite = over_write)
       
       if (fishset_env_exists() == FALSE)  create_fishset_env()
-      edit_fishset_env("aux_name", paste0(project, x))
+      edit_fishset_env("aux_name", aux_name)
       
       print("Data saved to database")
     } else {
-      warning(paste("Table not saved.", paste0(project, x), "exists in database, and overwrite is FALSE."))
+      warning(paste("Table not saved.", aux_name, "exists in database, and overwrite is FALSE."))
     }
 
     DBI::dbDisconnect(fishset_db)
@@ -610,8 +623,10 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
   #' Gridded data is data that varies by two dimensions. Column names must be zone names. Load, parse, and save gridded data to FishSET database
   #' @param dat Primary data containing information on hauls or trips. 
   #'   Table in FishSET database contains the string 'MainDataTable'.
-  #' @param grid File name, including path, of gridded data. 
-  #' @param x Name gridded data should be saved as in FishSET database.
+  #' @param grid Data frame that contains a variable that varies by the map grid. 
+  #' @param x Name gridded data should be saved as in FishSET database. The name will
+  #'   begin with the project name (if provided) and will be appended with "GridTable",
+  #'   for example: "projectgridnameGridTable" or "gridnameGridTable". 
   #' @param over_write Logical, If TRUE, saves dat over previously saved data table in the FishSET database.
   #' @param project String, name of project.
   #' @details Grid data is an optional data frame that contains a variable that varies by the map grid (ex.
@@ -663,22 +678,27 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
       colnames(grid)[which(duplicated(colnames(grid)))] <- paste0(colnames(grid)[which(duplicated(colnames(grid)))], '.1')
     }
     #empty variables
-    if (any(apply(grid, 2, function(x) all(is.na(x))) == TRUE)) {
-      print(names(which(apply(grid, 2, function(x) all(is.na(x))) == TRUE)), 'is empty and was removed.')
-      grid <- grid[,-(which(apply(grid, 2, function(x) all(is.na(x))) == TRUE))]
-    }
+    empty_ind <- qaqc_helper(grid, function(x) all(is.na(x)))
     
+    if (any(empty_ind)) {
+      
+      empty_vars <- names(grid[empty_ind])
+      print(empty_vars, 'is empty and was removed.')
+      grid <- grid[-empty_ind]
+    }
 
     fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-    if (table_exists(paste0(project, x)) == FALSE | over_write == TRUE) {
-      DBI::dbWriteTable(fishset_db, paste0(project, x), grid, overwrite = over_write)
+    grid_name <- paste0(project, x, "GridTable")
+    
+    if (table_exists(grid_name) == FALSE | over_write == TRUE) {
+      DBI::dbWriteTable(fishset_db, grid_name, grid, overwrite = over_write)
       
-      if (fishset_env_exists() == FALSE)  create_fishset_env()
-      edit_fishset_env("grid_name", paste0(project, x))
+      if (fishset_env_exists() == FALSE) create_fishset_env()
+      edit_fishset_env("grid_name", grid_name)
       
       print("Data saved to database")
     } else {
-      warning(paste("Table not saved.", paste0(project, x), "exists in database, and overwrite is FALSE."))
+      warning(paste("Table not saved.", grid_name, "exists in database, and overwrite is FALSE."))
     }
     DBI::dbDisconnect(fishset_db)
 
