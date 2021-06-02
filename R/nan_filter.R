@@ -99,9 +99,12 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   #' \dontrun{
   #' nan_identify(pcodMainDataTable)
   #' mod.dat <- nan_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT')
-  #' mod.dat <- nan_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT', replace=TRUE)
-  #' mod.dat <- nan_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT', replace=TRUE, rep.value=0)
-  #' mod.dat <- nan_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT', remove=TRUE)
+  #' mod.dat <- nan_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT', 
+  #'   replace=TRUE)
+  #' mod.dat <- nan_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT',
+  #'     replace=TRUE, rep.value=0)
+  #' mod.dat <- nan_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT', 
+  #'   remove=TRUE)
   #' }
 
   # Call in datasets
@@ -227,8 +230,10 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   #' na_filter(pcodMainDataTable)
   #' mod.dat <- na_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT')
   #' mod.dat <- na_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT', replace=TRUE)
-  #' mod.dat <- na_filter(pcodMainDataTable,'pcod', 'OFFICIAL_TOTAL_CATCH_MT', replace=TRUE, rep.value=0)
-  #' mod.dat <- na_filter(pcodMainDataTable, 'pcod', c('OFFICIAL_TOTAL_CATCH_MT', 'CATCH_VALUE'), remove=TRUE)
+  #' mod.dat <- na_filter(pcodMainDataTable,'pcod', 'OFFICIAL_TOTAL_CATCH_MT',
+  #'    replace=TRUE, rep.value=0)
+  #' mod.dat <- na_filter(pcodMainDataTable, 'pcod',
+  #'    c('OFFICIAL_TOTAL_CATCH_MT', 'CATCH_VALUE'), remove=TRUE)
   #' }
 
   # Call in datasets

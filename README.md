@@ -2,7 +2,7 @@ FishSET
 =========
 ---
 
-If you run into problems you can contact melanie.harsch@noaa.gov
+If you run into problems you can contact FishSET@noaa.gov
 
 # Installation #
 ---
@@ -12,34 +12,69 @@ To install:
 
    install.packages("devtools")
 	 library(devtools)
-	 install("PATH/TO/Directory/Containing/FishSET")
+	 devtools::install_local("PATH/TO/Directory/Containing/FishSET")
 
 Directories:
-FishSET function call files from the SQLIte database and save log files to a Log folder.
-The database and folder are assumed to be in the FishSET package folder. If they are not, 
+FishSET functions call data files from the SQLite FishSET database and save output (log of function calls, plot output, table output, notes, function messages) to a "Logs" folder and an "output" folder.
+
+The FishSET database and output folders are assumed to be in the FishSET package directory. If they are not, 
 then the location needs to be specificed.
 Use loc to specify directory location of the database and loc2 to specify location of Log file.
-For exmaple, loc <- getwd();  loc2 <- paste0(getwd(), '/inst')
+For exmaple, loc <- getwd().
 
 # Libraries #
 ---
 
-The following libaries are imported:
-shiny
-
-Functions are imported from the following libraries:
-DBI
+The following libaries are called and will be imported if not already installed:
+DBI 
+dplyr
 DT
 ff
-R.matlab
 foreign
+formattable
+geojsonio
 geosphere
-grDevices
+ggcorrplot
+ggmap
+ggplot2
+ggpubr
+gridExtra
+haven
 jsonlite
+knitr
 lubridate
+magrittr
+maps
+methods
+openxlsx
+OSMscale
+pander
+raster
+purrr
+readxl
+reshape2
 rgeos
+rlang
+R.matlab
+RSQLite
+scales
+servr
 sf
+shiny
+shinyjs
+shinycssloaders
+signal
 sp
-spatialEco
+spdep
+stringi
+stringr
+tibbletidyr
 zoo
+
+
+
+  
+
+
+
 

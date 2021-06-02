@@ -97,7 +97,8 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
   #' @export
   #' @examples
   #' \dontrun{
-  #' pollockMainDataTable <- dummy_num(pollockMainDataTable, 'pollock', 'Haul_date', 2008, 'more_less', 'amend80')
+  #' pollockMainDataTable <- dummy_num(pollockMainDataTable, 'pollock', 'Haul_date', 2008, 
+  #'   'more_less', 'amend80')
   #' }
 
 
@@ -242,7 +243,8 @@ set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25, 0.4), cust
   #'
   #' @examples
   #' \dontrun{
-  #' pollockMainDataTable <- set_quants(pollockMainDataTable, 'pollock', 'HAUL', quant.cat=.2, 'haul.quant')
+  #' pollockMainDataTable <- set_quants(pollockMainDataTable, 'pollock', 'HAUL', 
+  #'    quant.cat=.2, 'haul.quant')
   #' }
   #
   out <- data_pull(dat)
@@ -667,8 +669,9 @@ create_mid_haul <- function(dat, project, start = c("lon", "lat"), end = c("lon"
   #' @export
   #' @examples
   #' \dontrun{
-  #' pollockMainDataTable <- create_mid_haul(pollockMainDataTable, 'pollock', start = c('LonLat_START_LON',
-  #'    'LonLat_START_LAT'), end = c('LonLat_END_LON', 'LonLat_END_LAT'), name = 'mid_haul')
+  #' pollockMainDataTable <- create_mid_haul(pollockMainDataTable, 'pollock', 
+  #'     start = c('LonLat_START_LON', 'LonLat_START_LAT'), 
+  #'    end = c('LonLat_END_LON', 'LonLat_END_LAT'), name = 'mid_haul')
   #' }
   #
 

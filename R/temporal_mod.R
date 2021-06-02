@@ -29,8 +29,10 @@
 #' @export temporal_mod
 #' @examples
 #' \dontrun{
-#' pcodMainDataTable <- temporal_mod(pcodMainDataTable, "pcod", "DATE_LANDED", define.format = "%Y%m%d")
-#' pcodMainDataTable <- temporal_mod(pcodMainDataTable, "pcod", "DATE_LANDED", define.format = "year")
+#' pcodMainDataTable <- temporal_mod(pcodMainDataTable, "pcod", 
+#'    "DATE_LANDED", define.format = "%Y%m%d")
+#' pcodMainDataTable <- temporal_mod(pcodMainDataTable, "pcod", 
+#'    "DATE_LANDED", define.format = "year")
 #' }
 #'
 #'

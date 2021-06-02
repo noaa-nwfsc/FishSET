@@ -60,21 +60,31 @@ changeclass <- function(dat, project, x=NULL, newclass=NULL, savedat=FALSE){
     }
   }
   
+
+ 
   if(end == FALSE) {
-  cd_n <-  names(which((origclass == "CHARACTER" | origclass == "DATE") & (newclass=="NUMERIC")))
+  d_n <-  names(which((origclass == "DATE" | origclass == 'INTEGER') & (newclass=="NUMERIC")))
+  c_n <- names(which((origclass == "CHARACTER") & (newclass=="NUMERIC")))
   f_n <- names(which((origclass == "FACTOR") & (newclass=="NUMERIC")))
   n_c <- names(which((origclass == "NUMERIC") & (newclass=="CHARACTER")))
+  i_c <- names(which((origclass == "INTEGER") & (newclass=="CHARACTER")))
   f_c <- names(which((origclass == "FACTOR") & (newclass=="CHARACTER")))
   d_c <- names(which((origclass == "DATE") & (newclass=="CHARACTER")))
-  ncd_f <- names(which((origclass == "NUMERIC" | origclass == "CHARACTER" | origclass == "DATE") & (newclass=="FACTOR")))
-  ncf_d <- names(which((origclass == "NUMERIC" | origclass == "CHARACTER" | origclass == "FACTOR") & (newclass=="DATE")))
-  
-  
+  ncd_f <- names(which((origclass == "NUMERIC" | origclass == "CHARACTER" | origclass == "DATE" | origclass == "INTEGER") & (newclass=="FACTOR")))
+  c_d <- names(which((origclass == "CHARACTER") & (newclass=="DATE")))
+  nf_d <- names(which((origclass == "NUMERIC" | origclass == "FACTOR" | origclass == "INTEGER") & (newclass=="DATE")))
+
   #Change to numeric
-  #from character and date
-  if (length(cd_n) > 0) {
+  #from date
+  if (length(d_n) > 0) {
     
-    dataset[cd_n] <- lapply(cd_n, function(x) as.numeric(dataset[[x]]))
+    dataset[d_n] <- lapply(d_n, function(x) as.numeric(dataset[[x]]))
+  }
+  
+  #from character
+  if (length(c_n) > 0) {
+    
+    dataset[c_n] <- lapply(c_n, function(x) as.numeric(as.character(dataset[[x]])))
   }
   
   #from factor
@@ -94,6 +104,11 @@ changeclass <- function(dat, project, x=NULL, newclass=NULL, savedat=FALSE){
   if (length(n_c) > 0) {
     
     dataset[n_c] <- lapply(n_c, function(x) as.character(dataset[[x]]))
+  }
+  #integer
+  if (length(i_c) > 0) {
+    
+    dataset[i_c] <- lapply(i_c, function(x) as.character(dataset[[x]]))
   }
   
   #factor
@@ -116,13 +131,35 @@ changeclass <- function(dat, project, x=NULL, newclass=NULL, savedat=FALSE){
   }
   
   #Change to date  
-  #numeric  #character #factor
+  ##character
+  if (length(c_d) > 0) {
+    charlength <- nchar(as.character(dataset[[c_d[1]]][1]))
+    if (charlength > 8) {
+      dataset[c_d] <- lapply(c_d, function(x) as.Date(as.POSIXct(dataset[[c_d]], origin="1970-01-01"))) 
+    } else {
+    dataset[c_d] <- lapply(c_d, function(x) as.Date(dataset[[x]]))
+    }
+  }
+ 
+    #numeric #factor
   #as.Date.numeric(x)
-  if (length(ncf_d) > 0) {
-    
-    dataset[ncf_d] <- lapply(ncf_d, function(x) as.Date(as.POSIXct(dataset[[x]])))
+  if (length(nf_d) > 0) {
+      charlength <- nchar(as.character(dataset[[nf_d[1]]][1]))
+    if (charlength > 8) {
+      dataset[nf_d] <- lapply(nf_d, function(x) as.Date(as.POSIXct(dataset[[nf_d]], origin="1970-01-01")))
+    } else if (charlength == 8) {
+      dataset[nf_d] <- lapply(nf_d, function(x) as.Date(as.character(dataset[[x]]), format = "%Y%m%d"))
+    } else if (charlength == 6) {
+      dataset[nf_d] <- lapply(nf_d, function(x) as.Date(paste0(as.character(dataset[[x]], "01")), format = "%Y%m%d"))
+    } else if (charlength) {
+      dataset[nf_d] <- lapply(nf_d, function(x) as.Date(as.character(paste0(dataset[[x]], "0101")), format = "%Y%m%d"))
+    } else {
+    dataset[nf_d] <- dataset[nf_d]
+    message("Unable to convert ", nf_d, ' to date class.')
+    }
   }
   
+
   #Print table  
     g <- as.data.frame(cbind(sapply(dataset, class), t(dataset[1, ])))
     colnames(g) = c("Class", "Value")

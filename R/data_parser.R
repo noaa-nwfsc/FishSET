@@ -52,7 +52,8 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, ...) {
     } else {
       return(as.data.frame(out))
     }
-    
+  } else if (data.type == "rds") {
+    readRDS(x, ...)
   } else if (data.type == "mat" | data.type == 'matlab') {
     cat('Data returned as named list structure. Further processing is required.')
     R.matlab::readMat(x, ...)

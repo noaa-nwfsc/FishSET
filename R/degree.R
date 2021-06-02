@@ -26,8 +26,8 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE, lonsig
   #'    Changing the sign, transforms all values in the variable.
   #' @examples
   #' \dontrun{
-  #' pollockMainDataTable <- degree(pollockMainDataTable, 'pollock', 'LatLon_START_LAT', 'LatLon_START_LON',
-  #'        latsign=FALSE, lonsign=FALSE, replace=TRUE)
+  #' pollockMainDataTable <- degree(pollockMainDataTable, 'pollock', 'LatLon_START_LAT', 
+  #'       'LatLon_START_LON', latsign=FALSE, lonsign=FALSE, replace=TRUE)
   #' }
   #'
 

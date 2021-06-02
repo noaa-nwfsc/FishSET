@@ -45,6 +45,8 @@ This vignette contains a brief description of the FishSET functions and assumes 
 
 ## Getting started
 To use FishSET you first need to install devtools and then install the FishSET R package.
+FishSET is provided as a tarball (tar.gz) that can be installed directly from the FishSet GitHUB site or 
+from a locally saved file location. 
 
 Install devtools  (required to install FishSET)
 : `install.packages("devtools")`   
@@ -54,11 +56,11 @@ Install FishSET
 : To install FishSET from GitHUB  
   `devtools::install_github("name/FishSET")`     
 
-: To install FishSET from the R console  
-    `install("PATH/TO/Directory/Containing/FishSET")`  
+: To install FishSET from local file directory 
+    `devtools::install_local("PATH/TO/Directory/Containing/FishSET")`  
     `library(FishSET)`
     
-Be sure to install dependencies.
+Dependencies should be automatically installed.
 	  
 ##Using FishSET
 FishSET functions can be called in the R console or through the FishSET GUI. This vignette focuses on calling functions in the R console. The FishSET GUI is detailed in the *FishSET GUI* vignette and FishSET Help Manual.
