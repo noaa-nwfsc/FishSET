@@ -236,6 +236,7 @@ source("map_viewer_app.R", local = TRUE)
                              fluidRow(
                                column(4, radioButtons('loadspatialsource', "Source spatial data from:", choices=c( 'Upload new file'), selected='Upload new file', inline=TRUE)),
                                                       #,'FishSET database')
+                               radioButtons('filefolder', "", choices=c("Upload file", "Upload shape file folder"), selected="Upload file", inline = TRUE),
                                uiOutput('spatial_upload')
                              ),
                              
