@@ -15,7 +15,7 @@ test_that("Converts character to numeric", {
   out <- changeclass(temp_dat, "pollock", x = "A", newclass = "numeric")
   
   expect_equal(class(out$A), "numeric")
-  expect_equal(out$A, as.numeric(temp_dat$A))
+  expect_equal(out$A, as.numeric(as.character(temp_dat$A)))
 })
 
 test_that("Converts Date to numeric", {
@@ -130,10 +130,21 @@ test_that("Converts date to factor", {
   expect_equal(out$A, as.factor(d_var))
 })
 
+
+test_that("Converts date factor to date", {
+  
+  d_var <- seq.Date(as.Date("2021-01-01"), by = "day", length.out = 10)
+  temp_dat <- data.frame(A = as.factor(format(as.Date(d_var), "%Y%m%d")), B = runif(10))
+  out <- changeclass(temp_dat, "pollock", x = "A", newclass = "date")
+  
+  expect_equal(class(out$A), "Date")
+  expect_equal(out$A, d_var)
+})
+
 test_that("Converts integer Date to Date", {
   
   d_var <- seq.Date(as.Date("2021-01-01"), by = "day", length.out = 10)
-  temp_dat <- data.frame(A = as.integer(d_var), B = runif(10))
+  temp_dat <- data.frame(A =  as.integer(format(as.Date(d_var), "%Y%m%d")), B = runif(10))
   out <- changeclass(temp_dat, "pollock", x = "A", newclass = "date")
   
   expect_equal(class(out$A), "Date")
@@ -143,7 +154,7 @@ test_that("Converts integer Date to Date", {
 test_that("Converts numeric Date to Date", {
   
   d_var <- seq.Date(as.Date("2021-01-01"), by = "day", length.out = 10)
-  temp_dat <- data.frame(A = as.numeric(d_var), B = runif(10))
+  temp_dat <- data.frame(A =  as.numeric(format(as.Date(d_var), "%Y%m%d")), B = runif(10))
   out <- changeclass(temp_dat, "pollock", x = "A", newclass = "date")
   
   expect_equal(class(out$A), "Date")
@@ -154,7 +165,7 @@ test_that("Converts integer Date-Time to Date", {
   
   d_var <- seq.Date(as.Date("2021-01-01"), by = "day", length.out = 10)
   dt_var <- as.POSIXct(paste(d_var, paste0(1:10, ":00:00")))
-  temp_dat <- data.frame(A = as.integer(dt_var), B = runif(10))
+  temp_dat <- data.frame(A = as.integer(as.POSIXct(dt_var, format="%Y%m%d %H:%M:%S")), B = runif(10))
   out <- changeclass(temp_dat, "pollock", x = "A", newclass = "date")
   
   expect_equal(class(out$A), "Date")
@@ -176,6 +187,7 @@ test_that("Converts character Date to Date", {
   
   d_var <- seq.Date(as.Date("2021-01-01"), by = "day", length.out = 10)
   temp_dat <- data.frame(A = as.character(d_var), B = runif(10))
+  temp_dat$A <- as.character(temp_dat$A)
   out <- changeclass(temp_dat, "pollock", x = "A", newclass = "date")
   
   expect_equal(class(out$A), "Date")
@@ -187,6 +199,7 @@ test_that("Converts character Date-Time to Date", {
   d_var <- seq.Date(as.Date("2021-01-01"), by = "day", length.out = 10)
   dt_var <- as.POSIXct(paste(d_var, paste0(1:10, ":00:00")))
   temp_dat <- data.frame(A = as.character(dt_var), B = runif(10))
+  temp_dat$A <- as.character(temp_dat$A)
   out <- changeclass(temp_dat, "pollock", x = "A", newclass = "date")
   
   expect_equal(class(out$A), "Date")

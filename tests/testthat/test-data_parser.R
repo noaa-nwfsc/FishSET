@@ -9,8 +9,8 @@ test_that("Test that data can be uploaded", {
   }, add = TRUE, after = FALSE)
 })
 
-test_that("Table can be saved locally", {
-  
-  expect_true(write_dat(PollockData, "~/pollocktest.csv", file_type = "csv", "pollock"))
-  on.exit(file.remove("~/pollocktest.csv"), add = TRUE, after = FALSE)
-})
+#test_that("Table can be saved locally", {
+#  
+#  expect_true(write_dat(PollockData, "~/pollocktest.csv", file_type = "csv", "pollock"))
+#  on.exit(file.remove("~/pollocktest.csv"), add = TRUE, after = FALSE)
+#})
