@@ -1253,7 +1253,7 @@ conf_cache_len <- length(get_confid_cache())
   #Spatial
       output$spatial_upload <- renderUI({     
         tagList( 
-          conditionalPanel(condition="input.loadspatialsource=='Upload new file'", 
+          conditionalPanel(condition="input.loadspatialsource=='Upload new file' & input.filefolder == 'Upload file'", 
                            tagList(
                              fluidRow(
                                column(5, fileInput("spatialdat", "Choose spatial data file",
@@ -1282,7 +1282,9 @@ conf_cache_len <- length(get_confid_cache())
         if(input$loadspatialsource=='FishSET database'){
           spatdat$dataset <- table_view(input$spatialdattext)
         } else if(input$loadspatialsource=='Upload new file' & !is.null(input$spatialdat)){
+          
           spatdat$dataset <- read_dat(input$spatialdat$datapath, is.map=TRUE)
+
           #fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
           #DBI::dbWriteTable(fishset_db, input$spatialdat$name,  spatdat$dataset, overwrite=TRUE) 
           #DBI::dbDisconnect(fishset_db)

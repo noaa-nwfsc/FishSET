@@ -35,9 +35,9 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, ...) {
   #' dat <- read_dat('C:/data/nmfs_manage_simple.shp')
   #' }
   
- # if(is.null(data.type)) {
+  if(is.null(data.type)) {
         data.type <- sub('.*\\.', '', x)
-  #}
+  }
   
   data.type <- tolower(data.type)
   
