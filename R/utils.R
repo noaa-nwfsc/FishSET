@@ -527,8 +527,8 @@ msg_print <- function(temp_file) {
   #' @importFrom shiny isRunning
   #'
   
-  if (shiny::isRunning()) print(suppressWarnings(readLines(temp_file)))
-  else message(paste(readLines(temp_file), collapse = "\n"))
+  if (shiny::isRunning()) print(suppressWarnings(readLines(temp_file, warn = FALSE)))
+  else message(paste(readLines(temp_file, warn = FALSE), collapse = "\n"))
 }
 
 agg_helper <- function(dataset, value, period = NULL, group = NULL, fun = "sum") {
