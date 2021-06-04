@@ -29,14 +29,19 @@ find_centroid <- function(dat, project, gridfile,  cat, lon.grid = NULL, lat.gri
   out <- data_pull(dat)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
+  
+  gridname <- parse_data_name(gridfile, 'spat')
 
     project <- sub("\\MainDataTable", "", dat)
 
   tmp <- tempfile()
   cat("", file = tmp, append = TRUE)
   x <- 0
-
+  
     if (any(grepl("Spatial", class(gridfile)))) {
+      if(any(class(gridfile) %in% c("sp", "SpatialPolygonsDataFrame"))) {
+        gridfile <- sf::st_as_sf(gridfile)
+      } else {
     if (is_empty(lon.grid) | is_empty(lat.grid)) {
       warning("lat.grid and lon.grid must be supplied to convert sp object to a sf object.")
       x <- 1
@@ -48,7 +53,7 @@ find_centroid <- function(dat, project, gridfile,  cat, lon.grid = NULL, lat.gri
         crs = "+proj=longlat +datum=WGS84"
       )
     }
-  }
+  }}
   # For json and shape files
   if (any(class(gridfile) == "sf")) {
     if (is_empty(weight.var)) {
@@ -115,6 +120,8 @@ find_centroid <- function(dat, project, gridfile,  cat, lon.grid = NULL, lat.gri
         # stop("Latitude is not valid (outside -90:90.")
       }
     }
+
+    
     if (x != 1) {
       # simple centroid
       if (is_empty(weight.var)) {
@@ -160,9 +167,9 @@ find_centroid <- function(dat, project, gridfile,  cat, lon.grid = NULL, lat.gri
     }
   }
 
-  
+
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-  DBI::dbWriteTable(fishset_db, paste0(deparse(substitute(gridfile)), "Centroid"), int, overwrite = TRUE)
+  DBI::dbWriteTable(fishset_db, paste0(gridname, "Centroid"), int, overwrite = TRUE)
   DBI::dbDisconnect(fishset_db)
   
   return(int)
