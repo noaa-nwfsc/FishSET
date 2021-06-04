@@ -70,16 +70,21 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
   if (x == 0) {
     # Assign data to zone
     if (!is.null(cat)) {
-      dataset <- assignment_column(dataset, project, spatdat, hull.polygon = TRUE, 
-                                   lon.dat, lat.dat, cat, closest.pt = TRUE, 
-                                   lon.grid, lat.grid, epsg = NULL, log.fun = FALSE)
-
+      dataset <- assignment_column(dat=dataset, project=project, gridfile=spatdat, hull.polygon = TRUE, 
+                                   lon.dat=lon.dat, lat.dat=lat.dat, cat=cat,closest.pt = TRUE, 
+                                   lon.grid=lon.grid, lat.grid=lat.grid, epsg = NULL, log.fun = FALSE)
+      
+      
       # Idenfity centroid of zone
-      int <- find_centroid(dataset, spatdat, lon.dat, lat.dat, cat, lon.grid, lat.grid, weight.var = NULL)
+      int <- find_centroid(dat=dataset, project=project, gridfile=spatdat, lon.dat=lon.dat, 
+                           lat.dat=lat.dat, cat = cat, lon.grid=lon.grid, lat.grid=lat.grid, weight.var = NULL)
     }
-
+    
     # Create dataset
-    if ("sf" %in% class(spatdat)) {
+    if ("sf" %in% class(spatdat) == FALSE) {
+      spatdat <- sf::st_as_sf(spatdat)
+    }
+  browser()  
       nc_geom <- sf::st_geometry(spatdat)
       temp <- data.frame(ZoneID = rep(spatdat[[cat]][1], path = dim(as.data.frame(nc_geom[[1]][[1]]))[1]), as.data.frame(nc_geom[[1]][[1]]))
       for (i in 2:length(nc_geom)) {
@@ -92,8 +97,8 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
       names(int)[2] = "centroid_lon"
       names(int)[3] = "centroid_lat"
       names(int)[4] = "varofint"
-    }
     
+  
     #  Identify variable of interest 
     int[["varofint"]] <- with(int, ave(int[["varofint"]], ZoneID, FUN = function(x) mean(x, na.rm = TRUE)))
     uniquedatatomap <- int[!duplicated(int$ZoneID), c("ZoneID", "centroid_lon", "centroid_lat", "varofint")]

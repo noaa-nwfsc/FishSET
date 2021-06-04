@@ -64,9 +64,16 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
   if (x == 0) {
     # For json and shape files
     if (any(class(grid) %in% "sf") || any(class(grid) %in% c("sp", "SpatialPolygonsDataFrame"))) {
-      # map2 <- sf::st_read('Z:/OLDFishSET/NMFS_RA.json')
+     
       dat_sub <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), crs = "+proj=longlat +datum=WGS84")
 
+      if(any(class(grid) %in% c("sp", "SpatialPolygonsDataFrame"))) {
+        grid <- sf::st_as_sf(grid)
+      } else {
+        grid <- grid
+      }
+    
+    
       if (raster::projection(grid) != raster::projection(dat_sub)) {
         warning("Projection does not match. Consider transforming data to same epsg.")
       }

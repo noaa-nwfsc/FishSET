@@ -1286,7 +1286,7 @@ conf_cache_len <- length(get_confid_cache())
   #Spatial
       output$spatial_upload <- renderUI({     
         tagList( 
-          conditionalPanel(condition="input.loadspatialsource=='Upload new file' & input.filefolder == 'Upload file'", 
+          conditionalPanel(condition="input.loadspatialsource=='Upload new file' & input.filefolder == 'Upload single file'", 
                            tagList(
                              fluidRow(
                                column(5, fileInput("spatialdat", "Choose spatial data file",
@@ -1294,7 +1294,15 @@ conf_cache_len <- length(get_confid_cache())
                               # column(1, uiOutput('ui.actionS'))
                              ))
           ),
-          
+          conditionalPanel(condition="input.loadspatialsource=='Upload new file' & input.filefolder == 'Upload shape files'", 
+                           tagList(
+                             fluidRow(
+                               column(5, fileInput("spatialdatshape", "Choose spatial data file",
+                                                   accept=c('.shp','.dbf','.sbn','.sbx','.shx',".prj", ".cpg"),
+                                                   multiple = TRUE, placeholder = 'Suggested data'))#,
+                               # column(1, uiOutput('ui.actionS'))
+                             ))
+          ),
           conditionalPanel(condition="input.loadspatialsource == 'FishSET database'",
                            tagList(
                              fluidRow(
@@ -1311,7 +1319,7 @@ conf_cache_len <- length(get_confid_cache())
       )
       
       observeEvent(input$loadDat, {
-#@<<<<<<< HEAD
+####
 ##        if(input$loadspatialsource=='FishSET database'){
 #          spatdat$dataset <- table_view(input$spatialdattext)
 #        } else if(input$loadspatialsource=='Upload new file' & !is.null(input$spatialdat)){
@@ -1320,7 +1328,7 @@ conf_cache_len <- length(get_confid_cache())
 
 #          } else {
 #          spatdat$dataset <- spatdat$dataset
-#=======
+######
         
         if (load_helper("spat")) {
           
@@ -1333,23 +1341,41 @@ conf_cache_len <- length(get_confid_cache())
               load_r$spat <- load_r$spat + 1
             }
             
-          } else if (input$loadspatialsource=='Upload new file' & !is.null(input$spatialdat)) {
+          } else if (input$loadspatialsource=='Upload new file' & (!is.null(input$spatialdat) | !is.null(input$spatialdatshape))) {
             
-            spatdat$dataset <- read_dat(input$spatialdat$datapath, is.map=TRUE)
+             if (input$filefolder == "Upload single file") {
+             spatdat$dataset <- read_dat(input$spatialdat$datapath, is.map=TRUE)
+            } else {
+              observe({
+                shpdf <- input$spatialdatshape
+                if(is.null(shpdf)){
+                  return()
+                }
+                previouswd <- getwd()
+                uploaddirectory <- dirname(shpdf$datapath[1])
+                setwd(uploaddirectory)
+                for(i in 1:nrow(shpdf)){
+                  file.rename(shpdf$datapath[i], shpdf$name[i])
+                }
+                setwd(previouswd)
+                
+               spatdat$dataset <- sf::st_read(paste(uploaddirectory, shpdf$name[grep(pattern="*.shp$", shpdf$name)], sep="/"))
+              })
+              }
             track_load$spat$file <- input$spatialdat
             load_r$spat <- load_r$spat + 1
             #fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
             #DBI::dbWriteTable(fishset_db, input$spatialdat$name,  spatdat$dataset, overwrite=TRUE) 
             #DBI::dbDisconnect(fishset_db)
             #showNotification("Map saved to database")
-            
+           
           } 
           
           if (names(spatdat$dataset)[1]!='var1') {
             
             showNotification("Spatial data file loaded but not currently able to save to database.",
                              type='message', duration=10)
-#>>>>>>> f8afd773751922ac554857d831d0929de3556cc6
+####
           }
         }
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
@@ -2708,7 +2734,7 @@ conf_cache_len <- length(get_confid_cache())
         tagList(
           conditionalPanel("input.plot_table=='Plots' && input.plot_type=='Spatial'",
                            style = "margin-left:19px;", selectInput('mtgtcat',  "Variable defining zones or areas", 
-                                                                    choices= c('', names(as.data.frame(spatdat$dataset))), selected='')),
+                                                                    choices= c('none', names(as.data.frame(spatdat$dataset))), selected='none')),
           conditionalPanel("input.plot_table=='Plots' && input.plot_type=='Spatial'",
                            style = "margin-left:19px;", selectizeInput('mtgtlonlat', 'Select vector containing latitude then longitude from spatial data frame', 
                                                                     choices= c(NULL, names(as.data.frame(spatdat$dataset))), multiple=TRUE,
@@ -2716,7 +2742,7 @@ conf_cache_len <- length(get_confid_cache())
         )
       })
       gtmt_table <- reactive({
-        if(input$mtgtcat==''){
+        if(input$mtgtcat=='none'){
           return( NULL)
         } else {
           gt <- getis_ord_stats(values$dataset, project=project$name, varofint=input$varofint, spat=spatdat$dataset, 
