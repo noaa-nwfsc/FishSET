@@ -47,8 +47,6 @@
 #' @export roll_catch
 #' @import ggplot2
 #' @importFrom dplyr any_of
-#' @importFrom stats reformulate setNames
-#' @importFrom rlang sym
 #' @importFrom zoo zoo merge.zoo rollapply fortify.zoo
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @examples
@@ -93,7 +91,7 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
   
   # date ----
   if (!is.null(sub_date)) {
-    warning("'sub_date' is not currently supported for roll_catch at this time.")
+    warning("'sub_date' is not currently supported for roll_catch.")
   }
   # convert date and/or sub_date to date class
   if (!is.null(date) | !is.null(sub_date)) {
@@ -188,35 +186,9 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
     
     agg_grp <- unique(c(facet_no_date, group_no_date))
     
-    check <- FALSE
-    suppress <- FALSE
-    if (run_confid_check()) {
-      
-      cc_par <- get_confid_check()
-      if (cc_par$rule == "n") {
-        check <- TRUE
-        agg_grp <- unique(c(agg_grp, cc_par$v_id))
-      }
-    }
-    
     sum_tab <- agg_helper(dataset, value = catch, period = date, 
                           group = agg_grp, fun = sum)
     
-    # confidentiality check ----
-    if (check) {
-      
-      agg_grp <- agg_grp[-which(agg_grp == cc_par$v_id)]
-      if (length(agg_grp) == 0) agg_grp <- NULL
-      
-      check_out <- 
-      check_confidentiality(sum_tab, v_id = cc_par$v_id, value_var = catch, 
-                            group = c(date, agg_grp), rule = "n", value = cc_par$value)
-      
-      if (check_out$suppress) suppress <- TRUE
-       
-      # re-agg without v_id
-      sum_tab <- agg_helper(sum_tab, catch, period = date, group = agg_grp, fun = sum)
-    }
     # catch conversion ----
     if (convr != FALSE) {
       if (convr == "tons") sum_tab[catch] <- sum_tab[catch] / 2000
@@ -264,46 +236,25 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
     roll_tab <- zoo::fortify.zoo(roll_tab)
     names(roll_tab)[names(roll_tab) == "Index"] <- date
     
-    if (suppress) {
-        
-      sum_tab <- zoo::fortify.zoo(sum_tab)
-      names(sum_tab)[names(sum_tab) == "Index"] <- date
+    # Confidentiality check ----
+    check <- FALSE
+    suppress <- FALSE
+    
+    if (run_confid_check()) {
       
-      if (!is.null(agg_grp)) {
-        
-        check_out$table <- 
-          ID_var(check_out$table, project = project, vars = c(agg_grp, "name"), 
-                 sep = "__", name = "name", log_fun = FALSE)
-        check_out$table <- check_out$table[c(date, "name")]
-        agg_cols <- names(sum_tab)[-which(names(sum_tab) == date)]
-        
-        sum_long <- tidyr::pivot_longer(sum_tab, !!agg_cols)
-        
-        check_table <- 
-          suppress_table(check_out$table, sum_long, value_var = "value", 
-                         group = c(date, "name"), rule = "n", type = "zero")
-        
-        check_table <- 
-          tidyr::pivot_wider(check_table, id_cols = !!date, names_from = "name",
-                             values_from = "value")
-      } else {
-        
-        check_table <- 
-          suppress_table(check_out$table, sum_tab, value_var = catch, group = c(date, agg_grp),
-                         rule = "n", type = "zero")
-        
-        check_table <- agg_helper(check_table, catch, period = date, 
-                                  group = agg_grp, fun = sum)
-      }
-      
-      check_table <- zoo::zoo(check_table[-which(names(check_table) == date)], 
-                              order.by = check_table[[date]])
-      
-      check_table <- zoo::rollapply(check_table, width = k, FUN = fun, align = align, 
-                                  by.column = TRUE, ...)
-      check_table <- zoo::fortify.zoo(check_table)
-      names(check_table)[names(check_table) == "Index"] <- date
+      cc_par <- get_confid_check()
+      if (cc_par$rule == "n")  check <- TRUE
     }
+    
+    if (check) {
+      
+      check_out <- check_conf_rc(dataset, roll_tab, catch = catch, date = date,
+                                 group = agg_grp, k = k, align = align, 
+                                 full_dates = full_dates)
+      
+      suppress <- check_out$suppress
+    }
+    
     
     sep <- function() {
       if (length(agg_grp) > 0) {
@@ -331,7 +282,9 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
       
       if (suppress) {
         
-        check_table <- facet_period(check_table, unique(c(facet_date, group_date)), date)
+        check_out$table <- facet_period(check_out$table, 
+                                        unique(c(facet_date, group_date)), 
+                                        date)
       }
     }
    
@@ -345,7 +298,7 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
                                       names_sep = sep())
       if (suppress) {
         
-        check_table <- tidyr::pivot_longer(check_table, 
+        check_out$table <- tidyr::pivot_longer(check_out$table, 
                                            cols = !dplyr::any_of(c(date, "year",
                                                                 "month", "week")), 
                                            names_to = names_to(), values_to = "catch", 
@@ -355,35 +308,35 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
     
     # combine groups ----
     if (length(group) > 0) {
-      
+
       if (combine == TRUE & length(group) > 1) {
-        
-        roll_tab <- ID_var(roll_tab, project = project, vars = group, type = "string", 
+
+        roll_tab <- ID_var(roll_tab, project = project, vars = group, type = "string",
                            drop = TRUE, log_fun = FALSE)
-        
+
         if (suppress) {
-          check_table <- ID_var(check_table, project = project, vars = group, 
+          check_out$table <- ID_var(check_out$table, project = project, vars = group,
                                 type = "string", drop = TRUE, log_fun = FALSE)
         }
-        
+
         group <- gsub(" ", "", paste(group, collapse = "_"))
         group1 <- group
         group2 <- NULL
-        
+
       } else {
         # change to group
-        roll_tab[group] <- lapply(roll_tab[group], as.factor)
-        
-        if (suppress) {
-          check_table[group] <- lapply(check_table[group], as.factor)
-        }
-        
+        # roll_tab[group] <- lapply(roll_tab[group], as.factor)
+        # 
+        # if (suppress) {
+        #   check_out$table[group] <- lapply(check_out$table[group], as.factor)
+        # }
+
         group1 <- group[1]
-        
+
         if (length(group) == 1) group2 <- NULL else group2 <- group[2]
-        
+
         if (length(group) > 2) {
-          
+
           warning("Only the first two grouping variables will be displayed in plot.")
         }
       }
@@ -394,7 +347,7 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
       
       if (suppress) {
         
-        names(check_table)[names(check_table) == "catch"] <- catch
+        names(check_out$table)[names(check_out$table) == "catch"] <- catch
       }
     }
     
@@ -407,7 +360,8 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
           
           if (suppress) {
             
-            check_table <- subset_date(check_table, sub_date, filter_date, date_value)
+            check_out$table <- subset_date(check_out$table, sub_date, filter_date, 
+                                           date_value)
           }
           
           if (nrow(roll_tab) == 0) {
@@ -425,13 +379,14 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
                          group1 = get0("group1"),
                          group2 = get0("group2"))
       
-      rc_plot <- roll_catch_plot(roll_tab, catch, date, group_list, facet_by, fun, k, 
-                                 tran, scale)
+      rc_plot <- roll_catch_plot(roll_tab, catch, date, group_list, facet_by, 
+                                 fun, k, tran, scale)
       
       if (suppress) {
         
-        check_plot <- roll_catch_plot(check_table, catch, date, group_list, facet_by, fun, 
-                                      k, tran, scale)
+        check_plot <- roll_catch_plot(replace_sup_code(check_out$table, 0), 
+                                      catch, date, group_list, 
+                                      facet_by, fun, k, tran, scale)
         save_plot(project, "roll_catch_confid", plot = check_plot)
       }
 
@@ -440,7 +395,7 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
     
     save_table(roll_tab, project, "roll_catch")
     
-    if (suppress) save_table(check_table, project, "roll_catch_confid")
+    if (suppress) save_table(check_out$table, project, "roll_catch_confid")
     
     roll_catch_function <- list()
     roll_catch_function$functionID <- "roll_catch"
@@ -454,8 +409,8 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
     if (output == "table") roll_tab
     else if (output == "plot") rc_plot
     else if (output == "tab_plot") {
-      tab_plot <- list(table = roll_tab, plot = rc_plot)
       
+      tab_plot <- list(table = roll_tab, plot = rc_plot)
       tab_plot
     }
   }
