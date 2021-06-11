@@ -393,6 +393,204 @@ check_and_suppress <- function(dat, output, v_id, value_var, group = NULL, rule,
   } else check
 }
 
+window_cc <- function(x, k) {
+  #' Unique values window function
+  #' 
+  #' Used by \code{roll_catch()} to count unique vessels within a rolling window. 
+  #' 
+  #' @param x List of vessel IDs to count
+  #' @param k Window width.
+  #' @keywords internal
+  #' @seealso \code{\link{roll_catch}} \code{\link{roll_cc}}
+  
+  vec_out <- numeric(length(x) - k)
+  
+  i <- 1
+  
+  for (i in 1:(length(x) - k + 1)) {
+    
+    vec_out[i] <- length(unique(unlist(x[i:(i + (k - 1))])))
+  }
+  
+  vec_out
+}
+
+roll_cc <- function(dat, k, align) {
+  #' Apply window_cc 
+  #' 
+  #' Used by \code{roll_catch()} to count unique vessels within a rolling window 
+  #' for multiple columns of catch.
+  #' 
+  #' @param dat Dataframe used to calculate rolling catch.
+  #' @param k Window width.
+  #' @param align Window alignment.
+  #' @keywords internal
+  #' @seealso \code{\link{roll_catch}} \code{\link{window_cc}}
+  
+  # names excluding date var
+  nm <- names(dat[-1])  
+  date <- names(dat)[1]
+  nr <- nrow(dat)
+  
+  if (align == "left") {
+    
+    Index <- dat[[date]][1:(nr - k + 1)]
+    
+  } else if (align == "center") {
+    
+    if (k %% 2 == 0) {
+      
+      Index <- dat[[date]][(.5 * k):(nr - (.5 * k))]
+      
+    } else {
+      
+      Index <- dat[[date]][ceiling((.5 * k)):(nr - floor((.5 * k)))]
+    }
+    
+  } else if (align == "right") {
+    
+    Index <- dat[[date]][k:nr]
+  }
+  
+  roll_out <- data.frame(Index = Index)
+  names(roll_out)[1] <- date
+  
+  roll_out[nm] <- lapply(dat[nm], function(x) window_cc(x, k))
+  
+  roll_out
+}
+
+check_conf_rc <- function(dat, roll_tab, catch, date, group, k, full_dates, align) {
+  #' Check and suppress roll_catch output
+  #' 
+  #' @param dat Dataset used to create \code{roll_tab} dataframe. 
+  #' @param roll_tab Unsuppressed table from \code{roll_catch}.
+  #' @param catch String, name of catch variable(s).
+  #' @param date String, name of date variable.
+  #' @param group String, name of group variable(s). 
+  #' @param k Integer, width of window. 
+  #' @param full_dates Vector of full dates.
+  #' @param align String, align argument for \code{rollapply()}. 
+  #' @keywords internal
+  #' @importFrom zoo zoo merge.zoo rollapply fortify.zoo
+  #' @importFrom tidyr pivot_longer pivot_wider nest
+  #' @importFrom dplyr group_by across arrange
+  #' @importFrom magrittr %>% 
+  
+  cc_par <- get_confid_check()
+
+  dat <- dat[unique(c(date, cc_par$v_id, group, catch))]
+  
+  if (length(catch) > 1) {
+    
+    dat <- tidyr::pivot_longer(dat, cols = !!catch, 
+                               names_to = "species", values_to = "catch")
+    #value_var <- values_to
+    group <- c(group, "species")
+    include_val <- FALSE
+    
+  } else include_val <- TRUE
+  
+  # remove catch values before nesting 
+  if (length(catch) == 1) {
+    
+    dat[[catch]] <- NULL
+  
+  } else {
+    
+    dat$catch <- NULL
+  }
+  
+  # nested df with v_id list for each date
+  dat_nest <- 
+    dat %>% 
+    dplyr::group_by(dplyr::across(c(date, group))) %>% 
+    tidyr::nest(v_id = cc_par$v_id) %>% 
+    dplyr::arrange(dplyr::across(date))
+  
+  names(dat_nest)[names(dat_nest) == "v_id"] <- cc_par$v_id
+  
+  if (!is.null(group)) {
+    
+    dat_nest[group] <- lapply(dat_nest[group], trimws)
+    
+    dat_nest <- tidyr::pivot_wider(dat_nest, id_cols = !!date, names_from = !!group,
+                                   values_from = !!cc_par$v_id, names_sep = "__")
+  }
+  
+  conf_tab <- zoo::zoo(dat_nest[-which(names(dat_nest) == date)], dat_nest[[date]])
+  conf_tab <- zoo::merge.zoo(conf_tab, full_dates, all = TRUE, fill = list(NULL))
+  
+  conf_tab$full_dates <- NULL
+  
+  # fortify table for plotting
+  conf_roll_tab <- zoo::fortify.zoo(conf_tab)
+  names(conf_roll_tab)[names(conf_roll_tab) == "Index"] <- date
+  
+  
+  conf_roll_tab <- roll_cc(conf_roll_tab, k, align)
+  
+  # omits zero catch events
+  if (!is.null(group)) { # return list of dates to suppress for each column
+    
+    ind <- lapply(conf_roll_tab[-1], function(x) x > 0 & x < cc_par$value)
+    
+    null_ind <- vapply(ind, is.null, logical(1))
+    
+    supr_vals <- any(!null_ind)
+    
+    if (supr_vals) {
+      
+      ind <- ind[!null_ind]
+      
+      names(ind) <- trimws(names(ind))
+      
+      roll_tab[names(ind)] <- 
+        
+        lapply(names(ind), function(n) {
+          
+          roll_tab[ind[[n]], n] <- -999
+          roll_tab[[n]]
+        })
+      
+      check_ind <- lapply(ind, function(x) roll_tab[[date]][x])
+      
+      # cache check table
+      cache_check_table(check_ind)
+      warning("Confidential data detected.")
+    }
+    
+  } else {
+    
+    ind <- conf_roll_tab[[cc_par$v_id]] > 0 & conf_roll_tab[[cc_par$v_id]] < cc_par$value
+    supr_vals <- any(ind)
+    
+    if (supr_vals) {
+      
+      if (is.null(group)) group <- cc_par$v_id
+      
+      if (include_val) {
+        
+        conf_roll_tab$value_var <- catch
+        group <- c(group, "value_var")
+      }
+      
+      check <- conf_roll_tab[c(date, group)]
+      
+      check <- check[ind, ]
+      
+      roll_tab <- 
+        suppress_table(check, roll_tab, catch, group = unique(date, group), "n")
+      
+      cache_check_table(check)
+      warning("Confidential data detected.")
+    }
+  }
+  
+  list(table = if (supr_vals) roll_tab else NULL,
+       suppress = supr_vals) 
+} 
+
 replace_sup_code <- function(output, code = NA) {
   
   #' Replace suppression code
