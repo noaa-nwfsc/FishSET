@@ -46,14 +46,14 @@ filter_table <- function(dat, project, x, exp) {
   filter_data_function$msg <- filterTable
   log_call(project, filter_data_function)
 
-  save_table(dataset, project, "filter_table")
+  save_table(filterTable, project, "filter_table")
 
   print(filterTable)
 }
 
 
 
-filter_dat <- function(dat, project, exp, filterTable) {
+filter_dat <- function(dat, project, exp, filterTable = NULL) {
   #' Remove rows based on filter expressions defined in 'filterTable'
   #'
   #' @param dat Primary data containing information on hauls or trips. Table in the FishSET database contains the string 'MainDataTable'.
@@ -80,14 +80,15 @@ filter_dat <- function(dat, project, exp, filterTable) {
   dat <- parse_data_name(dat, "main")
   
   # NaNs only occurs on Numeric Variables
-  if (!is.null(filterTable)) {
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
-    DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM", paste0("'", noquote(filterTable), "'")))
-    DBI::dbDisconnect(fishset_db)
+  if (!is.null(filterTable) && table_exists(filterTable)) {
+    
+    filterTab <- table_view(filterTable)
 
     cat("The entire row will be removed from the dataframe.")
-    dataset <- subset(dataset, eval(parse(text = filterTable[exp, 3])))
+    dataset <- subset(dataset, eval(parse(text = filterTab[exp, 3])))
+    
   } else {
+    
     dataset <- subset(dataset, eval(parse(text = exp)))
   }
 
