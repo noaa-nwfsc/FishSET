@@ -1,4 +1,4 @@
-context("Data import")
+
 
 test_that("Test that data can be uploaded", {
   

@@ -1,4 +1,3 @@
-context("Outlier Check")
 
 test_that("outlier table is returned", {
   
