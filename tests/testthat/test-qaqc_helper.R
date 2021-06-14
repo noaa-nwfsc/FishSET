@@ -1,4 +1,4 @@
-context("QAQC helper")
+
 
 test_that("Logical ouput returns one value per column", {
   

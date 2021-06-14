@@ -1,4 +1,4 @@
-context("Data type conversion (changeclass)")
+
 
 test_that("Converts integer to numeric", {
   

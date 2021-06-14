@@ -1,4 +1,4 @@
-context("Detecting and filtering NAs and NaNs")
+
 
 test_that("nan_identify correctly detects NAs", {
   

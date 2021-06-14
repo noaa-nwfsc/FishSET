@@ -101,8 +101,6 @@ map_plot <- function(dat, project, lat, lon, minmax = NULL, percshown = NULL) {
                           size = 1, alpha = 0.25, color = "red") +
       cf + ggplot2::coord_fixed(xlim = c(minlon, maxlon), ylim = c(minlat, maxlat), 
                                 ratio=1.3, expand = TRUE) +
-      # ggplot2::xlim(minlon, maxlon) +
-      # ggplot2::ylim(minlat, maxlat) +
       ggplot2::labs(title = gptitle, x = "Longitude", y = "Latitude") +
       ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size = 10))) +
       ggplot2::theme(panel.grid.major = ggplot2::element_blank(), 

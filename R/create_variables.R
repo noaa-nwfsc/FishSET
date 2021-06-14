@@ -388,12 +388,6 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   
   dat <- parse_data_name(dat, "main")
   
-
-  if (shiny::isRunning()) {
-    if (deparse(substitute(dat)) == "values$dataset") dat <- get("dat_name")
-  } else { 
-    if (!is.character(dat)) dat <- deparse(substitute(dat)) }
-  
   if (create_group_ID) dataset <- ID_var(dataset, project, vars = c(id_group, group), 
                                          log_fun = FALSE)
 
