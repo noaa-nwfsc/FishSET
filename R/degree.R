@@ -88,6 +88,8 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE, lonsig
         #   "\\s+"
         # ), "[", 3)) / 360
         
+
+        
         dataset[[lat]] <- dms_to_dd(dataset[[lat]])
         
       } else if (any(nchar(trunc(abs(dataset[[lat]]))) > 2, na.rm = TRUE)) {
