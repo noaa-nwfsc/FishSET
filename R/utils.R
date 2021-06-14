@@ -522,7 +522,8 @@ msg_print <- function(temp_file) {
   #' 
   #' If shiny is running, prints. Otherwise, uses message. 
   #'
-  #' @param temp_file temporary file to display. 
+  #' @param temp_file temporary file to display. j
+  #' @export
   #' @keywords internal
   #' @importFrom shiny isRunning
   #'
