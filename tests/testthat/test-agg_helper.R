@@ -1,4 +1,4 @@
-context("Aggregation helper")
+
 
 test_that("agg_helper returns a dataframe", {
   

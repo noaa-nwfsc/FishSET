@@ -1,4 +1,4 @@
-context("Data verification")
+
 
 test_that("Detects duplicate rows", {
   
