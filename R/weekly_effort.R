@@ -422,7 +422,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
     
     save_table(table_out, project, "weekly_effort")
     
-    if (output == "plot") plot
+    if (output == "plot") e_plot
       
     else if (output == "table") table_out
       
