@@ -29,6 +29,7 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
   #' @import ggplot2
   #' @importFrom maps map
   #' @importFrom spdep knn2nb knearneigh nb2listw localmoran moran.test
+  #' @importFrom sf st_coordinates st_centroid
   #' @importFrom shiny isRunning
   #' @export
   #' @examples
@@ -39,7 +40,7 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
   #'
 
   # requireNamespace("ggplot2")
-  world <- map_data("world")
+  world <- ggplot2::map_data("world")
 
   # Call in datasets
   out <- data_pull(dat)
@@ -66,30 +67,27 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
   if (x == 0) {
     # Assign data to zone
     if (!is.null(cat)) {
-      dataset <- assignment_column(dataset, project, spatdat, hull.polygon = TRUE, 
-                                   lon.dat, lat.dat, cat, closest.pt = TRUE, lon.grid, 
-                                   lat.grid, epsg = NULL, log.fun = FALSE)
-
+      dataset <- assignment_column(dat=dataset, project=project, gridfile=spatdat, hull.polygon = TRUE, 
+                                   lon.dat=lon.dat, lat.dat=lat.dat, cat=cat,closest.pt = TRUE, 
+                                   lon.grid=lon.grid, lat.grid=lat.grid, epsg = NULL, log.fun = FALSE)
+      
+      
       # Idenfity centroid of zone
-      int <- find_centroid(dataset, spatdat, lon.dat, lat.dat, cat, 
-                           lon.grid, lat.grid, weight.var = NULL)
+      int <- find_centroid(dat=dataset, project=project, gridfile=spatdat, lon.dat=lon.dat, 
+                           lat.dat=lat.dat, cat = cat, lon.grid=lon.grid, lat.grid=lat.grid, weight.var = NULL)
     }
 
     # Create dataset
-    if ("sf" %in% class(spatdat)) {
-      nc_geom <- sf::st_geometry(spatdat)
-      temp <- data.frame(ZoneID = rep(spatdat[[cat]][1], path = dim(as.data.frame(nc_geom[[1]][[1]]))[1]), as.data.frame(nc_geom[[1]][[1]]))
-      for (i in 2:length(nc_geom)) {
-        temp <- rbind(temp, data.frame(ZoneID = rep(spatdat[[cat]][i], path = dim(as.data.frame(nc_geom[[1]][[i]]))[1]), as.data.frame(nc_geom[[1]][[i]])))
-      }
-      # datatomap <- merge(temp, int, by='ZoneID')
+    if ("sf" %in% class(spatdat) == FALSE) {
+      spatdat <- sf::st_as_sf(spatdat)
+    }
+    
       int <- merge(int, dataset[, c(varofint, "ZoneID")], by = "ZoneID")
-      names(temp)[2] <- "path_lon"
-      names(temp)[3] <- "path_lat"
       names(int)[2] <- "centroid_lon"
       names(int)[3] <- "centroid_lat"
       names(int)[4] <- "varofint"
-    }
+    
+      
     # 4. Identify variable of interest 5.
     int[["varofint"]] <- with(int, ave(int[["varofint"]], ZoneID, FUN = function(x) mean(x, na.rm = TRUE)))
     uniquedatatomap <- int[!duplicated(int$ZoneID), c("ZoneID", "centroid_lon", "centroid_lat", "varofint")]
@@ -101,43 +99,43 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
 
     gmoranspdep <- spdep::moran.test(uniquedatatomap$varofint, listw = spdep::nb2listw(nb.rk))
 
-    datatomap <- unique(merge(temp, uniquedatatomap))
-
-    minlon <- min(datatomap$path_lon) * 1.001 # lon negative
-    maxlon <- max(datatomap$path_lon) * 0.985
-    minlat <- min(datatomap$path_lat) * 0.992
-    maxlat <- max(datatomap$path_lat) * 1.001
-
+    g <- as.data.frame(spatdat[[cat]])
+    colnames(g) = 'ZoneID'
+    g <- merge(uniquedatatomap, g, all.y = TRUE)
+    spatdat$Moran <- g$Moran
+    spatdat <- cbind(spatdat, sf::st_coordinates(sf::st_centroid(spatdat)))
+    spatdat <- subset(spatdat, !is.na(spatdat$Moran))
+    
+    
+    minlon <- min(spatdat$X) * 1.001 # lon negative
+    maxlon <- max(spatdat$X) * 0.985
+    minlat <- min(spatdat$Y) * 0.992
+    maxlat <- max(spatdat$Y) * 1.001
+    
     annotatesize <- 6
 
-    moranmap <- ggplot(data = datatomap) +
-      geom_path(aes(x = datatomap$path_lon, y = datatomap$path_lat, group = datatomap$ZoneID), 
-                color = "black", size = 0.375) +
-      geom_map(
-        data = world,
-        map = world, aes(map_id = world$region), 
-        #map = world, aes(x = datatomap$long, y = datatomap$lat, map_id = world$region), 
-        fill = "grey", color = "black", size = 0.375
-      ) +
-      geom_polygon(data = datatomap, aes(
-        x = datatomap$path_lon,
-        y = datatomap$path_lat, group = datatomap$ZoneID, fill = datatomap$Moran
-      ), color = "black", alpha = 1, size = 0.375) +
+    moranmap <- ggplot(data = spatdat) +
+      geom_sf(data = spatdat, mapping = aes(fill = Moran)) +
+      xlim(minlon, maxlon) +
+      ylim(minlat, maxlat) +
       scale_fill_gradient2(
         low = "skyblue2", high = "firebrick1",
         mid = "white", name = "Local\nMoran's I"
       ) +
-      xlim(minlon, maxlon) +
-      ylim(minlat, maxlat) +
+      geom_map(
+        data = world,
+        map = world, aes(map_id = world$region), 
+        fill = "grey", color = "black", size = 0.375
+      ) +
       ggtitle("Moran's I statistics") +
       annotate(
         geom = "text",
-        x = min(datatomap$path_lon) * 0.9915, y = min(datatomap$path_lat) * 0.997, label = paste0("Global Moran's I = ", round(
+        x = min(spatdat$X) * 0.9915, y = min(spatdat$Y) * 0.997, label = paste0("Global Moran's I = ", round(
           gmoranspdep$estimate[1],
           2
         )), parse = FALSE, size = annotatesize, color = "black", hjust = 0
       ) +
-      annotate(geom = "text", x = min(datatomap$path_lon) * 0.9915, y = min(datatomap$path_lat) *
+      annotate(geom = "text", x = min(spatdat$X) * 0.9915, y = min(spatdat$Y) *
         0.994, label = paste0("p-value = ", round(gmoranspdep$p.value, 2)), parse = FALSE, size = annotatesize, color = "black", hjust = 0) +
       theme(
         text = element_text(size = 20),

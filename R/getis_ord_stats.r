@@ -31,7 +31,7 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
   #' @import ggplot2
   #' @importFrom maps map
   #' @importFrom spdep knn2nb knearneigh nb2listw localG globalG.test
-  #' @importFrom sf st_geometry
+  #' @importFrom sf st_coordinates st_centroid
   #' @importFrom shiny isRunning
   #' @export
   #' @examples
@@ -42,7 +42,7 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
   #'
 
   # requireNamespace("ggplot2")
-  world <- map_data("world")
+  world <- ggplot2::map_data("world")
 
   # Call in datasets
   out <- data_pull(dat)
@@ -84,75 +84,70 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
     if ("sf" %in% class(spatdat) == FALSE) {
       spatdat <- sf::st_as_sf(spatdat)
     }
-  browser()  
-      nc_geom <- sf::st_geometry(spatdat)
-      temp <- data.frame(ZoneID = rep(spatdat[[cat]][1], path = dim(as.data.frame(nc_geom[[1]][[1]]))[1]), as.data.frame(nc_geom[[1]][[1]]))
-      for (i in 2:length(nc_geom)) {
-        temp <- rbind(temp, data.frame(ZoneID = rep(spatdat[[cat]][i], path = dim(as.data.frame(nc_geom[[1]][[i]]))[1]), as.data.frame(nc_geom[[1]][[i]])))
-      }
-      # datatomap <- merge(temp, int, by='ZoneID')
+
+
+     # datatomap <- merge(temp, int, by='ZoneID')
       int <- merge(int, dataset[, c(varofint, "ZoneID")], by = "ZoneID")
-      names(temp)[2] = "path_lon"
-      names(temp)[3] = "path_lat"
       names(int)[2] = "centroid_lon"
       names(int)[3] = "centroid_lat"
       names(int)[4] = "varofint"
-    
+      
+
   
     #  Identify variable of interest 
     int[["varofint"]] <- with(int, ave(int[["varofint"]], ZoneID, FUN = function(x) mean(x, na.rm = TRUE)))
     uniquedatatomap <- int[!duplicated(int$ZoneID), c("ZoneID", "centroid_lon", "centroid_lat", "varofint")]
-
+      
     nb.rk <- spdep::knn2nb(spdep::knearneigh(as.matrix(uniquedatatomap[, c("centroid_lon", "centroid_lat")]), longlat = TRUE))
     locg <- spdep::localG(uniquedatatomap[["varofint"]], listw = spdep::nb2listw(nb.rk))
-
+      
     uniquedatatomap$GetisOrd <- round(locg, 3)
-
+      
     globalgetis <- spdep::globalG.test(uniquedatatomap[["varofint"]], listw = spdep::nb2listw(nb.rk, style = "B"))
-
-    datatomap <- unique(merge(temp, uniquedatatomap))
-    datatomap <- as.data.frame(datatomap)
+      
+    g <- as.data.frame(spatdat[[cat]])
+    colnames(g) = 'ZoneID'
+    g <- merge(uniquedatatomap, g, all.y = TRUE)
+    spatdat$GetisOrd <- g$GetisOrd
+    spatdat <- cbind(spatdat, sf::st_coordinates(sf::st_centroid(spatdat)))
+    spatdat <- subset(spatdat, !is.na(spatdat$GetisOrd))
     
-    minlon <- min(datatomap$path_lon) * 1.001 # lon negative
-    maxlon <- max(datatomap$path_lon) * 0.985
-    minlat <- min(datatomap$path_lat) * 0.992
-    maxlat <- max(datatomap$path_lat) * 1.001
-
+    
+    minlon <- min(spatdat$X) * 1.001 # lon negative
+    maxlon <- max(spatdat$X) * 0.985
+    minlat <- min(spatdat$Y) * 0.992
+    maxlat <- max(spatdat$Y) * 1.001
+    
     annotatesize <- 6
 
-    getismap <- ggplot(data = datatomap) +
-      geom_path(aes(x = datatomap$path_lon, y = datatomap$path_lat, group = datatomap$ZoneID), 
-                color = "black", size = 0.375) +
+    getismap <- ggplot(data = spatdat) +
+      geom_sf(data = spatdat, mapping = aes(fill = GetisOrd), show.legend = FALSE)+
+      xlim(minlon, maxlon) +
+      ylim(minlat, maxlat)+ 
+      scale_fill_gradient2(
+        low = "skyblue2",
+        high = "firebrick1", mid = "white", name = "Local\nGetis-Ord"
+      )  +
       geom_map(
         data = world,
         map = world, aes(map_id = world$region), fill = "grey", color = "black", size = 0.375
       ) +
-      geom_polygon(data = datatomap, aes(
-        x = datatomap$path_lon, y = datatomap$path_lat, group = datatomap$ZoneID, fill = datatomap$GetisOrd
-      ), color = "black", alpha = 1, size = 0.375) +
-      xlim(minlon, maxlon) +
-      ylim(minlat, maxlat) +
-      scale_fill_gradient2(
-        low = "skyblue2",
-        high = "firebrick1", mid = "white", name = "Local\nGetis-Ord"
-      ) +
       ggtitle("Getis-Ord statistics") +
       annotate(
-        geom = "text", x = min(datatomap$path_lon) *
-          0.9915, y = min(datatomap$path_lat) * 0.997, label = paste0("Global Getis-Ord = ", round(globalgetis$estimate[1], 2)), parse = FALSE, size = annotatesize,
+        geom = "text", x = min(spatdat$X) * 0.9915,  y = min(spatdat$Y) * 0.997,
+        label = paste0("Global Getis-Ord = ", round(globalgetis$estimate[1], 2)), parse = FALSE, size = annotatesize,
         color = "black", hjust = 0
       ) +
-      annotate(geom = "text", x = min(datatomap$path_lon) * 0.9915, y = min(datatomap$path_lat) * 0.994, label = paste0(
-        "p-value = ",
-        round(globalgetis$p.value, 2)
-      ), parse = FALSE, size = annotatesize, color = "black", hjust = 0) +
+      annotate(geom = "text", x = min(spatdat$X) * 0.9915, y = min(spatdat$Y) * 0.994, 
+               label = paste0("p-value = ", round(globalgetis$p.value, 2)  ),
+               parse = FALSE, size = annotatesize, color = "black", hjust = 0) +
       theme(
         text = element_text(size = 20), axis.title.y = element_text(vjust = 1.5),
         legend.position = c(0.875, 0.7), legend.text = element_text(size = 15), legend.title = element_text(size = 15)
       ) +
       xlab("Longitude") +
       ylab("Latitude")
-
+    
     getis_ord_stats_function <- list()
     getis_ord_stats_function$functionID <- "getis_ord_stats"
     getis_ord_stats_function$args <- list(dat, project, varofint, spat, lon.dat, lat.dat, cat, lon.grid, lat.grid)
