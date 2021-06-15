@@ -139,6 +139,7 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
     }
     ################################################################################
     
+    
     gmap <-
       ggplot2::ggplot() +
       ggplot2::geom_map(map = world, ggplot2::aes(x = world$long, y = world$lat,
@@ -181,7 +182,7 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
           ggplot2::xlim(minlon, maxlon) +
           ggplot2::ylim(minlat, maxlat) +
           ggplot2::ggtitle("Points") +
-          ggplot2::facet_wrap(. ~ groupv) +
+          ggplot2::facet_grid(. ~ groupv) +
           map_theme + ggplot2::theme(legend.position = "none") +
           ggplot2::xlab("Longitude") +
           ggplot2::ylab("Latitude")
@@ -231,7 +232,7 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
           ggplot2::xlim(minlon, maxlon) +
           ggplot2::ylim(minlat, maxlat) +
           ggplot2::ggtitle("Spatial kernel (contours)") +
-          ggplot2::facet_wrap(. ~ groupv) +
+          ggplot2::facet_grid(. ~ groupv) +
           map_theme + ggplot2::theme(legend.position = "none") +
           ggplot2::xlab("Longitude") +
           ggplot2::ylab("Latitude")
@@ -270,7 +271,7 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
                                                 fill = stat(level)), geom = "polygon") +
           ggplot2::xlim(minlon, maxlon) +
           ggplot2::ylim(minlat, maxlat) +
-          ggplot2::facet_wrap(. ~ groupv) +
+          ggplot2::facet_grid(. ~ groupv) +
           ggplot2::ggtitle("Spatial kernel (gradient)") +
           map_theme +
           ggplot2::theme(legend.title = ggplot2::element_text()) +
