@@ -79,6 +79,16 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE, lonsig
 
   if (replace == TRUE) {
     if (!is.null(lat)) {
+      # check length of lat
+      if(length(lat)>1){
+       latcomb <- paste0(dataset[[lat[1]]],dataset[[lat[2]]],dataset[[lat[3]]],dataset[[lat[4]]])
+        latdir <- gsub("[^A-Z]", "", latcomb)
+        latdir <- which(latdir=='N')
+        latnew <- as.numeric(gsub("[^0-9]", "", latcomb))
+        latnew[latdir] <- latnew[latdir]*-1
+        lat <- 'latnew'
+        dataset$latnew <- latnew
+      }
       if (!is.numeric(dataset[[lat]])) {
         
         # temp <- gsub("?|'|\"", "", dataset[[lat]])
@@ -106,6 +116,15 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE, lonsig
     }
     
     if (!is.null(lon)) {
+      if(length(lon)>1){
+        loncomb <- paste0(dataset[[lon[1]]],dataset[[lon[2]]],dataset[[lon[3]]],dataset[[lon[4]]])
+        londir <- gsub("[^A-Z]", "", loncomb)
+        londir <- which(latdir=='N')
+        lonnew <- as.numeric(gsub("[^0-9]", "", loncomb))
+        lonnew[londir] <- lonnew[londir]*-1
+        lon <- 'lonnew'
+        dataset$lonnew <- lonnew
+      }
       if (!is.numeric(dataset[[lon]])) {
         
         # temp <- gsub("?|'|\"", "", dataset[, lon])
@@ -123,9 +142,8 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE, lonsig
         i <- nchar(dataset[[lon]]) <= 5 & !is.na(dataset[[lon]])
         dataset[[lon]][i] <- paste0(dataset[[lon]][i], "00")
         dataset[[lon]] <- format(as.numeric(stringr::str_pad(as.numeric(dataset[[lon]]), 7, pad = "0")), scientific = FALSE)
-        dataset[[lon]] <- as.numeric(substr(dataset[[lon]], start = 1, stop = 3)) + as.numeric(substr(dataset[[lon]], start = 4, stop = 5)) / 60 + as.numeric(substr(dataset[[lon]],
-          start = 6, stop = 7
-        )) / 3600
+        dataset[[lon]] <- as.numeric(substr(dataset[[lon]], start = 1, stop = 3)) + as.numeric(substr(dataset[[lon]], start = 4, stop = 5)) / 60 + 
+          as.numeric(substr(dataset[[lon]],start = 6, stop = 7)) / 3600
         dataset[[lon]][nm] <- dataset[[lon]][nm] * -1
       } 
     }
