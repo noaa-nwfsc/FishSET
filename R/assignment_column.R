@@ -16,7 +16,10 @@
 #'   Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
 #' @param cat Variable or list in \code{gridfile} that identifies the individual areas or zones. 
 #'    If \code{gridfile} is class sf, \code{cat} should be name of list containing information on zones.
-#' @param epsg EPSG number. See \url{http://spatialreference.org/} to help identify optimal epsg number.
+#' @param epsg EPSG number. Set the epsg to ensure that \code{gridfile} and \code{dat} have the same 
+#'   projections. If epsg is not specified but is defined for \code{gridfile}, then the 
+#'   \code{gridfile} epsg will be applied to \code{dat}. 
+#'   See \url{http://spatialreference.org/} to help identify optimal epsg number.
 #' @param closest.pt  Logical, if true, observations that fall outside zones are classed as the closest 
 #'    zone polygon to the point.
 #' @param log.fun Logical, whether to log function call (for internal use).
@@ -72,7 +75,6 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
       } else {
         grid <- grid
       }
-    
     
       if (raster::projection(grid) != raster::projection(dat_sub)) {
         warning("Projection does not match. The detected projection in the gridfile will be used unless epsg is specified.")
