@@ -75,11 +75,14 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
     
     
       if (raster::projection(grid) != raster::projection(dat_sub)) {
-        warning("Projection does not match. Consider transforming data to same epsg.")
+        warning("Projection does not match. The detected projection in the gridfile will be used unless epsg is specified.")
       }
       if (!is.null(epsg)) {
         dat_sub <- sf::st_transform(dat_sub, epsg)
         grid <- sf::st_transform(grid, epsg)
+      } else if(!is.na(sf::st_crs(grid))){
+        dat_sub <- sf::st_transform(dat_sub, sf::st_crs(grid))
+        grid <- sf::st_transform(grid, sf::st_crs(grid))
       } else {
         grid <- sf::st_transform(grid, "+proj=longlat +datum=WGS84")
       }
