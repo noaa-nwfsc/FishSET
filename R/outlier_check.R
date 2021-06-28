@@ -117,7 +117,7 @@ outlier_table <- function(dat, project, x, log_fun = TRUE) {
 }
 
 ## ---------------------------##
-outlier_plot <- function(dat, project, x, dat.remove, x.dist, output.screen = FALSE,
+outlier_plot <- function(dat, project, x, dat.remove='none', x.dist='normal', output.screen = FALSE,
                          log_fun = TRUE) {
   #' Evaluate outliers
   #'

@@ -29,8 +29,8 @@ merge_dat <- function(dat, project, other, main_key, other_key, other_type = NUL
   #'   are joined. 
   #' @examples
   #' \dontrun{
-  #'  merge_dat("pollockMainDataTable", "pollock", "pollockPortTable", 
-  #'            main_key = "PORT_CODE", other_key = "PORT_CODE")
+  #'  pollockMainDataTable <- merge_dat("pollockMainDataTable", "pollock", 
+  #'           "pollockPortTable",  main_key = "PORT_CODE", other_key = "PORT_CODE")
   #' } 
 
   # pull main data
@@ -130,7 +130,7 @@ merge_dat <- function(dat, project, other, main_key, other_key, other_type = NUL
     # Log function
     merge_dat_function <- list()
     merge_dat_function$functionID <- "merge_dat"
-    merge_dat_function$args <- list(dat, project, other, project, main_key, other_key, 
+    merge_dat_function$args <- list(dat, project, other, main_key, other_key, 
                                     other_type, merge_type)
     log_call(project, merge_dat_function)
     
