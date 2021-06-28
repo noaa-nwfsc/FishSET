@@ -25,41 +25,40 @@ summary_stats <- function(dat, project, x = NULL, log_fun = TRUE) {
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
-
   # Min apply(dataset, 2, function(x) min(x, na.rm=T)) 1st Quartile apply(dataset, 2, function(x) quantile(x)[2]) Median apply(dataset, 2, function(x)
   # median(x, na.rm=T)) Mean apply(dataset, 2, function(x) mean(x, na.rm=TRUE)) 3rd Quartile apply(dataset, 2, function(x) length(unique(x))) Max
   # apply(dataset, 2, function(x) max(x, n.arm=TRUE)) UniqueObs apply(dataset, 2, function(x) paste('UniqueObs:', length(unique(x))))
 
+#Extract only numeric 
+numeric_only <- unlist(lapply(dataset, is.numeric))
+
+  numdat <- dataset[ , numeric_only]
+  chardat <- dataset[,which(numeric_only==FALSE)]
+  
   # all columns
   if (is_empty(x)) {
-    # No missing values in data set
-    if (anyNA(dataset) == FALSE) {
-      sum_table <- as.data.frame(as.matrix(rbind(summary(dataset, digits = 2), apply(dataset, 2, function(x) paste("NA's: 0")), apply(
-        dataset, 2,
-        function(x) paste("UniqueObs:", length(unique(x)))
-      ), apply(dataset, 2, function(x) paste("No. 0's:", length(which(x == 0)))))), row.names = FALSE)[-c(
-        2,
-        5
-      ), ]
-    } else {
-      # Missing data
-      sum_table <- as.data.frame(as.matrix(rbind(
-        summary(dataset, digits = 2), apply(dataset, 2, function(x) paste("UniqueObs:", length(unique(x)))),
-        apply(dataset, 2, function(x) paste("No. 0's:", length(which(x == 0))))
-      )), row.names = FALSE)[-c(2, 5), ]
-    }
+      sum_table <- 
+      cbind(  
+      as.data.frame(as.matrix(rbind(
+        summary(numdat, digits = 2)[-c(2,5,7),], 
+        apply(numdat, 2, function(x) paste("NA's:", sum(is.na(x)))),
+        apply(numdat, 2, function(x) paste("UniqueObs:", length(unique(x)))),
+        apply(numdat, 2, function(x) paste("No. 0's:", length(which(x == 0))))
+      )), row.names = FALSE),
+      
+      as.data.frame(as.matrix(rbind(
+        summary(chardat, digits = 2), 
+        apply(chardat, 2, function(x) paste("First:", x[1])),
+        apply(chardat, 2, function(x) paste("NA's:", sum(is.na(x)))),
+        apply(chardat, 2, function(x) paste("UniqueObs:", length(unique(x)))),
+        apply(chardat, 2, function(x) paste("No. 0's:", length(which(x == 0))))
+        )), row.names = FALSE)
+      )
   } else {
-    # specific column No missing data
-    if (anyNA(dataset[[x]]) == FALSE) {
-      sum_table <- c(summary(dataset[[x]]), paste("NA's: 0"), paste("UniqueObs:", length(unique(dataset[[x]]))), paste("No. 0's:", length(which(dataset[[x]] ==
-        0))))[-c(2, 5)]
-    } else {
-      # Missing data
-      sum_table <- c(summary(dataset[[x]]), paste("UniqueObs:", length(unique(dataset[[x]]))), paste("No. 0's:", length(which(dataset[[x]] == 0))))[-c(
-        2,
-        5
-      )]
-    }
+      sum_table <- c(summary(dataset[[x]]),
+                     paste("NA's:", sum(is.na(dataset[[x]]))), 
+                     paste("UniqueObs:", length(unique(dataset[[x]]))), 
+                     paste("No. 0's:", length(which(dataset[[x]] == 0))))[-c(2,5)]
   }
 
   if (log_fun) {
