@@ -309,11 +309,12 @@ fishset_compare <- function(x, y, compare = c(TRUE, FALSE)) {
   DBI::dbDisconnect(fishset_db)
 }
 
-load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = NULL) {
+load_maindata <- function(dat, project, over_write = TRUE, compare = FALSE, y = NULL) {
   #' Load, parse, and save data to the FishSET database
   #'
   #' Load, parse, and save primary dataset to the FishSET database.
   #' @param dat Primary data containing information on hauls or trips.
+  #'  Should be the full path to the file or name of table in the FishSET database.
   #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param over_write Logical, If TRUE, saves data over previously saved data table in the FishSET database.
   #' @param project String, name of project.
@@ -336,7 +337,11 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
   #'               compare = TRUE, y = 'MainDataTable01012011')
   #' }
 
+  if(is.character(dat)){
+    dataset <- read_dat(dat)
+  } else {
   dataset <- dat
+  }
   # Call in datasets
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
 
@@ -420,7 +425,7 @@ load_maindata <- function(dat, over_write = TRUE, project, compare = FALSE, y = 
 }
 
 
-load_port <- function(dat, port_name, over_write = TRUE, project = NULL, compare = FALSE, y = NULL) {
+load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALSE, y = NULL) {
   #' Load, parse, and save port data to FishSET database
   #'
   #' @param dat Dataset containing port data. At a minimum, must include three columns, the port names, and the latitude and longitude of ports.
@@ -446,7 +451,12 @@ load_port <- function(dat, port_name, over_write = TRUE, project = NULL, compare
   #' }
 
   val <- 0
-  x <- dat
+  #Load data is required
+  if(is.character(dat)){
+    x <- read_dat(dat)
+  } else {
+    x <- dat
+  }
   if (all(grepl("Lon", names(x), ignore.case = TRUE) == FALSE) == TRUE) {
     warning("Latitude and Longitude must be specified")
     val <- 1
@@ -504,10 +514,9 @@ load_port <- function(dat, port_name, over_write = TRUE, project = NULL, compare
     }
     DBI::dbDisconnect(fishset_db)
     print("Data saved to database")
-
     load_port_function <- list()
     load_port_function$functionID <- "load_port"
-    load_port_function$args <- list(deparse(substitute(dat)), deparse(substitute(port_name)), over_write, project, compare, deparse(substitute(y)))
+    load_port_function$args <- list(deparse(substitute(dat)), deparse(substitute(port_name)), project, over_write, compare, deparse(substitute(y)))
     load_port_function$kwargs <- list()
     load_port_function$output <- c("")
     log_call(project, load_port_function)
@@ -560,12 +569,18 @@ load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
   }
   DBI::dbDisconnect(fishset_db)
 
+   if(is.character(aux)){
+      aux <- read_dat(aux)
+    } else {
+      aux = aux
+    }
 
   if (any(colnames(aux) %in% colnames(old)) == FALSE) {
     warning("No shared columns. Column names do not match between two data sets.")
     val <- 1
   }
   if (val == 0) {
+   
     #data_verification_call(x, project)
     #unique rows
     if(dim(aux)[1] != dim(unique(aux))[1]){
@@ -652,6 +667,11 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
  #   val <- 1
  # }
 
+    if(is.character(grid)){
+      grid <- read_dat(grid)
+    } else {
+      grid <- grid
+    }
   if (val == 0) {
     #data_verification_call(x, project)
     #unique rows
