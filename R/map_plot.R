@@ -38,14 +38,28 @@ map_plot <- function(dat, project, lat, lon, minmax = NULL, percshown = NULL) {
   if (any(abs(dataset[[lat]]) > 90)) {
     warning("Latitude is not valid (outside -90:90. Function not run.")
     end <- TRUE
+    
   }
 
   if (end == FALSE) {
     datatomap <- as.data.frame(cbind(dataset[[lat]], dataset[[lon]]))
     colnames(datatomap) <- c("lat", "lon")
+    
 
     if (!is.null(percshown)) {
       datatomap <- datatomap[sample(nrow(datatomap), nrow(datatomap) / percshown), ]
+    }
+    
+    #Need to make adjustments if data is centered in the pacific.
+    if(min(datatomap$lon) < 0 & max(datatomap$lon) > 0){
+      recenter=TRUE
+      datatomap$lon <- ifelse(datatomap$lon < 0 , datatomap$lon + 360, datatomap$lon)
+      worldmap <- map_data("world", wrap = c(0, 360))
+      
+    } else {
+      recenter <- FALSE
+      worldmap <- map_data("world")
+      
     }
 
     if (is.null(minmax)) {
@@ -91,14 +105,29 @@ map_plot <- function(dat, project, lat, lon, minmax = NULL, percshown = NULL) {
     
     cf <- ggplot2::coord_fixed()
     cf$default <- TRUE
-  
+    
+    #Some functions we need to make the x-axis look nice with the centering around 180/-180
+    
+    if(recenter==FALSE){
+                            recenterlab <- c(seq(round(minlon, -1), round(maxlon, -1), 
+                                  (round(maxlon, -1) - round(minlon, -1))/5))
+                          } else {
+                            recenterlab <-  c(seq(round(minlon, -1), round(maxlon, -1), 
+                                   (round(maxlon, -1) - round(minlon, -1))/5)-360)
+                            recenterlab <- ifelse(recenterlab < -180, recenterlab + 360, recenterlab)
+                          }
+    ####
+    
     m_plot <- 
-      ggplot2::ggplot() +
-      ggplot2::geom_map(data = world, map = world, 
-                        ggplot2::aes(map_id = region), 
-                        fill = "grey", color = "black", size = 0.375) +
+      ggplot(aes(x = long, y = lat), data = worldmap) + 
+      geom_polygon(aes(group = group), fill="#f9f9f9", colour = "grey65") + 
       ggplot2::geom_point(data = datatomap, ggplot2::aes(x = lon, y = lat), 
                           size = 1, alpha = 0.25, color = "red") +
+      scale_x_continuous(limits = c(minlon, maxlon),
+                        breaks = seq(round(minlon, -1), round(maxlon,-1), 
+                                     (round(maxlon,-1)-round(minlon, -1))/5),
+                        labels =  recenterlab
+                      ) +
       cf + ggplot2::coord_fixed(xlim = c(minlon, maxlon), ylim = c(minlat, maxlat), 
                                 ratio=1.3, expand = TRUE) +
       ggplot2::labs(title = gptitle, x = "Longitude", y = "Latitude") +
@@ -119,6 +148,6 @@ map_plot <- function(dat, project, lat, lon, minmax = NULL, percshown = NULL) {
     # Save output
     save_plot(project, "map_plot")
   
-    m_plot
+    print(m_plot)
   }
 }

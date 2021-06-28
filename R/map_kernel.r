@@ -101,6 +101,18 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
     x <- 1
     # stop('Latitude is not valid (outside -90:90.')
   }
+  
+  #Need to make adjustments if data is centered in the pacific.
+  if(min(datatomap$lon) < 0 & max(datatomap$lon) > 0){
+    recenter <- TRUE
+    datatomap$lon <- ifelse(datatomap$lon < 0 , datatomap$lon + 360, datatomap$lon)
+    worldmap <- map_data("world", wrap = c(0, 360))
+    
+  } else {
+    recenter <- FALSE
+    worldmap <- map_data("world")
+    
+  }
 
   if (x == 0) {
     if (is.null(minmax) == TRUE) {
@@ -137,6 +149,16 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
         stop("Variable minmax wrong dimensions")
       }
     }
+    
+    if(recenter == FALSE){
+      recenterlab <- c(seq(round(minlon, -1), round(maxlon, -1), 
+                           (round(maxlon, -1) - round(minlon, -1))/5))
+    } else {
+      recenterlab <-  c(seq(round(minlon, -1), round(maxlon, -1), 
+                            (round(maxlon, -1) - round(minlon, -1))/5)-360)
+      recenterlab <- ifelse(recenterlab < -180, recenterlab + 360, recenterlab)
+    }
+    
     ################################################################################
     
     
@@ -167,8 +189,14 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
                                size = 0.375, alpha = 0.25) +
           ggplot2::xlim(minlon, maxlon) +
           ggplot2::ylim(minlat, maxlat) +
+          scale_x_continuous(limits = c(minlon, maxlon),
+                             breaks = seq(round(minlon, -1), round(maxlon,-1), 
+                                          (round(maxlon,-1)-round(minlon, -1))/5),
+                             labels =  recenterlab
+          ) +
           ggplot2::ggtitle("Points") +
           ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size = 10))) +
+          
           map_theme +
           ggplot2::xlab("Longitude") +
           ggplot2::ylab("Latitude")
@@ -181,6 +209,11 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
                                            colour = groupv), size = 0.375) +
           ggplot2::xlim(minlon, maxlon) +
           ggplot2::ylim(minlat, maxlat) +
+          scale_x_continuous(limits = c(minlon, maxlon),
+                             breaks = seq(round(minlon, -1), round(maxlon,-1), 
+                                          (round(maxlon,-1)-round(minlon, -1))/5),
+                             labels =  recenterlab
+          ) +
           ggplot2::ggtitle("Points") +
           ggplot2::facet_grid(. ~ groupv) +
           map_theme + ggplot2::theme(legend.position = "none") +
@@ -195,6 +228,11 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
                               color = "black", size = 0.375) +
           ggplot2::xlim(minlon, maxlon) +
           ggplot2::ylim(minlat, maxlat) +
+          scale_x_continuous(limits = c(minlon, maxlon),
+                             breaks = seq(round(minlon, -1), round(maxlon,-1), 
+                                          (round(maxlon,-1)-round(minlon, -1))/5),
+                             labels =  recenterlab
+          ) +
           ggplot2::ggtitle("Points") +
           map_theme +
           ggplot2::xlab("Longitude") +
@@ -215,6 +253,11 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
                                                                   colour = groupv)) +
           ggplot2::xlim(minlon, maxlon) +
           ggplot2::ylim(minlat, maxlat) +
+          scale_x_continuous(limits = c(minlon, maxlon),
+                             breaks = seq(round(minlon, -1), round(maxlon,-1), 
+                                          (round(maxlon,-1)-round(minlon, -1))/5),
+                             labels =  recenterlab
+          ) +
           ggplot2::ggtitle("Spatial kernel (contours)") +
           map_theme +
           ggplot2::xlab("Longitude") +
@@ -231,6 +274,11 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
                                                                   colour = groupv)) +
           ggplot2::xlim(minlon, maxlon) +
           ggplot2::ylim(minlat, maxlat) +
+          scale_x_continuous(limits = c(minlon, maxlon),
+                             breaks = seq(round(minlon, -1), round(maxlon,-1), 
+                                          (round(maxlon,-1)-round(minlon, -1))/5),
+                             labels =  recenterlab
+          ) +
           ggplot2::ggtitle("Spatial kernel (contours)") +
           ggplot2::facet_grid(. ~ groupv) +
           map_theme + ggplot2::theme(legend.position = "none") +
@@ -246,6 +294,11 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
           ggplot2::geom_density_2d(ggplot2::aes(x = datatomap$lon, y = datatomap$lat)) +
           ggplot2::xlim(minlon, maxlon) +
           ggplot2::ylim(minlat, maxlat) +
+          scale_x_continuous(limits = c(minlon, maxlon),
+                             breaks = seq(round(minlon, -1), round(maxlon,-1), 
+                                          (round(maxlon,-1)-round(minlon, -1))/5),
+                             labels =  recenterlab
+          ) +
           ggplot2::ggtitle("Spatial kernel (contours)") +
           map_theme +
           ggplot2::xlab("Longitude") +
@@ -271,6 +324,11 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
                                                 fill = stat(level)), geom = "polygon") +
           ggplot2::xlim(minlon, maxlon) +
           ggplot2::ylim(minlat, maxlat) +
+          scale_x_continuous(limits = c(minlon, maxlon),
+                             breaks = seq(round(minlon, -1), round(maxlon,-1), 
+                                          (round(maxlon,-1)-round(minlon, -1))/5),
+                             labels =  recenterlab
+          ) +
           ggplot2::facet_grid(. ~ groupv) +
           ggplot2::ggtitle("Spatial kernel (gradient)") +
           map_theme +
@@ -289,6 +347,11 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
                                                 fill = stat(level)), geom = "polygon") +
           ggplot2::xlim(minlon, maxlon) +
           ggplot2::ylim(minlat, maxlat) +
+          scale_x_continuous(limits = c(minlon, maxlon),
+                             breaks = seq(round(minlon, -1), round(maxlon,-1), 
+                                          (round(maxlon,-1)-round(minlon, -1))/5),
+                             labels =  recenterlab
+          ) +
           ggplot2::ggtitle("Spatial kernel (gradient)") +
           map_theme +
           ggplot2::theme(legend.title = ggplot2::element_text()) +
@@ -311,7 +374,7 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
 
     save_plot(project, "map_kernel", mapout)
 
-    mapout
+    print(mapout)
   }
 }
 
