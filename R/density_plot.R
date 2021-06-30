@@ -63,8 +63,8 @@
 #' @examples
 #' \dontrun{
 #' density_plot(pollockMainDataTable, "pollock", var = "OFFICIAL_TOTAL_CATCH_MT", "kde", 
-#'   date = "FISHING_START_DATE", filter_date = "year-month", filter_value = list(2011, 9:11),
-#'   trans = "log", facet_date = TRUE, group = "GEAR_TYPE"
+#'   group = "GEAR_TYPE", date = "FISHING_START_DATE", filter_date = "year-month", 
+#'   filter_value = list(2011, 9:11), tran = "log"
 #' )
 #' }
 #' @importFrom gridExtra grid.arrange

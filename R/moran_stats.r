@@ -29,7 +29,7 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
   #' @import ggplot2
   #' @importFrom maps map
   #' @importFrom spdep knn2nb knearneigh nb2listw localmoran moran.test
-  #' @importFrom sf st_coordinates st_centroid
+  #' @importFrom sf st_coordinates st_centroid st_geometry
   #' @importFrom shiny isRunning
   #' @export
   #' @examples
@@ -68,13 +68,13 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
     # Assign data to zone
     if (!is.null(cat)) {
       dataset <- assignment_column(dat=dataset, project=project, gridfile=spatdat, hull.polygon = TRUE, 
-                                   lon.dat=lon.dat, lat.dat=lat.dat, cat=cat,closest.pt = TRUE, 
+                                   lon.dat=lon.dat, lat.dat=lat.dat, cat=cat, closest.pt = TRUE, 
                                    lon.grid=lon.grid, lat.grid=lat.grid, epsg = NULL, log.fun = FALSE)
       
       
       # Idenfity centroid of zone
       int <- find_centroid(dat=dataset, project=project, gridfile=spatdat, lon.dat=lon.dat, 
-                           lat.dat=lat.dat, cat = cat, lon.grid=lon.grid, lat.grid=lat.grid, weight.var = NULL)
+                           lat.dat = lat.dat, cat = cat, lon.grid = lon.grid, lat.grid=lat.grid, weight.var = NULL)
     }
 
     # Create dataset
@@ -97,6 +97,10 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
 
     uniquedatatomap$Moran <- round(locm[, 1], 3)
 
+    if(min(uniquedatatomap$centroid_lon) <0  & max(uniquedatatomap$centroid_lon) > 0) {
+      spatdat$geometry = (sf::st_geometry(spatdat) + c(360,90)) %% c(360) - c(0,90)
+    }
+    
     gmoranspdep <- spdep::moran.test(uniquedatatomap$varofint, listw = spdep::nb2listw(nb.rk))
 
     g <- as.data.frame(spatdat[[cat]])
