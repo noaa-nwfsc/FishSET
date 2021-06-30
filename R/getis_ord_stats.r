@@ -31,7 +31,7 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
   #' @import ggplot2
   #' @importFrom maps map
   #' @importFrom spdep knn2nb knearneigh nb2listw localG globalG.test
-  #' @importFrom sf st_coordinates st_centroid
+  #' @importFrom sf st_coordinates st_centroid st_geometry
   #' @importFrom shiny isRunning
   #' @export
   #' @examples
@@ -54,6 +54,9 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
   spatdat <- spat_out$dataset
   spat <- parse_data_name(dat, "spat")
   
+    if ("sf" %in% class(spatdat) == FALSE) {
+      spatdat <- sf::st_as_sf(spatdat)
+    }
 
   x <- 0
   if (any(abs(dataset[[lon.dat]]) > 180)) {
@@ -71,7 +74,7 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
     # Assign data to zone
     if (!is.null(cat)) {
       dataset <- assignment_column(dat=dataset, project=project, gridfile=spatdat, hull.polygon = TRUE, 
-                                   lon.dat=lon.dat, lat.dat=lat.dat, cat=cat,closest.pt = TRUE, 
+                                   lon.dat=lon.dat, lat.dat=lat.dat, cat=cat, closest.pt = TRUE, 
                                    lon.grid=lon.grid, lat.grid=lat.grid, epsg = NULL, log.fun = FALSE)
       
       
@@ -80,12 +83,7 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
                            lat.dat=lat.dat, cat = cat, lon.grid=lon.grid, lat.grid=lat.grid, weight.var = NULL)
     }
     
-    # Create dataset
-    if ("sf" %in% class(spatdat) == FALSE) {
-      spatdat <- sf::st_as_sf(spatdat)
-    }
-
-
+     
      # datatomap <- merge(temp, int, by='ZoneID')
       int <- merge(int, dataset[, c(varofint, "ZoneID")], by = "ZoneID")
       names(int)[2] = "centroid_lon"
@@ -97,7 +95,11 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
     #  Identify variable of interest 
     int[["varofint"]] <- with(int, ave(int[["varofint"]], ZoneID, FUN = function(x) mean(x, na.rm = TRUE)))
     uniquedatatomap <- int[!duplicated(int$ZoneID), c("ZoneID", "centroid_lon", "centroid_lat", "varofint")]
-      
+    
+      if(min(uniquedatatomap$centroid_lon) <0  & max(uniquedatatomap$centroid_lon) > 0) {
+      spatdat$geometry = (sf::st_geometry(spatdat) + c(360,90)) %% c(360) - c(0,90)
+    }
+    
     nb.rk <- spdep::knn2nb(spdep::knearneigh(as.matrix(uniquedatatomap[, c("centroid_lon", "centroid_lat")]), longlat = TRUE))
     locg <- spdep::localG(uniquedatatomap[["varofint"]], listw = spdep::nb2listw(nb.rk))
       
@@ -105,6 +107,7 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
       
     globalgetis <- spdep::globalG.test(uniquedatatomap[["varofint"]], listw = spdep::nb2listw(nb.rk, style = "B"))
       
+ 
     g <- as.data.frame(spatdat[[cat]])
     colnames(g) = 'ZoneID'
     g <- merge(uniquedatatomap, g, all.y = TRUE)
@@ -112,7 +115,7 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
     spatdat <- cbind(spatdat, sf::st_coordinates(sf::st_centroid(spatdat)))
     spatdat <- subset(spatdat, !is.na(spatdat$GetisOrd))
     
-    
+   
     minlon <- min(spatdat$X) * 1.001 # lon negative
     maxlon <- max(spatdat$X) * 0.985
     minlat <- min(spatdat$Y) * 0.992
