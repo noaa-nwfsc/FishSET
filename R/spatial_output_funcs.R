@@ -1,5 +1,5 @@
 #' Histogram of latitude and longitude by grouping variable
-spatial_hist <- function(dat, project, group) {
+spatial_hist <- function(dat, project, group=NULL) {
   #' @param dat Primary data containing information on hauls or trips.
   #' Table in FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
@@ -23,8 +23,9 @@ spatial_hist <- function(dat, project, group) {
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
-
-  dataset <- dataset[, c(dataset[[group]], grep("lon|lat", names(dataset), ignore.case = TRUE))]
+  
+  if(!is.null(group)){
+  dataset <- dataset[, c(grep(group, names(dataset)), grep("lon|lat", names(dataset), ignore.case = TRUE))]
   melt.dat <- reshape2::melt(dataset)
   plot_out <- ggplot(melt.dat, aes(melt.dat$value, group = group, fill = group)) +
     geom_histogram(position = "identity", alpha = 0.5, binwidth = 0.25) +
@@ -32,6 +33,16 @@ spatial_hist <- function(dat, project, group) {
     scale_color_grey() +
     scale_fill_grey() +
     theme_classic()
+  } else {
+    dataset <- dataset[, c(grep("lon|lat", names(dataset), ignore.case = TRUE))]
+    melt.dat <- reshape2::melt(dataset)
+    plot_out <- ggplot(melt.dat, aes(melt.dat$value)) +
+      geom_histogram(position = "identity", alpha = 0.5, binwidth = 0.25) +
+      facet_wrap(~variable, scales = "free") +
+      scale_color_grey() +
+      scale_fill_grey() +
+      theme_classic()
+  }
 
   spatial_hist_function <- list()
   spatial_hist_function$functionID <- "spatial_hist"
@@ -42,13 +53,14 @@ spatial_hist <- function(dat, project, group) {
 
   save_plot(project, "spatial_hist")
 
-  plot_out
+  print(plot_out)
 }
 
 
 #' Summarize variable over data and time
 spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs", "perc_total", "mean", "median", "min", "max", "sum"),
-                            variable, gridfile, lon.grid, lat.grid, lon.dat, lat.dat, cat) {
+                            variable, gridfile, lon.grid = NULL, lat.grid = NULL, 
+                            lon.dat = NULL, lat.dat = NULL, cat) {
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
@@ -103,8 +115,8 @@ spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs"
   if ("ZoneID" %in% names(dataset) == FALSE) {
     dataset <- assignment_column(
       dat = dataset, project=project, gridfile = gridfile, hull.polygon = TRUE, 
-      lon.grid, lat.grid, lon.dat, lat.dat, cat, closest.pt = TRUE, epsg = NULL, 
-      log.fun = FALSE
+      lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat, lat.dat = lat.dat, 
+      cat = cat, closest.pt = TRUE, epsg = NULL, log.fun = FALSE
     )
   }
 
@@ -125,31 +137,35 @@ spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs"
     lab <- paste("No. observations", names(dataset)[var])
   }
   graphics::par(mfrow = c(1, 2))
-
+  
   if (stat.var == "no_unique_obs") {
-    plotout <- graphics::plot(aggregate(dataset[[variable]], by = list(dataset[, date.var]), function(x) length(unique(x))), type = "l", lty = 1, ylab = paste(
-      "No. unique obs",
-      names(dataset)[var], "per day"
-    ), xlab = "dataset")
-    graphics::lines(aggregate(dataset[[variable]], by = list(dataset[, date.var]), function(x) length(unique(x))))
-    graphics::plot(aggregate(dataset[[variable]], by = list(as.factor(dataset$ZoneID)), function(x) length(unique(x))), type = "l", lty = 1, ylab = paste(
-      "No. unique obs",
-      names(dataset)[var]
-    ), xlab = "Zone")
+    plotout <- graphics::plot(aggregate(dataset[[variable]], by = list(as.Date(dataset[, date.var])), 
+                                        function(x) length(unique(x))), type = "l", lty = 1,
+                              ylab = paste("No. unique obs", names(dataset)[var], "per day"), 
+                              xlab = "Date")
+    graphics::lines(aggregate(dataset[[variable]], by = list(as.Date(dataset[, date.var])), function(x) length(unique(x))))
+    graphics::plot(aggregate(dataset[[variable]], by = list(as.factor(dataset$ZoneID)), 
+                             function(x) length(unique(x))), type = "l", lty = 1, 
+                   ylab = paste("No. unique obs", names(dataset)[var]), xlab = "Zone")
     lines(aggregate(dataset[[variable]], by = list(as.factor(dataset$ZoneID)), function(x) length(unique(x))))
   } else if (stat.var == "perc_total") {
-    plotout <- plot(aggregate(dataset[[variable]], by = list(dataset[, date.var]), function(x) length((x)) / length(dataset[[variable]]) * 100),
+    plotout <- plot(aggregate(dataset[[variable]], by = list(as.Date(dataset[, date.var])), 
+                              function(x) length((x)) / length(dataset[[variable]]) * 100),
       type = "l", lty = 1,
-      ylab = paste("Percent total", names(dataset)[var], "per day"), xlab = "dataset"
+      ylab = paste("Percent total", names(dataset)[var], "per day"), xlab = "Date"
     )
-    lines(aggregate(dataset[[variable]], by = list(dataset[, date.var]), function(x) length((x)) / length(dataset[[variable]]) * 100))
-    plot(aggregate(dataset[[variable]], by = list(as.factor(dataset$ZoneID)), function(x) length((x)) / length(dataset[[variable]]) * 100),
+    lines(aggregate(dataset[[variable]], by = list(as.Date(dataset[, date.var])), 
+                    function(x) length((x)) / length(dataset[[variable]]) * 100))
+    plot(aggregate(dataset[[variable]], by = list(as.factor(dataset$ZoneID)),
+                   function(x) length((x)) / length(dataset[[variable]]) * 100),
       type = "l",
       lty = 1, ylab = paste("Percent total", names(dataset)[var]), xlab = "Zone"
     )
-    lines(aggregate(dataset[[variable]], by = list(as.factor(dataset$ZoneID)), function(x) length((x)) / length(dataset[[variable]]) * 100))
+    lines(aggregate(dataset[[variable]], by = list(as.factor(dataset$ZoneID)),
+                    function(x) length((x)) / length(dataset[[variable]]) * 100))
   } else {
-    plotout <- plot(aggregate(dataset[[variable]], by = list(dataset[, date.var]), stat.var), type = "l", lty = 1, ylab = paste(lab, "per day"), xlab = "dataset")
+    plotout <- plot(aggregate(dataset[[variable]], by = list(as.Date(dataset[, date.var])), stat.var), 
+                    type = "l", lty = 1, ylab = paste(lab, "per day"), xlab = "Date")
     lines(aggregate(dataset[[variable]], by = list(dataset[, date.var]), stat.var))
     plot(aggregate(dataset[[variable]], by = list(as.factor(dataset$ZoneID)), stat.var), type = "l", ylab = lab, xlab = "Zone")
     lines(aggregate(dataset[[variable]], by = list(as.factor(dataset$ZoneID)), stat.var))
@@ -163,5 +179,5 @@ spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs"
   log_call(project, spatial_summary_function)
 
   save_plot(project, "spatial_summary")
-  plotout
+  print(plotout)
 }
