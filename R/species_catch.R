@@ -104,8 +104,6 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
-  catch <- NA
-  
   end <- FALSE 
   
   not_num <- vapply(dataset[species], function(x) !is.numeric(x), logical(1))
@@ -366,8 +364,12 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
       
       # plot functions ----
       
+      catch_sym <- rlang::sym(f_catch())
+      
       catch_exp <- function() {
-        if (length(species) == 1) rlang::sym(species) else rlang::sym("catch")
+       
+        if (tran == "sqrt") rlang::expr(sqrt(!!catch_sym))
+        else catch_sym
       }
       
       xaxis_exp <- function() {
@@ -488,20 +490,49 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
         else rlang::as_string(xaxis_exp())
       }  
       
-       # use rlang::expr_text to convert funs to text
       y_lab <- function() {
         paste(fun, f_catch(), 
               ifelse(tran == "identity", "", paste0("(", tran, ")")))
       }
       
-      scale_lab <- function() {
-        if (value == "percent") scales::label_percent(scale = 1) 
-        else ggplot2::waiver()
+      y_breaks <- function() {
+        if (tran != "identity") {
+          
+          brk_num <- nchar(trunc(max(dataset[[f_catch()]], na.rm = TRUE)))
+          brk_num <- ifelse(length(brk_num) < 5, 5, brk_num)
+          
+          if (tran %in% c("log", "log2", "log10")) {
+            
+            y_base <- switch(tran, "log" = 2.718282, "log2" = 2, "log10" = 10)
+            
+            scales::log_breaks(n = brk_num, base = y_base)
+            
+          } else {
+            
+            scales::breaks_extended(n = brk_num + 2)
+          }
+          
+        } else ggplot2::waiver()
       }
       
-      y_breaks <- function() {
-        if (tran != "identity") scales::breaks_extended(n = 7) 
-        else ggplot2::waiver()
+      y_labeller <- function() { 
+        
+        if (value == "percent") {
+          
+          if (tran == "sqrt") function(x) paste0(x^2, "%")
+          else scales::label_percent(scale = 1) 
+          
+        } else {
+          
+          if (tran == "sqrt") function(x) x^2
+          else ggplot2::waiver()
+        }
+      }
+      
+      f_tran <- function() {
+        
+        if (tran == "sqrt") "identity"
+        else tran
       }
       
       # plot ----
@@ -510,7 +541,8 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
                                              y = !!catch_exp())) +
         fishset_theme() +
         ggplot2::theme(legend.position = "bottom") +
-        ggplot2::scale_y_continuous(labels = scale_lab(), trans = tran, 
+        ggplot2::scale_y_continuous(labels = y_labeller(),
+                                    trans = f_tran(),
                                     breaks = y_breaks())
       
       if (type == "bar") {
@@ -605,8 +637,8 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
       
       if (length(species) > 1) {
         
-        table_out <- tidyr::pivot_wider(table_out, names_from = species, 
-                                        values_from = catch)
+        table_out <- tidyr::pivot_wider(table_out, names_from = "species", 
+                                        values_from = "catch")
       }
     }
     

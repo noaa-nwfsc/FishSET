@@ -48,7 +48,8 @@
 #'   and 'fill'.
 #' @param value Whether to return \code{"count"} or \code{"percent"} of active vessels. Defaults
 #'   to \code{"count"}. 
-#' @param tran transformation function applied to vessel count. Defaults to \code{FALSE}. 
+#' @param tran A function to transform the y-axis. Options include log, log2, log10, 
+#'   and sqrt.
 #' @param type Plot type, options include \code{"bar"} (the default) and \code{"line"}. 
 #' @param scale Scale argument passed to \code{\link{facet_grid}}. 
 #'   Options include \code{"free"}, \code{"free_x"}, \code{"free_y"}. Defaults to 
@@ -177,6 +178,7 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
       end <- TRUE
     }
   }
+  
   # period ----
   if (!is.null(period)) {
     
@@ -197,47 +199,47 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
                   day_of_year = "%j", cal_date = NULL)
     }
   }
-  # add missing ----
-  dataset <- add_missing_dates(dataset, date = date, value = v_id, sub_date = sub_date,
-                               group = group_no_date, facet_by = facet_no_date, 
-                               fun = "count")
-
-    if (!is.null(period)) {
-      if (period != "cal_date") {
-        dataset[[period]] <- format(dataset[[date]], p)
-      }
-    }
-  
-  # facet/group date ----
-  dataset <- facet_period(dataset, facet_date = unique(c(facet_date, group_date)),
-                          date = sub_date, period = period)
-
-  # group ----
-  if (!is.null(group)) {
-    
-    if (combine == TRUE & length(group) > 1) { 
-      
-      dataset <- ID_var(dataset, project = project, vars = group, type = "string",
-                        log_fun = FALSE)
-      group <- gsub(" ", "", paste(group, collapse = "_"))
-      group1 <- group
-      group2 <- NULL
-      
-    } else {
-      
-      dataset[group] <- lapply(dataset[group], as.factor)
-      group1 <- group[1]
-    }
-
-    if (length(group) == 1) group2 <- NULL else group2 <- group[2]
-    
-    if (length(group) > 2) {
-      
-      warning("Only the first two grouping variables will be displayed in plot.")
-    }
-  }
   
   if (end == FALSE) {
+    # add missing ----
+    dataset <- add_missing_dates(dataset, date = date, value = v_id, sub_date = sub_date,
+                                 group = group_no_date, facet_by = facet_no_date, 
+                                 fun = "count")
+  
+      if (!is.null(period)) {
+        if (period != "cal_date") {
+          dataset[[period]] <- format(dataset[[date]], p)
+        }
+      }
+    
+    # facet/group date ----
+    dataset <- facet_period(dataset, facet_date = unique(c(facet_date, group_date)),
+                            date = sub_date, period = period)
+  
+    # group ----
+    if (!is.null(group)) {
+      
+      if (combine == TRUE & length(group) > 1) { 
+        
+        dataset <- ID_var(dataset, project = project, vars = group, type = "string",
+                          log_fun = FALSE)
+        group <- gsub(" ", "", paste(group, collapse = "_"))
+        group1 <- group
+        group2 <- NULL
+        
+      } else {
+        
+        dataset[group] <- lapply(dataset[group], as.factor)
+        group1 <- group[1]
+      }
+  
+      if (length(group) == 1) group2 <- NULL else group2 <- group[2]
+      
+      if (length(group) > 2) {
+        
+        warning("Only the first two grouping variables will be displayed in plot.")
+      }
+    }
     
     # summary table ----
     agg_grp <- c(group, facet_by, facet_date)
@@ -305,9 +307,15 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
     # plot ----
     if (output %in% c("plot", "tab_plot")) {
       
+      f_vessel <- function() {
+        if (value == "percent") rlang::sym(v_id_perc)
+        else rlang::sym(v_id)
+      }
+      
       # plot functions ----
       vessel_exp <- function() {
-        if (value == "percent") rlang::sym(v_id_perc) else rlang::sym(v_id)
+        if (tran == "sqrt") rlang::expr(sqrt(!!f_vessel()))
+        else f_vessel()
       }
       
       xaxis_exp <- function() {
@@ -373,6 +381,16 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
         else rlang::as_string(xaxis_exp())
       }
       
+      point_size <- function() {
+        
+        if (!is.null(period)) {
+          if (is.null(p)) .5
+          else if (period == "week") 1
+          else 2
+          
+        } else 2
+      }
+      
       scale_lab <- function() {
         if (value == "percent") scales::label_percent(scale = 1) 
         else ggplot2::waiver()
@@ -383,21 +401,52 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
         else ggplot2::waiver()
       }
      
-      point_size <- function() {
-        
-        if (!is.null(period)) {
-          if (is.null(p)) .5
-          else if (period == "week") 1
-          else 2
-    
-        } else 2
+      y_breaks <- function() {
+        if (tran != "identity") {
+          
+          brk_num <- nchar(trunc(max(dataset[[v_id]], na.rm = TRUE)))
+          brk_num <- ifelse(length(brk_num) < 5, 5, brk_num)
+          
+          if (tran %in% c("log", "log2", "log10")) {
+            
+            y_base <- switch(tran, "log" = 2.718282, "log2" = 2, "log10" = 10)
+            
+            scales::log_breaks(n = brk_num, base = y_base)
+            
+          } else {
+            
+            scales::breaks_extended(n = brk_num + 2)
+          }
+          
+        } else ggplot2::waiver()
       }
+      
+      y_labeller <- function() { 
+        
+        if (value == "percent") {
+          
+          if (tran == "sqrt") function(x) paste0(x^2, "%")
+          else scales::label_percent(scale = 1) 
+          
+        } else {
+          
+          if (tran == "sqrt") function(x) x^2
+          else ggplot2::waiver()
+        }
+      }
+      
+      f_tran <- function() {
+        
+        if (tran == "sqrt") "identity"
+        else tran
+      } 
       
       v_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = !!xaxis_exp(), 
                                                                y = !!vessel_exp())) +
         fishset_theme() +
         ggplot2::theme(legend.position = "bottom") +
-        ggplot2::scale_y_continuous(labels = scale_lab(), trans = tran, 
+        ggplot2::scale_y_continuous(labels = y_labeller(), 
+                                    trans = f_tran(), 
                                     breaks = y_breaks())
       
       if (type == "bar") {
