@@ -407,8 +407,10 @@ density_serv <- function(id, values, project) {
                          
                          selectizeInput(ns("filter_by_val"), "Select values",
                                         choices = filter_val(),
-                                        multiple = TRUE, options = list(maxOptions = 15, 
-                                                                        placeholder = "Select or type value name")))
+                                        multiple = TRUE, 
+                                        options = list(maxOptions = 15, 
+                                                       placeholder = "Select or type value name",
+                                                       create = TRUE)))
       )
     })
     
@@ -643,7 +645,9 @@ vessel_serv <- function(id, values, project) {
                          selectizeInput(ns("filter_by_val"), "Select value(s)",
                                         choices = filter_val(),
                                         multiple = TRUE, 
-                                        options = list(maxOptions = 15, placeholder = "Select or type value name")))
+                                        options = list(maxOptions = 15, 
+                                                       placeholder = "Select or type value name",
+                                                       create = TRUE)))
       )
     })
     
@@ -871,7 +875,9 @@ species_serv <- function(id, values, project) {
         
         selectizeInput(ns("filter_by_val"), "Select values",
                     choices = filter_val(),
-                    multiple = TRUE, options = list(maxOptions = 15, placeholder = "Select or type value name")))
+                    multiple = TRUE, options = list(maxOptions = 15, 
+                                                    placeholder = "Select or type value name",
+                                                    create = TRUE)))
       )
     })
     
@@ -1111,7 +1117,10 @@ roll_serv <- function(id, values, project) {
                          
                          selectizeInput(ns("filter_by_val"), "Select values",
                                         choices = filter_val(),
-                                        multiple = TRUE, options = list(maxOptions = 15, placeholder = "Select or type value name")))
+                                        multiple = TRUE, 
+                                        options = list(maxOptions = 15,
+                                                       placeholder = "Select or type value name",
+                                                       create = TRUE)))
       )
     })
     
@@ -1347,8 +1356,10 @@ weekly_catch_serv <- function(id, values, project) {
                          
                          selectizeInput(ns("filter_by_val"), "Select values",
                                         choices = filter_val(),
-                                        multiple = TRUE, options = list(maxOptions = 15, 
-                                                                        placeholder = "Select or type value name")))
+                                        multiple = TRUE, 
+                                        options = list(maxOptions = 15, 
+                                                       placeholder = "Select or type value name",
+                                                       create = TRUE)))
         )
     })
     
@@ -1577,8 +1588,10 @@ weekly_effort_serv <- function(id, values, project) {
                          
                          selectizeInput(ns("filter_by_val"), "Select values",
                                         choices = filter_val(),
-                                        multiple = TRUE, options = list(maxOptions = 15, 
-                                                                        placeholder = "Select or type value name")))
+                                        multiple = TRUE, 
+                                        options = list(maxOptions = 15,
+                                                       placeholder = "Select or type value name",
+                                                       create = TRUE)))
       )
     })
     
@@ -1812,8 +1825,10 @@ bycatch_serv <- function(id, values, project) {
                          
                          selectizeInput(ns("filter_by_val"), "Select values",
                                         choices = filter_val(),
-                                        multiple = TRUE, options = list(maxOptions = 15, 
-                                                                        placeholder = "Select or type value name")))
+                                        multiple = TRUE, 
+                                        options = list(maxOptions = 15, 
+                                                       placeholder = "Select or type value name",
+                                                       create = TRUE)))
       )
     })
     
@@ -2064,8 +2079,10 @@ trip_serv <- function(id, values, project) {
                          
                          selectizeInput(ns("filter_by_val"), "Select values",
                                         choices = filter_val(),
-                                        multiple = TRUE, options = list(maxOptions = 15, 
-                                                                        placeholder = "Select or type value name")))
+                                        multiple = TRUE, 
+                                        options = list(maxOptions = 15, 
+                                                       placeholder = "Select or type value name",
+                                                       create = TRUE)))
       )
     })
     
