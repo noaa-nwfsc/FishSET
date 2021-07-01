@@ -80,6 +80,7 @@
 #' @importFrom stats reformulate
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @importFrom rlang expr sym
+#' @importFrom scales breaks_extended log_breaks
 
 weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NULL, 
                           filter_date = NULL, date_value = NULL, filter_by = NULL, 
@@ -92,6 +93,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
+  week <- sym("week")
   end <- FALSE 
   
   not_num <- vapply(dataset[cpue], function(x) !is.numeric(x), logical(1))
@@ -385,7 +387,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
         else ggplot2::waiver()
       }
       
-      tran_f <- function() {
+      f_tran <- function() {
         
         if (tran == "sqrt") "identity"
         else tran
@@ -398,7 +400,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
                                         linetype = !!linetype_exp())) +
         ggplot2::geom_point(ggplot2::aes(group = !!interaction_exp(), 
                                          color = !!color_exp()), size = 1) +
-        ggplot2::scale_y_continuous(trans = tran_f(), breaks = y_breaks(), 
+        ggplot2::scale_y_continuous(trans = f_tran(), breaks = y_breaks(), 
                                     labels = y_labeller()) +
         ggplot2::scale_x_continuous(breaks = num_breaks(table_out$week), 
                                     labels = week_labeller(num_breaks(table_out$week), 
@@ -414,6 +416,11 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
         else if (length(facet_by) == 2) fm <- paste(facet_by, sep = " ~ ")
         
         e_plot <- e_plot + ggplot2::facet_grid(fm, scales = scale)
+      }
+      # add year/month filtered to subtitle
+      if (!is.null(filter_date)) {
+        
+        e_plot <- date_title(e_plot, filter_date, date_value)
       }
       
       save_plot(project, "weekly_effort", e_plot)

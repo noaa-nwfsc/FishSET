@@ -90,7 +90,7 @@
 #' @export weekly_catch
 #' @importFrom stats reformulate
 #' @importFrom tidyr pivot_longer pivot_wider
-#' @importFrom scales label_percent breaks_extended
+#' @importFrom scales label_percent breaks_extended log_breaks
 #' @importFrom rlang sym expr
 #' @import ggplot2
 
@@ -107,6 +107,7 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
   
   dat <- parse_data_name(dat, "main")
   
+  week <- rlang::sym("week")
   end <- FALSE 
   
   not_num <- vapply(dataset[species], function(x) !is.numeric(x), logical(1))

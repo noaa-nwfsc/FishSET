@@ -90,7 +90,7 @@
 #' @importFrom stats reformulate
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @importFrom rlang expr sym
-#' @importFrom scales label_percent breaks_extended
+#' @importFrom scales label_percent breaks_extended log_breaks
 
 species_catch <- function(dat, project, species, date = NULL, period = NULL, fun = "sum", 
                           group = NULL, sub_date = NULL, filter_date = NULL, date_value = NULL, 
@@ -596,7 +596,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
       # remove legend if
       if (is.null(period) & is.null(group) & length(species) > 1) {
         
-        s_plot <- s_plot + theme(legend.position = "none")
+        s_plot <- s_plot + ggplot2::theme(legend.position = "none")
       }
       
       # add labels
