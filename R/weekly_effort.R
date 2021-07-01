@@ -92,11 +92,6 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
-  catch <- NA
-  species <- NA
-  mean_cpue <- NA
-  week <- NA
-  
   end <- FALSE 
   
   not_num <- vapply(dataset[cpue], function(x) !is.numeric(x), logical(1))
@@ -264,7 +259,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
                                        values_to = "mean_cpue")
     }
     
-    f_cpue <- function() if (length(cpue) == 1) cpue else "CPUE" 
+    f_cpue <- function() if (length(cpue) == 1) cpue else "mean_cpue"
     
     # Confidentiality checks ----
     if (run_confid_check()) {
@@ -297,13 +292,9 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
       
       # plot functions ----
       
-      if (length(cpue) == 1) single_cpue_sym <- rlang::sym(cpue)
+      cpue_sym <- rlang::sym(f_cpue())
       
-      if (length(cpue) > 1) {
-        
-        multi_cpue_sym <- rlang::sym("mean_cpue")
-        species_sym <- rlang::sym("species")
-      }
+      if (length(cpue) > 1) species_sym <- rlang::sym("species")
       
       if (!is.null(group)) {
         
@@ -311,8 +302,10 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
         if (length(group) > 1) group2_sym <- rlang::sym(group2)
       }
       
-      y_axis_exp <- function() {
-        if (length(cpue) == 1) single_cpue_sym else multi_cpue_sym
+      cpue_exp <- function() {
+          
+          if (tran == "sqrt") rlang::expr(sqrt(!!cpue_sym))
+          else cpue_sym 
       }
       
       interaction_exp <- function() {
@@ -362,17 +355,51 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
       
       x_lab <- function() paste0(date, " (week)")
       y_lab <- function() {
-        paste("mean", f_cpue(), 
+        paste("mean", ifelse(length(cpue) == 1, cpue, "CPUE"), 
               ifelse(tran == "identity", "", paste0("(", tran, ")")))
       }
       
+      y_breaks <- function() {
+        if (tran != "identity") {
+          
+          brk_num <- nchar(trunc(max(dataset[[f_cpue()]], na.rm = TRUE)))
+          brk_num <- ifelse(length(brk_num) < 5, 5, brk_num)
+          
+          if (tran %in% c("log", "log2", "log10")) {
+            
+            y_base <- switch(tran, "log" = 2.718282, "log2" = 2, "log10" = 10)
+            
+            scales::log_breaks(n = brk_num, base = y_base)
+          
+          } else {
+            
+            scales::breaks_extended(n = brk_num + 2)
+          }
+          
+        } else ggplot2::waiver()
+      }
+      
+      y_labeller <- function() {
+        
+        if (tran == "sqrt") function(x) x^2
+        else ggplot2::waiver()
+      }
+      
+      tran_f <- function() {
+        
+        if (tran == "sqrt") "identity"
+        else tran
+      }
+      
       e_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = week, 
-                                                               y = !!y_axis_exp())) +
+                                                               y = !!cpue_exp())) +
         ggplot2::geom_line(ggplot2::aes(group = !!interaction_exp(), 
                                         color = !!color_exp(), 
                                         linetype = !!linetype_exp())) +
         ggplot2::geom_point(ggplot2::aes(group = !!interaction_exp(), 
                                          color = !!color_exp()), size = 1) +
+        ggplot2::scale_y_continuous(trans = tran_f(), breaks = y_breaks(), 
+                                    labels = y_labeller()) +
         ggplot2::scale_x_continuous(breaks = num_breaks(table_out$week), 
                                     labels = week_labeller(num_breaks(table_out$week), 
                                                            year = table_out$year)) +
@@ -408,8 +435,8 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
     
     if (length(cpue) > 1 & format_tab == "wide") {
       
-      table_out <- tidyr::pivot_wider(table_out, names_from = species, 
-                                      values_from = mean_cpue)
+      table_out <- tidyr::pivot_wider(table_out, names_from = "species", 
+                                      values_from = "mean_cpue")
     }
     
     # Log function

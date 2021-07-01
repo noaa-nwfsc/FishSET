@@ -107,9 +107,6 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
   
   dat <- parse_data_name(dat, "main")
   
-  week <- NA
-  catch <- NA
-  
   end <- FALSE 
   
   not_num <- vapply(dataset[species], function(x) !is.numeric(x), logical(1))
@@ -195,63 +192,64 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
     }
   }
   
-  # add missing ---- 
-  if ("species" %in% facet_by) {
-    
-    facet <- facet_no_date[facet_no_date != "species"]
-    
-    if (length(facet) == 0) facet <- NULL
-  } else facet <- facet_no_date
-  
-  dataset <- add_missing_dates(dataset, date = date, sub_date = sub_date, 
-                               value = species, group = group_no_date, 
-                               facet_by = facet)
-  
-  # facet date ----
-  # add year and week columns
-  dataset$year <- as.integer(format(dataset[[date]], "%Y"))
-  dataset$week <- as.integer(format(dataset[[date]], "%U"))
-  
-  if (!is.null(facet_date)) {
-    
-    if ("month" %in% facet_date) {
-      
-      dataset$month <- factor(format(dataset[[sub_date]], "%b"), 
-                              levels = month.abb, ordered = TRUE)
-    }
-  }
-  
-  # group date ----
-  if (length(group_date) > 0) {
-    
-    if ("month" %in% group_date & !("month" %in% facet_date)) {
-      dataset$month <- factor(format(dataset[[sub_date]], "%b"), 
-                              levels = month.abb, ordered = TRUE)
-    }
-  }
-  
-  # group ----
-  if (!is.null(group)) {
-    
-    if (combine == TRUE & length(group) > 1) { 
-      
-      dataset <- ID_var(dataset, project = project, vars = group, type = "string",
-                        log_fun = FALSE)
-      group <- gsub(" ", "", paste(group, collapse = "_"))
-      group1 <- group
-      group2 <- NULL
-      
-    } else group1 <- group[1]
-    
-    if (length(group) == 1) group2 <- NULL else group2 <- group[2]
-    
-    if (length(group) > 2) {
-      
-      warning("Only the first two grouping variables will be displayed in plot.")
-    }
-  }
-  
   if (end == FALSE) {
+  
+    # add missing ---- 
+    if ("species" %in% facet_by) {
+      
+      facet <- facet_no_date[facet_no_date != "species"]
+      
+      if (length(facet) == 0) facet <- NULL
+    } else facet <- facet_no_date
+    
+    dataset <- add_missing_dates(dataset, date = date, sub_date = sub_date, 
+                                 value = species, group = group_no_date, 
+                                 facet_by = facet)
+    
+    # facet date ----
+    # add year and week columns
+    dataset$year <- as.integer(format(dataset[[date]], "%Y"))
+    dataset$week <- as.integer(format(dataset[[date]], "%U"))
+    
+    if (!is.null(facet_date)) {
+      
+      if ("month" %in% facet_date) {
+        
+        dataset$month <- factor(format(dataset[[sub_date]], "%b"), 
+                                levels = month.abb, ordered = TRUE)
+      }
+    }
+    
+    # group date ----
+    if (length(group_date) > 0) {
+      
+      if ("month" %in% group_date & !("month" %in% facet_date)) {
+        dataset$month <- factor(format(dataset[[sub_date]], "%b"), 
+                                levels = month.abb, ordered = TRUE)
+      }
+    }
+    
+    # group ----
+    if (!is.null(group)) {
+      
+      if (combine == TRUE & length(group) > 1) { 
+        
+        dataset <- ID_var(dataset, project = project, vars = group, type = "string",
+                          log_fun = FALSE)
+        group <- gsub(" ", "", paste(group, collapse = "_"))
+        group1 <- group
+        group2 <- NULL
+        
+      } else group1 <- group[1]
+      
+      if (length(group) == 1) group2 <- NULL else group2 <- group[2]
+      
+      if (length(group) > 2) {
+        
+        warning("Only the first two grouping variables will be displayed in plot.")
+      }
+    }
+  
     # summary table ----
     agg_grp <- c(group, facet, facet_date)
     
@@ -336,18 +334,20 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
       
       # plot functions ----
       
-      if (length(species) == 1) single_species_sym <- rlang::sym(species)
+      catch_sym <- rlang::sym(f_catch())
       
-      if (length(species) > 1) multi_species_sym <- rlang::sym("species")
+      if (length(species) > 1) species_sym <- rlang::sym("species")
+      
+      catch_exp <- function() {
+        
+        if (tran == "sqrt") rlang::expr(sqrt(!!catch_sym))
+        else catch_sym
+      }
       
       if (!is.null(group)) {
         
         group1_sym <- rlang::sym(group1)
         if (length(group) > 1) group2_sym <- rlang::sym(group2)
-      }
-      
-      y_axis_exp <- function() {
-        if (length(species) == 1) single_species_sym else rlang::sym("catch")
       }
       
       interaction_exp <- function() {
@@ -363,13 +363,13 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
           }
           
         } else if (length(species) > 1) {
-          if (is.null(group))  multi_species_sym
+          if (is.null(group)) species_sym
             
           else if (length(group) == 1) {
-            rlang::expr(interaction(!!multi_species_sym, !!group1_sym))
+            rlang::expr(interaction(!!species_sym, !!group1_sym))
             
           } else if (length(group) > 1) {
-            rlang::expr(interaction(!!multi_species_sym, !!group1_sym, !!group2_sym))
+            rlang::expr(interaction(!!species_sym, !!group1_sym, !!group2_sym))
           }
         }
       }
@@ -380,9 +380,7 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
           if (!is.null(group)) group1_sym
           else NULL
           
-        } else if (length(species) > 1) {
-          multi_species_sym
-        }
+        } else if (length(species) > 1) species_sym
       }
       
       linetype_exp <- function() {
@@ -398,24 +396,57 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
       }
   
       x_lab <- function() paste0(date, " (week)")
+      
       y_lab <- function() {
         paste(fun, f_catch(), 
               ifelse(tran == "identity", "", paste0("(", tran, ")")))
       }
-      scale_lab <- function() {
-        if (value == "percent") scales::label_percent(scale = 1) 
-        else ggplot2::waiver()
-      }
+      
       y_breaks <- function() {
-        if (tran != "identity") scales::breaks_extended(n = 7) 
-        else ggplot2::waiver()
+        if (tran != "identity") {
+          
+          brk_num <- nchar(trunc(max(dataset[[f_catch()]], na.rm = TRUE)))
+          brk_num <- ifelse(length(brk_num) < 5, 5, brk_num)
+          
+          if (tran %in% c("log", "log2", "log10")) {
+            
+            y_base <- switch(tran, "log" = 2.718282, "log2" = 2, "log10" = 10)
+            
+            scales::log_breaks(n = brk_num, base = y_base)
+            
+          } else {
+            
+            scales::breaks_extended(n = brk_num + 2)
+          }
+          
+        } else ggplot2::waiver()
+      }
+      
+      y_labeller <- function() { 
+        
+        if (value == "percent") {
+          
+          if (tran == "sqrt") function(x) paste0(x^2, "%")
+          else scales::label_percent(scale = 1) 
+          
+        } else {
+          
+          if (tran == "sqrt") function(x) x^2
+          else ggplot2::waiver()
+        }
+      }
+      
+      f_tran <- function() {
+        
+        if (tran == "sqrt") "identity"
+        else tran
       }
       
       w_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = week, 
-                                                               y = !!y_axis_exp())) +
+                                                               y = !!catch_exp())) +
         fishset_theme() +
         ggplot2::theme(legend.position = "bottom") +
-        ggplot2::scale_y_continuous(labels = scale_lab(), trans = tran, 
+        ggplot2::scale_y_continuous(labels = y_labeller(), trans = f_tran(), 
                                     breaks = y_breaks()) +
         ggplot2::scale_x_continuous(breaks = num_breaks(table_out$week), 
                                     labels = week_labeller(num_breaks(table_out$week), 
@@ -451,7 +482,7 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
       }
       
       if (!is.null(filter_date)) {
-        w_plot <- date_title(w_plot, filter_date, filter_value)
+        w_plot <- date_title(w_plot, filter_date, date_value)
       }
       
       # save plots
@@ -471,8 +502,8 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
     
     if (length(species) > 1 & format_tab == "wide") {
       
-      table_out <- tidyr::pivot_wider(table_out, names_from = species, 
-                                      values_from = catch)
+      table_out <- tidyr::pivot_wider(table_out, names_from = "species", 
+                                      values_from = "catch")
     }
     # log function
     weekly_catch_function <- list()
