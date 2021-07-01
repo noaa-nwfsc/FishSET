@@ -78,7 +78,7 @@
 #' @import ggplot2
 #' @importFrom stats reformulate
 #' @importFrom rlang sym expr as_string
-#' @importFrom scales label_percent breaks_extended
+#' @importFrom scales label_percent breaks_extended log_breaks
 
 vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group = NULL, 
                          sub_date = NULL, filter_date = NULL, date_value = NULL, 
