@@ -255,14 +255,17 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
       suppress <- check_out$suppress
     }
     
-    
+   
     sep <- function() {
-      if (length(agg_grp) > 0) {
-        if (length(catch) == 1) NULL
-        else if (length(catch) > 1) "__"
+      
+      if (length(catch) > 1 | length(agg_grp) > 1) {
+        
+        if (length(catch) > 1 & length(agg_grp) > 0 | length(agg_grp) > 1) "__"
+        else NULL
         
       } else NULL
     }
+    
     
     names_to <- function() {
       
@@ -367,51 +370,55 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
           if (nrow(roll_tab) == 0) {
             
             warning("Filtered data table has zero rows. Check filter parameters.")
+            end <- TRUE
           }
         }
       }
     }
     
-    # plot ----
-    if (output %in% c("tab_plot", "plot")) {
+    if (end == FALSE) {
       
-      group_list <- list(group = group,
-                         group1 = get0("group1"),
-                         group2 = get0("group2"))
-      
-      rc_plot <- roll_catch_plot(roll_tab, catch, date, group_list, facet_by, 
-                                 fun, k, tran, scale)
-      
-      if (suppress) {
+      # plot ----
+      if (output %in% c("tab_plot", "plot")) {
         
-        check_plot <- roll_catch_plot(replace_sup_code(check_out$table, 0), 
-                                      catch, date, group_list, 
-                                      facet_by, fun, k, tran, scale)
-        save_plot(project, "roll_catch_confid", plot = check_plot)
+        group_list <- list(group = group,
+                           group1 = get0("group1"),
+                           group2 = get0("group2"))
+        
+        rc_plot <- roll_catch_plot(roll_tab, catch, date, group_list, facet_by, 
+                                   fun, k, tran, scale)
+        
+        if (suppress) {
+          
+          check_plot <- roll_catch_plot(replace_sup_code(check_out$table, 0), 
+                                        catch, date, group_list, 
+                                        facet_by, fun, k, tran, scale)
+          save_plot(project, "roll_catch_confid", plot = check_plot)
+        }
+        
+        save_plot(project, "roll_catch", plot = rc_plot)
       }
-
-      save_plot(project, "roll_catch", plot = rc_plot)
-    }
-    
-    save_table(roll_tab, project, "roll_catch")
-    
-    if (suppress) save_table(check_out$table, project, "roll_catch_confid")
-    
-    roll_catch_function <- list()
-    roll_catch_function$functionID <- "roll_catch"
-    roll_catch_function$args <- list(dat, project, catch, date, group, combine, k, 
-                                     fun, sub_date, filter_date, date_value, filter_by, 
-                                     filter_value, filter_expr, facet_by, scale, align, 
-                                     convr, tran, output)
-    roll_catch_function$kwargs <- list(...)
-    log_call(project, roll_catch_function)
-    
-    if (output == "table") roll_tab
-    else if (output == "plot") rc_plot
-    else if (output == "tab_plot") {
       
-      tab_plot <- list(table = roll_tab, plot = rc_plot)
-      tab_plot
+      save_table(roll_tab, project, "roll_catch")
+      
+      if (suppress) save_table(check_out$table, project, "roll_catch_confid")
+      
+      roll_catch_function <- list()
+      roll_catch_function$functionID <- "roll_catch"
+      roll_catch_function$args <- list(dat, project, catch, date, group, combine, k, 
+                                       fun, sub_date, filter_date, date_value, filter_by, 
+                                       filter_value, filter_expr, facet_by, scale, align, 
+                                       convr, tran, output)
+      roll_catch_function$kwargs <- list(...)
+      log_call(project, roll_catch_function)
+      
+      if (output == "table") roll_tab
+      else if (output == "plot") rc_plot
+      else if (output == "tab_plot") {
+        
+        tab_plot <- list(table = roll_tab, plot = rc_plot)
+        tab_plot
+      }
     }
   }
 }
