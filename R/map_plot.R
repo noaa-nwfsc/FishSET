@@ -109,25 +109,19 @@ map_plot <- function(dat, project, lat, lon, minmax = NULL, percshown = NULL) {
     #Some functions we need to make the x-axis look nice with the centering around 180/-180
     
     if(recenter==FALSE){
-                            recenterlab <- c(seq(round(minlon, -1), round(maxlon, -1), 
-                                  (round(maxlon, -1) - round(minlon, -1))/5))
+                            recenterlab <- 0
                           } else {
-                            recenterlab <-  c(seq(round(minlon, -1), round(maxlon, -1), 
-                                   (round(maxlon, -1) - round(minlon, -1))/5)-360)
-                            recenterlab <- ifelse(recenterlab < -180, recenterlab + 360, recenterlab)
+                            recenterlab <-  360
                           }
     ####
+    
     
     m_plot <- 
       ggplot(aes(x = long, y = lat, group=group), data = worldmap) + 
       geom_polygon(fill="grey", colour = "black",size = 0.375) + 
       ggplot2::geom_point(data = datatomap, ggplot2::aes(x = lon, y = lat), 
-                          size = 1, alpha = 0.25, color = "red") +
-      scale_x_continuous(limits = c(minlon, maxlon),
-                        breaks = seq(round(minlon, -1), round(maxlon,-1), 
-                                     (round(maxlon,-1)-round(minlon, -1))/5),
-                        labels =  recenterlab
-                      ) +
+                          size = 1, alpha = 0.25, color = "red", inherit.aes = FALSE) +
+      scale_x_continuous(labels = function(b) { b-recenterlab}) +
       cf + ggplot2::coord_fixed(xlim = c(minlon, maxlon), ylim = c(minlat, maxlat), 
                                 ratio=1.3, expand = TRUE) +
       ggplot2::labs(title = gptitle, x = "Longitude", y = "Latitude") +
