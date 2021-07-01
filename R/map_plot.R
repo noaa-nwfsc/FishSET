@@ -119,8 +119,8 @@ map_plot <- function(dat, project, lat, lon, minmax = NULL, percshown = NULL) {
     ####
     
     m_plot <- 
-      ggplot(aes(x = long, y = lat), data = worldmap) + 
-      geom_polygon(aes(group = group), fill="#f9f9f9", colour = "grey65") + 
+      ggplot(aes(x = long, y = lat, group=group), data = worldmap) + 
+      geom_polygon(fill="grey", colour = "black",size = 0.375) + 
       ggplot2::geom_point(data = datatomap, ggplot2::aes(x = lon, y = lat), 
                           size = 1, alpha = 0.25, color = "red") +
       scale_x_continuous(limits = c(minlon, maxlon),
