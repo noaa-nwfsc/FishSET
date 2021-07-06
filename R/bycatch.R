@@ -1,6 +1,7 @@
 # Bycatch
 #'
-#' Compare bycatch CPUE and total catch/percent of catch to other species
+#' Compare bycatch CPUE and total catch/percent of total catch for one or more 
+#' species
 #'
 #' @param dat Main data frame over which to apply function. Table in FishSET 
 #'   database should contain the string `MainDataTable`.
@@ -253,6 +254,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
     }
   
     # Mean CPUE summary table ----
+    f_cpue <- function() if (length(cpue) > 1) "mean_cpue" else cpue
     agg_grp <- c("year", group, facet_by, facet_date)
     
     cpue_tab <- agg_helper(dataset, value = cpue, period = period, group = agg_grp, 
@@ -265,22 +267,22 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
     }
     
     # Total catch/STC table ----
-    catch_tab <- agg_helper(dataset, value = catch, period = period, group = agg_grp, 
-                            fun = sum)
+    catch_tab <- agg_helper(dataset, value = catch, period = period, 
+                            group = agg_grp, fun = sum)
     
     if (length(catch) > 1) {
       
       catch_tab <- tidyr::pivot_longer(catch_tab, cols = !!catch, 
-                                       names_to = "species_catch", values_to = "catch")
+                                       names_to = "species_catch", 
+                                       values_to = "catch")
     }
     # STC conversion ---- 
     f_catch <- function() if (length(catch) > 1) "catch" else catch
-    catch_grp <- function() if (length(catch) > 1) "species_catch" else NULL
     
     if (value == "stc") {
       
       catch_tab <- perc_of_total(catch_tab, value_var = f_catch(), 
-                                 group = NULL, drop = TRUE, val_type = "prop")
+                                 group = NULL, drop = TRUE, val_type = "perc")
       names(catch_tab)[ncol(catch_tab)] <- "stc"
     }
     
@@ -302,13 +304,9 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
     
     bycatch <- bycatch[order(bycatch[[period]]), ]
     
-    # Confidentiality checks ----
-    cpue_exp <- function() {
-      if (length(cpue) > 1) rlang::sym("mean_cpue") else rlang::sym(cpue)
-    }
-    
     f_stc <- function() if (value == "stc") "stc" else NULL
     
+    # Confidentiality checks ----
     if (run_confid_check()) {
       
       cc_par <- get_confid_check()
@@ -339,13 +337,12 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
                                       value_var = c(f_catch(), f_stc()),
                                       group = c(period, agg_grp), rule = cc_par$rule,
                                       type = "code")
-          
         }
         
         if (check_cpue$suppress) {
           
           check_out <- suppress_table(check_cpue$table, check_out, 
-                                      value_var = cpue_exp(), type = "code",
+                                      value_var = f_cpue(), type = "code",
                                       group = c(period, agg_grp), rule = cc_par$rule)
         }
         
@@ -435,7 +432,7 @@ bycatch_plot <- function(dat, cpue, catch, period, group, facet_by, names,
   #'@importFrom stats reformulate
   #'@importFrom purrr pmap
   #'@importFrom gridExtra arrangeGrob
-  #'@importFrom scales percent
+  #'@importFrom scales label_percent breaks_extended log_breaks
   #'@importFrom rlang sym as_string
 
   if (!is.null(group)) group1 <- group[1] else group1 <- NULL
@@ -443,23 +440,84 @@ bycatch_plot <- function(dat, cpue, catch, period, group, facet_by, names,
   agg_grp <- c("year", group, facet_by, facet_date)
   
   # plot functions ----
+  f_cpue <- function() if (length(cpue) > 1) "mean_cpue" else cpue
+  
+  f_catch <- function() if (length(catch) > 1) "catch" else catch
+  
+  f_stc <- function() if (value == "stc") "stc" else NULL
+  
   species_exp <- function() if (length(catch) > 1) rlang::sym("species") else NULL
   species_exp2 <- function() {
     if (!is.null(species_exp())) rlang::as_string(species_exp()) else NULL
   }
   group_exp <- function() if (is.null(group)) 1 else rlang::sym(group1)
   color_exp <- function() if (is.null(group)) NULL else rlang::sym(group1)
-  #names <- as.character(name_tab$species)
+  
+  y_breaks <- function(val_col) {
+    if (tran != "identity") {
+      
+      brk_num <- nchar(trunc(max(dat[[val_col]], na.rm = TRUE)))
+      brk_num <- ifelse(length(brk_num) < 5, 5, brk_num)
+      
+      if (tran %in% c("log", "log2", "log10")) {
+        
+        y_base <- switch(tran, "log" = 2.718282, "log2" = 2, "log10" = 10)
+        
+        scales::log_breaks(n = brk_num, base = y_base)
+        
+      } else {
+        
+        scales::breaks_extended(n = brk_num + 2)
+      }
+      
+    } else ggplot2::waiver()
+  }
+  
+  y_labeller <- function(col) { 
+    
+    if (col == "catch") {
+      
+      if (value == "stc") {
+        
+        if (tran == "sqrt") function(x) paste0(x^2, "%")
+        else scales::label_percent(scale = 1) 
+        
+      } else {
+        
+        if (tran == "sqrt") function(x) x^2
+        else ggplot2::waiver()
+      }
+      
+    } else if (col == "cpue") {
+      
+      if (tran == "sqrt") function(x) x^2
+      else ggplot2::waiver()
+    }
+  }
+  
+  f_tran <- function() {
+    
+    if (tran == "sqrt") "identity"
+    else tran
+  }
   
   # Plots ----
   cpue_plots <- lapply(names, function(x) { # plot for each species 
-    
+
     cpue_exp <- function() {
-      if (length(cpue) > 1) rlang::sym("mean_cpue") else rlang::sym(cpue)
+      
+      cpue_sym <- rlang::sym(f_cpue())
+      
+      if (tran == "sqrt") rlang::expr(sqrt(!!cpue_sym))
+      else cpue_sym 
     }
     
-    cpue_cols <- unique(c(period, agg_grp, species_exp2(), 
-                          rlang::as_string(cpue_exp())))
+    y_lab <- function() {
+      if (tran != "identity") paste0("Average CPUE (", tran, ")")
+      else "Average CPUE"
+    }
+    
+    cpue_cols <- unique(c(period, agg_grp, species_exp2(), f_cpue()))
     
     if (length(cpue) == 1) cpue_dat <- dat[cpue_cols]
     else cpue_dat <- dat[dat$species == x, cpue_cols]
@@ -470,9 +528,11 @@ bycatch_plot <- function(dat, cpue, catch, period, group, facet_by, names,
                                                       color = !!color_exp())) + 
       ggplot2::geom_point(size = 1) + 
       ggplot2::geom_line(size = 0.65) + 
-      ggplot2::labs(title = "CPUE", y = "average CPUE") + 
+      ggplot2::labs(title = "CPUE", y = y_lab()) + 
       fishset_theme() + 
-      ggplot2::scale_y_continuous(trans = tran) +
+      ggplot2::scale_y_continuous(trans = f_tran(),
+                                  breaks = y_breaks(f_cpue()),
+                                  labels = y_labeller("cpue")) +
       ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, size = 9), 
                      axis.title = ggplot2::element_text(size = 7), 
                      axis.text = ggplot2::element_text(size = 7), 
@@ -506,12 +566,26 @@ bycatch_plot <- function(dat, cpue, catch, period, group, facet_by, names,
   catch_plots <- lapply(names, function(x) {
     
     catch_exp <- function() {
-      if (value == "stc")  rlang::sym("stc")
-      else if (length(catch) > 1) rlang::sym("catch")
-      else rlang::sym(catch)
+      
+      if (value == "stc") catch_sym <- rlang::sym("stc")
+      else catch_sym <- rlang::sym(f_catch())
+        
+      if (tran == "sqrt") rlang::expr(sqrt(!!catch_sym))
+      else catch_sym
     }
+    
+    y_lab <- function() {
+      
+      c_fun <- function() {
+        if (value == "stc") "Share of total " else "Total "
+      }
+      
+      if (tran != "identity") paste0(c_fun(), "catch (", tran, ")")
+      else paste0(c_fun(), "catch")
+    }
+    
     catch_cols <- unique(c(period, agg_grp, species_exp2(), 
-                           rlang::as_string(catch_exp())))
+                           f_catch(), f_stc()))
     
     if (length(catch) == 1) catch_dat <- dat[catch_cols] 
     else catch_dat <- dat[dat$species == x, catch_cols] 
@@ -523,13 +597,14 @@ bycatch_plot <- function(dat, cpue, catch, period, group, facet_by, names,
       ggplot2::geom_point(size = 1) + 
       ggplot2::geom_line(size = 0.65) + 
       ggplot2::labs(title = if (value != "stc") "Total" else "STC", 
-                    y = if (value == "total")  "total catch" else "share of catch") + 
+                    y = y_lab()) + 
       fishset_theme() + ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, size = 9), 
                                        axis.title = ggplot2::element_text(size = 7),
                                        axis.text = ggplot2::element_text(size = 7), 
                                        legend.position = "none") +
-      ggplot2::scale_y_continuous(labels = if (value == "stc") scales::percent else ggplot2::waiver(),
-                                  trans = tran)
+      ggplot2::scale_y_continuous(labels = y_labeller("catch"),
+                                  trans = f_tran(),
+                                  breaks = y_breaks(f_catch()))
     
     if (!is.null(facet_by)) {
       
