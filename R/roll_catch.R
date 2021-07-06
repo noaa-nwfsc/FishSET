@@ -49,6 +49,7 @@
 #' @importFrom dplyr any_of
 #' @importFrom zoo zoo merge.zoo rollapply fortify.zoo
 #' @importFrom tidyr pivot_longer pivot_wider
+#' @importFrom scales breaks_extended log_breaks
 #' @examples
 #' \dontrun{
 #' roll_catch(pollockMainDataTable, project = "pollock", catch = "LBS_270_POLLOCK_LBS",
@@ -453,8 +454,13 @@ roll_catch_plot <- function(roll_tab, catch, date, group, facet_by, fun, k, tran
   facet_date <- facet_by[facet_by %in% c("year", "month", "week")]
   
   # plot functions ----
+  f_catch <- function() if (length(catch) == 1) catch else "catch"
+  
+  catch_sym <- rlang::sym(f_catch())
+  
   catch_exp <- function() {
-    if (length(catch) == 1) rlang::sym(catch) else rlang::sym("catch")
+    if (tran == "sqrt") rlang::expr(sqrt(!!catch_sym))
+    else catch_sym 
   }
   
   date_sym <- rlang::sym(date)
@@ -491,7 +497,9 @@ roll_catch_plot <- function(roll_tab, catch, date, group, facet_by, fun, k, tran
     }
   }
   
-  title_lab <- function() paste("Rolling", fun, k, "day", catch)
+  title_lab <- function() {
+    paste("Rolling", fun, k, "day", ifelse(length(catch) == 1, catch, ""))
+  }
   
   y_lab <- function() {
     paste(catch, ifelse(tran == "identity", "", paste0("(", tran, ")")))
@@ -504,6 +512,38 @@ roll_catch_plot <- function(roll_tab, catch, date, group, facet_by, fun, k, tran
     } else if (facet_date == "month") {
       format(as.Date(as.character(x), "%j"), "%d")
     }
+  }
+  
+  y_breaks <- function() {
+    if (tran != "identity") {
+      
+      brk_num <- nchar(trunc(max(roll_tab[[f_catch()]], na.rm = TRUE)))
+      brk_num <- ifelse(length(brk_num) < 5, 5, brk_num)
+      
+      if (tran %in% c("log", "log2", "log10")) {
+        
+        y_base <- switch(tran, "log" = 2.718282, "log2" = 2, "log10" = 10)
+        
+        scales::log_breaks(n = brk_num, base = y_base)
+        
+      } else {
+        
+        scales::breaks_extended(n = brk_num + 2)
+      }
+      
+    } else ggplot2::waiver()
+  }
+  
+  y_labeller <- function() {
+    
+    if (tran == "sqrt") function(x) x^2
+    else ggplot2::waiver()
+  }
+  
+  f_tran <- function() {
+    
+    if (tran == "sqrt") "identity"
+    else tran
   }
   
   if (length(facet_date) > 0) {
@@ -519,7 +559,9 @@ roll_catch_plot <- function(roll_tab, catch, date, group, facet_by, fun, k, tran
     ggplot2::ggplot(roll_tab, ggplot2::aes(!!x_axis_exp(), !!catch_exp())) +
     ggplot2::geom_line(ggplot2::aes(color = !!color_exp(), 
                                     linetype = !!linetype_exp())) + 
-    ggplot2::scale_y_continuous(trans = tran) +
+    ggplot2::scale_y_continuous(trans = f_tran(),
+                                labels = y_labeller(),
+                                breaks = y_breaks()) +
     ggplot2::labs(title = title_lab(), y = y_lab()) + 
     fishset_theme() +
     ggplot2::theme(legend.position = "bottom")
