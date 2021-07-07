@@ -70,7 +70,7 @@ filter_dat <- function(dat, project, exp, filterTable = NULL) {
   #' @examples
   #' \dontrun{
   #' newdat <- filter_dat(pcodMainDataTable, 'pollock', exp = 3, filterTable = 'pcodfilterTable01012011')
-  #' newdat <- filter_dat(pcodMainDataTable, 'pollock', exp = 'PERFORMANCE_Code==1', filteTable = '')
+  #' newdat <- filter_dat(pcodMainDataTable, 'pollock', exp = 'PERFORMANCE_Code==1', filteTable = NULL)
   #' }
   #'
 

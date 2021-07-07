@@ -2261,10 +2261,14 @@ conf_cache_len <- length(get_confid_cache())
             dat_sub <- outlier_plot_int(temp, input$column_check, input$dat.remove, input$x_dist, plot_type=1)
             arg.return <- outlier_plot_int(temp, input$column_check, input$dat.remove, input$x_dist, plot_type=2)
             ggplot2::ggplot(dat_sub[dat_sub$Points=='Kept',], ggplot2::aes_string(input$column_check)) + 
-              ggplot2::geom_histogram(ggplot2::aes(y = ..density..), na.rm=TRUE, bins=round(nrow(temp)/2)) + arg.return +
+              ggplot2::geom_histogram(ggplot2::aes(y = ..density..), na.rm=TRUE, 
+                                      bins=(if(nrow(dat_sub) < 500) round(nrow(dat_sub) / 2) else 250)) + 
+              arg.return +
               ggplot2::coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)+
               ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
-                    panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text=ggplot2::element_text(size=12),
+                    panel.background = ggplot2::element_blank(), 
+                    axis.line = ggplot2::element_line(colour = "black"),
+                    axis.text=ggplot2::element_text(size=12),
                     axis.title=ggplot2::element_text(size=12))
           } else {
             NULL
