@@ -266,7 +266,9 @@ set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25, 0.4), cust
       prob.def <- seq(0, 1, by = .2)
     } else if (quant.cat == 0.25) {
       prob.def <- seq(0, 1, by = .25)
-    } else if (quant.cat == 0.4) {
+    } else if(quant.cat == .33) {
+      prob.def <- c(0, .33, .66, 1)
+    }  else if (quant.cat == 0.4) {
       prob.def <- c(0, 0.1, 0.5, 0.9, 1)
     }
     

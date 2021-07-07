@@ -91,7 +91,7 @@ source("map_viewer_app.R", local = TRUE)
                                                                tags$em('Compute New Variables'), 'tabs.   
                                                                 Plots and table outputs are saved in an output folder within the FishSET R package. 
                                                               Function calls, including chosen parameters, are saved to the', tags$em('Logs'), 'folder in the FishSET package folder. 
-                                                              The', tags$em('Quick start Guide'), 'subtab provides further assistance on using the FishSET Shiny application.'),
+                                                              The', tags$em('Quickstart Guide'), 'subtab provides further assistance on using the FishSET Shiny application.'),
                                                         tags$p('For questions and comments please contact: FishSET@noaa.gov'))
                                         )
                                       )

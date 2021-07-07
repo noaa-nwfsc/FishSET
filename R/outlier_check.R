@@ -178,6 +178,8 @@ outlier_plot <- function(dat, project, x, dat.remove='none', x.dist='normal', ou
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
+
+  
   if (is.numeric(dataset[, x]) == TRUE) {
     # Begin outlier check
     dataset$y <- 1:length(dataset[, x])
