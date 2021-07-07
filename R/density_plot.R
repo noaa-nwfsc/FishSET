@@ -45,8 +45,12 @@
 #' @param facet_by Variable name to facet by. This can be a variable that exists in
 #'   the dataset, or a variable created by \code{density_plot()} such as "year", 
 #'   "month", or "week".
+#' @param conv Convert catch variable to \code{"tons"}, \code{"metric_tons"}, or 
+#'   by using a function entered as a string. Defaults to \code{"none"} for no conversion.
 #' @param tran String; name of function to transform variable, for example "log" or
 #'   "sqrt".
+#' @param format_lab Formatting option for x-axis labels. Options include 
+#'   \code{"decimal"} or \code{"scientific"}.
 #' @param scale Scale argument passed to \code{\link{facet_grid}}. Defaults to "fixed". 
 #'   Other options include "free_y", "free_x", and "free".
 #' @param bw Adjusts KDE bandwidth. Defaults to 1.
@@ -73,7 +77,8 @@
 density_plot <- function(dat, project, var, type = "kde", group = NULL, combine = TRUE, 
                          date = NULL, filter_date = NULL, date_value = NULL, 
                          filter_by = NULL, filter_value = NULL, filter_expr = NULL, 
-                         facet_by = NULL, tran = "identity", scale = "fixed", bw = 1, 
+                         facet_by = NULL, conv = "none", tran = "identity", 
+                         format_lab = "decimal", scale = "fixed", bw = 1, 
                          position = "identity", pages = "single") {
   out <- data_pull(dat)
   dataset <- out$dataset
@@ -182,6 +187,12 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, combine 
   # filter by date ----
   if (!is.null(filter_date)) {
     
+    if (is.null(date_value)) {
+      
+      warning("'date_value' must be provided.")
+      end <- TRUE
+    }
+    
     dataset <- subset_date(dataset, date, filter_date, date_value)
     
     if (nrow(dataset) == 0) {
@@ -189,6 +200,24 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, combine 
           end <- TRUE
     }
   }
+  
+  # convert pounds 
+  if (conv != "none") {
+    
+    if (conv == "tons") {
+      
+      dataset[[var]] <- dataset[[var]]/2000
+      
+    } else if (conv == "metric_tons") {
+      
+      dataset[[var]] <- dataset[[var]]/2204.62
+      
+    } else if (is.function(conv)) {
+      
+      dataset[[var]] <- do.call(conv, list(dataset[[var]]))
+    }
+  }
+  
   if (end == FALSE) {
     
     # confidentiality checks ----
@@ -217,14 +246,16 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, combine 
     
     d_plot <- 
       dens_plot_helper(dataset, var, group_list, date, facet_by, filter_date, 
-                       date_value, type, bw, tran, scale, position, pages)
+                       date_value, type, bw, conv, tran, format_lab, scale, position, 
+                       pages)
     
     if (suppress) {
       
       conf_plot <- 
         suppressWarnings(
           dens_plot_helper(check_out$table, var, group_list, date, facet_by, filter_date, 
-                           date_value, type, bw, tran, scale, position, pages)
+                           date_value, type, bw, conv, tran, format_lab, scale, position,
+                           pages)
         )
         
       if (pages == "multi") {
@@ -253,8 +284,9 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, combine 
     density_plot_function <- list()
     density_plot_function$functionID <- "density_plot"
     density_plot_function$args <- list(
-      dat, project, var, type, group, combine, date, filter_date, date_value, filter_by, 
-      filter_value, filter_expr, facet_by, tran, scale, bw, position, pages)
+      dat, project, var, type, group, combine, date, filter_date, date_value, 
+      filter_by, filter_value, filter_expr, facet_by, conv, tran, format_lab, 
+      scale, bw, position, pages)
     
     log_call(project, density_plot_function)
     
@@ -273,7 +305,8 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, combine 
   
 
 dens_plot_helper <- function(dataset, var, group, date, facet_by, filter_date, 
-                             date_value, type, bw, tran, scale, position, pages) {
+                             date_value, type, bw, conv, tran, format_lab, scale, 
+                             position, pages) {
   #' density_plot helper function
   #' 
   #' Creates and formats plots
@@ -287,10 +320,12 @@ dens_plot_helper <- function(dataset, var, group, date, facet_by, filter_date,
   #' @param date_value Numeric, date filter value passed from \code{density_plot}.
   #' @param type String, plot type(s) passed from \code{density_plot}.
   #' @param bw Numeric, bandwidth passed from \code{density_plot}.
+  #' @param conv String, convert pounds to "tons" or "metric_tons".
   #' @param tran String, scale transformation passed from \code{density_plot}.
   #' @param scale Scale argument passed to \code{\link{facet_grid}}. Defaults to "fixed". 
   #'   Other options include "free_y", "free_x", and "free".
   #' @param position String, plot position passed from \code{density_plot}.
+  #' @param format_lab String, label formatting option passed from \code{density_plot}.
   #' @param pages String, single or multiple plots passed from \code{density_plot}.
   #'
   #' @keywords internal
@@ -299,7 +334,7 @@ dens_plot_helper <- function(dataset, var, group, date, facet_by, filter_date,
   #' @importFrom gridExtra arrangeGrob marrangeGrob
   #' @importFrom stats pnorm reformulate
   #' @importFrom rlang sym
-  #' @importFrom scales breaks_extended
+  #' @importFrom scales breaks_extended label_number label_scientific log_breaks
   #' @importFrom shiny isRunning
   
   group1 <- group$group1
@@ -310,6 +345,12 @@ dens_plot_helper <- function(dataset, var, group, date, facet_by, filter_date,
   facet_date <- facet_by[facet_by %in% c("year", "month", "week")]
   
   var_sym <- rlang::sym(var)
+  
+  var_exp <- function() {
+    
+    if (tran == "sqrt") rlang::expr(sqrt(!!var_sym))
+    else var_sym
+  }
   
   color_exp <- function() {
     
@@ -323,8 +364,62 @@ dens_plot_helper <- function(dataset, var, group, date, facet_by, filter_date,
     else NULL
   }
   
-  x_lab_exp <- function() {
-    if (tran != "identity") paste0(var, " (", tran, ")") else var
+  x_lab <- function() {
+    
+    f_conv <- function() {
+      
+      if (conv != "none") {
+        
+        c_lab <- switch(conv, "tons" = "T", "metric_tons" = "MT", "")
+        
+        paste0("(", c_lab, ")")
+        
+      } else NULL
+    } 
+    
+    f_tran <- if (tran != "identity") paste(tran, "scale") else NULL
+    
+    paste(var, f_conv(), f_tran)
+  }
+  
+  x_breaks <- function() {
+    if (tran != "identity") {
+      
+      brk_num <- nchar(trunc(max(dataset[[var]], na.rm = TRUE)))
+      brk_num <- ifelse(length(brk_num) < 5, 5, brk_num)
+      
+      if (tran %in% c("log", "log2", "log10")) {
+        
+        x_base <- switch(tran, "log" = exp(1), "log2" = 2, "log10" = 10)
+        
+        scales::log_breaks(n = brk_num, base = x_base)
+        
+      } else {
+        
+        scales::breaks_extended(n = brk_num + 2)
+      }
+      
+    } else ggplot2::waiver()
+  }
+  
+  f_label <- function() {
+    if (format_lab == "decimal") scales::label_number(big.mark = "")
+    else scales::label_scientific()
+  }
+  
+  x_labeller <- function() {
+    
+    if (tran == "sqrt") {
+      
+      function(x) format(x^2, scientific = format_lab == "scientific")
+    
+    } else f_label()
+  }
+  
+  f_tran <- function() {
+    
+    if (tran == "sqrt") "identity"
+    else tran
   }
   
   if ("all" %in% type) plot_type <- c("kde", "ecdf", "cdf")
@@ -336,11 +431,11 @@ dens_plot_helper <- function(dataset, var, group, date, facet_by, filter_date,
       if (x == "kde") {
         
         plot <- 
-          ggplot2::ggplot(dataset, ggplot2::aes(x = !!var_sym, fill = !!color_exp())) +
+          ggplot2::ggplot(dataset, ggplot2::aes(x = !!var_exp(), fill = !!color_exp())) +
           ggplot2::stat_density(position = position, color = "black", 
                                 alpha = .7, adjust = bw) +
           ggplot2::labs(title = "Kernel Density",
-                        x = x_lab_exp(),
+                        x = x_lab(),
                         caption = paste("kernel bandwidth:", bw)) +
           fishset_theme() +
           ggplot2::theme(legend.position = "bottom")
@@ -350,22 +445,23 @@ dens_plot_helper <- function(dataset, var, group, date, facet_by, filter_date,
         if (is.null(group)) {
           
           plot <- 
-            ggplot2::ggplot(dataset, ggplot2::aes(x = !!var_sym)) +
+            ggplot2::ggplot(dataset, ggplot2::aes(x = !!var_exp())) +
             ggplot2::stat_ecdf(geom = "area", alpha = .7) +
             ggplot2::stat_ecdf(geom = "step", alpha = .7) +
             ggplot2::labs(title = "Empirical Cumulative Distribution Function",
-                          x = x_lab_exp(), y = "probability") +
+                          x = x_lab(), y = "probability") +
             fishset_theme() +
             ggplot2::theme(legend.position = "bottom")
           
         } else {
           
           plot <- 
-            ggplot2::ggplot(dataset, ggplot2::aes(x = !!var_sym)) +
-            ggplot2::stat_ecdf(aes(color = !!color_exp(), linetype = !!linetype_exp()), 
+            ggplot2::ggplot(dataset, ggplot2::aes(x = !!var_exp())) +
+            ggplot2::stat_ecdf(ggplot2::aes(color = !!color_exp(), 
+                                            linetype = !!linetype_exp()), 
                                geom = "step") +
             ggplot2::labs(title = "Empirical Cumulative Distribution Function",
-                          x = x_lab_exp(), y = "probability") +
+                          x = x_lab(), y = "probability") +
             fishset_theme() +
             ggplot2::theme(legend.position = "bottom")
         }
@@ -381,7 +477,7 @@ dens_plot_helper <- function(dataset, var, group, date, facet_by, filter_date,
                                       sd(!!var_sym, na.rm = TRUE)))
           
           plot <- 
-            ggplot2::ggplot(dataset, ggplot2::aes(!!var_sym)) +
+            ggplot2::ggplot(dataset, ggplot2::aes(!!var_exp())) +
             ggplot2::geom_line(ggplot2::aes(y = cdf, color = !!color_exp(), 
                                             linetype = !!linetype_exp()))
         } else {
@@ -392,14 +488,14 @@ dens_plot_helper <- function(dataset, var, group, date, facet_by, filter_date,
                          sd = sd(dataset[[var]], na.rm = TRUE))
           
           plot <- 
-            ggplot2::ggplot(dataset, ggplot2::aes(!!var_sym)) +
-            ggplot2::geom_area(ggplot2::aes(y = cdf), position = "identity", alpha = .7)
+            ggplot2::ggplot(dataset, ggplot2::aes(!!var_exp())) +
+            ggplot2::geom_area(ggplot2::aes(y = cdf), position = "identity", alpha = .7) 
           
         }
         
         plot <-  plot +
           ggplot2::labs(title = "Cumulative Distribution Function",
-                        y = "probability") +
+                        y = "probability", x = x_lab()) +
           fishset_theme() +
           ggplot2::theme(legend.position = "bottom")
       }
@@ -414,13 +510,9 @@ dens_plot_helper <- function(dataset, var, group, date, facet_by, filter_date,
         }
       }
       
-      x_breaks <- function() {
-        if (tran != "identity") scales::breaks_extended(n = 7) 
-        else ggplot2::waiver()
-      }
-      
-      plot <- plot + ggplot2::scale_x_continuous(trans = tran, breaks = x_breaks())
-      
+      plot <- plot + ggplot2::scale_x_continuous(trans = f_tran(), 
+                                                 breaks = x_breaks(),
+                                                 labels = x_labeller())
       
       # add date to title
       if (!is.null(date) & !is.null(filter_date) & 
