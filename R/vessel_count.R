@@ -84,8 +84,8 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
                          sub_date = NULL, filter_date = NULL, date_value = NULL, 
                          filter_by = NULL, filter_value = NULL, filter_expr = NULL, 
                          facet_by = NULL, combine = FALSE, position = "stack",
-                         tran = "identity", value = "count", type = "bar", 
-                         scale = "fixed", output = "tab_plot") {
+                         tran = "identity", format_lab = "decimal", value = "count", 
+                         type = "bar", scale = "fixed", output = "tab_plot") {
   
   # Call in datasets
   out <- data_pull(dat)
@@ -157,6 +157,12 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
   
   # filter date ----
   if (!is.null(filter_date)) {
+    
+    if (is.null(date_value)) {
+      
+      warning("'date_value' must be provided.")
+      end <- TRUE
+    }
     
     dataset <- subset_date(dataset, sub_date, filter_date, date_value)
     
@@ -381,6 +387,11 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
         else rlang::as_string(xaxis_exp())
       }
       
+      y_lab <- function() {
+        
+        paste("active vessels", ifelse(tran != "identity", paste0("(", tran, " scale)"), ""))
+      }
+      
       point_size <- function() {
         
         if (!is.null(period)) {
@@ -391,34 +402,9 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
         } else 2
       }
       
-      scale_lab <- function() {
-        if (value == "percent") scales::label_percent(scale = 1) 
-        else ggplot2::waiver()
-      }
-      
-      y_breaks <- function() {
-        if (tran != "identity") scales::breaks_extended(n = 7) 
-        else ggplot2::waiver()
-      }
-     
-      y_breaks <- function() {
-        if (tran != "identity") {
-          
-          brk_num <- nchar(trunc(max(dataset[[v_id]], na.rm = TRUE)))
-          brk_num <- ifelse(length(brk_num) < 5, 5, brk_num)
-          
-          if (tran %in% c("log", "log2", "log10")) {
-            
-            y_base <- switch(tran, "log" = 2.718282, "log2" = 2, "log10" = 10)
-            
-            scales::log_breaks(n = brk_num, base = y_base)
-            
-          } else {
-            
-            scales::breaks_extended(n = brk_num + 2)
-          }
-          
-        } else ggplot2::waiver()
+      f_label <- function() {
+        if (format_lab == "decimal") scales::label_number(big.mark = "")
+        else scales::label_scientific()
       }
       
       y_labeller <- function() { 
@@ -430,9 +416,32 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
           
         } else {
           
-          if (tran == "sqrt") function(x) x^2
-          else ggplot2::waiver()
+          if (tran == "sqrt") {
+            
+            function(x) format(x^2, scientific = format_lab == "scientific")
+            
+          } else f_label()
         }
+      }
+     
+      y_breaks <- function() {
+        if (tran != "identity") {
+          
+          brk_num <- nchar(trunc(max(dataset[[v_id]], na.rm = TRUE)))
+          brk_num <- ifelse(length(brk_num) < 5, 5, brk_num)
+          
+          if (tran %in% c("log", "log2", "log10")) {
+            
+            y_base <- switch(tran, "log" = exp(1), "log2" = 2, "log10" = 10)
+            
+            scales::log_breaks(n = brk_num, base = y_base)
+            
+          } else {
+            
+            scales::breaks_extended(n = brk_num + 2)
+          }
+          
+        } else ggplot2::waiver()
       }
       
       f_tran <- function() {
@@ -479,7 +488,7 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
         }
       }
       # add labels 
-      v_plot <- v_plot + ggplot2::labs(x = x_lab(), y = "active vessels")
+      v_plot <- v_plot + ggplot2::labs(x = x_lab(), y = y_lab())
       
       if (!is.null(period)) {
         # adjust x-axis breaks 
@@ -518,9 +527,10 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
     # Log function
     vessel_count_function <- list()
     vessel_count_function$functionID <- "vessel_count"
-    vessel_count_function$args <- list(dat, project, v_id, date, period, group, sub_date, filter_date,
-                                       date_value, filter_by, filter_value, filter_expr, facet_by, 
-                                       combine, position, tran,  value, type, scale, output)
+    vessel_count_function$args <- 
+      list(dat, project, v_id, date, period, group, sub_date, filter_date,
+           date_value, filter_by, filter_value, filter_expr, facet_by, 
+           combine, position, tran, format_lab, value, type, scale, output)
     log_call(project, vessel_count_function)
     
     # Output folder

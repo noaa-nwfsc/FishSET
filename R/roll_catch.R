@@ -38,9 +38,11 @@
 #' @param align Indicates whether results of window should be left-aligned (\code{"left"}),
 #'   right-aligned (\code{"right"}), or centered (\code{"center"}). Defaults to
 #'   \code{"center"}.
-#' @param convr Convert catch variable to \code{"tons"}, \code{"metric_tons"}, or
+#' @param conv Convert catch variable to \code{"tons"}, \code{"metric_tons"}, or
 #'   by using a function. Defaults to \code{FALSE}.
 #' @param tran A function to transform the y-axis. Options include log, log2, log10, sqrt.
+#' @param format_lab Formatting option for y-axis labels. Options include 
+#'   \code{"decimal"} or \code{"scientific"}.
 #' @param output Whether to display \code{"plot"}, \code{"table"}, or both. Defaults
 #'   to both (\code{"tab_plot"}).
 #' @param ... Additional arguments passed to \code{\link[zoo]{rollapply}}
@@ -49,7 +51,7 @@
 #' @importFrom dplyr any_of
 #' @importFrom zoo zoo merge.zoo rollapply fortify.zoo
 #' @importFrom tidyr pivot_longer pivot_wider
-#' @importFrom scales breaks_extended log_breaks
+#' @importFrom scales breaks_extended log_breaks label_number label_scientific
 #' @examples
 #' \dontrun{
 #' roll_catch(pollockMainDataTable, project = "pollock", catch = "LBS_270_POLLOCK_LBS",
@@ -58,7 +60,7 @@
 #'
 #' roll_catch(pollockMainDataTable, project = "pollock", catch = c("LBS_270_POLLOCK_LBS", 
 #'  "LBS_110_PACIFIC_COD_LBS"), date = "FISHING_START_DATE", group = "GEAR_TYPE", k = 5, 
-#'  filter_date = "month", date_value = 4:6, facet_by = "month", convr = "tons"
+#'  filter_date = "month", date_value = 4:6, facet_by = "month", conv = "tons"
 #' )
 #' }
 #'
@@ -66,8 +68,8 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
                        k = 10, fun = "mean", sub_date = NULL, filter_date = NULL, 
                        date_value = NULL, filter_by = NULL, filter_value = NULL, 
                        filter_expr = NULL, facet_by = NULL, scale = "fixed", 
-                       align = "center", convr = FALSE, tran = "identity", 
-                       output = "tab_plot", ...) {
+                       align = "center", conv = "none", tran = "identity", 
+                       format_lab = "decimal", output = "tab_plot", ...) {
 
     out <- data_pull(dat)
   dataset <- out$dataset
@@ -91,6 +93,7 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
   }
   
   # date ----
+  
   if (!is.null(sub_date)) {
     warning("'sub_date' is not currently supported for roll_catch.")
   }
@@ -142,6 +145,14 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
   # filter by date (pre roll apply) ----
   
   if (!is.null(filter_date)) {
+    
+    
+    if (is.null(date_value)) {
+      
+      warning("'date_value' must be provided.")
+      end <- TRUE
+    }
+    
     if (!is.null(sub_date)) {
       if (sub_date != date) {
         
@@ -191,12 +202,12 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
                           group = agg_grp, fun = sum)
     
     # catch conversion ----
-    if (convr != FALSE) {
-      if (convr == "tons") sum_tab[catch] <- sum_tab[catch] / 2000
-      else if (convr == "metric_tons") {
+    if (conv != "none") {
+      if (conv == "tons") sum_tab[catch] <- sum_tab[catch] / 2000
+      else if (conv == "metric_tons") {
         sum_tab[catch] <- sum_tab[catch] / 2204.62
-      } else if (is.function(convr)) {
-        sum_tab[catch] <- do.call(convr, list(sum_tab[catch]))
+      } else if (is.function(conv)) {
+        sum_tab[catch] <- do.call(conv, list(sum_tab[catch]))
       }
     }
     
@@ -256,7 +267,6 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
       suppress <- check_out$suppress
     }
     
-   
     sep <- function() {
       
       if (length(catch) > 1 | length(agg_grp) > 1) {
@@ -266,7 +276,6 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
         
       } else NULL
     }
-    
     
     names_to <- function() {
       
@@ -291,7 +300,6 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
                                         date)
       }
     }
-   
     
     if (length(catch) > 1 | length(agg_grp) > 0) {
       
@@ -387,13 +395,13 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
                            group2 = get0("group2"))
         
         rc_plot <- roll_catch_plot(roll_tab, catch, date, group_list, facet_by, 
-                                   fun, k, tran, scale)
+                                   fun, k, conv, tran, format_lab, scale)
         
         if (suppress) {
           
           check_plot <- roll_catch_plot(replace_sup_code(check_out$table, 0), 
-                                        catch, date, group_list, 
-                                        facet_by, fun, k, tran, scale)
+                                        catch, date, group_list, facet_by, fun, 
+                                        k, conv, tran, format_lab, scale)
           save_plot(project, "roll_catch_confid", plot = check_plot)
         }
         
@@ -409,7 +417,7 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
       roll_catch_function$args <- list(dat, project, catch, date, group, combine, k, 
                                        fun, sub_date, filter_date, date_value, filter_by, 
                                        filter_value, filter_expr, facet_by, scale, align, 
-                                       convr, tran, output)
+                                       conv, tran, format_lab, output)
       roll_catch_function$kwargs <- list(...)
       log_call(project, roll_catch_function)
       
@@ -425,8 +433,8 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
 }
   
 
-roll_catch_plot <- function(roll_tab, catch, date, group, facet_by, fun, k, tran,
-                            scale) {
+roll_catch_plot <- function(roll_tab, catch, date, group, facet_by, fun, k, conv,
+                            tran, format_lab, scale) {
   # roll_catch plot helper
   #'
   #'Create and format \code{roll_catch} plot
@@ -440,6 +448,9 @@ roll_catch_plot <- function(roll_tab, catch, date, group, facet_by, fun, k, tran
   #'@param k Numeric, the width of the window.
   #'@param tran A function to transform the y-axis. Options include log, log2, 
   #'  log10, sqrt.
+  #'@param format_lab Formatting option for y-axis labels. Options include 
+  #'   \code{"decimal"} or \code{"scientific"}.
+  #'@param conv String, convert pounds to "tons" or "metric_tons". 
   #'@param scale Scale argument passed to \code{\link{facet_grid}}.Options include 
   #'  \code{"free"}, \code{"free_x"}, \code{"free_y"}. Defaults to \code{"fixed"}.
   #'@import ggplot2
@@ -502,7 +513,21 @@ roll_catch_plot <- function(roll_tab, catch, date, group, facet_by, fun, k, tran
   }
   
   y_lab <- function() {
-    paste(catch, ifelse(tran == "identity", "", paste0("(", tran, ")")))
+    
+    f_conv <- function() {
+      
+      if (conv != "none") {
+        
+        c_lab <- switch(conv, "tons" = "T", "metric_tons" = "MT", "")
+        
+        paste0("(", c_lab, ")")
+        
+      } else NULL
+    } 
+    
+    f_tran <- if (tran != "identity") paste(tran, "scale") else NULL
+    
+    paste(fun, f_catch(), f_conv(), f_tran)
   }
   
   date_lab <- function(x) {
@@ -522,7 +547,7 @@ roll_catch_plot <- function(roll_tab, catch, date, group, facet_by, fun, k, tran
       
       if (tran %in% c("log", "log2", "log10")) {
         
-        y_base <- switch(tran, "log" = 2.718282, "log2" = 2, "log10" = 10)
+        y_base <- switch(tran, "log" = exp(1), "log2" = 2, "log10" = 10)
         
         scales::log_breaks(n = brk_num, base = y_base)
         
@@ -534,10 +559,18 @@ roll_catch_plot <- function(roll_tab, catch, date, group, facet_by, fun, k, tran
     } else ggplot2::waiver()
   }
   
+  f_label <- function() {
+    if (format_lab == "decimal") scales::label_number(big.mark = "")
+    else scales::label_scientific()
+  }
+  
   y_labeller <- function() {
     
-    if (tran == "sqrt") function(x) x^2
-    else ggplot2::waiver()
+    if (tran == "sqrt") {
+      
+      function(x) format(x^2, scientific = format_lab == "scientific")
+      
+    } else f_label()
   }
   
   f_tran <- function() {
