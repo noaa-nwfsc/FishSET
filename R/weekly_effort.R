@@ -39,9 +39,13 @@
 #' @param facet_by Variable name to facet by. Accepts up to two variables. Facetting 
 #'   by \code{"year"} is available if a date variable is added to \code{sub_date}. 
 #'   Facetting by \code{"species"} is available if multiple cpue columns are included 
-#'   in \code{"cpue"}. The first variable is facetted by row and the second by column.   
+#'   in \code{"cpue"}. The first variable is facetted by row and the second by column.
+#' @param conv Convert catch variable to \code{"tons"}, \code{"metric_tons"}, or 
+#'   by using a function entered as a string. Defaults to \code{"none"} for no conversion.     
 #' @param tran A function to transform the y-axis. Options include log, log2, log10, 
 #'   sqrt.
+#' @param format_lab Formatting option for y-axis labels. Options include 
+#'   \code{"decimal"} or \code{"scientific"}.
 #' @param combine Whether to combine variables listed in \code{group}. This is passed
 #'   to the "color" aesthetic for plots. 
 #' @param scale Scale argument passed to \code{\link[ggplot2]{facet_grid}}. Defaults 
@@ -80,13 +84,14 @@
 #' @importFrom stats reformulate
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @importFrom rlang expr sym
-#' @importFrom scales breaks_extended log_breaks
+#' @importFrom scales breaks_extended log_breaks label_number label_scientific
 
 weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NULL, 
                           filter_date = NULL, date_value = NULL, filter_by = NULL, 
                           filter_value = NULL, filter_expr = NULL, facet_by = NULL,
-                          tran = "identity", combine = FALSE, scale = "fixed", 
-                          output = "tab_plot", format_tab = "wide") {
+                          conv = "none", tran = "identity", format_lab = "decimal", 
+                          combine = FALSE, scale = "fixed", output = "tab_plot", 
+                          format_tab = "wide") {
   
   # Call in datasets
   out <- data_pull(dat)
@@ -172,6 +177,13 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
   
   # date filter ----
   if (!is.null(filter_date)) {
+    
+    
+    if (is.null(date_value)) {
+      
+      warning("'date_value' must be provided.")
+      end <- TRUE
+    }
     
     dataset <- subset_date(dataset, sub_date, filter_date, date_value)
     
@@ -262,6 +274,21 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
     }
     
     f_cpue <- function() if (length(cpue) == 1) cpue else "mean_cpue"
+    
+    # weight conversion
+    if (conv != "none") {
+      
+      if (conv == "tons") table_out[f_cpue()] <- table_out[f_cpue()]/2000
+      
+      else if (conv == "metric_tons") {
+        
+        table_out[f_cpue()] <- table_out[f_cpue()]/2204.62
+        
+      } else if (is.function(conv)) {
+        
+        table_out[f_cpue()] <- do.call(conv, list(table_out[f_cpue()]))
+      }
+    }
     
     # Confidentiality checks ----
     if (run_confid_check()) {
@@ -361,6 +388,26 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
               ifelse(tran == "identity", "", paste0("(", tran, ")")))
       }
       
+      y_lab <- function() {
+        
+        var <- if (length(cpue) > 1) "CPUE" else f_cpue()
+        
+        f_conv <- function() {
+          
+          if (conv != "none") {
+            
+            c_lab <- switch(conv, "tons" = "T", "metric_tons" = "MT", "")
+            
+            paste0("(", c_lab, ")")
+            
+          } else NULL
+        } 
+        
+        f_tran <- if (tran != "identity") paste(tran, "scale") else NULL
+        
+        paste("mean", var, f_conv(), f_tran)
+      }
+      
       y_breaks <- function() {
         if (tran != "identity") {
           
@@ -369,7 +416,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
           
           if (tran %in% c("log", "log2", "log10")) {
             
-            y_base <- switch(tran, "log" = 2.718282, "log2" = 2, "log10" = 10)
+            y_base <- switch(tran, "log" = exp(1), "log2" = 2, "log10" = 10)
             
             scales::log_breaks(n = brk_num, base = y_base)
           
@@ -381,10 +428,18 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
         } else ggplot2::waiver()
       }
       
+      f_label <- function() {
+        if (format_lab == "decimal") scales::label_number(big.mark = "")
+        else scales::label_scientific()
+      }
+      
       y_labeller <- function() {
         
-        if (tran == "sqrt") function(x) x^2
-        else ggplot2::waiver()
+        if (tran == "sqrt") {
+          
+          function(x) format(x^2, scientific = format_lab == "scientific")
+          
+        } else f_label()
       }
       
       f_tran <- function() {
@@ -449,9 +504,10 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
     # Log function
     weekly_effort_function <- list()
     weekly_effort_function$functionID <- "weekly_effort"
-    weekly_effort_function$args <- list(dat, project, cpue, date, group, sub_date, filter_date, 
-                                        date_value, filter_by, filter_value, filter_expr,
-                                        facet_by, tran, combine, scale, output, format_tab)
+    weekly_effort_function$args <- 
+      list(dat, project, cpue, date, group, sub_date, filter_date, date_value, 
+           filter_by, filter_value, filter_expr, facet_by, conv, tran, format_lab, 
+           combine, scale, output, format_tab)
     log_call(project, weekly_effort_function)
     
     save_table(table_out, project, "weekly_effort")
