@@ -224,16 +224,17 @@ dummy_matrix <- function(dat, project, x) {
 #'
 #' Create a factor variable from numeric data.  Numeric variable is split into categories based on quantile categories.
 #'
-set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25, 0.4), custom.quant = NULL, name = "set_quants") {
+set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25,0.33, 0.4), custom.quant = NULL, name = "set_quants") {
   #' @param dat Primary data containing information on hauls or trips.
   #' Table in FishSET database contains the string 'MainDataTable'.
   #' @param project Project name.
   #' @param x Variable to transform into quantiles.
-  #' @param quant.cat Quantile options: \code{"0.2"}, \code{"0.25"}, and \code{"0.4"}
+  #' @param quant.cat Quantile options: \code{"0.2"}, \code{"0.25"}, \code{"0.33"}, and \code{"0.4"}
   #' \itemize{
   #'   \item{0.1:  (0\%, 10\%, 20\%, 30\%, 40\%, 50\%, 60\%, 70\%, 80\%, 90\%, 100\%)}
   #'   \item{0.2:  (0\%, 20\%, 40\%, 60\%, 80\%, 100\%)}
   #'   \item{0.25: (0\%, 25\%, 50\%, 75\%, 100\%)}
+  #'   \item{0.33: (0\%, 33\%, 66\%, 100\%)}
   #'   \item{0.4:  (0\%, 10\%, 50\%, 90\%, 100\%)}
   #'   }
   #' @param custom.quant Vector, user defined quantiles.
@@ -266,7 +267,7 @@ set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25, 0.4), cust
       prob.def <- seq(0, 1, by = .2)
     } else if (quant.cat == 0.25) {
       prob.def <- seq(0, 1, by = .25)
-    } else if(quant.cat == .33) {
+    } else if(quant.cat == 0.33) {
       prob.def <- c(0, .33, .66, 1)
     }  else if (quant.cat == 0.4) {
       prob.def <- c(0, 0.1, 0.5, 0.9, 1)
@@ -280,10 +281,10 @@ set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25, 0.4), cust
     
     g <- cbind(dataset, newvar)
     colnames(g)[dim(g)[2]] = name
-    
+
     create_var_set_quants_function <- list()
     create_var_set_quants_function$functionID <- "set_quants"
-    create_var_set_quants_function$args <- list(dat, project, x, quant.cat, custom.quant, deparse(substitute(name)))
+    create_var_set_quants_function$args <- list(dat, project, x, quant.cat, custom.quant, name)
     create_var_set_quants_function$kwargs <- list()
     create_var_set_quants_function$output <- list(dat)
 

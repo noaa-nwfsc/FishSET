@@ -498,7 +498,7 @@ parse_data_name <- function(dat, type) {
   #'   the FishSET environment (`fishset_env`). Otherwise, the data table from the caller 
   #'   environment is used. 
   #' @export
-  
+
   dat_type <- switch(type, "main" = "dat_name", "aux" = "aux_name", 
                    "grid" = "grid_name", "port" = "port_name", "spat" = "spat_name")
   
@@ -510,7 +510,7 @@ parse_data_name <- function(dat, type) {
     
     if (!is.character(dat)) {
       
-      dat <- deparse(substitute(dat, rlang::caller_env())) 
+      dat <- (substitute(dat, rlang::caller_env())) 
     }
   }
   

@@ -23,7 +23,7 @@
 
 
 
-find_centroid <- function(dat, project, gridfile,  cat, lon.grid = NULL, lat.grid = NULL,
+find_centroid <- function(dat, project=NULL, gridfile,  cat, lon.grid = NULL, lat.grid = NULL,
                            weight.var = NULL,lon.dat = NULL, lat.dat = NULL) {
   # Call in datasets
   out <- data_pull(dat)
@@ -31,9 +31,12 @@ find_centroid <- function(dat, project, gridfile,  cat, lon.grid = NULL, lat.gri
   dat <- parse_data_name(dat, "main")
   
   gridname <- parse_data_name(gridfile, 'spat')
-
+    
+  if(is.null(project)){
     project <- sub("\\MainDataTable", "", dat)
+  }
 
+  
   tmp <- tempfile()
   cat("", file = tmp, append = TRUE)
   x <- 0
