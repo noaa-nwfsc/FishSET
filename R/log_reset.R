@@ -65,18 +65,21 @@ log_reset <- function(project, over_write = FALSE) {
 }
 
 log_call <- function(project, fun.name) {
-  #' Reset function calls saved in log file
+  #' Update function calls saved in log file
   #' @param project Name of project
   #' @param fun.name Function name
   #' @details update log file
   #' @importFrom jsonlite read_json toJSON
+  #' @importFrom rjson fromJSON
   #' @export
   #' @keywords internal
 
   create_new <- FALSE
   log_file <- current_log(project)
-  
+
   if (is.null(log_file)) create_new <- TRUE
+  
+
   
   if (create_new) {
     
@@ -98,14 +101,35 @@ log_call <- function(project, fun.name) {
     logbody$fishset_run <- list(infoBodyout, functionBodyout)
     
   } else {
+    if(is_empty(lapply(readLines(paste0(loclog(), log_file)), jsonlite::read_json))){
+    log_file <- paste0(project, "_", Sys.Date(), ".json")
     
-    logbody <- jsonlite::read_json(paste0(loclog(), log_file))
-    logbody$fishset_run[[2]]$function_calls[[length(logbody$fishset_run[[2]]$function_calls) + 1]] <- fun.name
+    logbody <- list()
+    infoBodyout <- list()
+    functionBodyout <- list()
+    infobody <- list()
+    
+    infobody$rundate <- Sys.Date()
+    infobody$project <- project
+    infoBodyout$info <- list(infobody)
+    
+    functionBodyout$function_calls <- list()
+    
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
+    functionBodyout$function_calls[[length(functionBodyout$function_calls) + 1]] <- fun.name
+    logbody$fishset_run <- list(infoBodyout, functionBodyout)
+
+    } else {
+    
+      logbody <- jsonlite::read_json(paste0(loclog(), log_file))
+      logbody$fishset_run[[2]]$function_calls[[length(logbody$fishset_run[[2]]$function_calls) + 1]] <- fun.name
+    }
   }
   
+
   write(
     jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE, null = "null", 
-                     na = "string"), 
+                     na = "string", force=TRUE), 
     paste0(loclog(), log_file)
   )
 }
