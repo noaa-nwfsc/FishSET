@@ -73,13 +73,12 @@ log_call <- function(project, fun.name) {
   #' @importFrom rjson fromJSON
   #' @export
   #' @keywords internal
-
+  
   create_new <- FALSE
   log_file <- current_log(project)
 
   if (is.null(log_file)) create_new <- TRUE
   
-
   
   if (create_new) {
     
@@ -101,7 +100,7 @@ log_call <- function(project, fun.name) {
     logbody$fishset_run <- list(infoBodyout, functionBodyout)
     
   } else {
-    if(is_empty(lapply(readLines(paste0(loclog(), log_file)), jsonlite::read_json))){
+    if(any(is_empty(readLines(paste0(loclog(), log_file))))){
     log_file <- paste0(project, "_", Sys.Date(), ".json")
     
     logbody <- list()

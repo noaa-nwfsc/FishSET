@@ -510,7 +510,7 @@ parse_data_name <- function(dat, type) {
     
     if (!is.character(dat)) {
       
-      dat <- (substitute(dat, rlang::caller_env())) 
+      dat <- deparse(substitute(dat, rlang::caller_env())) 
     }
   }
   
