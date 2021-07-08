@@ -518,8 +518,9 @@ density_serv <- function(id, values, project) {
              group = input$grp, combine = input$combine, date = date_sgs(), 
              filter_date = input$filter_date, date_value = date_value(), 
              filter_by = input$filter_by, filter_value = input$filter_by_val, 
-             facet_by = input$fct, scale = input$scale, tran = input$tran, 
-             bw = input$bw, position = input$position, pages = input$pages) 
+             facet_by = input$fct, scale = input$scale, conv = input$conv,
+             tran = input$tran, format_lab = input$f_lab, bw = input$bw, 
+             position = input$position, pages = input$pages) 
     })
     
     
@@ -754,8 +755,9 @@ vessel_serv <- function(id, values, project) {
              filter_date = input$filter_date, date_value = date_value(), 
              filter_by = input$filter_by, filter_value = input$filter_by_val, 
              filter_expr = input$filter_expr, facet_by = input$fct, combine = input$combine,
-             position = input$position, tran = input$tran, value = input$value,
-             scale = input$scale, type = input$type, output = input$out)
+             position = input$position, tran = input$tran, format_lab = input$f_lab,
+             value = input$value, scale = input$scale, type = input$type, 
+             output = input$out)
     })
     
     tabplot <- eventReactive(input$fun_run, {
@@ -995,9 +997,9 @@ species_serv <- function(id, values, project) {
              filter_date = input$filter_date, date_value = date_value(),
              filter_by = input$filter_by, filter_value = input$filter_by_val, 
              filter_expr = input$filter_expr, facet_by = input$fct, combine = input$combine,
-             position = input$position, tran = input$tran, value = input$value,
-             scale = input$scale, type = input$type, output = input$out,
-             format_tab = input$format)
+             position = input$position, conv = input$conv, tran = input$tran, 
+             format_lab = input$f_lab, value = input$value, scale = input$scale, 
+             type = input$type, output = input$out, format_tab = input$format)
     })
     
     tabplot <- eventReactive(input$fun_run, {
@@ -1236,7 +1238,8 @@ roll_serv <- function(id, values, project) {
              sub_date = sub_date_col(), filter_date = input$filter_date,
              date_value = date_value(), filter_by = input$filter_by, 
              filter_value = input$filter_by_val, filter_expr = input$filter_expr, 
-             facet_by = input$fct, tran = input$tran, scale = input$scale, output = input$out)
+             facet_by = input$fct, conv = input$conv, tran = input$tran, 
+             format_lab = input$f_lab, scale = input$scale, output = input$out)
     })
     
     tabplot <- eventReactive(input$fun_run, {
@@ -1449,11 +1452,9 @@ weekly_catch_serv <- function(id, values, project) {
     sub_date_col <- reactive({
       
       cols <- c(input$sub_date, input$grp_date, input$fct_date)
-      if (!is.null(cols)) {
-        cols
-      } else {
-        NULL
-      }
+      
+      if (!is.null(cols)) cols
+      else NULL
     }) 
     
     wc_out <- eventReactive(input$fun_run, {
@@ -1467,9 +1468,11 @@ weekly_catch_serv <- function(id, values, project) {
       q_test <- quietly_test(weekly_catch)
       q_test(values$dataset, project = project(), species = input$var, date = input$date,
              fun = input$fun, group = input$grp, sub_date = sub_date_col(),
-             filter_date = input$filter_date, filter_expr = input$filter_expr, 
-             tran = input$tran, value = input$value, scale = input$scale, 
-             type = input$type, output = input$out, format_tab = input$format)
+             filter_date = input$filter_date, date_value = date_value(),
+             filter_by = input$filter_by, filter_value = input$filter_by_val, 
+             filter_expr = input$filter_expr, tran = input$tran, format_lab = input$f_lab,
+             value = input$value, scale = input$scale, type = input$type, output = input$out, 
+             format_tab = input$format)
     })
     
     tabplot <- eventReactive(input$fun_run, {
@@ -1701,8 +1704,9 @@ weekly_effort_serv <- function(id, values, project) {
              group = input$grp, sub_date = sub_date_col(), filter_date = input$filter_date, 
              date_value = date_value(), filter_by = input$filter_by,
              filter_value = input$filter_by_val,  filter_expr = input$filter_expr, 
-             facet_by = input$fct, combine = input$combine, tran = input$tran, 
-             scale = input$scale, output = input$out, format_tab = input$format)
+             facet_by = input$fct, combine = input$combine, conv = input$conv, 
+             tran = input$tran, format_lab = input$f_lab, scale = input$scale, 
+             output = input$out, format_tab = input$format)
     })
     
     tabplot <- eventReactive(input$fun_run, {
@@ -1949,8 +1953,9 @@ bycatch_serv <- function(id, values, project) {
              sub_date = sub_date_col(), filter_date = input$filter_date, date_value = date_value(),
              filter_by = input$filter_by, filter_value = input$filter_by_val, 
              filter_expr = input$filter_expr,  facet_by = input$fct,value = input$value, 
-             combine = input$combine, tran = input$tran,scale = input$scale, 
-             output = input$out, format_tab = input$format)
+             combine = input$combine, conv = input$conv, tran = input$tran,
+             format_lab = input$f_lab, scale = input$scale, output = input$out, 
+             format_tab = input$format)
     })
     
     tabplot <- eventReactive(input$fun_run, {
