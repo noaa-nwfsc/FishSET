@@ -172,7 +172,7 @@ find_centroid <- function(dat, project=NULL, gridfile,  cat, lon.grid = NULL, la
 
 
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-  DBI::dbWriteTable(fishset_db, paste0(gridname, "Centroid"), int, overwrite = TRUE)
+  DBI::dbWriteTable(fishset_db, paste0(noquote(gridname), "Centroid"), int, overwrite = TRUE)
   DBI::dbDisconnect(fishset_db)
   
   return(int)
