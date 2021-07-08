@@ -50,6 +50,8 @@
 #' @param conv Convert catch variable to \code{"tons"}, \code{"metric_tons"}, or 
 #'   by using a function entered as a string. Defaults to \code{"none"} for no conversion.
 #' @param tran A function to transform the y-axis. Options include log, log2, log10, sqrt.
+#' @param format_lab Formatting option for y-axis labels. Options include 
+#'   \code{"decimal"} or \code{"scientific"}.
 #' @param value Whether to calculate raw \code{"count"} or \code{"percent"} of total catch. 
 #' @param position Positioning of bar plot. Options include 'stack', 'dodge', 
 #'   and 'fill'. 
@@ -90,14 +92,15 @@
 #' @importFrom stats reformulate
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @importFrom rlang expr sym
-#' @importFrom scales label_percent breaks_extended log_breaks
+#' @importFrom scales label_percent breaks_extended log_breaks label_number label_scientific
 
 species_catch <- function(dat, project, species, date = NULL, period = NULL, fun = "sum", 
                           group = NULL, sub_date = NULL, filter_date = NULL, date_value = NULL, 
                           filter_by = NULL, filter_value = NULL, filter_expr = NULL,
                           facet_by = NULL, type = "bar", conv = "none", tran = "identity", 
-                          value = "count", position = "stack", combine = FALSE, 
-                          scale = "fixed", output = "tab_plot", format_tab = "wide") {  
+                          format_lab = "decimal", value = "count", position = "stack", 
+                          combine = FALSE, scale = "fixed", output = "tab_plot", 
+                          format_tab = "wide") {  
   
   # Call in datasets
   out <- data_pull(dat)
@@ -172,6 +175,12 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
   
   # filter date ----
   if (!is.null(filter_date)) {
+    
+    if (is.null(date_value)) {
+      
+      warning("'date_value' must be provided.")
+      end <- TRUE
+    }
     
     dataset <- subset_date(dataset, sub_date, filter_date, date_value)
     
@@ -491,8 +500,21 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
       }  
       
       y_lab <- function() {
-        paste(fun, f_catch(), 
-              ifelse(tran == "identity", "", paste0("(", tran, ")")))
+        
+        f_conv <- function() {
+          
+          if (conv != "none") {
+            
+            c_lab <- switch(conv, "tons" = "T", "metric_tons" = "MT", "")
+            
+            paste0("(", c_lab, ")")
+            
+          } else NULL
+        } 
+        
+        f_tran <- if (tran != "identity") paste(tran, "scale") else NULL
+        
+        paste(fun, f_catch(), f_conv(), f_tran)
       }
       
       y_breaks <- function() {
@@ -503,7 +525,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
           
           if (tran %in% c("log", "log2", "log10")) {
             
-            y_base <- switch(tran, "log" = 2.718282, "log2" = 2, "log10" = 10)
+            y_base <- switch(tran, "log" = exp(1), "log2" = 2, "log10" = 10)
             
             scales::log_breaks(n = brk_num, base = y_base)
             
@@ -515,6 +537,11 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
         } else ggplot2::waiver()
       }
       
+      f_label <- function() {
+        if (format_lab == "decimal") scales::label_number(big.mark = "")
+        else scales::label_scientific()
+      }
+      
       y_labeller <- function() { 
         
         if (value == "percent") {
@@ -524,8 +551,11 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
           
         } else {
           
-          if (tran == "sqrt") function(x) x^2
-          else ggplot2::waiver()
+          if (tran == "sqrt") {
+            
+            function(x) format(x^2, scientific = format_lab == "scientific")
+            
+          } else f_label()
         }
       }
       
@@ -629,8 +659,8 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
     species_catch_function$args <- list(dat, project, species, date, period, fun, group, 
                                         sub_date, filter_date, date_value, filter_by, 
                                         filter_value, filter_expr, facet_by, type, 
-                                        conv, tran, value, position, combine, scale, 
-                                        output, format_tab)
+                                        conv, tran, format_lab, value, position, 
+                                        combine, scale, output, format_tab)
     log_call(project, species_catch_function)
     
     if (format_tab == "wide") {

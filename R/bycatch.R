@@ -45,7 +45,11 @@
 #'   by \code{"year"}, \code{"month"}, or \code{"week"} is available if a date variable 
 #'   is added to \code{sub_date}.
 #' @param value Whether to return raw catch ("raw") or share of total catch ('stc'). 
+#' @param conv Convert catch variable to \code{"tons"}, \code{"metric_tons"}, or 
+#'   by using a function entered as a string. Defaults to \code{"none"} for no conversion.
 #' @param tran A function to transform the y-axis. Options include log, log2, log10, sqrt.
+#' @param format_lab Formatting option for y-axis labels. Options include 
+#'   \code{"decimal"} or \code{"scientific"}.  
 #' @param combine Logical, whether to combine variables listed in \code{group}. 
 #' @param scale Scale argument passed to \code{\link{facet_grid}}. Defaults to 
 #'   \code{"fixed"}. Other options include \code{"free_y"}, \code{"free_x"}, and 
@@ -96,8 +100,9 @@
 bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NULL, 
                     group = NULL, sub_date = NULL, filter_date = NULL, date_value = NULL, 
                     filter_by = NULL, filter_value = NULL, filter_expr = NULL, 
-                    facet_by = NULL, tran = "identity", value = "stc", combine = FALSE, 
-                    scale = "fixed", output = "tab_plot", format_tab = "wide") {
+                    facet_by = NULL, conv = "none", tran = "identity", 
+                    format_lab = "decimal", value = "stc", combine = FALSE, 
+                    scale = "fixed", output = "tab_plot",  format_tab = "wide") {
   
   # Call in datasets
   out <- data_pull(dat)
@@ -170,6 +175,12 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
   
   # filter date ----
   if (!is.null(filter_date)) {
+    
+    if (is.null(date_value)) {
+      
+      warning("'date_value' must be provided.")
+      end <- TRUE
+    }
     
     dataset <- subset_date(dataset, sub_date, filter_date, date_value)
     
@@ -276,9 +287,30 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
                                        names_to = "species_catch", 
                                        values_to = "catch")
     }
-    # STC conversion ---- 
+    # conversions ---- 
     f_catch <- function() if (length(catch) > 1) "catch" else catch
     
+    ## Tons ----
+    if (conv != "none") {
+      
+      if (conv == "tons") {
+        
+        catch_tab[f_catch()] <- catch_tab[f_catch()]/2000
+        cpue_tab[f_cpue()] <- cpue_tab[f_cpue()]/2000
+        
+      } else if (conv == "metric_tons") {
+        
+        catch_tab[f_catch()] <- catch_tab[f_catch()]/2204.62
+        cpue_tab[f_cpue()] <- cpue_tab[f_cpue()]/2204.62
+        
+      } else if (is.function(conv)) {
+        
+        catch_tab[f_catch()] <- do.call(conv, list(catch_tab[f_catch()]))
+        cpue_tab[f_cpue()] <- do.call(conv, list(cpue_tab[f_cpue()]))
+      }
+    }
+    
+    ## STC ----
     if (value == "stc") {
       
       catch_tab <- perc_of_total(catch_tab, value_var = f_catch(), 
@@ -354,7 +386,8 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
     if (output %in% c("tab_plot", "plot")) {
       
       by_plot <- bycatch_plot(bycatch, cpue, catch, period, group, facet_by, 
-                              names = name_tab$species, value, scale, tran)
+                              names = name_tab$species, value, scale, conv, tran,
+                              format_lab)
       
       f_plot <- function() {
         if (shiny::isRunning()) by_plot
@@ -370,7 +403,8 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
           
           conf_plot <- 
             bycatch_plot(check_out, cpue, catch, period, group, facet_by, 
-                         names = name_tab$species, value, scale, tran)
+                         names = name_tab$species, value, scale, conv, tran,
+                         format_lab)
           
           save_plot(project, "bycatch_conf", plot = conf_plot)
         }
@@ -392,10 +426,11 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
     # Log Function
     bycatch_function <- list()
     bycatch_function$functionID <- "bycatch"
-    bycatch_function$args <- list(dat, project, cpue, catch, date, period, names, group, 
-                                  sub_date, filter_date, date_value, filter_by, filter_value, 
-                                  filter_expr, facet_by, tran, value, combine, scale, 
-                                  output, format_tab)
+    bycatch_function$args <- 
+      list(dat, project, cpue, catch, date, period, names, group, sub_date, 
+           filter_date, date_value, filter_by, filter_value, filter_expr, 
+           facet_by, conv, tran, format_lab, value, combine, scale, output, 
+           format_tab)
     log_call(project, bycatch_function)
     
     if (output == "plot") f_plot()
@@ -412,7 +447,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
 }
 
 bycatch_plot <- function(dat, cpue, catch, period, group, facet_by, names,
-                         value, scale, tran) {
+                         value, scale, conv, tran, format_lab) {
   #' Bycatch plot helper
   #' 
   #' Creates and formats plots for \code{bycatch}.
@@ -426,7 +461,12 @@ bycatch_plot <- function(dat, cpue, catch, period, group, facet_by, names,
   #'@param names String, species names for plot labels passed from \code{bycatch}.
   #'@param value String, whether to return percent or sum of catch.
   #'@param scale String, facet scale passed from \code{bycatch}.
+  #'@param conv Convert catch variable to \code{"tons"}, \code{"metric_tons"}, or 
+  #'   by using a function entered as a string. Defaults to \code{"none"} for no 
+  #'   conversion.
   #'@param tran String, scale transformation passed from \code{bycatch}.
+  #'@param format_lab Formatting option for y-axis labels. Options include 
+  #'   \code{"decimal"} or \code{"scientific"}.
   #'@keywords internal
   #'@import ggplot2
   #'@importFrom stats reformulate
@@ -461,7 +501,7 @@ bycatch_plot <- function(dat, cpue, catch, period, group, facet_by, names,
       
       if (tran %in% c("log", "log2", "log10")) {
         
-        y_base <- switch(tran, "log" = 2.718282, "log2" = 2, "log10" = 10)
+        y_base <- switch(tran, "log" = exp(1), "log2" = 2, "log10" = 10)
         
         scales::log_breaks(n = brk_num, base = y_base)
         
@@ -471,6 +511,11 @@ bycatch_plot <- function(dat, cpue, catch, period, group, facet_by, names,
       }
       
     } else ggplot2::waiver()
+  }
+  
+  f_label <- function() {
+    if (format_lab == "decimal") scales::label_number(big.mark = "")
+    else scales::label_scientific()
   }
   
   y_labeller <- function(col) { 
@@ -484,14 +529,14 @@ bycatch_plot <- function(dat, cpue, catch, period, group, facet_by, names,
         
       } else {
         
-        if (tran == "sqrt") function(x) x^2
-        else ggplot2::waiver()
+        if (tran == "sqrt") function(x) format(x^2, scientific = format_lab == "scientific")
+        else f_label()
       }
       
     } else if (col == "cpue") {
       
-      if (tran == "sqrt") function(x) x^2
-      else ggplot2::waiver()
+      if (tran == "sqrt") function(x) format(x^2, scientific = format_lab == "scientific")
+      else f_label()
     }
   }
   
@@ -512,9 +557,26 @@ bycatch_plot <- function(dat, cpue, catch, period, group, facet_by, names,
       else cpue_sym 
     }
     
+    # y_lab <- function() {
+    #   if (tran != "identity") paste0("Average CPUE (", tran, ")")
+    #   else "Average CPUE"
+    # }
     y_lab <- function() {
-      if (tran != "identity") paste0("Average CPUE (", tran, ")")
-      else "Average CPUE"
+      
+      f_conv <- function() {
+        
+        if (conv != "none") {
+          
+          c_lab <- switch(conv, "tons" = "T", "metric_tons" = "MT", "")
+          
+          paste0("(", c_lab, ")")
+          
+        } else NULL
+      } 
+      
+      f_tran <- if (tran != "identity") paste(tran, "scale") else NULL
+      
+      paste("Mean", f_cpue(), f_conv(), f_tran)
     }
     
     cpue_cols <- unique(c(period, agg_grp, species_exp2(), f_cpue()))
@@ -576,12 +638,22 @@ bycatch_plot <- function(dat, cpue, catch, period, group, facet_by, names,
     
     y_lab <- function() {
       
-      c_fun <- function() {
-        if (value == "stc") "Share of total " else "Total "
-      }
+      c_fun <- function() if (value == "stc") "Share of total" else "Total"
       
-      if (tran != "identity") paste0(c_fun(), "catch (", tran, ")")
-      else paste0(c_fun(), "catch")
+      f_conv <- function() {
+        
+        if (conv != "none") {
+          
+          c_lab <- switch(conv, "tons" = "T", "metric_tons" = "MT", "")
+          
+          paste0("(", c_lab, ")")
+          
+        } else NULL
+      } 
+      
+      f_tran <- if (tran != "identity") paste(tran, "scale") else NULL
+      
+      paste(c_fun(), f_catch(), f_conv(), f_tran)
     }
     
     catch_cols <- unique(c(period, agg_grp, species_exp2(), 

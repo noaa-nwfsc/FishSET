@@ -48,6 +48,8 @@
 #' @param conv Convert catch variable to \code{"tons"}, \code{"metric_tons"}, or 
 #'   by using a function entered as a string. Defaults to \code{"none"} for no conversion.
 #' @param tran A function to transform the y-axis. Options include log, log2, log10, sqrt.
+#' @param format_lab Formatting option for y-axis labels. Options include 
+#'   \code{"decimal"} or \code{"scientific"}.
 #' @param value Whether to calculate raw \code{"count"} or \code{"percent"} of total catch. 
 #' @param position Positioning of bar plot. Options include 'stack', 'dodge', 
 #'   and 'fill'. 
@@ -90,7 +92,7 @@
 #' @export weekly_catch
 #' @importFrom stats reformulate
 #' @importFrom tidyr pivot_longer pivot_wider
-#' @importFrom scales label_percent breaks_extended log_breaks
+#' @importFrom scales label_percent breaks_extended log_breaks label_number label_scientific
 #' @importFrom rlang sym expr
 #' @import ggplot2
 
@@ -98,8 +100,9 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
                          sub_date = NULL, filter_date = NULL, date_value = NULL, 
                          filter_by = NULL, filter_value = NULL, filter_expr = NULL, 
                          facet_by = NULL, type = "bar", conv = "none", tran = "identity", 
-                         value = "count", position = "stack", combine = FALSE, 
-                         scale = "fixed", output = "tab_plot", format_tab = "wide") {
+                         format_lab = "decimal", value = "count", position = "stack", 
+                         combine = FALSE, scale = "fixed", output = "tab_plot", 
+                         format_tab = "wide") {
   
   # Call in datasets
   out <- data_pull(dat)
@@ -183,6 +186,12 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
   
   # date filter ----
   if (!is.null(filter_date)) {
+    
+    if (is.null(date_value)) {
+      
+      warning("'date_value' must be provided.")
+      end <- TRUE
+    }
     
     dataset <- subset_date(dataset, sub_date, filter_date, date_value)
     
@@ -399,8 +408,21 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
       x_lab <- function() paste0(date, " (week)")
       
       y_lab <- function() {
-        paste(fun, f_catch(), 
-              ifelse(tran == "identity", "", paste0("(", tran, ")")))
+        
+        f_conv <- function() {
+        
+          if (conv != "none") {
+            
+            c_lab <- switch(conv, "tons" = "T", "metric_tons" = "MT", "")
+            
+            paste0("(", c_lab, ")")
+            
+          } else NULL
+        } 
+        
+        f_tran <- if (tran != "identity") paste(tran, "scale") else NULL
+  
+        paste(fun, f_catch(), f_conv(), f_tran)
       }
       
       y_breaks <- function() {
@@ -423,6 +445,11 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
         } else ggplot2::waiver()
       }
       
+      f_label <- function() {
+        if (format_lab == "decimal") scales::label_number(big.mark = "")
+        else scales::label_scientific()
+      }
+      
       y_labeller <- function() { 
         
         if (value == "percent") {
@@ -432,8 +459,11 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
           
         } else {
           
-          if (tran == "sqrt") function(x) x^2
-          else ggplot2::waiver()
+          if (tran == "sqrt") {
+            
+            function(x) format(x^2, scientific = format_lab == "scientific")
+            
+          } else f_label()
         }
       }
       
@@ -509,10 +539,10 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
     # log function
     weekly_catch_function <- list()
     weekly_catch_function$functionID <- "weekly_catch"
-    weekly_catch_function$args <- list(dat, project, species, date, fun, group, sub_date,
-                                       filter_date, date_value, filter_by, filter_value, 
-                                       filter_expr, facet_by, type, conv, tran, value, 
-                                       position, combine, scale,  output, format_tab)
+    weekly_catch_function$args <- 
+      list(dat, project, species, date, fun, group, sub_date, filter_date, 
+           date_value, filter_by, filter_value, filter_expr, facet_by, type, conv, 
+           tran, format_lab, value, position, combine, scale,  output, format_tab)
     log_call(project, weekly_catch_function)
     
     save_table(table_out, project, "weekly_catch")

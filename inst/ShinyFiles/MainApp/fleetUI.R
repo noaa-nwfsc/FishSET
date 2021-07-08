@@ -276,8 +276,14 @@ density_plotUI <- function(id, dat) {
         numericInput(ns("bw"), "Kernel bandwidth",
                      value = 1),
         
+        selectInput(ns("conv"), "Convert catch",
+                    choices = c("none", "tons", "metric tons" = "metric_tons", "custom")),
+        
         selectInput(ns("tran"), "Transformation function",
                     choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
+        
+        selectInput(ns("f_lab"), "Format x-axis label", 
+                     choices = c("decimal", "scientific")), 
         
         selectInput(ns("scale"), "Split plot scale",
                     choices = c("fixed", "free y-axis" = "free_y", 
@@ -377,6 +383,9 @@ vessel_countUI <- function(id) {
         
         selectInput(ns("tran"), "Transformation function",
                     choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
+        
+        selectInput(ns("f_lab"), "Format y-axis label", 
+                    choices = c("decimal", "scientific")), 
         
         selectInput(ns("type"), "Plot type",
                     choices = c("bar", "line")),
@@ -487,6 +496,9 @@ species_catchUI <- function(id) {
         selectInput(ns("tran"), "Transform y-axis",
                     choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
         
+        selectInput(ns("f_lab"), "Format y-axis label", 
+                    choices = c("decimal", "scientific")), 
+        
         selectInput(ns("type"), "Plot type",
                     choices = c("bar", "line")),
         
@@ -595,7 +607,10 @@ roll_catchUI <- function(id) {
                          textInput(ns("conv"), "Enter function")),
         
         selectInput(ns("tran"), "Transform y-axis",
-                    choices = c("none" = "identity", "log", "log2", "log10", "sqrt")))
+                    choices = c("none" = "identity", "log", "log2", "log10", "sqrt"))),
+      
+      selectInput(ns("f_lab"), "Format y-axis label", 
+                  choices = c("decimal", "scientific"))
     )
   )
 }
@@ -685,6 +700,9 @@ weekly_catchUI <- function(id) {
         selectInput(ns("tran"), "Transform y-axis",
                     choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
         
+        selectInput(ns("f_lab"), "Format y-axis label", 
+                    choices = c("decimal", "scientific")), 
+        
         selectInput(ns("type"), "Plot type",
                     choices = c("bar", "line")),
         
@@ -771,8 +789,18 @@ weekly_effortUI <- function(id) {
                      
       tagList(
         
+        selectInput(ns("conv"), "Convert catch",
+                    choices = c("none", "tons", "metric tons" = "metric_tons", "custom")),
+        
+        conditionalPanel("input.conv == 'custom'", ns = ns, style = "margin-left:19px;",
+                         
+                         textInput(ns("conv"), "Enter function")),
+        
         selectInput(ns("tran"), "Transform y-axis",
                     choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
+        
+        selectInput(ns("f_lab"), "Format y-axis label", 
+                    choices = c("decimal", "scientific")), 
         
         selectInput(ns("scale"), "Split plot scale",
                     choices = c("fixed", "free y-axis" = "free_y",
@@ -877,8 +905,18 @@ bycatchUI <- function(id) {
           selectInput(ns("value"), "Catch value type",
                       choices = c("total", "share of total catch" = "stc")),
           
+          selectInput(ns("conv"), "Convert catch",
+                      choices = c("none", "tons", "metric tons" = "metric_tons", "custom")),
+          
+          conditionalPanel("input.conv == 'custom'", ns = ns, style = "margin-left:19px;",
+                           
+                           textInput(ns("conv"), "Enter function")),
+          
           selectInput(ns("tran"), "Transform y-axis",
                       choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
+          
+          selectInput(ns("f_lab"), "Format y-axis label", 
+                      choices = c("decimal", "scientific")), 
           
           selectInput(ns("scale"), "Split plot scale",
                       choices = c("fixed", "free y-axis" = "free_y",
