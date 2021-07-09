@@ -57,6 +57,8 @@
 #' @param tran Transformation to be applied to the x-axis. A few options include 
 #'   \code{"log"}, \code{"log10"}, and \code{"sqrt"}. See 
 #'   \code{\link[ggplot2]{scale_continuous}} for a complete list.
+#' @param format_lab Formatting option for x-axis labels. Options include 
+#'   \code{"decimal"} or \code{"scientific"}.
 #' @param pages Whether to output plots on a single page (\code{"single"}, the 
 #'   default) or multiple pages (\code{"multi"}).
 #' @param remove_neg Logical, whether to remove negative trip durations from the 
@@ -106,21 +108,21 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
                         filter_date = NULL, date_value = NULL, filter_by = NULL, 
                         filter_value = NULL, filter_expr = NULL, facet_by = NULL, 
                         type = "hist", bins = 30, density = TRUE, scale = "fixed", 
-                        tran = "identity", pages = "single", remove_neg = FALSE,
-                        output = "tab_plot", tripID = NULL, fun.time = NULL, 
-                        fun.numeric = NULL) {
+                        tran = "identity", format_lab = "decimal", pages = "single", 
+                        remove_neg = FALSE, output = "tab_plot", tripID = NULL, 
+                        fun.time = NULL, fun.numeric = NULL) {
   out <- data_pull(dat)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
-  end <- FALSE
+  end_fun <- FALSE
   
   not_num <- vapply(dataset[vpue], function(x) !is.numeric(x), logical(1))
   
   if (any(not_num)) {
     
     warning("'vpue' must be numeric.")
-    end <- TRUE
+    end_fun <- TRUE
   }
   
   if (any(units %in% c("secs", "minutes", "hours", "days", "weeks")) == FALSE) {
@@ -162,7 +164,7 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
       if (!is.null(start)) sub_date <- start
       else {
         warning("Argument 'sub_date' required when subsetting by date.")
-        end <- TRUE
+        end_fun <- TRUE
       }
     }
   }
@@ -173,7 +175,7 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
         if (!is.null(start)) sub_date <- start
         else {
           warning("Spliting by year requires 'sub_date' argument.")
-          end <- TRUE
+          end_fun <- TRUE
         }
       }
     } 
@@ -185,7 +187,7 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
         if (!is.null(date)) sub_date <- date
         else {
           warning("Grouping by year requires 'sub_date' argument.")
-          end <- TRUE
+          end_fun <- TRUE
         }
       }
     } 
@@ -194,12 +196,18 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
   # filter by date ----
   if (!is.null(filter_date)) {
     
+    if (is.null(date_value)) {
+      
+      warning("'date_value' must be provided.")
+      end_fun <- TRUE
+    }
+    
     dataset <- subset_date(dataset, start, filter_date, date_value)
     
     if (nrow(dataset) == 0) {
       
       warning("Filtered data table has zero rows. Check filter parameters.")
-      end <- TRUE
+      end_fun <- TRUE
     }
   }
   
@@ -211,11 +219,11 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
     if (nrow(dataset) == 0) {
       
       warning("Filtered data table has zero rows. Check filter parameters.")
-      end <- TRUE
+      end_fun <- TRUE
     }
   }
   
-  if (end == FALSE) {
+  if (end_fun == FALSE) {
     
     # calculate trip duration ----
     if (lubridate::is.POSIXt(dataset[[start]]) | lubridate::is.POSIXt(dataset[[end]])) {
@@ -440,8 +448,8 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
       
       t_plot <- 
         trip_length_plot(trip_tab, trp_nms = axis_name, vpue, group = group_list, 
-                         facet_by, units, type, dens = density, bins, tran, scale,
-                         combine, pages)
+                         facet_by, units, type, dens = density, bins, tran, 
+                         format_lab, scale, combine, pages)
       
       if (run_confid_check()) {
         
@@ -451,7 +459,7 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
             
             check_out <- tibble::as_tibble(check_out)
             
-            p_brks <- pretty(range(trip_tab[[t_nm]]), 
+            p_brks <- pretty(range(trip_tab[[t_nm]], finite = TRUE), 
                              n = bins, min.n = 1)
             # add breaks to trip_tab
             trip_tab$breaks <- cut(trip_tab[[t_nm]], breaks = p_brks, 
@@ -469,8 +477,8 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
             
             check_plot <-
               trip_length_plot(trip_tab, trp_nms = t_nm, vpue, group = group_list, 
-                               facet_by, units, type, dens = density, bins, tran, scale,
-                               combine, pages)
+                               facet_by, units, type, dens = density, bins, tran, 
+                               format_lab, scale, combine, pages)
             
           } else { # with vpue
             
@@ -478,7 +486,7 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
             trip_tab[brk_cols] <- lapply(p_nm, function(x) {
               
               var <- trip_tab[[x]][is.finite(trip_tab[[x]])]
-              p_brks <- pretty(range(var), n = bins, min.n = 1)
+              p_brks <- pretty(range(var, finite = TRUE), n = bins, min.n = 1)
               # add breaks to trip_tab
               cut(trip_tab[[x]], breaks = p_brks, 
                   include.lowest = TRUE, right = TRUE)
@@ -502,8 +510,8 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
             
             check_plot <-
               trip_length_plot(trip_tab, trp_nms = p_nm, vpue, group = group_list, 
-                               facet_by, units, type, dens = density, bins, tran, scale,
-                               combine, pages)
+                               facet_by, units, type, dens = density, bins, tran, 
+                               format_lab, scale, combine, pages)
           }
         }
       }
@@ -558,8 +566,9 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
     trip_length_function$args <- list(dat, project, start, end, units, vpue,
                                       group, combine, haul_count, sub_date, filter_date, 
                                       date_value, filter_by, filter_value, filter_expr,
-                                      facet_by, type, bins, density, scale, tran, pages, 
-                                      remove_neg, output, tripID, fun.time, fun.numeric)
+                                      facet_by, type, bins, density, scale, tran, 
+                                      format_lab, pages, remove_neg, output, tripID, 
+                                      fun.time, fun.numeric)
     log_call(project, trip_length_function)
     
     if (output == "table") table_out
@@ -576,7 +585,7 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
 
 
 trip_length_plot <- function(trip_tab, trp_nms, vpue, group, facet_by, units, type, 
-                             dens, bins, tran, scale, combine, pages) {
+                             dens, bins, tran, format_lab, scale, combine, pages) {
   #' Trip length plot helper
   #' 
   #' Creates and formats plots for \code{trip_length}.
@@ -592,6 +601,8 @@ trip_length_plot <- function(trip_tab, trp_nms, vpue, group, facet_by, units, ty
   #'   \code{FALSE}.
   #' @param bins Numeric, the number of bins to sort variables by.
   #' @param tran Transformation to be applied to the x-axis. 
+  #' @param format_lab Formatting option for x-axis labels. Options include 
+  #'   \code{"decimal"} or \code{"scientific"}.
   #' @param scale Scale argument passed to \code{\link{facet_grid}}.
   #' @param combine Logical, whether grouping variables should be combined. 
   #' @param pages Whether to output plots on a single page (\code{"single"}, the 
@@ -611,7 +622,23 @@ trip_length_plot <- function(trip_tab, trp_nms, vpue, group, facet_by, units, ty
   
   unit_print <- switch(units, "secs" = "sec", "minutes" = "minute", 
                        "hours" = "hour", "days" = "day", "weeks" = "week")
+  
   # plot functions ----
+  
+  trp_exp <- function(x) {
+    
+    out <- rlang::sym(x)
+    
+    if (tran == "sqrt") rlang::expr(sqrt(!!out)) 
+    else out
+  }
+  
+  y_exp <- function() {
+    
+    if (dens) rlang::expr(ggplot2::after_stat(density))
+    else  rlang::expr(ggplot2::after_stat(count))
+  }
+  
   group_exp <- function() {
     if (!is.null(group)) rlang::sym(group) 
     else NULL
@@ -633,24 +660,47 @@ trip_length_plot <- function(trip_tab, trp_nms, vpue, group, facet_by, units, ty
     } else NULL
   }
   
-  trip_lab <- function() paste0("trip length ", "(", units, ")")
-  # single plot (just durations)
+  trip_lab <- function() {
+
+    tran_f <- if (tran == "identity") NULL else paste0(" ", tran, " scale")
+
+    paste0("trip length ", "(", units, ")", tran_f)
+  }
+
+  f_label <- function() {
+    if (format_lab == "decimal") scales::label_number(big.mark = "")
+    else scales::label_scientific()
+  }
+  
+  x_labeller <- function() {
+    
+    if (tran == "sqrt") {
+      
+      function(x) format(x^2, scientific = format_lab == "scientific")
+      
+    } else f_label()
+  }
+  
+  f_tran <- function() {
+    
+    if (tran == "sqrt") "identity"
+    else tran
+  }
+  
   if (is.null(vpue)) { 
     
     # convert bins to breaks
-    p_brks <- pretty(range(trip_tab[[trp_nms[1]]]), n = bins, min.n = 1)
-  
-    if (dens == FALSE) {
-      t_plot <- ggplot2::ggplot(trip_tab, ggplot2::aes(x = !!rlang::sym(trp_nms[1])))
-      
-    } else {
-      t_plot <- 
-        ggplot2::ggplot(trip_tab, ggplot2::aes(x = !!rlang::sym(trp_nms[1]), 
-                                               y = ggplot2::after_stat(density)))
-    }
+    trp_rng <- range(trip_tab[[trp_nms[1]]], finite = TRUE)
+    p_brks <- pretty(trp_rng, n = bins, min.n = 1)
     
-    t_plot <- t_plot + ggplot2::labs(x = trip_lab()) +
-      fishset_theme() + ggplot2::scale_x_continuous(trans = tran)
+    t_plot <- 
+      ggplot2::ggplot(trip_tab, 
+                      ggplot2::aes(x = !!trp_exp(trp_nms[1]),
+                                   y = !!y_exp())) + 
+      ggplot2::labs(x = trip_lab()) +
+      ggplot2::scale_x_continuous(trans = f_tran(),
+                                  labels = x_labeller()) +
+      fishset_theme()
     
     if (type == "hist") {
       t_plot <- t_plot + ggplot2::geom_histogram(ggplot2::aes(fill = !!group_exp()),
@@ -673,33 +723,37 @@ trip_length_plot <- function(trip_tab, trp_nms, vpue, group, facet_by, units, ty
   } else {
     
     axis_lab <- function(x) {
+      
       if (x == trp_nms[1]) trip_lab()
       else {
-        paste0(names(trp_nms[trp_nms == x]), " per ", unit_print)
+        
+        tran_f <- if (tran == "identity") NULL else paste0(" ", tran, " scale")
+        
+        paste0(names(trp_nms[trp_nms == x]), " (per ", unit_print, ")", tran_f)
       }
     }
     
     plot_list <- lapply(trp_nms, function(p) {
       
-      p_brks <- pretty(range(trip_tab[[p]]), n = bins, min.n = 1)
+      p_brks <- pretty(range(trip_tab[[p]], finite = TRUE), n = bins, min.n = 1)
       
-      if (dens == FALSE) {
-        h_plot <- ggplot2::ggplot(trip_tab, ggplot2::aes(x = !!rlang::sym(p)))
-      } else {
-        h_plot <- 
-          ggplot2::ggplot(trip_tab, ggplot2::aes(x = !!rlang::sym(p), 
-                                                 y = ggplot2::after_stat(density)))
-      }
-      
-      h_plot <- h_plot + ggplot2::labs(title = p, x = axis_lab(p), 
-                                       caption = paste("bins:", bins)) +
-        fishset_theme() + ggplot2::scale_x_continuous(trans = tran)
+      h_plot <- 
+        ggplot2::ggplot(trip_tab, 
+                        ggplot2::aes(x = !!trp_exp(p), 
+                                     y = !!y_exp())) +
+        ggplot2::labs(title = p, x = axis_lab(p), 
+                      caption = paste("bins:", bins)) +
+        fishset_theme() + 
+        ggplot2::scale_x_continuous(trans = f_tran(),
+                                    labels = x_labeller())
       
       if (type == "hist") {
+        
         h_plot <- h_plot + ggplot2::geom_histogram(ggplot2::aes(fill = !!group_exp()), 
                                                    color = "black", breaks = p_brks,
                                                    na.rm = TRUE)
       } else if (type == "freq_poly") {
+        
         h_plot <- 
           h_plot + ggplot2::geom_freqpoly(ggplot2::aes(color = !!color_exp(),
                                                        linetype = !!line_type_exp()),
