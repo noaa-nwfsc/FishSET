@@ -2189,11 +2189,8 @@ trip_serv <- function(id, values, project) {
     sub_date_col <- reactive({
       
       cols <- c(input$sub_date, input$grp_date, input$fct_date)
-      if (!is.null(cols)) {
-        cols
-      } else {
-        NULL
-      }
+      if (!is.null(cols)) cols
+      else NULL
     }) 
     
     trip_out <- eventReactive(input$fun_run, {
@@ -2207,10 +2204,11 @@ trip_serv <- function(id, values, project) {
              group = input$grp, sub_date = sub_date_col(), filter_date = input$filter_date, 
              date_value = date_value(), filter_by = input$filter_by, 
              filter_value = input$filter_by_val, filter_expr = input$filter_expr, 
-             facet_by = input$fct, density = input$dens, tran = input$tran,
-             scale = input$scale, output = input$out, pages = input$pages, 
-             remove_neg = input$rm_neg, type = input$type, bins = input$bins,
-             tripID = input$tripID, fun.time = input$fun_time, fun.numeric = input$fun_numeric)
+             facet_by = input$fct, density = input$dens, tran = input$tran, 
+             format_lab = input$f_lab, scale = input$scale, output = input$out, 
+             pages = input$pages, remove_neg = input$rm_neg, type = input$type, 
+             bins = input$bins, tripID = input$tripID, fun.time = input$fun_time, 
+             fun.numeric = input$fun_numeric)
     })
     
     tabplot <- eventReactive(input$fun_run, {

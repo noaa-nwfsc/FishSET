@@ -1030,6 +1030,9 @@ trip_lengthUI <- function(id) {
         selectInput(ns("tran"), "Transform x-axis",
                     choices = c("none" = "identity", "log", "log2", "log10", "sqrt")),
         
+        selectInput(ns("f_lab"), "Format y-axis label", 
+                    choices = c("decimal", "scientific")),
+        
         selectInput(ns("scale"), "Split plot scale",
                     choices = c("fixed", "free y-axis" = "free_y",
                                 "free x-axis" = "free_x", "free")))
