@@ -66,7 +66,7 @@ cpue <- function(dat, project, xWeight, xTime, name = "cpue") {
 ## ---- Dummy  Variables ----##
 # dummy_num
 dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dummy_num") {
-  #' Create a dummy vector from numeric characterization of variable
+  #' Create a binary vector from numeric, date, and character or factor vectors.
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project Project name. 
