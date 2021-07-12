@@ -22,6 +22,9 @@
 #'   See \url{http://spatialreference.org/} to help identify optimal epsg number.
 #' @param closest.pt  Logical, if true, observations that fall outside zones are classed as the closest 
 #'    zone polygon to the point.
+#' @param bufferval Maximum buffer distance, in meters, for assigning observations to the closest zone polygon. 
+#'   If no zone polygons are within the defined bufferval then observation will not be assigned to a 
+#'   zone polygon. Required if closest.pt is TRUE. 
 #' @param log.fun Logical, whether to log function call (for internal use).
 #' @importFrom sp CRS Polygons Polygon SpatialPolygons SpatialPolygonsDataFrame coordinates
 #' @importFrom rgeos gDistance
@@ -36,7 +39,7 @@
 #' @export
 
 
-assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, closest.pt = FALSE, 
+assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, closest.pt = FALSE, bufferval = NULL,
                               lon.grid = NULL, lat.grid = NULL, hull.polygon = FALSE, epsg = NULL,
                               log.fun = TRUE) {
 
@@ -53,17 +56,25 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
   dataset[[lon.dat]] <- as.numeric(as.vector(dataset[[lon.dat]]))
 
   x <- 0
-  if (any(abs(dataset[[lon.dat]]) > 180)) {
+  
+  if(anyNA(dataset[[lat.dat]])|| anyNA(dataset[[lon.dat]])){
+    warning('Missing values in coordinates not allowed. Function not run.')
+    x <- 1
+  }
+  
+  if (any(abs(dataset[[lon.dat]]) > 180, na.rm=TRUE)) {
     warning("Longitude is not valid (outside -180:180). Function not run")
     # stop('Longitude is not valid (outside -180:180.')
     x <- 1
   }
-  if (any(abs(dataset[[lat.dat]]) > 90)) {
+  if (any(abs(dataset[[lat.dat]]) > 90, na.rm=TRUE)) {
     warning("Latitude is not valid (outside -90:90. Function not run")
     x <- 1
     # stop('Latitude is not valid (outside -90:90.')
   }
 
+
+  
   if (x == 0) {
     # For json and shape files
     if (any(class(grid) %in% "sf") || any(class(grid) %in% c("sp", "SpatialPolygonsDataFrame"))) {
@@ -88,9 +99,28 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
       } else {
         grid <- sf::st_transform(grid, "+proj=longlat +datum=WGS84")
       }
-      pts <- as.data.frame(as.numeric(sf::st_intersects(dat_sub, grid)))
+      temp <- sf::st_intersects(dat_sub, grid)
+      if(any(lengths(temp)>1)) {
+        warning('At least one observation assigned to multiple regulatory zones. Assigning observations to nearest polygon.')
+        dub <- which(lengths(temp)>1)
+        temp[dub] <- sf::st_nearest_feature(dat_sub[dub,], grid)
+      }
+      if (closest.pt==TRUE) {
+        if(anyNA(temp)){
+          dub <- which(is.na(temp))
+          nearest <- sf::st_nearest_feature(dat_sub[dub,], grid)  
+          dist.rec = sf::st_distance(dat_sub[dub,], grid[nearest,], by_element=TRUE)
+          distkeep <- which(as.numeric(dist.rec)< bufferval)
+          temp[dub[distkeep]] <- nearest[distkeep]
+          message(length(distkeep), ' observation assigned to nearest zone polygon within ', bufferval, ' meters. ', 
+                  length(which(as.numeric(dist.rec)>0.01)), ' observations were greater than ', bufferval, ' and were not assigned.')
+        }
+        }
+
+      pts <- as.data.frame(as.numeric(temp))
       colnames(pts) <- "col.id"
       pts$ID <- grid[[cat]][pts$col.id]
+      
     } else {
       # sort data
       grid <- as.data.frame(grid)
@@ -132,10 +162,9 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
       if (closest.pt == TRUE) {
         closest <- data.frame(matrix(NA, nrow = length(which(is.na(pts$ID) == TRUE)), ncol = 1))
         for (i in 1:length(which(is.na(pts$ID) == TRUE))) {
-          closest[i, 1] <- names(which(rgeos::gDistance(dat_sub[which(is.na(pts$ID) == TRUE), ][i, ], as(srdf, "SpatialLines"), byid = TRUE)[
-            ,
-            1
-          ] == min(rgeos::gDistance(dat_sub[which(is.na(pts$ID) == TRUE), ][i, ], as(srdf, "SpatialLines"), byid = TRUE))))
+          closest[i, 1] <- names(which(rgeos::gDistance(dat_sub[which(is.na(pts$ID) == TRUE), ][i, ], 
+                                                        as(srdf, "SpatialLines"), byid = TRUE)[,1] == 
+                                         min(rgeos::gDistance(dat_sub[which(is.na(pts$ID) == TRUE), ][i, ], as(srdf, "SpatialLines"), byid = TRUE))))
         }
         pts[which(is.na(pts$ID) == TRUE), ] <- closest
       }
@@ -145,6 +174,7 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
       # to TRUE. Undefined points are recorded in the log file') }
     }
 
+    if(x == 0){
     pts <- cbind(dataset, ZoneID = pts$ID)
 
     if (log.fun) {
@@ -159,5 +189,6 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
 
     pts <- as.data.frame(pts)
     return(pts)
+    }
   }
 }
