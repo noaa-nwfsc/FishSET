@@ -34,14 +34,14 @@ map_viewer <- function(dat, project, gridfile, avd, avm, num_vars, temp_vars, id
   #' @examples
   #' \dontrun{
   #' #Plot haul path
-  #' map_viewer(pollockMainDataTable, 'pollock', gridfile=spatdat, area_variable_column='NMFS_AREA',
-  #' area_variable_map='NMFS_AREA', num_vars=c('HAUL','OFFICIAL_TOTAL_CATCH'),
+  #' map_viewer(pollockMainDataTable, 'pollock', gridfile=spatdat, avd='NMFS_AREA',
+  #' avm='NMFS_AREA', num_vars=c('HAUL','OFFICIAL_TOTAL_CATCH'),
   #' temp_vars='HAUL_DATE', id_vars=c('GEAR_TYPE', 'PORT'), 
   #'        'Lon_Start', 'Lat_Start', 'Lon_End', 'Lat_End')
   #' 
   #' #Plot haul midpoint
-  #' map_viewer(pollockMainDataTable, 'pollock', gridfile=spatdat, area_variable_column='NMFS_AREA',
-  #' area_variable_map='NMFS_AREA', num_vars=c('HAUL','OFFICIAL_TOTAL_CATCH'),
+  #' map_viewer(pollockMainDataTable, 'pollock', gridfile=spatdat, avd='NMFS_AREA',
+  #' avm='NMFS_AREA', num_vars=c('HAUL','OFFICIAL_TOTAL_CATCH'),
   #' temp_vars='HAUL_DATE', id_vars=c('GEAR_TYPE', 'PORT'), 'Lon_Mid', 'Lat_Mid')
   
   #' }
