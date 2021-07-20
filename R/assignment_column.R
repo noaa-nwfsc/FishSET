@@ -16,9 +16,9 @@
 #'   Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
 #' @param cat Variable or list in \code{gridfile} that identifies the individual areas or zones. 
 #'    If \code{gridfile} is class sf, \code{cat} should be name of list containing information on zones.
-#' @param epsg EPSG number. Set the epsg to ensure that \code{gridfile} and \code{dat} have the same 
+#' @param epsg EPSG code. Set the epsg code to ensure that \code{gridfile} and \code{dat} have the same 
 #'   projections. If epsg is not specified but is defined for \code{gridfile}, then the 
-#'   \code{gridfile} epsg will be applied to \code{dat}. 
+#'   \code{gridfile} coordinate reference system will be applied to \code{dat}. 
 #'   See \url{http://spatialreference.org/} to help identify optimal epsg number.
 #' @param closest.pt  Logical, if true, observations that fall outside zones are classed as the closest 
 #'    zone polygon to the point.
@@ -73,31 +73,19 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
     # stop('Latitude is not valid (outside -90:90.')
   }
 
-
   
   if (x == 0) {
     # For json and shape files
-    if (any(class(grid) %in% "sf") || any(class(grid) %in% c("sp", "SpatialPolygonsDataFrame"))) {
-     
-      dat_sub <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), crs = "+proj=longlat +datum=WGS84")
-
-      if(any(class(grid) %in% c("sp", "SpatialPolygonsDataFrame"))) {
-        grid <- sf::st_as_sf(grid)
-      } else {
-        grid <- grid
-      }
-    
-      if (raster::projection(grid) != raster::projection(dat_sub)) {
-        warning("Projection does not match. The detected projection in the gridfile will be used unless epsg is specified.")
-      }
-      if (!is.null(epsg)) {
+    if(any(class(grid) %in% "sf")){
+      if(!is.null(epsg)) {
+        dat_sub <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), crs = "+proj=longlat +datum=WGS84")
         dat_sub <- sf::st_transform(dat_sub, epsg)
-        grid <- sf::st_transform(grid, epsg)
       } else if(!is.na(sf::st_crs(grid))){
-        dat_sub <- sf::st_transform(dat_sub, sf::st_crs(grid))
-        grid <- sf::st_transform(grid, sf::st_crs(grid))
+        dat_sub <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), crs = sf::st_crs(grid))
       } else {
-        grid <- sf::st_transform(grid, "+proj=longlat +datum=WGS84")
+        dat_sub <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), crs = "+proj=longlat +datum=WGS84")
+        warning('No coordinate reference system supplied. Set using epsg.')
+        x <- 1
       }
       temp <- sf::st_intersects(dat_sub, grid)
       if(any(lengths(temp)>1)) {
@@ -112,14 +100,22 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
           dist.rec = sf::st_distance(dat_sub[dub,], grid[nearest,], by_element=TRUE)
           distkeep <- which(as.numeric(dist.rec)< bufferval)
           temp[dub[distkeep]] <- nearest[distkeep]
-          message(length(distkeep), ' observation assigned to nearest zone polygon within ', bufferval, ' meters. ', 
+          
+          message(length(distkeep), ' observations assigned to nearest zone polygon within ', bufferval, ' meters. ', 
                   length(which(as.numeric(dist.rec)>0.01)), ' observations were greater than ', bufferval, ' and were not assigned.')
         }
         }
-
       pts <- as.data.frame(as.numeric(temp))
       colnames(pts) <- "col.id"
       pts$ID <- grid[[cat]][pts$col.id]
+    } else if(any(class(grid) %in% c("sp", "SpatialPolygonsDataFrame"))) {
+      dat_sub <- dataset
+      sp::coordinates(dat_sub) <- c(lon.dat, lat.dat)
+      sp::proj4string(dat_sub) <- sp::proj4string(grid)
+      
+      temp <- sp::over(dat_sub, grid)
+      pts <- as.data.frame(as.numeric(temp[[cat]]))
+      colnames(pts) <- "ID"
       
     } else {
       # sort data
@@ -173,7 +169,8 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
       # Consider plotting points against before dropping points by assigning remove.na to TRUE or assigning these points to closest zone by setting closest
       # to TRUE. Undefined points are recorded in the log file') }
     }
-
+  }
+  
     if(x == 0){
     pts <- cbind(dataset, ZoneID = pts$ID)
 

@@ -12,6 +12,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, ...) {
   #'   Spatial files ending in .json will not be read in properly unless \code{is.map} is true.
   #' @param ... Optional arguments 
   #' @importFrom sf read_sf
+  #' @importFrom rgdal readOGR
   #' @importFrom R.matlab readMat
   #' @importFrom jsonlite fromJSON
   #' @importFrom haven read_spss read_stata read_sas
@@ -23,7 +24,8 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, ...) {
   #'   reading in tab deliminated files. For more details, see \code{\link[base]{load}} for loading R objects, 
   #'   \code{\link[utils]{read.table}} for reading in comma and tab deliminated files,
   #'   \code{\link[readxl]{read_excel}} for reading in excel files (xls, xlsx), 
-  #'   \code{\link[sf]{st_read}} for reading in shape or geojson files, 
+  #'   \code{\link[sf]{st_read}} for reading in geojson files, 
+  #'   \code{link[rdgal]{readOGR}} for reading in shape files,
   #'   \code{\link[R.matlab]{readMat}} for reading in matlab data files,
   #'   \code{\link[haven]{read_dta}} for reading in stata data files,
   #'   \code{\link[haven]{read_spss}} for reading in spss data files,
@@ -34,6 +36,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, ...) {
   #' \dontrun{
   #' dat <- read_dat('C:/data/nmfs_manage_simple.shp')
   #' }
+  #' library()
   
   if(is.null(data.type)) {
         data.type <- sub('.*\\.', '', x)
@@ -71,8 +74,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, ...) {
   } else if (data.type == "dta" | data.type == "stata") {
     as.data.frame(haven::read_stata(x, ...))
   } else if (data.type == 'shp' | data.type == "shape") {
-    #sf::st_read
-    sf::st_read(x, ...) #' ~/path/to/file.shp'
+    rgdal::readOGR(dsn=x, verbose=FALSE, ...)
   } else if (data.type == "xls" | data.type == 'xlsx' | data.type == 'excel'){
     as.data.frame(readxl::read_excel(x, ...))
   } else if (data.type == 'txt') {
@@ -523,7 +525,7 @@ load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALS
   }
 }
 
-load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
+liload_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
   #' Load, parse, and save auxiliary data to FishSET database
   #'
   #' Auxiliary data is additional data that connects the primary dataset.
