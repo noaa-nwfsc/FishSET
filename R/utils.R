@@ -575,7 +575,7 @@ agg_helper <- function(dataset, value, period = NULL, group = NULL, fun = "sum")
 }
 
 perc_of_total <- function(dat, value_var, group = NULL, drop = FALSE, 
-                          val_type = "perc") {
+                          val_type = "perc", output = "dataset") {
   
   #' Calculate grouped percentages 
   #' 
@@ -585,6 +585,8 @@ perc_of_total <- function(dat, value_var, group = NULL, drop = FALSE,
   #' @param drop Logical, whether to drop the total column. 
   #' @param val_type String, whether to convert value output to percentage 
   #'   \code{"perc"} or proportion \code{"prop"}. 
+  #' @param output String, whether to add new variables to dataset (\code{"dataset"})
+  #'   or return a summary table (\code{"summary"})
   #' @importFrom dplyr group_by across mutate ungroup select all_of
   #' @importFrom purrr map2
   #' @importFrom magrittr %>%
@@ -596,18 +598,32 @@ perc_of_total <- function(dat, value_var, group = NULL, drop = FALSE,
   
   val_total <- paste0(value_var, "_total") 
   val_perc <- paste0(value_var, "_perc")
-  
-  dat <- 
-    dat %>% 
-    {if (!is.null(group)) dplyr::group_by(., dplyr::across(group)) else .} %>% 
-    
-    dplyr::mutate(dplyr::across(value_var, sum, .names = "{.col}_total")) %>% 
-    dplyr::ungroup() 
-  
   p_val <- ifelse(val_type == "perc", 100, 1)
   
-  dat[val_perc] <- 
-    purrr::map2(dat[value_var], dat[val_total], ~ (.x / .y) * p_val)
+  if (output == "dataset") {
+    
+    dat <- 
+      dat %>% 
+      {if (!is.null(group)) dplyr::group_by(., dplyr::across(group)) else .} %>% 
+      
+      dplyr::mutate(dplyr::across(value_var, sum, .names = "{.col}_total")) %>% 
+      dplyr::ungroup() 
+    
+    dat[val_perc] <- 
+      purrr::map2(dat[value_var], dat[val_total], ~ (.x / .y) * p_val)
+    
+  } else if (output == "summary") {
+    
+    dat <- 
+      dat %>% 
+      {if (!is.null(group)) dplyr::group_by(., dplyr::across(group)) else .} %>% 
+      
+      dplyr::summarize(dplyr::across(value_var, sum, .names = "{.col}_total")) %>% 
+      dplyr::ungroup() 
+    
+    dat[val_perc] <- 
+      lapply(val_total, function(x) dat[[x]]/sum(dat[[x]]) * p_val)
+  }
   
   if (drop) dat <- dplyr::select(dat, -dplyr::all_of(val_total))
   
