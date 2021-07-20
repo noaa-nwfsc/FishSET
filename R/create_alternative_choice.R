@@ -36,7 +36,8 @@
 #'   If a zonal centroid table exists in the FishSET database and a zonal assignment column 
 #'  exists in \code{dat} then \code{gridfile} may be a table from the FishSET database or a data file. If \code{gridfile} should 
 #'  come from the FishSET database, it should be the name of the original file name, in quotes. For example, 'NMFS_zones_polygons'.
-#'  \code{cat} would then be the name of the column in \code{dat} containing fishing zone assignments.
+#'  \code{cat} would then be the name of the column in \code{dat} containing fishing zone assignments. 
+#'  Use \code{tables_database()} to view names of tables in the FishSET database.
 # @param case Centroid='Centroid of Zonal Assignment', Port, Other
 #' @param hull.polygon Used in \code{\link{assignment_column}} function. Creates polygon using convex
 #'   hull method. Required if zonal assignments in \code{dat} should be identified
@@ -101,13 +102,13 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
   dat <- parse_data_name(dat, "main")
   
 
-  
+  gridname <- deparse(substitute(gridfile))
+
   if(is.null(cat)){
     cat <- 'ZoneID'
   }
-  
 
- 
+  
   if(!is.null(gridfile)){
     if(is.character(gridfile)){
       if(table_exists(paste0(gridfile, 'Centroid'))==FALSE){
@@ -215,6 +216,7 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
     )
   }
 
+  
   ### Add gridded data ###
   if (!is.null(griddedDat)) {
     gridVar <- griddedDat
@@ -280,7 +282,6 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
       Alt = Alt
     }
   }
-
 
   # write Alt to datafile
   if (stopanaly == 0) {

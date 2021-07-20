@@ -70,7 +70,6 @@ log_call <- function(project, fun.name) {
   #' @param fun.name Function name
   #' @details update log file
   #' @importFrom jsonlite read_json toJSON
-  #' @importFrom rjson fromJSON
   #' @export
   #' @keywords internal
   
