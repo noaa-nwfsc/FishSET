@@ -1,5 +1,5 @@
 freq_table <- function(dataset, var, group = NULL, bins = 30, type = "dens",
-                       format_tab = "wide") {
+                       format_lab = "decimal", format_tab = "wide") {
   
   #' Create a binned frequency table
   #' 
@@ -13,6 +13,8 @@ freq_table <- function(dataset, var, group = NULL, bins = 30, type = "dens",
   #' @param type String, the type of binned frequency table to create. \code{"freq"}
   #'   creates a frequency table, \code{"perc"} creates a relative frequency table,
   #'   and \code{"dens"} creates a density table. 
+  #' @param format_lab Formatting option for bin labels. Options include 
+  #'   \code{"decimal"} or \code{"scientific"}.
   #' @param format_tab Format table "wide" or "long"
   #' @export
   #' @importFrom graphics hist
@@ -33,10 +35,12 @@ freq_table <- function(dataset, var, group = NULL, bins = 30, type = "dens",
     type_nm <- switch(type, "perc" = "percent", "dens" = "density", 
                       "freq" = "frequency")
     
+    f_lab <- switch(format_lab, "decimal" = "d", "scientific" = "g")
+    
     h_freq <- graphics::hist(dataset[[var]], breaks = bins,
                              include.lowest = TRUE, plot = FALSE)
     
-    brks <- formatC(h_freq$breaks, format = "g")
+    brks <- formatC(h_freq$breaks, format = f_lab)
     
     h_labs <- paste(brks, "-", dplyr::lead(brks))
     h_labs <- h_labs[-length(h_labs)]
@@ -107,7 +111,7 @@ freq_table <- function(dataset, var, group = NULL, bins = 30, type = "dens",
 }
 
 nfreq_table <- function(dataset, var, group = NULL, bins = 30, type = "dens", 
-                        format_tab = "wide") {
+                        format_lab = "decimal", format_tab = "wide") {
   
   #' Create one or more binned frequency tables
   #' 
@@ -121,6 +125,8 @@ nfreq_table <- function(dataset, var, group = NULL, bins = 30, type = "dens",
   #' @param type String, the type of binned frequency table to create. \code{"freq"}
   #'   creates a frequency table, \code{"perc"} creates a relative frequency table,
   #'   and \code{"dens"} creates a density table. 
+  #' @param format_lab Formatting option for bin labels. Options include 
+  #'   \code{"decimal"} or \code{"scientific"}.
   #' @param format_tab Format table "wide" or "long"
   #' @export
   
@@ -128,14 +134,14 @@ nfreq_table <- function(dataset, var, group = NULL, bins = 30, type = "dens",
     
     freq_out <- lapply(var, function(x) {
       
-      freq_table(dataset, x, group, bins, type, format_tab)
+      freq_table(dataset, x, group, bins, type, format_lab, format_tab)
     })
     
     names(freq_out) <- var
     
   } else {
     
-    freq_out <- freq_table(dataset, var, group, bins, type, format_tab)
+    freq_out <- freq_table(dataset, var, group, bins, type, format_lab, format_tab)
   }
   
   freq_out

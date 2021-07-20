@@ -331,7 +331,7 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
       
       table_out <- nfreq_table(trip_tab, var = p_nm, group = c(group, facet_by),
                                bins = bins, type = if (density) "dens" else "freq",
-                               format_tab = "long")
+                               format_lab = format_lab, format_tab = "long")
       
       # check_confidentiality ----
       if (run_confid_check()) {
@@ -343,7 +343,8 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
           trip_tab[[cc_par$v_id]] <- dataset[[cc_par$v_id]]
           
           check_out <- nfreq_table(trip_tab, var = p_nm, group = c(grp_fct, cc_par$v_id),
-                                   bins = bins, type = "freq", format_tab = "long")
+                                   bins = bins, type = "freq", format_lab = format_lab,
+                                   format_tab = "long")
           # iterate over list of tables 
           
           if (is.null(vpue)) { # just trip length
