@@ -25,12 +25,13 @@
 
 find_centroid <- function(dat, project=NULL, gridfile,  cat, lon.grid = NULL, lat.grid = NULL,
                            weight.var = NULL,lon.dat = NULL, lat.dat = NULL) {
+  
   # Call in datasets
   out <- data_pull(dat)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
-  gridname <- parse_data_name(gridfile, 'spat')
+  gridname <- deparse(substitute(gridfile))
     
   if(is.null(project)){
     project <- sub("\\MainDataTable", "", dat)
@@ -56,7 +57,9 @@ find_centroid <- function(dat, project=NULL, gridfile,  cat, lon.grid = NULL, la
         crs = "+proj=longlat +datum=WGS84"
       )
     }
-  }}
+      }}
+  
+
   # For json and shape files
   if (any(class(gridfile) == "sf")) {
     if (is_empty(weight.var)) {

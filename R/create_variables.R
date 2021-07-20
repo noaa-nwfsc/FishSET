@@ -589,7 +589,8 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
 ## ---- Numeric  Variables ----##
 #' Create numeric variable using arithmetic expression
 create_var_num <- function(dat, project, x, y, method, name = "create_var_num") {
-  #' @description Creates a new variable based on the arithmetic operation between two variables.  Function is useful for creating rate variables or the summation of two related variables.
+  #' @description Creates a new variable based on the arithmetic operation between two variables.  
+  #'   Function is useful for creating rate variables or the summation of two related variables.
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project Project name. 
@@ -881,6 +882,8 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
     
     dat <- parse_data_name(dat, "main")
     
+    vars <- NULL
+    
     if (any(grepl("port", c(start[1], end[1]), ignore.case = TRUE))) {
       # in port table
       fun <- function() {
@@ -968,7 +971,7 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
       }
     }
 
-    if (x == 1) {
+    if (x == 0) {
       # Get distance between points
       if (units == "midpoint") {
         newvar <- geosphere::midPoint(cbind(start.long, start.lat), cbind(end.long, end.lat))
