@@ -187,5 +187,4 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
     pts <- as.data.frame(pts)
     return(pts)
     }
-  }
 }
