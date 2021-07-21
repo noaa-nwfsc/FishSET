@@ -50,6 +50,7 @@
 #'   to \code{"count"}. 
 #' @param tran A function to transform the y-axis. Options include log, log2, log10, 
 #'   and sqrt.
+#' @param format_lab decimal or scientific
 #' @param type Plot type, options include \code{"bar"} (the default) and \code{"line"}. 
 #' @param scale Scale argument passed to \code{\link{facet_grid}}. 
 #'   Options include \code{"free"}, \code{"free_x"}, \code{"free_y"}. Defaults to 

@@ -3,11 +3,11 @@
 
 read_dat <- function(x, data.type=NULL, is.map = FALSE, ...) {
   #' Import data into R
-  #' @param x Name and path of dataset to be read in.
+  #' @param x Name and path of dataset to be read in. To load data directly from a webpage, \code{x} should be the web address.  
   #' @param data.type Optional. Data type can be defined by user or based on the file extension,
   #   Leave \code{data.type} as NULL if data type is to based on file extension.
   #   R, comma deliminated, tab deliminated, excel, matlab, json, geojson, shape, sas,
-  #    spss, and stata data files are recognized. 
+  #    spss, stata, and XML data files are recognized. 
   #' @param is.map logical, set \code{is.map} to TRUE if data is a spatial file.  
   #'   Spatial files ending in .json will not be read in properly unless \code{is.map} is true.
   #' @param ... Optional arguments 
@@ -16,27 +16,42 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, ...) {
   #' @importFrom R.matlab readMat
   #' @importFrom jsonlite fromJSON
   #' @importFrom haven read_spss read_stata read_sas
-  #' @importFrom utils read.table
+  #' @importFrom utils read.table read.delim
   #' @importFrom readxl read_excel
+  #' @importFrom XML xmlToDataFrame readHTMLTable
+  #' @importFrom RCurl getURL
   #' @details Uses the appropriate function to read in data based on data type.
   #'   Supported data types include shape, csv, json, matlab, R, spss, and stata files.
-  #'   Additional arguments can be added, such as the seperator agument \code{sep='\\t'} for  
-  #'   reading in tab deliminated files. For more details, see \code{\link[base]{load}} for loading R objects, 
+  #'   Additional arguments can be added, such as the seperator agument \code{sep='\t'}, skip lines \code{skip = 2},
+  #'   and header \code{header = FALSE}. 
+  #'   
+  #'   To specify the seperator argument for a deliminated file, include tab-deliminated, specify \code{data.type = 'delim'}.
+  #'   
+  #'   For more details, see \code{\link[base]{load}} for loading R objects, 
   #'   \code{\link[utils]{read.table}} for reading in comma and tab deliminated files,
   #'   \code{\link[readxl]{read_excel}} for reading in excel files (xls, xlsx), 
   #'   \code{\link[sf]{st_read}} for reading in geojson files, 
-  #'   \code{link[rdgal]{readOGR}} for reading in shape files,
+  #'   \code{\link[rdgal]{readOGR}} for reading in shape files,
   #'   \code{\link[R.matlab]{readMat}} for reading in matlab data files,
   #'   \code{\link[haven]{read_dta}} for reading in stata data files,
   #'   \code{\link[haven]{read_spss}} for reading in spss data files,
   #'   \code{\link[haven]{read_sas}} for reading in sas data files, and 
   #'   \code{\link[jsonlite]{fromJSON}} for reading in json files.
+  #'   \code{\link[utils]{read.delim}} for reading in deliminated files. Include the filed separator character \code{sep = ""}
+  #'   \code{\link}[XML]{xmlToDataFrame} for reading in XML files. Further processing may be required.
+  #'   \code{\link}[XML]{readHTMLTable} for reading in html tables.
   #' @export
   #' @examples
   #' \dontrun{
-  #' dat <- read_dat('C:/data/nmfs_manage_simple.shp')
+  #' # Read in shape file
+  #'   dat <- read_dat('C:/data/nmfs_manage_simple', data.tye='shape')
+  #' # Read in spatial data file in json format
+  #'   dat <- read_dat('C:/data/nmfs_manage_simple.json', is.map=TRUE)
+  #' # read in data directly from webpage
+  #'   dat <- read_dat("https://s3.amazonaws.com/assets.datacamp.com/blog_assets/test.txt", 
+  #'      data.type = 'delim', sep='', header = FALSE)
   #' }
-  #' library()
+  #' 
   
   if(is.null(data.type)) {
         data.type <- sub('.*\\.', '', x)
@@ -69,7 +84,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, ...) {
     read.csv(x, ...)
   } else if (data.type == 'sas7bdat' | data.type == 'sas') {
     as.data.frame(haven::read_sas(x, ...))
-  } else if (data.type == "sav" | data.type == 'zsav' | data.type == 'por' | data.type == 'sas') {
+  } else if (data.type == "sav" | data.type == 'sav' | data.type == 'por' | data.type == 'sas') {
     as.data.frame(haven::read_spss(x, ...))
   } else if (data.type == "dta" | data.type == "stata") {
     as.data.frame(haven::read_stata(x, ...))
@@ -78,7 +93,13 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, ...) {
   } else if (data.type == "xls" | data.type == 'xlsx' | data.type == 'excel'){
     as.data.frame(readxl::read_excel(x, ...))
   } else if (data.type == 'txt') {
-    utils::read.table(x, sep='\t', header=T, ...)
+    utils::read.table(x, sep='\t', ...)
+  } else if (data.type == 'delim'){
+    utils::read.delim(x, ...)
+  } else if(data.type == 'xml'){
+    XML::xmlToDataFrame(x, ...)
+  } else if(data.type == 'html'){
+    XML::readHTMLTable(RCurl::getURL(x), stringsAsFactors = FALSE, ...)
   } else {
     cat('Data extension not recognized.')
   }
@@ -525,7 +546,7 @@ load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALS
   }
 }
 
-liload_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
+load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
   #' Load, parse, and save auxiliary data to FishSET database
   #'
   #' Auxiliary data is additional data that connects the primary dataset.
