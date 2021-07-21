@@ -51,6 +51,7 @@ OSMscale
 pander
 raster
 purrr
+RCurl
 readxl
 reshape2
 rgeos
@@ -69,6 +70,7 @@ spdep
 stringi
 stringr
 tibbletidyr
+XML
 zoo
 
 
