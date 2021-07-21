@@ -4,10 +4,12 @@
 read_dat <- function(x, data.type=NULL, is.map = FALSE, ...) {
   #' Import data into R
   #' @param x Name and path of dataset to be read in. To load data directly from a webpage, \code{x} should be the web address.  
-  #' @param data.type Optional. Data type can be defined by user or based on the file extension,
-  #   Leave \code{data.type} as NULL if data type is to based on file extension.
-  #   R, comma deliminated, tab deliminated, excel, matlab, json, geojson, shape, sas,
-  #    spss, stata, and XML data files are recognized. 
+  #' @param data.type Optional. Data type can be defined by user or based on the file extension.
+  #'    If undefined, \code{data.type} is the string after the last period or equal sign. \code{data.type} must be 
+  #'    defined if \code{x} is the path to a shape folder, if the file is a google spreadsheet,
+  #'     or if the correct extension cannot be derived from \code{x}.
+  #'    R, comma-deliminated, tab-deliminated, excel, matlab, json, geojson, sas,
+  #'    spss, stata, and html, and XML data extensions are recognized. 
   #' @param is.map logical, set \code{is.map} to TRUE if data is a spatial file.  
   #'   Spatial files ending in .json will not be read in properly unless \code{is.map} is true.
   #' @param ... Optional arguments 
@@ -20,6 +22,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, ...) {
   #' @importFrom readxl read_excel
   #' @importFrom XML xmlToDataFrame readHTMLTable
   #' @importFrom RCurl getURL
+  #' @importFrom googlesheets4 read_sheet
   #' @details Uses the appropriate function to read in data based on data type.
   #'   Supported data types include shape, csv, json, matlab, R, spss, and stata files.
   #'   Additional arguments can be added, such as the seperator agument \code{sep='\t'}, skip lines \code{skip = 2},
@@ -40,6 +43,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, ...) {
   #'   \code{\link[utils]{read.delim}} for reading in deliminated files. Include the filed separator character \code{sep = ""}
   #'   \code{\link}[XML]{xmlToDataFrame} for reading in XML files. Further processing may be required.
   #'   \code{\link}[XML]{readHTMLTable} for reading in html tables.
+  #'   \code{\link}[googlesheets4]{read_sheet} for reading in google spreadsheets.
   #' @export
   #' @examples
   #' \dontrun{
@@ -54,7 +58,11 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, ...) {
   #' 
   
   if(is.null(data.type)) {
+    if(grepl('=', sub('.*\\.', '', x)) == F){
         data.type <- sub('.*\\.', '', x)
+    } else {
+       data.type <- sub('.*\\=', '', x)
+    }
   }
   
   data.type <- tolower(data.type)
@@ -100,6 +108,8 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, ...) {
     XML::xmlToDataFrame(x, ...)
   } else if(data.type == 'html'){
     XML::readHTMLTable(RCurl::getURL(x), stringsAsFactors = FALSE, ...)
+  } else if(data.type = ''){
+    googlesheets4::read_sheet(x, ...)
   } else {
     cat('Data extension not recognized.')
   }
