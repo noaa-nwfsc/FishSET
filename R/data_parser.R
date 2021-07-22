@@ -1,17 +1,21 @@
 #  Import data
 #str_trim
 
-read_dat <- function(x, data.type=NULL, is.map = FALSE, ...) {
+read_dat <- function(x, data.type=NULL, is.map = FALSE,  drv=NULL, dbname=NULL, user=NULL, password=NULL, ...) {
   #' Import data into R
   #' @param x Name and path of dataset to be read in. To load data directly from a webpage, \code{x} should be the web address.  
   #' @param data.type Optional. Data type can be defined by user or based on the file extension.
   #'    If undefined, \code{data.type} is the string after the last period or equal sign. \code{data.type} must be 
-  #'    defined if \code{x} is the path to a shape folder, if the file is a google spreadsheet,
+  #'    defined if \code{x} is the path to a shape folder, if the file is a google spreadsheet use \code{dat.type = 'google'},
   #'     or if the correct extension cannot be derived from \code{x}.
   #'    R, comma-deliminated, tab-deliminated, excel, matlab, json, geojson, sas,
-  #'    spss, stata, and html, and XML data extensions are recognized. 
+  #'    spss, stata, and html, and XML data extensions do not have to be specified. 
   #' @param is.map logical, set \code{is.map} to TRUE if data is a spatial file.  
   #'   Spatial files ending in .json will not be read in properly unless \code{is.map} is true.
+  #' @param drv Use with sql files. Database driver.
+  #' @param dbname Use with sql files. If required, database name.
+  #' @param user Use with sql files.  If required, user name for SQL database.
+  #' @param password Use with sql files. If required, SQL database password.
   #' @param ... Optional arguments 
   #' @importFrom sf read_sf
   #' @importFrom rgdal readOGR
@@ -23,8 +27,17 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, ...) {
   #' @importFrom XML xmlToDataFrame readHTMLTable
   #' @importFrom RCurl getURL
   #' @importFrom googlesheets4 read_sheet
+  #' @importFrom readODS read.ods
+  #' @importFrom DBI dbDisconnect dbConnect
   #' @details Uses the appropriate function to read in data based on data type.
   #'   Supported data types include shape, csv, json, matlab, R, spss, and stata files.
+  #'
+  #'   Use \code{data.type = 'shape'} if \code{x} is the path to a shape folder. Use \code{dat.type = 'google'} if the file is a google spreadsheet.
+  #'   
+  #'   For sql files, \code{use data.type = 'sql'}. The function will connect to the specified DBI and pull the table. 
+  #'   Users must specify the DBI driver (drv), for example: RSQLite::SQLite(), RPostgreSQL::PostgreSQL(), odbc::odbc()). 
+  #'   Further arguments may be required, including database name (dbname), user id (user), and password (password). 
+  #'     
   #'   Additional arguments can be added, such as the seperator agument \code{sep='\t'}, skip lines \code{skip = 2},
   #'   and header \code{header = FALSE}. 
   #'   
@@ -44,6 +57,8 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, ...) {
   #'   \code{\link}[XML]{xmlToDataFrame} for reading in XML files. Further processing may be required.
   #'   \code{\link}[XML]{readHTMLTable} for reading in html tables.
   #'   \code{\link}[googlesheets4]{read_sheet} for reading in google spreadsheets.
+  #'       Google spreadsheets require \code{data.type} be specified. Use \code{data.type = 'google'}.
+  #'   \code{\link}[readODS]{read.ods} for reading in open document spreadsheets.
   #' @export
   #' @examples
   #' \dontrun{
@@ -79,40 +94,53 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, ...) {
       return(as.data.frame(out))
     }
   } else if (data.type == "rds") {
-    readRDS(x, ...)
+    out <- readRDS(x, ...)
   } else if (data.type == "mat" | data.type == 'matlab') {
     cat('Data returned as named list structure. Further processing is required.')
-    R.matlab::readMat(x, ...)
+    out <- R.matlab::readMat(x, ...)
   } else if (data.type == "json"){
     cat('Data may require additional processing.')
-    jsonlite::fromJSON(x, ...)
+    out <- jsonlite::fromJSON(x, ...)
   } else if (data.type == "geojson") {
-    sf::st_read(x, ...)
+    out <- sf::st_read(x, ...)
   } else if (data.type == "csv") {
-    read.csv(x, ...)
+    out <- read.csv(x, ...)
   } else if (data.type == 'sas7bdat' | data.type == 'sas') {
-    as.data.frame(haven::read_sas(x, ...))
+    out <- as.data.frame(haven::read_sas(x, ...))
   } else if (data.type == "sav" | data.type == 'sav' | data.type == 'por' | data.type == 'sas') {
-    as.data.frame(haven::read_spss(x, ...))
+    out <- as.data.frame(haven::read_spss(x, ...))
   } else if (data.type == "dta" | data.type == "stata") {
-    as.data.frame(haven::read_stata(x, ...))
+    out <- as.data.frame(haven::read_stata(x, ...))
   } else if (data.type == 'shp' | data.type == "shape") {
-    rgdal::readOGR(dsn=x, verbose=FALSE, ...)
+    out <- rgdal::readOGR(dsn=x, verbose=FALSE, ...)
   } else if (data.type == "xls" | data.type == 'xlsx' | data.type == 'excel'){
-    as.data.frame(readxl::read_excel(x, ...))
+    out <- as.data.frame(readxl::read_excel(x, ...))
   } else if (data.type == 'txt') {
-    utils::read.table(x, sep='\t', ...)
+    out <- utils::read.table(x, sep='\t', ...)
   } else if (data.type == 'delim'){
-    utils::read.delim(x, ...)
+    out <- utils::read.delim(x, ...)
   } else if(data.type == 'xml'){
-    XML::xmlToDataFrame(x, ...)
+    out <- XML::xmlToDataFrame(x, ...)
   } else if(data.type == 'html'){
-    XML::readHTMLTable(RCurl::getURL(x), stringsAsFactors = FALSE, ...)
-  } else if(data.type = ''){
-    googlesheets4::read_sheet(x, ...)
+    out <- XML::readHTMLTable(RCurl::getURL(x), stringsAsFactors = FALSE, ...)
+  } else if(data.type = 'google'){
+    out <- googlesheets4::read_sheet(x, ...)
+  } else if(data.type = 'ods'){
+    out <- readODS::read.ods(x, ...)
+  } else if(data.type = 'sql') {
+    conn <- DBI::dbConnect(
+      drv = drv,
+      dbname = dbname,
+      user = user,
+      password = password,
+      options(connectionObserver = NULL)
+    )
+    out <- DBI::dbGetQuery(conn, paste("SELECT * FROM", x))
+    DBI::dbDisconnect(con)
   } else {
     cat('Data extension not recognized.')
   }
+  return(out)
 }
 
 write_dat <- function (dat, file, file_type = "csv", project, ...) {
