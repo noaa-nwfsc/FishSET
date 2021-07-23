@@ -72,6 +72,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE,  drv=NULL, dbname=NULL, 
   #' }
   #' 
   
+  
   if(is.null(data.type)) {
     if(grepl('=', sub('.*\\.', '', x)) == F){
         data.type <- sub('.*\\.', '', x)
@@ -94,40 +95,40 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE,  drv=NULL, dbname=NULL, 
       return(as.data.frame(out))
     }
   } else if (data.type == "rds") {
-    out <- readRDS(x, ...)
+    readRDS(x, ...)
   } else if (data.type == "mat" | data.type == 'matlab') {
     cat('Data returned as named list structure. Further processing is required.')
-    out <- R.matlab::readMat(x, ...)
+    R.matlab::readMat(x, ...)
   } else if (data.type == "json"){
     cat('Data may require additional processing.')
-    out <- jsonlite::fromJSON(x, ...)
+    jsonlite::fromJSON(x, ...)
   } else if (data.type == "geojson") {
-    out <- sf::st_read(x, ...)
+    sf::st_read(x, ...)
   } else if (data.type == "csv") {
-    out <- read.csv(x, ...)
+    read.csv(x, ...)
   } else if (data.type == 'sas7bdat' | data.type == 'sas') {
-    out <- as.data.frame(haven::read_sas(x, ...))
+    as.data.frame(haven::read_sas(x, ...))
   } else if (data.type == "sav" | data.type == 'sav' | data.type == 'por' | data.type == 'sas') {
-    out <- as.data.frame(haven::read_spss(x, ...))
+    as.data.frame(haven::read_spss(x, ...))
   } else if (data.type == "dta" | data.type == "stata") {
-    out <- as.data.frame(haven::read_stata(x, ...))
+    as.data.frame(haven::read_stata(x, ...))
   } else if (data.type == 'shp' | data.type == "shape") {
-    out <- rgdal::readOGR(dsn=x, verbose=FALSE, ...)
+    rgdal::readOGR(dsn=x, verbose=FALSE, ...)
   } else if (data.type == "xls" | data.type == 'xlsx' | data.type == 'excel'){
-    out <- as.data.frame(readxl::read_excel(x, ...))
+    as.data.frame(readxl::read_excel(x, ...))
   } else if (data.type == 'txt') {
-    out <- utils::read.table(x, sep='\t', ...)
+    utils::read.table(x, sep='\t', ...)
   } else if (data.type == 'delim'){
-    out <- utils::read.delim(x, ...)
+    utils::read.delim(x, ...)
   } else if(data.type == 'xml'){
-    out <- XML::xmlToDataFrame(x, ...)
+    XML::xmlToDataFrame(x, ...)
   } else if(data.type == 'html'){
-    out <- XML::readHTMLTable(RCurl::getURL(x), stringsAsFactors = FALSE, ...)
-  } else if(data.type = 'google'){
-    out <- googlesheets4::read_sheet(x, ...)
-  } else if(data.type = 'ods'){
-    out <- readODS::read.ods(x, ...)
-  } else if(data.type = 'sql') {
+     XML::readHTMLTable(RCurl::getURL(x), stringsAsFactors = FALSE, ...)
+  } else if(data.type == 'google'){
+    googlesheets4::read_sheet(x, ...)
+  } else if(data.type == 'ods'){
+    readODS::read.ods(x, ...)
+  } else if(data.type == 'sql') {
     conn <- DBI::dbConnect(
       drv = drv,
       dbname = dbname,
@@ -137,10 +138,11 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE,  drv=NULL, dbname=NULL, 
     )
     out <- DBI::dbGetQuery(conn, paste("SELECT * FROM", x))
     DBI::dbDisconnect(con)
+    return(out)
   } else {
     cat('Data extension not recognized.')
   }
-  return(out)
+
 }
 
 write_dat <- function (dat, file, file_type = "csv", project, ...) {
