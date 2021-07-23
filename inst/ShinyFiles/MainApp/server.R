@@ -985,7 +985,10 @@ conf_cache_len <- length(get_confid_cache())
           tagList(
             fluidRow(
               column(5, fileInput("maindat", "Choose primary data file",
-                                  multiple = FALSE, placeholder = 'Required data'))
+                                  multiple = FALSE, placeholder = 'Required data')),
+              column(width=8, offset=4, textInput('mainadd', label=div(style = "font-size:14px;  font-weight: 400;", 
+                                                       'Write additional arguments for reading in data'), placeholder = "header=FALSE, sep=','"))
+              
             ))
           
         } else if (input$loadmainsource=='FishSET database') {
@@ -1094,10 +1097,13 @@ conf_cache_len <- length(get_confid_cache())
               track_load$main$DB <- input$main_db_table
               load_r$main <- load_r$main + 1
             }
-            
+           
           } else if (input$loadmainsource=='Upload new file' & !is.null(input$maindat)) {
-            
-            values$dataset <- read_dat(input$maindat$datapath)
+            if(input$mainadd != ''){
+              values$dataset <- do.call(read_dat, c(list(input$maindat$datapath),eval(parse(text=paste0("list(",input$mainadd, ")"))) ))
+            } else {
+              values$dataset <- read_dat(input$maindat$datapath) 
+            }
             df_y <- input$compare
             df_compare <- ifelse(nchar(input$compare)>0, TRUE, FALSE)
             q_test <- quietly_test(load_maindata)
@@ -1126,7 +1132,7 @@ conf_cache_len <- length(get_confid_cache())
                            tagList(
                              fluidRow(
                                column(5, fileInput("portdat", "Choose port data file",
-                                                   multiple = FALSE, placeholder = 'Required data'))#,
+                                                   multiple = FALSE, placeholder = 'Required data'))
                                #column(1, uiOutput('ui.actionP'))
                              ))
           ),#,
@@ -1142,10 +1148,12 @@ conf_cache_len <- length(get_confid_cache())
       output$ui.actionP2 <- renderUI({
         if(is.null(input$portdat)) return()
         tagList(
-          selectInput('port_name', "Enter column name containing port names", 
+          column(width=10, offset=3, selectInput('port_name', "Enter column name containing port names", 
                       choices=names(FishSET::read_dat(input$portdat$datapath, if(sub('.*\\.', '', input$portdat$name) == 'shp') { 
                         'shape'} else if(sub('.*\\.', '', input$portdat$name) == 'RData') { 
-                          'R'} else { sub('.*\\.', '', input$portdat$name)})), selected="")
+                          'R'} else { sub('.*\\.', '', input$portdat$name)})), selected="")),
+          column(width=10, offset=3,textInput('portadd', div(style = "font-size:14px;  font-weight: 400;", 
+                                   'Additional arguments for reading in data'), placeholder="header=T, sep=';', skip=2"))
           
           # ))#label=div(style = "font-size:14px;  font-weight: 400;", 'Enter column name containing port names'), 
           # value='', placeholder = 'Column name')
@@ -1186,8 +1194,12 @@ conf_cache_len <- length(get_confid_cache())
           } else if (input$loadportsource == 'Upload new file' & !is.null(input$portdat)) {
             # skip new file upload if user already merged multiple tables
             if (is.null(input$port_combine_save)) {
+              if(input$portadd != ""){
+                ptdat$dataset <- do.call(read_dat, c(list(input$portdat$datapath),eval(parse(text=paste0("list(",input$portadd, ")"))) ))
+              } else {
+                ptdat$dataset <- read_dat(input$portdat$datapath)
+              }
               
-              ptdat$dataset <- read_dat(input$portdat$datapath)
               q_test <- quietly_test(load_port)
               q_test(ptdat$dataset, port_name = input$port_name, over_write = TRUE, 
                      project = project$name, compare = FALSE, y = NULL)
@@ -1290,7 +1302,9 @@ conf_cache_len <- length(get_confid_cache())
                            tagList(
                              fluidRow(
                                column(5, fileInput("spatialdat", "Choose spatial data file",
-                                                   multiple = FALSE, placeholder = 'Suggested data'))#,
+                                                   multiple = FALSE, placeholder = 'Suggested data')),
+                               column(7, offset=4, textInput('spatadd', div(style = "font-size:14px;  font-weight: 400;", 
+                                                                  'Additional arguments for reading in data'), placeholder="header=T, sep=',', skip=2"))
                               # column(1, uiOutput('ui.actionS'))
                              ))
           ),
@@ -1344,7 +1358,11 @@ conf_cache_len <- length(get_confid_cache())
           } else if (input$loadspatialsource=='Upload new file' & (!is.null(input$spatialdat) | !is.null(input$spatialdatshape))) {
             
              if (input$filefolder == "Upload single file") {
+               if(input$spatadd != ''){
+                 spatdat$dataset <- do.call(read_dat, c(list(input$spatialdat$datapath, is.map=TRUE), eval(parse(text=paste0("list(",input$spatadd, ")")))))
+               } else {
              spatdat$dataset <- read_dat(input$spatialdat$datapath, is.map=TRUE)
+               }
             } else {
               observe({
                 shpdf <- input$spatialdatshape
@@ -1389,6 +1407,8 @@ conf_cache_len <- length(get_confid_cache())
                              fluidRow(
                                column(5, fileInput("griddat", "Choose data file that varies over two dimensions (gridded)",
                                                    multiple = FALSE, placeholder = 'Optional data')),
+                               column(7, offset=4, textInput('gridadd', div(style = "font-size:14px;  font-weight: 400;", 
+                                                                  'Additional arguments for reading in data'), placeholder="header=T, sep=';', skip=2")),
                                column(5, uiOutput('ui.actionG'))
                              ))
           ),
@@ -1429,7 +1449,11 @@ conf_cache_len <- length(get_confid_cache())
             if (isTruthy(input$GridName)) {
               
               grid_name <- paste0(project$name, input$GridName)
-              grddat[[grid_name]] <- read_dat(input$griddat$datapath)   
+              if(input$gridadd != ''){
+                grddat[[grid_name]] <- do.call(read_dat, c(list(input$griddat$datapath), eval(parse(text=paste0("list(",input$gridadd, ")")))))
+              } else {
+                grddat[[grid_name]] <- read_dat(input$griddat$datapath)   
+              }
               
               q_test <- quietly_test(load_grid)
               
@@ -1470,6 +1494,8 @@ conf_cache_len <- length(get_confid_cache())
                              fluidRow(
                                column(5, fileInput("auxdat", "Choose auxiliary data file that links to primary data",
                                                    multiple = FALSE, placeholder = 'Optional data')),
+                               column(7, offset=4, textInput('auxadd', div(style = "font-size:14px;  font-weight: 400;", 
+                                                                 'Additional arguments for reading in data'), placeholder="c(header=T, sep=';', skip=2)")),
                                column(5, uiOutput('ui.actionA'))
                              ))
           ),
@@ -1510,8 +1536,12 @@ conf_cache_len <- length(get_confid_cache())
           } else if (input$loadauxsource=='Upload new file' & !is.null(input$auxdat)) {
             
             if (isTruthy(input$AuxName)) {
+              if(input$auxadd != ''){
+                aux$dataset <- do.call(read_dat, c(list(input$auxdat$datapath), eval(parse(text=paste0("list(",input$auxadd, ")")))))
+              } else {
+                aux$dataset <- read_dat(input$auxdat$datapath)
+              }
               
-              aux$dataset <- read_dat(input$auxdat$datapath)
               q_test <- quietly_test(load_aux)
               q_test(paste0(project$name, 'MainDataTable'), aux=aux$dataset, x = input$AuxName, 
                      over_write = TRUE, project = project$name)
