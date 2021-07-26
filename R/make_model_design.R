@@ -240,6 +240,8 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
   # indeVarsForModel = vars1
   # gridVariablesInclude=vars2
 
+
+  
   if (!exists("Alt")) {
     if (!exists("AltMatrixName")) {
       Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
@@ -290,7 +292,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       X <- NULL
     }
     
-    if (any(grepl("Port", alt_var, ignore.case = TRUE) == T)) {
+    if (any(grepl("Port", occasion, ignore.case = TRUE) == T)) {
       pt <- data_pull(paste0(project, 'PortTable'))
       if(exists('pt')){
         ptname <- pt$dat
@@ -309,14 +311,18 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       gridVariablesInclude
     }
     
-    if (is_empty(ExpectedCatch$newDumV)) {
+    if(is_empty(ExpectedCatch)){
       newDumV <- 1
     } else {
-      newDumV <- ExpectedCatch[["newDumV"]]
+      if (is_empty(ExpectedCatch$newDumV)) {
+        newDumV <- 1
+      } else {
+        newDumV <- ExpectedCatch[["newDumV"]]
       # bCHeader <- list(bCHeader, newDumV)
+      }
     }
     #
-    if (is_empty(indeVarsForModel)) {
+    if (any(is_empty(indeVarsForModel))) {
       bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, indeVarsForModel = as.data.frame(rep(1, nrow(choice))))
       #    bColumnsWant <- ""
       #    bInterAct <- ""
@@ -330,7 +336,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       }
     }
     
-    
+  
   ### Generate Distance Matrix
      dist_out <- create_dist_matrix(dataset=dataset, alt_var=alt_var, occasion=occasion, dataZoneTrue=dataZoneTrue, 
                                  int=int, choice=choice, units=units, port=port, zoneRow=zoneRow, X=X)
