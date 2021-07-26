@@ -52,6 +52,9 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   #'     \item{distance_freq}{Binned frequency table of distance values.}
   #'     \item{distance_summary}{Dataframe containing the minimum, 1st quartile, 
   #'       median, mean, 3rd quartile, and maximum distance values by year and/or group.}
+  #'     \item{land_ind}{Row indices of observations falling on land.}
+  #'     \item{outside_ind}{Row indicies of observations falling outside zone at sea.}
+  #'     \item{bound_ind}{Row indicies of observations falling on zone boundary.}
   #'   }
   #'   
   
@@ -74,6 +77,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   grp_len <- length(c("YEAR", group))
   
   # Year ----
+  
   if (!is.null(date)) {
     
     dataset[[date]] <- date_parser(dataset[[date]])
@@ -90,11 +94,13 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
       
     } else {
       
+      dataset[[date]] <- date_parser(dataset[[date]])
       dataset$YEAR <- as.integer(format(dataset[[date]], "%Y"))
     }
   }
   
   # Lat Lon checks ----
+  
   lat_lon <- grep("lat|lon", names(dataset), ignore.case = TRUE)
   lat_cols <- find_lat(dataset)
   lon_cols <- find_lon(dataset)
@@ -137,7 +143,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   if (end == FALSE) {
 
     # convert dat to sf object
-    dat_sub <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), 
+    dat_sf <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), 
                             crs = "+proj=longlat +datum=WGS84")
     
     if (!("sf" %in% class(spatdat))) {
@@ -148,16 +154,22 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
         
         spatdat <- sf::st_as_sf(x = spatdat, coords = c(lon.spat, lat.spat), 
                                 crs = "+proj=longlat +datum=WGS84")
+        
+        # st_shift_longitude
+        
+        
         # Convert point geometry to polygon
         spatdat <- 
           spatdat %>%
           dplyr::group_by(dplyr::across(id.spat)) %>% 
           dplyr::summarize(do_union = FALSE) %>% 
           sf::st_cast("POLYGON")
+        
+        spatdat <- sf::st_cast(spatdat, "MULTIPOLYGON")
       }
     }
     
-    if (raster::projection(spatdat) != raster::projection(dat_sub)) {
+    if (sf::st_crs(spatdat) != sf::st_crs(dat_sf)) {
       
       warning("Projection does not match. The detected projection in the",
               " spatial file will be used unless epsg is specified.")
@@ -165,12 +177,12 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     
     if (!is.null(epsg)) {
       
-      dat_sub <- sf::st_transform(dat_sub, epsg)
+      dat_sf <- sf::st_transform(dat_sf, epsg)
       spatdat <- sf::st_transform(spatdat, epsg)
       
     } else if (!is.na(sf::st_crs(spatdat))) {
       
-      dat_sub <- sf::st_transform(dat_sub, sf::st_crs(spatdat))
+      dat_sf <- sf::st_transform(dat_sf, sf::st_crs(spatdat))
       
     } else {
       
@@ -179,7 +191,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     
     # base map ---- 
     
-    bbox <- sf::st_bbox(dat_sub)
+    bbox <- sf::st_bbox(dat_sf)
     
     base_map <- ggplot2::map_data("world", 
                                   xlim = c(bbox["xmin"], bbox["xmax"]), 
@@ -195,22 +207,39 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
       dplyr::summarize(do_union = FALSE) %>% 
       sf::st_cast("POLYGON")
     
-    # points on land ----
+    # plot functions 
     lon_sym <- rlang::sym(lon.dat)
     lat_sym <- rlang::sym(lat.dat)
     
-    land_pts <- sf::st_intersects(dat_sub, base_map)
+    group_exp <- function() {
+      
+      if (!is.null(group)) {
+        
+        g_sym <- rlang::sym(group)
+        rlang::expr(as.factor(!!g_sym))
+        
+      } else NULL
+    }
+    
+    if (any(!(sf::st_is_valid(spatdat)))) {
+      
+      spatdat <- sf::st_make_valid(spatdat)
+    } 
+    
+    # points on land ----
+    
+    land_pts <- sf::st_intersects(dat_sf, base_map)
     
     obs_on_land <- vapply(land_pts, function(x) length(x) > 0, logical(1))
-    land_ind <- which(obs_on_land)
     
     if (sum(obs_on_land) > 0) {
       
+      land_ind <- which(obs_on_land)
       n_land <- sum(obs_on_land)
       p_land <- round(n_land/nrow(dataset) * 100, 1)
       land_msg <- paste0(n_land, " observations (", p_land, "%) occur on land.\n")
       
-      cat(land_msg, file = tmp, append = TRUE)
+      cat(land_msg, file = tmp)
       warning(land_msg)
       
       land_col <- "ON_LAND"
@@ -226,23 +255,24 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                           expand = TRUE) +
         ggplot2::labs(title = "Obs on land", x = "Longitude", y = "Latitude",
                       subtitle = paste0("N:", n_land, " (", p_land, "%)")) + 
-        fishset_theme()
+        fishset_theme() # + guides(color = guide_legend(override.aes = list(alpha = 1)))
     }
     
     # points outside zone ----
-    pts_int <- sf::st_intersects(dat_sub, spatdat)
+    
+    pts_int <- sf::st_intersects(dat_sf, spatdat)
     
     obs_outside <- vapply(pts_int, function(x) length(x) == 0, logical(1))
     obs_out_not_land <- obs_outside != obs_on_land # remove land obs
-    out_nl_ind <- which(obs_out_not_land)
     
     if (sum(obs_out_not_land) > 0) {
       
+      out_nl_ind <- which(obs_out_not_land)
       n_out <- sum(obs_out_not_land)
       p_out <- round(n_out/nrow(dataset) * 100, 1)
       out_msg <- paste0(n_out, " observations (", p_out, "%) are outside the regulatory zones.\n")
       
-      cat(out_msg, file = tmp)
+      cat(out_msg, file = tmp, append = TRUE)
       warning(out_msg)
       
       out_col <- "OUTSIDE_ZONE"
@@ -258,15 +288,15 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                           expand = TRUE) +
         ggplot2::labs(title = "Obs outside zone", x = "Longitude", y = "Latitude",
                       subtitle = paste0("N:", n_out, " (", p_out, "%)")) + 
-        fishset_theme()
+        fishset_theme() # + guides(color = guide_legend(override.aes = list(alpha = 1)))
     }
     
     # obs on zone boundary lines ----
     obs_on_bound <- vapply(pts_int, function(x) length(x) > 1, logical(1))
-    bound_ind <- which(obs_on_bound)
     
     if (sum(obs_on_bound) > 0) {
       
+      bound_ind <- which(obs_on_bound)
       n_bound <- sum(obs_on_bound)
       p_bound <- round(n_bound/nrow(dataset) * 100, 1)
       bound_msg <- paste0(n_bound, " observations (", p_bound, "%) occur on boundary",
@@ -288,7 +318,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                           expand = TRUE) +
         ggplot2::labs(title = "Obs on zone boundary", x = "Longitude", y = "Latitude",
                       subtitle = paste0("N:", n_bound, " (", p_bound, "%)")) + 
-        fishset_theme()# + guides(colour = guide_legend(override.aes = list(alpha = 1)))
+        fishset_theme() # + guides(color = guide_legend(override.aes = list(alpha = 1)))
     }
     
     # expected location ----
@@ -310,7 +340,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                         expand = TRUE) + 
       ggplot2::labs(title = "Obs in expected location", x = "Longitude", y = "Latitude",
                     subtitle = paste0("N:", n_expected, " (", p_expected, "%)")) + 
-      fishset_theme() # + guides(colour = guide_legend(override.aes = list(alpha = 1)))
+      fishset_theme() # + guides(color = guide_legend(override.aes = list(alpha = 1)))
     
     # Spatial summary table ----
     
@@ -342,8 +372,8 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     
     if (sum(obs_outside) > 0) {
       
-      nearest <- sf::st_nearest_feature(dat_sub[obs_outside, ], spatdat) 
-      dist.rec <- sf::st_distance(dat_sub[obs_outside, ], spatdat[nearest, ], 
+      nearest <- sf::st_nearest_feature(dat_sf[obs_outside, ], spatdat) 
+      dist.rec <- sf::st_distance(dat_sf[obs_outside, ], spatdat[nearest, ], 
                                   by_element = TRUE)
       
       dist_df <- dataset[obs_outside, c(lat.dat, lon.dat, "YEAR", group, 
@@ -353,30 +383,14 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
       dist_rng <- range(dist_df$dist, finite = TRUE)
       p_brks <- pretty(dist_rng, n = 15, min.n = 1)
       
-      group_exp <- function() {
-        if (!is.null(group)) rlang::sym(group) 
-        else NULL
-      }
-      
-      
       dist_plot <- 
         ggplot2::ggplot(data = dist_df, ggplot2::aes(dist)) + 
         ggplot2::labs(title = "Distance (m) from nearest zone", 
-                      x = "Distance (m)",
-                      color = "Year",
-                      fill = "Year") +
-        ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)), 
-                                breaks = p_brks, color = "black", fill = "grey80") + 
-        ggplot2::stat_density(position = "identity", alpha = .1, adjust = 2, 
-                              fill = "red", color = "red") +
+                      x = "Distance (m)", fill = "Year") +
+        ggplot2::stat_density(aes(fill = factor(YEAR)), position = "stack", 
+                              adjust = 2, color = "black") +
         fishset_theme() + 
         ggplot2::theme(legend.position = "bottom")
-      
-      if (!is.null(group)) {
-        
-        fm <- stats::reformulate(group)
-        dist_plot <- dist_plot + ggplot2::facet_wrap(fm)
-      }
       
       # freq table
       dist_freq <- freq_table(dist_df, "dist", group = c("YEAR", group), 
@@ -386,24 +400,28 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
       dist_sum <- agg_helper(dist_df, "dist", group = c("YEAR", group), 
                              fun = function(x) summary(x, digits = 2))
       
+      dsm <- as.data.frame(dist_sum$dist)
+      dist_sum$dist <- NULL
+      dist_sum <- cbind(dist_sum, dsm)
       dist_sum <- dist_sum[order(dist_sum$YEAR), ]
       row.names(dist_sum) <- 1:nrow(dist_sum)
     }
     
     if (sum(obs_on_bound, obs_outside) == 0) {
       
-      cat("No spatial data quality issues detected.", file = tmp)
+      cat(c("All observations occur on land and within regulatory zones.", 
+            "No observations fall on zone boundaries."), file = tmp)
     }
     
     # arrange plots ----
-    ## on land/outside zone ----
+    # on land/outside zone 
     if (sum(obs_on_land) > 0 & sum(obs_out_not_land) > 0) {
       
       land_out_plot <- gridExtra::arrangeGrob(grobs = list(land_plot, outside_plot), 
                                          nrow = 1, ncol = 2)
     }
     
-    # save output ----
+    msg_print(tmp)
     
     # Log function
     spatial_qaqc_function <- list()
@@ -438,16 +456,39 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     
     out <- 
     list(spatial_summary = get0("spat_tab"),
-         outside_plot =  f_outside(), 
          land_plot = f_land(), 
+         outside_plot =  f_outside(), 
          land_outside_plot = f_land_out(),
          boundary_plot = get0("bound_plot"),
          expected_plot = expected_plot,
          distance_plot = get0("dist_plot"),
          distance_freq = get0("dist_freq"),
-         distance_summary = get0("dist_sum"))
+         distance_summary = get0("dist_sum"),
+         land_ind = get0("land_ind"),
+         outside_ind = get0("out_nl_ind"),
+         bound_ind = get0("bound_ind"))
     
     ind <- vapply(out, function(x) !is.null(x), logical(1))
+    
+    # save output ----
+    lapply(names(out[ind]), function(n) {
+      
+      if (is.data.frame(out[[n]])) {
+        
+        save_table(out[[n]], project, paste0("spatial_qaqc_", n))
+      
+      } else if (n %in% c("land_ind", "outside_ind", "bound_ind")) {
+        
+        out_ind <- data.frame(out[[n]]) 
+        names(out_ind) <- n
+        
+        save_table(out_ind, project, paste0("spatial_qaqc_", n))
+        
+      } else {
+        
+        save_plot(project, paste0("spatial_qaqc_", n), plot = out[[n]])
+      }
+    })
     
     out[ind]
   }
