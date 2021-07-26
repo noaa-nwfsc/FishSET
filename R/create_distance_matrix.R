@@ -50,7 +50,7 @@ create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, ch
       
       # steps if alternative matrix comes from loaded data (expectations)
       ##### ---Begin Alt Var--###
-      if (any(grepl("centroid|zon", alt_var, ignore.case = T))) {
+      if (any(grepl("centroid|zon", occasion, ignore.case = T))) {
 
         temp <- as.matrix(dataset[["ZoneID"]])
         colnames(temp) <- "ZoneID"
@@ -60,23 +60,23 @@ create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, ch
         altToLocal1 <- "Centroid of Zonal Assignment"
       } else {
         # Port (isfield(data,'isPort') && data(v1).isPort){ Data from dataframe
-        if (any(grepl("Port", alt_var, ignore.case = TRUE) == T)) {
+        if (any(grepl("Port", occasion, ignore.case = TRUE) == T)) {
           if (is.data.frame(dataset)) {
-            if (any(is_empty(dataset[[alt_var]]))) {
-              warning("alt_var does not exist in dataset")
+            if (any(is_empty(dataset[[occasion]]))) {
+              warning("occasion does not exist in dataset")
               end <- TRUE
             }
             
-            toXYa <- data.frame(dataset[[alt_var]][which(dataZoneTrue == 1)]) #  data[[altToLocal1]]data(v1).dataColumn(dataZoneTrue,:)      #subset data to when dataZoneTrue==1
+            toXYa <- data.frame(dataset[[occasion]][which(dataZoneTrue == 1)]) #  data[[altToLocal1]]data(v1).dataColumn(dataZoneTrue,:)      #subset data to when dataZoneTrue==1
             
-            colnames(toXYa) <- c(alt_var)
-            toXYa[[alt_var]] <- trimws(toXYa[[alt_var]])
-            colnames(port)[1] <- alt_var
-            port[[alt_var]] <- trimws(port[[alt_var]])
+            colnames(toXYa) <- c(occasion)
+            toXYa[[occasion]] <- trimws(toXYa[[occasion]])
+            colnames(port)[1] <- occasion
+            port[[occasion]] <- trimws(port[[occasion]])
             
             
             
-            if (any(unique(toXYa[[alt_var]]) %in% unique(port[[alt_var]]) == FALSE)) {
+            if (any(unique(toXYa[[occasion]]) %in% unique(port[[occasion]]) == FALSE)) {
               #     if (any(is_empty(lonlat))) {
               warning("At least one port not included in PortTable.") #Specify starting lat/lon in lonlat variable to use mean lat/lon.")
               end <- TRUE
@@ -112,27 +112,27 @@ create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, ch
         } else {
           # Data is from a dataframe or matrix
           if (is.data.frame(dataset)) {
-            if (length(alt_var) < 2) {
-              warning("Please define both lat and long in alt_var parameter of create_alternative_choice function.")
+            if (length(occasion) < 2) {
+              warning("Please define both lat and long in occasion parameter of create_alternative_choice function.")
               end <- TRUE
             }
             toXY1 <- data.frame(
-              dataset[[alt_var[1]]][which(dataZoneTrue == 1)],
-              dataset[[alt_var[2]]][which(dataZoneTrue == 1)]
+              dataset[[occasion[1]]][which(dataZoneTrue == 1)],
+              dataset[[occasion[2]]][which(dataZoneTrue == 1)]
             )
           } else {
-            toXY1 <- dataset[[alt_var]][which(dataZoneTrue == 1)]
+            toXY1 <- dataset[[occasion]][which(dataZoneTrue == 1)]
             
             # Data from a list
           } #else {
           #toXY1 <- data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn)[which(dataZoneTrue == 1), ] # data.frame(dataset[[alt_var]][which(dataZoneTrue==1)])#  data[[altToLocal1]]data(v1).dataColumn(dataZoneTrue,:)      #subset data to when dataZoneTrue==1
           # }
         }
-        altToLocal1 <- alt_var
+        altToLocal1 <- occasion
       }
-      ### --End Alt Var---###
-      #### ---Begin Occasion Var--##
-      if (any(grepl("zon|cent", occasion, ignore.case = T))) {
+      ### --End occasion---###
+      #### ---Begin alt_var Var--##
+      if (any(grepl("zon|cent", alt_var, ignore.case = T))) {
         # (v2==0){ #Zonal centroid [B,I,choiceZ] <-
         # unique(gridInfo.assignmentColumn(dataZoneTrue))#
         B <- int[int$ZoneID %in% unique(choice[which(dataZoneTrue == 1), ]), 1]
@@ -142,25 +142,25 @@ create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, ch
         altToLocal2 <- "Centroid of Zonal Assignment"
       } else {
         if (is.data.frame(dataset)) {
-          if (length(occasion) < 2) {
-            warning("Please define lon and lat in occasion argument of create_alternative_choice function.")
+          if (length(alt_var) < 2) {
+            warning("Please define lon and lat in alt_var argument of create_alternative_choice function.")
             end <- TRUE
           }
           
-          if (any(is_empty(dataset[[occasion[1]]]))) {
-            warning("Occasion does not exist in dataset")
+          if (any(is_empty(dataset[[alt_var[1]]]))) {
+            warning("alt_var does not exist in dataset")
             end <- TRUE
           }
-          if (any(is_empty(dataset[[occasion[2]]]))) {
-            warning("Occasion does not exist in dataset")
+          if (any(is_empty(dataset[[alt_var[2]]]))) {
+            warning("alt_var does not exist in dataset")
             end <- TRUE
           }
           toXY2 <- data.frame(
-            dataset[[occasion[1]]][which(dataZoneTrue == 1)],
-            dataset[[occasion[2]]][which(dataZoneTrue == 1)]
+            dataset[[alt_var[1]]][which(dataZoneTrue == 1)],
+            dataset[[alt_var[2]]][which(dataZoneTrue == 1)]
           )
         } else {
-          toXY2 <- dataset[[occasion]][which(dataZoneTrue == 1)] # MUST be a LAT/LONG data(v2).dataColumn(dataZoneTrue,:)
+          toXY2 <- dataset[[alt_var]][which(dataZoneTrue == 1)] # MUST be a LAT/LONG data(v2).dataColumn(dataZoneTrue,:)
         }
         # [Bb,I,choiceZ] <-
         # unique(cbind(gridInfo['assignmentColumn',,][which(dataZoneTrue==1)],toXY),'rows')
@@ -168,7 +168,7 @@ create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, ch
         Bb <- unique(cbind(data.frame(choice[which(dataZoneTrue == 1), ]), data.frame(toXY2)))
         B <- Bb[, 1] # Assignment column
         centersZone <- Bb[, 2:3] # Latitude aned Longitude
-        altToLocal2 <- occasion
+        altToLocal2 <- alt_var
       } ## -End Occasion Var--##
     } # End From loaded data
     
@@ -205,7 +205,7 @@ create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, ch
         X <- distMatrix / 1000
         altChoiceUnits <- "kilometers"
       } else if (units == "miles") {
-        X <- distMatrix * 0.000621371192237334 # meter* miles/meter
+        X <- distMatrix * 0.000621371192237334
         altChoiceUnits <- "miles"
       } else {
         X <- distMatrix

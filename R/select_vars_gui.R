@@ -75,7 +75,7 @@ select_vars <- function(dat, project) {
             align = "left",
             class = "multicol", checkboxGroupInput("columns", "",
               choices = colnames(dataset),
-              selected = colnames(dataset)[grep("lat|long", colnames(dataset), ignore.case = TRUE)],
+              selected = colnames(dataset),
               inline = FALSE
             )
           ),
