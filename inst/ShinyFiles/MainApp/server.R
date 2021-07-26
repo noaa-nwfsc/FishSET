@@ -2096,6 +2096,13 @@ conf_cache_len <- length(get_confid_cache())
               case_to_print$dataQuality <- c(case_to_print$dataQuality, 
                                               'Latitude and longitude units were checked and are in decimal degrees.\n')
             }
+          } else if (input$checks == "Spatial data") {
+            # 
+            # if (input$runSpatQAQC > 1) {
+            #   case_to_print$dataQuality <- c(case_to_print$dataQuality, 
+            #                                  'Spatial data quailty checked.')
+            #   
+            # }
           }
         } else if(input$tabs=='explore'){
           if(input$plot_table=='Plots'& input$plot_type=='Temporal'){
@@ -2459,6 +2466,105 @@ conf_cache_len <- length(get_confid_cache())
                                      if(input$input$LatLon_Filter_Lon=='None') { lonsign=NULL } else { lonsign=input$input$LatLon_Filter_Lon}, 
                                      replace=TRUE
                                       ) 
+      })
+      
+      # Spatial QAQC
+      
+      output$SpatQAQCUI <- renderUI({
+        
+        if (is.null(spatdat$dataset)) {
+          
+          tagList(
+            
+            p("No spatial data found. Import spatial data on the 'Upload' tab.")
+          )
+          
+          
+        } else {
+          
+          tagList(
+            actionButton("runSpatQAQC", "Run spatial check",
+                         style = "color: white; background-color: #0073e6;"), 
+            selectInput("spat_qaqc_lon", "Select Longitude from main data",
+                        choices = find_lon(values$dataset)),
+            selectInput("spat_qaqc_lat", "Select Latitude from main data",
+                        choices = find_lat(values$dataset)),
+            selectInput("spat_qaqc_date", "Select date variable", 
+                        choices = date_cols(values$dataset)),
+            numericInput("spat_qaqc_epsg", "(Optional) enter ESPG code",
+                         value = NULL),
+            selectizeInput("spat_qaqc_grp", "(Optional) select grouping variable",
+                           choices = category_cols(values$dataset), 
+                           multiple = TRUE, options = list(maxItems = 1, create = TRUE))
+          )
+        }
+      })
+      
+      spat_qaqc_r <- reactiveValues(flag = NULL)
+      
+      spat_qaqc <- eventReactive(input$runSpatQAQC, {
+        
+        if (!is.null(spatdat$dataset)) {
+          
+          q_test <- quietly_test(spatial_qaqc)
+          
+          out <- 
+          q_test(values$dataset, project$name, spatdat$dataset, 
+                 lon.dat = input$spat_qaqc_lon, lat.dat = input$spat_qaqc_lat,
+                 group = input$spat_qaqc_grp)
+          
+          flag_nms <- c("land_ind", "outside_ind", "bound_ind")
+          
+          spat_qaqc_r$flag <- out[flag_nms]
+          
+          out
+        }
+      })
+      
+      output$SpatQAQCOut <- renderUI({
+        
+        flag_nms <- c("land_ind", "outside_ind", "bound_ind")
+        
+        if (is.null(spatdat$dataset)) {
+          
+          tagList(
+            p("No spatial data found. Import spatial data on the 'Upload' tab.")
+          )
+          
+        } else {
+          
+          out_nms <- names(spat_qaqc()[!(names(spat_qaqc()) %in% flag_nms)])
+          lapply(names(spat_qaqc()[out_nms]), function(x) {  
+          
+             if (is.data.frame(spat_qaqc()[[x]])) {
+              
+              tab_header <- switch(x, "spatial_summary" = "Spatial summary table",
+                                   "distance_freq" = "Distance (m) frequency table",
+                                   "distance_summary" = "Distance (m) summary table")
+              
+              tagList(
+                h4(strong(tab_header)),
+                DT::renderDT(spat_qaqc()[[x]])
+                )
+              
+            } else {
+              
+              plot_header <- switch(x, "outside_plot" = "Points outside zone",
+                                    "land_plot" = "Points on land",
+                                    "land_outside_plot" = "Points on land/outside zone",
+                                    "boundary_plot" = "Points on zone boundary",
+                                    "expected_plot" = "Points at sea and within zones",
+                                    "distance_plot" = "Density of point distance (m) from nearest zone")
+              
+              tagList(
+                h4(strong(plot_header)),
+                n_plot_output(spat_qaqc()[[x]])
+              )
+            }
+            
+          })
+        }
+        
       })
       
       ##---        
