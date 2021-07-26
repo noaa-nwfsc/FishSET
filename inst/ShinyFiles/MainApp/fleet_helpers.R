@@ -87,20 +87,20 @@ validate_date <- function(date = NULL, period = NULL, sub_date = NULL,
   }
 }
 
-n_plot_output <- function(out) {
+n_plot_output <- function(out, ...) {
     
     if ("ggplot" %in% class(out)) {
        
-      tagList(renderPlot({ out }))
+      tagList(renderPlot(out, ...))
       
     } else if ("gtable" %in% class(out)) {
       
-      tagList(renderPlot(gridExtra::grid.arrange(out)))
+      tagList(renderPlot(gridExtra::grid.arrange(out), ...))
         
       
     } else if (all(class(out) == "list")) {
       
-      lapply(out, function(x) renderPlot(x))
+      lapply(out, function(x) renderPlot(x, ...))
     }
 }
 
