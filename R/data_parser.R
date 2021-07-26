@@ -6,7 +6,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE,  drv=NULL, dbname=NULL, 
   #' @param x Name and path of dataset to be read in. To load data directly from a webpage, \code{x} should be the web address.  
   #' @param data.type Optional. Data type can be defined by user or based on the file extension.
   #'    If undefined, \code{data.type} is the string after the last period or equal sign. \code{data.type} must be 
-  #'    defined if \code{x} is the path to a shape folder, if the file is a google spreadsheet use \code{dat.type = 'google'},
+  #'    defined if \code{x} is the path to a shape folder, if the file is a google spreadsheet use \code{data.type = 'google'},
   #'     or if the correct extension cannot be derived from \code{x}.
   #'    R, comma-deliminated, tab-deliminated, excel, matlab, json, geojson, sas,
   #'    spss, stata, and html, and XML data extensions do not have to be specified. 
@@ -32,13 +32,16 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE,  drv=NULL, dbname=NULL, 
   #' @details Uses the appropriate function to read in data based on data type.
   #'   Supported data types include shape, csv, json, matlab, R, spss, and stata files.
   #'
-  #'   Use \code{data.type = 'shape'} if \code{x} is the path to a shape folder. Use \code{dat.type = 'google'} if the file is a google spreadsheet.
+  #'   Use \code{data.type = 'shape'} if \code{x} is the path to a shape folder. 
+  #'   Use \code{data.type = 'google'} if the file is a google spreadsheet.
   #'   
-  #'   For sql files, \code{use data.type = 'sql'}. The function will connect to the specified DBI and pull the table. 
-  #'   Users must specify the DBI driver (drv), for example: RSQLite::SQLite(), RPostgreSQL::PostgreSQL(), odbc::odbc()). 
-  #'   Further arguments may be required, including database name (dbname), user id (user), and password (password). 
+  #'   For sql files, use \code{data.type = 'sql'}. The function will connect to the specified DBI and pull the table. 
+  #'   Users must specify the DBI driver (\code{drv}), for example: \code{RSQLite::SQLite()}, \code{RPostgreSQL::PostgreSQL()}, 
+  #'   \code{odbc::odbc()}. 
+  #'   Further arguments may be required, including database name (\code{dbname}), user id (\code{user}), 
+  #'   and password (\code{password}). 
   #'     
-  #'   Additional arguments can be added, such as the seperator agument \code{sep='\t'}, skip lines \code{skip = 2},
+  #'   Additional arguments can be added, such as the seperator agument \code{sep=','}, skip lines \code{skip = 2},
   #'   and header \code{header = FALSE}. 
   #'   
   #'   To specify the seperator argument for a deliminated file, include tab-deliminated, specify \code{data.type = 'delim'}.
@@ -54,11 +57,11 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE,  drv=NULL, dbname=NULL, 
   #'   \code{\link[haven]{read_sas}} for reading in sas data files, and 
   #'   \code{\link[jsonlite]{fromJSON}} for reading in json files.
   #'   \code{\link[utils]{read.delim}} for reading in deliminated files. Include the filed separator character \code{sep = ""}
-  #'   \code{\link}[XML]{xmlToDataFrame} for reading in XML files. Further processing may be required.
-  #'   \code{\link}[XML]{readHTMLTable} for reading in html tables.
-  #'   \code{\link}[googlesheets4]{read_sheet} for reading in google spreadsheets.
+  #'   \code{\link[XML]{xmlToDataFrame}} for reading in XML files. Further processing may be required.
+  #'   \code{\link[XML]{readHTMLTable}} for reading in html tables.
+  #'   \code{\link[googlesheets4]{read_sheet}} for reading in google spreadsheets.
   #'       Google spreadsheets require \code{data.type} be specified. Use \code{data.type = 'google'}.
-  #'   \code{\link}[readODS]{read.ods} for reading in open document spreadsheets.
+  #'   \code{\link[readODS]{read.ods}} for reading in open document spreadsheets.
   #' @export
   #' @examples
   #' \dontrun{
@@ -137,7 +140,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE,  drv=NULL, dbname=NULL, 
       options(connectionObserver = NULL)
     )
     out <- DBI::dbGetQuery(conn, paste("SELECT * FROM", x))
-    DBI::dbDisconnect(con)
+    DBI::dbDisconnect(conn)
     return(out)
   } else {
     cat('Data extension not recognized.')
@@ -145,7 +148,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE,  drv=NULL, dbname=NULL, 
 
 }
 
-write_dat <- function (dat, file, file_type = "csv", project, ...) {
+pollockldglobalcheck20200327write_dat <- function (dat, file, file_type = "csv", project, ...) {
   #' Write a dataset to local file
   #'
   #'@param dat Name of data frame in working environment to save to file. 
