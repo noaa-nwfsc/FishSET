@@ -304,7 +304,8 @@ source("map_viewer_app.R", local = TRUE)
                                           #h4('Select data check functions to run'),
                                           #Checkbox input widget  
                                            radioButtons("checks", "Select data quality check function to run", choices = c('Variable class', 'Summary table', 'Outliers', 'NAs', 'NaNs', 
-                                                                                  'Unique observations', 'Empty variables', 'Latitude and Longitude'='Lat_Lon units')),
+                                                                                  'Unique observations', 'Empty variables', 'Latitude and Longitude'='Lat_Lon units',
+                                                                                  'Spatial data')),
                                           uiOutput("checks_dataset"),
                                           conditionalPanel(
                                             condition = "input.checks == 'Variable class'",
@@ -352,6 +353,11 @@ source("map_viewer_app.R", local = TRUE)
                                             actionButton('LatLon_Filter', 'Convert lat/long to decimal degrees', 
                                                          value=FALSE, style = "color: white; background-color: #0073e6;" )
                                           ),
+                                          
+                                          conditionalPanel("input.checks=='Spatial data'",
+                                                           uiOutput("SpatQAQCUI")
+                                                           ),
+                                          
                                           tags$br(),
                                           ##Inline scripting 
                                           textInput("exprQA", label = "Enter an R expression",
@@ -387,7 +393,11 @@ source("map_viewer_app.R", local = TRUE)
                                        ),
                                        conditionalPanel("input.checks=='NAs'",
                                                         DT::DTOutput('missingtable')),
-                                       DT::DTOutput('output_table_latlon')
+                                       DT::DTOutput('output_table_latlon'),
+                                       
+                                       conditionalPanel("input.checks=='Spatial data'",
+                                                        shinycssloaders::withSpinner(uiOutput("SpatQAQCOut"))
+                                                        )
                                 
                                        ))),
                   #---
