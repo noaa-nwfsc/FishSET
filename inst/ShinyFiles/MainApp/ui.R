@@ -68,7 +68,7 @@ source("map_viewer_app.R", local = TRUE)
       #---
 
       tabsetPanel(id = "tabs",
-                  # Landing page ----
+      # Landing page ----
                   
                   tabPanel("Information",
                            tabsetPanel(
@@ -176,7 +176,7 @@ source("map_viewer_app.R", local = TRUE)
                            )),
                   
                   #---
-                  #Upload data tabset panel ---- 
+      # Upload data tabset panel ---- 
                   #---
                   tabPanel("Upload Data", value = "upload",
                            tags$style(type='text/css', "#uploadMain { width:100%; margin-top: 24px;margin-left:-20px;padding-left:2px; padding-right:5px}"),
@@ -269,7 +269,7 @@ source("map_viewer_app.R", local = TRUE)
                              ) 
                            )),
                   #---
-                  #Data quality evaluation tabset panel ----
+      # Data quality evaluation tabset panel ----
                   #---
                   tabPanel("Data Quality Evaluation", value = "qaqc",
                            sidebarLayout(
@@ -391,7 +391,7 @@ source("map_viewer_app.R", local = TRUE)
                                 
                                        ))),
                   #---
-                  #Data exploration tabset panel ----
+      # Data exploration tabset panel ----
                   #---
                   tabPanel("Data Exploration", value = "explore",
                            sidebarLayout(
@@ -512,7 +512,7 @@ source("map_viewer_app.R", local = TRUE)
                                        )
                              ))),
                    
-                  # Fleet functions ----
+      # Fleet functions ----
                   
                   tabPanel("Fleet Assignment and Summary", value = "fleet",
 
@@ -654,7 +654,7 @@ source("map_viewer_app.R", local = TRUE)
                   
                   
                   #---
-                  #Basic analyses tabset panel ----
+      # Basic analyses tabset panel ----
                   #---
                   tabPanel("Simple Analyses", value = "analysis",
                            sidebarLayout(
@@ -709,7 +709,7 @@ source("map_viewer_app.R", local = TRUE)
                            )),
                   
                   #---
-                  #Create new variables tabset panel ----
+      # Create new variables tabset panel ----
                   #---
                   tabPanel('Compute New Variables', value='new',
                            sidebarLayout(
@@ -893,7 +893,7 @@ source("map_viewer_app.R", local = TRUE)
                            )),
                   
                   
-                  # Map Viewer ----
+      # Map Viewer ----
                   
                   tabPanel("Map Viewer",
                            
@@ -902,7 +902,7 @@ source("map_viewer_app.R", local = TRUE)
                            ),
                   
                   #---
-                  # Alternative Choice tabset panel ----
+      # Alternative Choice tabset panel ----
                   #---
                   tabPanel('Define Alternative Fishing Choices', value = "altc",
                            sidebarLayout(
@@ -964,7 +964,7 @@ source("map_viewer_app.R", local = TRUE)
                              )
                            )),
                   #---
-                  # Expected catch tabset panel ----
+      # Expected catch tabset panel ----
                   #---
                   tabPanel("Expected Catch/Revenue", value = "expectedCatch",
                            sidebarLayout(
@@ -1063,7 +1063,7 @@ source("map_viewer_app.R", local = TRUE)
                              )
                              )),
                   #---
-                  # Model design and Run tabset panel ----
+      # Model design and Run tabset panel ----
                   #---
                    tabPanel("Models", value = "models",
                             tabsetPanel(
@@ -1178,7 +1178,7 @@ source("map_viewer_app.R", local = TRUE)
                                       )  )
                             )),
                   #--- 
-                  # Bookmark tabset panel ----
+      # Bookmark tabset panel ----
                   #---
                   tabPanel('Bookmark Choices', value = "book",
                            
