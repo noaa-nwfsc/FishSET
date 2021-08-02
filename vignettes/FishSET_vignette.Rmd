@@ -148,7 +148,7 @@ Specify the project name (`project`) and, optionally, the table name (`name`). `
 
 loads the primary data from project *pollock* that was saved on January 1st, 2020. If `name` is NULL, the undated working table is pulled.
 
-```{r eva=FALSE, echo=TRUE}
+```{r eval=FALSE, echo=TRUE}
 ##Load in the data from the pollock project
 library(FishSET)
 load_data("pollock")
