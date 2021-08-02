@@ -95,7 +95,7 @@ filter_dat <- function(dat, project, exp, filterTable = NULL) {
   filter_dat_function <- list()
   filter_dat_function$functionID <- "filter_dat"
   filter_dat_function$args <- list(dat, project, exp, filterTable)
-  filter_dat_function$output <- deparse(substitute(dataset))
+  filter_dat_function$output <- dat
   filter_dat_function$msg <- paste("Rows have been removed based on", exp)
   log_call(project, filter_dat_function)
 

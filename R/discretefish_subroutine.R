@@ -4,15 +4,22 @@
 #' Subroutine to run chosen discrete choice model. Function pulls necessary data generated in \code{\link{make_model_design}} and loops through model design choices and expected catch cases. Output is saved to the FishSET database.
 #'
 #' @param project  String, name of project.
-# Working modelInputData table (table without date) will be pulled from fishset_db database.
-# @param initparams String or list, initial parameter estimates for revenue/location-specific covariates then cost/distance.
-#   The number of parameter estimate varies by likelihood function. See Details section for more information.
-#   If running multiple models, include initial parameter values as a list. For example, list(c(0.5, 0.5), c(0,-0.5)).
-# @param optimOpt  String or, optimization options [max function evaluations, max iterations, (reltol) tolerance of x, 
-#    trace]. If running multiple models, include as a list. For example, list(c(100000, 1.00000000000000e-08, 1, 1), c(100000, 1.00000000000000e-08, 1, 1))
-# @param methodname String, optimization method (see \code{\link[stats]{optim}} options). Defaults to \code{"BFGS"}.
-# @param mod.name String, name of model run for model result output table.
 #' @param select.model Return an interactive data table that allows users to select and save table of best models based on measures of fit.
+#' @param explorestarts Logical, should starting parameters value space be explored? Set to TRUE if unsure of the number of 
+#'    starting parameter values to include or of reasonable starting parameters values. Better starting parameter values
+#'    can help with model convergence.
+#' @param breakearly Logical, if explorestarts is TRUE, should the first set of starting parameter values that returns a valid (numeric)
+#'   loglikelihoood value be returned (TRUE) or should the entire parameter space be considered and the set of starting parameter values 
+#'   that return the lowest loglikelihood value be returned (FALSE).
+#' @param space Specify if \code{explorestarts = TRUE}. List of length 1 or length equal to the number of models to be evaluated.
+#'   \code{space} is the number of starting value permutations to test (the size of
+#'   the space to explore). The greater the \code{dev} argument, the larger the
+#'   \code{space} argument should be.
+#' @param dev Specify if \code{explorestarts = TRUE}. List of length 1 or length equal to the number of models to be evaluated.
+#'   \code{dev} refers to how far to deviate from the average parameter values when
+#'   exploring (random normal deviates). The less certain the average parameters are,
+#'   the greater the \code{dev} argument should be.
+
 #' @export discretefish_subroutine
 #' @importFrom DT DTOutput
 #' @importFrom DBI dbExecute dbWriteTable dbExistsTable dbReadTable dbGetQuery dbDisconnect
@@ -90,7 +97,7 @@
 #' results <- discretefish_subroutine("pcod", select.model = TRUE)
 #' }
 #'
-discretefish_subroutine <- function(project, select.model = FALSE) {
+discretefish_subroutine <- function(project, select.model = FALSE, explorestarts = TRUE, breakearly= TRUE, space=NULL, dev=NULL) {
 
   if (!isRunning()) { # if run in console
     
@@ -116,6 +123,10 @@ discretefish_subroutine <- function(project, select.model = FALSE) {
       mod.name <- unlist(x_temp[[i]][["mod.name"]])
       #opt <- unlist(x_temp[[i]][["optimOpt"]])
       #starts2 <- unlist(x_temp[[i]][["initparams"]])
+      
+      
+      
+      
       if (is.factor(x_temp[[i]][["optimOpt"]])) {
             opt <- as.numeric(unlist(strsplit(as.character(x_temp[[i]][["optimOpt"]]), " ")))
           } else if(is.list(x_temp[[i]][["optimOpt"]])){
@@ -150,6 +161,10 @@ discretefish_subroutine <- function(project, select.model = FALSE) {
       x_temp[[i]][["gridVaryingVariables"]] <- x_temp[[i]][["gridVaryingVariables"]][names(x_temp[[i]][["gridVaryingVariables"]]) != "units"]
       x_temp[[i]][["gridVaryingVariables"]] <- x_temp[[i]][["gridVaryingVariables"]][names(x_temp[[i]][["gridVaryingVariables"]]) != "scale"]
       
+            #Identify the number of inits required
+
+
+
       if (fr == "logit_correction" & all(is.na(startingloc))) {
         warning("Startingloc parameter is not specified. Rerun the create_alternative_choice function")
       }
@@ -195,7 +210,41 @@ discretefish_subroutine <- function(project, select.model = FALSE) {
             griddat = list(griddatfin = as.data.frame(x_temp[[i]][["gridVaryingVariables"]][[names(x_temp[[i]][["gridVaryingVariables"]])[j]]])),
             intdat = list(as.data.frame(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]]))
           )
+        }
+        
+        #Number of inits
+        gridNum <- length(otherdat$griddat[[1]])
+        intNum <-  length(otherdat$intdat[[1]])
+        if(fr == 'logit_c'){
+          numInits <- gridNum+intNum
+        } else if(fr == 'logit_avgcat') {
+          numInits <- gridNum*(max(choice)-1)+intNum
+        } else if(fr == 'logit_correction'){
+          numInits <- gridNum*4 + intNum + ((((polyn+1)*2)+2)*4) +1+1
+        } else {
+#          if(input$lockk=='TRUE'){
+#            numInits <- gridNum*max(choice)+intNum+alt+1
+#          } else {
+            numInits <- gridNum*max(choice)+intNum+1+1
+#          }
+        }
+        if(numInits != length(starts2)){
+          if(numInits > length(starts2)){
+            starts2 <- c(starts2, rep(0.5, (numInits - length(starts2))))
+            message(numInits, ' initial parameter values should be specified')
+          } else if (numInits < length(starts2)){
+            starts2 <- starts2[1:numInits]
+            message(numInits, ' initial parameter values should be specified')
+          } else {
+            starts2 <- starts2
           }
+        }
+        
+        #Explore starting parameters
+        if(explorestarts==TRUE){
+          starts2 <- explore_startparams_discrete(space=space[[i]], dev=dev[[i]], breakearly=breakearly, startsr=starts2,
+                                                  fr=fr, d=d, otherdat=otherdat, choice=choice, project=project)
+        }
         
         LL_start <- fr.name(starts2, d, otherdat, max(choice), project, expname, as.character(mod.name))
         
