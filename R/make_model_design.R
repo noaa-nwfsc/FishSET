@@ -195,11 +195,15 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     
     dataset <- table_view(paste0(project, "MainDataTable_final"))
   }
+
+  
   
   if(is.null(dataset[[catchID]])){
     warning('catchID does not exist in dataset. Check spelling.')
     end <- TRUE
   }
+  
+  
   
   # Script necessary to ensure parameters generated in shiny app are in correct format
   if (is_empty(vars1) || vars1 == "none") {
@@ -210,8 +214,13 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
   if (is_empty(vars2) || vars2 == "none") {
     gridVariablesInclude <- NULL
   } else {
-    gridVariablesInclude <- vars2
+    if(is.character(vars2)){
+        vars2 <- data_pull(vars2)$dataset
+    } else {
+        gridVariablesInclude <- vars2
+    } 
   }
+      
   if (is_empty(priceCol) || priceCol == "none") {
     priceCol <- NULL
   } else {
@@ -239,8 +248,6 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
 #  }
   # indeVarsForModel = vars1
   # gridVariablesInclude=vars2
-
-
   
   if (!exists("Alt")) {
     if (!exists("AltMatrixName")) {
@@ -306,10 +313,15 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     }
     
     if (is_empty(gridVariablesInclude)) {
-      gridVariablesInclude <- as.data.frame(matrix(1, nrow = nrow(choice), ncol = 1)) # max(as.numeric(as.factor(unlist(choice))))))
+      gridVariablesInclude <- as.data.frame(matrix(1, nrow = length(choice[which(dataZoneTrue==1),]), ncol = 1)) # max(as.numeric(as.factor(unlist(choice))))))
     } else {
-      gridVariablesInclude
+      if(is.character(gridVariablesInclude)){
+      gridVariablesInclude <- data_pull(gridVariablesInclude)
+      } else {
+        gridVariablesInclude
+      }
     }
+    
     
     if(is_empty(ExpectedCatch)){
       newDumV <- 1
@@ -322,21 +334,24 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       }
     }
     #
+    
+
     if (any(is_empty(indeVarsForModel))) {
-      bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, indeVarsForModel = as.data.frame(rep(1, nrow(choice))))
+      bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, 
+                       indeVarsForModel = as.data.frame(matrix(1, nrow = length(choice[which(dataZoneTrue==1),]), ncol = 1)))
       #    bColumnsWant <- ""
       #    bInterAct <- ""
     } else {
-      if (any(indeVarsForModel %in% c("Miles * Miles", "Miles*Miles, Miles x Miles"),
-              ignore.case = TRUE
+      if (any(indeVarsForModel %in% c("Miles * Miles", "Miles*Miles, Miles x Miles")
       )) {
-        bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, lapply(indeVarsForModel[-1], function(x) dataset[[x]][which(dataZoneTrue == 1)]))
+        bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, 
+                         indeVarsForModel=lapply(indeVarsForModel[-1], function(x) dataset[[x]][which(dataZoneTrue == 1)]))
       } else {
-        bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, lapply(indeVarsForModel, function(x) dataset[[x]][which(dataZoneTrue == 1)]))
+        bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, 
+                         indeVarsForModel=lapply(indeVarsForModel, function(x) (log(dataset[[x]][which(dataZoneTrue == 1)]))))
       }
     }
     
-  
   ### Generate Distance Matrix
      dist_out <- create_dist_matrix(dataset=dataset, alt_var=alt_var, occasion=occasion, dataZoneTrue=dataZoneTrue, 
                                  int=int, choice=choice, units=units, port=port, zoneRow=zoneRow, X=X)
