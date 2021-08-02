@@ -83,15 +83,16 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
 
   griddat <- as.matrix(do.call(cbind, otherdat$griddat))
   intdat <- as.matrix(do.call(cbind, otherdat$intdat))
-
+  
   gridnum <- dim(griddat)[2]
   intnum <- dim(intdat)[2]
   # get number of variables
 
   obsnum <- dim(griddat)[1]
-  
+
 
   starts3 <- as.matrix(starts3)
+  
   gridcoef <- as.matrix(starts3[1:(gridnum * (alts - 1)), ])
   intcoef <- as.matrix(starts3[((gridnum * (alts - 1)) + 1):(((gridnum * (alts - 1))) + intnum), ])
 
@@ -99,6 +100,8 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
   dim(gridbetas) <- c(nrow(gridbetas), (alts - 1), gridnum)
   gridbetas <- rowSums(gridbetas, dims = 2)
 
+
+  
   intbetas <- .rowSums(intdat * matrix(intcoef, obsnum, intnum, byrow = TRUE), obsnum, intnum)
 
   betas <- matrix(c(gridbetas, intbetas), obsnum, (alts - 1 + 1))
