@@ -355,8 +355,9 @@ source("map_viewer_app.R", local = TRUE)
                                           ),
                                           
                                           conditionalPanel("input.checks=='Spatial data'",
-                                                           uiOutput("SpatQAQCUI")
-                                                           ),
+                                                           
+                                                           uiOutput("spatQAQC_checkUI"),
+                                                           uiOutput("spatQAQC_correctUI")),
                                           
                                           tags$br(),
                                           ##Inline scripting 
@@ -396,7 +397,24 @@ source("map_viewer_app.R", local = TRUE)
                                        DT::DTOutput('output_table_latlon'),
                                        
                                        conditionalPanel("input.checks=='Spatial data'",
-                                                        shinycssloaders::withSpinner(uiOutput("SpatQAQCOut"))
+                                                        
+                                                        tabsetPanel(id = "spat_qaqc_tab", selected = "checks",
+                                                                    
+                                                                    tabPanel(title = "Spatial Checks", value = "checks",
+                                                                             shinycssloaders::withSpinner(uiOutput("spatQAQC_checkOut"))      
+                                                                    ),
+                                                                    
+                                                                    tabPanel(title = "Spatial Corrections", value = "corrections",
+                                                                             uiOutput("spat_correct_msg"),
+                                                                             tags$div(shinycssloaders::withSpinner(DT::DTOutput("spat_correct_tab")), 
+                                                                                     style = "font-size: 75%; width: 100%")
+                                                                             )
+                                                        )
+                                                        
+                                                        
+                                                        
+                                                        
+                                                        
                                                         )
                                 
                                        ))),
