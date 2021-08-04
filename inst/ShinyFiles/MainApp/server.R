@@ -1346,6 +1346,9 @@ conf_cache_len <- length(get_confid_cache())
         
         if (load_helper("spat")) {
           
+          # reset spatial qaqc
+          spat_qaqc_r <- reactiveValues(flag = FALSE, c_tab = NULL, remove = FALSE)
+          
           if (input$loadspatialsource=='FishSET database') {
             
             if (isTruthy(input$spat_db_table)) {
@@ -1955,7 +1958,8 @@ conf_cache_len <- length(get_confid_cache())
       
       observeEvent(c(input$checks, input$column_check, input$dat.remove, input$x_dist,
                      input$plot_table, input$plot_type, input$col_select, input$x_y_select1, input$x_y_select2,
-                     input$corr_reg, input$corr_select, input$reg_resp_select, input$reg_exp_select), {
+                     input$corr_reg, input$corr_select, input$reg_resp_select, input$reg_exp_select,
+                     input$runSpatQAQC), {
         
         if(input$tabs=='qaqc'){
           if(input$checks=='Summary table') {
@@ -2096,14 +2100,7 @@ conf_cache_len <- length(get_confid_cache())
               case_to_print$dataQuality <- c(case_to_print$dataQuality, 
                                               'Latitude and longitude units were checked and are in decimal degrees.\n')
             }
-          } else if (input$checks == "Spatial data") {
-            # 
-            # if (input$runSpatQAQC > 1) {
-            #   case_to_print$dataQuality <- c(case_to_print$dataQuality, 
-            #                                  'Spatial data quailty checked.')
-            #   
-            # }
-          }
+          } 
         } else if(input$tabs=='explore'){
           if(input$plot_table=='Plots'& input$plot_type=='Temporal'){
             case_to_print$explore <- c(case_to_print$explore, paste0("Viewed plots of ", input$col_select, 
@@ -2131,7 +2128,7 @@ conf_cache_len <- length(get_confid_cache())
                                                                        input$reg_resp_select,'.\n')) 
           } 
         }
-      })
+      }, ignoreInit = TRUE, ignoreNULL = TRUE)
 # Notes ===
       
     notes <- reactiveValues(upload = "Upload data: ",
@@ -2470,38 +2467,42 @@ conf_cache_len <- length(get_confid_cache())
       
       # Spatial QAQC
       
-      output$SpatQAQCUI <- renderUI({
+      output$spatQAQC_checkUI <- renderUI({
         
-        if (is.null(spatdat$dataset)) {
+        if (input$spat_qaqc_tab == "checks") {
           
-          tagList(
+          if (is.null(spatdat$dataset)) {
             
-            p("No spatial data found. Import spatial data on the 'Upload' tab.")
-          )
-          
-          
-        } else {
-          
-          tagList(
-            actionButton("runSpatQAQC", "Run spatial check",
-                         style = "color: white; background-color: #0073e6;"), 
-            selectInput("spat_qaqc_lon", "Select Longitude from main data",
-                        choices = find_lon(values$dataset)),
-            selectInput("spat_qaqc_lat", "Select Latitude from main data",
-                        choices = find_lat(values$dataset)),
-            selectInput("spat_qaqc_date", "Select date variable", 
-                        choices = date_cols(values$dataset)),
-            numericInput("spat_qaqc_epsg", "(Optional) enter ESPG code",
-                         value = NULL),
-            selectizeInput("spat_qaqc_grp", "(Optional) select grouping variable",
-                           choices = category_cols(values$dataset), 
-                           multiple = TRUE, options = list(maxItems = 1, create = TRUE))
-          )
+            tagList(
+              
+              p("No spatial data found. Import spatial data on the 'Upload' tab.")
+            )
+            
+          } else {
+            
+            tagList(
+              actionButton("runSpatQAQC", "Run spatial check",
+                           style = "color: white; background-color: #0073e6;"), 
+              selectInput("spat_qaqc_lon", "Select Longitude from main data",
+                          choices = find_lon(values$dataset)),
+              selectInput("spat_qaqc_lat", "Select Latitude from main data",
+                          choices = find_lat(values$dataset)),
+              selectInput("spat_qaqc_date", "Select date variable", 
+                          choices = date_cols(values$dataset)),
+              numericInput("spat_qaqc_epsg", "(Optional) enter EPSG code",
+                           value = NULL),
+              selectizeInput("spat_qaqc_grp", "(Optional) select grouping variable",
+                             choices = category_cols(values$dataset), 
+                             multiple = TRUE, options = list(maxItems = 1, create = TRUE))
+            )
+          }
         }
+        
       })
       
-      spat_qaqc_r <- reactiveValues(flag = NULL)
+      spat_qaqc_r <- reactiveValues(flag = FALSE, c_tab = NULL, remove = FALSE)
       
+      # run spatial checks 
       spat_qaqc <- eventReactive(input$runSpatQAQC, {
         
         if (!is.null(spatdat$dataset)) {
@@ -2515,25 +2516,39 @@ conf_cache_len <- length(get_confid_cache())
           
           flag_nms <- c("land_ind", "outside_ind", "bound_ind")
           
-          spat_qaqc_r$flag <- out[flag_nms]
+          spat_qaqc_r$flag <- vapply(out[flag_nms], function(x) !is.null(x), logical(1))
           
+          case_to_print$dataQuality <- c(case_to_print$dataQuality,
+                                         'Spatial data quality checked.')
+          
+          if (any(spat_qaqc_r$flag)) {
+            
+            case_to_print$dataQuality <- c(case_to_print$dataQuality,
+                                           'Detected observations on land, outside zone, and/or on zone boundary.\n')
+          } else {
+            
+            case_to_print$dataQuality <- c(case_to_print$dataQuality, 'No spatial issues detected.\n')
+          }
+           
           out
         }
       })
       
-      output$SpatQAQCOut <- renderUI({
+      # spatial checks output
+      output$spatQAQC_checkOut <- renderUI({
         
-        flag_nms <- c("land_ind", "outside_ind", "bound_ind")
-        
-        if (is.null(spatdat$dataset)) {
+        if (names(spatdat$dataset)[1] == "var1") {
           
           tagList(
-            p("No spatial data found. Import spatial data on the 'Upload' tab.")
+            p("Spatial data not loaded. Import spatial data on the 'Upload' tab.")
           )
           
         } else {
           
+          flag_nms <- c("land_ind", "outside_ind", "bound_ind", "dist_vector")
           out_nms <- names(spat_qaqc()[!(names(spat_qaqc()) %in% flag_nms)])
+          
+          render_out <- 
           lapply(names(spat_qaqc()[out_nms]), function(x) {  
           
              if (is.data.frame(spat_qaqc()[[x]])) {
@@ -2563,10 +2578,213 @@ conf_cache_len <- length(get_confid_cache())
             }
             
           })
+          
+          render_out
         }
         
       })
       
+      # Spatial Correction
+
+      output$spatQAQC_correctUI <- renderUI({
+        
+        if (input$spat_qaqc_tab == "corrections") {
+          
+          if (any(spat_qaqc_r$flag)) {
+            
+            tagList(
+              actionButton("spat_filter_bttn", "Apply Lat/Lon sign changes",
+                           style = "color: white; background-color: #0073e6;"),
+              
+              selectInput('spat_filter_lat', 'Change sign for latitude direction', 
+                          choices=c('None', 'All values'='all', 'Positve to negative'='neg', 
+                                    'Negative to positive'='pos'), selected='None'),
+              
+              selectInput('spat_filter_lon', 'Change sign for longitude direction', 
+                          choices=c('None', 'All values'='all', 'Positve to negative'='neg', 
+                                    'Negative to positive'='pos'), selected='None'),
+              
+              actionButton("dist_remove_bttn", "Remove points",
+                           style = "color: white; background-color: #0073e6;"),
+              numericInput("dist_remove", "Distance (m) from nearest zone",
+                           value = 100, min = 1),
+              sliderInput("dist_slider", "",
+                          # min = floor(min(spat_qaqc()$dist_vector, na.rm = TRUE)),
+                          min = 1,
+                          max = ceiling(max(spat_qaqc()$dist_vector, na.rm = TRUE)),
+                          value = 100)
+            )
+          }
+        }
+
+      })
+      
+      output$spat_correct_msg <- renderUI({
+        
+        if (names(spatdat$dataset)[1] == "var1") {
+         
+          p("Spatial data not loaded. Import spatial data on the 'Upload' tab.")
+        
+        } else if (length(spat_qaqc_r$flag) == 1) {
+          
+          p("Spatial checks have not been run.")
+        
+        } else if (length(spat_qaqc_r$flag) == 3 & all(spat_qaqc_r$flag) == FALSE) {
+          
+          p("No spatial issues were found.")
+        }
+      })
+
+      # add flag cols to dataset
+      observeEvent(input$spat_qaqc_tab == "corrections", {
+
+        if (any(spat_qaqc_r$flag)) {
+
+          values$dataset$NEAREST_ZONE_DIST_M <- spat_qaqc()$dist_vector
+
+          flag_nms <- c("land_ind", "outside_ind", "bound_ind")
+
+          s_nms <- vapply(flag_nms, function(x) {
+
+            switch(x, "land_ind" = "ON_LAND", "outside_ind" = "OUTSIDE_ZONE",
+                   "bound_ind" = "ON_ZONE_BOUNDARY")
+          }, character(1))
+
+          values$dataset[s_nms] <-
+            lapply(spat_qaqc()[flag_nms], function(x) seq_len(nrow(values$dataset)) %in% x)
+        
+          # disable editing for non-latlon columns
+          latlon <- which(names(values$dataset) %in%
+                            c(input$spat_qaqc_lon, input$spat_qaqc_lat))
+  
+          spat_qaqc_r$disable <- which(!(seq_along(values$dataset) %in% latlon))
+        }
+
+      })
+      
+      # filter distance
+      dist_filter <- reactive({values$dataset$NEAREST_ZONE_DIST_M >= input$dist_slider})
+      
+      c_tab <- eventReactive(c(sum(dist_filter()), input$spat_filter_bttn), {
+        
+        values$dataset[dist_filter(), ]
+      })
+      
+      observe({
+        spat_qaqc_r$c_tab <- c_tab()
+      })
+      
+      # Correction table
+      output$spat_correct_tab <- DT::renderDT({
+
+        if (any(spat_qaqc_r$flag)) {
+          
+          c_tab()
+        }
+      },
+      
+      server = TRUE, 
+      editable = list(target ='cell', disable = list(columns = spat_qaqc_r$disable)), 
+      filter = 'top', extensions = c("Buttons"),
+      options = list(autoWidth = TRUE, scrolly = TRUE, responsive = TRUE, pageLength = 15,
+                     searchCols = default_search_columns, buttons = c('csv'))
+      )
+
+      # edit table
+      spat_qaqc_proxy <- DT::dataTableProxy("spat_correct_tab", session)
+      
+      observeEvent(input$spat_correct_tab_cell_edit, {
+        
+        spat_qaqc_r$c_tab <<- DT::editData(spat_qaqc_r$c_tab,
+                                           info = input$spat_correct_tab_cell_edit,
+                                           proxy = "spat_correct_tab",
+                                           resetPaging = FALSE)
+        
+        DT::replaceData(spat_qaqc_proxy, spat_qaqc_r$c_tab, resetPaging = FALSE)
+      })
+      
+      # update correction table UI
+      observeEvent(input$dist_remove, {
+        
+        updateSliderInput(session, "dist_slider", value = input$dist_remove)
+      })
+      
+      observeEvent(input$dist_slider, {
+        
+        updateSliderInput(session, "dist_remove", value = input$dist_slider)
+      })
+      
+      observeEvent(sum(dist_filter()), {
+
+        updateActionButton(session, "dist_remove_bttn",
+                           label = paste("Remove", sum(dist_filter()), "points"))
+      })
+      
+      # remove points based on distance
+      observeEvent(input$dist_remove_bttn, {
+
+        # add pop-up confirming removal 
+        
+        showModal(
+          modalDialog(title = paste("Remove", sum(dist_filter()), "rows?"),
+                      
+                      actionButton("confirm_dist_remove", "Remove", 
+                                   style = "color: white; background-color: #0073e6;"),
+                      actionButton("dist_remove_cancel", "Cancel", 
+                                   style = "color: #fff; background-color: #FF6347; border-color: #800000;"),
+                                   
+                      footer = tagList(modalButton("Close")),
+                      easyClose = FALSE, size = "s"))
+      })
+      
+      observeEvent(input$confirm_dist_remove, spat_qaqc_r$remove <- TRUE)
+      
+      observeEvent(input$dist_remove_cancel, removeModal())
+        
+      observeEvent(spat_qaqc_r$remove == TRUE, {
+        
+        nr <- sum(dist_filter())
+      
+        values$dataset <- values$dataset[!dist_filter(), ]
+        
+        removeModal()
+        
+        showNotification(paste(nr, "points removed"), type = "message")
+
+        filter_table(values$dataset, project$name, x = "NEAREST_ZONE_DIST_M",
+                     exp = paste0("NEAREST_ZONE_DIST_M < ", input$dist_remove))
+
+        case_to_print$dataQuality <- c(case_to_print$dataQuality,
+                                       paste("Points greater than", input$dist_remove,
+                                             "from nearest zone were remove.", nr,
+                                             "observations in total."))
+        
+      }, ignoreInit = TRUE)
+      
+      # update Lat Lon
+      observeEvent(input$spat_correct_tab_cell_edit, {
+        
+        values$dataset[dist_filter(), 
+                       c(input$spat_qaqc_lat, 
+                         input$spat_qaqc_lon)] <- spat_qaqc_r$c_tab[c(input$spat_qaqc_lat, 
+                                                                      input$spat_qaqc_lon)]
+        showNotification("Latitude and longitude values updated to main table",
+                         type = "message")
+      })
+      
+      # change Lat/Lon signs
+      observeEvent(input$spat_filter_bttn, {
+        
+        q_test <- quietly_test(degree)
+        
+        values$dataset[dist_filter(), ] <-
+        q_test(c_tab(), project = project$name, lat = input$spat_qaqc_lat, 
+               lon = input$spat_qaqc_lon, latsign = input$spat_filter_lat,
+               lonsign = input$spat_filter_lon, replace = TRUE)
+      })
+      
+      
+
       ##---        
 
       #DATA EXPLORATION FUNCTIONS ----

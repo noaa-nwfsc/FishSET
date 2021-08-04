@@ -1444,9 +1444,15 @@ date_cols <- function(dat, out = "names") {
     any(purrr::map_lgl(date_funs, function(fun) date_helper(dates, fun)))
   }
   
+  # number of rows to check 
+  nr <- nrow(dat)
+  
+  if (nr > 1000) dat_slice <- 1000
+  else dat_slice <- round(nr * .5)
+  
   # find cols that can be successfully converted to date
   # numeric cols excluded for efficiency and to prevent false positives  
-  date_cols <- purrr::map_lgl(dat[!numeric_cols(dat, "logical")], date_apply)
+  date_cols <- purrr::map_lgl(dat[!numeric_cols(dat, "logical")][seq_len(dat_slice), ], date_apply)
   
   date_cols <- date_cols[date_cols]
   
