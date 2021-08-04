@@ -46,7 +46,7 @@ RexpressionServ <- function(id, values) {
 
 
 # Save buttons ====
-
+# Use in fleet function module (not in main app)
 saveOutputServ <- function(id, fun_id, project, fun_name, tab_plot, out) {
   
   moduleServer(id, function(input, output, session) {
@@ -111,6 +111,7 @@ saveOutputServ <- function(id, fun_id, project, fun_name, tab_plot, out) {
   })
 }
 
+# Use in main app (not in fleet function module)
 plotSaveServ <- function(id, project, fun_name, plot = NULL, in_list) {
   
   moduleServer(id, function(input, output, session) {
@@ -149,7 +150,7 @@ plotSaveServ <- function(id, project, fun_name, plot = NULL, in_list) {
 
   })
 }
-
+# Use in main app (not in fleet function module)
 tableSaveServ <- function(id, project, fun_name, tab = NULL, in_list) {
   
   moduleServer(id, function(input, output, session) {
