@@ -21,9 +21,7 @@ checklist <- function(project, modDesignTab = NULL) {
   if (table_exists(paste0(project, "MainDataTable_final"))) {
     
     check$qaqc$pass <- TRUE
-    check$qaqc$msg <- list(NAs = "No NAs, NaNs, or Inf values.",
-                           UR = "All rows are unique.",
-                           LL = "Latitude and Longitude variables are in decimal degrees.")
+    check$qaqc$msg <- "PASS"
   } else {
     check$qaqc$msg <- paste("No final data set for project \"", project,"\" has been",
     "saved to FishSET Database. Run check_model_data() in the console or click",
@@ -36,8 +34,10 @@ checklist <- function(project, modDesignTab = NULL) {
   nms <- names(sum_list)
   m_nms <- c("map_viewer", "map_plot", "map_kernel")
   
-  if (any(m_nms %in% nms)) check$occur_pnts$pass <- TRUE
-  else {
+  if (any(m_nms %in% nms)) {
+    check$occur_pnts$pass <- TRUE
+    check$occur_pnts$msg <- "PASS"
+  }  else {
     
     check$occur_pnts$msg <- 
       paste("map_viewer, map_plot, or map_kernel functions have not been run.",
@@ -48,8 +48,11 @@ checklist <- function(project, modDesignTab = NULL) {
   # find alternative choice matrix
   alt_c <- list_tables(project, type = "altc")
   
-  if (length(alt_c) > 0) check$alt_choice$pass <- TRUE 
-  else {
+  if (length(alt_c) > 0) {
+    
+   check$alt_choice$pass <- TRUE 
+   check$alt_choice$msg <- 'PASS'
+  } else {
     
     check$alt_choice$msg <-
       paste0("No alternative choice matrix found for project \"", project, "\".")
@@ -151,8 +154,16 @@ checklist <- function(project, modDesignTab = NULL) {
         }
         
         show_msg <- function(type) {
-          if (!passed(type)) tags$ul(tags$li(check[[type]]$msg))
+          #@if (!passed(type))
+          tags$ul(tags$li(check[[type]]$msg))
         }
+        
+        
+        occur_pnts_msg <- function() {
+          if(passed("occur_pnts"))
+            out <- check$occur_pnts$msg
+        }
+        
         
         qaqc_msg <- function() {
           
@@ -166,9 +177,9 @@ checklist <- function(project, modDesignTab = NULL) {
         
         ec_msg <- function() {
           
-          if (ec_required == FALSE & ec_exists == FALSE) {
+          #if (ec_required == FALSE & ec_exists == FALSE) {
             tags$ul(tags$li(check$expect_catch$msg))
-          }
+          #}
         }
    
         checklist_html <- reactive({
@@ -187,7 +198,7 @@ checklist <- function(project, modDesignTab = NULL) {
               show_msg("alt_choice"),
               tags$li(pass_icon("expect_catch"), tags$strong("Expected catch/revenue matrix created")),
               show_msg("expect_catch"),
-              ec_msg()
+              #ec_msg()
             )
           )
         })
