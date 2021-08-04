@@ -673,7 +673,7 @@ function_summary <- function(project, date = NULL, type = "dat_load", show = "al
     "data_verification", "data_check", "nan_identify", "nan_filter", "na_filter",
     "outlier_table", "outlier_plot", "outlier_plot_int", "outlier_remove", "degree", 
     "unique_filter", "empty_vars_filter", "check_model_data", "filter_table", 
-    "filter_dat", "add_vars", "changeclass", "summary_stats"
+    "filter_dat", "add_vars", "changeclass", "summary_stats", "spatial_qaqc"
   )
 
   dat_create <- c(

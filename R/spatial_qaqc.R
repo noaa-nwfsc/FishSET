@@ -376,9 +376,13 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
       dist.rec <- sf::st_distance(dat_sf[obs_outside, ], spatdat[nearest, ], 
                                   by_element = TRUE)
       
-      dist_df <- dataset[obs_outside, c(lat.dat, lon.dat, "YEAR", group, 
-                                        land_col, out_col)]
-      dist_df$dist <- as.numeric(dist.rec)
+      dataset[obs_outside, "dist"] <- as.numeric(dist.rec)
+      
+      dist_vec <- dataset$dist
+      dist_vec[is.na(dist_vec)] <- 0
+      
+      # dist plot
+      dist_df <- dataset[obs_outside, c(lat.dat, lon.dat, "YEAR", group, "dist")]
       
       dist_rng <- range(dist_df$dist, finite = TRUE)
       p_brks <- pretty(dist_rng, n = 15, min.n = 1)
@@ -466,7 +470,8 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
          distance_summary = get0("dist_sum"),
          land_ind = get0("land_ind"),
          outside_ind = get0("out_nl_ind"),
-         bound_ind = get0("bound_ind"))
+         bound_ind = get0("bound_ind"),
+         dist_vector = get0("dist_vec"))
     
     ind <- vapply(out, function(x) !is.null(x), logical(1))
     
@@ -477,7 +482,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
         
         save_table(out[[n]], project, paste0("spatial_qaqc_", n))
       
-      } else if (n %in% c("land_ind", "outside_ind", "bound_ind")) {
+      } else if (n %in% c("land_ind", "outside_ind", "bound_ind", "dist_vector")) {
         
         out_ind <- data.frame(out[[n]]) 
         names(out_ind) <- n
