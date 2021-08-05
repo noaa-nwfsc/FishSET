@@ -4492,7 +4492,7 @@ conf_cache_len <- length(get_confid_cache())
                                   All buttons are inactive while model function is running.
                                   Check R console for progress.', type='message', duration=30)
           
-                discretefish_subroutine(project$name, select.model=FALSE)             
+                discretefish_subroutine(project$name, select.model=FALSE, explorestarts = TRUE, breakearly= TRUE, space=15, dev=5)             
                 
 
                 showNotification('Model run is complete. Check the `Compare Models` subtab to view output', type='message', duration=30)
