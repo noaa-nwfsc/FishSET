@@ -131,9 +131,14 @@ logit_c <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
   second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
 
   if (table_exists(single_sql) == TRUE) {
-    x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
-    table_remove(single_sql)
-    ldglobalcheck <- c(x, ldglobalcheck)
+    if(any(is_empty(unlist(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data)))) {
+      table_remove(single_sql)
+      ldglobalcheck <- ldglobalcheck
+    } else {
+      x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
+      table_remove(single_sql)
+      ldglobalcheck <- c(x, ldglobalcheck)
+    }
   }
 
   DBI::dbExecute(fishset_db, paste0("CREATE TABLE IF NOT EXISTS ", project, "ldglobalcheck", format(Sys.Date(), format = "%Y%m%d"), "(data ldglobalcheck)"))

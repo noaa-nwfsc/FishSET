@@ -191,13 +191,13 @@ checklist <- function(project, modDesignTab = NULL) {
               
               tags$li(pass_icon("qaqc"), tags$strong("Data quality checks")),
               show_msg("qaqc"),
-              qaqc_msg(),
+              #qaqc_msg(),
               tags$li(pass_icon("occur_pnts"), tags$strong("Valid occurrence points")),
               show_msg("occur_pnts"),
               tags$li(pass_icon("alt_choice"), tags$strong("Alternative choice matrix created")),
               show_msg("alt_choice"),
               tags$li(pass_icon("expect_catch"), tags$strong("Expected catch/revenue matrix created")),
-              show_msg("expect_catch"),
+              show_msg("expect_catch")#,
               #ec_msg()
             )
           )

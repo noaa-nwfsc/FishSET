@@ -115,16 +115,15 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
     for (i in 1:length(x_temp)) {
       x <- x_temp[i]
       
-      catch <- data.frame(as.matrix(x_temp[[i]][["catch"]]))
+      catch <- (data.frame(as.matrix(x_temp[[i]][["catch"]])))/x_temp[[i]]$scales[1]
       choice <- x_temp[[i]][["choice"]]
-      distance <- data.frame(x_temp[[i]][["distance"]])
+      distance <- (data.frame(x_temp[[i]][["distance"]]))/x_temp[[i]]$scales[2]
       startingloc <- x_temp[[i]][["startingloc"]]
       # otherdat <- list(griddat=list(griddatfin=x[['gridVaryingVariables']][['matrix']]), intdat=list(x[['bCHeader']][[-1]]), pricedata=list(epmDefaultPrice))
       mod.name <- unlist(x_temp[[i]][["mod.name"]])
       #opt <- unlist(x_temp[[i]][["optimOpt"]])
       #starts2 <- unlist(x_temp[[i]][["initparams"]])
-      
-      
+      x_temp[[1]]$scales[3] <- 10
       
       
       if (is.factor(x_temp[[i]][["optimOpt"]])) {
@@ -177,8 +176,10 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
       ### Data needs will vary by the likelihood function ###
       if (grepl("epm", fr)) {
         otherdat <- list(
-          griddat = list(griddatfin = as.data.frame(x_temp[[i]][["bCHeader"]][["gridVariablesInclude"]])),
-          intdat = list(as.data.frame(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]])),
+          griddat = list(griddatfin = as.data.frame(x_temp[[i]][["bCHeader"]][["gridVariablesInclude"]])/x_temp[[i]]$scales[3]),
+          intdat = list(as.data.frame(
+            mapply("/",x_temp[[i]][["bCHeader"]][["indeVarsForModel"]],
+                   x_temp[[i]]$scales[c(3:length(x_temp[[1]]$scales))],SIMPLIFY = FALSE))),
           pricedat = as.data.frame(x_temp[[i]][["epmDefaultPrice"]])
         )
         nexpcatch <- 1
@@ -186,7 +187,8 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
       } else if (fr == "logit_correction") {
         otherdat <- list(
           griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))), # x[['bCHeader']][['gridVariablesInclude']]),
-          intdat = list(as.data.frame(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]])),
+          intdat = list(as.data.frame(mapply("/",x_temp[[i]][["bCHeader"]][["indeVarsForModel"]],
+                          x_temp[[i]]$scales[c(3:length(x_temp[[1]]$scales))],SIMPLIFY = FALSE))),
           startloc = as.data.frame(x_temp[[i]][["startloc"]]),
           polyn = as.data.frame(x_temp[[i]][["polyn"]])
         )
@@ -195,7 +197,9 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
       } else if (fr == "logit_avgcat") {
         otherdat <- list(
           griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))), # x[['bCHeader']][['gridVariablesInclude']]),
-          intdat = list(as.data.frame(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]]))
+          intdat = list(as.data.frame(
+                                  mapply("/",x_temp[[i]][["bCHeader"]][["indeVarsForModel"]],
+                                         x_temp[[i]]$scales[c(3:length(x_temp[[1]]$scales))],SIMPLIFY = FALSE)))
         )
         nexpcatch <- 1
         expname <- fr
@@ -207,8 +211,10 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
         if (fr == "logit_c") {
           expname <- paste0(names(x_temp[[i]][["gridVaryingVariables"]])[j], "_", fr)
           otherdat <- list(
-            griddat = list(griddatfin = as.data.frame(x_temp[[i]][["gridVaryingVariables"]][[names(x_temp[[i]][["gridVaryingVariables"]])[j]]])),
-            intdat = list(as.data.frame(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]]))
+            griddat = list(griddatfin = as.data.frame(x_temp[[i]][["gridVaryingVariables"]][[names(x_temp[[i]][["gridVaryingVariables"]])[j]]])/x_temp[[i]]$scales[3]),
+            intdat = list(as.data.frame(
+                           mapply("/",x_temp[[i]][["bCHeader"]][["indeVarsForModel"]],
+                                  x_temp[[i]]$scales[c(3:length(x_temp[[1]]$scales))],SIMPLIFY = FALSE)))
           )
         }
         
@@ -239,7 +245,7 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
             starts2 <- starts2
           }
         }
-        
+     
         #Explore starting parameters
         if(explorestarts==TRUE){
           starts2 <- explore_startparams_discrete(space=space[[i]], dev=dev[[i]], breakearly=breakearly, startsr=starts2,
@@ -254,8 +260,8 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
           cat("Initial function results bad (Nan, Inf, or undefined), check 'ldglobalcheck'")
           next
         }
-        
-        
+
+
         #############################################################################
         mIter <- opt[1] # should add something to default options here if not specified
         relTolX <- opt[2]
