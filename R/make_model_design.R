@@ -195,15 +195,11 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     
     dataset <- table_view(paste0(project, "MainDataTable_final"))
   }
-
-  
   
   if(is.null(dataset[[catchID]])){
     warning('catchID does not exist in dataset. Check spelling.')
     end <- TRUE
   }
-  
-  
   
   # Script necessary to ensure parameters generated in shiny app are in correct format
   if (is_empty(vars1) || vars1 == "none") {
@@ -214,13 +210,8 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
   if (is_empty(vars2) || vars2 == "none") {
     gridVariablesInclude <- NULL
   } else {
-    if(is.character(vars2)){
-        vars2 <- data_pull(vars2)$dataset
-    } else {
-        gridVariablesInclude <- vars2
-    } 
+    gridVariablesInclude <- vars2
   }
-      
   if (is_empty(priceCol) || priceCol == "none") {
     priceCol <- NULL
   } else {
@@ -248,6 +239,8 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
 #  }
   # indeVarsForModel = vars1
   # gridVariablesInclude=vars2
+
+
   
   if (!exists("Alt")) {
     if (!exists("AltMatrixName")) {
@@ -313,15 +306,10 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     }
     
     if (is_empty(gridVariablesInclude)) {
-      gridVariablesInclude <- as.data.frame(matrix(1, nrow = length(choice[which(dataZoneTrue==1),]), ncol = 1)) # max(as.numeric(as.factor(unlist(choice))))))
+      gridVariablesInclude <- as.data.frame(matrix(1, nrow = nrow(choice), ncol = 1)) # max(as.numeric(as.factor(unlist(choice))))))
     } else {
-      if(is.character(gridVariablesInclude)){
-      gridVariablesInclude <- data_pull(gridVariablesInclude)
-      } else {
-        gridVariablesInclude
-      }
+      gridVariablesInclude
     }
-    
     
     if(is_empty(ExpectedCatch)){
       newDumV <- 1
@@ -335,23 +323,21 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     }
     #
     
-
     if (any(is_empty(indeVarsForModel))) {
-      bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, 
-                       indeVarsForModel = as.data.frame(matrix(1, nrow = length(choice[which(dataZoneTrue==1),]), ncol = 1)))
+      bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, indeVarsForModel = as.data.frame(rep(1, nrow(choice))))
       #    bColumnsWant <- ""
       #    bInterAct <- ""
     } else {
-      if (any(indeVarsForModel %in% c("Miles * Miles", "Miles*Miles, Miles x Miles")
+      if (any(indeVarsForModel %in% c("Miles * Miles", "Miles*Miles, Miles x Miles"),
+              ignore.case = TRUE
       )) {
-        bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, 
-                         indeVarsForModel=lapply(indeVarsForModel[-1], function(x) dataset[[x]][which(dataZoneTrue == 1)]))
+        bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, indeVarsForModel = lapply(indeVarsForModel[-1], function(x) dataset[[x]][which(dataZoneTrue == 1)]))
       } else {
-        bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, 
-                         indeVarsForModel=lapply(indeVarsForModel, function(x) (log(dataset[[x]][which(dataZoneTrue == 1)]))))
+        bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, indeVarsForModel = lapply(indeVarsForModel, function(x) dataset[[x]][which(dataZoneTrue == 1)]))
       }
     }
     
+  
   ### Generate Distance Matrix
      dist_out <- create_dist_matrix(dataset=dataset, alt_var=alt_var, occasion=occasion, dataZoneTrue=dataZoneTrue, 
                                  int=int, choice=choice, units=units, port=port, zoneRow=zoneRow, X=X)
@@ -359,6 +345,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
   ### ---- add special terms: ----### add only for EPM model
  
       catch <- dataset[which(dataZoneTrue == 1), as.vector(catchID)]
+      #r=regexp(num2str(max(modelInputData.catch)),'\.','split');
       r <- nchar(sub("\\.[0-9]+", "", max(catch, na.rm = T)))
       yscale <- 10^(r - 1)
 
@@ -371,13 +358,16 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       }
       
   ### scales zonal
+      #r=regexp(num2str(max(max(modelInputData.zonalChoices))),'\.','split');
+      
       r <- nchar(sub("\\.[0-9]+", "", max(max(dist_out[['X']], na.rm = T), na.rm = T)))
       mscale <- 10^(r - 1)
       
       # scales data r in
-      # regexp(arrayfun(@num2str,nanmax(dataPerZone),'UniformOutput',false),'\\.','split')){){
+      # r <- regexp(arrayfun(@num2str,nanmax(dataPerZone),'UniformOutput',false),'\\.','split')){){
       # dscale <- cellfun(@(x) 10^length(x{1}-1),r)
-      dscale <- 1
+      #r <- nchar(sub("\\.[0-9]+", "", max(max(dist_out[['X']], na.rm = T), na.rm = T)))
+      dscale <- lapply((bCHeader$indeVarsForModel), function(x) 10^(nchar(sub("\\.[0-9]+", "", max(max(x, na.rm = T), na.rm = T)))-1))
       
   ### -- Create output list --- ###
       modelInputData_tosave <- list(
