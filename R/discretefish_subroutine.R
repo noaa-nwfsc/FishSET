@@ -19,6 +19,9 @@
 #'   \code{dev} refers to how far to deviate from the average parameter values when
 #'   exploring (random normal deviates). The less certain the average parameters are,
 #'   the greater the \code{dev} argument should be.
+#' @param use.scalers Logical, should data be rescaled? Defaults to TRUE. Rescaling factors are 2*sd the numeric vector unless specified with \code{scaler}.
+#' @param scaler.value List of scaler value vectors. Values should be in the order of catch, distance, travel-distance variables, other additional variables. 
+#'    If more than one model is being specified, include as a list. For example, list(c(204, 15, 126), c(1836, 25, 111, 78)).
 
 #' @export discretefish_subroutine
 #' @importFrom DT DTOutput
@@ -97,7 +100,7 @@
 #' results <- discretefish_subroutine("pcod", select.model = TRUE)
 #' }
 #'
-discretefish_subroutine <- function(project, select.model = FALSE, explorestarts = TRUE, breakearly= TRUE, space=NULL, dev=NULL) {
+discretefish_subroutine <- function(project, select.model = FALSE, explorestarts = TRUE, breakearly= TRUE, space=NULL, dev=NULL, use.scalers=TRUE, scaler.value=NULL) {
 
   if (!isRunning()) { # if run in console
     
@@ -114,6 +117,34 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
     
     for (i in 1:length(x_temp)) {
       x <- x_temp[i]
+
+      #Scalers
+      scale.func <- function(s, d){
+              if(!is.list(s)) {
+                s <- as.list(s)
+              } 
+              if(length(d) == length(s)){
+               for(k in 1:length(d)) {  
+                d[k] <- unlist(s)[k]
+              }} else {
+                message('Insuffience scaling factor values supplied. Defaulting to 2*sd.')
+                
+            }
+        return(d)
+          }
+      
+    if(use.scalers == FALSE && !is.null(scaler.value)){
+          if(length(scaler.value) <= i){
+          
+          x_temp[[i]]$scales <- scale.func(s = scaler.value[[i]], d=x_temp[[i]]$scales)
+          }
+         } else {
+        for(k in 1:length(x_temp[[i]]$scales)) { 
+          x_temp[[i]]$scales[k] <- 1
+          }
+         }
+      
+      print(x_temp[[i]]$scales)
       
       catch <- (data.frame(as.matrix(x_temp[[i]][["catch"]])))/x_temp[[i]]$scales[1]
       choice <- x_temp[[i]][["choice"]]
@@ -123,7 +154,7 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
       mod.name <- unlist(x_temp[[i]][["mod.name"]])
       #opt <- unlist(x_temp[[i]][["optimOpt"]])
       #starts2 <- unlist(x_temp[[i]][["initparams"]])
-      x_temp[[1]]$scales[3] <- 10
+      
       
       
       if (is.factor(x_temp[[i]][["optimOpt"]])) {
@@ -260,7 +291,6 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
           cat("Initial function results bad (Nan, Inf, or undefined), check 'ldglobalcheck'")
           next
         }
-
 
         #############################################################################
         mIter <- opt[1] # should add something to default options here if not specified
