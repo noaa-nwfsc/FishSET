@@ -1400,6 +1400,27 @@ numeric_cols <- function(dat, out = "names") {
   else if (out == "logical") num_cols
 }
 
+category_cols <- function(dat, out = "names") {
+  #' Find categorical columns in data frame
+  #' 
+  #' @param dat MainDataTable, dataframe, or list to check.
+  #' @param out Whether to return the column \code{"names"} (the default) or a logical vector 
+  #'   (\code{"logical"}).
+  #' @export
+  #' @keywords internal
+  #' @examples 
+  #' \dontrun{
+  #' category_cols(pollockMainDataTable)
+  #' }
+  
+  class_list <- lapply(dat, class) 
+  cat_class <- c("factor", "character", "integer", "logical")
+  cat_cols <- vapply(class_list, function(x) any(cat_class %in% x), FUN.VALUE = logical(1))
+  
+  if (out == "names") names(cat_cols[cat_cols])
+  else if (out == "logical") cat_cols
+}
+
 date_cols <- function(dat, out = "names") {
   #' Find columns that can be converted to Date class
   #' 
