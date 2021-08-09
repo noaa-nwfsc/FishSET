@@ -11,14 +11,6 @@ date_select <- function(dat) {
   }
 }
 
-category_cols <- function(dat) {
-  
-  class_list <- lapply(dat, class) 
-  cat_class <- c("factor", "character", "integer", "logical")
-  choices <- vapply(class_list, function(x) any(cat_class %in% x), FUN.VALUE = logical(1))
-  
-  names(choices[choices])
-}
 
 fleet_col <- function(cols) {
   
