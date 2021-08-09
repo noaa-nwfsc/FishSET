@@ -1649,8 +1649,10 @@ conf_cache_len <- length(get_confid_cache())
       })
       
       observeEvent(input$delete_tab_confirm, {
-        
-        lapply(dbTab$tabs$table[input$dbTables_rows_selected], table_remove)
+        #lapply(dbTab$tabs$table[input$dbTables_rows_selected], function(x) table_remove(as.character(x)))
+        for(i in 1:length(dbTab$tabs$table[input$dbTables_rows_selected])){
+          table_remove(as.character(dbTab$tabs$table[input$dbTables_rows_selected][i]))
+        }
         
         dbTab$tabs <- fishset_tables()
         showNotification("Table(s) deleted.")
@@ -4577,7 +4579,8 @@ conf_cache_len <- length(get_confid_cache())
         fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
 #        if(overwrite_table==T){
           if(DBI::dbExistsTable(fishset_db, 'modelChosen')==TRUE){
-            DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase()), 'modelChosen')
+            table_remove('modelChosen')
+            #DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase()), 'modelChosen')
           }
 #        }
         
