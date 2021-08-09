@@ -346,8 +346,8 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
  
       catch <- dataset[which(dataZoneTrue == 1), as.vector(catchID)]
       #r=regexp(num2str(max(modelInputData.catch)),'\.','split');
-      r <- nchar(sub("\\.[0-9]+", "", max(catch, na.rm = T)))
-      yscale <- 10^(r - 1)
+      #r <- nchar(sub("\\.[0-9]+", "", max(catch, na.rm = T)))
+      yscale <- 2*sd(catch, na.rm=TRUE)#10^(r - 1)
 
         
   ### Some models need price data
@@ -360,16 +360,16 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
   ### scales zonal
       #r=regexp(num2str(max(max(modelInputData.zonalChoices))),'\.','split');
       
-      r <- nchar(sub("\\.[0-9]+", "", max(max(dist_out[['X']], na.rm = T), na.rm = T)))
-      mscale <- 10^(r - 1)
+     # r <- nchar(sub("\\.[0-9]+", "", max(max(dist_out[['X']], na.rm = T), na.rm = T)))
+      mscale <-2*sd(dist_out$X, na.rm = TRUE)# 10^(r - 1)
       
       # scales data r in
       # r <- regexp(arrayfun(@num2str,nanmax(dataPerZone),'UniformOutput',false),'\\.','split')){){
       # dscale <- cellfun(@(x) 10^length(x{1}-1),r)
       #r <- nchar(sub("\\.[0-9]+", "", max(max(dist_out[['X']], na.rm = T), na.rm = T)))
-      dscale <- lapply((bCHeader$indeVarsForModel), function(x) 10^(nchar(sub("\\.[0-9]+", "", max(max(x, na.rm = T), na.rm = T)))-1))
+      dscale <- lapply((bCHeader$indeVarsForModel), function(x) 2*sd(x, na.rm=TRUE))#10^(nchar(sub("\\.[0-9]+", "", max(max(x, na.rm = T), na.rm = T)))-1))
       
-  ### -- Create output list --- ###
+      ### -- Create output list --- ###
       modelInputData_tosave <- list(
         likelihood = likelihood,
         catch = catch,
