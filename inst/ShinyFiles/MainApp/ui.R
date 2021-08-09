@@ -355,9 +355,13 @@ source("map_viewer_app.R", local = TRUE)
                                           ),
                                           
                                           conditionalPanel("input.checks=='Spatial data'",
-                                                           
-                                                           uiOutput("spatQAQC_checkUI"),
-                                                           uiOutput("spatQAQC_correctUI")),
+                                                  
+                                                   conditionalPanel("input.spat_qaqc_tab == 'checks'",         
+                                                           uiOutput("spatQAQC_checkUI")),
+                                                   
+                                                   conditionalPanel("input.spat_qaqc_tab == 'corrections'",
+                                                           uiOutput("spatQAQC_correctUI"))
+                                                           ),
                                           
                                           tags$br(),
                                           ##Inline scripting 
