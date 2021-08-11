@@ -465,7 +465,8 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     spatial_qaqc_function <- list()
     spatial_qaqc_function$functionID <- "spatial_qaqc"
     spatial_qaqc_function$args <- list(dat, project, spat, lon.dat, lat.dat, 
-                                       lon.spat, lat.spat, epsg, date, group)
+                                       lon.spat, lat.spat, epsg, date, group,
+                                       filter_dist)
     spatial_qaqc_function$msg <- suppressWarnings(readLines(tmp))
     log_call(project, spatial_qaqc_function)
     
@@ -512,22 +513,22 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     ind <- vapply(out, function(x) !is.null(x), logical(1))
     
     # save output ----
-    lapply(names(out[ind[-1]]), function(n) {
+    lapply(names(out[names(ind[-1])]), function(nm) { # skip dataset
       
-      if (is.data.frame(out[[n]])) {
+      if (is.data.frame(out[[nm]])) {
         
-        save_table(out[[n]], project, paste0("spatial_qaqc_", n))
+        save_table(out[[nm]], project, paste0("spatial_qaqc_", nm))
       
-      } else if (n %in% c("land_ind", "outside_ind", "bound_ind", "dist_vector")) {
+      } else if (nm %in% c("land_ind", "outside_ind", "bound_ind", "dist_vector")) {
         
-        out_ind <- data.frame(out[[n]]) 
-        names(out_ind) <- n
+        out_ind <- data.frame(out[[nm]]) 
+        names(out_ind) <- nm
         
-        save_table(out_ind, project, paste0("spatial_qaqc_", n))
+        save_table(out_ind, project, paste0("spatial_qaqc_", nm))
         
       } else {
         
-        save_plot(project, paste0("spatial_qaqc_", n), plot = out[[n]])
+        save_plot(project, paste0("spatial_qaqc_", nm), plot = out[[nm]])
       }
     })
     
@@ -585,6 +586,7 @@ spat_qaqc_gui <- function(dataset, project, spatdat, checks = NULL) {
       sidebarLayout(
         
         sidebarPanel(
+          
           actionButton('saveData','Save data to FishSET database',
                        style = "color: white; background-color: blue;"),
           
@@ -688,15 +690,15 @@ spat_qaqc_gui <- function(dataset, project, spatdat, checks = NULL) {
            actionButton("runSpatQAQC", "Run spatial check",
                         style = "color: white; background-color: #0073e6;"), 
            selectInput("spat_qaqc_lat", "Select Latitude from main data",
-                       choices = find_lat(values$dataset)),
+                       choices = find_lat(dataset)),
            selectInput("spat_qaqc_lon", "Select Longitude from main data",
-                       choices = find_lon(values$dataset)),
+                       choices = find_lon(dataset)),
            selectInput("spat_qaqc_date", "Select date variable", 
-                       choices = date_cols(values$dataset)),
+                       choices = date_cols(dataset)),
            numericInput("spat_qaqc_epsg", "(Optional) enter EPSG code",
                         value = NULL),
            selectizeInput("spat_qaqc_grp", "(Optional) select grouping variable",
-                          choices = category_cols(values$dataset),
+                          choices = category_cols(dataset),
                           multiple = TRUE, options = list(maxItems = 1, create = TRUE))
           )
         }
