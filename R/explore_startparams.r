@@ -133,9 +133,9 @@ explore_startparams <- function(project, space, dev, startsr=NULL) {
   for (i in 1:length(x_temp)) {
     x <- x_temp[i]
     
-    catch <- data.frame(as.matrix(x_temp[[i]][["catch"]]))
+    catch <- (data.frame(as.matrix(x_temp[[i]][["catch"]])))/x_temp[[i]]$scales[1]
     choice <- x_temp[[i]][["choice"]]
-    distance <- data.frame(x_temp[[i]][["distance"]])
+    distance <- data.frame(x_temp[[i]][["distance"]])/x_temp[[i]]$scales[2]
     choice <- data.frame(as.matrix(as.numeric(factor(choice))))
     # startsr <- x_temp[[i]]["initparams"]
     ab <- max(choice) + 1 # no interactions in create_logit_input - interact distances in likelihood function instead
