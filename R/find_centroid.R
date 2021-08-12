@@ -1,14 +1,9 @@
-#'  Identify centroid of fishery management or regulatory zone
+#'  Identify geographic centroid of fishery management or regulatory zone
 
-#' @param dat  Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
-#' @param project Name of project
 #' @param gridfile Spatial data containing information on fishery management or regulatory zones. Can be shape file, json, geojson, data frame, or list.
 #' @param cat Variable or list in \code{gridfile} that identifies the individual areas or zones. If \code{gridfile} is class sf, \code{cat} should be name of list containing information on zones.
 #' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
 #' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
-#' @param weight.var Variable from \code{dat} for weighted average.
-#' @param lon.dat Longitude variable in \code{dat}. Required for calculating weighted centroid.
-#' @param lat.dat Latitude variable in \code{dat}. Required for calculating weighted centroid.
 #' @keywords centroid, zone, polygon
 #' @importFrom sf st_centroid  st_as_sf
 #' @importFrom rgeos gCentroid
@@ -17,27 +12,16 @@
 #' @return Returns a data frame where each row is a unique zone and columns are the zone ID and the latitude and longitude 
 #'   defining the centroid of each zone.
 #' @export find_centroid
-#' @details Zonal centroids are required for many functions. Functions that require zonal centroids call this function.
-#' The default setting is to return the fishing centroid. The \code{weight.var} is used to calculate weighted centroid.
-#' Calls \code{\link{assignment_column}} function if calculating weighted centroid.
+#' @details Returns the geographic centroid of each area/zone in \code{gridfile}. The centroid table is saved to the FishSET database.
+#' Function is called by the \code{create_alternative_choice} and \code{create_dist_between} functions.
 
 
 
-find_centroid <- function(dat, project=NULL, gridfile,  cat, lon.grid = NULL, lat.grid = NULL,
-                           weight.var = NULL,lon.dat = NULL, lat.dat = NULL) {
+find_centroid <- function(gridfile,  cat, lon.grid = NULL, lat.grid = NULL) {
   
   # Call in datasets
-  out <- data_pull(dat)
-  dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
-  
   gridname <- deparse(substitute(gridfile))
     
-  if(is.null(project)){
-    project <- sub("\\MainDataTable", "", dat)
-  }
-
-  
   tmp <- tempfile()
   cat("", file = tmp, append = TRUE)
   x <- 0
@@ -62,7 +46,6 @@ find_centroid <- function(dat, project=NULL, gridfile,  cat, lon.grid = NULL, la
 
   # For json and shape files
   if (any(class(gridfile) == "sf")) {
-    if (is_empty(weight.var)) {
       int <- rgeos::gCentroid(methods::as(gridfile, "Spatial"), byid = TRUE)
       int <- cbind(gridfile[[cat]], as.data.frame(int))
       colnames(int) <- c("ZoneID", "cent.lon", "cent.lat")
@@ -82,88 +65,25 @@ find_centroid <- function(dat, project=NULL, gridfile,  cat, lon.grid = NULL, la
             paste(data.frame(int[which(int$cent.lon > mean(int$cent.lon) / 4 | int$cent.lon < mean(int$cent.lon) * 4), ])),
             collapse = "; "
           ))
-        }
       }
-    } else {
-      # Weighted variables
-      if (x != 1) {
-        int <- assignment_column(
-          dat = dataset, project=project, gridfile = gridfile, lon.grid = lon.grid,
-          lat.grid = lat.grid, lon.dat = lon.dat, lat.dat = lat.dat, cat = cat,
-          log.fun = FALSE
-        )
-        int$cent.lon <- stats::ave(int[c(lon.dat, weight.var)], int$ZoneID,
-          FUN = function(x) stats::weighted.mean(x[[lon.dat]], x[[weight.var]])
-        )[[1]]
-        int$cent.lat <- stats::ave(int[c(lat.dat, weight.var)], int$ZoneID,
-          FUN = function(x) stats::weighted.mean(x[[lat.dat]], x[[weight.var]])
-        )[[1]]
-      }
-    }
-  }
-  # begin dataframe
-  else {
+    } 
+  } else {
     # Centroid based on spatial data file or data set
-    if (!is.null(gridfile)) {
+
       int <- gridfile
       lon <- lon.grid
       lat <- lat.grid
-    } else {
-      int <- dataset
-      lon <- lon.dat
-      lat <- lat.dat
-    }
-    # Lat and long must be within logical bounds
-    if (is.data.frame(int) == T) {
-      if (any(abs(int[[lon]]) > 180)) {
-        cat("\nLongitude is not valid (outside -180:180).", file = tmp, append = TRUE)
-        x <- 1
-        # stop("Longitude is not valid (outside -180:180.")
-      }
-      if (any(abs(int[[lat]]) > 90)) {
-        cat("\nLatitude is not valid (outside -90:90).", file = tmp, append = TRUE)
-        x <- 1
-        # stop("Latitude is not valid (outside -90:90.")
-      }
-    }
+
 
     
     if (x != 1) {
       # simple centroid
-      if (is_empty(weight.var)) {
         if (is.data.frame(int) == T) {
           int$cent.lon <- stats::ave(int[[lon]], int[[cat]])
           int$cent.lat <- stats::ave(int[[lat]], int[[cat]])
         } else {
           int$cent <- sf::st_centroid(int)
         }
-      } else {
-        # weighted centroid
-        if (is.data.frame(int) == T) {
-          if (!is.null(gridfile)) {
-            int <- assignment_column(
-              dat = dataset, project, gridfile = gridfile, lon.grid = lon.grid,
-              lat.grid = lat.grid, lon.dat = lon.dat, lat.dat = lat.dat, cat = cat,
-              log.fun = FALSE
-            )
-            int$cent.lon <- stats::ave(int[c(lon.dat, weight.var)], int$ZoneID,
-              FUN = function(x) stats::weighted.mean(x[[lon.dat]], x[[weight.var]])
-            )[[1]]
-            int$cent.lat <- stats::ave(int[c(lat.dat, weight.var)], int$ZoneID,
-              FUN = function(x) stats::weighted.mean(x[[lat.dat]], x[[weight.var]])
-            )[[1]]
-          } else {
-            int$cent.lon <- stats::ave(int[c(lon, weight.var)], int[[cat]],
-              FUN = function(x) stats::weighted.mean(x[[lon]], x[[weight.var]])
-            )[[1]]
-            int$cent.lat <- stats::ave(int[c(lat, weight.var)], int[[cat]],
-              FUN = function(x) stats::weighted.mean(x[[lat]], x[[weight.var]])
-            )[[1]]
-          }
-        } # else {
-        #  int$cent <- spatialEco::wt.centroid(int, weight.var, sp = TRUE)
-        # }
-      }
     }
 
     if (x != 1) {
@@ -177,6 +97,6 @@ find_centroid <- function(dat, project=NULL, gridfile,  cat, lon.grid = NULL, la
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
   DBI::dbWriteTable(fishset_db, paste0(noquote(gridname), "Centroid"), int, overwrite = TRUE)
   DBI::dbDisconnect(fishset_db)
-  
+  message('Geographic centroid saved to fishset database')
   return(int)
 }

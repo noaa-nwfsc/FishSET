@@ -29,7 +29,7 @@ data_verification <- function(dat, project, log_fun = TRUE) {
   check <- 0
 
   tmp <- tempfile()
-  cat("Data verification checks for", project, "project using", dat, "dataset on", 
+  cat("Data verification checks for the", project, "project using", dat, "dataset on", 
       format(Sys.Date(), format = "%Y%m%d"), file = tmp)
 
   # check each row of data is a unique choice occurrence at haul or trip level
@@ -133,7 +133,7 @@ unique_filter <- function(dat, project, remove = FALSE) {
   dat <- parse_data_name(dat, "main")
   
   tmp <- tempfile()
-  cat("Unique filter checks for", project, "project using", dat, "dataset on", 
+  cat("Unique filter check for", dat, "dataset on", 
       format(Sys.Date(), format = "%Y%m%d"), "\n", file = tmp, append = TRUE)
 
   if (nrow(dataset) == nrow(dplyr::distinct(dataset))) {
@@ -194,7 +194,7 @@ empty_vars_filter <- function(dat, project, remove = FALSE) {
   
 
   tmp <- tempfile()
-  cat("Empty vars checks for", project, "project using", dat, "dataset on", 
+  cat("Empty vars check for", dat, "dataset on", 
       format(Sys.Date(), format = "%Y%m%d"), "\n", file = tmp, append = TRUE)
 
   empty_ind <- qaqc_helper(dataset, function(x) all(is.na(x)))
