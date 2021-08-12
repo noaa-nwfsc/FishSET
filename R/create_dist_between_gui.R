@@ -64,9 +64,7 @@ create_dist_between_for_gui <- function(dat, start, end, units, name = "DistBetw
         dat = dataset, project=project, gridfile = gridfile, hull.polygon = FALSE, lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat,
         lat.dat = lat.dat, cat = cat, closest.pt = TRUE, log.fun = FALSE
       )
-      int <- find_centroid(dat2, project = project, gridfile = gridfile,  lon.grid == lon.grid,
-       lat.grid == lat.grid, lon.dat = lon.dat, lat.dat = lat.dat, cat = cat, weight.var = NULL
-      )
+      int <- find_centroid(gridfile = gridfile,  lon.grid == lon.grid,lat.grid == lat.grid, cat = cat)
     }
 
 

@@ -814,6 +814,7 @@ source("map_viewer_app.R", local = TRUE)
                                conditionalPanel("input.VarCreateTop=='Spatial functions'",
                                                 selectInput('dist','Functions', 
                                                             choices = c('Assign observations to zones'='zone', 
+                                                                        'Fishery centroid' = 'fish_cent',
                                                                         'Distance between two points'='create_dist_between',
                                                                         'Midpoint location (lon/lat) for each haul'='create_mid_haul',
                                                                         'Zone when choice of where to go next was made'='create_startingloc'),
@@ -890,6 +891,10 @@ source("map_viewer_app.R", local = TRUE)
                                ## runs assignment column
                                uiOutput('zone_assign_1'),
                                uiOutput('zone_assign_2'),
+                               
+                               uiOutput('fish_weight_cent'), 
+                               uiOutput('fish_weight_cent_2'), 
+                               uiOutput('fish_weight_cent_3'), 
                                
                                uiOutput('dist_between_input'),
                                uiOutput('dist_betwn_opts'),

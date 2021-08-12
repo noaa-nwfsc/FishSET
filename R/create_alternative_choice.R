@@ -84,7 +84,7 @@
 #'         occasion: \tab Identifies how to find latitude and longitude for starting point\cr
 #'         alt_var: \tab Identifies how to find latitude and longitude for alternative choice \cr
 #'         zoneRow: \tab Zones and choices array\cr
-#'         int: \tab Centroid for each zone. Generated from \code{\link{find_centroid}}\cr
+#'         int: \tab Geographic entroid for each zone. Generated from \code{\link{find_centroid}}\cr
 #'         matrix: \tab Distance matrix is alternative choices comes from gridded dataset
 #'         }
 
@@ -118,10 +118,7 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
       int <- table_view(paste0(gridfile, 'Centroid'))
       }
     } else {
-      int <- find_centroid(
-    dat = dataset, project = project, gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.grid,
-    lat.dat = lat.dat, lon.dat = lon.dat, cat = cat, weight.var = weight.var
-  )
+      int <- find_centroid(gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.grid, cat = cat)
     }
   } else {
     warning("Zonal centroid must be defined.")

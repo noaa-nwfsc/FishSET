@@ -2495,7 +2495,7 @@ conf_cache_len <- length(get_confid_cache())
             selectizeInput("spat_qaqc_date", "Select date variable", 
                         choices = spat_ui$date_cols, multiple = FALSE, 
                         options = list(create = TRUE)),
-            numericInput("spat_qaqc_epsg", "(Optional) enter EPSG code",
+            textInput("spat_qaqc_epsg", "(Optional) enter EPSG code",
                          value = NULL),
           
             selectizeInput("spat_qaqc_grp", "(Optional) select grouping variable",
@@ -3473,6 +3473,48 @@ conf_cache_len <- length(get_confid_cache())
         ) 
       })
       
+      output$fish_weight_cent <- renderUI({
+        conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='fish_cent'",
+                         tagList(
+                           textInput('cat_cent', 'Zone identifier in main data file or spatial data file', 
+                                       value='ZoneID'),
+                           selectInput('weight_var_cent', 'Weighting variable', 
+                                        choices=c('none'="", colnames(values$dataset))),
+                               (tags$b('Select latitude then longitude from primary data frame for assigning observations to zones')),
+                           div(style="display: inline-block;vertical-align:top; width: 200px;",
+                               selectizeInput('lat_dat_cent', '', choices = find_lat(values$dataset),
+                                              options = list(create = TRUE, placeholder='Select or type LATITUDE variable name'))),
+                           div(style="display: inline-block;vertical-align:top; width: 200px;",
+                               selectizeInput('lon_dat_cent', '', choices = find_lon(values$dataset),
+                                              options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name'))),
+                          
+                         )
+        )
+      })
+      
+      output$fish_weight_cent_2 <- renderUI({
+        conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='fish_cent'",
+                         if(!input$cat_cent %in% colnames(values$dataset)){
+                            if(names(spatdat$dataset)[1]=='var1'){
+                             tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab if required', style="color:red"))
+                           }
+                         }
+        )
+      })
+      
+      output$fish_weight_cent_3 <- renderUI({
+        conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='fish_cent'",
+                         if(!('sf' %in% class(spatdat$dataset))) {
+                           tagList(
+                             h5(tags$b('Select vector containing latitude then longitude from spatial data file')),
+                             div(style="display: inline-block;vertical-align:top; width: 200px;",
+                                 selectizeInput('lat_grid_cent', '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE)),
+                             div(style="display: inline-block;vertical-align:top; width: 200px;",
+                                 selectizeInput('lon_grid_cent',  '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE))
+                           )
+                         }
+        ) 
+      })
       
       output$dist_between_input <- renderUI({
         tagList(
@@ -3772,6 +3814,11 @@ conf_cache_len <- length(get_confid_cache())
             showNotification('Zone assignment could not be completed', type='message', duration=5)
           }
           
+        } else if(input$VarCreateTop=='Spatial functions' & input$dist=='fish_cent'){
+          q_test <- quietly_test(find_fishing_centroid)
+          values$dataset <- q_test(dat=values$dataset, project$name, gridfile=spatdat$dataset, lon.dat=input$lon_dat_cent, 
+                                   lat.dat=input$lat_dat_cent, cat=input$cat_cent, weight.var=input$weight_var_cent,
+                                   lon.grid=input$lon_grid_cent,lat.grid=input$lat_grid_cent)
         } else if(input$VarCreateTop=='Spatial functions' & input$dist=='create_dist_between'){
           #'Zonal centroid', 'Port', 'Lat/lon coordinates'
           if(input$start=='Lat/lon coordinates'){
@@ -4644,9 +4691,8 @@ conf_cache_len <- length(get_confid_cache())
       
       observeEvent(input$savecentroid, {
         q_test <- quietly_test(find_centroid)
-        q_test(values$dataset, project = project$name, gridfile=spatdat$dataset, cat = input$cat_altc, lon.dat = input$lon_dat_ac, 
-               lat.dat = input$lat_dat_ac, lon.grid = input$long_grid_altc, lat.grid = input$lat_grid_altc, weight.var = input$weight_var_ac)
-        showNotification('Zonal centroid calculated and saved')
+        q_test(gridfile=spatdat$dataset, cat = input$cat_altc, lon.grid = input$long_grid_altc, lat.grid = input$lat_grid_altc)
+        showNotification('Geographic centroid of zones calculated and saved')
       }, ignoreInit = FALSE)
       
                     

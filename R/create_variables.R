@@ -925,10 +925,9 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
           vars[6]
         ), closest.pt = TRUE, log.fun = FALSE
       )
-      int <- find_centroid(dat=dataset, project=project, gridfile = eval(parse(text = vars[1])), 
-                           lon.dat = gsub("\"|'", "", vars[4]), lat.dat = gsub("\"|'", "", vars[5]), 
+      int <- find_centroid(gridfile = eval(parse(text = vars[1])), 
                            cat = gsub("\"|'", "", vars[6]), lon.grid = gsub("\"|'", "", vars[2]),
-                            lat.grid = gsub("\"|'", "", vars[3]), weight.var = NULL)
+                            lat.grid = gsub("\"|'", "", vars[3]))
     }
 
     if (grepl("port", start[1], ignore.case = TRUE)) {
@@ -1347,7 +1346,7 @@ lonlat_to_centroid <- function(dat, project, lon, lat, spat, zone) {
     spatdat <- sf::st_as_sf(x = spatdat, crs = "+proj=longlat +datum=WGS84")
   }
   
-  pts <- find_centroid(dataset, project = project, gridfile = spatdat, lon.dat = lon, lat.dat = lat, cat = zone)
+  pts <- find_centroid(gridfile = spatdat, cat = zone)
   
   colnames(pts) <- c(zone, lon, lat)
   
