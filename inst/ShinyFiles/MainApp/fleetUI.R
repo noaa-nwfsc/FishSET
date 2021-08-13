@@ -18,8 +18,8 @@ plotSaveUI <- function(id) {
   ns <- NS(id)
   
   tagList(
-    downloadLink(ns('downloadplotHIDE'), label = ''),
-    actionButton(ns('downloadplot'), label = 'Save plot to folder',
+    downloadLink(ns('downloadPlotHIDE'), label = ''),
+    actionButton(ns('run_plot_save'), label = 'Save plot to folder',
                  style = "color: #fff; background-color: #6EC479; border-color:#000000;")
   )
 }
@@ -29,7 +29,7 @@ tableSaveUI <- function(id) {
   
   tagList(
     downloadLink(ns('downloadTableHIDE'), label = ''),
-    actionButton(ns('downloadTable'), label = 'Save table to folder as csv',
+    actionButton(ns('run_tab_save'), label = 'Save table to folder as csv',
                  style = "color: #fff; background-color: #6EC479; border-color:#000000;")
   )
 }
