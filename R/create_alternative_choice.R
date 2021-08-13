@@ -52,8 +52,6 @@
 #' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files.
 #' Leave as NULL if \code{gridfile} is a shape or json file, Required if zonal assignments
 #' in \code{dat} should be identified and \code{gridfile} is not NULL.
-#' @param weight.var Variable for calculating weighted centroids. Required if zonal assignments for observations
-#' in \code{dat} should be identified and \code{gridfile} is not NULL.
 #' @param closest.pt Logical, if true, zone ID identified as the closest polygon to the point.
 #'   Called in \code{\link{assignment_column}}. Required if zonal assignments for observations in \code{dat}
 #'   should be identified and \code{gridfile} is not NULL.
@@ -91,8 +89,7 @@
 create_alternative_choice <- function(dat, project, occasion='centroid', alt_var='centroid', griddedDat = NULL, 
                                       dist.unit = "miles", min.haul=0, gridfile, cat=NULL, 
                                       lon.dat=NULL, lat.dat=NULL, hull.polygon = FALSE,
-                                      closest.pt = FALSE, lon.grid = NULL, lat.grid = NULL,
-                                      weight.var = NULL) {
+                                      closest.pt = FALSE, lon.grid = NULL, lat.grid = NULL) {
   stopanaly <- 0
   case <- "centroid"
   
@@ -108,6 +105,7 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
     cat <- 'ZoneID'
   }
 
+  x <- 0
   
   if(!is.null(gridfile)){
     if(is.character(gridfile)){
@@ -121,24 +119,35 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
       int <- find_centroid(gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.grid, cat = cat)
     }
   } else {
-    warning("Zonal centroid must be defined.")
+    warning("Zonal centroid must be defined. Function not run.")
+    x <- 1
   }
  
   if (!is.null(gridfile) & !is.character(gridfile)) {
+    if(!cat %in% names(dat)){
+      if(is.null(lon.dat)){
+        warning('Observations must be assigned to zones. Function not run.')
+                x<-1
+      } else {
     int.data <- assignment_column(
       dat = dataset, project=project, gridfile = gridfile, hull.polygon = hull.polygon,
       lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat,
       lat.dat = lat.dat, cat = cat, closest.pt = closest.pt, log.fun = FALSE
     )
-  } else {
+      }
+    } 
+  }else {
     int.data <- dataset
   }
   
+  if(x == 0){
+    
   if(!is.null(int.data[[cat]])){
     g <- int.data[[cat]]
   } else if(!is.null(int.data[['ZoneID']])){
     g <- int.data[['ZoneID']]
   }
+  
   if (anyNA(g) == TRUE) {
     warning(paste("No zone identified for", sum(is.na(g)), "observations. 
                   These observations will be removed in future analyses."))
@@ -309,9 +318,10 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
       occasion, alt_var, dist.unit, lon.dat, lat.dat, cat,
       hull.polygon, closest.pt
     )
-    create_alternative_choice_function$kwargs <- list("lon.grid" = lon.grid, "lat.grid" = lat.grid, "griddedDat" = griddedDat, "weight.var" = weight.var)
+    create_alternative_choice_function$kwargs <- list("lon.grid" = lon.grid, "lat.grid" = lat.grid, "griddedDat" = griddedDat)
     create_alternative_choice_function$output <- list()
 
     log_call(project, create_alternative_choice_function)
+  }
   }
 }

@@ -56,12 +56,12 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE,  drv=NULL, dbname=NULL, 
   #'   \code{\link[haven]{read_spss}} for reading in spss data files,
   #'   \code{\link[haven]{read_sas}} for reading in sas data files, and 
   #'   \code{\link[jsonlite]{fromJSON}} for reading in json files.
-  #'   \code{\link[utils]{read.delim}} for reading in deliminated files. Include the filed separator character \code{sep = ""}
+  #'   See \code{read.delim} in \code{\link[utils]{read.table}} for reading in deliminated files. Include the filed separator character \code{sep = ""}
   #'   \code{\link[XML]{xmlToDataFrame}} for reading in XML files. Further processing may be required.
   #'   \code{\link[XML]{readHTMLTable}} for reading in html tables.
-  #'   \code{\link[googlesheets4]{read_sheet}} for reading in google spreadsheets.
+  #'   See \code{read_sheet} in \code{\link[googlesheets4]{range_read}} for reading in google spreadsheets.
   #'       Google spreadsheets require \code{data.type} be specified. Use \code{data.type = 'google'}.
-  #'   \code{\link[readODS]{read.ods}} for reading in open document spreadsheets.
+  #'   \code{\link[readODS]{read_ods}} for reading in open document spreadsheets.
   #' @export
   #' @examples
   #' \dontrun{
@@ -130,7 +130,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE,  drv=NULL, dbname=NULL, 
   } else if(data.type == 'google'){
     googlesheets4::read_sheet(x, ...)
   } else if(data.type == 'ods'){
-    readODS::read.ods(x, ...)
+    readODS::read_ods(x, ...)
   } else if(data.type == 'sql') {
     conn <- DBI::dbConnect(
       drv = drv,
