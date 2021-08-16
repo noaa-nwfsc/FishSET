@@ -58,6 +58,8 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
       spatdat <- sf::st_as_sf(spatdat)
     }
 
+  GetisOrd <- NA
+  
   x <- 0
   if (any(abs(dataset[[lon.dat]]) > 180)) {
     warning("Longitude is not valid (outside -180:180). Function not run")

@@ -959,7 +959,7 @@ source("map_viewer_app.R", local = TRUE)
                                # actionButton("eval", "Evaluate"),
                                radioButtons('choiceTab', '', choices=c( #basic parameters to populate elsewhere like catch, price
                                                                        'Select variables that define alternative fishing choices'='distm',
-                                                                       'Calculate zonal centroid'='zone', #calculate zonal centroid
+                                                                       #'Calculate zonal centroid'='zone', #calculate zonal centroid
                                                                        'Select catch and price variables'='primary')),#, #calculate distance matrix
                                conditionalPanel("input.choiceTab=='distm'",
                                                 actionButton('saveALT','Save choices', style = "color: white; background-color: green;")),

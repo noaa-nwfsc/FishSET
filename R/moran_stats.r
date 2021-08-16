@@ -53,6 +53,8 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
   
  
   x <- 0
+  Moran <- NA
+  
   if (any(abs(dataset[[lon.dat]]) > 180)) {
     warning("Longitude is not valid (outside -180:180). Function not run")
     # stop('Longitude is not valid (outside -180:180.')

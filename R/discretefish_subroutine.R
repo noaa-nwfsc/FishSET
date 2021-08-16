@@ -100,7 +100,8 @@
 #' results <- discretefish_subroutine("pcod", select.model = TRUE)
 #' }
 #'
-discretefish_subroutine <- function(project, select.model = FALSE, explorestarts = TRUE, breakearly= TRUE, space=NULL, dev=NULL, use.scalers=TRUE, scaler.value=NULL) {
+discretefish_subroutine <- function(project, select.model = FALSE, explorestarts = TRUE, breakearly= TRUE,
+                                    space=NULL, dev=NULL, use.scalers=TRUE, scaler.value=NULL) {
 
   if (!isRunning()) { # if run in console
     
@@ -154,7 +155,7 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
       mod.name <- unlist(x_temp[[i]][["mod.name"]])
       #opt <- unlist(x_temp[[i]][["optimOpt"]])
       #starts2 <- unlist(x_temp[[i]][["initparams"]])
-      
+      polyn <- NA
       
       
       if (is.factor(x_temp[[i]][["optimOpt"]])) {

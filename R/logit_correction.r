@@ -55,6 +55,7 @@ logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod
   #' @param project Name of project
   #' @param expname Expected catch table
   #' @param mod.name Name of model run for model result output table
+  #' @importFrom stats model.matrix
   #' @return ld: negative log likelihood
   #' @export
   #' @keywords internal
@@ -165,8 +166,8 @@ logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod
   yj <- dat[, 1]
   cj <- dat[, 2]
 
-  locstay <- model.matrix(~ as.factor(startloc) - 1)
-  locmove <- model.matrix(~ as.factor(cj) - 1)
+  locstay <- stats::model.matrix(~ as.factor(startloc) - 1)
+  locmove <- stats::model.matrix(~ as.factor(cj) - 1)
 
   probstay <- probs * locstay
   probmove <- probs * locmove

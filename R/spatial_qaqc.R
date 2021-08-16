@@ -37,6 +37,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   #' @importFrom rlang sym
   #' @importFrom dplyr group_by summarize
   #' @importFrom magrittr %>% 
+  #' @importFrom stats dist
   #' @return A list of plots and/or dataframes depending on whether spatial data 
   #' quality issues are detected. The list includes:
   #'   \describe{
@@ -559,6 +560,7 @@ spat_qaqc_gui <- function(dataset, project, spatdat, checks = NULL) {
   #' @importFrom shinycssloaders withSpinner
   #' @importFrom DT DTOutput renderDT dataTableProxy editData replaceData
   #' @importFrom gridExtra grid.arrange
+  #' @importFrom utils capture.output
   #' @seealso \code{\link{spatial_qaqc}}
 
   # plot rendering function
@@ -651,7 +653,7 @@ spat_qaqc_gui <- function(dataset, project, spatdat, checks = NULL) {
         tryCatch(
           {
             r$output <- isolate(
-              paste(capture.output(eval(parse(text = input$exprQA))), collapse = '\n')
+              paste(utils::capture.output(eval(parse(text = input$exprQA))), collapse = '\n')
             )
             r$ok <- TRUE
           },

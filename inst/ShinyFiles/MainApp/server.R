@@ -3222,7 +3222,7 @@ conf_cache_len <- length(get_confid_cache())
         tryCatch(
           {
             r$output <- isolate(
-              paste(capture.output(eval(parse(text = input$exprFleet))), collapse = '\n')
+              paste(utils::capture.output(eval(parse(text = input$exprFleet))), collapse = '\n')
             )
             r$ok <- TRUE
           },
@@ -3452,9 +3452,7 @@ conf_cache_len <- length(get_confid_cache())
                                selectizeInput('lon_dat_zone', '', choices = find_lon(values$dataset),
                                               options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name'))),
                            selectInput('cat_zone', 'Individual areas/zones from the spatial data file', choices=names(as.data.frame(spatdat$dataset))),
-                           # selectInput('weight_var_ac', 'If desired, variable for use in calculating weighted centroids', 
-                           #             choices=c('none'="", colnames(values$dataset))), #variable weighted centroids
-                           checkboxInput('hull_polygon_zone', 'Use convex hull method to create polygon?', value=FALSE),
+                            checkboxInput('hull_polygon_zone', 'Use convex hull method to create polygon?', value=FALSE),
                            checkboxInput('closest_pt_zone', 'Use closest polygon to point?', value=FALSE) 
                          ) )
       })  
@@ -3914,8 +3912,6 @@ conf_cache_len <- length(get_confid_cache())
                             selectInput('cat_altc', 'Individual areas/zones from the spatial dataset', choices=names(as.data.frame(spatdat$dataset))),
                            
                            h5(tags$b('Additional arguments required for calculating weighted centroid')),
-                           selectInput('weight_var_ac', 'Weighting variable from the primary dataset',
-                                       choices=c('none'="", colnames(values$dataset))), #variable weighted centroids
                            div(style="display: inline-block;vertical-align:top; width: 200px;",
                                selectizeInput('lat_dat_ac', '',
                                               choices = find_lat(values$dataset),
@@ -4683,9 +4679,9 @@ conf_cache_len <- length(get_confid_cache())
               q_test <- quietly_test(create_alternative_choice)
               q_test(values$dataset, project=project$name, gridfile=spatdat$dataset, alt_var=input$alt_var_ac, 
                                   occasion=input$occasion_ac, griddedDat=NULL, dist.unit=input$dist_ac, min.haul=input$min_haul_ac,
-                                  cat=input$cat_altc, lon.dat=input$lon_dat_ac, lat.dat=input$lat_dat_ac,
-                                  hull.polygon=input$hull_polygon_ac, lon.grid=input$long_grid_altc, lat.grid=input$lat_grid_altc, 
-                                  closest.pt=input$closest_pt_ac,  weight.var=input$weight_var_ac )
+                                  cat=input$cat_altc, hull.polygon=input$hull_polygon_ac, 
+                                  lon.grid=input$long_grid_altc, lat.grid=input$lat_grid_altc, 
+                                  closest.pt=input$closest_pt_ac)
               showNotification('Completed. Alternative choice matrix updated', type='message', duration=10)
       }, ignoreInit = F) 
       
@@ -5209,7 +5205,6 @@ conf_cache_len <- length(get_confid_cache())
         updateSelectInput(session, "var_x", selected = bookmarkedstate()$var_x) 
         updateSelectInput(session, "var_y", selected = bookmarkedstate()$var_y) 
         updateSelectInput(session, "VarCreateTop", selected = bookmarkedstate()$VarCreateTop) 
-        updateSelectInput(session, "weight_var_ac", selected = bookmarkedstate()$weight_var_ac) 
         updateSelectInput(session, "xTime", selected = bookmarkedstate()$xTime) 
         updateSelectInput(session, 'xWeight', selected = bookmarkedstate()$xWeight)
         updateSelectInput(session, "x_dist", selected = bookmarkedstate()$x_dist) 

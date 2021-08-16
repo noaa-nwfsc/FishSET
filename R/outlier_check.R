@@ -134,7 +134,7 @@ outlier_plot <- function(dat, project, x, dat.remove='none', x.dist='normal', ou
   #' @param output.screen Logical, if true, return plots to the screen. If false, returns plot to the 'inst/output' folder as a png file.
   #' @param log_fun Logical, whether to log function call (for internal use).
   #' @keywords outlier
-  #' @importFrom stats dnorm dpois dweibull rnorm dbinom dlnorm dexp dnbinom
+  #' @importFrom stats density dnorm dpois dweibull rnorm dbinom dlnorm dexp dnbinom
   #' @importFrom ggpubr annotate_figure text_grob
   #' @importFrom rlang sym
   #' @import ggplot2
