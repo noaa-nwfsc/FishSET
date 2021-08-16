@@ -466,7 +466,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     spatial_qaqc_function <- list()
     spatial_qaqc_function$functionID <- "spatial_qaqc"
     spatial_qaqc_function$args <- list(dat, project, spat, lon.dat, lat.dat, 
-                                       lon.spat, lat.spat, epsg, date, group,
+                                       lon.spat, lat.spat, id.spat, epsg, date, group,
                                        filter_dist)
     spatial_qaqc_function$msg <- suppressWarnings(readLines(tmp))
     log_call(project, spatial_qaqc_function)
