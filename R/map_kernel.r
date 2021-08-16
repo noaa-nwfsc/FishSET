@@ -50,6 +50,9 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
 
   x <- 0
   level <- NA
+  lon <- NA
+  lat <- NA
+  groupv <- NA
   
   #Empty variables
   year <- NULL
