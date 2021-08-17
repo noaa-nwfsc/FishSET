@@ -148,7 +148,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE,  drv=NULL, dbname=NULL, 
 
 }
 
-pollockldglobalcheck20200327write_dat <- function (dat, file, file_type = "csv", project, ...) {
+write_dat <- function (dat, file, file_type = "csv", project, ...) {
   #' Write a dataset to local file
   #'
   #'@param dat Name of data frame in working environment to save to file. 
