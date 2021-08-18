@@ -246,7 +246,7 @@ plotSaveServ <- function(id, project, fun_name, plots = NULL) {
             
             filename = function() {
               
-              paste0(locoutput(), project, "_", fun_name, "_", plot_r$selected, ".png")
+              paste0(locoutput(), project(), "_", fun_name, "_", plot_r$selected, ".png")
             },
             content = function(file) {
               ggplot2::ggsave(file, plot = plot_r$out)

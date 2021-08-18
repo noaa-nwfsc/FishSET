@@ -4966,7 +4966,7 @@ conf_cache_len <- length(get_confid_cache())
       })
       
       # save grid plot in Explore tab
-      plotSaveServ("grid_plot", reactive(project$name), "view_grid_dat", grid_values, in_list = TRUE)
+      plotSaveServ("grid_plot", reactive(project$name), "view_grid_dat", grid_values$plot)
       
       observeEvent(input$downloadTableExplore, {
         write.csv(gtmt_table(), paste0(locoutput(), project$name, '_', 'GetisOrdMoransI.csv'))
