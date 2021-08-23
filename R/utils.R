@@ -1484,6 +1484,30 @@ date_cols <- function(dat, out = "names") {
   }
 }
 
+find_dev <- function(x, y){
+#' Find how many standard deviations point \code(x) is from mean of \code{y}.
+#' @param x value to check
+#' @param y data vector. Must be numeric
+#' @export
+#' @keywords internal
+  
+  
+  i <- 1  
+  dv <- sd(y, na.rm=TRUE)*i
+  m <- mean(y, na.rm=TRUE)
+  if(x>0){
+    while(x > (m+dv)){
+      i <- i+1
+      dv <- sd(y, na.rm=TRUE)*i
+    }
+  } else {
+    while(x < (m-dv)){
+      i <- i+1
+      dv <- sd(y, na.rm=TRUE)*i
+    }
+  }
+  return(i)
+}
 
 # shiny_running = function () {
 # Look for `runApp` call somewhere in the call stack.
