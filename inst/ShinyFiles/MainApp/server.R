@@ -2352,13 +2352,20 @@ conf_cache_len <- length(get_confid_cache())
         # create style property fot tooltip
         # background color is set so tooltip is a bit transparent
         # z-index is set so we are sure are tooltip will be on top
-        style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
-                        "left:", (hover$range$right +(hover$range$right)/4), "px; top:", (hover$range$bottom+hover$range$bottom/4), "px;")
+        style <- paste0("position:absolute; 
+                        z-index:100; 
+                        background-color: rgba(245, 245, 245, 0.85);  
+                        width: 40;",
+                        "left:", (hover$range$right +(hover$range$right)/4), "px;",
+                        "top:", (hover$range$bottom+hover$range$bottom/4), "px;")
         
         # actual tooltip created as wellPanel
         wellPanel(
           style = style,
-          paste0("Value: ", point[[input$column_check]]))
+          p(HTML(paste0(
+                "<b> Value: </b>", point[[input$column_check]], "<br/>",
+                "<b> SD from mean: </b>", find_dev(point[[input$column_check]], values$dataset[[input$column_check]]), "<br/>"
+            ))))
       })
       
       # When a double-click happens, check if there's a brush on the plot.
