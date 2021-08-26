@@ -1485,7 +1485,8 @@ date_cols <- function(dat, out = "names") {
 }
 
 find_dev <- function(x, y){
-#' Find how many standard deviations point \code(x) is from mean of \code{y}.
+#'  
+#' Find how many standard deviations point \code{x} is from mean of \code{y}.
 #' @param x value to check
 #' @param y data vector. Must be numeric
 #' @export
