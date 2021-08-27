@@ -1,16 +1,64 @@
 Package: FishSET
 Type: Package
 Version: 0.1
-Date: Sys.Date()
-Title: Spatial Economics Toolbox for Fisheries (FishSET)
-Authors@R: c(person("Melanie Harsch", "Developer", role = c("aut", "cre"), email = "melanie.harsch@noaa.gov"), person("Alan", "Haynie", role = "ctb"), person('Bryce', "McManus", role='ctb'))
-Maintainer: Melanie Harsch <melanie.harsch@noaa.gov>
+Date: 2021
+Title: Spatial Economics Toolbox for Fisheries
+Authors@R: c( person("Alan", "Haynie", role = c("aut", "ctb")), person("Melanie Harsch", role = c("aut", "ctb"), email = "melanie.harsch@noaa.gov"), person('Bryce', "McManus", role=c('aut','ctb')))
+Maintainer: FishSET@noaa.gov
 Depends: R (>= 3.5.0)
-Imports:  DBI, dplyr, DT, ff, foreign, formattable, geojsonio, geosphere, ggcorrplot, ggmap, ggplot2, 
-  ggpubr, googlesheets4, gridExtra, jsonlite, haven, knitr, lubridate, magrittr, maps, methods, openxlsx, 
-  OSMscale, pander, purrr, raster, RCurl, readODS, readxl, reshape2, rgeos, R.matlab, 
-  rgdal, rlang, RSQLite, scales, servr, sf, shiny, shinyjs, shinycssloaders, 
-  signal, sp, spdep, stringi, stringr, tibble, tidyr, XML, zoo
+Imports:  ff,  formattable, 
+DBI, 
+dplyr, 
+DT, 
+geosphere,  
+ggplot2, 
+gridExtra, 
+grDevices, 
+jsonlite, 
+knitr, 
+lubridate, 
+maps, 
+methods, 
+pander, 
+purrr, 
+raster, 
+rgeos,
+rlang, 
+RSQLite, 
+scales, 
+shiny, 
+shinyjs, 
+shinycssloaders, 
+sf,   
+sp, 
+spdep, 
+stats, 
+stringi, 
+stringr,
+tibble, 
+tidyr
+Suggests: 
+foreign,
+geojsonio, 
+ggcorrplot, 
+ggmap, 
+ggpubr, 
+googlesheets4, 
+graphics,
+haven,
+magrittr, 
+OSMscale, 
+openxlsx,  
+R.matlab, 
+RCurl, 
+readODS, 
+readxl, 
+rgdal,
+reshape2,
+servr,
+signal, 
+XML, 
+zoo
 Description: The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools for organizing data; developing, improving and disseminating modeling best practices.
 License: GPL-2
 BuildVignettes: yes
