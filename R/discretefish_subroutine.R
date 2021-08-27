@@ -24,7 +24,6 @@
 #'    If more than one model is being specified, include as a list. For example, list(c(204, 15, 126), c(1836, 25, 111, 78)).
 
 #' @export discretefish_subroutine
-#' @importFrom DT DTOutput
 #' @importFrom DBI dbExecute dbWriteTable dbExistsTable dbReadTable dbGetQuery dbDisconnect
 #' @importFrom DT datatable JS DTOutput
 #' @importFrom stats optim
