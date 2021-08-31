@@ -5,7 +5,7 @@ spatial_hist <- function(dat, project, group=NULL) {
   #' @param project String, name of project.
   #' @param group Column in \code{dat} containing grouping categories.
   #' @import ggplot2
-  #' @importFrom reshape2 melt
+  #' @importFrom tidyr gather
   #' @return Returns histogram of latitude and longitude by grouping variable.
   #'   Output returned to console and saved to Output folder.
   #' @details Returns a histogram of observed lat/lon split by grouping variable.
@@ -26,22 +26,22 @@ spatial_hist <- function(dat, project, group=NULL) {
   
   if(!is.null(group)){
   dataset <- dataset[, c(grep(group, names(dataset)), grep("lon|lat", names(dataset), ignore.case = TRUE))]
-  melt.dat <- reshape2::melt(dataset)
-  plot_out <- ggplot(melt.dat, aes(melt.dat$value, group = group, fill = group)) +
-    geom_histogram(position = "identity", alpha = 0.5, binwidth = 0.25) +
-    facet_wrap(~variable, scales = "free") +
-    scale_color_grey() +
-    scale_fill_grey() +
-    theme_classic()
+  melt.dat <- tidyr::gather(as.data.frame(dataset)) #reshape2::melt(dataset)
+  plot_out <-  ggplot2::ggplot(melt.dat, aes(value, group = group, fill = group)) +
+    ggplot2::geom_histogram(position = "identity", alpha = 0.5, binwidth = 0.25) +
+    ggplot2::facet_wrap(~key, scales = "free") +
+    ggplot2::scale_color_grey() +
+    ggplot2::scale_fill_grey() +
+    ggplot2::theme_classic()
   } else {
     dataset <- dataset[, c(grep("lon|lat", names(dataset), ignore.case = TRUE))]
-    melt.dat <- reshape2::melt(dataset)
-    plot_out <- ggplot(melt.dat, aes(melt.dat$value)) +
-      geom_histogram(position = "identity", alpha = 0.5, binwidth = 0.25) +
-      facet_wrap(~variable, scales = "free") +
-      scale_color_grey() +
-      scale_fill_grey() +
-      theme_classic()
+    melt.dat <- tidyr::gather(as.data.frame(dataset))
+    plot_out <- ggplot2::ggplot(melt.dat, aes(value)) +
+      ggplot2::geom_histogram(position = "identity", alpha = 0.5, binwidth = 0.25) +
+      ggplot2::facet_wrap(~key, scales = "free") +
+      ggplot2::scale_color_grey() +
+      ggplot2::scale_fill_grey() +
+      ggplot2::theme_classic()
   }
 
   spatial_hist_function <- list()

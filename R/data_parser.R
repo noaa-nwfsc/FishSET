@@ -24,7 +24,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE,  drv=NULL, dbname=NULL, 
   #' @importFrom haven read_spss read_stata read_sas
   #' @importFrom utils read.table read.delim
   #' @importFrom readxl read_excel
-  #' @importFrom XML xmlToDataFrame readHTMLTable
+  #' @importFrom xml2 read_xml read_html
   #' @importFrom RCurl getURL
   #' @importFrom googlesheets4 read_sheet
   #' @importFrom readODS read.ods
@@ -57,8 +57,8 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE,  drv=NULL, dbname=NULL, 
   #'   \code{\link[haven]{read_sas}} for reading in sas data files, and 
   #'   \code{\link[jsonlite]{fromJSON}} for reading in json files.
   #'   See \code{read.delim} in \code{\link[utils]{read.table}} for reading in deliminated files. Include the filed separator character \code{sep = ""}
-  #'   \code{\link[XML]{xmlToDataFrame}} for reading in XML files. Further processing may be required.
-  #'   \code{\link[XML]{readHTMLTable}} for reading in html tables.
+  #'   \code{\link[xml2]{read_xml}} for reading in XML files. Further processing may be required.
+  #'   \code{\link[xml2]{read_html}} for reading in html tables.
   #'   See \code{read_sheet} in \code{\link[googlesheets4]{range_read}} for reading in google spreadsheets.
   #'       Google spreadsheets require \code{data.type} be specified. Use \code{data.type = 'google'}.
   #'   \code{\link[readODS]{read_ods}} for reading in open document spreadsheets.
@@ -124,9 +124,9 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE,  drv=NULL, dbname=NULL, 
   } else if (data.type == 'delim'){
     utils::read.delim(x, ...)
   } else if(data.type == 'xml'){
-    XML::xmlToDataFrame(x, ...)
+    xml2::read_xml(x, ...)
   } else if(data.type == 'html'){
-     XML::readHTMLTable(RCurl::getURL(x), stringsAsFactors = FALSE, ...)
+    xml2::read_html(RCurl::getURL(x), stringsAsFactors = FALSE, ...)
   } else if(data.type == 'google'){
     googlesheets4::read_sheet(x, ...)
   } else if(data.type == 'ods'){
