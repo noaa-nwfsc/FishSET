@@ -574,6 +574,28 @@ agg_helper <- function(dataset, value, period = NULL, group = NULL, fun = "sum")
   }
 }
 
+spars <- function(x, dname) {
+#' Helper function for sparsity functions
+#' @param x Name of table
+#' @param dname time period
+#' @export
+#' @keywords internal
+  if (dname == "1 weeks") {
+    y <- lubridate::round_date(as.Date(rownames(x)), "1 weeks")
+  } else if (dname == "2 weeks") {
+    y <- lubridate::round_date(as.Date(rownames(x)), "2 weeks")
+  } else if (dname == "3 months") {
+    y <- lubridate::round_date(as.Date(rownames(x)), "3 months")
+  } else {
+    y <- format(as.Date(rownames(x)), dname)
+  }
+  x <- suppressWarnings(aggregate(x, by = list(y), FUN = sum)[, -1])
+  x <- ifelse(x > 0, 1, 0)
+  x <- unique(x)
+  # print(head(x))
+  return(colSums(x == 0) / nrow(x))
+}
+
 perc_of_total <- function(dat, value_var, group = NULL, drop = FALSE, 
                           val_type = "perc", output = "dataset") {
   
@@ -1333,6 +1355,7 @@ deleteButtonColumn <- function(df, id, ...) {
                   columnDefs = list(list(targets = 1, sortable = FALSE))
                 ))
 }
+#Check if project folder exists. If not. Add it.
 
 
 parseDeleteEvent <- function(idstr) {
