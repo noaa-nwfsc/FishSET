@@ -32,7 +32,7 @@
 
 sum_catch <- function(dat, project, catch, v_id, species = NULL, exp, val = c("raw", "per"), output = c("logical", "table")) {
     
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   

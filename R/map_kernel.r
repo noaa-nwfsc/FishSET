@@ -43,7 +43,7 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
   requireNamespace("ggplot2")
   world <- ggplot2::map_data("world")
 
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   

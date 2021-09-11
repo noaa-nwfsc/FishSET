@@ -34,7 +34,7 @@ run_fishset_gui <- function() {
 
 
   if (!is.null(dat)) {
-    out <- data_pull(dat)
+    out <- data_pull(dat, project)
     dat <- out$dat
     dataset <- out$dataset
   }

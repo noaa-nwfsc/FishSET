@@ -31,7 +31,7 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE, lonsig
   #' }
   #'
 
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   

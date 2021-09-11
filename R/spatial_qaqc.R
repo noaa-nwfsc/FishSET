@@ -70,11 +70,11 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   #' }
   #'   
   
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
-  spatout <- data_pull(spat)
+  spatout <- data_pull(spat, project)
   spatdat <- spatout$dataset
   spat <- parse_data_name(spat, "spat")
   
@@ -960,7 +960,7 @@ spat_qaqc_gui <- function(dataset, project, spatdat, checks = NULL) {
       # save data to FishSET DB
       observeEvent(input$saveData, {
         
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
         DBI::dbWriteTable(fishset_db, paste0(project(), 'MainDataTable'), values$dataset, overwrite = TRUE)
         DBI::dbDisconnect(fishset_db)
         showNotification('Data saved to FishSET database', type = 'message', duration = 10)

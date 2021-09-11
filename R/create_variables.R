@@ -27,7 +27,7 @@ cpue <- function(dat, project, xWeight, xTime, name = "cpue") {
   #' }
 
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
@@ -80,6 +80,7 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
   #'   \code{vrlue} set to 1. If \code{var} is a factor, then elements that match value will be set to 1 and all other
   #'   elements set to 0. Default is set to \code{"more_less"}.
   #' @param name String, name of created dummy variable. Defaults to name of the function if not defined.
+  #' @importFrom lubridate origin as_date
   #' @details For date variables, the dummy variable is defined by a date (year) and may be either year \code{x} versus all
   #'   other years (\code{"x_y"}) or before vs after year \code{x} (\code{"more_less"}). Use this function to create a variable defining whether
   #'   or not a policy action had been implemented. \cr
@@ -103,21 +104,22 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
 
 
   # Pull in data
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main")
   
-
   if (grepl("dat|year", var, ignore.case = TRUE)) {
     if (length(value) == 6) {
-      dataset[[var]] <- format(as.Date(dataset[[var]]), "%Y%m")
+      dataset[[var]] <- format(lubridate::as_date(dataset[[var]]), "%Y%m")
     } else if (length(value) == 4) {
-      dataset[[var]] <- format(as.Date(dataset[[var]]), "%Y")
+      dataset[[var]] <- format(lubridate::as_date(dataset[[var]]), "%Y")
     } else {
-      dataset[[var]] <- format(as.Date(dataset[[var]]), "%m")
+      dataset[[var]] <- format(lubridate::as_date(dataset[[var]]), "%m")
     }
-  } else if (is.numeric(dataset[[var]])) {
+  } 
+
+  if (is.numeric(dataset[[var]])) {
     if (opts == "x_y") {
       newvar <- ifelse(dataset[[var]] >= min(value) & dataset[[var]] <= max(value), 0, 1)
     } else {
@@ -158,7 +160,7 @@ dummy_var <- function(dat, project, DumFill = "TRUE", name = "dummy_var") {
   #' }
 
   # Pull in data
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main")
@@ -195,7 +197,7 @@ dummy_matrix <- function(dat, project, x) {
   #' }
 
 
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main")
@@ -248,7 +250,7 @@ set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25,0.33, 0.4),
   #'    quant.cat=.2, 'haul.quant')
   #' }
   #
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main")
@@ -316,7 +318,7 @@ bin_var <- function(dat, project, var, br, name, labs = NULL, ...) {
   #'  pollockMainDataTable <- bin_var(pollockMainDataTable, 'pollock', 'HAUL', c(5,10), 'HAULCAT')
   #' }
 
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
 
@@ -386,7 +388,7 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   #'            group = "DISEMBARKED_PORT", value = "HAUL")
   #' }
   
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main")
@@ -463,7 +465,7 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   #'            sort_by = "HAUL_DATE", value = "HAUL")
   #' }
   
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main")
@@ -544,7 +546,7 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
   #'              sort_by = "HAUL_DATE", value = "OFFICIAL_TOTAL_CATCH")
   #' }
 
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
@@ -609,7 +611,7 @@ create_var_num <- function(dat, project, x, y, method, name = "create_var_num") 
   #'     y = 'HAUL_CHUM', method = 'sum', name = 'tot_salmon')
   #' }
 
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main")
@@ -673,7 +675,7 @@ create_mid_haul <- function(dat, project, start = c("lon", "lat"), end = c("lon"
   #' }
   #
 
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main")
@@ -740,7 +742,7 @@ create_trip_centroid <- function(dat, project, lon, lat, weight.var = NULL, ...)
   #'   'LonLat_START_LAT', weight.var = NULL, 'DISEMBARKED_PORT', 'EMBARKED_PORT')
   #' }
 
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main")
@@ -874,10 +876,10 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
   if (start[1] == end[1]) {
     warning("Starting and ending vectors are identical.")
   } else {
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
 
     # Call in datasets
-    out <- data_pull(dat)
+    out <- data_pull(dat, project)
     dataset <- out$dataset
     
     dat <- parse_data_name(dat, "main")
@@ -893,11 +895,11 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
       vars <- if (interactive()) {
         fun()
       }
-      if (table_exists(gsub("'|\"", "", vars[1])) == FALSE) {
+      if (table_exists(gsub("'|\"", "", vars[1]), project) == FALSE) {
         print(DBI::dbListTables(fishset_db))
         stop(paste("PortTable", "not defined or does not exist. Consider using one of the tables listed above that exist in the database."))
       } else {
-        port.table <- table_view(gsub("'|\"", "", vars[1]))
+        port.table <- table_view(gsub("'|\"", "", vars[1]), project)
       }
     }
     DBI::dbDisconnect(fishset_db)
@@ -1024,7 +1026,7 @@ create_duration <- function(dat, project, start, end, units = c("week", "day", "
   #' }
 
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project = project)
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main")
@@ -1081,7 +1083,7 @@ randomize_value_row <- function(dat, project, value) {
   #' randomize_value_row(pollockMainDataTable, "pollock", "PERMIT")
   #' }
   
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main")  
@@ -1115,7 +1117,7 @@ randomize_value_range <- function(dat, project, value, perc = NULL) {
   #' randomize_value_range(pollockMainDataTable, "pollock", "LBS_270_POLLOCK_LBS")
   #' } 
   
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main")
@@ -1181,7 +1183,7 @@ jitter_lonlat <- function(dat, project, lon, lat, factor = 1, amount = NULL) {
   #'               lon = "LonLat_START_LON", lat = "LonLat_START_LAT")
   #' }
   
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main") 
@@ -1232,12 +1234,12 @@ randomize_lonlat_zone <- function(dat, project, spat, lon, lat, zone) {
   #'                    zone = "NMFS_AREA")
   #' }
   
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main")
   
-  spat_out <- data_pull(spat)
+  spat_out <- data_pull(spat, project)
   spatdat <- spat_out$dataset
 
   spat <- parse_data_name(spat, 'spat')
@@ -1334,11 +1336,11 @@ lonlat_to_centroid <- function(dat, project, lon, lat, spat, zone) {
   #' }
   #' 
   
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
-  spat_out <- data_pull(spat)
+  spat_out <- data_pull(spat, project)
   spat <- spat_out$dat
   spatdat <- parse_data_name(spat, 'spat')
   

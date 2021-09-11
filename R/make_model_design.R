@@ -183,17 +183,17 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
                               mod.name=NULL, vars1 = NULL, vars2 = NULL, 
                               priceCol = NULL, startloc = NULL, polyn = NULL) {
   
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
   end <- FALSE
   
-  if (!table_exists(paste0(project, "MainDataTable_final"))) {
+  if (!table_exists(paste0(project, "MainDataTable_final"), project)) {
     
     warning("Final dataset does not exist. Run check_model_data() to save the final",
             " dataset to the FishSET Database before modeling.")
     end <- TRUE
   } else {
     
-    dataset <- table_view(paste0(project, "MainDataTable_final"))
+    dataset <- table_view(paste0(project, "MainDataTable_final"), project)
   }
   
   if(is.null(dataset[[catchID]])){
@@ -252,7 +252,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     }
   }
 
-  if (table_exists(paste0(project, "ExpectedCatch"))) {
+  if (table_exists(paste0(project, "ExpectedCatch"), project)) {
     ExpectedCatch <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", project, "ExpectedCatch LIMIT 1"))$data[[1]])
     
     if(dim(as.data.frame(ExpectedCatch[[1]]))[[1]] != dim(Alt[["choice"]])[[1]]){
@@ -399,7 +399,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       
       single_sql <- paste0(project, "modelinputdata")
       date_sql <- paste0(project, "modelinputdata", format(Sys.Date(), format = "%Y%m%d"))
-      if (table_exists(single_sql) & replace == FALSE) {
+      if (table_exists(single_sql, project) & replace == FALSE) {
         # modelInputData <- table_view()
         modelInputData <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
         modelInputData[[length(modelInputData) + 1]] <- modelInputData_tosave
@@ -408,11 +408,11 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
         modelInputData[[length(modelInputData) + 1]] <- modelInputData_tosave
       }
       
-      if (table_exists(single_sql)) {
-        table_remove(single_sql)
+      if (table_exists(single_sql, project)) {
+        table_remove(single_sql, project)
       }
-      if (table_exists(date_sql)) {
-        table_remove(date_sql)
+      if (table_exists(date_sql, project)) {
+        table_remove(date_sql, project)
       }
       
       DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(ModelInputData MODELINPUTDATA)"))

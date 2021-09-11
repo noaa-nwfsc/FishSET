@@ -34,13 +34,13 @@ merge_dat <- function(dat, project, other, main_key, other_key, other_type = NUL
   #' } 
 
   # pull main data
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
   
   # pull secondary data
-  other_out <- data_pull(other)
+  other_out <- data_pull(other, project)
   other_dat <- other_out$dataset
   
   if (other_type == "aux") other <- parse_data_name(other, "aux")
@@ -169,7 +169,7 @@ split_dat <- function(dat, project, aux = NULL, split_by = NULL, key, output = "
   #' }
 
   # pull main data
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
@@ -178,7 +178,7 @@ split_dat <- function(dat, project, aux = NULL, split_by = NULL, key, output = "
   
   if (!is.null(aux)) { 
     # pull aux data
-    out_aux <- data_pull(aux)
+    out_aux <- data_pull(aux, project)
     aux_dat <- out_aux$dataset
     aux <- parse_data_name(aux, 'aux')
   }

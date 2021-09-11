@@ -1,5 +1,6 @@
 #'  Identify geographic centroid of fishery management or regulatory zone
 
+#' @param project Name of project
 #' @param gridfile Spatial data containing information on fishery management or regulatory zones. Can be shape file, json, geojson, data frame, or list.
 #' @param cat Variable or list in \code{gridfile} that identifies the individual areas or zones. If \code{gridfile} is class sf, \code{cat} should be name of list containing information on zones.
 #' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
@@ -17,7 +18,7 @@
 
 
 
-find_centroid <- function(gridfile,  cat, lon.grid = NULL, lat.grid = NULL) {
+find_centroid <- function(project, gridfile, cat, lon.grid = NULL, lat.grid = NULL) {
   
   # Call in datasets
   gridname <- deparse(substitute(gridfile))
@@ -94,7 +95,7 @@ find_centroid <- function(gridfile,  cat, lon.grid = NULL, lat.grid = NULL) {
   }
 
 
-  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
   DBI::dbWriteTable(fishset_db, paste0(noquote(gridname), "Centroid"), int, overwrite = TRUE)
   DBI::dbDisconnect(fishset_db)
   message('Geographic centroid saved to fishset database')
