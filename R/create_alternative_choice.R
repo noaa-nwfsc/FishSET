@@ -94,37 +94,35 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
   case <- "centroid"
   
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
 
   gridname <- deparse(substitute(gridfile))
 
-  if(is.null(cat)){
-    cat <- 'ZoneID'
-  }
-
   x <- 0
   
   if(!is.null(gridfile)){
-    if(is.character(gridfile)){
-      if(table_exists(paste0(gridfile, 'Centroid'))==FALSE){
-        warning('Table', paste0(gridfile, 'Centroid'),'not found in FishSET database. 
-                Zonal centroid must be defined from a dataset')
+      if(table_exists(paste0(gridname, 'Centroid'), project)|table_exists('gridfileCentroid', project)){
+        if(table_exists(paste0(gridname, 'Centroid'), project) ==TRUE) {
+          int <- table_view(paste0(gridfile, 'Centroid'), project)
+        } else {
+          int <- table_view(paste0('gridfileCentroid'), project)
+        }
       } else {
-      int <- table_view(paste0(gridfile, 'Centroid'))
+         int <- find_centroid(project = project, gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.grid, cat = cat)
       }
-    } else {
-      int <- find_centroid(gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.grid, cat = cat)
-    }
   } else {
     warning("Zonal centroid must be defined. Function not run.")
     x <- 1
   }
  
+  if('ZoneID' %in% names(dataset)){
+    int.data <- dataset
+    cat <- 'ZoneID'
+  } else {
   if (!is.null(gridfile) & !is.character(gridfile)) {
-    if(!cat %in% names(dat)){
       if(is.null(lon.dat)){
         warning('Observations must be assigned to zones. Function not run.')
                 x<-1
@@ -136,9 +134,9 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
     )
       }
     } 
-  }else {
-    int.data <- dataset
   }
+  
+  
   
   if(x == 0){
     
@@ -202,7 +200,7 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
     greaterNZ <- which(zoneHist[, 1] >= min.haul) # ifelse(!is.na(zoneHist[, 1]) & zoneHist[, 1] >= 0, 1, 0)
     numOfNecessary <- min.haul
 
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
 
     Alt <- list(
       dataZoneTrue = dataZoneTrue[, 1], # array of logical values to identify which are to be used in model
@@ -293,11 +291,11 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
   if (stopanaly == 0) {
     single_sql <- paste0(project, "altmatrix")
     date_sql <- paste0(project, "altmatrix", format(Sys.Date(), format = "%Y%m%d"))
-    if (table_exists(single_sql)) {
-      table_remove(single_sql)
+    if (table_exists(single_sql, project)) {
+      table_remove(single_sql, project)
     }
-    if (table_exists(date_sql)) {
-      table_remove(date_sql)
+    if (table_exists(date_sql, project)) {
+      table_remove(date_sql, project)
     }
     DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(AlternativeMatrix ALT)"))
     DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:AlternativeMatrix)"),

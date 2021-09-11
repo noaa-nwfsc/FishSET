@@ -88,11 +88,11 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
                                 temp.window = 7, temp.lag = 0, year.lag = 0, dummy.exp = FALSE, replace.output = TRUE) {
 
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project = project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
   Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
   DBI::dbDisconnect(fishset_db)
 
@@ -414,11 +414,11 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
   )
   # assign("ExpectedCatch", value = ExpectedCatch, pos = 1)
 
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
   single_sql <- paste0(project, "ExpectedCatch")
 
   if (replace.output == FALSE) {
-    if (table_exists(single_sql)) {
+    if (table_exists(single_sql, project)) {
       ExpectedCatchOld <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", project, "ExpectedCatch LIMIT 1"))$data[[1]])
       ExpectedCatch <- c(ExpectedCatchOld, ExpectedCatch)
     } else {
@@ -426,8 +426,8 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
     }
   }
 
-  if (table_exists(single_sql)) {
-    table_remove(single_sql)
+  if (table_exists(single_sql, project)) {
+    table_remove(single_sql, project)
   }
 
   DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(data ExpectedCatch)"))

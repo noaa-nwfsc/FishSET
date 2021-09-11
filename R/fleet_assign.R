@@ -50,7 +50,7 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
   #' }
   #' 
   
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
@@ -129,16 +129,16 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
   if (end == FALSE) {
     if (save == TRUE) {
       # save to fishset_db
-      fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+      fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
       
-      if (table_exists(paste0(project, "FleetTable")) == FALSE) {
+      if (table_exists(paste0(project, "FleetTable"), project) == FALSE) {
         
         DBI::dbWriteTable(fishset_db, paste0(project, "FleetTable"), f_tab, overwrite = FALSE)
         cat("Table saved to fishset_db database\n")
         
       } else {
         
-        db_tab <- table_view(paste0(project, "FleetTable"))
+        db_tab <- table_view(paste0(project, "FleetTable"), project)
         f_tab <- rbind(db_tab, f_tab)
         DBI::dbWriteTable(fishset_db, paste0(project, "FleetTable"), f_tab, overwrite = TRUE)
         
@@ -189,20 +189,20 @@ fleet_assign <- function(dat, project, fleet_tab, assign = NULL, overlap = FALSE
   #' }
   #' @seealso \code{\link{fleet_table}}
 
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
   end <- FALSE
   
-  if (table_exists(fleet_tab) == FALSE) {
+  if (table_exists(fleet_tab, project) == FALSE) {
     warning("Table name does not exist in fishset_db. Check spelling or create a fleet definition table with fleet_table().")
     end <- TRUE
   }
   
   if (end == FALSE) {
     
-    f_tab <- table_view(fleet_tab)
+    f_tab <- table_view(fleet_tab, project)
 
     # check if all conditions should be ran
     if (is.null(assign)) {

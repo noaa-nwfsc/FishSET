@@ -25,7 +25,7 @@ select_vars <- function(dat, project) {
   #  requireNamespace(shiny)
 
 
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
@@ -115,12 +115,12 @@ select_vars <- function(dat, project) {
       observeEvent(input$submit, {
         # Connect to the database
         print("Data table updated. ")
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project)))
         DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable"), data_table(), overwrite = TRUE)
 
         showNotification(paste0("Table saved to database as ", project, "MainDataTable.", ". 
                                 Enter", paste0('"', project, 'MainDataTable"'), "as the dat parameter in future function calls or
-                                load the updated data using", paste0('table_view("', project, 'MainDataTable")'), ". 
+                                load the updated data using", paste0('table_view("', project, 'MainDataTable",', project,')'), ". 
                                 The app window can be closed."))
         DBI::dbDisconnect(fishset_db)
       })

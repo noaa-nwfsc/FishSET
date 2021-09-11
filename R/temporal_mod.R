@@ -40,7 +40,7 @@
 temporal_mod <- function(dat, project, x, define.format, name = NULL, log_fun = TRUE) {
 
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
@@ -52,17 +52,17 @@ temporal_mod <- function(dat, project, x, define.format, name = NULL, log_fun = 
   } else {
     if (define.format == "month") {
       # Month:
-      temp_out <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m")
+      temp_out <- format(lubridate::as_date(date_parser(dataset[[x]])), format = "%Y/%m")
     } else if (define.format == "year") {
       # Year:
-      temp_out <- format(as.Date(date_parser(dataset[[x]])), format = "%Y")
+      temp_out <- format(lubridate::as_date(date_parser(dataset[[x]])), format = "%Y")
     } else if (define.format == "day") {
       # Month/day
-      temp_out <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m/%d")
+      temp_out <- format(lubridate::as_date(date_parser(dataset[[x]])), format = "%Y/%m/%d")
     } else if (define.format == "hour") {
-      temp_out <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m/%d %H")
+      temp_out <- format(lubridate::as_date(date_parser(dataset[[x]])), format = "%Y/%m/%d %H")
     } else if (define.format == "minute") {
-      temp_out <- format(as.Date(date_parser(dataset[[x]])), format = "%Y/%m/%d %H:%M")
+      temp_out <- format(lubridate::as_date(date_parser(dataset[[x]])), format = "%Y/%m/%d %H:%M")
     } else {
       warning("define.format is not recognized. Pre-formatted choices include, year, month, day, hour, minute")
     }

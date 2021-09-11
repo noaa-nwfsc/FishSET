@@ -387,11 +387,11 @@ refreshServ <- function(id, values, project) {
     
     observeEvent(input$refresh, {
       req(project)
-      temp <- tables_database()[grep(paste0(project(), 'MainDataTable\\d+'), tables_database())][which(
-        unlist(stringr::str_extract_all(tables_database()[grep(paste0(project(), 'MainDataTable\\d+'), 
-                                                               tables_database())], "\\d+"))==max((unlist(stringr::str_extract_all(tables_database()[grep(paste0(project(), 
-                                                                                                                                                                 'MainDataTable\\d+'), tables_database())], "\\d+")))))]
-      values$dataset <- table_view(temp)
+      temp <- tables_database(project())[grep(paste0(project(), 'MainDataTable\\d+'), tables_database(project()))][which(
+        unlist(stringr::str_extract_all(tables_database(project())[grep(paste0(project(), 'MainDataTable\\d+'), 
+                                                               tables_database(project()))], "\\d+"))==max((unlist(stringr::str_extract_all(tables_database(project())[grep(paste0(project(), 
+                                                                                                                                                                 'MainDataTable\\d+'), tables_database(project()))], "\\d+")))))]
+      values$dataset <- table_view(temp, project())
       showNotification("Data refreshed", type = 'message', duration = 10)
     }, ignoreInit = TRUE, ignoreNULL = TRUE) 
   })
@@ -2791,7 +2791,7 @@ fleet_assign_serv <- function(id, values, project) {
       
       input$refresh_tabs
       
-      grep("FleetTable", tables_database(), value = TRUE)
+      grep("FleetTable", tables_database(project()), value = TRUE)
     })
     
     output$available_tabs <- renderUI({
@@ -2804,7 +2804,7 @@ fleet_assign_serv <- function(id, values, project) {
     
     observeEvent(input$load_btn, {
       
-      f_tab$tab <- table_view(input$tab)
+      f_tab$tab <- table_view(input$tab, project())
     })
     
     output$tab_preview <- DT::renderDT(f_tab$tab,

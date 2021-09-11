@@ -31,11 +31,11 @@ add_vars <- function(working_dat, raw_dat, vars, project) {
 
 
   # Pull in data
-  out <- data_pull(working_dat)
+  out <- data_pull(working_dat, project)
   work_dat_name <- parse_data_name(working_dat, "main")
   working_dat <- out$dataset
 
-  out <- data_pull(raw_dat)
+  out <- data_pull(raw_dat, project)
   raw_dat_name <- out$dat
   raw_dat <- out$dataset
 
@@ -55,7 +55,7 @@ add_vars <- function(working_dat, raw_dat, vars, project) {
 
     # Save the data
     # Connect to the database
-    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
     DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d")), dataset, overwrite = TRUE)
 
     print(paste0("Table saved to database as ", project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d")))

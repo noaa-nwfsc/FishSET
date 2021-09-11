@@ -21,7 +21,7 @@ conf_cache_len <- length(get_confid_cache())
       options(shiny.maxRequestSize = 8000*1024^2)
       
       #Disable buttons
-      toggle_inputs <- function(input_list,enable_inputs=T){
+      toggle_inputs <- function(input_list, enable_inputs=T){
         # Toggle elements
         for(x in names(input_list))
           if(enable_inputs){
@@ -246,11 +246,11 @@ conf_cache_len <- length(get_confid_cache())
       # refresh data   
       observeEvent(c(input$refresh,input$refresh1,input$refresh2,input$refreshNew), {
         req(project$name)
-        temp <- tables_database()[grep(paste0(project$name, 'MainDataTable\\d+'), tables_database())][which(
-                      unlist(stringr::str_extract_all(tables_database()[grep(paste0(project$name, 'MainDataTable\\d+'), 
-                      tables_database())], "\\d+"))==max((unlist(stringr::str_extract_all(tables_database()[grep(paste0(project$name, 
-                      'MainDataTable\\d+'), tables_database())], "\\d+")))))]
-        values$dataset <- table_view(temp)
+        temp <- tables_database(project$name)[grep(paste0(project$name, 'MainDataTable\\d+'), tables_database(project$name))][which(
+                      unlist(stringr::str_extract_all(tables_database(project$name)[grep(paste0(project$name, 'MainDataTable\\d+'), 
+                      tables_database(project$name))], "\\d+"))==max((unlist(stringr::str_extract_all(tables_database(project$name)[grep(paste0(project$name, 
+                      'MainDataTable\\d+'), tables_database(project$name))], "\\d+")))))]
+        values$dataset <- table_view(temp, project$name)
         showNotification("Data refreshed", type='message', duration=10)
       }, ignoreInit = TRUE, ignoreNULL=TRUE) 
      
@@ -935,7 +935,7 @@ conf_cache_len <- length(get_confid_cache())
         req(input$loadmainsource)
         if (input$loadmainsource == 'Upload new file') {
           
-          textInput('projectname', 'Name of project')
+          textInput('projectname', 'Name of project', placeholder = 'Required to load data')
           
         } else if (input$loadmainsource == 'FishSET database') {
           
@@ -950,6 +950,12 @@ conf_cache_len <- length(get_confid_cache())
         }
       })
      
+      observe({
+        shinyjs::toggleState("loadDat", (!is.null(input$projectname)|input$projectname!="") && !is.null(input$project_select) && !is.null(project$name))
+      })
+      
+      
+      
       output$main1 <- renderUI({
        if(vars$counter>1){
          radioButtons('loadmainsource', "Source primary data from:",
@@ -1085,13 +1091,13 @@ conf_cache_len <- length(get_confid_cache())
           
           if (input$loadmainsource=='FishSET database') {
             
-            if (table_exists(paste0(project$name, 'MainDataTable'))==FALSE) {
+            if (table_exists(paste0(project$name, 'MainDataTable'), project$name)==FALSE) {
               
               showNotification('Primary data table not found in FishSET database. Check project spelling.',
                                type='message', duration=15)
             } else {
               
-              values$dataset <- table_view(input$main_db_table)
+              values$dataset <- table_view(input$main_db_table, project$name)
               edit_fishset_env("dat_name", input$main_db_table)
               track_load$project <- project$name
               track_load$main$DB <- input$main_db_table
@@ -1185,7 +1191,7 @@ conf_cache_len <- length(get_confid_cache())
             
              if (isTruthy(input$port_db_table)) {
 
-              ptdat$dataset <- table_view(input$port_db_table)
+              ptdat$dataset <- table_view(input$port_db_table, project$name)
               edit_fishset_env("port_name", input$port_db_table)
               track_load$port$DB <- input$port_db_table
               load_r$port <- load_r$port + 1
@@ -1287,7 +1293,7 @@ conf_cache_len <- length(get_confid_cache())
         showNotification("Combined port table saved to database.", type = "message", 
                          duration = 10)
         # so column names match with DB version
-        ptdat$dataset <- table_view(paste0(project$name, 'PortTable'))  
+        ptdat$dataset <- table_view(paste0(project$name, 'PortTable'), project$name)  
         edit_fishset_env("port_name", paste0(project$name, 'PortTable'))
         show$save <- FALSE
         show$port_merge <- FALSE
@@ -1320,9 +1326,9 @@ conf_cache_len <- length(get_confid_cache())
           conditionalPanel(condition="input.loadspatialsource == 'FishSET database'",
                            tagList(
                              fluidRow(
-                               column(5, selectInput("spat_db_table", "Chose a spatial table",
+                               column(5, selectInput("spat_db_table", "Choose a spatial table",
                                                      #choices = list_tables(project$name, "spat")
-                                                     choices = tables_database()
+                                                     choices = tables_database(project$name)
                                                      ))
                              ))
           ))
@@ -1331,6 +1337,7 @@ conf_cache_len <- length(get_confid_cache())
       spatdat <- reactiveValues(
         dataset = data.frame('var1'=0, 'var2'=0)
       )
+      
       
       observeEvent(input$loadDat, {
 ####
@@ -1343,6 +1350,11 @@ conf_cache_len <- length(get_confid_cache())
 #          } else {
 #          spatdat$dataset <- spatdat$dataset
 ######
+        if (!isTruthy(project$name)) {
+          
+          showNotification("Please enter a project name.", type = 'message', duration = 10)
+        } else {
+        
         
         if (load_helper("spat")) {
           
@@ -1353,13 +1365,12 @@ conf_cache_len <- length(get_confid_cache())
             
             if (isTruthy(input$spat_db_table)) {
               
-              spatdat$dataset <- table_view(input$spat_db_table)
+              spatdat$dataset <- table_view(input$spat_db_table, project$name)
               track_load$spat$DB <- input$spat_db_table
               load_r$spat <- load_r$spat + 1
             }
             
-          } else if (input$loadspatialsource=='Upload new file' & (!is.null(input$spatialdat) | !is.null(input$spatialdatshape))) {
-            
+          } else if (input$loadspatialsource=='Upload new file' & !is.null(project$name) & (!is.null(input$spatialdat) | !is.null(input$spatialdatshape))) {
              if (input$filefolder == "Upload single file") {
                if(input$spatadd != ''){
                  spatdat$dataset <- do.call(read_dat, c(list(input$spatialdat$datapath, is.map=TRUE), eval(parse(text=paste0("list(",input$spatadd, ")")))))
@@ -1399,6 +1410,7 @@ conf_cache_len <- length(get_confid_cache())
 ####
           }
         }
+        }
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
 
 
@@ -1419,7 +1431,7 @@ conf_cache_len <- length(get_confid_cache())
                            tagList(
                              fluidRow(
                                column(5, selectInput("grid_db_table", "Chose a gridded table",
-                                                     choices = suppressWarnings(list_tables(type = "grid")))
+                                                     choices = suppressWarnings(list_tables(project = project$name, type = "grid")))
                                       )
                              ))
           )
@@ -1434,7 +1446,7 @@ conf_cache_len <- length(get_confid_cache())
       grddat <- reactiveValues()
       
       observeEvent(input$loadDat, {
-        
+        req(project$name)
         if (load_helper("grid")) {
           
           if (input$loadgridsource == 'FishSET database') {
@@ -1442,7 +1454,7 @@ conf_cache_len <- length(get_confid_cache())
             if (isTruthy(input$grid_db_table)) {
               
               grid_name <-input$grid_db_table
-              grddat[[grid_name]] <- table_view(grid_name)
+              grddat[[grid_name]] <- table_view(grid_name, project$name)
               track_load$grid$DB <- input$grid_db_table
               load_r$grid <- load_r$grid + 1
             }
@@ -1506,7 +1518,7 @@ conf_cache_len <- length(get_confid_cache())
                            tagList(
                              fluidRow(
                                column(5, selectInput("aux_db_table", "Chose a auxiliary table",
-                                                     choices = suppressWarnings(list_tables(type = "aux"))))))
+                                                     choices = suppressWarnings(list_tables(project = project$name, type = "aux"))))))
           )
           )
       })
@@ -1530,7 +1542,7 @@ conf_cache_len <- length(get_confid_cache())
             
             if (isTruthy(input$aux_db_table)) {
               
-              aux$dataset <- table_view(input$aux_db_table)
+              aux$dataset <- table_view(input$aux_db_table, project$name)
               edit_fishset_env("aux_name", input$aux_db_table)
               track_load$aux$DB <- input$aux_db_table
               load_r$aux <- load_r$aux + 1
@@ -1651,7 +1663,7 @@ conf_cache_len <- length(get_confid_cache())
       observeEvent(input$delete_tab_confirm, {
         #lapply(dbTab$tabs$table[input$dbTables_rows_selected], function(x) table_remove(as.character(x)))
         for(i in 1:length(dbTab$tabs$table[input$dbTables_rows_selected])){
-          table_remove(as.character(dbTab$tabs$table[input$dbTables_rows_selected][i]))
+          table_remove(as.character(dbTab$tabs$table[input$dbTables_rows_selected][i]), project$name)
         }
         
         dbTab$tabs <- fishset_tables()
@@ -2858,10 +2870,10 @@ conf_cache_len <- length(get_confid_cache())
           if(length(default_sub)==0){
             NULL
           } else {
-            if(table_exists(paste0(project$name, "FilterTable")) == F) {
+            if(table_exists(paste0(project$name, "FilterTable"), project$name) == F) {
               FilterTable <- data.frame(dataframe = NA, vector = NA, FilterFunction = NA)
             } else {
-              FilterTable <- table_view(paste0(project$name, "FilterTable"))
+              FilterTable <- table_view(paste0(project$name, "FilterTable"), project$name)
             }
             for(i in 1:length(default_sub)){
               if( grepl("\\..\\.", default_search_columns[default_sub[i]])==TRUE){
@@ -2884,14 +2896,14 @@ conf_cache_len <- length(get_confid_cache())
             filter_data_function$msg <- FilterTable
             log_call(project$name, filter_data_function)
             
-            fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+            fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)))
             DBI::dbWriteTable(fishset_db, paste0(project$name, 'FilterTable'),  FilterTable, overwrite=TRUE)
             DBI::dbDisconnect(fishset_db)
           }  
       })
       
       observeEvent(input$saveDataNew,{
-        fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+        fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)))
         DBI::dbWriteTable(fishset_db, paste0(project$name, 'FilterTable'),  FilterTable, overwrite=TRUE)
         DBI::dbDisconnect(fishset_db)
       })
@@ -3535,7 +3547,7 @@ conf_cache_len <- length(get_confid_cache())
           conditionalPanel("(input.VarCreateTop=='Spatial functions'&&input.dist=='create_dist_between'&&input.start=='Port')||
                            (input.VarCreateTop=='Spatial functions'&&input.dist=='create_dist_between'&&input.end=='Port')" ,
                            style = "margin-left:19px;", selectInput("filePort", "Choose file from the FishSET database containing port data", 
-                                                                    choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE)),
+                                                                    choices=tables_database(project$name)[grep('port', tables_database(project$name), ignore.case=TRUE)], multiple = FALSE)),
 #port
           conditionalPanel("input.VarCreateTop=='Spatial functions'&&input.dist=='create_dist_between'&&input.start=='Port'",
                            style = "margin-left:19px;", selectInput('port_start', 'Variable containing port name at starting location', 
@@ -3616,7 +3628,7 @@ conf_cache_len <- length(get_confid_cache())
                                                                     options = list(create = TRUE, placeholder='Select or type variable name'))),
           conditionalPanel("input.VarCreateTop=='Spatial functions'&&input.dist=='create_startingloc'",
                            style = "margin-left:19px;",  selectInput("port.dat", "Choose port table from the FishSET database", 
-                                                                     choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE))#,
+                                                                     choices=tables_database(project$name)[grep('port', tables_database(project$name), ignore.case=TRUE)], multiple = FALSE))#,
           #conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_startingloc'",
           #                 style = "margin-left:19px;", fileInput("grid.dat", "Choose data file containing map shapefile (shape, json, and csv formats are supported)",
           #                                                        multiple = FALSE, placeholder = ''))
@@ -3647,7 +3659,7 @@ conf_cache_len <- length(get_confid_cache())
         tagList(
           conditionalPanel("input.VarCreateTop=='Trip-level functions'&&input.dist=='trip_distance'" ,
                            style = "margin-left:19px;", selectInput("port_dat_dist", "Choose port table from the FishSET database", 
-                                                                    choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE)),
+                                                                    choices=tables_database(project$name)[grep('port', tables_database(project$name), ignore.case=TRUE)], multiple = FALSE)),
           #
           conditionalPanel("input.VarCreateTop=='Trip-level functions'&&input.trip=='trip_distance'",
                            style = "margin-left:19px;", varSelectInput('trip_ID','Variable that identifies unique trips', data = values$dataset,
@@ -3734,7 +3746,6 @@ conf_cache_len <- length(get_confid_cache())
         }
       })
       output$dummy_sub <- renderUI({
-        if(input$VarCreateTop=='Dummy variables'&input$dummyfunc=='From variable'&!is.null(dum_temp())){
           if(dum_temp()=='date'){
             tagList(
               conditionalPanel("input.VarCreateTop=='Dummy variables'&&input.dummyfunc=='From variable'",
@@ -3742,7 +3753,7 @@ conf_cache_len <- length(get_confid_cache())
                                                                         choices=c('selected year(s) vs. all other years'='x_y','before vs. after'='more_less'))),
               conditionalPanel("input.VarCreateTop=='Dummy variables'&&input.dummyfunc=='From variable'",
                                style = "margin-left:19px;",  selectInput("select.val", 'Select year(s)', 
-                                                                         choices=c(NULL, unique(lubridate::year(values$dataset[[input$dummyvarfunc]]))), multiple=TRUE))
+                                                                         choices=c(NULL, unique(lubridate::year(lubridate::as_date(values$dataset[[input$dummyvarfunc]])))), multiple=TRUE))
             )
           } else if(dum_temp()=='num'){
             tagList(
@@ -3761,7 +3772,7 @@ conf_cache_len <- length(get_confid_cache())
                                                                       choices=c(NULL, unique(values$dataset[[input$dummyvarfunc]])), multiple=TRUE))
           }
           
-        } 
+#        } 
       })                  
       observeEvent(input$runNew, {
         if(input$VarCreateTop=='Dummy variables'&input$dummyfunc=='From policy dates') {
@@ -3850,7 +3861,7 @@ conf_cache_len <- length(get_confid_cache())
                                        end=c(input$mid_end[2], input$mid_end[1]), name=input$varname)
         } else if(input$VarCreateTop=='Temporal functions' & input$tempfunc=='create_duration'){
               q_test <- quietly_test(create_duration)
-              values$datase <- q_test(values$dataset, start=input$dur_start, end=input$dur_end, units=input$dur_units, name=input$varname)
+              values$dataset <- q_test(values$dataset, project=project$name, start=input$dur_start, end=input$dur_end, units=input$dur_units, name=input$varname)
         } else if(input$VarCreateTop=='Spatial functions'&input$dist=='create_startingloc'){
               q_test <- quietly_test(create_startingloc)
               values$dataset <- q_test(values$dataset,  gridfile=spatdat$dataset,  portTable=input$port.dat,  trip_id=input$trip_id_SL,
@@ -4068,11 +4079,11 @@ conf_cache_len <- length(get_confid_cache())
       # enable run model (modal) button if final table exists
       observeEvent(input$tabs == 'models', {
         shinyjs::toggleState("submit_modal", 
-                             condition = {table_exists(paste0(project$name, "MainDataTable_final"))})
+                             condition = {table_exists(paste0(project$name, "MainDataTable_final"), project$name)})
       })
       
       output$disableMsg <- renderUI({
-        if (!table_exists(paste0(project$name, "MainDataTable_final"))) {
+        if (!table_exists(paste0(project$name, "MainDataTable_final"), project$name)) {
           
           div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; text-align: justify; padding: 5px;",
               p("Finalized dataset must be saved before modeling."))
@@ -4117,7 +4128,7 @@ conf_cache_len <- length(get_confid_cache())
         #shinyjs::toggleState("submit", condition = {cList$pass == TRUE})
         
         ec_required <- FALSE
-        e_catch <- list_tables(project$name, type = "ec") 
+        e_catch <- list_tables(project = project$name, type = "ec") 
         ec_exists <- ifelse(length(e_catch) > 0, TRUE, FALSE)
         
         if (any(rv$data$likelihood %in% "logit_c")) ec_required <- TRUE
@@ -4245,14 +4256,14 @@ conf_cache_len <- length(get_confid_cache())
       Alt_vars <- reactive({
         if(!exists("Alt")) {
         if(!exists('AltMatrixName')) {
-          if(DBI::dbExistsTable( DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0(project$name, 'altmatrix'))){
-          return(unserialize(DBI::dbGetQuery( DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0("SELECT AlternativeMatrix FROM ", 
+          if(DBI::dbExistsTable( DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)), paste0(project$name, 'altmatrix'))){
+          return(unserialize(DBI::dbGetQuery( DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)), paste0("SELECT AlternativeMatrix FROM ", 
                                                                                               project$name, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]]))
           } else {
             warning("Alternative Choice Matrix does not exist. Please run the createAlternativeChoice() function.")
             return(data.frame('choice'=NA, 'X2'=NA, 'X3'=NA))
         }
-          DBI::dbDisconnect( DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+          DBI::dbDisconnect( DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)))
         }} else {
         return(Alt)
         }
@@ -4286,7 +4297,7 @@ conf_cache_len <- length(get_confid_cache())
       
       output$portmd <- renderUI ({
       selectInput("port.datMD", "Choose file from the FishSET database containing port data", 
-                                       choices=tables_database()[grep('port', tables_database(), ignore.case=TRUE)], multiple = FALSE)#,
+                                       choices=tables_database(project$name)[grep('port', tables_database(project$name), ignore.case=TRUE)], multiple = FALSE)#,
       })
       
       numInits <- reactive({
@@ -4404,10 +4415,10 @@ conf_cache_len <- length(get_confid_cache())
         
         
         ###Now save table to sql database. Will overwrite each time we add a model
-        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name))
         #First, remove any old instances of the table
         if(DBI::dbExistsTable(fishset_db, paste0(project$name,'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))==TRUE){
-          DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0(project$name, 'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))
+          DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)), paste0(project$name, 'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))
         }
         
         if(DBI::dbExistsTable(fishset_db, paste0(project$name, 'modelDesignTable', format(Sys.Date(), format="%Y%m%d")))==FALSE){
@@ -4534,7 +4545,7 @@ conf_cache_len <- length(get_confid_cache())
       
     ## Explore models sections
       #out_mod <- reactive({
-      fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+      
       
       shinyInput = function(FUN, len, id, ...) { 
         inputs = character(len) 
@@ -4543,10 +4554,12 @@ conf_cache_len <- length(get_confid_cache())
         } 
         inputs 
       } 
-      
+       
       temp <- isolate(paste0(project$name, "modelfit"))
       this_table <- reactive(
-        if(DBI::dbExistsTable(fishset_db, paste0(project$name, 'modelfit'))){
+       
+        if(DBI::dbExistsTable(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name))),
+                                              paste0(project$name, 'modelfit'))){
           data.frame(t(model_fit(project$name)))
         } else {
           data.frame('X1'=NA, 'X2'=NA, 'X3'=NA, 'X4'=NA)
@@ -4606,10 +4619,10 @@ conf_cache_len <- length(get_confid_cache())
       # When the Submit button is clicked, save the form data
       observeEvent(input$submit_ms, {
         # Connect to the database
-        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name))
 #        if(overwrite_table==T){
           if(DBI::dbExistsTable(fishset_db, 'modelChosen')==TRUE){
-            table_remove('modelChosen')
+            table_remove('modelChosen', project$name)
             #DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase()), 'modelChosen')
           }
 #        }
@@ -4634,9 +4647,9 @@ conf_cache_len <- length(get_confid_cache())
 
       #Add in two more tables for model evaulations
       mod_sum_out <- reactive({
-        if(DBI::dbExistsTable(suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase())), 
+        if(DBI::dbExistsTable(suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name))), 
                               paste0(project$name, 'modelOut', format(Sys.Date(), format="%Y%m%d")))){
-          model_out_view(paste0(project$name, 'modelOut', format(Sys.Date(), format="%Y%m%d")))#
+          model_out_view(paste0(project$name, 'modelOut', format(Sys.Date(), format="%Y%m%d")), project$name)#
       } else {
          data.frame('var1'=0, 'var2'=0)
       }
@@ -4684,9 +4697,9 @@ conf_cache_len <- length(get_confid_cache())
               showNotification('Function can take a couple minutes. A message will appear when done.',
                                type='message', duration=20)
               q_test <- quietly_test(create_alternative_choice)
-              q_test(values$dataset, project=project$name, gridfile=spatdat$dataset, alt_var=input$alt_var_ac, 
-                                  occasion=input$occasion_ac, griddedDat=NULL, dist.unit=input$dist_ac, min.haul=input$min_haul_ac,
-                                  cat=input$cat_altc, hull.polygon=input$hull_polygon_ac, 
+              q_test(values$dataset, project=project$name, occasion=input$occasion_ac, alt_var=input$alt_var_ac, griddedDat=NULL, 
+                                  dist.unit=input$dist_ac, min.haul=input$min_haul_ac, gridfile=spatdat$dataset, cat=input$cat_altc, 
+                                  hull.polygon=input$hull_polygon_ac, 
                                   lon.grid=input$long_grid_altc, lat.grid=input$lat_grid_altc, 
                                   closest.pt=input$closest_pt_ac)
               showNotification('Completed. Alternative choice matrix updated', type='message', duration=10)
@@ -4694,7 +4707,7 @@ conf_cache_len <- length(get_confid_cache())
       
       observeEvent(input$savecentroid, {
         q_test <- quietly_test(find_centroid)
-        q_test(gridfile=spatdat$dataset, cat = input$cat_altc, lon.grid = input$long_grid_altc, lat.grid = input$lat_grid_altc)
+        q_test(project = project$name, gridfile=spatdat$dataset, cat = input$cat_altc, lon.grid = input$long_grid_altc, lat.grid = input$lat_grid_altc)
         showNotification('Geographic centroid of zones calculated and saved')
       }, ignoreInit = FALSE)
       
@@ -4721,7 +4734,7 @@ conf_cache_len <- length(get_confid_cache())
       #Save output----   
       ###---   
       observeEvent(input$saveData, {
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)))
         
         if (input$SelectDatasetExplore == "main") {
           DBI::dbWriteTable(fishset_db, paste0(project$name, 'MainDataTable'), values$dataset, overwrite=TRUE)
@@ -4737,7 +4750,7 @@ conf_cache_len <- length(get_confid_cache())
       })
       
       observeEvent(input$saveDataQ, {
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)))
         DBI::dbWriteTable(fishset_db, paste0(project$name, 'MainDataTable'), values$dataset, overwrite=TRUE)
         DBI::dbDisconnect(fishset_db) 
         showNotification('Data saved to FishSET database', type='message', duration=10)
@@ -4917,7 +4930,7 @@ conf_cache_len <- length(get_confid_cache())
       observeEvent(input$downloadplot, {
         output$downloadplotHIDE <<- downloadHandler(
           filename = function() {
-            paste0(locoutput(), project$name, "_", 'Outlier.png')
+            paste0(locoutput(project$name), project$name, "_", 'Outlier.png')
           },
           content = function(file) {
             ggplot2::ggsave(file, plot=outlier_plot(values$dataset, project$name, input$column_check, input$dat.remove, input$x_dist))
@@ -4930,9 +4943,9 @@ conf_cache_len <- length(get_confid_cache())
         output$downloadplotAnalHIDE <<- downloadHandler(
           filename = function() {
             if(input$corr_reg=='Correlation'){
-              paste0(locoutput(), project$name, "_", 'CorrelationPlot.png')
+              paste0(locoutput(project = project$name), project$name, "_", 'CorrelationPlot.png')
             } else {
-              paste0(locoutput(), project$name,"_", 'RegressionPlot.png')
+              paste0(locoutput(project = project$name), project$name,"_", 'RegressionPlot.png')
             }
           },
           content = function(file) {
@@ -4951,11 +4964,11 @@ conf_cache_len <- length(get_confid_cache())
           filename = function() {
             if(input$plot_type=='Temporal'){
               
-              paste0(locoutput(), project$name, "_", 'TemporalPlot.png')
+              paste0(locoutput(project = project$name), project$name, "_", 'TemporalPlot.png')
             } else if(input$plot_type=='Spatial') {
-              paste0(locoutput(), project$name,"_", 'SpatialPlot.png') 
+              paste0(locoutput(project = project$name), project$name,"_", 'SpatialPlot.png') 
             } else {
-              paste0(locoutput(), project$name,"_", 'x-yPlot.png') 
+              paste0(locoutput(project = project$name), project$name,"_", 'x-yPlot.png') 
             }
           },
           content = function(file) {
@@ -4976,27 +4989,27 @@ conf_cache_len <- length(get_confid_cache())
       plotSaveServ("grid_plot", reactive(project$name), "view_grid_dat", grid_values$plot)
       
       observeEvent(input$downloadTableExplore, {
-        write.csv(gtmt_table(), paste0(locoutput(), project$name, '_', 'GetisOrdMoransI.csv'))
+        write.csv(gtmt_table(), paste0(locoutput(project = project$name), project$name, '_', 'GetisOrdMoransI.csv'))
       })
       
       observeEvent(input$downloaddata, {
         if(input$checks=='Summary table'){
-          write.csv(tableInputSummary(), paste0(locoutput(), project$name, '_', 'summary_table.csv'))
+          write.csv(tableInputSummary(), paste0(locoutput(project = project$name), project$name, '_', 'summary_table.csv'))
         } else if(input$checks=='Outliers'){
-          write.csv(tableInputOutlier(), paste0(locoutput(), project$name, '_', 'outlier_table.csv'))
+          write.csv(tableInputOutlier(), paste0(locoutput(project = project$name), project$name, '_', 'outlier_table.csv'))
         }
       })
       
       observeEvent(input$downloaddataAnal, {
         if(input$corr_reg=='Correlation'){
         if(length(input$corr_select)>2){
-            write.csv(InputCorr()$table, paste0(locoutput(), project$name,'_', 'correlation_table.csv'))
+            write.csv(InputCorr()$table, paste0(locoutput(project = project$name), project$name,'_', 'correlation_table.csv'))
         } else {
-            sink(paste0(locoutput(),project$name, "_", 'correlation_analysis_output.csv'))
+            sink(paste0(locoutput(project = project$name),project$name, "_", 'correlation_analysis_output.csv'))
             message(cor.test(values$dataset[[input$corr_select[1]]], values$dataset[[input$corr_select[2]]]))
             sink()
        }} else {
-            sink(paste0(locoutput(), project$name,'_', 'regression_model_output.csv'))
+            sink(paste0(locoutput(project = project$name), project$name,'_', 'regression_model_output.csv'))
             message(InputReg()$refout)
             sink()
         }
@@ -5083,7 +5096,7 @@ conf_cache_len <- length(get_confid_cache())
         req(project$name)
         req(bookmarkedstate()$loadDat==1)
         if(bookmarkedstate()$loadmainsource=="FishSET database"){
-          values$dataset <- table_view(paste0(project$name, 'MainDataTable'))
+          values$dataset <- table_view(paste0(project$name, 'MainDataTable'), project$name)
         }
       })
       
@@ -5222,6 +5235,36 @@ conf_cache_len <- length(get_confid_cache())
       
       #Rerun log -----
       
+      output$new_dat_cb_choices <- renderUI({
+        
+        conditionalPanel("input.new_dat_cb",
+                         selectInput("log", "Select a log file", choices = list_logs(project=project$name)),
+                         
+                         checkboxInput("new_dat_cb", "Run log with different data table"),
+                         
+                         selectizeInput("new_dat", "Choose primary table",  
+                                        choices = main_tables(), multiple = TRUE,
+                                        options = list(maxItems = 1)), # sets dat to NULL by default
+                         
+                         selectizeInput("new_port", "Choose port table", 
+                                        choices = list_tables(project = project$name, type = "port"), multiple = TRUE,
+                                        options = list(maxItems = 1)),
+                         
+                         selectizeInput("new_aux", "Choose aux table", 
+                                        choices = tables_database(project$name), multiple = TRUE,
+                                        options = list(maxItems = 1)),
+                         
+                         selectizeInput("new_grid", "Choose gridded table", 
+                                        choices = tables_database(project$name), multiple = TRUE,
+                                        options = list(maxItems = 1)),
+                         
+                         selectizeInput("new_spat", "Choose spatial table", 
+                                        choices = tables_database(project$name), multiple = TRUE,
+                                        options = list(maxItems = 1))
+        )
+      })
+      
+      
       fetch_log <- reactive(log_rerun(input$log, run = FALSE))
       
       log_table_r <- reactive({
@@ -5271,7 +5314,7 @@ conf_cache_len <- length(get_confid_cache())
   
             notes_out <- unlist(isolate(savedText$answers))
   
-            filename <- paste0(locoutput(), isolate(project$name), "_notes_", Sys.Date(), ".txt")
+            filename <- paste0(locoutput(project = project$name), isolate(project$name), "_notes_", Sys.Date(), ".txt")
     
             if (file.exists(filename)) {
     
@@ -5280,7 +5323,7 @@ conf_cache_len <- length(get_confid_cache())
               note_int <- sum(grepl(note_pd, current_out()))
     
               writeLines(notes_out,
-                         con = paste0(locoutput(), isolate(project$name),
+                         con = paste0(locoutput(project = project$name), isolate(project$name),
                                       "_notes_", Sys.Date(), "(", (note_int + 1), ").txt"))
     
             } else {

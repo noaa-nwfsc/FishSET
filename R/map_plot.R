@@ -25,7 +25,7 @@ map_plot <- function(dat, project, lat, lon, minmax = NULL, percshown = NULL) {
   world <- ggplot2::map_data("world")
 
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   

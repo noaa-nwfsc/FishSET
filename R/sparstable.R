@@ -29,7 +29,7 @@ sparsetable <- function(dat, project, timevar, zonevar, var) {
     return(colSums(x == 0) / nrow(x))
   }
   
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dat <- out$dat
   dataset <- out$dataset
 

@@ -22,7 +22,7 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
   requireNamespace("ggplot2")
 
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   

@@ -43,11 +43,11 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
   world <- ggplot2::map_data("world")
 
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
-  spat_out <- data_pull(spat)
+  spat_out <- data_pull(spat, project)
   spatdat <- spat_out$dataset
   spat <- parse_data_name(spat, 'spat')
   

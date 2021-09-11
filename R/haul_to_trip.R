@@ -28,7 +28,7 @@ haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, trip
                          haul_count = TRUE, log_fun = TRUE) {
   # fun.time = min, Create a column that indicates unique trip levels
 
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   

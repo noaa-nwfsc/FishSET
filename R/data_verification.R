@@ -22,7 +22,7 @@
 data_verification <- function(dat, project, log_fun = TRUE) {
 
   # Call in datasets Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
@@ -128,7 +128,7 @@ unique_filter <- function(dat, project, remove = FALSE) {
   #' }
 
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
@@ -188,7 +188,7 @@ empty_vars_filter <- function(dat, project, remove = FALSE) {
   #' }
 
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   

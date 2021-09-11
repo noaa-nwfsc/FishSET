@@ -55,7 +55,7 @@ log_reset <- function(project, over_write = FALSE) {
     write(
       jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE, null = "null", 
                        na = "string"), 
-      paste0(loclog(), log_file)
+      paste0(loclog(project=project), log_file)
     )
     
     message("Log has been reset for project \"", project, "\"")
@@ -99,7 +99,7 @@ log_call <- function(project, fun.name) {
     logbody$fishset_run <- list(infoBodyout, functionBodyout)
     
   } else {
-    if(any(is_empty(readLines(paste0(loclog(), log_file))))){
+    if(any(is_empty(readLines(paste0(loclog(project=project), log_file))))){
     log_file <- paste0(project, "_", Sys.Date(), ".json")
     
     logbody <- list()
@@ -119,7 +119,7 @@ log_call <- function(project, fun.name) {
 
     } else {
     
-      logbody <- jsonlite::read_json(paste0(loclog(), log_file))
+      logbody <- jsonlite::read_json(paste0(loclog(project=project), log_file))
       logbody$fishset_run[[2]]$function_calls[[length(logbody$fishset_run[[2]]$function_calls) + 1]] <- fun.name
     }
   }
@@ -128,6 +128,6 @@ log_call <- function(project, fun.name) {
   write(
     jsonlite::toJSON(logbody, pretty = TRUE, auto_unbox = TRUE, null = "null", 
                      na = "string", force=TRUE), 
-    paste0(loclog(), log_file)
+    paste0(loclog(project=project), log_file)
   )
 }
