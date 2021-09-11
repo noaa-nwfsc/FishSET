@@ -127,7 +127,7 @@ explore_startparams <- function(project, space, dev, startsr=NULL) {
   #' }
   
   # Call in datasets
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
   x_temp <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
   polyn <- NA
   

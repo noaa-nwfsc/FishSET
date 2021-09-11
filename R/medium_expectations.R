@@ -26,13 +26,13 @@ medium_expectations <- function(dat, project, catch, price, defineGroup, temp.va
                                 lag.method, empty.catch, empty.expectation, dummy.exp) {
 
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
 
   if (!exists("Alt")) {
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
     Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
     DBI::dbDisconnect(fishset_db)
   }

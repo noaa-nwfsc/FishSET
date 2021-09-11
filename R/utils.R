@@ -1,63 +1,129 @@
+#Check if project folder exists
+#If not, create the foldeer
 
-locdatabase <- function() {
-  #' Define source location
+check_proj <- function(project=NULL){
+  #' Check for project folder. Create folders if requires
+  #' @param project Project name
   #' @keywords internal
   #' @export
-
-  if (exists("loc")) {
-    loc <- loc
+  
+  if(!is.null(project)){
+  if (exists("loc2")) {
+    loc2 <- loc2
   } else {
-    loc <- NULL
+    loc2 <- NULL
   }
-  if (is.null(loc)) {
-    paste0(system.file(package = "FishSET"), "/fishset_db.sqlite")
+  
+  if (!exists('loc2')||is.null(loc2)) {
+      projdir <- paste0(system.file(package = "FishSET"), "/projects")
   } else {
-    paste0(loc, "/fishset_db.sqlite")
+      projdir <- paste0(loc2, "/projects")
+  }
+    
+  
+    locproject <- paste0(projdir, '/', project)
+
+  
+  if(!file.exists(projdir)){
+    dir.create(file.path(projdir), showWarnings = FALSE)
+  }
+   
+  if(!file.exists(locproject)){
+    dir.create(file.path(locproject), showWarnings = FALSE)
+    #Logs
+    dir.create(file.path(paste0(locproject, '/src')), showWarnings = FALSE)
+    #output
+    dir.create(file.path(paste0(locproject, '/output')), showWarnings = FALSE)
+    #database
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(),  paste0(locproject, '/fishset_db.sqlite'))
+    DBI::dbDisconnect(fishset_db)
+    #data
+    dir.create(file.path(paste0(locproject, '/data')), showWarnings = FALSE)
+    #doc (report)
+    dir.create(file.path(paste0(locproject, '/doc')), showWarnings = FALSE)
+    #MapViewer
+    dir.create(file.path(paste0(locproject, '/MapViewer')), showWarnings = FALSE)
+  }
+  } else {
+    warning('Project name must be specified.')
   }
 }
 
-loclog <- function() {
+locdatabase <- function(project) {
+  #' Define source location
+  #' @param project
+  #' @keywords internal
+  #' @export
+  #' 
+  
+  if(!exists('project')||is.null(project)){
+    warning('Project name must be provided.')
+  } else {
+    if (exists("loc2")) {
+      loc2 <- loc2
+      } else {
+    loc2 <- NULL
+    }
+  
+      if (!exists('loc2')||is.null(loc2)) {
+      paste0(system.file(package = "FishSET"), "/projects/", project, "/fishset_db.sqlite")
+    } else {
+      paste0(loc2, "/projects/", project, "/fishset_db.sqlite")
+    }
+  }
+}
+
+loclog <- function(project) {
   #' Returns the location of the log folder
+  #' @param project Project name
   #' @keywords internal
   #' @export
   #' @details if loc2 is not in the working environment, then the default location is use
   #' @examples
   #' \dontrun{
-  #' loclog() # will return log folder location within the fishset package
-  #' loc2 <- getwd()
-  #' loclog() #will return log folder location as within the working directory
+  #' loclog('pollock') # will return log folder location for project pollock within the fishset package
   #' }
-  if (exists("loc2")) {
-    loc2 <- loc2
+  
+  if(is.null(project)){
+    warning('Project name must be provided.')
   } else {
-    loc2 <- NULL
-  }
-  if (is.null(loc2)) {
-    paste0(system.file(package = "FishSET"), "/Logs/")
-  } else {
-    paste0(loc2, "/Logs/")
+    
+    if (exists("loc2")) {
+      loc2 <- loc2
+    } else {
+      loc2 <- NULL
+    }
+    if (!exists('loc2')||is.null(loc2)) {
+      paste0(system.file(package = "FishSET"), "/projects/", project, "/src/")
+    } else {
+      paste0(loc2, "/projects/", project, "/src/")
+    }
   }
 }
 
-locoutput <- function() {
+locoutput <- function(project) {
   #' Output location
+  #' @param project Project name
   #' @keywords internal
   #' @export
-  if (exists("loc2")) {
-    loc2 <- loc2
+ 
+  if(is.null(project)){
+    warning('Project name must be provided.')
   } else {
-    loc2 <- NULL
-  }
-  if (is.null(loc2)) {
-    paste0(system.file(package = "FishSET"), "/output/")
-  } else {
-    paste0(loc2, "/output/")
+  
+
+    if (!exists('loc2')||is.null(loc2)) {
+      paste0(system.file(package = "FishSET"), "/projects/", project, "/output/")
+    } else {
+      paste0(loc2, "/projects/", project, "/output/")
+    }
   }
 }
 
-loc_map <- function() {
+loc_map <- function(project) {
   #' Define source location for MapViewer folder
   #' Returns the location of the MapViewer folder
+  #' @param project Project name
   #' @keywords internal
   #' @export
   #' @details if loc2 is not in the working environment, then the default location is use
@@ -67,15 +133,16 @@ loc_map <- function() {
   #' loc2 <- getwd()
   #' loc_map() #will return output folder location as within the working directory
   #' }
-  if (exists("loc2")) {
-    loc2 <- loc2
+
+  if(is.null(project)){
+    warning('Project name must be provided.')
   } else {
-    loc2 <- NULL
-  }
-  if (is.null(loc2)) {
-    paste0(system.file(package = "FishSET"), "/MapViewer/")
-  } else {
-    paste0(loc2, "/MapViewer/")
+    
+    if (!exists('loc2')||is.null(loc2)) {
+      paste0(system.file(package = "FishSET"), "/projects/", project, "/MapViewer/")
+    } else {
+      paste0(loc2, "/projects/", project, "/MapViewer/")
+    }
   }
 }
 
@@ -90,6 +157,22 @@ loc_map <- function() {
 #  g <- gsub("[^0-9\\.]", "", g[grep("Info.", g)])[which(gsub("[^0-9\\.]", "", g[grep("Info.", g)]) == max(gsub("[^0-9\\.]", "", g[grep("Info.", g)])))]
 #  paste0(project, "MainDataTableInfo", g)
 #}
+
+find_project <- function(dat, project){
+#' Find project
+#' @param dat Data table name
+#' @param project Project Name
+#' @export
+#' @keywords internal
+
+  if(is.null(project)){
+    project <- sub("\\MainDataTable", "", dat)
+   
+  } else {
+    project <- project
+  }
+  return(project)
+}
 
 vgsub <- function(pattern, replacement, x, ...) {
   #' vgsub function
@@ -358,7 +441,6 @@ date_parser <- function(dates) {
   #' @export
   #' @importFrom lubridate dym ymd myd ydm dmy mdy
 
-
   dates <- trimws(dates)
   dates <- sub(" .*", "\\1", dates)
   if (!all(is.na(suppressWarnings(lubridate::mdy(dates))) == T)) {
@@ -458,19 +540,20 @@ find_original_name <- function(fun) {
   }
 }
 
-data_pull <- function(dat) {
+data_pull <- function(dat, project) {
   #' Pull data from sqlite database
   #' @param dat Data table
+  #' @param project Project name
   #' @keywords internal
   #' @export
 
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
   if (is.character(dat) == TRUE) {
-    if (is.null(dat) == TRUE | table_exists(dat) == FALSE) {
+    if (is.null(dat) == TRUE | table_exists(dat, project) == FALSE) {
       print(DBI::dbListTables(fishset_db))
       stop(paste(dat, "not defined or does not exist. Consider using one of the tables listed above that exist in the database."))
     } else {
-      dataset <- table_view(dat)
+      dataset <- table_view(dat, project)
     }
   } else {
     dataset <- dat
@@ -864,7 +947,7 @@ save_table <- function(table, project, func_name, ...) {
   #' \dontrun{
   #' save_table(count, project, "species_catch")
   #' }
-  write.csv(table, paste0(locoutput(), project, "_", func_name, "_", Sys.Date(), ".csv"))
+  write.csv(table, paste0(locoutput(project=project), project, "_", func_name, "_", Sys.Date(), ".csv"))
 }
 
 save_plot <- function(project, func_name, ...) {
@@ -879,7 +962,7 @@ save_plot <- function(project, func_name, ...) {
   #' save_plot(project, "species_catch")
   #' }
 
-  ggplot2::ggsave(file = paste0(locoutput(), project, "_", func_name, "_", Sys.Date(), ".png"), ...)
+  ggplot2::ggsave(file = paste0(locoutput(project=project), project, "_", func_name, "_", Sys.Date(), ".png"), ...)
 }
 
 periods_list <- list(
@@ -1012,7 +1095,7 @@ text_filepath <- function(project, fun_name) {
   #' cat("message", file = text_filepath("my_project", "qaqc_output"))
   #' }
 
-  paste0(locoutput(), project, "_", fun_name, Sys.Date(), ".txt")
+  paste0(locoutput(project=project), project, "_", fun_name, Sys.Date(), ".txt")
 }
 
 week_labeller <- function(breaks, year) {
@@ -1106,6 +1189,40 @@ deparse_name <- function(dat) {
   } else if (is.object(dat)) {
     deparse(substitute(dat))
   }
+}
+#Find project directories
+
+list.dirs <- function(path=".", pattern=NULL, all.dirs=FALSE,
+                      full.names=FALSE, ignore.case=FALSE) {
+  #' Find directories
+  #' @param path file path
+  #' @param pattern Use to define specific dirs to search for
+  #' @param all.dirs Logical
+  #' @param full.names Logical, Full name or directory name
+  #' @param ignore.case Logical
+  #' @export
+  #' @keywords internal
+  #' 
+  # use full.names=TRUE to pass to file.info
+  all <- list.files(path, pattern, all.dirs,
+                    full.names=TRUE, recursive=FALSE, ignore.case)
+  dirs <- all[file.info(all)$isdir]
+  # determine whether to return full names or just dir names
+  if(isTRUE(full.names))
+    return(dirs)
+  else
+    return(basename(dirs))
+}
+
+simpleCap <- function(x) {
+  #' Convert case to upper
+  #' @param x Variable
+  #' @keywords internal
+  #' @export
+  
+  s <- strsplit(x, " ")[[1]]
+  paste(toupper(substring(s, 1,1)), substring(s, 2),
+        sep="", collapse=" ")
 }
 
 ## ----Shiny util functions-----
@@ -1294,18 +1411,6 @@ quietly_test <- function(.f) {
   }
 }
 
-
-simpleCap <- function(x) {
-  #' Convert case to upper
-  #' @param x Variable
-  #' @keywords internal
-  #' @export
-  
-  s <- strsplit(x, " ")[[1]]
-  paste(toupper(substring(s, 1,1)), substring(s, 2),
-        sep="", collapse=" ")
-}
-
 deleteButtonColumn <- function(df, id, ...) {
 #' A column of delete buttons for each row in the data frame for the first column
 #'
@@ -1333,7 +1438,6 @@ deleteButtonColumn <- function(df, id, ...) {
                   columnDefs = list(list(targets = 1, sortable = FALSE))
                 ))
 }
-
 
 parseDeleteEvent <- function(idstr) {
   #' Extracts the row id number from the id string
@@ -1509,6 +1613,78 @@ find_dev <- function(x, y){
   }
   return(i)
 }
+
+plot_helper <- function(dataset, len_df, agg_df, var.select, date.var, agg_per, 
+                        len.fun, agg.fun){
+  #' plot help function for spatial plots
+  #' @param dataset dataset name
+  #' @param len_df length bar plot
+  #' @param agg_df aggregation plot
+  #' @param var.select variable
+  #' @param date.var date variable
+  #' @param agg_per character
+  #' @param len.fun length, unique, percent
+  #' @param agg.fun aggregation function
+  #' @export
+  #' @keywords interanl
+  #' @details Used in temp_plot
+  
+  # plot functions
+  
+  len_title <- switch(len.fun, "length" = "No. observations",
+                      "unique" = 'No. unique observations',
+                      "percent" = '% of total observations')
+  
+  t2 <- ifelse(plot_by_yr, "Year", "Month")
+  
+  date_sym <- rlang::sym(date.var)
+  var_sym <- rlang::sym(var.select)
+  per_sym <- rlang::sym(agg_per)
+  
+  scale_lab <- function() {
+    if (len.fun == "percent") scales::label_percent(scale = 1) 
+    else ggplot2::waiver()
+  }
+  
+  break_fun <- function() {
+    if (plot_by_yr) unique(dataset$year)
+    else levels(dataset$month)[seq(1, length(levels(dataset$month)), 3)]
+  }
+  
+  # scatter plot
+  p1 <- 
+    ggplot2::ggplot(dataset, ggplot2::aes(x = !!date_sym, y = !!var_sym)) +
+    ggplot2::geom_point() +
+    ggplot2::labs(subtitle = paste(var.select, "by Date"), 
+                  x = "Date", y = var.select) +
+    fishset_theme()
+  
+  # length bar plot
+  p2 <- 
+    ggplot2::ggplot(len_df, ggplot2::aes(x = !!per_sym, y = !!var_sym)) +
+    ggplot2::geom_bar(stat = "identity") +
+    ggplot2::labs(subtitle = paste(len_title, "by", tolower(t2)), 
+                  x = t2, y = "") +
+    ggplot2::scale_y_continuous(labels = scale_lab()) +
+    ggplot2::scale_x_discrete(breaks = break_fun()) +
+    fishset_theme()
+  
+  if (!is.numeric(dataset[[var.select]])) p3 <- NULL
+  else {
+    # agg bar plot
+    p3 <- 
+      ggplot2::ggplot(agg_df, ggplot2::aes(x = !!per_sym, y = !!var_sym)) +
+      ggplot2::geom_bar(stat = "identity") +
+      ggplot2::labs(subtitle = paste(simpleCap(agg.fun),"of value by", tolower(t2)),
+                    x = t2, y = "") +
+      ggplot2::scale_x_discrete(breaks = break_fun()) +
+      fishset_theme()
+  }
+  t_plot <- suppressWarnings(ggpubr::ggarrange(p1, p2, p3, ncol = 3, nrow = 1))
+  
+  t_plot
+}
+  
 
 # shiny_running = function () {
 # Look for `runApp` call somewhere in the call stack.

@@ -18,7 +18,7 @@ checklist <- function(project, modDesignTab = NULL) {
                 expect_catch = list(pass = FALSE, msg = NULL))
   
   # quality checks
-  if (table_exists(paste0(project, "MainDataTable_final"))) {
+  if (table_exists(paste0(project, "MainDataTable_final"), project)) {
     
     check$qaqc$pass <- TRUE
     check$qaqc$msg <- "PASS"

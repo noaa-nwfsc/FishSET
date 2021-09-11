@@ -234,7 +234,7 @@ source("map_viewer_app.R", local = TRUE)
                              uiOutput("PortAddtableMerge"),
                              
                              fluidRow(
-                               column(4, radioButtons('loadspatialsource', "Source spatial data from:", choices=c( 'Upload new file'), selected='Upload new file', inline=TRUE)),
+                               column(4, radioButtons('loadspatialsource', "Source spatial data from:", choices=c('Upload new file'), selected='Upload new file', inline=TRUE)),
                                                       #,'FishSET database')
                                radioButtons('filefolder', "", choices=c("Upload single file", "Upload shape files"), selected="Upload file", inline = TRUE),
                                uiOutput('spatial_upload')
@@ -1279,32 +1279,8 @@ source("map_viewer_app.R", local = TRUE)
                                     actionButton("run_log", "Rerun log",
                                                  style="color: #fff; background-color: #6da363; border-color: #800000;"),
                                     
-                                    selectInput("log", "Select a log file", choices = list_logs()),
+                                    uiOutput('new_dat_cb_choices'),
                                     
-                                    checkboxInput("new_dat_cb", "Run log with different data table"),
-                                    
-                                    conditionalPanel("input.new_dat_cb",
-                                                     
-                                                     selectizeInput("new_dat", "Choose primary table",  
-                                                                    choices = main_tables(), multiple = TRUE,
-                                                                    options = list(maxItems = 1)), # sets dat to NULL by default
-                                                     
-                                                     selectizeInput("new_port", "Choose port table", 
-                                                                    choices = list_tables(type = "port"), multiple = TRUE,
-                                                                    options = list(maxItems = 1)),
-                                                     
-                                                     selectizeInput("new_aux", "Choose aux table", 
-                                                                    choices = tables_database(), multiple = TRUE,
-                                                                    options = list(maxItems = 1)),
-                                                     
-                                                     selectizeInput("new_grid", "Choose gridded table", 
-                                                                    choices = tables_database(), multiple = TRUE,
-                                                                    options = list(maxItems = 1)),
-                                                     
-                                                     selectizeInput("new_spat", "Choose spatial table", 
-                                                                    choices = tables_database(), multiple = TRUE,
-                                                                    options = list(maxItems = 1))
-                                    ),
                                     
                                     p("Click on the table rows to run specific function calls.")
                                  ),

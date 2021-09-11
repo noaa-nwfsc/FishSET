@@ -22,20 +22,20 @@ filter_table <- function(dat, project, x, exp) {
   #'
 
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
-  if (table_exists(paste0(project, "FilterTable")) == F) {
+  if (table_exists(paste0(project, "FilterTable"), project) == F) {
     filterTable <- data.frame(dataframe = NA, vector = NA, FilterFunction = NA)
     filterTable[1, ] <- c(dat, x, exp)
   } else {
-    filterTable <- table_view(paste0(project, "FilterTable"))
+    filterTable <- table_view(paste0(project, "FilterTable"), project)
     filterTable <- rbind(filterTable, c(dat, x, exp))
   }
 
 
-  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
   DBI::dbWriteTable(fishset_db, paste0(project, "FilterTable"), filterTable, overwrite = TRUE)
   DBI::dbDisconnect(fishset_db)
   cat("Table saved to fishset_db database")
@@ -75,14 +75,14 @@ filter_dat <- function(dat, project, exp, filterTable = NULL) {
   #'
 
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
   # NaNs only occurs on Numeric Variables
-  if (!is.null(filterTable) && table_exists(filterTable)) {
+  if (!is.null(filterTable) && table_exists(filterTable, project)) {
     
-    filterTab <- table_view(filterTable)
+    filterTab <- table_view(filterTable, project)
 
     cat("The entire row will be removed from the dataframe.")
     dataset <- subset(dataset, eval(parse(text = filterTab[exp, 3])))

@@ -148,11 +148,11 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE,  drv=NULL, dbname=NULL, 
 
 }
 
-write_dat <- function (dat, file, file_type = "csv", project, ...) {
+write_dat <- function (dat, path=NULL, file_type = "csv", project, ...) {
   #' Write a dataset to local file
   #'
   #'@param dat Name of data frame in working environment to save to file. 
-  #'@param file String, file or connection to write to.
+  #'@param path String, path or connection to write to. If left empty, the file will be written to the dat folder in the project directory.
   #'@param file_type String, the type of file to write to. Options include \code{"csv"},
   #'  \code{"txt"} (tab-separated text file), \code{"xlsx"} (excel), \code{"rdata"}, \code{"json"}, 
   #'  \code{"stata"}, \code{"spss"},
@@ -181,46 +181,48 @@ write_dat <- function (dat, file, file_type = "csv", project, ...) {
   #' write_dat(pollockMainDataTable, file = "C://data/pollock_dataset.csv", type = "csv", "pollock")
   #' }
   
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
-  
+  if(is.null(path)){
+    path <- locoutput(project = project)
+  }
   
   if (file_type == "csv") {
     
-    write.csv(dataset, file = file, row.names = FALSE, ...)
+    write.csv(dataset, file = path, row.names = FALSE, ...)
     
   } else if (file_type == "txt") { 
     
-    utils::write.table(dataset, file = file, sep = "\t", row.names = FALSE, ...)
+    utils::write.table(dataset, file = path, sep = "\t", row.names = FALSE, ...)
     
   } else if (file_type == "xlsx") {
     
-    openxlsx::write.xlsx(dataset, file = file, ...)
+    openxlsx::write.xlsx(dataset, file = path, ...)
     
   } else if (file_type == "rdata") {
     
-    save(dataset, file = file, ...)
+    save(dataset, file = path, ...)
     
   } else if (file_type == "json") {
     
-    jsonlite::write_json(dataset, path = file, ...)
+    jsonlite::write_json(dataset, path = path, ...)
     
   } else if (file_type == "stata") {
     
-    haven::write_dta(dataset, path = file, ...)
+    haven::write_dta(dataset, path = path, ...)
     
   } else if (file_type == "spss") {
     
-    haven::write_sav(data = dataset, path = file, ...)
+    haven::write_sav(data = dataset, path = path, ...)
     
   } else if (file_type == "sas") {
     # has column length restriction
-    haven::write_sas(dataset, path = file, ...)
+    haven::write_sas(dataset, path = path, ...)
     
   } else if (file_type == "matlab") {
     # has column length restriction (32 characters)
-    R.matlab::writeMat(con = file, dataset, ...)
+    R.matlab::writeMat(con = path, dataset, ...)
     
   } else {
     warning("Data extention not recognized.")
@@ -229,17 +231,17 @@ write_dat <- function (dat, file, file_type = "csv", project, ...) {
   
   if (end == FALSE) {
     
-    file <- path.expand(file)
+    file <- path.expand(path)
     
     # Log the function
     write_dat_function <- list()
     write_dat_function$functionID <- "write_data"
-    write_dat_function$args <- list(dat, file, file_type, project)
+    write_dat_function$args <- list(dat, path, file_type, project)
     write_dat_function$kwargs <- list(...)
     
     log_call(project, write_dat_function)
     
-    message(paste("Table saved to", file))
+    message(paste("Table saved to", path))
     invisible(TRUE)
     
   } else {
@@ -265,6 +267,10 @@ load_data <- function(project, name = NULL) {
   #' load_data('pollock')
   #' load_data('pollock', 'pollockMainDataTable20190101')
   #' }
+  #' 
+
+  check_proj(project)
+
  hack <- function(key, val, pos){
       assign(key,val, envir=as.environment(pos)
       )} 
@@ -272,19 +278,19 @@ load_data <- function(project, name = NULL) {
  dat <- NULL
  
   if (is.null(name)) {
-    if (table_exists(paste0(project, "MainDataTable")) == FALSE) {
+    if (table_exists(paste0(project, "MainDataTable"), project) == FALSE) {
       warning("Table not found")
-      tables_database()
+      tables_database(project)
     } else {
-      dat <- table_view(paste0(project, "MainDataTable"))
+      dat <- table_view(paste0(project, "MainDataTable"), project)
       if (fishset_env_exists() == FALSE)  create_fishset_env()
     }
   } else {
-    if (table_exists(paste0(name)) == FALSE) {
+    if (table_exists(name, project) == FALSE) {
       warning("Table not found")
-      tables_database()
+      tables_database(project)
     } else {
-      dat <- table_view(name)
+      dat <- table_view(name, project)
       if (fishset_env_exists() == FALSE)  create_fishset_env()
     }
    
@@ -320,17 +326,18 @@ save_dat <- function(dat, project) {
   #' save_dat(pollockMainDataTable, 'pollock')
   #' }
 
-  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
   DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable"), dat, overwrite = TRUE)
   DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable_mod", format(Sys.Date(), format = "%Y%m%d")), dat, overwrite = TRUE)
   DBI::dbDisconnect(fishset_db)
 }
 
-fishset_compare <- function(x, y, compare = c(TRUE, FALSE)) {
+fishset_compare <- function(x, y, compare = c(TRUE, FALSE), project) {
   #' Compare loaded data table to previously saved version of data table
   #' @param x Updated data table to be saved.
   #' @param y Previously saved version of data table.
   #' @param compare Logical, if TRUE, compares \code{x} to \code{y} before saving \code{x} to FishSET database.
+  #' @param project Name of project
   #' @export
   #' @importFrom DBI dbConnect dbDisconnect dbListTables
   #' @details Function is optional. It is designed to check for consistency between versions of the same data frame
@@ -344,13 +351,13 @@ fishset_compare <- function(x, y, compare = c(TRUE, FALSE)) {
   #' Set the \code{compare} argument to FALSE if no previous versions of the data table exist in the FishSET database.
   #' No comparison will be made and the new file will be saved to the database.
 
-  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
   if (compare == TRUE) {
-    if (is.null(y) == TRUE | table_exists(y) == FALSE) {
+    if (is.null(y) == TRUE | table_exists(y, project) == FALSE) {
       print(DBI::dbListTables(fishset_db))
       warning(paste(y, "not defined or does not exist. Consider using one of the tables listed above that exist in the database."))
     } else {
-      old <- table_view(y)
+      old <- table_view(y, project)
       new <- toupper(colnames(x))
       old <- toupper(colnames(old))
       if (is.na(table(is.na(match(new, old)))[2]) == TRUE) {
@@ -402,6 +409,9 @@ load_maindata <- function(dat, project, over_write = TRUE, compare = FALSE, y = 
   #' load_maindata(dat = Mydata, over_write = TRUE, project = 'pollock',
   #'               compare = TRUE, y = 'MainDataTable01012011')
   #' }
+  #' 
+  
+  check_proj(project)
 
   if(is.character(dat)){
     dataset <- read_dat(dat)
@@ -409,10 +419,10 @@ load_maindata <- function(dat, project, over_write = TRUE, compare = FALSE, y = 
   dataset <- dat
   }
   # Call in datasets
-  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
 
   if (compare == TRUE) {
-    fishset_compare(dataset, y, compare)
+    fishset_compare(dataset, y, compare, project=project)
   }
   ## -----------MainDataTable--------------------##
   #QC
@@ -449,13 +459,13 @@ load_maindata <- function(dat, project, over_write = TRUE, compare = FALSE, y = 
 
 
 
-  if (table_exists(paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d"))) == FALSE | over_write == TRUE) {
+  if (table_exists(paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d")), project = project) == FALSE | over_write == TRUE) {
     DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d")), dataset, overwrite = over_write)
     print("Table saved to database")
   } else { 
     warning(paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d"), " was not saved. Table exists in database. Set over_write to TRUE."))
   }
-  if (table_exists(paste0(project, "MainDataTable")) == FALSE | over_write == TRUE) {
+  if (table_exists(paste0(project, "MainDataTable"), project) == FALSE | over_write == TRUE) {
     DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable_raw"), dataset, overwrite = over_write)
     DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable"), dataset, overwrite = over_write)
 
@@ -466,7 +476,7 @@ load_maindata <- function(dat, project, over_write = TRUE, compare = FALSE, y = 
 
   log_call(project, load_maindata_function)
   
-  #Make data availlable
+  #Make data available
   makeavail <- function(key, val, pos){
     assign(key,val, envir=as.environment(pos)
            )} 
@@ -563,12 +573,12 @@ load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALS
   }
 
   if (compare == TRUE) {
-    fishset_compare(x, y, compare)
+    fishset_compare(x, y, compare, project = project)
   }
 
   if (val == 0) {
-    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-    if (table_exists(paste0(project, "PortTable")) == FALSE | over_write == TRUE) {
+    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
+    if (table_exists(paste0(project, "PortTable"), project) == FALSE | over_write == TRUE) {
       DBI::dbWriteTable(fishset_db, paste0(project, "PortTable", format(Sys.Date(), format = "%Y%m%d")), x, overwrite = over_write)
       DBI::dbWriteTable(fishset_db, paste0(project, "PortTable"), x, overwrite = over_write)
       
@@ -621,14 +631,14 @@ load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
   # Call in datasets
   val <- 0
 
-  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
   if (is.character(dat) == TRUE) {
-    if (is.null(dat) == TRUE | table_exists(dat) == FALSE) {
+    if (is.null(dat) == TRUE | table_exists(dat, project) == FALSE) {
       print(DBI::dbListTables(fishset_db))
       warning(paste(dat, "not defined or does not exist. Consider using one of the tables listed above that exist in the database."))
       val <- 1
     } else {
-      old <- table_view(dat)
+      old <- table_view(dat, project)
     }
   } else {
     old <- dat
@@ -665,8 +675,8 @@ load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
     }
     
 
-    fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-    if (table_exists(paste0(project, x)) == FALSE | over_write == TRUE) {
+    fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
+    if (table_exists(paste0(project, x), project) == FALSE | over_write == TRUE) {
       DBI::dbWriteTable(fishset_db, paste0(project, x, format(Sys.Date(), format = "%Y%m%d")), aux, overwrite = over_write)
       DBI::dbWriteTable(fishset_db, paste0(project, x), aux, overwrite = over_write)
       
@@ -714,14 +724,14 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
   #' load_grid(dat = 'pcodMainDataTable', x = SeaSurfaceTemp, over_write = TRUE, project = 'pcod')
   #' }
   val <- 0
-  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
   if (is.character(dat) == TRUE) {
-    if (is.null(dat) == TRUE | table_exists(dat) == FALSE) {
+    if (is.null(dat) == TRUE | table_exists(dat, project) == FALSE) {
       print(DBI::dbListTables(fishset_db))
       warning(paste(dat, "not defined or does not exist. Consider using one of the tables listed above that exist in the database."))
       val <- 1
     } else {
-      old <- table_view(dat)
+      old <- table_view(dat, project)
     }
   } else {
     old <- dat
@@ -757,8 +767,8 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
     }
     
 
-    fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-    if (table_exists(paste0(project, x)) == FALSE | over_write == TRUE) {
+    fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
+    if (table_exists(paste0(project, x), project) == FALSE | over_write == TRUE) {
       DBI::dbWriteTable(fishset_db, paste0(project, x), grid, overwrite = over_write)
       
       if (fishset_env_exists() == FALSE)  create_fishset_env()

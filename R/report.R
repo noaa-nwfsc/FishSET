@@ -47,13 +47,14 @@ get_user_locoutput <- function() {
   }
 }
 
-list_logs <- function(chron = FALSE) {
+list_logs <- function(project, chron = FALSE) {
   #' Lists all logs files
+  #' @param project Project name
   #' @param chron Logical, whether to display logs in chronological order (TRUE) or
   #'   reverse chronological order (FALSE). 
   #' @export
   
-  logs <- list.files(loclog())
+  logs <- list.files(loclog(project = project))
   ord <- gsub("[^0-9]", "", logs)
   
   if (chron == FALSE) logs[order(-as.numeric(ord))]
@@ -67,16 +68,16 @@ project_logs <- function(project, modified = FALSE) {
   #'  frame.
   #' @export
   
-  logs <- list_logs()
+  logs <- list_logs(project)
   logs <- grep(project, logs, value = TRUE)
   ord <- gsub("[^0-9]", "", logs)
   
-  if (length(logs) == 0) message("Project \"", project, "\" not found")
+  if (length(logs) == 0) message("Project \"", project, "\" empty or not found")
   else {
     
     if (modified) {
       
-      log_mod <- file.mtime(paste0(loclog(), logs))
+      log_mod <- file.mtime(paste0(loclog(project = project), logs))
       log_df <- data.frame(log = logs, modified = log_mod)
       log_df
       
@@ -85,7 +86,7 @@ project_logs <- function(project, modified = FALSE) {
 }
 
 
-current_log <- function(project = NULL) {
+current_log <- function(project) {
   #'
   #' Lists most recent log file
   #' @param project Project name. 
@@ -94,7 +95,7 @@ current_log <- function(project = NULL) {
   #' @details Prints the name of the most recent log file, but not the filepath.
   
   if (!is.null(project)) logs <- project_logs(project)
-  else logs <- list.files(loclog())
+  else logs <- list.files(loclog(project = project))
 
   if (!is.null(logs)) {
     g <- gsub("[^0-9]", "", logs)
@@ -121,7 +122,7 @@ pull_log <- function(project, log_date = NULL) {
 
   if (is.null(log_date)) {
     
-    log <- jsonlite::fromJSON(paste0(loclog(), current_log(project)), 
+    log <- jsonlite::fromJSON(paste0(loclog(project = project), current_log(project)), 
                               simplifyVector = FALSE)
   
     } else {
@@ -131,7 +132,7 @@ pull_log <- function(project, log_date = NULL) {
     #if (file.exists(paste0(loclog(), log_date, ".json"))) {
     if (length(log_file) > 0) {
       
-      log <- jsonlite::fromJSON(paste0(loclog(), log_file), simplifyVector = FALSE)
+      log <- jsonlite::fromJSON(paste0(loclog(project = project), log_file), simplifyVector = FALSE)
       
     } else {
       
@@ -144,10 +145,10 @@ pull_log <- function(project, log_date = NULL) {
 }
 
 
-current_out <- function() {
+current_out <- function(project) {
   #'
   #' Lists most recent output files
-  #'
+  #' @param project Project name
   #' @keywords internal
   #' @export
   #' @importFrom stringr str_extract_all
@@ -157,7 +158,7 @@ current_out <- function() {
   #' current_out()
   #' }
 
-  outs <- list.files(locoutput())
+  outs <- list.files(locoutput(project = project))
 
   cur <- stringr::str_extract_all(outs, "\\d{4}-\\d{2}-\\d{2}", simplify = TRUE)
 
@@ -178,7 +179,7 @@ project_files <- function(project) {
   #' project_files("pollock")
   #' }
   
-  outs <- list.files(locoutput())
+  outs <- list.files(locoutput(project = project))
   
   proj <- grep(paste0("^", project), outs, value = TRUE)
   
@@ -297,7 +298,7 @@ pull_table <- function(project, fun, date = NULL, conf = TRUE) {
   if (!is.null(out)) {
     
     if (fun == "summary_stats") summary_table(project)
-    else table_format(out)
+    else table_format(out, project)
   }
 }
 
@@ -324,7 +325,7 @@ pull_plot <- function(project, fun, date = NULL, conf = TRUE) {
   
   if (!is.null(out)) {
     
-    knitr::include_graphics(paste0(locoutput(), out))
+    knitr::include_graphics(paste0(locoutput(project = project), out))
   } 
 }
 
@@ -338,7 +339,7 @@ current_db_table <- function(project, table) {
   #' @export
   #' @keywords internal
   
-  tab <- tables_database()
+  tab <- tables_database(project=project)
   
   proj_tab <- grep(paste0(project, table), tab, value = TRUE)
   exists <- TRUE
@@ -363,7 +364,7 @@ current_db_table <- function(project, table) {
     new_tab <- gsub("[^0-9\\.]", "", proj_tab)
     tab_out <- proj_tab[which(new_tab == max(new_tab))]
     
-    if (!table_exists(tab_out)) {
+    if (!table_exists(tab_out, project)) {
       
       exists <- FALSE
       tab_out <- paste0(project, table," not found.")
@@ -380,30 +381,31 @@ current_db_table <- function(project, table) {
 }
 
 
-table_format <- function(x) {
+table_format <- function(x, project) {
   #' 
   #' Import and format saved tables to notebook file
   #' 
   #' @param x Name of table saved in inst/output
+  #' @param project project name
   #' @keywords internal
   #' @export
   #' @importFrom pander panderOptions pander
   #' @seealso \code{\link{pull_output}}
   #' @examples
   #' \dontrun{
-  #' table_format("pollock_species_catch_2020-05-29.csv")
-  #' table_format(pull_output("pollock", "species_catch", type = "table"))
+  #' table_format("pollock_species_catch_2020-05-29.csv", 'pollock')
+  #' table_format(pull_output("pollock", "species_catch", type = "table"), 'pollock')
   #' }
 
   if (length(x) == 1) {
     
-    tab_int <- read.csv(paste0(locoutput(), x))
+    tab_int <- read.csv(paste0(locoutput(project = project), x))
   
   } else {
     
     tab_int <- lapply(x, function(i) {
       
-      read.csv(file = paste0(locoutput(), i))
+      read.csv(file = paste0(locoutput(project = project), i))
     })
     
   }
@@ -427,11 +429,12 @@ table_format <- function(x) {
 }
 
 
-plot_format <- function(x) {
+plot_format <- function(x, project) {
   #' 
   #' Import and format plots to notebook file
   #' 
   #' @param x Name of plot saved in inst/output
+  #' @param project Name of project
   #' @keywords internal
   #' @export
   #' @importFrom knitr include_graphics
@@ -440,7 +443,9 @@ plot_format <- function(x) {
   #' plot_format("pollock_species_catch_2020-05-29.png")
   #' plot_format(pull_output("pollock", "species_catch", type = "plot"))
   #' }
-  knitr::include_graphics(paste0(locoutput(), x))
+  
+  project <- project
+  knitr::include_graphics(paste0(locoutput(project = project), x))
 }
 
 insert_plot <- function(out) {
@@ -515,7 +520,7 @@ pull_notes <- function(project, date = NULL, output = "print") {
   
   if (length(out) == 1) {
     
-    notes <- readLines(paste0(locoutput(), out))
+    notes <- readLines(paste0(locoutput(project = project), out))
     notes <- stringi::stri_omit_empty(notes)
     ind <- which(notes %in% note_names)
     
@@ -534,7 +539,7 @@ pull_notes <- function(project, date = NULL, output = "print") {
     n_id <- gsub("[^0-9]", "", n_id)
     n_id <- order(n_id)
     
-    notes <- lapply(out, function(n) readLines(paste0(locoutput(), n)))
+    notes <- lapply(out, function(n) readLines(paste0(locoutput(project = project), n)))
     notes <- lapply(n_id, function(x) notes[[x]])
     notes <- lapply(notes, stringi::stri_omit_empty)
     
@@ -616,7 +621,7 @@ summary_table <- function(project, output = "print") {
   
   } else {
 
-    sum_tab <- read.csv(paste0(locoutput(), sum_out),
+    sum_tab <- read.csv(paste0(locoutput(project = project), sum_out),
       strip.white = TRUE, check.names = FALSE)
   
     rownames(sum_tab) <- c("Min", "Median", "Mean", "Max", "Missing", "Unique Obs.", 
@@ -940,8 +945,8 @@ view_model_design <- function(project, date = NULL) {
   
   if (!is.null(date)) tab_name <- paste0(tab_name, gsub("-", "", date))
   
-  if (!table_exists(tab_name)) message(tab_name, "not found.")
-  else table_view(tab_name)
+  if (!table_exists(tab_name, project)) message(tab_name, "not found.")
+  else table_view(tab_name, project)
 }
 
 model_out_summary <- function(project, output = "print") {
@@ -969,7 +974,7 @@ model_out_summary <- function(project, output = "print") {
     
     p_mod <- pull_out$table
     
-    results <- model_out_view(p_mod)
+    results <- model_out_view(p_mod, project)
     
     modeltab <- data.frame(
       Model_name = rep(NA, length(results)),
@@ -1020,7 +1025,7 @@ model_error_summary <- function(project, output = "print") {
   } else {
     
     p_mod <- pull_out$table 
-    results <- model_out_view(p_mod)
+    results <- model_out_view(p_mod, project)
   
     error_out <- data.frame(
       Model_name = rep(NA, length(results)),
@@ -1073,7 +1078,7 @@ model_fit_summary <- function(project, output = "print") {
   } else {
     
     p_mod <- pull_out$table 
-    results <- model_out_view(p_mod)
+    results <- model_out_view(p_mod, project)
   
     fit_tab <- data.frame(
       Model_name = rep(NA, length(results)),
@@ -1117,7 +1122,7 @@ view_fleet_table <- function(project) {
   if (fleet_tab$exists == TRUE) {
     pander::pander(
       pander::pandoc.table(
-        table_view(fleet_tab$table),
+        table_view(fleet_tab$table, project),
         style = "simple", row.names = FALSE, split.table = Inf)
     )
     

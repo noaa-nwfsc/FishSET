@@ -21,7 +21,7 @@
 summary_stats <- function(dat, project, x = NULL, log_fun = TRUE) {
 
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   

@@ -71,7 +71,7 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
                        align = "center", conv = "none", tran = "identity", 
                        format_lab = "decimal", output = "tab_plot", ...) {
 
-    out <- data_pull(dat)
+    out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   

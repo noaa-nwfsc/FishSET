@@ -105,7 +105,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
                     scale = "fixed", output = "tab_plot",  format_tab = "wide") {
   
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project = project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
 

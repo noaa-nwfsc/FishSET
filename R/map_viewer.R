@@ -47,16 +47,16 @@ map_viewer <- function(dat, project, gridfile, avd, avm, num_vars, temp_vars, id
   #' }
 
 
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
-  out <- data_pull(gridfile)
+  out <- data_pull(gridfile, project)
   spatname <- parse_data_name(gridfile, 'spat')
   spatdat <- out$dataset
 
   if (!is.null(spatdat)) {
-    geojsonio::geojson_write(spatdat, file = paste0(loc_map(), "spatdat.geojson"), overwrite = TRUE)
+    geojsonio::geojson_write(spatdat, file = paste0(loc_map(project=project), "spatdat.geojson"), overwrite = TRUE)
   }
 
   # 2 Create data file
@@ -70,7 +70,7 @@ if(!is.null(lon_end)){
   dataset <- unique(dataset[, c(avd, num_vars, temp_vars, id_vars, lon_start, lat_start, lon_end, lat_end)])
   dataset$uniqueID <- 1:nrow(dataset)
 
-  write.csv(dataset, paste0(loc_map(), "/datafile.csv"))
+  write.csv(dataset, paste0(loc_map(project=project), "/datafile.csv"))
 
   # 3. Create map config
 
@@ -97,7 +97,7 @@ if(!is.null(lon_end)){
   dataset <- unique(dataset[, c(avd, num_vars, temp_vars, id_vars, lon_start, lat_start)])
   dataset$uniqueID <- 1:nrow(dataset)
   
-  write.csv(dataset, paste0(loc_map(), "/datafile.csv"))
+  write.csv(dataset, paste0(loc_map(project=project), "/datafile.csv"))
   
   map_config <- list()
   map_config$mapbox_token <- "pk.eyJ1IjoibWhhcnNjaDEyNSIsImEiOiJjazZ2NXh6dXUwZ25vM25wYXJ6bHFpOGc1In0.nAdb9QQybVd9ESgtr0fjZg"
@@ -116,7 +116,7 @@ if(!is.null(lon_end)){
   map_config$multi_grid <- multi_grid
 }
  
-  write(jsonlite::toJSON(map_config, pretty = TRUE, auto_unbox = TRUE), paste0(loc_map(), "map_config.json"))
+  write(jsonlite::toJSON(map_config, pretty = TRUE, auto_unbox = TRUE), paste0(loc_map(project=project), "map_config.json"))
 
 
   # log function
@@ -129,14 +129,14 @@ if(!is.null(lon_end)){
   if (shiny::isRunning()) {
     
     map_url <- 
-      servr::httd(dir = loc_map(), browser=FALSE)$url
+      servr::httd(dir = loc_map(project=project), browser=FALSE)$url
      #
     
     return(map_url)
     
   } else {
     
-    utils::browseURL(servr::httd(dir = loc_map(), browser = FALSE)$url)
+    utils::browseURL(servr::httd(dir = loc_map(project=project), browser = FALSE)$url)
   }
 }
 

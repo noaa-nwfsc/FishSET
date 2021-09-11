@@ -27,7 +27,9 @@ log_rerun <- function(log_file, dat = NULL, portTable = NULL, aux = NULL,
   
   end <- FALSE
   
-  if (!file.exists(paste0(loclog(), log_file))) {
+  project <- gsub("\\_.*", "", log_file)
+  
+  if (!file.exists(paste0(loclog(project=project), log_file), project)) {
     
     warning(log_file, " does not exist. Run list_logs() or project_logs().")
     end <- TRUE
@@ -35,7 +37,7 @@ log_rerun <- function(log_file, dat = NULL, portTable = NULL, aux = NULL,
   
   if (end == FALSE) {
     
-    out <- jsonlite::fromJSON(paste0(loclog(), log_file), simplifyVector = FALSE) # import as list, preserves class type
+    out <- jsonlite::fromJSON(paste0(loclog(project=project), log_file), simplifyVector = FALSE) # import as list, preserves class type
     
     out <- out$fishset_run[[2]]$function_calls # list of just function calls
     
@@ -197,33 +199,9 @@ log_rerun_gui <- function() {
           
           actionButton("run_log", "Rerun log",
                        style="color: #fff; background-color: #6da363; border-color: #800000;"),
-          
-          selectInput("log", "Select a log file", choices = list_logs()),
-          
+          selectInput('project', 'Select a project', choices = projects()),
           checkboxInput("new_dat_cb", "Run log with different data table"),
-          
-          conditionalPanel("input.new_dat_cb",
-                           
-                           selectizeInput("new_dat", "Choose main table", 
-                                          choices = main_tables(), multiple = TRUE,
-                                          options = list(maxItems = 1)), # sets dat to NULL by default
-                           
-                           selectizeInput("new_port", "Choose port table", 
-                                          choices = list_tables(type = "port"), multiple = TRUE,
-                                          options = list(maxItems = 1)),
-                           
-                           selectizeInput("new_aux", "Choose aux table", 
-                                          choices = tables_database(), multiple = TRUE,
-                                          options = list(maxItems = 1)),
-                           
-                           selectizeInput("new_grid", "Choose gridded table", 
-                                          choices = tables_database(), multiple = TRUE,
-                                          options = list(maxItems = 1)),
-                           
-                           selectizeInput("new_spat", "Choose spatial table", 
-                                          choices = tables_database(), multiple = TRUE,
-                                          options = list(maxItems = 1))
-          ),
+          uiOutput('project_choices'),
           
           p("Click on the table rows to run specific function calls.")
         ),
@@ -238,6 +216,34 @@ log_rerun_gui <- function() {
     server = function(input, output, session) {
       
       fetch_log <- reactive(log_rerun(input$log, run = FALSE))
+      
+      selectInput("log", "Select a log file", choices = list_logs())
+      
+      output$project_choices <- renderUI({
+      
+      conditionalPanel("input.new_dat_cb",
+                       
+                       selectizeInput("new_dat", "Choose main table", 
+                                      choices = main_tables(), multiple = TRUE,
+                                      options = list(maxItems = 1)), # sets dat to NULL by default
+                       
+                       selectizeInput("new_port", "Choose port table", 
+                                      choices = list_tables(type = "port"), multiple = TRUE,
+                                      options = list(maxItems = 1)),
+                       
+                       selectizeInput("new_aux", "Choose aux table", 
+                                      choices = tables_database(input$project), multiple = TRUE,
+                                      options = list(maxItems = 1)),
+                       
+                       selectizeInput("new_grid", "Choose gridded table", 
+                                      choices = tables_database(input$project), multiple = TRUE,
+                                      options = list(maxItems = 1)),
+                       
+                       selectizeInput("new_spat", "Choose spatial table", 
+                                      choices = tables_database(input$project), multiple = TRUE,
+                                      options = list(maxItems = 1))
+      )
+      })
       
       log_table_r <- reactive({
         

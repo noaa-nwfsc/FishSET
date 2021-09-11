@@ -103,7 +103,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
                           format_tab = "wide") {  
   
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   

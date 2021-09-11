@@ -24,12 +24,12 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
                                lag.method, empty.catch, empty.expectation, dummy.exp) {
 
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
   if (!exists("Alt")) {
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
     Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
     DBI::dbDisconnect(fishset_db)
   }
@@ -104,6 +104,7 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
   lagTime <- 0
   yearRange <- 0 # Not used?  get(jhSpinnerYear,'Value')
 
+  
   # Use R's rollapply and lag function to calculate moving average
   # Empty values are replaced as defined above
   df <- as.data.frame(cbind(numData,

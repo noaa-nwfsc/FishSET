@@ -38,7 +38,7 @@
 changeclass <- function(dat, project, x=NULL, newclass=NULL, savedat=FALSE){
  
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
@@ -168,7 +168,7 @@ changeclass <- function(dat, project, x=NULL, newclass=NULL, savedat=FALSE){
   
   #save data
   if(savedat == TRUE & (is.null(x) & is.null(newclass)) == FALSE){
-    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
     DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable"), dataset, overwrite = TRUE)
     DBI::dbDisconnect(fishset_db)
   }

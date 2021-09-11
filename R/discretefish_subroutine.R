@@ -112,7 +112,7 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
   if (end == FALSE) {
     
     # Call in datasets
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
     x_temp <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
     
     
@@ -349,10 +349,10 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
           colnames(temp) <- paste0(expname, x_temp[[i]][["mod.name"]])
         }
         
-        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
         
         if (i == 1) {
-          table_remove(paste0(project, "modelfit"))
+          table_remove(paste0(project, "modelfit"), project)
           DBI::dbWriteTable(fishset_db, paste0(project, "modelfit"), mod.out)
         } else {
           out.mod <- DBI::dbReadTable(fishset_db, paste0(project, "modelfit"))
@@ -444,11 +444,11 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
         }
         raw_sql <- paste0(project, "modelOut")
         single_sql <- paste0(project, "modelOut", format(Sys.Date(), format = "%Y%m%d"))
-        if (table_exists(single_sql)) {
-          table_remove(single_sql)
+        if (table_exists(single_sql, project)) {
+          table_remove(single_sql, project)
         }
-        if (table_exists(raw_sql)) {
-          table_remove(raw_sql)
+        if (table_exists(raw_sql, project)) {
+          table_remove(raw_sql, project)
         }
         second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
         raw_second_sql <- paste("INSERT INTO", raw_sql, "VALUES (:data)")
@@ -536,7 +536,7 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
           # When the Submit button is clicked, save the form data
           observeEvent(input$submit, {
             # Connect to the database
-            fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+            fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
             single_sql <- paste0(project, "modelChosen")
             if (DBI::dbExistsTable(fishset_db, single_sql) == FALSE) {
               DBI::dbExecute(fishset_db, paste0("CREATE TABLE ", single_sql, "(model TEXT, AIC TEXT, AICc TEXT, BIC TEXT, PseudoR2 TEXT, selected TEXT, Date TEXT)"))
@@ -569,8 +569,8 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
     log_call(project, discretefish_subroutine_function)
     #############################################################################
     single_sql <- paste0(project, "modelOut", format(Sys.Date(), format = "%Y%m%d"))
-    if (table_exists(single_sql)) {
-      fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
+    if (table_exists(single_sql, project)) {
+      fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
       out <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
       # return(out)
       DBI::dbDisconnect(fishset_db)

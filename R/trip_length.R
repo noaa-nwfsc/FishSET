@@ -111,7 +111,8 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
                         tran = "identity", format_lab = "decimal", pages = "single", 
                         remove_neg = FALSE, output = "tab_plot", tripID = NULL, 
                         fun.time = NULL, fun.numeric = NULL) {
-  out <- data_pull(dat)
+  
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   

@@ -19,7 +19,7 @@ spatial_hist <- function(dat, project, group=NULL) {
 
   requireNamespace("ggplot2")
 
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
@@ -108,7 +108,7 @@ spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs"
   #'        cat = 'NMFS_AREA')
   #' }
 
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
