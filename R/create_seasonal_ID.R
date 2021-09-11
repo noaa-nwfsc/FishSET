@@ -39,11 +39,11 @@
 create_seasonal_ID <- function(dat, project, seasonal.dat, use.location = c(TRUE, FALSE), use.geartype = c(TRUE, FALSE), sp.col, target = NULL) {
 
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
 
-  out <- data_pull(seasonal.dat)
+  out <- data_pull(seasonal.dat, project)
   seasonaldat <- out$dataset
   seasonal.dat <- parse_data_name(seasonal.dat, "aux")
   

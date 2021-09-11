@@ -20,7 +20,7 @@
 data_check <- function(dat, project, x){#, dataindex) {
 
   # Call in main data set
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   

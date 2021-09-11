@@ -34,15 +34,13 @@ find_fishing_centroid <- function(dat, project=NULL, cat='ZoneID', weight.var = 
                            lat.dat = NULL, gridfile, lon.grid = NULL, lat.grid = NULL) {
   
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
   gridname <- deparse(substitute(gridfile))
   
-  if(is.null(project)){
-    project <- sub("\\MainDataTable", "", dat)
-  }
+ project <- find_project(dat, project)
   
   tmp <- tempfile()
   cat("", file = tmp, append = TRUE)

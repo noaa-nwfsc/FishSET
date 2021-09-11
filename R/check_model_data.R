@@ -23,7 +23,7 @@ check_model_data <- function(dat, project, uniqueID, save.file = TRUE) {
   end <- FALSE
 
   # Call in data sets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
@@ -89,7 +89,7 @@ check_model_data <- function(dat, project, uniqueID, save.file = TRUE) {
   if (end == FALSE) {
     if (save.file == TRUE) {
       cat(paste("\nModified data set saved to fishset_db database"), file = tmp, append = TRUE)
-      fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+      fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
       single_sql <- paste0(dat, "_final")
       DBI::dbWriteTable(fishset_db, single_sql, dataset, overwrite = TRUE)
       DBI::dbDisconnect(fishset_db)

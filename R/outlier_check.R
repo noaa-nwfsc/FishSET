@@ -24,7 +24,7 @@ outlier_table <- function(dat, project, x, log_fun = TRUE) {
 
 
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
@@ -174,7 +174,7 @@ outlier_plot <- function(dat, project, x, dat.remove='none', x.dist='normal', ou
 
 
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
@@ -364,7 +364,7 @@ outlier_remove <- function(dat, project, x, dat.remove = "none", over_write = FA
   #' }
 
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
@@ -396,7 +396,7 @@ outlier_remove <- function(dat, project, x, dat.remove = "none", over_write = FA
 
 
       if (dat.remove != "none" & over_write == TRUE) {
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
         DBI::dbWriteTable(fishset_db, deparse(substitute(dat)), dataset, overwrite = over_write)
         DBI::dbDisconnect(fishset_db)
       }

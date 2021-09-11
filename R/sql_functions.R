@@ -2,41 +2,44 @@
 # in the database, view fields of selected table, view the selected table, remove tables from the database, and check whether a specific table exists
 # in the database.
 
-tables_database <- function() {
+tables_database <- function(project) {
   #' View names of tables in the FishSET database
   #'
   #' Wrapper for \code{\link[DBI]{dbListTables}}. View names of tables in the FishSET database.
+  #' @param project Project name
   #' @export tables_database
   #' @importFrom DBI dbConnect dbRemoveTable dbListTables dbExistsTable dbGetQuery
   #' @examples
   #' \dontrun{
-  #' tables_database()
+  #' tables_database('pollock')
   #' }
 
-  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
   return(DBI::dbListTables(fishset_db))
   DBI::dbDisconnect(fishset_db)
 }
 
-table_fields <- function(table) {
+table_fields <- function(table, project) {
   #' Lists fields for FishSET database table
   #' @param table String, name of table in FishSET database. Table name must be in quotes.
+  #' @param project Project name
   #' @export table_fields
   #' @description Wrapper for \code{\link[DBI]{dbListFields}}.  View fields of selected table.
   #' @importFrom DBI dbConnect dbDisconnect dbListFields
   #' @examples
   #' \dontrun{
-  #' table_fields('pollockMainDataTable')
+  #' table_fields('pollockMainDataTable', 'pollock')
   #' }
 
-  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
   return(DBI::dbListFields(fishset_db, table))
   DBI::dbDisconnect(fishset_db)
 }
 
-table_view <- function(table) {
+table_view <- function(table, project) {
   #' View FishSET database table
   #' @param table String, name of table in FishSET database. Table name must be in quotes.
+  #' @param project Name of project
   #' @export table_view
   #' @description Wrapper for \code{\link[DBI]{dbGetQuery}}. View or call the selected table from the FishSET database.
   #' @importFrom DBI dbConnect dbDisconnect  dbGetQuery
@@ -45,20 +48,22 @@ table_view <- function(table) {
   #' head(table_view('pollockMainDataTable'))
   #' }
 
-  if (table_exists(table) == FALSE) {
+  
+  if (table_exists(table, project) == FALSE) {
     return("Table not found. Check spelling.")
   } else {
-    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
     return(DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM", paste0("'", noquote(table), "'"))))
     DBI::dbDisconnect(fishset_db)
   }
 }
 
-table_remove <- function(table) {
+table_remove <- function(table, project) {
   #' Remove table from FishSET database
   #'
   #' Wrapper for \code{\link[DBI]{dbRemoveTable}}. Remove a table from the FishSET database.
   #' @param table String, name of table in FishSET database. Table name must be in quotes.
+  #' @param project Name of project
   #' @export table_remove
   #' @details Function utilizes sql functions to remove tables from the FishSET database.
   #' @importFrom DBI dbConnect dbDisconnect dbRemoveTable
@@ -67,15 +72,16 @@ table_remove <- function(table) {
   #' table_remove('pollockMainDataTable')
   #' }
 
-  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
   DBI::dbRemoveTable(fishset_db, table)
   DBI::dbDisconnect(fishset_db)
   invisible(TRUE)
 }
 
-table_exists <- function(table) {
+table_exists <- function(table, project) {
   #' Check if table exists in the FishSET database
   #' @param table Name of table in FishSET database.Table name must be in quotes.
+  #' @param project Name of project
   #' @export table_exists
   #' @description Wrapper for \code{\link[DBI]{dbExistsTable}}. Check if a table exists in the FishSET database.
   #' @return Returns a logical statement of table existence.
@@ -85,16 +91,17 @@ table_exists <- function(table) {
   #' table_exists('pollockMainDataTable')
   #' }
 
-  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
   return(DBI::dbExistsTable(fishset_db, table))
   DBI::dbDisconnect(fishset_db)
 }
 
-model_out_view <- function(table) {
+model_out_view <- function(table, project) {
   #' Load model output to console
   #'
   #' Returns output from running \code{\link{discretefish_subroutine}}. The table argument must be the full name of the table name in the FishSET database. Output includes information on model convergence, standard errors, t-stats, etc.
   #' @param table  Table name in FishSET database. Should contain the phrase 'modelout'. Table name must be in quotes.
+  #' @param project Name of project
   #' @export
   #' @description Returns output from running the discretefish_subroutine function.
   #'   The table parameter must be the full name of the table name in the FishSET database.
@@ -103,17 +110,17 @@ model_out_view <- function(table) {
   #' model_out_view('pcodmodelout20190604')
   #' }
   #
-  if (table_exists(table) == FALSE) {
+  if (table_exists(table, project) == FALSE) {
     return("Table not found. Check spelling or tables in database using 'tables_database()'.")
   } else {
-    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
     x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", table, " LIMIT 1"))$data[[1]])
     return(x)
     DBI::dbDisconnect(fishset_db)
   }
 }
 
-globalcheck_view <- function(table) {
+globalcheck_view <- function(table, project) {
   #' View model error output
   #'
   #' Returns error output from running the discretefish_subroutine function.
@@ -123,16 +130,17 @@ globalcheck_view <- function(table) {
   #' @param table  Table name in FishSET database. Should contain the project, the 
   #'    phrase 'ldglobalcheck', and a date in YMD format (20200101). 
   #'  Table name must be in quotes.
+  #' @param project Name of project
   #' @export
   #' @examples
   #' \dontrun{
   #' globalcheck_view('pcodldglobalcheck20190604')
   #' }
 
-  if (table_exists(table) == FALSE) {
+  if (table_exists(table, project) == FALSE) {
     return("Table not found. Check spelling or view available tables with 'tables_database()'.")
   } else {
-    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
     x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", table, " LIMIT 1"))$data[[1]])
     return(x)
     DBI::dbDisconnect(fishset_db)
@@ -150,13 +158,13 @@ model_fit <- function(project) {
   #' \dontrun{
   #' model_fit('pollock')
   #' }
-  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
-  return(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), locdatabase()), paste0("SELECT * FROM ", paste0(project, "modelfit"))))
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
+  return(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)), paste0("SELECT * FROM ", paste0(project, "modelfit"))))
   DBI::dbDisconnect(fishset_db)
 }
 
 projects <- function() {
-  #' Display projects n  ames
+  #' Display projects names
   #' @export
   #' @details Lists the unique project names currently in the FishSET Database. 
   #' @importFrom stringr str_extract
@@ -164,19 +172,32 @@ projects <- function() {
   #' \dontrun{
   #' projects()
   #' } 
-  p_tabs <- grep("MainDataTable", tables_database(), value = TRUE)
+  #' 
+ 
+  
+  if (!exists('loc2')||is.null(loc2)) {
+    projloc <- paste0(system.file(package = "FishSET"), '/projects')
+  } else {
+    projloc <- paste0(loc2, '/projects')
+  }
+  
+   tab <- list.dirs(path=projloc)#paste0(unlist(strsplit(loc2, '/'))[-length(unlist(strsplit(loc2, '/')))], collapse = '/'))
+   p_tabs <- subset(tab, tab!='extdata'&tab!='MapViewer'&tab!='output'&tab!='report'&tab!='ShinyFiles'&tab!='Logs')
+  
+  
+  #p_tabs <- grep("MainDataTable", tables_database(project), value = TRUE)
   
   if (length(p_tabs) == 0) {
     
     warning("No projects found. Upload a new file to create a project.")
-  
+    p_names <- NULL
   } else {
     
-    p_tabs <- stringr::str_extract(p_tabs, "^.+MainDataTable")
+   # p_tabs <- stringr::str_extract(p_tabs, "^.+MainDataTable")
     
-    p_names <- gsub("MainDataTable", "", p_tabs)
-    p_names <- unique(p_names)
-    
+   # p_names <- gsub("MainDataTable", "", p_tabs)
+   # p_names <- unique(p_names)
+    p_names <- unique(p_tabs)
     p_names
   }
 }
@@ -193,8 +214,12 @@ project_tables <- function(project, ...) {
   #' project_tables("pollock", "main")
   #' }
 
-  out <- grep(paste0("^", project, ...), tables_database(), 
+  if(is_empty(tables_database(project = project))){
+    out <- NULL
+  } else {
+    out <- grep(paste0("^", project, ...), tables_database(project = project), 
               value = TRUE, ignore.case = TRUE)
+  }
   
   if (length(out) == 0) {
     
@@ -205,11 +230,10 @@ project_tables <- function(project, ...) {
   }
 }
 
-list_tables <- function(project = NULL, type = "main") {
+list_tables <- function(project, type = "main") {
   #' Display tables in fishset_db by project and type.
   #' 
-  #' @param project A project name to filter main tables by. Returns all tables
-  #'   of \code{type} if \code{NULL}.
+  #' @param project A project name to show main tables by. 
   #' @param type the type of fishset_db table to search for. Options include 
   #'   "main" (MainDataTable), "ec" (ExpectedCatch),  "altc" (altmatrix), 
   #'   "port", "info" (MainDataTableInfo), "gc" (ldglobalcheck), "fleet" (FleetTable), 
@@ -222,6 +246,8 @@ list_tables <- function(project = NULL, type = "main") {
   #' list_tables("pollock", "ec")
   #' }
   
+  check_proj(project)
+  
   sql_tab <- 
     switch(type, 
            "info" = "MainDataTableInfo", "main" = "MainDataTable", "ec" = "ExpectedCatch", 
@@ -231,22 +257,23 @@ list_tables <- function(project = NULL, type = "main") {
   
   if (is.null(project)) {
     
-    tabs <- grep(sql_tab, tables_database(), value = TRUE)
+    warning('Project must be specified.')
+ #   tabs <- grep(sql_tab, tables_database(), value = TRUE)
     
-    if (type == "main") tabs <- tabs[!grepl("MainDataTableInfo", tabs)]
+ #   if (type == "main") tabs <- tabs[!grepl("MainDataTableInfo", tabs)]
     
-    if (length(tabs) > 0) tabs
-    else {
+ #   if (length(tabs) > 0) tabs
+ #   else {
       
-      warning("No ", sql_tab, " tables were found")
-      invisible(NULL)
-    }
+ #      warning("No ", sql_tab, " tables were found")
+#      invisible(NULL)
+ #   }
     
   } else {
     
     if (project %in% projects()) {
       
-      tabs <- grep(paste0("^", project), tables_database(), value = TRUE)
+      tabs <- grep(paste0("^", project), tables_database(project), value = TRUE)
       tabs <- grep(sql_tab, tabs, value = TRUE)
       
       if (type == "main") tabs <- tabs[!grepl("MainDataTableInfo", tabs)]
@@ -301,7 +328,7 @@ fishset_tables <- function() {
   #'@export
   
   # dataframe containing all sql tables 
-  db_tabs <- data.frame(table = tables_database())
+  db_tabs <- data.frame(table = tables_database(project))
   
   # add a project column
   p_regex <- paste0(projects(), collapse = "|")

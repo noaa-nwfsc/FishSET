@@ -80,7 +80,7 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, combine 
                          facet_by = NULL, conv = "none", tran = "identity", 
                          format_lab = "decimal", scale = "fixed", bw = 1, 
                          position = "identity", pages = "single") {
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
 
