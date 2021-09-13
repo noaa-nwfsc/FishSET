@@ -191,12 +191,14 @@ source("map_viewer_app.R", local = TRUE)
                                onclick = "setTimeout(function(){window.close();},500);",  # close browser
                                "Close app"
                              ),
-                             tags$button(
-                               id = 'loadDat',
-                               type = "button",
-                               style = "color: white; background-color: blue;",
-                               class = "btn action-button",
-                               "Load data"
+                             
+                             shinyjs::disabled(
+                                tags$button(
+                                  id = 'loadDat',
+                                  type = "button",
+                                  style = "color: white; background-color: blue;",
+                                  class = "btn action-button",
+                                  "Load data")
                              ),
                              
                              actionButton("delete_tabs_bttn", "Manage Tables",
