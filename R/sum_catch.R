@@ -19,6 +19,7 @@
 #' @importFrom stats aggregate reformulate
 #' @importFrom dplyr left_join
 #' @importFrom shiny isRunning
+#' @importFrom tidyr gather
 #' @export sum_catch
 #' @return A summary table or vector of logical values based on the \code{exp} argument.
 #' @examples 
@@ -52,7 +53,8 @@ sum_catch <- function(dat, project, catch, v_id, species = NULL, exp, val = c("r
             
         } else if (val == "per") {
             
-            ag_per <- reshape2::melt(ag_sum, id.vars = v_id, variable.name = "species", value.name = "catch")
+            #ag_per <- reshape2::melt(ag_sum, id.vars = v_id, variable.name = "species", value.name = "catch")
+            ag_per <- tidyr::gather(ag_sum, 'species', 'catch', -v_id)
             
             ag_per <- stats::aggregate(stats::reformulate(paste(v_id), "catch"), data = ag_per, function(x) x/sum(x))
             
@@ -91,7 +93,8 @@ sum_catch <- function(dat, project, catch, v_id, species = NULL, exp, val = c("r
             
             names(ag_per)[names(ag_per) == "v_id"] <- v_id
             
-            ag_per <- reshape2::melt(ag_per, id.vars = v_id, variable.name = species, value.name = catch)
+            #ag_per <- reshape2::melt(ag_per, id.vars = v_id, variable.name = species, value.name = catch)
+            ag_per <- tidyr::gather(ag_per, species, catch, -v_id)
             
             ag_per$value <- ifelse(with(ag_per, eval(parse(text = exp))), TRUE, FALSE)
             
