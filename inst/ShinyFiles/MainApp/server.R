@@ -939,7 +939,7 @@ conf_cache_len <- length(get_confid_cache())
           
         } else if (input$loadmainsource == 'FishSET database') {
           
-          if (length(projects()) > 0) {
+          if (!is.null(suppressWarnings(projects()))) {
             
             selectInput("project_select", "Select project", choices = projects())
             
@@ -949,11 +949,26 @@ conf_cache_len <- length(get_confid_cache())
           }
         }
       })
-     
-      observe({
-        shinyjs::toggleState("loadDat", (!is.null(input$projectname)|input$projectname!="") && !is.null(input$project_select) && !is.null(project$name))
-      })
       
+      observe({
+        req(input$loadmainsource)
+        
+        shinyjs::toggleState("loadDat", {
+          
+          if (input$loadmainsource == 'FishSET database') {
+            
+            !is.null(input$project_select)
+
+          } else if (input$loadmainsource == 'Upload new file') {
+
+            if (!is.null(input$maindat$datapath)) {
+              
+              !is.null(input$projectname) & input$projectname != ""
+
+            } else FALSE
+          }
+        })
+      })
       
       
       output$main1 <- renderUI({
