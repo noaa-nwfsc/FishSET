@@ -20,6 +20,7 @@ Imports:
   gridExtra, 
   grDevices, 
   haven,
+  htmltools,
   jsonlite, 
   knitr, 
   lubridate, 

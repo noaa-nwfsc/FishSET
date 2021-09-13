@@ -51,7 +51,7 @@ check_proj <- function(project=NULL){
 
 locdatabase <- function(project) {
   #' Define source location
-  #' @param project
+  #' @param project Project name
   #' @keywords internal
   #' @export
   #' 
