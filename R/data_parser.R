@@ -1,7 +1,7 @@
 #  Import data
 #str_trim
 
-read_dat <- function(x, data.type=NULL, is.map = FALSE,  drv=NULL, dbname=NULL, user=NULL, password=NULL, ...) {
+read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NULL, user = NULL, password = NULL, ...) {
   #' Import data into R
   #' @param x Name and path of dataset to be read in. To load data directly from a webpage, \code{x} should be the web address.  
   #' @param data.type Optional. Data type can be defined by user or based on the file extension.
@@ -12,6 +12,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE,  drv=NULL, dbname=NULL, 
   #'    spss, stata, and html, and XML data extensions do not have to be specified. 
   #' @param is.map logical, set \code{is.map} to TRUE if data is a spatial file.  
   #'   Spatial files ending in .json will not be read in properly unless \code{is.map} is true.
+  #' @param save 
   #' @param drv Use with sql files. Database driver.
   #' @param dbname Use with sql files. If required, database name.
   #' @param user Use with sql files.  If required, user name for SQL database.
@@ -30,6 +31,8 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE,  drv=NULL, dbname=NULL, 
   #' @importFrom readODS read.ods
   #' @importFrom DBI dbDisconnect dbConnect
   #' @details Uses the appropriate function to read in data based on data type.
+  #'   Use \code{\link[FishSET]{write_dat}} to save data to the \code{data} folder in the \code{project} directory.
+  #'      
   #'   Supported data types include shape, csv, json, matlab, R, spss, and stata files.
   #'
   #'   Use \code{data.type = 'shape'} if \code{x} is the path to a shape folder. 
@@ -66,12 +69,15 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE,  drv=NULL, dbname=NULL, 
   #' @examples
   #' \dontrun{
   #' # Read in shape file
-  #'   dat <- read_dat('C:/data/nmfs_manage_simple', data.tye='shape')
+  #'   dat <- read_dat('C:/data/nmfs_manage_simple', data.type = 'shape')
   #' # Read in spatial data file in json format
-  #'   dat <- read_dat('C:/data/nmfs_manage_simple.json', is.map=TRUE)
+  #'   dat <- read_dat('C:/data/nmfs_manage_simple.json', is.map = TRUE)
   #' # read in data directly from webpage
   #'   dat <- read_dat("https://s3.amazonaws.com/assets.datacamp.com/blog_assets/test.txt", 
   #'      data.type = 'delim', sep='', header = FALSE)
+  #'  
+  #'  #Save the data to project directory
+  #'    write_dat(dat, file_type = "json", project='pollock')
   #' }
   #' 
   
@@ -168,24 +174,29 @@ write_dat <- function (dat, path=NULL, file_type = "csv", project, ...) {
   #'@importFrom utils write.table
   #'@export
   #'@details  
+  #' Leave \code{path = NULL} to save \code{dat} to the \code{data} folder in the \project{directory}
   #'See \code{\link[utils]{write.table}}  for csv and tab-separated files, 
   #'    \code{\link[base]{save}} for R data files, 
   #'    \code{\link[openxlsx]{write.xlsx}},
   #'    \code{\link[jsonlite]{read_json}} for json files, 
+  #'    \code{\link[sf]{st_write}} for geojson files,
   #'    \code{\link[haven]{read_dta}} for Stata files, 
   #'    \code{\link[haven]{read_spss}} for SPSS files, 
   #'    \code{\link[haven]{read_sas}} for SAS files, and 
   #'    \code{\link[R.matlab]{writeMat}} for Matlab files. 
   #'@examples
   #'\dontrun{
-  #' write_dat(pollockMainDataTable, file = "C://data/pollock_dataset.csv", type = "csv", "pollock")
+  #' # Save to the default data folder in project directory
+  #'    write_dat(pollockMainDataTable, type = "csv", "pollock")
+  #' # Save to defined directory location
+  #'    write_dat(pollockMainDataTable, path = "C://data/pollock_dataset.csv", type = "csv", "pollock")
   #' }
   
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   if(is.null(path)){
-    path <- locoutput(project = project)
+    path <- loc_data(project = project)
   }
   
   if (file_type == "csv") {
@@ -207,6 +218,10 @@ write_dat <- function (dat, path=NULL, file_type = "csv", project, ...) {
   } else if (file_type == "json") {
     
     jsonlite::write_json(dataset, path = path, ...)
+    
+  } else if (file_type == 'geojson') {
+   
+     sf::st_write(dataset, dsn = paste0(path, dat, ".geojson"))
     
   } else if (file_type == "stata") {
     
@@ -231,7 +246,7 @@ write_dat <- function (dat, path=NULL, file_type = "csv", project, ...) {
   
   if (end == FALSE) {
     
-    file <- path.expand(path)
+    path <- path.expand(path)
     
     # Log the function
     write_dat_function <- list()
