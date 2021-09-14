@@ -146,6 +146,28 @@ loc_map <- function(project) {
   }
 }
 
+loc_data <- function(project) {
+  #' Define source location for data folder
+  #' Returns the location of the data folder
+  #' @param project Project name
+  #' @keywords internal
+  #' @export
+  #' @details if loc2 is not in the working environment, then the default location is use
+  #' @examples
+  
+  
+  if(is.null(project)){
+    warning('Project name must be provided.')
+  } else {
+    
+    if (!exists('loc2')||is.null(loc2)) {
+      paste0(system.file(package = "FishSET"), "/projects/", project, "/data/")
+    } else {
+      paste0(loc2, "/projects/", project, "/data/")
+    }
+  }
+}
+
 #pull_info_data <- function(project) {
 #  #' Pull the most recent data index file for given project
 #  #' @keywords internal
@@ -158,7 +180,7 @@ loc_map <- function(project) {
 #  paste0(project, "MainDataTableInfo", g)
 #}
 
-find_project <- function(dat, project){
+find_project <- function(dat, project=NULL){
 #' Find project
 #' @param dat Data table name
 #' @param project Project Name
@@ -166,12 +188,18 @@ find_project <- function(dat, project){
 #' @keywords internal
 
   if(is.null(project)){
+    if(grepl('MainDataTable', dat)){
     project <- sub("\\MainDataTable", "", dat)
+    return(project)
+    } else {
+      "Project name must be supplied."
+    }
    
   } else {
     project <- project
+    return(project)
   }
-  return(project)
+  
 }
 
 vgsub <- function(pattern, replacement, x, ...) {
