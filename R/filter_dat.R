@@ -36,8 +36,9 @@ filter_table <- function(dat, project, x, exp) {
 
 
   fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  
   DBI::dbWriteTable(fishset_db, paste0(project, "FilterTable"), filterTable, overwrite = TRUE)
-  DBI::dbDisconnect(fishset_db)
   cat("Table saved to fishset_db database")
 
   filter_data_function <- list()

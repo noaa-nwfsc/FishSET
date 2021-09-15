@@ -130,6 +130,7 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
     if (save == TRUE) {
       # save to fishset_db
       fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
+      on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
       
       if (table_exists(paste0(project, "FleetTable"), project) == FALSE) {
         
@@ -144,8 +145,6 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
         
         cat("Table saved to fishset_db database\n")
       }
-      
-      DBI::dbDisconnect(fishset_db)
     }
     
     fleet_table_function <- list()

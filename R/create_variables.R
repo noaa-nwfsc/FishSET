@@ -877,6 +877,7 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
     warning("Starting and ending vectors are identical.")
   } else {
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
+    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
 
     # Call in datasets
     out <- data_pull(dat, project)
@@ -902,7 +903,6 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
         port.table <- table_view(gsub("'|\"", "", vars[1]), project)
       }
     }
-    DBI::dbDisconnect(fishset_db)
 
     x <- 0
 

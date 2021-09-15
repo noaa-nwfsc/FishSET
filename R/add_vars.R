@@ -56,6 +56,7 @@ add_vars <- function(working_dat, raw_dat, vars, project) {
     # Save the data
     # Connect to the database
     suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
+    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
     DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d")), dataset, overwrite = TRUE)
 
     print(paste0("Table saved to database as ", project, "MainDataTable", format(Sys.Date(), format = "%Y%m%d")))

@@ -184,6 +184,8 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
                               priceCol = NULL, startloc = NULL, polyn = NULL) {
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  
   end <- FALSE
   
   if (!table_exists(paste0(project, "MainDataTable_final"), project)) {
@@ -293,7 +295,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     }
     
     if (any(grepl("Port", occasion, ignore.case = TRUE) == T)) {
-      pt <- data_pull(paste0(project, 'PortTable'))
+      pt <- data_pull(paste0(project, 'PortTable'), project)
       if(exists('pt')){
         ptname <- pt$dat
         port <- pt$dataset
@@ -423,7 +425,6 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       DBI::dbExecute(fishset_db, paste("INSERT INTO", date_sql, "VALUES (:ModelInputData)"),
                      params = list(ModelInputData = list(serialize(modelInputData, NULL)))
       )
-      DBI::dbDisconnect(fishset_db)
       
       
       make_model_design_function <- list()

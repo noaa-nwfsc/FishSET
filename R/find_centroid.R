@@ -96,8 +96,9 @@ find_centroid <- function(project, gridfile, cat, lon.grid = NULL, lat.grid = NU
 
 
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  
   DBI::dbWriteTable(fishset_db, paste0(noquote(gridname), "Centroid"), int, overwrite = TRUE)
-  DBI::dbDisconnect(fishset_db)
   message('Geographic centroid saved to fishset database')
   return(int)
 }

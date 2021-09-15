@@ -169,8 +169,8 @@ changeclass <- function(dat, project, x=NULL, newclass=NULL, savedat=FALSE){
   #save data
   if(savedat == TRUE & (is.null(x) & is.null(newclass)) == FALSE){
     suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
+    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
     DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable"), dataset, overwrite = TRUE)
-    DBI::dbDisconnect(fishset_db)
   }
   
     #Log the function

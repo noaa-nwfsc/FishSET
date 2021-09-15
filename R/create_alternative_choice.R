@@ -201,6 +201,7 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
     numOfNecessary <- min.haul
 
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
+    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
 
     Alt <- list(
       dataZoneTrue = dataZoneTrue[, 1], # array of logical values to identify which are to be used in model
@@ -307,7 +308,7 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
     )
     # DBI::dbExecute (fishset_db, "CREATE TABLE IF NOT EXISTS altmatrix (AlternativeMatrix ALT)")
     # DBI::dbExecute (fishset_db, "INSERT INTO altmatrix VALUES (:AlternativeMatrix)", params = list(AlternativeMatrix = list(serialize(Alt, NULL))))
-    DBI::dbDisconnect(fishset_db)
+    
  
     create_alternative_choice_function <- list()
     create_alternative_choice_function$functionID <- "create_alternative_choice"
