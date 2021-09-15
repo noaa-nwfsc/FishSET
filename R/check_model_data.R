@@ -90,9 +90,10 @@ check_model_data <- function(dat, project, uniqueID, save.file = TRUE) {
     if (save.file == TRUE) {
       cat(paste("\nModified data set saved to fishset_db database"), file = tmp, append = TRUE)
       fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
+      on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+      
       single_sql <- paste0(dat, "_final")
       DBI::dbWriteTable(fishset_db, single_sql, dataset, overwrite = TRUE)
-      DBI::dbDisconnect(fishset_db)
     }
   }
   # logging function information
