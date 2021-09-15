@@ -93,6 +93,8 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
   dat <- parse_data_name(dat, "main")
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  
   Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
   DBI::dbDisconnect(fishset_db)
 
@@ -414,7 +416,6 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
   )
   # assign("ExpectedCatch", value = ExpectedCatch, pos = 1)
 
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
   single_sql <- paste0(project, "ExpectedCatch")
 
   if (replace.output == FALSE) {
@@ -434,7 +435,6 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
   DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:data)"),
     params = list(data = list(serialize(ExpectedCatch, NULL)))
   )
-  DBI::dbDisconnect(fishset_db)
 
   create_expectations_function <- list()
   create_expectations_function$functionID <- "create_expectations"

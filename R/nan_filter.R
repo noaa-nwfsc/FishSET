@@ -177,8 +177,9 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
       
       if (over_write == TRUE) {
         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
+        on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+        
         DBI::dbWriteTable(fishset_db, dat, dataset, overwrite = over_write)
-        DBI::dbDisconnect(fishset_db)
       }
     }
   }
@@ -316,8 +317,9 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
       
       if (over_write == TRUE) {
         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
+        on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+        
         DBI::dbWriteTable(fishset_db, dat, dataset, overwrite = over_write)
-        DBI::dbDisconnect(fishset_db)
       }
     }
   }
