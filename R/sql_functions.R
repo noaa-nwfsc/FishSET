@@ -15,8 +15,9 @@ tables_database <- function(project) {
   #' }
 
   fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  
   return(DBI::dbListTables(fishset_db))
-  DBI::dbDisconnect(fishset_db)
 }
 
 table_fields <- function(table, project) {
@@ -32,8 +33,9 @@ table_fields <- function(table, project) {
   #' }
 
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  
   return(DBI::dbListFields(fishset_db, table))
-  DBI::dbDisconnect(fishset_db)
 }
 
 table_view <- function(table, project) {
@@ -47,14 +49,17 @@ table_view <- function(table, project) {
   #' \dontrun{
   #' head(table_view('pollockMainDataTable'))
   #' }
-
   
   if (table_exists(table, project) == FALSE) {
+    
     return("Table not found. Check spelling.")
+    
   } else {
+    
     suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
+    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+    
     return(DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM", paste0("'", noquote(table), "'"))))
-    DBI::dbDisconnect(fishset_db)
   }
 }
 
@@ -73,8 +78,9 @@ table_remove <- function(table, project) {
   #' }
 
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  
   DBI::dbRemoveTable(fishset_db, table)
-  DBI::dbDisconnect(fishset_db)
   invisible(TRUE)
 }
 
@@ -92,8 +98,9 @@ table_exists <- function(table, project) {
   #' }
 
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  
   return(DBI::dbExistsTable(fishset_db, table))
-  DBI::dbDisconnect(fishset_db)
 }
 
 model_out_view <- function(table, project) {
@@ -111,12 +118,16 @@ model_out_view <- function(table, project) {
   #' }
   #
   if (table_exists(table, project) == FALSE) {
+    
     return("Table not found. Check spelling or tables in database using 'tables_database()'.")
+    
   } else {
+    
     suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
+    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+    
     x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", table, " LIMIT 1"))$data[[1]])
     return(x)
-    DBI::dbDisconnect(fishset_db)
   }
 }
 
@@ -138,12 +149,16 @@ globalcheck_view <- function(table, project) {
   #' }
 
   if (table_exists(table, project) == FALSE) {
+    
     return("Table not found. Check spelling or view available tables with 'tables_database()'.")
+    
   } else {
+    
     suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
+    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+    
     x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", table, " LIMIT 1"))$data[[1]])
     return(x)
-    DBI::dbDisconnect(fishset_db)
   }
 }
 
@@ -159,8 +174,9 @@ model_fit <- function(project) {
   #' model_fit('pollock')
   #' }
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
-  return(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)), paste0("SELECT * FROM ", paste0(project, "modelfit"))))
-  DBI::dbDisconnect(fishset_db)
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  
+  return(DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM ", paste0(project, "modelfit"))))
 }
 
 projects <- function() {
@@ -181,7 +197,7 @@ projects <- function() {
     projloc <- paste0(loc2, '/projects')
   }
   
-   tab <- list.dirs(path=projloc)#paste0(unlist(strsplit(loc2, '/'))[-length(unlist(strsplit(loc2, '/')))], collapse = '/'))
+   tab <- list_dirs(path=projloc)#paste0(unlist(strsplit(loc2, '/'))[-length(unlist(strsplit(loc2, '/')))], collapse = '/'))
    p_tabs <- subset(tab, tab!='extdata'&tab!='MapViewer'&tab!='output'&tab!='report'&tab!='ShinyFiles'&tab!='Logs')
   
   
@@ -246,7 +262,7 @@ list_tables <- function(project, type = "main") {
   #' list_tables("pollock", "ec")
   #' }
   
-  check_proj(project)
+  # check_proj(project)
   
   sql_tab <- 
     switch(type, 

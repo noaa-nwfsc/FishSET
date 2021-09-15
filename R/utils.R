@@ -1,53 +1,103 @@
-#Check if project folder exists
-#If not, create the foldeer
 
-check_proj <- function(project=NULL){
-  #' Check for project folder. Create folders if requires
+locproject <- function() {
+  #' Define projects folder location
+  #'
+  #'@export
+  #'@keywords internal
+  
+  if (exists("loc2")) loc2 <- loc2
+  else loc2 <- NULL
+  
+  if (!exists('loc2') || is.null(loc2)) {
+    
+    proj_dir <- paste0(system.file(package = "FishSET"), "/projects")
+    
+  } else {
+    
+    proj_dir <- paste0(loc2, "/projects")
+  }
+  
+  proj_dir
+}
+
+project_exists <- function(project) {
+  #' Check if project exists
+  #' 
+  #' @param project Project name. 
+  #' 
+  #' @export
+  #' @keywords internal
+  
+  projdir <- paste0(locproject(), "/", project)
+  
+  dir.exists(projdir)
+}
+
+#Check if project folder exists
+#If not, create the folder
+
+check_proj <- function(project = NULL) {
+  #' Check for project folder. Create folders if required
   #' @param project Project name
   #' @keywords internal
   #' @export
   
-  if(!is.null(project)){
-  if (exists("loc2")) {
-    loc2 <- loc2
-  } else {
-    loc2 <- NULL
-  }
+  if (!is.null(project)) {
+      
+    proj_dir <- paste0(locproject(), '/', project)
   
-  if (!exists('loc2')||is.null(loc2)) {
-      projdir <- paste0(system.file(package = "FishSET"), "/projects")
+    # check if projects folder exists
+    if (!file.exists(locproject())) {
+      
+      dir.create(file.path(locproject()), showWarnings = FALSE)
+    }
+     
+    if (project_exists(project) == FALSE) {
+      
+      dir.create(file.path(proj_dir), showWarnings = FALSE)
+      
+      #Logs
+      dir.create(file.path(paste0(proj_dir, '/src')), showWarnings = FALSE)
+      
+      #output
+      dir.create(file.path(paste0(proj_dir, '/output')), showWarnings = FALSE)
+      
+      #database
+      fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(proj_dir, '/fishset_db.sqlite'))
+      on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+      
+      #data
+      dir.create(file.path(paste0(proj_dir, '/data')), showWarnings = FALSE)
+      
+      #doc (report)
+      dir.create(file.path(paste0(proj_dir, '/doc')), showWarnings = FALSE)
+      
+      #MapViewer
+      dir.create(file.path(paste0(proj_dir, '/MapViewer')), showWarnings = FALSE)
+    }
   } else {
-      projdir <- paste0(loc2, "/projects")
-  }
     
-  
-    locproject <- paste0(projdir, '/', project)
-
-  
-  if(!file.exists(projdir)){
-    dir.create(file.path(projdir), showWarnings = FALSE)
-  }
-   
-  if(!file.exists(locproject)){
-    dir.create(file.path(locproject), showWarnings = FALSE)
-    #Logs
-    dir.create(file.path(paste0(locproject, '/src')), showWarnings = FALSE)
-    #output
-    dir.create(file.path(paste0(locproject, '/output')), showWarnings = FALSE)
-    #database
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(),  paste0(locproject, '/fishset_db.sqlite'))
-    DBI::dbDisconnect(fishset_db)
-    #data
-    dir.create(file.path(paste0(locproject, '/data')), showWarnings = FALSE)
-    #doc (report)
-    dir.create(file.path(paste0(locproject, '/doc')), showWarnings = FALSE)
-    #MapViewer
-    dir.create(file.path(paste0(locproject, '/MapViewer')), showWarnings = FALSE)
-  }
-  } else {
     warning('Project name must be specified.')
   }
 }
+
+erase_project <- function(project) {
+  #' Erase project folder
+  #' 
+  #' @param project Project name.
+  #' @export
+  #' @keywords internal
+  
+  if (project_exists(project)) {
+    
+    unlink(paste0(locproject(), "/", project), recursive = TRUE)
+  
+  } else {
+    
+    warning(paste0("Project \"", project, "\" does not exists"))
+  }
+}
+
 
 locdatabase <- function(project) {
   #' Define source location
@@ -576,6 +626,8 @@ data_pull <- function(dat, project) {
   #' @export
 
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  
   if (is.character(dat) == TRUE) {
     if (is.null(dat) == TRUE | table_exists(dat, project) == FALSE) {
       print(DBI::dbListTables(fishset_db))
@@ -586,7 +638,6 @@ data_pull <- function(dat, project) {
   } else {
     dataset <- dat
   }
-  DBI::dbDisconnect(fishset_db)
 
   if (is.character(dat) == TRUE) {
     dat <- dat
@@ -1242,7 +1293,7 @@ deparse_name <- function(dat) {
 }
 #Find project directories
 
-list.dirs <- function(path=".", pattern=NULL, all.dirs=FALSE,
+list_dirs <- function(path=".", pattern=NULL, all.dirs=FALSE,
                       full.names=FALSE, ignore.case=FALSE) {
   #' Find directories
   #' @param path file path
