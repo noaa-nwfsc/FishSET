@@ -172,6 +172,8 @@ write_dat <- function (dat, path=NULL, file_type = "csv", project, ...) {
   #'@importFrom R.matlab writeMat
   #'@importFrom shiny isRunning
   #'@importFrom utils write.table
+  #'@importFrom geojsonio geojson_json
+  #'@importFrom sf st_write
   #'@export
   #'@details  
   #' Leave \code{path = NULL} to save \code{dat} to the \code{data} folder in the \project{directory}
@@ -221,7 +223,12 @@ write_dat <- function (dat, path=NULL, file_type = "csv", project, ...) {
     
   } else if (file_type == 'geojson') {
    
-     sf::st_write(dataset, dsn = paste0(path, dat, ".geojson"))
+    sf::st_write(dataset, dsn = paste0(path, dat, ".geojson"))
+    
+  } else if (file_type == 'shape') {
+    #Convert to geojson and then save
+    dataset <- geojsonio::geojson_json(dataset)
+    sf::st_write(dataset, dsn = paste0(path, dat, ".geojson"))
     
   } else if (file_type == "stata") {
     
