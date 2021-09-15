@@ -939,7 +939,7 @@ conf_cache_len <- length(get_confid_cache())
           
         } else if (input$loadmainsource == 'FishSET database') {
           
-          if (!is.null(suppressWarnings(projects()))) {
+          if (length(projects()) > 0) {
             
             selectInput("project_select", "Select project", choices = projects())
             
@@ -949,26 +949,11 @@ conf_cache_len <- length(get_confid_cache())
           }
         }
       })
-      
+     
       observe({
-        req(input$loadmainsource)
-        
-        shinyjs::toggleState("loadDat", {
-          
-          if (input$loadmainsource == 'FishSET database') {
-            
-            !is.null(input$project_select)
-
-          } else if (input$loadmainsource == 'Upload new file') {
-
-            if (!is.null(input$maindat$datapath)) {
-              
-              !is.null(input$projectname) & input$projectname != ""
-
-            } else FALSE
-          }
-        })
+        shinyjs::toggleState("loadDat", (!is.null(input$projectname)|input$projectname!="") && !is.null(input$project_select) && !is.null(project$name))
       })
+      
       
       
       output$main1 <- renderUI({
