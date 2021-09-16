@@ -192,14 +192,14 @@ source("map_viewer_app.R", local = TRUE)
                                "Close app"
                              ),
                              
-                             # shinyjs::disabled(
-                                tags$button(
-                                  id = 'loadDat',
-                                  type = "button",
-                                  style = "color: white; background-color: blue;",
-                                  class = "btn action-button",
-                                  "Load data"),
-                             # ),
+                             
+                             tags$button(
+                               id = 'loadDat',
+                               type = "button",
+                               style = "color: white; background-color: blue;",
+                               class = "btn action-button",
+                               "Load data"),
+                             
                              
                              actionButton("delete_tabs_bttn", "Manage Tables",
                                           style = "color: white; background-color: blue;"),
