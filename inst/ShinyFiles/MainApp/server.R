@@ -939,7 +939,7 @@ conf_cache_len <- length(get_confid_cache())
           
         } else if (input$loadmainsource == 'FishSET database') {
           
-          if (length(projects()) > 0) {
+          if (length(suppressWarnings(projects())) > 0) {
             
             selectInput("project_select", "Select project", choices = projects())
             
@@ -949,49 +949,6 @@ conf_cache_len <- length(get_confid_cache())
           }
         }
       })
-      
-      proj_name_missing <- reactive({
-        
-        req(input$loadmainsource)
-        
-        if (input$loadmainsource == 'FishSET database') {
-          
-          !is.null(input$project_select)
-          
-        } else if (input$loadmainsource == 'Upload new file') {
-          
-          if (!is.null(input$maindat$datapath)) {
-            
-            !is.null(input$projectname) & input$projectname != ""
-            
-          } else FALSE
-        }
-        
-      })
-      
-      # observe({
-      #   
-      #   shinyjs::toggleState("loadDat", proj_name_missing())
-      # })
-      # 
-      # observeEvent(proj_name_missing() == TRUE, {
-      #   
-      #   if (input$loadmainsource == 'FishSET database') {
-      #     
-      #     showNotification("No project found. Please upload a new file.", 
-      #                      type = 'message', duration = 10)
-      #     
-      #   } else if (input$loadmainsource=='Upload new file') {
-      #     
-      #     showNotification("Please enter a project name.", type='message', duration=10)
-      #   }
-      # }, ignoreInit = TRUE)
-     
-      # observe({
-      #   shinyjs::toggleState("loadDat", (!is.null(input$projectname)|input$projectname!="") && 
-      #                          !is.null(input$project_select) && !is.null(project$name))
-      # })
-      
       
       
       output$main1 <- renderUI({
@@ -1006,6 +963,7 @@ conf_cache_len <- length(get_confid_cache())
       }
       })
       
+      # assign project name
       observeEvent(c(input$loadmainsource, input$project_select, input$loadDat), {
         req(vars$counter)
         req(input$loadmainsource)
@@ -1044,13 +1002,16 @@ conf_cache_len <- length(get_confid_cache())
           
         } else if (input$loadmainsource=='FishSET database') {
           
-          tagList(
-            fluidRow(
-              column(5,
-                     selectInput("main_db_table", "Choose a main table",
-                                 choices = main_tables(project$name, show_all = FALSE))
-              ))
+          if (length(suppressWarnings(projects())) > 0) {
+            
+            tagList(
+              fluidRow(
+                column(5,
+                       selectInput("main_db_table", "Choose a main table",
+                                   choices = main_tables(project$name, show_all = FALSE))
+                ))
             )
+          }
         }
       })
  
@@ -1086,32 +1047,40 @@ conf_cache_len <- length(get_confid_cache())
                          "spat" = input$spat_db_table, "grid" = input$grid_db_table,
                          "aux" = input$aux_db_table)
 
-        if (!is.null(track_load$project)) {
-
-          if (track_load$project == project$name) {
-
-            if (dat_src == 'Upload new file') {
-
-              if (!is.null(dat_file) & !is.null(track_load[[dat]]$file)) {
-
-                if (track_load[[dat]]$file$datapath == dat_file$datapath) FALSE
-                else TRUE
-
+        if (dat_src == 'Upload new file') {
+          
+          if (!is.null(dat_file)) {
+            
+            if (!is.null(track_load[[dat]]$file)) {
+              
+              if (track_load[[dat]]$file$datapath == dat_file$datapath) {
+                
+                if (!is_value_empty(track_load$project)) {
+                  
+                  if (project$name == track_load$project) FALSE
+                  else TRUE
+                  
+                } else TRUE 
+                
               } else TRUE
-
-            } else if (dat_src == 'FishSET database') {
-
-              if (!is.null(track_load[[dat]]$DB)) {
-
-                if (track_load[[dat]]$DB == db_tab) FALSE
-                else TRUE
-
-              } else TRUE
-            }
-
-          } else TRUE
-
-        } else TRUE
+              
+            } else TRUE 
+            
+          } else FALSE
+          
+        } else if (dat_src == 'FishSET database') {
+          
+          if (!is.null(db_tab)) {
+            
+            if (!is.null(track_load[[dat]]$DB)) {
+              
+              if (track_load[[dat]]$DB == db_tab) FALSE
+              else TRUE
+              
+            } else TRUE
+            
+          } else FALSE
+        }
       }
       
      #Add in reactive values once data  call is is not empty
@@ -1131,7 +1100,6 @@ conf_cache_len <- length(get_confid_cache())
         }
         
         req(project$name)
-        cat("\nmain load")
    
         if (load_helper("main")) {
           
@@ -1151,19 +1119,36 @@ conf_cache_len <- length(get_confid_cache())
             }
            
           } else if (input$loadmainsource=='Upload new file' & !is.null(input$maindat)) {
-            if(input$mainadd != ''){
-              values$dataset <- do.call(read_dat, c(list(input$maindat$datapath),eval(parse(text=paste0("list(",input$mainadd, ")"))) ))
+            
+            # if (input$mainadd != '') { # change to !is_empty_value
+            if (!is_value_empty(input$mainadd)) {
+              
+              values$dataset <- do.call(read_dat, c(list(input$maindat$datapath),
+                                                    eval(parse(text=paste0("list(",input$mainadd, ")"))) ))
             } else {
+              
               values$dataset <- read_dat(input$maindat$datapath) 
             }
+            
             df_y <- input$compare
             df_compare <- ifelse(nchar(input$compare)>0, TRUE, FALSE)
             q_test <- quietly_test(load_maindata)
+            
+            qc_pass <- 
             q_test(values$dataset, over_write = input$over_write, project = project$name, 
                    compare = df_compare, y = df_y)
-            track_load$project <- project$name
-            track_load$main$file <- input$maindat
-            load_r$main <- load_r$main + 1
+            
+            if (qc_pass) {
+              
+              showNotification("Primary data saved to database.", type = "message", duration = 10)
+              track_load$project <- project$name
+              track_load$main$file <- input$maindat
+              load_r$main <- load_r$main + 1
+            
+            } else {
+              # reset values$dataset
+              values$dataset <- data.frame('var1'=0, 'var2'=0)
+            }
             
           } else if (input$loadmainsource=='Upload new file' & is.null(input$maindat)) {
             
@@ -1230,7 +1215,6 @@ conf_cache_len <- length(get_confid_cache())
         }
         
         req(project$name)
-        cat("\nport load")
         
         if (load_helper("port")) {
           
@@ -1247,19 +1231,29 @@ conf_cache_len <- length(get_confid_cache())
           } else if (input$loadportsource == 'Upload new file' & !is.null(input$portdat)) {
             # skip new file upload if user already merged multiple tables
             if (is.null(input$port_combine_save)) {
-              if(input$portadd != ""){
+              if (!is_value_empty(input$portadd)) {
                 ptdat$dataset <- do.call(read_dat, c(list(input$portdat$datapath),eval(parse(text=paste0("list(",input$portadd, ")"))) ))
               } else {
                 ptdat$dataset <- read_dat(input$portdat$datapath)
               }
               
               q_test <- quietly_test(load_port)
+              
+              qc_pass <- 
               q_test(ptdat$dataset, port_name = input$port_name, over_write = TRUE, 
                      project = project$name, compare = FALSE, y = NULL)
-              showNotification("Port data saved to database.", type = "message", 
-                               duration = 10)
-              track_load$port$file <- input$portdat
-              load_r$port <- load_r$port + 1
+              
+              if (qc_pass) {
+                
+                showNotification("Port data saved to database.", type = "message", 
+                                 duration = 10)
+                track_load$port$file <- input$portdat
+                load_r$port <- load_r$port + 1
+                
+              } else {
+                
+                ptdat$dataset <- data.frame('var1' = 0, 'var2' = 0)
+              }
             }
           }
           
@@ -1404,7 +1398,6 @@ conf_cache_len <- length(get_confid_cache())
         } #else {
           
         req(project$name)
-        cat("\nspat load")
         
         if (load_helper("spat")) {
           
@@ -1420,14 +1413,23 @@ conf_cache_len <- length(get_confid_cache())
               load_r$spat <- load_r$spat + 1
             }
             
-          } else if (input$loadspatialsource=='Upload new file' & !is.null(project$name) & (!is.null(input$spatialdat) | !is.null(input$spatialdatshape))) {
+          } else if (input$loadspatialsource=='Upload new file' & !is.null(project$name) & 
+                     (!is.null(input$spatialdat) | !is.null(input$spatialdatshape))) {
+            
              if (input$filefolder == "Upload single file") {
-               if(input$spatadd != ''){
-                 spatdat$dataset <- do.call(read_dat, c(list(input$spatialdat$datapath, is.map=TRUE), eval(parse(text=paste0("list(",input$spatadd, ")")))))
+               
+               if (!is_value_empty(input$spatadd)) {
+                 
+                 spatdat$dataset <- do.call(read_dat, c(list(input$spatialdat$datapath, is.map=TRUE), 
+                                                        eval(parse(text=paste0("list(",input$spatadd, ")")))))
+                 
                } else {
-             spatdat$dataset <- read_dat(input$spatialdat$datapath, is.map=TRUE)
+                 
+                 spatdat$dataset <- read_dat(input$spatialdat$datapath, is.map=TRUE)
                }
+               
             } else {
+              
               observe({
                 shpdf <- input$spatialdatshape
                 if(is.null(shpdf)){
@@ -1498,7 +1500,7 @@ conf_cache_len <- length(get_confid_cache())
       observeEvent(input$loadDat, {
         
         req(project$name)
-        cat("\ngrid load")
+        
         if (load_helper("grid")) {
           
           if (input$loadgridsource == 'FishSET database') {
@@ -1516,20 +1518,33 @@ conf_cache_len <- length(get_confid_cache())
             if (isTruthy(input$GridName)) {
               
               grid_name <- paste0(project$name, input$GridName)
-              if(input$gridadd != ''){
-                grddat[[grid_name]] <- do.call(read_dat, c(list(input$griddat$datapath), eval(parse(text=paste0("list(",input$gridadd, ")")))))
+              
+              if (!is_value_empty(input$gridadd)) {
+                
+                grddat[[grid_name]] <- do.call(read_dat, c(list(input$griddat$datapath), 
+                                                           eval(parse(text=paste0("list(",input$gridadd, ")")))))
               } else {
+                
                 grddat[[grid_name]] <- read_dat(input$griddat$datapath)   
               }
               
               q_test <- quietly_test(load_grid)
               
+              qc_pass <- 
               q_test(paste0(project$name, 'MainDataTable'), grid = grddat[[grid_name]], 
                      x = input$GridName, over_write = TRUE, project = project$name)
               
-              showNotification('Gridded data saved to database.', type = 'message', duration = 10)
-              track_load$grid$file <- input$griddat
-              load_r$grid <- load_r$grid + 1
+              if (qc_pass) {
+                
+                showNotification('Gridded data saved to database.', type = 'message', duration = 10)
+                track_load$grid$file <- input$griddat
+                load_r$grid <- load_r$grid + 1
+                
+              } else {
+                
+                grddat[[grid_name]] <- NULL
+                # showNotification('Gridded data was not saved to database.', type = 'warning', duration = 10)
+              }
             
             } else {
               
@@ -1589,7 +1604,7 @@ conf_cache_len <- length(get_confid_cache())
       observeEvent(input$loadDat, {
         
         req(project$name)
-        cat("\naux load")
+        
         if (load_helper("aux")) {
           
           if (input$loadauxsource=='FishSET database') {
@@ -1605,19 +1620,33 @@ conf_cache_len <- length(get_confid_cache())
           } else if (input$loadauxsource=='Upload new file' & !is.null(input$auxdat)) {
             
             if (isTruthy(input$AuxName)) {
-              if(input$auxadd != ''){
-                aux$dataset <- do.call(read_dat, c(list(input$auxdat$datapath), eval(parse(text=paste0("list(",input$auxadd, ")")))))
+              
+              if (!is_value_empty(input$auxadd)) {
+                
+                aux$dataset <- do.call(read_dat, c(list(input$auxdat$datapath), 
+                                                   eval(parse(text=paste0("list(",input$auxadd, ")")))))
               } else {
+                
                 aux$dataset <- read_dat(input$auxdat$datapath)
               }
               
               q_test <- quietly_test(load_aux)
+              
+              qc_pass <- 
               q_test(paste0(project$name, 'MainDataTable'), aux=aux$dataset, x = input$AuxName, 
                      over_write = TRUE, project = project$name)
-              showNotification('Auxiliary data saved to FishSET database.', type = 'message', duration = 10)
-              track_load$aux$file <- input$auxdat
-              load_r$aux <- load_r$aux + 1
-            
+              
+              if (qc_pass) {
+                
+                showNotification('Auxiliary data saved to FishSET database.', type = 'message', duration = 10)
+                track_load$aux$file <- input$auxdat
+                load_r$aux <- load_r$aux + 1
+                
+              } else {
+                
+                aux$dataset <- data.frame('var1' = 0, 'var2' = 0)
+              }
+              
             } else {
               
               showNotification("Please enter name for Auxiliary table.", 
