@@ -515,19 +515,19 @@ load_maindata <- function(dat, project, over_write = TRUE, compare = FALSE, y = 
       warning(paste(raw_tab_name, "was not saved. Table exists in database. Set over_write to TRUE."))
     }
     
-    tab_name <- paste0(project, "MainDataTable", 
-                       format(Sys.Date(), format = "%Y%m%d"))
+    work_tab_name <- paste0(project, "MainDataTable")
     
-    tab_exists <- table_exists(raw_tab_name, project = project)
+    work_tab_exists <- table_exists(work_tab_name, project = project)
     
-    if (tab_exists == FALSE | over_write == TRUE) {
+    if (work_tab_exists == FALSE | over_write == TRUE) {
       
-      DBI::dbWriteTable(fishset_db, tab_name, dataset, overwrite = over_write)
+      DBI::dbWriteTable(fishset_db, work_tab_name, dataset, overwrite = over_write)
   
       # log function
       load_maindata_function <- list()
       load_maindata_function$functionID <- "load_maindata"
-      load_maindata_function$args <- list(deparse(substitute(dat)), over_write, project, compare, y)
+      load_maindata_function$args <- list(deparse(substitute(dat)), over_write, 
+                                          project, compare, y)
     
       log_call(project, load_maindata_function)
       
@@ -537,21 +537,21 @@ load_maindata <- function(dat, project, over_write = TRUE, compare = FALSE, y = 
         assign(key, val, envir = as.environment(pos))
       } 
       
-      makeavail(tab_name, dataset, 1L)
+      makeavail(work_tab_name, dataset, 1L)
     
-       message("\n! Data saved to database as ", raw_tab_name, " (raw) and ", 
-           tab_name, " (working). \nTable is also in the working environment. !")
+      message("\n! Data saved to database as ", raw_tab_name, " (raw) and ", 
+              work_tab_name, " (working). \nTable is also in the working environment. !")
        
       # add to fishset_env
       if (fishset_env_exists() == FALSE)  create_fishset_env()
        
-      edit_fishset_env("dat_name", tab_name)
+      edit_fishset_env("dat_name", work_tab_name)
       invisible(TRUE)
     
     } else {
       
       warning(paste0(project, "MainDataTable was not saved. Table already exists",
-      " in database. Set over_write to TRUE."))
+                     " in database. Set over_write to TRUE."))
       invisible(FALSE)
     }
   }
