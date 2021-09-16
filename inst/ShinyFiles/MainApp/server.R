@@ -949,10 +949,48 @@ conf_cache_len <- length(get_confid_cache())
           }
         }
       })
-     
-      observe({
-        shinyjs::toggleState("loadDat", (!is.null(input$projectname)|input$projectname!="") && !is.null(input$project_select) && !is.null(project$name))
+      
+      proj_name_missing <- reactive({
+        
+        req(input$loadmainsource)
+        
+        if (input$loadmainsource == 'FishSET database') {
+          
+          !is.null(input$project_select)
+          
+        } else if (input$loadmainsource == 'Upload new file') {
+          
+          if (!is.null(input$maindat$datapath)) {
+            
+            !is.null(input$projectname) & input$projectname != ""
+            
+          } else FALSE
+        }
+        
       })
+      
+      # observe({
+      #   
+      #   shinyjs::toggleState("loadDat", proj_name_missing())
+      # })
+      # 
+      # observeEvent(proj_name_missing() == TRUE, {
+      #   
+      #   if (input$loadmainsource == 'FishSET database') {
+      #     
+      #     showNotification("No project found. Please upload a new file.", 
+      #                      type = 'message', duration = 10)
+      #     
+      #   } else if (input$loadmainsource=='Upload new file') {
+      #     
+      #     showNotification("Please enter a project name.", type='message', duration=10)
+      #   }
+      # }, ignoreInit = TRUE)
+     
+      # observe({
+      #   shinyjs::toggleState("loadDat", (!is.null(input$projectname)|input$projectname!="") && 
+      #                          !is.null(input$project_select) && !is.null(project$name))
+      # })
       
       
       
@@ -973,7 +1011,14 @@ conf_cache_len <- length(get_confid_cache())
         req(input$loadmainsource)
         if (input$loadmainsource == 'Upload new file') {
           
-          project$name <- input$projectname
+          if (is_value_empty(input$projectname)) {
+            
+            project$name <- NULL
+          
+          } else {
+            
+            project$name <- input$projectname
+          }
           
         } else if (input$loadmainsource == 'FishSET database') {
           
@@ -1086,7 +1131,8 @@ conf_cache_len <- length(get_confid_cache())
         }
         
         req(project$name)
-        
+        cat("\nmain load")
+   
         if (load_helper("main")) {
           
           if (input$loadmainsource=='FishSET database') {
@@ -1184,6 +1230,7 @@ conf_cache_len <- length(get_confid_cache())
         }
         
         req(project$name)
+        cat("\nport load")
         
         if (load_helper("port")) {
           
@@ -1353,8 +1400,11 @@ conf_cache_len <- length(get_confid_cache())
         if (!isTruthy(project$name)) {
           
           showNotification("Please enter a project name.", type = 'message', duration = 10)
-        } else {
         
+        } #else {
+          
+        req(project$name)
+        cat("\nspat load")
         
         if (load_helper("spat")) {
           
@@ -1410,7 +1460,7 @@ conf_cache_len <- length(get_confid_cache())
 ####
           }
         }
-        }
+        # }
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
 
 
@@ -1446,7 +1496,9 @@ conf_cache_len <- length(get_confid_cache())
       grddat <- reactiveValues()
       
       observeEvent(input$loadDat, {
+        
         req(project$name)
+        cat("\ngrid load")
         if (load_helper("grid")) {
           
           if (input$loadgridsource == 'FishSET database') {
@@ -1536,6 +1588,8 @@ conf_cache_len <- length(get_confid_cache())
       
       observeEvent(input$loadDat, {
         
+        req(project$name)
+        cat("\naux load")
         if (load_helper("aux")) {
           
           if (input$loadauxsource=='FishSET database') {
