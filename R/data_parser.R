@@ -353,6 +353,8 @@ save_dat <- function(dat, project) {
   
   DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable"), dat, overwrite = TRUE)
   DBI::dbWriteTable(fishset_db, paste0(project, "MainDataTable_mod", format(Sys.Date(), format = "%Y%m%d")), dat, overwrite = TRUE)
+  
+  invisible(TRUE)
 }
 
 fishset_compare <- function(x, y, compare = c(TRUE, FALSE), project) {
@@ -450,7 +452,7 @@ load_maindata <- function(dat, project, over_write = TRUE, compare = FALSE, y = 
   }
   
   # Quality Checks
-  check <- 0
+  check <- TRUE
   
   # check that names are unique in dataset
   x <- colnames(dataset)
@@ -459,12 +461,12 @@ load_maindata <- function(dat, project, over_write = TRUE, compare = FALSE, y = 
       
     warning("\nData set will not be saved to database. 
         Duplicate case-insensitive column names. Sqlite column names are case insensitive.")
-    check <- 1
+    check <- FALSE
     
   } else if (length(x) != length(unique(x))) {
     
     warning("\nVariable names are not unique.\n")
-    check <- 1
+    check <- FALSE
   }
   
   if (any(grepl("area|zone", names(dataset), ignore.case = TRUE)) == FALSE & 
@@ -472,10 +474,10 @@ load_maindata <- function(dat, project, over_write = TRUE, compare = FALSE, y = 
        any(grepl("lon", names(dataset), ignore.case = TRUE)) ==  FALSE)) {
     
     warning("Neither Latitude/Longitude or Area/Zone variables are included. Data will not be saved.")
-    check = 1
+    check <- FALSE
   }
   
-  if (check == 1) { 
+  if (check == FALSE) { 
     
     warning('Dataset not saved. Check that column names are case-insensitive unique and that latitude/longitude
           or area/zone are included.')
@@ -583,24 +585,27 @@ load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALS
   #'            compare = TRUE, y = 'pollockPortTable01012011')
   #' }
 
-  val <- 0
+   check <- TRUE
   #Load data is required
   if(is.character(dat)){
     x <- read_dat(dat)
   } else {
     x <- dat
   }
+   
   if (all(grepl("Lon", names(x), ignore.case = TRUE) == FALSE) == TRUE) {
     warning("Latitude and Longitude must be specified")
-    val <- 1
+    check <- FALSE
   }
+   
   if (is.na(table(grepl("Lon", names(x), ignore.case = TRUE))[2]) == FALSE & table(grepl("Lon", names(x), ignore.case = TRUE))[2] > 1) {
     warning("Multiple latitude or longitude columns. Only one allowed.")
-    val <- 1
+    check <- FALSE
   }
+   
   if (all(grepl("name|id|code|PORT", names(x), ignore.case = TRUE) == FALSE) == TRUE) {
     warning("Port identification not found. Check that unique port ID (name, id, code) is included.")
-    val <- 1
+    check <- FALSE
   }
 
   if (!is.numeric(port_name)) {
@@ -633,7 +638,13 @@ load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALS
     fishset_compare(x, y, compare, project = project)
   }
 
-  if (val == 0) {
+  if (check == FALSE) {
+    
+    warning("Port table not saved.")
+    invisible(FALSE)
+    
+  } else {
+    
     suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
     on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
     
@@ -644,18 +655,23 @@ load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALS
       if (fishset_env_exists() == FALSE)  create_fishset_env()
       edit_fishset_env("port_name", paste0(project, "PortTable"))
       
+      load_port_function <- list()
+      load_port_function$functionID <- "load_port"
+      load_port_function$args <- list(deparse(substitute(dat)), deparse(substitute(port_name)), 
+                                      project, over_write, compare, deparse(substitute(y)))
+      load_port_function$kwargs <- list()
+      load_port_function$output <- c("")
+      log_call(project, load_port_function)
+      
+      message("Port table saved to database")
+      invisible(TRUE)
+      
     } else {
-      warning(paste("Table not saved.", paste0(project, "PortTable"), "exists in database, and overwrite is FALSE."))
+      
+      warning(paste("Port table not saved.", paste0(project, "PortTable"), 
+                    "exists in database, and overwrite is FALSE."))
+      invisible(FALSE)
     }
-    
-    print("Data saved to database")
-    
-    load_port_function <- list()
-    load_port_function$functionID <- "load_port"
-    load_port_function$args <- list(deparse(substitute(dat)), deparse(substitute(port_name)), project, over_write, compare, deparse(substitute(y)))
-    load_port_function$kwargs <- list()
-    load_port_function$output <- c("")
-    log_call(project, load_port_function)
   }
 }
 
@@ -689,7 +705,7 @@ load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
   #' }
 
   # Call in datasets
-  val <- 0
+  check <- TRUE
 
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
@@ -698,7 +714,7 @@ load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
     if (is.null(dat) == TRUE | table_exists(dat, project) == FALSE) {
       print(DBI::dbListTables(fishset_db))
       warning(paste(dat, "not defined or does not exist. Consider using one of the tables listed above that exist in the database."))
-      val <- 1
+      check <- FALSE
     } else {
       old <- table_view(dat, project)
     }
@@ -713,10 +729,17 @@ load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
     }
 
   if (any(colnames(aux) %in% colnames(old)) == FALSE) {
+    
     warning("No shared columns. Column names do not match between two data sets.")
-    val <- 1
+    check <- FALSE
   }
-  if (val == 0) {
+  
+  if (check == FALSE) {
+    
+    warning("Auxiliary table not saved.")
+    invisible(FALSE)
+    
+  } else {
    
     #data_verification_call(x, project)
     #unique rows
@@ -724,35 +747,43 @@ load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
       print('Duplicate rows found and removed.')
       aux <- unique(aux)
     }
+    
     #unique column names
     if(length(toupper(colnames(aux))) != length(unique(toupper(colnames(aux))))){
       print('Duplicate case-insensitive column names found. Duplicate column names adjusted.')
       colnames(aux)[which(duplicated(colnames(aux)))] <- paste0(colnames(aux)[which(duplicated(colnames(aux)))], '.1')
     }
+    
     #empty variables
     if (any(apply(aux, 2, function(x) all(is.na(x))) == TRUE)) {
       print(names(which(apply(aux, 2, function(x) all(is.na(x))) == TRUE)), 'is empty and was removed.')
       aux <- aux[,-(which(apply(aux, 2, function(x) all(is.na(x))) == TRUE))]
     }
-    
 
     if (table_exists(paste0(project, x), project) == FALSE | over_write == TRUE) {
-      DBI::dbWriteTable(fishset_db, paste0(project, x, format(Sys.Date(), format = "%Y%m%d")), aux, overwrite = over_write)
-      DBI::dbWriteTable(fishset_db, paste0(project, x), aux, overwrite = over_write)
+      
+      DBI::dbWriteTable(fishset_db, paste0(project, x, "AuxTable", format(Sys.Date(), format = "%Y%m%d")), 
+                        aux, overwrite = over_write)
+      
+      DBI::dbWriteTable(fishset_db, paste0(project, x, "AuxTable"), aux, overwrite = over_write)
       
       if (fishset_env_exists() == FALSE)  create_fishset_env()
       edit_fishset_env("aux_name", paste0(project, x))
       
-      print("Data saved to database")
+      load_aux_function <- list()
+      load_aux_function$functionID <- "load_aux"
+      load_aux_function$args <- list(deparse_name(dat), deparse_name(aux), x, over_write, project)
+      log_call(project, load_aux_function)
+      
+      message("Auxiliary table saved to database.")
+      invisible(TRUE)
+      
     } else {
-      warning(paste("Table not saved.", paste0(project, x), "exists in database, and overwrite is FALSE."))
+      
+      warning(paste("Table not saved.", paste0(project, x), 
+                    "exists in database, and overwrite is FALSE."))
+      invisible(FALSE)
     }
-
-
-    load_aux_function <- list()
-    load_aux_function$functionID <- "load_aux"
-    load_aux_function$args <- list(deparse_name(dat), deparse_name(aux), x, over_write, project)
-    log_call(project, load_aux_function)
   }
 }
 
@@ -782,7 +813,7 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
   #' \dontrun{
   #' load_grid(dat = 'pcodMainDataTable', x = SeaSurfaceTemp, over_write = TRUE, project = 'pcod')
   #' }
-  val <- 0
+  check <- TRUE
   fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
@@ -790,7 +821,7 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
     if (is.null(dat) == TRUE | table_exists(dat, project) == FALSE) {
       print(DBI::dbListTables(fishset_db))
       warning(paste(dat, "not defined or does not exist. Consider using one of the tables listed above that exist in the database."))
-      val <- 1
+      check <- FALSE
     } else {
       old <- table_view(dat, project)
     }
@@ -800,15 +831,23 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
 
   #if (any(colnames(grid) %in% colnames(old)) == FALSE) {
     message("Column names must match zone IDs. Optional secondary dimension must match a variable in the primary dataset.")
- #   val <- 1
+ #   check <- FALSE
  # }
 
     if(is.character(grid)){
+      
       grid <- read_dat(grid)
     } else {
       grid <- grid
     }
-  if (val == 0) {
+    
+  if (check == FALSE) { 
+    
+    warning("Grid table not saved.")
+    invisible(FALSE)
+    
+  } else {
+    
     #data_verification_call(x, project)
     #unique rows
     if(dim(grid)[1] != dim(unique(grid))[1]){
@@ -828,20 +867,26 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
     
 
     if (table_exists(paste0(project, x), project) == FALSE | over_write == TRUE) {
-      DBI::dbWriteTable(fishset_db, paste0(project, x), grid, overwrite = over_write)
+      
+      DBI::dbWriteTable(fishset_db, paste0(project, x, "GridTable"), grid, overwrite = over_write)
       
       if (fishset_env_exists() == FALSE)  create_fishset_env()
       edit_fishset_env("grid_name", paste0(project, x))
       
-      print("Data saved to database")
+      load_gridded_function <- list()
+      load_gridded_function$functionID <- "load_grid"
+      load_gridded_function$args <- list(deparse_name(dat), deparse_name(grid), x, over_write, project)
+      log_call(project, load_gridded_function)
+      
+      message("Grid table saved to database.")
+      invisible(TRUE)
+      
     } else {
-      warning(paste("Table not saved.", paste0(project, x), "exists in database, and overwrite is FALSE."))
+      
+      warning(paste("Grid table not saved.", paste0(project, x), 
+                    "exists in database, and overwrite is FALSE."))
+      invisible(FALSE)
     }
-
-    load_gridded_function <- list()
-    load_gridded_function$functionID <- "load_grid"
-    load_gridded_function$args <- list(deparse_name(dat), deparse_name(grid), x, over_write, project)
-    log_call(project, load_gridded_function)
   }
 }
 
