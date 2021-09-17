@@ -127,18 +127,18 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
                for(k in 1:length(d)) {  
                 d[k] <- unlist(s)[k]
               }} else {
-                message('Insuffience scaling factor values supplied. Defaulting to 2*sd.')
+                message('Insufficient scaling factor values supplied. Defaulting to 2*sd.')
                 
             }
         return(d)
           }
       
-    if(use.scalers == FALSE && !is.null(scaler.value)){
+    if(use.scalers == TRUE && !is.null(scaler.value)){
           if(length(scaler.value) <= i){
           
           x_temp[[i]]$scales <- scale.func(s = scaler.value[[i]], d=x_temp[[i]]$scales)
           }
-         } else {
+         } else if(use.scalers == FALSE) {
         for(k in 1:length(x_temp[[i]]$scales)) { 
           x_temp[[i]]$scales[k] <- 1
           }
@@ -210,7 +210,7 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
           griddat = list(griddatfin = as.data.frame(x_temp[[i]][["bCHeader"]][["gridVariablesInclude"]])/x_temp[[i]]$scales[3]),
           intdat = list(as.data.frame(
             mapply("/",x_temp[[i]][["bCHeader"]][["indeVarsForModel"]],
-                   x_temp[[i]]$scales[c(3:length(x_temp[[1]]$scales))],SIMPLIFY = FALSE))),
+                   x_temp[[i]]$scales[c(3:length(x_temp[[i]]$scales))],SIMPLIFY = FALSE))),
           pricedat = as.data.frame(x_temp[[i]][["epmDefaultPrice"]])
         )
         nexpcatch <- 1
@@ -219,7 +219,7 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
         otherdat <- list(
           griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))), # x[['bCHeader']][['gridVariablesInclude']]),
           intdat = list(as.data.frame(mapply("/",x_temp[[i]][["bCHeader"]][["indeVarsForModel"]],
-                          x_temp[[i]]$scales[c(3:length(x_temp[[1]]$scales))],SIMPLIFY = FALSE))),
+                          x_temp[[i]]$scales[c(3:length(x_temp[[i]]$scales))],SIMPLIFY = FALSE))),
           startloc = as.data.frame(x_temp[[i]][["startloc"]]),
           polyn = as.data.frame(x_temp[[i]][["polyn"]])
         )
@@ -230,7 +230,7 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
           griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))), # x[['bCHeader']][['gridVariablesInclude']]),
           intdat = list(as.data.frame(
                                   mapply("/",x_temp[[i]][["bCHeader"]][["indeVarsForModel"]],
-                                         x_temp[[i]]$scales[c(3:length(x_temp[[1]]$scales))],SIMPLIFY = FALSE)))
+                                         x_temp[[i]]$scales[c(3:length(x_temp[[i]]$scales))],SIMPLIFY = FALSE)))
         )
         nexpcatch <- 1
         expname <- fr
@@ -245,7 +245,7 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
             griddat = list(griddatfin = as.data.frame(x_temp[[i]][["gridVaryingVariables"]][[names(x_temp[[i]][["gridVaryingVariables"]])[j]]])/x_temp[[i]]$scales[3]),
             intdat = list(as.data.frame(
                            mapply("/",x_temp[[i]][["bCHeader"]][["indeVarsForModel"]],
-                                  x_temp[[i]]$scales[c(3:length(x_temp[[1]]$scales))],SIMPLIFY = FALSE)))
+                                  x_temp[[i]]$scales[c(3:length(x_temp[[i]]$scales))],SIMPLIFY = FALSE)))
           )
         }
         
@@ -276,10 +276,14 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
             starts2 <- starts2
           }
         }
+        
      
         #Explore starting parameters
         if(explorestarts==TRUE){
-          starts2 <- explore_startparams_discrete(space=space[[i]], dev=dev[[i]], breakearly=breakearly, startsr=starts2,
+          sp <- if(is.null(space[[i]])) {10} else { space[[i]] }
+          devr <- if(is.null(dev[[i]])) { 5} else { dev[[i]] }
+          
+          starts2 <- explore_startparams_discrete(space=sp, dev=devr, breakearly=breakearly, startsr=starts2,
                                                   fr=fr, d=d, otherdat=otherdat, choice=choice, project=project)
         }
         
@@ -303,7 +307,7 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
         res <- tryCatch(
           {
             stats::optim(starts2, fr.name,
-                         dat = d, otherdat = otherdat, alts = max(choice), method = x_temp[[i]][['methodname']],
+                         dat = d, otherdat = otherdat, alts = max(choice), method = as.character(x_temp[[i]][['methodname']]),
                          control = controlin, hessian = TRUE, project = project, expname = expname, mod.name = as.character(unlist(x_temp[[i]][['mod.name']]))
             )
           },
@@ -351,7 +355,9 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
         fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
         
         if (i == 1) {
+          if(table_exists(paste0(project, "modelfit"), project)){
           table_remove(paste0(project, "modelfit"), project)
+          }
           DBI::dbWriteTable(fishset_db, paste0(project, "modelfit"), mod.out)
         } else {
           out.mod <- DBI::dbReadTable(fishset_db, paste0(project, "modelfit"))

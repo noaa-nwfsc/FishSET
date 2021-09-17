@@ -4404,7 +4404,7 @@ conf_cache_len <- length(get_confid_cache())
       
       output$Inits <- renderUI({
         i = 1:numInits()
-        numwidth <- rep(1/numInits()*100, numInits())
+        numwidth <- rep((1/numInits())*100, numInits())
         numwidth <- paste("'", as.character(numwidth),"%'", collapse=", ", sep="")
         UI <- paste0("splitLayout(",
                      "cellWidths = c(",numwidth,")",",",
@@ -4641,7 +4641,7 @@ conf_cache_len <- length(get_confid_cache())
       temp <- isolate(paste0(project$name, "modelfit"))
       this_table <- reactive(
        
-        if(DBI::dbExistsTable(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name))),
+        if(DBI::dbExistsTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)),
                                               paste0(project$name, 'modelfit'))){
           data.frame(t(model_fit(project$name)))
         } else {
@@ -4934,7 +4934,7 @@ conf_cache_len <- length(get_confid_cache())
       observeEvent(input$save_final_table, {
         
         q_test <- quietly_test(check_model_data)
-        save_final$out <- q_test(dat = values$dataset,  
+        save_final$out <- q_test(dat = values$dataset,  project = project$name,
                                  uniqueID = input$final_uniqueID)
         
       })
