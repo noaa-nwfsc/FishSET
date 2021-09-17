@@ -334,53 +334,68 @@ main_tables <- function(project = NULL, show_all = TRUE) {
 }
 
 
-fishset_tables <- function() {
+fishset_tables <- function(project = NULL) {
   #' Show all SQL Tables in fishset_db with project name and table type
   #' 
   #' Returns a data frame containing all tables along with their project names
   #' and table type.
   #'
+  #'@param project Project name. If NULL, tables from all available projects will
+  #'  be displayed. 
   #'@importFrom stringr str_extract
   #'@export
   
   # dataframe containing all sql tables 
-  db_tabs <- data.frame(table = tables_database(project))
   
-  # add a project column
-  p_regex <- paste0(projects(), collapse = "|")
-  
-  p_str <- stringr::str_extract(db_tabs$table, p_regex)
-  p_str[is.na(p_str)] <- "no project"
-  db_tabs$project <- p_str
-  
-  # add a type column (order matters)
-  db_type <- c("MainDataTableInfo", "MainDataTable_raw", "MainDataTable_final", 
-               "MainDataTable", "ExpectedCatch", "altmatrix", "PortTable", "port", 
-               "ldglobalcheck", "FleetTable", "modelOut", "modelfit", "modelinputdata", 
-               "modelDesignTable", "FilterTable", "GridTable", "AuxTable")
-  
-  t_regex <- paste0(db_type, collapse = "|")
-  t_str <- stringr::str_extract(db_tabs$table, t_regex)
-  t_str[is.na(t_str)] <- "other"
-  
-  t_str <- 
-    vapply(t_str, function(i) {
+  if (length(projects()) > 0) {
+    
+    if (is.null(project)) {
       
-      switch(i, 
-             "MainDataTable" = "main table", "MainDataTable_final" = "final table", 
-             "MainDataTable_raw" = "raw table", "ExpectedCatch" = "expected catch matrix", 
-             "altmatrix" = "alt choice matrix", "PortTable" = "port table", 
-             "port" = "port table", "MainDataTableInfo" = "info table",
-             "FilterTable" = "filter table", "ldglobalcheck" = "global check", 
-             "FleetTable" = "fleet table", "modelOut" = "model output", 
-             "modelfit" = "model fit", "modelinputdata" = "model data", 
-             "modelDesignTable" = "model design", "other" = "other",
-             "GridTable" = "grid table", "AuxTable" = "aux table")
-    }, character(1))
-  
-  db_tabs$type <- t_str
-  
-  db_tabs[c("project", "type")] <- lapply(db_tabs[c("project", "type")], as.factor)
-  
-  db_tabs
+      db_tabs <- unlist(lapply(projects(), tables_database)) 
+      
+    } else {
+      
+      db_tabs <- tables_database(project)
+    }
+    
+    db_tabs <- data.frame(table = db_tabs)
+    
+    # add a project column
+    p_regex <- paste0(projects(), collapse = "|")
+    
+    p_str <- stringr::str_extract(db_tabs$table, p_regex)
+    p_str[is.na(p_str)] <- "no project"
+    db_tabs$project <- p_str
+    
+    # add a type column (order matters)
+    db_type <- c("MainDataTableInfo", "MainDataTable_raw", "MainDataTable_final", 
+                 "MainDataTable", "ExpectedCatch", "altmatrix", "PortTable", "port", 
+                 "ldglobalcheck", "FleetTable", "modelOut", "modelfit", "modelinputdata", 
+                 "modelDesignTable", "FilterTable", "GridTable", "AuxTable")
+    
+    t_regex <- paste0(db_type, collapse = "|")
+    t_str <- stringr::str_extract(db_tabs$table, t_regex)
+    t_str[is.na(t_str)] <- "other"
+    
+    t_str <- 
+      vapply(t_str, function(i) {
+        
+        switch(i, 
+               "MainDataTable" = "main table", "MainDataTable_final" = "final table", 
+               "MainDataTable_raw" = "raw table", "ExpectedCatch" = "expected catch matrix", 
+               "altmatrix" = "alt choice matrix", "PortTable" = "port table", 
+               "port" = "port table", "MainDataTableInfo" = "info table",
+               "FilterTable" = "filter table", "ldglobalcheck" = "global check", 
+               "FleetTable" = "fleet table", "modelOut" = "model output", 
+               "modelfit" = "model fit", "modelinputdata" = "model data", 
+               "modelDesignTable" = "model design", "other" = "other",
+               "GridTable" = "grid table", "AuxTable" = "aux table")
+      }, character(1))
+    
+    db_tabs$type <- t_str
+    
+    db_tabs[c("project", "type")] <- lapply(db_tabs[c("project", "type")], as.factor)
+    
+    db_tabs
+  }
 }
