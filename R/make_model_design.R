@@ -364,13 +364,13 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       
      # r <- nchar(sub("\\.[0-9]+", "", max(max(dist_out[['X']], na.rm = T), na.rm = T)))
       mscale <-2*sd(dist_out$X, na.rm = TRUE)# 10^(r - 1)
-      
+
       # scales data r in
       # r <- regexp(arrayfun(@num2str,nanmax(dataPerZone),'UniformOutput',false),'\\.','split')){){
       # dscale <- cellfun(@(x) 10^length(x{1}-1),r)
       #r <- nchar(sub("\\.[0-9]+", "", max(max(dist_out[['X']], na.rm = T), na.rm = T)))
-      dscale <- lapply((bCHeader$indeVarsForModel), function(x) 2*sd(x, na.rm=TRUE))#10^(nchar(sub("\\.[0-9]+", "", max(max(x, na.rm = T), na.rm = T)))-1))
-      
+      dscale <- as.numeric(lapply((bCHeader$indeVarsForModel), function(x) 2*sd(x, na.rm=TRUE))) #10^(nchar(sub("\\.[0-9]+", "", max(max(x, na.rm = T), na.rm = T)))-1))
+      dscale <- if(dscale ==0 ) {1} else {dscale}
       ### -- Create output list --- ###
       modelInputData_tosave <- list(
         likelihood = likelihood,

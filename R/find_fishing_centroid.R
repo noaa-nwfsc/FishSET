@@ -18,7 +18,7 @@
 #' @importFrom stats ave weighted.mean
 #' @importFrom methods as
 #' @return Returns primary dataset with fishing centroid and, if \code{weight.var} is specified, the weighted fishing centroid. 
-#' @export find_centroid
+#' @export find_fishing_centroid
 #' @details Fishing centroid define the centroids by mean latitude and longitude fishing locations in each zone. 
 #'     Weighted centroid defines the centroids by the the mean latitude and longitude of fishing locations in each zone weighted by the \code{weight.var}.
 #'     The fishing and weighted centroid variables can be used anywhere latitude/longitude variables appear.
@@ -54,26 +54,26 @@ find_fishing_centroid <- function(dat, project=NULL, cat='ZoneID', weight.var = 
   
   if(x == 0){
 # Call assignment column function if zonal assignment does not exist
- if(!cat %in% names(dat)){
-   dat <- assignment_column(dat=dat, project=project, gridfile=gridfile, lon.dat=lon.dat, lat.dat=lat.dat, cat=cat, 
+ if(!cat %in% names(dataset)){
+   dataset <- assignment_column(dat=dataset, project=project, gridfile=gridfile, lon.dat=lon.dat, lat.dat=lat.dat, cat=cat, 
                      closest.pt = FALSE, bufferval = NULL, lon.grid = lon.grid, lat.grid = lat.grid)
    cat <- 'ZoneID'
  }
 
   
   # Weighted centroid
-        dat$weight_cent_lon <- stats::ave(dat[c(lon.dat, weight.var)], dat[[cat]],
+    dataset$weight_cent_lon <- stats::ave(dataset[c(lon.dat, weight.var)], dataset[[cat]],
                                    FUN = function(x) stats::weighted.mean(x[[lon.dat]], x[[weight.var]])
         )[[1]]
-        dat$weight_cent_lat <- stats::ave(dat[c(lat.dat, weight.var)], dat[[cat]],
+    dataset$weight_cent_lat <- stats::ave(dataset[c(lat.dat, weight.var)], dataset[[cat]],
                                    FUN = function(x) stats::weighted.mean(x[[lat.dat]], x[[weight.var]])
         )[[1]]
 
 
     #Fishing centroid
-            dat$fish_cent_lon <- stats::ave(dat[c(lon.dat)], dat[[cat]],
+    dataset$fish_cent_lon <- stats::ave(dataset[c(lon.dat)], dataset[[cat]],
                                        FUN = function(x) stats::ave(x[[lon.dat]]))[[1]]
-            dat$fish_cent_lat <- stats::ave(dat[c(lat.dat)], dat[[cat]],
+    dataset$fish_cent_lat <- stats::ave(dataset[c(lat.dat)], dataset[[cat]],
                                        FUN = function(x) stats::ave(x[[lat.dat]]))[[1]]
  
     fish_centroid_function <- list()
@@ -82,6 +82,6 @@ find_fishing_centroid <- function(dat, project=NULL, cat='ZoneID', weight.var = 
                                          gridfile, lon.grid, lat.grid)
     log_call(project, fish_centroid_function)
 
-  return(dat)
+  return(dataset)
   }
 }

@@ -78,11 +78,11 @@ checklist <- function(project, modDesignTab = NULL) {
  
   } else if (ec_required == FALSE & ec_exists == FALSE) {
     
-    check$expect_catch$msg <- 
-      paste0("ExpectedCatch matrix does not exist for project '", project,"'.",
-             " (Only required for the logit_c likelihood function). To include an ",
-             "ExpectedCatch matrix in your model, run create_expectations() in ", 
-             "the console or go to the \"Expected Catch/Revenue\" tab of the app.")
+    check$expect_catch$msg <- "Expected catch matrix not required for the specified models."
+      #paste0("ExpectedCatch matrix does not exist for project '", project,"'.",
+      #       " (Only required for the conditional logit likelihood function). To include an ",
+      #       "ExpectedCatch matrix in your model, run create_expectations() in ", 
+      #       "the console or go to the \"Expected Catch/Revenue\" tab of the app.")
     check$expect_catch$pass <- TRUE
   
   } else check$expect_catch$pass <- TRUE
