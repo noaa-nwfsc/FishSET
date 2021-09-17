@@ -4612,7 +4612,7 @@ conf_cache_len <- length(get_confid_cache())
       temp <- isolate(paste0(project$name, "modelfit"))
       this_table <- reactive(
        
-        if(DBI::dbExistsTable(DBI::dbGetQuery(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name))),
+        if(DBI::dbExistsTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)),
                                               paste0(project$name, 'modelfit'))){
           data.frame(t(model_fit(project$name)))
         } else {
