@@ -512,24 +512,28 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
          )
     
     ind <- vapply(out, function(x) !is.null(x), logical(1))
+    out_nms <- names(ind[ind][-1])# skip main data
     
     # save output ----
-    lapply(names(out[names(ind[-1])]), function(nm) { # skip dataset
+    lapply(out_nms, function(nm) {
       
-      if (is.data.frame(out[[nm]])) {
+      if (!is.null(out[[nm]])) {
         
-        save_table(out[[nm]], project, paste0("spatial_qaqc_", nm))
-      
-      } else if (nm %in% c("land_ind", "outside_ind", "bound_ind", "dist_vector")) {
-        
-        out_ind <- data.frame(out[[nm]]) 
-        names(out_ind) <- nm
-        
-        save_table(out_ind, project, paste0("spatial_qaqc_", nm))
-        
-      } else {
-        
-        save_plot(project, paste0("spatial_qaqc_", nm), plot = out[[nm]])
+        if (is.data.frame(out[[nm]])) {
+          
+          save_table(out[[nm]], project, paste0("spatial_qaqc_", nm))
+          
+        } else if (nm %in% c("land_ind", "outside_ind", "bound_ind", "dist_vector")) {
+          
+          out_ind <- data.frame(out[[nm]]) 
+          names(out_ind) <- nm
+          
+          save_table(out_ind, project, paste0("spatial_qaqc_", nm))
+          
+        } else {
+          
+          save_plot(project, paste0("spatial_qaqc_", nm), plot = out[[nm]])
+        }
       }
     })
     
