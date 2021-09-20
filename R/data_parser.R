@@ -176,7 +176,7 @@ write_dat <- function (dat, path=NULL, file_type = "csv", project, ...) {
   #'@importFrom sf st_write
   #'@export
   #'@details  
-  #' Leave \code{path = NULL} to save \code{dat} to the \code{data} folder in the \project{directory}
+  #' Leave \code{path = NULL} to save \code{dat} to the \code{data} folder in the \code{project} directory
   #'See \code{\link[utils]{write.table}}  for csv and tab-separated files, 
   #'    \code{\link[base]{save}} for R data files, 
   #'    \code{\link[openxlsx]{write.xlsx}},
