@@ -112,13 +112,13 @@ temp_plot <- function(dat, project, var.select, len.fun = c("length", "unique", 
     # plots ----
   
     
-    t_plot <- plot_helper(dataset, len_df, agg_df, var.select, date.var, agg_per, 
-                          len.fun, agg.fun)
+    t_plot <- temp_plot_helper(dataset, len_df, agg_df, var.select, date.var, agg_per, 
+                               len.fun, agg.fun, plot_by_yr)
     
     if (suppress) {
       
-      conf_plot <- plot_helper(dataset, len_conf$table, agg_conf$table, var.select, 
-                               date.var, agg_per, len.fun, agg.fun)
+      conf_plot <- temp_plot_helper(dataset, len_conf$table, agg_conf$table, var.select, 
+                                    date.var, agg_per, len.fun, agg.fun, plot_by_yr)
       
       save_plot(project, "temp_plot_confid", plot = conf_plot)
     }
@@ -135,4 +135,76 @@ temp_plot <- function(dat, project, var.select, len.fun = c("length", "unique", 
     
     t_plot
   }
+}
+
+temp_plot_helper <- function(dataset, len_df, agg_df, var.select, date.var, agg_per, 
+                        len.fun, agg.fun, plot_by_yr) {
+  #' plot help function for spatial plots
+  #' @param dataset dataset name
+  #' @param len_df length bar plot
+  #' @param agg_df aggregation plot
+  #' @param var.select variable
+  #' @param date.var date variable
+  #' @param agg_per character
+  #' @param len.fun length, unique, percent
+  #' @param agg.fun aggregation function
+  #' @param plot_by_yr Whether to plot by year. 
+  #' @export
+  #' @keywords interanl
+  #' @details Used in temp_plot
+  
+  # plot functions
+  
+  len_title <- switch(len.fun, "length" = "No. observations",
+                      "unique" = 'No. unique observations',
+                      "percent" = '% of total observations')
+  
+  t2 <- ifelse(plot_by_yr, "Year", "Month")
+  
+  date_sym <- rlang::sym(date.var)
+  var_sym <- rlang::sym(var.select)
+  per_sym <- rlang::sym(agg_per)
+  
+  scale_lab <- function() {
+    if (len.fun == "percent") scales::label_percent(scale = 1) 
+    else ggplot2::waiver()
+  }
+  
+  break_fun <- function() {
+    if (plot_by_yr) unique(dataset$year)
+    else levels(dataset$month)[seq(1, length(levels(dataset$month)), 3)]
+  }
+  
+  # scatter plot
+  p1 <- 
+    ggplot2::ggplot(dataset, ggplot2::aes(x = !!date_sym, y = !!var_sym)) +
+    ggplot2::geom_point() +
+    ggplot2::labs(subtitle = paste(var.select, "by Date"), 
+                  x = "Date", y = var.select) +
+    fishset_theme()
+  
+  # length bar plot
+  p2 <- 
+    ggplot2::ggplot(len_df, ggplot2::aes(x = !!per_sym, y = !!var_sym)) +
+    ggplot2::geom_bar(stat = "identity") +
+    ggplot2::labs(subtitle = paste(len_title, "by", tolower(t2)), 
+                  x = t2, y = "") +
+    ggplot2::scale_y_continuous(labels = scale_lab()) +
+    ggplot2::scale_x_discrete(breaks = break_fun()) +
+    fishset_theme()
+  
+  if (!is.numeric(dataset[[var.select]])) p3 <- NULL
+  else {
+    # agg bar plot
+    p3 <- 
+      ggplot2::ggplot(agg_df, ggplot2::aes(x = !!per_sym, y = !!var_sym)) +
+      ggplot2::geom_bar(stat = "identity") +
+      ggplot2::labs(subtitle = paste(simpleCap(agg.fun),"of value by", tolower(t2)),
+                    x = t2, y = "") +
+      ggplot2::scale_x_discrete(breaks = break_fun()) +
+      fishset_theme()
+  }
+  t_plot <- suppressWarnings(ggpubr::ggarrange(p1, p2, p3, ncol = 3, nrow = 1))
+  
+  t_plot
 }
