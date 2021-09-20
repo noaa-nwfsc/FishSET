@@ -1475,7 +1475,8 @@ conf_cache_len <- length(get_confid_cache())
                                column(5, fileInput("griddat", "Choose data file that varies over two dimensions (gridded)",
                                                    multiple = FALSE, placeholder = 'Optional data')),
                                column(7, offset=4, textInput('gridadd', div(style = "font-size:14px;  font-weight: 400;", 
-                                                                  'Additional arguments for reading in data'), placeholder="header=T, sep=';', skip=2")),
+                                                                            'Additional arguments for reading in data'), 
+                                                             placeholder="header=T, sep=';', skip=2")),
                                column(5, uiOutput('ui.actionG'))
                              ))
           ),
@@ -1689,13 +1690,21 @@ conf_cache_len <- length(get_confid_cache())
       }
       
       observeEvent(input$delete_tabs_bttn, {
-        dbTab$tabs <- fishset_tables()
         
-        show_delete_modal()
+        if (length(suppressWarnings(projects())) == 0) {
+          
+          showNotification("No project tables found.", type = "message")
         
-        output$dbTables <- DT::renderDT(dbTab$tabs,
-                                        filter = "top", style = 'bootstrap', 
-                                        class = 'table-bordered table-condensed table-hover table-striped')
+          } else {
+          
+            dbTab$tabs <- fishset_tables()
+            
+            show_delete_modal()
+            
+            output$dbTables <- DT::renderDT(dbTab$tabs,
+                                            filter = "top", style = 'bootstrap', 
+                                            class = 'table-bordered table-condensed table-hover table-striped')
+        }
       })
       
       observeEvent(input$delete_tab_mod, {
