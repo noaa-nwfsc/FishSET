@@ -89,7 +89,7 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
                          type = "bar", scale = "fixed", output = "tab_plot") {
   
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
