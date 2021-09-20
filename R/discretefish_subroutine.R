@@ -19,9 +19,9 @@
 #'   \code{dev} refers to how far to deviate from the average parameter values when
 #'   exploring (random normal deviates). The less certain the average parameters are,
 #'   the greater the \code{dev} argument should be.
-#' @param use.scalers Logical, should data be rescaled? Defaults to TRUE. Rescaling factors are 2*sd the numeric vector unless specified with \code{scaler}.
-#' @param scaler.value List of scaler value vectors. Values should be in the order of catch, distance, travel-distance variables, other additional variables. 
-#'    If more than one model is being specified, include as a list. For example, list(c(204, 15, 126), c(1836, 25, 111, 78)).
+#' @param use.scalers Logical, should data be noramalized? Defaults to TRUE. Rescaling factors are the mean of the numeric vector unless specified with \code{scaler}.
+#' @param scaler.func Function to calculate rescaling factors. Can be a generic function, such as mean, or a user-defined function.
+#'   User-defined functons must be specified as \code{scaler.fun = function(x, FUN=sd) 2*FUN(x)}. This example returns 2 times the standard deviation of \code{x}.
 
 #' @export discretefish_subroutine
 #' @importFrom DBI dbExecute dbWriteTable dbExistsTable dbReadTable dbGetQuery dbDisconnect
@@ -100,7 +100,7 @@
 #' }
 #'
 discretefish_subroutine <- function(project, select.model = FALSE, explorestarts = TRUE, breakearly= TRUE,
-                                    space=NULL, dev=NULL, use.scalers=TRUE, scaler.value=NULL) {
+                                    space=NULL, dev=NULL, use.scalers=TRUE, scaler.func=NULL) {
 
   if (!isRunning()) { # if run in console
     
@@ -133,18 +133,25 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
         return(d)
           }
       
-    if(use.scalers == TRUE && !is.null(scaler.value)){
-          if(length(scaler.value) <= i){
+    if(use.scalers == TRUE && !is.null(scaler.func)){
+          if(!is.character(scaler.func)){
           
-          x_temp[[i]]$scales <- scale.func(s = scaler.value[[i]], d=x_temp[[i]]$scales)
-          }
+           x_temp[[i]]$scales[1] <- scaler.func(x_temp[[i]][["catch"]])
+            x_temp[[i]]$scales[2] <-  scaler.func(x_temp[[i]][["distance"]])
+            x_temp[[i]]$scales[3] <-  scaler.func(x_temp[[i]][["bCHeader"]][["gridVariablesInclude"]])
+            if(is.list(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]])){
+              x_temp[[i]]$scales[4]:length(x_temp[[i]]$scales) <- lapply(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]], function(x) scaler.func(unlist(x)))
+            } else {
+              x_temp[[i]]$scales[4]:length(x_temp[[i]]$scales) <- scaler.func(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]]) 
+            }
+           
+          } 
          } else if(use.scalers == FALSE) {
         for(k in 1:length(x_temp[[i]]$scales)) { 
           x_temp[[i]]$scales[k] <- 1
           }
          }
       
-      print(x_temp[[i]]$scales)
       
       catch <- (data.frame(as.matrix(x_temp[[i]][["catch"]])))/x_temp[[i]]$scales[1]
       choice <- x_temp[[i]][["choice"]]
@@ -210,7 +217,7 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
           griddat = list(griddatfin = as.data.frame(x_temp[[i]][["bCHeader"]][["gridVariablesInclude"]])/x_temp[[i]]$scales[3]),
           intdat = list(as.data.frame(
             mapply("/",x_temp[[i]][["bCHeader"]][["indeVarsForModel"]],
-                   x_temp[[i]]$scales[c(3:length(x_temp[[i]]$scales))],SIMPLIFY = FALSE))),
+                   x_temp[[i]]$scales[c(4:length(x_temp[[i]]$scales))],SIMPLIFY = FALSE))),
           pricedat = as.data.frame(x_temp[[i]][["epmDefaultPrice"]])
         )
         nexpcatch <- 1
@@ -219,7 +226,7 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
         otherdat <- list(
           griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))), # x[['bCHeader']][['gridVariablesInclude']]),
           intdat = list(as.data.frame(mapply("/",x_temp[[i]][["bCHeader"]][["indeVarsForModel"]],
-                          x_temp[[i]]$scales[c(3:length(x_temp[[i]]$scales))],SIMPLIFY = FALSE))),
+                          x_temp[[i]]$scales[c(4:length(x_temp[[i]]$scales))],SIMPLIFY = FALSE))),
           startloc = as.data.frame(x_temp[[i]][["startloc"]]),
           polyn = as.data.frame(x_temp[[i]][["polyn"]])
         )
@@ -230,7 +237,7 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
           griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))), # x[['bCHeader']][['gridVariablesInclude']]),
           intdat = list(as.data.frame(
                                   mapply("/",x_temp[[i]][["bCHeader"]][["indeVarsForModel"]],
-                                         x_temp[[i]]$scales[c(3:length(x_temp[[i]]$scales))],SIMPLIFY = FALSE)))
+                                         x_temp[[i]]$scales[c(4:length(x_temp[[i]]$scales))],SIMPLIFY = FALSE)))
         )
         nexpcatch <- 1
         expname <- fr
@@ -245,7 +252,7 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
             griddat = list(griddatfin = as.data.frame(x_temp[[i]][["gridVaryingVariables"]][[names(x_temp[[i]][["gridVaryingVariables"]])[j]]])/x_temp[[i]]$scales[3]),
             intdat = list(as.data.frame(
                            mapply("/",x_temp[[i]][["bCHeader"]][["indeVarsForModel"]],
-                                  x_temp[[i]]$scales[c(3:length(x_temp[[i]]$scales))],SIMPLIFY = FALSE)))
+                                  x_temp[[i]]$scales[c(4:length(x_temp[[i]]$scales))],SIMPLIFY = FALSE)))
           )
         }
         
