@@ -32,7 +32,7 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL, a
   #color gradient for mapping
  # map_color <- colors$temperature
   
-  out <- data_pull(gridfile)
+  out <- data_pull(gridfile, project)
   grid <- out$dataset
   
   gridfile <- parse_data_name(gridfile, "grid")
@@ -71,8 +71,6 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL, a
         dplyr::group_by(dplyr::across(agg_by)) %>% 
         dplyr::mutate(dplyr::across(value, mean, na.rm = TRUE))
   }
-  
- 
   
   map_out <- 
     ggmap::ggmap(grid_map) +
