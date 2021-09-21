@@ -106,15 +106,18 @@ table_exists <- function(table, project) {
 model_out_view <- function(table, project) {
   #' Load model output to console
   #'
-  #' Returns output from running \code{\link{discretefish_subroutine}}. The table argument must be the full name of the table name in the FishSET database. Output includes information on model convergence, standard errors, t-stats, etc.
-  #' @param table  Table name in FishSET database. Should contain the phrase 'modelout'. Table name must be in quotes.
+  #' Returns output from running \code{\link{discretefish_subroutine}}. The table 
+  #' argument must be the full name of the table name in the FishSET database. 
+  #' Output includes information on model convergence, standard errors, t-stats, etc.
+  #' @param table  Table name in FishSET database. Should contain the phrase 
+  #'   'modelout'. Table name must be in quotes.
   #' @param project Name of project
   #' @export
   #' @description Returns output from running the discretefish_subroutine function.
   #'   The table parameter must be the full name of the table name in the FishSET database.
   #' @examples
   #' \dontrun{
-  #' model_out_view('pcodmodelout20190604')
+  #' model_out_view('pcodmodelout20190604', 'pcod')
   #' }
   #
   if (table_exists(table, project) == FALSE) {
@@ -130,6 +133,42 @@ model_out_view <- function(table, project) {
     return(x)
   }
 }
+
+
+model_params <- function(table, project) {
+  #' Load model parameter estimates, standard errors, and t-statistic to console
+  #'
+  #' Returns parameter estimates from running \code{\link{discretefish_subroutine}}. 
+  #' The table argument must be the full name of the table name in the FishSET 
+  #' database. 
+  #' 
+  #' @param table  Table name in FishSET database. Should contain the phrase 
+  #'   'modelout'. Table name must be in quotes.
+  #' @param project Name of project
+  #' @export
+  #' @description Returns parameter estimates, standard errors, and t-statistic 
+  #'  from running the discretefish_subroutine function. The table parameter must 
+  #'  be the full name of the table name in the FishSET database.
+  #' @examples
+  #' \dontrun{
+  #' model_params('pcodmodelout20190604', 'pcod')
+  #' }
+  #'
+
+  mod_out <- model_out_view(table, project)
+  
+  if (!is.null(mod_out)) {
+    
+    params <- as.data.frame(mod_out$OutLogit)
+    
+    names(params) <- c("estimate", "std_error", "t_value") 
+    
+    params <- round(params, 3)
+    
+    params
+  }
+}
+
 
 globalcheck_view <- function(table, project) {
   #' View model error output
@@ -165,8 +204,8 @@ globalcheck_view <- function(table, project) {
 model_fit <- function(project) {
   #' Load model comparison metrics to console
   #'
-  #' Load model comparison metrics to console. Metrics are displayed for each model that was fun. 
-  #'   Metrics produced by \code{\link{discretefish_subroutine}}.
+  #' Load model comparison metrics to console. Metrics are displayed for each 
+  #' model that was fun. Metrics produced by \code{\link{discretefish_subroutine}}.
   #' @param project String, name of project.
   #' @export
   #' @examples
