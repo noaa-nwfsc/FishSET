@@ -105,7 +105,7 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
                          format_tab = "wide") {
   
   # Call in datasets
-  out <- data_pull(dat)
+  out <- data_pull(dat, project)
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main")

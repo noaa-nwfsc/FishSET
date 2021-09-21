@@ -1128,3 +1128,138 @@ view_fleet_table <- function(project) {
     
   } else message("No fleet table found.")
 }
+
+
+pull_meta <- function(project, tab.name = NULL, tab.type = NULL, format = FALSE) {
+  #' Retrieve/display meta data by project
+  #' 
+  #' @param project Project name.
+  #' @param tab.name String, table name. Optional, used to filter output to a specific
+  #'   table. 
+  #' @param tab.type String, table type. Optional, used to filter output. Options 
+  #'   include "main", "spat" (spatial), "port", "grid" (gridded), and "aux" (auxiliary).
+  #' @param format Logical, whether to format output using \code{\link[pander]{pander}}.
+  #'   Useful for displaying in reports. 
+  #' @export
+  #' @importFrom jsonlite read_json
+  #' @importFrom pander pander
+  
+  if (!is.null(tab.type) && !(tab.type %in% c("main", "port", "spat", "grid", "aux"))) {
+    
+    warning("Invalid table type. Choose \"main\", \"port\", \"spat\", \"grid\", or \"aux\".")
+    return(invisible(NULL))
+  }
+  
+  if (project_exists(project) == FALSE) {
+    
+    warning("Project \"", project, "\" does not exist.")
+    invisible(FALSE)
+    
+  } else {
+    
+    m_file <- paste0(locproject(), "/", project, "/doc/meta_log.json")
+    
+    if (!file.exists(m_file)) {
+      
+      warning("A meta log does not exist for project\"", project, ".\"")
+      invisible(FALSE)
+      
+    } else {
+      
+      meta_log <- jsonlite::read_json(m_file)
+      
+      if (!is.null(tab.name)) {
+        
+        if (tab.name %in% names(meta_log$table)) {
+          
+          meta_log <- meta_log$table[[tab.name]]
+          
+        } else {
+          
+          warning(paste0("Table '", tab.name, "' not found." ))
+          return(invisible(NULL))
+        }
+        
+      } else if (!is.null(tab.type)) {
+        
+        ind <- vapply(meta_log$table, function(x) x$type == tab.type, logical(1))
+        
+        meta_log <- meta_log$table[ind]
+      } 
+      
+      if (format) pander::pander(meta_log)
+      else meta_log
+    }
+  }
+}
+
+
+delete_meta <- function(project, tab.name = NULL, delete_file = FALSE) {
+  #' Delete table meta data or project meta file
+  #' 
+  #' @param project Project name.
+  #' @param tab.name String, table name. 
+  #' @param delete_file Logical, whether to delete project meta file. 
+  #' @export
+  #' @importFrom jsonlite read_json toJSON
+  
+  if (project_exits(project) == FALSE) {
+    
+    warning("Project \"", project, "\" does not exist.")
+    invisible(FALSE)
+    
+  } else {
+    
+    m_file <- paste0(locproject(), "/", project, "/doc/meta_log.json")
+    
+    if (!file.exists(m_file)) {
+      
+      warning("A meta log does not exist for project\"", project, ".\"")
+      invisible(FALSE)
+      
+    } else {
+      
+      if (is.null(tab.name) & delete_file) { # remove meta file
+        
+        unlink(m_file)
+        message("metadata removed.")
+        invisible(TRUE)
+        
+      } else {
+        
+        if (is.null(tab.name)) {
+          
+          warning("Please specific table.")
+          return(invisible(FALSE))
+        }
+        
+        meta_log <- jsonlite::read_json(m_file)
+        
+        if (!(tab.name %in% names(meta_log$table))) {
+          
+          warning(paste0("Table '", tab.name, "' not found"))
+          invisible(FALSE)
+          
+        } else {
+          
+          if (length(meta_log$table) == 1) {
+            
+            unlink(m_file)
+            message(paste(tab.name, "metadata removed."))
+            invisible(TRUE)
+            
+          } else {
+            
+            meta_log$table[[tab.name]] <- NULL
+            meta_log <- jsonlite::toJSON(meta_log, pretty = TRUE, auto_unbox = TRUE, 
+                                         null = "null", na = "string")
+            
+            write(meta_log, m_file)
+            message(paste(tab.name, "metadata removed."))
+            invisible(TRUE)
+          }
+        }
+      }
+    } 
+  }
+}
