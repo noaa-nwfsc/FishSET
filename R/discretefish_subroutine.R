@@ -462,6 +462,17 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
         if (table_exists(raw_sql, project)) {
           table_remove(raw_sql, project)
         }
+        
+        # save param ests, se, and t-vals to output folder
+        if (!is.null(OutLogit)) {
+          
+          params_out <- as.data.frame(OutLogit)
+          names(params_out) <- c("estimate", "std_error", "t_value") 
+          params_out <- round(params_out, 3)
+          
+          save_table(params_out, project, x_temp[[i]]$mod.name)
+        }
+        
         second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
         raw_second_sql <- paste("INSERT INTO", raw_sql, "VALUES (:data)")
         DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(data modelOut)"))
