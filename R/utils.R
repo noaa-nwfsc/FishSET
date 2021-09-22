@@ -203,7 +203,6 @@ loc_data <- function(project) {
   #' @keywords internal
   #' @export
   #' @details if loc2 is not in the working environment, then the default location is use
-  #' @examples
   
   
   if(is.null(project)){

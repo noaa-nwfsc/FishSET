@@ -12,7 +12,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
   #'    spss, stata, and html, and XML data extensions do not have to be specified. 
   #' @param is.map logical, set \code{is.map} to TRUE if data is a spatial file.  
   #'   Spatial files ending in .json will not be read in properly unless \code{is.map} is true.
-  #' @param save 
+  # @param save 
   #' @param drv Use with sql files. Database driver.
   #' @param dbname Use with sql files. If required, database name.
   #' @param user Use with sql files.  If required, user name for SQL database.
