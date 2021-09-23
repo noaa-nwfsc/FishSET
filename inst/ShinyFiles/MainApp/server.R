@@ -4739,30 +4739,55 @@ conf_cache_len <- length(get_confid_cache())
 
       #Add in two more tables for model evaulations
       mod_sum_out <- reactive({
-        if(DBI::dbExistsTable(suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name))), 
-                              paste0(project$name, 'modelOut', format(Sys.Date(), format="%Y%m%d")))){
-          model_out_view(paste0(project$name, 'modelOut', format(Sys.Date(), format="%Y%m%d")), project$name)#
-      } else {
+        
+        tab <- paste0(project$name, 'modelOut', format(Sys.Date(), format="%Y%m%d"))
+                      
+        if (table_exists(tab, project$name)) {
+          
+          model_out_view(tab, project$name)
+          
+        } else {
          data.frame('var1'=0, 'var2'=0)
-      }
+        }
       })
       
       output$modeltab <- DT::renderDT({
-        modeltab <- data.frame(Model_name=rep(NA, length(mod_sum_out())), Covergence=rep(NA, length(mod_sum_out())), 
-                               Stand_Errors=rep(NA, length(mod_sum_out())), Hessian=rep(NA, length(mod_sum_out())))
-        #if(dim(mod_sum_out())[2]>2){
-        #  modeltab[i,1] <- mod_sum_out()[[i]]$name
-        if(is.data.frame(mod_sum_out())){
+        
+        modeltab <- data.frame(Model_name=rep(NA, length(mod_sum_out())), 
+                               Covergence=rep(NA, length(mod_sum_out())), 
+                               # Stand_Errors=rep(NA, length(mod_sum_out())), 
+                               Estimates=rep(NA, length(mod_sum_out())), 
+                               Hessian=rep(NA, length(mod_sum_out())))
+        
+        if (is.data.frame(mod_sum_out())) {
+          
           modeltab <- modeltab
+          
         } else {
-        for(i in 1:length(mod_sum_out())){
-          modeltab[i,1] <- mod_sum_out()[[i]]$name
-          modeltab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
-          modeltab[i,3] <- toString(round(mod_sum_out()[[i]]$seoutmat2,3))
-          modeltab[i,4] <- toString(round(mod_sum_out()[[i]]$H1,5))
-        }}
+          
+          for(i in 1:length(mod_sum_out())){
+            
+            modeltab[i,1] <- mod_sum_out()[[i]]$name
+            modeltab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
+            
+            # modeltab[i,3] <- toString(round(mod_sum_out()[[i]]$seoutmat2,3))
+            # modeltab[i,4] <- toString(round(mod_sum_out()[[i]]$H1,5))
+            
+            choice_nms <- levels(factor(mod_sum_out()[[i]]$choice.table[, 1]))
+            
+            par_tab <- round(mod_sum_out()[[i]]$OutLogit, 3)
+            colnames(par_tab) <- c("estimate", "std_error", "t_value") 
+            rownames(par_tab) <- choice_nms
+            modeltab[i,3] <- to_html_table(par_tab, rownames = TRUE)
+            
+            hess <- round(mod_sum_out()[[i]]$H1, 5)
+            colnames(hess) <- choice_nms
+            modeltab[i,4] <- to_html_table(hess)
+          }
+        }
+        
         return(modeltab)
-      })
+      }, escape = FALSE)
       
       
       output$errortab <- DT::renderDT({

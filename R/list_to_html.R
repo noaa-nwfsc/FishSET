@@ -1,7 +1,9 @@
-to_html_table <- function(x) {
+to_html_table <- function(x, rownames = FALSE) {
   #' Convert dataframe/matrix to html table
   #' 
   #' @param x A vector or list object.
+  #' @param rownames Logical, whether to show rownames. 
+  #' @export
   #' @importFrom htmltools HTML
   #' @importFrom shiny renderTable
   #' @keywords internal
@@ -21,7 +23,7 @@ to_html_table <- function(x) {
   
   if (is.data.frame(x)) {
     
-    htmltools::HTML(shiny::renderTable(x)())
+    htmltools::HTML(shiny::renderTable(x, rownames = rownames)())
     
   }  else x
 }
