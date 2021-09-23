@@ -468,6 +468,7 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
           
           params_out <- as.data.frame(OutLogit)
           names(params_out) <- c("estimate", "std_error", "t_value") 
+          rownames(params_out) <- levels(factor(x_temp[[i]]$choice))
           params_out <- round(params_out, 3)
           
           save_table(params_out, project, x_temp[[i]]$mod.name)
