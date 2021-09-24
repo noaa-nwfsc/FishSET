@@ -102,14 +102,16 @@
 discretefish_subroutine <- function(project, select.model = FALSE, explorestarts = TRUE, breakearly= TRUE,
                                     space=NULL, dev=NULL, use.scalers=TRUE, scaler.func=NULL) {
 
-  if (!isRunning()) { # if run in console
+end <- FALSE
+
+    if (!isRunning()) { # if run in console
     
     check <- checklist(project)
     end <- any(vapply(check, function(x) x$pass == FALSE, logical(1)))
   }
  
   if (end == FALSE) {
-    
+
     # Call in datasets
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
     x_temp <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
@@ -118,20 +120,22 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
     for (i in 1:length(x_temp)) {
       x <- x_temp[i]
 
+       
+      
       #Scalers
-      scale.func <- function(s, d){
-              if(!is.list(s)) {
-                s <- as.list(s)
-              } 
-              if(length(d) == length(s)){
-               for(k in 1:length(d)) {  
-                d[k] <- unlist(s)[k]
-              }} else {
-                message('Insufficient scaling factor values supplied. Defaulting to 2*sd.')
-                
-            }
-        return(d)
-          }
+ #     scale.func <- function(s, d){
+ #             if(!is.list(s)) {
+ #               s <- as.list(s)
+ #             } 
+ #             if(length(d) == length(s)){
+ #              for(k in 1:length(d)) {  
+ #               d[k] <- unlist(s)[k]
+ #             }} else {
+ #               message('Insufficient scaling factor values supplied. Defaulting to 2*sd.')
+ #               
+ #           }
+ #       return(d)
+ #         }
       
     if(use.scalers == TRUE && !is.null(scaler.func)){
           if(!is.character(scaler.func)){
@@ -205,6 +209,8 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
       if (fr == "logit_correction" & all(is.na(startingloc))) {
         warning("Startingloc parameter is not specified. Rerun the create_alternative_choice function")
       }
+ 
+      
       dataCompile <- create_logit_input(choice)
       
       d <- shift_sort_x(dataCompile, choice, catch, distance, max(choice), ab)
@@ -284,11 +290,11 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
           }
         }
         
-     
+        
         #Explore starting parameters
         if(explorestarts==TRUE){
-          sp <- if(is.null(space[[i]])) {10} else { space[[i]] }
-          devr <- if(is.null(dev[[i]])) { 5} else { dev[[i]] }
+          sp <- if(is.null(space[i])) {10} else { space[i] }
+          devr <- if(is.null(dev[i])) { 5} else { dev[i] }
           
           starts2 <- explore_startparams_discrete(space=sp, dev=devr, breakearly=breakearly, startsr=starts2,
                                                   fr=fr, d=d, otherdat=otherdat, choice=choice, project=project)
@@ -338,6 +344,8 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
           optim_message = res[["message"]]
         )
         H <- res[["hessian"]]
+        
+    
         #############################################################################
         # Model comparison metrics (MCM)
         param <- max(dim(as.matrix(starts2)))

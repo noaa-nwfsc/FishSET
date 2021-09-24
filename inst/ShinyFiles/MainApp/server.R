@@ -4501,7 +4501,8 @@ conf_cache_len <- length(get_confid_cache())
                                'startloc'= if(input$startlocdefined=='exists'){input$startloc_mod} else {'startingloc'}, 
                                'polyn'= input$polyn)
                     , rv$data)#model_table())
-          #print(rv$data)
+          print(rv$data)
+          print(str(rv$data))
         }
       #  rv$data(t)#model_table(t)
         
@@ -4600,35 +4601,37 @@ conf_cache_len <- length(get_confid_cache())
           toggle_inputs(input_list,F)
           #print('call model design function, call discrete_subroutine file')
 
-          q_test <- quietly_test(make_model_design)
+         # q_test <- quietly_test(make_model_design)
           
           times <- nrow(rv$data)-1
+          print(rv$data$vars1)
          
           showNotification(paste('1 of', times, 'model design files created.'), type='message', duration=10)
-          q_test(project=rv$data$project[1], catchID=rv$data$catch[1], replace=TRUE, 
-                 likelihood=rv$data$likelihood[1], optimOpt=rv$data$optimOpt[1],
-                 initparams=rv$data$inits[1], methodname =rv$data$methodname[1], mod.name = rv$data$mod_name[1],
-                 vars1=rv$data$vars1[1], vars2=rv$data$vars2[1], priceCol=rv$data$price[1], 
-                 startloc=rv$data$startloc[1], polyn=rv$data$polyn[1])
-
-          if(times>1){
-          for(i in 2:times){
-            q_test(project=rv$data$project[i], catchID=rv$data$catch[i], replace=FALSE, 
-                   likelihood=rv$data$likelihood[i], optimOpt=rv$data$optimOpt[i], 
-                   initparams=rv$data$inits[i], methodname =rv$data$methodname[i], 
-                   mod.name = rv$data$mod_name[i], vars1=rv$data$vars1[i], 
-                   vars2=rv$data$vars2[i], priceCol=rv$data$price[i], 
-                   startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
-            showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
-          }
-          }
+          make_model_design(project=as.character(rv$data$project[1]), catchID=as.character(rv$data$catch[1]), replace=TRUE, 
+                 likelihood=as.character(rv$data$likelihood[1]), initparams=as.character(rv$data$inits[1]), optimOpt=as.character(rv$data$optimOpt[1]),
+                  methodname =as.character(rv$data$methodname[1]), mod.name = as.character(rv$data$mod_name[1]),
+                 vars1=as.character(rv$data$vars1[1]), vars2=as.character(rv$data$vars2[1]), priceCol=as.character(rv$data$price[1]), 
+                 startloc=as.character(rv$data$startloc[1]), polyn=as.character(rv$data$polyn[1]))
+         
+         
+          if(times[1]>1){
+            for(i in 2:times){
+            
+              make_model_design(project=as.character(rv$data$project[i]), catchID=as.character(rv$data$catch[i]), replace=TRUE, 
+                                likelihood=as.character(rv$data$likelihood[i]), initparams=as.character(rv$data$inits[i]), optimOpt=as.character(rv$data$optimOpt[i]),
+                                methodname =as.character(rv$data$methodname[i]), mod.name = as.character(rv$data$mod_name[i]),
+                                vars1=as.character(rv$data$vars1[i]), vars2=as.character(rv$data$vars2[i]), priceCol=as.character(rv$data$price[i]), 
+                                startloc=as.character(rv$data$startloc[i]), polyn=as.character(rv$data$polyn[i]))
+              showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
+            }
+          } 
 
                 showNotification('Model is running. Models can take 30 minutes.
                                   All buttons are inactive while model function is running.
                                   Check R console for progress.', type='message', duration=30)
           
-                discretefish_subroutine(project$name, select.model=FALSE, explorestarts = TRUE, breakearly= TRUE, space=15, dev=5)             
-                
+                discretefish_subroutine(project =rv$data$project[1], select.model=FALSE, explorestarts = TRUE, breakearly= TRUE, space=15, dev=5,
+                                        use.scalers=TRUE, scaler.func = NULL)             
 
                 showNotification('Model run is complete. Check the `Compare Models` subtab to view output', type='message', duration=30)
           toggle_inputs(input_list,T)
