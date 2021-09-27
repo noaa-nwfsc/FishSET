@@ -479,7 +479,7 @@ end <- FALSE
           rownames(params_out) <- levels(factor(x_temp[[i]]$choice))
           params_out <- round(params_out, 3)
           
-          save_table(params_out, project, x_temp[[i]]$mod.name)
+          save_table(params_out, paste0(project, '_params'), x_temp[[i]]$mod.name)
         }
         
         second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
