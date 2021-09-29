@@ -9,7 +9,8 @@
 #' @param cat Variable in \code{gridfile} that identifies the individual areas or zones.
 #' @param lon.grid Required for csv files. Variable or list from \code{gridfile} containing longitude data. Leave as NULL if \code{gridfile} is a shape or json file.
 #' @param lat.grid Required for csv files. Variable or list from \code{gridfile} containing latitude data.  Leave as NULL if \code{gridfile} is a shape or json file.
-#' @importFrom sf sf_as_sf st_shift_longitude
+#' @importFrom sf st_as_sf st_shift_longitude
+#' @importFrom yaml write_yaml
 #' @import leaflet
 #' @import shiny
 #' @import dplyr
