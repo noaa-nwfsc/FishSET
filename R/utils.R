@@ -721,10 +721,10 @@ agg_helper <- function(dataset, value, period = NULL, group = NULL, fun = "sum")
   end <- FALSE
   agg_cols <- c(value, period, group)
   
-  if (any(!(agg_cols %in% names(dataset)))) {
+  if (any(!(agg_cols %in% colnames(dataset)))) {
     
     warning("The column(s) ",
-      paste(agg_cols[!(agg_cols %in% names(dataset))], collapse = ", "),
+      paste(agg_cols[!(agg_cols %in% colnames(dataset))], collapse = ", "),
             " are not in data table.")
     end <- TRUE
   }
