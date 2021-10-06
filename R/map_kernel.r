@@ -305,7 +305,8 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
           ggplot2::ggtitle("Spatial kernel (gradient)") +
           map_theme +
           ggplot2::theme(legend.title = ggplot2::element_text()) +
-          ggplot2::scale_fill_gradient(name = "Level\n(density)") +
+          # ggplot2::scale_fill_gradient(name = "Level\n(density)") +
+          ggplot2::scale_fill_viridis_c(name = "Level\n(density)") +
           ggplot2::xlab("Longitude") +
           ggplot2::ylab("Latitude")
 
@@ -323,7 +324,8 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
           ggplot2::ggtitle("Spatial kernel (gradient)") +
           map_theme +
           ggplot2::theme(legend.title = ggplot2::element_text()) +
-          ggplot2::scale_fill_gradient(name = "Level\n(density)") +
+          # ggplot2::scale_fill_gradient(name = "Level\n(density)") +
+          ggplot2::scale_fill_viridis_c(name = "Level\n(density)") +
           ggplot2::xlab("Longitude") +
           ggplot2::ylab("Latitude")
       }
