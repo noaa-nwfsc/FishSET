@@ -54,6 +54,8 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
+  end <- FALSE
+  
   
   if (!is.null(table) & (!is.null(cond) | !is.null(fleet_val))) {
    

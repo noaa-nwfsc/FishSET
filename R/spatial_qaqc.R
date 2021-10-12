@@ -845,7 +845,13 @@ spat_qaqc_gui <- function(dataset, project, spatdat, checks = NULL) {
       })
       
       # filter distance
-      dist_filter <- reactive({values$dataset$NEAREST_ZONE_DIST_M >= input$dist_slider})
+      dist_filter <- eventReactive(any(spat_qaqc_r$flag), {
+        
+        if ("NEAREST_ZONE_DIST_M" %in% names(values$dataset)) {
+          
+          values$dataset[["NEAREST_ZONE_DIST_M"]] >= input$dist_slider
+        }
+      })
       
       c_tab <- eventReactive(c(sum(dist_filter()), input$spat_filter_bttn), {
         
