@@ -1153,7 +1153,7 @@ pull_meta <- function(project, tab.name = NULL, tab.type = NULL, format = FALSE)
   if (project_exists(project) == FALSE) {
     
     warning("Project \"", project, "\" does not exist.")
-    invisible(FALSE)
+    invisible(NULL)
     
   } else {
     
@@ -1161,8 +1161,8 @@ pull_meta <- function(project, tab.name = NULL, tab.type = NULL, format = FALSE)
     
     if (!file.exists(m_file)) {
       
-      warning("A meta log does not exist for project\"", project, ".\"")
-      invisible(FALSE)
+      warning("A meta log does not exist for project \"", project, ".\"")
+      invisible(NULL)
       
     } else {
       
@@ -1203,7 +1203,7 @@ delete_meta <- function(project, tab.name = NULL, delete_file = FALSE) {
   #' @export
   #' @importFrom jsonlite read_json toJSON
   
-  if (project_exits(project) == FALSE) {
+  if (project_exists(project) == FALSE) {
     
     warning("Project \"", project, "\" does not exist.")
     invisible(FALSE)
@@ -1261,5 +1261,89 @@ delete_meta <- function(project, tab.name = NULL, delete_file = FALSE) {
         }
       }
     } 
+  }
+}
+
+
+meta_tables <- function(project, tab.type = NULL) {
+  #' Print meta tables by project and/or type
+  #' 
+  #' @param project Name of project.
+  #' @param tab.type String, table type. Optional, used to filter output. Options 
+  #'   include "main", "spat" (spatial), "port", "grid" (gridded), and "aux" 
+  #'   (auxiliary).
+  #' @param export
+  #' 
+  
+  meta_log <- pull_meta(project)
+  
+  if (!is.null(meta_log)) {
+    
+    if (!is.null(tab.type)) {
+      
+      ind <- vapply(meta_log$table, function(x) x$type == tab.type, logical(1))
+      
+      if (sum(ind) == 0) {
+        
+        warning(paste0("No tables of type '", tab.type, "' found"))
+        return(invisible(NULL))
+        
+      } else {
+        
+        out <- names(meta_log$table[ind])
+      }
+      
+    } else {
+      
+      out <- names(meta_log$table)
+    }
+    
+    out
+  }
+}
+
+
+table_type <- function(tab) {
+  #' Detect table type
+  #' 
+  #' @param tab FishSET table.
+  #' @importFrom stringr str_extract
+  #' @keywords internal
+  #' @examples
+  #' \dontrun{
+  #' table_type(pollockMainDataTable) # returns "main"
+  #' }
+  
+  if (!is.character(tab)) {
+    
+    warning("Invalid input. Table name must be a string.")
+    
+  } else if (length(tab) > 1) {
+    
+    warning("Table name must be a vector of length 1.")
+    
+  } else {
+    
+    db_type <- c("MainDataTableInfo", "MainDataTable_raw", "MainDataTable_final", 
+                 "MainDataTable", "ExpectedCatch", "altmatrix", "PortTable", "port", 
+                 "ldglobalcheck", "FleetTable", "modelOut", "modelfit", "modelinputdata", 
+                 "modelDesignTable", "FilterTable", "GridTable", "AuxTable")
+    
+    t_regex <- paste0(db_type, collapse = "|")
+    t_str <- stringr::str_extract(tab, t_regex)
+    t_str[is.na(t_str)] <- "other"
+    
+    out <- switch(t_str, 
+                  "MainDataTable" = "main", "MainDataTable_final" = "final table", 
+                  "MainDataTable_raw" = "raw table", "ExpectedCatch" = "expected catch matrix", 
+                  "altmatrix" = "alt choice matrix", "PortTable" = "port", 
+                  "port" = "port", "MainDataTableInfo" = "info table",
+                  "FilterTable" = "filter table", "ldglobalcheck" = "global check", 
+                  "FleetTable" = "fleet table", "modelOut" = "model output", 
+                  "modelfit" = "model fit", "modelinputdata" = "model data", 
+                  "modelDesignTable" = "model design", "other" = "other",
+                  "GridTable" = "grid", "AuxTable" = "aux")
+    
+    out
   }
 }
