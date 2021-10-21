@@ -289,7 +289,16 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     pts_int <- sf::st_intersects(dat_sf, spatdat)
     
     obs_outside <- vapply(pts_int, function(x) length(x) == 0, logical(1))
-    obs_out_not_land <- obs_outside != obs_on_land # remove land obs
+    
+    if (sum(obs_outside) > 0) {
+      
+      obs_out_not_land <- obs_outside != obs_on_land # remove land obs
+      
+    } else {
+      
+      obs_out_not_land <- FALSE
+    }
+    
     
     if (sum(obs_out_not_land) > 0) {
       
