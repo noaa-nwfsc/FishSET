@@ -686,7 +686,7 @@ metaServ <- function(id, cols, meta) {
   metaRawServ(id, meta)
   
   # delete meta
-  metaDeleteserv(id, cols, meta)
+  metaDeleteServ(id, cols, meta)
 } 
 
 
