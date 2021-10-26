@@ -1829,11 +1829,8 @@ conf_cache_len <- length(get_confid_cache())
                       footer = tagList(
                         modalButton("Close"),
                         actionButton("reset_log", "Reset log", 
-                                     style = "color: #fff; background-color: #6EC479; border-color:#000000;")
-                      ),
-                      easyClose = TRUE
-          )
-        )
+                                     style = "color: #fff; background-color: #6EC479; border-color:#000000;")),
+                      easyClose = TRUE))
         
         last_log <- current_log(project$name)
         today_log <- paste0(project$name, "_", Sys.Date(), ".json")
@@ -1865,6 +1862,98 @@ conf_cache_len <- length(get_confid_cache())
       })
       
       
+      # metadata ----
+      
+      meta <- reactiveValues(create_raw = NULL, create_raw_html = NULL, 
+                             par = NULL, edit_meta = NULL, edit_raw = NULL, 
+                             edit_raw_html = NULL)
+      
+      cols <- reactiveValues(create_nms = NULL, create_nms_fix = NULL, create_ui = NULL,
+                             edit_nms = NULL, edit_nms_fix = NULL, edit_ui = NULL)
+      
+      meta_modal <- function() {
+        
+        showModal(
+          modalDialog(title = "Create and Edit Metadata",
+                      
+            fluidPage(
+              
+              column(1, offset = 10,
+                actionButton("meta_close", "Close",
+                             style = "color: #fff; background-color: #FF6347; border-color: #800000;")),
+              tabsetPanel(id = "tab",    
+                tabPanel("Create", value = "create_tab",
+                         
+                 sidebarLayout(
+                   sidebarPanel(
+                     
+                     h4(strong("Create metadata")),
+                     
+                     p("Metadata can be created by loading a data table and",
+                       "typing into the text boxes in the main panel.",
+                       "Import a \"raw\" metadata file (e.g. pre-exsting metadata",
+                       "located in a .xml or .csv file) by selecting \"Download",
+                       "metadata file\" and clicking \"Load raw meta\".",
+                       "See \"parse_meta\" in the Help Manual for instructions",
+                       "on extracting metadata from a data file."),
+                     
+                     metaProjUI("meta_create"),
+                     metaLoadSaveBttnUI("meta_create"),
+                     
+                     tags$hr(style = "border-top: 3px solid #bbb;"),
+                     
+                     metaRawUI("meta_create")
+                   ),
+                   mainPanel(
+                     metaOut("meta_create"),
+                     metaRawOut("meta_create"))
+                 )),
+        
+        tabPanel("Edit", value = "edit_tab",
+                 
+                 sidebarLayout(
+                   sidebarPanel(
+                     h4(strong("View, edit, and delete metadata")),
+                     
+                     p("To edit existing metadata, select a project and table", 
+                       "and click \"Load meta\". Click \"Save meta\" after", 
+                       "changes are added. To delete metadata, select a table",
+                       "and click \"Delete meta\". Select \"Delete\" in the popup", 
+                       " to confirm. "),
+                     
+                     metaProjUI("meta_edit"),
+                     metaLoadSaveBttnUI("meta_edit"),
+                     metaDeleteUI("meta_edit")
+                   ),
+                   mainPanel(
+                     metaOut("meta_edit"),
+                     metaRawOut("meta_edit"))
+                  )
+                ) 
+              ) 
+            ), 
+                      
+          footer = modalButton("Close"),
+          size = "l",
+          easyClose = FALSE)
+        )
+      }
+      
+      # meta servers
+      FishSET:::metaServ("meta_create", cols, meta)
+      FishSET:::metaServ("meta_edit", cols, meta)
+      
+      observeEvent(input$meta_modal, {
+        
+        meta_modal()
+      })
+      
+      observeEvent(input[["meta_edit-confirm_meta_delete"]], {
+        # re-call metadata pop up
+        meta_modal()
+      })
+      
+      observeEvent(input$meta_close, removeModal())
       
       ###---
       

@@ -192,7 +192,6 @@ source("map_viewer_app.R", local = TRUE)
                                "Close app"
                              ),
                              
-                             
                              tags$button(
                                id = 'loadDat',
                                type = "button",
@@ -200,8 +199,10 @@ source("map_viewer_app.R", local = TRUE)
                                class = "btn action-button",
                                "Load data"),
                              
-                             
                              actionButton("delete_tabs_bttn", "Manage Tables",
+                                          style = "color: white; background-color: blue;"),
+                             
+                             actionButton("meta_modal", "Metadata",
                                           style = "color: white; background-color: blue;"),
                              
                              conditionalPanel("input.loadDat > 0",
