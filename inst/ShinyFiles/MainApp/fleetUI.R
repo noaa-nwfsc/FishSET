@@ -1,6 +1,6 @@
 source("fleet_helpers.R", local = TRUE)
 
-saveOutputUI <- function(id) {
+saveFleetUI <- function(id) {
   
   ns <- NS(id)
   
@@ -19,9 +19,8 @@ plotSaveUI <- function(id) {
   
   tagList(
     downloadLink(ns('downloadPlotHIDE'), label = ''),
-    actionButton(ns('run_plot_save'), label = 'Save plot to folder',
-                 style = "color: #fff; background-color: #6EC479; border-color:#000000;")
-  )
+    actionButton(ns('save_plot'), label = 'Save plot to folder',
+                 style = "color: #fff; background-color: #6EC479; border-color:#000000;"))
 }
 
 tableSaveUI <- function(id) {
@@ -29,10 +28,32 @@ tableSaveUI <- function(id) {
   
   tagList(
     downloadLink(ns('downloadTableHIDE'), label = ''),
-    actionButton(ns('run_tab_save'), label = 'Save table to folder as csv',
+    actionButton(ns('save_table'), label = 'Save table to folder as csv',
                  style = "color: #fff; background-color: #6EC479; border-color:#000000;")
   )
 }
+
+tabPlotUI <- function(id, type = "tab_plot") {
+  
+  tab_id <- paste0(id, "_tab")
+  plot_id <- paste0(id, "_plot")
+  
+  if (type == "tab_plot") {
+    
+    tagList(
+      tableSaveUI(tab_id),
+      plotSaveUI(plot_id))
+    
+  } else if (type == "table") {
+    
+    tableSaveUI(tab_id)
+    
+  } else {
+    
+    plotSaveUI(plot_id)
+  }
+}
+
 
 noteUI <- function(id) {
   
