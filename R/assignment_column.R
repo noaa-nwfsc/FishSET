@@ -26,10 +26,11 @@
 #'   If no zone polygons are within the defined bufferval then observation will not be assigned to a 
 #'   zone polygon. Required if closest.pt is TRUE. 
 #' @param log.fun Logical, whether to log function call (for internal use).
-#' @importFrom sp CRS Polygons Polygon SpatialPolygons SpatialPolygonsDataFrame coordinates
+#' @importFrom sp CRS Polygons Polygon SpatialPolygons SpatialPolygonsDataFrame coordinates spTransform
 #' @importFrom rgeos gDistance
 #' @importFrom grDevices chull
 #' @importFrom raster projection
+#' @importFrom sf st_transform st_as_sf
 #' @details  Function uses the specified latitude and longitude from the primary dataset to assign each row of the 
 #' primary dataset to a zone. Zone polygons are defined by the spatial dataset. Set \code{hull.polygon} to TRUE if
 #'  spatial data is sparse or irregular. Function is called by other functions if a zone identifier does not exist 
@@ -73,6 +74,19 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
     # stop('Latitude is not valid (outside -90:90.')
   }
 
+ if(grepl('UTM', sf::st_crs(grid)$input, ignore.case=TRUE)){
+   if(any(class(grid)=='sf')){
+       grid <- sf::st_transform(grid, crs = "+proj=longlat +datum=WGS84")
+      } else if(any(class(grid)=='SpatialPolygonsDataFrame')){
+        grid <- sp::spTransform(grid, sp::CRS("+proj=longlat")) 
+      }
+ }
+  
+  if(!any(class(grid)=='sf')){
+    if(any(class(sf::st_as_sf(grid))=='sf')){
+      grid <- sf::st_as_sf(grid)
+    }
+  }
   
   if (x == 0) {
     # For json and shape files

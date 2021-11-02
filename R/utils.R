@@ -1336,6 +1336,40 @@ simpleCap <- function(x) {
         sep="", collapse=" ")
 }
 
+mvgrnd <- function(m,sigma,n){
+  #' Multivariate normal random generator
+  #' @param m mean vector
+  #' @param sigma variance-covariance matrix
+  #' @param n number of iterations
+  #' @export
+  #' @keywords internal
+  
+  U = chol(sigma) #Cholesky decomposition. U is an upper triangular matrix
+  
+  d = length(m)
+ 
+   y <- matrix(NA, nrow=n, ncol=d)
+  
+ 
+  for(i in 1:n){
+    y[i,1:d] = t(m) + rnorm(d) %*% U
+  }
+  return(y)
+}
+
+repmat <- function(X, m, n){
+  #' R verions of matlabs repmat
+  #' @param X matrix
+  #' @param m nrows
+  #' @param n n cols
+  #' @keywords internal
+  #' @export
+  
+  mx <- dim(X)[1]
+  nx <- dim(X)[2]
+  return(matrix(t(matrix(X,mx,nx*n)),mx*m,nx*n,byrow=T))
+}
+
 ## ----Shiny util functions-----
 outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plot_type) {
   #' Evaluate outliers through plots
