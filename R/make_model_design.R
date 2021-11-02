@@ -358,7 +358,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       } else {
         epmDefaultPrice <- dataset[which(dataZoneTrue == 1), as.character(priceCol)]
       }
-      
+      pscale <- mean(pscale, na.rm=TRUE)
   ### scales zonal
       #r=regexp(num2str(max(max(modelInputData.zonalChoices))),'\.','split');
       
@@ -382,7 +382,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
         methodname = methodname, 
         mod.name  = mod.name,
         startingloc = startingloc[which(dataZoneTrue == 1)],
-        scales = c(catch = yscale, zonal = mscale, data = dscale),
+        scales = c(catch = yscale, zonal = mscale, data = dscale, pscale=pscale),
         distance = dist_out[['X']],
         instances = dim(dist_out[['X']])[1],
         alts = dim(dist_out[['X']])[2],
