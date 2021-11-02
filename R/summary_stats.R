@@ -30,7 +30,10 @@ summary_stats <- function(dat, project, x = NULL, log_fun = TRUE) {
   # apply(dataset, 2, function(x) max(x, n.arm=TRUE)) UniqueObs apply(dataset, 2, function(x) paste('UniqueObs:', length(unique(x))))
 
 #Extract only numeric 
-numeric_only <- unlist(lapply(dataset, is.numeric))
+  is_num <- function(x) {
+    is.numeric(x) || lubridate::is.Date(x) || lubridate::is.POSIXt(x)
+  }
+numeric_only <- unlist(lapply(dataset, is_num))
 
   numdat <- dataset[ , numeric_only]
   chardat <- dataset[,which(numeric_only==FALSE)]

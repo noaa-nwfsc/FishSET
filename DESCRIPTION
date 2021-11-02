@@ -23,6 +23,7 @@ Imports:
   htmltools,
   jsonlite, 
   knitr, 
+  leaflet,
   lubridate, 
   magrittr, 
   maps, 

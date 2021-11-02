@@ -1829,11 +1829,8 @@ conf_cache_len <- length(get_confid_cache())
                       footer = tagList(
                         modalButton("Close"),
                         actionButton("reset_log", "Reset log", 
-                                     style = "color: #fff; background-color: #6EC479; border-color:#000000;")
-                      ),
-                      easyClose = TRUE
-          )
-        )
+                                     style = "color: #fff; background-color: #6EC479; border-color:#000000;")),
+                      easyClose = TRUE))
         
         last_log <- current_log(project$name)
         today_log <- paste0(project$name, "_", Sys.Date(), ".json")
@@ -1865,6 +1862,98 @@ conf_cache_len <- length(get_confid_cache())
       })
       
       
+      # metadata ----
+      
+      meta <- reactiveValues(create_raw = NULL, create_raw_html = NULL, 
+                             par = NULL, edit_meta = NULL, edit_raw = NULL, 
+                             edit_raw_html = NULL)
+      
+      cols <- reactiveValues(create_nms = NULL, create_nms_fix = NULL, create_ui = NULL,
+                             edit_nms = NULL, edit_nms_fix = NULL, edit_ui = NULL)
+      
+      meta_modal <- function() {
+        
+        showModal(
+          modalDialog(title = "Create and Edit Metadata",
+                      
+            fluidPage(
+              
+              column(1, offset = 10,
+                actionButton("meta_close", "Close",
+                             style = "color: #fff; background-color: #FF6347; border-color: #800000;")),
+              tabsetPanel(id = "tab",    
+                tabPanel("Create", value = "create_tab",
+                         
+                 sidebarLayout(
+                   sidebarPanel(
+                     
+                     h4(strong("Create metadata")),
+                     
+                     p("Metadata can be created by loading a data table and",
+                       "typing into the text boxes in the main panel.",
+                       "Import a \"raw\" metadata file (e.g. pre-exsting metadata",
+                       "located in a .xml or .csv file) by selecting \"Download",
+                       "metadata file\" and clicking \"Load raw meta\".",
+                       "See \"parse_meta\" in the Help Manual for instructions",
+                       "on extracting metadata from a data file."),
+                     
+                     metaProjUI("meta_create"),
+                     metaLoadSaveBttnUI("meta_create"),
+                     
+                     tags$hr(style = "border-top: 3px solid #bbb;"),
+                     
+                     metaRawUI("meta_create")
+                   ),
+                   mainPanel(
+                     metaOut("meta_create"),
+                     metaRawOut("meta_create"))
+                 )),
+        
+        tabPanel("Edit", value = "edit_tab",
+                 
+                 sidebarLayout(
+                   sidebarPanel(
+                     h4(strong("View, edit, and delete metadata")),
+                     
+                     p("To edit existing metadata, select a project and table", 
+                       "and click \"Load meta\". Click \"Save meta\" after", 
+                       "changes are added. To delete metadata, select a table",
+                       "and click \"Delete meta\". Select \"Delete\" in the popup", 
+                       " to confirm. "),
+                     
+                     metaProjUI("meta_edit"),
+                     metaLoadSaveBttnUI("meta_edit"),
+                     metaDeleteUI("meta_edit")
+                   ),
+                   mainPanel(
+                     metaOut("meta_edit"),
+                     metaRawOut("meta_edit"))
+                  )
+                ) 
+              ) 
+            ), 
+                      
+          footer = modalButton("Close"),
+          size = "l",
+          easyClose = FALSE)
+        )
+      }
+      
+      # meta servers
+      FishSET:::metaServ("meta_create", cols, meta)
+      FishSET:::metaServ("meta_edit", cols, meta)
+      
+      observeEvent(input$meta_modal, {
+        
+        meta_modal()
+      })
+      
+      observeEvent(input[["meta_edit-confirm_meta_delete"]], {
+        # re-call metadata pop up
+        meta_modal()
+      })
+      
+      observeEvent(input$meta_close, removeModal())
       
       ###---
       
@@ -1903,15 +1992,7 @@ conf_cache_len <- length(get_confid_cache())
           NULL
         }
       })
-        
-#      changecode <- reactive({
-#        if(input$checks=='Variable class'){
-#          g <- c('class', 'first value', 'no changes', 'numeric', 'character', 'factor', 'date')
-#          g <- g[as.numeric(as.vector(sapply(names(values$dataset), function(i) input[[i]])))]
-#        } else {
-#          NULL
-#        }
-#      })   
+      
       
       output$changetable <- DT::renderDataTable(
         if(colnames(values$dataset)[1] == 'var1') {
@@ -1974,19 +2055,6 @@ conf_cache_len <- length(get_confid_cache())
                       choices=c('normal', 'lognormal', 'exponential', 'weibull', 'poisson', 'negative binomial'), selected='normal'))
       })
       
-      tableInputOutlier <- reactive({
-        if(colnames(values$dataset)[1] == 'var1') {
-          return(NULL)
-        } else if (input$checks=='Outliers') {
-          table <- outlier_table(values$dataset, project=project$name, x=input$column_check)
-          rownames(table)=table[,2]
-          table <- table[,3:10]
-          #table <<- table
-        } else {
-          NULL
-        }
-      })
-      
       #Lat/Lon
       output$LatLonDir <- renderUI ({
         tagList(
@@ -2009,7 +2077,7 @@ conf_cache_len <- length(get_confid_cache())
         } else {
           NULL
         }, server = TRUE, selection = list(target = 'column'), rownames=FALSE,
-        options = list(autoWidth=FALSE, scrollX=T,  responsive=TRUE, pageLength = 7)
+        options = list(autoWidth=FALSE, scrollX=TRUE,  responsive=TRUE, pageLength = 7)
       )
             
       ##Check UI
@@ -2310,131 +2378,155 @@ conf_cache_len <- length(get_confid_cache())
       ##Table output
       tableInputSummary <- reactive({
         
-        temp <- #switch(input$SelectDatasetDQ, 
-                       #"main" = 
-          values$dataset#, 
-                       #"port" = ptdat$dataset, 
-                       #"grid" = grddat$dataset, 
-                       #"auxiliary" = aux$dataset)
-        
-        if(colnames(temp)[1] == 'var1') {
-          return(NULL)
-        } else if(input$checks=='Summary table'|input$checks=='NAs') { 
-          #temp <- values$dataset
-          stable <- summary_stats(temp, project$name) 
-          nums <- unlist(lapply(temp, is.numeric))
+        if(colnames(values$dataset)[1] != 'var1') {
+  
+          stable <- summary_stats(values$dataset, project$name) 
+          nums <- unlist(lapply(values$dataset, is.numeric))
           stable  <- apply(stable[nums], 2, function(x) gsub(".*:","", x))
           rownames(stable)=c('Min', 'Median','Mean', 'Max',"Missing",'Unique Obs.', "No. 0's")
           stable <- as.data.frame(as.matrix(stable))
           stable <- as.data.frame((t(stable)))
-        } else {
-          NULL
+          
+          stable
         }
       })
       
-      output$missingtable <- DT::renderDT(
-        if(length(which(tableInputSummary()$Missing!=" 0" & !is.na(tableInputSummary()$Missing)))>0){
-        tableInputSummary()[which(tableInputSummary()$Missing!=" 0" & !is.na(tableInputSummary()$Missing)),]
-         } else {
-          return(NULL)
-        }  , server = TRUE, rownames=TRUE,
-        options = list(autoWidth=FALSE, scrollX=T, responsive=FALSE, pageLength = 25)
-       
+      
+      tableInputOutlier <- reactive({
+        
+        req(input$column_check)
+        
+        if (colnames(values$dataset)[1] != 'var1') {
+          
+          tab <- outlier_table(values$dataset, project=project$name, x=input$column_check)
+          rownames(tab)=tab[,2]
+          tab <- tab[,3:10]
+          out <- list(tab)
+          names(out) <- input$column_check # track column for saving
+          
+          out
+        }
+      })
+      
+      
+      output$missingtable <- DT::renderDT({
+        
+        missing_sum <- tableInputSummary()[["Missing"]]
+        miss_ind <- which(missing_sum != " 0" & !is.na(missing_sum))
+        
+        if (length(miss_ind) > 0) tableInputSummary()[miss_ind, ]
+        
+        }, server = TRUE, rownames=TRUE,
+        options = list(autoWidth=FALSE, scrollX=TRUE, responsive=FALSE, pageLength = 25)
       )
       
       output$output_table_summary <- DT::renderDT(
         tableInputSummary(), server = TRUE, rownames=TRUE,
-        options = list(autoWidth=FALSE, scrollX=T, responsive=FALSE, pageLength = 25)
+        options = list(autoWidth=FALSE, scrollX=TRUE, responsive=FALSE, pageLength = 25)
       )
       
-
-      
       output$output_table_outlier <- DT::renderDT(
-        if(colnames(values$dataset)[1] == 'var1') {
-          return(NULL)
-        } else if(input$checks=='Outliers'){
-          table <- outlier_table(values$dataset, project=project$name, x=input$column_check)
-          rownames(table)=table[,2]
-          table <- table[,3:10]
-          #table <<- table
-        } else {
-          NULL
-        }, server = TRUE, selection='single', rownames=TRUE,
-        options = list(autoWidth=FALSE, scrollX=T,  responsive=TRUE, pageLength = 7)
+        
+        tableInputOutlier()[[1]], server = TRUE, selection='single', rownames=TRUE,
+        options = list(autoWidth=FALSE, scrollX=TRUE, responsive=TRUE, pageLength = 7)
       )
       
       ranges1 <- reactiveValues(x = NULL, y = NULL)   
       ranges2 <- reactiveValues(x = NULL, y = NULL)   
       ranges3 <- reactiveValues(x = NULL, y = NULL)
-      #Plot output
-      output$plot1 <- renderPlot(
-        if(is.null(values$dataset)) {
-          return(NULL)
-        } else if(colnames(values$dataset)[1] == 'var1') {
-          return(NULL)
-        } else {
-          if(input$checks=='Outliers'){
-            temp <- values$dataset
-            temp$val <- 1:nrow(temp)
-            dat_sub <- suppressWarnings(outlier_plot_int(temp, input$column_check, input$dat.remove, input$x_dist, plot_type=1))
-            suppressWarnings(ggplot2::ggplot() + ggplot2::geom_point(data=dat_sub, ggplot2::aes_string(x='val', y=input$column_check, color = 'Points', na.rm=TRUE)) +
-                               ggplot2::scale_color_manual(breaks=c('Kept','Removed'),values=c('blue','red'))+
-                               ggplot2::coord_cartesian(xlim = ranges1$x, ylim = ranges1$y, expand = FALSE)+
-                               ggplot2::labs(x='Data row')+ ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
-                                                         panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text=ggplot2::element_text(size=12),
-                                                         axis.title=ggplot2::element_text(size=12)))  #+ 
-            #
-          } else {
-            NULL
-          }}
-      )
       
-      output$plot2 <- renderPlot(
-        if(is.null(values$dataset)) {
-          return(NULL)
-        } else if(colnames(values$dataset)[1] == 'var1') {
-          return(NULL)
-        } else {
-          if(input$checks=='Outliers'){
-            temp <- values$dataset
-            temp$val <- 1:nrow(temp)
-            dat_sub <- outlier_plot_int(temp, input$column_check, input$dat.remove, input$x_dist, plot_type=1)
-            arg.return <- outlier_plot_int(temp, input$column_check, input$dat.remove, input$x_dist, plot_type=2)
-            ggplot2::ggplot(dat_sub[dat_sub$Points=='Kept',], ggplot2::aes_string(input$column_check)) + 
-              ggplot2::geom_histogram(ggplot2::aes(y = ..density..), na.rm=TRUE, 
-                                      bins=(if(nrow(dat_sub) < 500) round(nrow(dat_sub) / 2) else 250)) + 
-              arg.return +
-              ggplot2::coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)+
-              ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
-                    panel.background = ggplot2::element_blank(), 
-                    axis.line = ggplot2::element_line(colour = "black"),
-                    axis.text=ggplot2::element_text(size=12),
-                    axis.title=ggplot2::element_text(size=12))
-          } else {
-            NULL
-          }}
-      )
       
-      output$plot3 <- renderPlot(
-        if(is.null(values$dataset)) {
-          return(NULL)
-        } else if(colnames(values$dataset)[1] == 'var1') {
-          return(NULL)
-        } else {
-          if(input$checks=='Outliers'){
-            temp <- values$dataset
-            temp$val <- 1:nrow(temp)
-            temp <- outlier_plot_int(temp, input$column_check, input$dat.remove, input$x_dist, plot_type=3)
-            ggplot2::ggplot(temp, ggplot2::aes(x=fit_quants, y=data_quants)) + ggplot2::geom_point(shape=1) + ggplot2::geom_abline() +
-              ggplot2::labs(x='Theoretical Quantiles', y='Sample Quantiles', title=paste('Q-Q plot of', input$x_dist, 'fit against data'))+
-              ggplot2::coord_cartesian(xlim = ranges3$x, ylim = ranges3$y, expand = FALSE)+
-              ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
-                    panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text=ggplot2::element_text(size=12),
-                    axis.title=ggplot2::element_text(size=12))
-          } else {
-            NULL
-          }}
-      )
+      outlierPlot1 <- reactive({
+        
+        req(input$column_check, input$dat.remove, input$x_dist)
+        
+        if (colnames(values$dataset)[1] != 'var1') {
+          
+          temp <- values$dataset
+          temp$val <- 1:nrow(temp)
+          col_check <- rlang::sym(input$column_check)
+          dat_sub <- suppressWarnings(outlier_plot_int(temp, input$column_check, 
+                                                       input$dat.remove, input$x_dist, 
+                                                       plot_type=1))
+          suppressWarnings(
+            ggplot2::ggplot() +
+              ggplot2::geom_point(data=dat_sub, ggplot2::aes(x=val, y=!!col_check, 
+                                                             color = Points, na.rm=TRUE)) +
+              ggplot2::scale_color_manual(breaks=c('Kept','Removed'),
+                                          values=c('blue','red')) +
+              ggplot2::coord_cartesian(xlim = ranges1$x, ylim = ranges1$y, expand = FALSE) +
+              ggplot2::labs(x='Data row') + 
+              fishset_theme() +
+              ggplot2::theme(axis.text=ggplot2::element_text(size=12),
+                             axis.title=ggplot2::element_text(size=12))
+            )
+          }
+      })
+      
+      outlierPlot2 <- reactive({
+        
+        req(input$column_check, input$dat.remove, input$x_dist)
+        
+        if (colnames(values$dataset)[1] != 'var1') {
+          
+          temp <- values$dataset
+          temp$val <- 1:nrow(temp)
+          col_check <- rlang::sym(input$column_check)
+          dat_sub <- outlier_plot_int(temp, input$column_check, input$dat.remove, 
+                                      input$x_dist, plot_type=1)
+          arg.return <- outlier_plot_int(temp, input$column_check, input$dat.remove, 
+                                         input$x_dist, plot_type=2)
+          
+          ggplot2::ggplot(dat_sub[dat_sub$Points=='Kept',], ggplot2::aes(!!col_check)) + 
+            ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)), 
+                                    na.rm=TRUE, bins = 30, fill = "gray", color = "black") + 
+            arg.return +
+            ggplot2::coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE) +
+            fishset_theme() +
+            ggplot2::theme(axis.text=ggplot2::element_text(size=12),
+                           axis.title=ggplot2::element_text(size=12))
+        }
+      })
+      
+      outlierPlot3 <- reactive({
+        
+        req(input$column_check, input$dat.remove, input$x_dist)
+        
+        if (colnames(values$dataset)[1] != 'var1') {
+          
+          temp <- values$dataset
+          temp$val <- 1:nrow(temp)
+          temp <- outlier_plot_int(temp, input$column_check, input$dat.remove, 
+                                   input$x_dist, plot_type = 3)
+          
+          ggplot2::ggplot(temp, ggplot2::aes(x=fit_quants, y=data_quants)) +
+            ggplot2::geom_point(shape=1) + ggplot2::geom_abline() +
+            ggplot2::labs(x='Theoretical Quantiles', y='Sample Quantiles', 
+                          title=paste('Q-Q plot of', input$x_dist, 'fit against data')) +
+            ggplot2::coord_cartesian(xlim = ranges3$x, ylim = ranges3$y, expand = FALSE) +
+            fishset_theme() +
+            ggplot2::theme(axis.text=ggplot2::element_text(size=12),
+                           axis.title=ggplot2::element_text(size=12))
+        }
+      })
+      
+      outlierPlotAll <- reactive({
+        
+        fig <- suppressWarnings(
+          ggpubr::ggarrange(outlierPlot1(), outlierPlot2(), outlierPlot3(),
+                            ncol = 2, nrow = 2)
+          )
+        
+        fig
+      })
+      
+      
+      # Outlier plot output
+      output$plot1 <- renderPlot(outlierPlot1())
+      
+      output$plot2 <- renderPlot(outlierPlot2())
+      
+      output$plot3 <- renderPlot(outlierPlot3())
       
       #Hover info       
       output$hover_info1 <- renderUI({
@@ -2756,7 +2848,13 @@ conf_cache_len <- length(get_confid_cache())
       })
       
       # filter distance
-      dist_filter <- reactive({values$dataset$NEAREST_ZONE_DIST_M >= input$dist_slider})
+      dist_filter <- eventReactive(any(spat_qaqc_r$flag), {
+        
+        if ("NEAREST_ZONE_DIST_M" %in% names(values$dataset)) {
+          
+          values$dataset[["NEAREST_ZONE_DIST_M"]] >= input$dist_slider
+        }
+      })
       
       c_tab <- eventReactive(c(sum(dist_filter()), input$spat_filter_bttn), {
         
@@ -3292,7 +3390,7 @@ conf_cache_len <- length(get_confid_cache())
       })
       # Save buttons
       output$fleetSaveOutputUI <- renderUI({
-        saveOutputUI(paste0(fleet_id(), "-saveOut"))
+        saveFleetUI(paste0(fleet_id(), "-saveOut"))
         })
 
       saveDataTableServ("fleet", values, reactive(project$name))
@@ -4501,7 +4599,8 @@ conf_cache_len <- length(get_confid_cache())
                                'startloc'= if(input$startlocdefined=='exists'){input$startloc_mod} else {'startingloc'}, 
                                'polyn'= input$polyn)
                     , rv$data)#model_table())
-          #print(rv$data)
+          print(rv$data)
+          print(str(rv$data))
         }
       #  rv$data(t)#model_table(t)
         
@@ -4600,35 +4699,37 @@ conf_cache_len <- length(get_confid_cache())
           toggle_inputs(input_list,F)
           #print('call model design function, call discrete_subroutine file')
 
-          q_test <- quietly_test(make_model_design)
+         # q_test <- quietly_test(make_model_design)
           
           times <- nrow(rv$data)-1
+          print(rv$data$vars1)
          
           showNotification(paste('1 of', times, 'model design files created.'), type='message', duration=10)
-          q_test(project=rv$data$project[1], catchID=rv$data$catch[1], replace=TRUE, 
-                 likelihood=rv$data$likelihood[1], optimOpt=rv$data$optimOpt[1],
-                 initparams=rv$data$inits[1], methodname =rv$data$methodname[1], mod.name = rv$data$mod_name[1],
-                 vars1=rv$data$vars1[1], vars2=rv$data$vars2[1], priceCol=rv$data$price[1], 
-                 startloc=rv$data$startloc[1], polyn=rv$data$polyn[1])
-
-          if(times>1){
-          for(i in 2:times){
-            q_test(project=rv$data$project[i], catchID=rv$data$catch[i], replace=FALSE, 
-                   likelihood=rv$data$likelihood[i], optimOpt=rv$data$optimOpt[i], 
-                   initparams=rv$data$inits[i], methodname =rv$data$methodname[i], 
-                   mod.name = rv$data$mod_name[i], vars1=rv$data$vars1[i], 
-                   vars2=rv$data$vars2[i], priceCol=rv$data$price[i], 
-                   startloc=rv$data$startloc[i], polyn=rv$data$polyn[i])
-            showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
-          }
-          }
+          make_model_design(project=as.character(rv$data$project[1]), catchID=as.character(rv$data$catch[1]), replace=TRUE, 
+                 likelihood=as.character(rv$data$likelihood[1]), initparams=as.character(rv$data$inits[1]), optimOpt=as.character(rv$data$optimOpt[1]),
+                  methodname =as.character(rv$data$methodname[1]), mod.name = as.character(rv$data$mod_name[1]),
+                 vars1=as.character(rv$data$vars1[1]), vars2=as.character(rv$data$vars2[1]), priceCol=as.character(rv$data$price[1]), 
+                 startloc=as.character(rv$data$startloc[1]), polyn=as.character(rv$data$polyn[1]))
+         
+         
+          if(times[1]>1){
+            for(i in 2:times){
+            
+              make_model_design(project=as.character(rv$data$project[i]), catchID=as.character(rv$data$catch[i]), replace=TRUE, 
+                                likelihood=as.character(rv$data$likelihood[i]), initparams=as.character(rv$data$inits[i]), optimOpt=as.character(rv$data$optimOpt[i]),
+                                methodname =as.character(rv$data$methodname[i]), mod.name = as.character(rv$data$mod_name[i]),
+                                vars1=as.character(rv$data$vars1[i]), vars2=as.character(rv$data$vars2[i]), priceCol=as.character(rv$data$price[i]), 
+                                startloc=as.character(rv$data$startloc[i]), polyn=as.character(rv$data$polyn[i]))
+              showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
+            }
+          } 
 
                 showNotification('Model is running. Models can take 30 minutes.
                                   All buttons are inactive while model function is running.
                                   Check R console for progress.', type='message', duration=30)
           
-                discretefish_subroutine(project$name, select.model=FALSE, explorestarts = TRUE, breakearly= TRUE, space=15, dev=5)             
-                
+                discretefish_subroutine(project =rv$data$project[1], select.model=FALSE, explorestarts = TRUE, breakearly= TRUE, space=15, dev=5,
+                                        use.scalers=TRUE, scaler.func = NULL)             
 
                 showNotification('Model run is complete. Check the `Compare Models` subtab to view output', type='message', duration=30)
           toggle_inputs(input_list,T)
@@ -4739,30 +4840,55 @@ conf_cache_len <- length(get_confid_cache())
 
       #Add in two more tables for model evaulations
       mod_sum_out <- reactive({
-        if(DBI::dbExistsTable(suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name))), 
-                              paste0(project$name, 'modelOut', format(Sys.Date(), format="%Y%m%d")))){
-          model_out_view(paste0(project$name, 'modelOut', format(Sys.Date(), format="%Y%m%d")), project$name)#
-      } else {
+        
+        tab <- paste0(project$name, 'modelOut', format(Sys.Date(), format="%Y%m%d"))
+                      
+        if (table_exists(tab, project$name)) {
+          
+          model_out_view(tab, project$name)
+          
+        } else {
          data.frame('var1'=0, 'var2'=0)
-      }
+        }
       })
       
       output$modeltab <- DT::renderDT({
-        modeltab <- data.frame(Model_name=rep(NA, length(mod_sum_out())), Covergence=rep(NA, length(mod_sum_out())), 
-                               Stand_Errors=rep(NA, length(mod_sum_out())), Hessian=rep(NA, length(mod_sum_out())))
-        #if(dim(mod_sum_out())[2]>2){
-        #  modeltab[i,1] <- mod_sum_out()[[i]]$name
-        if(is.data.frame(mod_sum_out())){
+        
+        modeltab <- data.frame(Model_name=rep(NA, length(mod_sum_out())), 
+                               Covergence=rep(NA, length(mod_sum_out())), 
+                               # Stand_Errors=rep(NA, length(mod_sum_out())), 
+                               Estimates=rep(NA, length(mod_sum_out())), 
+                               Hessian=rep(NA, length(mod_sum_out())))
+        
+        if (is.data.frame(mod_sum_out())) {
+          
           modeltab <- modeltab
+          
         } else {
-        for(i in 1:length(mod_sum_out())){
-          modeltab[i,1] <- mod_sum_out()[[i]]$name
-          modeltab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
-          modeltab[i,3] <- toString(round(mod_sum_out()[[i]]$seoutmat2,3))
-          modeltab[i,4] <- toString(round(mod_sum_out()[[i]]$H1,5))
-        }}
+          
+          for(i in 1:length(mod_sum_out())){
+            
+            modeltab[i,1] <- mod_sum_out()[[i]]$name
+            modeltab[i,2] <- mod_sum_out()[[i]]$optoutput$convergence
+            
+            # modeltab[i,3] <- toString(round(mod_sum_out()[[i]]$seoutmat2,3))
+            # modeltab[i,4] <- toString(round(mod_sum_out()[[i]]$H1,5))
+            
+            choice_nms <- levels(factor(mod_sum_out()[[i]]$choice.table[, 1]))
+            
+            par_tab <- round(mod_sum_out()[[i]]$OutLogit, 3)
+            colnames(par_tab) <- c("estimate", "std_error", "t_value") 
+            rownames(par_tab) <- choice_nms
+            modeltab[i,3] <- to_html_table(par_tab, rownames = TRUE)
+            
+            hess <- round(mod_sum_out()[[i]]$H1, 5)
+            colnames(hess) <- choice_nms
+            modeltab[i,4] <- to_html_table(hess)
+          }
+        }
+        
         return(modeltab)
-      })
+      }, escape = FALSE)
       
       
       output$errortab <- DT::renderDT({
@@ -4849,16 +4975,16 @@ conf_cache_len <- length(get_confid_cache())
         
       })
       
-      output$SaveButtons <- renderUI({
-        tagList(
-          #shinySaveButton(id = 'downloadplot', label ='Save plot to folder', title = "", filename = paste0(project,'_', input$checks, '_plot'), filetype = "png"),
-          actionButton('downloadplot', label ='Save plot to folder'),
-          downloadLink('downloadplotHIDE', label=''),
-          actionButton('downloaddata', label ='Save table to folder as csv'),
-         # downloadLink("downloadText", label=''),
-          actionButton('callTextDownload','Save notes')
-        )
-      })
+      # output$SaveButtons <- renderUI({
+      #   tagList(
+      #     #shinySaveButton(id = 'downloadplot', label ='Save plot to folder', title = "", filename = paste0(project,'_', input$checks, '_plot'), filetype = "png"),
+      #     actionButton('downloadplot', label ='Save plot to folder'),
+      #     downloadLink('downloadplotHIDE', label=''),
+      #     actionButton('downloaddata', label ='Save table to folder as csv'),
+      #    # downloadLink("downloadText", label=''),
+      #     actionButton('callTextDownload','Save notes')
+      #   )
+      # })
       
       output$SaveButtonsUpload <- renderUI({
         tagList(
@@ -5019,17 +5145,28 @@ conf_cache_len <- length(get_confid_cache())
                    }, ignoreInit = TRUE)
       
       
-      observeEvent(input$downloadplot, {
-        output$downloadplotHIDE <<- downloadHandler(
-          filename = function() {
-            paste0(locoutput(project$name), project$name, "_", 'Outlier.png')
-          },
-          content = function(file) {
-            ggplot2::ggsave(file, plot=outlier_plot(values$dataset, project$name, input$column_check, input$dat.remove, input$x_dist))
-          })
-        jsinject <- "setTimeout(function(){window.open($('#downloadplotHIDE').attr('href'))}, 100);"
-        session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
-      })
+    ### QAQC save ----
+    
+    get_reactive <- function(r) {
+      
+      tryCatch(r, error = function(e) return(NULL))
+    }
+    
+    qaqc_outs <- reactive({
+      cat("\nOut updated\n")
+      list(
+        summary_stats = get_reactive(tableInputSummary()),
+        outlier_table = get_reactive(tableInputOutlier()),
+        outlier_plot = get_reactive(outlierPlotAll()),
+        spatial_qaqc = get_reactive(spat_qaqc())
+        )
+    })
+    
+    
+    tabPlotServ("qaqc", proj = reactive(project$name),
+                out = qaqc_outs,
+                type = "tab_plot")
+    
       
       observeEvent(input$downloadplotAnal, {
         output$downloadplotAnalHIDE <<- downloadHandler(
@@ -5078,19 +5215,19 @@ conf_cache_len <- length(get_confid_cache())
       })
       
       # save grid plot in Explore tab
-      plotSaveServ("grid_plot", reactive(project$name), "view_grid_dat", grid_values$plot)
+      # plotSaveServ("grid_plot", reactive(project$name), "view_grid_dat", grid_values$plot)
       
       observeEvent(input$downloadTableExplore, {
         write.csv(gtmt_table(), paste0(locoutput(project = project$name), project$name, '_', 'GetisOrdMoransI.csv'))
       })
       
-      observeEvent(input$downloaddata, {
-        if(input$checks=='Summary table'){
-          write.csv(tableInputSummary(), paste0(locoutput(project = project$name), project$name, '_', 'summary_table.csv'))
-        } else if(input$checks=='Outliers'){
-          write.csv(tableInputOutlier(), paste0(locoutput(project = project$name), project$name, '_', 'outlier_table.csv'))
-        }
-      })
+      # observeEvent(input$downloaddata, {
+      #   if(input$checks=='Summary table'){
+      #     write.csv(tableInputSummary(), paste0(locoutput(project = project$name), project$name, '_', 'summary_table.csv'))
+      #   } else if(input$checks=='Outliers'){
+      #     write.csv(tableInputOutlier(), paste0(locoutput(project = project$name), project$name, '_', 'outlier_table.csv'))
+      #   }
+      # })
       
       observeEvent(input$downloaddataAnal, {
         if(input$corr_reg=='Correlation'){
