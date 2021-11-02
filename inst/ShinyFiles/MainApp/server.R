@@ -1992,15 +1992,7 @@ conf_cache_len <- length(get_confid_cache())
           NULL
         }
       })
-        
-#      changecode <- reactive({
-#        if(input$checks=='Variable class'){
-#          g <- c('class', 'first value', 'no changes', 'numeric', 'character', 'factor', 'date')
-#          g <- g[as.numeric(as.vector(sapply(names(values$dataset), function(i) input[[i]])))]
-#        } else {
-#          NULL
-#        }
-#      })   
+      
       
       output$changetable <- DT::renderDataTable(
         if(colnames(values$dataset)[1] == 'var1') {
@@ -2063,19 +2055,6 @@ conf_cache_len <- length(get_confid_cache())
                       choices=c('normal', 'lognormal', 'exponential', 'weibull', 'poisson', 'negative binomial'), selected='normal'))
       })
       
-      tableInputOutlier <- reactive({
-        if(colnames(values$dataset)[1] == 'var1') {
-          return(NULL)
-        } else if (input$checks=='Outliers') {
-          table <- outlier_table(values$dataset, project=project$name, x=input$column_check)
-          rownames(table)=table[,2]
-          table <- table[,3:10]
-          #table <<- table
-        } else {
-          NULL
-        }
-      })
-      
       #Lat/Lon
       output$LatLonDir <- renderUI ({
         tagList(
@@ -2098,7 +2077,7 @@ conf_cache_len <- length(get_confid_cache())
         } else {
           NULL
         }, server = TRUE, selection = list(target = 'column'), rownames=FALSE,
-        options = list(autoWidth=FALSE, scrollX=T,  responsive=TRUE, pageLength = 7)
+        options = list(autoWidth=FALSE, scrollX=TRUE,  responsive=TRUE, pageLength = 7)
       )
             
       ##Check UI
@@ -2399,131 +2378,155 @@ conf_cache_len <- length(get_confid_cache())
       ##Table output
       tableInputSummary <- reactive({
         
-        temp <- #switch(input$SelectDatasetDQ, 
-                       #"main" = 
-          values$dataset#, 
-                       #"port" = ptdat$dataset, 
-                       #"grid" = grddat$dataset, 
-                       #"auxiliary" = aux$dataset)
-        
-        if(colnames(temp)[1] == 'var1') {
-          return(NULL)
-        } else if(input$checks=='Summary table'|input$checks=='NAs') { 
-          #temp <- values$dataset
-          stable <- summary_stats(temp, project$name) 
-          nums <- unlist(lapply(temp, is.numeric))
+        if(colnames(values$dataset)[1] != 'var1') {
+  
+          stable <- summary_stats(values$dataset, project$name) 
+          nums <- unlist(lapply(values$dataset, is.numeric))
           stable  <- apply(stable[nums], 2, function(x) gsub(".*:","", x))
           rownames(stable)=c('Min', 'Median','Mean', 'Max',"Missing",'Unique Obs.', "No. 0's")
           stable <- as.data.frame(as.matrix(stable))
           stable <- as.data.frame((t(stable)))
-        } else {
-          NULL
+          
+          stable
         }
       })
       
-      output$missingtable <- DT::renderDT(
-        if(length(which(tableInputSummary()$Missing!=" 0" & !is.na(tableInputSummary()$Missing)))>0){
-        tableInputSummary()[which(tableInputSummary()$Missing!=" 0" & !is.na(tableInputSummary()$Missing)),]
-         } else {
-          return(NULL)
-        }  , server = TRUE, rownames=TRUE,
-        options = list(autoWidth=FALSE, scrollX=T, responsive=FALSE, pageLength = 25)
-       
+      
+      tableInputOutlier <- reactive({
+        
+        req(input$column_check)
+        
+        if (colnames(values$dataset)[1] != 'var1') {
+          
+          tab <- outlier_table(values$dataset, project=project$name, x=input$column_check)
+          rownames(tab)=tab[,2]
+          tab <- tab[,3:10]
+          out <- list(tab)
+          names(out) <- input$column_check # track column for saving
+          
+          out
+        }
+      })
+      
+      
+      output$missingtable <- DT::renderDT({
+        
+        missing_sum <- tableInputSummary()[["Missing"]]
+        miss_ind <- which(missing_sum != " 0" & !is.na(missing_sum))
+        
+        if (length(miss_ind) > 0) tableInputSummary()[miss_ind, ]
+        
+        }, server = TRUE, rownames=TRUE,
+        options = list(autoWidth=FALSE, scrollX=TRUE, responsive=FALSE, pageLength = 25)
       )
       
       output$output_table_summary <- DT::renderDT(
         tableInputSummary(), server = TRUE, rownames=TRUE,
-        options = list(autoWidth=FALSE, scrollX=T, responsive=FALSE, pageLength = 25)
+        options = list(autoWidth=FALSE, scrollX=TRUE, responsive=FALSE, pageLength = 25)
       )
       
-
-      
       output$output_table_outlier <- DT::renderDT(
-        if(colnames(values$dataset)[1] == 'var1') {
-          return(NULL)
-        } else if(input$checks=='Outliers'){
-          table <- outlier_table(values$dataset, project=project$name, x=input$column_check)
-          rownames(table)=table[,2]
-          table <- table[,3:10]
-          #table <<- table
-        } else {
-          NULL
-        }, server = TRUE, selection='single', rownames=TRUE,
-        options = list(autoWidth=FALSE, scrollX=T,  responsive=TRUE, pageLength = 7)
+        
+        tableInputOutlier()[[1]], server = TRUE, selection='single', rownames=TRUE,
+        options = list(autoWidth=FALSE, scrollX=TRUE, responsive=TRUE, pageLength = 7)
       )
       
       ranges1 <- reactiveValues(x = NULL, y = NULL)   
       ranges2 <- reactiveValues(x = NULL, y = NULL)   
       ranges3 <- reactiveValues(x = NULL, y = NULL)
-      #Plot output
-      output$plot1 <- renderPlot(
-        if(is.null(values$dataset)) {
-          return(NULL)
-        } else if(colnames(values$dataset)[1] == 'var1') {
-          return(NULL)
-        } else {
-          if(input$checks=='Outliers'){
-            temp <- values$dataset
-            temp$val <- 1:nrow(temp)
-            dat_sub <- suppressWarnings(outlier_plot_int(temp, input$column_check, input$dat.remove, input$x_dist, plot_type=1))
-            suppressWarnings(ggplot2::ggplot() + ggplot2::geom_point(data=dat_sub, ggplot2::aes_string(x='val', y=input$column_check, color = 'Points', na.rm=TRUE)) +
-                               ggplot2::scale_color_manual(breaks=c('Kept','Removed'),values=c('blue','red'))+
-                               ggplot2::coord_cartesian(xlim = ranges1$x, ylim = ranges1$y, expand = FALSE)+
-                               ggplot2::labs(x='Data row')+ ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
-                                                         panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text=ggplot2::element_text(size=12),
-                                                         axis.title=ggplot2::element_text(size=12)))  #+ 
-            #
-          } else {
-            NULL
-          }}
-      )
       
-      output$plot2 <- renderPlot(
-        if(is.null(values$dataset)) {
-          return(NULL)
-        } else if(colnames(values$dataset)[1] == 'var1') {
-          return(NULL)
-        } else {
-          if(input$checks=='Outliers'){
-            temp <- values$dataset
-            temp$val <- 1:nrow(temp)
-            dat_sub <- outlier_plot_int(temp, input$column_check, input$dat.remove, input$x_dist, plot_type=1)
-            arg.return <- outlier_plot_int(temp, input$column_check, input$dat.remove, input$x_dist, plot_type=2)
-            ggplot2::ggplot(dat_sub[dat_sub$Points=='Kept',], ggplot2::aes_string(input$column_check)) + 
-              ggplot2::geom_histogram(ggplot2::aes(y = ..density..), na.rm=TRUE, 
-                                      bins=(if(nrow(dat_sub) < 500) round(nrow(dat_sub) / 2) else 250)) + 
-              arg.return +
-              ggplot2::coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)+
-              ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
-                    panel.background = ggplot2::element_blank(), 
-                    axis.line = ggplot2::element_line(colour = "black"),
-                    axis.text=ggplot2::element_text(size=12),
-                    axis.title=ggplot2::element_text(size=12))
-          } else {
-            NULL
-          }}
-      )
       
-      output$plot3 <- renderPlot(
-        if(is.null(values$dataset)) {
-          return(NULL)
-        } else if(colnames(values$dataset)[1] == 'var1') {
-          return(NULL)
-        } else {
-          if(input$checks=='Outliers'){
-            temp <- values$dataset
-            temp$val <- 1:nrow(temp)
-            temp <- outlier_plot_int(temp, input$column_check, input$dat.remove, input$x_dist, plot_type=3)
-            ggplot2::ggplot(temp, ggplot2::aes(x=fit_quants, y=data_quants)) + ggplot2::geom_point(shape=1) + ggplot2::geom_abline() +
-              ggplot2::labs(x='Theoretical Quantiles', y='Sample Quantiles', title=paste('Q-Q plot of', input$x_dist, 'fit against data'))+
-              ggplot2::coord_cartesian(xlim = ranges3$x, ylim = ranges3$y, expand = FALSE)+
-              ggplot2::theme(panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), 
-                    panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"), axis.text=ggplot2::element_text(size=12),
-                    axis.title=ggplot2::element_text(size=12))
-          } else {
-            NULL
-          }}
-      )
+      outlierPlot1 <- reactive({
+        
+        req(input$column_check, input$dat.remove, input$x_dist)
+        
+        if (colnames(values$dataset)[1] != 'var1') {
+          
+          temp <- values$dataset
+          temp$val <- 1:nrow(temp)
+          col_check <- rlang::sym(input$column_check)
+          dat_sub <- suppressWarnings(outlier_plot_int(temp, input$column_check, 
+                                                       input$dat.remove, input$x_dist, 
+                                                       plot_type=1))
+          suppressWarnings(
+            ggplot2::ggplot() +
+              ggplot2::geom_point(data=dat_sub, ggplot2::aes(x=val, y=!!col_check, 
+                                                             color = Points, na.rm=TRUE)) +
+              ggplot2::scale_color_manual(breaks=c('Kept','Removed'),
+                                          values=c('blue','red')) +
+              ggplot2::coord_cartesian(xlim = ranges1$x, ylim = ranges1$y, expand = FALSE) +
+              ggplot2::labs(x='Data row') + 
+              fishset_theme() +
+              ggplot2::theme(axis.text=ggplot2::element_text(size=12),
+                             axis.title=ggplot2::element_text(size=12))
+            )
+          }
+      })
+      
+      outlierPlot2 <- reactive({
+        
+        req(input$column_check, input$dat.remove, input$x_dist)
+        
+        if (colnames(values$dataset)[1] != 'var1') {
+          
+          temp <- values$dataset
+          temp$val <- 1:nrow(temp)
+          col_check <- rlang::sym(input$column_check)
+          dat_sub <- outlier_plot_int(temp, input$column_check, input$dat.remove, 
+                                      input$x_dist, plot_type=1)
+          arg.return <- outlier_plot_int(temp, input$column_check, input$dat.remove, 
+                                         input$x_dist, plot_type=2)
+          
+          ggplot2::ggplot(dat_sub[dat_sub$Points=='Kept',], ggplot2::aes(!!col_check)) + 
+            ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)), 
+                                    na.rm=TRUE, bins = 30, fill = "gray", color = "black") + 
+            arg.return +
+            ggplot2::coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE) +
+            fishset_theme() +
+            ggplot2::theme(axis.text=ggplot2::element_text(size=12),
+                           axis.title=ggplot2::element_text(size=12))
+        }
+      })
+      
+      outlierPlot3 <- reactive({
+        
+        req(input$column_check, input$dat.remove, input$x_dist)
+        
+        if (colnames(values$dataset)[1] != 'var1') {
+          
+          temp <- values$dataset
+          temp$val <- 1:nrow(temp)
+          temp <- outlier_plot_int(temp, input$column_check, input$dat.remove, 
+                                   input$x_dist, plot_type = 3)
+          
+          ggplot2::ggplot(temp, ggplot2::aes(x=fit_quants, y=data_quants)) +
+            ggplot2::geom_point(shape=1) + ggplot2::geom_abline() +
+            ggplot2::labs(x='Theoretical Quantiles', y='Sample Quantiles', 
+                          title=paste('Q-Q plot of', input$x_dist, 'fit against data')) +
+            ggplot2::coord_cartesian(xlim = ranges3$x, ylim = ranges3$y, expand = FALSE) +
+            fishset_theme() +
+            ggplot2::theme(axis.text=ggplot2::element_text(size=12),
+                           axis.title=ggplot2::element_text(size=12))
+        }
+      })
+      
+      outlierPlotAll <- reactive({
+        
+        fig <- suppressWarnings(
+          ggpubr::ggarrange(outlierPlot1(), outlierPlot2(), outlierPlot3(),
+                            ncol = 2, nrow = 2)
+          )
+        
+        fig
+      })
+      
+      
+      # Outlier plot output
+      output$plot1 <- renderPlot(outlierPlot1())
+      
+      output$plot2 <- renderPlot(outlierPlot2())
+      
+      output$plot3 <- renderPlot(outlierPlot3())
       
       #Hover info       
       output$hover_info1 <- renderUI({
@@ -3387,7 +3390,7 @@ conf_cache_len <- length(get_confid_cache())
       })
       # Save buttons
       output$fleetSaveOutputUI <- renderUI({
-        saveOutputUI(paste0(fleet_id(), "-saveOut"))
+        saveFleetUI(paste0(fleet_id(), "-saveOut"))
         })
 
       saveDataTableServ("fleet", values, reactive(project$name))
@@ -4972,16 +4975,16 @@ conf_cache_len <- length(get_confid_cache())
         
       })
       
-      output$SaveButtons <- renderUI({
-        tagList(
-          #shinySaveButton(id = 'downloadplot', label ='Save plot to folder', title = "", filename = paste0(project,'_', input$checks, '_plot'), filetype = "png"),
-          actionButton('downloadplot', label ='Save plot to folder'),
-          downloadLink('downloadplotHIDE', label=''),
-          actionButton('downloaddata', label ='Save table to folder as csv'),
-         # downloadLink("downloadText", label=''),
-          actionButton('callTextDownload','Save notes')
-        )
-      })
+      # output$SaveButtons <- renderUI({
+      #   tagList(
+      #     #shinySaveButton(id = 'downloadplot', label ='Save plot to folder', title = "", filename = paste0(project,'_', input$checks, '_plot'), filetype = "png"),
+      #     actionButton('downloadplot', label ='Save plot to folder'),
+      #     downloadLink('downloadplotHIDE', label=''),
+      #     actionButton('downloaddata', label ='Save table to folder as csv'),
+      #    # downloadLink("downloadText", label=''),
+      #     actionButton('callTextDownload','Save notes')
+      #   )
+      # })
       
       output$SaveButtonsUpload <- renderUI({
         tagList(
@@ -5142,17 +5145,28 @@ conf_cache_len <- length(get_confid_cache())
                    }, ignoreInit = TRUE)
       
       
-      observeEvent(input$downloadplot, {
-        output$downloadplotHIDE <<- downloadHandler(
-          filename = function() {
-            paste0(locoutput(project$name), project$name, "_", 'Outlier.png')
-          },
-          content = function(file) {
-            ggplot2::ggsave(file, plot=outlier_plot(values$dataset, project$name, input$column_check, input$dat.remove, input$x_dist))
-          })
-        jsinject <- "setTimeout(function(){window.open($('#downloadplotHIDE').attr('href'))}, 100);"
-        session$sendCustomMessage(type = 'jsCode', list(value = jsinject))   
-      })
+    ### QAQC save ----
+    
+    get_reactive <- function(r) {
+      
+      tryCatch(r, error = function(e) return(NULL))
+    }
+    
+    qaqc_outs <- reactive({
+      cat("\nOut updated\n")
+      list(
+        summary_stats = get_reactive(tableInputSummary()),
+        outlier_table = get_reactive(tableInputOutlier()),
+        outlier_plot = get_reactive(outlierPlotAll()),
+        spatial_qaqc = get_reactive(spat_qaqc())
+        )
+    })
+    
+    
+    tabPlotServ("qaqc", proj = reactive(project$name),
+                out = qaqc_outs,
+                type = "tab_plot")
+    
       
       observeEvent(input$downloadplotAnal, {
         output$downloadplotAnalHIDE <<- downloadHandler(
@@ -5201,19 +5215,19 @@ conf_cache_len <- length(get_confid_cache())
       })
       
       # save grid plot in Explore tab
-      plotSaveServ("grid_plot", reactive(project$name), "view_grid_dat", grid_values$plot)
+      # plotSaveServ("grid_plot", reactive(project$name), "view_grid_dat", grid_values$plot)
       
       observeEvent(input$downloadTableExplore, {
         write.csv(gtmt_table(), paste0(locoutput(project = project$name), project$name, '_', 'GetisOrdMoransI.csv'))
       })
       
-      observeEvent(input$downloaddata, {
-        if(input$checks=='Summary table'){
-          write.csv(tableInputSummary(), paste0(locoutput(project = project$name), project$name, '_', 'summary_table.csv'))
-        } else if(input$checks=='Outliers'){
-          write.csv(tableInputOutlier(), paste0(locoutput(project = project$name), project$name, '_', 'outlier_table.csv'))
-        }
-      })
+      # observeEvent(input$downloaddata, {
+      #   if(input$checks=='Summary table'){
+      #     write.csv(tableInputSummary(), paste0(locoutput(project = project$name), project$name, '_', 'summary_table.csv'))
+      #   } else if(input$checks=='Outliers'){
+      #     write.csv(tableInputOutlier(), paste0(locoutput(project = project$name), project$name, '_', 'outlier_table.csv'))
+      #   }
+      # })
       
       observeEvent(input$downloaddataAnal, {
         if(input$corr_reg=='Correlation'){

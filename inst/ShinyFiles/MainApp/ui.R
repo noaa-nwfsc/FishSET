@@ -278,12 +278,8 @@ source("map_viewer_app.R", local = TRUE)
                            sidebarLayout(
                              sidebarPanel(width=3,
                                           tags$br(),tags$br(),
-                                          #uiOutput('SaveButtons'),
-                                          #shinySaveButton(id = 'downloadplot', label ='Save plot to folder', title = "", filename = paste0(project,'_', input$checks, '_plot'), filetype = "png"),
-                                          actionButton('downloadplot', label ='Save plot to folder'),
-                                          downloadLink('downloadplotHIDE', label=''),
-                                          actionButton('downloaddata', label ='Save table to folder as csv'),
-                                          actionButton('callTextDownload','Save notes'),
+                                          
+                                          tabPlotUI("qaqc", type = "tab_plot"),
                                           actionButton('saveDataQ','Save data to FishSET database'),
                                           tags$br(),
                                           tags$button(
@@ -309,7 +305,7 @@ source("map_viewer_app.R", local = TRUE)
                                            radioButtons("checks", "Select data quality check function to run", choices = c('Variable class', 'Summary table', 'Outliers', 'NAs', 'NaNs', 
                                                                                   'Unique observations', 'Empty variables', 'Latitude and Longitude'='Lat_Lon units',
                                                                                   'Spatial data')),
-                                          uiOutput("checks_dataset"),
+                                          # uiOutput("checks_dataset"),
                                           conditionalPanel(
                                             condition = "input.checks == 'Variable class'",
                                             actionButton('rchclass', 'Change variable classes', style = "color: white; background-color: #0073e6;")
@@ -382,9 +378,10 @@ source("map_viewer_app.R", local = TRUE)
                                                         DT::dataTableOutput('changetable') ),
                                        conditionalPanel("input.checks=='Summary table'",
                                                         DT::DTOutput("output_table_summary")),
-                                       shinycssloaders::withSpinner(DT::DTOutput("output_table_outlier")),
                                        tags$br(),tags$br(),
                                        conditionalPanel("input.checks=='Outliers'",
+                                                        
+                                       shinycssloaders::withSpinner(DT::DTOutput("output_table_outlier")),
                                        splitLayout(cellWidths = c('33%','33%','33%'),
                                                    shinycssloaders::withSpinner(plotOutput('plot1',
                                                               hover = hoverOpts("plot1_hover", delay = 100, delayType = "debounce"),
