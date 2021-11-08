@@ -5,8 +5,8 @@ empty_meta_list <- function() {
   #' @export
   
   list(date_added = Sys.Date(),
-       meta = list(type = character(0),
-                   author = character(0),
+       type = character(0),
+       meta = list(author = character(0),
                    date_created = character(0),
                    date_modified = character(0),
                    confidentiality = character(0),
@@ -89,7 +89,7 @@ meta_file_exists <- function(project) {
   
   m_dir <- paste0(locproject(), "/", project, "/doc/meta_log.json")
   
-  dir.exists(m_dir)
+  file.exists(m_dir)
 }
 
 
@@ -169,7 +169,8 @@ meta_log_call <- function(project, meta, dataset = NULL, tab_name, tab_type,
       
       if (tab_exists == FALSE) {
         
-        metaBody$table[[tab_name]] <- list(meta = meta, raw = character(0))
+        metaBody$table[[tab_name]] <- meta_list(tab_type, dataset)
+        metaBody$table[[tab_name]]$meta <- meta
         
       } else {
         

@@ -324,9 +324,10 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       }
     }
     #
+
     
     if (any(is_empty(indeVarsForModel))) {
-      bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, indeVarsForModel = as.data.frame(rep(1, nrow(choice))))
+      bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, indeVarsForModel = as.data.frame(matrix(1, nrow = nrow(choice), ncol = 1)))
       #    bColumnsWant <- ""
       #    bInterAct <- ""
     } else {
@@ -368,6 +369,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       # r <- regexp(arrayfun(@num2str,nanmax(dataPerZone),'UniformOutput',false),'\\.','split')){){
       # dscale <- cellfun(@(x) 10^length(x{1}-1),r)
       #r <- nchar(sub("\\.[0-9]+", "", max(max(dist_out[['X']], na.rm = T), na.rm = T)))
+
       r <- if(length(bCHeader$gridVariablesInclude)==0){ 1 } else {
                            as.numeric(lapply(bCHeader$gridVariablesInclude, function(x) mean(as.numeric(unlist(x)), na.rm=TRUE)))}
       if(length(bCHeader$indeVarsForModel)==0){ 
@@ -407,6 +409,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       )
 
       
+     print(str(modelInputData_tosave)) 
       single_sql <- paste0(project, "modelinputdata")
       date_sql <- paste0(project, "modelinputdata", format(Sys.Date(), format = "%Y%m%d"))
       if (table_exists(single_sql, project) & replace == FALSE) {
@@ -424,7 +427,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       if (table_exists(date_sql, project)) {
         table_remove(date_sql, project)
       }
-      
+   
       DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(ModelInputData MODELINPUTDATA)"))
       DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:ModelInputData)"),
                      params = list(ModelInputData = list(serialize(modelInputData, NULL)))
@@ -445,6 +448,8 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       make_model_design_function$kwargs <- list()
       
       log_call(project, make_model_design_function)
+      
+      print('Model design file done')
     }
 
 }

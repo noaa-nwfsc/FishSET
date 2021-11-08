@@ -102,7 +102,9 @@
 discretefish_subroutine <- function(project, select.model = FALSE, explorestarts = TRUE, breakearly= TRUE,
                                     space=NULL, dev=NULL, use.scalers=TRUE, scaler.func=NULL) {
 
-  if (!isRunning()) { # if run in console
+end <- FALSE
+
+    if (!isRunning()) { # if run in console
     
     check <- checklist(project)
     end <- any(vapply(check, function(x) x$pass == FALSE, logical(1)))
@@ -110,7 +112,7 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
 
  
   if (end == FALSE) {
-    
+
     # Call in datasets
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
     on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
@@ -118,6 +120,7 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
     
     
     for (i in 1:length(x_temp)) {
+
       x <- x_temp[[i]]
       if (!is.null(x$mod.name) & x$likelihood!='logit_c'){
             exp.names <- NULL
@@ -128,7 +131,25 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
         for(j in 1:length(exp.names)){
           data.matrix <- create_model_input(project=project, x=x, mod.name=x$mod.name, use.scalers= use.scalers, scaler.func=scaler.func, expected.catch.name=exp.names[j])
         
+
+
+       
       
+      #Scalers
+ #     scale.func <- function(s, d){
+ #             if(!is.list(s)) {
+ #               s <- as.list(s)
+ #             } 
+ #             if(length(d) == length(s)){
+ #              for(k in 1:length(d)) {  
+ #               d[k] <- unlist(s)[k]
+ #             }} else {
+ #               message('Insufficient scaling factor values supplied. Defaulting to 2*sd.')
+ #               
+ #           }
+ #       return(d)
+ #         }
+
        #Scalers
 #      scale.func <- function(s, d){
 #              if(!is.list(s)) {
@@ -217,7 +238,7 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
 #        warning("Startingloc parameter is not specified. Rerun the create_alternative_choice function")
 #      }
 #      dataCompile <- create_logit_input(choice)
-      
+
 #      d <- shift_sort_x(dataCompile, choice, catch, distance, max(choice), ab)
       
       # starts2 <-as.numeric(unlist(strsplit(as.character(inits), ","))) # inits
@@ -299,11 +320,11 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
           }
         }
         
-     
+        
         #Explore starting parameters
         if(explorestarts==TRUE){
-          sp <- if(is.null(space[[i]])) {10} else { space[[i]] }
-          devr <- if(is.null(dev[[i]])) { 5} else { dev[[i]] }
+          sp <- if(is.null(space[i])) {10} else { space[i] }
+          devr <- if(is.null(dev[i])) { 5} else { dev[i] }
           
           starts2 <- explore_startparams_discrete(space=sp, dev=devr, breakearly=breakearly, startsr=starts2, fr=fr, 
                                                   d=data.matrix$d, otherdat=data.matrix$otherdat, choice=data.matrix$choice, project=project)
@@ -355,6 +376,8 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
           optim_message = res[["message"]]
         )
         H <- res[["hessian"]]
+        
+    
         #############################################################################
         # Model comparison metrics (MCM)
         param <- max(dim(as.matrix(starts2)))
@@ -485,9 +508,12 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
           
           params_out <- as.data.frame(OutLogit)
           names(params_out) <- c("estimate", "std_error", "t_value") 
+          rownames(params_out) <- levels(factor(x_temp[[i]]$choice))
           params_out <- round(params_out, 3)
-          browser()
+
           save_table(params_out, project=project, x_temp[[i]]$mod.name)
+
+#          save_table(params_out, paste0(project, '_params'), x_temp[[i]]$mod.name)
         }
         
         second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
