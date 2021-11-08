@@ -100,11 +100,12 @@ n_tab_output <- function(out) {
   
   if (is.data.frame(out)) {
     
-    tagList(DT::renderDT({ out }))
+    tagList(DT::renderDT({ out }, options = list(pageLength = 15)))
     
   } else {
     
-    lapply(seq_along(out), function(x) DT::renderDT(out[[x]]))
+    lapply(seq_along(out), function(x) DT::renderDT(out[[x]], 
+                                                    options = list(pageLength = 15)))
   }
 }
 
