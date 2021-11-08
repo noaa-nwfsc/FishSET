@@ -23,14 +23,6 @@
 #' @export
 #' @return Returns a yaml file to the project output folder.
 
-library(FishSET)
-library(shiny)
-library(leaflet)
-library(sf)
-library(dplyr)
-loc2 <- paste0(getwd(), '/inst')
-spat <- read_dat('C:\\Users\\melanie.harsch\\Work\\Data files\\Example data\\nmfs_manage_simple.json', is.map=TRUE)
-treat <- read_dat('C:\\Users\\melanie.harsch\\Work\\Data files\\Example data\\treatment_area.json', is.map=TRUE)
 
 zone_closure <- function(project, gridfile, cat, secondgridfile=NULL, secondcat=NULL, lon.grid=NULL, lat.grid=NULL) {
   
