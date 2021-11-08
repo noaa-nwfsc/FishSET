@@ -1428,7 +1428,7 @@ conf_cache_len <- length(get_confid_cache())
                  spatdat$dataset <- read_dat(input$spatialdat$datapath, is.map=TRUE)
                }
                
-            } else {
+            }}} else {
               
               observe({
                 shpdf <- input$spatialdatshape
@@ -1453,7 +1453,7 @@ conf_cache_len <- length(get_confid_cache())
             #DBI::dbDisconnect(fishset_db)
             #showNotification("Map saved to database")
            
-          } 
+ 
           
           if (names(spatdat$dataset)[1]!='var1') {
             
@@ -1461,8 +1461,7 @@ conf_cache_len <- length(get_confid_cache())
                              type='message', duration=10)
 ####
           }
-        }
-        # }
+
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
 
 

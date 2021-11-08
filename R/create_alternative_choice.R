@@ -104,15 +104,13 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
   x <- 0
   
   if(!is.null(gridfile)){
-      if(table_exists(paste0(gridname, 'Centroid'), project)|table_exists('gridfileCentroid', project)){
+      int <- find_centroid(project = project, gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.grid, cat = cat)
+  } else if(table_exists(paste0(gridname, 'Centroid'), project)|table_exists('gridfileCentroid', project)){
         if(table_exists(paste0(gridname, 'Centroid'), project) ==TRUE) {
           int <- table_view(paste0(gridfile, 'Centroid'), project)
         } else {
           int <- table_view(paste0('gridfileCentroid'), project)
         }
-      } else {
-         int <- find_centroid(project = project, gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.grid, cat = cat)
-      }
   } else {
     warning("Zonal centroid must be defined. Function not run.")
     x <- 1
@@ -136,7 +134,16 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
     } 
   }
   
-  
+  if(x == 0){
+    if(!any(int[,1] %in% int.data[[cat]])){
+      if(!is.null(gridfile)){
+        int <- find_centroid(project = project, gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.grid, cat = cat) 
+      } else
+        warning('Zones do not match between centroid table and zonal assignments in main data table. Rerun find_centoid using 
+                same spatial data file as was using with the assignment_column function.')
+      x <- 1
+    }
+  }
   
   if(x == 0){
     

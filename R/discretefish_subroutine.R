@@ -107,21 +107,25 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
     check <- checklist(project)
     end <- any(vapply(check, function(x) x$pass == FALSE, logical(1)))
   }
+
  
   if (end == FALSE) {
     
     # Call in datasets
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
+    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
     x_temp <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
     
     
     for (i in 1:length(x_temp)) {
       x <- x_temp[[i]]
       if (!is.null(x$mod.name) & x$likelihood!='logit_c'){
-        data.matrix <- create_model_input(project=project, x=x, mod.name=x$mod.name, use.scalers= use.scalers, scaler.func=scaler.func, expected.catch.name=NULL)
+            exp.names <- NULL
       } else {
-        for(j in 1:7){
-          exp.names <- c("short_exp","short_exp_newDumV","med_exp","med_exp_newDumV","long_exp","long__exp_newDumv","user_defined_exp")
+            exp.names <- c("short_exp","short_exp_newDumV","med_exp","med_exp_newDumV","long_exp","long__exp_newDumv","user_defined_exp")
+      }  
+        
+        for(j in 1:length(exp.names)){
           data.matrix <- create_model_input(project=project, x=x, mod.name=x$mod.name, use.scalers= use.scalers, scaler.func=scaler.func, expected.catch.name=exp.names[j])
         
       
@@ -482,8 +486,8 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
           params_out <- as.data.frame(OutLogit)
           names(params_out) <- c("estimate", "std_error", "t_value") 
           params_out <- round(params_out, 3)
-          
-          save_table(params_out, project, x_temp[[i]]$mod.name)
+          browser()
+          save_table(params_out, project=project, x_temp[[i]]$mod.name)
         }
         
         second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
@@ -493,10 +497,10 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
         DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", raw_sql, "(data modelOut)"))
         DBI::dbExecute(fishset_db, raw_second_sql, params = list(data = list(serialize(modelOut, NULL))))
         DBI::dbDisconnect(fishset_db)
-      }
-      #### End looping through expected catch cases
+
+      }## End looping through expected catch cases
     } # end looping through model choices
-    }
+    } # end model run (if end == false)
     # out.mod <<- out.mod
     #############################################################################
     if (select.model == TRUE) {
@@ -595,7 +599,7 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
           })
         }
       ))
-    }
+    } # end select.model
     
     #############################################################################
     discretefish_subroutine_function <- list()
@@ -611,6 +615,6 @@ discretefish_subroutine <- function(project, select.model = FALSE, explorestarts
       # return(out)
       DBI::dbDisconnect(fishset_db)
     }
-  }
+
 }
 
