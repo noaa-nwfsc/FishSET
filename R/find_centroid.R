@@ -26,10 +26,11 @@ find_centroid <- function(project, gridfile, cat, lon.grid = NULL, lat.grid = NU
   tmp <- tempfile()
   cat("", file = tmp, append = TRUE)
   x <- 0
-  
+ 
     if (any(grepl("Spatial", class(gridfile)))) {
       if(any(class(gridfile) %in% c("sp", "SpatialPolygonsDataFrame"))) {
         gridfile <- sf::st_as_sf(gridfile)
+        gridfile <- sf::st_transform(gridfile, crs = "+proj=longlat +datum=WGS84")
       } else {
     if (is_empty(lon.grid) | is_empty(lat.grid)) {
       warning("lat.grid and lon.grid must be supplied to convert sp object to a sf object.")

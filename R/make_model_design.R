@@ -242,7 +242,6 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
   # indeVarsForModel = vars1
   # gridVariablesInclude=vars2
 
-
   
   if (!exists("Alt")) {
     if (!exists("AltMatrixName")) {
@@ -279,7 +278,8 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     occasion <- Alt[["occasion"]]
     dataZoneTrue <- Alt[["dataZoneTrue"]]
     int <- Alt[["int"]]
-    choice <- Alt[["choice"]]
+    choice_raw <- as.data.frame(Alt$choice)
+    choice <- as.data.frame(Alt$choice[which(dataZoneTrue==1),])
     zoneRow <- Alt[["zoneRow"]]
     startingloc <- if (!is.null(startloc) & all(is.na(Alt$startingloc))) {
       dataset[[startloc]]
@@ -330,9 +330,8 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       #    bColumnsWant <- ""
       #    bInterAct <- ""
     } else {
-      if (any(indeVarsForModel %in% c("Miles * Miles", "Miles*Miles, Miles x Miles"),
-              ignore.case = TRUE
-      )) {
+      if (any(indeVarsForModel %in% c("Miles * Miles", "Miles*Miles", "Miles x Miles"))) 
+     {
         bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, indeVarsForModel = lapply(indeVarsForModel[-1], function(x) dataset[[x]][which(dataZoneTrue == 1)]))
       } else {
         bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, indeVarsForModel = lapply(indeVarsForModel, function(x) dataset[[x]][which(dataZoneTrue == 1)]))
@@ -342,7 +341,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
   
   ### Generate Distance Matrix
      dist_out <- create_dist_matrix(dataset=dataset, alt_var=alt_var, occasion=occasion, dataZoneTrue=dataZoneTrue, 
-                                 int=int, choice=choice, units=units, port=port, zoneRow=zoneRow, X=X)
+                                 int=int, choice=choice_raw, units=units, port=port, zoneRow=zoneRow, X=X)
   
   ### ---- add special terms: ----### add only for EPM model
  
@@ -358,7 +357,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       } else {
         epmDefaultPrice <- dataset[which(dataZoneTrue == 1), as.character(priceCol)]
       }
-      pscale <- mean(pscale, na.rm=TRUE)
+      pscale <- mean(epmDefaultPrice, na.rm=TRUE)
   ### scales zonal
       #r=regexp(num2str(max(max(modelInputData.zonalChoices))),'\.','split');
       
@@ -369,20 +368,28 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       # r <- regexp(arrayfun(@num2str,nanmax(dataPerZone),'UniformOutput',false),'\\.','split')){){
       # dscale <- cellfun(@(x) 10^length(x{1}-1),r)
       #r <- nchar(sub("\\.[0-9]+", "", max(max(dist_out[['X']], na.rm = T), na.rm = T)))
-      dscale <- c(as.numeric(lapply(bCHeader$gridVariablesInclude, function(x) mean(as.numeric(unlist(x)), na.rm=TRUE))), 
-                  as.numeric(lapply(bCHeader$indeVarsForModel, function(x) mean(as.numeric(unlist(x)), na.rm=TRUE)))) #10^(nchar(sub("\\.[0-9]+", "", max(max(x, na.rm = T), na.rm = T)))-1))
-      dscale <- if(dscale ==0 ) {1} else {dscale}
+      r <- if(length(bCHeader$gridVariablesInclude)==0){ 1 } else {
+                           as.numeric(lapply(bCHeader$gridVariablesInclude, function(x) mean(as.numeric(unlist(x)), na.rm=TRUE)))}
+      if(length(bCHeader$indeVarsForModel)==0){ 
+          r2 <- 1 
+        } else {
+          r2 <- as.numeric(lapply(bCHeader$indeVarsForModel, function(x) mean(as.numeric(unlist(x)), na.rm=TRUE)))
+        }
+      
+      dscale <- list(list(grid=r), list(inde=r2))
+                 #10^(nchar(sub("\\.[0-9]+", "", max(max(x, na.rm = T), na.rm = T)))-1))
+      #dscale <- if(dscale ==0 ) {1} else {dscale}
       ### -- Create output list --- ###
       modelInputData_tosave <- list(
         likelihood = likelihood,
         catch = catch,
-        choice = choice[which(dataZoneTrue == 1), ],
+        choice = choice,
         initparams = initparams, 
         optimOpt = optimOpt, 
         methodname = methodname, 
         mod.name  = mod.name,
         startingloc = startingloc[which(dataZoneTrue == 1)],
-        scales = c(catch = yscale, zonal = mscale, data = dscale, pscale=pscale),
+        scales = c(catch = yscale, zonal = mscale, griddata = r, intdata=r2, pscale=pscale),
         distance = dist_out[['X']],
         instances = dim(dist_out[['X']])[1],
         alts = dim(dist_out[['X']])[2],

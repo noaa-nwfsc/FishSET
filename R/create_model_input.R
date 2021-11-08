@@ -21,6 +21,7 @@ create_model_input <- function(project, x=NULL, mod.name=NULL, use.scalers= TRUE
     x <- x
   } else {
       fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
+      on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
       x_temp <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
     if(!is.null(mod.name)){
       x <- x_temp[[which(lapply( x_temp , "[[" , "mod.name" ) == mod.name)]]
@@ -56,21 +57,22 @@ create_model_input <- function(project, x=NULL, mod.name=NULL, use.scalers= TRUE
         }
         
       } 
-    } else if(use.scalers == FALSE) {
+    } else if(use.scalers == FALSE) {x$scales
+      
       for(k in 1:length(x$scales)) { 
         x$scales[k] <- 1
       }
     }
     
     
-    catch <- (data.frame(as.matrix(x[["catch"]])))/x$scales[1]
+    catch <- (data.frame(as.matrix(x[["catch"]])))/x$scales[which(names(x$scales)=='catch')]
     choice <- x[["choice"]]
-    distance <- (data.frame(x[["distance"]]))/x$scales[2]
+    distance <- (data.frame(x[["distance"]]))/x$scales[which(names(x$scales)=='zonal')]
     startingloc <- x[["startingloc"]]
     mod.name <- unlist(x[["mod.name"]])
     
     choice.table <- as.matrix(choice, as.numeric(factor(choice)))
-    choice <- data.frame(as.matrix(as.numeric(factor(choice))))
+    choice <- as.data.frame(as.numeric(factor(as.matrix(choice))))#data.frame(as.matrix(as.numeric(factor(choice))))
     ab <- max(choice) + 1 # no interactions in create_logit_input - interact distances in likelihood function instead
     
     fr <- x[["likelihood"]] # func  #e.g. logit_c
@@ -93,18 +95,18 @@ create_model_input <- function(project, x=NULL, mod.name=NULL, use.scalers= TRUE
     ### Data needs will vary by the likelihood function ###
     if (grepl("epm", fr)) {
       otherdat <- list(
-        griddat = list(griddatfin = as.data.frame(x[["bCHeader"]][["gridVariablesInclude"]])/x$scales[3]),
+        griddat = list(griddatfin = as.data.frame(x[["bCHeader"]][["gridVariablesInclude"]])/x$scales[which(names(x$scales)=='griddata')]),
         intdat = list(as.data.frame(
           mapply("/",x[["bCHeader"]][["indeVarsForModel"]],
-                 x$scales[c(4:length(x$scales))],SIMPLIFY = FALSE))),
-        pricedat = as.data.frame(x[["epmDefaultPrice"]])
+                 x$scales[which(names(x$scales)=='intdata')],SIMPLIFY = FALSE))),
+        pricedat = as.data.frame(x[["epmDefaultPrice"]]/x$scales[which(names(x$scales)=='pscale')])
       )
       expname <- fr
     } else if (fr == "logit_correction") {
       otherdat <- list(
         griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))), # x[['bCHeader']][['gridVariablesInclude']]),
         intdat = list(as.data.frame(mapply("/",x[["bCHeader"]][["indeVarsForModel"]],
-                                           x$scales[c(4:length(x$scales))],SIMPLIFY = FALSE))),
+                                           x$scales[which(names(x$scales)=='intdata')],SIMPLIFY = FALSE))),
         startloc = as.data.frame(x[["startloc"]]),
         polyn = as.data.frame(x[["polyn"]])
       )
@@ -114,16 +116,17 @@ create_model_input <- function(project, x=NULL, mod.name=NULL, use.scalers= TRUE
         griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))),
         intdat = list(as.data.frame(
           mapply("/",x[["bCHeader"]][["indeVarsForModel"]],
-                 x$scales[c(4:length(x$scales))],SIMPLIFY = FALSE)))
+                 x$scales[which(names(x$scales)=='intdata')],SIMPLIFY = FALSE)))
       )
       expname <- fr
     } else if (fr == "logit_c") {
         expname <- paste0(fr, '_', exp_name)
         otherdat <- list(
-          griddat = list(griddatfin = as.data.frame(x[["gridVaryingVariables"]][grep(exp_name, names(x$gridVaryingVariables))])/x$scales[3]),
+          griddat = list(griddatfin = as.data.frame(x[["gridVaryingVariables"]][grep(exp_name,
+                                                                                     names(x$gridVaryingVariables))])/x$scales[which(names(x$scales)=='griddata')]),
           intdat = list(as.data.frame(
             mapply("/",x[["bCHeader"]][["indeVarsForModel"]],
-                   x$scales[c(4:length(x$scales))],SIMPLIFY = FALSE)))
+                   x$scales[which(names(x$scales)=='intdata')],SIMPLIFY = FALSE)))
         )
     }
     
