@@ -55,7 +55,9 @@ Imports:
   stringr,
   tibble, 
   tidyr,
+  viridis,
   xml2, 
+  yaml,
   zoo
 Suggests: 
   foreign,
