@@ -4,14 +4,16 @@
 #' @param dat Primary data containing information on hauls or trips.
 #' Table in FishSET database contains the string 'MainDataTable'.
 #' @param project String, name of project.
-#' @param x Optional. Variable in \code{dat} to apply function over. If not defined, summary stats
-#'   are displayed for all columns in the dataset.
+#' @param x Optional. Variable in \code{dat} to apply function over. If not 
+#'   defined, summary stats are displayed for all columns in the dataset.
 #' @param project Name of project
 #' @param log_fun Logical, whether to log function call (for internal use).
 #' @keywords summary statistics
 #' @export summary_stats
-#' @details Prints summary statistics for each variable in the data set. If \code{x} is specified, summary stats will be returned only for that variable.
-#' Function is called in the \code{\link{data_check}} function.
+#' @importFrom lubridate is.Date is.POSIXt
+#' @details Prints summary statistics for each variable in the data set. If 
+#'   \code{x} is specified, summary stats will be returned only for that variable.
+#'   Function is called in the \code{\link{data_check}} function.
 #' @examples
 #' \dontrun{
 #' summary_stats(pcodMainDataTable)
@@ -25,10 +27,6 @@ summary_stats <- function(dat, project, x = NULL, log_fun = TRUE) {
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")
   
-  # Min apply(dataset, 2, function(x) min(x, na.rm=T)) 1st Quartile apply(dataset, 2, function(x) quantile(x)[2]) Median apply(dataset, 2, function(x)
-  # median(x, na.rm=T)) Mean apply(dataset, 2, function(x) mean(x, na.rm=TRUE)) 3rd Quartile apply(dataset, 2, function(x) length(unique(x))) Max
-  # apply(dataset, 2, function(x) max(x, n.arm=TRUE)) UniqueObs apply(dataset, 2, function(x) paste('UniqueObs:', length(unique(x))))
-
 #Extract only numeric 
   is_num <- function(x) {
     is.numeric(x) || lubridate::is.Date(x) || lubridate::is.POSIXt(x)

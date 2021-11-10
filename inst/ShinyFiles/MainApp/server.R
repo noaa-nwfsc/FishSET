@@ -255,16 +255,16 @@ conf_cache_len <- length(get_confid_cache())
       }, ignoreInit = TRUE, ignoreNULL=TRUE) 
      
       #Track Times tab selected
-      vars<-reactiveValues()
-      vars = reactiveValues(counter = 0)
-      observe({
-        input$tabs
-        if(input$tabs == 'upload'){
-          isolate({
-            vars$counter <- vars$counter + 1
-          })
-        }
-      })
+      # vars<-reactiveValues()
+      # vars = reactiveValues(counter = 0)
+      # observe({
+      #   input$tabs
+      #   if(input$tabs == 'upload'){
+      #     isolate({
+      #       vars$counter <- vars$counter + 1
+      #     })
+      #   }
+      # })
       
       #Landing Page ----
       ###---
@@ -931,7 +931,7 @@ conf_cache_len <- length(get_confid_cache())
       ###---
       
       output$projects <- renderUI({
-        req(vars$counter)
+        # req(vars$counter)
         req(input$loadmainsource)
         if (input$loadmainsource == 'Upload new file') {
           
@@ -951,21 +951,21 @@ conf_cache_len <- length(get_confid_cache())
       })
       
       
-      output$main1 <- renderUI({
-       if(vars$counter>1){
-         radioButtons('loadmainsource', "Source primary data from:",
-                   choices=c('Upload new file','FishSET database'),
-                   selected='Upload new file' , inline=TRUE)
-       } else {
-         radioButtons('loadmainsource', "Source primary data from:",
-                      choices=c('Upload new file','FishSET database'), 
-                      selected='FishSET database', inline=TRUE)
-      }
-      })
+      # output$main1 <- renderUI({
+      #  if(vars$counter>1){
+      #    radioButtons('loadmainsource', "Source primary data from:",
+      #              choices=c('Upload new file','FishSET database'),
+      #              selected='Upload new file' , inline=TRUE)
+      #  } else {
+      #    radioButtons('loadmainsource', "Source primary data from:",
+      #                 choices=c('Upload new file','FishSET database'), 
+      #                 selected='FishSET database', inline=TRUE)
+      # }
+      # })
       
       # assign project name
       observeEvent(c(input$loadmainsource, input$project_select, input$loadDat), {
-        req(vars$counter)
+        # req(vars$counter)
         req(input$loadmainsource)
         if (input$loadmainsource == 'Upload new file') {
           
@@ -986,7 +986,7 @@ conf_cache_len <- length(get_confid_cache())
       
       
       output$main_upload <- renderUI({    
-        req(vars$counter)
+        # req(vars$counter)
         req(input$loadmainsource)
 
       if (input$loadmainsource=='Upload new file') {
@@ -2039,7 +2039,7 @@ conf_cache_len <- length(get_confid_cache())
         conditionalPanel(
           condition="input.checks=='Outliers'",
           selectInput('column_check', 'Choose variable',
-                      choices= names(values$dataset[1,unlist(lapply(values$dataset, is.numeric))]), selectize=TRUE))
+                      choices= numeric_cols(values$dataset), selectize=TRUE))
       })
       output$outlier_subset <- renderUI({
         conditionalPanel(
@@ -2056,15 +2056,15 @@ conf_cache_len <- length(get_confid_cache())
       })
       
       #Lat/Lon
-      output$LatLonDir <- renderUI ({
+      output$LatLonDir <- renderUI({
         tagList(
         conditionalPanel(condition="input.checks=='Lat_Lon units'",
                          selectizeInput('LatDirection','Latitudinal variable', 
-                                        choices=c('None', colnames(values$dataset[,grep('lat', names(values$dataset), ignore.case=TRUE)])),
-                                        options = list(create = TRUE, placeholder='Select or type variable name'))),
-        conditionalPanel(condition="input.checks=='Lat_Lon units'",
+                                        choices=c('None', find_lat(values$dataset)),
+                                        options = list(create = TRUE, placeholder='Select or type variable name')),
+        
                          selectizeInput('LonDirection','Longitudinal variable', 
-                                        choices=c('None', colnames(values$dataset[,grep('lon', names(values$dataset), ignore.case=TRUE)])),
+                                        choices=c('None', find_lon(values$dataset)),
                                         options = list(create = TRUE, placeholder='Select or type variable name')))
         )
       })
@@ -2320,8 +2320,8 @@ conf_cache_len <- length(get_confid_cache())
                             models = "Models: ",
                             book = "Bookmark URL: ")
       
-      observeEvent(c(input$callTextDownload,
-                     input$callTextDownloadAnal,
+      observeEvent(c(input$callTextDownloadAnal,
+                     input$callTextDownloadQAQC,
                      input$callTextDownloadExplore,
                      input$callTextDownloadUp,
                      input$callTextDownloadNew,
@@ -2375,6 +2375,10 @@ conf_cache_len <- length(get_confid_cache())
       })
     #End NOTES
       
+      # output project tracker
+      qaqc_out_proj <- reactiveValues(tab_sum = NULL, out_tab = NULL, 
+                                      out_plot = NULL, spat = NULL)
+      
       ##Table output
       tableInputSummary <- reactive({
         
@@ -2387,6 +2391,8 @@ conf_cache_len <- length(get_confid_cache())
           stable <- as.data.frame(as.matrix(stable))
           stable <- as.data.frame((t(stable)))
           
+          qaqc_out_proj$sum_tab <- project$name
+          
           stable
         }
       })
@@ -2394,15 +2400,18 @@ conf_cache_len <- length(get_confid_cache())
       
       tableInputOutlier <- reactive({
         
-        req(input$column_check)
+        req(input$column_check %in% names(values$dataset))
         
         if (colnames(values$dataset)[1] != 'var1') {
           
-          tab <- outlier_table(values$dataset, project=project$name, x=input$column_check)
+          q_test <- quietly_test(outlier_table)
+          tab <- q_test(values$dataset, project=project$name, x=input$column_check)
           rownames(tab)=tab[,2]
           tab <- tab[,3:10]
           out <- list(tab)
           names(out) <- input$column_check # track column for saving
+          
+          qaqc_out_proj$out_tab <- project$name
           
           out
         }
@@ -2438,16 +2447,16 @@ conf_cache_len <- length(get_confid_cache())
       
       outlierPlot1 <- reactive({
         
-        req(input$column_check, input$dat.remove, input$x_dist)
+        req(input$column_check %in% names(values$dataset))
         
         if (colnames(values$dataset)[1] != 'var1') {
           
           temp <- values$dataset
           temp$val <- 1:nrow(temp)
           col_check <- rlang::sym(input$column_check)
-          dat_sub <- suppressWarnings(outlier_plot_int(temp, input$column_check, 
-                                                       input$dat.remove, input$x_dist, 
-                                                       plot_type=1))
+          q_test <- quietly_test(outlier_plot_int)
+          dat_sub <- q_test(temp, input$column_check, input$dat.remove, 
+                            input$x_dist, plot_type = 1)
           suppressWarnings(
             ggplot2::ggplot() +
               ggplot2::geom_point(data=dat_sub, ggplot2::aes(x=val, y=!!col_check, 
@@ -2460,12 +2469,14 @@ conf_cache_len <- length(get_confid_cache())
               ggplot2::theme(axis.text=ggplot2::element_text(size=12),
                              axis.title=ggplot2::element_text(size=12))
             )
+          
+          qaqc_out_proj$out_plot <- project$name
           }
       })
       
       outlierPlot2 <- reactive({
         
-        req(input$column_check, input$dat.remove, input$x_dist)
+        req(input$column_check %in% names(values$dataset))
         
         if (colnames(values$dataset)[1] != 'var1') {
           
@@ -2490,7 +2501,7 @@ conf_cache_len <- length(get_confid_cache())
       
       outlierPlot3 <- reactive({
         
-        req(input$column_check, input$dat.remove, input$x_dist)
+        req(input$column_check %in% names(values$dataset))
         
         if (colnames(values$dataset)[1] != 'var1') {
           
@@ -2510,16 +2521,15 @@ conf_cache_len <- length(get_confid_cache())
         }
       })
       
-      outlierPlotAll <- reactive({
+      # combine outlier plots into one
+      outlierPlotAll <- reactive({  
         
         fig <- suppressWarnings(
           ggpubr::ggarrange(outlierPlot1(), outlierPlot2(), outlierPlot3(),
-                            ncol = 2, nrow = 2)
-          )
-        
+                            ncol = 2, nrow = 2))
+        qaqc_out_proj$out_plot <- project$name
         fig
-      })
-      
+      }) 
       
       # Outlier plot output
       output$plot1 <- renderPlot(outlierPlot1())
@@ -2713,21 +2723,23 @@ conf_cache_len <- length(get_confid_cache())
       # run spatial checks 
       spat_qaqc <- eventReactive(input$runSpatQAQC, {
         
+          
         q_test <- quietly_test(spatial_qaqc)
         
         out <- 
-        q_test(values$dataset, project$name, spatdat$dataset, 
-               lon.dat = input$spat_qaqc_lon, lat.dat = input$spat_qaqc_lat,
-               date = input$spat_qaqc_date, group = input$spat_qaqc_grp)
+          q_test(values$dataset, project$name, spatdat$dataset, 
+                 lon.dat = input$spat_qaqc_lon, lat.dat = input$spat_qaqc_lat,
+                 date = input$spat_qaqc_date, group = input$spat_qaqc_grp)
         
         flag_nms <- c("ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY")
         spat_qaqc_r$flag <- vapply(flag_nms, function(x) x %in% names(out$dataset), logical(1))
         
         values$dataset <- out$dataset
-        
         out$dataset <- NULL
-        out
         
+        qaqc_out_proj$spat <- project$name
+        
+        out
       }, ignoreInit = TRUE, ignoreNULL = TRUE)
       
       # spatial checks output
@@ -2987,15 +2999,13 @@ conf_cache_len <- length(get_confid_cache())
         tagList(
           conditionalPanel("input.plot_table=='Table'",
                           selectInput("SelectDatasetExplore", "Select a data file type", 
-                                        choices = c("Primary"="main", "Port"="port", "Auxiliary"="auxiliary", "Gridded" = "grid"),
-                                      selected='main')
-          ),
+                                        choices = c("Primary"="main", "Port"="port", 
+                                                    "Auxiliary"="auxiliary", "Gridded" = "grid"),
+                                      selected='main')),
           conditionalPanel("input.SelectDatasetExplore == 'grid'",
                            selectInput("grid_select", "select gridded data file", 
-                                       choices = names(grddat))
-          )
+                                       choices = names(grddat)))
         )
-        
       })
   
       explore_temp <- reactive({
@@ -3009,7 +3019,6 @@ conf_cache_len <- length(get_confid_cache())
                  "main" = values$dataset,
                  "port" = ptdat$dataset,
                  "auxiliary" = aux$dataset)
-         
         }
       })
       
@@ -3039,7 +3048,7 @@ conf_cache_len <- length(get_confid_cache())
           NULL
         }}, server = TRUE, editable=TRUE, filter='top', selection=list(target ='column'),
         extensions = c("Buttons"), rownames=FALSE,
-        options = list(autoWidth=TRUE, scrolly=T, responsive=TRUE, pageLength = 15,
+        options = list(autoWidth=TRUE, scrolly=TRUE, responsive=TRUE, pageLength = 15,
                        searchCols = default_search_columns, buttons = c('csv'))
       )
       
@@ -3060,7 +3069,7 @@ conf_cache_len <- length(get_confid_cache())
           if(length(default_sub)==0){
             NULL
           } else {
-            if(table_exists(paste0(project$name, "FilterTable"), project$name) == F) {
+            if(table_exists(paste0(project$name, "FilterTable"), project$name) == FALSE) {
               FilterTable <- data.frame(dataframe = NA, vector = NA, FilterFunction = NA)
             } else {
               FilterTable <- table_view(paste0(project$name, "FilterTable"), project$name)
@@ -3111,13 +3120,14 @@ conf_cache_len <- length(get_confid_cache())
       #Subset by columns
       
       #2. Temporal PLOTS
-      output$xy_select1 <- renderUI({
-        selectInput('x_y_select1', 'Select x-axis variable', choices= numeric_cols(values$dataset), 
-                    selected= numeric_cols(values$dataset)[1], multiple=FALSE, selectize=TRUE)
-      })
-      output$xy_select2 <- renderUI({
-        selectInput('x_y_select2', 'Select y-axis variable', choices= numeric_cols(values$dataset), 
-                    selected= numeric_cols(values$dataset)[2], multiple=FALSE, selectize=TRUE)
+      output$xy_selectUI <- renderUI({
+        tagList(
+          selectInput('x_y_select1', 'Select x-axis variable', choices= numeric_cols(values$dataset), 
+                      selected= numeric_cols(values$dataset)[1], multiple=FALSE, selectize=TRUE),
+          
+          selectInput('x_y_select2', 'Select y-axis variable', choices= numeric_cols(values$dataset), 
+                      selected= numeric_cols(values$dataset)[2], multiple=FALSE, selectize=TRUE)
+        )
       })
       
       output$column_select <- renderUI({
@@ -3131,15 +3141,21 @@ conf_cache_len <- length(get_confid_cache())
         )
       })
       
-      plotInput_time <-  reactive({
+      # output project tracker
+      explore_out_proj <- reactiveValues(temp = NULL, map = NULL, kernel = NULL, 
+                                         xy = NULL, grid = NULL, gtmt = NULL)
+      
+      plotInputTemporal <-  reactive({
         
-        if(is.null(values$dataset)) return(NULL)
-        else if(colnames(values$dataset)[1] == 'var1') return(NULL)
-        else {
+        req(input$col_select, input$p2fun, input$p3fun, input$date_select)
+        
+        if (colnames(values$dataset)[1] != 'var1') {
     
-        len_fun <- switch(input$p2fun, "No. observations" = "length",
-                          'No. unique observations' = "unique",
-                          '% of total observations' = "percent")
+          len_fun <- switch(input$p2fun, "No. observations" = "length",
+                            'No. unique observations' = "unique",
+                            '% of total observations' = "percent")
+        
+          explore_out_proj$temp <- project$name
         
           q_test <- quietly_test(temp_plot)
           q_test(values$dataset, project$name, input$col_select, len.fun = len_fun,
@@ -3147,72 +3163,83 @@ conf_cache_len <- length(get_confid_cache())
         }
       })
       
-      output$plot_time <- renderPlot({
-        
-        if (!is.null(plotInput_time())) plotInput_time()
-      })
+   
+      output$plot_time <- renderPlot(plotInputTemporal())
       
       #3. SPATIAL DISTRIBUTION
       ranges_spatial <- reactiveValues(x = NULL, y=NULL)
-      observeEvent(input$plot_type, {
-        
-        lon_count <- stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')
-        min_lon <- min(values$dataset[which(lon_count==max(lon_count))[1]], na.rm=TRUE)
-        max_lon <- max(values$dataset[which(lon_count==max(lon_count))[1]], na.rm=TRUE)
-        
-        lat_count <- stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')
-        min_lat <- min(values$dataset[which(lat_count==max(lat_count))[1]], na.rm=TRUE)
-        max_lat <- max(values$dataset[which(lat_count==max(lat_count))[1]], na.rm=TRUE)
-        
-        ranges_spatial$x <- 
-          c(ifelse((min_lon - abs(min_lon/10) < -180), -180, min_lon - abs(min_lon/10)), 
-            ifelse((max_lon + abs(max_lon/10) > 180), 180, max_lon + abs(max_lon/10))) 
-        
-        ranges_spatial$y <-
-          c(ifelse((min_lat - abs(min_lat/10) < -90), -90, min_lat - abs(min_lat/10)), 
-            ifelse((max_lat + abs(max_lat/10) > 90), 90, max_lat + abs(max_lat/10)))
-      })
       
-      plotInput_spatial <- reactive({
-        if(is.null(values$dataset)) {
-          return(NULL)
-        } else if(colnames(values$dataset)[1] == 'var1') {
-          return(NULL)
-        } else {
-          lon_count <- stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')
-          lat_count <- stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')
-          longitude <- which(lon_count==max(lon_count))[1]
-          latitude <- which(lat_count==max(lat_count))[1]
+      
+      lon_col <- reactive({
+        
+        if (colnames(values$dataset)[1] != 'var1') {
           
-          map_plot(values$dataset, project$name, lat = latitude, lon = longitude,
-                   minmax = c(ranges_spatial$y, ranges_spatial$x))
-        } 
-      })
-      
-      output$plot_spatial <- renderPlot(plotInput_spatial())
-      
-      plotInput_kernel <- reactive ({
-        if(is.null(values$dataset)) {
-          return(NULL)
-        } else if(colnames(values$dataset)[1] == 'var1') {
-          return(NULL)
-        } else {
-          if(input$plot_table=='Plots'&input$plot_type=='Spatial'){
-            
-            lon_count <- stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')
-            lat_count <- stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')
-            
-            return(map_kernel(values$dataset, project=project$name, type='gradient',
-                              latlon=c(which(lat_count==max(lat_count))[1], which(lon_count==max(lon_count))[1])))
-          } else {
-            return(NULL)
-          }
+          lon_count <- stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')
+          which(lon_count==max(lon_count))[1]
         }
       })
-      output$map_kernel <- renderPlot({
-        plotInput_kernel()
+      
+      lat_col <- reactive({
+        
+        if (colnames(values$dataset)[1] != 'var1') {
+          
+          lat_count <- stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')
+          which(lat_count==max(lat_count))[1]
+        }
       })
       
+      
+      observeEvent(input$plot_type, {
+        
+        if (input$plot_type == "Spatial") {
+          
+          min_lon <- min(values$dataset[lon_col()], na.rm=TRUE)
+          max_lon <- max(values$dataset[lon_col()], na.rm=TRUE)
+          
+          min_lat <- min(values$dataset[lat_col()], na.rm=TRUE)
+          max_lat <- max(values$dataset[lat_col()], na.rm=TRUE)
+          
+          ranges_spatial$x <-
+            c(ifelse((min_lon - abs(min_lon/10) < -180), -180, min_lon - abs(min_lon/10)),
+              ifelse((max_lon + abs(max_lon/10) > 180), 180, max_lon + abs(max_lon/10)))
+          
+          ranges_spatial$y <-
+            c(ifelse((min_lat - abs(min_lat/10) < -90), -90, min_lat - abs(min_lat/10)),
+              ifelse((max_lat + abs(max_lat/10) > 90), 90, max_lat + abs(max_lat/10)))
+        }
+      }, ignoreInit = TRUE)
+      
+      
+      plotInputSpatial <- reactive({
+
+        req(ranges_spatial$x, ranges_spatial$y)
+
+        if (colnames(values$dataset)[1] != 'var1') {
+          
+          explore_out_proj$spat <- project$name
+
+          q_test <- quietly_test(map_plot)
+          q_test(values$dataset, project$name, lat = lat_col(), lon = lon_col(),
+                 minmax = c(ranges_spatial$y, ranges_spatial$x))
+        }
+      })
+
+      output$plot_spatial <- renderPlot(plotInputSpatial())
+
+      plotInputKernel <- reactive({
+
+       if(colnames(values$dataset)[1] != 'var1') {
+
+          explore_out_proj$kernel <- project$name
+          
+          q_test <- quietly_test(map_kernel)
+          q_test(values$dataset, project=project$name, type='gradient',
+                 latlon=c(lat_col(), lon_col()))
+        }
+      })
+
+      output$map_kernel <- renderPlot(plotInputKernel())
+
       #Location info       
       output$location_info_spatial <- renderUI({
         hover <- input$plot_spatial_click
@@ -3221,43 +3248,43 @@ conf_cache_len <- length(get_confid_cache())
         # from left (horizontal) and from top (vertical)
         left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
         top_pct <- (hover$domain$top - hover$y) / (hover$domain$top - hover$domain$bottom)
-        
+
         # calculate distance from left and bottom side of the picture in pixels
         left_px <- hover$range$left + left_pct * (hover$range$right - hover$range$left)
         top_px <- hover$range$top + top_pct * (hover$range$bottom - hover$range$top)
-        
+
         # create style property fot tooltip
         # background color is set so tooltip is a bit transparent
         # z-index is set so we are sure are tooltip will be on top
         style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
                         "left:", (hover$range$right +(hover$range$right)/10), "px; top:", (hover$range$bottom+hover$range$bottom/10), "px;")
-        
+
         # actual tooltip created as wellPanel
         wellPanel(
           style = style,
           p(HTML(paste0("<b> longitude: </b>", hover$x, "<br><b>  latitude: </b>", hover$y))
           ))
       })
-      
+
       # When a double-click happens, check if there's a brush on the plot.
       # If so, zoom to the brush bounds; if not, reset the zoom.
       observeEvent(input$plot_spatial_dblclick, {
         brush <- input$plot_spatial_brush
         if(!is.null(brush)) {
-          
+
           ranges_spatial$x <- c(brush$xmin, brush$xmax)
           ranges_spatial$y <- c(brush$ymin, brush$ymax)
-          
+
         } else {
           longitude <- which(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')))[1]
           latitude <- which(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')==max(stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')))[1]
-          ranges_spatial$x <- c(ifelse((min(values$dataset[, longitude], na.rm=TRUE)-abs(min(values$dataset[, longitude], na.rm=TRUE)/10) < -180), 
-                                       -180, min(values$dataset[, longitude], na.rm=TRUE)-abs(min(values$dataset[, longitude], na.rm=TRUE)/10)), 
-                                ifelse((max(values$dataset[, longitude], na.rm=TRUE)+abs(max(values$dataset[, longitude], na.rm=TRUE)/10) > 180), 
+          ranges_spatial$x <- c(ifelse((min(values$dataset[, longitude], na.rm=TRUE)-abs(min(values$dataset[, longitude], na.rm=TRUE)/10) < -180),
+                                       -180, min(values$dataset[, longitude], na.rm=TRUE)-abs(min(values$dataset[, longitude], na.rm=TRUE)/10)),
+                                ifelse((max(values$dataset[, longitude], na.rm=TRUE)+abs(max(values$dataset[, longitude], na.rm=TRUE)/10) > 180),
                                        180, max(values$dataset[, longitude], na.rm=TRUE)+abs(max(values$dataset[, longitude], na.rm=TRUE)/10)))
-          ranges_spatial$y <- c(ifelse((min(values$dataset[, latitude], na.rm=TRUE)-abs(min(values$dataset[, latitude], na.rm=TRUE)/10) < -90), 
-                                       -90, min(values$dataset[, latitude], na.rm=TRUE)-abs(min(values$dataset[, latitude], na.rm=TRUE)/10)), 
-                                ifelse((max(values$dataset[, latitude], na.rm=TRUE)+abs(max(values$dataset[, latitude], na.rm=TRUE)/10) > 90), 
+          ranges_spatial$y <- c(ifelse((min(values$dataset[, latitude], na.rm=TRUE)-abs(min(values$dataset[, latitude], na.rm=TRUE)/10) < -90),
+                                       -90, min(values$dataset[, latitude], na.rm=TRUE)-abs(min(values$dataset[, latitude], na.rm=TRUE)/10)),
+                                ifelse((max(values$dataset[, latitude], na.rm=TRUE)+abs(max(values$dataset[, latitude], na.rm=TRUE)/10) > 90),
                                        90, max(values$dataset[, latitude], na.rm=TRUE)+abs(max(values$dataset[, latitude], na.rm=TRUE)/10)))
         }
       })
@@ -3268,58 +3295,80 @@ conf_cache_len <- length(get_confid_cache())
           if(names(spatdat$dataset)[1]=='var1'){
             tags$div(h5('Spatial data file not loaded. Please load on Upload Data tab', style="color:red"))
           },
-          conditionalPanel("input.plot_table=='Plots' && input.plot_type=='Spatial'",
-                           style = "margin-left:19px;", selectizeInput('varofint', 'Variable to test for spatial autocorrelation',
-                                                                    choices=colnames(values$dataset[,sapply(values$dataset,is.numeric)]))),
-          conditionalPanel("input.plot_table=='Plots' && input.plot_type=='Spatial'",
-                           style = "margin-left:19px;",  selectizeInput('gtmt_lonlat', 'Select lat then lon from data frame to assign observations to zone', 
-                                                                     choices=c(NULL, names(values$dataset)[grep('lon|lat', names(values$dataset), ignore.case=TRUE)]), 
-                                                                     multiple = TRUE, options = list(maxItems = 2, create = TRUE, placeholder='Select or type variable name')))#, 
-        #  conditionalPanel(condition="input.plot_table=='Plots'&input.plot_type=='Spatial'",
-        #                   style = "margin-left:19px;", fileInput("gtmtfileGrid", "Choose file defining area/zone polygons", multiple = FALSE)) 
+          
+         tags$div(style = "margin-left:19px;", 
+                  selectizeInput('varofint', 'Variable to test for spatial autocorrelation',
+                                 choices = numeric_cols(values$dataset))),
+        
+         tags$div(style = "margin-left:19px;",  
+                  selectizeInput('gtmt_lonlat', 'Select lat then lon from data frame to assign observations to zone', 
+                                 choices=c(NULL, find_lonlat(values$dataset)), 
+                                 multiple = TRUE, options = list(maxItems = 2, 
+                                                                 create = TRUE, 
+                                                                 placeholder='Select or type variable name')))
         )
       })    
+      
       output$mtgt_out2 <- renderUI({
         tagList(
-          conditionalPanel("input.plot_table=='Plots' && input.plot_type=='Spatial'",
-                           style = "margin-left:19px;", selectInput('mtgtcat',  "Variable defining zones or areas", 
-                                                                    choices= c('none', names(as.data.frame(spatdat$dataset))), selected='none')),
-          conditionalPanel("input.plot_table=='Plots' && input.plot_type=='Spatial'",
-                           style = "margin-left:19px;", selectizeInput('mtgtlonlat', 'Select vector containing latitude then longitude from spatial data frame', 
-                                                                    choices= c(NULL, names(as.data.frame(spatdat$dataset))), multiple=TRUE,
-                                                                    options = list(maxItems = 2,create = TRUE, placeholder='Select or type variable name')))
+          tags$div(style = "margin-left:19px;", 
+                   selectInput('mtgtcat', "Variable defining zones or areas", 
+                               choices = c('none', names(as.data.frame(spatdat$dataset))),
+                               selected='none')),
+          
+          tags$div(style = "margin-left:19px;", 
+                   selectizeInput('mtgtlonlat', 'Select vector containing latitude then longitude from spatial data frame', 
+                                  choices= c(NULL, names(as.data.frame(spatdat$dataset))), 
+                                  multiple=TRUE, options = list(maxItems = 2,
+                                                                create = TRUE, 
+                                                                placeholder='Select or type variable name')))
         )
       })
-      gtmt_table <- reactive({
-        if(input$mtgtcat=='none'){
-          return( NULL)
-        } else {
-          gt <- getis_ord_stats(values$dataset, project=project$name, varofint=input$varofint, spat=spatdat$dataset, 
-                                lon.dat=input$gtmt_lonlat[2], lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat, lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$getistable
-          mt <- moran_stats(values$dataset, project=project$name, varofint=input$varofint, spat=spatdat$dataset, 
-                            lon.dat=input$gtmt_lonlat[2], lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat, lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$morantable
-          return(as.data.frame(merge(gt, mt)))
-        }
-      }) 
       
-      output$output_table_gt_mt <- DT::renderDT(  
-        gtmt_table(), server=TRUE
-      )
+      
+      gtmt_table <- eventReactive(input$mtgtcat, {
+        
+        if (names(spatdat$dataset)[1]!='var1' & names(spatdat$dataset)[1]!='var1') {
+          
+          if (input$mtgtcat != 'none') {
+            
+            q_test <- quietly_test(getis_ord_stats)
+            gt <- q_test(values$dataset, project=project$name, varofint=input$varofint,
+                         spat=spatdat$dataset, lon.dat=input$gtmt_lonlat[2],
+                         lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat,
+                         lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$getistable
+            
+            q_test <- quietly_test(moran_stats)
+            mt <- q_test(values$dataset, project=project$name, varofint=input$varofint,
+                         spat=spatdat$dataset, lon.dat=input$gtmt_lonlat[2],
+                         lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat,
+                         lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$morantable
+            
+            qaqc_out_proj$gtmt <- project$name
+            
+            dplyr::left_join(gt, mt)
+          }
+        }
+      }, ignoreInit = TRUE) 
+      
+      output$output_table_gt_mt <- DT::renderDT(gtmt_table(), server=TRUE)
       
       #4. X VS. Y
-      plotInput_xy <- reactive({
-        if(is.null(values$dataset)) {
-          return(NULL)
-        } else if(colnames(values$dataset)[1] == 'var1') {
-          return(NULL)
-        } else {
+      plotInputXY <- reactive({
+        
+        req(input$x_y_select1, input$x_y_select2)
+        
+        if (colnames(values$dataset)[1] != 'var1') {
           
-          xy_plot(values$dataset, project$name, input$x_y_select1, input$x_y_select2, 
-                  regress = FALSE)
+          explore_out_proj$xy <- project$name
+          
+          q_test <- quietly_test(xy_plot)
+          q_test(values$dataset, project$name, input$x_y_select1, input$x_y_select2, 
+                 regress = FALSE)
         } 
       })
       
-      output$plot_xy <- renderPlot(plotInput_xy())
+      output$plot_xy <- renderPlot(plotInputXY())
       
       output$plot_grid_args <- renderUI({
         tagList(
@@ -3339,7 +3388,7 @@ conf_cache_len <- length(get_confid_cache())
         )
       })
       
-      grid_values <- reactiveValues(plot = FALSE,
+      grid_values <- reactiveValues(plot = NULL,
                                     bbox = FALSE,
                                     gmap = FALSE)
       
@@ -3371,12 +3420,15 @@ conf_cache_len <- length(get_confid_cache())
         }
         edit_fishset_env("grid_name", input$grid_select) # update fishset_env
         
+        explore_out_proj$grid <- project$name
+        
+        q_test <- quietly_test(view_grid_dat)
+        
         grid_values$plot <-
-          view_grid_dat(gridfile = grddat[[input$grid_select]], project = project$name,
-                      lon = input$grid_lon, lat = input$grid_lat,
-                      value = input$grid_value, split_by = input$grid_split,
-                      agg_by = input$grid_agg, gmap = grid_values$gmap)
-      })
+          q_test(gridfile = grddat[[input$grid_select]], project = project$name,
+                 lon = input$grid_lon, lat = input$grid_lat, value = input$grid_value, 
+                 split_by = input$grid_split, agg_by = input$grid_agg, gmap = grid_values$gmap)
+      }, ignoreInit = TRUE)
       
       output$grid_plot <- renderPlot(grid_values$plot)
       
@@ -3454,6 +3506,11 @@ conf_cache_len <- length(get_confid_cache())
       
       #DATA ANALYSIS FUNCTIONS ----
       ###---
+      
+      # output project tracker
+      anal_out_proj <- reactiveValues(corr = NULL, reg = NULL, corr_out = NULL, 
+                                      reg_out = NULL)
+      
       output$corr_out <- renderUI({
         selectInput('corr_select', 'Select variables to include in correlation test', 
                     choices = numeric_cols(values$dataset),
@@ -3461,32 +3518,42 @@ conf_cache_len <- length(get_confid_cache())
                     multiple=TRUE, selectize=TRUE, width='90%')
       })
       
-      output$output_text_corr <- renderPrint(
-        if(colnames(values$dataset)[1] == 'var1') {
-          return(NULL)
-        } else if(length(input$corr_select)==2){
-          cor.test(values$dataset[[input$corr_select[1]]], values$dataset[[input$corr_select[2]]])
-        } else {
-          return()
-         }
-      )
-      
-      InputCorr <- reactive({
-        if (is.null(values$dataset)) return(NULL)
-        else if (colnames(values$dataset)[1] == 'var1') return(NULL)
-        else {
-          q_test <- quietly_test(corr_out)
-          q_test(values$dataset, project$name, input$corr_select)
+      corr_out_2 <- reactive({
+        
+        if (colnames(values$dataset)[1] != 'var1') {
+          
+          if (length(input$corr_select) == 2) {
+            
+            anal_out_proj$corr_out <- project$name
+            fm <- stats::reformulate(c(input$corr_select[1], input$corr_select[2]), 
+                                     response = NULL)
+            formula <- rlang::enexpr(fm)
+            cor_call <- rlang::expr(cor.test(!!formula, data = values$dataset))
+            
+            eval(cor_call, rlang::current_env())
+          }
         }
       })
       
+      output$output_text_corr <- renderPrint(corr_out_2())
+   
+      inputCorr <- eventReactive(input$run_corr, {
+        
+        if (colnames(values$dataset)[1] != 'var1') {
+          
+          anal_out_proj$corr <- project$name
+          q_test <- quietly_test(corr_out)
+          q_test(values$dataset, project$name, input$corr_select)
+        }
+      }, ignoreInit = TRUE)
+      
       output$output_table_corr <- DT::renderDT(
-        InputCorr()$table, server=TRUE, extensions = list('Scroller'), 
-        options=list(autoWidth = TRUE, scrollX=TRUE, deferRender = T,
-                     scrollY = 'auto', scroller = TRUE, scrollX = T, pageLength = 25)
+        inputCorr()$table, server=TRUE, extensions = list('Scroller'), 
+        options=list(autoWidth = TRUE, scrollX=TRUE, deferRender = TRUE,
+                     scrollY = 'auto', scroller = TRUE, scrollX = TRUE, pageLength = 25)
       )
       
-      output$output_plot_corr <- renderPlot(InputCorr()$plot)
+      output$output_plot_corr <- renderPlot(inputCorr()$plot)
       
       output$reg_resp_out <- renderUI({
         
@@ -3501,16 +3568,18 @@ conf_cache_len <- length(get_confid_cache())
                     choices = names(values$dataset), multiple = FALSE, selectize = TRUE)
       })
       
-      inputReg <- reactive({
-        if(colnames(values$dataset)[1] == 'var1') return(NULL)
-        else if(length(input$reg_exp_select)!=1) return(NULL)
-        else {
-
+  
+      inputReg <- eventReactive(input$run_reg, {
+        
+        if (colnames(values$dataset)[1] != 'var1') {
+          
+          anal_out_proj$reg <- project$name
           q_test <- quietly_test(xy_plot)
           q_test(values$dataset, project$name, input$reg_exp_select, 
                  input$reg_resp_select, regress = TRUE)
         }
-      })
+      }, ignoreInit = TRUE)
+      
       
       output$output_text_reg <- renderPrint(inputReg()$refout)
       
@@ -3530,7 +3599,7 @@ conf_cache_len <- length(get_confid_cache())
       output$trans_quant_name <-  renderUI({
         conditionalPanel("input.VarCreateTop=='Data transformations'&&input.trans=='set_quants'",
                          style = "margin-left:19px;", selectInput('trans_var_name','Select variable', 
-                                                                  choices=names(values$dataset[,unlist(lapply(values$dataset, is.numeric))]),
+                                                                  choices = numeric_cols(values$dataset),
                                                                   multiple=FALSE, selectize=TRUE))
       })
       output$unique_col_id <- renderUI({
@@ -3596,12 +3665,12 @@ conf_cache_len <- length(get_confid_cache())
       output$var_x_select <- renderUI({
         conditionalPanel("input.VarCreateTop=='Arithmetic functions'&&input.numfunc=='create_var_num'",
                          style = "margin-left:19px;", selectInput('var_x', 'First variable. Will be the numerator if dividing.', 
-                                                                  choices=names(values$dataset[,unlist(lapply(values$dataset, is.numeric))]), selectize=TRUE))
+                                                                  choices=numeric_cols(values$dataset), selectize=TRUE))
       })
       output$var_y_select <- renderUI({
         conditionalPanel("input.VarCreateTop=='Arithmetic functions'&&input.numfunc=='create_var_num'",
                          style = "margin-left:19px;", selectInput('var_y', 'Second variable. Will be the denomenator if dividing.',  
-                                                                  choices=names(values$dataset[,unlist(lapply(values$dataset, is.numeric))]), selectize=TRUE))
+                                                                  choices=numeric_cols(values$dataset), selectize=TRUE))
       })
       output$input_xWeight <- renderUI({
         conditionalPanel("input.VarCreateTop=='Arithmetic functions'&&input.numfunc=='cpue'",
@@ -3612,7 +3681,7 @@ conf_cache_len <- length(get_confid_cache())
       output$input_xTime <- renderUI({
         conditionalPanel("input.VarCreateTop=='Arithmetic functions'&&input.numfunc=='cpue'",
                          style = "margin-left:19px;", selectInput('xTime','Duration. To calculate duration, select the Calculate Duration option.', 
-                                                                  choices=c('Calculate duration', names(values$dataset[,unlist(lapply(values$dataset, is.numeric))])), selectize=TRUE))
+                                                                  choices=c('Calculate duration', numeric_cols(values$dataset), selectize=TRUE)))
       })
       output$dur_add <- renderUI({
         tagList(
@@ -3701,7 +3770,7 @@ conf_cache_len <- length(get_confid_cache())
       
       output$fish_weight_cent_2 <- renderUI({
         conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='fish_cent'",
-                         if(!input$cat_cent %in% colnames(values$dataset)){
+                         if(!(input$cat_cent %in% colnames(values$dataset))) {
                             if(names(spatdat$dataset)[1]=='var1'){
                              tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab if required', style="color:red"))
                            }
@@ -4975,56 +5044,7 @@ conf_cache_len <- length(get_confid_cache())
         
       })
       
-      # output$SaveButtons <- renderUI({
-      #   tagList(
-      #     #shinySaveButton(id = 'downloadplot', label ='Save plot to folder', title = "", filename = paste0(project,'_', input$checks, '_plot'), filetype = "png"),
-      #     actionButton('downloadplot', label ='Save plot to folder'),
-      #     downloadLink('downloadplotHIDE', label=''),
-      #     actionButton('downloaddata', label ='Save table to folder as csv'),
-      #    # downloadLink("downloadText", label=''),
-      #     actionButton('callTextDownload','Save notes')
-      #   )
-      # })
-      
-      output$SaveButtonsUpload <- renderUI({
-        tagList(
-        #  downloadLink("downloadTextUp", label=''),
-          actionButton('callTextDownloadUp','Save notes')
-        )
-      })
-      
-      ## Save buttons
-      output$SaveButtonsExplore <- renderUI({
-        tagList(
-          downloadLink('downloadplotEXPLOREHIDE', label=''),
-          actionButton('downloadplotExplore', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
-          downloadLink('downloadTableEXPLOREHIDE', label=''),
-          conditionalPanel(condition = "input.plot_type=='Spatial'",
-          actionButton('downloadTableExplore', label ='Save table to folder as csv'))
-        #  downloadLink("downloadTextExplore", label='')
-        )
-      })
-      
-      output$SaveButtonsAnal <- renderUI({
-        tagList(
-          downloadLink('downloadplotAnalHIDE', label =''),
-          downloadLink('downloaddataAnalHIDE', label =''),
-          actionButton('downloadplotAnal', label ='Save plot to folder'),#, title = "", filename = paste0(project,'_', input$corr_reg, '_plot'), filetype = "png"),
-          actionButton('downloaddataAnal', label ='Save table to folder as csv'),
-        #  downloadLink("downloadTextAnal", label=''),
-          actionButton('callTextDownloadAnal','Save notes')
-        )
-      })
-      
-      output$SaveButtonsNew <- renderUI({
-        tagList(
-          downloadLink('downloadplotNew', label=''),
-          actionButton('downloadplotNew', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
-        #  downloadLink("downloadTextNew", label=''),
-          actionButton('callTextDownloadNew','Save notes')
-        )
-      })
-      
+
       # Export data ----
       file_ext <- reactive({
         
@@ -5071,7 +5091,6 @@ conf_cache_len <- length(get_confid_cache())
         q_test <- quietly_test(check_model_data)
         save_final$out <- q_test(dat = values$dataset,  project = project$name,
                                  uniqueID = input$final_uniqueID)
-        
       })
       
       output$checkMsg <- renderUI({
@@ -5097,9 +5116,9 @@ conf_cache_len <- length(get_confid_cache())
       #Downloads ====  
     savedText <- reactiveValues(answers = logical(0))
     
-    observeEvent(c(input$callTextDownload,
-                   input$callTextDownloadAnal,
+    observeEvent(c(input$callTextDownloadAnal,
                    input$callTextDownloadExplore,
+                   input$callTextDownloadQAQC,
                    input$callTextDownloadUp,
                    input$callTextDownloadNew,
                    input[["fleet-callTextDownload"]],
@@ -5147,103 +5166,76 @@ conf_cache_len <- length(get_confid_cache())
       
     ### QAQC save ----
     
-    get_reactive <- function(r) {
+    get_reactive <- function(r, current_proj, proj_out) {
       
-      tryCatch(r, error = function(e) return(NULL))
+      if (!is.null(proj_out)) {
+        
+        if (proj_out == current_proj) {
+          
+          if (is.reactive(r)) r()
+          else r
+          
+        } else NULL
+      } else NULL
     }
     
-    qaqc_outs <- reactive({
-      cat("\nOut updated\n")
+    
+    qaqc_outs <- eventReactive(c(input[["qaqc_tab-save_table"]],
+                                 input[["qaqc_plot-save_plot"]]), {
       list(
-        summary_stats = get_reactive(tableInputSummary()),
-        outlier_table = get_reactive(tableInputOutlier()),
-        outlier_plot = get_reactive(outlierPlotAll()),
-        spatial_qaqc = get_reactive(spat_qaqc())
-        )
+        summary_stats = get_reactive(tableInputSummary, project$name, qaqc_out_proj$sum_tab),
+        outlier_table = get_reactive(tableInputOutlier, project$name, qaqc_out_proj$out_tab),
+        outlier_plot = get_reactive(outlierPlotAll, project$name, qaqc_out_proj$out_plot), 
+        spatial_qaqc = get_reactive(spat_qaqc, project$name, qaqc_out_proj$spat)
+      )
     })
     
-    
     tabPlotServ("qaqc", proj = reactive(project$name),
-                out = qaqc_outs,
-                type = "tab_plot")
+                out = qaqc_outs, type = "tab_plot")
+  
     
+    ### Explore save ----
+    
+    explore_outs <- eventReactive(c(input[["explore_tab-save_table"]],
+                                    input[["explore_plot-save_plot"]]), {
+
+      list(
+        temp_plot = get_reactive(plotInputTemporal, project$name, explore_out_proj$temp),
+        map_plot = get_reactive(plotInputSpatial, project$name, explore_out_proj$spat),
+        kernel_plot = get_reactive(plotInputKernel, project$name, explore_out_proj$kernel),
+        getis_moran = get_reactive(gtmt_table, project$name, explore_out_proj$gtmt),
+        xy_plot = get_reactive(plotInputXY, project$name, explore_out_proj$xy),
+        view_grid_dat = get_reactive(grid_values$plot, project$name, explore_out_proj$grid)
+      )
+    })
+    
+    tabPlotServ("explore", proj = reactive(project$name),
+                out = explore_outs, type = "tab_plot")
       
-      observeEvent(input$downloadplotAnal, {
-        output$downloadplotAnalHIDE <<- downloadHandler(
-          filename = function() {
-            if(input$corr_reg=='Correlation'){
-              paste0(locoutput(project = project$name), project$name, "_", 'CorrelationPlot.png')
-            } else {
-              paste0(locoutput(project = project$name), project$name,"_", 'RegressionPlot.png')
-            }
-          },
-          content = function(file) {
-            if(input$corr_reg=='Correlation'){
-              ggplot2::ggsave(file, plot=InputCorr()$plot, device=function(..., width, height) grDevices::png(..., width = 12, height = 4, res = 300, units = "in"))
-            } else if(input$corr_reg=='Regression'){
-              ggplot2::ggsave(file, plot=inputReg()$plot, device=function(..., width, height) grDevices::png(..., width = 12, height = 4, res = 300, units = "in"))
-            }
-          })
-        jsinject <- "setTimeout(function(){window.open($('#downloadplotAnalHIDE').attr('href'))}, 100);"
-        session$sendCustomMessage(type = 'jsCode', list(value = jsinject)) 
-      })
-      
-      observeEvent(input$downloadplotExplore, {
-        output$downloadplotEXPLOREHIDE <<- downloadHandler(
-          filename = function() {
-            if(input$plot_type=='Temporal'){
-              
-              paste0(locoutput(project = project$name), project$name, "_", 'TemporalPlot.png')
-            } else if(input$plot_type=='Spatial') {
-              paste0(locoutput(project = project$name), project$name,"_", 'SpatialPlot.png') 
-            } else {
-              paste0(locoutput(project = project$name), project$name,"_", 'x-yPlot.png') 
-            }
-          },
-          content = function(file) {
-            if(input$plot_type=='Temporal'){
-              ggplot2::ggsave(file, plot=plotInput_time(), device=function(..., width, height) grDevices::png(..., width = 12, height = 4, res = 300, units = "in")) 
-            } else if(input$plot_type=='Spatial'){
-              ggplot2::ggsave(file, plot=suppressWarnings(ggpubr::ggarrange(plotInput_spatial(), plotInput_kernel(), ncol =2, nrow = 1)),
-                              device=function(..., width, height) grDevices::png(..., width = 12, height = 4, res = 300, units = "in"))
-            } else if(input$plot_type=='x-y plot'){
-              ggplot2::ggsave(file, plot=plotInput_xy(), device=function(..., width, height) grDevices::png(..., width = 12, height = 4, res = 300, units = "in"))
-            }
-          })
-        jsinject <- "setTimeout(function(){window.open($('#downloadplotEXPLOREHIDE').attr('href'))}, 100);"
-        session$sendCustomMessage(type = 'jsCode', list(value = jsinject)) 
-      })
-      
-      # save grid plot in Explore tab
-      # plotSaveServ("grid_plot", reactive(project$name), "view_grid_dat", grid_values$plot)
-      
-      observeEvent(input$downloadTableExplore, {
-        write.csv(gtmt_table(), paste0(locoutput(project = project$name), project$name, '_', 'GetisOrdMoransI.csv'))
-      })
-      
-      # observeEvent(input$downloaddata, {
-      #   if(input$checks=='Summary table'){
-      #     write.csv(tableInputSummary(), paste0(locoutput(project = project$name), project$name, '_', 'summary_table.csv'))
-      #   } else if(input$checks=='Outliers'){
-      #     write.csv(tableInputOutlier(), paste0(locoutput(project = project$name), project$name, '_', 'outlier_table.csv'))
-      #   }
-      # })
-      
-      observeEvent(input$downloaddataAnal, {
-        if(input$corr_reg=='Correlation'){
-        if(length(input$corr_select)>2){
-            write.csv(InputCorr()$table, paste0(locoutput(project = project$name), project$name,'_', 'correlation_table.csv'))
-        } else {
-            sink(paste0(locoutput(project = project$name),project$name, "_", 'correlation_analysis_output.csv'))
-            message(cor.test(values$dataset[[input$corr_select[1]]], values$dataset[[input$corr_select[2]]]))
-            sink()
-       }} else {
-            sink(paste0(locoutput(project = project$name), project$name,'_', 'regression_model_output.csv'))
-            message(InputReg()$refout)
-            sink()
-        }
-      })
-      
+    ### Analysis save ----
+    
+    anal_outs <- eventReactive(c(input[["anal_tab-save_table"]],
+                                 input[["anal_plot-save_plot"]]), {
+       list(
+         corr_plot = get_reactive(inputCorr()$plot, project$name, anal_out_proj$corr),
+         corr_tab = get_reactive(inputCorr()$table, project$name, anal_out_proj$corr),
+         reg_plot = get_reactive(inputReg()$plot, project$name, anal_out_proj$reg)
+       )
+     })
+    
+    anal_mods <- eventReactive(input[["anal-save_mod"]], {
+      list(
+        corr_test = get_reactive(corr_out_2, project$name, anal_out_proj$corr_out),
+        reg_out = get_reactive(inputReg()$refout, project$name, anal_out_proj$reg)
+      )
+    })
+    
+    tabPlotServ("anal", proj = reactive(project$name),
+                out = anal_outs, type = "tab_plot")
+    
+    modSaveServ("anal", proj = reactive(project$name), out = anal_mods)
+    
+   
       # confid pop up ----
       conf_rv <- reactiveValues(current_len = conf_cache_len,
                                 last_len = conf_cache_len)
@@ -5527,11 +5519,10 @@ conf_cache_len <- length(get_confid_cache())
      
       onStop(function() {
         
-       # if (isolate(input$projectname) != "") {
         if (isTruthy(isolate(project$name))) {
         
-          if (sum(isolate(c(input$callTextDownload,
-                    input$callTextDownloadAnal,
+          if (sum(isolate(c(input$callTextDownloadAnal,
+                    input$callTextDownloadQAQC,
                     input$callTextDownloadExplore,
                     input[["fleet-callTextDownload"]],
                     input$callTextDownloadUp,
