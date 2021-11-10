@@ -370,6 +370,8 @@ end <- FALSE
         }
         
         q2 <- res[["par"]]
+        
+        
         LL <- res[["value"]]
         output <- list(
           counts = res[["counts"]], convergence = res[["convergence"]],
@@ -399,8 +401,7 @@ end <- FALSE
           colnames(temp) <- paste0(data.matrix$expname, x_temp[[i]][["mod.name"]])
         }
         
-        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
-        
+
         if (i == 1) {
           if(table_exists(paste0(project, "modelfit"), project)){
           table_remove(paste0(project, "modelfit"), project)
@@ -486,12 +487,12 @@ end <- FALSE
           modelOut <- list()
           modelOut[[length(modelOut) + 1]] <- list(
             name = data.matrix$expname, errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput,
-            seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table = data.matrix$choice.table
+            seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table = data.matrix$choice.table, params=outmat2
           )
         } else {
           modelOut[[length(modelOut) + 1]] <- list(
             name = data.matrix$expname, errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput,
-            seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table = data.matrix$choice.table
+            seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table = data.matrix$choice.table, params=outmat2
           )
         } 
         raw_sql <- paste0(project, "modelOut")
@@ -602,7 +603,7 @@ end <- FALSE
           # When the Submit button is clicked, save the form data
           observeEvent(input$submit, {
             # Connect to the database
-            fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
+            #fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
             single_sql <- paste0(project, "modelChosen")
             if (DBI::dbExistsTable(fishset_db, single_sql) == FALSE) {
               DBI::dbExecute(fishset_db, paste0("CREATE TABLE ", single_sql, "(model TEXT, AIC TEXT, AICc TEXT, BIC TEXT, PseudoR2 TEXT, selected TEXT, Date TEXT)"))
@@ -617,6 +618,8 @@ end <- FALSE
             # Submit the update query and disconnect
             DBI::dbGetQuery(fishset_db, query)
             showNotification("Table saved to database")
+            
+            #Save 
           })
           
           # stop shiny
