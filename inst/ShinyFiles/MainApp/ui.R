@@ -1174,8 +1174,13 @@ source("map_viewer_app.R", local = TRUE)
                                    ),
                                    fluidRow(
                                      h4('Initial parameters'),
+                                     radioButtons('initchoice', "", choices=c('Use output of previous model as parameter set' = 'prev',
+                                                                              'Choose parameter set' ='new'), selected='new'),
+                                     
+                                     conditionalPanel(condition="input.initchoice=='prev'",
+                                            uiOutput("paramtable")),
                                      uiOutput("Inits")
-                                     #uiOutput("ui1")
+                                   
                                    ),
                                    
                                    DT::DTOutput('mod_param_table')
