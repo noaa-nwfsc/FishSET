@@ -92,7 +92,6 @@ epm_normal <- function(starts3, dat, otherdat, alts, project, expname, mod.name)
   #' }
 
 
-
   obsnum <- dim(as.data.frame(otherdat$griddat))[1]
 
   griddat <- as.matrix(do.call(cbind, otherdat$griddat))
@@ -174,19 +173,19 @@ epm_normal <- function(starts3, dat, otherdat, alts, project, expname, mod.name)
 
   ldglobalcheck <- list(model = paste0(project, expname, mod.name), ldsumglobalcheck = ldsumglobalcheck, paramsglobalcheck = paramsglobalcheck, ldglobalcheck = ldglobalcheck)
 
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
   single_sql <- paste0(project, "ldglobalcheck", format(Sys.Date(), format = "%Y%m%d"))
   second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
 
-  if (table_exists(single_sql) == TRUE) {
+  if (table_exists(single_sql, project) == TRUE) {
     if(any(is_empty(unlist(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data)))) {
-      table_remove(single_sql)
+      table_remove(single_sql, project)
       ldglobalcheck <- ldglobalcheck
     } else {
       x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
-      table_remove(single_sql)
+      table_remove(single_sql, project)
       ldglobalcheck <- c(x, ldglobalcheck)
     }
   }

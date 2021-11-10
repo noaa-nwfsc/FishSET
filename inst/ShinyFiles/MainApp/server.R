@@ -1428,7 +1428,7 @@ conf_cache_len <- length(get_confid_cache())
                  spatdat$dataset <- read_dat(input$spatialdat$datapath, is.map=TRUE)
                }
                
-            } else {
+            }}} else {
               
               observe({
                 shpdf <- input$spatialdatshape
@@ -1453,7 +1453,7 @@ conf_cache_len <- length(get_confid_cache())
             #DBI::dbDisconnect(fishset_db)
             #showNotification("Map saved to database")
            
-          } 
+ 
           
           if (names(spatdat$dataset)[1]!='var1') {
             
@@ -1461,8 +1461,7 @@ conf_cache_len <- length(get_confid_cache())
                              type='message', duration=10)
 ####
           }
-        }
-        # }
+
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
 
 
@@ -4578,7 +4577,9 @@ conf_cache_len <- length(get_confid_cache())
         }
       })
       
+
       output$Inits <- renderUI({
+        if(input$initchoice=='new'){
         i = 1:numInits()
         numwidth <- rep((1/numInits())*100, numInits())
         numwidth <- paste("'", as.character(numwidth),"%'", collapse=", ", sep="")
@@ -4588,21 +4589,37 @@ conf_cache_len <- length(get_confid_cache())
                             "'int", i, "', ",
                             paste0("''"), ",",
                             value=1,
-                            #"width='",1/numInits*100,"%'",#50px'",
                             ")",
                             collapse = ", "),
                      ")")
+        } else {
+          x_temp <-  read_dat(paste0(locoutput(project$name), pull_shiny_output(project$name, type='table', fun=paste0("params_", input$modname))))
+          param_temp <- x_temp$estimate
+          i = 1:length(param_temp)
+          numwidth <- rep((1/numInits())*100, numInits())
+          numwidth <- paste("'", as.character(numwidth),"%'", collapse=", ", sep="")
+          UI <- paste0("splitLayout(",
+                       "cellWidths = c(",numwidth,")",",",
+                       paste0("textInput(",
+                              "'int", i, "', ",
+                              paste0("''"), ",",
+                              value=param_temp[i],
+                              #"width='",1/numInits*100,"%'",#50px'",
+                              ")",
+                              collapse = ", "),
+                       ")")
+        }
         eval(parse(text = UI))
       })
       
-      #mod.table <- data.frame('mod_name'='mod1', 'likelihood'=input$model, 'alternatives'=input$alternatives)#, 'independent vars'=input$indeVarsForModel,
-      # 'gridvariables'=input$gridVariablesInclude)
-      # Save model and add new model shiny
-      #observe({
-      #  if(input$addModel > 0) print('Save model, reset parameters')
-      #  output$table <- renderDataTable(dat[1:3,1:3])
-      #make_model_design()
-      #})
+      output$paramtable <- renderUI({
+         param_table <- paste0(locoutput(project$name), pull_output(project$name, type='table', fun=paste0('params')))
+         param_table <- sub(".*params_", "", param_table)
+          param_table <- gsub('.csv', '', param_table)
+          selectInput('modname','Select previous model', choices=param_table)
+      })
+      
+     
       counter <- reactiveValues(countervalue = 0) # Defining & initializing the reactiveValues object
       rv <- reactiveValues(
         data = data.frame('mod_name'='', 'likelihood'='', 'optimOpt'='', 'inits'='', 

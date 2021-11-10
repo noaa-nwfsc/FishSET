@@ -212,7 +212,7 @@ pull_output <- function(project, fun = NULL, date = NULL, type = "plot", conf = 
   end <- FALSE
   
   outs <- project_files(project)
-  ext <- switch(type, "plot" = ".*\\.png$", "table" = ".*\\.csv$", "notes" = ".*\\.txt$")
+  ext <- switch(type, "plot" = ".*\\.png$", "table" = ".*\\.csv$", "notes" = ".*\\.txt$", "zone" = ".*\\.yaml")
   
   out <- grep(ext, outs, value = TRUE)
   
