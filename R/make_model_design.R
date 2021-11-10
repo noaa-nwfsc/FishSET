@@ -18,6 +18,8 @@
 #'  }
 #' @param initparams String or list, initial parameter estimates for revenue/location-specific covariates then cost/distance.
 #'   The number of parameter estimate varies by likelihood function. See Details section for more information.
+#'   If using parameter estimates from previous model,\code{initparams} should be the name of the model the 
+#'   parameter estimates should come from. Examples: \code{initparams = 'epm_mod1'}, \code{initparams=list('epm_mod1', 'epm_mod2')}
 #' @param optimOpt  String, optimization options [max function evaluations, max iterations, (reltol) tolerance of x, trace].
 #' @param methodname String, optimization method (see \code{\link[stats]{optim}} options). Defaults to \code{"BFGS"}.
 #' @param mod.name String, name of model run for model result output table.
@@ -340,6 +342,24 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     }
     
   
+  ### Initial parameters - need to grab inits from previous model run if required
+    params <- list()
+    for (i in 1:length(initparams)){
+      if(is.character(initparams[[i]])){
+        x_temp <-  read_dat(paste0(locoutput(project), pull_output(project, type='table', fun=paste0('params_', initparams[[i]]))))
+        if(!is.null(x_temp)){
+            param_temp <- x_temp$estimate
+        } else {
+          param_temp <- c(1,1,1,1,1)
+          warning('Model not found. Setting parameter estimates to 1.')
+        }
+        params[[length(params) + 1]] <- list(param_temp)
+      } else {
+        params[[length(params) + 1]] <- list(initparams[[i]])
+      }
+    }
+    
+    
   ### Generate Distance Matrix
      dist_out <- create_dist_matrix(dataset=dataset, alt_var=alt_var, occasion=occasion, dataZoneTrue=dataZoneTrue, 
                                  int=int, choice=choice_raw, units=units, port=port, zoneRow=zoneRow, X=X)

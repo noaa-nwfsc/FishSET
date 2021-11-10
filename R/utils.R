@@ -1760,6 +1760,71 @@ find_dev <- function(x, y){
   return(i)
 }
 
+pull_shiny_output <- function(project, fun = NULL, type = "plot", conf = TRUE) {
+  #'
+  #' Retrieve output file name by project, function, and type
+  #'
+  #' @param project Name of project
+  #' @param fun Name of function.
+  #' @param type Whether to return the \code{"plot"} (.png), \code{"table"} (.csv),
+  #'  "notes" (.txt) or \code{"all"} files matching the project name, function, and date.
+  #' @param conf Logical, whether to return suppressed confidential data. 
+  #'    Unsuppressed output will be pulled if suppressed output is not available. 
+  #' @export
+  #' @keywords internal
+  #' @examples
+  #' \dontrun{
+  #' pull_output("pollock", "species_catch", type = "plot")
+  #' }
+  end <- FALSE
+  
+  outs <- project_files(project)
+  ext <- switch(type, "plot" = ".*\\.png$", "table" = ".*\\.csv$", "notes" = ".*\\.txt$", "zone" = ".*\\.yaml")
+  
+  out <- grep(ext, outs, value = TRUE)
+  
+  if (length(out) == 0) {
+    
+    message("No ", type, " found for project '", project,"'.", sep = "")
+    end <- TRUE
+  }
+  
+  if (!end) {
+    
+    if (!is.null(fun)) {
+      
+      out <- grep(paste0("_", fun), out, value = TRUE)
+      
+      if (length(out) == 0) {
+        
+        message("No ", type, " output for function ", fun, " exists for project ",
+                "'", project, "'. ", sep = "")
+        end <- TRUE
+      }
+      
+    } else out <- grep("_notes_", out, value = TRUE)
+    
+    if (!end) {
+      
+      
+      if (!end) {
+        # check for suppressed output
+        conf_ind <- grepl("_confid_", out)
+        
+        if (conf) {
+          
+          if (sum(conf_ind) > 0) out <- out[conf_ind]
+          
+        } else {
+          
+          if (sum(!conf_ind) > 0) out <- out[!conf_ind]
+        }
+        
+        out
+      }
+    }
+  }
+}
 
   
 
