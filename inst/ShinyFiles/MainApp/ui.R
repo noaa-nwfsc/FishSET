@@ -215,7 +215,13 @@ source("map_viewer_app.R", local = TRUE)
                              fluidRow(
                               
                                 uiOutput("projects"), # define project name
-                               column(4, uiOutput('main1')),
+                                
+                               column(4, 
+                                      radioButtons('loadmainsource', "Source primary data from:",
+                                                   choices=c('Upload new file','FishSET database'), 
+                                                   selected='FishSET database', inline=TRUE)
+                                      # uiOutput('main1')
+                                      ),
                                uiOutput('main_upload')),
                            
                              fluidRow( 
@@ -237,14 +243,17 @@ source("map_viewer_app.R", local = TRUE)
                              uiOutput("PortAddtableMerge"),
                              
                              fluidRow(
-                               column(4, radioButtons('loadspatialsource', "Source spatial data from:", choices=c('Upload new file'), selected='Upload new file', inline=TRUE)),
-                                                      #,'FishSET database')
-                               radioButtons('filefolder', "", choices=c("Upload single file", "Upload shape files"), selected="Upload file", inline = TRUE),
+                               column(4, radioButtons('loadspatialsource', "Source spatial data from:", 
+                                                      choices=c('Upload new file'), selected='Upload new file', inline=TRUE)),
+                               radioButtons('filefolder', "", choices=c("Upload single file", "Upload shape files"), 
+                                            selected="Upload file", inline = TRUE),
                                uiOutput('spatial_upload')
                              ),
                              
                              fluidRow(
-                                 column(4, radioButtons('loadgridsource', "Source gridded data from:", choices=c( 'Upload new file','FishSET database'), selected='Upload new file', inline=TRUE)),
+                                 column(4, radioButtons('loadgridsource', "Source gridded data from:", 
+                                                        choices=c('Upload new file','FishSET database'), 
+                                                        selected='Upload new file', inline=TRUE)),
                                  uiOutput('grid_upload')
                                ),
                              
@@ -253,16 +262,17 @@ source("map_viewer_app.R", local = TRUE)
                              tags$br(),
                             
                              fluidRow(
-                               column(4, radioButtons('loadauxsource', "Source auxiliary data from:", choices=c( 'Upload new file','FishSET database'), selected='Upload new file', inline=TRUE)),
+                               column(4, radioButtons('loadauxsource', "Source auxiliary data from:", 
+                                                      choices=c('Upload new file','FishSET database'), 
+                                                      selected='Upload new file', inline=TRUE)),
                                uiOutput('aux_upload')
                              ), 
                              
                              mergeUI("aux", dat_type = "aux"),
                              
-                             #uiOutput("SaveButtonsUpload"),
-                             #  downloadLink("downloadTextUp", label=''),
                              actionButton('callTextDownloadUp','Save notes'),
-                             textInput('notesUp', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                             textInput('notesUp', "Notes", value=NULL, 
+                                       placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
                              
                              textInput("exprUp", label = "Enter an R expression",
                                        value = "values$dataset"),
@@ -294,18 +304,16 @@ source("map_viewer_app.R", local = TRUE)
                                           actionButton("refresh1", "Refresh data", 
                                                        style = "color: white; background-color: blue;" 
                                           ),
+                                          actionButton('callTextDownloadQAQC','Save notes'),
                                           tags$br(), tags$br(),
                                           textInput('notesQAQC', "Notes", value=NULL,
                                                     placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
-                                          #conditionalPanel(condition = "input.checks == 'Summary table'",
-                                          #  selectInput("SelectDatasetDQ", "Select a dataset", choices = c("main", "port", "auxiliary", "grid"))
-                                          #),
-                                          #h4('Select data check functions to run'),
-                                          #Checkbox input widget  
-                                           radioButtons("checks", "Select data quality check function to run", choices = c('Variable class', 'Summary table', 'Outliers', 'NAs', 'NaNs', 
-                                                                                  'Unique observations', 'Empty variables', 'Latitude and Longitude'='Lat_Lon units',
-                                                                                  'Spatial data')),
-                                          # uiOutput("checks_dataset"),
+                                          
+                                           radioButtons("checks", "Select data quality check function to run", 
+                                                        choices = c('Variable class', 'Summary table', 'Outliers', 
+                                                                    'NAs', 'NaNs', 'Unique observations', 'Empty variables', 
+                                                                    'Latitude and Longitude'='Lat_Lon units', 'Spatial data')),
+                                          
                                           conditionalPanel(
                                             condition = "input.checks == 'Variable class'",
                                             actionButton('rchclass', 'Change variable classes', style = "color: white; background-color: #0073e6;")
@@ -314,21 +322,17 @@ source("map_viewer_app.R", local = TRUE)
                                           uiOutput('outlier_subset'),
                                           uiOutput('outlier_dist'),
                                           conditionalPanel("input.checks == 'NAs'",
-                                            actionButton('NA_Filter_all', 'Remove all NAs', style = "color: white; background-color: #0073e6;")
-                                          ),
-                                          conditionalPanel("input.checks == 'NAs'",
+                                            actionButton('NA_Filter_all', 'Remove all NAs', style = "color: white; background-color: #0073e6;"),
                                             actionButton('NA_Filter_mean', 'Replace NAs with mean value', style = "color: white; background-color: #0073e6;")
                                           ),
                                           conditionalPanel("input.checks == 'NaNs'",
-                                            actionButton('NAN_Filter_all', 'Remove all NaNs', style = "color: white; background-color: #0073e6;")
-                                          ),
-                                          conditionalPanel("input.checks == 'NaNs'",
+                                            actionButton('NAN_Filter_all', 'Remove all NaNs', style = "color: white; background-color: #0073e6;"),
                                             actionButton('NAN_Filter_mean', 'Replace NaNs with mean value', style = "color: white; background-color: #0073e6;")
                                           ),
                                           conditionalPanel("input.checks=='Outliers'",
-                                                           actionButton('Outlier_Filter', 'Remove outliers', style = "color: white; background-color: #0073e6;")),
-                                          conditionalPanel("input.checks=='Outliers'",
-                                            uiOutput("hover_info1")),
+                                                           actionButton('Outlier_Filter', 'Remove outliers', style = "color: white; background-color: #0073e6;"),
+                                                           uiOutput("hover_info1")
+                                          ),
                                           conditionalPanel("input.checks=='Unique observations'",
                                             actionButton('Unique_Filter', 'Remove non-unique rows', style = "color: white; background-color: #0073e6;")
                                           ),
@@ -340,17 +344,12 @@ source("map_viewer_app.R", local = TRUE)
                                           conditionalPanel("input.checks=='Lat_Lon units'",
                                             selectInput('LatLon_Filter_Lat', 'Change sign for latitude direction', 
                                                         choices=c('None', 'All values'='all', 'Positve to negative'='neg', 
-                                                        'Negative to positive'='pos'), selected='None')
-                                          ),
-                                          conditionalPanel("input.checks=='Lat_Lon units'",
+                                                        'Negative to positive'='pos'), selected='None'),
                                             selectInput('LatLon_Filter_Lon', 'Change sign for longitude direction', 
                                                         choices=c('None', 'All values'='all', 'Positve to negative'='neg', 
-                                                                  'Negative to positive'='pos'), selected='None')
-                                          ),
-                                          conditionalPanel(
-                                            condition ="input.checks=='Lat_Lon units'",
+                                                                  'Negative to positive'='pos'), selected='None'),
                                             actionButton('LatLon_Filter', 'Convert lat/long to decimal degrees', 
-                                                         value=FALSE, style = "color: white; background-color: #0073e6;" )
+                                                         value=FALSE, style = "color: white; background-color: #0073e6;")
                                           ),
                                           
                                           conditionalPanel("input.checks=='Spatial data'",
@@ -402,25 +401,17 @@ source("map_viewer_app.R", local = TRUE)
                                        
                                        conditionalPanel("input.checks=='Spatial data'",
                                                         
-                                                        tabsetPanel(id = "spat_qaqc_tab", selected = "checks",
-                                                                    
-                                                                    tabPanel(title = "Spatial Checks", value = "checks",
-                                                                             shinycssloaders::withSpinner(uiOutput("spatQAQC_checkOut"))      
-                                                                    ),
-                                                                    
-                                                                    tabPanel(title = "Spatial Corrections", value = "corrections",
-                                                                             uiOutput("spat_correct_msg"),
-                                                                             tags$div(shinycssloaders::withSpinner(DT::DTOutput("spat_correct_tab")), 
-                                                                                     style = "font-size: 75%; width: 100%")
-                                                                             )
-                                                        )
-                                                        
-                                                        
-                                                        
-                                                        
-                                                        
-                                                        )
-                                
+                                         tabsetPanel(id = "spat_qaqc_tab", selected = "checks",
+                                                     
+                                            tabPanel(title = "Spatial Checks", value = "checks",
+                                                     shinycssloaders::withSpinner(uiOutput("spatQAQC_checkOut"))      
+                                            ),
+                                            
+                                            tabPanel(title = "Spatial Corrections", value = "corrections",
+                                                     uiOutput("spat_correct_msg"),
+                                                     tags$div(shinycssloaders::withSpinner(DT::DTOutput("spat_correct_tab")), 
+                                                             style = "font-size: 75%; width: 100%")
+                                                     )))
                                        ))),
                   #---
       # Data exploration tabset panel ----
@@ -429,19 +420,10 @@ source("map_viewer_app.R", local = TRUE)
                            sidebarLayout(
                              sidebarPanel(width=2,
                                           tags$br(),tags$br(),
-                                          conditionalPanel("input.plot_table=='Plots' && input.SelectDatasetExplore != 'grid'",
-                                            #uiOutput('SaveButtonsExplore')),
-                                            downloadLink('downloadplotEXPLOREHIDE', label=''),
-                                            actionButton('downloadplotExplore', label ='Save plot to folder'),#, title = "", filename = paste0(project, input$plot_type , '_plot'), filetype = "png")
-                                            downloadLink('downloadTableEXPLOREHIDE', label=''),
-                                            conditionalPanel("input.plot_type=='Spatial'",
-                                                             actionButton('downloadTableExplore', label ='Save table to folder as csv'))
-                                            ),
-                                          conditionalPanel("input.plot_table=='Plots' && input.SelectDatasetExplore == 'grid'",
-                                                           
-                                                plotSaveUI("grid_plot")           
-                                                           ),
-                                            #  downloadLink("downloadTextExplore", label=''),
+                                          conditionalPanel("input.plot_table=='Plots'",
+                                            tabPlotUI("explore")
+                                          ),
+                                          
                                           conditionalPanel("input.plot_table=='Table'",
                                             actionButton('subsetData', 'Remove variable from dataset')
                                           ),
@@ -459,28 +441,29 @@ source("map_viewer_app.R", local = TRUE)
                                                        style = "color: white; background-color: blue;" 
                                           ),
                                           tags$br(), tags$br(),
-                                          textInput('notesExplore', "Notes", value=NULL, placeholder = 'Write notes to store in text output file. 
+                                          textInput('notesExplore', "Notes", value=NULL, 
+                                          placeholder = 'Write notes to store in text output file. 
                                                     Text can be inserted into report later.'),
                                           
                                           uiOutput("SelectDatasetExploreUI"), 
                                           
                                           conditionalPanel("input.SelectDatasetExplore=='main' || input.SelectDatasetExplore=='grid'",
-                                          selectInput('plot_table', 'View data table or plots', choices=c('Table','Plots'), selected='Table')
-                                          ),
-                                          conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots'",
-                                            selectInput('plot_type', 'Select Plot Type', choices=c('Temporal','Spatial','x-y plot'))
+                                             selectInput('plot_table', 'View data table or plots', 
+                                                         choices=c('Table','Plots'), selected='Table')
                                           ),
                                           
-                                          #selectInput('varofint', 'Variable of interest', choices=c('A','B','C'))
+                                          conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots'",
+                                            selectInput('plot_type', 'Select Plot Type', 
+                                                        choices=c('Temporal','Spatial','x-y plot'))
+                                          ),
+                                          
                                           conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial'",
-                                                           uiOutput("mtgt_output")),
-                                          uiOutput('mtgt_out2'),
+                                                           uiOutput("mtgt_output"),
+                                                           uiOutput('mtgt_out2'),
+                                                           uiOutput("location_info_spatial")),
+                                          
                                           conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Table'",
                                             verbatimTextOutput('editText')
-                                          ),
-                                          
-                                          conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial'",
-                                            uiOutput("location_info_spatial")
                                           ),
                                           
                                           conditionalPanel("input.SelectDatasetExplore == 'grid' && input.plot_table == 'Plots'",
@@ -496,46 +479,46 @@ source("map_viewer_app.R", local = TRUE)
                                           )
                              ),
                              mainPanel(width=10,
-                                       tags$div(shinycssloaders::withSpinner(DT::DTOutput("output_table_exploration")), style = "font-size: 75%; width: 100%"),
+                                       tags$div(shinycssloaders::withSpinner(DT::DTOutput("output_table_exploration")), 
+                                                style = "font-size: 75%; width: 100%"),
+                                       
                                        conditionalPanel(
                                          "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Temporal'", 
-                                         uiOutput('column_select')),
-                                       conditionalPanel(
-                                         "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='x-y plot'",
-                                         uiOutput('xy_select1')),
-                                       conditionalPanel(
-                                         "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='x-y plot'",
-                                         uiOutput('xy_select2')),
-                                       conditionalPanel(
-                                         "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Temporal'",
+                                         uiOutput('column_select'), 
                                          tagList(
                                            tags$br(),tags$br(),
                                            fluidRow(column(12, align='right',
                                                            div(style="display: inline-block;vertical-align:top;  width: 33%;",
-                                                               selectInput("p2fun", label="y-axis function:",c("No. observations",'No. unique observations','% of total observations'), selected='No. of observations')),
+                                                               selectInput("p2fun", label = "y-axis function:",
+                                                                           c("No. observations",'No. unique observations',
+                                                                             '% of total observations'), 
+                                                                           selected='No. of observations')),
+                                                           
                                                            div(style="display: inline-block; vertical-align:top; width: 33%;",
-                                                               selectInput("p3fun", "y-axis function:",c('mean','median','min','max','sum'), selected='mean'))
-                                           )))
+                                                               selectInput("p3fun", "y-axis function:",
+                                                                           c('mean','median','min','max','sum'), 
+                                                                           selected = 'mean'))))
+                                           ),
+                                         shinycssloaders::withSpinner(plotOutput('plot_time')),
                                        ),
-                                       conditionalPanel(
-                                         "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Temporal'",
-                                         shinycssloaders::withSpinner(plotOutput('plot_time'))
-                                       ),
+                                       
                                        conditionalPanel(
                                          "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial'",
+                                         
                                          column(shinycssloaders::withSpinner(plotOutput('plot_spatial',
                                                            click = "plot_spatial_click",
-                                                           dblclick = "plot_spatial_dblclick", 
-                                                           brush = brushOpts(id = "plot_spatial_brush",resetOnNew = FALSE ))), width=7)),
+                                                           dblclick = "plot_spatial_dblclick",
+                                                           brush = brushOpts(id = "plot_spatial_brush", resetOnNew = FALSE))), width=7),
+                                         column(shinycssloaders::withSpinner(plotOutput('map_kernel')), width=7),
+                                         column(shinycssloaders::withSpinner(DT::DTOutput('output_table_gt_mt')), width=6)
+                                         
+                                       ),
+                                       
                                        conditionalPanel(
-                                         "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial'",
-                                         column(shinycssloaders::withSpinner(plotOutput('map_kernel')), width=7)),
-                                       conditionalPanel(
-                                         "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial'",
-                                         column(DT::DTOutput('output_table_gt_mt'), width=6)),
-                                       conditionalPanel(
-                                         "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='x-y plot'",   
-                                         shinycssloaders::withSpinner(plotOutput('plot_xy'))),
+                                         "input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='x-y plot'",
+                                         uiOutput('xy_selectUI'),
+                                         shinycssloaders::withSpinner(plotOutput('plot_xy'))
+                                       ),
                                        
                                        # gridded data plot 
                                        conditionalPanel(
@@ -691,13 +674,9 @@ source("map_viewer_app.R", local = TRUE)
                   tabPanel("Simple Analyses", value = "analysis",
                            sidebarLayout(
                              sidebarPanel(
-                               #uiOutput('SaveButtonsAnal'),
-                                downloadLink('downloadplotAnalHIDE', label =''),
-                                downloadLink('downloaddataAnalHIDE', label =''),
-                                actionButton('downloadplotAnal', label ='Save plot to folder'),#, title = "", filename = paste0(project,'_', input$corr_reg, '_plot'), filetype = "png"),
-                                actionButton('downloaddataAnal', label ='Save table to folder as csv'),
-                                #  downloadLink("downloadTextAnal", label=''),
-                                actionButton('callTextDownloadAnal','Save notes'),
+                               tabPlotUI("anal"),
+                               modSaveUI("anal"),
+                               actionButton('callTextDownloadAnal','Save notes'),
                                tags$button(
                                  id = 'closeAnalysis',
                                  type = "button",
@@ -713,6 +692,19 @@ source("map_viewer_app.R", local = TRUE)
                                textInput('notesAnal', "Notes", value=NULL, 
                                          placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
                                tags$br(),tags$br(),
+                               
+                               conditionalPanel("input.corr_reg == 'Correlation'", 
+                                                
+                                                actionButton("run_corr", "Run function", 
+                                                             style = "color: white; background-color: blue;")
+                                                ),
+                               
+                               conditionalPanel("input.corr_reg == 'Regression'", 
+                                                
+                                                actionButton("run_reg", "Run function", 
+                                                             style = "color: white; background-color: blue;")
+                               ),
+                               
                                selectInput('corr_reg','Show correlations or simple linear regression', 
                                            choices=c('Correlation','Regression'), selected='Correlation'),
                                ##Inline scripting 
@@ -746,8 +738,6 @@ source("map_viewer_app.R", local = TRUE)
                   tabPanel('Compute New Variables', value='new',
                            sidebarLayout(
                              sidebarPanel(
-                               #uiOutput('SaveButtonsNew'),
-                                
                                 downloadButton("exportData", "Download data"),
                                 
                                 selectInput("export_type", "Export data as:",
@@ -759,8 +749,8 @@ source("map_viewer_app.R", local = TRUE)
                                 
                                 tags$hr(style = "border-top: 3px solid #bbb;"),
                                 
-                                downloadLink('downloadplotNew', label=''),
-                                actionButton('downloadplotNew', label='Save plot to folder'),
+                                # downloadLink('downloadplotNew', label=''),
+                                # actionButton('downloadplotNew', label='Save plot to folder'),
                                 actionButton('callTextDownloadNew','Save notes'),
                                 actionButton('saveDataNew','Save data to FishSET database'),
                                tags$br(),
