@@ -81,7 +81,8 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
       
       
       # Idenfity centroid of zone
-      int <- find_centroid(gridfile=spatdat, cat = cat, lon.grid=lon.grid, lat.grid=lat.grid)
+      int <- find_centroid(gridfile=spatdat, project = project, cat = cat, 
+                           lon.grid=lon.grid, lat.grid=lat.grid)
     }
     
      

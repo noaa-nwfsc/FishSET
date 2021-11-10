@@ -54,6 +54,16 @@ tabPlotUI <- function(id, type = "tab_plot") {
   }
 }
 
+modSaveUI <- function(id) {
+  ns <- NS(id)
+  
+  tagList(
+    downloadLink(ns('downloadModHIDE'), label = ''),
+    actionButton(ns('save_mod'), label = 'Save summary to folder as txt',
+                 style = "color: #fff; background-color: #6EC479; border-color:#000000;")
+  )
+}
+
 
 noteUI <- function(id) {
   

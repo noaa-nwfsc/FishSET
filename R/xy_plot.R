@@ -12,7 +12,8 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
   #' @description Plot of var1 against var 2
   #' @return Returns plot output to R console and saves plot to Output folder.
   #' @import ggplot2
-  #' @importFrom rlang sym
+  #' @importFrom rlang sym expr enexpr current_env parse_expr
+  #' @importFrom stats reformulate
   #' @export
   #' @examples
   #' \dontrun{
@@ -58,7 +59,10 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
           ncol = 2, nrow = 1), 
         top = ggpubr::text_grob("Simple linear regression plots", size = 14))
 
-    refout <- summary(lm(dataset[[var2]] ~ dataset[[var1]]))
+    fm <- stats::reformulate(var1, var2)
+    formula <- rlang::enexpr(fm)
+    data <- rlang::parse_expr(dat)
+    lm_call <- rlang::expr(summary(lm(!!formula, data = !!data)))
   }
 
   # Log the function
@@ -70,6 +74,9 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
   # Save output
   save_plot(project, "xy_plot")
 
-  if (regress == TRUE) list(plot = x_plot, refout = refout)
-  else x_plot
+  if (regress == TRUE) {
+    
+    list(plot = x_plot, 
+         refout = eval(lm_call, envir = rlang::current_env()))
+  } else x_plot
 }
