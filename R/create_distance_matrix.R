@@ -109,17 +109,24 @@ create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, ch
           #  toXY1 <- merge(toXYa, temp)
           }
           # Lat/Lon
-        } else {
+        } else {  #End port
           # Data is from a dataframe or matrix
           if (is.data.frame(dataset)) {
             if (length(occasion) < 2) {
               warning("Please define both lat and long in occasion parameter of create_alternative_choice function.")
               end <- TRUE
             }
-            toXY1 <- data.frame(
-              dataset[[occasion[1]]][which(dataZoneTrue == 1)],
-              dataset[[occasion[2]]][which(dataZoneTrue == 1)]
-            )
+            if(any(grepl('lat', occasion, ignore.case=TRUE))){
+              toXY1 <- data.frame(
+                dataset[[occasion[which(stringr::str_count(occasion, "lon")==max(stringr::str_count(occasion, "lon")))]]][which(dataZoneTrue == 1)],
+                dataset[[occasion[which(stringr::str_count(occasion, "lat")==max(stringr::str_count(occasion, "lat")))]]][which(dataZoneTrue == 1)]
+              )
+            } else {
+              toXY1 <- data.frame(
+                dataset[[occasion[1]]][which(dataZoneTrue == 1)],
+                dataset[[occasion[2]]][which(dataZoneTrue == 1)]
+              )
+            }
           } else {
             toXY1 <- dataset[[occasion]][which(dataZoneTrue == 1)]
             
@@ -135,6 +142,9 @@ create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, ch
       if (any(grepl("zon|cent", alt_var, ignore.case = T))) {
         # (v2==0){ #Zonal centroid [B,I,choiceZ] <-
         # unique(gridInfo.assignmentColumn(dataZoneTrue))#
+        if(!any(int$ZoneID %in% unique(choice[which(dataZoneTrue == 1), ]))) {
+          warning('Name of zones in centroid table do not match choice zones. Rerun find_centroid')
+        }
         B <- int[int$ZoneID %in% unique(choice[which(dataZoneTrue == 1), ]), 1]
         choiceZ <- match(int$ZoneID[which(dataZoneTrue == 1)], unique(int$ZoneID[which(dataZoneTrue == 1)]))
         
