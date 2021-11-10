@@ -1,10 +1,13 @@
-welfare_predict <- function(project, mod.name,expected.catch.name, tac, enteredPrice){
   
   #' Welfare analysis code
   #' @param project Name of project
   #' @param mod.name Name of selected model (mchoice)
-  #' @param expected.catch.name
+  #' @param expected.catch.name Name of expectedchatch table to use
+  #' @param tac Total allowed tac.
+  #' @param enteredPrice Price for welfare
+  #' @export
   #' @details Called by \code{\link{run_policy}} function. The \code{\link{model_prediction}} function should be run before this function.
+welfare_predict <- function(project, mod.name, expected.catch.name, tac, enteredPrice){
 
  #TODO make stdard version, only works for zone that all 100% closed and
  #compares closure at entered price versus non closure at that price (not a comparison to other years
