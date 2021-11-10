@@ -11,6 +11,7 @@
   #Price
   #Prediction probablity 
 
+#' Model prediction function
 #' @param project Name of project
 #' @param mod.name Name of saved model to use
 #' @param expected.catch.name Required for conditonal logit (\code{logit_c}) model. 
@@ -18,7 +19,7 @@
 #'    Can be the expected catch from the short-term scenario (\code{short}), the medium-term scenario (\code{med}), the 
 #'    long-term scenario (\code{long}), or the user-defined temporal parameters (\code{user}).
 #' @param enteredPrice NEED TO FIGURE OUT WHAT EXACTLY THIS IS
-#' @details Calls \code{\link{logit_predict}}, \code{\link{epm_logit}}, and \code{\link{predict_probability}}.
+#' @details Calls \code{\link{logit_predict}}, \code{\link{epm_predict}}, and \code{\link{predict_probability}}.
 #'    Closure scenarios and TAC must be define using \code{\link{zone_closure}} function before function can be run.  
 #' 
 
@@ -181,7 +182,7 @@ if (grepl('logit', x_new$likelihood)) {  #need to correct this
   # full TAC and no zone closure
     #1 epm normal
     
-    temp <- epm_predict(project=project, mod.name=mod.name, alts=alts, mod.name=mod.name, price=price) #modelOutput{mChoice},alts,x);
+    temp <- epm_predict(project=project, modname=mod.name, alts=alts, mod.type=mod.type, price=price) #modelOutput{mChoice},alts,x);
     probEPM <- temp$probEPM
     modelDat <- temp$modelDat
 

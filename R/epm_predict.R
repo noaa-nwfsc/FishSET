@@ -7,18 +7,20 @@
 #'
 #' @param project Name of project
 #' @param alts  Number of alternatives choices in model
-#' @param mod.name Name of saved model to use
+#' @param modname Name of saved model to use
+#' @param mod.type String. Opetions are weibull, lognormal, normal
+#' @param price Numeric. Price.
 #' @return Returns probability of logit model by choice
 
 
-epm_predict <- function(project, alts,  mod.name, mod.type, price){
+epm_predict <- function(project, alts, modname, mod.type, price){
   
   #Obtain parameter estimates
   epmEq <- read_dat(paste0(locoutput(project), pull_output(project, type='table', fun='params')))
   
   #Get model data
   # Need data compile, distance, gridvarying, interaction terms
-  mod.dat <- create_model_input(project, x=NULL, mod.name=mod.name, use.scalers= TRUE, scaler.func=NULL, expected.catch.name=NULL)
+  mod.dat <- create_model_input(project, x=NULL, mod.name=modname, use.scalers= TRUE, scaler.func=NULL, expected.catch.name=NULL)
   alts <- dim(unique(mod.dat$choice))[1]
   #Might need to include more parameters here
   mod.dat <- as.matrix(cbind((mod.dat$dataCompile*price), mod.dat$distance, mod.dat$otherdat))

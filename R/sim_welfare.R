@@ -1,14 +1,13 @@
 #' Welfare simulator
 #' 
 #' @param project Name of project
-#' @param X
+#' @param X Independent varialbes from RUM
 #' @param alts Number of alternative zones
 #' @param beta_j Output from mvrgrnd
 #' @param scenario Scenario list created in \code{\link{welfare_predict}}
-#' @return 
 #' @details Subfunction of \code{\link{welfare_predict}}
 #' @export
-#' @internal
+#' @keywords internal
 
 sim_welfare <- function(project, X, alts, beta_j, scenario){
 

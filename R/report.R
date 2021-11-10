@@ -1272,7 +1272,7 @@ meta_tables <- function(project, tab.type = NULL) {
   #' @param tab.type String, table type. Optional, used to filter output. Options 
   #'   include "main", "spat" (spatial), "port", "grid" (gridded), and "aux" 
   #'   (auxiliary).
-  #' @param export
+  #' @export
   #' 
   
   meta_log <- pull_meta(project)
