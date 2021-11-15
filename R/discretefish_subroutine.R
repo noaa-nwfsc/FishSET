@@ -102,6 +102,8 @@
 discretefish_subroutine <- function(project, select.model = FALSE, explorestarts = TRUE, breakearly= TRUE,
                                     space=NULL, dev=NULL, use.scalers=TRUE, scaler.func=NULL) {
 
+  if(fishset_env_exists()==FALSE) { create_fishset_env()}
+  
 end <- FALSE
 
     if (!isRunning()) { # if run in console
@@ -360,6 +362,24 @@ end <- FALSE
             return("Optimization error, check 'ldglobalcheck'")
           }
         )
+        
+        single_sql <- paste0(project, "ldglobalcheck", format(Sys.Date(), format = "%Y%m%d"))
+        second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
+        
+         if (table_exists(single_sql, project=project) == TRUE) {
+           if(any(is_empty(unlist(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data)))) {
+             table_remove(single_sql, project)
+            ldglobalcheck <- ldglobalcheck
+           } else {
+            x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
+           table_remove(single_sql, project=project)
+           ldglobalcheck <- c(x, ldglobalcheck)
+         }
+         }
+        
+        DBI::dbExecute(fishset_db, paste0("CREATE TABLE IF NOT EXISTS ", project, "ldglobalcheck", format(Sys.Date(), format = "%Y%m%d"), "(data ldglobalcheck)"))
+        DBI::dbExecute(fishset_db, second_sql, params = list(data = list(serialize(ldglobalcheck, NULL))))
+        
         
         if (res[[1]][1] == "Optimization error, check 'ldglobalcheck'") {
           print(list(

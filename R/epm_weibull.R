@@ -183,25 +183,6 @@ epm_weibull <- function(starts3, dat, otherdat, alts, project, expname, mod.name
 
   ldglobalcheck <- list(model = paste0(project, expname, mod.name), ldsumglobalcheck = ldsumglobalcheck, paramsglobalcheck = paramsglobalcheck, ldglobalcheck = ldglobalcheck)
 
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
-  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-  
-  single_sql <- paste0(project, "ldglobalcheck", format(Sys.Date(), format = "%Y%m%d"))
-  second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
-
-  if (table_exists(single_sql) == TRUE) {
-    if(any(is_empty(unlist(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data)))) {
-      table_remove(single_sql)
-      ldglobalcheck <- ldglobalcheck
-    } else {
-      x <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data[[1]])
-      table_remove(single_sql)
-      ldglobalcheck <- c(x, ldglobalcheck)
-    }
-  }
-
-  DBI::dbExecute(fishset_db, paste0("CREATE TABLE IF NOT EXISTS ", project, "ldglobalcheck", format(Sys.Date(), format = "%Y%m%d"), "(data ldglobalcheck)"))
-  DBI::dbExecute(fishset_db, second_sql, params = list(data = list(serialize(ldglobalcheck, NULL))))
-
+  assign("ldglobalcheck", value = ldglobalcheck, pos = 1, env =fishset_env)
   return(ld)
 }
