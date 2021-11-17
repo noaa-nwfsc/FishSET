@@ -13,7 +13,8 @@ metaProjUI <- function(id) {
   ns <- NS(id)
   tagList(
     uiOutput(ns("proj_select")), 
-    uiOutput(ns("proj_tabs_list"))
+    uiOutput(ns("proj_tabs_list")),
+    actionButton(ns("refresh"), "Refresh tables")
   )
 }
 
@@ -31,6 +32,16 @@ metaProjServ <- function(id) {
   moduleServer(id, function(input, output, session) {
     
     ns <- session$ns
+    
+    proj_tabs <- reactive({
+      input$refresh
+      suppressWarnings(project_tables(input$project_name))
+    })
+    
+    meta_tabs <- reactive({
+      input$refresh
+      suppressWarnings(meta_tables(input$project_name))
+    })
     
     output$proj_select <- renderUI({
       
@@ -51,13 +62,11 @@ metaProjServ <- function(id) {
         
         if (id == "meta_create") {
           
-          selectInput(ns("project_tab"), "Select table", 
-                      choices = project_tables(input$project_name))
+          selectInput(ns("project_tab"), "Select table", choices = proj_tabs())
           
         } else {
           
-          selectInput(ns("project_tab"), "select table", 
-                      choices = suppressWarnings(meta_tables(input$project_name)))
+          selectInput(ns("project_tab"), "select table", choices = meta_tabs())
         }
       }
     })
@@ -86,6 +95,10 @@ metaLoadSaveBttnUI <- function(id) {
     
     actionButton(ns("save"), m_save,
                  style = "color: white; background-color: blue;"),
+    
+    tags$br(),
+    
+    checkboxInput(ns("overwrite"), "Overwrite existing metadata?", value = FALSE)
   )
 }
 
@@ -286,6 +299,8 @@ metaRawUI <- function(id) {
     actionButton(ns("clear_raw"), "Clear raw meta",
                  style = "color: #fff; background-color: red; border-color:#000000;"),
     
+    checkboxInput(ns("parse"), "Parse from datafile?", value = FALSE),
+    
     fileInput(ns("raw_file"), "Download metadata file"),
     
     textAreaInput(ns("read_par"), "Reader parameters"),
@@ -293,7 +308,8 @@ metaRawUI <- function(id) {
     fluidRow(actionButton(ns("par_add"), "Add parameter"),
              actionButton(ns("par_clear"), "Clear parameters")),
     
-    uiOutput(ns("par_list")),
+    div(class = "well well-sm", style = "background-color: white",
+        textOutput(ns("par_caption")))
   )
 }
 
@@ -315,6 +331,7 @@ metaRawOut <- function(id) {
 
 metaRawServ <- function(id, meta) {
   #' Server for handling raw metadata
+  #' Applies to the "meta_create" tab only. 
   #' @param id An ID string that matches the corresponding server functions: 
   #'   \code{\link{metaRawUI}} and \code{\link{metaRawOut}}. 
   #' @param meta Reactive values object to store metadata in. 
@@ -333,6 +350,8 @@ metaRawServ <- function(id, meta) {
     observeEvent(input$par_add, {
       
       meta$par <- c(meta$par, input$read_par)
+      
+      
     })
     
     
@@ -341,30 +360,50 @@ metaRawServ <- function(id, meta) {
     
     output$par_caption <- renderText(meta$par)
     
-    
-    output$par_list <- renderUI({
-      
-      div(class = "well well-sm", style = "background-color: white",
-          textOutput("par_caption"))
-    })
-    
     # load raw
     observeEvent(input$load_raw, {
       
       req(input$raw_file)
       
-      if(!is.null(meta$par)) {
+      read_fun <- ifelse(input$parse, parse_meta, read_dat)
+      q_test <- quietly_test(read_fun)
+      
+      if (!is.null(meta$par)) {
         
-        meta_out <- do.call("parse_meta", c(list(file = input$raw_file$datapath),
-                                            eval(parse(text=paste0("list(", meta$par, ")")))))
+        meta_out <- do.call(q_test, c(list(input$raw_file$datapath),
+                                      eval(parse(text=paste0("list(", meta$par, ")")))))
+       
+        # meta_out <- do.call(q_test, list(input$raw_file$datapath, 
+        #                     eval(rlang::parse_expr(paste0("list(", meta$par, ")")))))
+        
+        # pars <- rlang::parse_exprs(meta$par)
+        # 
+        # meta_out <- eval(rlang::call2(q_test, input$raw_file$datapath, !!!pars))
         
       } else {
         
-        meta_out <- parse_meta(file = input$raw_file$datapath)
+        meta_out <- q_test(input$raw_file$datapath)
       }
-      
-      meta$create_raw <- meta_out
-      meta$create_raw_html <- list_to_html(meta_out)
+    
+      if (is.null(meta_out)) {
+        
+        showNotification("Unable to load raw meta. Check reader parameters.", 
+                         type = "warning")
+        
+      } else {
+        
+        meta$create_raw <- meta_out
+        # browser()
+        if (rlang::is_bare_list(meta_out)) {
+          
+          meta$create_raw_html <- list_to_html(meta_out)
+          
+        } else {
+          
+          meta$create_raw_html <- to_html_table(meta_out)
+        }
+      }
+     
     })
     
     # raw output ----
@@ -383,7 +422,6 @@ metaRawServ <- function(id, meta) {
     })
     
     # clear raw
-    
     observeEvent(input$clear_raw, {
       
       meta$create_raw <- NULL
@@ -396,9 +434,12 @@ metaRawServ <- function(id, meta) {
       if (!is.null(meta$create_raw)) {
         
         q_test <- quietly_test(meta_log_call)
-        q_test(project = input$project_name, meta = meta$create_raw, dataset = NULL,
-               tab_name = input$project_tab, tab_type = "main", 
-               overwrite = TRUE, raw = TRUE)
+        raw <- q_test(project = input$project_name, meta = meta$create_raw, dataset = NULL,
+               tab_name = input$project_tab, tab_type = "main", overwrite = input$overwrite, 
+               raw = TRUE)
+        
+        if (raw) showNotification("Raw metadata saved.")
+        else showNotification("Raw metadata was not saved.")
         
       } else {
         
@@ -514,7 +555,7 @@ metaLoadServ <- function(id, cols, meta) {
         cols$create_ui <- lapply(cols$create_nms, function(x) colDescUI("meta_create", x))
         
       } else { # meta_edit section
-        
+       
         # clear previous meta
         meta$edit_raw_html <- NULL
         
@@ -554,9 +595,17 @@ metaLoadServ <- function(id, cols, meta) {
           
           if (!is.null(meta$edit_meta$raw)) {
             
-            meta$edit_raw_html <- list_to_html(meta$edit_meta$raw)
+            meta$edit_meta$raw <- simplify_list(meta$edit_meta$raw)
+            
+            if (rlang::is_bare_list(meta$edit_meta$raw)) {
+              
+              meta$edit_raw_html <- list_to_html(meta$edit_meta$raw)
+              
+            } else {
+              
+              meta$edit_raw_html <- to_html_table(meta$edit_meta$raw) 
+            }
           }
-          
         }
       }
     })
@@ -641,7 +690,7 @@ metaSaveServ <- function(id, cols) {
         
         out <- 
           q_test(project = input$project_name, meta = meta_out, dataset = NULL,
-                 tab_name = input$project_tab, tab_type = type, overwrite = TRUE, 
+                 tab_name = input$project_tab, tab_type = type, overwrite = input$overwrite, 
                  raw = FALSE)
         
         if (out) showNotification("Metadata saved.", type = "message")
