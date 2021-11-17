@@ -1,6 +1,6 @@
 empty_meta_list <- function() {
   #' Create an empty meta list
-  #' Used to create a new meta data entry. 
+  #' Used to create a new metadata entry. 
   #' @keywords internal
   #' @export
   
@@ -30,7 +30,7 @@ empty_meta_list <- function() {
 
 col_desc <- function(dat) {
   #' Create a list of column names
-  #' Used to create a new meta data entry.
+  #' Used to create a new metadata entry.
   #' @keywords internal
   #' @export
   
@@ -63,7 +63,7 @@ col_desc <- function(dat) {
 
 meta_list <- function(type, dat = NULL) {
   #' Create a meta list with column description section
-  #' Used to create a new meta data entry.
+  #' Used to create a new metadata entry.
   #'@keywords internal
   #'@export
   #'
@@ -95,21 +95,21 @@ meta_file_exists <- function(project) {
 
 meta_log_call <- function(project, meta, dataset = NULL, tab_name, tab_type, 
                           overwrite = FALSE, raw = TRUE) {
-  #' Log meta data to project folder
-  #' Meta data is saved to the meta data "meta_log.json" file in a project's doc/
+  #' Log metadata to project folder
+  #' Meta data is saved to the metadata "meta_log.json" file in a project's doc/
   #' directory. 
   #' @param project Project name.
   #' @param meta Meta data list to be saved.
   #' @param dataset A data object. Used to create the column description section
-  #'   of the meta data log entry. If \code{NULL}, the section is left empty. This
-  #'   may be the case if saving the raw meta data. To add column descriptions, 
+  #'   of the metadata log entry. If \code{NULL}, the section is left empty. This
+  #'   may be the case if saving the raw metadata. To add column descriptions, 
   #'   use the \code{meta_form} app.
   #' @param tab_name The table name as it appears in the FishSET Database (e.g.
   #'   "projectMainDataTable" if the main table).
   #' @param tab_type The table type. Options include "main", "spat" (spatial), 
   #'   "port", "grid" (gridded), and "aux" (auxiliary).
-  #' @param overwrite Logical, whether to save over existing meta data entry.
-  #' @param raw Logical, whether raw meta data file is being saved. 
+  #' @param overwrite Logical, whether to save over existing metadata entry.
+  #' @param raw Logical, whether raw metadata file is being saved. 
   #' @keywords internal
   #' @export
   #' @importFrom jsonlite read_json toJSON
@@ -120,7 +120,7 @@ meta_log_call <- function(project, meta, dataset = NULL, tab_name, tab_type,
   if (project_exists(project) == FALSE) {
     
     warning("Project \"", project, "\" does not exist.")
-    invisible(FALSE)
+    return(invisible(FALSE))
     
   } else {
     
@@ -157,7 +157,7 @@ meta_log_call <- function(project, meta, dataset = NULL, tab_name, tab_type,
           
           warning(paste("Metadata not saved. Raw meta for", tab_name, 
                         "exists and 'overwrite = FALSE'."))
-          invisible(FALSE)
+          return(invisible(FALSE))
           
         } else {
           
@@ -180,7 +180,7 @@ meta_log_call <- function(project, meta, dataset = NULL, tab_name, tab_type,
           
           warning(paste("Metadata not saved. Metadata for", tab_name, 
                         "exists and 'overwrite = FALSE'."))
-          invisible(FALSE)
+          return(invisible(FALSE))
           
         } else {
           
@@ -189,7 +189,7 @@ meta_log_call <- function(project, meta, dataset = NULL, tab_name, tab_type,
       }
     }
     
-    meta_log <- jsonlite::toJSON(metaBody, pretty = TRUE, auto_unbox = TRUE, 
+    meta_log <- jsonlite::toJSON(metaBody, pretty = TRUE, auto_unbox = FALSE, 
                                  null = "null", na = "string")
     
     write(meta_log, m_file)
