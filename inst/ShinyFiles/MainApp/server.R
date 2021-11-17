@@ -2083,28 +2083,35 @@ conf_cache_len <- length(get_confid_cache())
       
       ##Output to main panel
       output$Case<-renderPrint({
+        
         if(input$checks == 'Variable class'){
+          
           "Check and change variable data classes."
+          
         }else if(input$checks=='Summary table') {
+          
           "Summary table of NUMERIC variables in data table."
-        } else if(input$checks=='Outliers'){
-          if(input$dat.remove=='none'){
+          
+        } else if (input$checks=='Outliers'){
+          
+          if (input$dat.remove=='none'){
+            
             HTML('Table to assess outliers.', input$column_check, "shown. <br>Zoom in on plot by highlighting desired area and double clicking. <br>Double click again to reset plot. <br>")
+            
           } else {
-            HTML('Table to assess outliers.', input$column_check, 'shown. <br>Zoom in on plot by highlighting desired area and double clicking. <br>Double click again to reset plot. 
-                  <br>Excluding points that fall outside the',  if(input$dat.remove=='5_95_quant'){
-                    '5th and 95th quantiles'
-          } else if(input$dat.remove=='25_75_quant') {
-            '25th and 75th quantiles'
-          } else if(input$dat.remove=='mean_2SD'){
-            'mean +/- 2SD'
-          } else if(input$dat.remove=='mean_3SD'){
-            'mean +/- 3SD'
-          } else if(input$dat.remove=='median_2SD') {
-            'median +/- 2SD'
-          } else if(input$dat.remove=='median_3SD'){
-            'median +/- 3SD'
-          }, "results in removing", nrow(values$dataset)-tableInputOutlier()[which(rownames(tableInputOutlier())==input$dat.remove),1] ,"points from the data table.")
+            
+            rm_txt <- switch(input$dat.remove, '5_95_quant' = '25th and 75th quantiles', 
+                             'mean_2SD' = 'mean +/- 2SD', 'mean_3SD' = 'mean +/- 3SD', 
+                             'median_2SD' = 'median +/- 2SD', 'median_3SD' = 'median +/- 3SD')
+            out_tab <- tableInputOutlier()[[1]]
+            rm_num <- nrow(values$dataset) - out_tab[rownames(out_tab) == input$dat.remove, 1]
+            
+            case_txt <- paste('Table to assess outliers.', input$column_check, 'shown.', 
+            '<br>Zoom in on plot by highlighting desired area and double clicking.', 
+            '<br>Double click again to reset plot. <br>Excluding points that fall outside the', 
+            rm_txt, "results in removing", rm_num, "points from the data table.")
+            
+            HTML(case_txt)
           }
         } else if(input$checks=='NAs'){
           #na(values$dataset)
@@ -2135,34 +2142,35 @@ conf_cache_len <- length(get_confid_cache())
                      input$runSpatQAQC), {
         
         if(input$tabs=='qaqc'){
+          
           if(input$checks=='Summary table') {
+            
            case_to_print$dataQuality <- c(case_to_print$dataQuality, "Summary table of numeric variables viewed.\n")
-          } else if(input$checks=='Outliers') {
+          
+           } else if(input$checks=='Outliers') {
+             
             if(input$dat.remove=='none'){
+              
               case_to_print$dataQuality <- c(case_to_print$dataQuality, paste0('Table and plots to assess outliers viewed for ', input$column_check, ".\n"))
+            
             } else {
-              case_to_print$dataQuality <- c(case_to_print$dataQuality, paste('Table and plot to assess outliers viewed for', input$column_check, 'with',
-                    nrow(values$dataset)-tableInputOutlier()[which(rownames(tableInputOutlier())==input$dat.remove),1], 
-                    'points that fall outside the',  if(input$dat.remove=='5_95_quant'){
-                      '5th and 95th quantiles'
-                    } else if(input$dat.remove=='25_75_quant') {
-                      '25th and 75th quantiles'
-                    } else if(input$dat.remove=='mean_2SD'){
-                      'mean +/- 2SD'
-                    } else if(input$dat.remove=='mean_3SD'){
-                      'mean +/- 3SD'
-                    } else if(input$dat.remove=='median_2SD') {
-                      'median +/- 2SD'
-                    } else if(input$dat.remove=='median_3SD'){
-                      'median +/- 3SD'
-                    }, "removed.\n"))
+              
+              rm_txt <- switch(input$dat.remove, '5_95_quant' = '25th and 75th quantiles', 
+                               'mean_2SD' = 'mean +/- 2SD', 'mean_3SD' = 'mean +/- 3SD', 
+                               'median_2SD' = 'median +/- 2SD', 'median_3SD' = 'median +/- 3SD')
+              out_tab <- tableInputOutlier()[[1]]
+              rm_num <- nrow(values$dataset) - out_tab[rownames(out_tab) == input$dat.remove, 1]
+              
+              out_txt <- paste('Table and plot to assess outliers viewed for', input$column_check, 
+                               'with', rm_num,  'points that fall outside the', rm_txt, "removed.\n")
+              
+              case_to_print$dataQuality <- c(case_to_print$dataQuality, out_txt)
             }
           } else if(input$checks=='NAs'){
             
             na_names <- qaqc_helper(values$dataset, "NA", "names")
             na_quantity <- qaqc_helper(values$dataset[na_names], 
                                        function(x) sum(is.na(x)), "value")
-            
            
             if (any(qaqc_helper(values$dataset, "NA"))) {
       
@@ -2456,6 +2464,7 @@ conf_cache_len <- length(get_confid_cache())
           q_test <- quietly_test(outlier_plot_int)
           dat_sub <- q_test(temp, input$column_check, input$dat.remove, 
                             input$x_dist, plot_type = 1)
+          qaqc_out_proj$out_plot <- project$name
           suppressWarnings(
             ggplot2::ggplot() +
               ggplot2::geom_point(data=dat_sub, ggplot2::aes(x=val, y=!!col_check, 
@@ -2468,8 +2477,6 @@ conf_cache_len <- length(get_confid_cache())
               ggplot2::theme(axis.text=ggplot2::element_text(size=12),
                              axis.title=ggplot2::element_text(size=12))
             )
-          
-          qaqc_out_proj$out_plot <- project$name
           }
       })
       
@@ -2526,7 +2533,6 @@ conf_cache_len <- length(get_confid_cache())
         fig <- suppressWarnings(
           ggpubr::ggarrange(outlierPlot1(), outlierPlot2(), outlierPlot3(),
                             ncol = 2, nrow = 2))
-        qaqc_out_proj$out_plot <- project$name
         fig
       }) 
       
