@@ -208,6 +208,8 @@ simplify_list <- function(l, format = FALSE) {
   #' @param l A list.
   #' @param format Logical, whether to print list using pandoc markdown.
   #' @export
+  #' @importFrom dplyr bind_rows
+  #' @importFrom pander pander
   #' @seealso \code{\link{clean_list}} \code{\link{list_df}}  \code{\link[pander]{pander}}
   #' @return A list
   #' @examples 
@@ -217,9 +219,29 @@ simplify_list <- function(l, format = FALSE) {
   #' simplify_list(list(A = 1:10, B = "Text", C = c("text", "text")))
   #' }
   
-  out <- clean_list(l)
-  
-  out <- list_df(out)
+  if (rlang::is_bare_list(l)) {
+    
+    out <- clean_list(l)
+    
+    len <- list_length(out)
+    dep <- list_depth(out)
+    
+    if (!is.na(var(len)) & !is.na(var(dep))) {
+      
+      if (var(len) == 0 & var(dep) == 0) { # list entries have same length and depth
+        
+        out <- dplyr::bind_rows(out)
+        
+      } else {
+        
+        out <- list_df(out)
+      }
+      
+    } else {
+      
+      out <- list_df(out)
+    }
+  } else out <- l
   
   if (format) pander::pander(out)
   else out
