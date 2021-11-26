@@ -1166,7 +1166,7 @@ pull_meta <- function(project, tab.name = NULL, tab.type = NULL, format = FALSE)
       
     } else {
       
-      meta_log <- jsonlite::read_json(m_file)
+      meta_log <- jsonlite::read_json(m_file, simplifyVector = TRUE)
       
       if (!is.null(tab.name)) {
         
