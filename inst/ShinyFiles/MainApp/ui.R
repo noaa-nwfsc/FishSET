@@ -83,15 +83,18 @@ source("map_viewer_app.R", local = TRUE)
                                                               developed to improve fishery modeling. The tools standardize data management and organization,
                                                                enable the use of location choice models to provide input into fishery management,
                                                                  and provide various other modeling and visualization tools.'),
-                                                        tags$p('The FishSET toolbox is provided as a set of R functions that can be run in an R console or here in this R Shiny application.'),
-                                                        tags$p('The FishSET Shiny application is divided into tabs to guide users through the steps of creation, from uploading and exploring data to developing 
-                                                               and evaluating models. Tabs can be navigated in any order. 
-                                                                All data is automatically saved to a SQL database called the FishSET database when first loaded. The database is housed in the FishSET R package folder. 
+                                                        tags$p('The FishSET toolbox is provided as a set of R functions that can be run in an R console 
+                                                               or here in this FishSET Graphical User Interface (FishSET GUI).'),
+                                                        tags$p('The FishSET GUI is divided into tabs to guide users through the steps of creation, 
+                                                                from uploading and exploring data to developing and evaluating models.
+                                                                Tabs can be navigated in any order.  All data is automatically saved to a SQL database called the 
+                                                               FishSET database when first loaded. The database is housed in the projects directory withing the FishSET R package directory. 
                                                                 Modified versions of the data can be saved to the FishSET database in the', tags$em('Data Quality Evaluation'), 'and', 
                                                                tags$em('Compute New Variables'), 'tabs.   
-                                                                Plots and table outputs are saved in an output folder within the FishSET R package. 
-                                                              Function calls, including chosen parameters, are saved to the', tags$em('Logs'), 'folder in the FishSET package folder. 
-                                                              The', tags$em('Quickstart Guide'), 'subtab provides further assistance on using the FishSET Shiny application.'),
+                                                                Plots and table outputs are saved in an output folder of the project directory. 
+                                                              Function calls, including chosen parameters, are saved to the', tags$em('Logs'), 'folder in the projects directory. 
+                                                              The', tags$em('Quickstart Guide'), 'subtab provides further assistance on using the FishSET GUI.',
+                                                               "The", tags$em('User Manual'), "provides greater detail and background on functions.",
                                                         tags$p('For questions and comments please contact: FishSET@noaa.gov'))
                                         )
                                       )
