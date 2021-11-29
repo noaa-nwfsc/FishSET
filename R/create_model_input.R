@@ -1,4 +1,5 @@
 #' Create model input data
+#' 
 #' Takes the structure of data compile, price (for EPM), distance, gridvarying, interaction terms
 #' @param project Project name
 #' @param x Optional, Model input data
@@ -8,6 +9,8 @@
 #' @param expected.catch.name For conditional logit (logit_c) model. Options are \code{short}, \code{med}, \code{long}, and \code{user}.
 #'   \code{short} returns the expected catch from the short-term scenario, \code{med} returns the expected catch from the medium-term scenario,
 #'   \code{long} returns the expected catch from the long-term scenario, and \code{user} returns the user-defined temporal terms.
+#' @export
+#' @keywords internal
 
 create_model_input <- function(project, x=NULL, mod.name=NULL, use.scalers= TRUE, scaler.func=NULL, expected.catch.name=NULL){
 

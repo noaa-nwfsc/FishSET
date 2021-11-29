@@ -17,6 +17,7 @@ freq_table <- function(dataset, var, group = NULL, bins = 30, type = "dens",
   #'   \code{"decimal"} or \code{"scientific"}.
   #' @param format_tab Format table "wide" or "long"
   #' @export
+  #' @keywords internal
   #' @importFrom graphics hist
   #' @importFrom dplyr lead anti_join bind_rows
   #' @importFrom tidyr pivot_wider

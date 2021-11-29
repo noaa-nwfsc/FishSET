@@ -2,7 +2,7 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
                        date = NULL, filter_date = NULL, filter_value = NULL, 
                        minmax = NULL) {
   #'
-  #' Map kernel density plots
+  #' Kernel density (hotspot) plot
   #'
   #' @param dat Primary data containing information on hauls or trips.
   #' Table in FishSET database contains the string 'MainDataTable'.

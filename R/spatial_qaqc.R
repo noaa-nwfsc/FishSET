@@ -1,7 +1,7 @@
 spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                          lat.spat = NULL, id.spat = NULL, epsg = NULL, date = NULL, 
                          group = NULL, filter_dist = NULL) {
-  #' Spatial Data Quality Checks
+  #' Spatial data quality checks
   #' 
   #' This function performs spatial quality checks and outputs summary tables and 
   #' plots.

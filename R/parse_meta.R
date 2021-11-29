@@ -1,16 +1,17 @@
 parse_meta_txt <- function(file, sep = ",", comment = "#", d_list = FALSE) {
-  #' Parse meta data from a plain text file
+  #' Parse metadata from a plain text file
   #' 
-  #' Use this function if meta data is located in the same file as the data and 
+  #' Use this function if metadata is located in the same file as the data and 
   #' the data is stored in a delimited plain text file (csv, tsv).
   #' 
-  #' @param file String, the file path to meta data.
+  #' @param file String, the file path to metadata.
   #' @param sep String, the field separator character. defaults to \code{comment = "#"}.
   #' @param comment String, the comment character used to separate (or "comment-out") 
-  #'   the meta data from the data. Only text that has been commented-out will be read.
-  #' @param d_list Logical, is meta data stored as a description list (i.e. Field: value, value
+  #'   the metadata from the data. Only text that has been commented-out will be read.
+  #' @param d_list Logical, is metadata stored as a description list (i.e. Field: value, value
   #'   format). If a colon (":") is used after the field name set this to \code{TRUE}.
   #' @export
+  #' @keywords internal
   #' @importFrom stringi stri_replace_first_fixed
   
   meta <- readLines(file)
@@ -22,7 +23,7 @@ parse_meta_txt <- function(file, sep = ",", comment = "#", d_list = FALSE) {
   
   if (length(m_lines) == 0) {
     
-    warning("No meta data found. Check whether comment symbol is correct.")
+    warning("No metadata found. Check whether comment symbol is correct.")
   
     } else {
     
@@ -51,9 +52,9 @@ parse_meta_txt <- function(file, sep = ",", comment = "#", d_list = FALSE) {
 
 
 parse_meta_excel <- function(file, range = NULL, ...) {
-  #' Parse meta data from an excel file
+  #' Parse metadata from an excel file
   #' 
-  #' Use this function if meta data is located in the same file as the data.
+  #' Use this function if metadata is located in the same file as the data.
   #' Correct specification of the \code{range} parameter is key. 
   #' 
   #' @param file String, file path.
@@ -61,6 +62,7 @@ parse_meta_excel <- function(file, range = NULL, ...) {
   #'   \code{\link[readxl]{read_excel}} for more details. 
   #' @param ... Additional arguments passed to \code{\link[readxl]{read_excel}}.
   #' @export
+  #' @keywords internal
   #' @importFrom readxl read_excel
   
   meta <- readxl::read_excel(file, range = range, ...)
@@ -70,9 +72,9 @@ parse_meta_excel <- function(file, range = NULL, ...) {
 
 
 parse_meta_json <- function(file, meta_ind = NULL, simplifyVector = TRUE) {
-  #' Parse meta data from json file
+  #' Parse metadata from json file
   #' 
-  #' Use this function if meta data is located in the same file as the data and 
+  #' Use this function if metadata is located in the same file as the data and 
   #' the data is stored in a JSON file.
   #' 
   #' @param file String, file path.
@@ -80,6 +82,7 @@ parse_meta_json <- function(file, meta_ind = NULL, simplifyVector = TRUE) {
   #' @param simplifyVector Logical, simplifies nested lists into vectors and data frames.
   #'   See \code{\link[jsonlite]{fromJSON}}.
   #' @export
+  #' @keywords internal
   #' @importFrom jsonlite read_json
   
   meta <- jsonlite::read_json(path = file, simplifyVector = simplifyVector)
@@ -93,14 +96,15 @@ parse_meta_json <- function(file, meta_ind = NULL, simplifyVector = TRUE) {
 
 
 parse_meta_xml <- function(file, meta_ind = NULL) {
-  #' Parse meta data from xml file
+  #' Parse metadata from xml file
   #' 
-  #' Use this function if meta data is located in the same file as the data and 
+  #' Use this function if metadata is located in the same file as the data and 
   #' the data is stored in an xml file.
   #' 
   #' @param file String, file path.
   #' @param meta_ind Integer or string. 
   #' @export
+  #' @keywords internal
   #' @importFrom xml2 read_xml as_list
   
   meta <- xml2::read_xml(x = file)
@@ -115,7 +119,7 @@ parse_meta_xml <- function(file, meta_ind = NULL) {
 
 
 parse_meta <- function(file, ..., simplify_meta = FALSE) {
-  #' Parse meta data from a data file
+  #' Parse metadata from a data file
   #' 
   #' General purpose meta parsing function. \code{parse_meta} attempts to parse
   #' a file based on its file extension. 
@@ -123,13 +127,29 @@ parse_meta <- function(file, ..., simplify_meta = FALSE) {
   #' @param file String, file path. 
   #' @param ... Additional arguments passed to a parsing function based on file
   #'   extension. See below.  
-  #' @param simplify_meta Logical, attempt to simplify the meta data output. This
-  #'   uses \code{\link{simplify_list}}. This can be useful if meta data is not 
+  #' @param simplify_meta Logical, attempt to simplify the metadata output. This
+  #'   uses \code{\link{simplify_list}}. This can be useful if metadata is not 
   #'   tabular. 
   #' @export
   #' @seealso \code{\link{parse_meta_txt}}, \code{\link{parse_meta_excel}}, 
   #'   \code{\link{parse_meta_json}}, \code{\link{parse_meta_xml}}
   #' @importFrom tools file_ext
+  #' @details Function supports xls, xlsx, csv, tsv, excel, json, and xlm extensions.
+  #' #' Extension-specific notes: \cr
+  #' 
+  #'  txt: \cr
+  #'  \verb{  }sep Field separator character. defaults to \code{comment = "#"}.\cr
+  #'   \verb{  }comment The comment character used to separate (or "comment-out") 
+  #'   the metadata from the data. Only text that has been commented-out will be read.\cr
+  #'   \verb{ }d_list Logical, is metadata stored as a description list (i.e. Field: value, value
+  #'   format). If a colon (":") is used after the field name set this to \code{TRUE}.
+  #'
+  #'  xls, xlsx: \cr
+  #'   \verb{    }range The cell range to read from (e.g. "A1:C5"). See 
+  #'   \code{\link[readxl]{read_excel}} for more details. 
+  #'     
+  #' 
+  
   
   ext <- tools::file_ext(file)
   

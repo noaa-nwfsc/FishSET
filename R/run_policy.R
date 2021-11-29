@@ -1,7 +1,6 @@
 #' Runs policy scenario functions
-#' Checks policy scenario exists
-#' Runs predict_probability function
-#' Runs welfare_predict function
+#' 
+#' Checks policy scenario exists. Runs predict_probability function. Runs welfare_predict function
 #' @param project Name of project
 #' @param mod.name Name of saved model to use
 #' @param tac Percent of tac allowed in closure. Value must be between 0 and 1. If more than one closure scenario is 

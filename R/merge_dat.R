@@ -3,7 +3,7 @@
 merge_dat <- function(dat, project, other, main_key, other_key, other_type = NULL, 
                       merge_type = "left") {
   #'
-  #' Merge datasets using a left join
+  #' Merge data tables using a left join
   #'
   #' @param dat Primary data containing information on hauls or trips. Table in the FishSET
   #' database contains the string 'MainDataTable'.

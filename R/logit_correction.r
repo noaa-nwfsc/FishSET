@@ -58,7 +58,6 @@ logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod
   #' @importFrom stats model.matrix
   #' @return ld: negative log likelihood
   #' @export
-  #' @keywords internal
   #' @examples
   #' \dontrun{
   #' data(zi)

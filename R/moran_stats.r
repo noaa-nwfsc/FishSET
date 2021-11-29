@@ -1,5 +1,5 @@
 moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = NULL, cat = NULL, lon.grid = NULL, lat.grid = NULL) {
-  #' Calculate and view Moran's I
+  #' Calculate and view Moran's I statistic
   #'
   #' Wrapper function to calculate global and local Moran's I by discrete area.
   #'

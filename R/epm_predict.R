@@ -1,8 +1,6 @@
-#NOTES'
-# Where does p come in?
-
 
 #' EPM predict
+#' 
 #' Prediction component from logit models (non mixed) called in Policy3, under predict_model_tempNew.m
 #'
 #' @param project Name of project
@@ -11,6 +9,8 @@
 #' @param mod.type String. Opetions are weibull, lognormal, normal
 #' @param price Numeric. Price.
 #' @return Returns probability of logit model by choice
+#' @export
+#' @keywords internal
 
 
 epm_predict <- function(project, alts, modname, mod.type, price){

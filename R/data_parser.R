@@ -2,7 +2,7 @@
 #str_trim
 
 read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NULL, user = NULL, password = NULL, ...) {
-  #' Import data into R
+  #' Import data from local file directory or webpage into the R environment
   #' @param x Name and path of dataset to be read in. To load data directly from a webpage, \code{x} should be the web address.  
   #' @param data.type Optional. Data type can be defined by user or based on the file extension.
   #'    If undefined, \code{data.type} is the string after the last period or equal sign. \code{data.type} must be 
@@ -155,7 +155,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
 }
 
 write_dat <- function (dat, path=NULL, file_type = "csv", project, ...) {
-  #' Write a dataset to local file
+  #' Write a data table to local file directory
   #'
   #'@param dat Name of data frame in working environment to save to file. 
   #'@param path String, path or connection to write to. If left empty, the file will be written to the dat folder in the project directory.
@@ -274,7 +274,7 @@ write_dat <- function (dat, path=NULL, file_type = "csv", project, ...) {
 
 # Read in main data table from database into working environment
 load_data <- function(project, name = NULL) {
-  #' Load data from FishSET database into working environment
+  #' Load data from FishSET database into the R environment
   #' @param project String, name of project.
   #' @param name Optional, name of table in FishSET database. Use this argument
   #'  if pulling raw or dated table (not the working table).
@@ -358,7 +358,7 @@ save_dat <- function(dat, project) {
 }
 
 fishset_compare <- function(x, y, compare = c(TRUE, FALSE), project) {
-  #' Compare loaded data table to previously saved version of data table
+  #' Compare imported data table to the previously saved version of the data table
   #' @param x Updated data table to be saved.
   #' @param y Previously saved version of data table.
   #' @param compare Logical, if TRUE, compares \code{x} to \code{y} before saving \code{x} to FishSET database.
@@ -409,9 +409,8 @@ fishset_compare <- function(x, y, compare = c(TRUE, FALSE), project) {
 }
 
 load_maindata <- function(dat, project, over_write = TRUE, compare = FALSE, y = NULL) {
-  #' Load, parse, and save data to the FishSET database
+  #' Import, parse, and save data to the FishSET database
   #'
-  #' Load, parse, and save primary dataset to the FishSET database.
   #' @param dat Primary data containing information on hauls or trips.
   #'  Should be the full path to the file or name of table in the FishSET database.
   #'   Table in the FishSET database contains the string 'MainDataTable'.
@@ -561,7 +560,7 @@ load_maindata <- function(dat, project, over_write = TRUE, compare = FALSE, y = 
 
 
 load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALSE, y = NULL) {
-  #' Load, parse, and save port data to FishSET database
+  #' Import, parse, and save port data to FishSET database
   #'
   #' @param dat Dataset containing port data. At a minimum, must include three columns, the port names, and the latitude and longitude of ports.
   #' @param port_name Variable containing port names. Names should match port names in primary dataset.
@@ -676,7 +675,7 @@ load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALS
 }
 
 load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
-  #' Load, parse, and save auxiliary data to FishSET database
+  #' Import, parse, and save auxiliary data to FishSET database
   #'
   #' Auxiliary data is additional data that connects the primary dataset.
   #' Function pulls the data, parses it, and then and saves the data to the FishSET database.
@@ -788,7 +787,7 @@ load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
 }
 
 load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
-  #' Load, parse, and save gridded data to FishSET database
+  #' Import, parse, and save gridded data to FishSET database
   #'
   #' Gridded data is data that varies by two dimensions. Column names must be zone names. Load, parse, and save gridded data to FishSET database
   #' @param dat Primary data containing information on hauls or trips. 

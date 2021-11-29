@@ -1,6 +1,6 @@
 # Vessel count
 #' 
-#'  Active vessels by time period
+#'  Active vessels by time period in plot or table format
 #' 
 #' @param dat Primary data containing information on hauls or trips. 
 #'   Table in FishSET database contains the string 'MainDataTable'.
