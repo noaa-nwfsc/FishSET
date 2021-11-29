@@ -85,7 +85,7 @@ table_remove <- function(table, project) {
 }
 
 table_exists <- function(table, project) {
-  #' Check if table exists in the FishSET database
+  #' Check if table exists in the FishSET database for the defined project
   #' @param table Name of table in FishSET database.Table name must be in quotes.
   #' @param project Name of project
   #' @export table_exists
@@ -104,7 +104,7 @@ table_exists <- function(table, project) {
 }
 
 model_out_view <- function(table, project) {
-  #' Load model output to console
+  #' Load discrete choice model output to console for the defined project
   #'
   #' Returns output from running \code{\link{discretefish_subroutine}}. The table 
   #' argument must be the full name of the table name in the FishSET database. 
@@ -136,7 +136,7 @@ model_out_view <- function(table, project) {
 
 
 model_params <- function(table, project) {
-  #' Load model parameter estimates, standard errors, and t-statistic to console
+  #' Load model parameter estimates, standard errors, and t-statistic to console for the defined project
   #'
   #' Returns parameter estimates from running \code{\link{discretefish_subroutine}}. 
   #' The table argument must be the full name of the table name in the FishSET 
@@ -171,7 +171,7 @@ model_params <- function(table, project) {
 
 
 globalcheck_view <- function(table, project) {
-  #' View model error output
+  #' View error output from discrete choice model for the defined project
   #'
   #' Returns error output from running the discretefish_subroutine function.
   #' The table argument must be the full name of the table name in the FishSET database.
@@ -202,7 +202,7 @@ globalcheck_view <- function(table, project) {
 }
 
 model_fit <- function(project) {
-  #' Load model comparison metrics to console
+  #' Load model comparison metrics to console for the defined project
   #'
   #' Load model comparison metrics to console. Metrics are displayed for each 
   #' model that was fun. Metrics produced by \code{\link{discretefish_subroutine}}.
@@ -285,8 +285,33 @@ project_tables <- function(project, ...) {
   }
 }
 
+
+main_tables <- function(project = NULL, show_all = TRUE) {
+  #' View list of MainDataTables in FishSET database
+  #' 
+  #' @param project A project name to filter main tables by. Returns all MainDataTables
+  #'   if \code{NULL}.
+  #' @param show_all Logical, whether to show all main tables (including raw and final 
+  #'   tables) or just editable tables. 
+  #' @export
+  #' @examples 
+  #' \dontrun{
+  #' main_tables()
+  #' main_tables("pollock")
+  #' }
+  
+  m_tabs <- list_tables(project = project, type = "main")
+  
+  if (show_all == FALSE) {
+    
+    m_tabs <- m_tabs[!grepl("_raw|_final", m_tabs)]
+  }
+  
+  m_tabs
+}
+
 list_tables <- function(project, type = "main") {
-  #' Display tables in fishset_db by project and type.
+  #' Display tables in FishSET database by type for the defined project
   #' 
   #' @param project A project name to show main tables by. 
   #' @param type the type of fishset_db table to search for. Options include 
@@ -348,33 +373,8 @@ list_tables <- function(project, type = "main") {
   }
 }
 
-main_tables <- function(project = NULL, show_all = TRUE) {
-  #' Display MainDataTables
-  #' 
-  #' @param project A project name to filter main tables by. Returns all MainDataTables
-  #'   if \code{NULL}.
-  #' @param show_all Logical, whether to show all main tables (including raw and final 
-  #'   tables) or just editable tables. 
-  #' @export
-  #' @examples 
-  #' \dontrun{
-  #' main_tables()
-  #' main_tables("pollock")
-  #' }
-  
-  m_tabs <- list_tables(project = project, type = "main")
-  
-  if (show_all == FALSE) {
-    
-    m_tabs <- m_tabs[!grepl("_raw|_final", m_tabs)]
-  }
-  
-  m_tabs
-}
-
-
 fishset_tables <- function(project = NULL) {
-  #' Show all SQL Tables in fishset_db with project name and table type
+  #' Show all SQL Tables in fishset_db for each project and table type
   #' 
   #' Returns a data frame containing all tables along with their project names
   #' and table type.

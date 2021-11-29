@@ -298,7 +298,7 @@ set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25,0.33, 0.4),
 
 bin_var <- function(dat, project, var, br, name, labs = NULL, ...) {
   #'
-  #' Wrapper for \code{\link{cut}}
+  #' Creates numeric variables divided into equal sized groups
   #'
   #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.

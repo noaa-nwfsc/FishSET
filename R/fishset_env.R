@@ -62,6 +62,7 @@ edit_fishset_env <- function(name, value) {
   #' @importFrom rlang env_poke
   #' @seealso \code{\link{show_fishset_env}}
   #' @export
+  #' @keywords internal
   #' @examples 
   #' \dontrun{
   #' edit_fishset_env("date", Sys.Date())
@@ -123,6 +124,7 @@ show_fishset_env <- function() {
   #' @return A list of objects in \code{fishset_env}.
   #' @importFrom rlang env_print env_get_list env_names
   #' @export
+  #' @keywords internal
   
   if (fishset_env_exists()) {
     
@@ -140,6 +142,7 @@ delete_fishset_env <- function() {
   #' 
   #' @importFrom rlang global_env
   #' @export
+  #' @keywords internal
   
   if (fishset_env_exists()) {
     

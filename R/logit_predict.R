@@ -1,4 +1,5 @@
 #' Logit predict
+#' 
 #' Prediction component from logit models (non mixed) called in Policy3, under predict_model_tempNew.m
 #'
 #' @param project Name of project
@@ -8,6 +9,8 @@
 #'    Can be the expected catch from the short-term scenario (\code{short}), the medium-term scenario (\code{med}), the 
 #'    long-term scenario (\code{long}), or the user-defined temporal parameters (\code{user}).
 #' @return Returns probability of logit model by choice
+#' @export
+#' @keywords internal
 
 
 logit_predict <- function(project, mod.name, expected.catch.name=NULL){

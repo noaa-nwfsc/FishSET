@@ -1,7 +1,7 @@
 zone_freq_map <- function(dat, spat, project, lon.dat, lat.dat, zone.dat, 
                           zone.spat, breaks = NULL, n.breaks = 10, na.rm = TRUE) {
   
-  #' Map zone frequency 
+  #' Plots map of frequency of hauls by fishery management or regulatory zone 
   #' 
   #' \code{zone_freq_map} plots the number of observations in \code{dat} by 
   #' fishery management or regulatory zone.

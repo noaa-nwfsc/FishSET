@@ -208,6 +208,7 @@ simplify_list <- function(l, format = FALSE) {
   #' @param l A list.
   #' @param format Logical, whether to print list using pandoc markdown.
   #' @export
+  #' @keywords internal
   #' @seealso \code{\link{clean_list}} \code{\link{list_df}}  \code{\link[pander]{pander}}
   #' @return A list
   #' @examples 

@@ -1,6 +1,6 @@
 # Density Plot
 #'
-#' Create density plot
+#' Creates the KDE, CDF, or empirical CDF plots of the selected variable.
 #'
 #' Creates a kernel density estimate, empirical cumulative distribution function,
 #' or cumulative distribution function plot of selected variable.

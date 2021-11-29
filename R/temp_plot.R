@@ -150,7 +150,7 @@ temp_plot_helper <- function(dataset, len_df, agg_df, var.select, date.var, agg_
   #' @param agg.fun aggregation function
   #' @param plot_by_yr Whether to plot by year. 
   #' @export
-  #' @keywords interanl
+  #' @keywords internal
   #' @details Used in temp_plot
   
   # plot functions

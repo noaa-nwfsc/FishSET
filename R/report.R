@@ -48,7 +48,7 @@ get_user_locoutput <- function() {
 }
 
 list_logs <- function(project, chron = FALSE) {
-  #' Lists all logs files
+  #' View list of all log files
   #' @param project Project name
   #' @param chron Logical, whether to display logs in chronological order (TRUE) or
   #'   reverse chronological order (FALSE). 

@@ -135,7 +135,7 @@ outlier_table <- function(dat, project, x, log_fun = TRUE) {
 outlier_plot <- function(dat, project, x, dat.remove='none', x.dist='normal', 
                          date = NULL, group = NULL, output.screen = FALSE,
                          log_fun = TRUE) {
-  #' Evaluate outliers
+  #' Evaluate outliers in plot format
   #'
   #' Visualize spread of data and measures to identify outliers.
   #' @param dat Primary data containing information on hauls or trips.
@@ -406,7 +406,7 @@ outlier_plot <- function(dat, project, x, dat.remove='none', x.dist='normal',
 
 ## ---------------------------##
 outlier_remove <- function(dat, project, x, dat.remove = "none", over_write = FALSE) {
-  #' Remove outliers from dataset
+  #' Remove outliers from data table
   #'
   #' Remove outliers based on outlier measure.
   #' @param dat Primary data containing information on hauls or trips.

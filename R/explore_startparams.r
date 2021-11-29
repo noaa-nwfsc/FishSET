@@ -33,6 +33,8 @@ explore_startparams_discrete <- function(space, dev, breakearly=TRUE, startsr=NU
   #'   function is called. \cr
   #'   If more than one model is defined in the model design file, then starting parameters
   #'   must be defined for each model.
+  #' @export
+  #' @keywords internal
   #' @return
   #' Returns three data frames. \cr
   #'  \tabular{rlll}{

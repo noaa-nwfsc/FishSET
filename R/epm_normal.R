@@ -50,7 +50,6 @@ epm_normal <- function(starts3, dat, otherdat, alts, project, expname, mod.name)
   #' @param mod.name Name of model run for model result output table
   #' @return ld: negative log likelihood
   #' @export
-  #' @keywords internal
   #' @examples
   #' \dontrun{
   #' data(zi)

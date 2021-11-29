@@ -1,4 +1,4 @@
-#'  Create fishery or weighted centroid
+#'  Create fishing or weighted fishing centroid
 
 #' @param dat  Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
 #' @param project Name of project

@@ -37,6 +37,7 @@ list_html <- function(l) {
   #' 
   #' @param l A list.
   #' @importFrom shiny tags
+  #' @export
   #' @keywords internal
   #' @return An HTML string of a list item.
   
@@ -90,6 +91,7 @@ list_to_html <- function(l) {
   #' @param l A list.
   #' @importFrom shiny tags
   #' @export
+  #' @keywords internal
   #' @return An un-ordered HTML list.
   #' @seealso \code{\link{simplify_list}} \code{\link{collapse_leaf_r}} 
   #'   \code{\link{list_html_r}}
