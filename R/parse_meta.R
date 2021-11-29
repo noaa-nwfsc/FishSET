@@ -1,18 +1,26 @@
-parse_meta_txt <- function(file, sep = ",", comment = "#", d_list = FALSE) {
-  #' Parse metadata from a plain text file
+parse_meta_delim <- function(file, sep = NULL, comment = "#", is_list = FALSE) {
+  #' Parse metadata from a delimited file
   #' 
-  #' Use this function if metadata is located in the same file as the data and 
-  #' the data is stored in a delimited plain text file (csv, tsv).
+  #' Use this function if meta data is located in the same file as the data and 
+  #' the data is stored in a delimited file (csv, tsv).
   #' 
   #' @param file String, the file path to metadata.
   #' @param sep String, the field separator character. defaults to \code{comment = "#"}.
   #' @param comment String, the comment character used to separate (or "comment-out") 
-  #'   the metadata from the data. Only text that has been commented-out will be read.
-  #' @param d_list Logical, is metadata stored as a description list (i.e. Field: value, value
+  #'   the meta data from the data. Only text that has been commented-out will be read.
+  #' @param is_list Logical, is meta data stored as a list (i.e. Field: value, Field: value)
   #'   format). If a colon (":") is used after the field name set this to \code{TRUE}.
   #' @export
   #' @keywords internal
   #' @importFrom stringi stri_replace_first_fixed
+  
+  
+  if (is.null(sep)) {
+    
+    ext <- file_ext(file)
+    
+    sep <- switch(ext, "csv" = ",", "tsv" = "\t")
+  }
   
   meta <- readLines(file)
   
@@ -29,24 +37,29 @@ parse_meta_txt <- function(file, sep = ",", comment = "#", d_list = FALSE) {
     
       m_lines <- gsub("^#\\s*", "", m_lines) # remove any spaces after comment
       
-      if (all(grep(":", m_lines)) & d_list) { 
+      if (all(grep(":", m_lines)) & is_list) { # description list?
         
         m_lines <- stringi::stri_replace_first_fixed(m_lines, ":", "$$$")
         m_lines <- strsplit(m_lines, split = "$$$", fixed = TRUE)
         
+        m_lines <- lapply(m_lines, trimws)
+        
+        m_nm <- vapply(m_lines, function(x) x[[1]], character(1))
+        m_lines <- lapply(m_lines, function(x) x[[-1]])
+        
+        names(m_lines) <- m_nm
+        
       } else {
         
-        m_lines <- strsplit(m_lines, split = sep)
+        m_lines <- paste0(m_lines, collapse = "\n")
+        
+        tmp <- tempfile()
+        on.exit(unlink(tmp), add = TRUE)
+        writeLines(m_lines, con = tmp)
+        m_lines <- read.delim(tmp, sep = sep)
       }
       
-      m_lines <- lapply(m_lines, trimws)
-      
-      m_nm <- vapply(m_lines, function(x) x[[1]], character(1))
-      m_lines <- lapply(m_lines, function(x) x[[-1]])
-      
-      names(m_lines) <- m_nm
-      
-      m_lines
+    m_lines
   }
 }
 
@@ -157,7 +170,7 @@ parse_meta <- function(file, ..., simplify_meta = FALSE) {
   
   if (ext %in% c("csv", "tsv")) {
     
-    meta <- parse_meta_txt(file = file, ...)
+    meta <- parse_meta_delim(file = file, ...)
   
   } else if (ext == "excel") {
     
@@ -167,9 +180,13 @@ parse_meta <- function(file, ..., simplify_meta = FALSE) {
     
     meta <- parse_meta_json(file = file, ...)
     
-  } else if (ext == "xml") {
+  } else if (ext == c("xml", "html", "xhtml")) {
     
     meta <- parse_meta_xml(file = file, ...)
+    
+  } else if (ext == "txt") {
+    
+    meta <- utils::read.table(file = file, ...)
     
   } else {
     
