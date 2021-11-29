@@ -67,7 +67,7 @@ list_html_r <- function(l) {
   #' @keywords internal
   #' @return A list of HTML list item strings. 
   
-  nms <- names(l)
+  nms <- names(l) # what if no names?
   
   purrr::map2(l, nms, function(x, y) {
 
@@ -90,6 +90,7 @@ list_to_html <- function(l) {
   #' 
   #' @param l A list.
   #' @importFrom shiny tags
+  #' @importFrom rlang is_bare_list
   #' @export
   #' @keywords internal
   #' @return An un-ordered HTML list.
@@ -102,7 +103,8 @@ list_to_html <- function(l) {
   #'   list_to_html(l)
   #' }
   
-  if (is.list(l) & !is.data.frame(l)) {
+  # if (is.list(l) & !is.data.frame(l)) {
+  if (rlang::is_bare_list(l)) {
     
     l <- simplify_list(l)
     

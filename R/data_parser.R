@@ -83,7 +83,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
   
   
   if(is.null(data.type)) {
-    if(grepl('=', sub('.*\\.', '', x)) == F){
+    if(grepl('=', sub('.*\\.', '', x)) == FALSE){
         data.type <- sub('.*\\.', '', x)
     } else {
        data.type <- sub('.*\\=', '', x)
