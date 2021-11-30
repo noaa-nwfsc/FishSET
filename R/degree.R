@@ -36,7 +36,7 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE, lonsig
   dat <- parse_data_name(dat, "main")
   
   tmp <- tempfile()
-  
+  on.exit(unlink(tmp), add = TRUE)
   lat_lon <- grep("lat|lon", names(dataset), ignore.case = TRUE)
   lat_cols <- find_lat(dataset)
   lon_cols <- find_lon(dataset)
