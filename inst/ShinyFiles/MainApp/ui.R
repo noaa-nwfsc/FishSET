@@ -46,6 +46,12 @@ source("map_viewer_app.R", local = TRUE)
                                  list-style-type: none;
                                  text-align: justify;
                               }
+                              .modal-xl {
+                                 width: 100%;
+                              }
+                              .modal-body {
+                                 overflow-x: auto;
+                              }
                     " )),
                 tags$script(HTML('Shiny.addCustomMessageHandler("jsCode",
                                  function(message) {
