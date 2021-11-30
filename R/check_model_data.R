@@ -28,6 +28,7 @@ check_model_data <- function(dat, project, uniqueID, save.file = TRUE) {
   dat <- parse_data_name(dat, "main")
   
   tmp <- tempfile()
+  on.exit(unlink(tmp), add = TRUE)
   
   if (any(qaqc_helper(dataset, "NaN"))) {
     
@@ -116,6 +117,5 @@ check_model_data <- function(dat, project, uniqueID, save.file = TRUE) {
   fun_out <- list(msg = check_model_data_function$msg,
                   save_out = (end == FALSE & save.file == TRUE))
   
-  on.exit(rm(tmp), add = TRUE)
   invisible(fun_out)
 }

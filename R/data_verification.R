@@ -29,6 +29,7 @@ data_verification <- function(dat, project, log_fun = TRUE) {
   check <- 0
 
   tmp <- tempfile()
+  on.exit(unlink(tmp), add = TRUE)
   cat("Data verification checks for the", project, "project using", dat, "dataset on", 
       format(Sys.Date(), format = "%Y%m%d"), file = tmp)
 
@@ -95,8 +96,6 @@ data_verification <- function(dat, project, log_fun = TRUE) {
     data_verification_function$kwargs <- list()
     data_verification_function$msg <- suppressWarnings(readLines(tmp))
     log_call(project, data_verification_function)
-    
-    unlink(tmp)
   }
 
   if (check == 1) {
