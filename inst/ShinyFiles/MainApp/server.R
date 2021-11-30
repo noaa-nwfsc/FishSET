@@ -1863,12 +1863,11 @@ conf_cache_len <- length(get_confid_cache())
       
       # metadata ----
       
-      meta <- reactiveValues(create_raw = NULL, create_raw_html = NULL, 
-                             par = NULL, edit_meta = NULL, edit_raw = NULL, 
-                             edit_raw_html = NULL)
+      create_meta <- reactiveValues(raw = NULL, raw_html = NULL, par = NULL)
+      edit_meta <- reactiveValues(raw = NULL, raw_html = NULL, meta = NULL)
       
-      cols <- reactiveValues(create_nms = NULL, create_nms_fix = NULL, create_ui = NULL,
-                             edit_nms = NULL, edit_nms_fix = NULL, edit_ui = NULL)
+      create_cols <- reactiveValues(nms = NULL, nms_fix = NULL, ui = NULL)
+      edit_cols <- reactiveValues(nms = NULL, nms_fix = NULL, ui = NULL)
       
       meta_modal <- function() {
         
@@ -1877,14 +1876,14 @@ conf_cache_len <- length(get_confid_cache())
                       
             fluidPage(
               
-              column(1, offset = 10,
-                actionButton("meta_close", "Close",
-                             style = "color: #fff; background-color: #FF6347; border-color: #800000;")),
+              actionButton("meta_close", "Close",
+                           style = "color: #fff; background-color: #FF6347; border-color: #800000;"),
+              tags$br(), tags$br(),
               tabsetPanel(id = "tab",    
                 tabPanel("Create", value = "create_tab",
                          
                  sidebarLayout(
-                   sidebarPanel(
+                   sidebarPanel(width = 3,
                      
                      h4(strong("Create metadata")),
                      
@@ -1897,21 +1896,21 @@ conf_cache_len <- length(get_confid_cache())
                        "on extracting metadata from a data file."),
                      
                      metaProjUI("meta_create"),
-                     metaLoadSaveBttnUI("meta_create"),
+                     metaCreateSaveUI("meta_create"),
                      
                      tags$hr(style = "border-top: 3px solid #bbb;"),
                      
                      metaRawUI("meta_create")
                    ),
-                   mainPanel(
+                   mainPanel(width = 9,
                      metaOut("meta_create"),
-                     metaRawOut("meta_create"))
+                    metaRawOut("meta_create"))
                  )),
         
         tabPanel("Edit", value = "edit_tab",
                  
                  sidebarLayout(
-                   sidebarPanel(
+                   sidebarPanel(width = 3,
                      h4(strong("View, edit, and delete metadata")),
                      
                      p("To edit existing metadata, select a project and table", 
@@ -1921,10 +1920,10 @@ conf_cache_len <- length(get_confid_cache())
                        " to confirm. "),
                      
                      metaProjUI("meta_edit"),
-                     metaLoadSaveBttnUI("meta_edit"),
+                     metaEditSaveUI("meta_edit"),
                      metaDeleteUI("meta_edit")
                    ),
-                   mainPanel(
+                   mainPanel(width = 9,
                      metaOut("meta_edit"),
                      metaRawOut("meta_edit"))
                   )
@@ -1933,14 +1932,14 @@ conf_cache_len <- length(get_confid_cache())
             ), 
                       
           footer = modalButton("Close"),
-          size = "l",
+          size = "xl",
           easyClose = FALSE)
         )
       }
       
       # meta servers
-      FishSET:::metaServ("meta_create", cols, meta)
-      FishSET:::metaServ("meta_edit", cols, meta)
+      FishSET:::metaCreateServ("meta_create", create_cols, create_meta)
+      FishSET:::metaEditServ("meta_edit", edit_cols, edit_meta)
       
       observeEvent(input$meta_modal, {
         
@@ -1948,7 +1947,7 @@ conf_cache_len <- length(get_confid_cache())
       })
       
       observeEvent(input[["meta_edit-confirm_meta_delete"]], {
-        # re-call metadata pop up
+        # re-call metadata pop up after delete
         meta_modal()
       })
       
@@ -3105,12 +3104,7 @@ conf_cache_len <- length(get_confid_cache())
             DBI::dbDisconnect(fishset_db)
           }  
       })
-      
-      observeEvent(input$saveDataNew,{
-        fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)))
-        DBI::dbWriteTable(fishset_db, paste0(project$name, 'FilterTable'),  FilterTable, overwrite=TRUE)
-        DBI::dbDisconnect(fishset_db)
-      })
+
       
       observeEvent(input$subsetData,{
         values$dataset <- values$dataset[,-(input$output_table_exploration_columns_selected+1)]
@@ -3351,7 +3345,10 @@ conf_cache_len <- length(get_confid_cache())
             
             qaqc_out_proj$gtmt <- project$name
             
-            dplyr::left_join(gt, mt)
+            if (!is.null(gt) & !is.null(mt)) {
+              
+              dplyr::left_join(gt, mt)
+            }
           }
         }
       }, ignoreInit = TRUE) 
@@ -5067,6 +5064,12 @@ conf_cache_len <- length(get_confid_cache())
         
       })
       
+      observeEvent(input$saveDataNew,{
+        fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)))
+        DBI::dbWriteTable(fishset_db, paste0(project$name, 'MainDataTable'),  values$dataset, overwrite=TRUE)
+        DBI::dbDisconnect(fishset_db)
+      })
+      
 
       # Export data ----
       file_ext <- reactive({
@@ -5563,7 +5566,7 @@ conf_cache_len <- length(get_confid_cache())
     
               note_pd <- paste0(isolate(project$name), "_notes_", Sys.Date())
     
-              note_int <- sum(grepl(note_pd, current_out()))
+              note_int <- sum(grepl(note_pd, current_out(project$name)))
     
               writeLines(notes_out,
                          con = paste0(locoutput(project = project$name), isolate(project$name),
