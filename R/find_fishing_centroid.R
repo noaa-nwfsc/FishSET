@@ -43,6 +43,7 @@ find_fishing_centroid <- function(dat, project=NULL, cat='ZoneID', weight.var = 
  project <- find_project(dat, project)
   
   tmp <- tempfile()
+  on.exit(unlink(tmp), add = TRUE)
   cat("", file = tmp, append = TRUE)
   x <- 0
   

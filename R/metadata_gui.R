@@ -68,7 +68,8 @@ metadata_gui <- function() {
                          
                          sidebarLayout(
                            
-                           sidebarPanel(
+                           sidebarPanel(width = 3, 
+                                        # style = "position: fixed; width: 22%;",
                              
                              tags$button(
                                id = "close",
@@ -80,27 +81,27 @@ metadata_gui <- function() {
                              
                              h4(strong("Create metadata")),
                              
-                             p("Metadata can be created by loading a data table and",
+                             p("Metadata can be created by loading a data table from FishSET DB and",
                                "typing into the text boxes in the main panel.",
-                               "Import a \"raw\" metadata file (e.g. pre-exsting metadata",
-                               "located in a .xml or .csv file) by selecting \"Download",
+                               "Import a metadata file by selecting \"Download",
                                "metadata file\" and clicking \"Load raw meta\".",
                                "See \"parse_meta\" in the Help Manual for instructions",
                                "on extracting metadata from a data file."),
                              
                              metaProjUI("meta_create"),
                              
-                             metaLoadSaveBttnUI("meta_create"),
+                             metaCreateSaveUI("meta_create"),
                              
                              tags$hr(style = "border-top: 3px solid #bbb;"),
                              
-                             metaRawUI("meta_create")
+                             metaRawUI("meta_create"),
                            ),
                            
-                           mainPanel(
-                             
-                             metaOut("meta_create"),
-                             metaRawOut("meta_create")
+                           
+                             mainPanel(width = 9,
+                                       
+                                     metaOut("meta_create"),
+                                     metaRawOut("meta_create") 
                            ),
                          )
                 ),
@@ -109,7 +110,7 @@ metadata_gui <- function() {
                          
                          sidebarLayout(
                            
-                           sidebarPanel(
+                           sidebarPanel(width = 3,
                              
                              h4(strong("View, edit, and delete metadata")),
                              
@@ -121,12 +122,12 @@ metadata_gui <- function() {
                              
                              metaProjUI("meta_edit"),
                              
-                             metaLoadSaveBttnUI("meta_edit"),
+                             metaEditSaveUI("meta_edit"),
                              
                              metaDeleteUI("meta_edit")
                            ),
                            
-                           mainPanel(
+                           mainPanel(width = 9, 
                              
                              metaOut("meta_edit"),
                              metaRawOut("meta_edit")
@@ -139,16 +140,15 @@ metadata_gui <- function() {
   server <- function(input, output, session) {
     
     # react vals ----
-    meta <- reactiveValues(create_raw = NULL, create_raw_html = NULL, 
-                           par = NULL, edit_meta = NULL, edit_raw = NULL, 
-                           edit_raw_html = NULL)
+    create_meta <- reactiveValues(raw = NULL, raw_html = NULL, par = NULL, ext = NULL)
+    edit_meta <- reactiveValues(raw = NULL, raw_html = NULL, meta = NULL)
     
-    cols <- reactiveValues(create_nms = NULL, create_nms_fix = NULL, create_ui = NULL,
-                           edit_nms = NULL, edit_nms_fix = NULL, edit_ui = NULL)
+    create_cols <- reactiveValues(nms = NULL, nms_fix = NULL, ui = NULL)
+    edit_cols <- reactiveValues(nms = NULL, nms_fix = NULL, ui = NULL)
 
     # servers ----
-    metaServ("meta_create", cols, meta)
-    metaServ("meta_edit", cols, meta)
+    metaCreateServ("meta_create", create_cols, create_meta)
+    metaEditServ("meta_edit", edit_cols, edit_meta)
     
     # close app ----
     observeEvent(input$close, {
