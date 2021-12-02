@@ -79,6 +79,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   spat <- parse_data_name(spat, "spat")
   
   tmp <- tempfile()
+  on.exit(unlink(tmp), add = TRUE)
   
   end <- FALSE
   out_col <- NULL
@@ -172,28 +173,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     dat_sf <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), 
                             crs = "+proj=longlat +datum=WGS84")
     
-    if (!("sf" %in% class(spatdat))) {
-      
-      if ("sp" %in% class(spatdat)) spatdat <- sf::st_as_sf(spatdat)
-      
-      else {
-        
-        spatdat <- sf::st_as_sf(x = spatdat, coords = c(lon.spat, lat.spat), 
-                                crs = "+proj=longlat +datum=WGS84")
-        
-        # st_shift_longitude
-        
-        
-        # Convert point geometry to polygon
-        spatdat <- 
-          spatdat %>%
-          dplyr::group_by(dplyr::across(id.spat)) %>% 
-          dplyr::summarize(do_union = FALSE) %>% 
-          sf::st_cast("POLYGON")
-        
-        spatdat <- sf::st_cast(spatdat, "MULTIPOLYGON")
-      }
-    }
+    spatdat <- check_spatdat(spatdat, lon.dat, lat.dat, id.spat)
     
     if (sf::st_crs(spatdat) != sf::st_crs(dat_sf)) {
       
@@ -246,11 +226,6 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
         
       } else NULL
     }
-    
-    if (any(!(sf::st_is_valid(spatdat)))) {
-      
-      spatdat <- sf::st_make_valid(spatdat)
-    } 
     
     # points on land ----
     
@@ -425,7 +400,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
         ggplot2::ggplot(data = dist_df, ggplot2::aes(dist)) + 
         ggplot2::labs(title = "Distance (m) from nearest zone", 
                       x = "Distance (m)", fill = "Year") +
-        ggplot2::stat_density(aes(fill = factor(YEAR)), position = "stack", 
+        ggplot2::stat_density(ggplot2::aes(fill = factor(YEAR)), position = "stack", 
                               adjust = 2, color = "black") +
         fishset_theme() + 
         ggplot2::theme(legend.position = "bottom")
@@ -466,7 +441,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     if (sum(obs_on_land) > 0 & sum(obs_out_not_land) > 0) {
       
       land_out_plot <- gridExtra::arrangeGrob(grobs = list(land_plot, outside_plot), 
-                                         nrow = 1, ncol = 2)
+                                              nrow = 1, ncol = 2)
     }
     
     msg_print(tmp)
@@ -479,8 +454,6 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                                        filter_dist)
     spatial_qaqc_function$msg <- suppressWarnings(readLines(tmp))
     log_call(project, spatial_qaqc_function)
-    
-    unlink(tmp)
     
     f_plot <- function(x) if (!is.null(x)) gridExtra::grid.arrange(x) else NULL
     

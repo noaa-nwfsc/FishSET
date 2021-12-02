@@ -1,19 +1,21 @@
-parse_meta_delim <- function(file, sep = NULL, comment = "#", is_list = FALSE) {
+parse_meta_delim <- function(file, sep = NULL, comment = "#", is_list = FALSE, 
+                             ...) {
   #' Parse metadata from a delimited file
   #' 
-  #' Use this function if meta data is located in the same file as the data and 
+  #' Use this function if metadata is located in the same file as the data and 
   #' the data is stored in a delimited file (csv, tsv).
   #' 
   #' @param file String, the file path to metadata.
   #' @param sep String, the field separator character. defaults to \code{comment = "#"}.
   #' @param comment String, the comment character used to separate (or "comment-out") 
-  #'   the meta data from the data. Only text that has been commented-out will be read.
-  #' @param is_list Logical, is meta data stored as a list (i.e. Field: value, Field: value)
+  #'   the metadata from the data. Only text that has been commented-out will be read.
+  #' @param is_list Logical, is metadata stored as a list (i.e. Field: value, Field: value)
   #'   format). If a colon (":") is used after the field name set this to \code{TRUE}.
+  #' @param ... Additional arguments passed to \code{\link{read.delim}}.
   #' @export
   #' @keywords internal
-  #' @importFrom stringi stri_replace_first_fixed
-  
+  #' @importFrom stringi stri_replace_first_fixed stri_isempty
+
   
   if (is.null(sep)) {
     
@@ -24,10 +26,27 @@ parse_meta_delim <- function(file, sep = NULL, comment = "#", is_list = FALSE) {
   
   meta <- readLines(file)
   
-  com <- paste0('^', comment, '|^\"', comment, '\"')
-  com <- gsub("%s", comment, "^%s|^\"%s\"")# excel may add quotes (xls to csv)
-  
-  m_lines <- grep(com, meta, value = TRUE) # handle length = 0
+  if (comment == "/*") { # multi-line comment
+    
+    c_start <- '^\\/\\*' # "/*"
+    c_end <- '^\\*\\/'   # "*/"
+    
+    start_loc <- grep(c_start, meta)
+    end_loc <- grep(c_end, meta)
+    
+    m_lines <- meta[start_loc:end_loc]
+    
+    com <- paste0(c_start, "|", c_end)
+    
+    m_lines <- trimws(gsub(com, "", m_lines)) # remove comment
+    m_lines <- m_lines[!stringi::stri_isempty(m_lines)] # remove empty lines
+    
+  } else {
+    
+    com <- gsub("%s", comment, "^%s|^\"%s\"")# excel may add quotes (xls to csv)
+    
+    m_lines <- grep(com, meta, value = TRUE) # handle length = 0
+  }
   
   if (length(m_lines) == 0) {
     
@@ -35,12 +54,13 @@ parse_meta_delim <- function(file, sep = NULL, comment = "#", is_list = FALSE) {
   
     } else {
     
-      m_lines <- gsub("^#\\s*", "", m_lines) # remove any spaces after comment
+      sub <- paste0("^", comment, "\\s*")
+      m_lines <- gsub(sub, "", m_lines) # remove any spaces after comment
       
       if (all(grep(":", m_lines)) & is_list) { # description list?
         
-        m_lines <- stringi::stri_replace_first_fixed(m_lines, ":", "$$$")
-        m_lines <- strsplit(m_lines, split = "$$$", fixed = TRUE)
+        m_lines <- stringi::stri_replace_first_fixed(m_lines, ":", "<%%%>")
+        m_lines <- strsplit(m_lines, split = "<%%%>", fixed = TRUE)
         
         m_lines <- lapply(m_lines, trimws)
         
@@ -56,7 +76,7 @@ parse_meta_delim <- function(file, sep = NULL, comment = "#", is_list = FALSE) {
         tmp <- tempfile()
         on.exit(unlink(tmp), add = TRUE)
         writeLines(m_lines, con = tmp)
-        m_lines <- read.delim(tmp, sep = sep)
+        m_lines <- read.delim(tmp, sep = sep, ...)
       }
       
     m_lines
@@ -84,7 +104,8 @@ parse_meta_excel <- function(file, range = NULL, ...) {
 }
 
 
-parse_meta_json <- function(file, meta_ind = NULL, simplifyVector = TRUE) {
+parse_meta_json <- function(file, meta_ind = NULL, simplifyVector = TRUE, 
+                            flatten = FALSE) {
   #' Parse metadata from json file
   #' 
   #' Use this function if metadata is located in the same file as the data and 
@@ -92,7 +113,10 @@ parse_meta_json <- function(file, meta_ind = NULL, simplifyVector = TRUE) {
   #' 
   #' @param file String, file path.
   #' @param meta_ind Integer or string. 
-  #' @param simplifyVector Logical, simplifies nested lists into vectors and data frames.
+  #' @param simplifyVector Logical, simplifies nested lists into vectors and 
+  #'   data frames.
+  #' @param flatten Automatically flatten mested data frames into a single 
+  #'   non-nested data frame.
   #'   See \code{\link[jsonlite]{fromJSON}}.
   #' @export
   #' @keywords internal
@@ -168,7 +192,7 @@ parse_meta <- function(file, ..., simplify_meta = FALSE) {
   
   if (ext %in% c("xls", "xlsx")) ext <- "excel"
   
-  if (ext %in% c("csv", "tsv")) {
+  if (ext %in% c("csv", "tsv", "txt")) {
     
     meta <- parse_meta_delim(file = file, ...)
   
@@ -180,13 +204,9 @@ parse_meta <- function(file, ..., simplify_meta = FALSE) {
     
     meta <- parse_meta_json(file = file, ...)
     
-  } else if (ext == c("xml", "html", "xhtml")) {
+  } else if (ext %in% c("xml", "html", "xhtml")) {
     
     meta <- parse_meta_xml(file = file, ...)
-    
-  } else if (ext == "txt") {
-    
-    meta <- utils::read.table(file = file, ...)
     
   } else {
     

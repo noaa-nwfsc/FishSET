@@ -24,6 +24,7 @@ find_centroid <- function(project, gridfile, cat, lon.grid = NULL, lat.grid = NU
   gridname <- deparse(substitute(gridfile))
     
   tmp <- tempfile()
+  on.exit(unlink(tmp), add = TRUE)
   cat("", file = tmp, append = TRUE)
   x <- 0
  
