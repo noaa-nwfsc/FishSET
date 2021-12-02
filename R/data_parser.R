@@ -122,7 +122,9 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
   } else if (data.type == "dta" | data.type == "stata") {
     as.data.frame(haven::read_stata(x, ...))
   } else if (data.type == 'shp' | data.type == "shape") {
-    rgdal::readOGR(dsn=x, verbose=FALSE, ...)
+    out <- rgdal::readOGR(dsn=x, verbose=FALSE, ...)
+    out <- sf::st_as_sf(out)
+    out <- st_transform(out, "+proj=longlat +ellps=WGS84 +datum=WGS84")
   } else if (data.type == "xls" | data.type == 'xlsx' | data.type == 'excel'){
     as.data.frame(readxl::read_excel(x, ...))
   } else if (data.type == 'txt') {
