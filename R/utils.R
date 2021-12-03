@@ -1382,6 +1382,38 @@ repmat <- function(X, m, n){
   return(matrix(t(matrix(X,mx,nx*n)),mx*m,nx*n,byrow=T))
 }
 
+
+gridcheck <- function(spatialdat, catdat, londat=NULL, latdat=NULL, lon.grid=NULL, lat.grid=NULL){
+  #' Check that spatial data is a sf object. Convert if not.
+  #' @param spatialdat The spatial dataframe
+  #' @param catdat Variable that names polygons
+  #' @param londat Longitude data from primary dataset
+  #' @param latdat Latitude data from primary dataset
+  #' @param lon.grid Variable in spatialdat containing longitude data
+  #' @param lat.grid Variable in spatialdat containing latitude data
+  #' @export
+  #' @keywords internal
+  if (any(grepl("Spatial", class(spatialdat)))) {
+    if(any(class(spatialdat) %in% c("sp", "SpatialPolygonsDataFrame"))) {
+      spatialdat <- sf::st_as_sf(spatialdat)
+      if(any(grepl('PROJCRS',  sf::st_crs(spatialdat)))){
+      spatialdat <- st_transform(spatialdat, "+proj=longlat +ellps=WGS84 +datum=WGS84")
+      }
+    } else {
+      if (is_empty(lon.grid) | is_empty(lat.grid)) {
+        warning("lat.grid and lon.grid must be supplied to convert sp object to a sf object.")
+      } else {
+        spatialdat <- sf::st_as_sf(
+          x = spatialdat,
+          zone = catdat,
+          coords = c(londat, latdat),
+          crs = "+proj=longlat +datum=WGS84"
+        )
+      }
+    }
+  }
+  gridfile <- sf::st_shift_longitude(spatialdat)
+}
 ## ----Shiny util functions-----
 outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plot_type) {
   #' Evaluate outliers through plots
