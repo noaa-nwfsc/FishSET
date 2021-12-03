@@ -1,3 +1,15 @@
+loc <- function(){
+#Where should the file location go? And what to call it?
+  #Future - search for this folder location.
+  #' Define directory location
+  #' 
+  #' 
+  olddir <- getwd()
+  setwd("..")
+  newdir <- getwd()
+  
+}
+
 
 locproject <- function() {
   #' Define projects folder location
@@ -6,7 +18,7 @@ locproject <- function() {
   #'@keywords internal
   
   if (exists("loc2")) loc2 <- loc2
-  else loc2 <- NULL
+  else loc2 <- loc()
   
   if (!exists('loc2') || is.null(loc2)) {
     
