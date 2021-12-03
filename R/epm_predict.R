@@ -6,7 +6,7 @@
 #' @param project Name of project
 #' @param alts  Number of alternatives choices in model
 #' @param modname Name of saved model to use
-#' @param mod.type String. Opetions are weibull, lognormal, normal
+#' @param mod.type String. Options are weibull, lognormal, normal
 #' @param price Numeric. Price.
 #' @return Returns probability of logit model by choice
 #' @export
