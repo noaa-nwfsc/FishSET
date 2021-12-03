@@ -28,27 +28,6 @@ zone_closure <- function(project, gridfile, cat, secondgridfile=NULL, secondcat=
   
   x <- 0
   
-  gridcheck <- function(spatialdat, catdat, londat=NULL, latdat=NULL){
-    if (any(grepl("Spatial", class(spatialdat)))) {
-      if(any(class(spatialdat) %in% c("sp", "SpatialPolygonsDataFrame"))) {
-        spatialdat <- sf::st_as_sf(spatialdat)
-      } else {
-        if (is_empty(lon.grid) | is_empty(lat.grid)) {
-          warning("lat.grid and lon.grid must be supplied to convert sp object to a sf object.")
-          x <- 1
-        } else {
-          spatialdat <- sf::st_as_sf(
-            x = spatialdat,
-            zone = catdat,
-            coords = c(londat, latdat),
-            crs = "+proj=longlat +datum=WGS84"
-          )
-        }
-      }
-    }
-    gridfile <- sf::st_shift_longitude(spatialdat)
-  }
-  
   gridfile <- gridcheck(spatialdat = gridfile, catdat=cat, londat=lon.grid, latdat=lat.grid)
   
   if(!is.null(secondgridfile)){
