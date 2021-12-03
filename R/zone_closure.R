@@ -186,7 +186,8 @@ zone_closure <- function(project, gridfile, cat, secondgridfile=NULL, secondcat=
                                  inputId = "clicked_locations",
                                  label = "",
                                  choices = gridfile$secondLocationID,
-                                 selected = clicked_ids$ids)
+                                 selected = clicked_ids$ids,
+                                 server=TRUE)
             
             #remove that highlighted polygon from the map
             proxy %>% removeShape(layerId = click$id)
@@ -207,7 +208,8 @@ zone_closure <- function(project, gridfile, cat, secondgridfile=NULL, secondcat=
                                  inputId = "clicked_locations",
                                  label = "",
                                  choices = gridfile$secondLocationID,
-                                 selected = clicked_ids$ids)
+                                 selected = clicked_ids$ids,
+                                 server=TRUE)
             
           } #END CONDITIONAL
         }) #END OBSERVE EVENT
