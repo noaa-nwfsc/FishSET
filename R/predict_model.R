@@ -26,7 +26,7 @@
 #' 
 
 
-model_prediction <- function(project, mod.name, expected.catch.name=NULL, enteredPrice){
+model_prediction <- function(project, mod.name, expected.catch.name=NULL, enteredPrice=NULL){
   
 
 #Functions to create
@@ -47,9 +47,9 @@ x_new <- x_temp[[which(lapply( x_temp , "[[" , "mod.name" ) == mod.name)]]
 
 #Create data matrix
 choice_raw <- x_new[["choice"]]
-zoneID <- sort(unique(choice_raw))
+zoneID <- sort(unique(choice_raw)[,1])
 alts <- length(zoneID)
-choice <- data.frame(as.matrix(as.numeric(factor(choice_raw))))
+choice <- data.frame(as.numeric(factor(as.matrix(choice_raw))))
 dataCompile <- create_logit_input(choice)
 
 price <- x_new$epmDefaultPrice
@@ -89,7 +89,7 @@ for(i in 1:length(closures)){
       warning('Selected closed zone was not found in the model')
   }
   
-  
+  stopifnot(z!=0)
  
 zoneClosedFish <- c(0,z) # id for zonesz closed to fishing in given time, size same as nameALlTime
 
@@ -112,7 +112,7 @@ if(all(!is_empty(which(z %in% as.character(zoneID))))){
 #Run Model predictions
 ###
 
-if (grepl('logit', x_new$likelihood)) {  #need to correct this
+if (grepl('logit', x_new$likelihood)) {  
 ##'Zonal (ASC) Logit'
   ProbL <-  matrix(1, alts, length(tacAllowedAllTime))   #zeros(alts,length(tacAllowedAllTime));
   InOutLogit <- matrix(0,length(tacAllowedAllTime), 2)  #=zeros(length(tacAllowedAllTime),2);
@@ -184,7 +184,7 @@ if (grepl('logit', x_new$likelihood)) {  #need to correct this
   # full TAC and no zone closure
     #1 epm normal
     
-    temp <- epm_predict(project=project, modname=mod.name, alts=alts, mod.type=mod.type, price=price) #modelOutput{mChoice},alts,x);
+    temp <- epm_predict(project=project, modname=mod.name, alts=alts, mod.type=sub(".*_", "", x_new$likelihood), price=price) #modelOutput{mChoice},alts,x);
     probEPM <- temp$probEPM
     modelDat <- temp$modelDat
 

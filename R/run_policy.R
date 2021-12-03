@@ -3,8 +3,7 @@
 #' Checks policy scenario exists. Runs predict_probability function. Runs welfare_predict function
 #' @param project Name of project
 #' @param mod.name Name of saved model to use
-#' @param tac Percent of tac allowed in closure. Value must be between 0 and 1. If more than one closure scenario is 
-#'   included, tac should be a string. Percent of allowable tac is assumed to be 0 if not provided.
+#' @param enteredPrice Price data. Leave as NULL if using price data from primary dataset.
 #' @param expected.catch.name Required for conditonal logit (\code{logit_c}) model. 
 #'   Name of expected catch table to use. 
 #'    Can be the expected catch from the short-term scenario (\code{short}), the medium-term scenario (\code{med}), the 
@@ -30,8 +29,12 @@
 #welfare_predict
 #  sim_welfare
 
-run_policy <- function(project, mod.name=NULL, tac = 0, expected.catch.name=NULL, 
+run_policy <- function(project, mod.name=NULL, enteredPrice=NULL, expected.catch.name=NULL, 
                        gridfile = NULL, cat=NULL, lon.grid=NULL, lat.grid=NULL){
+  
+
+    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
   #1. Check closure file exists
   #Read in zone closure information
@@ -53,12 +56,13 @@ run_policy <- function(project, mod.name=NULL, tac = 0, expected.catch.name=NULL
     # Message to inform users what to do about mismatch
   
   #3. Run model_prediction function
-  model_prediction(project=project, mod.name=mod.name, expected.catch.name=expected.catch.name)
+  model_prediction(project=project, mod.name=mod.name, expected.catch.name=expected.catch.name, enteredPrice)
   
   #4. Output should be temporarily saved to pass to the next function
+  #pOutput <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT PredictOutput FROM ", project, "predictoutput LIMIT 1"))$PredictOutput[[1]])
   
   #5. Run welfare predict
-    welfare_predict()
+    welfareout <- welfare_predict(project=project, mod.name, expected.catch.name=expected.catch.name, enteredPrice=enteredPrice)
     
   #6. Save output and return tables and plots
   
