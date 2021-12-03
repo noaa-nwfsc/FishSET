@@ -3,11 +3,10 @@
   #' @param project Name of project
   #' @param mod.name Name of selected model (mchoice)
   #' @param expected.catch.name Name of expectedchatch table to use
-  #' @param tac Total allowed tac.
   #' @param enteredPrice Price for welfare
   #' @export
   #' @details Called by \code{\link{run_policy}} function. The \code{\link{model_prediction}} function should be run before this function.
-welfare_predict <- function(project, mod.name, expected.catch.name, tac, enteredPrice){
+welfare_predict <- function(project, mod.name, expected.catch.name, enteredPrice){
 
  #TODO make stdard version, only works for zone that all 100% closed and
  #compares closure at entered price versus non closure at that price (not a comparison to other years
@@ -33,14 +32,20 @@ welfare_predict <- function(project, mod.name, expected.catch.name, tac, entered
 
    #Get inverse hessian for selected model
   #Get model output
-  out <- model_out_view(table = paste0(project, 'modelOut20210924'), project=project)
-  #Select desired model
-  if(any(lapply( out , "[[" , "name" ) == mod.name)==TRUE){
-    invHess <- out[[which(lapply( out , "[[" , "name" ) == mod.name)]]$H1   #model.H1{mChoice} #Note added inv hessian
-  } else {
-    warning('Specified model not found. Check name.')
-  }
+  tlength <- length(tables_database(project=project)[grep('modelOut', tables_database(project=project))])
+     for(i in 1:tlength){
+        tempname <- tables_database(project=project)[grep('modelOut', tables_database(project=project))][tlength]
+        out <- model_out_view(table = tempname, project=project)
+    if(any(lapply( out , "[[" , "name" ) == mod.name)==TRUE){
+      break   #model.H1{mChoice} #Note added inv hessian
+    } 
+    }
 
+  if(any(lapply( out , "[[" , "name" ) == mod.name)==TRUE){
+  invHess <- out[[which(lapply( out , "[[" , "name" ) == mod.name)]]$H1 
+  } else {
+  warning('Specified model not found. Check name.')
+  }
 #numData=~[data.isXY] & ~[data.isID] &~[data.isMatTime]
 #combineData=[data(numData).dataColumn] 
 #dataPerZone=combineData(modelInputData.dataZoneTrue,:) 
@@ -59,7 +64,11 @@ welfare_predict <- function(project, mod.name, expected.catch.name, tac, entered
   
 #modelOutput=cell2mat(model.Out{mChoice}(:,1:end))
 #modeloutput is  the parameter estimates
-modelOutput <- read_dat(paste0(locoutput(project), pull_output(project, type='table', fun='params')))
+  if(file.exists(read_dat(paste0(locoutput(project), pull_output(project, type='table', fun=paste0('params_',  mod.name)))))){
+      modelOutput <- read_dat(paste0(locoutput(project), pull_output(project, type='table', fun=paste0('params_',  mod.name))))
+  } else {
+    "Parameter estimate table could not be found."
+  }
 #zoneID <- logitEq$X
 modelOutput <- modelOutput[,2]
 
@@ -266,4 +275,5 @@ welfare[quant] =quantile(sortWelfareDiff, probs=c(0.025,.05,.50,.95,.975)) # prc
 
 } #end quant loop
 }# End EPM calculations
+return(list(prW=prW, welfare=welfare))
 }
