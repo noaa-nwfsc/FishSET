@@ -10,7 +10,8 @@ log_reset <- function(project, over_write = FALSE) {
   #'   automatically appended to the existing project log file. Resetting the log 
   #'   file will create a new project log file with the current date. A log will 
   #'   not be reset if \code{log_reset()} is run the same day the log was created
-  #'   (or if the log is reset twice in a single day), unless \code{over_write = TRUE}. 
+  #'   (or if the log is reset two or more times in a single day), unless 
+  #'   \code{over_write = TRUE}. This will replace that day's log file. 
   #' @export log_reset
   #' @seealso \code{\link{list_logs}} \code{\link{project_logs}}
   #' @examples
@@ -19,13 +20,13 @@ log_reset <- function(project, over_write = FALSE) {
   #' }
   #'
 
-  end <- FALSE
+  pass <- TRUE
   
   if (!(project %in% projects())) {
     
     warning("log_reset() only applies to existing projects. Project \"", project, 
             "\" does not exist.")
-    end <- TRUE
+    pass <- FALSE
   }
   
   log_file <- paste0(project, "_", Sys.Date(), ".json")
@@ -33,10 +34,10 @@ log_reset <- function(project, over_write = FALSE) {
   if (log_file %in% project_logs(project) & over_write == FALSE) {
     
     warning("The log file \"", log_file, "\" already exists. Set over_write = TRUE to reset log.")
-    end <- TRUE
+    pass <- FALSE
   }
   
-  if (end == FALSE) {
+  if (pass) {
   
     logbody <- list()
     infoBodyout <- list()

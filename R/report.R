@@ -47,18 +47,55 @@ get_user_locoutput <- function() {
   }
 }
 
-list_logs <- function(project, chron = FALSE) {
+list_logs <- function(project = NULL, chron = FALSE, modified = FALSE) {
   #' View list of all log files
-  #' @param project Project name
+  #' @param project Project name. Displays all logs if NULL.
   #' @param chron Logical, whether to display logs in chronological order (TRUE) or
   #'   reverse chronological order (FALSE). 
   #' @export
   
-  logs <- list.files(loclog(project = project))
+  if (is.null(project)) {
+    
+    logs <- lapply(projects(), function(x) list.files(loclog(project = x)))
+    logs <- unlist(logs)
+    
+    if (modified) {
+      
+      log_mod <- lapply(projects(), function(x) {
+        
+        file.mtime(list.files(loclog(project = x), full.names = TRUE))
+      })
+
+      log_mod <- unlist(lapply(log_mod, as.character))
+      log_df <- data.frame(log = logs, modified = log_mod)
+    } 
+    
+  } else {
+    
+    logs <- list.files(loclog(project = project))
+    
+    if (modified) {
+      
+      log_mod <- file.mtime(paste0(loclog(project = project), logs))
+      log_df <- data.frame(log = logs, modified = log_mod)
+    } 
+  }
+  
   ord <- gsub("[^0-9]", "", logs)
   
-  if (chron == FALSE) logs[order(-as.numeric(ord))]
-  else logs[order(as.numeric(ord))]
+  if (chron) {
+    
+    if (modified) log_df <- log_df[order(as.numeric(ord)), ]
+    else logs <- logs[order(as.numeric(ord))]
+    
+  } else {
+    
+    if (modified) log_df <- log_df[order(-as.numeric(ord)), ]
+    else logs <- logs[order(-as.numeric(ord))]
+  }
+  
+  if (modified) log_df
+  else logs
 }
 
 project_logs <- function(project, modified = FALSE) {
@@ -68,21 +105,10 @@ project_logs <- function(project, modified = FALSE) {
   #'  frame.
   #' @export
   
-  logs <- list_logs(project)
-  logs <- grep(project, logs, value = TRUE)
-  ord <- gsub("[^0-9]", "", logs)
+  logs <- list_logs(project, modified = modified)
   
   if (length(logs) == 0) message("Project \"", project, "\" empty or not found")
-  else {
-    
-    if (modified) {
-      
-      log_mod <- file.mtime(paste0(loclog(project = project), logs))
-      log_df <- data.frame(log = logs, modified = log_mod)
-      log_df
-      
-    } else logs
-  }
+  else logs
 }
 
 
