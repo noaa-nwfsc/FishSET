@@ -182,7 +182,9 @@ source("map_viewer_app.R", local = TRUE)
                                         ) 
                                       )
                              ) 
-                           )),
+                           )
+                           )
+                           ),
                   
                   #---
       # Upload data tabset panel ---- 
@@ -418,6 +420,8 @@ source("map_viewer_app.R", local = TRUE)
                                             
                                             tabPanel(title = "Spatial Corrections", value = "corrections",
                                                      uiOutput("spat_correct_msg"),
+                                                     radioButtons("select_spat_tab", "Show:",
+                                                                  choices = c("all", "points outside zone" = "out_zone")),
                                                      tags$div(shinycssloaders::withSpinner(DT::DTOutput("spat_correct_tab")), 
                                                              style = "font-size: 75%; width: 100%")
                                                      )))
@@ -778,9 +782,12 @@ source("map_viewer_app.R", local = TRUE)
                                tags$br(), tags$br(),                              
                                textInput('notesNew', "Notes", value=NULL, 
                                          placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
+                               
                                selectInput('VarCreateTop', "Create variables based on", multiple=FALSE,  
-                                           choices=c('Nominal ID', 'Arithmetic functions', 'Dummy variables', 'Temporal functions',
-                                                     'Spatial functions', 'Trip-level functions', 'Data transformations'),
+                                           choices=c('Nominal ID', 'Arithmetic functions', 
+                                                     'Dummy variables', 'Temporal functions',
+                                                     'Spatial functions', 'Trip-level functions', 
+                                                     'Data transformations'),
                                            selected = 'Spatial functions'),
                                
                                ## Function options              
@@ -827,94 +834,126 @@ source("map_viewer_app.R", local = TRUE)
                                                 textInput('varname','Name of new variable', value='', placeholder = '')),
                                
                                #More sub choices Data Transformations     
-                               uiOutput('trans_time_out'),
+                               
                                conditionalPanel("input.VarCreateTop=='Temporal functions'&&input.tempfunc=='temp_mod'",
                                                 style = "margin-left:19px;", 
+                                                uiOutput('trans_time_out'),
                                                 selectInput('define_format','Temporal units to return data in',
                                                             choices=c('year', "month","day", 'hour', 'minute'), 
                                                             selected = 'year')),
-                               uiOutput('trans_quant_name'),
+                               
                                conditionalPanel("input.VarCreateTop=='Data transformations'&&input.trans=='set_quants'",
                                                 style = "margin-left:19px;", 
+                                                uiOutput('trans_quant_name'),
                                                 selectInput('quant_cat','Quantile categories',
                                                             choices=c('0%, 20%, 40%, 60%, 80%, 100%'='0.2', 
                                                                       '0%, 25%, 50%, 75%, 100%'='0.25', 
                                                                       '0%, 10%, 50%, 90%, 100%'='0.4'))),
                                #More sub choices Nominal IDS  
-                               uiOutput('unique_col_id'),
+                               
                                conditionalPanel("input.VarCreateTop=='Nominal ID'&&input.ID=='create_seasonal_ID'",
                                                 style = "margin-left:19px;", 
+                                                
+                                                uiOutput('unique_col_id'),
                                                 fileInput("seasonal.dat", "Choose data file containing data on fishery seasons",
-                                                                                       multiple = FALSE)),
-                               uiOutput('sp_col.select'),
-                               conditionalPanel("input.VarCreateTop=='Nominal ID'&&input.ID=='create_seasonal_ID'",
-                                                style = "margin-left:19px;", 
+                                                                                       multiple = FALSE),
+                                                
+                                                uiOutput('sp_col.select'),
                                                 checkboxInput('sp_collocation', "Optional: Do fishery season dates depend on fishery location?", 
-                                                              value=FALSE)),
-                               conditionalPanel("input.VarCreateTop=='Nominal ID'&&input.ID=='create_seasonal_ID'",
-                                                style = "margin-left:19px;", 
-                                                checkboxInput('sp_colgeartype', "Optional: Do fishery season dates depend on fishery location?",
-                                                              value=FALSE)),
-                               conditionalPanel("input.VarCreateTop=='Nominal ID'&&input.ID=='create_seasonal_ID'",
-                                                style = "margin-left:19px;", 
-                                                textInput('target', "Optional: Name of target species", value=NULL)),
+                                                              value=FALSE), # note: not used by any function in server
+                                                checkboxInput('sp_colgeartype', "Optional: Do fishery season dates depend on fishery geartype?",
+                                                              value=FALSE),# note: not used by any function in server
+                                                textInput('target', "Optional: Name of target species", value=NULL)
+                                                ),
                                
                                #More sub choices Arithmetic functions  
-                               uiOutput('var_x_select'),
-                               uiOutput('var_y_select'),
+   
                                conditionalPanel("input.VarCreateTop=='Arithmetic functions'&&input.numfunc=='create_var_num'",
                                                 style = "margin-left:19px;", 
+                                                uiOutput('var_xy_select'),
                                                 selectInput('create_method', 'Arithmetic expression', 
-                                                             choices=c('addition', 'subtraction', 'multiplication', 'division'))),
+                                                             choices=c('addition', 'subtraction', 'multiplication', 'division'))
+                                                ),
+                               
                                uiOutput('grp_perc'),
                                uiOutput('grp_diff'),
                                uiOutput('grp_cumsum'),
-                               uiOutput('input_dur_start'),
-                               uiOutput('input_dur_end'),
+                               
                                conditionalPanel("input.VarCreateTop=='Temporal functions'&&input.tempfunc=='create_duration'",
-                                                style = "margin-left:19px;", selectInput('dur_units', 'Unit of time for calculating duration', 
-                                                                                         choices = c("week", "day", "hour", "minute"),
-                                                                                         selected='week')),
-                               uiOutput('input_xWeight'),
-                               uiOutput('input_xTime'),
-                               uiOutput('dur_add'),
+                                                style = "margin-left:19px;", 
+                                 uiOutput('input_dur'),
+                                 selectInput('dur_units', 'Unit of time for calculating duration', 
+                                             choices = c("week", "day", "hour", "minute"), selected='week')
+                                                ),
+                               
+                               conditionalPanel("input.VarCreateTop=='Arithmetic functions'&&input.numfunc=='cpue'",
+                                                style = "margin-left:19px;",
+                                 uiOutput("input_cpue"),
+                                 uiOutput('dur_add')
+                                                ),
+                              
                                
                                #dummy_var        Vector of TRUE or FALSE the length  (rows) of the dataset. 
                                #dummy_matrix     Matrix with same dimensions at the data set filled with TRUE or FALSE.
                                #More sub choices for dummy functions
-                               uiOutput('dummy_select'),
-                               uiOutput('dummy_sub'),
+                               conditionalPanel("input.VarCreateTop=='Dummy variables'",
+                                                style = "margin-left:19px;",
+                                 uiOutput('dummy_select'),
+                                 conditionalPanel("input.dummyfunc=='From variable'",
+                                    uiOutput('dummy_sub'))
+                               ),
                                
                                #More sub choices Spatial functions 
                         
                                ## runs assignment column
-                               uiOutput('zone_assign_1'),
-                               uiOutput('zone_assign_2'),
+                               conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='zone'",
+                                  uiOutput('zone_assign_1'),
+                                  uiOutput('zone_assign_2')
+                                                ),
                                
-                               uiOutput('fish_weight_cent'), 
-                               uiOutput('fish_weight_cent_2'), 
-                               uiOutput('fish_weight_cent_3'), 
+                               conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='fish_cent'",
+                                  uiOutput('fish_weight_cent'), 
+                                  uiOutput('fish_weight_cent_2'), 
+                                  uiOutput('fish_weight_cent_3')
+                                                ), 
                                
-                               uiOutput('dist_between_input'),
-                               uiOutput('dist_betwn_opts'),
-                               conditionalPanel("input.VarCreateTop=='Spatial functions'&&input.dist=='create_dist_between'",
-                                                style = "margin-left:19px;", selectInput('units', 'Distance unit',
-                                                                                         choices = c('miles','meters','km'))),
-                               uiOutput('start_mid_input'),
-                               uiOutput('end_mid_input'),
-                               uiOutput('input_startingloc'),
-                               uiOutput('input_startingloc_extra'),
-                               conditionalPanel("input.VarCreateTop=='Trip-level functions'&&input.trip=='haul_to_trip'",
-                                                style = "margin-left:19px;", selectInput('fun_numeric','Numeric function to transform data', 
-                                                                                         choices = c('min','mean','max','median','sum'), 
-                                                                                         selected = 'mean')),
+                               
+                               conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&input.dist=='create_dist_between'",
+                                 uiOutput('dist_between_input'),
+                                 uiOutput('dist_betwn_opts'),
+                                 tags$div(style = "margin-left:19px;", 
+                                          selectInput('units', 'Distance unit',
+                                                      choices = c('miles','meters','km')))
+                               ),
+                               
+                               conditionalPanel(condition="input.VarCreateTop=='Spatial functions'&&input.dist=='create_mid_haul'",
+                                                style = "margin-left:19px;",
+                                  uiOutput('mid_haul_input')
+                                  ),
+                               
+                               conditionalPanel("input.VarCreateTop=='Spatial functions'&&input.dist=='create_startingloc'",
+                               
+                                  uiOutput('input_startingloc'),
+                                  ),
+                               
                                conditionalPanel("input.VarCreateTop=='Trip-level functions'&input.trip=='haul_to_trip'",
-                                                style = "margin-left:19px;", selectInput('fun_time','Numeric function to transform temporal data',
-                                                                                         choices = c('min','mean','max','median'), 
-                                                                                         selected = 'mean')),
-                               uiOutput('input_IDVAR'),
-                               uiOutput('input_trip_dist_vars'),
-                               uiOutput('input_tri_cent'),
+                                                style = "margin-left:19px;",
+                                 selectInput('fun_numeric','Numeric function to transform data', 
+                                             choices = c('min','mean','max','median','sum'), 
+                                             selected = 'mean'),
+                                 selectInput('fun_time','Numeric function to transform temporal data',
+                                             choices = c('min','mean','max','median'), 
+                                             selected = 'mean'),
+                                 uiOutput('input_IDVAR')),
+                               
+                               conditionalPanel("input.VarCreateTop=='Trip-level functions'&&input.dist=='trip_distance'" ,
+                                                style = "margin-left:19px;",
+                                 uiOutput('input_trip_dist_vars')),
+                               
+                               conditionalPanel("input.VarCreateTop=='Trip-level functions'&&input.trip=='trip_centroid'",
+                                                style = "margin-left:19px;",
+                                 uiOutput('input_tri_cent')),
+                               
                                ##Inline scripting 
                                textInput("exprN", label = "Enter an R expression",
                                          value = "values$dataset"),
@@ -1299,6 +1338,7 @@ source("map_viewer_app.R", local = TRUE)
                      )
                   )
           
+         
       )
     }
     
