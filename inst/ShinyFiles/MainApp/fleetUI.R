@@ -100,7 +100,7 @@ refreshUI <- function(id) {
   
   ns <- NS(id)
   actionButton(ns("refresh"), "Refresh data", 
-               icon = icon("refresh"),
+               icon = icon('fas fa-sync'),
                style = "color: white; background-color: blue;")
 }
 
@@ -1197,7 +1197,7 @@ fleet_assignUI <- function(id) {
     
     p(strong("Import table")),
     
-    actionButton(ns("refresh_tabs"), "Refresh saved tables", icon = icon("refresh"), style = "color: blue;"),
+    actionButton(ns("refresh_tabs"), "Refresh saved tables", icon = icon('fas fa-sync'), style = "color: blue;"),
     
     uiOutput(ns("available_tabs")),
     
