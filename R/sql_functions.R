@@ -286,13 +286,12 @@ project_tables <- function(project, ...) {
 }
 
 
-main_tables <- function(project = NULL, show_all = TRUE) {
+main_tables <- function(project, show_all = TRUE) {
   #' View list of MainDataTables in FishSET database
   #' 
-  #' @param project A project name to filter main tables by. Returns all MainDataTables
-  #'   if \code{NULL}.
-  #' @param show_all Logical, whether to show all main tables (including raw and final 
-  #'   tables) or just editable tables. 
+  #' @param project A project name to filter main tables by. 
+  #' @param show_all Logical, whether to show all main tables (including raw and 
+  #'   final tables) or just editable tables. 
   #' @export
   #' @examples 
   #' \dontrun{
