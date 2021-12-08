@@ -1744,6 +1744,57 @@ find_lonlat <- function(dat) {
   grep("lon|lat", colnames(dat), ignore.case = TRUE, value = TRUE)
 }
 
+find_datetime <- function(dat) {
+  #' Find columns that may be date/datetime 
+  #' @param dat Dataset to search over
+  #' @keywords internal
+  #' @export
+  
+  grep('date|hour|time|year', colnames(dat), ignore.case = TRUE, value = TRUE)
+}
+
+find_catch <- function(dat) {
+  #' Find columns that may contain catch 
+  #' @param dat Dataset to search over
+  #' @keywords internal
+  #' @export
+  #' 
+  grep("catch|haul|mt|lb|ton|pound|weight|metric|kilo|mass", colnames(dat), 
+       ignore.case = TRUE, value = TRUE)
+}
+
+find_port <- function(dat) {
+  #' Find columns that may contain ports 
+  #' @param dat Dataset to search over
+  #' @keywords internal
+  #' @export
+  
+  grep("port", colnames(dat), ignore.case = TRUE, value = TRUE)
+}
+
+
+find_duration <- function(dat) {
+  #' Find columns that may contain durations 
+  #' @param dat Dataset to search over
+  #' @keywords internal
+  #' @export
+  #' 
+  grep("date|min|hour|week|month|TRIP_START|TRIP_END", 
+       names(values$dataset), ignore.case = TRUE, value = TRUE)
+}
+
+
+find_value <- function(dat) {
+  #' Find columns that may contain value  
+  #' @param dat Dataset to search over
+  #' @keywords internal
+  #' @export
+  
+  grep("dollar|val|euro|price|cost|earn", colnames(dat), ignore.case = TRUE, 
+       value = TRUE)
+}
+
+
 numeric_cols <- function(dat, out = "names") {
   #' Find numeric columns in data frame
   #' 
@@ -1892,7 +1943,8 @@ pull_shiny_output <- function(project, fun = NULL, type = "plot", conf = TRUE) {
   end <- FALSE
   
   outs <- project_files(project)
-  ext <- switch(type, "plot" = ".*\\.png$", "table" = ".*\\.csv$", "notes" = ".*\\.txt$", "zone" = ".*\\.yaml")
+  ext <- switch(type, "plot" = ".*\\.png$", "table" = ".*\\.csv$", 
+                "notes" = ".*\\.txt$", "zone" = ".*\\.yaml")
   
   out <- grep(ext, outs, value = TRUE)
   
