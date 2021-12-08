@@ -90,7 +90,6 @@ locproject <- function() {
   #else loc2 <- loc()
   
   if (!exists('loc2') || is.null(loc2)) {
-
     if(is_empty(dir.exists(list.dirs(path = "../FishSETFolder/projects")))){
       loc()
     }
