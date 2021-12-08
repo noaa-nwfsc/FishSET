@@ -41,11 +41,12 @@ welfare_predict <- function(project, mod.name, expected.catch.name, enteredPrice
     } 
     }
 
-  if(any(lapply( out , "[[" , "name" ) == mod.name)==TRUE){
+  stopifnot(any(lapply( out , "[[" , "name" ) == mod.name)==TRUE)
+    warning('Specified model not found. Check name.')
+  
+  
   invHess <- out[[which(lapply( out , "[[" , "name" ) == mod.name)]]$H1 
-  } else {
-  warning('Specified model not found. Check name.')
-  }
+  
 #numData=~[data.isXY] & ~[data.isID] &~[data.isMatTime]
 #combineData=[data(numData).dataColumn] 
 #dataPerZone=combineData(modelInputData.dataZoneTrue,:) 
