@@ -168,7 +168,7 @@ parse_meta <- function(file, ..., simplify_meta = FALSE) {
   #'   uses \code{\link{simplify_list}}. This can be useful if metadata is not 
   #'   tabular. 
   #' @export
-  #' @seealso \code{\link{parse_meta_txt}}, \code{\link{parse_meta_excel}}, 
+  #' @seealso \code{\link{parse_meta_delim}}, \code{\link{parse_meta_excel}}, 
   #'   \code{\link{parse_meta_json}}, \code{\link{parse_meta_xml}}
   #' @importFrom tools file_ext
   #' @details Function supports xls, xlsx, csv, tsv, excel, json, and xlm extensions.
