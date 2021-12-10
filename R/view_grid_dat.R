@@ -1,21 +1,24 @@
 
 
 
-view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL, agg_by = NULL, gmap = FALSE) {
+view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL, 
+                          agg_by = NULL, agg_fun = "mean", gmap = FALSE) {
   #' Visualize gridded data on a map
   #' 
   #' 
-  #' @param gridfile Gridded data table to visualize. Use string if visualizing a gridded data
-  #'   table in the FishSET Database. 
+  #' @param gridfile Gridded data table to visualize. Use string if visualizing 
+  #'   a gridded data table in the FishSET Database. 
   #' @param project String, project name. 
   #' @param lon String, variable name containing longitude.
   #' @param lat String, variable name containing latitude.
   #' @param value String, variable name containing gridded values, e.g. sea surface 
   #'   temperature, wind speed, etc. 
   #' @param split_by String, variable in gridded data table to split by. 
-  #' @param agg_by String, variable in gridded data table to group "value" by. By default,
-  #'   the mean is aggregated. The string "latlon" is a shortcut for \code{agg_by = c("lon", "lat")}
-  #'   which aggregates the "value" for each latitude-longitude pair across the entire dataset. 
+  #' @param agg_by String, variable in gridded data table to group \code{value} by.
+  #'   By default, the mean is aggregated. The string "latlon" is a shortcut for 
+  #'   \code{agg_by = c("lon", "lat")} which aggregates the "value" for each 
+  #'   latitude-longitude pair across the entire dataset.
+  #' @param agg_fun Aggregating function applied to \code{agg_by}. Defaults to mean.
   #' @param gmap A ggmap object to be passed to \code{\link[ggmap]{ggmap}}. If FALSE, 
   #'   then a ggmap is automatically retrieved. Defaults to FALSE. 
   #' @export
@@ -66,10 +69,18 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL, a
     
     if (agg_by == "latlon") agg_by <- c(lon, lat)
     
+    if (!is.function(agg_fun)) {
+      
+      if (is.character(agg_fun)) {
+        
+        agg_fun <- match.fun(agg_fun)
+      }
+    }
+    
     grid <- 
       grid %>% 
         dplyr::group_by(dplyr::across(agg_by)) %>% 
-        dplyr::mutate(dplyr::across(value, mean, na.rm = TRUE))
+        dplyr::mutate(dplyr::across(value, agg_fun, na.rm = TRUE))
   }
   
   map_out <- 
@@ -104,7 +115,8 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL, a
   # log function
   view_grid_dat_function <- list()
   view_grid_dat_function$functionID <- "view_grid_dat"
-  view_grid_dat_function$args <- list(gridfile, project, lon, lat, value, split_by, agg_by, gmap)
+  view_grid_dat_function$args <- list(gridfile, project, lon, lat, value, 
+                                      split_by, agg_by, agg_fun, gmap)
   log_call(project, view_grid_dat_function)
   
   map_out
