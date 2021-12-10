@@ -302,7 +302,8 @@ conf_cache_len <- length(get_confid_cache())
 			      tags$br(), tags$br(),
             tags$p(tags$strong('Purpose:'), tags$br(), 'The', tags$em('Upload Data'), 
                         'tab is used to load data (primary, port, map, gridded, auxiliary) from the FishSET database or 
-                        from a local file location.'), 
+                        from a local file location, and to manage project tables, confidentiality settings,',
+                        'and viewing and rerunning logged function calls.'), 
 	          tags$p("To get started, first write or select a project name in the", tags$code('Name of project'), "text box.",
 	                tags$ul("The project name is a user-created unique identifier for all data tables  and outputs (plots, model results, etc.) 
                  associated with the analysis. Example project names are 'pollock2019' and 'AKGOA'.")
@@ -356,7 +357,34 @@ conf_cache_len <- length(get_confid_cache())
               The grid locations (zones) must define the columns and the optional second dimension defines the rows. 
               The row values must match the values of the vector in the primary data file that it will be linked to. 
               Examples of gridded data include sea surface temperature, ice cover, and wind speed."
-          )
+          ),
+			tags$br(), tags$br(),
+			tags$p(tags$strong("Manage Tables"), tags$br(),
+			       'The blue “Manage Tables” button at the top of the upload page allows users to view and delete FishSET Database',
+			       'tables for all projects. When clicked, a popup appears displaying a table containing the table name, project,',
+			       'and type. Select one or more tables to delete by clicking on the table row and selecting “Next”. A new popup will',
+			       'appear confirming which tables should be deleted.'),
+			tags$br(), tags$br(),
+			tags$p(tags$strong("Metadata"), tags$br(),
+			       'The Metadata button allows users to load, create, save, and edit metadata for tables saved to the FishSET DB. To',
+			       'manually create metadata, select a project and table from the FishSET DB and select “Load data” on the “Create” tab.',
+			       'A metadata template will be loaded into the main panel based on the table, including fields for each column. To import',
+			       'raw metadata files, select a file using the “Browse” button. File reader options will populate at the bottom of the',
+			       'sidebar based on the file type. Select “Load raw meta” to populate the raw metadata section of the main panel.',
+			       'Select “create meta” to save the metadata to the project file.',
+			       'To view, edit, or delete metadata, go to the “Edit” tab and select a table. Changes can be made in the main panel.'
+			       ),
+			tags$br(), tags$br(),
+			tags$p(tags$strong("Confidentiality"), tags$br(),
+			       'To automatically check for confidentiality in plots and tables, check “Check for confidentiality”, select a vessel',
+			       'ID variable, a confidentiality rule, and a threshold value. Confidentiality is not checked by default.'
+			       ),
+			tags$br(), tags$br(),
+			tags$p(tags$strong("Reset log"), tags$br(),
+			       'Whenever a new project is started a log file that stores FishSET function calls is created. A project’s log file can',
+			       'be reset by going to the “Reset log” menu. This creates a new log file. The previous log is not deleted, with one',
+			       'exception: resetting a log two or more times in a single day will overwrite that day’s log file.'
+			       )
           )
         }
       })
@@ -391,8 +419,18 @@ conf_cache_len <- length(get_confid_cache())
             The revised data will be saved to the FishSET database with a name based on the project, MainDataTable, and date. Even if the 
 				revised data is not saved to the FishSET database, the Shiny application will use the revised data.',
             'To undo changes, click on the', tags$code('Refresh data'), 'button. This action will restore the data to its original, 
-				unaltered state. Any previous actions will also be lost.'
+				unaltered state. Any previous actions will also be lost.',
+			tags$br(), tags$br(),
+			tags$p(tags$strong("Spatial checks"), tags$br(),
+			       'To perform a spatial data check, upload a spatial file containing regulatory zones then select a latitude, longitude,',
+			       'and date column from the main data table. An EPSG code and a grouping variable are optional. Spatial checks determine',
+			       'whether points occur on land, outside zone, on zone boundaries, and/or at sea and within zones.',
+			       tags$br(), tags$br(),
+			       'The spatial corrections tab allows users to change lat/lon signs, remove points by distance from nearest zone, and',
+			       'edit individual lat/lon entries (this can be done by double-clicking on a lat/lon cell in the spatial corrections table).'
+			       )
           )
+         
         }
       })
       
@@ -632,7 +670,12 @@ conf_cache_len <- length(get_confid_cache())
 			       tags$br(), tags$br(),
 			       'The final plot type, x-y plots, shows the relationship between two selected variables.', tags$br(),
 			        'To assess the degree of correlation between variables or the fit of the relationship, visit the', 
-				    tags$code('Simple Analyses'), 'tab.'
+				    tags$code('Simple Analyses'), 'tab.',
+				    tags$br(), tags$br(),
+				    tags$p(tags$strong("Gridded data"), tags$br(),
+				    'To visualize gridded data, select “Gridded” from the “Select a data file type” menu. Select “Plots”',
+				    'and choose a longitude, latitude, and value column. Plots can be split by a categorical variable.',
+				    'Aggregate the data by selecting a column to aggregate by and a function. The option “lat/lon” aggregates by grid cell. ')
           )
         }
       })
@@ -909,7 +952,8 @@ conf_cache_len <- length(get_confid_cache())
         if(input$QuickStartChoices=='BookmarkTab'){ 
           p(tags$br(), tags$br(),
             tags$strong('Purpose:'), tags$br(),
-            'The', tags$em('Bookmark Choices'), 'tab is used to save choices made in the FishSET R Shiny application and enable current application state to be reloaded at a later date.',
+            'The', tags$em('Bookmark Choices'), 'tab is used to save choices made in the FishSET R Shiny', 
+            'application and enable current application state to be reloaded at a later date.',
 				tags$br(), tags$br(),
 				    'Reloading a bookmarked state will restore the last selections in the application. The data will need to be reloaded 
             and no functions will be applied to the data. It is best to save the data before bookmarking the current application state. 
@@ -921,7 +965,15 @@ conf_cache_len <- length(get_confid_cache())
             'To reload a perviously saved application state, you must have the FishSET R application open. Navigate to the', tags$code('Bookmark Choices'), 
         'tab. Click the', tags$code('Browse'), 'button and then migrate to the', tags$em('input.rds'), 'file.',
 				tags$br(), tags$br(),
-            tags$div(style="display: inline-block; align:center", img(src="Bookmark2.png", height="75%", width="75%"))
+            tags$div(style="display: inline-block; align:center", img(src="Bookmark2.png", height="75%", width="75%")),
+				tags$br(), tags$br(),
+				tags$p(tags$strong("Log Rerun"), tags$br(),
+				  'The Log Rerun tab allows users to selectively run FishSET function calls saved to a project log file.',
+				  'Selecting a log file will display a table of functions and arguments (it is possible for a project to',
+				  'have two or more log files, see “Reset Log” in the Upload tab). Click on the table rows containing',
+				  'function calls to rerun. Functions can be rerun using the original data or by selecting a new dataset',
+				  'from the sidebar menu after checking “Run log with different data table”. Click “Rerun log” to execute',
+				  'the selected function calls.') 
             )
         }
       })
@@ -3418,7 +3470,9 @@ conf_cache_len <- length(get_confid_cache())
                       choices = c("none", colnames(grddat[[input$grid_select]]))),
           selectInput("grid_agg", "Group mean value by",
                       choices = c("latlon", colnames(grddat[[input$grid_select]])),
-                      multiple = TRUE)
+                      multiple = TRUE),
+          selectInput("grid_agg_fun", "Aggregate function", 
+                      choices = c("mean", "median", "min", "max"))
         )
       })
       
@@ -3461,7 +3515,8 @@ conf_cache_len <- length(get_confid_cache())
         grid_values$plot <-
           q_test(gridfile = grddat[[input$grid_select]], project = project$name,
                  lon = input$grid_lon, lat = input$grid_lat, value = input$grid_value, 
-                 split_by = input$grid_split, agg_by = input$grid_agg, gmap = grid_values$gmap)
+                 split_by = input$grid_split, agg_by = input$grid_agg, 
+                 agg_fun = input$grid_agg_fun, gmap = grid_values$gmap)
       }, ignoreInit = TRUE)
       
       output$grid_plot <- renderPlot(grid_values$plot)
@@ -5657,7 +5712,7 @@ conf_cache_len <- length(get_confid_cache())
                          checkboxInput("new_dat_cb", "Run log with different data table"),
                          
                          selectizeInput("new_dat", "Choose primary table",  
-                                        choices = main_tables(), multiple = TRUE,
+                                        choices = main_tables(project$name), multiple = TRUE,
                                         options = list(maxItems = 1)), # sets dat to NULL by default
                          
                          selectizeInput("new_port", "Choose port table", 
