@@ -59,7 +59,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
   #'   \code{\link[haven]{read_spss}} for reading in spss data files,
   #'   \code{\link[haven]{read_sas}} for reading in sas data files, and 
   #'   \code{\link[jsonlite]{fromJSON}} for reading in json files.
-  #'   See \code{read.delim} in \code{\link[utils]{read.table}} for reading in deliminated files. Include the filed separator character \code{sep = ""}
+  #'   \code{\link[utils]{read.table}} for reading in deliminated files. See \code{read.delim}. Include the file separator character \code{sep = ""}
   #'   \code{\link[xml2]{read_xml}} for reading in XML files. Further processing may be required.
   #'   \code{\link[xml2]{read_html}} for reading in html tables.
   #'   See \code{read_sheet} in \code{\link[googlesheets4]{range_read}} for reading in google spreadsheets.
@@ -117,7 +117,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
     read.csv(x, ...)
   } else if (data.type == 'sas7bdat' | data.type == 'sas') {
     as.data.frame(haven::read_sas(x, ...))
-  } else if (data.type == "sav" | data.type == 'sav' | data.type == 'por' | data.type == 'sas') {
+  } else if (data.type == "sav" | data.type == 'spss' | data.type == 'por' | data.type == 'sas') {
     as.data.frame(haven::read_spss(x, ...))
   } else if (data.type == "dta" | data.type == "stata") {
     as.data.frame(haven::read_stata(x, ...))
