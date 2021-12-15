@@ -100,7 +100,7 @@ source("map_viewer_app.R", local = TRUE)
                                                                 Plots and table outputs are saved in an output folder of the project directory. 
                                                               Function calls, including chosen parameters, are saved to the', tags$em('Logs'), 'folder in the projects directory. 
                                                               The', tags$em('Quickstart Guide'), 'subtab provides further assistance on using the FishSET GUI.',
-                                                               "The", tags$em('User Manual'), "provides greater detail and background on functions.",
+                                                               "The", tags$em('User Manual'), "provides greater detail and background on functions."),
                                                         tags$p('For questions and comments please contact: FishSET@noaa.gov'))
                                         )
                                       )
@@ -183,7 +183,7 @@ source("map_viewer_app.R", local = TRUE)
                                       )
                              ) 
                            )
-                           )
+                          # )
                            ),
                   
                   #---
