@@ -425,10 +425,8 @@ load_maindata <- function(dat, project, over_write = TRUE, compare = FALSE, y = 
   #' @export
   #' @details Runs the \code{fishset_compare} function if \code{compare} is TRUE and calls the
   #'  \code{\link{data_verification}} function to check for common data issues and that latitude
-  #'  and longitude are defined. Then generates an index table that contains units,
-  #'  data format, and information on specialized variables. Finally, the dataset
-  #'  is saved in the FishSET database as raw and working tables. The table name is the \code{project}
-  #'  and the table type, 'MainDataTable'. Date is also attached to the name for the
+  #'  and longitude are defined. The dataset is saved in the FishSET database as raw and working tables. 
+  #'  The table name is the \code{project} and the table type, 'MainDataTable'. Date is also attached to the name for the
   #'  raw data. The main data is also loaded into the working environment as ‘projectMainDataTable’.
   #'
   #' @examples

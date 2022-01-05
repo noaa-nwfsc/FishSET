@@ -1,14 +1,14 @@
 
 #' EPM predict
 #' 
-#' Prediction component from logit models (non mixed) called in Policy3, under predict_model_tempNew.m
+#' Prediction component from epm models called in Policy3, under predict_model_tempNew.m
 #'
 #' @param project Name of project
 #' @param alts  Number of alternatives choices in model
 #' @param modname Name of saved model to use
 #' @param mod.type String. Options are weibull, lognormal, normal
 #' @param price Numeric. Price.
-#' @return Returns probability of logit model by choice
+#' @return Returns probability of epm model by choice
 #' @export
 #' @keywords internal
 
