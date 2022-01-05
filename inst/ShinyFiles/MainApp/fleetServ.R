@@ -2337,7 +2337,7 @@ trip_serv <- function(id, values, project) {
   moduleServer(id, function(input, output, session) {
     
     saveFleetServ("saveOut", fun_id = "trip", project = project, 
-                   fun_name = "trip_length", tab_plot = trip_out, 
+                   fun_name = "trip_dur_out", tab_plot = trip_out, 
                    out = reactive(input$out))
     
     ns <- session$ns
@@ -2561,7 +2561,7 @@ trip_serv <- function(id, values, project) {
       validate(need(input$start, "Please select a start date variable."),
                need(input$end, "Please select an end date variable."))
       
-      q_test <- quietly_test(trip_length)
+      q_test <- quietly_test(trip_dur_out)
       q_test(values$dataset, project = project(), start = input$start, end = input$end,
              units = input$unit, vpue = input$vpue, haul_count = input$haul_count,
              group = input$grp, sub_date = sub_date_col(), filter_date = input$filter_date, 

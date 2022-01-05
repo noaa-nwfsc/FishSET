@@ -959,11 +959,11 @@ bycatchUI <- function(id) {
   )
 }
 
-trip_lengthUI <- function(id) {
+trip_durUI <- function(id) {
   
   ns <- NS(id)
   tagList(
-    p("Trip_length assumes the data is at trip level."),
+    p("Trip_dur_out assumes the data is at trip level."),
     selectInput(ns("out"), "View table and/or plot",
                 choices = c("plot and table" = "tab_plot", "plot", "table")),
     

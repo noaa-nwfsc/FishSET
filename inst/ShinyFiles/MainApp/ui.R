@@ -575,7 +575,7 @@ source("map_viewer_app.R", local = TRUE)
                                                 selectInput("fleet_fun", "Select function",
                                                             choices = c("vessel count" = "vessel_count", "species catch" = "species_catch",
                                                                         "rolling catch" = "roll_catch", "weekly catch" = "weekly_catch",
-                                                                        "weekly effort" = "weekly_effort", "bycatch", "trip length" = "trip_length",
+                                                                        "weekly effort" = "weekly_effort", "bycatch", "trip duration" = "trip_dur_out",
                                                                         "density plot" = "density_plot"), 
                                                             multiple = FALSE,
                                                             selected = "vessel_count"),
@@ -605,9 +605,9 @@ source("map_viewer_app.R", local = TRUE)
 
                                                                  bycatchUI("by")),
 
-                                                conditionalPanel("input.fleet_fun == 'trip_length'",
+                                                conditionalPanel("input.fleet_fun == 'trip_dur_out'",
 
-                                                                 trip_lengthUI("trip")),
+                                                                 trip_durUI("trip")),
 
                                                conditionalPanel("input.fleet_fun == 'density_plot'",
 
@@ -667,7 +667,7 @@ source("map_viewer_app.R", local = TRUE)
 
                                                                      fleetOut("by")),
 
-                                                    conditionalPanel("input.fleet_fun == 'trip_length'",
+                                                    conditionalPanel("input.fleet_fun == 'trip_dur_out'",
 
                                                                      fleetOut("trip")),
 
@@ -757,7 +757,7 @@ source("map_viewer_app.R", local = TRUE)
                                             choices = c("csv", "txt", "rdata", "xlsx", 
                                                         "json", "stata", "sas", "spss", "matlab")),
                                 
-                                actionButton("save_final_modal", "Save final table to FishSET DB",
+                                actionButton("save_final_modal", "Save final table to FishSET database",
                                              style = "color: #fff; background-color: #6EC479; border-color:#000000;"),
                                 
                                 tags$hr(style = "border-top: 3px solid #bbb;"),

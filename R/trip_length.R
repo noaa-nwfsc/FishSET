@@ -1,4 +1,4 @@
-# Trip length
+# Trip duration table and plot
 #'
 #'  Display trip duration and value per unit effort
 #'
@@ -70,7 +70,7 @@
 #'   \code{mean}, \code{max}. Cannot be \code{sum} for temporal variables.
 #' @param fun.numeric How to collapse numeric or temporal data. For example, 
 #'   \code{min}, \code{mean}, \code{max}, \code{sum}. Defaults to \code{mean}.
-#' @return \code{trip_length()} calculates vessel trip duration given a start and end date,
+#' @return \code{trip_dur_out()} calculates vessel trip duration given a start and end date,
 #'   converts trip duration to the desired unit of time (e.g. weeks, days, or hours),
 #'   and returns a table and/or plot. There is an option for calculating vpue (value 
 #'   per unit of effort) as well. The data can be filtered by date and/or by a variable.
@@ -83,11 +83,11 @@
 #'   if \code{pages = "single"}. Any variable in the dataset can be used for faceting, 
 #'   but "year", "month", and "week" are also available. Distribution plots can be 
 #'   combined on a single page or printed individually with \code{pages}.
-#' @export trip_length
+#' @export 
 #' @seealso \code{\link{haul_to_trip}}
 #' @examples
 #' \dontrun{
-#' trip_length(pollockMainDataTable,
+#' trip_dur_out(pollockMainDataTable,
 #'   start = "FISHING_START_DATE", end = "HAUL_DATE",
 #'   units = "days", vpue = "OFFICIAL_TOTAL_CATCH", output = "plot",
 #'   tripID = c("PERMIT", "TRIP_SEQ"), fun.numeric = sum, fun.time = min
@@ -103,7 +103,7 @@
 #' @importFrom shiny isRunning
 #' @import ggplot2
 
-trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
+trip_dur_out <- function(dat, project, start, end, units = "days", vpue = NULL,
                         group = NULL, combine = TRUE, haul_count = TRUE, sub_date = NULL,
                         filter_date = NULL, date_value = NULL, filter_by = NULL, 
                         filter_value = NULL, filter_expr = NULL, facet_by = NULL, 
@@ -235,7 +235,7 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
     }
     
     trip_tab <- data.frame(start = dataset[[start]], end = dataset[[end]])
-    t_nm <- paste0("trip_length_", units)
+    t_nm <- paste0("trip_duration_", units)
     trip_tab[[t_nm]] <- trip
     
     
@@ -319,7 +319,7 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
     # remove negative trip durations
     if (remove_neg) trip_tab <- trip_tab[trip_tab[[t_nm]] >= 0, ]
     
-    # columns names for trip length and vpue(s)
+    # columns names for trip duration and vpue(s)
     axis_name <- c(t_nm, vpue_nm)
     p_nm <- unname(axis_name)
     names(axis_name)[1] <- p_nm[1]
@@ -348,7 +348,7 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
                                    format_tab = "long")
           # iterate over list of tables 
           
-          if (is.null(vpue)) { # just trip length
+          if (is.null(vpue)) { # just trip duration
             
             check_out <-
               check_confidentiality(check_out, cc_par$v_id, value_var = "frequency", 
@@ -402,7 +402,7 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
               }
               # save to output folder
               lapply(seq_along(check_out), function(x) {
-                save_table(check_out[[x]], project, paste0("trip_length_confid_", x))
+                save_table(check_out[[x]], project, paste0("trip_duration_confid_", x))
               })
             }
           }
@@ -420,7 +420,7 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
                                           names_repair = "unique")
         }
         
-        save_table(table_out, project, "trip_length")  
+        save_table(table_out, project, "trip_duration")  
         
       } else {
         
@@ -435,7 +435,7 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
         }
         
         lapply(seq_along(table_out), function(x) {
-          save_table(table_out[[x]], project, paste0("trip_length_", x))
+          save_table(table_out[[x]], project, paste0("trip_duration_", x))
         })
       }
       
@@ -449,7 +449,7 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
                          group2 = get0("group2"))
       
       t_plot <- 
-        trip_length_plot(trip_tab, trp_nms = axis_name, vpue, group = group_list, 
+        trip_duration_plot(trip_tab, trp_nms = axis_name, vpue, group = group_list, 
                          facet_by, units, type, dens = density, bins, tran, 
                          format_lab, scale, combine, pages)
       
@@ -478,7 +478,7 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
             # trip_tab <- trip_tab[!is.na(trip_tab[[t_nm]]), ]
             
             check_plot <-
-              trip_length_plot(trip_tab, trp_nms = t_nm, vpue, group = group_list, 
+              trip_duration_plot(trip_tab, trp_nms = t_nm, vpue, group = group_list, 
                                facet_by, units, type, dens = density, bins, tran, 
                                format_lab, scale, combine, pages)
             
@@ -511,7 +511,7 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
               })
             
             check_plot <-
-              trip_length_plot(trip_tab, trp_nms = p_nm, vpue, group = group_list, 
+              trip_duration_plot(trip_tab, trp_nms = p_nm, vpue, group = group_list, 
                                facet_by, units, type, dens = density, bins, tran, 
                                format_lab, scale, combine, pages)
           }
@@ -538,10 +538,10 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
       if (pages == "multi" & !is.null(vpue)) {
         
         lapply(seq_along(t_plot$multi), function(x) {
-          save_plot(project, paste0("trip_length_", x), t_plot$multi[[x]])
+          save_plot(project, paste0("trip_duration_", x), t_plot$multi[[x]])
         })
         
-      } else save_plot(project, "trip_length", t_plot$single)
+      } else save_plot(project, "trip_duratin", t_plot$single)
       
       if (run_confid_check()) {
         
@@ -552,10 +552,10 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
             if (pages == "multi" & !is.null(vpue)) {
               
               lapply(seq_along(check_plot$multi), function(x) {
-                save_plot(project, paste0("trip_length_confid_", x), check_plot$multi[[x]])
+                save_plot(project, paste0("trip_duration_confid_", x), check_plot$multi[[x]])
               })
               
-            } else save_plot(project, "trip_length_confid", check_plot$single)
+            } else save_plot(project, "trip_duration_confid", check_plot$single)
             
           }
         }
@@ -563,15 +563,15 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
     }
     
     # Log function
-    trip_length_function <- list()
-    trip_length_function$functionID <- "trip_length"
-    trip_length_function$args <- list(dat, project, start, end, units, vpue,
+    trip_dur_out_function <- list()
+    trip_dur_out_function$functionID <- "trip_dur_out"
+    trip_dur_out_function$args <- list(dat, project, start, end, units, vpue,
                                       group, combine, haul_count, sub_date, filter_date, 
                                       date_value, filter_by, filter_value, filter_expr,
                                       facet_by, type, bins, density, scale, tran, 
                                       format_lab, pages, remove_neg, output, tripID, 
                                       fun.time, fun.numeric)
-    log_call(project, trip_length_function)
+    log_call(project, trip_dur_out_function)
     
     if (output == "table") table_out
     else if (output == "plot") f_plot()
@@ -586,13 +586,13 @@ trip_length <- function(dat, project, start, end, units = "days", vpue = NULL,
  
 
 
-trip_length_plot <- function(trip_tab, trp_nms, vpue, group, facet_by, units, type, 
+trip_duration_plot <- function(trip_tab, trp_nms, vpue, group, facet_by, units, type, 
                              dens, bins, tran, format_lab, scale, combine, pages) {
-  #' Trip length plot helper
+  #' Trip duration plot helper
   #' 
-  #' Creates and formats plots for \code{trip_length}.
+  #' Creates and formats plots for \code{trip_dur_out}.
   #' 
-  #' @param trip_tab Dataframe passed on from \code{trip_length}.
+  #' @param trip_tab Dataframe passed on from \code{trip_dur_out}.
   #' @param trp_nms Column names of trip length and vpue variables. 
   #' @param vpue Column names of vpue variable(s).
   #' @param group Column names of grouping variable(s).

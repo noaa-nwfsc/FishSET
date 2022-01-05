@@ -366,12 +366,12 @@ conf_cache_len <- length(get_confid_cache())
 			       'appear confirming which tables should be deleted.'),
 			tags$br(), tags$br(),
 			tags$p(tags$strong("Metadata"), tags$br(),
-			       'The Metadata button allows users to load, create, save, and edit metadata for tables saved to the FishSET DB. To',
-			       'manually create metadata, select a project and table from the FishSET DB and select “Load data” on the “Create” tab.',
-			       'A metadata template will be loaded into the main panel based on the table, including fields for each column. To import',
-			       'raw metadata files, select a file using the “Browse” button. File reader options will populate at the bottom of the',
-			       'sidebar based on the file type. Select “Load raw meta” to populate the raw metadata section of the main panel.',
-			       'Select “create meta” to save the metadata to the project file.',
+			       'The blue "Metadata" button at the top of the upload page allows users to load, create, save, and edit metadata', 
+			       'for tables saved to the FishSET database. To manually create metadata, select a project and table from the FishSET database',
+			       'and select “Load data” on the “Create” tab. A metadata template will be loaded into the main panel based on the table,',
+			       'including fields for each column. To import raw metadata files, select a file using the “Browse” button. File reader options',
+			       'will populate at the bottom of the sidebar based on the file type. Select “Load raw meta” to populate the raw metadata',
+			       'section of the main panel. Select “create meta” to save the metadata to the project file.',
 			       'To view, edit, or delete metadata, go to the “Edit” tab and select a table. Changes can be made in the main panel.'
 			       ),
 			tags$br(), tags$br(),
@@ -3527,7 +3527,7 @@ conf_cache_len <- length(get_confid_cache())
       fleet_id <- reactive({
         switch(input$fleet_fun, "vessel_count" = "ves", "species_catch" = "spec",
                "roll_catch" = "roll", "weekly_catch" = "wc", "weekly_effort" = "we",
-               "bycatch" = "by", "trip_length" = "trip", "density_plot" = "den")
+               "bycatch" = "by", "trip_dur_out" = "trip", "density_plot" = "den")
       })
       # Save buttons
       output$fleetSaveOutputUI <- renderUI({
