@@ -38,8 +38,7 @@ predict_probability <- function(probLogit, probDataModelIn, probDataModelOut, zo
  }
   # 
   #probPredictIn((probPredictIn(:,1)==zoneClosedFish),2)=0; % zeros zone
-    #for other closures but assumes that its is in the IN component.. this
-    #will need to be changes/Not necessary any more
+    #for other closures but assumes that its is in the IN component.. this will need to be changed/Not necessary any more
     probPredict <- rbind(probPredictIn, probPredictOut)
     probPredict <- probPredict[match(probPredict[,1], probLogit[,1]),]
     #if isempty(probPredictIn)

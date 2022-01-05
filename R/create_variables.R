@@ -77,7 +77,7 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
   #' @param opts String, how dummy variable should be defined. Choices are \code{"x_y"} and \code{"more_less’"}. For \code{"x_y"}, each
   #'   element of \code{var} is set to 1 if the element matches \code{value}, otherwise 0.
   #'   For \code{"more_less"}, each element of \code{var} less than \code{value} is set to 0 and all elements greater than
-  #'   \code{vrlue} set to 1. If \code{var} is a factor, then elements that match value will be set to 1 and all other
+  #'   \code{value} set to 1. If \code{var} is a factor, then elements that match value will be set to 1 and all other
   #'   elements set to 0. Default is set to \code{"more_less"}.
   #' @param name String, name of created dummy variable. Defaults to name of the function if not defined.
   #' @importFrom lubridate origin as_date
@@ -382,7 +382,7 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   #' @examples
   #' \dontrun{
   #' group_perc(pollockMainDataTable, "pollock", id_group = "PERMIT", group = NULL, 
-  #'            value = "OFFICIAL_TOTAL_CATCH")
+  #'            value = "OFFICIAL_TOTAL_CATCH_MT")
   #'            
   #' group_perc(pollockMainDataTable, "pollock", id_group = "PERMIT",
   #'            group = "DISEMBARKED_PORT", value = "HAUL")
@@ -1111,7 +1111,8 @@ randomize_value_range <- function(dat, project, value, perc = NULL) {
   #'   Defaults to a range of 0.05 - 0.15 (i.e. 5-15 percent of original value). 
   #' @export
   #' @details This is one of the FishSET confidentiality functions. It adjusts a 
-  #'   value by randomly sampling a range of percentages provided in the "perc" argument. 
+  #'   value by adding or substracting (chosen at random for each value) a percentage of the value. The percentage is
+  #'   randomly sampled from a range of percentages provided in the "perc" argument. 
   #' @examples 
   #' \dontrun{
   #' randomize_value_range(pollockMainDataTable, "pollock", "LBS_270_POLLOCK_LBS")
@@ -1173,7 +1174,8 @@ jitter_lonlat <- function(dat, project, lon, lat, factor = 1, amount = NULL) {
   #' @param lon String, variable name containing longitude.
   #' @param lat String, variable name containing latitude.
   #' @param factor Numeric, see \code{\link[base]{jitter}} for details. 
-  #' @param amount Numeric, see \code{\link[base]{jitter}} for details.
+  #' @param amount Numeric, see \code{\link[base]{jitter}} for details. 
+  #'     Default (NULL): factor * d/5 where d is about the smallest difference between x values.
   #' @export
   #' @details This is one of the FishSET confidentiality functions. It "jitters" 
   #'   longitude and latitude using the base R function \code{\link[base]{jitter}}. 
