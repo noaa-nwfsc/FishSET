@@ -153,7 +153,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
         if (!is.null(date)) {
           sub_date <- date
         } else {
-          warning("Spliting by a function-created date variable ('year', ",
+          warning("Splitting by a function-created date variable ('year', ",
                   "'month', or 'week') requires a date variable.")
           end <- TRUE
         }

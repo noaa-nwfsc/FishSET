@@ -19,8 +19,8 @@
 #' @importFrom methods as
 #' @return Returns primary dataset with fishing centroid and, if \code{weight.var} is specified, the weighted fishing centroid. 
 #' @export find_fishing_centroid
-#' @details Fishing centroid define the centroids by mean latitude and longitude fishing locations in each zone. 
-#'     Weighted centroid defines the centroids by the the mean latitude and longitude of fishing locations in each zone weighted by the \code{weight.var}.
+#' @details Fishing centroid defines the centroids by mean latitude and longitude of fishing locations in each zone. 
+#'     Weighted centroid defines the centroids by the mean latitude and longitude of fishing locations in each zone weighted by the \code{weight.var}.
 #'     The fishing and weighted centroid variables can be used anywhere latitude/longitude variables appear.
 #'     Each observation in \code{dat} must be assigned to a fishery or regulatory area/zone. 
 #'     If the zone identifier exists in \code{dat} and is not called \code{'ZoneID'}, then \code{cat} 

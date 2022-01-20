@@ -1,6 +1,6 @@
 #' Define alternative fishing choice 
 #'
-#' Required step. Creates a list defining how alternative fishing choices should be defined. Output is saved to the FishSET database.
+#' Required step. Creates a list identifying how alternative fishing choices should be defined. Output is saved to the FishSET database.
 #'  Run this function before running models.  
 #'
 #' @param dat  Required, main data frame containing data on hauls or trips.
