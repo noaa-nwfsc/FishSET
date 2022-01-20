@@ -4,7 +4,7 @@
 #' @param dat Primary data containing information on hauls or trips.
 #'   Table in the FishSET database contains the string 'MainDataTable'.
 #' @param project Project name.
-#' @param seasonal.dat Name of table containing date of fishery season(s). Can be pulled from the FishSET database.
+#' @param seasonal.dat Table containing date of fishery season(s). Can be pulled from the FishSET database.
 #' @param use.location  Logical, should fishery season dates depend on fishery location? Column names containing
 #'   location in \code{dat} and \code{seasonal.dat} must match.
 #' @param use.geartype Logical, should fishery season dates depend on gear type. Column names containing gear
@@ -19,10 +19,10 @@
 #' @details Uses a table of fishery season dates to create fishery season identifier variables. Output is a SeasonID
 #' variable and/or multiple SeasonID*fishery variables. If fishery season dates vary by location or gear type,
 #' then \code{use.location} and \code{use.geartype} should be TRUE. \cr\cr
-#' The function matches fishery season dates provided in \code{seasonal.dat} to the first date variable in the primary dataset.
-#' The seasonID variable is a vector of fisheries whereas the SeasonID*fishery variables are TRUE/FALSE depending on whether the
+#' The function matches fishery season dates provided in \code{seasonal.dat} to the earliest date variable in the primary dataset.
+#' The seasonID variable is a vector of fishery seasons whereas the SeasonID*fishery variables are TRUE/FALSE depending on whether the
 #' fishery was open on the observed date. \cr\cr
-#' If \code{target} is not defined, then each row of seasonID is defined as the first fishery listed in \code{seasonal.dat} for
+#' If \code{target} is not defined, then each row of seasonID is defined as the earliest fishery listed in \code{seasonal.dat} for
 #' which the fishery season date encompasses the date variable in the primary dataset. If \code{target} fishery is defined, then
 #' SeasonID is defined by whether the target fishery is open on the date in the primary dataset or a different fishery. The
 #' vector is filled with 'target' or 'other'.\cr\cr

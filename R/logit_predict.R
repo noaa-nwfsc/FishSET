@@ -3,7 +3,10 @@
 #' Prediction component from logit models (non mixed) called in Policy3, under predict_model_tempNew.m
 #'
 #' @param project Name of project
-#' @param mod.name Name of saved model to use
+#' @param mod.name Name of saved model to use. Argument can be the name of the model or can pull the name 
+#'   of the saved "best" model. Leave \code{mod.name} empty to use the saved "best" model. If more than
+#'   one model is saved, \code{mod.name} should be the numeric indicator of which model to use.
+#'   Use \code{table_view("modelChosen", project)} to view a table of saved models.
 #' @param expected.catch.name Required for conditonal logit (\code{logit_c}) model. 
 #'   Name of expected catch table to use. 
 #'    Can be the expected catch from the short-term scenario (\code{short}), the medium-term scenario (\code{med}), the 

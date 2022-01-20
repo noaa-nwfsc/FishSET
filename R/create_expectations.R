@@ -4,10 +4,13 @@
 
 #' @param dat  Primary data containing information on hauls or trips.
 #'   Table in FishSET database contains the string 'MainDataTable'.
+#' @param project String, name of project.
 #' @param catch Variable from \code{dat} containing catch data.
 #' @param price Optional, variable from \code{dat} containing price/value data.  Price is multiplied against
 #'   \code{catch} to generated revenue. If revenue exists in \code{dat} and you wish to use this revenue instead of price,
 #'   then \code{catch} must be a vector of 1 of length equal to \code{dat}. Defaults to NULL.
+#' @param defineGroup Optional, variable from \code{dat} that defines how to split the fleet. Defaults to
+#'   treating entire dataframe \code{dat} as a fleet.
 #' @param temporal String, choices are \code{"daily"} or \code{"sequential"}. Should time, if \code{temp.var} is defined,
 #'   be included as a daily timeline or sequential order of recorded dates.  For daily, catch on dates with no record
 #'   are filled with NA. The choice affects how the rolling average is calculated. If temporal is daily then the window
@@ -29,9 +32,6 @@
 #'   of years to go back.
 #' @param dummy.exp Logical, should a dummy variable be created? If TRUE, output dummy variable for originally
 #'   missing value. If FALSE, no dummy variable is outputted. Defaults to FALSE
-#' @param project String, name of project.
-#' @param defineGroup Optional, variable from \code{dat} that defines how to split the fleet. Defaults to
-#'   treating entire dataframe \code{dat} as a fleet.
 #' @param replace.output Logical, replace existing saved expected catch data frame with new expected catch data
 #'   frame? If FALSE, new expected catch data frames appended to previously saved expected catch data frames.
 #'   Default is TRUE

@@ -1,4 +1,4 @@
-#' Apply rolling function to catch
+#' Apply moving average function to catch
 #'
 #' @param dat Main data frame over which to apply function. Table in FishSET database
 #'   should contain the string `MainDataTable`.
