@@ -18,7 +18,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
   #' @param user Use with sql files.  If required, user name for SQL database.
   #' @param password Use with sql files. If required, SQL database password.
   #' @param ... Optional arguments 
-  #' @importFrom sf read_sf
+  #' @importFrom sf read_sf st_read
   #' @importFrom rgdal readOGR
   #' @importFrom R.matlab readMat
   #' @importFrom jsonlite fromJSON
@@ -53,6 +53,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
   #'   \code{\link[utils]{read.table}} for reading in comma and tab deliminated files,
   #'   \code{\link[readxl]{read_excel}} for reading in excel files (xls, xlsx), 
   #'   \code{\link[sf]{st_read}} for reading in geojson files, 
+  #'   \code{\link[sf]{st_read}} for reading in GeoPackage files,
   #'   \code{\link[rdgal]{readOGR}} for reading in shape files,
   #'   \code{\link[R.matlab]{readMat}} for reading in matlab data files,
   #'   \code{\link[haven]{read_dta}} for reading in stata data files,
@@ -111,9 +112,9 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
   } else if (data.type == "json"){
     cat('Data may require additional processing.')
     jsonlite::fromJSON(x, ...)
-  } else if (data.type == "geojson") {
+  } else if (data.type == "geojson"|data.type == 'geopackage' | data.type == 'gpkg') {
     sf::st_read(x, ...)
-  } else if (data.type == "csv") {
+  }  else if (data.type == "csv") {
     read.csv(x, ...)
   } else if (data.type == 'sas7bdat' | data.type == 'sas') {
     as.data.frame(haven::read_sas(x, ...))

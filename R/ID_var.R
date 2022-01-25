@@ -7,10 +7,10 @@
 #' @param project Project name.
 #' @param vars Character string, additional column(s) in \code{dat} that define unique observations.
 #' @param name String, name of new ID column.
-#' @param type String, the class type of the new ID column. Choices are "string" or "integar".
-#'   string" returns a character vector where each column in \code{vars} 
-#'   is combined and separated with an underscore "_". 
-#'   "integer" returns an integer vector where each value corresponds to a unique
+#' @param type String, the class type of the new ID column. Choices are `string`` or `integar`.
+#'   `string` returns a character vector where each column in \code{vars} 
+#'   is combined and separated by \code{sep}. 
+#'   `integer` returns an integer vector where each value corresponds to a unique
 #'   group in \code{vars}.
 #' @param drop Logical, whether to drop columns in \code{vars}.  
 #' @param sep Symbol used to combined variables. 
@@ -23,6 +23,9 @@
 #' \dontrun{
 #' pcodMainDataTable <- ID_var(pcodMainDataTable, "pcod", name = "PermitID", 
 #'         vars = c("GEAR_TYPE", "TRIP_SEQ"), type = 'integar')
+#' pcodMainDataTable <- ID_var(pcodMainDataTable, "pcod", name = "PermitID", 
+#'         vars = c("GEAR_TYPE", "TRIP_SEQ"), type = 'string', sep="_")
+
 #' }
 #'
 ID_var <- function(dat, project, vars, name = NULL, type = "string", drop = FALSE, 
