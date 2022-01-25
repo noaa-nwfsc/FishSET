@@ -145,18 +145,18 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
 }
 
 #' Create dummy variable
-dummy_var <- function(dat, project, DumFill = "TRUE", name = "dummy_var") {
+dummy_var <- function(dat, project, DumFill = 1, name = "dummy_var") {
   #' @param dat Primary data containing information on hauls or trips.
   #' Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project Project name. 
-  #' @param DumFill Fill the dummy variable with TRUE or FALSE
+  #' @param DumFill Fill the dummy variable with 1 or 0
   #' @param name String, name of created dummy variable. Defaults to name of the function if not defined.
   #' @return Primary dataset with dummy variable added.
   #' @export dummy_var
-  #' @details Creates a dummy variable of either FALSE or TRUE with length of the number of rows of the data set.
+  #' @details Creates a dummy variable of either 0 or 1 with length of the number of rows of the data set.
   #' @examples
   #' \dontrun{
-  #' pollockMainDataTable <- dummy_var(pollockMainDataTable, 'pollock', DumFill=TRUE, 'dummyvar')
+  #' pollockMainDataTable <- dummy_var(pollockMainDataTable, 'pollock', DumFill=1, 'dummyvar')
   #' }
 
   # Pull in data
@@ -188,9 +188,9 @@ dummy_matrix <- function(dat, project, x) {
   #' @param project Project name.
   #' @param x Variable in \code{dat} used to generate dummy matrix.
   #' @export dummy_matrix
-  #' @details Creates a dummy matrix of TRUE/FALSE with dimensions \emph{[(number of observations in dataset) x
-  #' (number of factors in x)]} where each column is a unique factor level. Values are TRUE if the value in the
-  #' column matches the column factor level and FALSE otherwise.
+  #' @details Creates a dummy matrix of 1/0 with dimensions \emph{[(number of observations in dataset) x
+  #' (number of factors in x)]} where each column is a unique factor level. Values are 1 if the value in the
+  #' column matches the column factor level and 0 otherwise.
   #' @examples
   #' \dontrun{
   #' PortMatrix <- dummy_matrix(pollockMainDataTable, 'pollock', 'PORT_CODE')
@@ -208,7 +208,7 @@ dummy_matrix <- function(dat, project, x) {
   colnames(int) <- factor.levels
 
   # change matrix to TRUE/FALSE
-  int <- data.frame(lapply(1:length(factor.levels), function(x) ifelse(int[, x] == colnames(int)[x], TRUE, FALSE)))
+  int <- data.frame(lapply(1:length(factor.levels), function(x) ifelse(int[, x] == colnames(int)[x], 1, 0)))
   colnames(int) <- paste(x, "_", levels(as.factor(dataset[[x]])))
 
   create_var_dummy_matrix_function <- list()
