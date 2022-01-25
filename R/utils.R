@@ -1,3 +1,5 @@
+# File directory functions ----
+
 # First a helper function to load packages, installing them first if necessary
 # Returns logical value for whether successful
 ensure_library = function (lib.name){
@@ -60,7 +62,6 @@ choose_directory = function(method = select_directory_method(), title = 'Select 
   )
 }
 
-
 loc <- function(){
 #Where should the file location go? And what to call it?
   #Future - search for this folder location.
@@ -78,7 +79,6 @@ loc <- function(){
   }
   
 }
-
 
 locproject <- function() {
   #' Define projects folder location
@@ -180,7 +180,6 @@ erase_project <- function(project) {
     warning(paste0("Project \"", project, "\" does not exists"))
   }
 }
-
 
 locdatabase <- function(project) {
   #' Define source location
@@ -344,7 +343,9 @@ find_project <- function(dat, project=NULL){
   }
   
 }
+# ----
 
+# QAQC functions ----
 vgsub <- function(pattern, replacement, x, ...) {
   #' vgsub function
   #' @param pattern pattern
@@ -604,8 +605,9 @@ skewness <- function(x, na.rm = FALSE) {
   third.moment <- (1 / (n - 2)) * sum((x - m)^3)
   third.moment / (var(x)^(3 / 2))
 }
+# ----
 
-date_parser <- function(dates) {
+date_parser <- function(dates, args=NULL) {
   #' Parse date variable
   #' @param dates Variable containing dates
   #' @keywords internal
@@ -615,17 +617,17 @@ date_parser <- function(dates) {
   dates <- trimws(dates)
   dates <- sub(" .*", "\\1", dates)
   if (!all(is.na(suppressWarnings(lubridate::mdy(dates))) == T)) {
-    lubridate::mdy(dates)
+    lubridate::mdy(dates, args)
   } else if (!all(is.na(suppressWarnings(lubridate::dmy(dates))) == T)) {
-    lubridate::dmy(dates)
+    lubridate::dmy(dates, args)
   } else if (!all(is.na(suppressWarnings(lubridate::ymd(dates))) == T)) {
-    lubridate::ymd(dates)
+    lubridate::ymd(dates, args)
   } else if (!all(is.na(suppressWarnings(lubridate::ydm(dates))) == T)) {
-    lubridate::ydm(dates)
+    lubridate::ydm(dates, args)
   } else if (!all(is.na(suppressWarnings(lubridate::myd(dates))) == T)) {
-    lubridate::myd(dates)
+    lubridate::myd(dates, args)
   } else if (!all(is.na(suppressWarnings(lubridate::dym(dates))) == T)) {
-    lubridate::dym(dates)
+    lubridate::dym(dates, args)
   } else {
     stop("Date format not recognized. Format date before proceeding")
   }
@@ -689,7 +691,7 @@ date_check <- function(dat, date) {
   } else if (all(grepl("^\\d{4}-\\d{2}-\\d{2}$", dat[[date]]))) {
     dat[[date]] <- date_parser(dat[[date]])
   } else {
-    warning("Start date format not recognized.")
+    warning("Date format not recognized.")
     end <- TRUE
   }
 
@@ -1020,7 +1022,6 @@ subset_date <- function(dataset, date, filter, value) {
   dataset
 }
 
-
 subset_var <- function(dataset, filter_by = NULL, filter_value = NULL, filter_expr = NULL) {
   #' Subset `MainDataTable` by variable
   #' 
@@ -1065,6 +1066,7 @@ subset_var <- function(dataset, filter_by = NULL, filter_value = NULL, filter_ex
     dataset
   } 
 
+# Plotting helper functions ----
 fishset_theme <- function() {
 #' Default FishSET plot theme
 #' 
@@ -1174,6 +1176,122 @@ periods_list <- list(
   "%U" = 1:52
 )
 
+facet_period <- function(dataset, facet_date, date, period = NULL) {
+  #' Create date variables for facetting
+  #' 
+  #' @param dataset Dataset used to create tables/plots in function.
+  #' @param facet_date String, period to facet by ("year", "month", and "week").
+  #' @param date String, Data variable used to convert to periods.
+  #' @param period String, period name. Only needed if summarizing over time. 
+  #' @keywords internal
+  
+  # checks for duplicates 
+  if (!is.null(period)) {
+    
+    if (any(period == facet_date)) facet_date <- facet_date[-which(facet_date == period)]
+  } 
+  
+  if (any(facet_date %in% names(dataset))) {
+    
+    facet_date <- facet_date[-which(facet_date %in% names(dataset))]
+  }
+  
+  if (!is_value_empty(facet_date)) {
+    
+    dataset[facet_date] <- lapply(facet_date, function(x) {
+      
+      per <- switch(x, "year" = "%Y", "month" = "%b", "week" = "%U")
+      
+      if (per == "%b") {
+        
+        factor(format(dataset[[date]], per), levels = month.abb, ordered = TRUE) 
+        
+      } else as.integer(format(dataset[[date]], per))
+    })
+  }
+  
+  dataset
+}
+
+date_title <- function(plot, filter_date, date_value) {
+  #' Add date to ggplot title
+  #' @keywords internal
+  #' @export
+  #' @param plot ggplot2 plot object to add new title to.
+  #' @param filter_date The \code{filter_date} parameter in function.
+  #' @param date_value The values used to filter the data table used in plot.
+  #' @return A plot with the year, month, or year-month included in tittle.
+
+  fv_len <- length(date_value)
+
+  if (filter_date == "year") {
+    if (fv_len == 1) {
+      plot$labels$subtitle <- paste0("Year: ", date_value)
+    } else {
+      plot$labels$subtitle <- paste0(
+        "Year: ",
+        date_value[1], "-", date_value[fv_len]
+      )
+    }
+  } else if (filter_date == "month") {
+    
+    month <- switch(date_value, "1" = "Jan", "2" = "Feb", "3" = "Mar", "4" = "Apr",
+                    "5" = "May", "6" = "Jun", "7" = "Jul", "8" = "Aug", "9" = "sep", 
+                    "10" = "Oct", "11" = "Nov", "12" = "Dec")
+
+    if (fv_len == 1) {
+      plot$labels$subtitle <- paste0(month)
+    } else {
+      plot$labels$subtitle <- paste0(month[1], "-", month[fv_len])
+    }
+  } else if (filter_date == "year-month") {
+    y_num <- date_value[[1]]
+    m_num <- date_value[[2]]
+    y_len <- length(y_num)
+    m_len <- length(m_num)
+    
+    month <- switch(m_num, "1" = "Jan", "2" = "Feb", "3" = "Mar", "4" = "Apr",
+                    "5" = "May", "6" = "Jun", "7" = "Jul", "8" = "Aug", "9" = "sep", 
+                    "10" = "Oct", "11" = "Nov", "12" = "Dec")
+
+    if (y_len == 1 & m_len == 1) {
+      plot$labels$subtitle <- paste(month, y_num)
+    } else if (y_len > 1 & m_len == 1) {
+      plot$labels$subtitle <- paste0(month, " ", y_num[1], "-", y_num[y_len])
+    } else if (y_len == 1 & m_len > 1) {
+      plot$labels$subtitle <- paste0(month[1], "-", month[m_len], " ", y_num)
+    } else if (y_len > 1 & m_len > 1) {
+      plot$labels$subtitle <- paste0(
+        month[1], "-", month[m_len], " ",
+        y_num[1], "-", y_num[y_len]
+      )
+    } else {
+      warning("Invalid year-month length.")
+    }
+  }
+
+  plot
+}
+
+week_labeller <- function(breaks, year) {
+  #' X-axis scale labeller for weekly data
+  #' @param breaks scale label breaks 
+  #' @param year vector of years from summary table
+  #' @export
+  #' @keywords internal
+  #' @importFrom lubridate weeks
+  #'
+  
+  if (is.factor(year)) year <- as.character(year)
+  
+  min_year <- min(year)
+  wk_lab <- as.Date(paste0(min_year, "-01-01"))
+  
+  wk_lab <- wk_lab + lubridate::weeks(breaks)
+  
+  format(wk_lab, "%b %d")
+}
+#----
 order_factor <- function(dat, fac, val, rev = FALSE) {
   #'
   #' Order variable
@@ -1240,43 +1358,6 @@ date_factorize <- function(dataset, date_col, date_code) {
   dataset
 }
 
-facet_period <- function(dataset, facet_date, date, period = NULL) {
-  #' Create date variables for facetting
-  #' 
-  #' @param dataset Dataset used to create tables/plots in function.
-  #' @param facet_date String, period to facet by ("year", "month", and "week").
-  #' @param date String, Data variable used to convert to periods.
-  #' @param period String, period name. Only needed if summarizing over time. 
-  #' @keywords internal
-  
-  # checks for duplicates 
-  if (!is.null(period)) {
-    
-    if (any(period == facet_date)) facet_date <- facet_date[-which(facet_date == period)]
-  } 
-  
-  if (any(facet_date %in% names(dataset))) {
-    
-    facet_date <- facet_date[-which(facet_date %in% names(dataset))]
-  }
-  
-  if (!is_value_empty(facet_date)) {
-    
-    dataset[facet_date] <- lapply(facet_date, function(x) {
-      
-      per <- switch(x, "year" = "%Y", "month" = "%b", "week" = "%U")
-      
-      if (per == "%b") {
-        
-        factor(format(dataset[[date]], per), levels = month.abb, ordered = TRUE) 
-        
-      } else as.integer(format(dataset[[date]], per))
-    })
-  }
-  
-  dataset
-}
-
 text_filepath <- function(project, fun_name) {
   #' Create a filepath for a .txt document in the output folder
   #' @keywords internal
@@ -1290,85 +1371,6 @@ text_filepath <- function(project, fun_name) {
   #' }
 
   paste0(locoutput(project=project), project, "_", fun_name, Sys.Date(), ".txt")
-}
-
-week_labeller <- function(breaks, year) {
-  #' X-axis scale labeller for weekly data
-  #' @param breaks scale label breaks 
-  #' @param year vector of years from summary table
-  #' @export
-  #' @keywords internal
-  #' @importFrom lubridate weeks
-  #'
-  
-  if (is.factor(year)) year <- as.character(year)
-  
-  min_year <- min(year)
-  wk_lab <- as.Date(paste0(min_year, "-01-01"))
-  
-  wk_lab <- wk_lab + lubridate::weeks(breaks)
-  
-  format(wk_lab, "%b %d")
-}
-
-date_title <- function(plot, filter_date, date_value) {
-  #' Add date to ggplot title
-  #' @keywords internal
-  #' @export
-  #' @param plot ggplot2 plot object to add new title to.
-  #' @param filter_date The \code{filter_date} parameter in function.
-  #' @param date_value The values used to filter the data table used in plot.
-  #' @return A plot with the year, month, or year-month included in tittle.
-
-  fv_len <- length(date_value)
-
-  if (filter_date == "year") {
-    if (fv_len == 1) {
-      plot$labels$subtitle <- paste0("Year: ", date_value)
-    } else {
-      plot$labels$subtitle <- paste0(
-        "Year: ",
-        date_value[1], "-", date_value[fv_len]
-      )
-    }
-  } else if (filter_date == "month") {
-    
-    month <- switch(date_value, "1" = "Jan", "2" = "Feb", "3" = "Mar", "4" = "Apr",
-                    "5" = "May", "6" = "Jun", "7" = "Jul", "8" = "Aug", "9" = "sep", 
-                    "10" = "Oct", "11" = "Nov", "12" = "Dec")
-
-    if (fv_len == 1) {
-      plot$labels$subtitle <- paste0(month)
-    } else {
-      plot$labels$subtitle <- paste0(month[1], "-", month[fv_len])
-    }
-  } else if (filter_date == "year-month") {
-    y_num <- date_value[[1]]
-    m_num <- date_value[[2]]
-    y_len <- length(y_num)
-    m_len <- length(m_num)
-    
-    month <- switch(m_num, "1" = "Jan", "2" = "Feb", "3" = "Mar", "4" = "Apr",
-                    "5" = "May", "6" = "Jun", "7" = "Jul", "8" = "Aug", "9" = "sep", 
-                    "10" = "Oct", "11" = "Nov", "12" = "Dec")
-
-    if (y_len == 1 & m_len == 1) {
-      plot$labels$subtitle <- paste(month, y_num)
-    } else if (y_len > 1 & m_len == 1) {
-      plot$labels$subtitle <- paste0(month, " ", y_num[1], "-", y_num[y_len])
-    } else if (y_len == 1 & m_len > 1) {
-      plot$labels$subtitle <- paste0(month[1], "-", month[m_len], " ", y_num)
-    } else if (y_len > 1 & m_len > 1) {
-      plot$labels$subtitle <- paste0(
-        month[1], "-", month[m_len], " ",
-        y_num[1], "-", y_num[y_len]
-      )
-    } else {
-      warning("Invalid year-month length.")
-    }
-  }
-
-  plot
 }
 
 deparse_name <- function(dat) {
@@ -1485,6 +1487,7 @@ gridcheck <- function(spatialdat, catdat, londat=NULL, latdat=NULL, lon.grid=NUL
   }
   gridfile <- sf::st_shift_longitude(spatialdat)
 }
+
 ## ----Shiny util functions-----
 outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plot_type) {
   #' Evaluate outliers through plots
@@ -1699,6 +1702,7 @@ deleteButtonColumn <- function(df, id, ...) {
                 ))
 }
 #Check if project folder exists. If not. Add it.
+# ----
 
 parseDeleteEvent <- function(idstr) {
   #' Extracts the row id number from the id string
@@ -1711,6 +1715,7 @@ parseDeleteEvent <- function(idstr) {
   if (! is.na(res)) res
 }
 
+# Helper functions to find specific types of variables (date, port, catch, etc) ---- 
 find_lon <- function(dat) {
  #' Find columns that may be longitude data
  #' @param dat Dataset to search over
@@ -1774,7 +1779,6 @@ find_port <- function(dat) {
   grep("port", colnames(dat), ignore.case = TRUE, value = TRUE)
 }
 
-
 find_duration <- function(dat) {
   #' Find columns that may contain durations 
   #' @param dat Dataset to search over
@@ -1795,7 +1799,6 @@ find_value <- function(dat) {
   grep("dollar|val|euro|price|cost|earn", colnames(dat), ignore.case = TRUE, 
        value = TRUE)
 }
-
 
 numeric_cols <- function(dat, out = "names") {
   #' Find numeric columns in data frame
@@ -1899,6 +1902,7 @@ date_cols <- function(dat, out = "names") {
     date_lgl
   }
 }
+# ----
 
 find_dev <- function(x, y){
 #'  
@@ -1995,22 +1999,5 @@ pull_shiny_output <- function(project, fun = NULL, type = "plot", conf = TRUE) {
 
   
 
-# shiny_running = function () {
-# Look for `runApp` call somewhere in the call stack.
-#  frames = sys.frames()
-#  calls = lapply(sys.calls(), `[[`, 1)
-#  call_name = function (call)
-#    if (is.function(call)) '<closure>' else deparse(call)
-#  call_names = vapply(calls, call_name, character(1))
 
-#  target_call = grep('^runApp$', call_names)
-
-#  if (length(target_call) == 0)
-#    return(FALSE)
-
-# Found a function called `runApp`, verify that it’s Shiny’s.
-#  target_frame = frames[[target_call]]
-#  namespace_frame = parent.env(target_frame)
-#  isNamespace(namespace_frame) && environmentName(namespace_frame) == 'shiny'
-# }
 
