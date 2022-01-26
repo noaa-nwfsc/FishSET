@@ -13,6 +13,7 @@
 #' @param lat.grid Required for csv files. Variable or list from \code{gridfile} containing latitude data.  Leave as NULL if \code{gridfile} is a shape or json file.
 #' @importFrom sf st_as_sf st_shift_longitude
 #' @importFrom yaml write_yaml
+#' @importFrom grDevices topo.colors
 #' @import leaflet
 #' @import shiny
 #' @import dplyr
@@ -33,7 +34,7 @@ zone_closure <- function(project, gridfile, cat, secondgridfile=NULL, secondcat=
   if(!is.null(secondgridfile)){
     secondgridfile <- gridcheck(spatialdat = secondgridfile, catdat=secondcat, londat=NULL, latdat=NULL)
     secondgridfile[[secondcat]] <- as.factor(secondgridfile[[secondcat]])
-    qpal <- colorFactor(topo.colors(length(unique(secondgridfile[[secondcat]]))), secondgridfile[[secondcat]], 
+    qpal <- colorFactor(grDevices::topo.colors(length(unique(secondgridfile[[secondcat]]))), secondgridfile[[secondcat]], 
                         unique(secondgridfile[[secondcat]]))
   }
   

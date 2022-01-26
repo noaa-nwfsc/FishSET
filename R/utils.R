@@ -19,6 +19,8 @@ ensure_library = function (lib.name){
 select_directory_method = function() {
   #' Search for method to select directory
   #' @keywords internal
+  #' @importFrom utils choose.dir install.packages str
+  #' @importFrom rstudioapi isAvailable getVersion
   #' @export
   #' @details  Tries out a sequence of potential methods for selecting a directory to find one that works 
   #'    The fallback default method if nothing else works is to get user input from the console
@@ -1455,7 +1457,6 @@ repmat <- function(X, m, n){
   return(matrix(t(matrix(X,mx,nx*n)),mx*m,nx*n,byrow=T))
 }
 
-
 gridcheck <- function(spatialdat, catdat, londat=NULL, latdat=NULL, lon.grid=NULL, lat.grid=NULL){
   #' Check that spatial data is a sf object. Convert if not.
   #' @param spatialdat The spatial dataframe
@@ -1788,7 +1789,6 @@ find_duration <- function(dat) {
   grep("date|min|hour|week|month|TRIP_START|TRIP_END", 
        names(values$dataset), ignore.case = TRUE, value = TRUE)
 }
-
 
 find_value <- function(dat) {
   #' Find columns that may contain value  

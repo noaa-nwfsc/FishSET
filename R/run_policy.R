@@ -2,19 +2,18 @@
 #' 
 #' Checks policy scenario exists. Runs predict_probability function. Runs welfare_predict function
 #' @param project Name of project
-#' @param mod.name Name of saved model to use
+#' @param mod.name  Model name. Argument can be the name of the model or the name can be pulled the `modelChosen`` table.
+#'    Leave \code{mod.name} empty to use the name of the saved `best` model. If more than
+#'   one model is saved, \code{mod.name} should be the numeric indicator of which model to use.
+#'   Use \code{table_view("modelChosen", project)} to view a table of saved models.
 #' @param enteredPrice Price data. Leave as NULL if using price data from primary dataset.
 #' @param expected.catch.name Required for conditonal logit (\code{logit_c}) model. 
 #'   Name of expected catch table to use. 
 #'    Can be the expected catch from the short-term scenario (\code{short}), the medium-term scenario (\code{med}), the 
 #'    long-term scenario (\code{long}), or the user-defined temporal parameters (\code{user}).
-#' @param gridfile Required only if \code{zone.closure} is not defined. spatial data file containing information on fishery management or regulatory zones boundaries.
-#'   Shape, json, geojson, and csv formats are supported. geojson is the preferred format. json files must be converted
-#'   into geoson. This is done automatically when the file is loaded with \code{\link{read_dat}} with \code{is.map} set to true.
-#'   \code{gridfile} cannot, at this time, be loaded from the FishSET database. \cr
-#' @param cat Required only if \code{zone.closure} is not defined. Variable in \code{gridfile} that identifies the individual areas or zones.
-#' @param lon.grid Required only if \code{zone.closure} is not defined and \code{gridfile} is a csv file.
-#' @param lat.grid Required only if \code{zone.closure} is not defined and \code{gridfile} is a csv file.
+#' @details \code{run_policy} is a wrapper function that calls the policy and welfare subfunctions. Policy closure scenarios 
+#'   must be defined using the \code{\link[FishSET]{zone_closure}} function. The function also requires parameter 
+#'   estimates and model data from one model. 
 
 
 ### NOTES: Need to make sure closure areas and fishery zones match
@@ -29,8 +28,7 @@
 #welfare_predict
 #  sim_welfare
 
-run_policy <- function(project, mod.name=NULL, enteredPrice=NULL, expected.catch.name=NULL, 
-                       gridfile = NULL, cat=NULL, lon.grid=NULL, lat.grid=NULL){
+run_policy <- function(project, mod.name=NULL, enteredPrice=NULL, expected.catch.name=NULL){
   
 
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
@@ -41,28 +39,42 @@ run_policy <- function(project, mod.name=NULL, enteredPrice=NULL, expected.catch
   if(utils::file_test("-f",paste0(locoutput(project), pull_output(project, type='zone', fun='closures')))) {
     closures <- yaml::read_yaml(paste0(locoutput(project), pull_output(project, type='zone', fun='closures')))
   } else {
-    # Open zone closure function in file not found  
-    if(!is.null(gridfile) && !is.null(cat)){
-    zone_closure(project=project, gridfile=gridfile, cat=cat, lon.grid=lon.grid, lat.grid=lat.grid)
-    closures <- yaml::read_yaml(paste0(locoutput(project), pull_output(project, type='zone', fun='closures')))
+    stop('No policy scenario tables found. Run the zone_closure function.')
+  }
+  
+  
+  #2 Check that the model can be found
+  
+  #Get model name
+  if(is.null(mod.name)||is.numeric(mod.name)){
+    # check that the model chosen table exists
+    if(table_exists('modelChosen', project)){
+      modtemp <- table_view('modelChosen', project)$model
+      if(length(modtemp) >1){
+        if(!is.numeric(mod.name))
+          stop('More than one mode exists in the modelChosen table. See table_view("modelChosen", project) and rerun function with either the model name or the numeric indicator of the model.')
+        if(is.numeric(mod.name))
+          modname <- modtemp[mod.name]
+      } else
+        modname <- modtemp[1]
     } else {
-      warning('Closure table not found. Run the zone_closure function.')
+      stop('modelChosen table does not exist. Specify model name or select the model using select_model(project).')
     }
+  } else {
+    modname <- mod.name
   }
   
   #2. Force users to look at closure file
-    #Need to create a map
-    # Message to look at zones and check for match/mismatch
-    # Message to inform users what to do about mismatch
+    # This is done in the zone closure tab
   
   #3. Run model_prediction function
-  model_prediction(project=project, mod.name=mod.name, expected.catch.name=expected.catch.name, enteredPrice)
+  model_prediction(project=project, mod.name=modname, expected.catch.name=expected.catch.name, enteredPrice)
   
   #4. Output should be temporarily saved to pass to the next function
   #pOutput <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT PredictOutput FROM ", project, "predictoutput LIMIT 1"))$PredictOutput[[1]])
   
   #5. Run welfare predict
-    welfareout <- welfare_predict(project=project, mod.name, expected.catch.name=expected.catch.name, enteredPrice=enteredPrice)
+    welfareout <- welfare_predict(project=project, mod.name=modname, expected.catch.name=expected.catch.name, enteredPrice=enteredPrice)
     
   #6. Save output and return tables and plots
   
