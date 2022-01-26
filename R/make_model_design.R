@@ -45,7 +45,7 @@
 #'   Variable names details: \cr
 #' \tabular{lllllll}{
 #' \tab \strong{vars1} \tab \strong{vars2} \tab \cr \cr
-#' \strong{logit_c}: \tab 
+#' \strong{logit_c:} \tab 
 #'     \preformatted{"travel-distance variables" are
 #'     alternative-invariant variables that are
 #'     interacted with travel distance to form the cost
@@ -60,7 +60,7 @@
 #'     (number of alternatives), and returns a single
 #'     parameter for each variable (e.g. the marginal
 #'     utility from catch).} \cr \cr
-#' \strong{logit_avgcat}: \tab 
+#' \strong{logit_avgcat:} \tab 
 #'     \preformatted{"travel-distance variables" are
 #'     alternative-invariant variables that are
 #'     interacted with travel distance to form the cost
@@ -78,7 +78,7 @@
 #'     is needed as the probabilities sum to one.
 #'     Interpretation is therefore relative to the
 #'     first alternative.} \cr \cr
-#' \strong{epm_normal}: \tab 
+#' \strong{epm_normal:} \tab 
 #'     \preformatted{"travel-distance variables" are
 #'     alternative-invariant variables that are
 #'     interacted with travel distance to form the
@@ -94,7 +94,7 @@
 #'     dimensions (number of observations) by (unity),
 #'     and returns (k) parameters where (k) equals
 #'     the number of alternatives.} \cr \cr
-#' \strong{epm_lognormal}: \tab 
+#' \strong{epm_lognormal:} \tab 
 #'     \preformatted{"travel-distance variables" are
 #'     alternative-invariant variables that are
 #'     interacted with travel distance to form the
@@ -110,7 +110,7 @@
 #'     dimensions (number of observations) by (unity),
 #'     and returns (k) parameters where (k) equals
 #'     the number of alternatives.} \cr \cr
-#' \strong{epm_weibull}: \tab 
+#' \strong{epm_weibull:} \tab 
 #'     \preformatted{"travel-distance variables" are
 #'     alternative-invariant variables that are
 #'     interacted with travel distance to form the cost
@@ -126,7 +126,7 @@
 #'     (number of observations) by (unity), and returns
 #'     (k) parameters where (k) equals the number of
 #'     alternatives.} \cr \cr
-#' \strong{logit_correction}: \tab 
+#' \strong{logit_correction:} \tab 
 #'     \preformatted{"travel-distance variables" are
 #'     alternative-invariant variables that are
 #'     interacted with travel distance to form the cost
@@ -144,8 +144,10 @@
 #'     alternatives.} \cr \cr
 #' }
 #' @return
-#' Function creates the model matrix list that contains the data and modeling choices. The model design list is saved to the FishSET database and called by the \code{\link{discretefish_subroutine}}.
-#' Alternative fishing options come from the Alternative Choice list, generated from the \code{\link{create_alternative_choice}} function, and the expected catch matrices from the \code{\link{create_expectations}}
+#' Function creates the model matrix list that contains the data and modeling choices. The model design list is saved to the FishSET database and 
+#'   called by the \code{\link{discretefish_subroutine}}.
+#' Alternative fishing options come from the `Alternative Choice`` list, generated from the \code{\link{create_alternative_choice}} function,
+#'  and the expected catch matrices from the \code{\link{create_expectations}}
 #' function. The distance from the starting point to alternative choices is calculated. \cr\cr
 #'   Model design list: \cr
 #'   \tabular{rlll}{

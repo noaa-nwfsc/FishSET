@@ -5,7 +5,6 @@
 #' Metadata is stored in the user's project folder. 
 #' @export
 #' @import shiny
-#' @seealso 
 #' @details The app has two tabs: "Create" and "Edit". The Create tab allows users
 #'   to create new metadata for a selected FishSET table. When a table is loaded,
 #'   the app creates several text boxes that the user can fill. There are 

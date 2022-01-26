@@ -52,6 +52,7 @@ list_logs <- function(project = NULL, chron = FALSE, modified = FALSE) {
   #' @param project Project name. Displays all logs if NULL.
   #' @param chron Logical, whether to display logs in chronological order (TRUE) or
   #'   reverse chronological order (FALSE). 
+  #' @param modified Logical
   #' @export
   
   if (is.null(project)) {

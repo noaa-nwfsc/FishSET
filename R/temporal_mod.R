@@ -10,6 +10,7 @@
 #' See Details for more information.
 #' @param name String, name of created variables. Defaults to `TempMod`.
 #' @param log_fun Logical, whether to log function call (for internal use).
+#' @param ... Additional arguments. Use \code{tz=''} to specify time zone.
 #' @keywords Date as.Date
 #' @return Primary dataset with new variable added.
 #' @details Converts a date variable to desired units using \code{\link[base]{as.Date}}. \code{\link{date_parser}} is
