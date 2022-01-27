@@ -19,7 +19,6 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
   #' @param password Use with sql files. If required, SQL database password.
   #' @param ... Optional arguments 
   #' @importFrom sf read_sf st_read
-  #' @importFrom rgdal readOGR
   #' @importFrom R.matlab readMat
   #' @importFrom jsonlite fromJSON
   #' @importFrom haven read_spss read_stata read_sas
@@ -52,9 +51,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
   #'   For more details, see \code{\link[base]{load}} for loading R objects, 
   #'   \code{\link[utils]{read.table}} for reading in comma and tab deliminated files,
   #'   \code{\link[readxl]{read_excel}} for reading in excel files (xls, xlsx), 
-  #'   \code{\link[sf]{st_read}} for reading in geojson files, 
-  #'   \code{\link[sf]{st_read}} for reading in GeoPackage files,
-  #'   \code{\link[rdgal]{readOGR}} for reading in shape files,
+  #'   \code{\link[sf]{st_read}} for reading in geojson , GeoPackage files, and shape files,
   #'   \code{\link[R.matlab]{readMat}} for reading in matlab data files,
   #'   \code{\link[haven]{read_dta}} for reading in stata data files,
   #'   \code{\link[haven]{read_spss}} for reading in spss data files,
@@ -123,8 +120,8 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
   } else if (data.type == "dta" | data.type == "stata") {
     as.data.frame(haven::read_stata(x, ...))
   } else if (data.type == 'shp' | data.type == "shape") {
-    out <- rgdal::readOGR(dsn=x, verbose=FALSE, ...)
-    out <- sf::st_as_sf(out)
+    out <- sf::st_read(x, ...)
+    #out <- sf::st_as_sf(out)
     out <- st_transform(out, "+proj=longlat +ellps=WGS84 +datum=WGS84")
   } else if (data.type == "xls" | data.type == 'xlsx' | data.type == 'excel'){
     as.data.frame(readxl::read_excel(x, ...))
@@ -188,13 +185,16 @@ write_dat <- function (dat, path=NULL, file_type = "csv", project, ...) {
   #'    \code{\link[haven]{read_dta}} for Stata files, 
   #'    \code{\link[haven]{read_spss}} for SPSS files, 
   #'    \code{\link[haven]{read_sas}} for SAS files, and 
-  #'    \code{\link[R.matlab]{writeMat}} for Matlab files. 
+  #'    \code{\link[R.matlab]{writeMat}} for Matlab files, and
+  #'    \code{\link[sf]{st_write}} for shape files.
   #'@examples
   #'\dontrun{
   #' # Save to the default data folder in project directory
   #'    write_dat(pollockMainDataTable, type = "csv", "pollock")
   #' # Save to defined directory location
   #'    write_dat(pollockMainDataTable, path = "C://data/pollock_dataset.csv", type = "csv", "pollock")
+  #' #Save shape file
+  #'    write_date(ST6, path = "C://data//ST6.shp", type="shp", project='Pollock')
   #' }
   
   out <- data_pull(dat, project)
@@ -229,9 +229,8 @@ write_dat <- function (dat, path=NULL, file_type = "csv", project, ...) {
     sf::st_write(dataset, dsn = paste0(path, dat, ".geojson"))
     
   } else if (file_type == 'shape') {
-    #Convert to geojson and then save
-    dataset <- geojsonio::geojson_json(dataset)
-    sf::st_write(dataset, dsn = paste0(path, dat, ".geojson"))
+    
+    sf::st_write(dataset, dsn = paste0(path, dat, ".shp"), driver="ESRI Shapefile")
     
   } else if (file_type == "stata") {
     
