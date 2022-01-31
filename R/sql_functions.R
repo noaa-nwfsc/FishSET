@@ -229,7 +229,7 @@ projects <- function() {
   #' } 
   #' 
  
-  
+  if (exists("loc2")) loc2 <- loc2
   if (!exists('loc2')||is.null(loc2)) {
     projloc <- paste0(system.file(package = "FishSET"), '/projects')
   } else {

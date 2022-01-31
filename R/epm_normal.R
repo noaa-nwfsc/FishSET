@@ -172,7 +172,7 @@ griddat <- matrix(apply(griddat, 2, function(x) rep(x, times = alts)), obsnum, g
 
   ldglobalcheck <- list(model = paste0(project, expname, mod.name), ldsumglobalcheck = ldsumglobalcheck, paramsglobalcheck = paramsglobalcheck, ldglobalcheck = ldglobalcheck)
 
-  assign("ldglobalcheck", value = ldglobalcheck, pos = 1, env =fishset_env)
+  assign("ldglobalcheck", value = ldglobalcheck, pos = 1, envir =fishset_env)
 
   return(ld)
 }

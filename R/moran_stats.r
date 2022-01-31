@@ -27,7 +27,6 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
   #' to identify centroid and assign variable of interest to area/zone are optional and default to NULL.
   #' @return Returns a plot and map of Moran’s I. Output is saved to the Output folder.
   #' @import ggplot2
-  #' @importFrom maps map
   #' @importFrom spdep knn2nb knearneigh nb2listw localmoran moran.test
   #' @importFrom sf st_coordinates st_centroid st_geometry
   #' @importFrom shiny isRunning

@@ -29,7 +29,6 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
   #' @return Returns a plot and table. Both are saved to the output folder.
   # @aliases  moranmap: ggplot2 object; morantable: table of statistics
   #' @import ggplot2
-  #' @importFrom maps map
   #' @importFrom spdep knn2nb knearneigh nb2listw localG globalG.test
   #' @importFrom sf st_coordinates st_centroid st_geometry
   #' @importFrom shiny isRunning

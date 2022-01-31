@@ -13,7 +13,10 @@
 
 #' Model prediction function
 #' @param project Name of project
-#' @param mod.name Name of saved model to use
+#' @param mod.name Model name. Argument can be the name of the model or the name can be pulled the modelChosen table.
+#'    Leave \code{mod.name} empty to use the name of the saved "best" model. If more than
+#'   one model is saved, \code{mod.name} should be the numeric indicator of which model to use.
+#'   Use \code{table_view("modelChosen", project)} to view a table of saved models.
 #' @param expected.catch.name Required for conditonal logit (\code{logit_c}) model. 
 #'   Name of expected catch table to use. 
 #'    Can be the expected catch from the short-term scenario (\code{short}), the medium-term scenario (\code{med}), the 
@@ -36,6 +39,27 @@ model_prediction <- function(project, mod.name, expected.catch.name=NULL, entere
 #Required values
 nreps <- 100
 
+#Get model data
+#Get model name
+if(is.null(mod.name)||is.numeric(mod.name)){
+  # check that the model chosen table exists
+  if(table_exists('modelChosen', project)){
+    modtemp <- table_view('modelChosen', project)$model
+    if(length(modtemp) >1){
+      if(!is.numeric(mod.name))
+        stop('More than one mode exists in the modelChosen table. See table_view("modelChosen", project) and rerun function with either the model name or the numeric indicator of the model.')
+      if(is.numeric(mod.name))
+        modname <- modtemp[mod.name]
+    } else
+      modname <- modtemp[1]
+  } else {
+    stop('modelChosen table does not exist. Specify model name or select the model using select_model(project).')
+  }
+} else {
+  modname <- mod.name
+}
+
+
 #. First - create the data
 
 # Call in datasets
@@ -43,7 +67,9 @@ fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
 on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
 
 x_temp <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
-x_new <- x_temp[[which(lapply( x_temp , "[[" , "mod.name" ) == mod.name)]]
+if(!any(modname %in% lapply( x_temp , "[[" , "mod.name" )))
+  stop("Model design file was not found for", modname)
+x_new <- x_temp[[which(lapply( x_temp , "[[" , "mod.name" ) == modname)]]
 
 #Create data matrix
 choice_raw <- x_new[["choice"]]
@@ -118,7 +144,7 @@ if (grepl('logit', x_new$likelihood)) {
   InOutLogit <- matrix(0,length(tacAllowedAllTime), 2)  #=zeros(length(tacAllowedAllTime),2);
 
 
-  temp <- logit_predict(project=project, mod.name=mod.name, expected.catch.name=expected.catch.name) #modelOutput{mChoice},alts,x);
+  temp <- logit_predict(project=project, mod.name=modname, expected.catch.name=expected.catch.name) #modelOutput{mChoice},alts,x);
   probLogit <- temp$probLogit
   modelDat <- temp$modelDat
   # Predictions for zonal logit
@@ -184,7 +210,7 @@ if (grepl('logit', x_new$likelihood)) {
   # full TAC and no zone closure
     #1 epm normal
     
-    temp <- epm_predict(project=project, modname=mod.name, alts=alts, mod.type=sub(".*_", "", x_new$likelihood), price=price) #modelOutput{mChoice},alts,x);
+    temp <- epm_predict(project=project, modname=modname, alts=alts, mod.type=sub(".*_", "", x_new$likelihood), price=price) #modelOutput{mChoice},alts,x);
     probEPM <- temp$probEPM
     modelDat <- temp$modelDat
 

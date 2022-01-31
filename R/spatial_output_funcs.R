@@ -18,7 +18,9 @@ spatial_hist <- function(dat, project, group=NULL) {
   #' }
 
   requireNamespace("ggplot2")
-
+  
+  value <- NULL
+  
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main")

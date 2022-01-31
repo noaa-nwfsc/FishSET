@@ -13,12 +13,14 @@ Imports:
   geojsonio, 
   geosphere,
   ggcorrplot, 
-  ggmap, 
+  ggmap,
   ggpubr, 
   ggplot2, 
   googlesheets4,   
   gridExtra, 
   grDevices, 
+  gt,
+  gWidgets2,
   haven,
   htmltools,
   jsonlite, 
@@ -26,7 +28,6 @@ Imports:
   leaflet,
   lubridate, 
   magrittr, 
-  maps,
   methods, 
   OSMscale, 
   openxlsx,
@@ -35,12 +36,13 @@ Imports:
   R.matlab,
   raster, 
   RCurl,   
-  readxl, 
+  readxl,
+  rChoiceDialogs,
   readODS, 
-  rgdal,
   rgeos,
   rlang, 
   RSQLite, 
+  rstudioapi,
   scales, 
   servr,
   sf, 
@@ -62,6 +64,7 @@ Imports:
 Suggests: 
   foreign,
   graphics,
+  lwgeom,
   rmarkdown,
   testthat
 Description: The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools for organizing data; developing, improving and disseminating modeling best practices.
@@ -71,6 +74,6 @@ ByteCompile: TRUE
 URL: to provide
 BugReports: https://pkgname.bugtracker.url
 devtools: :use_data(MainDataTable)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Encoding: UTF-8
 VignetteBuilder: knitr

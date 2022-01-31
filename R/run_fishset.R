@@ -33,11 +33,11 @@ run_fishset_gui <- function() {
   # shiny app call
 
 
-  if (!is.null(dat)) {
-    out <- data_pull(dat, project)
-    dat <- out$dat
-    dataset <- out$dataset
-  }
+ # if (!is.null(dat)) {
+#   out <- data_pull(dat, project)
+ #   dat <- out$dat
+ #   dataset <- out$dataset
+ # }
 
   # shinyAppDir(paste0(loc, '/inst/ShinyFiles'))
 }

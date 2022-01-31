@@ -2,7 +2,7 @@ FishSET
 =========
 ---
 
-If you run into problems you can contact FishSET@noaa.gov
+If you run into problems you can contact <!--- FishSET@noaa.gov --->
 
 <ul class="nav">
   <li><a href="#install">Install</a></li>
@@ -42,7 +42,7 @@ For exmaple, loc <- getwd().
 Add in issue tab on github site
 
 Issues? [https://github.com/FishSET/issues]() 
-         FishSET@noaa.gov
+       <!--  FishSET@noaa.gov -->
 
 ### CITATION  {#cite}
 
