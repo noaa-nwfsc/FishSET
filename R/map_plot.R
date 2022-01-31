@@ -14,7 +14,6 @@ map_plot <- function(dat, project, lat, lon, minmax = NULL, percshown = NULL) {
   #'  use \code{minmax}.
   #' @return mapout: ggplot2 object
   #' @import ggplot2
-  #' @importFrom maps map
   #' @export
   #' @examples
   #' \dontrun{
@@ -22,7 +21,6 @@ map_plot <- function(dat, project, lat, lon, minmax = NULL, percshown = NULL) {
   #' }
 
   requireNamespace("ggplot2")
-  world <- ggplot2::map_data("world")
 
   # Call in datasets
   out <- data_pull(dat, project)
@@ -57,11 +55,11 @@ map_plot <- function(dat, project, lat, lon, minmax = NULL, percshown = NULL) {
     if(min(datatomap$lon) < 0 & max(datatomap$lon) > 0){
       recenter=TRUE
       datatomap$lon <- ifelse(datatomap$lon < 0 , datatomap$lon + 360, datatomap$lon)
-      worldmap <- map_data("world", wrap = c(0, 360))
+      worldmap <- ggplot2::map_data("world", wrap = c(0, 360))
       
     } else {
       recenter <- FALSE
-      worldmap <- map_data("world")
+      worldmap <- ggplot2::map_data("world")
       
     }
 

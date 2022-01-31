@@ -23,8 +23,8 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL,
   #'   then a ggmap is automatically retrieved. Defaults to FALSE. 
   #' @export
   #' @import ggplot2
-  #' @import ggmap
   #' @import dplyr 
+  #' @importFrom ggmap make_bbox ggmap
   #' @examples 
   #' \dontrun{
   #' view_grid_dat('SST', "pollock", "lon", "lat", value = "analysed_sst")
@@ -129,7 +129,7 @@ retrieve_map <- function(grid, lon, lat) {
   #'   table in the FishSET Database. 
   #' @param lon String, variable name containing longitude.
   #' @param lat String, variable name containing latitude.
-  #' @import ggmap
+  #' @importFrom ggmap ggmap calc_zoom make_bbox get_stamenmap
   #' @keywords internal
   #' @export
   #' @details This is a wrapper for \code{\link[ggmap]{get_stamenmap}}

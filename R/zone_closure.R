@@ -28,13 +28,14 @@
 zone_closure <- function(project, gridfile, cat, secondgridfile=NULL, secondcat=NULL, lon.grid=NULL, lat.grid=NULL) {
   
   x <- 0
+  secondLocationID <- c()
   
   gridfile <- gridcheck(spatialdat = gridfile, catdat=cat, londat=lon.grid, latdat=lat.grid)
   
   if(!is.null(secondgridfile)){
     secondgridfile <- gridcheck(spatialdat = secondgridfile, catdat=secondcat, londat=NULL, latdat=NULL)
     secondgridfile[[secondcat]] <- as.factor(secondgridfile[[secondcat]])
-    qpal <- colorFactor(grDevices::topo.colors(length(unique(secondgridfile[[secondcat]]))), secondgridfile[[secondcat]], 
+    qpal <- colorFactor(grDevices::topo.colors(length(unique(secondgridfile[[secondcat]])), alpha=NULL), secondgridfile[[secondcat]], 
                         unique(secondgridfile[[secondcat]]))
   }
   

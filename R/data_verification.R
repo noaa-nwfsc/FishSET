@@ -8,7 +8,7 @@
 #' @return Statements as to whether data quality issues may exist.
 #' @keywords internal
 #' @importFrom dplyr distinct
-#' @importFrom maps map
+#' @importFrom ggplot2 map_data
 #' @importFrom graphics par
 #' @export data_verification
 #' @details Checks that all columnn names in the data frame are unique, whether any columns in the data frame are empty,
@@ -75,7 +75,8 @@ data_verification <- function(dat, project, log_fun = TRUE) {
       latitude <- find_lat(dataset)[1]
       longitude <- find_lon(dataset)[1]
       
-      maps::map("world", ylim = c(min(dataset[, latitude], na.rm = TRUE), 
+      
+      ggplot2::map_data("world", ylim = c(min(dataset[, latitude], na.rm = TRUE), 
                                   max(dataset[, latitude], na.rm = TRUE)), 
                 xlim = c(min(dataset[, longitude], na.rm = TRUE),
                          max(dataset[, longitude], na.rm = TRUE)))

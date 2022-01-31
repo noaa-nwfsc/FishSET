@@ -1,3 +1,4 @@
+utils::globalVariables('fishset_env')
 # File directory functions ----
 
 # First a helper function to load packages, installing them first if necessary
@@ -21,6 +22,7 @@ select_directory_method = function() {
   #' @keywords internal
   #' @importFrom utils choose.dir install.packages str
   #' @importFrom rstudioapi isAvailable getVersion
+  #' @importFrom tcltk tkdestroy tktoplevel
   #' @export
   #' @details  Tries out a sequence of potential methods for selecting a directory to find one that works 
   #'    The fallback default method if nothing else works is to get user input from the console
@@ -33,7 +35,7 @@ select_directory_method = function() {
       .dir.method = 'RStudioAPI'
       ensure_library('rstudioapi')
     } else if(ensure_library('tcltk') & 
-              class(try({tt  <- tktoplevel(); tkdestroy(tt)}, silent = TRUE)) != "try-error") {
+              class(try({tt  <- tcltk::tktoplevel(); tcltk::tkdestroy(tt)}, silent = TRUE)) != "try-error") {
       .dir.method = 'tcltk'
     } else if (ensure_library('gWidgets2') & ensure_library('RGtk2')) {
       .dir.method = 'gWidgets2RGtk2'
@@ -47,19 +49,23 @@ select_directory_method = function() {
   return(.dir.method)
 }
 
-choose_directory = function(method = select_directory_method(), title = 'Select where to create FishSET folder and save output') {
+choose_directory = function(method = select_directory_method(), 
+                            title = 'Select where to create FishSET folder and save output') {
   #' Choose directory
   #' @param method Method function
   #' @param title Title to show
+  #' @importFrom tcltk tk_choose.dir
+  #' @importFrom rChoiceDialogs rchoose.dir
+  #' @importFrom gWidgets2 gfile
   #' @export
   #' @keywords internal
   
   switch (method,
-          'choose.dir' = choose.dir(caption = title),
-          'RStudioAPI' = selectDirectory(caption = title),
-          'tcltk' = tk_choose.dir(caption = title),
-          'rChoiceDialogs' = rchoose.dir(caption = title),
-          'gWidgets2RGtk2' = gfile(type = 'selectdir', text = title),
+          'choose.dir' = utils::choose.dir(caption = title),
+          'RStudioAPI' = rstudioapi::selectDirectory(caption = title),
+          'tcltk' = tcltk::tk_choose.dir(caption = title),
+          'rChoiceDialogs' = rChoiceDialogs::rchoose.dir(caption = title),
+          'gWidgets2RGtk2' = gWidgets2::gfile(type = 'selectdir', text = title),
           readline('Please enter directory path: ')
   )
 }
@@ -245,7 +251,7 @@ locoutput <- function(project) {
     warning('Project name must be provided.')
   } else {
   
-
+    if (exists("loc2")) loc2 <- loc2
     if (!exists('loc2')||is.null(loc2)) {
       paste0(system.file(package = "FishSET"), "/projects/", project, "/output/")
     } else {
@@ -271,7 +277,7 @@ loc_map <- function(project) {
   if(is.null(project)){
     warning('Project name must be provided.')
   } else {
-    
+    if (exists("loc2")) loc2 <- loc2
     if (!exists('loc2')||is.null(loc2)) {
       paste0(system.file(package = "FishSET"), "/projects/", project, "/MapViewer/")
     } else {
@@ -292,7 +298,7 @@ loc_data <- function(project) {
   if(is.null(project)){
     warning('Project name must be provided.')
   } else {
-    
+    if (exists("loc2")) loc2 <- loc2
     if (!exists('loc2')||is.null(loc2)) {
       paste0(system.file(package = "FishSET"), "/projects/", project, "/data/")
     } else {
@@ -854,6 +860,7 @@ spars <- function(x, dname) {
   # print(head(x))
   return(colSums(x == 0) / nrow(x))
 }
+
 
 perc_of_total <- function(dat, value_var, group = NULL, drop = FALSE, 
                           val_type = "perc", output = "dataset") {
@@ -1786,8 +1793,9 @@ find_duration <- function(dat) {
   #' @keywords internal
   #' @export
   #' 
+  #' 
   grep("date|min|hour|week|month|TRIP_START|TRIP_END", 
-       names(values$dataset), ignore.case = TRUE, value = TRUE)
+       names(dat), ignore.case = TRUE, value = TRUE)
 }
 
 find_value <- function(dat) {

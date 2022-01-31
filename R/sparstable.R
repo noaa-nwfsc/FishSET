@@ -80,11 +80,14 @@ sparsplot <- function(project, x = NULL) {
   requireNamespace("ggplot2")
   
   x <- 0
+  variable = c()
+  value = c()
+  Period = c()
   
   if(is.null(x)){
   name <- pull_output(project, 'sparstable', type='table')
     if(!is.null(name)){
-      x <- read.csv(paste0(locoutput(), name))
+      x <- read.csv(paste0(locoutput(project=project), name))
       colnames(x)[1] <- 'Period'
     } else {
       message('Sparsity table not found. Create a sparsity table with sparsetable() function. Function was not run.')

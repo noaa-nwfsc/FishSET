@@ -12,7 +12,8 @@
 #' @export
 #' @keywords internal
 
-create_model_input <- function(project, x=NULL, mod.name=NULL, use.scalers= TRUE, scaler.func=NULL, expected.catch.name=NULL){
+create_model_input <- function(project, x=NULL, mod.name=NULL, use.scalers= TRUE, 
+                               scaler.func=NULL, expected.catch.name=NULL){
 
   # Two scenarios 
    # 1) Pulling from discrete fish subroutine  - x will be supplied

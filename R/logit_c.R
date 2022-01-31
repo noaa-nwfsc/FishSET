@@ -128,7 +128,7 @@ logit_c <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
                         paramsglobalcheck = paramsglobalcheck, 
                         ldglobalcheck = ldglobalcheck)
 
-  assign("ldglobalcheck", value = ldglobalcheck, pos = 1, env =fishset_env)
+  assign("ldglobalcheck", value = ldglobalcheck, pos = 1, envir =fishset_env)
   
   return(ld)
 }

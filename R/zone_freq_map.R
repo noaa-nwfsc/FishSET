@@ -33,6 +33,9 @@ zone_freq_map <- function(dat, spat, project, lon.dat, lat.dat, zone.dat,
   #'              zone.dat = "ZoneID", zone.spat = "NMFS_AREA")
   #'}
   
+  group <- c()
+  n_obs <- c()
+  
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset

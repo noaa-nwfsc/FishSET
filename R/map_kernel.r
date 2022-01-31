@@ -29,7 +29,6 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
   #' corresponding to c(minlat, maxlat, minlon, maxlon).
   #' @return Returns ggplot2 object. Map plot saved to Output folder.
   #' @import ggplot2
-  #' @importFrom maps map
   #' @export
   #' @examples
   #' \dontrun{

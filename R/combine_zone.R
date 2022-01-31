@@ -70,6 +70,8 @@ new_zone_id <- function(combined, id, grid = NULL, closure = NULL,
   #'   zone A, the resulting zone IDs would be "A.1" and "A.2".  
   #' @seealso \code{\link{recast_multipoly}} \code{\link{combine_zone}}
   
+  n_count <- c()
+  
   if (recast) {
     
     combined <- recast_multipoly(grid = grid, closure = closure, 
@@ -78,7 +80,7 @@ new_zone_id <- function(combined, id, grid = NULL, closure = NULL,
   
   id_count <- 
     combined %>% 
-    sf::st_set_geometry(NULL) %>% 
+    sf::st_set_geometry(value=NULL) %>% 
     dplyr::mutate(n_count = 1) %>%
     dplyr::group_by(dplyr::across(dplyr::all_of(id))) %>% 
     dplyr::mutate(n_count = cumsum(n_count)) %>% 
