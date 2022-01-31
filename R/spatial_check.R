@@ -45,6 +45,20 @@ clean_spat <- function(spat) {
   #' invalid geometries, and shifts longitude to Pacific view if any points 
   #' are less than 0. 
   
+  sf_is_empty <- sf::st_is_empty(spat)
+  
+  if (any(sf_is_empty)) {
+    
+    if ("sfc" %in% class(spat)) {
+      
+      spat <- spat[which(!sf_is_empty)]
+      
+    } else {
+      
+      spat <- spat[!sf_is_empty, ]
+    }
+  }
+  
   if (any(sf::st_is(spat, "GEOMETRYCOLLECTION"))) {
     
     spat <- sf::st_collection_extract(spat, "POLYGON")
@@ -81,6 +95,40 @@ clean_spat <- function(spat) {
 }
 
 
+dat_to_sf <- function(spatdat, lon, lat, id) {
+  #' Convert dataframe to sf
+  #' 
+  #' Used to convert spatial data with no spatial class to a \code{sf} object. 
+  #' This is useful if the spatial data was read from a non-spatial file type, 
+  #' e.g. a CSV file. 
+  #'
+  #'@param spatdat Spatial data containing information on fishery management or 
+  #'   regulatory zones. 
+  #' @param lon Longitude variable in \code{spatdat}. 
+  #' @param lat Latitude variable in \code{spatdat}. 
+  #' @param id Polygon ID column. 
+  #' @export
+  #'@importFrom sf st_as_sf st_cast
+  #'@importFrom dplyr group_by across summarize
+  #'@importFrom magrittr %>% 
+  
+  spatdat <- sf::st_as_sf(x = spatdat, coords = c(lon, lat), 
+                          crs = "+proj=longlat +datum=WGS84")
+  
+  # Convert point geometry to polygon
+  spatdat <- 
+    spatdat %>%
+    dplyr::group_by(dplyr::across(id)) %>% 
+    dplyr::summarize(do_union = FALSE) %>% 
+    sf::st_cast("POLYGON")
+  
+  # convert polygon to multi-polygon
+  spatdat <- sf::st_cast(spatdat, "MULTIPOLYGON")
+  
+  spatdat
+} 
+
+
 check_spatdat <- function(spatdat, lon = NULL, lat = NULL, id = NULL) {
   #' Check and correct spatial data format
   #' 
@@ -88,19 +136,20 @@ check_spatdat <- function(spatdat, lon = NULL, lat = NULL, id = NULL) {
   #' 
   #' @param spatdat Spatial data containing information on fishery management or 
   #'   regulatory zones. 
-  #' @param lon Longitude variable in \code{dat}. This is required for csv files 
+  #' @param lon Longitude variable in \code{spatdat}. This is required for csv files 
   #' or if \code{spatdat} is a dataframe (i.e. is not a \code{sf} or \code{sp} object).
-  #' @param lat Latitude variable in \code{dat}. This is required for csv files 
+  #' @param lat Latitude variable in \code{spatdat}. This is required for csv files 
   #' or if \code{spatdat} is a dataframe (i.e. is not a \code{sf} or \code{sp} object).
   #' @param id Polygon ID column. This is required for csv files or if \code{spatdat} 
   #' is a dataframe (i.e. is not a \code{sf} or \code{sp} object).
   #' @export
   #' @details This function checks whether \code{spatdat} is a \code{sf} object
   #'   and attempts to convert it if not. It also applies \code{\link{clean_spat}}
-  #'   which fixes certain spatial issues such as invalid or empty polygons. 
+  #'   which fixes certain spatial issues such as invalid or empty polygons, 
+  #'   whether a projected CRS is used (converts to WGS84 if detected), and if 
+  #'   longitude should be shifted to Pacific view (0-360 format) to avoid 
+  #'   splitting the Alaska region during plotting. 
   #' @import sf 
-  #' @importFrom dplyr group_by across summarize
-  #' @importFrom magrittr %>%
   
   pass <- TRUE
 
@@ -113,18 +162,7 @@ check_spatdat <- function(spatdat, lon = NULL, lat = NULL, id = NULL) {
       if (!is.null(lon) & !is.null(lat) & !is.null(id)) {
         
         # convert dataframe to sf
-        spatdat <- sf::st_as_sf(x = spatdat, coords = c(lon, lat), 
-                                crs = "+proj=longlat +datum=WGS84")
-        
-        # Convert point geometry to polygon
-        spatdat <- 
-          spatdat %>%
-          dplyr::group_by(dplyr::across(id)) %>% 
-          dplyr::summarize(do_union = FALSE) %>% 
-          sf::st_cast("POLYGON")
-        
-        # convert polygon to multi-polygon
-        spatdat <- sf::st_cast(spatdat, "MULTIPOLYGON")
+        spatdat <- dat_to_sf(spatdat, lon, lat, id)
         
       } else {
         
@@ -136,12 +174,12 @@ check_spatdat <- function(spatdat, lon = NULL, lat = NULL, id = NULL) {
   }
   
   if (pass) {
-    
+    # Convert to WGS84 if projected
     if (any(grepl('PROJCRS',  sf::st_crs(spatdat)))) {
       
       spatdat <- sf::st_transform(spatdat, "+proj=longlat +ellps=WGS84 +datum=WGS84")
     }
-    
+    # shift to Pacific view if needed
     if (shift_long(spatdat)) {
       
       spatdat <- sf::st_shift_longitude(spatdat)
