@@ -164,6 +164,18 @@ combine_zone <- function(grid, closure, grid.nm, closure.nm, recast = TRUE) {
     names(closure)[names(closure) == closure.nm] <- grid.nm
   }
   
+  # # snap closure
+  close_crs <- sf::st_crs(closure)
+  sf::st_crs(closure) <- NA
+
+  closure <-
+    sf::st_snap(closure, closure, tolerance = 0.0001) %>%
+    sf::st_make_valid()
+  sf::st_crs(closure) <- close_crs
+
+  if (is_invalid_spat(closure)) closure <- clean_spat(closure)
+
+  # closure union
   c_un <- 
     sf::st_union(closure) %>% 
     sf::st_make_valid()

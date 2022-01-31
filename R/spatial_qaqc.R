@@ -233,7 +233,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     
     land_pts <- sf::st_intersects(dat_sf, base_map)
     
-    obs_on_land <- vapply(land_pts, function(x) length(x) > 0, logical(1))
+    obs_on_land <- lengths(land_pts) > 0
     
     if (sum(obs_on_land) > 0) {
       
@@ -258,14 +258,14 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                           expand = TRUE) +
         ggplot2::labs(title = "Obs on land", x = "Longitude", y = "Latitude",
                       subtitle = paste0("N:", n_land, " (", p_land, "%)")) + 
-        fishset_theme() # + guides(color = guide_legend(override.aes = list(alpha = 1)))
+        fishset_theme()
     }
     
     # points outside zone ----
     
     pts_int <- sf::st_intersects(dat_sf, spatdat)
     
-    obs_outside <- vapply(pts_int, function(x) length(x) == 0, logical(1))
+    obs_outside <- lengths(pts_int) == 0
     
     if (sum(obs_outside) > 0) {
       
@@ -300,11 +300,11 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                           expand = TRUE) +
         ggplot2::labs(title = "Obs outside zone", x = "Longitude", y = "Latitude",
                       subtitle = paste0("N:", n_out, " (", p_out, "%)")) + 
-        fishset_theme() # + guides(color = guide_legend(override.aes = list(alpha = 1)))
+        fishset_theme()
     }
     
     # obs on zone boundary lines ----
-    obs_on_bound <- vapply(pts_int, function(x) length(x) > 1, logical(1))
+    obs_on_bound <- lengths(pts_int) > 1
     
     if (sum(obs_on_bound) > 0) {
       
@@ -330,7 +330,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                           expand = TRUE) +
         ggplot2::labs(title = "Obs on zone boundary", x = "Longitude", y = "Latitude",
                       subtitle = paste0("N:", n_bound, " (", p_bound, "%)")) + 
-        fishset_theme() # + guides(color = guide_legend(override.aes = list(alpha = 1)))
+        fishset_theme()
     }
     
     # expected location ----
@@ -352,7 +352,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                         expand = TRUE) + 
       ggplot2::labs(title = "Obs in expected location", x = "Longitude", y = "Latitude",
                     subtitle = paste0("N:", n_expected, " (", p_expected, "%)")) + 
-      fishset_theme() # + guides(color = guide_legend(override.aes = list(alpha = 1)))
+      fishset_theme()
     
     # Spatial summary table ----
     

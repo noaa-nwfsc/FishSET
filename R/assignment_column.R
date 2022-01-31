@@ -91,17 +91,32 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
   if (x == 0) {
     # For json and shape files
     if(any(class(grid) %in% "sf")){
+      
+      dat_sub <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), 
+                              crs = "+proj=longlat +datum=WGS84")
+      
       if(!is.null(epsg)) {
-        dat_sub <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), crs = "+proj=longlat +datum=WGS84")
+       
         dat_sub <- sf::st_transform(dat_sub, epsg)
+        
       } else if(!is.na(sf::st_crs(grid))){
-        dat_sub <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), crs = sf::st_crs(grid))
+        
+        # dat_sub <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), crs = sf::st_crs(grid))
+        dat_sub <- sf::st_transform(dat_sub, sf::st_crs(grid))
+        
       } else {
         dat_sub <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), crs = "+proj=longlat +datum=WGS84")
         warning('No coordinate reference system supplied. Set using epsg.')
         x <- 1
       }
+      
+      if (any(!(sf::st_is_valid(grid)))) {
+        
+        grid <- sf::st_make_valid(grid)
+      } 
+      
       temp <- sf::st_intersects(dat_sub, grid)
+      
       if(any(lengths(temp)>1)) {
         warning('At least one observation assigned to multiple regulatory zones. Assigning observations to nearest polygon.')
         dub <- which(lengths(temp)>1)
