@@ -75,7 +75,7 @@ log_call <- function(project, fun.name) {
   #' @keywords internal
   
   create_new <- FALSE
-  log_file <- current_log(project)
+  log_file <- suppressMessages(current_log(project))
 
   if (is.null(log_file)) create_new <- TRUE
   

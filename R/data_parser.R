@@ -515,7 +515,7 @@ load_maindata <- function(dat, project, over_write = TRUE, compare = FALSE, y = 
       
       warning(paste(raw_tab_name, "was not saved. Table exists in database. Set over_write to TRUE."))
     }
-    
+
     work_tab_name <- paste0(project, "MainDataTable")
     
     work_tab_exists <- table_exists(work_tab_name, project = project)
@@ -523,7 +523,7 @@ load_maindata <- function(dat, project, over_write = TRUE, compare = FALSE, y = 
     if (work_tab_exists == FALSE | over_write == TRUE) {
       
       DBI::dbWriteTable(fishset_db, work_tab_name, dataset, overwrite = over_write)
-  
+
       # log function
       load_maindata_function <- list()
       load_maindata_function$functionID <- "load_maindata"
@@ -556,6 +556,7 @@ load_maindata <- function(dat, project, over_write = TRUE, compare = FALSE, y = 
       invisible(FALSE)
     }
   }
+ 
 }
 
 

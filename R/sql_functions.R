@@ -13,11 +13,12 @@ tables_database <- function(project) {
   #' \dontrun{
   #' tables_database('pollock')
   #' }
-
+  if(project_exists(project)){
   fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
   return(DBI::dbListTables(fishset_db))
+  }
 }
 
 table_fields <- function(table, project) {
@@ -229,18 +230,18 @@ projects <- function() {
   #' } 
   #' 
  
-  if (exists("loc2")) loc2 <- loc2
-  if (!exists('loc2')||is.null(loc2)) {
-    projloc <- paste0(system.file(package = "FishSET"), '/projects')
-  } else {
-    projloc <- paste0(loc2, '/projects')
-  }
+ # if (exists("loc2")) loc2 <- loc2
+ # if (!exists('loc2')||is.null(loc2)) {
+    projloc <- locproject()
+ # } else {
+ #   projloc <- paste0(loc2, '/projects')
+ # }
   
    tab <- list_dirs(path=projloc)#paste0(unlist(strsplit(loc2, '/'))[-length(unlist(strsplit(loc2, '/')))], collapse = '/'))
-   p_tabs <- subset(tab, tab!='extdata'&tab!='MapViewer'&tab!='output'&tab!='report'&tab!='ShinyFiles'&tab!='Logs')
+  p_tabs <- subset(tab, tab!='extdata'&tab!='MapViewer'&tab!='output'&tab!='report'&tab!='ShinyFiles'&tab!='Logs')
   
   
-  #p_tabs <- grep("MainDataTable", tables_database(project), value = TRUE)
+ # p_tabs <- grep("MainDataTable", tables_database(project), value = TRUE)
   
   if (length(p_tabs) == 0) {
     
@@ -248,12 +249,9 @@ projects <- function() {
     p_names <- NULL
   } else {
     
-   # p_tabs <- stringr::str_extract(p_tabs, "^.+MainDataTable")
     
-   # p_names <- gsub("MainDataTable", "", p_tabs)
-   # p_names <- unique(p_names)
-    p_names <- unique(p_tabs)
-    p_names
+   p_names <- unique(p_tabs)
+   p_names
   }
 }
 
@@ -269,6 +267,9 @@ project_tables <- function(project, ...) {
   #' project_tables("pollock", "main")
   #' }
 
+  if(!project_exists(project)) {
+    out <- NULL
+  } else {
   if(is_empty(tables_database(project = project))){
     out <- NULL
   } else {
@@ -282,6 +283,7 @@ project_tables <- function(project, ...) {
   } else {
     
     out
+  }
   }
 }
 

@@ -25,10 +25,10 @@ select_directory_method = function() {
   #' @importFrom tcltk tkdestroy tktoplevel
   #' @export
   #' @details  Tries out a sequence of potential methods for selecting a directory to find one that works 
-  #'    The fallback default method if nothing else works is to get user input from the console
+  #'    The fallback default method if nothing else works is to get user input from the console.
  
    if (!exists('.dir.method')){  # if we already established the best method, just use that
-    # otherwise lets try out some options to find the best one that works here
+    # otherwise let's try out some options to find the best one that works here
     if (exists('utils::choose.dir')) {
       .dir.method = 'choose.dir'
     } else if (rstudioapi::isAvailable() & rstudioapi::getVersion() > '1.1.287') {
@@ -71,14 +71,10 @@ choose_directory = function(method = select_directory_method(),
 }
 
 loc <- function(){
-#Where should the file location go? And what to call it?
-  #Future - search for this folder location.
-  #' Define directory location
-  #' 
-  #' 
-  #olddir <- getwd()
-  #setwd("..")
-  #newdir <- getwd()
+  #' Define FishSETFolder location
+  #' @keywords internal
+  #' @export
+
   newdir <- choose_directory()
   newdir <- paste0(newdir, '/FishSETFolder')
   if(!dir.exists(newdir)){
@@ -98,10 +94,10 @@ locproject <- function() {
   #else loc2 <- loc()
   
   if (!exists('loc2') || is.null(loc2)) {
-    if(is_empty(dir.exists(list.dirs(path = "../FishSETFolder/projects")))){
+    if(is_empty(dir.exists(c("../FishSETFolder/projects")))){
       loc()
     }
-    proj_dir <- list.dirs(path = "../FishSETFolder/projects")#loc() #paste0(system.file(package = "FishSET"), "/projects")
+    proj_dir <- c("../FishSETFolder/projects")#loc() #paste0(system.file(package = "FishSET"), "/projects")
     
   } else {
     
@@ -119,9 +115,12 @@ project_exists <- function(project) {
   #' @export
   #' @keywords internal
   
-  projdir <- paste0(locproject(), "/", project)
-  
-  dir.exists(projdir)
+  if (!is.null(project)) {
+    
+    projdir <- paste0(locproject(), "/", project)
+    dir.exists(projdir)
+    
+  } else FALSE
 }
 
 #Check if project folder exists
@@ -135,14 +134,14 @@ check_proj <- function(project = NULL) {
   
   if (!is.null(project)) {
       
-    proj_dir <- paste0(locproject(), '/', project)
+    
   
     # check if projects folder exists
     if (!file.exists(locproject())) {
       
       dir.create(file.path(locproject()), showWarnings = FALSE)
     }
-     
+    proj_dir <- paste0(locproject(), '/', project) 
     if (project_exists(project) == FALSE) {
       
       dir.create(file.path(proj_dir), showWarnings = FALSE)
@@ -165,6 +164,28 @@ check_proj <- function(project = NULL) {
       
       #MapViewer
       dir.create(file.path(paste0(proj_dir, '/MapViewer')), showWarnings = FALSE)
+    } else {
+      #Cases where the root folder exists but the subfolders have been deleted.
+      if(!file.exists(paste0(locproject(), "/", project, "/src"))){
+        dir.create(file.path(paste0(proj_dir, '/src')), showWarnings = FALSE)
+      }
+      if(!file.exists(paste0(locproject(), "/", project, "/output"))){
+        dir.create(file.path(paste0(proj_dir, '/output')), showWarnings = FALSE)
+      }
+      if(!file.exists(paste0(locproject(), "/", project, "/fishset_db.sqlite"))){
+        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(proj_dir, '/fishset_db.sqlite'))
+        on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+      }
+      if(!file.exists(paste0(locproject(), "/", project, "/data"))){
+        dir.create(file.path(paste0(proj_dir, '/data')), showWarnings = FALSE)
+      }
+      if(!file.exists(paste0(locproject(), "/", project, "/doc"))){
+        dir.create(file.path(paste0(proj_dir, '/doc')), showWarnings = FALSE)
+      }
+      if(!file.exists(paste0(locproject(), "/", project, "/MapViewer"))){
+        dir.create(file.path(paste0(proj_dir, '/MapViewer')), showWarnings = FALSE)
+      }
+      
     }
   } else {
     
@@ -196,7 +217,7 @@ locdatabase <- function(project) {
   #' @export
   #' 
   
-  if(!exists('project')||is.null(project)){
+  if(is.null(project)){
     warning('Project name must be provided.')
   } else {
     if (exists("loc2")) {
@@ -206,9 +227,9 @@ locdatabase <- function(project) {
     }
   
       if (!exists('loc2')||is.null(loc2)) {
-      paste0(system.file(package = "FishSET"), "/projects/", project, "/fishset_db.sqlite")
+      paste0(locproject(), "/", project, "/fishset_db.sqlite")
     } else {
-      paste0(loc2, "/projects/", project, "/fishset_db.sqlite")
+      paste0(loc2, "/", project, "/fishset_db.sqlite")
     }
   }
 }
@@ -234,7 +255,7 @@ loclog <- function(project) {
       loc2 <- NULL
     }
     if (!exists('loc2')||is.null(loc2)) {
-      paste0(system.file(package = "FishSET"), "/projects/", project, "/src/")
+      paste0(locproject(), "/", project, "/src/")
     } else {
       paste0(loc2, "/projects/", project, "/src/")
     }
@@ -253,7 +274,7 @@ locoutput <- function(project) {
   
     if (exists("loc2")) loc2 <- loc2
     if (!exists('loc2')||is.null(loc2)) {
-      paste0(system.file(package = "FishSET"), "/projects/", project, "/output/")
+      paste0(locproject(), "/", project, "/output/")
     } else {
       paste0(loc2, "/projects/", project, "/output/")
     }
@@ -279,7 +300,7 @@ loc_map <- function(project) {
   } else {
     if (exists("loc2")) loc2 <- loc2
     if (!exists('loc2')||is.null(loc2)) {
-      paste0(system.file(package = "FishSET"), "/projects/", project, "/MapViewer/")
+      paste0(locproject(), "/", project, "/MapViewer/")
     } else {
       paste0(loc2, "/projects/", project, "/MapViewer/")
     }
@@ -300,7 +321,7 @@ loc_data <- function(project) {
   } else {
     if (exists("loc2")) loc2 <- loc2
     if (!exists('loc2')||is.null(loc2)) {
-      paste0(system.file(package = "FishSET"), "/projects/", project, "/data/")
+      paste0(locproject(), "/", project, "/data/")
     } else {
       paste0(loc2, "/projects/", project, "/data/")
     }
@@ -407,7 +428,7 @@ is_empty <- function(x, trim = TRUE, ...) {
     if (is.na(x) || is.nan(x)) {
       return(TRUE)
     }
-    if (is.character(x) && nchar(ifelse(trim, trim_space(x), x)) == 0) {
+    if (is.character(x) && nchar(trimws(x)) == 0) {
       return(TRUE)
     }
     if (is.logical(x) && !isTRUE(x)) {

@@ -31,7 +31,7 @@
 run_policy <- function(project, mod.name=NULL, enteredPrice=NULL, expected.catch.name=NULL){
   
 
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
   #1. Check closure file exists

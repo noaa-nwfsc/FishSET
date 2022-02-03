@@ -34,6 +34,7 @@ empty_meta_list <- function() {
 col_desc <- function(dat) {
   #' Create a list of column names
   #' Used to create a new metadata entry.
+  #' @param dat Dataframe
   #' @keywords internal
   #' @export
   
@@ -67,8 +68,10 @@ col_desc <- function(dat) {
 meta_list <- function(type, dat = NULL) {
   #' Create a meta list with column description section
   #' Used to create a new metadata entry.
-  #'@keywords internal
-  #'@export
+  #' @param type String
+  #' @param dat Dataset
+  #' @keywords internal
+  #' @export
   #'
 
   out <- empty_meta_list()
@@ -99,8 +102,7 @@ meta_file_exists <- function(project) {
 meta_log_call <- function(project, meta, dataset = NULL, tab_name, tab_type, 
                           overwrite = FALSE, raw = TRUE) {
   #' Log metadata to project folder
-  #' Meta data is saved to the metadata "meta_log.json" file in a project's doc/
-  #' directory. 
+  #' Meta data is saved to the metadata `meta_log.json` file in a project's `doc/` directory. 
   #' @param project Project name.
   #' @param meta Meta data list to be saved.
   #' @param dataset A data object. Used to create the column description section
