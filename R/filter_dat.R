@@ -24,7 +24,7 @@ filter_table <- function(dat, project, x, exp) {
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   if (table_exists(paste0(project, "FilterTable"), project) == F) {
     filterTable <- data.frame(dataframe = NA, vector = NA, FilterFunction = NA)
@@ -78,7 +78,7 @@ filter_dat <- function(dat, project, exp, filterTable = NULL) {
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   # NaNs only occurs on Numeric Variables
   if (!is.null(filterTable) && table_exists(filterTable, project)) {

@@ -23,7 +23,7 @@ spatial_hist <- function(dat, project, group=NULL) {
   
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   
   if(!is.null(group)){
@@ -112,7 +112,7 @@ spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs"
 
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   if ("ZoneID" %in% names(dataset) == FALSE) {
     dataset <- assignment_column(

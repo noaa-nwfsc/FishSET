@@ -32,7 +32,7 @@ add_vars <- function(working_dat, raw_dat, vars, project) {
 
   # Pull in data
   out <- data_pull(working_dat, project)
-  work_dat_name <- parse_data_name(working_dat, "main")
+  work_dat_name <- parse_data_name(working_dat, "main", project)
   working_dat <- out$dataset
 
   out <- data_pull(raw_dat, project)

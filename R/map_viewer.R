@@ -49,10 +49,10 @@ map_viewer <- function(dat, project, gridfile, avd, avm, num_vars, temp_vars, id
 
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   out <- data_pull(gridfile, project)
-  spatname <- parse_data_name(gridfile, 'spat')
+  spatname <- parse_data_name(gridfile, 'spat', project)
   spatdat <- out$dataset
 
   if (!is.null(spatdat)) {

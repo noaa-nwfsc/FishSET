@@ -20,7 +20,7 @@ nan_identify <- function(dat, project) {
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   tmp <- tempfile()
   
@@ -110,7 +110,7 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   tmp <- tempfile()
   
@@ -240,7 +240,7 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   tmp <- tempfile()
   

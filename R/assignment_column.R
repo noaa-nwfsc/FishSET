@@ -47,11 +47,11 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
   # Call in data sets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
 
   gridout <- data_pull(gridfile, project)
   grid <- gridout$dataset
-  gridfile <- parse_data_name(dat, "grid")
+  gridfile <- parse_data_name(dat, "grid", project)
 
   dataset[[lat.dat]] <- as.numeric(as.vector(dataset[[lat.dat]]))
   dataset[[lon.dat]] <- as.numeric(as.vector(dataset[[lon.dat]]))
