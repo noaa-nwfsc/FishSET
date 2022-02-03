@@ -29,7 +29,7 @@ cpue <- function(dat, project, xWeight, xTime, name = "cpue") {
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   tmp <- 0
 
@@ -107,7 +107,7 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
   out <- data_pull(dat, project)
   dataset <- out$dataset
   
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   if (grepl("dat|year", var, ignore.case = TRUE)) {
     if (length(value) == 6) {
@@ -163,7 +163,7 @@ dummy_var <- function(dat, project, DumFill = 1, name = "dummy_var") {
   out <- data_pull(dat, project)
   dataset <- out$dataset
   
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
 
   newvar <- as.vector(rep(DumFill, nrow(dataset)))
   
@@ -200,7 +200,7 @@ dummy_matrix <- function(dat, project, x) {
   out <- data_pull(dat, project)
   dataset <- out$dataset
   
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
 
   # create the matrix
   factor.levels <- levels(as.factor(dataset[[x]]))
@@ -253,7 +253,7 @@ set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25,0.33, 0.4),
   out <- data_pull(dat, project)
   dataset <- out$dataset
   
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
 
   tmp <- 0
 
@@ -320,7 +320,7 @@ bin_var <- function(dat, project, var, br, name, labs = NULL, ...) {
 
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
 
   tmp <- 0
 
@@ -391,7 +391,7 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   out <- data_pull(dat, project)
   dataset <- out$dataset
   
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   if (create_group_ID) dataset <- ID_var(dataset, project, vars = c(id_group, group), 
                                          log_fun = FALSE)
@@ -468,7 +468,7 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   out <- data_pull(dat, project)
   dataset <- out$dataset
   
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   . <- group_total <- NULL
 
@@ -548,7 +548,7 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
 
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   . <- group_total <- NULL
   
@@ -614,7 +614,7 @@ create_var_num <- function(dat, project, x, y, method, name = "create_var_num") 
   out <- data_pull(dat, project)
   dataset <- out$dataset
   
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
 
   tmp <- 0
 
@@ -678,7 +678,7 @@ create_mid_haul <- function(dat, project, start = c("lon", "lat"), end = c("lon"
   out <- data_pull(dat, project)
   dataset <- out$dataset
   
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   tmp <- 0
 
@@ -745,7 +745,7 @@ create_trip_centroid <- function(dat, project, lon, lat, weight.var = NULL, ...)
   out <- data_pull(dat, project)
   dataset <- out$dataset
   
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
 
   x <- 0
   if (any(abs(dataset[[lon]]) > 180)) {
@@ -883,7 +883,7 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
     out <- data_pull(dat, project)
     dataset <- out$dataset
     
-    dat <- parse_data_name(dat, "main")
+    dat <- parse_data_name(dat, "main", project)
     
     vars <- NULL
     
@@ -1029,7 +1029,7 @@ create_duration <- function(dat, project, start, end, units = c("week", "day", "
   out <- data_pull(dat, project = project)
   dataset <- out$dataset
   
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
 
 
   if (any(grepl("date|min|hour|week|month|TRIP_START|TRIP_END", start, ignore.case = TRUE)) == FALSE) {
@@ -1086,7 +1086,7 @@ randomize_value_row <- function(dat, project, value) {
   out <- data_pull(dat, project)
   dataset <- out$dataset
   
-  dat <- parse_data_name(dat, "main")  
+  dat <- parse_data_name(dat, "main", project)  
   
   dataset[[value]] <- sample(dataset[[value]], size = nrow(dataset), replace = FALSE)
   
@@ -1121,7 +1121,7 @@ randomize_value_range <- function(dat, project, value, perc = NULL) {
   out <- data_pull(dat, project)
   dataset <- out$dataset
   
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   end <- FALSE
   
@@ -1188,7 +1188,7 @@ jitter_lonlat <- function(dat, project, lon, lat, factor = 1, amount = NULL) {
   out <- data_pull(dat, project)
   dataset <- out$dataset
   
-  dat <- parse_data_name(dat, "main") 
+  dat <- parse_data_name(dat, "main", project) 
   
   j_list <- 
     lapply(c(lon, lat), function(x) {
@@ -1239,12 +1239,12 @@ randomize_lonlat_zone <- function(dat, project, spat, lon, lat, zone) {
   out <- data_pull(dat, project)
   dataset <- out$dataset
   
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   spat_out <- data_pull(spat, project)
   spatdat <- spat_out$dataset
 
-  spat <- parse_data_name(spat, 'spat')
+  spat <- parse_data_name(spat, 'spat', project)
  
   
   if (!("sf" %in% class(spatdat))) {
@@ -1340,11 +1340,11 @@ lonlat_to_centroid <- function(dat, project, lon, lat, spat, zone) {
   
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   spat_out <- data_pull(spat, project)
   spat <- spat_out$dat
-  spatdat <- parse_data_name(spat, 'spat')
+  spatdat <- parse_data_name(spat, 'spat', project)
   
   if (!("sf" %in% class(spatdat))) {
     spatdat <- sf::st_as_sf(x = spatdat, crs = "+proj=longlat +datum=WGS84")

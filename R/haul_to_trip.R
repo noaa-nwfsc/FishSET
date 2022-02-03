@@ -30,7 +30,7 @@ haul_to_trip <- function(dat, project, fun.numeric = mean, fun.time = mean, trip
 
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   # Load in dataindex
   #dataIndex <- dataindex_update(dataset, pull_info_data(project))

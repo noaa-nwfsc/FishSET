@@ -39,12 +39,12 @@ create_trip_distance <- function(dat, project, PortTable, trip_id, starting_port
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
 
   out <- data_pull(PortTable, project)
   port.table <- out$dataset
-  PortTable <- parse_data_name(PortTable, 'port')
+  PortTable <- parse_data_name(PortTable, 'port', project)
   
  
   x <- 0

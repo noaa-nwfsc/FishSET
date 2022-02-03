@@ -130,7 +130,7 @@ policy_metrics <- function(dat, project, tripID='row', vesselID, catchID, dateva
 ###Read in data
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
  
   # create trip identifier

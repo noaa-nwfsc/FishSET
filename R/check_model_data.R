@@ -25,7 +25,7 @@ check_model_data <- function(dat, project, uniqueID, save.file = TRUE) {
   # Call in data sets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   tmp <- tempfile()
   on.exit(unlink(tmp), add = TRUE)
