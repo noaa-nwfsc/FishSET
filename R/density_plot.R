@@ -82,7 +82,7 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, combine 
                          position = "identity", pages = "single") {
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
 
   end <- FALSE
   suppress <- FALSE
@@ -221,15 +221,15 @@ density_plot <- function(dat, project, var, type = "kde", group = NULL, combine 
   if (end == FALSE) {
     
     # confidentiality checks ----
-    if (run_confid_check()) {
+    if (run_confid_check(project)) {
       
-      cc_par <- get_confid_check()
+      cc_par <- get_confid_check(project)
       
       if (cc_par$rule == "n") {
         
         check_out <- 
           check_and_suppress(dataset[c(cc_par$v_id, var, group, facet_by)], 
-                             output = NULL, cc_par$v_id, value_var = var,
+                             output = NULL, project, cc_par$v_id, value_var = var,
                              group = group, rule = "n", value = cc_par$value, 
                              type = "NA")
         

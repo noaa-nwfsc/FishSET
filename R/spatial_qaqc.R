@@ -74,11 +74,11 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   spatout <- data_pull(spat, project)
   spatdat <- spatout$dataset
-  spat <- parse_data_name(spat, "spat")
+  spat <- parse_data_name(spat, "spat", project)
   
   tmp <- tempfile()
   on.exit(unlink(tmp), add = TRUE)

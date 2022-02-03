@@ -27,7 +27,7 @@ select_vars <- function(dat, project) {
 
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   shinyApp(
     ui = fluidPage(

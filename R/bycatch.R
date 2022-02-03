@@ -107,7 +107,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
   # Call in datasets
   out <- data_pull(dat, project = project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
 
   end <- FALSE
   
@@ -220,7 +220,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
 
   if (end == FALSE) {  
     # add missing ----
-    dataset <- add_missing_dates(dataset, date = date, sub_date = sub_date, 
+    dataset <- add_missing_dates(dataset, project, date = date, sub_date = sub_date, 
                                  value = c(cpue, catch), group = group_no_date, 
                                  facet_by = facet_no_date)
     
@@ -339,12 +339,12 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
     f_stc <- function() if (value == "stc") "stc" else NULL
     
     # Confidentiality checks ----
-    if (run_confid_check()) {
+    if (run_confid_check(project)) {
       
-      cc_par <- get_confid_check()
+      cc_par <- get_confid_check(project)
       
       check_catch <- 
-        check_confidentiality(dataset = dataset, cc_par$v_id, value_var = catch, 
+        check_confidentiality(dataset = dataset, project, cc_par$v_id, value_var = catch, 
                               rule = cc_par$rule, group = c(period, agg_grp), 
                               value = cc_par$value, names_to = "species_catch", 
                               values_to = "catch")
@@ -352,7 +352,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
       if (cc_par$rule == "n") {
         
         check_cpue <- 
-          check_confidentiality(dataset = dataset, cc_par$v_id, value_var = cpue, 
+          check_confidentiality(dataset = dataset, project, cc_par$v_id, value_var = cpue, 
                                 rule = cc_par$rule, group = c(period, agg_grp), 
                                 value = cc_par$value, names_to = "species_cpue", 
                                 values_to = "mean_cpue")
@@ -396,7 +396,7 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
       
       save_plot(project, "bycatch", by_plot)
       
-      if (run_confid_check()) {
+      if (run_confid_check(project)) {
         if (check_catch$suppress | check_cpue$suppress) {
           
           check_out <- replace_sup_code(check_out)

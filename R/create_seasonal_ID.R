@@ -41,11 +41,11 @@ create_seasonal_ID <- function(dat, project, seasonal.dat, use.location = c(TRUE
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
 
   out <- data_pull(seasonal.dat, project)
   seasonaldat <- out$dataset
-  seasonal.dat <- parse_data_name(seasonal.dat, "aux")
+  seasonal.dat <- parse_data_name(seasonal.dat, "aux", project)
   
 #  if (is.character(seasonal.dat) == TRUE) {
 #    if (is.null(seasonal.dat) == TRUE | table_exists(seasonal.dat) == FALSE) {

@@ -50,7 +50,7 @@ create_dist_between_for_gui <- function(dat, start, end, units, name = "DistBetw
     # Call in datasets
     out <- data_pull(dat, project)
     dataset <- out$dataset
-    dat <- parse_data_name(dat, "main")
+    dat <- parse_data_name(dat, "main", project)
 
     if(!exists('project')){
       project <- sub("\\MainDataTable", "", dat)

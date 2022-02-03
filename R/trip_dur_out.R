@@ -114,7 +114,7 @@ trip_dur_out <- function(dat, project, start, end, units = "days", vpue = NULL,
   
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   end_fun <- FALSE
   
@@ -335,9 +335,9 @@ trip_dur_out <- function(dat, project, start, end, units = "days", vpue = NULL,
                                format_lab = format_lab, format_tab = "long")
       
       # check_confidentiality ----
-      if (run_confid_check()) {
+      if (run_confid_check(project)) {
         
-        cc_par <- get_confid_check()
+        cc_par <- get_confid_check(project)
         
         if (cc_par$rule == "n") {
           
@@ -351,7 +351,7 @@ trip_dur_out <- function(dat, project, start, end, units = "days", vpue = NULL,
           if (is.null(vpue)) { # just trip duration
             
             check_out <-
-              check_confidentiality(check_out, cc_par$v_id, value_var = "frequency", 
+              check_confidentiality(check_out, project, cc_par$v_id, value_var = "frequency", 
                                     group = c(t_nm, grp_fct), rule = "n", 
                                     value = cc_par$value)
             
@@ -367,7 +367,7 @@ trip_dur_out <- function(dat, project, start, end, units = "days", vpue = NULL,
             check_out <- 
               lapply(check_out, function(x) {
                 
-                check_confidentiality(x, cc_par$v_id, value_var = "frequency", 
+                check_confidentiality(x, project,cc_par$v_id, value_var = "frequency", 
                                       group = c(names(x)[1], grp_fct), rule = "n", 
                                       value = cc_par$value)
               })
@@ -453,7 +453,7 @@ trip_dur_out <- function(dat, project, start, end, units = "days", vpue = NULL,
                          facet_by, units, type, dens = density, bins, tran, 
                          format_lab, scale, combine, pages)
       
-      if (run_confid_check()) {
+      if (run_confid_check(project)) {
         
         if (cc_par$rule == "n") {
           
@@ -543,7 +543,7 @@ trip_dur_out <- function(dat, project, start, end, units = "days", vpue = NULL,
         
       } else save_plot(project, "trip_duratin", t_plot$single)
       
-      if (run_confid_check()) {
+      if (run_confid_check(project)) {
         
         if (cc_par$rule == "n") {
           

@@ -44,7 +44,7 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
 
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
 
   x <- 0

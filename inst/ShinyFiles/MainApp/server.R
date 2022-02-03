@@ -10,13 +10,6 @@ if(!exists("default_search")) {default_search <- ""}
 # default column search values
 if (!exists("default_search_columns")) {default_search_columns <- NULL}
 
-# create fishset_env
-if (fishset_env_exists() == FALSE)  create_fishset_env()
-
-# reset confidentiality
-# set_confid_check(check = FALSE)
-conf_cache_len <- length(get_confid_cache())
-
     ### SERVER SIDE    
     server = function(input, output, session) {
       options(shiny.maxRequestSize = 8000*1024^2)
@@ -1148,7 +1141,7 @@ conf_cache_len <- length(get_confid_cache())
         } else {
         
         req(project$name)
-   
+        
         if (load_helper("main")) {
           
           if (input$loadmainsource=='FishSET database') {
@@ -1160,7 +1153,11 @@ conf_cache_len <- length(get_confid_cache())
             } else {
               
               values$dataset <- table_view(input$main_db_table, project$name)
-              edit_fishset_env("dat_name", input$main_db_table)
+              
+              edit_proj_settings(project$name, 
+                                 tab_name = input$main_db_table, 
+                                 tab_type = "main")
+              
               track_load$project <- project$name
               track_load$main$DB <- input$main_db_table
               load_r$main <- load_r$main + 1
@@ -1193,6 +1190,10 @@ conf_cache_len <- length(get_confid_cache())
               track_load$project <- project$name
               track_load$main$file <- input$maindat
               load_r$main <- load_r$main + 1
+              
+              edit_proj_settings(project$name, 
+                                 tab_name = paste0(project$name, "MainDataTable"),
+                                 tab_type = "main")
             
             } else {
               # reset values$dataset
@@ -1275,7 +1276,11 @@ conf_cache_len <- length(get_confid_cache())
              if (isTruthy(input$port_db_table)) {
 
               ptdat$dataset <- table_view(input$port_db_table, project$name)
-              edit_fishset_env("port_name", input$port_db_table)
+              
+              edit_proj_settings(project$name, 
+                                 tab_name = input$port_db_table, 
+                                 tab_type = "port")
+              
               track_load$port$DB <- input$port_db_table
               load_r$port <- load_r$port + 1
             }
@@ -1301,6 +1306,10 @@ conf_cache_len <- length(get_confid_cache())
                                  duration = 10)
                 track_load$port$file <- input$portdat
                 load_r$port <- load_r$port + 1
+                
+                edit_proj_settings(project$name, 
+                                   tab_name = paste0(project$name, "PortTable"),
+                                   tab_type = "port")
                 
               } else {
                 
@@ -1387,7 +1396,11 @@ conf_cache_len <- length(get_confid_cache())
                          duration = 10)
         # so column names match with DB version
         ptdat$dataset <- table_view(paste0(project$name, 'PortTable'), project$name)  
-        edit_fishset_env("port_name", paste0(project$name, 'PortTable'))
+        
+        edit_proj_settings(project$name, 
+                           tab_name = paste0(project$name, 'PortTable'), 
+                           tab_type = "port")
+        
         show$save <- FALSE
         show$port_merge <- FALSE
         
@@ -1567,6 +1580,10 @@ conf_cache_len <- length(get_confid_cache())
               grddat[[grid_name]] <- table_view(grid_name, project$name)
               track_load$grid$DB <- input$grid_db_table
               load_r$grid <- load_r$grid + 1
+              
+              edit_proj_settings(project$name, 
+                                 tab_name = input$grid_db_table,
+                                 tab_type = "grid")
             }
             
           } else if (input$loadgridsource == 'Upload new file' & !is.null(input$griddat)) {
@@ -1595,6 +1612,10 @@ conf_cache_len <- length(get_confid_cache())
                 showNotification('Gridded data saved to database.', type = 'message', duration = 10)
                 track_load$grid$file <- input$griddat
                 load_r$grid <- load_r$grid + 1
+                
+                edit_proj_settings(project$name, 
+                                   tab_name = paste0(project$name, input$GridName, "GridTable"),
+                                   tab_type = "grid")
                 
               } else {
                 
@@ -1668,7 +1689,11 @@ conf_cache_len <- length(get_confid_cache())
             if (isTruthy(input$aux_db_table)) {
               
               aux$dataset <- table_view(input$aux_db_table, project$name)
-              edit_fishset_env("aux_name", input$aux_db_table)
+              
+              edit_proj_settings(project$name, 
+                                 tab_name = input$aux_db_table, 
+                                 tab_type = "aux")
+              
               track_load$aux$DB <- input$aux_db_table
               load_r$aux <- load_r$aux + 1
             }
@@ -1697,6 +1722,10 @@ conf_cache_len <- length(get_confid_cache())
                 showNotification('Auxiliary data saved to FishSET database.', type = 'message', duration = 10)
                 track_load$aux$file <- input$auxdat
                 load_r$aux <- load_r$aux + 1
+                
+                edit_proj_settings(project$name, 
+                                   tab_name = paste0(project$name, input$AuxName, "AuxTable"),
+                                   tab_type = "main")
                 
               } else {
                 
@@ -1824,6 +1853,20 @@ conf_cache_len <- length(get_confid_cache())
       
       confid_vals <- reactiveValues(check = FALSE, v_id = NULL, rule = "n", value = 3)
       
+      observeEvent(project$name, {
+        
+        conf_rv$current_len <- length(get_confid_cache(project$name))
+        conf_rv$last_len <- conf_rv$current_len
+        
+        conf <- get_confid_check(project$name)
+        confid_vals$check <- conf$check
+        confid_vals$v_id <- conf$v_id
+        confid_vals$rule <- conf$rule
+        confid_vals$value <- conf$value
+       
+      }, ignoreNULL = TRUE, ignoreInit = TRUE)
+      
+      
       observeEvent(input$confid_modal, {
         
         showModal(
@@ -1838,11 +1881,11 @@ conf_cache_len <- length(get_confid_cache())
                                        selectInput("confid_rule", "Select rule", choices = c("n", "k"),
                                                    selected = confid_vals$rule),
                                        conditionalPanel("input.confid_rule=='n'",
-                                          numericInput("confid_value", "Threshold", value = confid_vals$value,
-                                                    min = 0, max = 100)),
+                                                        numericInput("confid_value_n", "Threshold", value = confid_vals$value,
+                                                                     min = 0, max = 100)),
                                        conditionalPanel("input.confid_rule=='k'",
-                                                        numericInput("confid_value", "Threshold", value = 90,
-                                                                     min = 0, max = 100, step=5))
+                                                        numericInput("confid_value_k", "Threshold", value = confid_vals$value,
+                                                                     min = 0, max = 100, step = 5))
                                        ),
                 
                       footer = tagList(
@@ -1857,17 +1900,27 @@ conf_cache_len <- length(get_confid_cache())
       
       observeEvent(input$save_confid, {
         
-        pass_check <-
-        set_confid_check(check = input$confid_check, v_id = input$confid_vid,
-                          rule = input$confid_rule, value = input$confid_value)
-
-        if (pass_check) showNotification("Confidentiality settings saved.", type = "message")
-        else showNotification("Confidentiality settings not saved. Invalid threshold value.", type = "warning")
+        c_val <- ifelse(input$confid_rule == "n", input$confid_value_n, input$confid_value_k)
         
-        confid_vals$check <- input$confid_check
-        confid_vals$v_id <- input$confid_vid
-        confid_vals$rule <- input$confid_rule
-        confid_vals$value <- input$confid_value
+        pass_check <-
+        set_confid_check(project$name, 
+                         check = input$confid_check, 
+                         v_id = input$confid_vid,
+                         rule = input$confid_rule, 
+                         value = c_val)
+
+        if (pass_check) {
+          
+          showNotification("Confidentiality settings saved.", type = "message")
+          confid_vals$check <- input$confid_check
+          confid_vals$v_id <- input$confid_vid
+          confid_vals$rule <- input$confid_rule
+          confid_vals$value <- c_val
+          
+        } else {
+          
+          showNotification("Confidentiality settings not saved. Invalid threshold value.", type = "warning")
+        }
         
         removeModal()
       }, ignoreInit=FALSE)
@@ -2015,6 +2068,49 @@ conf_cache_len <- length(get_confid_cache())
       })
       
       observeEvent(input$meta_close, removeModal())
+      
+      
+      # Plot settings ----
+      
+      in_to_px <- function(x) x * 96
+      
+      r_plot_set_h <- reactive(in_to_px(input$plot_set_h))
+      r_plot_set_w <- reactive(in_to_px(input$plot_set_w))
+      
+      observeEvent(input$plot_set, {
+        
+        p_set <- get_proj_settings(project$name)$plot_size
+        
+        showModal(
+          modalDialog(title = "Plot settings",
+                      
+                      sliderInput("plot_set_w", "Width (in)", min = 1, max = 20, 
+                                  value = p_set[1], step = .1),
+                      sliderInput("plot_set_h", "Height (in)", min = 1, max = 20, 
+                                  value = p_set[2], step = .1),
+                      plotOutput("plotSetFig", width = "auto", height = "auto"),
+                      
+                      footer = tagList(
+                        modalButton("Close"),
+                        actionButton("plot_set_save", "Save", 
+                                     style = "color: #fff; background-color: #6EC479; border-color:#000000;")),
+                      size = "xl",
+                      easyClose = TRUE))
+        
+        output$plotSetFig <- renderPlot({
+          
+          hist(rnorm(100))
+          
+          }, width = r_plot_set_w, height = r_plot_set_h)
+        })
+      
+      
+      observeEvent(input$plot_set_save, {
+        
+        edit_proj_settings(project$name, 
+                           plot_size = c(input$plot_set_w, input$plot_set_h))
+        showNotification("Plot size saved.", type = "message")
+      })
       
       ###---
       
@@ -3252,8 +3348,11 @@ conf_cache_len <- length(get_confid_cache())
           explore_out_proj$temp <- project$name
         
           q_test <- quietly_test(temp_plot)
-          q_test(values$dataset, project$name, input$col_select, len.fun = len_fun,
-                 agg.fun = input$p3fun, date.var = input$date_select)
+          out <- q_test(values$dataset, project$name, input$col_select,
+                        len.fun = len_fun, agg.fun = input$p3fun, 
+                        date.var = input$date_select)
+          
+          out 
         }
       })
       
@@ -3517,7 +3616,10 @@ conf_cache_len <- length(get_confid_cache())
             grid_values$bbox <- incoming_bbox # update bbox
           }
         }
-        edit_fishset_env("grid_name", input$grid_select) # update fishset_env
+        
+        edit_proj_settings(project$name, 
+                           tab_name = input$grid_select, 
+                           tab_type = "grid")
         
         explore_out_proj$grid <- project$name
         
@@ -3542,8 +3644,10 @@ conf_cache_len <- length(get_confid_cache())
       })
       # Save buttons
       output$fleetSaveOutputUI <- renderUI({
-        saveFleetUI(paste0(fleet_id(), "-saveOut"))
-        })
+        tabPlotUI(paste0(fleet_id(), "-save"))
+      })
+      
+      
 
       saveDataTableServ("fleet", values, reactive(project$name))
 
@@ -5457,7 +5561,7 @@ conf_cache_len <- length(get_confid_cache())
     
     explore_outs <- eventReactive(c(input[["explore_tab-save_table"]],
                                     input[["explore_plot-save_plot"]]), {
-
+                                     
       list(
         temp_plot = get_reactive(plotInputTemporal, project$name, explore_out_proj$temp),
         map_plot = get_reactive(plotInputSpatial, project$name, explore_out_proj$spat),
@@ -5496,8 +5600,8 @@ conf_cache_len <- length(get_confid_cache())
     
    
       # confid pop up ----
-      conf_rv <- reactiveValues(current_len = conf_cache_len,
-                                last_len = conf_cache_len)
+      conf_rv <- reactiveValues(current_len = NULL,
+                                last_len = NULL)
       
       conf_event <- reactive({
         
@@ -5510,15 +5614,15 @@ conf_cache_len <- length(get_confid_cache())
       
       observeEvent(c(conf_event(), input$col_select, input$date_select), {
         
-        c_rule <- get_confid_check()
+        c_rule <- get_confid_check(project$name)
         
-        if (c_rule$check) {
+        if (!is.null(c_rule) && c_rule$check) {
 
-          conf_rv$current_len <- length(get_confid_cache())
+          conf_rv$current_len <- length(get_confid_cache(project$name))
 
           if (conf_rv$current_len > conf_rv$last_len) { # if cache list increased, show popup
             
-            conf_tab <- get_confid_cache()[[length(get_confid_cache())]]
+            conf_tab <- get_confid_cache(project$name, show = "last")
             c_lab <- paste(c_rule$rule, "=", c_rule$value)
             
             shinyjs::delay(500, {  # delay so conf_tab can load

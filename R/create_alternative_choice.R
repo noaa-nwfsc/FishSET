@@ -96,7 +96,7 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
 
   gridname <- deparse(substitute(gridfile))

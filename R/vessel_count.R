@@ -91,7 +91,7 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   end <- FALSE 
  
@@ -209,9 +209,9 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
   
   if (end == FALSE) {
     # add missing ----
-    dataset <- add_missing_dates(dataset, date = date, value = v_id, sub_date = sub_date,
-                                 group = group_no_date, facet_by = facet_no_date, 
-                                 fun = "count")
+    dataset <- add_missing_dates(dataset, project, date = date, value = v_id, 
+                                 sub_date = sub_date, group = group_no_date, 
+                                 facet_by = facet_no_date, fun = "count")
   
       if (!is.null(period)) {
         if (period != "cal_date") {
@@ -293,18 +293,20 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
     row.names(table_out) <- 1:nrow(table_out)
     
     # confidentiality check ----
-    if (run_confid_check()) {
+    if (run_confid_check(project)) {
       
-      cc_par <- get_confid_check()
+      cc_par <- get_confid_check(project)
       
       if (cc_par$rule == "n") {
         
         check_out <- table_out
-        ind <- check_out[[v_id]] < cc_par$value & check_out[[v_id]] > 0
+        check_out <- check_out[check_out[[v_id]] > 0, ] # filter for non-zero counts
+        ind <- check_out[[v_id]] < cc_par$value # index of rows to suppress
         
         if (sum(ind) > 0) {
           
-          cache_check_table(check_out[c(period, agg_grp)])
+          check_out <- check_out[ind, ]
+          cache_check_table(check_out[c(period, agg_grp)], project)
           check_out[ind, v_id] <- -999
           save_table(check_out, project, "vessel_count_confid")
         }
@@ -509,7 +511,7 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
       
       save_plot(project, "vessel_count", v_plot)
       
-      if (run_confid_check()) {
+      if (run_confid_check(project)) {
         
         if (exists("check_out")) {
           

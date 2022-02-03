@@ -199,7 +199,10 @@ write_dat <- function (dat, path=NULL, file_type = "csv", project, ...) {
   
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
+  
+  pass <- TRUE
+  
   if(is.null(path)){
     path <- loc_data(project = project)
   }
@@ -250,16 +253,16 @@ write_dat <- function (dat, path=NULL, file_type = "csv", project, ...) {
     
   } else {
     warning("Data extention not recognized.")
-    end <- TRUE
+    pass <- FALSE
   }
   
-  if (end == FALSE) {
+  if (pass) {
     
     path <- path.expand(path)
     
     # Log the function
     write_dat_function <- list()
-    write_dat_function$functionID <- "write_data"
+    write_dat_function$functionID <- "write_dat"
     write_dat_function$args <- list(dat, path, file_type, project)
     write_dat_function$kwargs <- list(...)
     
@@ -307,7 +310,6 @@ load_data <- function(project, name = NULL) {
       tables_database(project)
     } else {
       dat <- table_view(paste0(project, "MainDataTable"), project)
-      if (fishset_env_exists() == FALSE)  create_fishset_env()
     }
   } else {
     if (table_exists(name, project) == FALSE) {
@@ -315,7 +317,6 @@ load_data <- function(project, name = NULL) {
       tables_database(project)
     } else {
       dat <- table_view(name, project)
-      if (fishset_env_exists() == FALSE)  create_fishset_env()
     }
    
    #
@@ -542,11 +543,6 @@ load_maindata <- function(dat, project, over_write = TRUE, compare = FALSE, y = 
     
       message("\n! Data saved to database as ", raw_tab_name, " (raw) and ", 
               work_tab_name, " (working). \nTable is also in the working environment. !")
-       
-      # add to fishset_env
-      if (fishset_env_exists() == FALSE)  create_fishset_env()
-       
-      edit_fishset_env("dat_name", work_tab_name)
       invisible(TRUE)
     
     } else {
@@ -651,9 +647,6 @@ load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALS
     if (table_exists(paste0(project, "PortTable"), project) == FALSE | over_write == TRUE) {
       DBI::dbWriteTable(fishset_db, paste0(project, "PortTable", format(Sys.Date(), format = "%Y%m%d")), x, overwrite = over_write)
       DBI::dbWriteTable(fishset_db, paste0(project, "PortTable"), x, overwrite = over_write)
-      
-      if (fishset_env_exists() == FALSE)  create_fishset_env()
-      edit_fishset_env("port_name", paste0(project, "PortTable"))
       
       load_port_function <- list()
       load_port_function$functionID <- "load_port"
@@ -767,9 +760,6 @@ load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
       
       DBI::dbWriteTable(fishset_db, paste0(project, x, "AuxTable"), aux, overwrite = over_write)
       
-      if (fishset_env_exists() == FALSE)  create_fishset_env()
-      edit_fishset_env("aux_name", paste0(project, x))
-      
       load_aux_function <- list()
       load_aux_function$functionID <- "load_aux"
       load_aux_function$args <- list(deparse_name(dat), deparse_name(aux), x, over_write, project)
@@ -869,9 +859,6 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
     if (table_exists(paste0(project, x), project) == FALSE | over_write == TRUE) {
       
       DBI::dbWriteTable(fishset_db, paste0(project, x, "GridTable"), grid, overwrite = over_write)
-      
-      if (fishset_env_exists() == FALSE)  create_fishset_env()
-      edit_fishset_env("grid_name", paste0(project, x))
       
       load_gridded_function <- list()
       load_gridded_function$functionID <- "load_grid"

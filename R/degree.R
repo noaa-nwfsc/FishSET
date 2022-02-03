@@ -33,7 +33,7 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE, lonsig
 
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   tmp <- tempfile()
   on.exit(unlink(tmp), add = TRUE)

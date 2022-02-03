@@ -26,7 +26,7 @@ corr_out <- function(dat, project, variables, method = "pearson") {
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   end <- FALSE
   
