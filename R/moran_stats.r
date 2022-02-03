@@ -44,11 +44,11 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   spat_out <- data_pull(spat, project)
   spatdat <- spat_out$dataset
-  spat <- parse_data_name(spat, 'spat')
+  spat <- parse_data_name(spat, 'spat', project)
   
  
   x <- 0

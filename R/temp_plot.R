@@ -34,7 +34,7 @@ temp_plot <- function(dat, project, var.select, len.fun = c("length", "unique", 
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   end <- FALSE
   suppress <- FALSE
@@ -94,14 +94,14 @@ temp_plot <- function(dat, project, var.select, len.fun = c("length", "unique", 
     agg_df <- agg_helper(dataset, var.select, group = agg_per, fun = agg.fun)
     
     # confidentiality checks ----
-    if (run_confid_check()) {
-      cc_par <- get_confid_check()
+    if (run_confid_check(project)) {
+      cc_par <- get_confid_check(project)
       if (cc_par$rule == "n") {
         
-        len_conf <- check_and_suppress(dataset, len_df, cc_par$v_id, var.select, 
+        len_conf <- check_and_suppress(dataset, len_df, project, cc_par$v_id, var.select, 
                                        group = agg_per, rule = "n", value = cc_par$value,
                                        type = "NA")
-        agg_conf <- check_and_suppress(dataset, agg_df, cc_par$v_id, var.select, 
+        agg_conf <- check_and_suppress(dataset, agg_df, project, cc_par$v_id, var.select, 
                                        group = agg_per, rule = "n", value = cc_par$value,
                                        type = "NA")
         

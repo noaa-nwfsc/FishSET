@@ -44,7 +44,7 @@ temporal_mod <- function(dat, project, x, define.format, name = NULL, log_fun = 
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   args <- list(...) 
   

@@ -35,7 +35,7 @@ sum_catch <- function(dat, project, catch, v_id, species = NULL, exp, val = c("r
     
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
     
     dataset$temp_row_id <- 1:nrow(dataset)

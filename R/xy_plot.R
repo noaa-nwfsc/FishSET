@@ -25,7 +25,7 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   #Empty variables for plotting
   .fitted <- NULL

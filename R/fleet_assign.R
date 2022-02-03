@@ -52,7 +52,7 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
   
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   end <- FALSE
   
@@ -192,7 +192,7 @@ fleet_assign <- function(dat, project, fleet_tab, assign = NULL, overlap = FALSE
 
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   end <- FALSE
   

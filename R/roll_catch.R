@@ -73,7 +73,7 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
 
     out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   #Empty variable
   Index <- NULL
@@ -252,15 +252,15 @@ roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE,
     check <- FALSE
     suppress <- FALSE
     
-    if (run_confid_check()) {
+    if (run_confid_check(project)) {
       
-      cc_par <- get_confid_check()
+      cc_par <- get_confid_check(project)
       if (cc_par$rule == "n")  check <- TRUE
     }
     
     if (check) {
       
-      check_out <- check_conf_rc(dataset, roll_tab, catch = catch, date = date,
+      check_out <- check_conf_rc(dataset, roll_tab, project, catch = catch, date = date,
                                  group = agg_grp, k = k, align = align, 
                                  full_dates = full_dates)
       
