@@ -3,6 +3,7 @@ source("fleetUI.R", local = TRUE)
 source("fleet_helpers.R", local = TRUE)
 source("map_viewer_app.R", local = TRUE)
 
+
 # default global search value
 if(!exists("default_search")) {default_search <- ""}
 
@@ -241,7 +242,9 @@ conf_cache_len <- length(get_confid_cache())
         dataset = data.frame('var1'=0, 'var2'=0)
         )
        # project name 
-      project <- reactiveValues()
+      project <- reactiveValues(
+        name = c(FALSE)
+      )
       
       # refresh data   
       observeEvent(c(input$refresh,input$refresh1,input$refresh2,input$refreshNew), {
@@ -984,16 +987,16 @@ conf_cache_len <- length(get_confid_cache())
       
       output$projects <- renderUI({
         # req(vars$counter)
-        req(input$loadmainsource)
+       # req(input$loadmainsource)
         if (input$loadmainsource == 'Upload new file') {
           
           textInput('projectname', 'Name of project', placeholder = 'Required to load data')
           
         } else if (input$loadmainsource == 'FishSET database') {
-          
+ 
           if (length(suppressWarnings(projects())) > 0) {
             
-            selectInput("project_select", "Select project", choices = projects())
+            selectInput("project_select", "Select project", choices =  projects())
             
           } else {
             
@@ -1006,11 +1009,12 @@ conf_cache_len <- length(get_confid_cache())
       # assign project name
       observeEvent(c(input$loadmainsource, input$project_select, input$loadDat), {
         # req(vars$counter)
-        req(input$loadmainsource)
+       # req(input$loadmainsource)
+        browser()
         if (input$loadmainsource == 'Upload new file') {
-          
-          if (is_value_empty(input$projectname)) {
-            
+
+         if (is_empty(input$projectname)) {
+         
             project$name <- NULL
           
           } else {
@@ -1024,12 +1028,12 @@ conf_cache_len <- length(get_confid_cache())
         }
       }, priority = 1)
       
-      
+ 
       output$main_upload <- renderUI({    
         # req(vars$counter)
-        req(input$loadmainsource)
-
-      if (input$loadmainsource=='Upload new file') {
+        #req(input$loadmainsource)
+        
+        if (input$loadmainsource=='Upload new file') {
           
           tagList(
             fluidRow(
@@ -1044,18 +1048,21 @@ conf_cache_len <- length(get_confid_cache())
           
         } else if (input$loadmainsource=='FishSET database') {
           
-          if (length(suppressWarnings(projects())) > 0) {
+        #  if (project_exists(project$name)) {
             
             tagList(
               fluidRow(
                 column(5,
                        selectInput("main_db_table", "Choose a main table",
-                                   choices = suppressWarnings(main_tables(project$name, show_all = FALSE)))
+                                   choices = 'scallopMainDataTable')#suppressWarnings(main_tables(project$name, show_all = FALSE)))
                 ))
             )
-          }
+         # }
         }
       })
+    
+              
+
  
       output$ui.action2 <- renderUI({
         if(is.null(input$maindat)) return()
@@ -1127,19 +1134,18 @@ conf_cache_len <- length(get_confid_cache())
       
      #Add in reactive values once data  call is is not empty
       observeEvent(input$loadDat, {
-        
         if (!isTruthy(project$name)) {
           
           if (input$loadmainsource == 'FishSET database') {
             
-            showNotification("No project found. Please upload a new file.", 
+            showNotification("No projects found. Please upload a new file.", 
                              type = 'message', duration = 10)
             
           } else if (input$loadmainsource=='Upload new file') {
             
             showNotification("Please enter a project name.", type='message', duration=10)
           }
-        }
+        } else {
         
         req(project$name)
    
@@ -1163,7 +1169,7 @@ conf_cache_len <- length(get_confid_cache())
           } else if (input$loadmainsource=='Upload new file' & !is.null(input$maindat)) {
             
             # if (input$mainadd != '') { # change to !is_empty_value
-            if (!is_value_empty(input$mainadd)) {
+            if (!is_empty(input$mainadd)) {
               
               values$dataset <- do.call(read_dat, c(list(input$maindat$datapath),
                                                     eval(parse(text=paste0("list(",input$mainadd, ")"))) ))
@@ -1203,6 +1209,7 @@ conf_cache_len <- length(get_confid_cache())
             showNotification("Primary data loaded.", type='message', duration=10)
           }
         }
+        }
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
 
@@ -1216,11 +1223,11 @@ conf_cache_len <- length(get_confid_cache())
                                                    multiple = FALSE, placeholder = 'Required data'))
                                #column(1, uiOutput('ui.actionP'))
                              ))
-          ),#,
+          ),
           conditionalPanel(condition="input.loadportsource == 'FishSET database'",
                           tagList(
                             fluidRow(
-                              column(5, selectInput("port_db_table", "Chose a port table",
+                              column(5, selectInput("port_db_table", "Choose a port table",
                                                     choices = suppressWarnings(list_tables(project = project$name, type = "port"))))
                             ))
           ))
@@ -1389,6 +1396,7 @@ conf_cache_len <- length(get_confid_cache())
 
   #Spatial
       output$spatial_upload <- renderUI({     
+        req(project$name)
         tagList( 
           conditionalPanel(condition="input.loadspatialsource=='Upload new file' & input.filefolder == 'Upload single file'", 
                            tagList(
@@ -1410,14 +1418,17 @@ conf_cache_len <- length(get_confid_cache())
                              ))
           ),
           conditionalPanel(condition="input.loadspatialsource == 'FishSET database'",
+
                            tagList(
-                             fluidRow(
+                          
+                                                        fluidRow(
                                column(5, selectInput("spat_db_table", "Choose a spatial table",
                                                      #choices = list_tables(project$name, "spat")
                                                      choices = tables_database(project$name)
                                                      ))
                              ))
-          ))
+          )
+          )
       })
 
       spatdat <- reactiveValues(
@@ -1527,7 +1538,7 @@ conf_cache_len <- length(get_confid_cache())
           conditionalPanel(condition="input.loadgridsource == 'FishSET database'",
                            tagList(
                              fluidRow(
-                               column(5, selectInput("grid_db_table", "Chose a gridded table",
+                               column(5, selectInput("grid_db_table", "Choose a gridded table",
                                                      choices = suppressWarnings(list_tables(project = project$name, type = "grid")))
                                       )
                              ))
@@ -1972,7 +1983,7 @@ conf_cache_len <- length(get_confid_cache())
                        " to confirm. "),
                      
                      metaProjUI("meta_edit"),
-                     metaEditSaveUI("meta_edit"),
+                    metaEditSaveUI("meta_edit"),
                      metaDeleteUI("meta_edit")
                    ),
                    mainPanel(width = 9,
