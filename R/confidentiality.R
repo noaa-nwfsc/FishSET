@@ -43,12 +43,15 @@ check_confid_par <- function(rule, value) {
   }
 }
 
-set_confid_check <- function(check = TRUE, v_id = NULL, rule = "n", value = NULL) {
+
+set_confid_check <- function(project, check = TRUE, v_id = NULL, rule = "n", 
+                             value = NULL) {
   #' Set confidentiality parameters
   #' 
   #' This function specifics whether to check for confidentiality and which 
   #' rule should be applied.
   #' 
+  #' @param project Name of project. 
   #' @param check Logical, whether to check for confidentiality.
   #' @param v_id String, the column name containing the vessel identifier. 
   #' @param rule String, the confidentiality rule to apply. See "Details" below. 
@@ -66,19 +69,19 @@ set_confid_check <- function(check = TRUE, v_id = NULL, rule = "n", value = NULL
   #'   than or equal to k percent the value is suppressed.
   #' @examples 
   #' \dontrun{
-  #' set_confid_check(check = TRUE, v_id = "PERMIT", rule = "n", value = 3L)
+  #' set_confid_check("pollock", check = TRUE, v_id = "PERMIT", rule = "n", value = 3L)
   #' }
   
-  if (check == TRUE) {
+  if (check) {
     
     if (!is.null(v_id) & !is.null(value)) {
       
       if (rule == "n") value <- as.integer(value)
       
       pass_checks <- check_confid_par(rule, value)
-    
+      
     } else {
-    
+      
       warning("Arguments v_id and/or value are missing")
       pass_checks <- FALSE
       invisible(FALSE)
@@ -88,25 +91,28 @@ set_confid_check <- function(check = TRUE, v_id = NULL, rule = "n", value = NULL
   
   if (pass_checks) {
     
-    edit_fishset_env("confid_check", 
-                     value = list(check = check, v_id = v_id, 
-                                  rule = rule, value = value))
+    confid_list <- list(check = check, v_id = v_id, rule = rule, value = value)
+    
+    edit_proj_settings(project, confid = confid_list)
+    
     message("Confidentiality settings saved.")
     invisible(TRUE)
-  
+    
   } else invisible(FALSE)
 }
 
-run_confid_check <- function() {
+
+run_confid_check <- function(project) {
   #' Check whether confidentiality rules should be applied
+  #' @param project Name of project. 
   #' @keywords internal
   #' @importFrom rlang env_get
   #' @return \code{TRUE} if confidentiality settings exists and \code{check = TRUE}, 
   #'   \code{FALSE} if settings do not exists yet or \code{check = FALSE}.
   
-  if (fishset_env_exists()) {
+  if (proj_settings_exists(project)) {
     
-    out <- rlang::env_get(fishset_env, "confid_check", default = NULL)
+    out <- get_confid_check(project)
     
     if (!is.null(out)) out$check
     else FALSE
@@ -114,7 +120,8 @@ run_confid_check <- function() {
   } else FALSE
 }
 
-get_confid_check <- function() {
+
+get_confid_check <- function(project) {
   #' Return the confidentiality settings 
   #' 
   #' This function returns the confidentiality settings from the FishSET environment.
@@ -123,58 +130,106 @@ get_confid_check <- function() {
   #'   \code{v_id}, \code{rule}, and \code{value}.
   #' @seealso \code{\link{set_confid_check}}
   #' @export
-
-    get_fishset_env("confid_check")
+  
+  proj_set <- get_proj_settings(project)
+  
+  if (!is.null(proj_set)) proj_set$confid
+  else return(NULL)
 }
 
-get_confid_cache <- function() {
+
+confid_cache_exists <- function(project) {
+  #' Confidentialy cache exists
+  #' 
+  #' Returns \code{TRUE} if confidentiality cache file is found in the project
+  #' output folder.
+  #' @param project Name of project.
+  #' @export
+  #' @examples 
+  #' \dontrun{
+  #' confid_cache_exists("pollock")
+  #' }
+  
+  cache_file <- paste0(locoutput(project), "confid_cache.json")
+  file.exists(cache_file)
+}
+
+
+get_confid_cache <- function(project, show = "all") {
   
   #' Return cached confidentiality tables
   #' 
   #' This function lists the confidentiality "check" tables used to suppress values.
-  #' 
+  #' @param project Name of project
+  #' @param show Output \code{"all"} tables, \code{"last"} table, or \code{"first"}
+  #'   table. 
   #' @return A list of tables containing suppression conditions. 
   #' @export
   #' @seealso \code{\link{reset_confid_cache}}
   
-  get_fishset_env("confid_cache")
+  if (project_exists(project) == FALSE) {
+    
+    warning(paste("Project", project, "does not exist."))
+    
+  } else {
+    
+    cache_file <- paste0(locoutput(project), "confid_cache.json")
+    
+    if (file.exists(cache_file)) {
+      
+      cache <- jsonlite::read_json(cache_file, simplifyVector = TRUE)
+      
+      if (show == "first") cache <- cache[[1]]
+      else if (show == "last") cache <- cache[[length(cache)]]
+      
+      cache
+      
+    } else return(NULL)
+  }
 }
 
-cache_check_table <- function(check) {
+
+cache_check_table <- function(check, project) {
   
   #' Add check table to confidentiality cache list
   #' 
   #' @param check Dataframe, check table to be added to confidentiality cache.
+  #' @param project Name of project. 
   #' @keywords internal
   
-  cache <- get_confid_cache()
+  cache <- get_confid_cache(project)
   
-  if (is.null(cache)) cache <- list()
+  if (is.null(cache)) cache <- vector("list", length = 0)
   
   ind <- length(cache) + 1
   
   cache[[ind]] <- check
   
-  edit_fishset_env("confid_cache", cache)
+  cache_file <- paste0(locoutput(project), "confid_cache.json")
+  jsonlite::write_json(cache, cache_file)
 }
 
-reset_confid_cache <- function() {
-#' Reset confidentiality cache tables in `fishset_env`
-#' 
-#' This function deletes all confidentiality check tables stored in `fishset_env`. 
-#' Resetting this cache is recommended when switching to a new project or after 
-#' a long period of use as check tables can accumulate over time.
-#' 
-#' @export
-#' @seealso \code{\link{get_confid_cache}}
+
+reset_confid_cache <- function(project) {
+  #' Reset confidentiality cache tables in `fishset_env`
+  #' 
+  #' This function deletes all confidentiality check tables stored in `fishset_env`. 
+  #' Resetting this cache is recommended when switching to a new project or after 
+  #' a long period of use as check tables can accumulate over time.
+  #' 
+  #' @export
+  #' @seealso \code{\link{get_confid_cache}}
   
-  if (fishset_env_exists()) {
+  
+  
+  if (confid_cache_exists(project)) {
     
-    edit_fishset_env("confid_cache", NULL)
+    file.remove(paste0(locoutput(project), "confid_cache.json"))
   }
 }
 
-check_confidentiality <- function(dataset, v_id, value_var, group = NULL, 
+
+check_confidentiality <- function(dataset, project, v_id, value_var, group = NULL, 
                                   rule = c("n", "k"), value, names_to = "name", 
                                   values_to = "value") {
   
@@ -185,6 +240,7 @@ check_confidentiality <- function(dataset, v_id, value_var, group = NULL,
   #' 
   #' @param dataset The dataset used to create a summary table. This must include 
   #'   the vessel identifier column. 
+  #' @param project Name of project. 
   #' @param v_id String, the name of the vessel identifier column.
   #' @param value_var String, the name(s) of the value variable(s). 
   #' @param group String, the name(s) of the grouping variable(s). This should 
@@ -197,50 +253,50 @@ check_confidentiality <- function(dataset, v_id, value_var, group = NULL,
   #'   be an integer of at least 3. For \code{rule = "k"} any double value from
   #'   0 to 100. 
   #' @param names_to String, the name for the column containing the names of value 
-  #'   variables when `value_var` has two or more columns.
+  #'   variables when \code{value_var} has two or more columns.
   #' @param values_to String, the name for the column containing the values from the
-  #'   variables listed in `names_to`.
+  #'   variables listed in \code{names_to}.
   #' @keywords internal
   #' @importFrom tidyr pivot_longer
   #' @importFrom dplyr distinct
   #' @importFrom tibble as_tibble
   #'
   
-    # stack value vars and filter for non-zero values
-    if (length(value_var) > 1) {
-      
-      dataset <- tidyr::pivot_longer(dataset, cols = !!value_var, 
-                                     names_to = names_to, values_to = values_to)
-      value_var <- values_to
-      group <- c(group, names_to)
-      include_val <- FALSE
-      
-    } else include_val <- TRUE
+  # stack value vars and filter for non-zero values
+  if (length(value_var) > 1) {
     
-    dataset <- dataset[dataset[[value_var]] > 0, ]
+    dataset <- tidyr::pivot_longer(dataset, cols = !!value_var, 
+                                   names_to = names_to, values_to = values_to)
+    value_var <- values_to
+    group <- c(group, names_to)
+    include_val <- FALSE
     
-    if (rule == "n") {
-      
-      if (value < 2) value <- 2 
-      
-      check <- agg_helper(dataset, v_id, group, fun = function(x) length(unique(x)))
-      
-      # filter for obs below threshold
-      ind <- check[[v_id]] < value
-      
-    } else {
-      
-      check <- agg_helper(dataset, value_var, group = c(v_id, group), fun = sum)
-      
-      check <- perc_of_total(check, value_var = value_var, group = group)
-      
-      val_perc <- paste0(value_var, "_perc")
-    
-      ind <- check[[val_perc]] >= value
-    }
+  } else include_val <- TRUE
   
-  supr_vals <- ifelse(sum(ind) > 0, TRUE, FALSE)
+  dataset <- dataset[dataset[[value_var]] > 0, ]
+  
+  if (rule == "n") {
     
+    if (value < 2) value <- 2 
+    
+    check <- agg_helper(dataset, v_id, group, fun = function(x) length(unique(x)))
+    
+    # filter for obs below threshold
+    ind <- check[[v_id]] < value
+    
+  } else if (rule == "k") {
+    
+    check <- agg_helper(dataset, value_var, group = c(v_id, group), fun = sum)
+    
+    check <- perc_of_total(check, value_var = value_var, group = group)
+    
+    val_perc <- paste0(value_var, "_perc")
+    
+    ind <- check[[val_perc]] >= value
+  }
+  
+  supr_vals <- sum(ind) > 0
+  
   if (supr_vals) {
     
     if (is.null(group)) group <- v_id
@@ -257,13 +313,14 @@ check_confidentiality <- function(dataset, v_id, value_var, group = NULL,
     
     check <- dplyr::distinct(check)
     
-    cache_check_table(check)
+    cache_check_table(check, project)
     warning("Confidential data detected.")
   }
   
   list(table = if (supr_vals) check else NULL,
        suppress = supr_vals) 
 }
+
 
 suppress_table <- function(check, output, value_var, group, rule, type = "code",
                            as_vector = FALSE) {
@@ -343,8 +400,10 @@ suppress_table <- function(check, output, value_var, group, rule, type = "code",
   else output
 }
 
-check_and_suppress <- function(dat, output, v_id, value_var, group = NULL, rule, value,
-                               type = "code", names_to = "name", values_to = "value") {
+
+check_and_suppress <- function(dat, output, project, v_id, value_var, group = NULL, 
+                               rule, value, type = "code", names_to = "name", 
+                               values_to = "value") {
   
   #'Check and suppress data
   #'
@@ -352,6 +411,7 @@ check_and_suppress <- function(dat, output, v_id, value_var, group = NULL, rule,
   #'   the vessel identifier column. 
   #' @param output The output table to be suppressed. If \code{output = NULL}, 
   #'   \code{dat} is used. 
+  #'   @param project Name of project. 
   #' @param v_id String, the name of the vessel identifier column.
   #' @param value_var String, the name(s) of the value variable(s). 
   #' @param group String, the name(s) of the grouping variable(s). This should 
@@ -373,8 +433,8 @@ check_and_suppress <- function(dat, output, v_id, value_var, group = NULL, rule,
   #' @keywords internal
   
   check <- 
-    check_confidentiality(dat, v_id, value_var, group, rule, value, names_to, 
-                          values_to)
+    check_confidentiality(dat, project, v_id, value_var, group, rule, value, 
+                          names_to, values_to)
   
   if (check$suppress) {
     
@@ -382,16 +442,17 @@ check_and_suppress <- function(dat, output, v_id, value_var, group = NULL, rule,
       
       dat <- suppress_table(check$table, output, value_var = value_var, group, rule, 
                             type = type)
-    
+      
     } else {
       
       dat <- suppress_table(check$table, dat, value_var = value_var, group, rule,
                             type = type)
     }
     
-   list(table = dat, suppress = TRUE)
+    list(table = dat, suppress = TRUE)
   } else check
 }
+
 
 window_cc <- function(x, k) {
   #' Unique values window function
@@ -414,6 +475,7 @@ window_cc <- function(x, k) {
   
   vec_out
 }
+
 
 roll_cc <- function(dat, k, align) {
   #' Apply window_cc 
@@ -460,11 +522,14 @@ roll_cc <- function(dat, k, align) {
   roll_out
 }
 
-check_conf_rc <- function(dat, roll_tab, catch, date, group, k, full_dates, align) {
+
+check_conf_rc <- function(dat, roll_tab, project, catch, date, group, k, full_dates, 
+                          align) {
   #' Check and suppress roll_catch output
   #' 
   #' @param dat Dataset used to create \code{roll_tab} dataframe. 
   #' @param roll_tab Unsuppressed table from \code{roll_catch}.
+  #' @param project Name of project. 
   #' @param catch String, name of catch variable(s).
   #' @param date String, name of date variable.
   #' @param group String, name of group variable(s). 
@@ -477,8 +542,8 @@ check_conf_rc <- function(dat, roll_tab, catch, date, group, k, full_dates, alig
   #' @importFrom dplyr group_by across arrange
   #' @importFrom magrittr %>% 
   
-  cc_par <- get_confid_check()
-
+  cc_par <- get_confid_check(project)
+  
   dat <- dat[unique(c(date, cc_par$v_id, group, catch))]
   
   if (length(catch) > 1) {
@@ -495,7 +560,7 @@ check_conf_rc <- function(dat, roll_tab, catch, date, group, k, full_dates, alig
   if (length(catch) == 1) {
     
     dat[[catch]] <- NULL
-  
+    
   } else {
     
     dat$catch <- NULL
@@ -556,7 +621,7 @@ check_conf_rc <- function(dat, roll_tab, catch, date, group, k, full_dates, alig
       check_ind <- lapply(ind, function(x) roll_tab[[date]][x])
       
       # cache check table
-      cache_check_table(check_ind)
+      cache_check_table(check_ind, project)
       warning("Confidential data detected.")
     }
     
@@ -582,7 +647,7 @@ check_conf_rc <- function(dat, roll_tab, catch, date, group, k, full_dates, alig
       roll_tab <- 
         suppress_table(check, roll_tab, catch, group = unique(date, group), "n")
       
-      cache_check_table(check)
+      cache_check_table(check, project)
       warning("Confidential data detected.")
     }
   }
@@ -590,6 +655,7 @@ check_conf_rc <- function(dat, roll_tab, catch, date, group, k, full_dates, alig
   list(table = if (supr_vals) roll_tab else NULL,
        suppress = supr_vals) 
 } 
+
 
 replace_sup_code <- function(output, code = NA) {
   
@@ -613,6 +679,6 @@ replace_sup_code <- function(output, code = NA) {
   ind <- which(output == -999, arr.ind = TRUE)
   
   if (nrow(ind) > 0) output[unique(ind[, 1]), unique(ind[, 2])] <- code
-
+  
   output
 }
