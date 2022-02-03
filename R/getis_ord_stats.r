@@ -46,12 +46,12 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   
   spat_out <- data_pull(spat, project)
   spatdat <- spat_out$dataset
-  spat <- parse_data_name(dat, "spat")
+  spat <- parse_data_name(dat, "spat", project)
   
     if ("sf" %in% class(spatdat) == FALSE) {
       spatdat <- sf::st_as_sf(spatdat)

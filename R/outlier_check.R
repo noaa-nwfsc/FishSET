@@ -28,7 +28,7 @@ outlier_table <- function(dat, project, x, log_fun = TRUE) {
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
 
   x.name <- x
@@ -199,7 +199,7 @@ outlier_plot <- function(dat, project, x, dat.remove='none', x.dist='normal',
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   if (!is.null(date)) {
     
@@ -443,7 +443,7 @@ outlier_remove <- function(dat, project, x, dat.remove = "none", over_write = FA
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
 
   if (is.numeric(dataset[[x]]) == TRUE) {

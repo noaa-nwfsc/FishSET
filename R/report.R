@@ -1,52 +1,3 @@
-
-set_user_locoutput <- function(loc_dir) {
-  #'
-  #' Set user folder directory
-  #' @param loc_dir Local user directory
-  #' @export
-  #' @details This function saves the local user directory to `fishset_env`. 
-  #'  with a valid folder directory. This directory path is used for inserting plots 
-  #'  and tables from a folder outside the FishSET package into the FishSET RMarkdown 
-  #'  Template. 
-  #' @seealso \code{\link{insert_plot}} \code{\link{insert_table}} \code{\link{show_fishset_env}}
-  
-  if (fishset_env_exists()) {
-    
-    if (!dir.exists(loc_dir)) warning("Invalid directory.")
-    else {
-      if (!grepl("/$", loc_dir)) loc_dir <- paste0(loc_dir, "/")
-      edit_fishset_env("user_locoutput", loc_dir)
-    }
-  }
-}
-
-get_user_locoutput <- function() {
-  #'
-  #'Print user folder directory
-  #'
-  #'@export
-  #'@keywords internal
-  #'@details This function prints the local user directory saved in `fishset_env`. 
-  #'  This directory path is used for inserting plots and tables from a folder outside 
-  #'  the FishSET package into the FishSET RMarkdown Template. 
-  #'  
-  
-  if (fishset_env_exists()) {
-    
-    locOutput <- get_fishset_env("user_locoutput")
-    
-    if (!is.null(locOutput)) {
-      
-      if (!dir.exists(locOutput)) warning("Invalid directory.")
-      else locOutput
-      
-    } else {
-      
-      message("User directory unspecified. Run set_user_locouput() to desired folder directory.")
-    }
-  }
-}
-
 list_logs <- function(project = NULL, chron = FALSE, modified = FALSE) {
   #' View list of all log files
   #' @param project Project name. Displays all logs if NULL.
@@ -475,11 +426,12 @@ plot_format <- function(x, project) {
   knitr::include_graphics(paste0(locoutput(project = project), x))
 }
 
-insert_plot <- function(out) {
+insert_plot <- function(out, project) {
   #' 
   #' Insert plot from user folder
   #' 
   #' @param out String, plot file name.
+  #' @param project Name of project.
   #' @export
   #' @importFrom knitr include_graphics
   #' @examples
@@ -487,35 +439,36 @@ insert_plot <- function(out) {
   #' insert_plot("pollock_plot.png")
   #' }
   
-  if (!is.null(get_user_locoutput())){
+  if (!is.null(get_user_locoutput(project))){
     
-    if (file.exists(paste0(get_user_locoutput(), out))) {
+    if (file.exists(paste0(get_user_locoutput(project), out))) {
       
-      knitr::include_graphics(paste0(get_user_locoutput(), out))
+      knitr::include_graphics(paste0(get_user_locoutput(project), out))
       
     } else message("Plot not found.")
   }
 }
 
-insert_table <- function(out) {
+insert_table <- function(out, project) {
   #' 
   #' Insert table from user folder
   #' 
   #' @param out String, table file name.
+  #' @param project Name of project. 
   #' @export
   #' @examples
   #' \dontrun{
   #' insert_table("pollock_table.csv")
   #' }
-  if (!is.null(get_user_locoutput())) {
+  if (!is.null(get_user_locoutput(project))) {
     
-    if (!file.exists(paste0(get_user_locoutput(), out))) {
+    if (!file.exists(paste0(get_user_locoutput(project), out))) {
       
       message("Table not found.")
       
     } else {
       
-      tab <- read.csv(paste0(get_user_locoutput(), out))
+      tab <- read.csv(paste0(get_user_locoutput(project), out))
       tab
     }
   }

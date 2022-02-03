@@ -36,17 +36,17 @@ merge_dat <- function(dat, project, other, main_key, other_key, other_type = NUL
   # pull main data
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   
   # pull secondary data
   other_out <- data_pull(other, project)
   other_dat <- other_out$dataset
   
-  if (other_type == "aux") other <- parse_data_name(other, "aux")
-  else if (other_type == "grid") other <- parse_data_name(other, "grid")
-  else if (other_type == "port") other <- parse_data_name(other, "port")
-  else if (other_type == "spat") other <- parse_data_name(other, "spat")
+  if (other_type == "aux") other <- parse_data_name(other, "aux", project)
+  else if (other_type == "grid") other <- parse_data_name(other, "grid", project)
+  else if (other_type == "port") other <- parse_data_name(other, "port", project)
+  else if (other_type == "spat") other <- parse_data_name(other, "spat", project)
   
   end <- FALSE 
 
@@ -171,7 +171,7 @@ split_dat <- function(dat, project, aux = NULL, split_by = NULL, key, output = "
   # pull main data
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
  
   aux_dat <- NULL
@@ -180,7 +180,7 @@ split_dat <- function(dat, project, aux = NULL, split_by = NULL, key, output = "
     # pull aux data
     out_aux <- data_pull(aux, project)
     aux_dat <- out_aux$dataset
-    aux <- parse_data_name(aux, 'aux')
+    aux <- parse_data_name(aux, 'aux', project)
   }
   
   end <- FALSE

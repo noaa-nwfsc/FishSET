@@ -216,11 +216,13 @@ source("map_viewer_app.R", local = TRUE)
                              actionButton("meta_modal", "Metadata",
                                           style = "color: white; background-color: blue;"),
                              
-                             conditionalPanel("input.loadDat > 0",
-                             actionButton("confid_modal", "Confidentiality",
-                                          style = "color: white; background-color: blue;"),
-                             actionButton("reset_modal", "Reset log",
-                                          style = "color: white; background-color: blue;")),
+                             conditionalPanel("input.loadDat > 0", # update to a more reliable method
+                                actionButton("confid_modal", "Confidentiality",
+                                             style = "color: white; background-color: blue;"),
+                                actionButton("reset_modal", "Reset log",
+                                             style = "color: white; background-color: blue;"),
+                                actionButton("plot_set", "Plot settings", 
+                                             style = "color: white; background-color: blue;")),
                              
                              tags$br(), tags$br(),
                              fluidRow(

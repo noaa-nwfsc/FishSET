@@ -119,9 +119,12 @@ project_exists <- function(project) {
   #' @export
   #' @keywords internal
   
-  projdir <- paste0(locproject(), "/", project)
-  
-  dir.exists(projdir)
+  if (!is.null(project)) {
+    
+    projdir <- paste0(locproject(), "/", project)
+    dir.exists(projdir)
+    
+  } else FALSE
 }
 
 #Check if project folder exists
@@ -162,6 +165,8 @@ check_proj <- function(project = NULL) {
       
       #doc (report)
       dir.create(file.path(paste0(proj_dir, '/doc')), showWarnings = FALSE)
+      
+      create_proj_settings(project)
       
       #MapViewer
       dir.create(file.path(paste0(proj_dir, '/MapViewer')), showWarnings = FALSE)
@@ -315,6 +320,22 @@ loc_meta <- function(project) {
   #' 
   
   paste0(locproject(), "/", project, "/doc/meta_log.json")
+}
+
+
+loc_doc <- function(project) {
+  #' Define source location for doc folder
+  #' Returns the location of the doc folder
+  #' @param project Project name
+  #' @keywords internal
+  #' @export
+  #' @details if loc2 is not in the working environment, then the default location is use
+  
+  if (!exists('loc2')||is.null(loc2)) {
+    paste0(system.file(package = "FishSET"), "/projects/", project, "/doc/")
+  } else {
+    paste0(loc2, "/projects/", project, "/doc/")
+  }
 }
 
 
@@ -750,12 +771,13 @@ data_pull <- function(dat, project) {
   return(list(dat = dat, dataset = dataset))
 }
 
-parse_data_name <- function(dat, type) {
+parse_data_name <- function(dat, type, project) {
   
   #' Parse data name for logging 
   #' 
   #' @param dat Data table to be parsed. 
   #' @param type String, the data type: "main", "aux", "grid", "port", or "spat".
+  #' @param project project name. 
   #' @importFrom shiny isRunning
   #' @importFrom rlang caller_env
   #' @keywords internal
@@ -764,12 +786,14 @@ parse_data_name <- function(dat, type) {
   #'   environment is used. 
   #' @export
 
-  dat_type <- switch(type, "main" = "dat_name", "aux" = "aux_name", 
-                   "grid" = "grid_name", "port" = "port_name", "spat" = "spat_name")
+  # dat_type <- switch(type, "main" = "dat_name", "aux" = "aux_name", 
+  #                  "grid" = "grid_name", "port" = "port_name", "spat" = "spat_name")
   
   if (shiny::isRunning()) {
     
-    dat <- get_fishset_env(dat_type)
+    # dat <- get_fishset_env(dat_type)
+    p_set <- get_proj_settings(project)
+    dat <- p_set$tables[[type]]
     
   } else { 
     
@@ -919,11 +943,12 @@ perc_of_total <- function(dat, value_var, group = NULL, drop = FALSE,
 }
 
 
-add_missing_dates <- function(dataset, date = NULL, value, sub_date = NULL, group = NULL, 
-                              facet_by = NULL, fun = "sum") {
+add_missing_dates <- function(dataset, project, date = NULL, value, sub_date = NULL,
+                              group = NULL, facet_by = NULL, fun = "sum") {
   #' Add missing dates to `MainDataTable`.
   #'
   #' @param dataset Object containing `MainDataTable`. 
+  #' @param project Name of project. 
   #' @param date String, name of date variable to find missing days.
   #' @param sub_date String, name of date variable to subset by. 
   #' @param value String, name of value variable to be aggregated by \code{agg_helper}.
@@ -966,9 +991,9 @@ add_missing_dates <- function(dataset, date = NULL, value, sub_date = NULL, grou
     cols <- unique(c(date, sub_date, group, facet_by))
     aux <- unique(c(group, facet_by))
     
-    if (run_confid_check()) {
+    if (run_confid_check(project)) {
       
-     check <- get_confid_check()
+     check <- get_confid_check(project)
      cols <- unique(c(cols, check$v_id))
      aux <- unique(c(aux, check$v_id))
     }
@@ -1167,7 +1192,9 @@ save_plot <- function(project, func_name, ...) {
   #' save_plot(project, "species_catch")
   #' }
 
-  ggplot2::ggsave(file = paste0(locoutput(project=project), project, "_", func_name, "_", Sys.Date(), ".png"), ...)
+  filename <- paste0(locoutput(project), project, "_", func_name, "_", Sys.Date(), ".png")
+  p_size <- get_proj_settings(project)$plot_size
+  ggplot2::ggsave(file = filename, width = p_size[1], height = p_size[2], ...)
 }
 
 periods_list <- list(

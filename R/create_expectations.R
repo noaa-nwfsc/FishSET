@@ -90,7 +90,7 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
   # Call in datasets
   out <- data_pull(dat, project = project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)

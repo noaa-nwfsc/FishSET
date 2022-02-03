@@ -105,7 +105,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   end <- FALSE 
   
@@ -234,7 +234,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
       
     } else facet <- facet_no_date
     
-    dataset <- add_missing_dates(dataset, date = date, sub_date = sub_date, 
+    dataset <- add_missing_dates(dataset, project, date = date, sub_date = sub_date, 
                                  value = species, group = group_no_date, 
                                  facet_by = facet)
     
@@ -350,12 +350,12 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
     } 
     
     # confidentiality checks ----
-    if (run_confid_check()) {
+    if (run_confid_check(project)) {
       
-      cc_par <- get_confid_check()
+      cc_par <- get_confid_check(project)
       
       check_table <- 
-        check_confidentiality(dataset = dataset, cc_par$v_id, value_var = species, 
+        check_confidentiality(dataset = dataset, project, cc_par$v_id, value_var = species, 
                               rule = cc_par$rule, group = c(period, agg_grp), 
                               value = cc_par$value, names_to = "species", 
                               values_to = "catch")
@@ -635,7 +635,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
       # save plots
       save_plot(project, "species_catch")
       
-      if (run_confid_check()) {
+      if (run_confid_check(project)) {
         
         if (check_table$suppress) {
           

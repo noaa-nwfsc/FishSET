@@ -39,11 +39,11 @@ zone_freq_map <- function(dat, spat, project, lon.dat, lat.dat, zone.dat,
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
   spatout <- data_pull(spat, project)
   spatdat <- spatout$dataset
-  spat <- parse_data_name(spat, "spat")
+  spat <- parse_data_name(spat, "spat", project)
   
   # Count zones
   zone_freq <- dataset %>% 
