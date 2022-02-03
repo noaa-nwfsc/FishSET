@@ -9,6 +9,7 @@ recast_multipoly <- function(grid, closure, combined, id) {
   #' @param combined Combined version of grid and closure file.
   #' @param id Character, the name of the zone ID column. 
   #' @keywords internal
+  #' @export
   #' @importFrom sf st_intersects st_is st_cast
   #' @importFrom  dplyr filter bind_rows
   #' @importFrom magrittr %>% 
@@ -60,6 +61,7 @@ new_zone_id <- function(combined, id, grid = NULL, closure = NULL,
   #' @param recast Logical, if \code{TRUE} \code{combined} is passed to 
   #'   \code{\link{recast_multipoly}}.
   #' @keywords internal
+  #' @export
   #' @import dplyr
   #' @importFrom magrittr %>% 
   #' @importFrom purrr pmap

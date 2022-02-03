@@ -28,6 +28,7 @@ unique_closure <- function(project, c_list, ind = TRUE) {
   #' from \code{c_list} or a single TRUE/FALSE value indicating that one or more
   #' closure scenarios are unique. 
   #' @keywords internal
+  #' @export
   
   c_log <- get_closure_scenario(project)
   
@@ -59,6 +60,7 @@ save_closure_scenario <- function(project, c_list) {
   #' @param c_list List of closure scenarios to check and save. 
   #' @importFrom yaml write_yaml read_yaml
   #' @keywords internal
+  #' @export
   
   tmp <- tempfile()
   on.exit(unlink(tmp), add = TRUE)
@@ -104,7 +106,7 @@ close_names <- function(project) {
   #' @param project Name of project
   #' @export
   #' @details To retrieve the complete closure scenario file, use 
-  #' \code{\link{get_closure_scenarios}}.
+  #' \code{\link{get_closure_scenario}}.
   
   c_list <- get_closure_scenario(project)
   
