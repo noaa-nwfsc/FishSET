@@ -43,12 +43,12 @@ create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, st
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
-  dat <- parse_data_name(dat, "main")
+  dat <- parse_data_name(dat, "main", project)
   
 
   # in port table
   out <- data_pull(portTable, project)
-  PortTable <- parse_data_name(portTable, 'port')
+  PortTable <- parse_data_name(portTable, 'port', project)
   port.table <- out$dataset
   
   if(!exists('project')){

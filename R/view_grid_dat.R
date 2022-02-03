@@ -38,7 +38,7 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL,
   out <- data_pull(gridfile, project)
   grid <- out$dataset
   
-  gridfile <- parse_data_name(gridfile, "grid")
+  gridfile <- parse_data_name(gridfile, "grid", project)
   
 #  data(colors) # load in colors.RData in Data/
   

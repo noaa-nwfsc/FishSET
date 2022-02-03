@@ -46,81 +46,13 @@ RexpressionServ <- function(id, values) {
 
 
 # Save buttons ====
-# Use in fleet function module (not in main app)
-saveFleetServ <- function(id, fun_id, project, fun_name, tab_plot, out) {
-  
-  moduleServer(id, function(input, output, session) {
-    
-    table_save <- reactive({
-      if (out() == "table") tab_plot() 
-      else if (out()  == "tab_plot") tab_plot()$table
-      else NULL 
-    })
-    
-    plot_save <- reactive({
-      if (out() == "plot") tab_plot() 
-      else if (out() == "tab_plot") tab_plot()$plot
-      else NULL 
-    })
-    
-    observeEvent(input$downloadplot, {
-      
-      if (!is.null(get_user_locoutput())) dir_loc <- get_user_locoutput()
-      else dir_loc <- locoutput(project())
-      
-      if (any(out() %in% c("plot", "tab_plot"))) {
-        
-        output$downloadplotHIDE <<- downloadHandler(
-          filename = function() {
-            paste0(dir_loc,  project(), "_", fun_name, '.png')
-          },
-          content = function(file) {
-            ggplot2::ggsave(file, plot = plot_save())
-          })
-        jsinject <- paste0("setTimeout(function(){window.open($('#", fun_id, "-", id, "-downloadplotHIDE').attr('href'))}, 100);")
-        session$sendCustomMessage(type = 'jsCode', list(value = jsinject))
-        showNotification('Plot saved.', type = 'message', duration = 10)
-        
-      } else {
-        showNotification('Plot not found.', type = 'message', duration = 10)
-      }
-    })
-    
-    observeEvent(input$downloadTable, {
-      
-      if (!is.null(get_user_locoutput())) dir_loc <- get_user_locoutput()
-      else dir_loc <- locoutput(project())
-      
-      if (any(out() %in% c("table", "tab_plot"))) {
-        
-        output$downloadTableHIDE <<- downloadHandler(
-          filename = function() {
-            paste0(dir_loc,  project(), "_", fun_name, '.csv')
-          },
-          content = function(file) {
-            write.csv(table_save(), file, row.names = FALSE)
-          })
-        jsinject <- paste0("setTimeout(function(){window.open($('#", fun_id, "-", id, "-downloadTableHIDE').attr('href'))}, 100);")
-        session$sendCustomMessage(type = 'jsCode', list(value = jsinject))
-        showNotification('Table saved.', type = 'message', duration = 10)
-        
-      } else {
-        showNotification('Table not found.', type = 'message', duration = 10)
-      }
-    })
-  })
-}
-
-
 sort_save_outputs <- function(x = NULL) {
-  
+# used in tabPlotServ()
   if (!is.null(x)) {
     
-    # detect single plots/tables v. lists of plots/tables
-    ind <- vapply(x, function(x) {
-      
-      is.list(x) & (!is.data.frame(x) & !ggplot2::is.ggplot(x) & !grid::is.grob(x))
-    }, logical(1))
+    # detect single plot/table v. list of plots/tables, 
+    # e.g. output = "tab_plot" for fleet functions
+    ind <- vapply(x, rlang::is_bare_list, logical(1))
     
     if (any(ind)) { # list(s) present
       
@@ -165,38 +97,67 @@ add_names <- function(out, output = "names", type) {
   else if (output == "logical") nm_missing
 }
 
-# Use in main app (not in fleet function module)
+
 plotSaveServ <- function(id, proj, plots = NULL) { 
   
   moduleServer(id, function(input, output, session) {
-    
+  
     ns <- session$ns
     
-    plot_r <- reactiveValues(names = NULL, selected = NULL, 
-                             out = NULL, ind = NULL)
-    rv <- reactiveValues(trigger = 0)
+    plot_r <- reactiveValues(names = NULL, out = NULL)
     
-    plots_r <- eventReactive(input$save_plot, sort_save_outputs(plots()))
+    plots_r <- eventReactive(input$save_plot, {
+     
+      sort_save_outputs(plots())
+      })
+    
+    in_to_px <- function(x) x * 96 # convert inches to pixels
+    
+    r_plot_size_w <- reactive(in_to_px(input$plot_size_w))
+    r_plot_size_h <- reactive(in_to_px(input$plot_size_h))
+    
+    r_plot_set_w <- reactive(get_proj_settings(proj())$plot_size[1]) # default plot size
+    r_plot_set_h <- reactive(get_proj_settings(proj())$plot_size[2])
+    
+    r_plot_set_w_px <- reactive(in_to_px(r_plot_set_w())) # passed to plot output
+    r_plot_set_h_px <- reactive(in_to_px(r_plot_set_h()))
     
     show_save_modal <- function() {
-      
+
       showModal(
         modalDialog(title = "Select plot to save",
                     
-                    radioButtons(ns("select_plot"), "Plots", 
-                                 choices = plot_r$names),
-                    shinycssloaders::withSpinner(
-                      plotOutput(ns("display_plot"))),
-                    
-                    footer = tagList(
-                      modalButton("Close"),
-                      actionButton(ns("downloadPlot"), "Save",
-                                   style = "color: white; background-color: blue;")
-                    ),
-                    easyClose = FALSE, size = "l"))
+            tabsetPanel(id = "plot_tabset",
+                tabPanel("Select Plot",
+                         radioButtons(ns("select_plot"), "Plots", 
+                                      choices = plot_r$names),
+                         shinycssloaders::withSpinner(
+                           plotOutput(ns("display_plot"), width = "auto", height = "auto"))
+                         ),
+                tabPanel("Plot Size",
+                         sliderInput(ns("plot_size_w"), "Width (in)", min = 1, max = 20, 
+                                     value = r_plot_set_w(), step = .1),
+                         sliderInput(ns("plot_size_h"), "Height (in)", min = 1, max = 20, 
+                                     value = r_plot_set_h(), step = .1),
+                         plotOutput(ns("plot_size"), width = "auto", height = "auto"))
+                ),
+                   
+            footer = tagList(
+              modalButton("Close"),
+              actionButton(ns("downloadPlot"), "Save",
+                           style = "color: white; background-color: blue;")),
+            easyClose = FALSE, size = "xl"))
     }
     
-    observeEvent(input$downloadPlot, rv$trigger <- rv$trigger + 1, ignoreInit = TRUE)
+    output$plot_size <- renderPlot({
+      
+      p_out <- plots_r()[[input$select_plot]]
+      
+      if ("gtable" %in% class(p_out)) gridExtra::grid.arrange(p_out)
+      else p_out
+      
+    }, width = r_plot_size_w, height = r_plot_size_h)
+    
     
     output$display_plot <- renderPlot({
       
@@ -204,7 +165,7 @@ plotSaveServ <- function(id, proj, plots = NULL) {
       
       if ("gtable" %in% class(p_out)) gridExtra::grid.arrange(p_out)
       else p_out
-    })
+    }, width = r_plot_set_w_px, height = r_plot_set_h_px)
     
     is_plot <- function(x) ggplot2::is.ggplot(x) || grid::is.grob(x)
     
@@ -212,83 +173,48 @@ plotSaveServ <- function(id, proj, plots = NULL) {
     observeEvent(input$save_plot, {
       
       plots_r <- plots_r()
-      empty_msg <- "No plots found."
+      plot_ind <- vapply(plots_r, is_plot, logical(1))
       
-      if (!is.null(plots_r)) {
+      if (sum(plot_ind) > 0) {
         
-        if (is_plot(plots_r)) { # single plot object (ggplot)
-          
-          plot_r$out <- plots_r
-          plot_r$selected <- "plot"
-          rv$trigger <- rv$trigger + 1
-          
-        } else if (rlang::is_bare_list(plots_r)) { # list of objects (possibly mixed types)
-          
-          null_ind <- vapply(plots_r, is.null, logical(1))
-          
-          if (any(!null_ind)) {
-            
-            plot_ind <- vapply(plots_r, is_plot, logical(1))
-            plot_r$names <- add_names(plots_r[plot_ind], "names", "plot")
-            
-            if (sum(plot_ind) == 1) { # one plot present (skip modal)
-              
-              plot_r$out <- plots_r[[which(plot_ind)]]
-              plot_r$selected <- plot_r$names
-              rv$trigger <- rv$trigger + 1
-              
-            } else if (sum(plot_ind) > 1) { # multiple plots (run modal)
-              
-              show_save_modal()
-              
-            } else showNotification(empty_msg, type = "message")
-            
-          } else showNotification(empty_msg, type = "message")
-          
-        } else {
-          
-          showNotification("Non-plot object passed to plotSaveServ",
-                           type = "warning")
-        }
+        plot_r$names <- add_names(plots_r[plot_ind], "names", "plot") # for selecting plots
+        show_save_modal()
         
-      } else showNotification(empty_msg, type = "message")
+      } else {
+        
+        showNotification("No plots found.", type = "message")
+      }
     })
     
     # save plots ----
-    observeEvent(rv$trigger, {
-        
-      if (length(plot_r$names) > 1) {
-        
-        plot_r$out <- plots_r()[[input$select_plot]]
-        plot_r$selected <- input$select_plot
-      }
+    
+    observeEvent(input$downloadPlot, {
       
-      null_ind <- vapply(plots_r(), is.null, logical(1))
+      plot_r$out <- plots_r()[[input$select_plot]]
       
-      if (!is.null(plot_r$out)) {
+      output$downloadPlotHIDE <<- downloadHandler(
         
-        output$downloadPlotHIDE <<- downloadHandler(
+        filename = function() {
           
-          filename = function() {
-            
-            paste0(locoutput(proj()), proj(), "_", plot_r$selected, ".png")
-          },
-          content = function(file) {
-            ggplot2::ggsave(file, plot = plot_r$out)
-          })
-        
-        jsinject <-  paste0("setTimeout(function(){window.open($('#", id, 
-                            "-downloadPlotHIDE').attr('href'))}, 100);")
-        session$sendCustomMessage(type = 'jsCode', list(value = jsinject))
-        
-        showNotification('Plot saved.', type = 'message', duration = 10)
-      }
+          paste0(locoutput(proj()), proj(), "_", input$select_plot, ".png")
+        },
+        content = function(file) {
+          ggplot2::ggsave(file, plot = plot_r$out,
+                          width = input$plot_size_w, height = input$plot_size_h)
+        })
+      
+      jsinject <-  paste0("setTimeout(function(){window.open($('#", ns("downloadPlotHIDE"), 
+                          "').attr('href'))}, 100);")
+      session$sendCustomMessage(type = 'jsCode', list(value = jsinject))
+      
+      showNotification('Plot saved.', type = 'message', duration = 10)
+      
     }, ignoreInit = TRUE, ignoreNULL = TRUE)
     
   })
 }
 
-# Use in main app (not in fleet function module)
+
 tableSaveServ <- function(id, proj, tabs = NULL) {
   
   moduleServer(id, function(input, output, session) {
@@ -296,9 +222,7 @@ tableSaveServ <- function(id, proj, tabs = NULL) {
     ns <- session$ns
     
     # track table names and outputs
-    tab_r <- reactiveValues(names = NULL, selected = NULL, out = NULL)
-    # counter for triggering save window
-    rv <- reactiveValues(trigger = 0)
+    tab_r <- reactiveValues(names = NULL, out = NULL)
     
     # simplify list of reactive expressions/values into one list
     tabs_r <- reactive(sort_save_outputs(tabs()))
@@ -324,7 +248,6 @@ tableSaveServ <- function(id, proj, tabs = NULL) {
                     easyClose = FALSE, size = "l"))
     }
     
-    observeEvent(input$downloadTable, rv$trigger <- rv$trigger + 1, ignoreInit = TRUE)
     
     output$display_table <- DT::renderDT(tabs_r()[[input$select_tab]])
     
@@ -334,75 +257,40 @@ tableSaveServ <- function(id, proj, tabs = NULL) {
     observeEvent(input$save_table, {
       
       tabs_r <- tabs_r()
-      empty_msg <- "No tables found."
+      tab_ind <- vapply(tabs_r, is_tab, logical(1))
       
-      if (!is.null(tabs_r)) {
+      if (sum(tab_ind) > 0) {
         
-        if (is_tab(tabs_r)) {
-          
-          tab_r$out <- tabs_r
-          tab_r$selected <- "table"
-          rv$trigger <- rv$trigger + 1
-          
-        } else if (rlang::is_bare_list(tabs_r)) {
-          
-          null_ind <- vapply(tabs_r, is.null, logical(1))
-          
-          if (any(!null_ind)) {
-            
-            tab_ind <- vapply(tabs_r, is_tab, logical(1))
-            tab_r$names <- add_names(tabs_r[tab_ind], "names", "table")
-            
-            if (sum(tab_ind) == 1) { # only one table detected (skip modal)
-              
-              tab_r$out <- tabs_r[[which(tab_ind)]]
-              tab_r$selected <- tab_r$names
-              rv$trigger <- rv$trigger + 1
-              
-            } else if (sum(tab_ind) > 1) { # multiple tables detected (use modal)
-              
-              show_save_modal()
-              
-            } else showNotification(empty_msg, type = "message")
-            
-          } else showNotification(empty_msg, type = "message")
-          
-        } else {
-          
-          showNotification("Non-table object passed to tableSaveServ", 
-                           type = "warning") 
-        }
+        tab_r$names <- add_names(tabs_r[tab_ind], "names", "tab") # for selecting plots
+        show_save_modal()
         
-      } else showNotification(empty_msg, type = "message")
+      } else {
+        
+        showNotification("No tables found.", type = "message")
+      }
     })
     
     # save table window ----
-    observeEvent(rv$trigger, {
-        
-      if (length(tab_r$names) > 1) {
+    observeEvent(input$downloadTable, {
         
         tab_r$out <- tabs_r()[[input$select_tab]]
-        tab_r$selected <- input$select_tab
-      } 
-      
-      if (!is.null(tab_r$out)) {
         
         output$downloadTableHIDE <<- downloadHandler(
           
           filename = function() {
             
-            paste0(locoutput(proj()), proj(), "_", tab_r$selected, ".csv")
+            paste0(locoutput(proj()), proj(), "_", input$select_tab, ".csv")
           },
           content = function(file) {
             write.csv(tab_r$out, file, row.names = TRUE)
           })
         
-        jsinject <-  paste0("setTimeout(function(){window.open($('#", id,
-                            "-downloadTableHIDE').attr('href'))}, 100);")
+        jsinject <-  paste0("setTimeout(function(){window.open($('#", ns("downloadTableHIDE"),
+                            "').attr('href'))}, 100);")
         session$sendCustomMessage(type = 'jsCode', list(value = jsinject))
         
         showNotification('Table saved.', type = 'message', duration = 10)
-      }
+      # }
       
     }, ignoreInit = TRUE, ignoreNULL = TRUE)
     
@@ -421,6 +309,7 @@ tabPlotServ <- function(id, proj, out = NULL, type = "tab_plot") {
     tableSaveServ(tab_id, proj, tabs = out)
     plotSaveServ(plot_id, proj, plots = out)
     
+    
   } else if (type == "table") {
     
     tableSaveServ(tab_id, proj, tabs = out)
@@ -431,6 +320,7 @@ tabPlotServ <- function(id, proj, out = NULL, type = "tab_plot") {
   }
 }
 
+# saving model summary output
 modSaveServ <- function(id, proj, outs = NULL) {
   
   moduleServer(id, function(input, output, session) {
@@ -438,9 +328,7 @@ modSaveServ <- function(id, proj, outs = NULL) {
     ns <- session$ns
     
     # track mod names and outputs
-    mod_r <- reactiveValues(names = NULL, selected = NULL, out = NULL)
-    # counter for triggering save window
-    rv <- reactiveValues(trigger = 0)
+    mod_r <- reactiveValues(names = NULL, out = NULL)
     
     show_save_modal <- function() {
       
@@ -463,8 +351,6 @@ modSaveServ <- function(id, proj, outs = NULL) {
                     easyClose = FALSE, size = "l"))
     }
     
-    observeEvent(input$downloadMod, rv$trigger <- rv$trigger + 1, ignoreInit = TRUE)
-    
     output$display_mod <- renderPrint(outs()[[input$select_mod]])
     
     is_mod <- function(x) any(class(x) %in% c("summary.lm", "htest")) # expand 
@@ -473,77 +359,41 @@ modSaveServ <- function(id, proj, outs = NULL) {
     observeEvent(input$save_mod, {
       
       outs <- outs()
-      empty_msg <- "No model summaries found."
+      mod_ind <- vapply(outs, is_mod, logical(1))
       
-      if (!is.null(outs)) {
+      if (sum(mod_ind) > 0) {
         
-        if (is_mod(outs)) {
-          
-          mod_r$out <- outs
-          mod_r$selected <- "model"
-          rv$trigger <- rv$trigger + 1
-          
-        } else if (rlang::is_bare_list(outs)) {
-          
-          null_ind <- vapply(outs, is.null, logical(1))
-          
-          if (any(!null_ind)) {
-            
-            mod_ind <- vapply(outs, is_mod, logical(1))
-            mod_r$names <- add_names(outs[mod_ind], "names", "mod")
-            
-            if (sum(mod_ind) == 1) { # only one summary detected (skip modal)
-              
-              mod_r$out <- outs[[which(mod_ind)]]
-              mod_r$selected <- mod_r$names
-              rv$trigger <- rv$trigger + 1
-              
-            } else if (sum(mod_ind) > 1) { # multiple summaries detected (use modal)
-              
-              show_save_modal()
-              
-            } else showNotification(empty_msg, type = "message")
-            
-          } else showNotification(empty_msg, type = "message")
-          
-        } else {
-          
-          showNotification("Non-model object passed to modSaveServ", 
-                           type = "warning") 
-        }
+        mod_r$names <- add_names(outs[mod_ind], "names", "mod") 
+        show_save_modal()
         
-      } else showNotification(empty_msg, type = "message")
+      } else {
+        
+        showNotification("No tables found.", type = "message")
+      }
     })
     
     # save mod window ----
-    observeEvent(rv$trigger, {
+    observeEvent(input$downloadMod, {
+
+      mod_r$out <- outs()[[input$select_mod]]
       
-      if (length(mod_r$names) > 1) {
+      output$downloadModHIDE <<- downloadHandler(
         
-        mod_r$out <- outs()[[input$select_mod]]
-        mod_r$selected <- input$select_mod
-      } 
-      
-      if (!is.null(mod_r$out)) {
-        
-        output$downloadModHIDE <<- downloadHandler(
+        filename = function() {
           
-          filename = function() {
-            
-            paste0(locoutput(proj()), proj(), "_", mod_r$selected, ".txt")
-          },
-          content = function(file) {
-            sink(file)
-            print(mod_r$out)
-            sink()
-          })
-        
-        jsinject <-  paste0("setTimeout(function(){window.open($('#", id,
-                            "-downloadModHIDE').attr('href'))}, 100);")
-        session$sendCustomMessage(type = 'jsCode', list(value = jsinject))
-        showNotification('Model summary saved.', type = 'message', duration = 10)
-      }
+          paste0(locoutput(proj()), proj(), "_", mod_r$selected, ".txt")
+        },
+        content = function(file) {
+          sink(file)
+          print(mod_r$out)
+          sink()
+        })
       
+      jsinject <-  paste0("setTimeout(function(){window.open($('#", ns("-downloadModHIDE"),
+                          "').attr('href'))}, 100);")
+      session$sendCustomMessage(type = 'jsCode', list(value = jsinject))
+      showNotification('Model summary saved.', type = 'message', duration = 10)
+
     }, ignoreInit = TRUE, ignoreNULL = TRUE)
 
   })
@@ -555,7 +405,7 @@ saveDataTableServ <- function(id, values, project) {
   moduleServer(id, function(input, output, session) {
     
     observeEvent(input$saveData, {
-      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase()))
+      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
       DBI::dbWriteTable(fishset_db, paste0(project(), 'MainDataTable'), values$dataset, overwrite = TRUE)
       DBI::dbDisconnect(fishset_db)
       showNotification('Data saved to FishSET database', type = 'message', duration = 10)
@@ -678,11 +528,10 @@ density_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
     
-    saveFleetServ("saveOut", fun_id = "den", project = project, 
-                   fun_name = "density_plot", tab_plot = den_out, 
-                   out = function() "plot")
-    
     ns <- session$ns
+    
+    tabPlotServ("save", proj = project,
+                out = reactive(list(density_plot = den_out())), type = "tab_plot")
     
     output$var_select <- renderUI({
       
@@ -902,12 +751,12 @@ vessel_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
     
-    
-    saveFleetServ("saveOut", fun_id = "ves", project = project, 
-                   fun_name = "vessel_count", tab_plot = v_out, 
-                   out = reactive(input$out))
-    
     ns <- session$ns
+    
+    tabPlotServ("save", proj = project,
+                out = reactive(list(vessel_count = v_out())), type = "tab_plot")
+    
+    
     output$var_select <- renderUI({
       
       selectizeInput(ns("var"), "Vessel identifier", choices = colnames(values$dataset), multiple = FALSE)
@@ -1137,11 +986,11 @@ vessel_serv <- function(id, values, project) {
 species_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
-    
-    saveFleetServ("saveOut", "spec", project = project, fun_name = "species_catch",
-                   tab_plot = spec_out, out = reactive(input$out))
-    
+    # 
     ns <- session$ns
+    
+    tabPlotServ("save", proj = project,
+                out = reactive(list(species_catch = spec_out())), type = "tab_plot")
     
     output$var_select <- renderUI({
       
@@ -1380,10 +1229,10 @@ roll_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
     
-    saveFleetServ("saveOut", "roll", project = project, fun_name = "roll_catch",
-                   tab_plot = roll_out, out = reactive(input$out))
-    
     ns <- session$ns
+    
+    tabPlotServ("save", proj = project,
+                out = reactive(list(roll_catch = roll_out())), type = "tab_plot")
     
     output$var_select <- renderUI({
       
@@ -1620,10 +1469,10 @@ weekly_catch_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
     
-    saveFleetServ("saveOut", "wc", project = project, fun_name = "weekly_catch", 
-                   tab_plot = wc_out, out = reactive(input$out))
-    
     ns <- session$ns
+    
+    tabPlotServ("save", proj = project,
+                out = reactive(list(weekly_catch = wc_out())), type = "tab_plot")
     
     output$var_select <- renderUI({
       
@@ -1853,10 +1702,10 @@ weekly_effort_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
     
-    saveFleetServ("saveOut", fun_id = "we", project = project, fun_name = "weekly_effort", 
-                   tab_plot = we_out, out = reactive(input$out))
-    
     ns <- session$ns
+    
+    tabPlotServ("save", proj = project,
+                out = reactive(list(weekly_effort = we_out())), type = "tab_plot")
     
     output$var_select <- renderUI({
       
@@ -2086,11 +1935,10 @@ weekly_effort_serv <- function(id, values, project) {
 bycatch_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
-    
-    saveFleetServ("saveOut", fun_id = "by", project = project, fun_name = "bycatch",
-                   tab_plot = by_out, out = reactive(input$out))
-    
     ns <- session$ns
+    
+    tabPlotServ("save", proj = project,
+                out = reactive(list(bycatch = by_out())), type = "tab_plot")
     
     output$cpue_select <- renderUI({
       selectizeInput(ns("cpue"), "Select CPUE variable(s)",
@@ -2330,17 +2178,16 @@ bycatch_serv <- function(id, values, project) {
   })
 }
 
-# Trip Length ====
+# Trip Duration ====
 
 trip_serv <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
     
-    saveFleetServ("saveOut", fun_id = "trip", project = project, 
-                   fun_name = "trip_dur_out", tab_plot = trip_out, 
-                   out = reactive(input$out))
-    
     ns <- session$ns
+    
+    tabPlotServ("save", proj = project,
+                out = reactive(list(trid_dur_out = trip_out())), type = "tab_plot")
     
     output$start_select <- renderUI({
       selectInput(ns("start"), "Trip start date",
