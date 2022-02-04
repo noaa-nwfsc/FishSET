@@ -30,7 +30,6 @@ create_proj_settings <- function(project) {
                          spat = NULL,
                          grid = NULL,
                          aux = NULL)
-           #confid_cache = NULL, # move to separate file
       )
     
     jsonlite::write_json(set_list, set_file, pretty = TRUE, auto_unbox = FALSE,
@@ -107,7 +106,7 @@ edit_proj_settings <- function(project, confid = NULL, user_out = NULL,
   #'   and "aux". 
   #' @param plot_size Plot size (width, height) in inches. Must be numeric. 
   #' @keywords internal
-  #' @seealso \code{\link{create_project_settings}} \code{\link{get_project_settings}}
+  #' @seealso \code{\link{create_proj_settings}} \code{\link{get_proj_settings}}
   #' @importFrom jsonlite write_json
   #' @export
   #' @examples 
@@ -174,7 +173,7 @@ set_user_locoutput <- function(loc_dir, project) {
   #'  with a valid folder directory. This directory path is used for inserting plots 
   #'  and tables from a folder outside the FishSET package into the FishSET RMarkdown 
   #'  Template. 
-  #' @seealso \code{\link{insert_plot}} \code{\link{insert_table}} \code{\link{show_fishset_env}}
+  #' @seealso \code{\link{insert_plot}} \code{\link{insert_table}} \code{\link{get_proj_settings}}
   
   if (project_exists(project)) {
     
