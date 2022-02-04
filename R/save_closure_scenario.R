@@ -104,7 +104,7 @@ close_names <- function(project) {
   #' @param project Name of project
   #' @export
   #' @details To retrieve the complete closure scenario file, use 
-  #' \code{\link{get_closure_scenarios}}.
+  #' \code{\link{get_closure_scenario}}.
   
   c_list <- get_closure_scenario(project)
   
