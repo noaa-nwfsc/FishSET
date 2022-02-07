@@ -232,7 +232,7 @@ source("map_viewer_app.R", local = TRUE)
                                column(4, 
                                       radioButtons('loadmainsource', "Source primary data from:",
                                                    choices=c('Upload new file','FishSET database'), 
-                                                   selected='FishSET database', inline=TRUE)
+                                                   selected='Upload new file', inline=TRUE)
                                       # uiOutput('main1')
                                       ),
                                uiOutput('main_upload')),
@@ -259,7 +259,7 @@ source("map_viewer_app.R", local = TRUE)
                                column(4, radioButtons('loadspatialsource', "Source spatial data from:", 
                                                       choices=c('Upload new file'), selected='Upload new file', inline=TRUE)),
                                radioButtons('filefolder', "", choices=c("Upload single file", "Upload shape files"), 
-                                            selected="Upload file", inline = TRUE),
+                                            selected="Upload single file", inline = TRUE),
                                uiOutput('spatial_upload')
                              ),
                              

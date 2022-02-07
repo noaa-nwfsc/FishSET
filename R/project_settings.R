@@ -82,7 +82,11 @@ get_proj_settings <- function(project, format = FALSE) {
       warning("Project settings file did not exists. New project settings file created.")
     }
     
-  } else {
+  } else if (is.null(project)){
+    
+    return(NULL)
+    
+    } else {
     
     warning(paste("Project", project, "does not exist."))
     return(NULL)
@@ -107,7 +111,7 @@ edit_proj_settings <- function(project, confid = NULL, user_out = NULL,
   #'   and "aux". 
   #' @param plot_size Plot size (width, height) in inches. Must be numeric. 
   #' @keywords internal
-  #' @seealso \code{\link{create_project_settings}} \code{\link{get_project_settings}}
+  #' @seealso \code{\link{create_proj_settings}} \code{\link{get_proj_settings}}
   #' @importFrom jsonlite write_json
   #' @export
   #' @examples 
@@ -174,7 +178,7 @@ set_user_locoutput <- function(loc_dir, project) {
   #'  with a valid folder directory. This directory path is used for inserting plots 
   #'  and tables from a folder outside the FishSET package into the FishSET RMarkdown 
   #'  Template. 
-  #' @seealso \code{\link{insert_plot}} \code{\link{insert_table}} \code{\link{show_fishset_env}}
+  #' @seealso \code{\link{insert_plot}} \code{\link{insert_table}} 
   
   if (project_exists(project)) {
     

@@ -237,20 +237,20 @@ projects <- function() {
  #   projloc <- paste0(loc2, '/projects')
  # }
   
-   tab <- list_dirs(path=projloc)#paste0(unlist(strsplit(loc2, '/'))[-length(unlist(strsplit(loc2, '/')))], collapse = '/'))
-  p_tabs <- subset(tab, tab!='extdata'&tab!='MapViewer'&tab!='output'&tab!='report'&tab!='ShinyFiles'&tab!='Logs')
+   tab <- list_dirs(path=projloc)
+  #p_tabs <- subset(tab, tab!='extdata'&tab!='MapViewer'&tab!='output'&tab!='report'&tab!='ShinyFiles'&tab!='Logs')
   
   
  # p_tabs <- grep("MainDataTable", tables_database(project), value = TRUE)
   
-  if (length(p_tabs) == 0) {
+  if (length(tab) == 0) {
     
     warning("No projects found. Upload a new file to create a project.")
     p_names <- NULL
   } else {
     
     
-   p_names <- unique(p_tabs)
+   p_names <- unique(tab)
    p_names
   }
 }

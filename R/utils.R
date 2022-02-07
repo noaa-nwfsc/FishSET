@@ -93,11 +93,17 @@ locproject <- function() {
   if (exists("loc2")) loc2 <- loc2
   #else loc2 <- loc()
   
+  if(shiny::isRunning()){
+    pathtest <- normalizePath('../../../../FishSETFolder/projects')
+  } else {
+    pathtest <- c("../FishSETFolder/projects")
+  }
+
   if (!exists('loc2') || is.null(loc2)) {
-    if(is_empty(dir.exists(c("../FishSETFolder/projects")))){
+    if(is_empty(dir.exists(pathtest))){#dir.exists(c("../FishSETFolder/projects")))){
       loc()
     }
-    proj_dir <- c("../FishSETFolder/projects")#loc() #paste0(system.file(package = "FishSET"), "/projects")
+    proj_dir <-pathtest# c("../FishSETFolder/projects")#loc() #paste0(system.file(package = "FishSET"), "/projects")
     
   } else {
     
@@ -219,20 +225,22 @@ locdatabase <- function(project) {
   #' @export
   #' 
   
-  if(is.null(project)){
-    warning('Project name must be provided.')
-  } else {
-    if (exists("loc2")) {
-      loc2 <- loc2
-      } else {
-    loc2 <- NULL
-    }
+  if(!is.null(project)){
+ #   print('Project name must be provided.')
+ # } else {
+ #   if (exists("loc2")) {
+  #    loc2 <- loc2
+ #     } else {
+ #   loc2 <- NULL
+#    }
   
       if (!exists('loc2')||is.null(loc2)) {
       paste0(locproject(), "/", project, "/fishset_db.sqlite")
     } else {
       paste0(loc2, "/", project, "/fishset_db.sqlite")
     }
+  } else {
+    paste0(locproject(), "/fishset_db.sqlite")
   }
 }
 
@@ -248,7 +256,7 @@ loclog <- function(project) {
   #' }
   
   if(is.null(project)){
-    warning('Project name must be provided.')
+    warning('Project name must be supplied.')
   } else {
     
     if (exists("loc2")) {
@@ -271,7 +279,7 @@ locoutput <- function(project) {
   #' @export
  
   if(is.null(project)){
-    warning('Project name must be provided.')
+    warning('Project name must be supplied.')
   } else {
   
     if (exists("loc2")) loc2 <- loc2
@@ -298,7 +306,7 @@ loc_map <- function(project) {
   #' }
 
   if(is.null(project)){
-    warning('Project name must be provided.')
+    warning('Project name must be supplied.')
   } else {
     if (exists("loc2")) loc2 <- loc2
     if (!exists('loc2')||is.null(loc2)) {
@@ -319,7 +327,7 @@ loc_data <- function(project) {
   
   
   if(is.null(project)){
-    warning('Project name must be provided.')
+    warning('Project name must be supplied.')
   } else {
     if (exists("loc2")) loc2 <- loc2
     if (!exists('loc2')||is.null(loc2)) {
@@ -350,7 +358,7 @@ loc_doc <- function(project) {
   #' @details if loc2 is not in the working environment, then the default location is use
   
   if (!exists('loc2')||is.null(loc2)) {
-    paste0(system.file(package = "FishSET"), "/projects/", project, "/doc/")
+    paste0(locproject(), "/", project, "/doc/")
   } else {
     paste0(loc2, "/projects/", project, "/doc/")
   }

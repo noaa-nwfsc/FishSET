@@ -3,7 +3,6 @@ source("fleetUI.R", local = TRUE)
 source("fleet_helpers.R", local = TRUE)
 source("map_viewer_app.R", local = TRUE)
 
-
 # default global search value
 if(!exists("default_search")) {default_search <- ""}
 
@@ -235,19 +234,18 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         dataset = data.frame('var1'=0, 'var2'=0)
         )
        # project name 
-      project <- reactiveValues(
-        name = c(FALSE)
-      )
+      project <- reactiveValues()
       
       # refresh data   
       observeEvent(c(input$refresh,input$refresh1,input$refresh2,input$refreshNew), {
-        req(project$name)
+        if(!is.null(project$name)){
         temp <- tables_database(project$name)[grep(paste0(project$name, 'MainDataTable\\d+'), tables_database(project$name))][which(
                       unlist(stringr::str_extract_all(tables_database(project$name)[grep(paste0(project$name, 'MainDataTable\\d+'), 
                       tables_database(project$name))], "\\d+"))==max((unlist(stringr::str_extract_all(tables_database(project$name)[grep(paste0(project$name, 
                       'MainDataTable\\d+'), tables_database(project$name))], "\\d+")))))]
         values$dataset <- table_view(temp, project$name)
         showNotification("Data refreshed", type='message', duration=10)
+        }
       }, ignoreInit = TRUE, ignoreNULL=TRUE) 
      
       #Track Times tab selected
@@ -980,18 +978,20 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       output$projects <- renderUI({
         # req(vars$counter)
-       # req(input$loadmainsource)
-        if (input$loadmainsource == 'Upload new file') {
+        req(input$loadmainsource)
+
+         if (input$loadmainsource == 'Upload new file') {
           
           textInput('projectname', 'Name of project', placeholder = 'Required to load data')
           
         } else if (input$loadmainsource == 'FishSET database') {
- 
-          if (length(suppressWarnings(projects())) > 0) {
+          
+          if (dir.exists(normalizePath('../../../../FishSETFolder/projects'))){
+            if(length(suppressWarnings(projects())) > 0) {
             
-            selectInput("project_select", "Select project", choices =  projects())
+            selectInput("project_select", "Select project", choices = projects())
             
-          } else {
+          }} else {
             
             p("No projects found in FishSET Database. Create a project by uploading a new file")
           }
@@ -1002,12 +1002,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       # assign project name
       observeEvent(c(input$loadmainsource, input$project_select, input$loadDat), {
         # req(vars$counter)
-       # req(input$loadmainsource)
-        browser()
+        req(input$loadmainsource)
         if (input$loadmainsource == 'Upload new file') {
-
-         if (is_empty(input$projectname)) {
-         
+          
+          if (is_empty(input$projectname)) {
+            
             project$name <- NULL
           
           } else {
@@ -1021,12 +1020,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }
       }, priority = 1)
       
- 
+      
       output$main_upload <- renderUI({    
         # req(vars$counter)
-        #req(input$loadmainsource)
-        
-        if (input$loadmainsource=='Upload new file') {
+        req(input$loadmainsource)
+
+      if (input$loadmainsource=='Upload new file') {
           
           tagList(
             fluidRow(
@@ -1041,21 +1040,19 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           
         } else if (input$loadmainsource=='FishSET database') {
           
-        #  if (project_exists(project$name)) {
+          if (dir.exists(normalizePath('../../../../FishSETFolder/projects'))){
+              if(length(suppressWarnings(projects())) > 0) {
             
             tagList(
               fluidRow(
                 column(5,
                        selectInput("main_db_table", "Choose a main table",
-                                   choices = 'scallopMainDataTable')#suppressWarnings(main_tables(project$name, show_all = FALSE)))
+                                   choices = suppressWarnings(main_tables(project$name, show_all = FALSE)))
                 ))
             )
-         # }
+          }}
         }
       })
-    
-              
-
  
       output$ui.action2 <- renderUI({
         if(is.null(input$maindat)) return()
@@ -1131,7 +1128,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           
           if (input$loadmainsource == 'FishSET database') {
             
-            showNotification("No projects found. Please upload a new file.", 
+            showNotification("No project found. Please upload a new file.", 
                              type = 'message', duration = 10)
             
           } else if (input$loadmainsource=='Upload new file') {
@@ -1144,7 +1141,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         
         if (load_helper("main")) {
           
-          if (input$loadmainsource=='FishSET database') {
+          if (input$loadmainsource=='FishSET database' & isTruthy(project$name)) {
             
             if (table_exists(paste0(project$name, 'MainDataTable'), project$name)==FALSE) {
               
@@ -1163,10 +1160,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               load_r$main <- load_r$main + 1
             }
            
-          } else if (input$loadmainsource=='Upload new file' & !is.null(input$maindat)) {
+          } else if (input$loadmainsource=='Upload new file' & !is.null(input$maindat)& isTruthy(project$name)) {
             
             # if (input$mainadd != '') { # change to !is_empty_value
-            if (!is_empty(input$mainadd)) {
+            if (!is_value_empty(input$mainadd)) {
               
               values$dataset <- do.call(read_dat, c(list(input$maindat$datapath),
                                                     eval(parse(text=paste0("list(",input$mainadd, ")"))) ))
@@ -1216,25 +1213,28 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 
      #PORT
       output$port_upload <- renderUI({     
-        tagList( 
-          conditionalPanel(condition="input.loadportsource=='Upload new file'", 
+        #tagList( 
+        #  conditionalPanel(condition="
+        if(input$loadportsource=='Upload new file'){#", 
                            tagList(
                              fluidRow(
                                column(5, fileInput("portdat", "Choose port data file",
                                                    multiple = FALSE, placeholder = 'Required data'))
                                #column(1, uiOutput('ui.actionP'))
                              ))
-          ),
-          conditionalPanel(condition="input.loadportsource == 'FishSET database'",
+         } else if(input$loadportsource == 'FishSET database'){
+            if(isTruthy(project$name)) {
                           tagList(
                             fluidRow(
                               column(5, selectInput("port_db_table", "Choose a port table",
                                                     choices = suppressWarnings(list_tables(project = project$name, type = "port"))))
                             ))
-          ))
+        } # ))
+         }
       })
       
       output$ui.actionP2 <- renderUI({
+
         if(is.null(input$portdat)) return()
         tagList(
           column(width=10, offset=3, 
@@ -1271,7 +1271,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         
         if (load_helper("port")) {
           
-          if (input$loadportsource == 'FishSET database') {
+          if (input$loadportsource == 'FishSET database'& isTruthy(project$name)) {
             
              if (isTruthy(input$port_db_table)) {
 
@@ -1285,7 +1285,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               load_r$port <- load_r$port + 1
             }
             
-          } else if (input$loadportsource == 'Upload new file' & !is.null(input$portdat)) {
+          } else if (input$loadportsource == 'Upload new file' & !is.null(input$portdat) & isTruthy(project$name)) {
             # skip new file upload if user already merged multiple tables
             if (is.null(input$port_combine_save)) {
               if (!is_value_empty(input$portadd)) {
@@ -1387,7 +1387,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       # save combined port table to FishSET DB
       observeEvent(input$port_combine_save, {
-        
+        if(isTruthy(project$name)){
         q_test <- quietly_test(load_port)
         q_test(ptdat$dataset, port_name = "Port_Name", over_write = TRUE, 
                project = project$name, compare = FALSE, y = NULL)
@@ -1403,15 +1403,17 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         
         show$save <- FALSE
         show$port_merge <- FALSE
-        
+        } 
       }, ignoreInit = TRUE, ignoreNULL = TRUE)
       
 
   #Spatial
-      output$spatial_upload <- renderUI({     
-        req(project$name)
-        tagList( 
-          conditionalPanel(condition="input.loadspatialsource=='Upload new file' & input.filefolder == 'Upload single file'", 
+      output$spatial_upload <- renderUI({   
+       # tagList( 
+        #  conditionalPanel(condition="
+        if(input$loadspatialsource=='Upload new file'){
+          
+            if(input$filefolder == 'Upload single file'){#", 
                            tagList(
                              fluidRow(
                                column(5, fileInput("spatialdat", "Choose spatial data file",
@@ -1420,8 +1422,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                                                   'Additional arguments for reading in data'), placeholder="header=T, sep=',', skip=2"))
                               # column(1, uiOutput('ui.actionS'))
                              ))
-          ),
-          conditionalPanel(condition="input.loadspatialsource=='Upload new file' & input.filefolder == 'Upload shape files'", 
+          } else if(input$filefolder == 'Upload shape files'){#", 
                            tagList(
                              fluidRow(
                                column(5, fileInput("spatialdatshape", "Choose spatial data file",
@@ -1429,19 +1430,17 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                                    multiple = TRUE, placeholder = 'Suggested data'))#,
                                # column(1, uiOutput('ui.actionS'))
                              ))
-          ),
-          conditionalPanel(condition="input.loadspatialsource == 'FishSET database'",
-
+          }#),
+         # conditionalPanel(condition="
+       } else if(input$loadspatialsource == 'FishSET database' & isTruthy(project$name)){#",
                            tagList(
-                          
-                                                        fluidRow(
+                             fluidRow(
                                column(5, selectInput("spat_db_table", "Choose a spatial table",
-                                                     #choices = list_tables(project$name, "spat")
+                                                    
                                                      choices = tables_database(project$name)
                                                      ))
                              ))
-          )
-          )
+         }# )
       })
 
       spatdat <- reactiveValues(
@@ -1475,7 +1474,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           
           if (input$loadspatialsource=='FishSET database') {
             
-            if (isTruthy(input$spat_db_table)) {
+            if (isTruthy(input$spat_db_table)& isTruthy(project$name)) {
               
               spatdat$dataset <- table_view(input$spat_db_table, project$name)
               track_load$spat$DB <- input$spat_db_table
@@ -1536,8 +1535,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 
  #GRIDDED      
       output$grid_upload <- renderUI({     
-        tagList( 
-          conditionalPanel(condition="input.loadgridsource=='Upload new file'", 
+       #tagList( 
+       #   conditionalPanel(condition="
+        if(input$loadgridsource=='Upload new file'){#", 
                            tagList(
                              fluidRow(
                                column(5, fileInput("griddat", "Choose data file that varies over two dimensions (gridded)",
@@ -1547,16 +1547,15 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                                              placeholder="header=T, sep=';', skip=2")),
                                column(5, uiOutput('ui.actionG'))
                              ))
-          ),
-          conditionalPanel(condition="input.loadgridsource == 'FishSET database'",
+          } else if(input$loadgridsource == 'FishSET database' & isTruthy(project$name)){#",
                            tagList(
                              fluidRow(
                                column(5, selectInput("grid_db_table", "Choose a gridded table",
                                                      choices = suppressWarnings(list_tables(project = project$name, type = "grid")))
                                       )
                              ))
-          )
-        )
+       }  # )
+       # )
       })
       output$ui.actionG <- renderUI({
         if (is.null(input$griddat)) return()
@@ -1574,7 +1573,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           
           if (input$loadgridsource == 'FishSET database') {
             
-            if (isTruthy(input$grid_db_table)) {
+            if (isTruthy(input$grid_db_table) & isTruthy(project$name)) {
               
               grid_name <-input$grid_db_table
               grddat[[grid_name]] <- table_view(grid_name, project$name)
@@ -1588,7 +1587,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             
           } else if (input$loadgridsource == 'Upload new file' & !is.null(input$griddat)) {
             
-            if (isTruthy(input$GridName)) {
+            if (isTruthy(input$GridName)& isTruthy(project$name)) {
               
               grid_name <- paste0(project$name, input$GridName)
               
@@ -1636,19 +1635,25 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           }
         }
       }, ignoreInit = TRUE, ignoreNULL = TRUE)
-      
+
+      ### ---> HJERE      
       output$gridded_uploaded <- renderUI({
+        if(!is_empty(names(grddat))){
         tagList(
           p(strong("Gridded data tables uploaded:")),
           renderText(paste(names(grddat), collapse = ", "))
         )
+        } else {
+          return()
+        }
       })
     
   #Auxiliary      
  
       output$aux_upload <- renderUI({     
-        tagList( 
-          conditionalPanel(condition="input.loadauxsource=='Upload new file'", 
+        #tagList( 
+        #  conditionalPanel(condition="
+        if(input$loadauxsource=='Upload new file'){#", 
                            tagList(
                              fluidRow(
                                column(5, fileInput("auxdat", "Choose auxiliary data file that links to primary data",
@@ -1657,14 +1662,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                                                  'Additional arguments for reading in data'), placeholder="c(header=T, sep=';', skip=2)")),
                                column(5, uiOutput('ui.actionA'))
                              ))
-          ),
-          conditionalPanel(condition = "input.loadauxsource == 'FishSET database'", 
+        } else if(input$loadauxsource == 'FishSET database' & isTruthy(project$name)){#", 
                            tagList(
                              fluidRow(
-                               column(5, selectInput("aux_db_table", "Chose a auxiliary table",
+                               column(5, selectInput("aux_db_table", "Choose a auxiliary table",
                                                      choices = suppressWarnings(list_tables(project = project$name, type = "aux"))))))
-          )
-          )
+          #)
+         }# )
       })
       
       output$ui.actionA <- renderUI({
@@ -1686,7 +1690,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           
           if (input$loadauxsource=='FishSET database') {
             
-            if (isTruthy(input$aux_db_table)) {
+            if (isTruthy(input$aux_db_table) & isTruthy(project$name)) {
               
               aux$dataset <- table_view(input$aux_db_table, project$name)
               
@@ -1700,7 +1704,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             
           } else if (input$loadauxsource=='Upload new file' & !is.null(input$auxdat)) {
             
-            if (isTruthy(input$AuxName)) {
+            if (isTruthy(input$AuxName)& isTruthy(project$name)) {
               
               if (!is_value_empty(input$auxadd)) {
                 
@@ -1775,7 +1779,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       observeEvent(input$delete_tabs_bttn, {
         
-        if (length(suppressWarnings(projects())) == 0) {
+        if (dir.exists(normalizePath('../../../../FishSETFolder/projects')) & length(suppressWarnings(projects())) == 0) {
           
           showNotification("No project tables found.", type = "message")
         
@@ -2036,7 +2040,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                        " to confirm. "),
                      
                      metaProjUI("meta_edit"),
-                    metaEditSaveUI("meta_edit"),
+                     metaEditSaveUI("meta_edit"),
                      metaDeleteUI("meta_edit")
                    ),
                    mainPanel(width = 9,
@@ -2078,9 +2082,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       r_plot_set_w <- reactive(in_to_px(input$plot_set_w))
       
       observeEvent(input$plot_set, {
-        
+        if(isTruthy(project$name)){
         p_set <- get_proj_settings(project$name)$plot_size
-        
+        }
         showModal(
           modalDialog(title = "Plot settings",
                       
@@ -2106,10 +2110,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       
       observeEvent(input$plot_set_save, {
-        
+        if(isTruthy(project$name)){
         edit_proj_settings(project$name, 
                            plot_size = c(input$plot_set_w, input$plot_set_h))
         showNotification("Plot size saved.", type = "message")
+        }
       })
       
       ###---
@@ -3290,10 +3295,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             filter_data_function$msg <- FilterTable
             log_call(project$name, filter_data_function)
             
-            fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)))
-            DBI::dbWriteTable(fishset_db, paste0(project$name, 'FilterTable'),  FilterTable, overwrite=TRUE)
-            DBI::dbDisconnect(fishset_db)
-          }  
+              fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)))
+              DBI::dbWriteTable(fishset_db, paste0(project$name, 'FilterTable'),  FilterTable, overwrite=TRUE)
+              DBI::dbDisconnect(fishset_db)
+            }
+           
       })
 
       
@@ -3617,6 +3623,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           }
         }
         
+        if(isTruthy(project$name)){
         edit_proj_settings(project$name, 
                            tab_name = input$grid_select, 
                            tab_type = "grid")
@@ -3630,6 +3637,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                  lon = input$grid_lon, lat = input$grid_lat, value = input$grid_value, 
                  split_by = input$grid_split, agg_by = input$grid_agg, 
                  agg_fun = input$grid_agg_fun, gmap = grid_values$gmap)
+        }
       }, ignoreInit = TRUE)
       
       output$grid_plot <- renderPlot(grid_values$plot)
@@ -4854,7 +4862,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       Alt_vars <- reactive({
         if(!exists("Alt")) {
         if(!exists('AltMatrixName')) {
-          if(DBI::dbExistsTable( DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)), paste0(project$name, 'altmatrix'))){
+          if(DBI::dbExistsTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)), paste0(project$name, 'altmatrix'))){
           return(unserialize(DBI::dbGetQuery( DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)), paste0("SELECT AlternativeMatrix FROM ", 
                                                                                               project$name, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]]))
           } else {
@@ -5176,7 +5184,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
        
       temp <- isolate(paste0(project$name, "modelfit"))
       this_table <- reactive(
-       
         if(DBI::dbExistsTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)),
                                               paste0(project$name, 'modelfit'))){
           data.frame(t(model_fit(project$name)))
@@ -5243,8 +5250,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           if(DBI::dbExistsTable(fishset_db, 'modelChosen')==TRUE){
             table_remove('modelChosen', project$name)
             #DBI::dbRemoveTable(DBI::dbConnect(RSQLite::SQLite(), locdatabase()), 'modelChosen')
-          }
-#        }
+        }
         
         if(DBI::dbExistsTable(fishset_db, 'modelChosen')==FALSE){
           DBI::dbExecute(fishset_db, "CREATE TABLE modelChosen(model TEXT, AIC TEXT, AICc TEXT, BIC TEXT, PseudoR2 TEXT, Selected TEXT, Date TEXT)")
@@ -5379,7 +5385,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       ###---   
       observeEvent(input$saveData, {
         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)))
-        
         if (input$SelectDatasetExplore == "main") {
           DBI::dbWriteTable(fishset_db, paste0(project$name, 'MainDataTable'), values$dataset, overwrite=TRUE)
         } else if (input$SelectDatasetExplore == "port") {
@@ -5398,7 +5403,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         DBI::dbWriteTable(fishset_db, paste0(project$name, 'MainDataTable'), values$dataset, overwrite=TRUE)
         DBI::dbDisconnect(fishset_db) 
         showNotification('Data saved to FishSET database', type='message', duration=10)
-        
       })
       
       observeEvent(input$saveDataNew,{
