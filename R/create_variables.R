@@ -31,6 +31,8 @@ cpue <- function(dat, project, xWeight, xTime, name = "cpue") {
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
+  name <- if(is_empty(name)){ "cpue" } else {name}
+  
   tmp <- 0
 
   if (!is.numeric(dataset[[xTime]]) | !is.numeric(dataset[[xWeight]])) {
@@ -109,6 +111,8 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
   
   dat <- parse_data_name(dat, "main", project)
   
+  name <- if(is_empty(name)){ "dummy_num" } else {name}
+  
   if (grepl("dat|year", var, ignore.case = TRUE)) {
     if (length(value) == 6) {
       dataset[[var]] <- format(lubridate::as_date(dataset[[var]]), "%Y%m")
@@ -164,6 +168,9 @@ dummy_var <- function(dat, project, DumFill = 1, name = "dummy_var") {
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main", project)
+  
+  name <- if(is_empty(name)){ "dummy_var" } else {name}
+  
 
   newvar <- as.vector(rep(DumFill, nrow(dataset)))
   
@@ -202,6 +209,7 @@ dummy_matrix <- function(dat, project, x) {
   
   dat <- parse_data_name(dat, "main", project)
 
+  
   # create the matrix
   factor.levels <- levels(as.factor(dataset[[x]]))
   int <- data.frame(matrix(rep(dataset[[x]], length(factor.levels)), ncol = length(factor.levels)))
@@ -255,6 +263,8 @@ set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25,0.33, 0.4),
   
   dat <- parse_data_name(dat, "main", project)
 
+  name <- if(is_empty(name)){ "set_quants" } else {name}
+  
   tmp <- 0
 
   if (!is.numeric(dataset[[x]])) {
@@ -322,6 +332,8 @@ bin_var <- function(dat, project, var, br, name, labs = NULL, ...) {
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
 
+  name <- if(is_empty(name)){ "bin" } else {name}
+  
   tmp <- 0
 
   if (!is.numeric(dataset[[var]])) {
@@ -392,6 +404,9 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main", project)
+  
+  name <- if(is_empty(name)){ "group_perc" } else {name}
+  
   
   if (create_group_ID) dataset <- ID_var(dataset, project, vars = c(id_group, group), 
                                          log_fun = FALSE)
@@ -469,6 +484,9 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main", project)
+  
+  name <- if(is_empty(name)){ "group_diff" } else {name}
+  
   
   . <- group_total <- NULL
 
@@ -550,6 +568,8 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
+  name <- if(is_empty(name)){ "group_cumsum" } else {name}
+  
   . <- group_total <- NULL
   
   if (create_group_ID) dataset <- ID_var(dataset, project, vars = group, 
@@ -616,6 +636,8 @@ create_var_num <- function(dat, project, x, y, method, name = "create_var_num") 
   
   dat <- parse_data_name(dat, "main", project)
 
+  name <- if(is_empty(name)){ "create_var_num" } else {name}
+  
   tmp <- 0
 
   if (is.numeric(dataset[[x]]) == FALSE | is.numeric(dataset[[y]]) == FALSE) {
@@ -679,6 +701,8 @@ create_mid_haul <- function(dat, project, start = c("lon", "lat"), end = c("lon"
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main", project)
+  
+  if(is_empty(name)){ "mid_haul" } else {name}
   
   tmp <- 0
 
@@ -885,6 +909,8 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
     
     dat <- parse_data_name(dat, "main", project)
     
+    if(is_empty(name)){ "distBetween" } else {name}
+    
     vars <- NULL
     
     if (any(grepl("port", c(start[1], end[1]), ignore.case = TRUE))) {
@@ -927,7 +953,7 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
           vars[6]
         ), closest.pt = TRUE, log.fun = FALSE
       )
-      int <- find_centroid(gridfile = eval(parse(text = vars[1])), 
+      int <- find_centroid(project=project, gridfile = eval(parse(text = vars[1])), 
                            cat = gsub("\"|'", "", vars[6]), lon.grid = gsub("\"|'", "", vars[2]),
                             lat.grid = gsub("\"|'", "", vars[3]))
     }
@@ -1031,6 +1057,7 @@ create_duration <- function(dat, project, start, end, units = c("week", "day", "
   
   dat <- parse_data_name(dat, "main", project)
 
+  if(is_empty(name)){ "create_duration" } else {name}
 
   if (any(grepl("date|min|hour|week|month|TRIP_START|TRIP_END", start, ignore.case = TRUE)) == FALSE) {
     warning("Function is designed for temporal variables")
@@ -1350,7 +1377,7 @@ lonlat_to_centroid <- function(dat, project, lon, lat, spat, zone) {
     spatdat <- sf::st_as_sf(x = spatdat, crs = "+proj=longlat +datum=WGS84")
   }
   
-  pts <- find_centroid(gridfile = spatdat, cat = zone)
+  pts <- find_centroid(project=project, gridfile = spatdat, cat = zone)
   
   colnames(pts) <- c(zone, lon, lat)
   

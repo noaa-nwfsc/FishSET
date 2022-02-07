@@ -45,7 +45,8 @@ create_trip_distance <- function(dat, project, PortTable, trip_id, starting_port
   out <- data_pull(PortTable, project)
   port.table <- out$dataset
   PortTable <- parse_data_name(PortTable, 'port', project)
-  
+
+    if(is_empty(name)){ "TripDistance" } else {name}
  
   x <- 0
 

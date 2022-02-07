@@ -37,7 +37,7 @@ ID_var <- function(dat, project, vars, name = NULL, type = "string", drop = FALS
   dat <- parse_data_name(dat, "main", project)
   
 
-  if (is.null(name))  name <- paste0(vars, collapse = sep)
+  if (is_empty(name))  name <- paste0(vars, collapse = sep)
   else name <- make.names(name)
   
   n <- length(vars) - 1

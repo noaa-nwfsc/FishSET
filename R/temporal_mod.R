@@ -82,7 +82,7 @@ temporal_mod <- function(dat, project, x, define.format, name = NULL, log_fun = 
     log_call(project, temp_mod_function)
   }
 
-  if (is.null(name)) name <- paste0("temp_mod_", define.format)
+  if (is_empty(name)) name <- paste0("temp_mod_", define.format)
 
   dataset[[name]] <- temp_out
   return(dataset)
