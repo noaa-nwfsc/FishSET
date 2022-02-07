@@ -51,6 +51,8 @@ create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, st
   PortTable <- parse_data_name(portTable, 'port', project)
   port.table <- out$dataset
   
+  if(is_empty(name)){ "startingloc" } else {name}
+  
   if(!exists('project')){
   project <- sub("\\MainDataTable", "", dat)
   }
