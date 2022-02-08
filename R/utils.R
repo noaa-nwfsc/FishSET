@@ -1783,11 +1783,15 @@ find_lon <- function(dat) {
  #' @keywords internal
  #' @export
  
-  cols <- colnames(dat)
-  lon_match <- stringi::stri_count_regex(cols, '(?=LON|Lon|lon)')
-  lon_cols <- which(lon_match %in% max(lon_match))
+  #cols <- colnames(dat)
+  cols <- colnames(dat)[grep('lon', colnames(dat), ignore.case=TRUE)]
+  lat_find <- stringr::str_count(cols, '(?=LAT|Lat|lat)')
+  lat_rem <- which(lat_find %in% max(lat_find))
+  cols[-c(lat_rem)]
+  #lon_match <- stringi::stri_count_regex(cols, '(?=LON|Lon|lon)')
+  #lon_cols <- which(lon_match %in% max(lon_match))
   
-  cols[lon_cols]
+  #cols[lon_cols]
 }
 
 find_lat <- function(dat) {
@@ -1796,11 +1800,15 @@ find_lat <- function(dat) {
   #' @keywords internal
   #' @export
   
-  cols <- colnames(dat)
-  lat_match <- stringi::stri_count_regex(cols, '(?=LAT|Lat|lat)')
-  lat_cols <- which(lat_match %in% max(lat_match))
+  cols <- colnames(dat)[grep('lat', colnames(dat), ignore.case=TRUE)]
+  lon_find <- stringr::str_count(cols, '(?=LON|Lon|lon)')
+  lon_rem <- which(lon_find %in% max(lon_find))
+  cols[-c(lon_rem)]
+  #cols <- colnames(dat)
+  #lat_match <- stringi::stri_count_regex(cols, '(?=LAT|Lat|lat)')
+  #lat_cols <- which(lat_match %in% max(lat_match))
   
-  cols[lat_cols]
+  #cols[lat_cols]
 }
 
 find_lonlat <- function(dat) {
