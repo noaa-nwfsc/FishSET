@@ -1487,14 +1487,22 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
              if (input$filefolder == "Upload single file") {
                
                if (!is_value_empty(input$spatadd)) {
+                 if(sub('.*\\.', '', input$spatialdat$datapath)!='shp'){
                  
                  spatdat$dataset <- do.call(read_dat, c(list(input$spatialdat$datapath, is.map=TRUE), 
                                                         eval(parse(text=paste0("list(",input$spatadd, ")")))))
+                 } else {
+                   showNotification("Spatial file not loaded. Select `Upload shape files` to load shape files.",
+                                    type='message', duration=10)
+                 }
                  
                } else {
-                 
+                 if(sub('.*\\.', '', input$spatialdat$datapath)!='shp'){
                  spatdat$dataset <- read_dat(input$spatialdat$datapath, is.map=TRUE)
-               }
+                  } else {
+                   showNotification("Spatial file not loaded. Select `Upload shape files` to load shape files.",
+                                    type='message', duration=10)
+                 }}
                
             }}} else {
               
@@ -3372,18 +3380,18 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       lon_col <- reactive({
         
         if (colnames(values$dataset)[1] != 'var1') {
-          
-          lon_count <- stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')
-          which(lon_count==max(lon_count))[1]
+          find_lon(values$dataset)[1]
+          #lon_count <- stringi::stri_count_regex(colnames(values$dataset), '(?=LON|Lon|lon)')
+          #which(lon_count==max(lon_count))[1]
         }
       })
       
       lat_col <- reactive({
         
         if (colnames(values$dataset)[1] != 'var1') {
-          
-          lat_count <- stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')
-          which(lat_count==max(lat_count))[1]
+          find_lat(values$dataset)[1]
+          #lat_count <- stringi::stri_count_regex(colnames(values$dataset), '(?=LAT|Lat|lat)')
+          #which(lat_count==max(lat_count))[1]
         }
       })
       
@@ -3961,7 +3969,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       dum_pol_year <- reactive({
         if(input$dummypolyfunc=='User defined') {
-          return(polyear)
+          return(input$polyear)
         } else if(input$dummypolyfunc=='Rockfish') {
           return('2004')
         }else if(input$dummypolyfunc=='Amen80') {
@@ -4456,9 +4464,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               values$dataset <- q_test(values$dataset, gridfile=spatdat$dataset,  
                                        portTable=input$port.dat, trip_id=input$trip_id_SL,
                                        haul_order=input$haul_order_SL, 
-                                       starting_port=input$starting_port_SL, input$lon_dat_SL, 
-                                       input$lat_dat_SL, input$cat_SL, input$varname, 
-                                       input$lon_grid_SL, input$lat_grid_SL)
+                                       starting_port=input$starting_port_SL, lon.dat = input$lon_dat_SL, 
+                                       lat.dat = input$lat_dat_SL, cat=input$cat_SL, name=input$varname, 
+                                       lon.grid=input$lon_grid_SL, lat.gridinput$lat_grid_SL)
               
         } else if (input$VarCreateTop=='Trip-level functions'&input$trip=='haul_to_trip') {
           
@@ -4600,7 +4608,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           #warning('This step cannot be completed. Observations not assigned to zones.')
         } else {
           temp <- data.frame(table(values$dataset$ZoneID))
-          ggplot2::ggplot(values$dataset[which(values$dataset$ZoneID %in% temp[which(temp$Freq > input$min_haul_ac),1]), ], ggplot2::aes(x=ZoneID)) + 
+          ggplot2::ggplot(values$dataset[which(values$dataset$ZoneID %in% temp[which(temp$Freq > input$min_haul_ac),1]), ], 
+                          ggplot2::aes(x=values$dataset$ZoneID)) + 
             ggplot2::geom_histogram(bins = 30) + ggplot2::theme_bw() + 
             ggplot2::theme(panel.border = ggplot2::element_blank(), 
                            panel.grid.major = ggplot2::element_blank(),
@@ -5431,17 +5440,20 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       # Save final Dataset ----
       save_final <- reactiveValues()
-      observeEvent(input$save_final_modal, {
-        
-        showModal(
+
+            #observeEvent(input$save_final_modal, {
+      saveModal <- function(ns) {  
+      #  showModal(
+
           modalDialog(title = "Save the final version of the data before modeling",
+                      
                       selectInput("final_uniqueID", "Select column containing unique occurrence identifier",
                                   if(any(duplicated(values$dataset))==FALSE){
                                     choices = c(RowID = rownames(values$dataset), names(values$dataset))
                                     } else {
                                       choices = names(values$dataset)
                                       }),
-                      
+
                       shinycssloaders::withSpinner(uiOutput("checkMsg")),
                       
                       footer = tagList(
@@ -5450,9 +5462,14 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                      style = "color: #fff; background-color: #6EC479; border-color:#000000;")
                       )
           )
-        )
+      #  )
+      }#)
+         
+      observeEvent(input$save_final_modal, {
+        showModal(saveModal(session$ns))
       })
       
+   
       observeEvent(input$save_final_table, {
         
         q_test <- quietly_test(check_model_data)
@@ -5472,7 +5489,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             
             tagList(
               div(p("Final table was not saved:"), style = "color: red;"),
-              renderText(paste(save_final$out$msg, collapse = "\n"))
+              renderText(paste(save_final$out$msg, collapse = "\n")),
+              renderText("Correct data quality issues on the `Data Quality Evaluation` tab.")
             )
           }
           
