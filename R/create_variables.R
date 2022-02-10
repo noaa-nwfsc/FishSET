@@ -31,7 +31,7 @@ cpue <- function(dat, project, xWeight, xTime, name = "cpue") {
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
-  name <- if(is_empty(name)){ "cpue" } else {name}
+  name <- ifelse(is_empty(name), "cpue", name)
   
   tmp <- 0
 
@@ -111,7 +111,7 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
   
   dat <- parse_data_name(dat, "main", project)
   
-  name <- if(is_empty(name)){ "dummy_num" } else {name}
+  name <- ifelse(is_empty(name), "dummy_num", name)
   
   if (grepl("dat|year", var, ignore.case = TRUE)) {
     if (length(value) == 6) {
@@ -169,7 +169,7 @@ dummy_var <- function(dat, project, DumFill = 1, name = "dummy_var") {
   
   dat <- parse_data_name(dat, "main", project)
   
-  name <- if(is_empty(name)){ "dummy_var" } else {name}
+  name <- ifelse(is_empty(name), "dummy_var", name)
   
 
   newvar <- as.vector(rep(DumFill, nrow(dataset)))
@@ -263,7 +263,7 @@ set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25,0.33, 0.4),
   
   dat <- parse_data_name(dat, "main", project)
 
-  name <- if(is_empty(name)){ "set_quants" } else {name}
+  name <- ifelse(is_empty(name), "set_quants", name)
   
   tmp <- 0
 
@@ -332,7 +332,7 @@ bin_var <- function(dat, project, var, br, name, labs = NULL, ...) {
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
 
-  name <- if(is_empty(name)){ "bin" } else {name}
+  name <- ifelse(is_empty(name), "bin", name)
   
   tmp <- 0
 
@@ -405,7 +405,7 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   
   dat <- parse_data_name(dat, "main", project)
   
-  name <- if(is_empty(name)){ "group_perc" } else {name}
+  name <- ifelse(is_empty(name), "group_perc", name)
   
   
   if (create_group_ID) dataset <- ID_var(dataset, project, vars = c(id_group, group), 
@@ -485,7 +485,7 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   
   dat <- parse_data_name(dat, "main", project)
   
-  name <- if(is_empty(name)){ "group_diff" } else {name}
+  name <- ifelse(is_empty(name), "group_diff", name)
   
   
   . <- group_total <- NULL
@@ -568,7 +568,7 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
-  name <- if(is_empty(name)){ "group_cumsum" } else {name}
+  name <- ifelse(is_empty(name), "group_cumsum", name)
   
   . <- group_total <- NULL
   
@@ -636,16 +636,13 @@ create_var_num <- function(dat, project, x, y, method, name = "create_var_num") 
   
   dat <- parse_data_name(dat, "main", project)
 
-  name <- if(is_empty(name)){ "create_var_num" } else {name}
+  name <- ifelse(is_empty(name), "create_var_num", name)
   
-  tmp <- 0
 
   if (is.numeric(dataset[[x]]) == FALSE | is.numeric(dataset[[y]]) == FALSE) {
-    tmp <- 1
-    warning("Variables must be numeric")
+    stop("Variables must be numeric")
   }
 
-  if (tmp == 0) {
     if (grepl("add|sum", method, ignore.case = TRUE)) {
       newvar <- dataset[[x]] + dataset[[y]]
     } else if (grepl("sub", method, ignore.case = TRUE)) {
@@ -667,7 +664,7 @@ create_var_num <- function(dat, project, x, y, method, name = "create_var_num") 
     log_call(project, create_var_num_function)
 
     return(g)
-  }
+  
 }
 
 ## ---- Spatial  Variables ----##
@@ -675,7 +672,7 @@ create_var_num <- function(dat, project, x, y, method, name = "create_var_num") 
 #' Creates haul midpoint latitude and longitude variables
 create_mid_haul <- function(dat, project, start = c("lon", "lat"), end = c("lon", "lat"), name = "mid_haul") {
   #' @description Calculates latitude and longitude of the haul midpoint and adds two variables
-  #' to the primary dataset: the midpoint latitude and the midpoint longitude.
+  #' to the primary data set: the midpoint latitude and the midpoint longitude.
   #'
   #' @param dat Primary data containing information on hauls or trips.
   #' Table in the FishSET database contains the string 'MainDataTable'.
@@ -701,33 +698,29 @@ create_mid_haul <- function(dat, project, start = c("lon", "lat"), end = c("lon"
   dataset <- out$dataset
   
   dat <- parse_data_name(dat, "main", project)
+
+  name <- ifelse(is_empty(name), "mid_haul" , name)
   
-  if(is_empty(name)){ "mid_haul" } else {name}
-  
-  tmp <- 0
 
   if (is_empty(start) || is_empty(end)) {
-    tmp <- 1
-    warning("Starting and end locations must both be specified. Function not run.")
+    stop("Starting and end locations must both be specified. Function not run.")
   }
 
   if (dim(dataset[, c(start)])[1] != dim(dataset[, c(end)])[1]) {
-    tmp <- 1
-    warning("Starting and ending locations are of different lengths. Function not run.")
+    stop("Starting and ending locations are of different lengths. Function not run.")
   }
 
   if (any(abs(dataset[, c(start)][1]) > 180) | any(abs(dataset[, c(end)][1]) > 180)) {
-    warning("Longitude is not valid (outside -180:180). Function not run")
+    stop("Longitude is not valid (outside -180:180). Function not run")
     # stop('Longitude is not valid (outside -180:180.')
-    tmp <- 1
+   
   }
   if (any(abs(dataset[, c(start)][2]) > 90) | any(abs(dataset[, c(end)][2]) > 90)) {
-    warning("Latitude is not valid (outside -90:90. Function not run")
-    tmp <- 1
+    stop("Latitude is not valid (outside -90:90. Function not run")
+   
     # stop('Latitude is not valid (outside -90:90.')
   }
 
-  if (tmp == 0) {
     distBetween <- geosphere::midPoint(dataset[, c(start)], dataset[, c(end)])
     colnames(distBetween) <- c(paste0(name, "Lon"), paste0(name, "Lat"))
     out <- cbind(dataset, distBetween)
@@ -740,7 +733,7 @@ create_mid_haul <- function(dat, project, start = c("lon", "lat"), end = c("lon"
     log_call(project, create_mid_haul_function)
 
     return(out)
-  }
+  
 }
 
 create_trip_centroid <- function(dat, project, lon, lat, weight.var = NULL, ...) {
@@ -773,17 +766,16 @@ create_trip_centroid <- function(dat, project, lon, lat, weight.var = NULL, ...)
 
   x <- 0
   if (any(abs(dataset[[lon]]) > 180)) {
-    warning("Longitude is not valid (outside -180:180). Function not run")
+    stop("Longitude is not valid (outside -180:180). Function not run")
     # stop('Longitude is not valid (outside -180:180.')
-    x <- 1
+
   }
   if (any(abs(dataset[[lat]]) > 90)) {
-    warning("Latitude is not valid (outside -90:90. Function not run")
-    x <- 1
+    stop("Latitude is not valid (outside -90:90. Function not run")
+ 
     # stop('Latitude is not valid (outside -90:90.')
   }
 
-  if (x == 1) {
     if (grepl("input", as.character(match.call(expand.dots = FALSE)$...)[1]) == TRUE) {
       argList <- eval(...)
     } else {
@@ -821,7 +813,7 @@ create_trip_centroid <- function(dat, project, lon, lat, weight.var = NULL, ...)
     log_call(project, create_trip_centroid_function)
 
     return(int)
-  }
+  
 }
 
 
@@ -846,7 +838,7 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
   #'   Can be in \code{"miles"}, \code{"meters"}, \code{"kilometers"}, or \code{"midpoint"} location.
   #' @param name String, output variable name. Defaults to `distBetween`.
   #' @export
-  #' @return Returns primary dataset with distance between variable.
+  #' @return Returns primary data set with distance between variable.
   #' @importFrom geosphere distGeo midPoint
   #' @description Adds a variable for distance between two points to the primary dataset. There are two versions of this
   #'   function. The difference between the two versions is how additional arguments specific to start and end locations are added.
@@ -896,14 +888,14 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
   # head(create_dist_between(dat,c('LonLat_START_LON','LonLat_START_LAT'),c('LonLat_END_LON','LonLat_END_LAT'), units='midpoint'))
   # head(create_dist_between(dat,'DISEMBARKED_PORT','EMBARKED_PORT', units='meters'))
 
-  # Call in datasets
+  # Call in data sets
   if (start[1] == end[1]) {
     warning("Starting and ending vectors are identical.")
   } else {
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
     on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
 
-    # Call in datasets
+    # Call in data sets
     out <- data_pull(dat, project)
     dataset <- out$dataset
     
@@ -970,12 +962,10 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
       start.lat <- dataset[[start[2]]]
 
       if (any(abs(start.long) > 180)) {
-        warning("Longitude is not valid (outside -180:180). Function not run")
-        x <- 1
+        stop("Longitude is not valid (outside -180:180). Function not run")
       }
       if (any(abs(start.lat) > 90)) {
-        warning("Latitude is not valid (outside -90:90. Function not run")
-        x <- 1
+        stop("Latitude is not valid (outside -90:90. Function not run")
       }
     }
 
@@ -989,16 +979,14 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
       end.lat <- dataset[[end[2]]]
       end.long <- dataset[[end[1]]]
       if (any(abs(end.long) > 180)) {
-        warning("Longitude is not valid (outside -180:180). Function not run")
-        x <- 1
+        stop("Longitude is not valid (outside -180:180). Function not run")
       }
       if (any(abs(end.lat) > 90)) {
-        warning("Latitude is not valid (outside -90:90. Function not run")
-        x <- 1
+        stop("Latitude is not valid (outside -90:90. Function not run")
       }
     }
 
-    if (x == 0) {
+
       # Get distance between points
       if (units == "midpoint") {
         newvar <- geosphere::midPoint(cbind(start.long, start.lat), cbind(end.long, end.lat))
@@ -1024,7 +1012,7 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
 
       log_call(project, create_dist_between_function)
       return(g)
-    }
+
   }
 }
 
@@ -1057,7 +1045,7 @@ create_duration <- function(dat, project, start, end, units = c("week", "day", "
   
   dat <- parse_data_name(dat, "main", project)
 
-  if(is_empty(name)){ "create_duration" } else {name}
+  name <- if(is_empty(name)){ "create_duration" } else {name}
 
   if (any(grepl("date|min|hour|week|month|TRIP_START|TRIP_END", start, ignore.case = TRUE)) == FALSE) {
     warning("Function is designed for temporal variables")

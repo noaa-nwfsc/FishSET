@@ -4,6 +4,7 @@
 #'
 #' @param dat  Primary data containing information on hauls or trips.
 #'   Table in FishSET database contains the string 'MainDataTable'.
+#' @param project Name of project
 #' @param gridfile Spatial data. Required if \emph{ZoneID} does not exists in \code{dat}.
 #'   Shape, json, geojson, and csv formats are supported.
 #' @param portTable Port data. Contains columns: Port_Name, Port_Long, Port_Lat. Table is generated using
@@ -25,7 +26,7 @@
 #'   Leave as NULL if \code{gridfile} is a shape or json file.
 #' @importFrom DBI dbExecute
 #' @export create_startingloc
-#' @return Primary dataset with starting location variable added.
+#' @return Primary data set with starting location variable added.
 #' @details Function creates the \code{startloc} vector that is required for the full information model with Dahl's correction \code{\link{logit_correction}}. 
 #'   The vector is the zone location of a vessel when the decision of where to fish next was made. Generally, the first zone of a trip is the departure port. 
 #'   The \code{\link{assignment_column}} function is called to assign starting port locations and haul locations to zones. 
@@ -33,14 +34,20 @@
 #'   \code{gridfile, lon.dat, lat.dat, cat, lon.grid, lat.grid}. 
 #' @examples
 #' \dontrun{
-#' pcodMainDataTable <- create_startingloc(pcodMainDataTable, map2, "pcodPortTable", "TRIP_SEQ",
-#'   "HAUL_SEQ", "DISEMBARKED_PORT", "START_LON", "START_LAT", "NMFS_AREA", "STARTING_LOC"
+#' pcodMainDataTable <- create_startingloc(pcodMainDataTable, 'pcod',
+#'     map2, "pcodPortTable", "TRIP_SEQ", "HAUL_SEQ", "DISEMBARKED_PORT", 
+#'  "START_LON", "START_LAT", "NMFS_AREA", "STARTING_LOC"
 #' )
 #' }
 #
-create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, starting_port, lon.dat, lat.dat,
+create_startingloc <- function(dat,project=NULL, gridfile, portTable, trip_id, haul_order, starting_port, lon.dat, lat.dat,
                                cat, name = "startingloc", lon.grid = NULL, lat.grid = NULL) {
-  # Call in datasets
+
+  if(is.null(project)){
+    project <- sub("\\MainDataTable", "", dat)
+  }
+  
+    # Call in data sets
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
@@ -51,13 +58,9 @@ create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, st
   PortTable <- parse_data_name(portTable, 'port', project)
   port.table <- out$dataset
   
-  if(is_empty(name)){ "startingloc" } else {name}
+ name <- ifelse(is_empty(name), "startingloc", name)
+
   
-  if(!exists('project')){
-  project <- sub("\\MainDataTable", "", dat)
-  }
-  
-  # DBI::dbDisconnect(fishset_db)
   port <- assignment_column(
     dat = port.table, project = project, gridfile = gridfile, hull.polygon = FALSE, lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = "Port_Long",
     lat.dat = "Port_Lat", cat = cat, closest.pt = TRUE, log.fun = FALSE
@@ -78,29 +81,30 @@ create_startingloc <- function(dat, gridfile, portTable, trip_id, haul_order, st
   } else {
     int.data <- int.data[order(int.data[[trip_id]], int.data[[haul_order]]), ]
   }
-  name <- rep(NA, nrow(int.data))
-  name[2:nrow(int.data)] <- int.data$ZoneID[1:(nrow(int.data) - 1)]
+  newvar <- rep(NA, nrow(int.data))
+  newvar[2:nrow(int.data)] <- int.data$ZoneID[1:(nrow(int.data) - 1)]
 
   # Make starting of trips set to zone of starting port
   if (!is.null(trip_id)) {
     rownumbers <- match(trimws(int.data[tapply(seq_along(int.data[[trip_id]]), int.data[[trip_id]], min), starting_port]), port$Port_Name)
-    name[tapply(seq_along(int.data[[trip_id]]), int.data[[trip_id]], min)] <- port[rownumbers, "ZoneID"]
+    newvar[tapply(seq_along(int.data[[trip_id]]), int.data[[trip_id]], min)] <- port[rownumbers, "ZoneID"]
   } else {
     rownumbers <- match(trimws(int.data[1, starting_port]), port$PORT)
-    name[1] <- port[rownumbers, "ZoneID"]
+    newvar[1] <- port[rownumbers, "ZoneID"]
   }
-
+  
+  g <- cbind(dataset, newvar)
+  colnames(g)[dim(g)[2]] = name
 
   create_startingloc_function <- list()
   create_startingloc_function$functionID <- "create_startingloc"
   create_startingloc_function$args <- list(
-    dat, deparse(substitute(gridfile)), portTable, trip_id, haul_order, starting_port,
-    lon.dat, lat.dat, cat, name
-  )
+    dat, project, deparse(substitute(gridfile)), portTable, trip_id, haul_order, starting_port,
+    lon.dat, lat.dat, cat, name)
   create_startingloc_function$kwargs <- list("lon.grid" = lon.grid, "lat.grid" = lat.grid)
   create_startingloc_function$output <- list(dat)
 
   log_call(project, create_startingloc_function)
 
-  return(cbind(dataset, name))
+  return(g)
 }
