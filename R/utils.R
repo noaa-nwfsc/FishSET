@@ -587,6 +587,70 @@ qaqc_helper <-function(dat, fun, output = "logical") {
   }
 }
 
+
+unique_rows <- function(dat) {
+  #' Return unique rows
+  #' 
+  #' Check whether all rows are in a dataset are unique. If not, returns only the
+  #' unique rows. 
+  #' 
+  #' @param dat Data to check for non-unique rows.
+  #' @keywords internal
+  #' @importFrom dplyr distinct
+  #' @examples 
+  #' \dontrun{
+  #' dat <- unique_rows(dat)
+  #' }
+  
+  if (nrow(dat) != nrow(dplyr::distinct(dat))) {
+    
+    message('Duplicate rows found and removed.')
+    dat <- dplyr::distinct(dat)
+  }
+  
+  dat
+}
+
+
+empty_vars <- function(dat, remove = TRUE) {
+  #' Check for empty variables
+  #' 
+  #' Detects variables that contain all \code{NA}s and removes them if 
+  #' \code{remove = TRUE}. 
+  #' 
+  #' @param dat The data.frame to check. 
+  #' @param remove Logical, whether to remove empty variables. 
+  #' @keywords internal
+  #' @export
+  #' \examples
+  #' \dontrun{
+  #' dat <- empty_vars(dat)
+  #' }
+  
+  empty_ind <- qaqc_helper(dat, function(x) all(is.na(x)))
+  
+  if (any(empty_ind)) {
+    
+    empty_vars <- names(dat[empty_ind])
+    
+    if (remove == TRUE) {
+      
+      dat <- dat[!empty_ind]
+      
+      warning("The following variables were empty and removed: ", 
+              paste(names(empty_ind[empty_ind]), sep = ", "), call. = FALSE)
+      
+    } else {
+      
+      warning("the following variables are empty, consider removing: ", 
+              paste(empty_vars, collapse = ", "), call. = FALSE)
+    }
+  } 
+  
+  dat
+}
+
+
 accumarray <- function(subs, val, sz = NULL, func = sum, fillval = 0) {
   #' Accumarray function
   #' @param subs subs
@@ -861,7 +925,6 @@ agg_helper <- function(dataset, value, period = NULL, group = NULL, fun = "sum")
   #' @importFrom stringi stri_isempty
   #' @importFrom stats aggregate reformulate
   
-  end <- FALSE
   agg_cols <- c(value, period, group)
   
   if (any(!(agg_cols %in% colnames(dataset)))) {
@@ -869,10 +932,8 @@ agg_helper <- function(dataset, value, period = NULL, group = NULL, fun = "sum")
     warning("The column(s) ",
       paste(agg_cols[!(agg_cols %in% colnames(dataset))], collapse = ", "),
             " are not in data table.")
-    end <- TRUE
-  }
-  
-  if (end == FALSE) {
+    
+  } else {
     
     by_fm <- paste(unique(c(period, group)), collapse = " + ")
     
