@@ -1,4 +1,4 @@
-map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE, 
+map_kernel <- function(dat, project,latlon,  type='contours', group = NULL, facet = FALSE, 
                        date = NULL, filter_date = NULL, filter_value = NULL, 
                        minmax = NULL) {
   #'
@@ -47,7 +47,6 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
   dat <- parse_data_name(dat, "main", project)
   
 
-  x <- 0
   level <- NA
   lon <- NA
   lat <- NA
@@ -83,24 +82,21 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
 
       datatomap <- subset(datatomap, month %in% filter_value)
     } else {
-      warning("Invalid filter type. Available options are 'year-month', 'year', and 'month'.")
-      x <- 1
+      stop("Invalid filter type. Available options are 'year-month', 'year', and 'month'.")
     }
 
     if (nrow(datatomap) == 0) {
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      x <- 1
+      stop("Filtered data table has zero rows. Check filter parameters.")
+      
     }
   }
 
-  if (any(abs(datatomap$lon) > 180)) {
-    warning("Longitude is not valid (outside -180:180). Function not run.")
+  if(any(abs(datatomap$lon) > 180)) {
+    stop("Longitude is not valid (outside -180:180). Function not run.")
     # stop('Longitude is not valid (outside -180:180.')
-    x <- 1
   }
   if (any(abs(datatomap$lat) > 90)) {
-    warning("Latitude is not valid (outside -90:90. Function not run.")
-    x <- 1
+    stop("Latitude is not valid (outside -90:90. Function not run.")
     # stop('Latitude is not valid (outside -90:90.')
   }
   
@@ -108,15 +104,14 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
   if(min(datatomap$lon) < 0 & max(datatomap$lon) > 0){
     recenter <- TRUE
     datatomap$lon <- ifelse(datatomap$lon < 0 , datatomap$lon + 360, datatomap$lon)
-    worldmap <- map_data("world", wrap = c(0, 360))
+    worldmap <- ggplot2::map_data("world", wrap = c(0, 360))
     
   } else {
     recenter <- FALSE
-    worldmap <- map_data("world")
+    worldmap <- ggplot2::map_data("world")
     
   }
 
-  if (x == 0) {
     if (is.null(minmax) == TRUE) {
       if (min(datatomap$lat) < 0 & max(datatomap$lat) < 0) {
         minlat <- min(datatomap$lat) * 1.001
@@ -157,15 +152,13 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
     } else {
       recenterlab <-  360
     }
-    
-    ################################################################################
-    
+
     
     gmap <-
       ggplot2::ggplot() +
-      ggplot2::geom_map(map = world, ggplot2::aes(x = world$long, y = world$lat,
+      suppressWarnings(ggplot2::geom_map(map = world, ggplot2::aes(x = world$long, y = world$lat,
                                                   map_id = world$region),
-                        fill = "grey", color = "black", size = 0.375)
+                        fill = "grey", color = "black", size = 0.375))
 
     map_theme <-
       ggplot2::theme(text = ggplot2::element_text(size = 12),
@@ -186,8 +179,7 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
           ggplot2::geom_point(data = datatomap, ggplot2::aes(x = lon, y = lat,
                                             colour = groupv),
                                size = 0.375, alpha = 0.25) +
-          scale_x_continuous(labels = function(b) { b-recenterlab}) +
-          ggplot2::xlim(minlon, maxlon) +
+          ggplot2::scale_x_continuous(limits=c(minlon,maxlon), labels = function(b) { b-recenterlab}) +
           ggplot2::ylim(minlat, maxlat) +
           ggplot2::ggtitle("Points") +
           ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size = 10))) +
@@ -202,8 +194,7 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
           gmap +
           ggplot2::geom_point(data = datatomap, ggplot2::aes(x = lon, y = lat,
                                            colour = groupv), size = 0.375) +
-          scale_x_continuous(labels = function(b) { b-recenterlab}) +
-          ggplot2::xlim(minlon, maxlon) +
+          ggplot2::scale_x_continuous(limits=c(minlon,maxlon), labels = function(b) { b-recenterlab}) +
           ggplot2::ylim(minlat, maxlat) + 
           ggplot2::ggtitle("Points") +
           ggplot2::facet_grid(. ~ groupv) +
@@ -217,8 +208,7 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
           gmap +
           ggplot2::geom_point(data = datatomap, ggplot2::aes(x = lon, y = lat),
                               color = "black", size = 0.375) +
-          scale_x_continuous(labels = function(b) { b-recenterlab}) +
-          ggplot2::xlim(minlon, maxlon) +
+          ggplot2::scale_x_continuous(limits=c(minlon,maxlon), labels = function(b) { b-recenterlab}) +
           ggplot2::ylim(minlat, maxlat) +
           ggplot2::ggtitle("Points") +
           map_theme +
@@ -226,7 +216,7 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
           ggplot2::ylab("Latitude")
       }
 
-      ################################################################################
+
     } else if (type == "contours") {
 
       if (is.null(group) == FALSE & facet == FALSE) {
@@ -238,8 +228,7 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
                               color = "black", size = 0.375) +
           ggplot2::geom_density_2d(data = datatomap, ggplot2::aes(x = lon, y = lat,
                                                                   colour = groupv)) +
-          scale_x_continuous(labels = function(b) { b-recenterlab}) +
-          ggplot2::xlim(minlon, maxlon) +
+          ggplot2::scale_x_continuous(limits=c(minlon,maxlon), labels = function(b) { b-recenterlab}) +
           ggplot2::ylim(minlat, maxlat) +
           ggplot2::ggtitle("Spatial kernel (contours)") +
           map_theme +
@@ -255,8 +244,7 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
                               color = "black", size = 0.375) +
           ggplot2::geom_density_2d(data = datatomap, ggplot2::aes(x = lon, y = lat,
                                                                   colour = groupv)) +
-          scale_x_continuous(labels = function(b) { b-recenterlab}) +
-          ggplot2::xlim(minlon, maxlon) +
+          ggplot2::scale_x_continuous(limits=c(minlon,maxlon), labels = function(b) { b-recenterlab}) +
           ggplot2::ylim(minlat, maxlat) +
           ggplot2::ggtitle("Spatial kernel (contours)") +
           ggplot2::facet_grid(. ~ groupv) +
@@ -271,8 +259,7 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
           ggplot2::geom_point(ggplot2::aes(x = datatomap$lon, y = datatomap$lat),
                               color = "black", size = 0.375) +
           ggplot2::geom_density_2d(ggplot2::aes(x = datatomap$lon, y = datatomap$lat)) +
-          scale_x_continuous(labels = function(b) { b-recenterlab}) +
-          ggplot2::xlim(minlon, maxlon) +
+          ggplot2::scale_x_continuous(limits=c(minlon,maxlon), labels = function(b) { b-recenterlab}) +
           ggplot2::ylim(minlat, maxlat) +
           ggplot2::ggtitle("Spatial kernel (contours)") +
           map_theme +
@@ -297,8 +284,7 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
                               color = "black", size = 0.375) +
           ggplot2::stat_density_2d(data = datatomap, ggplot2::aes(x = lon, y = lat,
                                                 fill = stat(level)), geom = "polygon") +
-          scale_x_continuous(labels = function(b) { b-recenterlab}) +
-          ggplot2::xlim(minlon, maxlon) +
+          ggplot2::scale_x_continuous(limits=c(minlon, maxlon), labels = function(b) { b-recenterlab}) +
           ggplot2::ylim(minlat, maxlat) +
           ggplot2::facet_grid(. ~ groupv) +
           ggplot2::ggtitle("Spatial kernel (gradient)") +
@@ -317,8 +303,7 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
                               color = "black", size = 0.375) +
           ggplot2::stat_density_2d(data = datatomap, ggplot2::aes(x = lon, y = lat,
                                                 fill = stat(level)), geom = "polygon") +
-          scale_x_continuous(labels = function(b) { b-recenterlab}) +
-          ggplot2::xlim(minlon, maxlon) +
+          ggplot2::scale_x_continuous(limits=c(minlon,maxlon), labels = function(b) { b-recenterlab}) +
           ggplot2::ylim(minlat, maxlat) +
           ggplot2::ggtitle("Spatial kernel (gradient)") +
           map_theme +
@@ -344,6 +329,6 @@ map_kernel <- function(dat, project, type, latlon, group = NULL, facet = FALSE,
     save_plot(project, "map_kernel", mapout)
 
     print(mapout)
-  }
+  
 }
 

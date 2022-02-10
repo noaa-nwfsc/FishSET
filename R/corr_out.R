@@ -1,5 +1,5 @@
 # correlation
-corr_out <- function(dat, project, variables, method = "pearson") {
+corr_out <- function(dat, project, variables='all', method = "pearson") {
   #' View correlation coefficients between numeric variables
   #'
   #' @description Correlations coefficients can be displayed between all numeric variables or selected numeric variables. 
@@ -16,14 +16,14 @@ corr_out <- function(dat, project, variables, method = "pearson") {
   #' @importFrom ggcorrplot ggcorrplot
   #' @importFrom stats cor
   #' @importFrom rlang sym
-  #' @details Returns pearson's correlation coefficient between numeric variables in plot 
+  #' @details Returns Pearson's correlation coefficient between numeric variables in plot 
   #'   and table format. Output saved to output folder.
   #' @examples
   #' \dontrun{
   #' corr_out(pollockMainDataTable, 'pollock', 'all')
   #' }
 
-  # Call in datasets
+  # Call in data sets
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
@@ -35,8 +35,8 @@ corr_out <- function(dat, project, variables, method = "pearson") {
     if (variables == "all") variables <- colnames(dataset)
     else {
       
-      warning("At least two variables must be included.")
-      end <- TRUE
+      stop("At least two variables must be included.")
+     
     }
   }
   
@@ -45,12 +45,17 @@ corr_out <- function(dat, project, variables, method = "pearson") {
   
   if (length(variables) < 2) {
     
-    warning("All variables must be numeric.")
-    end <- TRUE
+    stop("All variables must be numeric.")
+   
   }
 
-  if (end == FALSE) {
-    
+    if(any(sapply(dataset[,variables], var)==0)){
+      cat(paste0("No variance found in ", names(which(sapply(dataset[,variables], var)==0)),
+                 ". Removed from correlation test"))
+       variables <- variables[-which(sapply(dataset[,variables], var)==0)]
+    }
+   
+
     c_tab <- round(stats::cor(dataset[, variables], use = "complete.obs", method = method), 2)
     colnames(c_tab) <- gsub("_", "-", colnames(c_tab))
     
@@ -87,5 +92,5 @@ corr_out <- function(dat, project, variables, method = "pearson") {
     save_table(c_tab, project, "corr_out")
 
     list(plot = c_plot, table = c_tab)
-  }
+
 }

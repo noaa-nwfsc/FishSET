@@ -1779,7 +1779,7 @@ parseDeleteEvent <- function(idstr) {
 # Helper functions to find specific types of variables (date, port, catch, etc) ---- 
 find_lon <- function(dat) {
  #' Find columns that may be longitude data
- #' @param dat Dataset to search over
+ #' @param dat Data set to search over
  #' @keywords internal
  #' @export
  
@@ -1796,7 +1796,7 @@ find_lon <- function(dat) {
 
 find_lat <- function(dat) {
   #' Find columns that may be latitude data
-  #' @param dat Dataset to search over
+  #' @param dat Data set to search over
   #' @keywords internal
   #' @export
   
