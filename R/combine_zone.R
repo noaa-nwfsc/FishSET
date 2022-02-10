@@ -25,7 +25,7 @@ recast_multipoly <- function(grid, closure, combined, id) {
   
   grid_inter <- sf::st_intersects(grid, closure)
   
-  ind <- vapply(grid_inter, function(x) length(x) > 0, logical(1))
+  ind <- lengths(grid_inter) > 0
   # zones that intersect closures
   inter_nm <- grid[ind, ][[id]]
   
@@ -82,7 +82,7 @@ new_zone_id <- function(combined, id, grid = NULL, closure = NULL,
   
   id_count <- 
     combined %>% 
-    sf::st_set_geometry(value=NULL) %>% 
+    sf::st_set_geometry(value = NULL) %>% 
     dplyr::mutate(n_count = 1) %>%
     dplyr::group_by(dplyr::across(dplyr::all_of(id))) %>% 
     dplyr::mutate(n_count = cumsum(n_count)) %>% 
