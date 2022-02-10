@@ -87,7 +87,7 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
                                 empty.catch = c(NULL, 0, "allCatch", "groupedCatch"), empty.expectation = c(NULL, 1e-04, 0),
                                 temp.window = 7, temp.lag = 0, year.lag = 0, dummy.exp = FALSE, replace.output = TRUE) {
 
-  # Call in datasets
+  # Call in data sets
   out <- data_pull(dat, project = project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
@@ -96,8 +96,10 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
   Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
-  DBI::dbDisconnect(fishset_db)
 
+  if(length(empty.catch)>1){ empty.catch <- empty.catch[1]}
+  if(length(calc.method)>1){ calc.method <- calc.method[1]}
+  if(length(empty.expectation)>1){ empty.expectation <- empty.expectation[1]}
 
   dataZoneTrue <- Alt[["dataZoneTrue"]] # used for catch and other variables
   choice <- Alt[["choice"]] # used for catch and other variables
@@ -115,14 +117,14 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
     }
   }
   
-  
   ## 1. Option 1. Short-term, individual grouping t - 2 (window)
  short_exp <- short_expectations(
     dat = dataset, project = project, catch = catch, price = price, defineGroup = defineGroup, temp.var = temp.var,
     temporal = temporal, calc.method = calc.method, lag.method = lag.method, empty.catch = empty.catch,
     empty.expectation = empty.expectation, dummy.exp = FALSE
   )
-  ## 2. Option 2 medium: group by fleet (all vessels in dataset) t -7
+
+   ## 2. Option 2 medium: group by fleet (all vessels in dataset) t -7
   med_exp <- medium_expectations(
     dat = dataset, project = project, catch = catch, price = price, defineGroup = defineGroup, temp.var = temp.var,
     temporal = temporal, calc.method = calc.method, lag.method = lag.method, empty.catch = empty.catch,
