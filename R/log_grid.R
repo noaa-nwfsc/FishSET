@@ -76,26 +76,24 @@ grid_lab_helper <- function(project, grid_info, grid_log = NULL) {
   #' @param grid_log Optional, the grid log. if \code{NULL}, uses names from 
   #' \code{grid_info}. 
   #' @keywords internal
+  #' @importFrom purrr map2_chr
   #' 
   
   # add grid name to label. This will be it's object name when loaded.
+  # find and remove matching grids
+  keep <- unique_grid(project, grid_info, ind = TRUE)
   
-  if (is.null(grid_log)) names(grid_info)
-  else {
+  if (sum(keep) > 0) {
     
-    # find and remove matching grids
-    keep <- unique_grid(project, grid_info, ind = TRUE)
+    grid_info <- grid_info[keep]
     
-    if (sum(keep) > 0) {
-      
-      grid_info <- grid_info[keep]
-      
-      # add unique grids to log
-      grid_ind <- length(grid_log) + seq(grid_info)
-      grid_labs <- paste0("grid_", grid_ind)
-      
-      grid_labs
-    }
+    if (is.null(grid_log)) grid_log <- get_grid_log(project)
+    
+    # add unique grids to log
+    grid_ind <- length(grid_log) + seq(grid_info)
+    grid_labs <- purrr::map2_chr(grid_info, grid_ind, 
+                                 ~paste0(.x$grid_name, "_mod", .y))
+    grid_labs
   } 
 }
 
@@ -121,32 +119,21 @@ log_grid_info <- function(project, grid_info) {
   #'    \code{combined_areas} are the names/IDs of the closures areas from the 
   #'    closure grid file that were combined with \code{grid_name}. 
   
-  save <- TRUE
-  
   grid_log <- get_grid_log(project)
-  
-  if (is.null(grid_log)) grid_log <- grid_info
-  
-  else {
     
-    # find and remove matching grids
-    keep <- unique_grid(project, grid_info, ind = TRUE)
-    
-    if (sum(keep) == 0) save <- FALSE
-    else {
-      
-      grid_info <- grid_info[keep]
-      
-      # add unique grids to log
-      grid_lab <- grid_lab_helper(project, grid_info, grid_log)
-      grid_info <- stats::setNames(grid_info, grid_lab)
-      
-      grid_log <- c(grid_log, grid_info)
-    }
-  }
+  # find and remove matching grids
+  keep <- unique_grid(project, grid_info, ind = TRUE)
   
-  if (save) {
+  if (sum(keep) > 0) {
     
+    grid_info <- grid_info[keep]
+    
+    # add unique grids to log
+    grid_lab <- grid_lab_helper(project, grid_info, grid_log)
+    grid_info <- stats::setNames(grid_info, grid_lab)
+    
+    grid_log <- c(grid_log, grid_info)
+   
     filename <- paste0(loc_data(project), "spat/", project, "_grid_info.json")
     
     jsonlite::write_json(grid_log, filename, pretty = TRUE, auto_unbox = TRUE, 
@@ -179,10 +166,10 @@ save_grid_cache <- function(project, grid_list, grid_info) {
   if (sum(keep) > 0) {
     
     grid_list <- grid_list[keep]
-    # adjust naming convention
+    # create filenames (object names when loaded)
     grid_labs <- grid_lab_helper(project, grid_info, grid_log)
     
-    filename <- paste0(loc_data(project), "spat/", project, "_", grid_labs, ".geojson")
+    filename <- paste0(loc_data(project), "spat/", grid_labs, ".geojson")
     
     purrr::map2(grid_list, filename, function(gl, fn) {
       

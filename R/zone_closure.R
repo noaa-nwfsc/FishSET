@@ -151,7 +151,8 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
         fluidRow(
           column(2, selectInput("mode", "Select mode", 
                                 choices = c("normal", "combine"))),
-          column(4,  uiOutput("modeMsg"))
+          column(4,  uiOutput("modeMsg")),
+          column(2,  uiOutput("GridSelect"))
         ),
         
         selectizeInput(inputId = "clicked_locations",
@@ -253,6 +254,12 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
           }
         }
         
+        add_close <- function(close, mode) {
+          
+          if (mode == "combine") close
+          else return(NULL)
+        }
+        
         # mode ----
         
         output$modeMsg <- renderUI({
@@ -305,6 +312,33 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
         })
         
         
+        output$GridSelect <- renderUI({
+          
+          if (!is.null(secondgridfile) & input$mode == "combine") {
+              
+            selectInput("select_grid", "Select grid", 
+                        choices = names(grid_cache))
+          }
+          
+        })
+        
+        # select grid ----
+        observeEvent(input$select_grid, {
+          
+          dat$combined <- grid_cache[[input$select_grid]]
+          
+          updateSelectizeInput(session,
+                               inputId = "clicked_locations",
+                               label = "",
+                               choices = dat$combined$secondLocationID,
+                               selected = NULL,
+                               server = TRUE)
+          
+          rv$combined_areas <- grid_info[[input$select_grid]]$combined_areas
+          
+        }, ignoreNULL = TRUE)
+        
+        
         # edit closure ----
         
         observeEvent(input$editClose, {
@@ -341,6 +375,11 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
         })
         
         
+        
+        
+        
+        # combine ----
+        
         output$combineUI <- renderUI({
           
           if (!is.null(secondgridfile)) {
@@ -360,7 +399,7 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
           }
         })
         
-        # combine ----
+        
         observeEvent(input$combine_grids, {
           
           if (!isTruthy(input$clicked_locations)) {
@@ -394,6 +433,11 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
                                choices = dat$combined$secondLocationID,
                                selected = NULL,
                                server = TRUE)
+          
+          updateSelectInput(session,
+                            inputId = "select_grid",
+                            choices = names(grid_cache),
+                            selected = dplyr::last(names(grid_cache)))
   
         })
         
@@ -630,7 +674,7 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
                                  label = "",
                                  choices = temp_dat[[sec_id]],
                                  selected = clicked_ids$ids,
-                                 server=TRUE)
+                                 server = TRUE)
           }
         })
         
@@ -667,21 +711,16 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
           req(input$scenarioname)
           req(pass)
           
+          close_nm <- if (input$mode == "normal") NULL else close_nm
+          
           closures$dList <- c(closures$dList, 
                               list(c(list(scenario = input$scenarioname), 
                                      list(date = as.character(Sys.Date())), 
                                      list(zone = input$clicked_locations), 
                                      list(tac = tac_name()),
                                      list(grid_name = grid_nm),
-                                     list(closure_name = close_nm),
+                                     list(closure_name = add_close(close_nm, input$mode)),
                                      list(combined_areas = rv$combined_areas))))
-          
-          if (is.null(secondgridfile) | input$mode == "normal") {
-            
-            cache_unique_grid(dat$gridfile, grid.nm = grid_nm,
-                              closure.nm = close_nm, combined = NULL)
-          }
-          
         })
         
         
@@ -703,16 +742,47 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
           
           req(closures$dList)
           
-          save_closure_scenario(project, closures$dList)
           
-          # save unique grids 
-          save_grid_cache(project, 
-                          grid_list = reactiveValuesToList(grid_cache),
+          if (input$mode == "combine") {
+            
+            # save unique grids to project data folder
+            save_grid_cache(project, 
+                            grid_list = reactiveValuesToList(grid_cache),
+                            grid_info = reactiveValuesToList(grid_info))
+            
+            # log grid info
+            log_grid_info(project, 
                           grid_info = reactiveValuesToList(grid_info))
+          }
           
-          # log grid info
-          log_grid_info(project, 
-                        grid_info = reactiveValuesToList(grid_info))
+          # update closure list w/ new grid names
+          g_info <- get_grid_log(project)
+          
+          new_grid_nms <- 
+            vapply(closures$dList, function(cl) {
+            
+              if (!is.null(cl$combined_areas)) {
+                
+                cols <- c("grid_name", "closure_name", "combined_areas")
+                
+                ind <- vapply(g_info, function(gi) identical(gi[cols], cl[cols]), 
+                              logical(1))
+                
+                names(g_info)[ind] # if no match?
+                
+              } else cl$grid_name
+            
+          }, character(1))
+          
+          close_list <- 
+            purrr::map2(closures$dList, new_grid_nms, function(x, y) {
+            
+            if (x$grid_name != y) x$grid_name <- y
+            x
+          })
+          
+          # save closure scenarios to project output folder
+          save_closure_scenario(project, close_list)
           
           # reset closure list
           closures$dList <- NULL

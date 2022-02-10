@@ -613,12 +613,9 @@ load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALS
   colnames(x)[grep("LON", colnames(x), ignore.case = TRUE)] <- "Port_Long"
   colnames(x)[grep("LAT", colnames(x), ignore.case = TRUE)] <- "Port_Lat"
 
-  #data_verification_call(x, project)
   #unique rows
-  if(dim(x)[1] != dim(unique(x))[1]){
-    print('Duplicate rows found and removed.')
-    x <- unique(x)
-  }
+  x <- unique_rows(x)
+  
   #unique column names
   if(length(toupper(colnames(x))) != length(unique(toupper(colnames(x))))){
     print('Duplicate case-insensitive column names found. Duplicate column names adjusted.')
@@ -668,7 +665,7 @@ load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALS
   }
 }
 
-load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
+load_aux <- function(dat, aux, name, over_write = TRUE, project = NULL) {
   #' Import, parse, and save auxiliary data to FishSET database
   #'
   #' Auxiliary data is additional data that connects the primary dataset.
@@ -676,7 +673,7 @@ load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param aux File name, including path of auxiliary data.
-  #' @param x Name auxiliary data should be saved as in FishSET database.
+  #' @param name Name auxiliary data should be saved as in FishSET database.
   #' @param over_write Logical, If TRUE, saves data over previously
   #'   saved data table in the FishSET database.
   #' @param project String, name of project.
@@ -691,13 +688,13 @@ load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
   #'   each row is unique, that no variables are empty, and that column names are case-insensitive unique. 
   #'   There data issues are resolved before the data is saved to the database.
   #'   The data is saved in the FishSET database as the raw data and the working data. In
-  #'  both cases, the table name is the \code{project} and the file name \code{x}. Date is also added to the name for the raw data.
+  #'  both cases, the table name is the \code{project} and the file name \code{name}. Date is also added to the name for the raw data.
   #' @examples
   #' \dontrun{
-  #' load_aux(pcodMainDataTable, x = FisherySeason, over_write = TRUE, project = 'pcod')
+  #' load_aux(pcodMainDataTable, name = FisherySeason, over_write = TRUE, project = 'pcod')
   #' }
 
-  # Call in datasets
+  # Call in data sets
   check <- TRUE
 
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
@@ -753,16 +750,16 @@ load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
       aux <- aux[,-(which(apply(aux, 2, function(x) all(is.na(x))) == TRUE))]
     }
 
-    if (table_exists(paste0(project, x), project) == FALSE | over_write == TRUE) {
+    if (table_exists(paste0(project, name), project) == FALSE | over_write == TRUE) {
       
-      DBI::dbWriteTable(fishset_db, paste0(project, x, "AuxTable", format(Sys.Date(), format = "%Y%m%d")), 
+      DBI::dbWriteTable(fishset_db, paste0(project, name, "AuxTable", format(Sys.Date(), format = "%Y%m%d")), 
                         aux, overwrite = over_write)
       
-      DBI::dbWriteTable(fishset_db, paste0(project, x, "AuxTable"), aux, overwrite = over_write)
+      DBI::dbWriteTable(fishset_db, paste0(project, name, "AuxTable"), aux, overwrite = over_write)
       
       load_aux_function <- list()
       load_aux_function$functionID <- "load_aux"
-      load_aux_function$args <- list(deparse_name(dat), deparse_name(aux), x, over_write, project)
+      load_aux_function$args <- list(deparse_name(dat), deparse_name(aux), name, over_write, project)
       log_call(project, load_aux_function)
       
       message("Auxiliary table saved to database.")
@@ -770,26 +767,26 @@ load_aux <- function(dat, aux, x, over_write = TRUE, project = NULL) {
       
     } else {
       
-      warning(paste("Table not saved.", paste0(project, x), 
+      warning(paste("Table not saved.", paste0(project, name), 
                     "exists in database, and overwrite is FALSE."))
       invisible(FALSE)
     }
   }
 }
 
-load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
+load_grid <- function(dat, grid, name, over_write = TRUE, project = NULL) {
   #' Import, parse, and save gridded data to FishSET database
   #'
   #' Gridded data is data that varies by two dimensions. Column names must be zone names. Load, parse, and save gridded data to FishSET database
   #' @param dat Primary data containing information on hauls or trips. 
   #'   Table in FishSET database contains the string 'MainDataTable'.
   #' @param grid File name, including path, of gridded data. 
-  #' @param x Name gridded data should be saved as in FishSET database.
+  #' @param name Name gridded data should be saved as in FishSET database.
   #' @param over_write Logical, If TRUE, saves dat over previously saved data table in the FishSET database.
   #' @param project String, name of project.
   #' @details Grid data is an optional data frame that contains a variable that varies by the map grid (ex.
   #'   sea surface temperature, wind speed). Data can also vary by a second dimension (e.g., date/time). Both
-  #'   dimensions in the gridded data file need to be variables included in the primary dataset.
+  #'   dimensions in the gridded data file need to be variables included in the primary data set.
   #'   The grid locations (zones) must define the columns and the optional second dimension defines the rows.
   #'   The row variable must have the exact name as the variable in the main data frame that it will be linked to. 
   #'   The function DOES NOT check that column and row variables match a variable in the primary data set.
@@ -801,7 +798,7 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
   #' @export
   #' @examples
   #' \dontrun{
-  #' load_grid(dat = 'pcodMainDataTable', x = SeaSurfaceTemp, over_write = TRUE, project = 'pcod')
+  #' load_grid(dat = 'pcodMainDataTable', name = SeaSurfaceTemp, over_write = TRUE, project = 'pcod')
   #' }
   check <- TRUE
   fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
@@ -838,7 +835,6 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
     
   } else {
     
-    #data_verification_call(x, project)
     #unique rows
     if(dim(grid)[1] != dim(unique(grid))[1]){
       print('Duplicate rows found and removed.')
@@ -849,20 +845,27 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
       print('Duplicate case-insensitive column names found. Duplicate column names adjusted.')
       colnames(grid)[which(duplicated(colnames(grid)))] <- paste0(colnames(grid)[which(duplicated(colnames(grid)))], '.1')
     }
-    #empty variables
-    if (any(apply(grid, 2, function(x) all(is.na(x))) == TRUE)) {
-      print(names(which(apply(grid, 2, function(x) all(is.na(x))) == TRUE)), 'is empty and was removed.')
-      grid <- grid[,-(which(apply(grid, 2, function(x) all(is.na(x))) == TRUE))]
-    }
     
-
-    if (table_exists(paste0(project, x), project) == FALSE | over_write == TRUE) {
+    #empty variables
+    empty_ind <- qaqc_helper(grid, function(x) all(is.na(x)))
+    
+    if (any(empty_ind)) {
       
-      DBI::dbWriteTable(fishset_db, paste0(project, x, "GridTable"), grid, overwrite = over_write)
+      empty_vars <- names(grid[empty_ind])
+      grid <- grid[!empty_ind]
+      
+      message("the following variables are empty and have been removed: ", 
+              paste(empty_vars, collapse = ", "))
+    } 
+    
+    # save grid
+    if (table_exists(paste0(project, name), project) == FALSE | over_write == TRUE) {
+      
+      DBI::dbWriteTable(fishset_db, paste0(project, name, "GridTable"), grid, overwrite = over_write)
       
       load_gridded_function <- list()
       load_gridded_function$functionID <- "load_grid"
-      load_gridded_function$args <- list(deparse_name(dat), deparse_name(grid), x, over_write, project)
+      load_gridded_function$args <- list(deparse_name(dat), deparse_name(grid), name, over_write, project)
       log_call(project, load_gridded_function)
       
       message("Grid table saved to database.")
@@ -870,11 +873,112 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
       
     } else {
       
-      warning(paste("Grid table not saved.", paste0(project, x), 
+      warning(paste("Grid table not saved.", paste0(project, name), 
                     "exists in database, and overwrite is FALSE."))
       invisible(FALSE)
     }
   }
 }
 
+
+load_spatial <- function(spat, name=NULL, over_write = TRUE, project, data.type = NULL, 
+                         lon = NULL, lat = NULL, id = NULL, ...) {
+  #' Import, parse, and save spatial data 
+  #'
+  #' 
+  #' @param spat File name, including path, of spatial data. 
+  #' @param name Name spatial data should be saved as in FishSET project folder.
+  #' @param over_write Logical, If TRUE, saves \code{spat} over previously saved data 
+  #'   table in the FishSET project folder.
+  #' @param project String, name of project.
+  #' @param data.type Data type argument passed to \code{\link{read_dat}}. Must 
+  #'  be given if reading from a shape folder, e.g. \code{data.type = "shape"}. 
+  #'  Otherwise, this argument is optional. 
+  #' @param lon Variable or list from \code{spat} containing longitude data. 
+  #'    Required for csv files. Leave as NULL if \code{spat} is a shape or json file.
+  #' @param lat Variable or list from \code{spat} containing latitude data. 
+  #'    Required for csv files. Leave as NULL if \code{spat} is a shape or json file
+  #' @param id Polygon ID column. Required for csv files. Leave as NULL if 
+  #'   \code{spat} is a shape or json file.
+  #' @param ... Additional argument passed to \code{\link{read_dat}}. 
+  #' @details Function to import, parse, and saved project folder in `FishSETFolder` directory. Note, 
+  #'  the spatial file is saved as a geojson. To export as  shape file, use \code{\link{write_dat}} specifying `type='shp'`.
+  #' @export
+  #' @importFrom sf st_write
+  #' @examples
+  #' \dontrun{
+  #' load_spatial(spat = 'pcodMainDataTable', name = 'tenMinSqr', over_write = TRUE, project = 'pcod')
+  #' }
+  
+  if (project_exists(project) == FALSE) {
+    
+    stop("Project '", project, "' does not exist. Check spelling or create a",
+         " new project with load_maindata().")
+  }
+
+  
+  if (is.character(spat)) {
+    
+    if (is.null(data.type)) {
+      
+      stop("data.type = NULL. Enter a file type.")
+      
+    } else {
+      
+      spat <- read_dat(spat, data.type = data.type, is.map = TRUE, ...)
+    }
+  } 
+  
+  # check that spat can be converted to sf
+  spat <- check_spatdat(spat, lon = lon, lat = lat, id = id)
+  
+  stopifnot("Name cannot contain spaces." = !grepl("\\s", name))
+  
+  # unique names
+  
+  # check for unique rows
+  spat <- unique_rows(spat)
+  
+  # empty variables
+  spat <- empty_vars(spat)
+  
+  # save spatial data
+  if(is_empty(name)) { name <- ''}
+  tab_name <- paste0(project, name, "SpatTable")
+  raw_name <- paste0(tab_name, format(Sys.Date(), format = "%Y%m%d"))
+  
+  file_names <- paste0(loc_data(project), "spat/", c(tab_name, raw_name), ".geojson")
+  
+  spat_exists <- file.exists(file_names)
+  
+  if (sum(spat_exists) > 0) {
+    
+    if (over_write) {
+      
+     file.remove(file_names[spat_exists])
+    
+    } else {
+      
+      stop("Dataset already exists. Set over_write = TRUE to replace.")
+    }
+  }
+  
+  lapply(file_names, function(sfn) sf::st_write(spat, dsn = sfn))
+  
+  
+  # log call
+  load_spatial_function <- list()
+  load_spatial_function$functionID <- "load_spatial"
+  load_spatial_function$args <- list(deparse_name(spat), name, over_write, project, 
+                                     data.type, lon, lat, id)
+  load_spatial_function$kwargs <- list(...)
+  log_call(project, load_spatial_function)
+  
+  message("Spatial table saved to project folder as ", tab_name)
+  invisible(TRUE)
+}
+  
+  
+  
+  
 
