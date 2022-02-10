@@ -3,7 +3,7 @@ list_logs <- function(project = NULL, chron = FALSE, modified = FALSE) {
   #' @param project Project name. Displays all logs if NULL.
   #' @param chron Logical, whether to display logs in chronological order (TRUE) or
   #'   reverse chronological order (FALSE). 
-  #' @param modified Logical
+  #' @param modified Logical, whether to include date modified. 
   #' @export
   
   if (is.null(project)) {
@@ -651,7 +651,7 @@ function_summary <- function(project, date = NULL, type = "dat_load", show = "al
 
   dat_load <- c(
     "load_data", "load_maindata", "load_port", "load_aux","load_gridded", 
-    "merge_dat", "split_dat", "write_dat"
+    "load_spatial", "merge_dat", "split_dat", "write_dat"
   )
 
   dat_quality <- c(
@@ -1307,7 +1307,7 @@ table_type <- function(tab) {
     db_type <- c("MainDataTableInfo", "MainDataTable_raw", "MainDataTable_final", 
                  "MainDataTable", "ExpectedCatch", "altmatrix", "PortTable", "port", 
                  "ldglobalcheck", "FleetTable", "modelOut", "modelfit", "modelinputdata", 
-                 "modelDesignTable", "FilterTable", "GridTable", "AuxTable")
+                 "modelDesignTable", "FilterTable", "GridTable", "AuxTable", "SpatTable")
     
     t_regex <- paste0(db_type, collapse = "|")
     t_str <- stringr::str_extract(tab, t_regex)
@@ -1322,7 +1322,7 @@ table_type <- function(tab) {
                   "FleetTable" = "fleet table", "modelOut" = "model output", 
                   "modelfit" = "model fit", "modelinputdata" = "model data", 
                   "modelDesignTable" = "model design", "other" = "other",
-                  "GridTable" = "grid", "AuxTable" = "aux")
+                  "GridTable" = "grid", "AuxTable" = "aux", "SpatTable" = "spatial")
     
     out
   }
