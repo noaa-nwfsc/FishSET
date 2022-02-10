@@ -1073,6 +1073,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                    spat = list(file = NULL, DB = NULL), 
                                    grid = list(file = NULL, DB = NULL), 
                                    aux = list(file = NULL, DB = NULL))
+      
+      spat_file <- function(file_type) {
+        
+        if (file_type == "Upload single file") input$spatialdat
+        else if (file_type == "Upload shape files") input$spatialdatshape
+      }
+      
       # load only if project, file, or DB table change
       load_helper <- function(dat) {
 
@@ -1080,7 +1087,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                           "spat" = input$loadspatialsource, "grid" = input$loadgridsource,
                           "aux" = input$loadauxsource)
         dat_file <- switch(dat, "main" = input$maindat, "port" = input$portdat, 
-                           "spat" = input$spatialdat, "grid" = input$griddat,
+                           "spat" = spat_file(input$filefolder), "grid" = input$griddat,
                            "aux" = input$auxdat)
         db_tab <- switch(dat, "main" = input$main_db_table, "port" = input$port_db_table,
                          "spat" = input$spat_db_table, "grid" = input$grid_db_table,
@@ -1122,6 +1129,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }
       }
       
+    ## Main ----  
      #Add in reactive values once data  call is is not empty
       observeEvent(input$loadDat, {
         if (!isTruthy(project$name)) {
@@ -1162,7 +1170,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
            
           } else if (input$loadmainsource=='Upload new file' & !is.null(input$maindat)& isTruthy(project$name)) {
             
-            # if (input$mainadd != '') { # change to !is_empty_value
             if (!is_value_empty(input$mainadd)) {
               
               values$dataset <- do.call(read_dat, c(list(input$maindat$datapath),
@@ -1211,7 +1218,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
 
-     #PORT
+     ## Port ----
       output$port_upload <- renderUI({     
         #tagList( 
         #  conditionalPanel(condition="
@@ -1407,40 +1414,49 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       }, ignoreInit = TRUE, ignoreNULL = TRUE)
       
 
-  #Spatial
-      output$spatial_upload <- renderUI({   
-       # tagList( 
-        #  conditionalPanel(condition="
-        if(input$loadspatialsource=='Upload new file'){
+  ## Spatial ----
+      output$spatial_upload <- renderUI({     
+        
+        if (input$loadspatialsource == 'Upload new file') {
           
-            if(input$filefolder == 'Upload single file'){#", 
-                           tagList(
-                             fluidRow(
-                               column(5, fileInput("spatialdat", "Choose spatial data file",
-                                                   multiple = FALSE, placeholder = 'Suggested data')),
-                               column(7, offset=4, textInput('spatadd', div(style = "font-size:14px;  font-weight: 400;", 
-                                                                  'Additional arguments for reading in data'), placeholder="header=T, sep=',', skip=2"))
-                              # column(1, uiOutput('ui.actionS'))
-                             ))
-          } else if(input$filefolder == 'Upload shape files'){#", 
-                           tagList(
-                             fluidRow(
-                               column(5, fileInput("spatialdatshape", "Choose spatial data file",
-                                                   accept=c('.shp','.dbf','.sbn','.sbx','.shx',".prj", ".cpg"),
-                                                   multiple = TRUE, placeholder = 'Suggested data'))#,
-                               # column(1, uiOutput('ui.actionS'))
-                             ))
-          }#),
-         # conditionalPanel(condition="
-       } else if(input$loadspatialsource == 'FishSET database' & isTruthy(project$name)){#",
-                           tagList(
-                             fluidRow(
-                               column(5, selectInput("spat_db_table", "Choose a spatial table",
-                                                    
-                                                     choices = tables_database(project$name)
-                                                     ))
-                             ))
-         }# )
+          tagList(
+            
+            if (input$filefolder == 'Upload single file') {
+              tagList(
+                fluidRow(
+                  column(5, fileInput("spatialdat", "Choose spatial data file",
+                                      multiple = FALSE, placeholder = 'Suggested data')),
+                  column(7, offset=4, textInput('spatadd', div(style = "font-size:14px;  font-weight: 400;", 
+                                                               'Additional arguments for reading in data'), 
+                                                placeholder="header=T, sep=',', skip=2"))
+                ))
+              
+              
+            } else if (input$filefolder == 'Upload shape files') {
+              
+              tagList(
+                fluidRow(
+                  column(5, fileInput("spatialdatshape", "Choose spatial data file",
+                                      accept=c('.shp','.dbf','.sbn','.sbx','.shx',".prj", ".cpg"),
+                                      multiple = TRUE, placeholder = 'Suggested data'))
+                ))
+            },
+              
+            if (!is.null(input$spatialdat) | !is.null(input$spatialdatshape)) {
+              
+              textInput("spatName", "Spatial table name")
+            } 
+          )
+               
+
+        } else if (input$loadspatialsource == 'FishSET database' & isTruthy(project$name)) {
+          
+          tagList(
+            fluidRow(
+              column(5, selectInput("spat_db_table", "Choose a spatial table",
+                                    choices = suppressWarnings(list_tables(project$name, "spat"))))
+           ))
+         }
       })
 
       spatdat <- reactiveValues(
@@ -1449,21 +1465,16 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       
       observeEvent(input$loadDat, {
-####
-##        if(input$loadspatialsource=='FishSET database'){
-#          spatdat$dataset <- table_view(input$spatialdattext)
-#        } else if(input$loadspatialsource=='Upload new file' & !is.null(input$spatialdat)){
-#          
-#          spatdat$dataset <- read_dat(input$spatialdat$datapath, is.map=TRUE)
 
-#          } else {
-#          spatdat$dataset <- spatdat$dataset
-######
         if (!isTruthy(project$name)) {
           
           showNotification("Please enter a project name.", type = 'message', duration = 10)
+<<<<<<< HEAD
         
         }
+=======
+        } 
+>>>>>>> 78cf325a5c0ac3e9d775353d25fa1c52696c9fb7
           
         req(project$name)
         
@@ -1479,10 +1490,23 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               spatdat$dataset <- table_view(input$spat_db_table, project$name)
               track_load$spat$DB <- input$spat_db_table
               load_r$spat <- load_r$spat + 1
+              
+              edit_proj_settings(project$name, tab_name = input$spat_db_table,
+                                 tab_type = "spat")
+              
+              showNotification("Spatial table loaded", type = "message")
             }
             
-          } else if (input$loadspatialsource=='Upload new file' & !is.null(project$name) & 
+          } else if (input$loadspatialsource=='Upload new file' & 
                      (!is.null(input$spatialdat) | !is.null(input$spatialdatshape))) {
+            
+            if (!isTruthy(input$spatName)) {
+              
+              showNotification("Enter name for spatial data", type = "warning",
+                               duration = 10)
+            }
+            
+            req(input$spatName)
             
              if (input$filefolder == "Upload single file") {
                
@@ -1504,6 +1528,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                     type='message', duration=10)
                  }}
                
+<<<<<<< HEAD
             }}} else {
              
               observe({
@@ -1537,16 +1562,60 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
            
           
           if (names(spatdat$dataset)[1]!='var1') {
+=======
+               track_load$spat$file <- input$spatialdat
+             
+             } else if (input$filefolder == "Upload shape files") {
+               
+               shpdf <- input$spatialdatshape
+               if (is.null(shpdf)) {
+                 return()
+               }
+               previouswd <- getwd()
+               uploaddirectory <- dirname(shpdf$datapath[1])
+               setwd(uploaddirectory)
+               
+               for (i in 1:nrow(shpdf)) {
+                 file.rename(shpdf$datapath[i], shpdf$name[i])
+               }
+               setwd(previouswd)
+
+               spatdat$dataset <- 
+                 sf::st_read(paste(uploaddirectory, shpdf$name[grep(pattern="*.shp$", shpdf$name)], sep="/"))
+        
+              track_load$spat$file <- input$spatialdatshape
+            }
+>>>>>>> 78cf325a5c0ac3e9d775353d25fa1c52696c9fb7
             
-            showNotification("Spatial data file loaded but not currently able to save to database.",
-                             type='message', duration=10)
-####
+            q_test <- quietly_test(load_spatial)
+           pass <- q_test(spatdat$dataset, x = input$spatName, overwrite = TRUE,
+                          project = project$name)
+           
+           
+           if (is.null(pass)) pass <- FALSE
+           
+           if (pass) {
+             
+             showNotification("Spatial table loaded and saved to project data folder.", type = "message")
+             load_r$spat <- load_r$spat + 1
+             edit_proj_settings(project$name, 
+                                tab_name = paste0(project$name, input$spatName, "SpatTable"),
+                                tab_type = "spat")
+             
+           } else {
+             
+             showNotification("Spatial table was not saved to project data folder.", type = "warning")
+           }
           }
+          
+        } 
+   
+        
 
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
 
 
- #GRIDDED      
+ ## Grid ----     
       output$grid_upload <- renderUI({     
        #tagList( 
        #   conditionalPanel(condition="
@@ -1558,7 +1627,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                column(7, offset=4, textInput('gridadd', div(style = "font-size:14px;  font-weight: 400;", 
                                                                             'Additional arguments for reading in data'), 
                                                              placeholder="header=T, sep=';', skip=2")),
-                               column(5, uiOutput('ui.actionG'))
+                               column(5, 
+                                      
+                                      if (!is.null(input$griddat)) {
+                                        
+                                        textInput("GridName", "Grid table name")
+                                      }
+                                      )
                              ))
           } else if(input$loadgridsource == 'FishSET database' & isTruthy(project$name)){#",
                            tagList(
@@ -1570,11 +1645,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
        }  # )
        # )
       })
-      output$ui.actionG <- renderUI({
-        if (is.null(input$griddat)) return()
-    
-          textInput("GridName", "Grid table name")
-      })
+      
       
       grddat <- reactiveValues()
       
@@ -1661,7 +1732,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }
       })
     
-  #Auxiliary      
+  ## Auxiliary ----     
  
       output$aux_upload <- renderUI({     
         #tagList( 
