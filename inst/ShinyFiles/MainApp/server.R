@@ -1101,7 +1101,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               
               if (track_load[[dat]]$file$datapath == dat_file$datapath) {
                 
-                if (!is_value_empty(track_load$project)) {
+                if (!is_empty(track_load$project)) {
                   
                   if (project$name == track_load$project) FALSE
                   else TRUE
@@ -1170,7 +1170,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
            
           } else if (input$loadmainsource=='Upload new file' & !is.null(input$maindat)& isTruthy(project$name)) {
             
-            if (!is_value_empty(input$mainadd)) {
+            if (!is_empty(input$mainadd)) {
               
               values$dataset <- do.call(read_dat, c(list(input$maindat$datapath),
                                                     eval(parse(text=paste0("list(",input$mainadd, ")"))) ))
@@ -1295,7 +1295,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           } else if (input$loadportsource == 'Upload new file' & !is.null(input$portdat) & isTruthy(project$name)) {
             # skip new file upload if user already merged multiple tables
             if (is.null(input$port_combine_save)) {
-              if (!is_value_empty(input$portadd)) {
+              if (!is_empty(input$portadd)) {
                 ptdat$dataset <- do.call(read_dat, c(list(input$portdat$datapath),eval(parse(text=paste0("list(",input$portadd, ")"))) ))
               } else {
                 ptdat$dataset <- read_dat(input$portdat$datapath)
@@ -1431,7 +1431,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                                 placeholder="header=T, sep=',', skip=2"))
                 ))
               
-              
             } else if (input$filefolder == 'Upload shape files') {
               
               tagList(
@@ -1469,13 +1468,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         if (!isTruthy(project$name)) {
           
           showNotification("Please enter a project name.", type = 'message', duration = 10)
-<<<<<<< HEAD
         
         }
-=======
-        } 
->>>>>>> 78cf325a5c0ac3e9d775353d25fa1c52696c9fb7
-          
+
         req(project$name)
         
         if (load_helper("spat")) {
@@ -1497,20 +1492,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               showNotification("Spatial table loaded", type = "message")
             }
             
-          } else if (input$loadspatialsource=='Upload new file' & 
-                     (!is.null(input$spatialdat) | !is.null(input$spatialdatshape))) {
-            
-            if (!isTruthy(input$spatName)) {
-              
-              showNotification("Enter name for spatial data", type = "warning",
-                               duration = 10)
-            }
-            
-            req(input$spatName)
+          } else {
+            if(!is.null(input$spatialdat) | !is.null(input$spatialdatshape)) {
+           
             
              if (input$filefolder == "Upload single file") {
                
-               if (!is_value_empty(input$spatadd)) {
+               if (!is_empty(input$spatadd)) {
                  if(sub('.*\\.', '', input$spatialdat$datapath)!='shp'){
                  
                  spatdat$dataset <- do.call(read_dat, c(list(input$spatialdat$datapath, is.map=TRUE), 
@@ -1528,45 +1516,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                     type='message', duration=10)
                  }}
                
-<<<<<<< HEAD
-            }}} else {
-             
-              observe({
-                 if(length(input$spatialdatshape$name)>1){
-                    shpdf <- input$spatialdatshape
-                    if(is.null(shpdf)){
-                      return()
-                    }
-                previouswd <- getwd()
-                uploaddirectory <- dirname(shpdf$datapath[1])
-                setwd(uploaddirectory)
-                for(i in 1:nrow(shpdf)){
-                  file.rename(shpdf$datapath[i], shpdf$name[i])
-                }
-                setwd(previouswd)
-                
-               spatdat$dataset <- sf::st_read(paste(uploaddirectory, shpdf$name[grep(pattern="*.shp$", shpdf$name)], sep="/"))
-              } else {
-                showNotification("Shapefiles require, at a minimum, .shp, .shx, and .dbf files.'", type='message', duration=10)
-              }
-                })
-              
-            }
-        
-            track_load$spat$file <- input$spatialdat
-            load_r$spat <- load_r$spat + 1
-            #fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
-            #DBI::dbWriteTable(fishset_db, input$spatialdat$name,  spatdat$dataset, overwrite=TRUE) 
-            #DBI::dbDisconnect(fishset_db)
-            #showNotification("Map saved to database")
-           
-          
-          if (names(spatdat$dataset)[1]!='var1') {
-=======
                track_load$spat$file <- input$spatialdat
              
              } else if (input$filefolder == "Upload shape files") {
-               
+               if(length(input$spatialdatshape$name)>1){
                shpdf <- input$spatialdatshape
                if (is.null(shpdf)) {
                  return()
@@ -1582,13 +1535,15 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 
                spatdat$dataset <- 
                  sf::st_read(paste(uploaddirectory, shpdf$name[grep(pattern="*.shp$", shpdf$name)], sep="/"))
-        
-              track_load$spat$file <- input$spatialdatshape
+              
+              track_load$spat$file <- input$spatialdatshape[1,4] 
+              } else {
+                 showNotification("Shapefiles require, at a minimum, .shp, .shx, and .dbf files.'", type='message', duration=10)
+               }
             }
->>>>>>> 78cf325a5c0ac3e9d775353d25fa1c52696c9fb7
-            
+             
             q_test <- quietly_test(load_spatial)
-           pass <- q_test(spatdat$dataset, x = input$spatName, overwrite = TRUE,
+            pass <- q_test(spatdat$dataset, name = input$spatName, overwrite = TRUE,
                           project = project$name)
            
            
@@ -1606,8 +1561,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
              
              showNotification("Spatial table was not saved to project data folder.", type = "warning")
            }
-          }
-          
+            }
+            
+            if (names(spatdat$dataset)[1]!='var1'){
+              
+              showNotification("Spatial data loaded.", type='message', duration=10)
+            }
+        } 
         } 
    
         
@@ -1675,7 +1635,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               
               grid_name <- paste0(project$name, input$GridName)
               
-              if (!is_value_empty(input$gridadd)) {
+              if (!is_empty(input$gridadd)) {
                 
                 grddat[[grid_name]] <- do.call(read_dat, c(list(input$griddat$datapath), 
                                                            eval(parse(text=paste0("list(",input$gridadd, ")")))))
@@ -1688,7 +1648,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               
               qc_pass <- 
               q_test(paste0(project$name, 'MainDataTable'), grid = grddat[[grid_name]], 
-                     x = input$GridName, over_write = TRUE, project = project$name)
+                     name = input$GridName, over_write = TRUE, project = project$name)
               
               if (qc_pass) {
                 
@@ -1790,7 +1750,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             
             if (isTruthy(input$AuxName)& isTruthy(project$name)) {
               
-              if (!is_value_empty(input$auxadd)) {
+              if (!is_empty(input$auxadd)) {
                 
                 aux$dataset <- do.call(read_dat, c(list(input$auxdat$datapath), 
                                                    eval(parse(text=paste0("list(",input$auxadd, ")")))))
@@ -1802,7 +1762,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               q_test <- quietly_test(load_aux)
               
               qc_pass <- 
-              q_test(paste0(project$name, 'MainDataTable'), aux=aux$dataset, x = input$AuxName, 
+              q_test(paste0(project$name, 'MainDataTable'), aux=aux$dataset, name = input$AuxName, 
                      over_write = TRUE, project = project$name)
               
               if (qc_pass) {
