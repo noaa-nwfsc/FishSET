@@ -613,12 +613,9 @@ load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALS
   colnames(x)[grep("LON", colnames(x), ignore.case = TRUE)] <- "Port_Long"
   colnames(x)[grep("LAT", colnames(x), ignore.case = TRUE)] <- "Port_Lat"
 
-  #data_verification_call(x, project)
   #unique rows
-  if(dim(x)[1] != dim(unique(x))[1]){
-    print('Duplicate rows found and removed.')
-    x <- unique(x)
-  }
+  x <- unique_rows(x)
+  
   #unique column names
   if(length(toupper(colnames(x))) != length(unique(toupper(colnames(x))))){
     print('Duplicate case-insensitive column names found. Duplicate column names adjusted.')
@@ -838,7 +835,6 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
     
   } else {
     
-    #data_verification_call(x, project)
     #unique rows
     if(dim(grid)[1] != dim(unique(grid))[1]){
       print('Duplicate rows found and removed.')
@@ -849,13 +845,20 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
       print('Duplicate case-insensitive column names found. Duplicate column names adjusted.')
       colnames(grid)[which(duplicated(colnames(grid)))] <- paste0(colnames(grid)[which(duplicated(colnames(grid)))], '.1')
     }
-    #empty variables
-    if (any(apply(grid, 2, function(x) all(is.na(x))) == TRUE)) {
-      print(names(which(apply(grid, 2, function(x) all(is.na(x))) == TRUE)), 'is empty and was removed.')
-      grid <- grid[,-(which(apply(grid, 2, function(x) all(is.na(x))) == TRUE))]
-    }
     
-
+    #empty variables
+    empty_ind <- qaqc_helper(grid, function(x) all(is.na(x)))
+    
+    if (any(empty_ind)) {
+      
+      empty_vars <- names(grid[empty_ind])
+      grid <- grid[!empty_ind]
+      
+      message("the following variables are empty and have been removed: ", 
+              paste(empty_vars, collapse = ", "))
+    } 
+    
+    # save grid
     if (table_exists(paste0(project, x), project) == FALSE | over_write == TRUE) {
       
       DBI::dbWriteTable(fishset_db, paste0(project, x, "GridTable"), grid, overwrite = over_write)
@@ -877,4 +880,103 @@ load_grid <- function(dat, grid, x, over_write = TRUE, project = NULL) {
   }
 }
 
+
+load_spatial <- function(spat, x, over_write = TRUE, project, data.type = NULL, 
+                         lon = NULL, lat = NULL, id = NULL, ...) {
+  #' Import, parse, and save spatial data to FishSET project folder
+  #'
+  #' 
+  #' @param spat File name, including path, of spatial data. 
+  #' @param x Name spatial data should be saved as in FishSET project folder.
+  #' @param over_write Logical, If TRUE, saves dat over previously saved data 
+  #'   table in the FishSET project folder.
+  #' @param project String, name of project.
+  #' @param data.type Data type argument passed to \code{\link{read_dat}}. Must 
+  #'  be given if reading from a shape folder, e.g. \code{data.type = "shape"}. 
+  #'  Otherwise, this argument is optional. 
+  #' @param lon Variable or list from \code{spat} containing longitude data. 
+  #'    Required for csv files. Leave as NULL if \code{spat} is a shape or json file.
+  #' @param lat Variable or list from \code{spat} containing latitude data. 
+  #'    Required for csv files. Leave as NULL if \code{spat} is a shape or json file
+  #' @param id Polygon ID column. Required for csv files. Leave as NULL if 
+  #'   \code{spat} is a shape or json file.
+  #' @param ... Additional argument passed to \code{\link{read_dat}}. 
+  #' @details 
+  #' @export
+  #' @importFrom sf st_write
+  #' @examples
+  #' \dontrun{
+  #' load_spatial(dat = 'pcodMainDataTable', x = 'tenMinSqr', over_write = TRUE, project = 'pcod')
+  #' }
+  
+  if (project_exists(project) == FALSE) {
+    
+    stop("Project '", project, "' does not exist. Check spelling or create a",
+         " new project with load_maindata().")
+  }
+
+  
+  if (is.character(spat)) {
+    
+    if (is.null(data.type)) {
+      
+      stop("data.type = NULL. Enter a file type.")
+      
+    } else {
+      
+      spat <- read_dat(spat, data.type = data.type, is.map = TRUE, ...)
+    }
+  } 
+  
+  # check that spat can be converted to sf
+  spat <- check_spatdat(spat, lon = lon, lat = lat, id = id)
+  
+  stopifnot("Name cannot contain spaces." = !grepl("\\s", x))
+  
+  # unique names
+  
+  # check for unique rows
+  spat <- unique_rows(spat)
+  
+  # empty variables
+  spat <- empty_vars(spat)
+  
+  # save spatial data
+  tab_name <- paste0(project, x, "SpatTable")
+  raw_name <- paste0(tab_name, format(Sys.Date(), format = "%Y%m%d"))
+  
+  file_names <- paste0(loc_data(project), "spat/", c(tab_name, raw_name), ".geojson")
+  
+  spat_exists <- file.exists(file_names)
+  
+  if (sum(spat_exists) > 0) {
+    
+    if (over_write) {
+      
+     file.remove(file_names[spat_exists])
+    
+    } else {
+      
+      stop("Dataset already exists. Set over_write = TRUE to replace.")
+    }
+  }
+  
+  lapply(file_names, function(sfn) sf::st_write(spat, dsn = sfn))
+  
+  
+  # log call
+  load_spatial_function <- list()
+  load_spatial_function$functionID <- "load_spatial"
+  load_spatial_function$args <- list(deparse_name(spat), x, over_write, project, 
+                                     data.type, lon, lat, id)
+  load_spatial_function$kwargs <- list(...)
+  log_call(project, load_spatial_function)
+  
+  message("Spaital table saved to project folder as ", tab_name)
+  invisible(TRUE)
+}
+  
+  
+  
+  
 
