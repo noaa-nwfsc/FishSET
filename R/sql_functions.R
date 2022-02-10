@@ -13,11 +13,13 @@ tables_database <- function(project) {
   #' \dontrun{
   #' tables_database('pollock')
   #' }
-  if(project_exists(project)){
-  fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
-  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-  
-  return(DBI::dbListTables(fishset_db))
+  if (project_exists(project)) {
+    
+    fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
+    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+    db_tabs <- DBI::dbListTables(fishset_db)
+    spat_tabs <- suppressWarnings(list_tables(project, type = "spat"))
+    return(c(db_tabs, spat_tabs))
   }
 }
 
@@ -32,11 +34,26 @@ table_fields <- function(table, project) {
   #' \dontrun{
   #' table_fields('pollockMainDataTable', 'pollock')
   #' }
-
-  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
-  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
-  return(DBI::dbListFields(fishset_db, table))
+  if (table_exists(table, project) == FALSE) {
+    
+    return("Table not found. Check spelling.")
+    
+  } else {
+    
+    if (table_type(table) == "spatial") {
+      
+      spat <- table_view(table, project)
+      return(names(spat))
+      
+    } else {
+      
+      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
+      on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+      
+      return(DBI::dbListFields(fishset_db, table))
+    }
+  }
 }
 
 table_view <- function(table, project) {
@@ -46,6 +63,7 @@ table_view <- function(table, project) {
   #' @export table_view
   #' @description Wrapper for \code{\link[DBI]{dbGetQuery}}. View or call the selected table from the FishSET database.
   #' @importFrom DBI dbConnect dbDisconnect  dbGetQuery
+  #' @importFrom sf st_read
   #' @examples
   #' \dontrun{
   #' head(table_view('pollockMainDataTable'))
@@ -57,10 +75,18 @@ table_view <- function(table, project) {
     
   } else {
     
-    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
-    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-    
-    return(DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM", paste0("'", noquote(table), "'"))))
+    if (table_type(table) == "spatial") {
+      
+      filename <- paste0(loc_data(project), "spat/", table, ".geojson")
+      sf::st_read(filename)
+      
+    } else {
+      
+      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
+      on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+      
+      return(DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM", paste0("'", noquote(table), "'"))))
+    }
   }
 }
 
@@ -77,12 +103,28 @@ table_remove <- function(table, project) {
   #' \dontrun{
   #' table_remove('pollockMainDataTable')
   #' }
-
-  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
-  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
-  DBI::dbRemoveTable(fishset_db, table)
-  invisible(TRUE)
+  if (table_exists(table, project) == FALSE) {
+    
+    return("Table not found. Check spelling.")
+    
+  } else {
+    
+    if (table_type(table) == "spatial") {
+      
+      filename <- paste0(loc_data(project), "spat/", table, ".geojson")
+      file.remove(filename)
+      invisible(TRUE)
+      
+    } else {
+      
+      suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
+      on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+      
+      DBI::dbRemoveTable(fishset_db, table)
+      invisible(TRUE)
+    }
+  }
 }
 
 table_exists <- function(table, project) {
@@ -97,11 +139,18 @@ table_exists <- function(table, project) {
   #' \dontrun{
   #' table_exists('pollockMainDataTable')
   #' }
-
-  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
-  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
-  return(DBI::dbExistsTable(fishset_db, table))
+  if (table_type(table) == "spatial") {
+    
+    table %in% list_tables(project, type = "spat")
+    
+  } else {
+    
+    suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
+    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+    
+    return(DBI::dbExistsTable(fishset_db, table))
+  }
 }
 
 model_out_view <- function(table, project) {
@@ -327,37 +376,36 @@ list_tables <- function(project, type = "main") {
   #' list_tables("pollock", "ec")
   #' }
   
-  # check_proj(project)
-  
   sql_tab <- 
     switch(type, 
            "info" = "MainDataTableInfo", "main" = "MainDataTable", "ec" = "ExpectedCatch", 
            "altc" = "altmatrix", "port" = "PortTable", "gc" = "ldglobalcheck", 
            "fleet" = "FleetTable", "model" = "modelOut", "model_data" = "modelinputdata", 
-           "model_design" = "modelDesignTable", "grid" = "GridTable", "aux" = "AuxTable")
+           "model_design" = "modelDesignTable", "grid" = "GridTable", "aux" = "AuxTable",
+           "spat" = "SpatTable")
   
   if (is.null(project)) {
     
     warning('Project must be specified.')
- #   tabs <- grep(sql_tab, tables_database(), value = TRUE)
-    
- #   if (type == "main") tabs <- tabs[!grepl("MainDataTableInfo", tabs)]
-    
- #   if (length(tabs) > 0) tabs
- #   else {
-      
- #      warning("No ", sql_tab, " tables were found")
-#      invisible(NULL)
- #   }
     
   } else {
     
     if (project %in% projects()) {
       
-      tabs <- grep(paste0("^", project), tables_database(project), value = TRUE)
-      tabs <- grep(sql_tab, tabs, value = TRUE)
-      
-      if (type == "main") tabs <- tabs[!grepl("MainDataTableInfo", tabs)]
+      if (type == "spat") {
+        
+        tabs <- list.files(paste0(loc_data(project), "spat"))
+        tabs <- grep("\\.geojson$", tabs, value = TRUE)
+        tabs <- gsub("\\.geojson$", "", tabs)
+        
+      } else {
+        
+        tabs <- grep(paste0("^", project), tables_database(project), value = TRUE)
+        tabs <- grep(sql_tab, tabs, value = TRUE)
+        
+        if (type == "main") tabs <- tabs[!grepl("MainDataTableInfo", tabs)]
+        
+      }
       
       if (length(tabs) > 0) tabs
       else {
@@ -411,7 +459,7 @@ fishset_tables <- function(project = NULL) {
     db_type <- c("MainDataTableInfo", "MainDataTable_raw", "MainDataTable_final", 
                  "MainDataTable", "ExpectedCatch", "altmatrix", "PortTable", "port", 
                  "ldglobalcheck", "FleetTable", "modelOut", "modelfit", "modelinputdata", 
-                 "modelDesignTable", "FilterTable", "GridTable", "AuxTable")
+                 "modelDesignTable", "FilterTable", "GridTable", "AuxTable", "SpatTable")
     
     t_regex <- paste0(db_type, collapse = "|")
     t_str <- stringr::str_extract(db_tabs$table, t_regex)
@@ -429,7 +477,8 @@ fishset_tables <- function(project = NULL) {
                "FleetTable" = "fleet table", "modelOut" = "model output", 
                "modelfit" = "model fit", "modelinputdata" = "model data", 
                "modelDesignTable" = "model design", "other" = "other",
-               "GridTable" = "grid table", "AuxTable" = "aux table")
+               "GridTable" = "grid table", "AuxTable" = "aux table", 
+               "SpatTable" = "spat table")
       }, character(1))
     
     db_tabs$type <- t_str
