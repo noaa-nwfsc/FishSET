@@ -22,7 +22,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               shinyjs::disable(x) }
       }
       
-      #inline scripting ----
+#inline scripting ----
       #---
       r <- reactiveValues(done = 0, ok = TRUE, output = "")
       
@@ -1463,7 +1463,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           
           showNotification("Please enter a project name.", type = 'message', duration = 10)
         
-        } #else {
+        }
           
         req(project$name)
         
@@ -1505,12 +1505,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                  }}
                
             }}} else {
-              
+             
               observe({
-                shpdf <- input$spatialdatshape
-                if(is.null(shpdf)){
-                  return()
-                }
+                 if(length(input$spatialdatshape$name)>1){
+                    shpdf <- input$spatialdatshape
+                    if(is.null(shpdf)){
+                      return()
+                    }
                 previouswd <- getwd()
                 uploaddirectory <- dirname(shpdf$datapath[1])
                 setwd(uploaddirectory)
@@ -1520,8 +1521,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                 setwd(previouswd)
                 
                spatdat$dataset <- sf::st_read(paste(uploaddirectory, shpdf$name[grep(pattern="*.shp$", shpdf$name)], sep="/"))
-              })
+              } else {
+                showNotification("Shapefiles require, at a minimum, .shp, .shx, and .dbf files.'", type='message', duration=10)
               }
+                })
+              
+            }
+        
             track_load$spat$file <- input$spatialdat
             load_r$spat <- load_r$spat + 1
             #fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase())
@@ -1529,7 +1535,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             #DBI::dbDisconnect(fishset_db)
             #showNotification("Map saved to database")
            
- 
           
           if (names(spatdat$dataset)[1]!='var1') {
             
@@ -1644,7 +1649,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }
       }, ignoreInit = TRUE, ignoreNULL = TRUE)
 
-      ### ---> HJERE      
+      
       output$gridded_uploaded <- renderUI({
         if(!is_empty(names(grddat))){
         tagList(
@@ -4134,10 +4139,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           },
          
          selectInput('start', 'Starting location',
-                     choices = c('Zonal centroid', 'Port', 'Lat/lon coordinates')),
+                     choices = c('Zonal centroid', 'Port', 'Lat/Lon coordinates')),
                           
          selectInput('end', 'Ending location', 
-                     choices = c('Zonal centroid', 'Port', 'Lat/lon coordinates')),
+                     choices = c('Zonal centroid', 'Port', 'Lat/Lon coordinates')),
           #Port
           conditionalPanel("input.start=='Port'||input.end=='Port'", style = "margin-left:19px;", 
             selectInput("filePort", "Choose file from the FishSET database containing port data",
@@ -4152,13 +4157,14 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                         choices=find_port(values$dataset), selectize=TRUE)),
            
           #Zonal coords
-          conditionalPanel("input.start=='Lat/lon coordinates'", style = "margin-left:19px;", 
+          conditionalPanel("input.start=='Lat/Lon coordinates'", style = "margin-left:19px;", 
             selectizeInput('start_latlon', 'Select lat then lon for starting location', 
                            choices = find_lonlat(values$dataset), 
                            multiple=TRUE, options = list(maxItems = 2, create = TRUE, 
-                                                         placeholder='Select or type variable name')),
+                                                         placeholder='Select or type variable name'))),
                             
-            selectizeInput('end_latlon', 'Select lat then lon for ending location', 
+         conditionalPanel("input.end=='Lat/Lon coordinates'", style = "margin-left:19px;", 
+             selectizeInput('end_latlon', 'Select lat then lon for ending location', 
                            choices=find_lonlat(values$dataset),
                            multiple=TRUE, options = list(maxItems = 2, create = TRUE,
                                                          placeholder='Select or type variable name')))
@@ -4171,7 +4177,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         conditionalPanel("input.start=='Zonal centroid'||input.end=='Zonal centroid'",
                          style = "margin-left:19px;",  
                        
-        selectizeInput('lon_dat', 'Select lat then lon columns from data frame to assign observations to zone', 
+        selectizeInput('lon_dat', 'Select lat then lon columns from dataframe to assign observations to zone', 
                        choices = find_lonlat(values$dataset),
                        multiple=TRUE, options = list(maxItems = 2, create = TRUE, 
                                                      placeholder='Select or type variable name')),
@@ -4422,14 +4428,14 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           
         } else if (input$VarCreateTop=='Spatial functions' & input$dist=='create_dist_between') {
           #'Zonal centroid', 'Port', 'Lat/lon coordinates'
-          if (input$start=='Lat/lon coordinates') {
+          if (input$start=='Lat/Lon coordinates') {
             startdist <-input$start_latlon
           } else if (input$start=='Port') {
             startdist <- input$port_start
           } else {
             startdist <- 'centroid'
           }
-          if(input$end=='Lat/lon coordinates') {
+          if(input$end=='Lat/Lon coordinates') {
             enddist <-input$end_latlon
           } else if (input$end=='Port'){
             enddist <- input$port_end
@@ -4438,11 +4444,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           }
             q_test <- quietly_test(create_dist_between_for_gui)
             values$dataset <- q_test(values$dataset, project = project$name, start=startdist, 
-                                     end=enddist, units$input$units, name=input$varname, 
+                                     end=enddist, units=input$units, name=input$varname, 
                                      portTable=input$filePort, gridfile=spatdat$dataset,
                                      lon.dat=input$lon_dat[2], lat.dat=input$lon_dat[1],  
-                                     input$cat, lon.grid=input$long_grid[2], lat.grid=input$long_grid[1])
-            
+                                     cat=input$cat, lon.grid=input$long_grid[2], lat.grid=input$long_grid[1])
+             
            } else if (input$VarCreateTop=='Spatial functions' & input$dist=='create_mid_haul') {
              
               q_test <- quietly_test(create_mid_haul)
@@ -4461,12 +4467,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         } else if (input$VarCreateTop=='Spatial functions'&input$dist=='create_startingloc') {
           
               q_test <- quietly_test(create_startingloc)
-              values$dataset <- q_test(values$dataset, gridfile=spatdat$dataset,  
+              values$dataset <- q_test(values$dataset, project=project$name, gridfile=spatdat$dataset,  
                                        portTable=input$port.dat, trip_id=input$trip_id_SL,
                                        haul_order=input$haul_order_SL, 
                                        starting_port=input$starting_port_SL, lon.dat = input$lon_dat_SL, 
                                        lat.dat = input$lat_dat_SL, cat=input$cat_SL, name=input$varname, 
-                                       lon.grid=input$lon_grid_SL, lat.gridinput$lat_grid_SL)
+                                       lon.grid=input$lon_grid_SL, lat.grid=input$lat_grid_SL)
               
         } else if (input$VarCreateTop=='Trip-level functions'&input$trip=='haul_to_trip') {
           
@@ -4608,9 +4614,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           #warning('This step cannot be completed. Observations not assigned to zones.')
         } else {
           temp <- data.frame(table(values$dataset$ZoneID))
-          ggplot2::ggplot(values$dataset[which(values$dataset$ZoneID %in% temp[which(temp$Freq > input$min_haul_ac),1]), ], 
-                          ggplot2::aes(x=values$dataset$ZoneID)) + 
-            ggplot2::geom_histogram(bins = 30) + ggplot2::theme_bw() + 
+          temp2 <- values$dataset[which(values$dataset$ZoneID %in% temp[which(temp$Freq > input$min_haul_ac),1]), ]
+           ggplot2::ggplot(temp2, ggplot2::aes(x=ZoneID)) + 
+            ggplot2::geom_bar() + ggplot2::theme_bw() + 
             ggplot2::theme(panel.border = ggplot2::element_blank(), 
                            panel.grid.major = ggplot2::element_blank(),
                            panel.grid.minor = ggplot2::element_blank(), 
@@ -4667,6 +4673,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }
       })
       
+      
       output$spars_table <- DT::renderDT(sparstable_dat(), server=TRUE)
       output$spars_plot <- renderPlot({
         if(!any(colnames(values$dataset)=='ZoneID')){
@@ -4676,7 +4683,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         } else if(input$temp_var=='none'){
           return()
         } else {
-          message(sparsplot(sparstable_dat(), project$name))
+          message(sparsplot(project=project$name, x=sparstable_dat()))
         }
       })
       
