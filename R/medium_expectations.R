@@ -51,7 +51,7 @@ medium_expectations <- function(dat, project, catch, price, defineGroup, temp.va
     numData <- as.integer(as.factor(dataset[[defineGroup]]))
   }
 
-  if(temp.var=='none' || is_empty(temp.var)){
+  if(temp.var=='none' || is_empty(temp.var) || !exists(temp.var)){
     is.convertible.to.date <- function(x) !is.na(as.Date(as.character(x), tz = 'UTC', format = '%Y-%m-%d'))
     temp.var <- names(which(apply(dataset, 2, is.convertible.to.date)[1,]==TRUE)[1])
     print(paste('temp.var was not specified. Using', temp.var, 'instead.'))

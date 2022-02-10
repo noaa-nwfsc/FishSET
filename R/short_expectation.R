@@ -37,8 +37,7 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
 
   dataZoneTrue <- Alt[["dataZoneTrue"]] # used for catch and other variables
   choice <- Alt[["choice"]] # used for catch and other variables
- 
-      
+
   # check whether defining a group or using all fleet averaging
   if (defineGroup == "fleet") {
     # just use an id=ones to get all info as one group
@@ -50,7 +49,7 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
 
  #Requires temporal data. Need to grab data if not provided
       #Identify the first date variable
-  if(temp.var=='none' || is_empty(temp.var)){
+  if(temp.var=='none' || is_empty(temp.var) || !exists(temp.var)){
       is.convertible.to.date <- function(x) !is.na(as.Date(as.character(x), tz = 'UTC', format = '%Y-%m-%d'))
       temp.var <- names(which(apply(dataset, 2, is.convertible.to.date)[1,]==TRUE)[1])
       print(paste('temp.var was not specified. Using', temp.var, 'instead.'))
@@ -82,6 +81,7 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
     priceData <- as.numeric(dataset[[price]][which(dataZoneTrue == 1)])
     catchData <- catchData * priceData
   }
+  
   
   # Time variable not chosen if temp.var is empty
   tiData <- as.Date(dataset[[temp.var]][which(dataZoneTrue == 1)], origin = "1970-01-01") # (ti(get(mp3V1,'Value'))).dataColumn(Alt.dataZoneTrue,:) # this part involves time which is more complicated

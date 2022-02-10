@@ -25,7 +25,7 @@
 long_expectations <- function(dat, project, catch, price, defineGroup, temp.var, temporal, calc.method,
                               lag.method, empty.catch, empty.expectation, dummy.exp) {
 
-  # Call in datasets
+  # Call in data sets
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
@@ -53,7 +53,7 @@ long_expectations <- function(dat, project, catch, price, defineGroup, temp.var,
 
 
 
-  if(temp.var=='none' || is_empty(temp.var)){
+  if(temp.var=='none' || is_empty(temp.var) || !exists(temp.var)){
     is.convertible.to.date <- function(x) !is.na(as.Date(as.character(x), tz = 'UTC', format = '%Y-%m-%d'))
     temp.var <- names(which(apply(dataset, 2, is.convertible.to.date)[1,]==TRUE)[1])
     print(paste('temp.var was not specified. Using', temp.var, 'instead.'))
