@@ -2,18 +2,20 @@
 
 
 #' Create distance between points variable - non-interactive version
-create_dist_between_for_gui <- function(dat, start, end, units, name = "DistBetwen", portTable = NULL, gridfile = NULL,
+create_dist_between_for_gui <- function(dat, project, start=c('lat','lon'), end=c('lat','lon'), units, name = "DistBetwen", portTable = NULL, gridfile = NULL,
                                         lon.dat = NULL, lat.dat = NULL, cat = NULL, lon.grid = NULL, lat.grid = NULL) {
   #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+  #' @param project Project name
   #' @param start Starting location. Should be a port, lat/lon location, or the centroid of fishing zone or area. If port is desired,
   #'   \code{start} should be the column name in the \code{dat} containing the port names. Latitude and longitude for the port are extracted
   #'   from the port table. If a lat/lon location is desired then \code{start} should be a character string of column names from \code{dat}.
-  #'   The order must be lon, lat. If the centroid of the fishing zone or area is to be used then \code{start} should be \code{"centroid"}
+  #'   The order must be lat then lon \code{start=c('lat', 'lon')}. If the centroid of the fishing zone or area is to be used then \code{start} should be \code{"centroid"}
   #'   and \code{\link{find_centroid}} and \code{\link{assignment_column}} will be called to identify the latitude and longitude.
   #' @param end Ending location. Should be a port, lat/lon location, or the centroid of the fishing zone or area. If port is desired,
   #'   \code{end} should be the column name in the \code{dat} containing the port names. Latitude and longitude for the port are extracted from
-  #'   the port table. If a lat, long location is desired then \code{end} should be a character string of column names specifying first longitude then
-  #'   latitude. If the centroid of the fishing zone or area is to be used then \code{end} should be \code{"centroid"} and \code{\link{find_centroid}}
+  #'   the port table. If a lat/lon location is desired then \code{end} should be a character string of column names specifying first
+  #'    latitude then longitude \code{end=c('lat', 'lon')}.
+  #'    If the centroid of the fishing zone or area is to be used then \code{end} should be \code{"centroid"} and \code{\link{find_centroid}}
   #'   and \code{\link{assignment_column}} will be called to identify the latitude and longitude.
   #' @param units Unit of distance. Choices are \code{"miles"}, \code{"kilometers"}, or \code{"midpoint"}.
   #' @param portTable Data table containing port data. Required if \code{start} or \code{end} are a vector from the \code{dat} containing port names.
@@ -26,11 +28,11 @@ create_dist_between_for_gui <- function(dat, start, end, units, name = "DistBetw
   #' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file, Required if \code{start} or \code{end} are \code{"centroid"}.
   #' @param cat Variable or list in \code{gridfile} that identifies the individual areas or zones. If \code{gridfile} is class sf, \code{cat}
   #'   should be name of list containing information on zones. Required if \code{start} or \code{end} are \code{"centroid"}.
-  #' @return Primary dataset with distance between points variable added.
+  #' @return Primary data set with distance between points variable added.
   #' @export
   #' @importFrom geosphere distGeo midPoint
   #' @importFrom jsonlite  toJSON
-  #' @description Adds distance between two points to the primary dataset. There are two versions of this function. The difference between the two versions is
+  #' @description Adds distance between two points to the primary data set. There are two versions of this function. The difference between the two versions is
   #'   how additional arguments specific to start and end locations are added. This
   #'   version requires all necessary arguments to be specified before running and is best used in a non-interactive session.
   #'   The \code{\link{create_dist_between}} version requires only five arguments to be specified before running. Additional arguments
@@ -41,7 +43,7 @@ create_dist_between_for_gui <- function(dat, start, end, units, name = "DistBetw
   #'   must be specified to obtain latitude and longitude.
 
 
-  # Call in datasets
+  # Call in data sets
   if (start[1] == end[1]) {
     warning("Starting and ending vectors are identical.")
   } else {
@@ -52,7 +54,7 @@ create_dist_between_for_gui <- function(dat, start, end, units, name = "DistBetw
     dataset <- out$dataset
     dat <- parse_data_name(dat, "main", project)
 
-    if(is_empty(name)){ "DistBetween" } else {name}
+    name <- ifelse(is_empty(name), "DistBetween", name)
     
     if(!exists('project')){
       project <- sub("\\MainDataTable", "", dat)
@@ -89,20 +91,15 @@ create_dist_between_for_gui <- function(dat, start, end, units, name = "DistBetw
       start.long <- as.numeric(sapply(trimws(dat2[["ZoneID"]]), function(x) int[which(int[["ZoneID"]] == x), "cent.lon"]))
     }
 
-
     if (grepl("lat|lon", start[1], ignore.case = TRUE)) {
       start.long <- dataset[[start[2]]]
       start.lat <- dataset[[start[1]]]
 
       if (any(abs(start.long) > 180)) {
-        warning("Longitude is not valid (outside -180:180). Function not run")
-        # stop('Longitude is not valid (outside -180:180.')
-        x <- 1
+        stop("Longitude is not valid (outside -180:180). Function not run")
       }
       if (any(abs(start.lat) > 90)) {
-        warning("Latitude is not valid (outside -90:90. Function not run")
-        x <- 1
-        # stop('Latitude is not valid (outside -90:90.')
+        stop("Latitude is not valid (outside -90:90. Function not run")
       }
     }
 
@@ -117,41 +114,40 @@ create_dist_between_for_gui <- function(dat, start, end, units, name = "DistBetw
       end.lat <- dataset[[end[1]]]
       end.long <- dataset[[end[2]]]
       if (any(abs(end.long) > 180)) {
-        warning("Longitude is not valid (outside -180:180). Function not run")
-        # stop('Longitude is not valid (outside -180:180.')
-        x <- 1
+        stop("Longitude is not valid (outside -180:180). Function not run. Check that lat and lon variables are specified in correct order.")
+
       }
       if (any(abs(end.lat) > 90)) {
-        warning("Latitude is not valid (outside -90:90. Function not run")
-        x <- 1
-        # stop('Latitude is not valid (outside -90:90.')
+        stop("Latitude is not valid (outside -90:90. Function not run. Check that lat and lon variables are specified in correct order.")
       }
     }
 
-    if (x == 0) {
+
       # Get distance between points
       if (units == "midpoint") {
-        name <- geosphere::midPoint(cbind(start.long, start.lat), cbind(end.long, end.lat))
+        newvar <- geosphere::midPoint(cbind(start.long, start.lat), cbind(end.long, end.lat))
       } else {
-        name <- geosphere::distGeo(cbind(start.long, start.lat), cbind(end.long, end.lat), a = 6378137, f = 1 / 298.257223563)
+        newvar <- geosphere::distGeo(cbind(start.long, start.lat), cbind(end.long, end.lat), a = 6378137, f = 1 / 298.257223563)
       }
 
       if (units == "miles") {
-        name <- name * 0.000621371192237334
+        newvar <- newvar * 0.000621371192237334
       } else if (units == "kilometers") {
-        name <- name / 1000
+        newvar <- newvar / 1000
       }
 
+      g <- cbind(dataset, newvar)
+      colnames(g)[dim(g)[2]] = name
+      
       # Log the function
       create_dist_between_function <- list()
       create_dist_between_function$functionID <- "create_dist_between"
-      create_dist_between_function$args <- list(dat, start, end, units, deparse(substitute(name)))
+      create_dist_between_function$args <- list(dat, project, start, end, units, deparse(substitute(name)))
       create_dist_between_function$kwargs <- list(portTable, deparse(substitute(gridfile)), lon.dat, lat.dat, cat, lon.grid, lat.grid)
       create_dist_between_function$output <- list(dat)
 
       log_call(project, create_dist_between_function)
 
-      return(cbind(dataset, name))
-    }
+      return(g)
   }
 }
