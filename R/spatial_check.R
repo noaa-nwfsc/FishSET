@@ -150,8 +150,6 @@ check_spatdat <- function(spatdat, lon = NULL, lat = NULL, id = NULL) {
   #'   longitude should be shifted to Pacific view (0-360 format) to avoid 
   #'   splitting the Alaska region during plotting. 
   #' @import sf 
-  
-  pass <- TRUE
 
   if (!("sf" %in% class(spatdat))) {
     
@@ -166,30 +164,29 @@ check_spatdat <- function(spatdat, lon = NULL, lat = NULL, id = NULL) {
         
       } else {
         
-        warning("Arguments \"lon\", \"lat\", and \"id\" are needed to convert ",
-        "spatial data to sf.")
-        pass <- FALSE
+        stop("Arguments \"lon\", \"lat\", and \"id\" are needed to convert ",
+             "spatial data to sf.", call. = FALSE)
       }
     }
   }
   
-  if (pass) {
-    # Convert to WGS84 if projected
-    if (any(grepl('PROJCRS',  sf::st_crs(spatdat)))) {
-      
-      spatdat <- sf::st_transform(spatdat, "+proj=longlat +ellps=WGS84 +datum=WGS84")
-    }
-    # shift to Pacific view if needed
-    if (shift_long(spatdat)) {
-      
-      spatdat <- sf::st_shift_longitude(spatdat)
-    }
+  stopifnot("Spatial data could not be converted to sf" = "sf" %in% class(spatdat))
+
+  # Convert to WGS84 if projected
+  if (any(grepl('PROJCRS',  sf::st_crs(spatdat)))) {
     
-    if (is_invalid_spat(spatdat)) {
-      
-      spatdat <- clean_spat(spatdat)
-    } 
+    spatdat <- sf::st_transform(spatdat, "+proj=longlat +ellps=WGS84 +datum=WGS84")
   }
- 
+  # shift to Pacific view if needed
+  if (shift_long(spatdat)) {
+    
+    spatdat <- sf::st_shift_longitude(spatdat)
+  }
+  
+  if (is_invalid_spat(spatdat)) {
+    
+    spatdat <- clean_spat(spatdat)
+  } 
+  
   spatdat
 }
