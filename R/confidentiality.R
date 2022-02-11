@@ -124,11 +124,12 @@ run_confid_check <- function(project) {
 get_confid_check <- function(project) {
   #' Return the confidentiality settings 
   #' 
-  #' This function returns the confidentiality settings from the FishSET environment.
+  #' This function returns the confidentiality settings from project settings
+  #' file.
   #' @param project Name of project
   #' @return A list containing the confidentiality parameters: \code{check}, 
   #'   \code{v_id}, \code{rule}, and \code{value}.
-  #' @seealso \code{\link{set_confid_check}}
+  #' @seealso \code{\link{set_confid_check}} \code{\link{get_proj_settings}}
   #' @export
   
   proj_set <- get_proj_settings(project)
@@ -211,16 +212,15 @@ cache_check_table <- function(check, project) {
 
 
 reset_confid_cache <- function(project) {
-  #' Reset confidentiality cache tables in `fishset_env`
+  #' Reset confidentiality cache tables
   #' 
-  #' This function deletes all confidentiality check tables stored in `fishset_env`. 
-  #' Resetting this cache is recommended when switching to a new project or after 
-  #' a long period of use as check tables can accumulate over time.
+  #' This function deletes all confidentiality check tables stored in 
+  #' the \code{"confid_cache.json"} file located in the project output folder. 
+  #' Resetting this cache is recommended after a long period of use as check 
+  #' tables can accumulate over time.
   #' @param project Project name
   #' @export
   #' @seealso \code{\link{get_confid_cache}}
-  
-  
   
   if (confid_cache_exists(project)) {
     
