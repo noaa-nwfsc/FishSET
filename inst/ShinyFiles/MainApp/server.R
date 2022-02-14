@@ -1001,8 +1001,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       # assign project name
       observeEvent(c(input$loadmainsource, input$project_select, input$loadDat), {
-        # req(vars$counter)
+        
         req(input$loadmainsource)
+        
         if (input$loadmainsource == 'Upload new file') {
           
           if (is_empty(input$projectname)) {
@@ -1022,36 +1023,41 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       
       output$main_upload <- renderUI({    
-        # req(vars$counter)
+      
         req(input$loadmainsource)
 
-      if (input$loadmainsource=='Upload new file') {
-          
-          tagList(
-            fluidRow(
-              column(5, fileInput("maindat", "Choose primary data file",
-                                  multiple = FALSE, placeholder = 'Required data')),
-              column(width=8, offset=4, 
-                     textInput('mainadd', label=div(style = "font-size:14px;  font-weight: 400;", 
-                                                    'Write additional arguments for reading in data'), 
-                               placeholder = "header=FALSE, sep=','"))
-              
-            ))
-          
-        } else if (input$loadmainsource=='FishSET database') {
-          
-          if (dir.exists(normalizePath('../../../../FishSETFolder/projects'))){
-              if(length(suppressWarnings(projects())) > 0) {
+        if (input$loadmainsource=='Upload new file') {
             
             tagList(
               fluidRow(
-                column(5,
-                       selectInput("main_db_table", "Choose a main table",
-                                   choices = suppressWarnings(main_tables(project$name, show_all = FALSE)))
-                ))
-            )
-          }}
-        }
+                column(5, fileInput("maindat", "Choose primary data file",
+                                    multiple = FALSE, placeholder = 'Required data')),
+                column(width=8, offset=4, 
+                       textInput('mainadd', label=div(style = "font-size:14px;  font-weight: 400;", 
+                                                      'Write additional arguments for reading in data'), 
+                                 placeholder = "header=FALSE, sep=','"))
+                
+              ))
+            
+          } else if (input$loadmainsource=='FishSET database') {
+            
+            if (dir.exists(normalizePath('../../../../FishSETFolder/projects'))){
+                
+              if (length(suppressWarnings(projects())) > 0) {
+                
+                if (isTruthy(project$name)) {
+                    
+                    tagList(
+                      fluidRow(
+                        column(5,
+                               selectInput("main_db_table", "Choose a main table",
+                                           choices = main_tables(project$name, show_all = FALSE))
+                        ))
+                    )
+                }
+              }
+            }
+          }
       })
  
       output$ui.action2 <- renderUI({
@@ -1132,6 +1138,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
     ## Main ----  
      #Add in reactive values once data  call is is not empty
       observeEvent(input$loadDat, {
+        
         if (!isTruthy(project$name)) {
           
           if (input$loadmainsource == 'FishSET database') {
@@ -1143,100 +1150,99 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             
             showNotification("Please enter a project name.", type='message', duration=10)
           }
-        } else {
+        }
         
         req(project$name)
+        req(load_helper("main"))
         
-        if (load_helper("main")) {
+        if (input$loadmainsource=='FishSET database') {
           
-          if (input$loadmainsource=='FishSET database' & isTruthy(project$name)) {
+          if (table_exists(paste0(project$name, 'MainDataTable'), project$name)==FALSE) {
             
-            if (table_exists(paste0(project$name, 'MainDataTable'), project$name)==FALSE) {
-              
-              showNotification('Primary data table not found in FishSET database. Check project spelling.',
-                               type='message', duration=15)
-            } else {
-              
-              values$dataset <- table_view(input$main_db_table, project$name)
-              
-              edit_proj_settings(project$name, 
-                                 tab_name = input$main_db_table, 
-                                 tab_type = "main")
-              
-              track_load$project <- project$name
-              track_load$main$DB <- input$main_db_table
-              load_r$main <- load_r$main + 1
-            }
-           
-          } else if (input$loadmainsource=='Upload new file' & !is.null(input$maindat)& isTruthy(project$name)) {
+            showNotification('Primary data table not found in FishSET database. Check project spelling.',
+                             type='message', duration=15)
+          } else {
             
-            if (!is_empty(input$mainadd)) {
-              
-              values$dataset <- do.call(read_dat, c(list(input$maindat$datapath),
-                                                    eval(parse(text=paste0("list(",input$mainadd, ")"))) ))
-            } else {
-              
-              values$dataset <- read_dat(input$maindat$datapath) 
-            }
+            values$dataset <- table_view(input$main_db_table, project$name)
             
-            df_y <- input$compare
-            df_compare <- ifelse(nchar(input$compare)>0, TRUE, FALSE)
-            q_test <- quietly_test(load_maindata)
+            edit_proj_settings(project$name, 
+                               tab_name = input$main_db_table, 
+                               tab_type = "main")
             
-            qc_pass <- 
-            q_test(values$dataset, over_write = input$over_write, project = project$name, 
-                   compare = df_compare, y = df_y)
+            track_load$project <- project$name
+            track_load$main$DB <- input$main_db_table
+            load_r$main <- load_r$main + 1
+          }
+         
+        } else if (input$loadmainsource=='Upload new file' & !is.null(input$maindat)) {
+          
+          if (!is_empty(input$mainadd)) {
             
-            if (qc_pass) {
-              
-              showNotification("Primary data saved to database.", type = "message", 
-                               duration = 10)
-              track_load$project <- project$name
-              track_load$main$file <- input$maindat
-              load_r$main <- load_r$main + 1
-              
-              edit_proj_settings(project$name, 
-                                 tab_name = paste0(project$name, "MainDataTable"),
-                                 tab_type = "main")
+            values$dataset <- do.call(read_dat, c(list(input$maindat$datapath),
+                                                  eval(parse(text=paste0("list(",input$mainadd, ")"))) ))
+          } else {
             
-            } else {
-              # reset values$dataset
-              values$dataset <- data.frame('var1'=0, 'var2'=0)
-            }
-            
-          } else if (input$loadmainsource=='Upload new file' & is.null(input$maindat)) {
-            
-            showNotification("Select a main file to upload.", type='message', 
-                             duration=10)
+            values$dataset <- read_dat(input$maindat$datapath) 
           }
           
-          if (names(values$dataset)[1]!='var1') {
-            showNotification("Primary data loaded.", type='message', duration=10)
+          df_y <- input$compare
+          df_compare <- ifelse(nchar(input$compare)>0, TRUE, FALSE)
+          q_test <- quietly_test(load_maindata)
+          
+          qc_pass <- 
+          q_test(values$dataset, over_write = input$over_write, project = project$name, 
+                 compare = df_compare, y = df_y)
+          
+          if (qc_pass) {
+            
+            showNotification("Primary data saved to database.", type = "message", 
+                             duration = 10)
+            track_load$project <- project$name
+            track_load$main$file <- input$maindat
+            load_r$main <- load_r$main + 1
+            
+            edit_proj_settings(project$name, 
+                               tab_name = paste0(project$name, "MainDataTable"),
+                               tab_type = "main")
+          
+          } else {
+            # reset values$dataset
+            values$dataset <- data.frame('var1'=0, 'var2'=0)
           }
+          
+        } else if (input$loadmainsource=='Upload new file' & is.null(input$maindat)) {
+          
+          showNotification("Select a main file to upload.", type='message', 
+                           duration=10)
         }
+        
+        if (names(values$dataset)[1]!='var1') {
+          showNotification("Primary data loaded.", type='message', duration=10)
         }
+        
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
 
      ## Port ----
       output$port_upload <- renderUI({     
-        #tagList( 
-        #  conditionalPanel(condition="
-        if(input$loadportsource=='Upload new file'){#", 
+       
+        if(input$loadportsource=='Upload new file'){ 
                            tagList(
                              fluidRow(
                                column(5, fileInput("portdat", "Choose port data file",
                                                    multiple = FALSE, placeholder = 'Required data'))
                                #column(1, uiOutput('ui.actionP'))
                              ))
-         } else if(input$loadportsource == 'FishSET database'){
-            if(isTruthy(project$name)) {
-                          tagList(
-                            fluidRow(
-                              column(5, selectInput("port_db_table", "Choose a port table",
-                                                    choices = suppressWarnings(list_tables(project = project$name, type = "port"))))
-                            ))
-        } # ))
+         } else if (input$loadportsource == 'FishSET database') {
+           
+            if (isTruthy(project$name)) {
+              
+              tagList(
+                fluidRow(
+                  column(5, selectInput("port_db_table", "Choose a port table",
+                                        choices = list_tables(project = project$name, type = "port")))
+                ))
+            } 
          }
       })
       
@@ -1275,62 +1281,65 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }
         
         req(project$name)
-        
-        if (load_helper("port")) {
+        req(load_helper("port"))
           
-          if (input$loadportsource == 'FishSET database'& isTruthy(project$name)) {
-            
-             if (isTruthy(input$port_db_table)) {
+        if (input$loadportsource == 'FishSET database') {
+          
+           if (isTruthy(input$port_db_table)) {
 
-              ptdat$dataset <- table_view(input$port_db_table, project$name)
+            ptdat$dataset <- table_view(input$port_db_table, project$name)
+            
+            edit_proj_settings(project$name, 
+                               tab_name = input$port_db_table, 
+                               tab_type = "port")
+            
+            track_load$port$DB <- input$port_db_table
+            load_r$port <- load_r$port + 1
+          }
+          
+        } else if (input$loadportsource == 'Upload new file' & !is.null(input$portdat)) {
+          # skip new file upload if user already merged multiple tables
+          if (is.null(input$port_combine_save)) {
+            
+            if (!is_empty(input$portadd)) {
+              
+              ptdat$dataset <- do.call(read_dat, c(list(input$portdat$datapath),
+                                                   eval(parse(text=paste0("list(",input$portadd, ")"))) ))
+            } else {
+              
+              ptdat$dataset <- read_dat(input$portdat$datapath)
+            }
+            
+            q_test <- quietly_test(load_port)
+            
+            qc_pass <- 
+            q_test(ptdat$dataset, port_name = input$port_name, over_write = TRUE, 
+                   project = project$name, compare = FALSE, y = NULL)
+            
+            if (qc_pass) {
+              
+              showNotification("Port data saved to database.", type = "message", 
+                               duration = 10)
+              track_load$port$file <- input$portdat
+              load_r$port <- load_r$port + 1
               
               edit_proj_settings(project$name, 
-                                 tab_name = input$port_db_table, 
+                                 tab_name = paste0(project$name, "PortTable"),
                                  tab_type = "port")
               
-              track_load$port$DB <- input$port_db_table
-              load_r$port <- load_r$port + 1
+            } else {
+              
+              ptdat$dataset <- data.frame('var1' = 0, 'var2' = 0)
             }
-            
-          } else if (input$loadportsource == 'Upload new file' & !is.null(input$portdat) & isTruthy(project$name)) {
-            # skip new file upload if user already merged multiple tables
-            if (is.null(input$port_combine_save)) {
-              if (!is_empty(input$portadd)) {
-                ptdat$dataset <- do.call(read_dat, c(list(input$portdat$datapath),eval(parse(text=paste0("list(",input$portadd, ")"))) ))
-              } else {
-                ptdat$dataset <- read_dat(input$portdat$datapath)
-              }
-              
-              q_test <- quietly_test(load_port)
-              
-              qc_pass <- 
-              q_test(ptdat$dataset, port_name = input$port_name, over_write = TRUE, 
-                     project = project$name, compare = FALSE, y = NULL)
-              
-              if (qc_pass) {
-                
-                showNotification("Port data saved to database.", type = "message", 
-                                 duration = 10)
-                track_load$port$file <- input$portdat
-                load_r$port <- load_r$port + 1
-                
-                edit_proj_settings(project$name, 
-                                   tab_name = paste0(project$name, "PortTable"),
-                                   tab_type = "port")
-                
-              } else {
-                
-                ptdat$dataset <- data.frame('var1' = 0, 'var2' = 0)
-              }
-            }
-          }
-          
-          if (names(ptdat$dataset)[1] != 'var1') {
-            
-            showNotification("Port data loaded.", type = 'message', duration = 10)
-            show$port_combine <- TRUE
           }
         }
+        
+        if (names(ptdat$dataset)[1] != 'var1') {
+          
+          showNotification("Port data loaded.", type = 'message', duration = 10)
+          show$port_combine <- TRUE
+        }
+        
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
       # conditional panel for importing additional port tables
@@ -1394,7 +1403,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       # save combined port table to FishSET DB
       observeEvent(input$port_combine_save, {
-        if(isTruthy(project$name)){
+        
+        req(project$name)
+          
         q_test <- quietly_test(load_port)
         q_test(ptdat$dataset, port_name = "Port_Name", over_write = TRUE, 
                project = project$name, compare = FALSE, y = NULL)
@@ -1410,7 +1421,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         
         show$save <- FALSE
         show$port_merge <- FALSE
-        } 
+        
       }, ignoreInit = TRUE, ignoreNULL = TRUE)
       
 
@@ -1445,16 +1456,18 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               
               textInput("spatName", "Spatial table name")
             } 
-          )
-               
+          )    
 
-        } else if (input$loadspatialsource == 'FishSET database' & isTruthy(project$name)) {
+        } else if (input$loadspatialsource == 'FishSET database') {
           
-          tagList(
-            fluidRow(
-              column(5, selectInput("spat_db_table", "Choose a spatial table",
-                                    choices = suppressWarnings(list_tables(project$name, "spat"))))
-           ))
+          if (isTruthy(project$name)) {
+            
+            tagList(
+              fluidRow(
+                column(5, selectInput("spat_db_table", "Choose a spatial table",
+                                      choices = list_tables(project$name, "spat")))
+            ))   
+          }
          }
       })
 
@@ -1468,143 +1481,162 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         if (!isTruthy(project$name)) {
           
           showNotification("Please enter a project name.", type = 'message', duration = 10)
-        
         }
 
         req(project$name)
+        req(load_helper("spat"))
+          
+        # reset spatial qaqc
+        spat_qaqc_r <- reactiveValues(flag = FALSE, c_tab = NULL, remove = FALSE)
         
-        if (load_helper("spat")) {
+        if (input$loadspatialsource=='FishSET database') {
           
-          # reset spatial qaqc
-          spat_qaqc_r <- reactiveValues(flag = FALSE, c_tab = NULL, remove = FALSE)
+          if (isTruthy(input$spat_db_table)) {
+            
+            spatdat$dataset <- table_view(input$spat_db_table, project$name)
+            track_load$spat$DB <- input$spat_db_table
+            load_r$spat <- load_r$spat + 1
+            
+            edit_proj_settings(project$name, tab_name = input$spat_db_table,
+                               tab_type = "spat")
+            
+            showNotification("Spatial table loaded", type = "message")
+          }
           
-          if (input$loadspatialsource=='FishSET database') {
-            
-            if (isTruthy(input$spat_db_table)& isTruthy(project$name)) {
-              
-              spatdat$dataset <- table_view(input$spat_db_table, project$name)
-              track_load$spat$DB <- input$spat_db_table
-              load_r$spat <- load_r$spat + 1
-              
-              edit_proj_settings(project$name, tab_name = input$spat_db_table,
-                                 tab_type = "spat")
-              
-              showNotification("Spatial table loaded", type = "message")
-            }
-            
-          } else {
-            if(!is.null(input$spatialdat) | !is.null(input$spatialdatshape)) {
-           
-            
-             if (input$filefolder == "Upload single file") {
-               
-               if (!is_empty(input$spatadd)) {
-                 if(sub('.*\\.', '', input$spatialdat$datapath)!='shp'){
-                 
-                 spatdat$dataset <- do.call(read_dat, c(list(input$spatialdat$datapath, is.map=TRUE), 
-                                                        eval(parse(text=paste0("list(",input$spatadd, ")")))))
-                 } else {
-                   showNotification("Spatial file not loaded. Select `Upload shape files` to load shape files.",
-                                    type='message', duration=10)
-                 }
-                 
-               } else {
-                 if(sub('.*\\.', '', input$spatialdat$datapath)!='shp'){
-                 spatdat$dataset <- read_dat(input$spatialdat$datapath, is.map=TRUE)
-                  } else {
-                   showNotification("Spatial file not loaded. Select `Upload shape files` to load shape files.",
-                                    type='message', duration=10)
-                 }}
-               
-               track_load$spat$file <- input$spatialdat
+        } else {
+          
+          if (!is.null(input$spatialdat) | !is.null(input$spatialdatshape)) {
+         
+            if (input$filefolder == "Upload single file") {
              
-             } else if (input$filefolder == "Upload shape files") {
-               if(length(input$spatialdatshape$name)>1){
-               shpdf <- input$spatialdatshape
-               if (is.null(shpdf)) {
-                 return()
-               }
-               previouswd <- getwd()
-               uploaddirectory <- dirname(shpdf$datapath[1])
-               setwd(uploaddirectory)
+             if (!is_empty(input$spatadd)) {
                
-               for (i in 1:nrow(shpdf)) {
-                 file.rename(shpdf$datapath[i], shpdf$name[i])
+               if (sub('.*\\.', '', input$spatialdat$datapath)!='shp') {
+               
+                 spatdat$dataset <- do.call(read_dat, 
+                                            c(list(input$spatialdat$datapath, is.map=TRUE), 
+                                              eval(parse(text=paste0("list(",input$spatadd, ")")))))
+               } else {
+                 
+                 showNotification("Spatial file not loaded. Select `Upload shape files` to load shape files.",
+                                  type='message', duration=10)
                }
-               setwd(previouswd)
-
-               spatdat$dataset <- 
-                 sf::st_transform(sf::st_read(paste(uploaddirectory, shpdf$name[grep(pattern="*.shp$", shpdf$name)], sep="/")),
-                        "+proj=longlat +ellps=WGS84 +datum=WGS84")
+               
+#                 
               
               track_load$spat$file <- input$spatialdatshape[1,4] 
-              } else {
-                 showNotification("Shapefiles require, at a minimum, .shp, .shx, and .dbf files.'", type='message', duration=10)
-               }
-            }
-             
-            q_test <- quietly_test(load_spatial)
-            pass <- q_test(spatdat$dataset, name = input$spatName, overwrite = TRUE,
-                          project = project$name)
-           
-           
-           if (is.null(pass)) pass <- FALSE
-           
-           if (pass) {
-             
-             showNotification("Spatial table loaded and saved to project data folder.", type = "message")
-             load_r$spat <- load_r$spat + 1
-             edit_proj_settings(project$name, 
-                                tab_name = paste0(project$name, input$spatName, "SpatTable"),
-                                tab_type = "spat")
-             
-           } else {
-             
-             showNotification("Spatial table was not saved to project data folder.", type = "warning")
-           }
-            }
-            
-            if (names(spatdat$dataset)[1]!='var1'){
-              
-              showNotification("Spatial data loaded.", type='message', duration=10)
-            }
-        } 
-        } 
-   
-        
 
-      }, ignoreInit = TRUE, ignoreNULL = TRUE) 
+             } else {
+               
+              if (sub('.*\\.', '', input$spatialdat$datapath)!='shp') {
+                 
+                spatdat$dataset <- read_dat(input$spatialdat$datapath, is.map=TRUE)
+                
+              } else {
+                
+                showNotification("Spatial file not loaded. Select `Upload shape files` to load shape files.",
+                                 type='message', duration=10)
+              }
+            }
+             
+             track_load$spat$file <- input$spatialdat
+           
+           } else if (input$filefolder == "Upload shape files") {
+             
+             if (length(input$spatialdatshape$name) > 1) {
+               
+               shpdf <- input$spatialdatshape
+               
+             if (is.null(shpdf)) {
+               
+               return()
+             }
+               
+             previouswd <- getwd()
+             uploaddirectory <- dirname(shpdf$datapath[1])
+             setwd(uploaddirectory)
+             
+             for (i in 1:nrow(shpdf)) {
+               
+               file.rename(shpdf$datapath[i], shpdf$name[i])
+             }
+             
+             setwd(previouswd)
+
+             spatdat$dataset <- 
+               sf::st_transform(sf::st_read(paste(uploaddirectory, shpdf$name[grep(pattern="*.shp$", shpdf$name)], sep="/")),
+                                                  "+proj=longlat +ellps=WGS84 +datum=WGS84")
+             track_load$spat$file <- input$spatialdatshape[1,4] 
+            
+            } else {
+              
+               showNotification("Shapefiles require, at a minimum, .shp, .shx, and .dbf files.'", type='message', duration=10)
+             }
+          }
+           
+          q_test <- quietly_test(load_spatial)
+          pass <- q_test(spatdat$dataset, name = input$spatName, overwrite = TRUE, 
+                         project = project$name)
+          
+         
+         if (is.null(pass)) pass <- FALSE
+         
+         if (pass) {
+           
+           showNotification("Spatial table loaded and saved to project data folder.", type = "message")
+           load_r$spat <- load_r$spat + 1
+           edit_proj_settings(project$name, 
+                              tab_name = paste0(project$name, input$spatName, "SpatTable"),
+                              tab_type = "spat")
+           
+         } else {
+           
+           showNotification("Spatial table was not saved to project data folder.", type = "warning")
+         }
+      }
+      
+      if (names(spatdat$dataset)[1]!='var1') {
+        
+        showNotification("Spatial data loaded.", type='message', duration=10)
+      }
+    } 
+        
+  }, ignoreInit = TRUE, ignoreNULL = TRUE) 
 
 
  ## Grid ----     
       output$grid_upload <- renderUI({     
-       #tagList( 
-       #   conditionalPanel(condition="
-        if(input$loadgridsource=='Upload new file'){#", 
-                           tagList(
-                             fluidRow(
-                               column(5, fileInput("griddat", "Choose data file that varies over two dimensions (gridded)",
-                                                   multiple = FALSE, placeholder = 'Optional data')),
-                               column(7, offset=4, textInput('gridadd', div(style = "font-size:14px;  font-weight: 400;", 
-                                                                            'Additional arguments for reading in data'), 
-                                                             placeholder="header=T, sep=';', skip=2")),
-                               column(5, 
-                                      
-                                      if (!is.null(input$griddat)) {
-                                        
-                                        textInput("GridName", "Grid table name")
-                                      }
-                                      )
-                             ))
-          } else if(input$loadgridsource == 'FishSET database' & isTruthy(project$name)){#",
-                           tagList(
-                             fluidRow(
-                               column(5, selectInput("grid_db_table", "Choose a gridded table",
-                                                     choices = suppressWarnings(list_tables(project = project$name, type = "grid")))
-                                      )
-                             ))
-       }  # )
-       # )
+
+        if (input$loadgridsource=='Upload new file') {
+          
+          tagList(
+            fluidRow(
+              column(5, fileInput("griddat", "Choose data file that varies over two dimensions (gridded)",
+                                  multiple = FALSE, placeholder = 'Optional data')),
+              column(7, offset=4, textInput('gridadd', div(style = "font-size:14px;  font-weight: 400;", 
+                                                           'Additional arguments for reading in data'), 
+                                            placeholder="header=T, sep=';', skip=2")),
+              column(5, 
+                     
+                     if (!is.null(input$griddat)) {
+                      
+                      textInput("GridName", "Grid table name")
+                    }
+                    )
+           ))
+          
+        } else if (input$loadgridsource == 'FishSET database') {
+            
+          if (isTruthy(project$name)) {
+            
+            tagList(
+              fluidRow(
+                column(5, selectInput("grid_db_table", "Choose a gridded table",
+                                        choices = list_tables(project = project$name, type = "grid")))
+              ))
+          }
+        }
+      
       })
       
       
@@ -1613,114 +1645,118 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       observeEvent(input$loadDat, {
         
         req(project$name)
+        req(load_helper("grid"))
         
-        if (load_helper("grid")) {
+        if (input$loadgridsource == 'FishSET database') {
           
-          if (input$loadgridsource == 'FishSET database') {
+          if (isTruthy(input$grid_db_table)) {
             
-            if (isTruthy(input$grid_db_table) & isTruthy(project$name)) {
-              
-              grid_name <-input$grid_db_table
-              grddat[[grid_name]] <- table_view(grid_name, project$name)
-              track_load$grid$DB <- input$grid_db_table
-              load_r$grid <- load_r$grid + 1
-              
-              edit_proj_settings(project$name, 
-                                 tab_name = input$grid_db_table,
-                                 tab_type = "grid")
-            }
+            grid_name <-input$grid_db_table
+            grddat[[grid_name]] <- table_view(grid_name, project$name)
+            track_load$grid$DB <- input$grid_db_table
+            load_r$grid <- load_r$grid + 1
             
-          } else if (input$loadgridsource == 'Upload new file' & !is.null(input$griddat)) {
-            
-            if (isTruthy(input$GridName)& isTruthy(project$name)) {
-              
-              grid_name <- paste0(project$name, input$GridName)
-              
-              if (!is_empty(input$gridadd)) {
-                
-                grddat[[grid_name]] <- do.call(read_dat, c(list(input$griddat$datapath), 
-                                                           eval(parse(text=paste0("list(",input$gridadd, ")")))))
-              } else {
-                
-                grddat[[grid_name]] <- read_dat(input$griddat$datapath)   
-              }
-              
-              q_test <- quietly_test(load_grid)
-              
-              qc_pass <- 
-              q_test(paste0(project$name, 'MainDataTable'), grid = grddat[[grid_name]], 
-                     name = input$GridName, over_write = TRUE, project = project$name)
-              
-              if (qc_pass) {
-                
-                showNotification('Gridded data saved to database.', type = 'message', duration = 10)
-                track_load$grid$file <- input$griddat
-                load_r$grid <- load_r$grid + 1
-                
-                edit_proj_settings(project$name, 
-                                   tab_name = paste0(project$name, input$GridName, "GridTable"),
-                                   tab_type = "grid")
-                
-              } else {
-                
-                grddat[[grid_name]] <- NULL
-                # showNotification('Gridded data was not saved to database.', type = 'warning', duration = 10)
-              }
-            
-            } else {
-              
-              showNotification("Please enter a name for Gridded table.",
-                               type = "warning", duration = 10)
-            }
+            edit_proj_settings(project$name, 
+                               tab_name = input$grid_db_table,
+                               tab_type = "grid")
           }
           
-          if (length(names(grddat)) > 0) {
+        } else if (input$loadgridsource == 'Upload new file' & !is.null(input$griddat)) {
+          
+          if (!isTruthy(input$GridName)) {
             
-            showNotification("Gridded data loaded.", type = 'message', duration = 10)
+            showNotification("Please enter a name for Gridded table.",
+                             type = "warning", duration = 10)
+          }
+          
+          req(input$GridName)
+            
+          grid_name <- paste0(project$name, input$GridName)
+          
+          if (!is_empty(input$gridadd)) {
+            
+            grddat[[grid_name]] <- do.call(read_dat, c(list(input$griddat$datapath), 
+                                                       eval(parse(text=paste0("list(",input$gridadd, ")")))))
+          } else {
+            
+            grddat[[grid_name]] <- read_dat(input$griddat$datapath)   
+          }
+          
+          q_test <- quietly_test(load_grid)
+          
+          qc_pass <- 
+          q_test(paste0(project$name, 'MainDataTable'), grid = grddat[[grid_name]], 
+                 name = input$GridName, over_write = TRUE, project = project$name)
+          
+          if (qc_pass) {
+            
+            showNotification('Gridded data saved to database.', type = 'message', duration = 10)
+            track_load$grid$file <- input$griddat
+            load_r$grid <- load_r$grid + 1
+            
+            edit_proj_settings(project$name, 
+                               tab_name = paste0(project$name, input$GridName, "GridTable"),
+                               tab_type = "grid")
+            
+          } else {
+            
+            grddat[[grid_name]] <- NULL
+            # showNotification('Gridded data was not saved to database.', type = 'warning', duration = 10)
           }
         }
+        
+        if (length(names(grddat)) > 0) {
+          
+          showNotification("Gridded data loaded.", type = 'message', duration = 10)
+        }
+        
       }, ignoreInit = TRUE, ignoreNULL = TRUE)
 
       
       output$gridded_uploaded <- renderUI({
-        if(!is_empty(names(grddat))){
-        tagList(
-          p(strong("Gridded data tables uploaded:")),
-          renderText(paste(names(grddat), collapse = ", "))
-        )
-        } else {
-          return()
+        
+        if (length(names(grddat)) > 0) {
+          
+          tagList(
+            p(strong("Gridded data tables uploaded:")),
+            renderText(paste(names(grddat), collapse = ", "))
+          )
         }
       })
     
   ## Auxiliary ----     
  
       output$aux_upload <- renderUI({     
-        #tagList( 
-        #  conditionalPanel(condition="
-        if(input$loadauxsource=='Upload new file'){#", 
-                           tagList(
-                             fluidRow(
-                               column(5, fileInput("auxdat", "Choose auxiliary data file that links to primary data",
-                                                   multiple = FALSE, placeholder = 'Optional data')),
-                               column(7, offset=4, textInput('auxadd', div(style = "font-size:14px;  font-weight: 400;", 
-                                                                 'Additional arguments for reading in data'), placeholder="c(header=T, sep=';', skip=2)")),
-                               column(5, uiOutput('ui.actionA'))
+        
+        if(input$loadauxsource=='Upload new file') { 
+          tagList(
+            fluidRow(
+              column(5, fileInput("auxdat", "Choose auxiliary data file that links to primary data",
+                                  multiple = FALSE, placeholder = 'Optional data')),
+              column(7, offset=4, textInput('auxadd', div(style = "font-size:14px;  font-weight: 400;", 
+                                                          'Additional arguments for reading in data'), 
+                                            placeholder="c(header=T, sep=';', skip=2)")),
+                               column(5, uiOutput('auxNameUI'))
                              ))
-        } else if(input$loadauxsource == 'FishSET database' & isTruthy(project$name)){#", 
-                           tagList(
-                             fluidRow(
-                               column(5, selectInput("aux_db_table", "Choose a auxiliary table",
-                                                     choices = suppressWarnings(list_tables(project = project$name, type = "aux"))))))
-          #)
-         }# )
+          
+        } else if (input$loadauxsource == 'FishSET database') { 
+          
+          if (isTruthy(project$name)) {
+            
+            tagList(
+              fluidRow(
+                column(5, selectInput("aux_db_table", "Choose a auxiliary table",
+                                      choices = list_tables(project = project$name, type = "aux")))))
+          }
+        }
       })
       
-      output$ui.actionA <- renderUI({
-        if(is.null(input$auxdat)) return()
-        tagList(
+      output$auxNameUI <- renderUI({
+        
+        if (!is.null(input$auxdat)) {
+          
           textInput("AuxName", "Auxiliary table name:" )
-        )
+        }
       })
 
       aux <- reactiveValues(
@@ -1730,69 +1766,68 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       observeEvent(input$loadDat, {
         
         req(project$name)
+        req(load_helper("aux"))
         
-        if (load_helper("aux")) {
+        if (input$loadauxsource=='FishSET database') {
           
-          if (input$loadauxsource=='FishSET database') {
+          if (isTruthy(input$aux_db_table)) {
             
-            if (isTruthy(input$aux_db_table) & isTruthy(project$name)) {
+            aux$dataset <- table_view(input$aux_db_table, project$name)
+            
+            edit_proj_settings(project$name, 
+                               tab_name = input$aux_db_table, 
+                               tab_type = "aux")
+            
+            track_load$aux$DB <- input$aux_db_table
+            load_r$aux <- load_r$aux + 1
+          }
+          
+        } else if (input$loadauxsource=='Upload new file' & !is.null(input$auxdat)) {
+          
+          if (isTruthy(input$AuxName)) {
+            
+            if (!is_empty(input$auxadd)) {
               
-              aux$dataset <- table_view(input$aux_db_table, project$name)
+              aux$dataset <- do.call(read_dat, c(list(input$auxdat$datapath), 
+                                                 eval(parse(text=paste0("list(",input$auxadd, ")")))))
+            } else {
               
-              edit_proj_settings(project$name, 
-                                 tab_name = input$aux_db_table, 
-                                 tab_type = "aux")
-              
-              track_load$aux$DB <- input$aux_db_table
-              load_r$aux <- load_r$aux + 1
+              aux$dataset <- read_dat(input$auxdat$datapath)
             }
             
-          } else if (input$loadauxsource=='Upload new file' & !is.null(input$auxdat)) {
+            q_test <- quietly_test(load_aux)
             
-            if (isTruthy(input$AuxName)& isTruthy(project$name)) {
+            qc_pass <- 
+            q_test(paste0(project$name, 'MainDataTable'), aux=aux$dataset, name = input$AuxName, 
+                   over_write = TRUE, project = project$name)
+            
+            if (qc_pass) {
               
-              if (!is_empty(input$auxadd)) {
-                
-                aux$dataset <- do.call(read_dat, c(list(input$auxdat$datapath), 
-                                                   eval(parse(text=paste0("list(",input$auxadd, ")")))))
-              } else {
-                
-                aux$dataset <- read_dat(input$auxdat$datapath)
-              }
+              showNotification('Auxiliary data saved to FishSET database.', type = 'message', duration = 10)
+              track_load$aux$file <- input$auxdat
+              load_r$aux <- load_r$aux + 1
               
-              q_test <- quietly_test(load_aux)
-              
-              qc_pass <- 
-              q_test(paste0(project$name, 'MainDataTable'), aux=aux$dataset, name = input$AuxName, 
-                     over_write = TRUE, project = project$name)
-              
-              if (qc_pass) {
-                
-                showNotification('Auxiliary data saved to FishSET database.', type = 'message', duration = 10)
-                track_load$aux$file <- input$auxdat
-                load_r$aux <- load_r$aux + 1
-                
-                edit_proj_settings(project$name, 
-                                   tab_name = paste0(project$name, input$AuxName, "AuxTable"),
-                                   tab_type = "main")
-                
-              } else {
-                
-                aux$dataset <- data.frame('var1' = 0, 'var2' = 0)
-              }
+              edit_proj_settings(project$name, 
+                                 tab_name = paste0(project$name, input$AuxName, "AuxTable"),
+                                 tab_type = "main")
               
             } else {
               
-              showNotification("Please enter name for Auxiliary table.", 
-                               type = "warning", duration = 10)
+              aux$dataset <- data.frame('var1' = 0, 'var2' = 0)
             }
-          } 
-          
-          if (names(aux$dataset)[1]!='var1'){
             
-            showNotification("Auxiliary data loaded.", type='message', duration=10)
+          } else {
+            
+            showNotification("Please enter name for Auxiliary table.", 
+                             type = "warning", duration = 10)
           }
+        } 
+        
+        if (names(aux$dataset)[1]!='var1') {
+          
+          showNotification("Auxiliary data loaded.", type='message', duration=10)
         }
+       
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
       ###---

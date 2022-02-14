@@ -1,4 +1,3 @@
-utils::globalVariables('fishset_env')
 # File directory functions ----
 
 # First a helper function to load packages, installing them first if necessary
@@ -164,6 +163,7 @@ check_proj <- function(project = NULL) {
       
       #data
       dir.create(file.path(paste0(proj_dir, '/data')), showWarnings = FALSE)
+      dir.create(file.path(paste0(proj_dir, '/data/spat')), showWarnings = FALSE)
       
       #doc (report)
       dir.create(file.path(paste0(proj_dir, '/doc')), showWarnings = FALSE)
@@ -186,6 +186,7 @@ check_proj <- function(project = NULL) {
       }
       if(!file.exists(paste0(locproject(), "/", project, "/data"))){
         dir.create(file.path(paste0(proj_dir, '/data')), showWarnings = FALSE)
+        dir.create(file.path(paste0(proj_dir, '/data/spat')), showWarnings = FALSE)
       }
       if(!file.exists(paste0(locproject(), "/", project, "/doc"))){
         dir.create(file.path(paste0(proj_dir, '/doc')), showWarnings = FALSE)
@@ -872,7 +873,7 @@ parse_data_name <- function(dat, type, project) {
   #' @importFrom rlang caller_env
   #' @keywords internal
   #' @details If called while the shiny app is running, the data table name is pulled from 
-  #'   the FishSET environment (`fishset_env`). Otherwise, the data table from the caller 
+  #'   the FishSET project settings file. Otherwise, the data table from the caller 
   #'   environment is used. 
   #' @export
 
@@ -881,7 +882,6 @@ parse_data_name <- function(dat, type, project) {
   
   if (shiny::isRunning()) {
     
-    # dat <- get_fishset_env(dat_type)
     p_set <- get_proj_settings(project)
     dat <- p_set$tables[[type]]
     
