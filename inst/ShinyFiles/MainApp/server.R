@@ -1534,7 +1534,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                setwd(previouswd)
 
                spatdat$dataset <- 
-                 sf::st_read(paste(uploaddirectory, shpdf$name[grep(pattern="*.shp$", shpdf$name)], sep="/"))
+                 sf::st_transform(sf::st_read(paste(uploaddirectory, shpdf$name[grep(pattern="*.shp$", shpdf$name)], sep="/")),
+                        "+proj=longlat +ellps=WGS84 +datum=WGS84")
               
               track_load$spat$file <- input$spatialdatshape[1,4] 
               } else {
@@ -4632,9 +4633,16 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                            numericInput('min_haul_ac', 'Include zones with more hauls than', min=1, max=1000, value=1)#,
                          )
                          ),
+        conditionalPanel(condition="input.alt_var_ac.length > 1 || input.occasion_ac.length >1",
+                         tagList(
+                           h5(tags$b('Calculate centroids for fishery/regulatory zones.')),
+                         selectInput('cat_altfc', 'Individual areas/zones from the spatial dataset', 
+                                     choices=names(as.data.frame(spatdat$dataset))),
+                         )),
         conditionalPanel(condition="input.choiceTab=='distm' && input.distMsource == 'gridded'",
                          fileInput("gridded.dat", "Load gridded data file", multiple = FALSE, placeholder = '')
-                         )
+                         
+        )
         )
       })
       
@@ -5393,9 +5401,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       observeEvent(input$saveALT, {
               showNotification('Function can take a couple minutes. A message will appear when done.',
                                type='message', duration=20)
+             # if(input$cat_altfc != 'var1'){
+             #  q_test <- quietly_test(find_centroid)
+             #  q_test(values$dataset, project=project$name, cat=input$cat_altfc, lon.grid = input$long_grid_altfc, lat.grid = input$lat_grid_altfc)
+             # }
               q_test <- quietly_test(create_alternative_choice)
               q_test(values$dataset, project=project$name, occasion=input$occasion_ac, alt_var=input$alt_var_ac, griddedDat=NULL, 
-                                  dist.unit=input$dist_ac, min.haul=input$min_haul_ac, gridfile=spatdat$dataset, cat=input$cat_altc, 
+                                  dist.unit=input$dist_ac, min.haul=input$min_haul_ac, gridfile=spatdat$dataset, cat=input$cat_altfc, 
                                   hull.polygon=input$hull_polygon_ac, 
                                   lon.grid=input$long_grid_altc, lat.grid=input$lat_grid_altc, 
                                   closest.pt=input$closest_pt_ac)
