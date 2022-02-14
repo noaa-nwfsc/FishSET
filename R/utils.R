@@ -1845,6 +1845,7 @@ find_lon <- function(dat) {
  #' @export
  
   #cols <- colnames(dat)
+  if(all(is_empty(dat[1,]))) return()
   cols <- colnames(dat)[grep('lon', colnames(dat), ignore.case=TRUE)]
   lat_find <- stringr::str_count(cols, '(?=LAT|Lat|lat)')
   lat_rem <- which(lat_find %in% max(lat_find))
@@ -1860,7 +1861,7 @@ find_lat <- function(dat) {
   #' @param dat Data set to search over
   #' @keywords internal
   #' @export
-  
+  if(all(is_empty(dat[1,]))) return()
   cols <- colnames(dat)[grep('lat', colnames(dat), ignore.case=TRUE)]
   lon_find <- stringr::str_count(cols, '(?=LON|Lon|lon)')
   lon_rem <- which(lon_find %in% max(lon_find))

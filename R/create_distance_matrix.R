@@ -1,6 +1,6 @@
 #' Create the distance matrix
 #'
-#' @param dataset Primary dataset
+#' @param dataset Primary data set
 #' @param alt_var Alternative choice location
 #' @param occasion Define choice location
 #' @param dataZoneTrue Include zone
@@ -9,7 +9,7 @@
 #' @param units Distance units
 #' @param port Port table
 #' @param zoneRow Zone row
-#' @param X distace matrix
+#' @param X distance matrix
 #' @importFrom geosphere distm
 #' @export 
 #' @keywords internal
@@ -21,7 +21,6 @@
 
 create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, choice, units, port, zoneRow, X) {
   
-    end <- FALSE
     ################### 
     #Steps if alternative matrix come from gridded data file 
     #The distance matrix is the gridded data file
@@ -63,8 +62,7 @@ create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, ch
         if (any(grepl("Port", occasion, ignore.case = TRUE) == T)) {
           if (is.data.frame(dataset)) {
             if (any(is_empty(dataset[[occasion]]))) {
-              warning("occasion does not exist in dataset")
-              end <- TRUE
+              stop("occasion does not exist in dataset")
             }
             
             toXYa <- data.frame(dataset[[occasion]][which(dataZoneTrue == 1)]) #  data[[altToLocal1]]data(v1).dataColumn(dataZoneTrue,:)      #subset data to when dataZoneTrue==1
@@ -78,8 +76,7 @@ create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, ch
             
             if (any(unique(toXYa[[occasion]]) %in% unique(port[[occasion]]) == FALSE)) {
               #     if (any(is_empty(lonlat))) {
-              warning("At least one port not included in PortTable.") #Specify starting lat/lon in lonlat variable to use mean lat/lon.")
-              end <- TRUE
+              stop("At least one port not included in PortTable.") #Specify starting lat/lon in lonlat variable to use mean lat/lon.")
             }
             
             toXY1 <- merge(toXYa, port) # portLL(toXYa,:)
@@ -88,8 +85,7 @@ create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, ch
             # toXY1 <- unique(toXY1)
             # Data from list
           } else {
-            warning("Primary data must be a data frame.")
-            end <- TRUE
+            stop("Primary data must be a dataframe.")
            # toXYa <- data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn[which(dataZoneTrue == 1)]) # data.frame(dataset[[alt_var]][which(dataZoneTrue==1)])#  data[[altToLocal1]]data(v1).dataColumn(dataZoneTrue,:)
             #colnames(toXYa) <- c(alt_var)
             # portLL <- data[[alt_var]].codeID[,2] # Extract lat long for selected port variable,
@@ -110,16 +106,18 @@ create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, ch
           }
           # Lat/Lon
         } else {  #End port
-          # Data is from a dataframe or matrix
+          # Data is from a data frame or matrix
           if (is.data.frame(dataset)) {
             if (length(occasion) < 2) {
-              warning("Please define both lat and long in occasion parameter of create_alternative_choice function.")
-              end <- TRUE
+              stop("Please define both lat and long in occasion parameter of create_alternative_choice function.")
+            }
+            if(any(occasion %in% names(dataset))==FALSE){
+              stop('At least on lat/lon variable was not found in the primary data table. Distance matrix not created.')
             }
             if(any(grepl('lat', occasion, ignore.case=TRUE))){
               toXY1 <- data.frame(
-                dataset[[occasion[which(stringr::str_count(occasion, "lon")==max(stringr::str_count(occasion, "lon")))]]][which(dataZoneTrue == 1)],
-                dataset[[occasion[which(stringr::str_count(occasion, "lat")==max(stringr::str_count(occasion, "lat")))]]][which(dataZoneTrue == 1)]
+                dataset[[occasion[which(stringr::str_count(occasion, '(?=LON|Lon|lon)')==max(stringr::str_count(occasion, '(?=LON|Lon|lon)')))]]][which(dataZoneTrue == 1)],
+                dataset[[occasion[which(stringr::str_count(occasion, '(?=LAT|lat|Lat)')==max(stringr::str_count(occasion, '(?=LAT|Lat|lat)')))]]][which(dataZoneTrue == 1)]
               )
             } else {
               toXY1 <- data.frame(
@@ -143,7 +141,7 @@ create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, ch
         # (v2==0){ #Zonal centroid [B,I,choiceZ] <-
         # unique(gridInfo.assignmentColumn(dataZoneTrue))#
         if(!any(int$ZoneID %in% unique(choice[which(dataZoneTrue == 1), ]))) {
-          warning('Name of zones in centroid table do not match choice zones. Rerun find_centroid')
+          stop('Name of zones in centroid table do not match choice zones. Rerun find_centroid')
         }
         B <- int[int$ZoneID %in% unique(choice[which(dataZoneTrue == 1), ]), 1]
         choiceZ <- match(int$ZoneID[which(dataZoneTrue == 1)], unique(int$ZoneID[which(dataZoneTrue == 1)]))
@@ -153,17 +151,15 @@ create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, ch
       } else {
         if (is.data.frame(dataset)) {
           if (length(alt_var) < 2) {
-            warning("Please define lon and lat in alt_var argument of create_alternative_choice function.")
-            end <- TRUE
+            stop("Please define lon and lat in alt_var argument of create_alternative_choice function.")
           }
           
           if (any(is_empty(dataset[[alt_var[1]]]))) {
-            warning("alt_var does not exist in dataset")
-            end <- TRUE
+            stop("alt_var does not exist in dataset")
+
           }
           if (any(is_empty(dataset[[alt_var[2]]]))) {
-            warning("alt_var does not exist in dataset")
-            end <- TRUE
+            stop("alt_var does not exist in dataset")
           }
           toXY2 <- data.frame(
             dataset[[alt_var[1]]][which(dataZoneTrue == 1)],
@@ -185,15 +181,12 @@ create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, ch
     ## ------ Generate Distance Matrix ----##
     # Test for potential issues with data
     if (any(do.call(cbind, lapply(toXY1, is.nan)))) {
-      warning(paste("NaN found in ", altToLocal1, ". Design file aborted."))
-      end <- TRUE
-    }
+      stop(paste("NaN found in ", altToLocal1, ". Design file aborted."))
+          }
     if (any(do.call(cbind, lapply(centersZone, is.nan)))) {
-      warning(paste("NaN found in ", altToLocal2, ". Design file aborted."))
-      end <- TRUE
+      stop(paste("NaN found in ", altToLocal2, ". Design file aborted."))
     }
     
-    if (end == FALSE) {
       # Generate distances using distm function [distAll,!,!] <-
       # #m_idist(toXY1[q,1],toXY1[q,2], centersZone[,1], centersZone[,2])
       if (dim(toXY1)[2] > 2) {
@@ -221,7 +214,6 @@ create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, ch
         X <- distMatrix
         altChoiceUnits <- units
       }
-    }
   
   return(list(X=X, altChoiceUnits=altChoiceUnits, altChoiceType=altChoiceType, altToLocal1=altToLocal1,
               altToLocal2=altToLocal2))

@@ -86,10 +86,10 @@
 #'         matrix: \tab Distance matrix is alternative choices comes from gridded dataset
 #'         }
 
-create_alternative_choice <- function(dat, project, occasion='centroid', alt_var='centroid', griddedDat = NULL, 
+create_alternative_choice <- function(dat, project, occasion='centroid', alt_var='centroid', 
                                       dist.unit = "miles", min.haul=0, gridfile, cat=NULL, 
                                       lon.dat=NULL, lat.dat=NULL, hull.polygon = FALSE,
-                                      closest.pt = FALSE, lon.grid = NULL, lat.grid = NULL) {
+                                      closest.pt = FALSE, griddedDat = NULL, lon.grid = NULL, lat.grid = NULL) {
   stopanaly <- 0
   case <- "centroid"
   
@@ -102,9 +102,10 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
   gridname <- deparse(substitute(gridfile))
 
   x <- 0
-  
+
+stop()
   if(!is.null(gridfile)){
-      int <- find_centroid(project = project, gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.grid, cat = cat)
+      int <- find_centroid(project = project, gridfile = gridfile, cat = cat, lon.grid = lon.grid, lat.grid = lat.grid)
   } else if(table_exists(paste0(gridname, 'Centroid'), project)|table_exists('gridfileCentroid', project)){
         if(table_exists(paste0(gridname, 'Centroid'), project) ==TRUE) {
           int <- table_view(paste0(gridfile, 'Centroid'), project)
@@ -112,8 +113,7 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
           int <- table_view(paste0('gridfileCentroid'), project)
         }
   } else {
-    warning("Zonal centroid must be defined. Function not run.")
-    x <- 1
+    stop("Zonal centroid must be defined. Function not run.")
   }
  
   if('ZoneID' %in% names(dataset)){
@@ -320,10 +320,12 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
     create_alternative_choice_function <- list()
     create_alternative_choice_function$functionID <- "create_alternative_choice"
     create_alternative_choice_function$args <- list(
-      dat, project, deparse(substitute(gridfile)), min.haul,
-      occasion, alt_var, dist.unit, lon.dat, lat.dat, cat,
-      hull.polygon, closest.pt
+      'dat'=dat, 'project'=project, 'occasion'=occasion, alt_var, dist.unit, min.haul, deparse(substitute(gridfile)), cat,  
+     lon.dat, lat.dat, hull.polygon, closest.pt
     )
+    
+    
+    
     create_alternative_choice_function$kwargs <- list("lon.grid" = lon.grid, "lat.grid" = lat.grid, "griddedDat" = griddedDat)
     create_alternative_choice_function$output <- list()
 
