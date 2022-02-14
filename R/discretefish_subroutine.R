@@ -102,7 +102,6 @@
 discretefish_subroutine <- function(project, select.model = FALSE, explorestarts = TRUE, breakearly= TRUE,
                                     space=NULL, dev=NULL, use.scalers=TRUE, scaler.func=NULL) {
 
-  if(fishset_env_exists()==FALSE) { create_fishset_env()}
   
 end <- FALSE
 

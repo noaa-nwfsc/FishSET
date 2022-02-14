@@ -22,7 +22,7 @@ find_centroid <- function(project, gridfile, cat, lon.grid = NULL, lat.grid = NU
   
   # Call in datasets
   gridname <- deparse(substitute(gridfile))
-    
+  
   tmp <- tempfile()
   on.exit(unlink(tmp), add = TRUE)
   cat("", file = tmp, append = TRUE)
@@ -62,14 +62,14 @@ find_centroid <- function(project, gridfile, cat, lon.grid = NULL, lat.grid = NU
         x <- 1
         # stop("Latitude is not valid (outside -90:90.")
       }
-      if (mean(int$cent.lon) < 0) {
-        if (length(which(int$cent.lon > mean(int$cent.lon) / 4 | int$cent.lon < mean(int$cent.lon) * 4)) > 0) {
-          print(paste("At least one centroid may be inaccurate. Check for consistency in signs.",
-            paste(data.frame(int[which(int$cent.lon > mean(int$cent.lon) / 4 | int$cent.lon < mean(int$cent.lon) * 4), ])),
-            collapse = "; "
-          ))
-      }
-    } 
+ #     if (mean(int$cent.lon) < 0) {
+ #       if (length(which(int$cent.lon > mean(int$cent.lon) / 4 | int$cent.lon < mean(int$cent.lon) * 4)) > 0) {
+ #         print(paste("At least one centroid may be inaccurate. Check for consistency in signs.",
+#           paste(data.frame(int[which(int$cent.lon > mean(int$cent.lon) / 4 | int$cent.lon < mean(int$cent.lon) * 4), ])),
+#            collapse = "; "
+#          ))
+#      }
+#    } 
   } else {
     # Centroid based on spatial data file or data set
 

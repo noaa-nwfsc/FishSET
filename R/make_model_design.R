@@ -190,21 +190,17 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
-  end <- FALSE
-  
   if (!table_exists(paste0(project, "MainDataTable_final"), project)) {
     
-    warning("Final dataset does not exist. Run check_model_data() to save the final",
+    stop("Final dataset does not exist. Run check_model_data() to save the final",
             " dataset to the FishSET Database before modeling.")
-    end <- TRUE
-  } else {
+  } 
     
     dataset <- table_view(paste0(project, "MainDataTable_final"), project)
-  }
+  
   
   if(is.null(dataset[[catchID]])){
-    warning('catchID does not exist in dataset. Check spelling.')
-    end <- TRUE
+    stop('catchID does not exist in dataset. Check spelling.')
   }
   
   # Script necessary to ensure parameters generated in shiny app are in correct format
@@ -251,8 +247,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     if (!exists("AltMatrixName")) {
       Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
       if (!exists("Alt")) {
-        warning("Alternative Choice Matrix does not exist. Please run the createAlternativeChoice() function.")
-        end <- TRUE
+        stop("Alternative Choice Matrix does not exist. Please run the createAlternativeChoice() function.")
       }
     }
   }
@@ -260,23 +255,27 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
   if (table_exists(paste0(project, "ExpectedCatch"), project)) {
     ExpectedCatch <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", project, "ExpectedCatch LIMIT 1"))$data[[1]])
     
-    if(dim(as.data.frame(ExpectedCatch[[1]]))[[1]] != dim(Alt[["choice"]])[[1]]){
-      warning('Number of observations in Expected catch matrix and catch data do not match. Model design file cannot be created.')
-      end <- TRUE
+    if(dim(as.data.frame(ExpectedCatch[[1]]))[[1]] != length(Alt$choice[which(Alt[["dataZoneTrue"]]==1),])){
+      stop('Number of observations in Expected catch matrix and catch data do not match. Model design file cannot be created.')
     }
   }
   if (!exists("ExpectedCatch")) {
     ExpectedCatch <- ""
-    
+    newDumV <- 1
     if (likelihood == "logit_c") {
       
-      warning("Expected Catch Matrix does not exist. Please run the create_expectations function if expected catch will be included in the model.")
-      end <- TRUE
+      stop("Expected Catch Matrix does not exist. Please run the create_expectations function if expected catch will be included in the model.")
     }
   }
-  
-  
-  if (end == FALSE) {
+
+    if(length(ExpectedCatch)>1){
+      if (length(ExpectedCatch$newDumV)==0) {
+        newDumV <- 1
+      } else {
+        newDumV <- ExpectedCatch[["newDumV"]]
+        # bCHeader <- list(bCHeader, newDumV)
+      }
+    }
     
     alt_var <- Alt[["alt_var"]]
     occasion <- Alt[["occasion"]]
@@ -291,6 +290,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       Alt[["startingloc"]]
     }
     units <- Alt[["altChoiceUnits"]]
+    
     
     if (!is.null(Alt[["matrix"]])) {
       X <- Alt[["matrix"]]
@@ -311,25 +311,15 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       port <- NULL
     }
     
-    if (is_empty(gridVariablesInclude)) {
+
+    
+    if (is_empty(gridVariablesInclude)||gridVariablesInclude=='NONE'||gridVariablesInclude=='none') {
       gridVariablesInclude <- as.data.frame(matrix(1, nrow = nrow(choice), ncol = 1)) # max(as.numeric(as.factor(unlist(choice))))))
     } else {
       gridVariablesInclude
     }
     
-    if(is_empty(ExpectedCatch)){
-      newDumV <- 1
-    } else {
-      if (is_empty(ExpectedCatch$newDumV)) {
-        newDumV <- 1
-      } else {
-        newDumV <- ExpectedCatch[["newDumV"]]
-      # bCHeader <- list(bCHeader, newDumV)
-      }
-    }
-    #
 
-    
     if (any(is_empty(indeVarsForModel))) {
       bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, indeVarsForModel = as.data.frame(matrix(1, nrow = nrow(choice), ncol = 1)))
       #    bColumnsWant <- ""
@@ -343,7 +333,6 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       }
     }
     
-  
   ### Initial parameters - need to grab inits from previous model run if required
     params <- list()
     for (i in 1:length(initparams)){
@@ -361,7 +350,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       }
     }
     
-    
+    browser()
   ### Generate Distance Matrix
      dist_out <- create_dist_matrix(dataset=dataset, alt_var=alt_var, occasion=occasion, dataZoneTrue=dataZoneTrue, 
                                  int=int, choice=choice_raw, units=units, port=port, zoneRow=zoneRow, X=X)
@@ -432,6 +421,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
 
       
      print(str(modelInputData_tosave)) 
+     
       single_sql <- paste0(project, "modelinputdata")
       date_sql <- paste0(project, "modelinputdata", format(Sys.Date(), format = "%Y%m%d"))
       if (table_exists(single_sql, project) & replace == FALSE) {
@@ -472,7 +462,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       log_call(project, make_model_design_function)
       
       print('Model design file done')
-    }
+
 
 }
 
