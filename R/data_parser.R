@@ -622,10 +622,7 @@ load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALS
     colnames(x)[which(duplicated(colnames(x)))] <- paste0(colnames(x)[which(duplicated(colnames(x)))], '.1')
   }
   #empty variables
-  if (any(apply(x, 2, function(x) all(is.na(x))) == TRUE)) {
-    print(names(which(apply(x, 2, function(x) all(is.na(x))) == TRUE)), 'is empty and was removed.')
-    x <- x[,-(which(apply(x, 2, function(x) all(is.na(x))) == TRUE))]
-  }
+  x <- empty_vars(x, remove = TRUE)
 
   if (compare == TRUE) {
     fishset_compare(x, y, compare, project = project)
@@ -731,12 +728,9 @@ load_aux <- function(dat, aux, name, over_write = TRUE, project = NULL) {
     
   } else {
    
-    #data_verification_call(x, project)
+    
     #unique rows
-    if(dim(aux)[1] != dim(unique(aux))[1]){
-      print('Duplicate rows found and removed.')
-      aux <- unique(aux)
-    }
+    aux <- unique_rows(aux)
     
     #unique column names
     if(length(toupper(colnames(aux))) != length(unique(toupper(colnames(aux))))){
@@ -745,10 +739,7 @@ load_aux <- function(dat, aux, name, over_write = TRUE, project = NULL) {
     }
     
     #empty variables
-    if (any(apply(aux, 2, function(x) all(is.na(x))) == TRUE)) {
-      print(names(which(apply(aux, 2, function(x) all(is.na(x))) == TRUE)), 'is empty and was removed.')
-      aux <- aux[,-(which(apply(aux, 2, function(x) all(is.na(x))) == TRUE))]
-    }
+   aux <- empty_vars(aux, remove = TRUE)
 
     if (table_exists(paste0(project, name), project) == FALSE | over_write == TRUE) {
       
@@ -836,10 +827,8 @@ load_grid <- function(dat, grid, name, over_write = TRUE, project = NULL) {
   } else {
     
     #unique rows
-    if(dim(grid)[1] != dim(unique(grid))[1]){
-      print('Duplicate rows found and removed.')
-      grid <- unique(grid)
-    }
+    grid <- unique_rows(grid)
+    
     #unique column names
     if(length(toupper(colnames(grid))) != length(unique(toupper(colnames(grid))))){
       print('Duplicate case-insensitive column names found. Duplicate column names adjusted.')
@@ -847,16 +836,7 @@ load_grid <- function(dat, grid, name, over_write = TRUE, project = NULL) {
     }
     
     #empty variables
-    empty_ind <- qaqc_helper(grid, function(x) all(is.na(x)))
-    
-    if (any(empty_ind)) {
-      
-      empty_vars <- names(grid[empty_ind])
-      grid <- grid[!empty_ind]
-      
-      message("the following variables are empty and have been removed: ", 
-              paste(empty_vars, collapse = ", "))
-    } 
+    grid <- empty_vars(grid, remove = TRUE)
     
     # save grid
     if (table_exists(paste0(project, name), project) == FALSE | over_write == TRUE) {
@@ -888,6 +868,7 @@ load_spatial <- function(spat, name=NULL, over_write = TRUE, project, data.type 
   #' 
   #' @param spat File name, including path, of spatial data. 
   #' @param name Name spatial data should be saved as in FishSET project folder.
+  #' Cannot contain spaces.
   #' @param over_write Logical, If TRUE, saves \code{spat} over previously saved data 
   #'   table in the FishSET project folder.
   #' @param project String, name of project.
@@ -901,8 +882,15 @@ load_spatial <- function(spat, name=NULL, over_write = TRUE, project, data.type 
   #' @param id Polygon ID column. Required for csv files. Leave as NULL if 
   #'   \code{spat} is a shape or json file.
   #' @param ... Additional argument passed to \code{\link{read_dat}}. 
-  #' @details Function to import, parse, and saved project folder in `FishSETFolder` directory. Note, 
-  #'  the spatial file is saved as a geojson. To export as  shape file, use \code{\link{write_dat}} specifying `type='shp'`.
+
+  #' @details Function to import, parse, and saved project folder in `FishSETFolder` 
+  #'  directory. Note, the spatial file is saved as a geojson. To export as  shape 
+  #'  file, use \code{\link{write_dat}} specifying `type='shp'`. \code{load_spatial} 
+  #'  performs basic quailty check before saving spatial tables to the project 
+  #'  data folder. To be saved, the spatial must pass the checks in 
+  #'  \code{\link{check_spatdat}}. The spatial table is converted to an \code{sf} 
+  #'  object, and checked for unique rows and empty columns.
+
   #' @export
   #' @importFrom sf st_write
   #' @examples
