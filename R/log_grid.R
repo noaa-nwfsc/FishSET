@@ -68,13 +68,15 @@ unique_grid <- function(project, grid_info, ind = TRUE) {
 }
 
 
-grid_lab_helper <- function(project, grid_info, grid_log = NULL) {
+grid_lab_helper <- function(project, grid_info, grid_log = NULL, mod_type = "combine") {
   #' Labeling function for saving grid files
   #' 
   #' @param project Name of project.
   #' @param grid_info List containing grid information.
   #' @param grid_log Optional, the grid log. if \code{NULL}, uses names from 
   #' \code{grid_info}. 
+  #' @param mod_type String, "combine" for combined map files or "edit" for 
+  #'   edited map files. 
   #' @keywords internal
   #' @importFrom purrr map2_chr
   #' 
@@ -85,26 +87,46 @@ grid_lab_helper <- function(project, grid_info, grid_log = NULL) {
   
   if (sum(keep) > 0) {
     
-    grid_info <- grid_info[keep]
-    
     if (is.null(grid_log)) grid_log <- get_grid_log(project)
     
-    # add unique grids to log
-    grid_ind <- length(grid_log) + seq(grid_info)
-    grid_labs <- purrr::map2_chr(grid_info, grid_ind, 
-                                 ~paste0(.x$grid_name, "_mod", .y))
+    if (mod_type == "combine") {
+      
+      grid_info <- grid_info[keep]
+      
+      # add unique grids to log
+      grid_ind <- length(grid_log) + seq(grid_info)
+      grid_labs <- purrr::map2_chr(grid_info, grid_ind, 
+                                   ~paste0(.x$grid_name, "_mod", .y))
+      
+    } else if (mod_type == "edit") {
+      
+      grid_nms <- names(grid_log)
+      grid_nm <- grid_info[[1]]$grid_name
+      
+      # remove "_mod" suffix from logged map names and current map name
+      grid_nms <- gsub("_mod\\d+$", "", grid_nms)
+      grid_nm_base <- gsub("_mod\\d+$", "", grid_nm)
+      
+      # mod version
+      mod_n <- sum(grepl(grid_nm, grid_nms)) + 1
+      # new name
+      grid_labs <- paste0(grid_nm_base, "_mod", mod_n)
+    }
+    
     grid_labs
   } 
 }
 
 
-log_grid_info <- function(project, grid_info) {
+log_grid_info <- function(project, grid_info, mod_type = "combine") {
   #' Log grid file 
   #' 
   #' Writes grid information to a JSON file located in the project data directory.
   #' 
   #' @param project Name of project.
   #' @param grid_info List containing grid information. 
+  #' @param mod_type String, "combine" for combined map files or "edit" for 
+  #'   edited map files. 
   #' @keywords internal
   #' @importFrom stats setNames
   #' @importFrom jsonlite write_json
@@ -129,7 +151,7 @@ log_grid_info <- function(project, grid_info) {
     grid_info <- grid_info[keep]
     
     # add unique grids to log
-    grid_lab <- grid_lab_helper(project, grid_info, grid_log)
+    grid_lab <- grid_lab_helper(project, grid_info, grid_log, mod_type)
     grid_info <- stats::setNames(grid_info, grid_lab)
     
     grid_log <- c(grid_log, grid_info)
@@ -142,12 +164,14 @@ log_grid_info <- function(project, grid_info) {
 }
 
 
-save_grid_cache <- function(project, grid_list, grid_info) {
+save_grid_cache <- function(project, grid_list, grid_info, mod_type = "combine") {
   #' Save grid file to project data directory
   #'
   #'@param project Name of project.
   #'@param grid_list List containing grid files.
   #'@param grid_info List containing grid information.
+  #'@param mod_type String, "combine" for combined map files or "edit" for 
+  #'   edited map files. 
   #'@keywords internal
   #'@details This function references the grid log to determine whether a grid
   #'  file should be saved. If a grid file is unique it is saved, otherwise no
@@ -167,7 +191,7 @@ save_grid_cache <- function(project, grid_list, grid_info) {
     
     grid_list <- grid_list[keep]
     # create filenames (object names when loaded)
-    grid_labs <- grid_lab_helper(project, grid_info, grid_log)
+    grid_labs <- grid_lab_helper(project, grid_info, grid_log, mod_type)
     
     filename <- paste0(loc_data(project), "spat/", grid_labs, ".geojson")
     
@@ -183,7 +207,7 @@ save_grid_cache <- function(project, grid_list, grid_info) {
     # Log function
     save_grid_cache_function <- list()
     save_grid_cache_function$functionID <- "save_grid_cache"
-    save_grid_cache_function$args <- list(project, filename, grid_info)
+    save_grid_cache_function$args <- list(project, filename, grid_info, mod_type)
     save_grid_cache_function$msg <- suppressWarnings(readLines(tmp))
     log_call(project, save_grid_cache_function)
   }
