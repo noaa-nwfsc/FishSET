@@ -232,6 +232,7 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
             
             grid_cache[["grid_1"]] <- grid
             grid_info[["grid_1"]] <- list(grid_name = grid.nm,
+                                          mod_type = "combine", 
                                           closure_name = closure.nm,
                                           combined_areas = sort(combined))
             
@@ -248,6 +249,7 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
               g_ind <- paste0("grid_", length(names(grid_cache)) + 1)
               grid_cache[[g_ind]] <- grid
               grid_info[[g_ind]] <- list(grid_name = grid.nm,
+                                         mod_type = "combine",
                                          closure_name = closure.nm,
                                          combined_areas = sort(combined))
             }
@@ -748,11 +750,13 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
             # save unique grids to project data folder
             save_grid_cache(project, 
                             grid_list = reactiveValuesToList(grid_cache),
-                            grid_info = reactiveValuesToList(grid_info))
+                            grid_info = reactiveValuesToList(grid_info),
+                            mod_type = "combine")
             
             # log grid info
             log_grid_info(project, 
-                          grid_info = reactiveValuesToList(grid_info))
+                          grid_info = reactiveValuesToList(grid_info),
+                          mod_type = "combine")
           }
           
           # update closure list w/ new grid names
