@@ -365,10 +365,11 @@ list_tables <- function(project, type = "main") {
   #' 
   #' @param project A project name to show main tables by. 
   #' @param type the type of fishset_db table to search for. Options include 
-  #'   "main" (MainDataTable), "ec" (ExpectedCatch),  "altc" (altmatrix), 
-  #'   "port", "info" (MainDataTableInfo), "gc" (ldglobalcheck), "fleet" (FleetTable), 
-  #'   "model" (modelOut), "model_data" (modelinputdata), and "model_design" 
-  #'   (modelDesignTable).
+  #'   "main" (MainDataTable), "port" (PortTable), "spat" (SpatTable), "grid" 
+  #'   (GridTable), "aux" (AuxTable) "ec" (ExpectedCatch),  "altc" (altmatrix), 
+  #'   "info" (MainDataTableInfo), "gc" (ldglobalcheck), "fleet" (FleetTable), 
+  #'   "filter" (FilterTable),  "model" (modelOut), "model_data" (modelinputdata), 
+  #'   and "model_design" (modelDesignTable).
   #' @export
   #' @examples 
   #' \dontrun{
@@ -382,7 +383,7 @@ list_tables <- function(project, type = "main") {
            "altc" = "altmatrix", "port" = "PortTable", "gc" = "ldglobalcheck", 
            "fleet" = "FleetTable", "model" = "modelOut", "model_data" = "modelinputdata", 
            "model_design" = "modelDesignTable", "grid" = "GridTable", "aux" = "AuxTable",
-           "spat" = "SpatTable")
+           "spat" = "SpatTable", "filter" = "FilterTable")
   
   if (is.null(project)) {
     
