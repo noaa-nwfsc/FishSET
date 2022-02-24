@@ -87,6 +87,7 @@ create_startingloc <- function(dat,project=NULL, gridfile, portTable, trip_id, h
   # Make starting of trips set to zone of starting port
   if (!is.null(trip_id)) {
     rownumbers <- match(trimws(int.data[tapply(seq_along(int.data[[trip_id]]), int.data[[trip_id]], min), starting_port]), port$Port_Name)
+    if(any(is.na(rownumbers))) { warning('NAs produced. At least one disembarked port was not found in the port table.')}
     newvar[tapply(seq_along(int.data[[trip_id]]), int.data[[trip_id]], min)] <- port[rownumbers, "ZoneID"]
   } else {
     rownumbers <- match(trimws(int.data[1, starting_port]), port$PORT)
