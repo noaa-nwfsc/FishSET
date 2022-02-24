@@ -2229,7 +2229,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }
       })
       
-      
       output$changetable <- DT::renderDataTable(
         if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
@@ -2249,6 +2248,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         Shiny.bindAll(table.table().node());")
       )
       
+
       changecode <- reactive({
         if(colnames(values$dataset)[1] == 'var1') {
           return(NULL)
@@ -2270,6 +2270,41 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                       newclass=newclass, savedat=FALSE)
         showNotification('Variable class changed.', type='message', duration=10)
       })
+      
+      ##Table output
+      tableInputSummary <- reactive({
+        if(colnames(values$dataset)[1] == 'var1') {
+          return(NULL) 
+        } else if(input$checks == 'Summary table') {
+          int <- values$dataset
+          stable <- summary_stats(dat=int, project = project$name) 
+          nums <- unlist(lapply(int, is.numeric))
+          stable  <- apply(stable[nums], 2, function(x) gsub(".*:","", x))
+          rownames(stable)=c('Min', 'Median','Mean', 'Max',"Missing",'Unique Obs.', "No. 0's")
+          stable <- as.data.frame(as.matrix(stable))
+          stable <- as.data.frame((t(stable)))
+          
+          qaqc_out_proj$sum_tab <- project$name
+          
+          return(stable)
+        } else {
+          NULL
+        }
+      })
+      
+      
+      output$output_table_summary <- DT::renderDataTable(
+        if(colnames(values$dataset)[1] == 'var1') {
+          return(NULL)
+        } else if(input$checks=='Summary table'){
+          tableInputSummary()
+        } else {
+          NULL
+        },
+        server = FALSE, rownames=TRUE,
+        options = list(autoWidth=FALSE, scrollX=TRUE, responsive=FALSE, pageLength = 25)
+      )
+      
       
       
       ##Outlier options 
@@ -2628,25 +2663,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       qaqc_out_proj <- reactiveValues(tab_sum = NULL, out_tab = NULL, 
                                       out_plot = NULL, spat = NULL)
       
-      ##Table output
-      tableInputSummary <- reactive({
-        
-        if(colnames(values$dataset)[1] != 'var1') {
   
-          stable <- summary_stats(values$dataset, project$name) 
-          nums <- unlist(lapply(values$dataset, is.numeric))
-          stable  <- apply(stable[nums], 2, function(x) gsub(".*:","", x))
-          rownames(stable)=c('Min', 'Median','Mean', 'Max',"Missing",'Unique Obs.', "No. 0's")
-          stable <- as.data.frame(as.matrix(stable))
-          stable <- as.data.frame((t(stable)))
-          
-          qaqc_out_proj$sum_tab <- project$name
-          
-          stable
-        }
-      })
-      
-      
       tableInputOutlier <- reactive({
         
         req(input$column_check %in% names(values$dataset))
@@ -2678,11 +2695,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         options = list(autoWidth=FALSE, scrollX=TRUE, responsive=FALSE, pageLength = 25)
       )
       
-      output$output_table_summary <- DT::renderDT(
-        tableInputSummary(), server = TRUE, rownames=TRUE,
-        options = list(autoWidth=FALSE, scrollX=TRUE, responsive=FALSE, pageLength = 25)
-      )
-      
+     
       output$output_table_outlier <- DT::renderDT(
         
         tableInputOutlier()[[1]], server = TRUE, selection='single', rownames=TRUE,
@@ -4907,7 +4920,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         output$logit_correction_extra <- renderUI({
           tagList(
           conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='exists'",
-            selectInput('startloc_mod', 'Initial location during choice occassion', choices=names(values$dataset), 
+            selectInput('startloc_mod', 'Initial location during choice occassion', choices=c('startingloc', names(values$dataset)), 
                         selected='startingloc', 
                         multiple=FALSE)),
             conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='create'",
@@ -5123,8 +5136,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                'startloc'= if(input$startlocdefined=='exists'){input$startloc_mod} else {'startingloc'}, 
                                'polyn'= input$polyn)
                     , rv$data)#model_table())
-          print(rv$data)
-          print(str(rv$data))
         }
       #  rv$data(t)#model_table(t)
         
@@ -5226,7 +5237,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
          # q_test <- quietly_test(make_model_design)
           
           times <- nrow(rv$data)-1
-          print(rv$data$vars1)
          
           showNotification(paste('1 of', times, 'model design files created.'), type='message', duration=10)
           make_model_design(project=as.character(rv$data$project[1]), catchID=as.character(rv$data$catch[1]), replace=TRUE, 
@@ -5436,10 +5446,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       observeEvent(input$saveALT, {
               showNotification('Function can take a couple minutes. A message will appear when done.',
                                type='message', duration=20)
-             # if(input$cat_altfc != 'var1'){
-             #  q_test <- quietly_test(find_centroid)
-             #  q_test(values$dataset, project=project$name, cat=input$cat_altfc, lon.grid = input$long_grid_altfc, lat.grid = input$lat_grid_altfc)
-             # }
               q_test <- quietly_test(create_alternative_choice)
               q_test(values$dataset, project=project$name, occasion=input$occasion_ac, alt_var=input$alt_var_ac, griddedDat=NULL, 
                                   dist.unit=input$dist_ac, min.haul=input$min_haul_ac, gridfile=spatdat$dataset, cat=input$cat_altfc, 
@@ -5503,6 +5509,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)))
         DBI::dbWriteTable(fishset_db, paste0(project$name, 'MainDataTable'),  values$dataset, overwrite=TRUE)
         DBI::dbDisconnect(fishset_db)
+        showNotification('Data saved to FishSET database', type='message', duration=10)
       })
       
 
