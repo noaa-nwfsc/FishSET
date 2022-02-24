@@ -199,7 +199,9 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
     
     if (remove == TRUE | replace == TRUE) return(dataset)
   
-  } else return(dataset)
+  } else {
+    if(replace==TRUE | remove ==TRUE) return(dataset)
+  }
 }
 
 
@@ -339,5 +341,7 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
     
     if (remove == TRUE | replace == TRUE) return(dataset)
     
-  } else dataset
+  } else  {
+    if(replace==TRUE | remove ==TRUE) return(dataset)
+  }
 }

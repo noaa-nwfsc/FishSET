@@ -6,7 +6,6 @@ filter_table <- function(dat, project, x, exp) {
   #' @param project String, name of project.
   #' @param x Variable in \code{dat} over which filter will be applied.
   #' @param exp Filter expression. Should take on the form of \code{"x<100"} or \code{"is.na(x) == F"}.
-  #' @importFrom utils head read.csv write.csv
   #' @importFrom DBI dbConnect dbWriteTable dbDisconnect
   #' @keywords filter, subset
   #' @export filter_table
