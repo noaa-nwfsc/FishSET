@@ -28,7 +28,7 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
   #' @return Returns a plot and map of Moran’s I. Output is saved to the Output folder.
   #' @import ggplot2
   #' @importFrom spdep knn2nb knearneigh nb2listw localmoran moran.test
-  #' @importFrom sf st_coordinates st_centroid st_geometry
+  #' @importFrom sf st_coordinates st_centroid st_geometry st_make_valid
   #' @importFrom shiny isRunning
   #' @export
   #' @examples
@@ -104,11 +104,14 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
     
     gmoranspdep <- spdep::moran.test(uniquedatatomap$varofint, listw = spdep::nb2listw(nb.rk))
 
-    g <- as.data.frame(spatdat[[cat]])
-    colnames(g) = 'ZoneID'
-    g <- merge(uniquedatatomap, g, all.y = TRUE)
-    spatdat$Moran <- g$Moran
-    spatdat <- cbind(spatdat, sf::st_coordinates(sf::st_centroid(spatdat)))
+    #g <- as.data.frame(spatdat[[cat]])
+    #colnames(g) = 'ZoneID'
+    #g <- merge(uniquedatatomap, g, all.y = TRUE)
+    #spatdat$Moran <- g$Moran
+    #spatdat <- cbind(spatdat, sf::st_coordinates(sf::st_centroid(spatdat)))
+    
+    spatdat <-  merge(spatdat, uniquedatatomap[,c('ZoneID','Moran')], by.x='STAT_AREA', by.y='ZoneID')#spatdat$GetisOrd <- g$GetisOrd
+    spatdat <- cbind(spatdat, sf::st_coordinates(sf::st_centroid(sf::st_make_valid(spatdat))))
     spatdat <- subset(spatdat, !is.na(spatdat$Moran))
     
     

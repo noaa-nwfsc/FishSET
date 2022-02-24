@@ -14,8 +14,6 @@
 #' @export create_seasonal_ID
 #' @return  Returns the primary dataset with the variable SeasonID, or a series of variables identifying by the individual
 #'   fisheries included (seasonID*fishery).
-#' @importFrom DBI dbConnect
-#' @importFrom RSQLite SQLite
 #' @details Uses a table of fishery season dates to create fishery season identifier variables. Output is a SeasonID
 #' variable and/or multiple SeasonID*fishery variables. If fishery season dates vary by location or gear type,
 #' then \code{use.location} and \code{use.geartype} should be TRUE. \cr\cr

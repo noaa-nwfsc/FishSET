@@ -115,11 +115,20 @@ end <- FALSE
   if (end == FALSE) {
 
     # Call in datasets
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
-    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-    x_temp <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
+        if(table_exists(paste0(project, "modelinputdata"), project)){
+          fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
+          on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
     
-    
+
+           x_temp <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
+
+        } else {
+          warning('Model input table does not exist.')
+          end <- TRUE
+        }
+  }
+
+  if(end == FALSE){
     for (i in 1:length(x_temp)) {
 
       x <- x_temp[[i]]
@@ -196,7 +205,8 @@ end <- FALSE
       #starts2 <- unlist(x_temp[[i]][["initparams"]])
  #     polyn <- NA
       
-      
+  
+          
       if (is.factor(x_temp[[i]][["optimOpt"]])) {
             opt <- as.numeric(unlist(strsplit(as.character(x_temp[[i]][["optimOpt"]]), " ")))
           } else if(is.list(x_temp[[i]][["optimOpt"]])){
@@ -320,8 +330,7 @@ end <- FALSE
             starts2 <- starts2
           }
         }
-        
-        
+
         #Explore starting parameters
         if(explorestarts==TRUE){
           sp <- if(is.null(space[i])) {10} else { space[i] }
@@ -458,7 +467,7 @@ end <- FALSE
           }
           print(Htrial(H))
           H1 <- Htrial(H)
-          
+
           
           diagtrial <- function(x) {
             diagtrial <- tryCatch(
@@ -471,6 +480,7 @@ end <- FALSE
             )
             diagtrial
           }
+          
           if (H1[1] != "Error, singular, check 'ldglobalcheck'") {
             diag2 <- diagtrial(H1)
             print(diag2)
@@ -484,14 +494,14 @@ end <- FALSE
                   sqrt(diag2)
                 },
                 warning = function(war) {
-                  print("Check 'ldglobalcheck'")
+                  print("Cannot compute standard error. Check 'ldglobalcheck'")
                   sqrt(diag2)
                 }
               )
             }
           }
-          
-          if (H1[1] != "Error, singular, check 'ldglobalcheck'") {
+         
+          if (H1[1] != "Error, singular, check 'ldglobalcheck'" & se2[1]!="Cannot compute standard error. Check 'ldglobalcheck'") {
             outmat2 <- t(q2) #best set of parameters found
             seoutmat2 <- t(se2) #standard errors
             optoutput <- output #optimization info - counts, convergence, optimization error
@@ -528,7 +538,7 @@ end <- FALSE
           
           params_out <- as.data.frame(OutLogit)
           names(params_out) <- c("estimate", "std_error", "t_value") 
-          rownames(params_out) <- levels(factor(x_temp[[i]]$choice))
+          rownames(params_out) <- sort(unique(x_temp[[i]]$choice)[,1])
           params_out <- round(params_out, 3)
 
           save_table(params_out, project=project, x_temp[[i]]$mod.name)

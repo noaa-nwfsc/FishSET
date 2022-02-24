@@ -751,7 +751,7 @@ create_trip_centroid <- function(dat, project, lon, lat, weight.var = NULL, ...)
   #' @details Computes the average longitude and latitude for each trip. Specify \code{weight.var} to calculate the weighted centroid.
   #'   Additional arguments can be added that define unique trips. If no additional arguments are added, each row will be treated as a unique trip.
   #' @return Returns the primary dataset with centroid latitude and centroid longitude variables added.
-  #' @importFrom geosphere distGeo midPoint
+  #' @importFrom stats ave
   #' @export
   #' @examples
   #' \dontrun{
@@ -1240,7 +1240,7 @@ randomize_lonlat_zone <- function(dat, project, spat, lon, lat, zone) {
   #' @export
   #' @importFrom dplyr across arrange count
   #' @importFrom magrittr %>% 
-  #' @importFrom sf st_coordinates st_sample
+  #' @importFrom sf st_coordinates st_sample st_as_sf
   #' @details This is one of the FishSET confidentiality functions. It replaces 
   #'   longitude and latitude values with randomly sampled coordinates from the
   #'   regulatory zone the observation occurred in. 
@@ -1342,6 +1342,7 @@ lonlat_to_centroid <- function(dat, project, lon, lat, spat, zone) {
   #'   for both the spatial data table and MainDataTable. 
   #' @export
   #' @importFrom dplyr left_join
+  #' @importFrom sf st_as_sf
   #' @details This is one of the FishSET confidentiality functions. It replaces the 
   #'   selected longitude and latitude columns with the zonal centroid derived 
   #'   from a spatial data table. 

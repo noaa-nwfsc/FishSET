@@ -15,7 +15,6 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE, lonsig
   #' @param replace Logical, should \code{lat} and \code{lon} in \code{dat} be converted to decimal degrees? 
   #'   Defaults to TRUE. Set to FALSE if checking for compliance
   #' @export degree
-  #' @importFrom OSMscale degree
   #' @importFrom stringr str_pad
   #' @details First checks whether any variables containing 'lat' or 'lon' in their names are numeric. Returns 
   #'   a message on results. To convert a variable to decimal degrees, identify the \code{lat} or \code{lon}

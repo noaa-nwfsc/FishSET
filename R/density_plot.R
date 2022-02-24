@@ -333,7 +333,7 @@ dens_plot_helper <- function(dataset, var, group, date, facet_by, filter_date,
   #' @importFrom dplyr across group_by mutate
   #' @importFrom gridExtra arrangeGrob marrangeGrob
   #' @importFrom stats pnorm reformulate
-  #' @importFrom rlang sym
+  #' @importFrom rlang sym expr
   #' @importFrom scales breaks_extended label_number label_scientific log_breaks
   #' @importFrom shiny isRunning
   

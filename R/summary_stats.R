@@ -27,6 +27,7 @@ summary_stats <- function(dat, project, x = NULL, log_fun = TRUE) {
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
+  
 #Extract only numeric 
   is_num <- function(x) {
     is.numeric(x) || lubridate::is.Date(x) || lubridate::is.POSIXt(x)
@@ -48,8 +49,11 @@ numeric_only <- unlist(lapply(dataset, is_num))
       )), row.names = FALSE),
       
       as.data.frame(as.matrix(rbind(
-        summary(chardat, digits = 2), 
+        #summary(chardat, digits = 2), 
         apply(chardat, 2, function(x) paste("First:", x[1])),
+        apply(chardat, 2, function(x) paste("",NA)),
+        apply(chardat, 2, function(x) paste("",NA)),
+        apply(chardat, 2, function(x) paste("",NA)),
         apply(chardat, 2, function(x) paste("NA's:", sum(is.na(x)))),
         apply(chardat, 2, function(x) paste("UniqueObs:", length(unique(x)))),
         apply(chardat, 2, function(x) paste("No. 0's:", length(which(x == 0))))

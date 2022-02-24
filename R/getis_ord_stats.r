@@ -30,7 +30,7 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
   # @aliases  moranmap: ggplot2 object; morantable: table of statistics
   #' @import ggplot2
   #' @importFrom spdep knn2nb knearneigh nb2listw localG globalG.test
-  #' @importFrom sf st_coordinates st_centroid st_geometry
+  #' @importFrom sf st_coordinates st_centroid st_geometry st_make_valid
   #' @importFrom shiny isRunning
   #' @export
   #' @examples
@@ -78,7 +78,6 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
                                    lon.dat=lon.dat, lat.dat=lat.dat, cat=cat, closest.pt = TRUE, 
                                    lon.grid=lon.grid, lat.grid=lat.grid, epsg = NULL, log.fun = FALSE)
       
-      
       # Idenfity centroid of zone
       int <- find_centroid(gridfile=spatdat, project = project, cat = cat, 
                            lon.grid=lon.grid, lat.grid=lat.grid)
@@ -92,7 +91,6 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
       names(int)[4] = "varofint"
       
 
-  
     #  Identify variable of interest 
     int[["varofint"]] <- with(int, ave(int[["varofint"]], ZoneID, FUN = function(x) mean(x, na.rm = TRUE)))
     uniquedatatomap <- int[!duplicated(int$ZoneID), c("ZoneID", "centroid_lon", "centroid_lat", "varofint")]
@@ -109,11 +107,13 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
     globalgetis <- spdep::globalG.test(uniquedatatomap[["varofint"]], listw = spdep::nb2listw(nb.rk, style = "B"))
       
  
-    g <- as.data.frame(spatdat[[cat]])
-    colnames(g) = 'ZoneID'
-    g <- merge(uniquedatatomap, g, all.y = TRUE)
-    spatdat$GetisOrd <- g$GetisOrd
-    spatdat <- cbind(spatdat, sf::st_coordinates(sf::st_centroid(spatdat)))
+    #g <- as.data.frame(spatdat[[cat]])
+    #colnames(g) = 'ZoneID'
+    #g <- merge(uniquedatatomap, g, all.y = TRUE)
+    spatdat <-  merge(spatdat, uniquedatatomap[,c('ZoneID','GetisOrd')], by.x='STAT_AREA', by.y='ZoneID')#spatdat$GetisOrd <- g$GetisOrd
+    
+    
+    spatdat <- cbind(spatdat, sf::st_coordinates(sf::st_centroid(sf::st_make_valid(spatdat))))
     spatdat <- subset(spatdat, !is.na(spatdat$GetisOrd))
     
    

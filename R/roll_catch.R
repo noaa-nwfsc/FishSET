@@ -51,7 +51,6 @@
 #' @importFrom dplyr any_of
 #' @importFrom zoo zoo merge.zoo rollapply fortify.zoo
 #' @importFrom tidyr pivot_longer pivot_wider
-#' @importFrom scales breaks_extended log_breaks label_number label_scientific
 #' @examples
 #' \dontrun{
 #' roll_catch(pollockMainDataTable, project = "pollock", catch = "LBS_270_POLLOCK_LBS",

@@ -674,7 +674,6 @@ load_aux <- function(dat, aux, name, over_write = TRUE, project = NULL) {
   #' @param over_write Logical, If TRUE, saves data over previously
   #'   saved data table in the FishSET database.
   #' @param project String, name of project.
-  #' @importFrom jsonlite toJSON
   #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
   #' @export
   #' @details Auxiliary data is any additional data beyond the primary data and the port data.
@@ -886,7 +885,7 @@ load_spatial <- function(spat, name=NULL, over_write = TRUE, project, data.type 
   #' @details Function to import, parse, and saved project folder in `FishSETFolder` 
   #'  directory. Note, the spatial file is saved as a geojson. To export as  shape 
   #'  file, use \code{\link{write_dat}} specifying `type='shp'`. \code{load_spatial} 
-  #'  performs basic quailty check before saving spatial tables to the project 
+  #'  performs basic quality check before saving spatial tables to the project 
   #'  data folder. To be saved, the spatial must pass the checks in 
   #'  \code{\link{check_spatdat}}. The spatial table is converted to an \code{sf} 
   #'  object, and checked for unique rows and empty columns.

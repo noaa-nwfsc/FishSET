@@ -33,7 +33,6 @@
 #'   Required for logit_correction likelihood.
 #'   Use the \code{\link{create_startingloc}} function to create the starting location vector.
 #' @param polyn Numeric, correction polynomial degree.  Required for logit_correction likelihood.
-#' @importFrom geosphere distm
 #' @importFrom DBI dbGetQuery dbExecute dbListTables
 #' @export make_model_design
 #' @details Function creates the model matrix list that contains the data and modeling choices.
@@ -187,8 +186,9 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
                               mod.name=NULL, vars1 = NULL, vars2 = NULL, 
                               priceCol = NULL, startloc = NULL, polyn = NULL) {
   
+  
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
-  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  on.exit(DBI::dbDisconnect(Fishset_db), add = TRUE)
   
   if (!table_exists(paste0(project, "MainDataTable_final"), project)) {
     
@@ -202,7 +202,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
   if(is.null(dataset[[catchID]])){
     stop('catchID does not exist in dataset. Check spelling.')
   }
-  
+    
   # Script necessary to ensure parameters generated in shiny app are in correct format
   if (is_empty(vars1) || vars1 == "none") {
     indeVarsForModel <- NULL
@@ -252,11 +252,11 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     }
   }
 
-  if (table_exists(paste0(project, "ExpectedCatch"), project)) {
+  if (table_exists(paste0(project, "ExpectedCatch"), project) & likelihood == "logit_c") {
     ExpectedCatch <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", project, "ExpectedCatch LIMIT 1"))$data[[1]])
     
     if(dim(as.data.frame(ExpectedCatch[[1]]))[[1]] != length(Alt$choice[which(Alt[["dataZoneTrue"]]==1),])){
-      stop('Number of observations in Expected catch matrix and catch data do not match. Model design file cannot be created.')
+      warning('Number of observations in Expected catch matrix and catch data do not match. Model design file cannot be created.')
     }
   }
   if (!exists("ExpectedCatch")) {
@@ -334,23 +334,22 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     }
     
   ### Initial parameters - need to grab inits from previous model run if required
-    params <- list()
-    for (i in 1:length(initparams)){
-      if(is.character(initparams[[i]])){
+  #  params <- list()
+  #  for (i in 1:length(initparams)){
+      if(grepl(',', initparams)==FALSE){
         x_temp <-  read_dat(paste0(locoutput(project), pull_output(project, type='table', fun=paste0('params_', initparams[[i]]))))
         if(!is.null(x_temp)){
-            param_temp <- x_temp$estimate
+          initparams <- x_temp$estimate#param_temp <- x_temp$estimate
         } else {
-          param_temp <- c(1,1,1,1,1)
+          initparams <- c(1,1,1,1,1) #param_temp <- c(1,1,1,1,1)
           warning('Model not found. Setting parameter estimates to 1.')
         }
-        params[[length(params) + 1]] <- list(param_temp)
-      } else {
-        params[[length(params) + 1]] <- list(initparams[[i]])
-      }
-    }
+       # params[[length(params) + 1]] <- list(param_temp)
+      } #else {
+        #params[[length(params) + 1]] <- list(initparams[[i]])
+    #  }
+ #   }
     
-    browser()
   ### Generate Distance Matrix
      dist_out <- create_dist_matrix(dataset=dataset, alt_var=alt_var, occasion=occasion, dataZoneTrue=dataZoneTrue, 
                                  int=int, choice=choice_raw, units=units, port=port, zoneRow=zoneRow, X=X)
@@ -366,10 +365,12 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
   ### Some models need price data
       if (is_empty(priceCol) || is.null(priceCol) || priceCol == "") {
         epmDefaultPrice <- ""
+        pscale <- 1
       } else {
         epmDefaultPrice <- dataset[which(dataZoneTrue == 1), as.character(priceCol)]
-      }
-      pscale <- mean(epmDefaultPrice, na.rm=TRUE)
+        pscale <- mean(epmDefaultPrice, na.rm=TRUE)
+        }
+    
   ### scales zonal
       #r=regexp(num2str(max(max(modelInputData.zonalChoices))),'\.','split');
       
@@ -419,8 +420,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
         gridVaryingVariables = ExpectedCatch
       )
 
-      
-     print(str(modelInputData_tosave)) 
+#     print(str(modelInputData_tosave)) 
      
       single_sql <- paste0(project, "modelinputdata")
       date_sql <- paste0(project, "modelinputdata", format(Sys.Date(), format = "%Y%m%d"))
