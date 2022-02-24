@@ -13,7 +13,7 @@ explore_startparams_discrete <- function(space, dev, breakearly=TRUE, startsr=NU
   #' @param startsr Optional. List, average starting value parameters for
   #'     revenue/location-specific covariates then cost/distance. The best
   #'     guess at what the starting value parameters should be (e.g. all
-  #'     ones). Specify starting value parameters for each model if values should be differetn than ones.
+  #'     ones). Specify starting value parameters for each model if values should be different than ones.
   #'     The number of starting value parameters should correspond to the likelihood and data that you want to
   #'     test. 
   #' @param dev List of length 1 or length equal to the number of models to be evaluated.
@@ -50,20 +50,33 @@ explore_startparams_discrete <- function(space, dev, breakearly=TRUE, startsr=NU
     
         savestarts <- list()
       saveLLstarts <- list()
+    
      
       savestarts[[1]] <- startsr
       saveLLstarts[[1]] <- fr.name(startsr, d, otherdat, alts = max(choice), project=project, 
                                    mod.name=NULL, expname = NULL) #alts,
 
-      for (k in 2:space) {
+      
+      while(is.infinite(saveLLstarts[[length(unlist(saveLLstarts))]])){
+        k <- length(unlist(saveLLstarts)) + 1
         savestarts[[k]] <- rnorm(length(startsr), startsr, dev)
         saveLLstarts[[k]] <- fr.name(savestarts[[k]], d, otherdat, alts = max(choice), project=project, 
                                      mod.name=NULL, expname=NULL)
-        if( !is.infinite(saveLLstarts[[k]])){
-          break
-        }
       }
-
+       
+   
+      
+      if(breakearly==FALSE && (length(unlist(saveLLstarts))) < space){
+        k <- length(unlist(saveLLstarts)) + 1
+      for (l in k:space) {
+        savestarts[[l]] <- rnorm(length(startsr), startsr, dev)
+        saveLLstarts[[l]] <- fr.name(savestarts[[l]], d, otherdat, alts = max(choice), project=project, 
+                                     mod.name=NULL, expname=NULL)
+       # if(breakearly==TRUE & !is.infinite(saveLLstarts[[k]])){
+        #  break
+       # }
+      }}
+      
       minindex <- which.min(unlist(saveLLstarts))
       newstart <- savestarts[[minindex]]
 

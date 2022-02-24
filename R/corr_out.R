@@ -49,10 +49,11 @@ corr_out <- function(dat, project, variables='all', method = "pearson") {
    
   }
 
-    if(any(sapply(dataset[,variables], var)==0)){
-      cat(paste0("No variance found in ", names(which(sapply(dataset[,variables], var)==0)),
+  
+    if(any(sapply(dataset[,variables], var, na.rm=TRUE)==0)){
+      cat(paste0("No variance found in ", names(which(sapply(dataset[,variables], var, na.rm=TRUE)==0)),
                  ". Removed from correlation test"))
-       variables <- variables[-which(sapply(dataset[,variables], var)==0)]
+       variables <- variables[-which(sapply(dataset[,variables], var, na.rm=TRUE)==0)]
     }
    
 

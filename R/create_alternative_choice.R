@@ -103,7 +103,6 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
 
   x <- 0
 
-stop()
   if(!is.null(gridfile)){
       int <- find_centroid(project = project, gridfile = gridfile, cat = cat, lon.grid = lon.grid, lat.grid = lat.grid)
   } else if(table_exists(paste0(gridname, 'Centroid'), project)|table_exists('gridfileCentroid', project)){
@@ -122,8 +121,7 @@ stop()
   } else {
   if (!is.null(gridfile) & !is.character(gridfile)) {
       if(is.null(lon.dat)){
-        warning('Observations must be assigned to zones. Function not run.')
-                x<-1
+        stop('Observations must be assigned to zones. Function not run.')
       } else {
     int.data <- assignment_column(
       dat = dataset, project=project, gridfile = gridfile, hull.polygon = hull.polygon,
@@ -133,16 +131,13 @@ stop()
       }
     } 
   }
-  
-  if(x == 0){
+
     if(!any(int[,1] %in% int.data[[cat]])){
       if(!is.null(gridfile)){
         int <- find_centroid(project = project, gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.grid, cat = cat) 
       } else
-        warning('Zones do not match between centroid table and zonal assignments in main data table. Rerun find_centoid using 
+        stop('Zones do not match between centroid table and zonal assignments in main data table. Rerun find_centoid using 
                 same spatial data file as was using with the assignment_column function.')
-      x <- 1
-    }
   }
   
   if(x == 0){
@@ -167,7 +162,7 @@ stop()
   }
 
   if (is.null(choice)) {
-    warning("Choice must be defined. Ensure that the zone or area assignment variable (cat parameter) is defined.")
+    stop("Choice must be defined. Ensure that the zone or area assignment variable (cat parameter) is defined.")
     stopanaly <- 1
   }
   
@@ -194,11 +189,10 @@ stop()
   zoneHist[which(zoneHist[, 1] < min.haul), 3] <- NA
 
   if (any(is_empty(which(is.na(zoneHist[, 3]) == F)))) {
-    warning("No zones meet criteria. No data will be included in further analyses. Check the min.haul parameter or zone identification.")
+    stop("No zones meet criteria. No data will be included in further analyses. Check the min.haul parameter or zone identification.")
     stopanaly <- 1
   }
 
-  if (stopanaly == 0) {
     # dataZoneTrue=ismember(gridInfo.assignmentColumn,zoneHist(greaterNZ,3));
 
     dataZoneTrue <- cbind(g %in% zoneHist[, 3], match(g, zoneHist[, 3], nomatch = 0))
@@ -226,7 +220,7 @@ stop()
       # zoneType = ifelse(haul.trip == 'Haul', 'Hauls', 'Trips'),
       int = int # centroid data
     )
-  }
+
 
   
   ### Add gridded data ###
@@ -247,7 +241,7 @@ stop()
     }
         
     if (any(noquote(gsub("[^0-9]", "", colnames(gridVar))) %in% g) == FALSE) {
-      warning("Cannot use griddedDat. Column names of griddedDat do not match zone ids in gridfile.")
+      stop("Cannot use griddedDat. Column names of griddedDat do not match zone ids in gridfile.")
       st <- 1
     }
 
@@ -257,7 +251,7 @@ stop()
         biG <- match(Alt[["zoneRow"]], int) # [aiG,biG] = ismember(Alt.zoneRow, gridVar.col.array) #FIXME FOR STRING CONNECTIONS
         numRows <- nrow(dataset) # size(data(1).dataColumn,1)  #
         if (!any(biG)) {
-          warning("The map associated to the data and the grid information in the gridded variable do not overlap.")
+          stop("The map associated to the data and the grid information in the gridded variable do not overlap.")
           st <- 1
         }
         allMat <- matrix(1, numRows, 1) %x% as.matrix(gridVar[1, biG]) # repmat(gridVar.matrix(1,biG), numRows, 1)
@@ -265,13 +259,13 @@ stop()
         # [aiG,biG] = ismember(Alt.zoneRow, gridVar.col.array)#FIXME FOR STRING CONNECTIONS
         biG <- match(Alt[["zoneRow"]], int[-1]) # gridVar.col.array
         if (!any(biG)) {
-          warning("The map associated to the data and the grid information in the gridded variable do not overlap.")
+          stop("The map associated to the data and the grid information in the gridded variable do not overlap.")
           st <- 1
       }
 
       if (names(gridVar)[1] %in% colnames(dataset) == FALSE) {
         # wrong occourance variable to connect data
-        warning("The data in the workspace and the loaded grid file do not have a matching variable for connecting.")
+        stop("The data in the workspace and the loaded grid file do not have a matching variable for connecting.")
         st <- 1
       }
 
@@ -285,7 +279,7 @@ stop()
       }
     }
     if (anyNA(allMat[Alt[["dataZoneTrue"]], ])) {
-      warning("Problem with loaded matrix, NA found.")
+      stop("Problem with loaded matrix, NA found.")
       st <- 1
     }
     if(st == 0){
