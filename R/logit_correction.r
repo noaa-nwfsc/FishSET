@@ -198,6 +198,8 @@ logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod
 
   ld <- -sum(ld1)
 
+  browser()
+  
   if (is.nan(ld) == TRUE) {
     ld <- .Machine$double.xmax
   }
@@ -208,7 +210,7 @@ logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod
 
   ldglobalcheck <- list(model = paste0(project, expname, mod.name), ldsumglobalcheck = ldsumglobalcheck, paramsglobalcheck = paramsglobalcheck, ldglobalcheck = ldglobalcheck)
 
-  assign("ldglobalcheck", value = ldglobalcheck, pos = 1, envir =fishset_env)
+  assign("ldglobalcheck", value = ldglobalcheck, pos = 1, envir = rlang::caller_env())
   
   return(ld)
 }
