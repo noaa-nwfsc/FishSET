@@ -65,6 +65,7 @@ new_zone_id <- function(combined, id, grid = NULL, closure = NULL,
   #' @import dplyr
   #' @importFrom magrittr %>% 
   #' @importFrom purrr pmap
+  #' @importFrom  sf st_set_geometry
   #' @details This function assigns a new zone ID if the intersection of \code{grid} 
   #'   and \code{closure} creates new, non-contiguous polygons. The ID naming 
   #'   convection is the original name of the regulatory zone followed by a 
@@ -121,12 +122,12 @@ combine_zone <- function(grid, closure, grid.nm, closure.nm, recast = TRUE) {
   #' 
   #' @param grid Grid file containing regulatory zones.
   #' @param closure Closure file containing closure areas. 
-  #' @param grid.nm Character, column name containg grid ID.
-  #' @param closure.nm Character, column name containg closure ID.
+  #' @param grid.nm Character, column name containing grid ID.
+  #' @param closure.nm Character, column name containing closure ID.
   #' @param recast Logical, if \code{TRUE} \code{combined} is passed to 
   #'   \code{recast_multipoly}.
   #' @export
-  #' @import sf
+  #' @importFrom sf st_crs st_snap st_make_valid st_union st_difference st_intersection
   #' @importFrom dplyr bind_rows
   #' @importFrom magrittr %>% 
   #' @details To combine zones with closure areas, this function performs the 

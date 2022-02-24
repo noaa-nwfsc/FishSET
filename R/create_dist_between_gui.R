@@ -31,7 +31,6 @@ create_dist_between_for_gui <- function(dat, project, start=c('lat','lon'), end=
   #' @return Primary data set with distance between points variable added.
   #' @export
   #' @importFrom geosphere distGeo midPoint
-  #' @importFrom jsonlite  toJSON
   #' @description Adds distance between two points to the primary data set. There are two versions of this function. The difference between the two versions is
   #'   how additional arguments specific to start and end locations are added. This
   #'   version requires all necessary arguments to be specified before running and is best used in a non-interactive session.

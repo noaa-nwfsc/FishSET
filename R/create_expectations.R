@@ -35,8 +35,7 @@
 #' @param replace.output Logical, replace existing saved expected catch data frame with new expected catch data
 #'   frame? If FALSE, new expected catch data frames appended to previously saved expected catch data frames.
 #'   Default is TRUE
-#' @importFrom lubridate floor_date
-#' @importFrom zoo rollapply
+#' @importFrom lubridate floor_date year
 #' @importFrom DBI dbGetQuery
 #' @importFrom stats aggregate reshape coef lm
 #' @importFrom signal polyval

@@ -149,7 +149,7 @@ check_spatdat <- function(spatdat, lon = NULL, lat = NULL, id = NULL) {
   #'   whether a projected CRS is used (converts to WGS84 if detected), and if 
   #'   longitude should be shifted to Pacific view (0-360 format) to avoid 
   #'   splitting the Alaska region during plotting. 
-  #' @import sf 
+  #' @importFrom sf st_as_sf st_crs st_transform st_shift_longitude
 
   if (!("sf" %in% class(spatdat))) {
     

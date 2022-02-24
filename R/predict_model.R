@@ -22,6 +22,10 @@
 #'    Can be the expected catch from the short-term scenario (\code{short}), the medium-term scenario (\code{med}), the 
 #'    long-term scenario (\code{long}), or the user-defined temporal parameters (\code{user}).
 #' @param enteredPrice NEED TO FIGURE OUT WHAT EXACTLY THIS IS
+#' @importFrom yaml read_yaml
+#' @importFrom DBI dbConnect dbDisconnect dbGetQuery
+#' @importFrom RSQLite SQLite
+#' @importFrom stringr str_remove
 #' @details Calls \code{\link{logit_predict}}, \code{\link{epm_predict}}, and \code{\link{predict_probability}}.
 #'    Closure scenarios and TAC must be define using \code{\link{zone_closure}} function before function can be run. 
 #' @export

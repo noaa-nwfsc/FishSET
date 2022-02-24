@@ -182,6 +182,7 @@ pull_output <- function(project, fun = NULL, date = NULL, type = "plot", conf = 
   #'  "notes" (.txt) or \code{"all"} files matching the project name, function, and date.
   #' @param conf Logical, whether to return suppressed confidential data. 
   #'    Unsuppressed output will be pulled if suppressed output is not available. 
+  #' @importFrom stringr str_extract_all
   #' @export
   #' @examples
   #' \dontrun{
