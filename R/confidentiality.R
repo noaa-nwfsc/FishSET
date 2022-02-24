@@ -106,7 +106,6 @@ run_confid_check <- function(project) {
   #' Check whether confidentiality rules should be applied
   #' @param project Name of project. 
   #' @keywords internal
-  #' @importFrom rlang env_get
   #' @return \code{TRUE} if confidentiality settings exists and \code{check = TRUE}, 
   #'   \code{FALSE} if settings do not exists yet or \code{check = FALSE}.
   
@@ -164,6 +163,7 @@ get_confid_cache <- function(project, show = "all") {
   #' @param project Name of project
   #' @param show Output \code{"all"} tables, \code{"last"} table, or \code{"first"}
   #'   table. 
+  #' @importFrom jsonlite read_json
   #' @return A list of tables containing suppression conditions. 
   #' @export
   #' @seealso \code{\link{reset_confid_cache}}
@@ -196,6 +196,7 @@ cache_check_table <- function(check, project) {
   #' 
   #' @param check Dataframe, check table to be added to confidentiality cache.
   #' @param project Name of project. 
+  #' @importFrom jsonlite write_json
   #' @keywords internal
   
   cache <- get_confid_cache(project)

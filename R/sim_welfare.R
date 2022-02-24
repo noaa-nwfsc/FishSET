@@ -1,7 +1,7 @@
 #' Welfare simulator
 #' 
 #' @param project Name of project
-#' @param X Independent varialbes from RUM
+#' @param X Independent variables from RUM
 #' @param alts Number of alternative zones
 #' @param beta_j Output from mvrgrnd
 #' @param scenario Scenario list created in \code{\link{welfare_predict}}

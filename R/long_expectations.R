@@ -13,8 +13,7 @@
 #' @param empty.catch Replace empty catch with NA, 0, mean of all catch (allCatch), or mean of grouped catch(groupCatch)
 #' @param empty.expectation Do not replace (NULL) or replace with 0.0001 or 0
 #' @param dummy.exp Logical, should dummy variable be outputted for originally missing value. Defaults to FALSE.
-#' @importFrom lubridate floor_date
-#' @importFrom zoo rollapply
+#' @importFrom lubridate floor_date year
 #' @importFrom DBI dbGetQuery
 #' @importFrom stats aggregate reshape coef lm
 #' @importFrom signal polyval
