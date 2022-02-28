@@ -14,13 +14,13 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
   #' @import ggplot2
   #' @importFrom rlang sym expr enexpr current_env parse_expr
   #' @importFrom stats reformulate
+  #' @importFrom ggpubr annotate_figure
   #' @export
   #' @examples
   #' \dontrun{
   #' xy_plot(pollockMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', 'HAUL', regress=TRUE)
   #' }
 
-  requireNamespace("ggplot2")
 
   # Call in datasets
   out <- data_pull(dat, project)

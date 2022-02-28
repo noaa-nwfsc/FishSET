@@ -7,9 +7,7 @@
 #' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
 #' @keywords centroid, zone, polygon
 #' @importFrom sf st_centroid  st_as_sf
-#' @importFrom rgeos gCentroid
 #' @importFrom stats ave weighted.mean
-#' @importFrom methods as
 #' @return Returns a data frame where each row is a unique zone and columns are the zone ID and the latitude and longitude 
 #'   defining the centroid of each zone.
 #' @export find_centroid
@@ -21,7 +19,10 @@
 find_centroid <- function(project, gridfile, cat, lon.grid = NULL, lat.grid = NULL) {
   
   # Call in datasets
-  gridname <- deparse(substitute(gridfile))
+  gridout <- data_pull(gridfile, project)
+  grid <- gridout$dataset
+  gridfile <- parse_data_name(dat, "grid", project)
+  
   
   tmp <- tempfile()
   on.exit(unlink(tmp), add = TRUE)
@@ -49,8 +50,8 @@ find_centroid <- function(project, gridfile, cat, lon.grid = NULL, lat.grid = NU
 
   # For json and shape files
   if (any(class(gridfile) == "sf")) {
-      int <- rgeos::gCentroid(methods::as(gridfile, "Spatial"), byid = TRUE)
-      int <- cbind(gridfile[[cat]], as.data.frame(int))
+      int <-  sf::st_centroid(gridfile)
+      int <- as.data.frame(cbind(int[[cat]], sf::st_coordinates(sf::st_cast(int,"POINT"))))
       colnames(int) <- c("ZoneID", "cent.lon", "cent.lat")
       if (any(abs(int$cent.lon) > 180)) {
         cat("Longitude is not valid (outside -180:180).", file = tmp, append = TRUE)

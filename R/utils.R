@@ -56,6 +56,8 @@ choose_directory = function(method = select_directory_method(),
   #' @importFrom tcltk tk_choose.dir
   #' @importFrom rChoiceDialogs rchoose.dir
   #' @importFrom gWidgets2 gfile
+  #' @importFrom rstudioapi selectDirectory
+  #' @importFrom utils choose.dir
   #' @export
   #' @keywords internal
   
@@ -725,6 +727,30 @@ skewness <- function(x, na.rm = FALSE) {
   third.moment <- (1 / (n - 2)) * sum((x - m)^3)
   third.moment / (var(x)^(3 / 2))
 }
+
+polyval <- function (coef, z) {
+  #' polyval
+  #' @param coef coeffient
+  #' @param z numeric
+  #' @export
+  #' @keywords internal
+  
+  lz <- length(z)
+  if (!lz) 
+    return(numeric(0))
+  n <- length(coef)
+  if (!n) {
+    z[] <- 0
+    return(z)
+  }
+  if (!(mode(coef) == "numeric") && !(mode(coef) == "complex")) 
+    stop("Argument 'coef' must be a real or complex vector.")
+  d_z <- dim(z)
+  dim(z) <- lz
+  y <- outer(z, (n - 1):0, "^") %*% coef
+  dim(y) <- d_z
+  return(y)
+}
 # ----
 
 date_parser <- function(dates, args=NULL) {
@@ -986,9 +1012,8 @@ perc_of_total <- function(dat, value_var, group = NULL, drop = FALSE,
   #'   \code{"perc"} or proportion \code{"prop"}. 
   #' @param output String, whether to add new variables to dataset (\code{"dataset"})
   #'   or return a summary table (\code{"summary"})
-  #' @importFrom dplyr group_by across mutate ungroup select all_of
+  #' @importFrom dplyr group_by across mutate ungroup select all_of %>%
   #' @importFrom purrr map2
-  #' @importFrom magrittr %>%
   #' @keywords internal
   #' @export
   #' 
@@ -1614,10 +1639,10 @@ gridcheck <- function(spatialdat, catdat, londat=NULL, latdat=NULL, lon.grid=NUL
 outlier_plot_int <- function(dat, x, dat.remove = "none", x.dist = "normal", plot_type) {
   #' Evaluate outliers through plots
   #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.
-  #' @param x Column in dataf rame to check for outliers
+  #' @param x Column in dataframe to check for outliers
   #' @param dat.remove Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD
   #' @param x.dist Distribution of the data. Choices include: normal, lognormal, exponential, weibull, poisson, negative binomial
-  #' @param plot_type Which plot to reeturn
+  #' @param plot_type Which plot to return
   #' @importFrom graphics points
   #' @importFrom ggpubr annotate_figure text_grob
   #' @import ggplot2
@@ -1803,6 +1828,7 @@ deleteButtonColumn <- function(df, id, ...) {
 #' @param id id prefix to add to each actionButton. The buttons will be id'd as id_INDEX.
 #' @return A DT::datatable with escaping turned off that has the delete buttons in the first column 
 #'   and \code{df} in the other function to create one action button as string
+#' @importFrom DT datatable
 #' @keywords internal
 #' @export
 

@@ -383,7 +383,6 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   #' @export
   #' @importFrom dplyr across mutate group_by select ungroup
   #' @importFrom shiny isRunning
-  #' @importFrom magrittr %>% 
   #' @details \code{group_perc} creates a within-group percentage variable using a primary
   #'   group ID (\code{id_group}) and secondary group (\code{group}). The total value of 
   #'   \code{id_group} is stored in the "total_value" variable, and the within-group total
@@ -468,7 +467,6 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   #' @importFrom dplyr across arrange left_join mutate group_by select summarize ungroup
   #' @importFrom shiny isRunning
   #' @importFrom rlang :=
-  #' @importFrom magrittr %>% 
   #' @details \code{group_diff} creates a grouped lagged difference variable. \code{value}
   #'   is first summed by the variable(s) in \code{group}, then the difference within-group is 
   #'   calculated. The "group_total" variable gives the total value by group and can
@@ -546,9 +544,8 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
   #' @param drop_total_col Logical, whether to remove the "group_total" variable
   #'   created to calculate percentage. Defaults to \code{FALSE}.
   #' @export
-  #' @importFrom dplyr across arrange left_join mutate group_by select summarize ungroup
+  #' @importFrom dplyr across arrange left_join mutate group_by select summarize ungroup %>%
   #' @importFrom shiny isRunning
-  #' @importFrom magrittr %>% 
   #' @details \code{group_cumsum} sums \code{value} by \code{group}, then cumulatively
   #'   sums within groups. For example, a running sum by trip variable can be made 
   #'   by entering
@@ -884,9 +881,9 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
 
   # \tabular{AddPromptparams}{
 
-  # head(create_dist_between(dat,'centroid','EMBARKED_PORT', units='miles'))
-  # head(create_dist_between(dat,c('LonLat_START_LON','LonLat_START_LAT'),c('LonLat_END_LON','LonLat_END_LAT'), units='midpoint'))
-  # head(create_dist_between(dat,'DISEMBARKED_PORT','EMBARKED_PORT', units='meters'))
+  # head(create_dist_between(dat, 'pollock', 'centroid','EMBARKED_PORT', units='miles'))
+  # head(create_dist_between(dat, 'pollock', c('LonLat_START_LON','LonLat_START_LAT'),c('LonLat_END_LON','LonLat_END_LAT'), units='midpoint'))
+  # head(create_dist_between(dat, 'pollock', DISEMBARKED_PORT','EMBARKED_PORT', units='meters'))
 
   # Call in data sets
   if (start[1] == end[1]) {
@@ -986,6 +983,7 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
       }
     }
 
+    browser()
 
       # Get distance between points
       if (units == "midpoint") {
@@ -1238,8 +1236,7 @@ randomize_lonlat_zone <- function(dat, project, spat, lon, lat, zone) {
   #' @param zone String, column name contain the assigned zone. Must be the same 
   #'   for both the spatial data table and MainDataTable. 
   #' @export
-  #' @importFrom dplyr across arrange count
-  #' @importFrom magrittr %>% 
+  #' @importFrom dplyr across arrange count %>% 
   #' @importFrom sf st_coordinates st_sample st_as_sf
   #' @details This is one of the FishSET confidentiality functions. It replaces 
   #'   longitude and latitude values with randomly sampled coordinates from the

@@ -16,10 +16,6 @@
 #'   and \code{gridfile} is a csv file. Leave as NULL if \code{gridfile} is a shape or json file.
 #' @param cat  Variable or list in \code{gridfile} that identifies the individual areas or zones. If \code{gridfile}
 #'   is class sf, \code{cat} should be name of list containing information on zones. Required if ‘ZoneID’ does not exist in \code{dat}.
-#' @importFrom sp CRS Polygons Polygon SpatialPolygons SpatialPolygonsDataFrame coordinates
-#' @importFrom rgeos gDistance
-#' @importFrom grDevices chull
-#' @importFrom raster projection
 #' @details Prints tables displaying the number of observations by year, month, and zone. \code{\link{assignment_column}} is called
 #' to assign observations to zones if ‘ZoneID’ does not exist in \code{dat}. Output is not saved.
 #' @export

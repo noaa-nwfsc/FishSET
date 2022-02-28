@@ -35,8 +35,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   #' @import ggplot2
   #' @import sf
   #' @importFrom rlang sym
-  #' @importFrom dplyr group_by summarize
-  #' @importFrom magrittr %>% 
+  #' @importFrom dplyr group_by summarize %>%
   #' @importFrom stats dist
   #' @return A list of plots and/or dataframes depending on whether spatial data 
   #' quality issues are detected. The list includes:

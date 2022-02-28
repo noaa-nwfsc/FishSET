@@ -540,8 +540,7 @@ check_conf_rc <- function(dat, roll_tab, project, catch, date, group, k, full_da
   #' @keywords internal
   #' @importFrom zoo zoo merge.zoo rollapply fortify.zoo
   #' @importFrom tidyr pivot_longer pivot_wider nest
-  #' @importFrom dplyr group_by across arrange
-  #' @importFrom magrittr %>% 
+  #' @importFrom dplyr group_by across arrange %>%
   
   cc_par <- get_confid_check(project)
   

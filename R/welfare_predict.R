@@ -4,6 +4,8 @@
   #' @param mod.name Name of selected model (mchoice)
   #' @param expected.catch.name Name of expectedchatch table to use
   #' @param enteredPrice Price for welfare
+  #' @importFrom DBI dbConnect dbDisconnect dbGetQuery
+  #' @importFrom RSQLite SQLite
   #' @export
   #' @details Called by \code{\link{run_policy}} function. The \code{\link{model_prediction}} function should be run before this function.
 welfare_predict <- function(project, mod.name, expected.catch.name, enteredPrice){

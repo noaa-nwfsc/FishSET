@@ -16,7 +16,6 @@
 #' @importFrom lubridate floor_date year
 #' @importFrom DBI dbGetQuery
 #' @importFrom stats aggregate reshape coef lm
-#' @importFrom signal polyval
 #' @export long_expectations
 #' @keywords internal
 #' @return Expected catch matrix. Saved to database via create_expectations
@@ -201,7 +200,7 @@ if (calc.method == "simpleLag") {
       meanCatch <- matrix(NA, nrow = nrow(meanCatchSimple), ncol = ncol(meanCatchSimple) - 2)
       #        polys <- data.frame(matrix(NA, nrow = nrow(meanCatchSimple), ncol = 2))  #nan(size(meanCatchSimple,1),2)
       for (q in 1:nrow(meanCatchSimple)) {
-        meanCatch[q, ] <- signal::polyval(
+        meanCatch[q, ] <- polyval(
           stats::coef(stats::lm(as.numeric(meanCatchSimple[q, 3:(ncol(meanCatchSimple) - 1)]) ~
           as.numeric(meanCatchSimple[q, 4:ncol(meanCatchSimple)]))),
           as.numeric(meanCatchSimple[q, 3:ncol(meanCatchSimple)])

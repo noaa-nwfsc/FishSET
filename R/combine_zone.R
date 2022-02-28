@@ -12,7 +12,6 @@ recast_multipoly <- function(grid, closure, combined, id) {
   #' @export
   #' @importFrom sf st_intersects st_is st_cast
   #' @importFrom  dplyr filter bind_rows
-  #' @importFrom magrittr %>% 
   #' @details This function is primarily used to extract polygons during 
   #'   the ID re-labeling process performed by \code{\link{new_zone_id}}. If
   #'   a polygon from \code{grid} intersected with \code{closure}, it is extracted
@@ -63,7 +62,6 @@ new_zone_id <- function(combined, id, grid = NULL, closure = NULL,
   #' @keywords internal
   #' @export
   #' @import dplyr
-  #' @importFrom magrittr %>% 
   #' @importFrom purrr pmap
   #' @importFrom  sf st_set_geometry
   #' @details This function assigns a new zone ID if the intersection of \code{grid} 
@@ -129,7 +127,6 @@ combine_zone <- function(grid, closure, grid.nm, closure.nm, recast = TRUE) {
   #' @export
   #' @importFrom sf st_crs st_snap st_make_valid st_union st_difference st_intersection
   #' @importFrom dplyr bind_rows
-  #' @importFrom magrittr %>% 
   #' @details To combine zones with closure areas, this function performs the 
   #'   following steps:
   #'   \enumerate{
