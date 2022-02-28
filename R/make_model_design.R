@@ -188,7 +188,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
   
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
-  on.exit(DBI::dbDisconnect(Fishset_db), add = TRUE)
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
   if (!table_exists(paste0(project, "MainDataTable_final"), project)) {
     

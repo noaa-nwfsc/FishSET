@@ -4,14 +4,14 @@
 #' Runs functions associated with loading data, exploring data, checking for data quality issues, generating new variables, and basic data analysis function.
 #'
 #' @import shiny
-#' @import ggplot2
-#' @importFrom DT DTOutput renderDT
-#' @importFrom ggpubr ggarrange
-#' @importFrom ggcorrplot ggcorrplot
-#' @importFrom DBI  dbDisconnect dbConnect dbListTables dbWriteTable
+# @import ggplot2
+# @importFrom DT DTOutput renderDT
+# @importFrom ggpubr ggarrange
+# @importFrom ggcorrplot ggcorrplot
+# @importFrom DBI  dbDisconnect dbConnect dbListTables dbWriteTable
 # @importFrom gridExtra grid.table
-#' @importFrom stringi stri_count_regex
-#' @importFrom shinycssloaders withSpinner
+# @importFrom stringi stri_count_regex
+# @importFrom shinycssloaders withSpinner
 #' @export run_fishset_gui
 #' @details
 #' Opens an interactive page that allows users to select which functions to run by clicking check boxes.
@@ -32,12 +32,4 @@ run_fishset_gui <- function() {
 
   # shiny app call
 
-
- # if (!is.null(dat)) {
-#   out <- data_pull(dat, project)
- #   dat <- out$dat
- #   dataset <- out$dataset
- # }
-
-  # shinyAppDir(paste0(loc, '/inst/ShinyFiles'))
 }

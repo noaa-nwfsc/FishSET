@@ -109,8 +109,7 @@ dat_to_sf <- function(spatdat, lon, lat, id) {
   #' @param id Polygon ID column. 
   #' @export
   #'@importFrom sf st_as_sf st_cast
-  #'@importFrom dplyr group_by across summarize
-  #'@importFrom magrittr %>% 
+  #'@importFrom dplyr group_by across summarize  %>%
   
   spatdat <- sf::st_as_sf(x = spatdat, coords = c(lon, lat), 
                           crs = "+proj=longlat +datum=WGS84")

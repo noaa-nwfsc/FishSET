@@ -5123,7 +5123,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                 'polyn'='')
                      , rv$data)#model_table())
         } else {
-          rv$data = rbind(data.frame('mod_name'=paste0('mod', counter$countervalue), 
+          rv$data = rbind(data.frame('mod_name'=paste0(input$model, '_mod', counter$countervalue), 
                                'likelihood'=input$model, 
                                'optimOpt'=paste(input$mIter,input$relTolX, input$reportfreq, input$detailreport),
                                'inits'=paste(int_name(), collapse=','),#noquote(paste0('input$int',1:numInits())),
@@ -5133,7 +5133,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                'catch'= input$catch,
                                'project'= project$name, 
                                'price'= input$price,
-                               'startloc'= if(input$startlocdefined=='exists'){input$startloc_mod} else {'startingloc'}, 
+                               'startloc'=  'startingloc',#if(input$startlocdefined=='exists'){input$startloc_mod} else {'startingloc'}, 
                                'polyn'= input$polyn)
                     , rv$data)#model_table())
         }

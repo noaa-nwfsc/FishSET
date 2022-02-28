@@ -272,26 +272,17 @@ projects <- function() {
   #' Display projects names
   #' @export
   #' @details Lists the unique project names currently in the FishSET Database. 
-  #' @importFrom stringr str_extract
   #' @examples 
   #' \dontrun{
   #' projects()
   #' } 
   #' 
  
- # if (exists("loc2")) loc2 <- loc2
- # if (!exists('loc2')||is.null(loc2)) {
     projloc <- locproject()
- # } else {
- #   projloc <- paste0(loc2, '/projects')
- # }
+
   
    tab <- list_dirs(path=projloc)
-  #p_tabs <- subset(tab, tab!='extdata'&tab!='MapViewer'&tab!='output'&tab!='report'&tab!='ShinyFiles'&tab!='Logs')
-  
-  
- # p_tabs <- grep("MainDataTable", tables_database(project), value = TRUE)
-  
+ 
   if (length(tab) == 0) {
     
     warning("No projects found. Upload a new file to create a project.")

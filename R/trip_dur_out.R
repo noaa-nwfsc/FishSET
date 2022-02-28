@@ -95,13 +95,10 @@
 #' 
 #' }
 #' @importFrom lubridate is.Date is.POSIXt
-#' @importFrom stats reformulate
-#' @importFrom gridExtra arrangeGrob grid.arrange marrangeGrob
-#' @importFrom rlang sym 
-#' @importFrom dplyr anti_join
 #' @importFrom tidyr pivot_wider
+#' @importFrom tibble as_tibble
 #' @importFrom shiny isRunning
-#' @import ggplot2
+#' @importFrom gridExtra arrangeGrob grid.arrange marrangeGrob
 
 trip_dur_out <- function(dat, project, start, end, units = "days", vpue = NULL,
                         group = NULL, combine = TRUE, haul_count = TRUE, sub_date = NULL,
@@ -611,6 +608,7 @@ trip_duration_plot <- function(trip_tab, trp_nms, vpue, group, facet_by, units, 
   #'   default) or multiple pages (\code{"multi"}).
   #' @import ggplot2
   #' @importFrom rlang sym
+  #' @importFrom scales label_number label_scientific
   #' @importFrom stats reformulate
   #' @importFrom gridExtra arrangeGrob marrangeGrob
   #' @importFrom shiny isRunning
