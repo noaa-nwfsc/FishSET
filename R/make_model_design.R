@@ -291,7 +291,6 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     }
     units <- Alt[["altChoiceUnits"]]
     
-    
     if (!is.null(Alt[["matrix"]])) {
       X <- Alt[["matrix"]]
     } else {
@@ -355,7 +354,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
                                  int=int, choice=choice_raw, units=units, port=port, zoneRow=zoneRow, X=X)
   
   ### ---- add special terms: ----### add only for EPM model
- 
+
       catch <- dataset[which(dataZoneTrue == 1), as.vector(catchID)]
       #r=regexp(num2str(max(modelInputData.catch)),'\.','split');
       #r <- nchar(sub("\\.[0-9]+", "", max(catch, na.rm = T)))

@@ -141,71 +141,6 @@ end <- FALSE
         for(j in 1:length(exp.names)){
           data.matrix <- create_model_input(project=project, x=x, mod.name=x$mod.name, use.scalers= use.scalers, scaler.func=scaler.func, expected.catch.name=exp.names[j])
         
-
-
-       
-      
-      #Scalers
- #     scale.func <- function(s, d){
- #             if(!is.list(s)) {
- #               s <- as.list(s)
- #             } 
- #             if(length(d) == length(s)){
- #              for(k in 1:length(d)) {  
- #               d[k] <- unlist(s)[k]
- #             }} else {
- #               message('Insufficient scaling factor values supplied. Defaulting to 2*sd.')
- #               
- #           }
- #       return(d)
- #         }
-
-       #Scalers
-#      scale.func <- function(s, d){
-#              if(!is.list(s)) {
-#                s <- as.list(s)
-#              } 
-#              if(length(d) == length(s)){
-#               for(k in 1:length(d)) {  
-#                d[k] <- unlist(s)[k]
-#              }} else {
-#                message('Insufficient scaling factor values supplied. Defaulting to 2*sd.')
-#                
-#            }
- #       return(d)
- #         }
-      
-#    if(use.scalers == TRUE && !is.null(scaler.func)){
-#          if(!is.character(scaler.func)){
-#          
-#           x_temp[[i]]$scales[1] <- scaler.func(x_temp[[i]][["catch"]])
-#            x_temp[[i]]$scales[2] <-  scaler.func(x_temp[[i]][["distance"]])
-#            x_temp[[i]]$scales[3] <-  scaler.func(x_temp[[i]][["bCHeader"]][["gridVariablesInclude"]])
-#            if(is.list(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]])){
-#              x_temp[[i]]$scales[4]:length(x_temp[[i]]$scales) <- lapply(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]], function(x) scaler.func(unlist(x)))
-#            } else {
-#              x_temp[[i]]$scales[4]:length(x_temp[[i]]$scales) <- scaler.func(x_temp[[i]][["bCHeader"]][["indeVarsForModel"]]) 
-#            }
-#           
-#         } 
-##         } else if(use.scalers == FALSE) {
-#        for(k in 1:length(x_temp[[i]]$scales)) { 
-#          x_temp[[i]]$scales[k] <- 1
-#          }
-#         }
-      
-      
-#      catch <- (data.frame(as.matrix(x_temp[[i]][["catch"]])))/x_temp[[i]]$scales[1]
-#      choice <- x_temp[[i]][["choice"]]
-#     distance <- (data.frame(x_temp[[i]][["distance"]]))/x_temp[[i]]$scales[2]
-#      startingloc <- x_temp[[i]][["startingloc"]]
-      # otherdat <- list(griddat=list(griddatfin=x[['gridVaryingVariables']][['matrix']]), intdat=list(x[['bCHeader']][[-1]]), pricedata=list(epmDefaultPrice))
- #     mod.name <- unlist(x_temp[[i]][["mod.name"]])
-      #opt <- unlist(x_temp[[i]][["optimOpt"]])
-      #starts2 <- unlist(x_temp[[i]][["initparams"]])
- #     polyn <- NA
-      
-  
           
       if (is.factor(x_temp[[i]][["optimOpt"]])) {
             opt <- as.numeric(unlist(strsplit(as.character(x_temp[[i]][["optimOpt"]]), " ")))
@@ -236,72 +171,6 @@ end <- FALSE
       fr <- x_temp[[i]][["likelihood"]] # func  #e.g. logit_c
       fr.name <- match.fun(find_original_name(match.fun(as.character(fr))))
       
-      # remove unnecessary lists
-#      x_temp[[i]][["gridVaryingVariables"]] <- Filter(Negate(function(x) is.null(unlist(x))), x_temp[[i]][["gridVaryingVariables"]])
-#      x_temp[[i]][["gridVaryingVariables"]] <- x_temp[[i]][["gridVaryingVariables"]][names(x_temp[[i]][["gridVaryingVariables"]]) != "units"]
-#      x_temp[[i]][["gridVaryingVariables"]] <- x_temp[[i]][["gridVaryingVariables"]][names(x_temp[[i]][["gridVaryingVariables"]]) != "scale"]
-      
-            #Identify the number of inits required
-
-
-
-#      if (fr == "logit_correction" & all(is.na(startingloc))) {
-#        warning("Startingloc parameter is not specified. Rerun the create_alternative_choice function")
-#      }
-#      dataCompile <- create_logit_input(choice)
-
-#      d <- shift_sort_x(dataCompile, choice, catch, distance, max(choice), ab)
-      
-      # starts2 <-as.numeric(unlist(strsplit(as.character(inits), ","))) # inits
-      
-      ### Data needs will vary by the likelihood function ###
-#      if (grepl("epm", fr)) {
-#        otherdat <- list(
-#          griddat = list(griddatfin = as.data.frame(x_temp[[i]][["bCHeader"]][["gridVariablesInclude"]])/x_temp[[i]]$scales[3]),
-#          intdat = list(as.data.frame(
-#            mapply("/",x_temp[[i]][["bCHeader"]][["indeVarsForModel"]],
-#                   x_temp[[i]]$scales[c(4:length(x_temp[[i]]$scales))],SIMPLIFY = FALSE))),
-#          pricedat = as.data.frame(x_temp[[i]][["epmDefaultPrice"]])
-#        )
-#        nexpcatch <- 1
-#        expname <- fr
-#      } else if (fr == "logit_correction") {
-#        otherdat <- list(
- #         griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))), # x[['bCHeader']][['gridVariablesInclude']]),
-#          intdat = list(as.data.frame(mapply("/",x_temp[[i]][["bCHeader"]][["indeVarsForModel"]],
-#                          x_temp[[i]]$scales[c(4:length(x_temp[[i]]$scales))],SIMPLIFY = FALSE))),
-#          startloc = as.data.frame(x_temp[[i]][["startloc"]]),
- #         polyn = as.data.frame(x_temp[[i]][["polyn"]])
-#        )
-#        nexpcatch <- 1
-#        expname <- fr
-#      } else if (fr == "logit_avgcat") {
-#        otherdat <- list(
-#          griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))), # x[['bCHeader']][['gridVariablesInclude']]),
-#          intdat = list(as.data.frame(
-#                                  mapply("/",x_temp[[i]][["bCHeader"]][["indeVarsForModel"]],
-#                                         x_temp[[i]]$scales[c(4:length(x_temp[[i]]$scales))],SIMPLIFY = FALSE)))
-#        )
-#        nexpcatch <- 1
-#        expname <- fr
-#      } else if (fr == "logit_c") {
-#        nexpcatch <- length(names(x_temp[[i]][["gridVaryingVariables"]]))
-#      }
-#      # Begin loop
-#      for (j in 1:nexpcatch) {
-#        if (fr == "logit_c") {
-#          expname <- paste0(names(x_temp[[i]][["gridVaryingVariables"]])[j], "_", fr)
-#          otherdat <- list(
-#            griddat = list(griddatfin = as.data.frame(x_temp[[i]][["gridVaryingVariables"]][[names(x_temp[[i]][["gridVaryingVariables"]])[j]]])/x_temp[[i]]$scales[3]),
-#            intdat = list(as.data.frame(
-#                           mapply("/",x_temp[[i]][["bCHeader"]][["indeVarsForModel"]],
-#                                  x_temp[[i]]$scales[c(4:length(x_temp[[i]]$scales))],SIMPLIFY = FALSE)))
-#          )
-#        }
-        
-        # Get data
-        
-        
         
         #Number of inits
         gridNum <- length(data.matrix$otherdat$griddat[[1]])
@@ -311,7 +180,8 @@ end <- FALSE
         } else if(fr == 'logit_avgcat') {
           numInits <- gridNum*(max(data.matrix$choice)-1)+intNum
         } else if(fr == 'logit_correction'){
-          numInits <- gridNum*4 + intNum + ((((x_temp[[i]]$polyn+1)*2)+2)*4) +1+1
+          numInits <- gridNum*max(data.matrix$choice) + intNum + ((((as.numeric(x_temp[[i]]$polyn)+1)*2)+2)*max(data.matrix$choice)) +1+1
+          
         } else {
 #          if(input$lockk=='TRUE'){
 #            numInits <- gridNum*max(choice)+intNum+alt+1

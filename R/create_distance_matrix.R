@@ -137,7 +137,7 @@ create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, ch
       }
       ### --End occasion---###
       #### ---Begin alt_var Var--##
-      if (any(grepl("zon|cent", alt_var, ignore.case = T))) {
+      if (any(grepl("zon|cent", alt_var, ignore.case = T)) & length(alt_var)==1) {
         # (v2==0){ #Zonal centroid [B,I,choiceZ] <-
         # unique(gridInfo.assignmentColumn(dataZoneTrue))#
         if(!any(int$ZoneID %in% unique(choice[which(dataZoneTrue == 1), ]))) {
