@@ -22,7 +22,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
   #' @importFrom R.matlab readMat
   #' @importFrom jsonlite fromJSON
   #' @importFrom haven read_spss read_stata read_sas
-  #' @importFrom utils read.table read.delim
+  #' @importFrom readr read_csv read_delim read_rds
   #' @importFrom readxl read_excel
   #' @importFrom xml2 read_xml read_html
   #' @importFrom RCurl getURL
@@ -49,7 +49,8 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
   #'   To specify the seperator argument for a deliminated file, include tab-deliminated, specify \code{data.type = 'delim'}.
   #'   
   #'   For more details, see \code{\link[base]{load}} for loading R objects, 
-  #'   \code{\link[utils]{read.table}} for reading in comma and tab deliminated files,
+  #'   \code{\link[readr]{read_csv}} for reading in comma files,
+  #'   \code{\link[readr]{read_delim}} for reading in delimited files,
   #'   \code{\link[readxl]{read_excel}} for reading in excel files (xls, xlsx), 
   #'   \code{\link[sf]{st_read}} for reading in geojson , GeoPackage files, and shape files,
   #'   \code{\link[R.matlab]{readMat}} for reading in matlab data files,
@@ -57,7 +58,6 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
   #'   \code{\link[haven]{read_spss}} for reading in spss data files,
   #'   \code{\link[haven]{read_sas}} for reading in sas data files, and 
   #'   \code{\link[jsonlite]{fromJSON}} for reading in json files.
-  #'   \code{\link[utils]{read.table}} for reading in deliminated files. See \code{read.delim}. Include the file separator character \code{sep = ""}
   #'   \code{\link[xml2]{read_xml}} for reading in XML files. Further processing may be required.
   #'   \code{\link[xml2]{read_html}} for reading in html tables.
   #'   See \code{read_sheet} in \code{\link[googlesheets4]{range_read}} for reading in google spreadsheets.
@@ -102,7 +102,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
       return(as.data.frame(out))
     }
   } else if (data.type == "rds") {
-    readRDS(x, ...)
+    readr::read_rds(x, ...)
   } else if (data.type == "mat" | data.type == 'matlab') {
     cat('Data returned as named list structure. Further processing is required.')
     R.matlab::readMat(x, ...)
@@ -112,7 +112,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
   } else if (data.type == "geojson"|data.type == 'geopackage' | data.type == 'gpkg') {
     sf::st_read(x, ...)
   }  else if (data.type == "csv") {
-    read.csv(x, ...)
+    readr::read_csv(x, ...)
   } else if (data.type == 'sas7bdat' | data.type == 'sas') {
     as.data.frame(haven::read_sas(x, ...))
   } else if (data.type == "sav" | data.type == 'spss' | data.type == 'por' | data.type == 'sas') {
@@ -128,7 +128,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
   } else if (data.type == 'txt') {
     utils::read.table(x, sep='\t', ...)
   } else if (data.type == 'delim'){
-    utils::read.delim(x, ...)
+    readr::read_delim(x, ...)
   } else if(data.type == 'xml'){
     xml2::read_xml(x, ...)
   } else if(data.type == 'html'){
