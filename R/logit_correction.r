@@ -112,16 +112,18 @@ logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod
   intnum <- dim(intdat)[2]
 
   startloc <- (otherdat$startloc)
-  distance <- otherdat$distance
+  
+  distance <- as.data.frame(otherdat$distance)
 
-  polyn <- otherdat$polyn
+  polyn <- as.numeric(otherdat$polyn)
 
   starts3 <- as.matrix(starts3)
 
   revcoef <- as.matrix(starts3[1:1, ])
 
   gridlength <- (gridnum * alts) + ((((polyn + 1) * 2) + 2) * alts)
-
+  
+  
   gridcoef <- as.matrix(starts3[2:(1 + gridlength), ])
 
   signum <- 1
@@ -154,6 +156,8 @@ logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod
   revside <- gridbetas * matrix(revcoef, obsnum, alts)
   costside <- distance * intbetas
 
+
+  
   probprof <- revside + costside
 
   probprofx <- probprof - probprof[, 1]
@@ -172,7 +176,7 @@ logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod
   probmove <- probs * locmove
 
   intpoly <- 2
-
+  browser()
   movemat <- matrix(
     c(locmove, (matrix(probmove, obsnum, alts * polyn)^matrix(rep(1:polyn, each = alts), obsnum, alts * polyn, byrow = TRUE)), (matrix(
       probmove,
@@ -198,7 +202,6 @@ logit_correction <- function(starts3, dat, otherdat, alts, project, expname, mod
 
   ld <- -sum(ld1)
 
-  browser()
   
   if (is.nan(ld) == TRUE) {
     ld <- .Machine$double.xmax
