@@ -28,15 +28,14 @@ log_rerun <- function(log_file, dat = NULL, portTable = NULL, aux = NULL,
   end <- FALSE
   
   project <- gsub("\\_.*", "", log_file)
-  
-  if (!file.exists(paste0(loclog(project=project), log_file), project)) {
+  if (!file.exists(paste0(loclog(project=project), log_file))) {
     
     warning(log_file, " does not exist. Run list_logs() or project_logs().")
     end <- TRUE
   } 
   
   if (end == FALSE) {
-    
+
     out <- jsonlite::fromJSON(paste0(loclog(project=project), log_file), simplifyVector = FALSE) # import as list, preserves class type
     
     out <- out$fishset_run[[2]]$function_calls # list of just function calls
@@ -68,7 +67,7 @@ log_rerun <- function(log_file, dat = NULL, portTable = NULL, aux = NULL,
     # add names to args
     for (i in seq_along(out)) {
       
-      arg_names <- names(formals(out[[i]]$functionID))
+      arg_names <- names(formals(out[[i]]$functionID))[1:length(out[[i]]$args)]
       names(out[[i]]$args) <- arg_names[arg_names != "..."] 
     }
     
@@ -180,6 +179,7 @@ log_rerun_gui <- function() {
   #' log_rerun_gui()
   #' }
   
+  
   shinyApp(
     
     ui = fluidPage(
@@ -199,7 +199,8 @@ log_rerun_gui <- function() {
           
           actionButton("run_log", "Rerun log",
                        style="color: #fff; background-color: #6da363; border-color: #800000;"),
-          selectInput('project', 'Select a project', choices = projects()),
+          uiOutput('projects'),
+          uiOutput('logfilename'),
           checkboxInput("new_dat_cb", "Run log with different data table"),
           uiOutput('project_choices'),
           
@@ -215,24 +216,34 @@ log_rerun_gui <- function() {
     
     server = function(input, output, session) {
       
-      fetch_log <- reactive(log_rerun(input$log, run = FALSE))
+      output$projects <- renderUI({ 
+        selectInput('project', 'Select a project', choices =list_dirs(path=locproject()))
+        #print(projects())
+      })
+        
+      output$logfilename <- renderUI({
+        req(input$project)
+        selectInput("log", "Select a log file", choices = list_logs(project = input$project))
+      })
       
-      selectInput("log", "Select a log file", choices = list_logs())
+      
+      fetch_log <- reactive(log_rerun(log_file=input$log, run = FALSE))
+      
       
       output$project_choices <- renderUI({
-      
+      req(input$project)
       conditionalPanel("input.new_dat_cb",
-                       
+                      
                        selectizeInput("new_dat", "Choose main table", 
-                                      choices = main_tables(), multiple = TRUE,
+                                      choices = main_tables(project=input$project), multiple = TRUE,
                                       options = list(maxItems = 1)), # sets dat to NULL by default
                        
                        selectizeInput("new_port", "Choose port table", 
-                                      choices = list_tables(type = "port"), multiple = TRUE,
+                                      choices = list_tables(project=input$project, type = "port"), multiple = TRUE,
                                       options = list(maxItems = 1)),
                        
                        selectizeInput("new_aux", "Choose aux table", 
-                                      choices = tables_database(input$project), multiple = TRUE,
+                                      choices = tables_database(project=input$project), multiple = TRUE,
                                       options = list(maxItems = 1)),
                        
                        selectizeInput("new_grid", "Choose gridded table", 
@@ -240,7 +251,7 @@ log_rerun_gui <- function() {
                                       options = list(maxItems = 1)),
                        
                        selectizeInput("new_spat", "Choose spatial table", 
-                                      choices = tables_database(input$project), multiple = TRUE,
+                                      choices = tables_database(project=input$project), multiple = TRUE,
                                       options = list(maxItems = 1))
       )
       })
