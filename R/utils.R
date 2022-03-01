@@ -93,13 +93,20 @@ locproject <- function() {
   
   if (exists("loc2")) loc2 <- loc2
   #else loc2 <- loc()
-  
+
+ 
+  if(dir.exists(c("../FishSETFolder/projects"))){
+    pathtest <- c("../FishSETFolder/projects")
+  } else if(dir.exists(normalizePath('../../../../FishSETFolder/projects'))){
+    pathtest <- normalizePath('../../../../FishSETFolder/projects')
+  } else {
   if(shiny::isRunning()){
     pathtest <- normalizePath('../../../../FishSETFolder/projects')
   } else {
     pathtest <- c("../FishSETFolder/projects")
   }
-
+  }
+  
   if (!exists('loc2') || is.null(loc2)) {
     if(is_empty(dir.exists(pathtest))){#dir.exists(c("../FishSETFolder/projects")))){
       loc()
