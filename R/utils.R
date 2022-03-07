@@ -1881,11 +1881,15 @@ find_lon <- function(dat) {
   if(all(is_empty(dat[1,]))) return()
   cols <- colnames(dat)[grep('lon', colnames(dat), ignore.case=TRUE)]
   lat_find <- stringr::str_count(cols, '(?=LAT|Lat|lat)')
+  
+  if(any(lat_find>0)){
   lat_rem <- which(lat_find %in% max(lat_find))
-  cols[-c(lat_rem)]
+  cols <- cols[-c(lat_rem)]
+  }
+  
   #lon_match <- stringi::stri_count_regex(cols, '(?=LON|Lon|lon)')
   #lon_cols <- which(lon_match %in% max(lon_match))
-  
+  return(cols)
   #cols[lon_cols]
 }
 
@@ -1897,8 +1901,13 @@ find_lat <- function(dat) {
   if(all(is_empty(dat[1,]))) return()
   cols <- colnames(dat)[grep('lat', colnames(dat), ignore.case=TRUE)]
   lon_find <- stringr::str_count(cols, '(?=LON|Lon|lon)')
+  
+  if(any(lon_find > 0) ){
   lon_rem <- which(lon_find %in% max(lon_find))
-  cols[-c(lon_rem)]
+  cols <- cols[-c(lon_rem)]
+  }
+  
+  return(cols)
   #cols <- colnames(dat)
   #lat_match <- stringi::stri_count_regex(cols, '(?=LAT|Lat|lat)')
   #lat_cols <- which(lat_match %in% max(lat_match))

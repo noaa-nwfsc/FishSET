@@ -949,7 +949,7 @@ source("map_viewer_app.R", local = TRUE)
                                              selected = 'mean'),
                                  uiOutput('input_IDVAR')),
                                
-                               conditionalPanel("input.VarCreateTop=='Trip-level functions'&&input.dist=='trip_distance'" ,
+                               conditionalPanel("input.VarCreateTop=='Trip-level functions'&&input.trip=='trip_distance'" ,
                                                 style = "margin-left:19px;",
                                  uiOutput('input_trip_dist_vars')),
                                
@@ -1004,8 +1004,9 @@ source("map_viewer_app.R", local = TRUE)
                                                                        'Select catch and price variables'='primary')),#, #calculate distance matrix
                                conditionalPanel("input.choiceTab=='distm'",
                                                 actionButton('saveALT','Save choices', style = "color: white; background-color: green;")),
-                               conditionalPanel("input.choiceTab=='zone'",
-                                                actionButton('savecentroid','Calculate zonal centroid', style = "color: white; background-color: green;")),
+                               
+                               #conditionalPanel("input.choiceTab=='zone'",
+                               #                 actionButton('savecentroid','Calculate zonal centroid', style = "color: white; background-color: green;")),
                                actionButton('callTextDownloadAlt','Save notes'),
                                textInput('notesAltc', "Notes", value=NULL, 
                                          placeholder = 'Write notes to store in text output file. Text can be inserted into report later.'),
@@ -1023,14 +1024,18 @@ source("map_viewer_app.R", local = TRUE)
                               
                                #--------#
                                #CENTROID
-                               uiOutput('conditionalInput2'),
-                               uiOutput('cond2'),
+                               #uiOutput('conditionalInput2'),
+                               #uiOutput('cond2'),
                                #runs assignment column and find_centroid functions
                                #--------#
                                #DISTANCE MATRIX
                                uiOutput('conditionalInput3a'),
-                               uiOutput('conditionalInput3'),
-                               div(style="display: inline-block;vertical-align:top; width: 500px;",
+                                uiOutput('distZonea'),
+                               uiOutput('distZoneb'),
+                              
+                              uiOutput('conditionalInput3'),
+                              
+                              div(style="display: inline-block;vertical-align:top; width: 500px;",
                                    conditionalPanel("input.choiceTab=='distm'",
                                                     plotOutput('zoneIDNumbers_plot'))),
                                div(style="display: inline-block;vertical-align:top; width: 160px;",

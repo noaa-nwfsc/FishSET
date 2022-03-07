@@ -733,7 +733,7 @@ create_mid_haul <- function(dat, project, start = c("lon", "lat"), end = c("lon"
   
 }
 
-create_trip_centroid <- function(dat, project, lon, lat, weight.var = NULL, ...) {
+create_trip_centroid <- function(dat, project, lon, lat, tripID, weight.var = NULL) {
   ## ----trip centroid-----#
   #' Create trip centroid variable
   #'
@@ -743,8 +743,8 @@ create_trip_centroid <- function(dat, project, lon, lat, weight.var = NULL, ...)
   #' @param project Project name. 
   #' @param lat Variable in \code{dat} containing latitudinal data.
   #' @param lon Variable in \code{dat} containing longitudinal data.
+  #' @param tripID Variable in \code{dat} containing trip identifier. If trip identifier should be defined by more than one variable then list as \code{c('var1', 'var2')}.
   #' @param weight.var Variable in \code{dat} for computing the weighted average.
-  #' @param ... Optional, one or more variable in \code{dat} that identify individual trips. If not defined, each row is treated as a unique trip.
   #' @details Computes the average longitude and latitude for each trip. Specify \code{weight.var} to calculate the weighted centroid.
   #'   Additional arguments can be added that define unique trips. If no additional arguments are added, each row will be treated as a unique trip.
   #' @return Returns the primary dataset with centroid latitude and centroid longitude variables added.
@@ -772,20 +772,23 @@ create_trip_centroid <- function(dat, project, lon, lat, weight.var = NULL, ...)
  
     # stop('Latitude is not valid (outside -90:90.')
   }
+  
 
-    if (grepl("input", as.character(match.call(expand.dots = FALSE)$...)[1]) == TRUE) {
-      argList <- eval(...)
-    } else {
-      argList <- (as.character(match.call(expand.dots = FALSE)$...))
-    }
+#    if (grepl("input", as.character(match.call(expand.dots = FALSE)$...)[1]) == TRUE) {
+#      argList <- eval(...)
+#    } else {
+ #     argList <- (as.character(match.call(expand.dots = FALSE)$...))
+ #   }
 
+  
     idmaker <- function(vec) {
       return(paste(sort(vec), collapse = ""))
     }
 
-    int <- as.data.frame(cbind(dataset, rowID = as.numeric(factor(apply(as.matrix(dataset[, eval(substitute(argList))]), 1, idmaker)))))
+    
+    int <- as.data.frame(cbind(dataset, rowID = as.numeric(factor(apply(as.matrix(dataset[, tripID]), 1, idmaker)))))
     # int <- int[, c(colnames(sapply(dataindex[[varnameindex]], grepl, colnames(int))), 'rowID')]
-    cat(length(unique(int$rowID)), "unique trips were identified using", argList, "\n")
+    cat(length(unique(int$rowID)), "unique trips were identified using", tripID, "\n")
     # Handling of empty variables
     if (any(apply(int, 2, function(x) all(is.na(x))) == TRUE)) {
       int <- int[, -which(apply(int, 2, function(x) all(is.na(x))) == TRUE)]
@@ -804,7 +807,7 @@ create_trip_centroid <- function(dat, project, lon, lat, weight.var = NULL, ...)
 
     create_trip_centroid_function <- list()
     create_trip_centroid_function$functionID <- "create_trip_centroid"
-    create_trip_centroid_function$args <- list(dat, project, lon, lat, weight.var, argList)
+    create_trip_centroid_function$args <- list(dat, project, lon, lat, tripID, weight.var)
     create_trip_centroid_function$kwargs <- list()
     create_trip_centroid_function$output <- list(dat)
     log_call(project, create_trip_centroid_function)
@@ -983,9 +986,7 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
       }
     }
 
-    browser()
-
-      # Get distance between points
+    # Get distance between points
       if (units == "midpoint") {
         newvar <- geosphere::midPoint(cbind(start.long, start.lat), cbind(end.long, end.lat))
       } else {
