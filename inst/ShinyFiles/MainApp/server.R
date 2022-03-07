@@ -1005,15 +1005,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         req(input$loadmainsource)
         
         if (input$loadmainsource == 'Upload new file') {
-          
-          if (is_empty(input$projectname)) {
-            
-            project$name <- NULL
-          
-          } else {
             
             project$name <- input$projectname
-          }
           
         } else if (input$loadmainsource == 'FishSET database') {
           
@@ -2266,7 +2259,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         xn <- which(changecode()!="no changes")
         x <- colnames(values$dataset)[xn]
         newclass <- changecode()[xn]
-        values$dataset <- changeclass(values$dataset, project=project$name, x=x, 
+        values$dataset <- changeclass(dat=values$dataset, project=project$name, x=x, 
                                       newclass=newclass, savedat=FALSE)
         showNotification('Variable class changed.', type='message', duration=10)
       })
@@ -4339,8 +4332,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       # haul to trip
       output$input_IDVAR <- renderUI({
-        varSelectInput("Haul_Trip_IDVar", "Variable(s) that define unique trips",
-                       data = values$dataset, multiple=TRUE)
+        selectInput("Haul_Trip_IDVar", "Variable(s) that define unique trips",
+                       choices = names(values$dataset), multiple=TRUE)
       })
       
       # Trip distance
@@ -4349,8 +4342,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           selectInput("port_dat_dist", "Choose port table from the FishSET database", 
                       choices = list_tables(project$name, "port"), multiple = FALSE),
           
-          varSelectInput('trip_ID','Variable that identifies unique trips', 
-                         data = values$dataset, multiple = FALSE),
+          selectInput('trip_ID','Variable that identifies unique trips', 
+                         choices=names(values$dataset), multiple = FALSE),
           
           selectInput('starting_port','Variable that identifies port at START of trip', 
                       multiple = FALSE, choices = find_port(values$dataset), selectize=TRUE),
@@ -4369,8 +4362,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                          multiple = FALSE, choices = find_port(values$dataset),
                          options = list(create = TRUE, placeholder='Select or type variable name')),
           
-          varSelectizeInput('haul_order','Variables that identifies the order of hauls within a trip.',
-                            data = values$dataset, multiple = FALSE))
+          selectizeInput('haul_order','Variables that identifies the order of hauls within a trip.',
+                            choices=names(values$dataset), multiple = FALSE)
+          )
       })
       
       # Trip centroid
@@ -4387,8 +4381,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           selectInput('trip_cent_weight','Variable for weighted average', multiple = FALSE, 
                       choices=c('', names(values$dataset)), selected='', selectize=TRUE),
           
-          varSelectInput('trip_cent_id','Variable(s) that identify the individual trip', 
-                         data = values$dataset, multiple = TRUE))
+          selectizeInput('trip_cent_id','Variable(s) that identify the individual trip', 
+                         choices = c('', names(values$dataset)), selected='', multiple = TRUE)
+          )
       })
       
       
@@ -4576,7 +4571,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               q_test <- quietly_test(create_trip_centroid)
               values$dataset <- q_test(values$dataset, project = project$name, 
                                        lon=input$trip_cent_lon, lat=input$trip_cent_lat, 
-                                       weight.var=input$trip_cent_weight, input$trip_cent_id)
+                                      tripID=input$trip_cent_id, weight.var=input$trip_cent_weight)
         }
       })
       
@@ -4617,41 +4612,41 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                          ))
       })
       #Zonal centroid options
-      output$conditionalInput2 <- renderUI({
-        conditionalPanel(condition="input.choiceTab=='zone'",
-                         tagList(
-                           if(names(spatdat$dataset)[1]=='var1'){
-                             tags$div(h4('Map file not loaded. Please load on Upload Data tab', style="color:red"))
-                           },
-                            selectInput('cat_altc', 'Individual areas/zones from the spatial dataset', 
-                                        choices=names(as.data.frame(spatdat$dataset))),
-                           
-                           h5(tags$b('Additional arguments required for calculating weighted centroid')),
-                           div(style="display: inline-block;vertical-align:top; width: 200px;",
-                               selectizeInput('lat_dat_ac', '',
-                                              choices = find_lat(values$dataset),
-                                              options = list(create = TRUE, placeholder='Select or type LATITUDE variable name'))),
-                           div(style="display: inline-block;vertical-align:top; width: 200px;",
-                               selectizeInput('lon_dat_ac', '',
-                                              choices = find_lon(values$dataset),
-                                              options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name')))
-                          
-                         ) )
-      })
+      #output$conditionalInput2 <- renderUI({
+      #  conditionalPanel(condition="input.choiceTab=='zone'",
+     #                    tagList(
+     #                     if(names(spatdat$dataset)[1]=='var1'){
+     #                        tags$div(h4('Map file not loaded. Please load on Upload Data tab', style="color:red"))
+     #                      },
+     #                       selectInput('cat_altc', 'Individual areas/zones from the spatial dataset', 
+     #                                   choices=names(as.data.frame(spatdat$dataset))),
+     #                      
+     #                      h5(tags$b('Additional arguments required for calculating weighted centroid')),
+     #                      div(style="display: inline-block;vertical-align:top; width: 200px;",
+     #                          selectizeInput('lat_dat_ac', '',
+     #                                         choices = find_lat(values$dataset),
+     #                                         options = list(create = TRUE, placeholder='Select or type LATITUDE variable name'))),
+     #                      div(style="display: inline-block;vertical-align:top; width: 200px;",
+     #                          selectizeInput('lon_dat_ac', '',
+     #                                         choices = find_lon(values$dataset),
+     #                                         options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name')))
+     #                     
+     #                    ) )
+     # })
   
-      output$cond2 <- renderUI({
-        conditionalPanel(condition="input.choiceTab=='zone'",
-                         if(!('sf' %in% class(spatdat$dataset))){
-                           tagList(
-                             h5(tags$b('Select vector containing latitude then longitude from spatial dataset')),
-                             div(style="display: inline-block;vertical-align:top; width: 200px;",
-                                 selectizeInput('lat_grid_altc', '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE)),
-                             div(style="display: inline-block;vertical-align:top; width: 200px;",
-                                 selectizeInput('long_grid_altc',  '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE))
-                           )
-                         }
-        )
-      })
+    #  output$cond2 <- renderUI({
+    #    conditionalPanel(condition="input.choiceTab=='zone'",
+    #                     if(!('sf' %in% class(spatdat$dataset))){
+    #                       tagList(
+    #                         h5(tags$b('Select vector containing latitude then longitude from spatial dataset')),
+    #                         div(style="display: inline-block;vertical-align:top; width: 200px;",
+    #                             selectizeInput('lat_grid_altc', '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE)),
+    #                         div(style="display: inline-block;vertical-align:top; width: 200px;",
+    #                             selectizeInput('long_grid_altc',  '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE))
+    #                       )
+    #                     }
+   #     )
+     # })
 
       output$conditionalInput3a <- renderUI({
         conditionalPanel(condition="input.choiceTab=='distm'",
@@ -4696,10 +4691,17 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
     #input$min_haul_ac
       zoneIDNumbers_dat <- reactive({
-        if(!any(colnames(values$dataset)=='ZoneID')){
-          return()
+        if(!any(colnames(values$dataset)=='ZoneID') && input$datzone==TRUE){
+        temp <- data.frame(table(values$dataset[[input$distMatrixZone]]))
+        temp2 <- values$dataset[which(values$dataset[[input$distMatrixZone]] %in% temp[which(temp$Freq > input$min_haul_ac),1]), ]
+        ggplot2::ggplot(temp2, ggplot2::aes(x=.data[[input$distMatrixZone]])) + 
+          ggplot2::geom_bar() + ggplot2::theme_bw() + 
+          ggplot2::theme(panel.border = ggplot2::element_blank(), 
+                         panel.grid.major = ggplot2::element_blank(),
+                         panel.grid.minor = ggplot2::element_blank(), 
+                         axis.line = ggplot2::element_line(colour = "black"))
           #warning('This step cannot be completed. Observations not assigned to zones.')
-        } else {
+        } else if(any(colnames(values$dataset)=='ZoneID')) {
           temp <- data.frame(table(values$dataset$ZoneID))
           temp2 <- values$dataset[which(values$dataset$ZoneID %in% temp[which(temp$Freq > input$min_haul_ac),1]), ]
            ggplot2::ggplot(temp2, ggplot2::aes(x=ZoneID)) + 
@@ -4708,16 +4710,39 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                            panel.grid.major = ggplot2::element_blank(),
                            panel.grid.minor = ggplot2::element_blank(), 
                            axis.line = ggplot2::element_line(colour = "black"))
+        } else {
+          return()
+        }
+      })
+      
+      output$distZonea <- renderUI({
+        if(any(colnames(values$dataset)=='ZoneID')){
+          return()
+        } else {
+          conditionalPanel(condition="input.choiceTab=='distm'",
+          checkboxInput('datzone', 'Primary data contains a zone/area assignment variable', value=FALSE)) 
+        }
+      })
+      
+      output$distZoneb <- renderUI({
+        if(input$choiceTab=='distm' & input$datzone==TRUE){
+                         selectInput('distMatrixZone', 'Column containing zone identifier', choices = c(colnames(values$dataset)))
+        } else{
+          return()
         }
       })
       
       output$zoneIDText <- renderText({
-        if(!any(colnames(values$dataset)=='ZoneID')){
-          return()
-        } else {
+        if(!any(colnames(values$dataset)=='ZoneID') && input$datzone==TRUE){
+          temp <- data.frame(table(values$dataset[[input$distMatrixZone]]))
+          paste('number of records:',dim(values$dataset[which(values$dataset[[input$distMatrixZone]] %in% temp[which(temp$Freq > input$min_haul_ac),1]), ])[1], 
+                '\nnumber of zones:', nrow(temp[which(temp$Freq > input$min_haul_ac),]))
+        } else if(any(colnames(values$dataset)=='ZoneID')){
           temp <- data.frame(table(values$dataset$ZoneID))
           paste('number of records:',dim(values$dataset[which(values$dataset$ZoneID %in% temp[which(temp$Freq > input$min_haul_ac),1]), ])[1], 
                 '\nnumber of zones:', nrow(temp[which(temp$Freq > input$min_haul_ac),]))
+        } else {
+          return()
         }
       })
       
@@ -5018,7 +5043,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         } else if(input$model == 'logit_avgcat') {
           numInits <- gridNum*(alt()-1)+intNum
         } else if(input$model == 'logit_correction'){
-          numInits <- gridNum*4 + intNum + ((((polyn+1)*2)+2)*4) +1+1
+          numInits <- gridNum*alt() + ((((polyn+1)*2)+2)*alt()) + intNum  +1+1
         } else {
           if(input$lockk=='TRUE'){
             numInits <- gridNum*alt()+intNum+alt+1

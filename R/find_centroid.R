@@ -29,28 +29,27 @@ find_centroid <- function(project, gridfile, cat, lon.grid = NULL, lat.grid = NU
   cat("", file = tmp, append = TRUE)
   x <- 0
  
-    if (any(grepl("Spatial", class(gridfile)))) {
-      if(any(class(gridfile) %in% c("sp", "SpatialPolygonsDataFrame"))) {
-        gridfile <- sf::st_as_sf(gridfile)
-        gridfile <- sf::st_transform(gridfile, crs = "+proj=longlat +datum=WGS84")
+    if (any(grepl("Spatial", class(grid)))) {
+      if(any(class(grid) %in% c("sp", "SpatialPolygonsDataFrame"))) {
+        grid <- sf::st_as_sf(grid)
+        grid <- sf::st_transform(grid, crs = "+proj=longlat +datum=WGS84")
       } else {
     if (is_empty(lon.grid) | is_empty(lat.grid)) {
       warning("lat.grid and lon.grid must be supplied to convert sp object to a sf object.")
       x <- 1
     } else {
       # map2 <- sf::st_read('Z:/OLDFishSET/NMFS_RA.json')
-      gridfile <- sf::st_as_sf(
-        x = gridfile,
+      grid <- sf::st_as_sf(
+        x = grid,
         coords = c(lon.grid, lat.grid),
         crs = "+proj=longlat +datum=WGS84"
       )
     }
       }}
-  
 
   # For json and shape files
-  if (any(class(gridfile) == "sf")) {
-      int <-  sf::st_centroid(gridfile)
+  if (any(class(grid) == "sf")) {
+      int <-  sf::st_centroid(grid)
       int <- as.data.frame(cbind(int[[cat]], sf::st_coordinates(sf::st_cast(int,"POINT"))))
       colnames(int) <- c("ZoneID", "cent.lon", "cent.lat")
       if (any(abs(int$cent.lon) > 180)) {
@@ -74,7 +73,7 @@ find_centroid <- function(project, gridfile, cat, lon.grid = NULL, lat.grid = NU
   } else {
     # Centroid based on spatial data file or data set
 
-      int <- gridfile
+      int <- grid
       lon <- lon.grid
       lat <- lat.grid
 
@@ -101,7 +100,7 @@ find_centroid <- function(project, gridfile, cat, lon.grid = NULL, lat.grid = NU
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
-  DBI::dbWriteTable(fishset_db, paste0(noquote(gridname), "Centroid"), int, overwrite = TRUE)
+  DBI::dbWriteTable(fishset_db, paste0(noquote(gridfile), "Centroid"), int, overwrite = TRUE)
   message('Geographic centroid saved to fishset database')
   return(int)
 }
