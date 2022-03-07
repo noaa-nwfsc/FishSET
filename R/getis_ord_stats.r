@@ -74,13 +74,13 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
   if (x == 0) {
     # Assign data to zone
     if (!is.null(cat)) {
-      dataset <- assignment_column(dat=dataset, project=project, gridfile=spatdat, hull.polygon = TRUE, 
+      dataset <- suppressWarnings(assignment_column(dat=dataset, project=project, gridfile=spatdat, hull.polygon = TRUE, 
                                    lon.dat=lon.dat, lat.dat=lat.dat, cat=cat, closest.pt = TRUE, 
-                                   lon.grid=lon.grid, lat.grid=lat.grid, epsg = NULL, log.fun = FALSE)
+                                   lon.grid=lon.grid, lat.grid=lat.grid, epsg = NULL, log.fun = FALSE))
       
       # Idenfity centroid of zone
-      int <- find_centroid(gridfile=spatdat, project = project, cat = cat, 
-                           lon.grid=lon.grid, lat.grid=lat.grid)
+      int <- suppressWarnings(find_centroid(gridfile=spatdat, project = project, cat = cat, 
+                           lon.grid=lon.grid, lat.grid=lat.grid))
     }
     
      
@@ -110,7 +110,7 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
     #g <- as.data.frame(spatdat[[cat]])
     #colnames(g) = 'ZoneID'
     #g <- merge(uniquedatatomap, g, all.y = TRUE)
-    spatdat <-  merge(spatdat, uniquedatatomap[,c('ZoneID','GetisOrd')], by.x='STAT_AREA', by.y='ZoneID')#spatdat$GetisOrd <- g$GetisOrd
+    spatdat <-  merge(spatdat, uniquedatatomap[,c('ZoneID','GetisOrd')], by.x=cat, by.y='ZoneID')#spatdat$GetisOrd <- g$GetisOrd
     
     
     spatdat <- cbind(spatdat, sf::st_coordinates(sf::st_centroid(sf::st_make_valid(spatdat))))
@@ -124,19 +124,19 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
     
     annotatesize <- 6
 
-    getismap <- ggplot(data = spatdat) +
-      geom_sf(data = spatdat, mapping = aes(fill = GetisOrd), show.legend = FALSE)+
+    getismap <- ggplot2::ggplot(data = spatdat) +
+      ggplot2::geom_sf(data = spatdat, mapping = aes(fill = GetisOrd), show.legend = FALSE)+
       xlim(minlon, maxlon) +
       ylim(minlat, maxlat)+ 
       scale_fill_gradient2(
         low = "skyblue2",
         high = "firebrick1", mid = "white", name = "Local\nGetis-Ord"
       )  +
-      geom_map(
+      ggplot2::geom_map(
         data = world,
-        map = world, aes(map_id = world$region), fill = "grey", color = "black", size = 0.375
+        map = world, aes(map_id = .data$region), fill = "grey", color = "black", size = 0.375
       ) +
-      ggtitle("Getis-Ord statistics") +
+      ggplot2::ggtitle("Getis-Ord statistics") +
       annotate(
         geom = "text", x = min(spatdat$X) * 0.9915,  y = min(spatdat$Y) * 0.997,
         label = paste0("Global Getis-Ord = ", round(globalgetis$estimate[1], 2)), parse = FALSE, size = annotatesize,
@@ -158,11 +158,10 @@ getis_ord_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.da
 
     log_call(project, getis_ord_stats_function)
 
-    return(list(getismap = getismap, getistable = uniquedatatomap[, c("ZoneID", "GetisOrd")]))
-
 
     save_plot(project, "getis_ord_stats", getismap)
-
     save_table(uniquedatatomap, project, "getis_ord_stats")
+    
+ return(list(getismap = getismap, getistable = uniquedatatomap[, c("ZoneID", "GetisOrd")]))
   }
 }
