@@ -538,7 +538,7 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
       }
       
       f_label <- function() {
-        if (format_lab == "decimal") scales::label_number(big.mark = "")
+        if (format_lab == "decimal") scales::label_number(big.mark = ",")
         else scales::label_scientific()
       }
       
