@@ -406,7 +406,7 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
       }
       
       f_label <- function() {
-        if (format_lab == "decimal") scales::label_number(big.mark = "")
+        if (format_lab == "decimal") scales::label_number(big.mark = ",")
         else scales::label_scientific()
       }
       
