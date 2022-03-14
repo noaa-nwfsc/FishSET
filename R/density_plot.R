@@ -403,7 +403,7 @@ dens_plot_helper <- function(dataset, var, group, date, facet_by, filter_date,
   }
   
   f_label <- function() {
-    if (format_lab == "decimal") scales::label_number(big.mark = "")
+    if (format_lab == "decimal") scales::label_number(big.mark = ",")
     else scales::label_scientific()
   }
   
