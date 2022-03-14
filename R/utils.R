@@ -176,6 +176,7 @@ check_proj <- function(project = NULL) {
       
       #doc (report)
       dir.create(file.path(paste0(proj_dir, '/doc')), showWarnings = FALSE)
+      file.copy('report/report_template.Rmd', paste0(proj_dir, "/doc/"))
       
       create_proj_settings(project)
       
@@ -199,6 +200,7 @@ check_proj <- function(project = NULL) {
       }
       if(!file.exists(paste0(locproject(), "/", project, "/doc"))){
         dir.create(file.path(paste0(proj_dir, '/doc')), showWarnings = FALSE)
+        file.copy('report/report_template.Rmd', paste0(proj_dir, "/doc/"))
       }
       if(!file.exists(paste0(locproject(), "/", project, "/MapViewer"))){
         dir.create(file.path(paste0(proj_dir, '/MapViewer')), showWarnings = FALSE)
@@ -342,6 +344,7 @@ loc_data <- function(project) {
     if (exists("loc2")) loc2 <- loc2
     if (!exists('loc2')||is.null(loc2)) {
       paste0(locproject(), "/", project, "/data/")
+      
     } else {
       paste0(loc2, "/projects/", project, "/data/")
     }

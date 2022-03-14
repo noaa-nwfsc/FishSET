@@ -24,6 +24,7 @@ metaCreateProjServ <- function(id) {
   #' @param id An ID string that matches the corresponding UI function: 
   #'   \code{\link{metaProjUI}}. 
   #' @keywords internal
+  #' @export
   #' @import shiny
   #' @details This module is used in the \code{\link{metadata_gui}} function 
   #'   and in the FishSET app. It creates the UIs for project name and available
@@ -67,6 +68,7 @@ metaEditProjServ <- function(id) {
   #' @param id An ID string that matches the corresponding UI function: 
   #'   \code{\link{metaProjUI}}. 
   #' @keywords internal
+  #' @export
   #' @import shiny
   #' @details This module is used in the \code{\link{metadata_gui}} function 
   #'   and in the FishSET app. It creates the UIs for project name and available
@@ -110,6 +112,7 @@ metaCreateSaveUI <- function(id) {
   #' @param id An ID string that matches the corresponding server functions: 
   #'   \code{\link{metaCreateLoadServ}} and \code{\link{metaSaveServ}}. 
   #' @keywords internal
+  #' @export
   #' @import shiny
   #' @details This module is used in the \code{\link{metadata_gui}} function 
   #'   and in the FishSET app. It creates the buttons needed to load and save 
@@ -136,6 +139,7 @@ metaEditSaveUI <- function(id) {
   #' @param id An ID string that matches the corresponding server functions: 
   #'   \code{\link{metaEditLoadServ}} and \code{\link{metaSaveServ}}. 
   #' @keywords internal
+  #' @export
   #' @import shiny
   #' @details This module is used in the \code{\link{metadata_gui}} function 
   #'   and in the FishSET app. It creates the buttons needed to load and save 
@@ -163,6 +167,7 @@ aboutUI <- function(id) {
   #'   \code{\link{metaCreateLoadServ}} or \code{\link{metaEditLoadServ}} and 
   #'   \code{\link{metaSaveServ}}. 
   #' @keywords internal
+  #' @export
   #' @import shiny
   #' @details This module is used in the \code{\link{metadata_gui}} function 
   #'   and in the FishSET app. It creates text boxes for general metadata. These
@@ -212,6 +217,7 @@ colDescUI <- function(id, nm, value = "") {
   #' @param nm Column name passed to \code{textAreaInput} id.
   #' @param value Value passed to \code{textAreaInput}.
   #' @keywords internal
+  #' @export
   #' @import shiny
   #' @details This module is used in the \code{\link{metadata_gui}} function 
   #'   and in the FishSET app. It creates a text box for each column in a FishSET
@@ -230,6 +236,7 @@ contactUI <- function(id) {
   #'   \code{\link{metaCreateLoadServ}} or \code{\link{metaEditLoadServ}} and 
   #'   \code{\link{metaSaveServ}}. 
   #' @keywords internal
+  #' @export
   #' @import shiny
   #' @details This module is used in the \code{\link{metadata_gui}} function 
   #'   and in the FishSET app. It creates text boxes for contact info. These
@@ -265,6 +272,7 @@ metaColLayoutUI <- function(id) {
   #' @param id An ID string that matches the corresponding server function: 
   #'   \code{\link{metaColLayoutServ}}. 
   #' @keywords internal
+  #' @export
   #' @import shiny
   #' @details This module is used in the \code{\link{metadata_gui}} function 
   #'   and in the FishSET app. It arranges column text boxes in the main panel.
@@ -280,6 +288,7 @@ metaColLayoutServ <- function(id, cols) {
   #' @param id An ID string that matches the corresponding UI function: 
   #'   \code{\link{metaColLayoutUI}}.
   #' @keywords internal
+  #' @export
   #' @import shiny
   #' @details This module is used in the \code{\link{metadata_gui}} function 
   #'   and in the FishSET app. It arranges column text boxes  in the main panel.
@@ -316,6 +325,7 @@ metaOut <- function(id) {
   #'   \code{\link{metaCreateLoadServ}} or \code{\link{metaEditLoadServ}} and 
   #'   \code{\link{metaSaveServ}}.
   #' @keywords internal
+  #' @export
   #' @import shiny
   #' @details This module is used in the \code{\link{metadata_gui}} function 
   #'   and in the FishSET app. It outputs metadata to the main panel.
@@ -332,6 +342,7 @@ metaRawUI <- function(id) {
   #' @param id An ID string that matches the corresponding server functions: 
   #'   \code{\link{metaRawServ}} and \code{\link{metaRawOut}}. 
   #' @keywords internal
+  #' @export
   #' @import shiny
   #' @details This module is used in the \code{\link{metadata_gui}} function 
   #'   and in the FishSET app. It allows users to import and save raw metadata
@@ -360,6 +371,7 @@ metaRawOut <- function(id) {
   #' @param id An ID string that matches the corresponding server functions: 
   #'   \code{\link{metaRawUI}} and \code{\link{metaRawServ}}. 
   #' @keywords internal
+  #' @export
   #' @import shiny
   #' @details This module is used in the \code{\link{metadata_gui}} function 
   #'   and in the FishSET app. It outputs raw metadata to the main panel.
@@ -377,6 +389,7 @@ metaRawServ <- function(id, meta) {
   #' @param meta Reactive values object to store metadata in. 
   #' @keywords internal
   #' @import shiny
+  #' @export
   #' @importFrom rlang is_bare_list
   #' @details This module is used in the \code{\link{metadata_gui}} function 
   #'   and in the FishSET app. It imports and saves raw metadata.
@@ -561,6 +574,7 @@ metaDeleteUI <- function(id) {
   #' @param id An ID string that matches the corresponding server function: 
   #'   \code{\link{metaDeleteServ}}. 
   #' @keywords internal
+  #' @export
   #' @import shiny
   #' @details This module is used in the \code{\link{metadata_gui}} function 
   #'   and in the FishSET app. It allows users to delete metadata from the 
@@ -581,6 +595,7 @@ metaDeleteServ <- function(id, cols, meta) {
   #'   table.
   #' @param meta Reactive values object to store metadata in. 
   #' @keywords internal
+  #' @export
   #' @import shiny
   #' @details This module is used in the \code{\link{metadata_gui}} function 
   #'   and in the FishSET app. It allows users to delete metadata from the 
@@ -635,6 +650,7 @@ metaCreateLoadServ <- function(id, cols, meta) {
   #'   table.
   #' @param meta Reactive values object to store metadata in. 
   #' @keywords internal
+  #' @export
   #' @import shiny
   #' @details This module is used in the \code{\link{metadata_gui}} function 
   #'   and in the FishSET app. It loads FishSET tables and creates metadata
@@ -692,6 +708,7 @@ metaEditLoadServ <- function(id, cols, meta) {
   #'   table.
   #' @param meta Reactive values object to store metadata in. 
   #' @keywords internal
+  #' @export
   #' @import shiny
   #' @details This module is used in the \code{\link{metadata_gui}} function 
   #'   and in the FishSET app. It loads FishSET tables and creates metadata
@@ -791,6 +808,8 @@ empty_meta <- function(input, col_nms) {
   #' @param input Shiny input. 
   #' @param col_nms Column names. 
   #' @importFrom stringi stri_isempty
+  #' @keywords internal
+  #' @export
   
   about_id <- c("auth", "date_c", "confid", "date_m", "ver", "about", "src", 
                 "coll_meth", "intend")
@@ -814,6 +833,7 @@ metaSaveServ <- function(id, cols) {
   #' @param cols Reactive values object containing column names from a FishSET 
   #'   table.
   #' @keywords internal
+  #' @export
   #' @import shiny
   #' @details This module is used in the \code{\link{metadata_gui}} function 
   #'   and in the FishSET app. It saves new or edited metadata to the project
@@ -889,6 +909,7 @@ metaCreateServ <- function(id, cols, meta) {
   #'   table.
   #' @param meta Reactive values object to store metadata in. 
   #' @keywords internal
+  #' @export
   #' @details This module is used in the \code{\link{metadata_gui}} function 
   #'   and in the FishSET app. It runs the metadata server modules needed to save,
   #'   edit, and delete metadata. 
@@ -918,6 +939,7 @@ metaEditServ <- function(id, cols, meta) {
   #'   table.
   #' @param meta Reactive values object to store metadata in. 
   #' @keywords internal
+  #' @export
   #' @details This module is used in the \code{\link{metadata_gui}} function 
   #'   and in the FishSET app. It runs the metadata server modules needed to save,
   #'   edit, and delete metadata. 
