@@ -668,7 +668,7 @@ trip_duration_plot <- function(trip_tab, trp_nms, vpue, group, facet_by, units, 
   }
 
   f_label <- function() {
-    if (format_lab == "decimal") scales::label_number(big.mark = "")
+    if (format_lab == "decimal") scales::label_number(big.mark = ",")
     else scales::label_scientific()
   }
   
