@@ -443,8 +443,8 @@ mergeServer <- function(id, main, other, project, merge_type, dat_type, show = N
   moduleServer(id, function(input, output, session) {
     
     ns <- session$ns
-    dat_type_lab <- switch(dat_type, "aux" = "auxiliary", "port" = "port", 
-                       "grid" = "gridded", "spat" = "spatial")
+    dat_type_lab <- switch(dat_type, "aux" = "Auxiliary", "port" = "Port", 
+                       "grid" = "Gridded", "spat" = "Spatial")
     
     output$mergeUI <- renderUI({
       

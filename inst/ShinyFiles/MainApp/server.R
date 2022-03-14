@@ -4475,7 +4475,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             values$dataset <- create_duration(values$dataset, project = project$name, 
                                               start=input$dur_start2, end=input$dur_end2, 
                                               units=input$dur_units2, name='dur')
-            values$dataset <- q_test(values$dataset, xWeight=input$xWeight, xTime='dur', 
+            values$dataset <- q_test(values$dataset, project=project$name, xWeight=input$xWeight, xTime='dur', 
                                      name=input$varname)
           }
         } else if (input$VarCreateTop=='Spatial functions' & input$dist=='zone') {
@@ -4725,11 +4725,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
       
       output$distZoneb <- renderUI({
-        if(input$choiceTab=='distm' & input$datzone==TRUE){
+        if(input$choiceTab=='distm' & !any(colnames(values$dataset)=='ZoneID')){
+              if(input$datzone==TRUE){
                          selectInput('distMatrixZone', 'Column containing zone identifier', choices = c(colnames(values$dataset)))
-        } else{
-          return()
-        }
+               } else{
+                  return()
+               }
+           }
       })
       
       output$zoneIDText <- renderText({

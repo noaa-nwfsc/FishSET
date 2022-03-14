@@ -17,11 +17,9 @@ knitr::opts_chunk$set(echo = FALSE)
 library(pander)
 library(FishSET)
 
-locuser <- "Enter/path/to/folder/" # Enter a filepath to a local folder (optional)
+#Optional - If output exists in a filepath other than FishSET folder.
+locuser <- "Enter/path/to/folder/" 
 
-# for dev purposes
-loc <- "C:/Users/bryce.mcmanus/Work/FishSET_RPackage"  
-loc2 <- paste0(loc, '/inst')
 ```
 
 <!-- Delete text below before generating report -->

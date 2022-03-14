@@ -1,8 +1,8 @@
 # Create variables or matrix.
 
 ## --- CPUE ----##
-cpue <- function(dat, project, xWeight, xTime, name = "cpue") {
-  #' Create catch per unit effort variable
+cpue <- function(dat, project, xWeight, xTime, price=NULL, name = "cpue") {
+  #' Create catch or revenue per unit effort variable
   #' 
   #' @description Add catch per unit effort (CPUE) variable to the primary dataset. Catch should be a weight variable 
   #'   but can be a count. Effort should be in a duration of time, such as days, hours, or minutes.
@@ -13,6 +13,9 @@ cpue <- function(dat, project, xWeight, xTime, name = "cpue") {
   #'   (pounds, metric tons, etc) but can also be count.
   #' @param xTime Duration of time variable in \code{dat} representing effort, such as
   #'   weeks, days, hours, or minutes.
+  #' @param price Optional, variable from \code{dat} containing price/value data.  Price is multiplied against the catch variable,
+  #'   \code{xWeight}, to generated revenue. If revenue exists in \code{dat} and you wish to use this revenue instead of price,
+  #'   then \code{xWeight} must NULL. Defaults to NULL.
   #' @param name String, name of created variable. Defaults to name of the function if not defined.
   #' @export cpue
   #' @details Creates the catch per unit effort variable. Catch variable should be in weight (lbs, mts).
@@ -31,25 +34,47 @@ cpue <- function(dat, project, xWeight, xTime, name = "cpue") {
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
-  name <- ifelse(is_empty(name), "cpue", name)
+ if(is_empty(name)){
+    if(!is.null(price)) {
+      name = 'rpue'
+    } else {
+      name = 'cpue'
+    }
+ } else {
+    name= name
+  }
   
   tmp <- 0
-
-  if (!is.numeric(dataset[[xTime]]) | !is.numeric(dataset[[xWeight]])) {
-    tmp <- 1
-    warning("Data must be numeric. CPUE not calculated")
+  
+  # Deal with revenue issue
+  if(!is.null(price)){
+    if(!is.null(xWeight) & xWeight!=1){
+      stopifnot(is.numeric(dataset[[xWeight]]))
+      stopifnot(is.numeric(dataset[[price]]))
+      if (!grepl("LB|Pounds|MT", xWeight, ignore.case = TRUE)) {
+        warning("xWeight must a measurement of mass. RPUE calculated.")
+      }
+      weight <- dataset[[xWeight]]*dataset[[price]]
+    } else {
+      weight <- dataset[[price]]
+    }
+  } else {
+    stopifnot(is.numeric(dataset[[xWeight]]))
+    if (!grepl("LB|Pounds|MT", xWeight, ignore.case = TRUE)) {
+      warning("xWeight must a measurement of mass. CPUE calculated.")
+    }
+    weight <- dataset[[xWeight]]
   }
 
-  if (tmp == 0) {
+  stopifnot(is.numeric(dataset[[xTime]])) 
+  
+ 
     # Check that Weight variable is indeed a weight variable
     if (!grepl("Duration", xTime, ignore.case = TRUE)) {
       warning("xTime should be a measurement of time. Use the create_duration function. CPUE calculated.")
     }
-    if (!grepl("LB|Pounds|MT", xWeight, ignore.case = TRUE)) {
-      warning("xWeight must a measurement of mass. CPUE calculated.")
-    }
 
-    newvar <- dataset[[xWeight]] / dataset[[xTime]]
+    newvar <- weight/ dataset[[xTime]]
 
     g <- cbind(dataset, newvar)
     colnames(g)[dim(g)[2]] = name
@@ -62,7 +87,6 @@ cpue <- function(dat, project, xWeight, xTime, name = "cpue") {
 
     log_call(project, create_var_cpue_function)
     return(g)
-  }
 }
 
 ## ---- Dummy  Variables ----##

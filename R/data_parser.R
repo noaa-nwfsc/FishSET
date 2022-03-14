@@ -1,18 +1,16 @@
 #  Import data
-#str_trim
 
 read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NULL, user = NULL, password = NULL, ...) {
   #' Import data from local file directory or webpage into the R environment
   #' @param x Name and path of dataset to be read in. To load data directly from a webpage, \code{x} should be the web address.  
   #' @param data.type Optional. Data type can be defined by user or based on the file extension.
   #'    If undefined, \code{data.type} is the string after the last period or equal sign. \code{data.type} must be 
-  #'    defined if \code{x} is the path to a shape folder, if the file is a google spreadsheet use \code{data.type = 'google'},
-  #'     or if the correct extension cannot be derived from \code{x}.
-  #'    R, comma-deliminated, tab-deliminated, excel, matlab, json, geojson, sas,
+  #'    defined if \code{x} is the path to a shape folder, if the file is a Google spreadsheet use \code{data.type = 'google'},
+  #'    or if the correct extension cannot be derived from \code{x}.
+  #'    R, comma-delimited, tab-delimited, excel, Matlab, json, geojson, sas,
   #'    spss, stata, and html, and XML data extensions do not have to be specified. 
-  #' @param is.map logical, set \code{is.map} to TRUE if data is a spatial file.  
-  #'   Spatial files ending in .json will not be read in properly unless \code{is.map} is true.
-  # @param save 
+  #' @param is.map logical, for .json file extension, set \code{is.map} to TRUE if data is a spatial file.  
+  #'   Spatial files ending in .json will not be read in properly unless \code{is.map = TRUE}.
   #' @param drv Use with sql files. Database driver.
   #' @param dbname Use with sql files. If required, database name.
   #' @param user Use with sql files.  If required, user name for SQL database.
@@ -22,7 +20,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
   #' @importFrom R.matlab readMat
   #' @importFrom jsonlite fromJSON
   #' @importFrom haven read_spss read_stata read_sas
-  #' @importFrom readr read_csv read_delim read_rds
+  #' @importFrom readr read_csv read_delim read_rds read_tsv
   #' @importFrom readxl read_excel
   #' @importFrom xml2 read_xml read_html
   #' @importFrom RCurl getURL
@@ -31,25 +29,21 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
   #' @importFrom DBI dbDisconnect dbConnect
   #' @details Uses the appropriate function to read in data based on data type.
   #'   Use \code{\link[FishSET]{write_dat}} to save data to the \code{data} folder in the \code{project} directory.
-  #'      
   #'   Supported data types include shape, csv, json, matlab, R, spss, and stata files.
-  #'
   #'   Use \code{data.type = 'shape'} if \code{x} is the path to a shape folder. 
-  #'   Use \code{data.type = 'google'} if the file is a google spreadsheet.
+  #'   Use \code{data.type = 'google'} if the file is a Google spreadsheet.
   #'   
   #'   For sql files, use \code{data.type = 'sql'}. The function will connect to the specified DBI and pull the table. 
   #'   Users must specify the DBI driver (\code{drv}), for example: \code{RSQLite::SQLite()}, \code{RPostgreSQL::PostgreSQL()}, 
-  #'   \code{odbc::odbc()}. 
-  #'   Further arguments may be required, including database name (\code{dbname}), user id (\code{user}), 
-  #'   and password (\code{password}). 
-  #'     
-  #'   Additional arguments can be added, such as the seperator agument \code{sep=','}, skip lines \code{skip = 2},
-  #'   and header \code{header = FALSE}. 
+  #'   \code{odbc::odbc()}. Further arguments may be required, including database name (\code{dbname}),
+  #'    user id (\code{user}), and password (\code{password}). 
   #'   
-  #'   To specify the seperator argument for a deliminated file, include tab-deliminated, specify \code{data.type = 'delim'}.
-  #'   
+  #'   Additional arguments can be added, such as skip lines \code{skip = 2} and header \code{header = FALSE}. 
+  #'   To specify the separator argument for a delimited file, include tab-delimited, specify \code{data.type = 'delim'}.
+  #'  
   #'   For more details, see \code{\link[base]{load}} for loading R objects, 
-  #'   \code{\link[readr]{read_csv}} for reading in comma files,
+  #'   \code{\link[readr]{read_csv}} for reading in comma separated value files,
+  #'   \code{\link[readr]{read_tsv}} for reading in tab separated value files,
   #'   \code{\link[readr]{read_delim}} for reading in delimited files,
   #'   \code{\link[readxl]{read_excel}} for reading in excel files (xls, xlsx), 
   #'   \code{\link[sf]{st_read}} for reading in geojson , GeoPackage files, and shape files,
@@ -126,7 +120,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
   } else if (data.type == "xls" | data.type == 'xlsx' | data.type == 'excel'){
     as.data.frame(readxl::read_excel(x, ...))
   } else if (data.type == 'txt') {
-    utils::read.table(x, sep='\t', ...)
+    readr::read_delim(x, ...)
   } else if (data.type == 'delim'){
     readr::read_delim(x, ...)
   } else if(data.type == 'xml'){
@@ -154,16 +148,16 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
 
 }
 
-write_dat <- function (dat, path=NULL, file_type = "csv", project, ...) {
+write_dat <- function (dat, project, path=NULL, file_type = "csv",  ...) {
   #' Write a data table to local file directory
   #'
   #'@param dat Name of data frame in working environment to save to file. 
+  #'@param project String, project name. 
   #'@param path String, path or connection to write to. If left empty, the file will be written to the dat folder in the project directory.
   #'@param file_type String, the type of file to write to. Options include \code{"csv"},
   #'  \code{"txt"} (tab-separated text file), \code{"xlsx"} (excel), \code{"rdata"}, \code{"json"}, 
   #'  \code{"stata"}, \code{"spss"},
   #'  \code{"sas"}, and \code{"matlab"}.
-  #'@param project String, project name. 
   #'@param ... Additional arguments passed to writing function. See "details" for 
   #'  the list of functions. 
   #'@importFrom openxlsx write.xlsx

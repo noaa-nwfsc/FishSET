@@ -1030,7 +1030,7 @@ source("map_viewer_app.R", local = TRUE)
                                #--------#
                                #DISTANCE MATRIX
                                uiOutput('conditionalInput3a'),
-                                uiOutput('distZonea'),
+                               uiOutput('distZonea'),
                                uiOutput('distZoneb'),
                               
                               uiOutput('conditionalInput3'),
