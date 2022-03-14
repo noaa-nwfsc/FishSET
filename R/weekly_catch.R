@@ -446,7 +446,7 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
       }
       
       f_label <- function() {
-        if (format_lab == "decimal") scales::label_number(big.mark = "")
+        if (format_lab == "decimal") scales::label_number(big.mark = ",")
         else scales::label_scientific()
       }
       

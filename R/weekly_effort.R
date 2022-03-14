@@ -429,7 +429,7 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
       }
       
       f_label <- function() {
-        if (format_lab == "decimal") scales::label_number(big.mark = "")
+        if (format_lab == "decimal") scales::label_number(big.mark = ",")
         else scales::label_scientific()
       }
       
