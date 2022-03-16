@@ -364,7 +364,7 @@ table_format <- function(x, project) {
   #' 
   #' Import and format saved tables to notebook file
   #' 
-  #' @param x Name of table saved in inst/output
+  #' @param x Name of table saved in output
   #' @param project project name
   #' @keywords internal
   #' @export
@@ -412,7 +412,7 @@ plot_format <- function(x, project) {
   #' 
   #' Import and format plots to notebook file
   #' 
-  #' @param x Name of plot saved in inst/output
+  #' @param x Name of plot saved in output
   #' @param project Name of project
   #' @keywords internal
   #' @export
