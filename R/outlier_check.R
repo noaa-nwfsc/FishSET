@@ -152,7 +152,7 @@ outlier_plot <- function(dat, project, x, dat.remove='none', x.dist='normal',
   #' @param date (Optional) date variable to group by year.
   #' @param group (Optional) additional variable to group by.
   #' @param output.screen Logical, if true, return plots to the screen. If false, 
-  #'   returns plot to the 'inst/output' folder as a png file.
+  #'   returns plot to the 'output' folder as a png file.
   #' @param log_fun Logical, whether to log function call (for internal use).
   #' @keywords outlier
   #' @importFrom stats density dnorm dpois dweibull rnorm dbinom dlnorm dexp dnbinom

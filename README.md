@@ -31,9 +31,9 @@ Directories:
 FishSET functions call data files from the SQLite FishSET database and save output (log of function calls, plot output, table output, notes, function messages) to a "Logs" folder and an "output" folder.
 
 The FishSET database and output folders are assumed to be in the FishSET package directory. If they are not, 
-then the location needs to be specificed.
+then the location needs to be specified.
 Use loc to specify directory location of the database and loc2 to specify location of Log file.
-For exmaple, loc <- getwd().
+For example, loc <- getwd().
 
 ### DOCUMENTATION and TUTORIALS  {#documentation}
 
