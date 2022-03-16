@@ -986,7 +986,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           
         } else if (input$loadmainsource == 'FishSET database') {
           
-          if (dir.exists(normalizePath('../../../../FishSETFolder/projects'))){
+          if (dir.exists(normalizePath("~/FishSETFolder/"))){
             if(length(suppressWarnings(projects())) > 0) {
             
             selectInput("project_select", "Select project", choices = projects())
@@ -1034,7 +1034,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             
           } else if (input$loadmainsource=='FishSET database') {
             
-            if (dir.exists(normalizePath('../../../../FishSETFolder/projects'))){
+            if (dir.exists(normalizePath('~/FishSETFolder'))){
                 
               if (length(suppressWarnings(projects())) > 0) {
                 
@@ -1852,7 +1852,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       observeEvent(input$delete_tabs_bttn, {
         
-        if (dir.exists(normalizePath('../../../../FishSETFolder/projects')) & length(suppressWarnings(projects())) == 0) {
+        if (dir.exists(normalizePath('~/FishSETFolder/')) & length(suppressWarnings(projects())) == 0) {
           
           showNotification("No project tables found.", type = "message")
         

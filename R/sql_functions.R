@@ -21,6 +21,7 @@ tables_database <- function(project) {
     spat_tabs <- suppressWarnings(list_tables(project, type = "spat"))
     return(c(db_tabs, spat_tabs))
   }
+  else { cat('Project not found')}
 }
 
 table_fields <- function(table, project) {

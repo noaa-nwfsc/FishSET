@@ -49,7 +49,7 @@ select_directory_method = function() {
 }
 
 choose_directory = function(method = select_directory_method(), 
-                            title = 'Select where to create FishSET folder and save output') {
+                            title = 'Identify location of FishSET folder and save output') {
   #' Choose directory
   #' @param method Method function
   #' @param title Title to show
@@ -68,7 +68,7 @@ choose_directory = function(method = select_directory_method(),
           'rChoiceDialogs' = rChoiceDialogs::rchoose.dir(caption = title),
           'gWidgets2RGtk2' = gWidgets2::gfile(type = 'selectdir', text = title),
           readline('Please enter directory path: ')
-  )
+ )
 }
 
 loc <- function(){
@@ -76,13 +76,15 @@ loc <- function(){
   #' @keywords internal
   #' @export
 
-  newdir <- choose_directory()
+   newdir <- choose_directory()
+  if(!dir.exists(newdir)){
   newdir <- paste0(newdir, '/FishSETFolder')
   if(!dir.exists(newdir)){
     dir.create(file.path(newdir), showWarnings = FALSE)
-    dir.create(file.path(paste0(newdir, '/projects')), showWarnings = FALSE)
   }
-  
+  }
+
+  return(newdir)
 }
 
 locproject <- function() {
@@ -94,28 +96,20 @@ locproject <- function() {
   if (exists("loc2")) loc2 <- loc2
   #else loc2 <- loc()
 
- 
-  if(dir.exists(c("../FishSETFolder/projects"))){
-    pathtest <- c("../FishSETFolder/projects")
-  } else if(dir.exists(normalizePath('../../../../FishSETFolder/projects'))){
-    pathtest <- normalizePath('../../../../FishSETFolder/projects')
-  } else {
-  if(shiny::isRunning()){
-    pathtest <- normalizePath('../../../../FishSETFolder/projects')
-  } else {
-    pathtest <- c("../FishSETFolder/projects")
-  }
+
+  if(dir.exists("~/FishSETFolder")){
+    pathtest <-normalizePath(path="~/FishSETFolder/", mustWork = TRUE)
   }
   
   if (!exists('loc2') || is.null(loc2)) {
-    if(is_empty(dir.exists(pathtest))){#dir.exists(c("../FishSETFolder/projects")))){
+    if(is_empty(dir.exists(pathtest))){
       loc()
     }
-    proj_dir <-pathtest# c("../FishSETFolder/projects")#loc() #paste0(system.file(package = "FishSET"), "/projects")
+    proj_dir <-pathtest
     
   } else {
     
-    proj_dir <- paste0(loc2, "/projects")
+    proj_dir <- paste0(loc2)
   }
   
   proj_dir
@@ -149,7 +143,7 @@ check_proj <- function(project = NULL) {
   if (!is.null(project)) {
       
     
-  
+    appDir <- system.file( "report",'report_template.Rmd', package = "FishSET")
     # check if projects folder exists
     if (!file.exists(locproject())) {
       
@@ -176,7 +170,7 @@ check_proj <- function(project = NULL) {
       
       #doc (report)
       dir.create(file.path(paste0(proj_dir, '/doc')), showWarnings = FALSE)
-      file.copy('report/report_template.Rmd', paste0(proj_dir, "/doc/"))
+      file.copy(appDir, paste0(proj_dir, "/doc/"))
       
       create_proj_settings(project)
       
@@ -200,12 +194,14 @@ check_proj <- function(project = NULL) {
       }
       if(!file.exists(paste0(locproject(), "/", project, "/doc"))){
         dir.create(file.path(paste0(proj_dir, '/doc')), showWarnings = FALSE)
-        file.copy('report/report_template.Rmd', paste0(proj_dir, "/doc/"))
+        file.copy(appDir, paste0(locproject(), "/", project, "/doc/report_template.Rmd"))
       }
       if(!file.exists(paste0(locproject(), "/", project, "/MapViewer"))){
         dir.create(file.path(paste0(proj_dir, '/MapViewer')), showWarnings = FALSE)
       }
-      
+      if(!file.exists(paste0(locproject(), "/", project, "/doc/report_template.Rmd"))){
+        file.copy(appDir, paste0(locproject(), "/", project, "/doc/report_template.Rmd"))
+      }
     }
   } else {
     
@@ -238,14 +234,7 @@ locdatabase <- function(project) {
   #' 
   
   if(!is.null(project)){
- #   print('Project name must be provided.')
- # } else {
- #   if (exists("loc2")) {
-  #    loc2 <- loc2
- #     } else {
- #   loc2 <- NULL
-#    }
-  
+ 
       if (!exists('loc2')||is.null(loc2)) {
       paste0(locproject(), "/", project, "/fishset_db.sqlite")
     } else {
@@ -279,7 +268,7 @@ loclog <- function(project) {
     if (!exists('loc2')||is.null(loc2)) {
       paste0(locproject(), "/", project, "/src/")
     } else {
-      paste0(loc2, "/projects/", project, "/src/")
+      paste0(loc2, '/', project, "/src/")
     }
   }
 }
@@ -298,7 +287,7 @@ locoutput <- function(project) {
     if (!exists('loc2')||is.null(loc2)) {
       paste0(locproject(), "/", project, "/output/")
     } else {
-      paste0(loc2, "/projects/", project, "/output/")
+      paste0(loc2, "/", project, "/output/")
     }
   }
 }
@@ -324,7 +313,7 @@ loc_map <- function(project) {
     if (!exists('loc2')||is.null(loc2)) {
       paste0(locproject(), "/", project, "/MapViewer/")
     } else {
-      paste0(loc2, "/projects/", project, "/MapViewer/")
+      paste0(loc2, "/", project, "/MapViewer/")
     }
   }
 }
@@ -346,7 +335,7 @@ loc_data <- function(project) {
       paste0(locproject(), "/", project, "/data/")
       
     } else {
-      paste0(loc2, "/projects/", project, "/data/")
+      paste0(loc2, "/", project, "/data/")
     }
   }
 }
@@ -359,6 +348,7 @@ loc_meta <- function(project) {
   #' 
   
   paste0(locproject(), "/", project, "/doc/meta_log.json")
+  
 }
 
 
@@ -373,7 +363,7 @@ loc_doc <- function(project) {
   if (!exists('loc2')||is.null(loc2)) {
     paste0(locproject(), "/", project, "/doc/")
   } else {
-    paste0(loc2, "/projects/", project, "/doc/")
+    paste0(loc2, "/", project, "/doc/")
   }
 }
 

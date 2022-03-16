@@ -27,7 +27,6 @@ Imports:
   knitr, 
   leaflet,
   lubridate, 
-  OSMscale, 
   openxlsx,
   pander, 
   purrr, 
