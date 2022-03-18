@@ -235,7 +235,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         )
        # project name 
       project <- reactiveValues()
-      
+    
       # refresh data   
       observeEvent(c(input$refresh,input$refresh1,input$refresh2,input$refreshNew), {
         if(!is.null(project$name)){
@@ -986,12 +986,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           
         } else if (input$loadmainsource == 'FishSET database') {
           
-          if (dir.exists(normalizePath("~/FishSETFolder/"))){
+        
             if(length(suppressWarnings(projects())) > 0) {
             
             selectInput("project_select", "Select project", choices = projects())
             
-          }} else {
+          } else {
             
             p("No projects found in FishSET Database. Create a project by uploading a new file")
           }
@@ -1034,7 +1034,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             
           } else if (input$loadmainsource=='FishSET database') {
             
-            if (dir.exists(normalizePath('~/FishSETFolder'))){
+           # if (dir.exists(normalizePath('~/FishSETFolder'))){
                 
               if (length(suppressWarnings(projects())) > 0) {
                 
@@ -1049,7 +1049,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                     )
                 }
               }
-            }
+           # }
           }
       })
  
@@ -1852,7 +1852,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       observeEvent(input$delete_tabs_bttn, {
         
-        if (dir.exists(normalizePath('~/FishSETFolder/')) & length(suppressWarnings(projects())) == 0) {
+        if (length(suppressWarnings(projects())) == 0) {#dir.exists(normalizePath('~/FishSETFolder/')) & 
           
           showNotification("No project tables found.", type = "message")
         
@@ -3339,6 +3339,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       )
       
       observeEvent(input$saveData,{
+        req(project$name)
         # when it updates, save the search strings so they're not lost
           # update global search and column search strings
           #default_search_columns <- c("", input$output_table_exploration_search_columns)
@@ -5120,6 +5121,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
       
       observeEvent(input$addModel, {
+        req(project$name)
         if(is.null(input$gridVariablesInclude)|is.null(input$indeVarsForModel)) {
           showNotification('Model not saved as at least one variable not defined.')
         } else {
@@ -5371,6 +5373,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       # When the Submit button is clicked, save the form data
       observeEvent(input$submit_ms, {
+        req(project$name)
         # Connect to the database
         fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name))
 #        if(overwrite_table==T){
@@ -5511,6 +5514,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       #Save output----   
       ###---   
       observeEvent(input$saveData, {
+        req(project$name)
         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)))
         if (input$SelectDatasetExplore == "main") {
           DBI::dbWriteTable(fishset_db, paste0(project$name, 'MainDataTable'), values$dataset, overwrite=TRUE)
@@ -5526,6 +5530,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
       
       observeEvent(input$saveDataQ, {
+        req(project$name)
         suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)))
         DBI::dbWriteTable(fishset_db, paste0(project$name, 'MainDataTable'), values$dataset, overwrite=TRUE)
         DBI::dbDisconnect(fishset_db) 
@@ -5533,6 +5538,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
       
       observeEvent(input$saveDataNew,{
+        req(project$name)
         fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)))
         DBI::dbWriteTable(fishset_db, paste0(project$name, 'MainDataTable'),  values$dataset, overwrite=TRUE)
         DBI::dbDisconnect(fishset_db)
