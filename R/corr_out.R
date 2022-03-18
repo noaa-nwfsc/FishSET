@@ -13,7 +13,6 @@ corr_out <- function(dat, project, variables='all', method = "pearson") {
   #'   to be computed. One of "pearson" (default), "kendall", or "spearman". 
   #' @export
   #' @import ggplot2
-  #' @importFrom ggcorrplot ggcorrplot
   #' @importFrom stats cor
   #' @importFrom rlang sym
   #' @details Returns Pearson's correlation coefficient between numeric variables in plot 
@@ -75,11 +74,7 @@ corr_out <- function(dat, project, variables='all', method = "pearson") {
         
     } else if (length(variables) > 2) {
       
-      c_plot <- 
-        ggcorrplot::ggcorrplot(c_tab, type = "lower", outline.color = "white", 
-                               hc.order = TRUE, show.diag = TRUE, 
-                               title = paste("Correlation matrix plot for", project, "data"),
-                               ggtheme = ggplot2::theme_minimal())
+      c_plot <- corr_plot(c_tab, project)
     }
 
     # Log the function

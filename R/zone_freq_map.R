@@ -26,7 +26,6 @@ zone_freq_map <- function(dat, spat, project, lon.dat, lat.dat, zone.dat,
   #'@import ggplot2
   #'@import dplyr
   #'@import sf
-  #'@importFrom viridis viridis
   #'@examples 
   #'\dontrun{
   #'zone_freq_map(pollockMainTable, nmfs_area, "LonLat_START_LON", "LonLat_START_LAT",
@@ -104,12 +103,12 @@ zone_freq_map <- function(dat, spat, project, lon.dat, lat.dat, zone.dat,
   if (!is.null(breaks)) {
     
     brks <- breaks 
-    b_colors <- viridis::viridis(length(brks), option = "H")
+    b_colors <- fishset_viridis(length(brks))
     
   } else {
     
     brks <- pretty(zone_freq$n_obs, n = n.breaks)
-    b_colors <- c("gray", viridis::viridis(length(brks) - 1, option = "H"))
+    b_colors <- c("gray", fishset_viridis(length(brks) - 1))
     
     if (min(brks) == 0) {
       

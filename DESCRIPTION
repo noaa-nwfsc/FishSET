@@ -12,7 +12,6 @@ Imports:
   DT, 
   geojsonio, 
   geosphere,
-  ggcorrplot, 
   ggmap,
   ggpubr, 
   ggplot2, 
@@ -51,7 +50,6 @@ Imports:
   stringr,
   tibble, 
   tidyr,
-  viridis,
   xml2, 
   yaml,
   zoo
