@@ -97,13 +97,17 @@ locproject <- function() {
   
   if(dir.exists("~/FishSETFolder")){
     proj_dir <- ("~/FishSETFolder/")
+    proj_dir <- ("~/FishSETFolder/projects/")
 
   } else if(dir.exists("./FishSETFolder")){
     proj_dir <- ("./FishSETFolder/")
+    proj_dir <- ("./FishSETFolder/projects/")
   } else if(dir.exists("/../../FishSETFolder")){
     proj_dir <- ("/../../FishSETFolder/")
+    proj_dir <- ("/../../FishSETFolder/projects/")
   } else if(exists('folderpath')){
     proj_dir <- folderpath
+    proj_dir <- paste0(folderpath, "/projects/")
   } else {
     proj_dir <-  loc()
     assign('folderpath', normalizePath(proj_dir), envir = as.environment(1L))
@@ -863,21 +867,35 @@ data_pull <- function(dat, project) {
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
   if (is.character(dat) == TRUE) {
+    
     if (is.null(dat) == TRUE | table_exists(dat, project) == FALSE) {
       print(DBI::dbListTables(fishset_db))
       stop(paste(dat, "not defined or does not exist. Consider using one of the tables listed above that exist in the database."))
+      
+      print(project_tables(project))
+      stop(paste(dat, "not defined or does not exist. Consider using one of the",
+                 "tables listed above that exist in the database."))
+      
     } else {
+      
       dataset <- table_view(dat, project)
     }
+    
   } else {
+    
     dataset <- dat
   }
 
+  
   if (is.character(dat) == TRUE) {
+    
     dat <- dat
+    
   } else {
+    
     dat <- deparse(substitute(dat))
   }
+  
   return(list(dat = dat, dataset = dataset))
 }
 
@@ -898,6 +916,7 @@ parse_data_name <- function(dat, type, project) {
 
   # dat_type <- switch(type, "main" = "dat_name", "aux" = "aux_name", 
   #                  "grid" = "grid_name", "port" = "port_name", "spat" = "spat_name")
+  
   
   if (shiny::isRunning()) {
     
