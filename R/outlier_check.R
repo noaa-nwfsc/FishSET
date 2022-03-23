@@ -1,12 +1,14 @@
 # Outlier check functions.
 
-outlier_table <- function(dat, project, x, log_fun = TRUE) {
+outlier_table <- function(dat, project, x, sd_val=NULL, log_fun = TRUE) {
   #' Evaluate outliers in a table format
   #'
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
   #' @param x Variable or column number in \code{dat} to check for outliers.
+  #' @param sd_val Optional. Number of standard deviations from mean defining outliers. 
+  #'    Example, \code{sd_val=6} would mean values outside +/- 6 SD from the mean would be outliers.
   #' @param log_fun Logical, whether to log function call (for internal use).
   #' @importFrom stats quantile sd var median
   #' @keywords outliers
@@ -62,54 +64,47 @@ outlier_table <- function(dat, project, x, log_fun = TRUE) {
                  skew = round(skewness(dataset[[x]], na.rm = TRUE), 2))
     # Row 2 5-95% quantile
     temp <- dataset[dataset[[x]] < stats::quantile(dataset[[x]], 0.95, na.rm = TRUE) & dataset[[x]] > stats::quantile(dataset[[x]], 0.05, na.rm = TRUE), ]
-    dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "5_95_quant", if (dim(temp)[1] == 0) {
-      emptyrow
-    } else {
-      filledrow(temp, x)
+    dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "5_95_quant", 
+                                             if (dim(temp)[1] == 0) { emptyrow } else { filledrow(temp, x)
     }))
     # Row 3 25-75% quantile
     temp <- dataset[dataset[[x]] < quantile(dataset[[x]], 0.75, na.rm = TRUE) & dataset[[x]] > quantile(dataset[[x]], 0.25, na.rm = TRUE), ]
-    dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "25_75_quant", if (dim(temp)[1] == 0) {
-      emptyrow
-    } else {
-      filledrow(temp, x)
+    dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "25_75_quant", 
+                                             if (dim(temp)[1] == 0) { emptyrow } else { filledrow(temp, x)
     }))
     # Row 4 Mean +/2SD
-    temp <- dataset[dataset[[x]] < (mean(dataset[[x]], na.rm = TRUE) + 2 * stats::sd(dataset[[x]], na.rm = TRUE)) & dataset[[x]] > (mean(dataset[[x]], na.rm = TRUE) -
-      2 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
-    dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "mean_2SD", if (dim(temp)[1] == 0) {
-      emptyrow
-    } else {
-      filledrow(temp, x)
+    temp <- dataset[dataset[[x]] < (mean(dataset[[x]], na.rm = TRUE) + 2 * stats::sd(dataset[[x]], na.rm = TRUE)) & 
+                      dataset[[x]] > (mean(dataset[[x]], na.rm = TRUE) - 2 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
+    dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "mean_2SD", 
+                                             if (dim(temp)[1] == 0) { emptyrow} else { filledrow(temp, x)
     }))
     # Row 5 Mean +/3SD
-    temp <- dataset[dataset[[x]] < (mean(dataset[[x]], na.rm = TRUE) + 3 * stats::sd(dataset[[x]], na.rm = TRUE)) & dataset[[x]] > (mean(dataset[[x]], na.rm = TRUE) -
-      3 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
-    dat.table <- rbind(dat.table, data.frame(Vector = x, outlier_check = "mean_3SD", if (dim(temp)[1] == 0) {
-      emptyrow
-    } else {
-      filledrow(temp, x)
+    temp <- dataset[dataset[[x]] < (mean(dataset[[x]], na.rm = TRUE) + 3 * stats::sd(dataset[[x]], na.rm = TRUE)) & 
+                      dataset[[x]] > (mean(dataset[[x]], na.rm = TRUE) - 3 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
+    dat.table <- rbind(dat.table, data.frame(Vector = x, outlier_check = "mean_3SD", 
+                                             if (dim(temp)[1] == 0) { emptyrow } else { filledrow(temp, x)
     }))
     # Row 6 Median +/-2SD
-    temp <- dataset[dataset[[x]] < (stats::median(dataset[[x]], na.rm = TRUE) + 2 * stats::sd(dataset[[x]], na.rm = TRUE)) & dataset[[x]] > (stats::median(dataset[
-      ,
-      x
-    ], na.rm = TRUE) - 2 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
-    dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "median_2SD", if (dim(temp)[1] == 0) {
-      emptyrow
-    } else {
-      filledrow(temp, x)
-    }))
+    temp <- dataset[dataset[[x]] < (stats::median(dataset[[x]], na.rm = TRUE) + 2 * stats::sd(dataset[[x]], na.rm = TRUE)) & 
+                      dataset[[x]] > (stats::median(dataset[,x], na.rm = TRUE) - 2 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
+    dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "median_2SD", 
+                                  if (dim(temp)[1] == 0) { emptyrow} else { filledrow(temp, x) }
+   ))
     # Row 7 Median +/-3SD
-    temp <- dataset[dataset[[x]] < (stats::median(dataset[[x]], na.rm = TRUE) + 3 * stats::sd(dataset[[x]], na.rm = TRUE)) & dataset[[x]] > (stats::median(dataset[
-      ,
-      x
-    ], na.rm = TRUE) - 3 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
-    dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "median_3SD", if (dim(temp)[1] == 0) {
-      emptyrow
-    } else {
-      filledrow(temp, x)
-    }))
+    temp <- dataset[dataset[[x]] < (stats::median(dataset[[x]], na.rm = TRUE) + 3 * stats::sd(dataset[[x]], na.rm = TRUE)) & 
+                      dataset[[x]] > (stats::median(dataset[,x], na.rm = TRUE) - 3 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
+    dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "median_3SD", 
+                                  if (dim(temp)[1] == 0) { emptyrow} else {filledrow(temp, x)}
+    ))
+    
+    if(!is.null(sd_val) & is.numeric(sd_val)){
+      temp <- dataset[dataset[[x]] < (mean(dataset[[x]], na.rm = TRUE) + sd_val * stats::sd(dataset[[x]], na.rm = TRUE)) & 
+                        dataset[[x]] > (mean(dataset[,x], na.rm = TRUE) - sd_val * stats::sd(dataset[[x]], na.rm = TRUE)), ]
+      dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = paste0("mean_",sd_val,"SD"), 
+                                    if (dim(temp)[1] == 0) {emptyrow} else {filledrow(temp, x) }
+     ))
+    }
+    
     return(dat.table)
   } else {
     print("Data is not numeric.")
@@ -132,7 +127,7 @@ outlier_table <- function(dat, project, x, log_fun = TRUE) {
 }
 
 ## ---------------------------##
-outlier_plot <- function(dat, project, x, dat.remove='none', x.dist='normal', 
+outlier_plot <- function(dat, project, x, dat.remove='none', sd_val=NULL, x.dist='normal', 
                          date = NULL, group = NULL, output.screen = FALSE,
                          log_fun = TRUE) {
   #' Evaluate outliers in plot format
@@ -143,9 +138,15 @@ outlier_plot <- function(dat, project, x, dat.remove='none', x.dist='normal',
   #' @param project String, name of project.
   #' @param x Variable in \code{dat} to check for outliers.
   #' @param dat.remove Outlier measure. Values outside the measure are removed. 
-  #'   Choices include: \code{"none"}, \code{"5_95_quant"}, \code{"25_75_quant"}, 
+  #'   Users can use the predefined values (see below) or user-defined distance from the mean.
+  #'   For user-defined values, \code{dat.remove} should be a numeric value. For example, \code{dat.remove=6} 
+  #'   would would result in value outside 6SD from the mean being class as outliers.
+  #'   User-defined standard deviations from the mean can also be applied using \code{sd_val}.
+  #'   Pre-defined choices: \code{"none"}, \code{"5_95_quant"}, \code{"25_75_quant"}, 
   #'   \code{"mean_2SD"}, \code{"median_2SD"}, \code{"mean_3SD"}, \code{"median_3SD"}.
   #'   See the \emph{Details} section for more information.
+  #'@param sd_val Optional. Number of standard deviations from mean defining outliers. 
+  #'    Example, \code{sd_val=6} would mean values outside +/- 6 SD from the mean would be outliers.
   #' @param x.dist Distribution of the data. Choices include: \code{"normal"}, 
   #'   \code{"lognormal"}, \code{"exponential"}, \code{"Weibull"}, \code{"Poisson"}, 
   #'   \code{"negative binomial"}.
@@ -170,13 +171,14 @@ outlier_plot <- function(dat, project, x, dat.remove='none', x.dist='normal',
   #'  theoretical quantiles, after applying \code{dat.remove}. \cr\cr
   #'  The \code{dat.remove} choices are:
   #'  \itemize{
-  #'  \item{none:        No data points are removed}
-  #'  \item{5_95_quant:  Removes data points outside the 5th and 95th quantiles}
-  #'  \item{25_75_quant: Removes data points outside the 25th and 75th quantiles}
-  #'  \item{mean_2SD:    Removes data points outside +/- 2SD of the mean}
-  #'  \item{median_2SD:  Removes data points outside +/- 2SD of the median}
-  #'  \item{mean_3SD:    Removes data points outside +/- 3SD of the mean}
-  #'  \item{median_3SD:  Removes data points outside +/- 3SD of the median}
+  #'  \item{numeric value: Remove data points outside +/- `x`SD of the mean}
+  #'  \item{none:          No data points are removed}
+  #'  \item{5_95_quant:    Removes data points outside the 5th and 95th quantiles}
+  #'  \item{25_75_quant:   Removes data points outside the 25th and 75th quantiles}
+  #'  \item{mean_2SD:      Removes data points outside +/- 2SD of the mean}
+  #'  \item{median_2SD:    Removes data points outside +/- 2SD of the median}
+  #'  \item{mean_3SD:      Removes data points outside +/- 3SD of the mean}
+  #'  \item{median_3SD:    Removes data points outside +/- 3SD of the median}
   #'  }
   #'  The distribution choices are:
   #'  \itemize{
@@ -191,8 +193,11 @@ outlier_plot <- function(dat, project, x, dat.remove='none', x.dist='normal',
   #' @return Plot of the data
   #' @examples
   #' \dontrun{
-  #' outlier_plot(pollockMainDataTable, 'Haul', dat.remove = 'mean_2SD', 
+  #' outlier_plot(pollockMainDataTable, 'pollock', 'Haul', dat.remove = 'mean_2SD', 
   #'    x.dist = 'normal', output.screen = TRUE)
+  #' outlier_plot(pollockMainDataTable, 'pollock', 'Haul', dat.remove = 6, 
+  #'    x.dist = 'lognormal', output.screen = TRUE)
+  
   #' }
 
 
@@ -209,6 +214,10 @@ outlier_plot <- function(dat, project, x, dat.remove='none', x.dist='normal',
   
   if (!is.null(group)) dataset[[group]] <- as.factor(dataset[[group]])
   
+  if(!is.null(sd_val) & is.numeric(sd_val)){
+    dat.remove <- sd_val
+  }
+  
   if (is.numeric(dataset[[x]]) == TRUE) {
     # Begin outlier check
     dataset$y <- 1:length(dataset[[x]])
@@ -218,7 +227,10 @@ outlier_plot <- function(dat, project, x, dat.remove='none', x.dist='normal',
       dat_sub <- dataset
       
     } else {
-      
+      if(is.numeric(dat.remove)){
+        dat_sub <- dataset[dataset[[x]] < (mean(dataset[[x]], na.rm = TRUE) + dat.remove * stats::sd(dataset[[x]], na.rm = TRUE)) &
+                             dataset[[x]] > (mean(dataset[[x]], na.rm = TRUE) - dat.remove* stats::sd(dataset[[x]], na.rm = TRUE)), ]
+      } else {
       if (dat.remove == "5_95_quant") {
         dat_sub <- dataset[dataset[[x]] < stats::quantile(dataset[[x]], 0.95, na.rm = TRUE) &
           dataset[[x]] > stats::quantile(dataset[[x]], 0.05, na.rm = TRUE), ]
@@ -237,6 +249,7 @@ outlier_plot <- function(dat, project, x, dat.remove='none', x.dist='normal',
       } else if (dat.remove == "median_3SD") {
         dat_sub <- dataset[dataset[[x]] < (stats::median(dataset[[x]], na.rm = TRUE) + 3 * stats::sd(dataset[[x]], na.rm = TRUE)) &
           dataset[[x]] > (stats::median(dataset[[x]], na.rm = TRUE) - 3 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
+      }
       }
     } # End Outlier mod
 
@@ -377,11 +390,18 @@ outlier_plot <- function(dat, project, x, dat.remove='none', x.dist='normal',
 
     # Put it all together
     fig <- suppressWarnings(ggpubr::ggarrange(p1, p2, p3, ncol = 2, nrow = 2))
-    # labels = c('A', 'B', 'C'),
+
+    if(is.numeric(dat.remove)){
+      fig <- ggpubr::annotate_figure(fig, top = ggpubr::text_grob(paste(
+        "Plots for ", x, " with ", x.dist, " distribution and data removed based on '",
+        dat.remove, "SD from the mean'. \nBlue: Included points   Red: Removed points"
+      ), size = 10)) 
+    } else {
     fig <- ggpubr::annotate_figure(fig, top = ggpubr::text_grob(paste(
       "Plots for ", x, " with ", x.dist, " distribution and data removed based on '",
-      dat.remove, "'. \nBlue: included points   Red: removed points"
+      dat.remove, "'. \nBlue: Included points   Red: Removed points"
     ), size = 10))
+    }
 
     # Log function
     if (log_fun) {
@@ -405,7 +425,7 @@ outlier_plot <- function(dat, project, x, dat.remove='none', x.dist='normal',
 }
 
 ## ---------------------------##
-outlier_remove <- function(dat, project, x, dat.remove = "none", over_write = FALSE) {
+outlier_remove <- function(dat, project, x, dat.remove = "none", sd_val=NULL, over_write = FALSE) {
   #' Remove outliers from data table
   #'
   #' Remove outliers based on outlier measure.
@@ -413,9 +433,16 @@ outlier_remove <- function(dat, project, x, dat.remove = "none", over_write = FA
   #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project Project name. 
   #' @param x Variable in \code{dat} containing potential outliers.
-  #' @param dat.remove Defines measure to subset the data. Choices include: 
+  #' @param dat.remove Defines measure to subset the data. 
+  #'  Users can use the predefined values (see below) or user-defined standard deviations from the mean.
+  #'   For user-defined values, \code{dat.remove} should be a numeric value. For example, \code{dat.remove=6} 
+  #'   would would result in value outside 6SD from the mean being class as outliers. 
+  #'   User-defined standard deviations from the mean can also be applied using \code{sd_val}.
+  #'   Predefined choices: 
   #'   \code{"none"}, \code{"5_95_quant"}, \code{"25_75_quant"}, \code{"mean_2SD"}, 
   #'   \code{"median_2SD"}, \code{"mean_3SD"}, \code{"median_3SD"}.
+  #' @param sd_val Optional. Number of standard deviations from mean defining outliers. 
+  #'    Example, \code{sd_val=6} would mean values outside +/- 6 SD from the mean would be outliers.
   #' @param over_write Logical, If TRUE, saves data over previously saved data 
   #'   table in the FishSET database.
   #' @export outlier_remove
@@ -426,6 +453,7 @@ outlier_remove <- function(dat, project, x, dat.remove = "none", over_write = FA
   #'   to the FishSET database.
   #' @details   The \code{dat.remove} choices are:
   #'  \itemize{
+  #'  \item{numeric value: Remove data points outside +/- `x`SD of the mean}
   #'  \item{none:        No data points are removed}
   #'  \item{5_95_quant:  Removes data points outside the 5th and 95th quantiles}
   #'  \item{25_75_quant: Removes data points outside the 25th and 75th quantiles}
@@ -445,10 +473,18 @@ outlier_remove <- function(dat, project, x, dat.remove = "none", over_write = FA
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
-
-  if (is.numeric(dataset[[x]]) == TRUE) {
+   if (!is.numeric(dataset[[x]])) {
+     stop("Data is not numeric. Outliers cannot be checked.")
+   }
+ 
+  if(!is.null(sd_val) & is.numeric(sd_val)){
+    dat.remove <- sd_val
+  }
     # Begin outlier check
-
+      if(is.numeric(dat.remove)){
+        dataset <- dataset[dataset[[x]] < (mean(dataset[[x]], na.rm = TRUE) + dat.remove * stats::sd(dataset[[x]], na.rm = TRUE)) & 
+                             dataset[[x]] > (mean(dataset[,x], na.rm = TRUE) - dat.remove * stats::sd(dataset[[x]], na.rm = TRUE)), ]
+      } else {
       if (dat.remove == "none") {
         dataset <- dataset
       } else if (dat.remove == "5_95_quant") {
@@ -470,6 +506,7 @@ outlier_remove <- function(dat, project, x, dat.remove = "none", over_write = FA
         dataset <- dataset[dataset[[x]] < (stats::median(dataset[[x]], na.rm = TRUE) + 3 * stats::sd(dataset[[x]], na.rm = TRUE)) & 
                              dataset[[x]] > (stats::median(dataset[[x]], na.rm = TRUE) - 3 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
       }
+      }
 
 
       if (dat.remove != "none" & over_write == TRUE) {
@@ -487,12 +524,53 @@ outlier_remove <- function(dat, project, x, dat.remove = "none", over_write = FA
       outlier_remove_function$msg <- paste("outliers removed using", dat.remove)
       log_call(project, outlier_remove_function)
 
+      dataset #
+      assign('pollockMainDataTable', dataset, envir=.GlobalEnv)
       return(dataset)
-    } # End Outlier check
+} # End Outlier check
     
- else {
-    
-    # Actions to take if data is not numeric
-    print("Data is not numeric. Outliers cannot be checked.")
+
+outlier_boxplot <- function(dat, project, x=NULL){
+  #' Boxplot to assess outliers
+  #' @param dat Primary data containing information on hauls or trips.
+  #'   Table in the FishSET database contains the string 'MainDataTable'.
+  #' @param project Project name. 
+  #' @param x Variables in \code{dat} to check for outliers. Leave as \code{x=NULL} to plot all numeric variables. 
+  #'    To specify multiple variables use \code{c('var1', 'var2')}
+  #' @details Creates a visual representation of five summary statistics: 
+  #'   median
+  #'   two hinges (first and third quartiles)
+  #'   two whiskers (extends to 1.5*IQR where IQR is the distance bewteen the first and third quartiles.
+  #'   "Outlying" points, those beyond the two whiskers (1.5*IQR) are shown individually.
+  #' @return Box and whisker plot for all nuemric variables. Saved to `output` folder.
+  
+  
+  out <- data_pull(dat, project)
+  dataset <- out$dataset
+  dat <- parse_data_name(dat, "main", project)
+  
+  dataset$id <- 1:nrow(dataset)
+  
+  if(is.null(x)){
+  num_cols <- unlist(lapply(dataset, is.numeric))   
+  } else {
+    if(!all(x %in% names(dataset))){
+      stop('Variables in `x` do not match variables names in data table')
+    }
+    num_cols <- unlist(lapply(dataset[,c(x, 'id')], is.numeric))   
   }
+  
+  ddm = melt(dataset[,num_cols], id='id')
+
+  p <- ggplot(ddm)+geom_boxplot(aes(x=variable, y=(value)))+
+    fishset_theme() +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+  
+  outlier_boxplot_function <- list()
+  outlier_boxplot_function$functionID <- "outlier_boxplot"
+  outlier_boxplot_function$args <- list(dat, project, x)
+  log_call(project, outlier_boxplot_function)
+  
+  save_plot(project, "outlier_boxplot", p)
+   print(p)
+ 
 }
