@@ -333,6 +333,7 @@ source("map_viewer_app.R", local = TRUE)
                                             actionButton('rchclass', 'Change variable classes', style = "color: white; background-color: #0073e6;")
                                           ),
                                           uiOutput('outlier_column'),
+                                          uiOutput('outlier_subset_method'),
                                           uiOutput('outlier_subset'),
                                           uiOutput('outlier_dist'),
                                           conditionalPanel("input.checks == 'NAs'",
@@ -392,8 +393,10 @@ source("map_viewer_app.R", local = TRUE)
                                        conditionalPanel("input.checks=='Summary table'",
                                                         DT::DTOutput("output_table_summary")),
                                        tags$br(),tags$br(),
+                                       conditionalPanel("input.checks=='Outliers' && input.column_check == ''",
+                                                        plotOutput('outlierbox')),  
                                        conditionalPanel("input.checks=='Outliers'",
-                                                        
+                                                    
                                        shinycssloaders::withSpinner(DT::DTOutput("output_table_outlier")),
                                        splitLayout(cellWidths = c('33%','33%','33%'),
                                                    shinycssloaders::withSpinner(plotOutput('plot1',

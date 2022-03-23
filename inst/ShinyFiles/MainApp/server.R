@@ -2305,17 +2305,27 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         conditionalPanel(
           condition="input.checks=='Outliers'",
           selectInput('column_check', 'Choose variable',
-                      choices= numeric_cols(values$dataset), selectize=TRUE))
+                      choices= c('', numeric_cols(values$dataset)), selected='', selectize=TRUE))
+      })
+      output$outlier_subset_method <- renderUI({
+        conditionalPanel(condition="input.checks=='Outliers'",
+                         selectInput('outremovemethod', 'Select user or predefined rules', 
+                                     choices=c('User-defined rule', 'Pre-defined rules'), 
+                                     selected='Pre-defined rules'))
       })
       output$outlier_subset <- renderUI({
-        conditionalPanel(
-          condition="input.checks=='Outliers'",
-          selectInput('dat.remove', 'Method to subset the data', 
+        tagList(
+          conditionalPanel("input.checks=='Outliers' && input.outremovemethod=='Pre-defined rules'",
+               selectInput('dat.remove', 'Pre-defined method to subset the data', 
                       choices=c('none', '5_95_quant', '25_75_quant','mean_2SD',
                                 'mean_3SD','median_2SD','median_3SD'),
                       selected=c('none', '5_95_quant', '25_75_quant','mean_2SD',
-                                 'mean_3SD','median_2SD','median_3SD')[input$output_table_outlier_rows_selected]))
+                                 'mean_3SD','median_2SD','median_3SD')[input$output_table_outlier_rows_selected])),
+          conditionalPanel("input.checks=='Outliers' && input.outremovemethod=='User-defined rule'",
+          numericInput('datremovenum', 'Number of standard deviations from the mean', value=NULL, min=4, max=25, step=1)#[input$output_table_outlier_rows_selected]
+        ))
       })
+
       output$outlier_dist <- renderUI({
         conditionalPanel(
           condition="input.checks=='Outliers'",
@@ -2370,7 +2380,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             
           } else {
             
-            rm_txt <- switch(input$dat.remove, '5_95_quant' = '25th and 75th quantiles', 
+            rm_txt <- switch(input$dat.remove, '5_95_quant' = '5th and 95th quantiles',  '2575_quant' = '25th and 75th quantiles', 
                              'mean_2SD' = 'mean +/- 2SD', 'mean_3SD' = 'mean +/- 3SD', 
                              'median_2SD' = 'median +/- 2SD', 'median_3SD' = 'median +/- 3SD')
             out_tab <- tableInputOutlier()[[1]]
@@ -2425,7 +2435,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             
             } else {
               
-              rm_txt <- switch(input$dat.remove, '5_95_quant' = '25th and 75th quantiles', 
+              rm_txt <- switch(input$dat.remove, '5_95_quant' = '5th and 95th quantiles', '25_75_quant' = '25th and 75th quantiles', 
                                'mean_2SD' = 'mean +/- 2SD', 'mean_3SD' = 'mean +/- 3SD', 
                                'median_2SD' = 'median +/- 2SD', 'median_3SD' = 'median +/- 3SD')
               out_tab <- tableInputOutlier()[[1]]
@@ -2580,7 +2590,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           } 
         }
       }, ignoreInit = TRUE, ignoreNULL = TRUE)
-# Notes ===
+
+# Notes ----
       
     notes <- reactiveValues(upload = "Upload data: ",
                             dataQuality = "Data quality evaluation: ",
@@ -2650,13 +2661,31 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           }
         }
       })
-    #End NOTES
+
+
+#----  
+      #Continue   QAQC   
       
       # output project tracker
       qaqc_out_proj <- reactiveValues(tab_sum = NULL, out_tab = NULL, 
                                       out_plot = NULL, spat = NULL)
       
   
+      outlierBoxplot <- reactive({
+       if(input$column_check == ''){
+        if (colnames(values$dataset)[1] != 'var1') {
+          q_test <- quietly_test(outlier_boxplot)
+          out <- q_test(values$dataset, project=project$name)
+          out
+        }
+       } else {
+         return()
+       }
+      })
+      
+      output$outlierbox <- renderPlot(outlierBoxplot())
+      
+      
       tableInputOutlier <- reactive({
         
         req(input$column_check %in% names(values$dataset))
@@ -2664,7 +2693,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         if (colnames(values$dataset)[1] != 'var1') {
           
           q_test <- quietly_test(outlier_table)
-          tab <- q_test(values$dataset, project=project$name, x=input$column_check)
+          tab <- q_test(values$dataset, project=project$name, x=input$column_check, sd_val=input$datremovenum)
           rownames(tab)=tab[,2]
           tab <- tab[,3:10]
           out <- list(tab)
@@ -2710,8 +2739,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           temp$val <- 1:nrow(temp)
           col_check <- rlang::sym(input$column_check)
           q_test <- quietly_test(outlier_plot_int)
-          dat_sub <- q_test(temp, input$column_check, input$dat.remove, 
-                            input$x_dist, plot_type = 1)
+          dat_sub <- q_test(dat=temp, x=input$column_check, dat_remove=input$dat.remove, 
+                            x_dist = input$x_dist, sd_val = input$datremovenum, plot_type = 1)
           qaqc_out_proj$out_plot <- project$name
           suppressWarnings(
             ggplot2::ggplot() +
@@ -2737,10 +2766,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           temp <- values$dataset
           temp$val <- 1:nrow(temp)
           col_check <- rlang::sym(input$column_check)
-          dat_sub <- outlier_plot_int(temp, input$column_check, input$dat.remove, 
-                                      input$x_dist, plot_type=1)
-          arg.return <- outlier_plot_int(temp, input$column_check, input$dat.remove, 
-                                         input$x_dist, plot_type=2)
+          dat_sub <- outlier_plot_int(temp, x=input$column_check, dat_remove=input$dat.remove, 
+                                      x_dist=input$x_dist, sd_val = input$datremovenum, plot_type=1)
+          arg.return <- outlier_plot_int(temp, x=input$column_check, dat_remove=input$dat.remove, 
+                                         x_dist=input$x_dist, sd_val = input$datremovenum, plot_type=2)
           
           ggplot2::ggplot(dat_sub[dat_sub$Points=='Kept',], ggplot2::aes(!!col_check)) + 
             ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)), 
@@ -2761,8 +2790,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           
           temp <- values$dataset
           temp$val <- 1:nrow(temp)
-          temp <- outlier_plot_int(temp, input$column_check, input$dat.remove, 
-                                   input$x_dist, plot_type = 3)
+          temp <- outlier_plot_int(temp, x=input$column_check, dat_remove=input$dat.remove, 
+                                   x_dist=input$x_dist, sd_val = input$datremovenum, plot_type = 3)
           
           ggplot2::ggplot(temp, ggplot2::aes(x=fit_quants, y=data_quants)) +
             ggplot2::geom_point(shape=1) + ggplot2::geom_abline() +
@@ -2911,8 +2940,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
       
       observeEvent(input$Outlier_Filter,{
-          values$dataset <- outlier_remove(values$dataset, project = project$name, 
-                                           x=input$column_check, dat.remove = input$dat.remove, over_write=FALSE)
+          values$dataset <- outlier_remove(values$dataset, project = project$name, x=input$column_check, 
+                                           dat.remove = input$dat.remove, sd_val=input$datremovenum, over_write=FALSE)
       })
       
       observeEvent(input$Unique_Filter,{
