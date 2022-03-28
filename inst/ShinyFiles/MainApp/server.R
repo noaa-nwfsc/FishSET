@@ -2591,7 +2591,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }
       }, ignoreInit = TRUE, ignoreNULL = TRUE)
 
-# Notes ----
+      # Notes ----
       
     notes <- reactiveValues(upload = "Upload data: ",
                             dataQuality = "Data quality evaluation: ",
@@ -2663,7 +2663,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
 
 
-#----  
+      #----  
       #Continue   QAQC   
       
       # output project tracker
@@ -3941,6 +3941,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                       choices = c("string", "integer")))
       })
       
+  
       output$sp_col.select <- renderUI({ 
         
         selectInput('sp_col', "Column containing species names in table containing seasonal data", 
@@ -3961,11 +3962,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       output$input_cpue <- renderUI({
         tagList(
           selectizeInput('xWeight','Weight variable', 
-                         choices=find_catch(values$dataset),
+                         choices=c(NULL, find_catch(values$dataset)),
                          options = list(create = TRUE, placeholder='Select or type variable name')),
           
           selectInput('xTime','Duration. To calculate duration, select the Calculate Duration option.', 
-                      choices=c('Calculate duration', numeric_cols(values$dataset), selectize=TRUE)))
+                      choices=c('Calculate duration', numeric_cols(values$dataset), selectize=TRUE)),
+          selectInput('rpueprice', "Price variable", choices=c(NULL, numeric_cols(values$dataset), selectize=TRUE))
+          )
       })
       
       output$dur_add <- renderUI({
@@ -4439,7 +4442,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           
               q_test <- quietly_test(temporal_mod)
               values$dataset <- q_test(values$dataset, project = project$name, x=input$TimeVar, 
-                                       define.format=input$define_format, name=input$varname)
+                                       define.format=input$define_format, timezone=input$timezone, name=input$varname)
               
         } else if (input$VarCreateTop=='Data transformations'&input$trans=='set_quants') {
           
@@ -4454,6 +4457,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               values$dataset <- q_test(values$dataset, project = project$name, 
                                        name=input$varname, vars=input$unique_identifier, 
                                        type=input$ID_type)
+        } else if (input$VarCreateTop=='Nominal ID'&input$ID=='binary_seasonID') {      
+              
+              q_test <- quietly_test(seasonalID)
+              values$dataset <- q_test(values$dataset, project = project$name, 
+                                   seasonal.dat=seasonalData(), start=input$seasonstart, 
+                                   end=input$seasonend, overlap=input$overlap, name=input$varname)
               
         } else if (input$VarCreateTop=='Nominal ID'&input$ID=='create_seasonal_ID') {
           
@@ -4498,7 +4507,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             
               q_test <- quietly_test(cpue)
               values$dataset <- q_test(values$dataset, project = project$name, xWeight=input$xWeight, 
-                                       xTime=input$xTime, name=input$varname)
+                                       xTime=input$xTime, price=input$rpueprice, name=input$varname)
           } else {
             
             q_test <- quietly_test(cpue)
@@ -4506,7 +4515,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                               start=input$dur_start2, end=input$dur_end2, 
                                               units=input$dur_units2, name='dur')
             values$dataset <- q_test(values$dataset, project=project$name, xWeight=input$xWeight, xTime='dur', 
-                                     name=input$varname)
+                                     price=input$rpueprice, name=input$varname)
           }
         } else if (input$VarCreateTop=='Spatial functions' & input$dist=='zone') {
           

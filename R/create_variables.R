@@ -4,13 +4,14 @@
 cpue <- function(dat, project, xWeight, xTime, price=NULL, name = "cpue") {
   #' Create catch or revenue per unit effort variable
   #' 
-  #' @description Add catch per unit effort (CPUE) variable to the primary dataset. Catch should be a weight variable 
-  #'   but can be a count. Effort should be in a duration of time, such as days, hours, or minutes.
+  #' @description Add catch per unit effort (CPUE) or revenue per unit effort variable to the primary dataset. 
+  #'   Catch should be a weight variable but can be a count. Effort should be in a duration of time, such as days, hours, or minutes.
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in FishSET database contains the string 'MainDataTable'.
   #' @param project Project name. 
   #' @param xWeight Catch variable in \code{dat}. Variable should be a measure of weight 
-  #'   (pounds, metric tons, etc) but can also be count.
+  #'   (pounds, metric tons, etc) but can also be count. If calculated RPUE and \code{price} is revenue data, set 
+  #'   \code{XWeight=NULL}.
   #' @param xTime Duration of time variable in \code{dat} representing effort, such as
   #'   weeks, days, hours, or minutes.
   #' @param price Optional, variable from \code{dat} containing price/value data.  Price is multiplied against the catch variable,
@@ -18,7 +19,7 @@ cpue <- function(dat, project, xWeight, xTime, price=NULL, name = "cpue") {
   #'   then \code{xWeight} must NULL. Defaults to NULL.
   #' @param name String, name of created variable. Defaults to name of the function if not defined.
   #' @export cpue
-  #' @details Creates the catch per unit effort variable. Catch variable should be in weight (lbs, mts).
+  #' @details Creates the catch or revenue per unit effort variable. Catch variable should be in weight (lbs, mts).
   #'   Effort variable should be a measurement of duration in time. New variable is added to the primary dataset
   #'   with the column name defined by the \code{name} argument. CPUE for individual species should be
   #'   calculated separately.
@@ -81,7 +82,7 @@ cpue <- function(dat, project, xWeight, xTime, price=NULL, name = "cpue") {
     
     create_var_cpue_function <- list()
     create_var_cpue_function$functionID <- "cpue"
-    create_var_cpue_function$args <- list(dat, project, xWeight, xTime, deparse(substitute(name)))
+    create_var_cpue_function$args <- list(dat, project, xWeight, xTime, price, deparse(substitute(name)))
     create_var_cpue_function$kwargs <- list()
     create_var_cpue_function$output <- list(dat)
 
@@ -1076,7 +1077,7 @@ create_duration <- function(dat, project, start, end, units = c("week", "day", "
   if (any(grepl("date|min|hour|week|month|TRIP_START|TRIP_END", end, ignore.case = TRUE)) == FALSE) {
     warning("Function is designed for temporal variables")
   }
-
+  
   elapsed.time <- lubridate::interval(date_parser(dataset[[start]]), date_parser(dataset[[end]]))
   if (units == "week") {
     newvar <- lubridate::as.duration(elapsed.time) / lubridate::dweeks(1)

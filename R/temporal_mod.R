@@ -6,17 +6,20 @@
 #' Table in FishSET database contains the string 'MainDataTable'.
 #' @param project Project name.
 #' @param x Time variable to modify from \code{dat}.
-#' @param define.format Format of temporal data. Format can be user-defined or from pre-defined choices. Format follows \code{\link{as.Date}} format.
+#' @param define.format Format of temporal data. \code{define.format} should be NULL if converting timezone for \code{x} but not
+#'   changing format. Format can be user-defined or from pre-defined choices. Format follows \code{\link{as.Date}} format.
 #' See Details for more information.
+#' @param timezone String, defaults to NULL. Returns the date-time in the specified time zone. 
+#'   Must be a recognizable timezone, such as "UTC", "America/New_York", "Europe/Amsterdam".
 #' @param name String, name of created variables. Defaults to `TempMod`.
 #' @param log_fun Logical, whether to log function call (for internal use).
 #' @param ... Additional arguments. Use \code{tz=''} to specify time zone.
 #' @keywords Date as.Date
 #' @return Primary data set with new variable added.
-#' @details Converts a date variable to desired units using \code{\link[base]{as.Date}}. \code{\link{date_parser}} is
+#' @details Converts a date variable to desired timezone or units using \code{\link[base]{as.Date}}. \code{\link{date_parser}} is
 #' also called to ensure the date variable is in an acceptable format for \code{\link[base]{as.Date}}.
 #'  \code{define.format} defines the format that the variable should take on. Examples include \code{"\%Y\%m\%d"}, \code{"\%Y-\%m-\%d \%H:\%M:\%S"}.
-#'    Users can define their own format or use one of the predefined ones. Hours is 0-23. To specify a certain time zone use \code{tz = ''}.
+#'    Users can define their own format or use one of the predefined ones. Hours is 0-23. 
 #'    To return a list of time-zone name in the Olson/IANA database paste \code{OlsonNames()} to the console.
 
 #' \itemize{
@@ -39,7 +42,7 @@
 #'
 #'
 #' # Change to Year, month, day, minutes
-temporal_mod <- function(dat, project, x, define.format, name = NULL, log_fun = TRUE, ...) {
+temporal_mod <- function(dat, project, x, define.format=NULL, timezone=NULL, name = NULL, log_fun = TRUE, ...) {
 
   # Call in datasets
   out <- data_pull(dat, project)
@@ -48,6 +51,11 @@ temporal_mod <- function(dat, project, x, define.format, name = NULL, log_fun = 
   
   args <- list(...) 
   
+  if(!is.null(timezone)){
+      dataset[[x]]<- lubridate::force_tz(dataset[[x]], tzone=timezone, roll=FALSE)
+    }
+    
+  if(!is.null(define.format)){
   if (!define.format %in% c("year", "month", "day", "hour", "minute")) {
     # User defines the format of the time variable
     temp_out <- format(date_parser(dataset[[x]]), format = define.format)
@@ -71,12 +79,13 @@ temporal_mod <- function(dat, project, x, define.format, name = NULL, log_fun = 
       warning("define.format is not recognized. Pre-formatted choices include, year, month, day, hour, minute")
     }
   }
+  }
 
   if (log_fun) {
     
     temp_mod_function <- list()
     temp_mod_function$functionID <- "temporal_mod"
-    temp_mod_function$args <- list(dat, x, define.format, deparse(substitute(name)),
+    temp_mod_function$args <- list(dat, x, define.format, timezone, deparse(substitute(name)),
                                    log_fun, args)
     temp_mod_function$output <- list(dat)
     log_call(project, temp_mod_function)

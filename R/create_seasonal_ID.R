@@ -1,3 +1,120 @@
+#  seasonalID
+#' Create single binary fishery season identifier variable
+#'
+#' @param dat Primary data containing information on hauls or trips.
+#'   Table in the FishSET database contains the string 'MainDataTable'.
+#' @param project Project name.
+#' @param seasonal.dat Data table containing date of fishery season(s). Data table can be pulled from the FishSET database.
+#'   Leave \code{seasonal.dat} as NULL if supplying start and end dates with \code{start} and \code{end} arguments.
+#' @param start Date, supplied as a string (example: start='2011/04/22', start='04222011'), or 
+#'      variable in \code{seasonal.dat} which identifies start date of fishery season
+#' @param end  DDate, supplied as a string (example: start='2011/04/22', start='04222011'), or 
+#'      variable in \code{seasonal.dat} which identifies end date of fishery season
+#' @param overlap Logical. Should trip or haul dates that start before or end after the fishery season date but starts or ends within the fishery season
+#'    dates be included? FALSE indicates to inlude only hauls/trips that fall completely within the bounds of a fishery season date. Defaults to FALSE.
+#' @param name String  Seasonal identifier name
+#' @export seasonalID
+#' @return  Returns a binary variable of within (1) or outside (0) the fishery season.
+#' @details Uses a supplied dates or a table of fishery season dates to create fishery season identifier variables. Output is a binary
+#' variable called \code{name} or `SeasonID` if \code{name} is not supplied. \cr\cr
+#' For each row \code{dat}, the function matches fishery season dates provided in \code{seasonal.dat} to the earliest date variable in \code{dat}.
+#' @examples
+#' \dontrun{
+#' #Example using a table stored in the FishSET database
+#' pcodMainDataTable <- season_ID("pcodMainDataTable", 'pcod', seasonal_dat='seasonTable', start='SeasonStart', end='SeasonEnd', name='2001A')
+#' #Example using manually entered dates
+#' pcodMainDataTable <- season_ID("pcodMainDataTable", 'pcod', seasonal.dat=NULL, start='04152011', end='06302011', name='2001A')
+#' }
+#'
+seasonalID <- function(dat, project, seasonal.dat=NULL, start, end, overlap=FALSE, name=NULL) {
+  
+  #### --- > HERE <----  ####
+  #Creating as binary variable where data can come from a table or be entered manually#
+  
+  # Call in datasets
+  out <- data_pull(dat, project)
+  dataset <- out$dataset
+  dat <- parse_data_name(dat, "main", project)
+  
+  if(!is.null(seasonal.dat)){
+    out <- data_pull(seasonal.dat, project)
+    seasonaldat <- out$dataset
+    seasonal.dat <- parse_data_name(seasonal.dat, "aux", project)
+  }
+  
+  if(is.null(name)) {
+    name <- 'SeasonID'
+  } else {
+    name <- name
+  }
+  
+  
+  if(is.character(end)){
+    season.end <- seasonaldat[[end]]
+    if(length(season.end)>1){
+      season.end <- season.end[1]
+      warning('More than on season end date found, using the first date.')
+    }
+  } else {
+    season.end <- end
+  }
+  season.end <- date_parser(season.end)
+  
+  
+  if(is.character(start)){
+    season.start <- seasonaldat[[start]]
+    if(length(season.start)>1){
+      season.start <- season.start[1]
+      warning('More than on season end date found, using the first date.')
+    }
+  } else {
+    season.start <- start
+  }
+  
+  season.start <- date_parser(season.start)
+  
+  dat.temp <- date_cols(dataset)
+  dat.start <- as.data.frame(apply(dataset[,dat.temp], 1, function(x) find_first(x)))
+  dat.end <- as.data.frame(apply(dataset[,dat.temp], 1, function(x) find_last(x)))
+  
+  rownames(dataset) <- make.names(dat.start[, 1], unique = TRUE)
+  dat.start <- as.Date(sapply(gsub("\\.|[[:digit:]]", "", rownames(dataset)), function(x) dataset[[x, x]]), origin = "1970-01-01")
+  rownames(dataset) <- make.names(dat.end[, 1], unique = TRUE)
+  dat.end <- as.Date(sapply(gsub("\\.|[[:digit:]]", "", rownames(dataset)), function(x) dataset[[x, x]]), origin = "1970-01-01")
+  rownames(dataset) <- 1:nrow(dataset)
+  
+  
+  dataset[[name]] <- NA
+  
+  if(overlap==FALSE){
+    for(i in 1:length(dat.start)){
+      if(dat.start[i] >= season.start & dat.end[i] <= season.end){
+        dataset[i, name] = 1
+      } else {
+        dataset[i, name] = 0
+      }
+      }
+  } else {
+    for(i in 1:length(dat.start)){
+      if(season.start <= dat.end[i] & season.end >= dat.start[i]){
+        dataset[i, name] <- 1
+      } else {
+        dataset[i, name] <- 0
+      }
+      }
+  }
+
+seasonalID_function <- list()
+seasonalID_function$functionID <- "seasonalID"
+seasonalID_function$args <- list(dat, project, seasonal.dat, start, end, overlap, name)
+seasonalID_function$output <- dat
+log_call(project, seasonalID_function)
+
+return(dataset)
+}
+
+
+
 # create_seasonal_ID
 #' Create fishery season identifier variable
 #'
@@ -17,14 +134,14 @@
 #' @details Uses a table of fishery season dates to create fishery season identifier variables. Output is a SeasonID
 #' variable and/or multiple SeasonID*fishery variables. If fishery season dates vary by location or gear type,
 #' then \code{use.location} and \code{use.geartype} should be TRUE. \cr\cr
-#' The function matches fishery season dates provided in \code{seasonal.dat} to the earliest date variable in the primary dataset.
-#' The seasonID variable is a vector of fishery seasons whereas the SeasonID*fishery variables are TRUE/FALSE depending on whether the
+#' The function matches fishery season dates provided in \code{seasonal.dat} to the earliest date variable in \code{dat}.
+#' The `seasonID` variable is a vector of fishery seasons whereas the `SeasonID*fishery` variables are 1/0 depending on whether the
 #' fishery was open on the observed date. \cr\cr
 #' If \code{target} is not defined, then each row of seasonID is defined as the earliest fishery listed in \code{seasonal.dat} for
 #' which the fishery season date encompasses the date variable in the primary dataset. If \code{target} fishery is defined, then
-#' SeasonID is defined by whether the target fishery is open on the date in the primary dataset or a different fishery. The
+#' `SeasonID` is defined by whether the target fishery is open on the date in the primary dataset or a different fishery. The
 #' vector is filled with 'target' or 'other'.\cr\cr
-#' SeasonID*fishery variables are a TRUE/FALSE seasonID vector for each fishery (labeled by seasonID and fishery) where TRUE
+#' `SeasonID*fishery` variables are a 1/0 seasonID vector for each fishery (labeled by seasonID and fishery) where 1
 #' indicates the dates for a given row in the main data table fall within the fishery dates for that fishery.
 
 #' @examples
@@ -45,19 +162,6 @@ create_seasonal_ID <- function(dat, project, seasonal.dat, use.location = c(TRUE
   seasonaldat <- out$dataset
   seasonal.dat <- parse_data_name(seasonal.dat, "aux", project)
   
-#  if (is.character(seasonal.dat) == TRUE) {
-#    if (is.null(seasonal.dat) == TRUE | table_exists(seasonal.dat) == FALSE) {
-#      print(tables_database())
-#      stop(paste(seasonal.dat, "not defined or does not exist. Consider using one of the tables listed above that exist in the database."))
-#    } else {
-#      seasonaldat <- seasonal.dat
-#    }
-#  } else {
-#    seasonaldat <- seasonal.dat
-#    seasonal.dat <- deparse(substitute(seasonal.dat))
-# }
-#  DBI::dbDisconnect(fishset_db)
-
 
   # Test that location_data match
   if (use.location == TRUE) {
@@ -158,9 +262,8 @@ create_seasonal_ID <- function(dat, project, seasonal.dat, use.location = c(TRUE
     }
   } else {
     ## -- No target species -- ##
-    seasonsub <- subset(seasonaldat, seasonaldat[grep("date", names(seasonaldat), ignore.case = TRUE)[1]] != "" & seasonaldat[grep("date", names(seasonaldat),
-      ignore.case = TRUE
-    )[2]] != "")
+    seasonsub <- subset(seasonaldat, seasonaldat[grep("date", names(seasonaldat), ignore.case = TRUE)[1]] != "" & 
+                          seasonaldat[grep("date", names(seasonaldat),ignore.case = TRUE)[2]] != "")
     if (use.location == FALSE & use.geartype == FALSE) {
       i <- 1
       while (all(is.na(dataset[["SeasonID"]])) == TRUE) {
@@ -227,9 +330,10 @@ create_seasonal_ID <- function(dat, project, seasonal.dat, use.location = c(TRUE
         seasontemp <- seasonsub[1, ]
       }
       if (all(seasontemp[grep("date", names(seasontemp), ignore.case = TRUE)] == "") == TRUE) {
-        dataset[[paste0("SeasonID", spp[i])]] <- FALSE
+        dataset[[paste0("SeasonID", spp[i])]] <- 0
       } else {
-        dataset[[paste0("SeasonID", spp[i])]] <- (dat.start > date_parser(seasontemp[[find_first(seasontemp)]][1])) %in% (dat.end < date_parser(seasontemp[[find_last(seasontemp)]][1]))
+        dataset[[paste0("SeasonID", spp[i])]] <- (dat.start > date_parser(seasontemp[[find_first(seasontemp)]][1])) %in% 
+          (dat.end < date_parser(seasontemp[[find_last(seasontemp)]][1]))
       }
     } else if (use.location == FALSE & use.geartype == TRUE) {
       if (dim(seasontemp)[1] > 1) {
@@ -246,9 +350,10 @@ create_seasonal_ID <- function(dat, project, seasonal.dat, use.location = c(TRUE
         seasontemp <- seasonsub[1, ]
       }
       if (all(seasontemp[grep("date", names(seasontemp), ignore.case = TRUE)] == "") == TRUE) {
-        dataset[[paste0("SeasonID", spp[i])]] <- FALSE
+        dataset[[paste0("SeasonID", spp[i])]] <- 0
       } else {
-        dataset[[paste0("SeasonID", spp[i])]] <- (dat.start > date_parser(seasontemp[[find_first(seasontemp)]][1])) %in% (dat.end < date_parser(seasontemp[[find_last(seasontemp)]][1]))
+        dataset[[paste0("SeasonID", spp[i])]] <- (dat.start > date_parser(seasontemp[[find_first(seasontemp)]][1])) %in% 
+          (dat.end < date_parser(seasontemp[[find_last(seasontemp)]][1]))
       }
     }
 
@@ -276,7 +381,7 @@ create_seasonal_ID <- function(dat, project, seasonal.dat, use.location = c(TRUE
         }
         if (dim(seasontemp[grep("date", names(seasontemp), ignore.case = TRUE)])[1] == 0 || all(seasontemp[grep("date", names(seasontemp), ignore.case = TRUE)] ==
           "") == TRUE) {
-          dataset[which(dataset[[loc.name]] == loca[j]), paste0("SeasonID", spp[i])] <- FALSE
+          dataset[which(dataset[[loc.name]] == loca[j]), paste0("SeasonID", spp[i])] <- 0
         } else {
           dataset[which(dataset[[loc.name]] == loca[j]), paste0("SeasonID", spp[i])] <- (dat.start[which(dataset[[loc.name]] == loca[j])] > date_parser(seasontemp[[find_first(seasontemp)]][1])) %in%
             (dat.end[which(dataset[[loc.name]] == loca[j])] < date_parser(seasontemp[[find_last(seasontemp)]][1]))
