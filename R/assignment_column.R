@@ -4,26 +4,26 @@
 #'    Function is primarily called by other functions that require zone assignment but can also be used on its own.
 #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
 #' @param project name of project.
-#' @param gridfile Spatial data containing information on fishery management or regulatory zones. 
+#' @param spat Spatial data containing information on fishery management or regulatory zones. 
 #'    Shape, json, geojson, and csv formats are supported.
 #' @param hull.polygon Logical, if TRUE, creates convex hull polygon. Use if spatial data creating polygon 
 #'   are sparse or irregular.
 #' @param lon.dat Longitude variable in \code{dat}.
 #' @param lat.dat Latitude variable in \code{dat}.
-#' @param lon.grid Variable or list from \code{gridfile} containing longitude data. 
-#'    Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
-#' @param lat.grid Variable or list from \code{gridfile} containing latitude data. 
-#'   Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
-#' @param cat Variable or list in \code{gridfile} that identifies the individual areas or zones. 
-#'    If \code{gridfile} is class sf, \code{cat} should be name of list containing information on zones.
-#' @param epsg EPSG code. Set the epsg code to ensure that \code{gridfile} and \code{dat} have the same 
-#'   projections. If epsg is not specified but is defined for \code{gridfile}, then the 
-#'   \code{gridfile} coordinate reference system will be applied to \code{dat}. 
+#' @param lon.spat Variable or list from \code{spat} containing longitude data. 
+#'    Required for csv files. Leave as NULL if \code{spat} is a shape or json file.
+#' @param lat.spat Variable or list from \code{spat} containing latitude data. 
+#'   Required for csv files. Leave as NULL if \code{spat} is a shape or json file.
+#' @param cat Variable or list in \code{spat} that identifies the individual areas or zones. 
+#'    If \code{spat} is class sf, \code{cat} should be name of list containing information on zones.
+#' @param epsg EPSG code. Set the epsg code to ensure that \code{spat} and \code{dat} have the same 
+#'   projections. If epsg is not specified but is defined for \code{spat}, then the 
+#'   \code{spat} coordinate reference system will be applied to \code{dat}. 
 #'   See \url{http://spatialreference.org/} to help identify optimal epsg number.
 #' @param closest.pt  Logical, if true, observations that fall outside zones are classed as the closest 
 #'    zone polygon to the point.
 #' @param bufferval Maximum buffer distance, in meters, for assigning observations to the closest zone polygon. 
-#'   If no zone polygons are within the defined bufferval then observation will not be assigned to a 
+#'   If no zone polygons are within the defined \code{bufferval}, then observation will not be assigned to a 
 #'   zone polygon. Required if closest.pt is TRUE. 
 #' @param log.fun Logical, whether to log function call (for internal use).
 #' @importFrom sf st_transform st_as_sf
@@ -36,8 +36,8 @@
 #' @export
 
 
-assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, closest.pt = FALSE, bufferval = NULL,
-                              lon.grid = NULL, lat.grid = NULL, hull.polygon = FALSE, epsg = NULL,
+assignment_column <- function(dat, project, spat, lon.dat, lat.dat, cat, closest.pt = FALSE, bufferval = NULL,
+                              lon.spat = NULL, lat.spat = NULL, hull.polygon = FALSE, epsg = NULL,
                               log.fun = TRUE) {
 
   # Call in data sets
@@ -45,10 +45,11 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
 
-  gridout <- data_pull(gridfile, project)
-  grid <- gridout$dataset
-  gridfile <- parse_data_name(dat, "grid", project)
-
+  
+  spat_out <- data_pull(spat, project)
+  spatdat <- spat_out$dataset
+  spat <- parse_data_name(dat, "spat", project)
+  
   dataset[[lat.dat]] <- as.numeric(as.vector(dataset[[lat.dat]]))
   dataset[[lon.dat]] <- as.numeric(as.vector(dataset[[lon.dat]]))
 
@@ -70,17 +71,15 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
     # stop('Latitude is not valid (outside -90:90.')
   }
 
- if(grepl('UTM', sf::st_crs(grid)$input, ignore.case=TRUE)){
-   if(any(class(grid)=='sf')){
-       grid <- sf::st_transform(grid, crs = "+proj=longlat +datum=WGS84")
-      } #else if(any(class(grid)=='SpatialPolygonsDataFrame')){
-        #grid <- sp::spTransform(grid, sp::CRS("+proj=longlat")) 
-     # }
+ if(grepl('UTM', sf::st_crs(spatdat)$input, ignore.case=TRUE)){
+   if(any(class(spatdat)=='sf')){
+     spatdat <- sf::st_transform(spatdat, crs = "+proj=longlat +datum=WGS84")
+      } 
  }
   
-  if(!any(class(grid)=='sf')){
-    if(any(class(sf::st_as_sf(grid))=='sf')){
-      grid <- sf::st_as_sf(grid)
+  if(!any(class(spatdat)=='sf')){
+    if(any(class(sf::st_as_sf(spatdat))=='sf')){
+      spatdat <- sf::st_as_sf(spatdat)
     }
   }
   
@@ -93,10 +92,9 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
        
         dat_sub <- sf::st_transform(dat_sub, epsg)
         
-      } else if(!is.na(sf::st_crs(grid))){
+      } else if(!is.na(sf::st_crs(spatdat))){
         
-        # dat_sub <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), crs = sf::st_crs(grid))
-        dat_sub <- sf::st_transform(dat_sub, sf::st_crs(grid))
+        dat_sub <- sf::st_transform(dat_sub, sf::st_crs(spatdat))
         
       } else {
         dat_sub <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), crs = "+proj=longlat +datum=WGS84")
@@ -104,23 +102,23 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
         x <- 1
       }
       
-      if (any(!(sf::st_is_valid(grid)))) {
+      if (any(!(sf::st_is_valid(spatdat)))) {
         
-        grid <- sf::st_make_valid(grid)
+        spatdat <- sf::st_make_valid(spatdat)
       } 
       
-      temp <- sf::st_intersects(dat_sub, grid)
+      temp <- sf::st_intersects(dat_sub, spatdat)
       
       if(any(lengths(temp)>1)) {
         warning('At least one observation assigned to multiple regulatory zones. Assigning observations to nearest polygon.')
         dub <- which(lengths(temp)>1)
-        temp[dub] <- sf::st_nearest_feature(dat_sub[dub,], grid)
+        temp[dub] <- sf::st_nearest_feature(dat_sub[dub,], spatdat)
       }
       if (closest.pt==TRUE) {
         if(anyNA(temp)){
           dub <- which(is.na(temp))
-          nearest <- sf::st_nearest_feature(dat_sub[dub,], grid)  
-          dist.rec = sf::st_distance(dat_sub[dub,], grid[nearest,], by_element=TRUE)
+          nearest <- sf::st_nearest_feature(dat_sub[dub,], spatdat)  
+          dist.rec = sf::st_distance(dat_sub[dub,], spatdat[nearest,], by_element=TRUE)
           distkeep <- which(as.numeric(dist.rec)< bufferval)
           temp[dub[distkeep]] <- nearest[distkeep]
           
@@ -130,7 +128,7 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
         }
       pts <- as.data.frame(as.numeric(temp))
       colnames(pts) <- "col.id"
-      pts$ID <- grid[[cat]][pts$col.id]
+      pts$ID <- spatdat[[cat]][pts$col.id]
 
   }
   
@@ -141,8 +139,8 @@ assignment_column <- function(dat, project, gridfile, lon.dat, lat.dat, cat, clo
       
       assignment_column_function <- list()
       assignment_column_function$functionID <- "assignment_column"
-      assignment_column_function$args <- list(dat, project, gridfile, lon.dat, lat.dat, 
-                                              cat, closest.pt, lon.grid, lat.grid, 
+      assignment_column_function$args <- list(dat, project, spat, lon.dat, lat.dat, 
+                                              cat, closest.pt, lon.spat, lat.spat, 
                                               hull.polygon, epsg, log.fun)
       log_call(project, assignment_column_function)
     }

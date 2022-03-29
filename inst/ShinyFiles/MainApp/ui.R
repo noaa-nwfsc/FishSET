@@ -478,6 +478,7 @@ source("map_viewer_app.R", local = TRUE)
                                           
                                           conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial'",
                                                            uiOutput("mtgt_output"),
+                                                           uiOutput('mtgt_output_secondary'),
                                                            uiOutput('mtgt_out2'),
                                                            uiOutput("location_info_spatial")),
                                           

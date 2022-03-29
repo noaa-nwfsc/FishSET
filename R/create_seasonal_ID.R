@@ -21,9 +21,11 @@
 #' @examples
 #' \dontrun{
 #' #Example using a table stored in the FishSET database
-#' pcodMainDataTable <- season_ID("pcodMainDataTable", 'pcod', seasonal_dat='seasonTable', start='SeasonStart', end='SeasonEnd', name='2001A')
+#' pcodMainDataTable <- season_ID("pcodMainDataTable", 'pcod', seasonal_dat='seasonTable', 
+#'      start='SeasonStart', end='SeasonEnd', name='2001A')
 #' #Example using manually entered dates
-#' pcodMainDataTable <- season_ID("pcodMainDataTable", 'pcod', seasonal.dat=NULL, start='04152011', end='06302011', name='2001A')
+#' pcodMainDataTable <- season_ID("pcodMainDataTable", 'pcod', seasonal.dat=NULL, 
+#'     start='04152011', end='06302011', name='2001A')
 #' }
 #'
 seasonalID <- function(dat, project, seasonal.dat=NULL, start, end, overlap=FALSE, name=NULL) {
