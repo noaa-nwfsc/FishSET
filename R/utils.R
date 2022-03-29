@@ -121,7 +121,7 @@ project_exists <- function(project) {
   
   if (!is.null(project)) {
     
-    projdir <- paste0(locproject(), "/", project)
+    projdir <- paste0(locproject(), project)
     dir.exists(projdir)
     
   } else FALSE
@@ -174,29 +174,29 @@ check_proj <- function(project = NULL) {
       dir.create(file.path(paste0(proj_dir, '/MapViewer')), showWarnings = FALSE)
     } else {
       #Cases where the root folder exists but the subfolders have been deleted.
-      if(!file.exists(paste0(locproject(), "/", project, "/src"))){
+      if(!file.exists(paste0(locproject(),  project, "/src"))){
         dir.create(file.path(paste0(proj_dir, '/src')), showWarnings = FALSE)
       }
-      if(!file.exists(paste0(locproject(), "/", project, "/output"))){
+      if(!file.exists(paste0(locproject(),  project, "/output"))){
         dir.create(file.path(paste0(proj_dir, '/output')), showWarnings = FALSE)
       }
-      if(!file.exists(paste0(locproject(), "/", project, "/fishset_db.sqlite"))){
+      if(!file.exists(paste0(locproject(),  project, "/fishset_db.sqlite"))){
         fishset_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(proj_dir, '/fishset_db.sqlite'))
         on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
       }
-      if(!file.exists(paste0(locproject(), "/", project, "/data"))){
+      if(!file.exists(paste0(locproject(), project, "/data"))){
         dir.create(file.path(paste0(proj_dir, '/data')), showWarnings = FALSE)
         dir.create(file.path(paste0(proj_dir, '/data/spat')), showWarnings = FALSE)
       }
-      if(!file.exists(paste0(locproject(), "/", project, "/doc"))){
+      if(!file.exists(paste0(locproject(),  project, "/doc"))){
         dir.create(file.path(paste0(proj_dir, '/doc')), showWarnings = FALSE)
-        file.copy(appDir, paste0(locproject(), "/", project, "/doc/report_template.Rmd"))
+        file.copy(appDir, paste0(locproject(), project, "/doc/report_template.Rmd"))
       }
-      if(!file.exists(paste0(locproject(), "/", project, "/MapViewer"))){
+      if(!file.exists(paste0(locproject(),  project, "/MapViewer"))){
         dir.create(file.path(paste0(proj_dir, '/MapViewer')), showWarnings = FALSE)
       }
-      if(!file.exists(paste0(locproject(), "/", project, "/doc/report_template.Rmd"))){
-        file.copy(appDir, paste0(locproject(), "/", project, "/doc/report_template.Rmd"))
+      if(!file.exists(paste0(locproject(), project, "/doc/report_template.Rmd"))){
+        file.copy(appDir, paste0(locproject(), project, "/doc/report_template.Rmd"))
       }
     }
   } else {
@@ -214,7 +214,7 @@ erase_project <- function(project) {
   
   if (project_exists(project)) {
     
-    unlink(paste0(locproject(), "/", project), recursive = TRUE)
+    unlink(paste0(locproject(),  project), recursive = TRUE)
   
   } else {
     
@@ -232,7 +232,7 @@ locdatabase <- function(project) {
   if(!is.null(project)){
  
       if (!exists('loc2')||is.null(loc2)) {
-      paste0(locproject(), "/", project, "/fishset_db.sqlite")
+      paste0(locproject(),  project, "/fishset_db.sqlite")
     } else {
       paste0(loc2, "/", project, "/fishset_db.sqlite")
     }
@@ -262,7 +262,7 @@ loclog <- function(project) {
       loc2 <- NULL
     }
     if (!exists('loc2')||is.null(loc2)) {
-      paste0(locproject(), "/", project, "/src/")
+      paste0(locproject(), project, "/src/")
     } else {
       paste0(loc2, '/', project, "/src/")
     }
@@ -280,7 +280,7 @@ locoutput <- function(project) {
   } else {
   
   
-      paste0(locproject(), "/", project, "/output/")
+      paste0(locproject(), project, "/output/")
   
   }
 }
@@ -304,7 +304,7 @@ loc_map <- function(project) {
   } else {
     if (exists("loc2")) loc2 <- loc2
     if (!exists('loc2')||is.null(loc2)) {
-      paste0(locproject(), "/", project, "/MapViewer/")
+      paste0(locproject(), project, "/MapViewer/")
     } else {
       paste0(loc2, "/", project, "/MapViewer/")
     }
@@ -325,7 +325,7 @@ loc_data <- function(project) {
   } else {
     if (exists("loc2")) loc2 <- loc2
     if (!exists('loc2')||is.null(loc2)) {
-      paste0(locproject(), "/", project, "/data/")
+      paste0(locproject(), project, "/data/")
       
     } else {
       paste0(loc2, "/", project, "/data/")
@@ -340,7 +340,7 @@ loc_meta <- function(project) {
   #' @export
   #' 
   
-  paste0(locproject(), "/", project, "/doc/meta_log.json")
+  paste0(locproject(), project, "/doc/meta_log.json")
   
 }
 
@@ -354,7 +354,7 @@ loc_doc <- function(project) {
   #' @details if loc2 is not in the working environment, then the default location is use
   
   if (!exists('loc2')||is.null(loc2)) {
-    paste0(locproject(), "/", project, "/doc/")
+    paste0(locproject(), project, "/doc/")
   } else {
     paste0(loc2, "/", project, "/doc/")
   }

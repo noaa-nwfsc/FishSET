@@ -867,16 +867,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 			      the', tags$code('Catch Variable.'), 'This matrix is required to run the conditional logit model.',
 			  tags$br(), tags$br(),
 				
-			  #  'The primary choices are whether to treat data as a fleet or to group the data', tags$strong('defineGroup'), 'and the time
-			  #  frame of catch data for calculating expected catch. Catch is averaged along a daily or sequential timeline',
-			  #  tags$strong('temporal'), 'using a rolling average.', tags$strong('temp.window'), 'and tags$strong('temp.lat') determine the window size and
-			  #  temporal lag of the window for averaging. Use tags$strong('temp_obs_table') before using this function to assess
-			  #  the availability of data for the desired temporal moving window size. Sparse data is not suited for shorter moving
-			  #  window sizes. For very sparse data, consider setting,' tags$strong('temp.var'), 'to NULL and excluding temporal patterns in
-			  #  catch.', tags$br(),
-			  #  'Empty catch values are considered to be times of no fishing activity. Values of 0 in the catch variable
-			  #  are considered times when fishing activity occurred but with no catch. These points are included in the averaging
-			  #  and dummy creation as points in time when fishing occurred.' 
 			  tags$br(), tags$br(),
             'The function returns four expected catch or expected revenue matrices based on selected parameters:', 
 				tags$br(),
@@ -3604,6 +3594,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }
       })
       
+      
       output$mtgt_output <- renderUI({
         tagList( 
           h4('Further options to display measures of spatial autocorrelation'),
@@ -3614,20 +3605,30 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
          tags$div(style = "margin-left:19px;", 
                   selectizeInput('varofint', 'Variable to test for spatial autocorrelation',
                                  choices = numeric_cols(values$dataset))),
-        
-         tags$div(style = "margin-left:19px;",  
+        checkboxInput('datzone_gt', 'Primary data contains a zone/area assignment variable', value=FALSE)
+        )
+      })    
+      
+       output$mtgt_output_secondary <- renderUI({
+         tagList(
+           if(input$datzone_gt==TRUE){
+             selectInput('mtgtZone', 'Column containing zone identifier', choices = c(NULL, colnames(values$dataset)), selected=NULL)
+           } else {
+           tags$div(style = "margin-left:19px;",  
                   selectizeInput('gtmt_lonlat', 'Select lat then lon from data frame to assign observations to zone', 
                                  choices=c(NULL, find_lonlat(values$dataset)), 
                                  multiple = TRUE, options = list(maxItems = 2, 
                                                                  create = TRUE, 
                                                                  placeholder='Select or type variable name')))
-        )
-      })    
+           }
+         )
+       })
+
       
       output$mtgt_out2 <- renderUI({
         tagList(
           tags$div(style = "margin-left:19px;", 
-                   selectInput('mtgtcat', "Variable defining zones or areas", 
+                   selectInput('mtgtcat', "Variable defining zones or areas from spatial data frame", 
                                choices = c('none', names(as.data.frame(spatdat$dataset))),
                                selected='none')),
           
@@ -3649,15 +3650,17 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             
             q_test <- quietly_test(getis_ord_stats)
             gt <- q_test(values$dataset, project=project$name, varofint=input$varofint,
+                         zoneid = input$mtgtZone,
                          spat=spatdat$dataset, lon.dat=input$gtmt_lonlat[2],
                          lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat,
-                         lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$getistable
+                         lon.spat=input$mtgtlonlat[2], lat.spat=input$mtgtlonlat[1])$getistable
             
             q_test <- quietly_test(moran_stats)
             mt <- q_test(values$dataset, project=project$name, varofint=input$varofint,
+                         zoneid=input$mtgtZone,
                          spat=spatdat$dataset, lon.dat=input$gtmt_lonlat[2],
                          lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat,
-                         lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$morantable
+                         lon.spat=input$mtgtlonlat[2], lat.spat=input$mtgtlonlat[1])$morantable
             
             qaqc_out_proj$gtmt <- project$name
             
@@ -4282,6 +4285,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         
         conditionalPanel("input.start=='Zonal centroid'||input.end=='Zonal centroid'",
                          style = "margin-left:19px;",  
+                         
+        selectInput('zone_dist', 'Zone/area assignment variable (if exists in data)', choices=c('', 'ZoneID', colnames(values$dataset))),
                        
         selectizeInput('lon_dat', 'Select lat then lon columns from dataframe to assign observations to zone', 
                        choices = find_lonlat(values$dataset),
@@ -4328,6 +4333,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
            
            selectInput('haul_order_SL', 'Variable defining haul order within a trip. Can be time, coded variable, etc.',
                        choices=c('', names(values$dataset)), selectize=TRUE),
+           selectInput('zone_SL', 'Zone/area assignment variable (if exists in data)', 
+                       choices=c("", 'ZoneID', colnames(values$dataset)), selected=''),
            
            selectizeInput('starting_port_SL',  "Variable that identifies port at start of trip", 
                           choices = find_port(values$dataset), 
@@ -4520,10 +4527,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         } else if (input$VarCreateTop=='Spatial functions' & input$dist=='zone') {
           
           q_test <- quietly_test(assignment_column)
-          values$dataset <- q_test(dat=values$dataset, project$name, gridfile=spatdat$dataset, 
+          values$dataset <- q_test(dat=values$dataset, project$name, spat=spatdat$dataset, 
                                    lon.dat=input$lon_dat_zone, lat.dat=input$lat_dat_zone, 
                                    cat=input$cat_zone, closest.pt = input$closest_pt_zone, 
-                                   lon.grid=input$lon_grid_zone, lat.grid=input$lat_grid_zone, 
+                                   lon.spat=input$lon_grid_zone, lat.spat=input$lat_grid_zone, 
                                    hull.polygon = input$hull_polygon_zone, epsg=NULL)
           
           if ('ZoneID' %in% names(values$dataset)) {
@@ -4535,10 +4542,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         } else if (input$VarCreateTop=='Spatial functions' & input$dist=='fish_cent') {
           
           q_test <- quietly_test(find_fishing_centroid)
-          values$dataset <- q_test(dat=values$dataset, project$name, gridfile=spatdat$dataset, 
+          values$dataset <- q_test(dat=values$dataset, project$name, spat=spatdat$dataset, 
                                    lon.dat=input$lon_dat_cent, lat.dat=input$lat_dat_cent, 
                                    cat=input$cat_cent, weight.var=input$weight_var_cent,
-                                   lon.grid=input$lon_grid_cent,lat.grid=input$lat_grid_cent)
+                                   lon.spat=input$lon_grid_cent,lat.spat=input$lat_grid_cent)
           
         } else if (input$VarCreateTop=='Spatial functions' & input$dist=='create_dist_between') {
           #'Zonal centroid', 'Port', 'Lat/lon coordinates'
@@ -4559,9 +4566,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             q_test <- quietly_test(create_dist_between_for_gui)
             values$dataset <- q_test(values$dataset, project = project$name, start=startdist, 
                                      end=enddist, units=input$units, name=input$varname, 
-                                     portTable=input$filePort, gridfile=spatdat$dataset,
-                                     lon.dat=input$lon_dat[2], lat.dat=input$lon_dat[1],  
-                                     cat=input$cat, lon.grid=input$long_grid[2], lat.grid=input$long_grid[1])
+                                     portTable=input$filePort, spat=spatdat$dataset,
+                                     zoneid=input$zone_dist, lon.dat=input$lon_dat[2], lat.dat=input$lon_dat[1],  
+                                     cat=input$cat, lon.spat=input$long_grid[2], lat.spat=input$long_grid[1])
              
            } else if (input$VarCreateTop=='Spatial functions' & input$dist=='create_mid_haul') {
              
@@ -4581,12 +4588,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         } else if (input$VarCreateTop=='Spatial functions'&input$dist=='create_startingloc') {
           
               q_test <- quietly_test(create_startingloc)
-              values$dataset <- q_test(values$dataset, project=project$name, gridfile=spatdat$dataset,  
+              values$dataset <- q_test(values$dataset, project=project$name, spat=spatdat$dataset,  
                                        portTable=input$port.dat, trip_id=input$trip_id_SL,
-                                       haul_order=input$haul_order_SL, 
-                                       starting_port=input$starting_port_SL, lon.dat = input$lon_dat_SL, 
-                                       lat.dat = input$lat_dat_SL, cat=input$cat_SL, name=input$varname, 
-                                       lon.grid=input$lon_grid_SL, lat.grid=input$lat_grid_SL)
+                                       haul_order=input$haul_order_SL, starting_port=input$starting_port_SL, 
+                                       lon.dat = input$lon_dat_SL, lat.dat = input$lat_dat_SL, cat=input$cat_SL, zoneid=input$zone_SL, 
+                                       name=input$varname, lon.spat=input$lon_grid_SL, lat.spat=input$lat_grid_SL)
               
         } else if (input$VarCreateTop=='Trip-level functions'&input$trip=='haul_to_trip') {
           
@@ -4766,7 +4772,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       output$distZoneb <- renderUI({
         if(input$choiceTab=='distm' & !any(colnames(values$dataset)=='ZoneID')){
               if(input$datzone==TRUE){
-                         selectInput('distMatrixZone', 'Column containing zone identifier', choices = c(colnames(values$dataset)))
+                         selectInput('distMatrixZone', 'Column containing zone identifier', choices = c(NULL, colnames(values$dataset)), selected=NULL)
                } else{
                   return()
                }
@@ -5168,10 +5174,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
        
 
         if(input$model=='logit_correction' & input$startlocdefined =='create'){
-          values$dataset$startingloc <- create_startingloc(dat=values$dataset, gridfile=spatdat$dataset, portTable=input$port.datMD, 
+          values$dataset$startingloc <- create_startingloc(dat=values$dataset, spat=spatdat$dataset, portTable=input$port.datMD, 
                                             trip_id=input$trip_id_SL_mod, haul_order=input$haul_order_SL_mod, starting_port=input$starting_port_SL_mod, 
                                             lon.dat=input$lon_dat_SL_mod, lat.dat=input$lat_dat_SL_mod, cat=input$cat_SL_mod, 
-                                            lon.grid=input$lat_grid_SL, lat.grid=input$lat_grid_SL_mod)
+                                            lon.spat=input$lat_grid_SL, lat.spat=input$lat_grid_SL_mod)
         } 
         counter$countervalue <- counter$countervalue + 1
         
@@ -5516,16 +5522,18 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                type='message', duration=20)
               q_test <- quietly_test(create_alternative_choice)
               q_test(values$dataset, project=project$name, occasion=input$occasion_ac, alt_var=input$alt_var_ac, griddedDat=NULL, 
-                                  dist.unit=input$dist_ac, min.haul=input$min_haul_ac, gridfile=spatdat$dataset, cat=input$cat_altfc, 
-                                  hull.polygon=input$hull_polygon_ac, 
-                                  lon.grid=input$long_grid_altc, lat.grid=input$lat_grid_altc, 
+                                  dist.unit=input$dist_ac, min.haul=input$min_haul_ac, spat=spatdat$dataset, cat=input$cat_altfc, 
+                                  zoneID=input$distMatrixZone, hull.polygon=input$hull_polygon_ac, 
+                                  lon.spat=input$long_grid_altc, lat.spat=input$lat_grid_altc, 
                                   closest.pt=input$closest_pt_ac)
               showNotification('Completed. Alternative choice matrix updated', type='message', duration=10)
       }, ignoreInit = F) 
       
+    
+      
       observeEvent(input$savecentroid, {
         q_test <- quietly_test(find_centroid)
-        q_test(project = project$name, gridfile=spatdat$dataset, cat = input$cat_altc, lon.grid = input$long_grid_altc, lat.grid = input$lat_grid_altc)
+        q_test(project = project$name, spat=spatdat$dataset, cat = input$cat_altc, lon.spat = input$long_grid_altc, lat.spat = input$lat_grid_altc)
         showNotification('Geographic centroid of zones calculated and saved')
       }, ignoreInit = FALSE)
       

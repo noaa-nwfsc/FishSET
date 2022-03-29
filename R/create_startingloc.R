@@ -5,7 +5,7 @@
 #' @param dat  Primary data containing information on hauls or trips.
 #'   Table in FishSET database contains the string 'MainDataTable'.
 #' @param project Name of project
-#' @param gridfile Spatial data. Required if \emph{ZoneID} does not exists in \code{dat}.
+#' @param spat Spatial data. Required if \emph{ZoneID} does not exists in \code{dat}.
 #'   Shape, json, geojson, and csv formats are supported.
 #' @param portTable Port data. Contains columns: Port_Name, Port_Long, Port_Lat. Table is generated using
 #'   the \code{\link{load_port}} and saved in the FishSET database as the project and PortTable, for example 'pollockPortTable'.
@@ -14,16 +14,18 @@
 #' @param starting_port Variable in \code{dat} to identify port at start of trip.
 #' @param lon.dat Longitude variable from \code{dat}. Required if \emph{ZoneID} does not exist in \code{dat}.
 #' @param lat.dat Latitude variable from \code{dat}. Required if \emph{ZoneID} does not exist in \code{dat}.
-#' @param cat Variable or list in \code{gridfile} that identifies the individual areas or zones. 
+#' @param cat Variable or list in \code{spat} that identifies the individual areas or zones. 
 #'   Required if \emph{ZoneID} does not exist in \code{dat}.
-#'   If \code{gridfile} is class sf, \code{cat} should be name of list containing information on zones.
+#'   If \code{spat} is class sf, \code{cat} should be name of list containing information on zones.
+#' @param zoneid Variable in \code{dat} that identifies the individual zones or areas. Defaults to NULL. Define if 
+#'    the name of the zone identifier variable is not `ZoneID`.
 #' @param name String, name of created variable. Defaults to name of the function if not defined.
-#' @param lon.grid Variable or list from \code{gridfile} containing longitude data. 
+#' @param lon.spat Variable or list from \code{spat} containing longitude data. 
 #'   Required if \emph{ZoneID} does not exist in \code{dat}. Required for csv files. 
-#'   Leave as NULL if \code{gridfile} is a shape or json file.
-#' @param lat.grid Variable or list from \code{gridfile} containing latitude data. 
+#'   Leave as NULL if \code{spat} is a shape or json file.
+#' @param lat.spat Variable or list from \code{spat} containing latitude data. 
 #'   Required if \emph{ZoneID} does not exist in \code{dat}. Required for csv files. 
-#'   Leave as NULL if \code{gridfile} is a shape or json file.
+#'   Leave as NULL if \code{spat} is a shape or json file.
 #' @importFrom DBI dbExecute
 #' @export create_startingloc
 #' @return Primary data set with starting location variable added.
@@ -31,7 +33,7 @@
 #'   The vector is the zone location of a vessel when the decision of where to fish next was made. Generally, the first zone of a trip is the departure port. 
 #'   The \code{\link{assignment_column}} function is called to assign starting port locations and haul locations to zones. 
 #'   If ZoneID exists in \code{dat}, \code{\link{assignment_column}} is not called and the following arguments are not required:
-#'   \code{gridfile, lon.dat, lat.dat, cat, lon.grid, lat.grid}. 
+#'   \code{spat, lon.dat, lat.dat, cat, lon.grid, lat.grid}. 
 #' @examples
 #' \dontrun{
 #' pcodMainDataTable <- create_startingloc(pcodMainDataTable, 'pcod',
@@ -40,8 +42,8 @@
 #' )
 #' }
 #
-create_startingloc <- function(dat,project=NULL, gridfile, portTable, trip_id, haul_order, starting_port, lon.dat, lat.dat,
-                               cat, name = "startingloc", lon.grid = NULL, lat.grid = NULL) {
+create_startingloc <- function(dat,project=NULL, spat, portTable, trip_id, haul_order, starting_port, lon.dat, lat.dat,
+                               cat, zoneid, name = "startingloc", lon.spat = NULL, lat.spat = NULL) {
 
   if(is.null(project)){
     project <- sub("\\MainDataTable", "", dat)
@@ -58,19 +60,30 @@ create_startingloc <- function(dat,project=NULL, gridfile, portTable, trip_id, h
   PortTable <- parse_data_name(portTable, 'port', project)
   port.table <- out$dataset
   
+  
+  # Call in datasets
+  spat_out <- data_pull(spat, project)
+  spatdat <- spat_out$dataset
+  spat <- parse_data_name(dat, "spat", project)
+  
+  
  name <- ifelse(is_empty(name), "startingloc", name)
 
   
   port <- assignment_column(
-    dat = port.table, project = project, gridfile = gridfile, hull.polygon = FALSE, lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = "Port_Long",
+    dat = port.table, project = project, spat = spatdat, hull.polygon = FALSE, lon.spat = lon.spat, lat.spat = lat.spat, lon.dat = "Port_Long",
     lat.dat = "Port_Lat", cat = cat, closest.pt = TRUE, log.fun = FALSE
   )
 
   if("ZoneID" %in% names(dataset) == TRUE){
     int.data <- dataset
+    zoneid <- 'ZoneID'
+  } else if(!is.null(zoneid)){
+    int.data <- dataset
+    colnames(int.data)[colnames(int.data)==zoneid] <- 'ZoneID'
   } else {
     int.data <- assignment_column(
-      dat = dataset, project = project, gridfile = gridfile, hull.polygon = FALSE, lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat,
+      dat = dataset, project = project, spat = spatdat, hull.polygon = FALSE, lon.spat = lon.spat, lat.spat = lat.spat, lon.dat = lon.dat,
       lat.dat = lat.dat, cat = cat, closest.pt = TRUE, log.fun = FALSE
     )
   }
@@ -100,9 +113,9 @@ create_startingloc <- function(dat,project=NULL, gridfile, portTable, trip_id, h
   create_startingloc_function <- list()
   create_startingloc_function$functionID <- "create_startingloc"
   create_startingloc_function$args <- list(
-    dat, project, deparse(substitute(gridfile)), portTable, trip_id, haul_order, starting_port,
+    dat, project, spat, portTable, trip_id, haul_order, starting_port,
     lon.dat, lat.dat, cat, name)
-  create_startingloc_function$kwargs <- list("lon.grid" = lon.grid, "lat.grid" = lat.grid)
+  create_startingloc_function$kwargs <- list("lon.spat" = lon.spat, "lat.spat" = lat.spat)
   create_startingloc_function$output <- list(dat)
 
   log_call(project, create_startingloc_function)

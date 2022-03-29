@@ -61,14 +61,14 @@ spatial_hist <- function(dat, project, group=NULL) {
 
 #' Summarize variable over data and time
 spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs", "perc_total", "mean", "median", "min", "max", "sum"),
-                            variable, gridfile, lon.grid = NULL, lat.grid = NULL, 
+                            variable, spat, lon.spat = NULL, lat.spat = NULL, 
                             lon.dat = NULL, lat.dat = NULL, cat) {
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
   #' @param stat.var Options are \code{"length"}, \code{"no_unique_obs"}, \code{"perc_total"},
   #'   \code{"mean"}, \code{"median"}, \code{"min"}, \code{"max"}, and \code{"sum"}.
-  #' @param gridfile Spatial data containing information on fishery management or regulatory zones.
+  #' @param spat Spatial data containing information on fishery management or regulatory zones.
   #'   Shape, json, geojson, and csv formats are supported. Leave as NULL if the variable ‘ZoneID’
   #'   assigning observations to zones exists in \code{dat}.
   #' @param variable Variable in \code{dat} to summarize over date and zone.
@@ -76,11 +76,11 @@ spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs"
   #'   assignment) exists in \code{dat}.
   #' @param lat.dat Latitude variable in \code{dat}. Leave as NULL if the variable ‘ZoneID’ (zonal 
   #'   assignments) exists in \code{dat}.
-  #' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required for csv files. 
-  #'   Leave as NULL if \code{gridfile} isba shape or json file or if the variable ‘ZoneID’ exists in \code{dat}.
-  #' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files. Leave as NULL if \code{gridfile}
+  #' @param lon.spat Variable or list from \code{spat} containing longitude data. Required for csv files. 
+  #'   Leave as NULL if \code{spat} is a shape or json file or if the variable ‘ZoneID’ exists in \code{dat}.
+  #' @param lat.spat Variable or list from \code{spat} containing latitude data. Required for csv files. Leave as NULL if \code{spat}
   #'   is a shape or json file, or if the variable ‘ZoneID’ exists in \code{dat}.
-  #' @param cat  Variable or list in \code{gridfile} that identifies the individual areas or zones. If \code{gridfile} is class sf, \code{cat}
+  #' @param cat  Variable or list in \code{spat} that identifies the individual areas or zones. If \code{spat} is class sf, \code{cat}
   #'   should be name of list containing information on zones. Leave as NULL if the variable ‘ZoneID’ exists in \code{dat}.
   #' @importFrom graphics par lines plot
   #' @export
@@ -106,7 +106,7 @@ spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs"
   #'
   #' Example where obs. have not been assigned to zones
   #'     spatial_summary(pcodMainDataTable, project = 'pcod', stat.var = "no_unique_obs",
-  #'        variable = 'HAUL', gridfile = spatdat, lon.dat = 'MidLat', lat.dat = 'MidLat',
+  #'        variable = 'HAUL', spat = spatdat, lon.dat = 'MidLat', lat.dat = 'MidLat',
   #'        cat = 'NMFS_AREA')
   #' }
 
@@ -114,10 +114,15 @@ spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs"
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
+  spat_out <- data_pull(spat, project)
+  spatdat <- spat_out$dataset
+  spat <- parse_data_name(dat, "spat", project)
+  
+  
   if ("ZoneID" %in% names(dataset) == FALSE) {
     dataset <- assignment_column(
-      dat = dataset, project=project, gridfile = gridfile, hull.polygon = TRUE, 
-      lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat, lat.dat = lat.dat, 
+      dat = dataset, project=project, spat = spatdat, hull.polygon = TRUE, 
+      lon.spat = lon.spat, lat.spat = lat.spat, lon.dat = lon.dat, lat.dat = lat.dat, 
       cat = cat, closest.pt = TRUE, epsg = NULL, log.fun = FALSE
     )
   }
@@ -175,7 +180,7 @@ spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs"
 
   spatial_summary_function <- list()
   spatial_summary_function$functionID <- "spatial_summary"
-  spatial_summary_function$args <- list(dat, project, stat.var, variable, gridfile, lon.dat, lat.dat, cat, lon.grid, lat.grid)
+  spatial_summary_function$args <- list(dat, project, stat.var, variable, spat, lon.dat, lat.dat, cat, lon.spat, lat.spat)
   spatial_summary_function$kwargs <- list()
   spatial_summary_function$output <- c()
   log_call(project, spatial_summary_function)
