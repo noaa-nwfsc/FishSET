@@ -29,6 +29,8 @@
 #'   See the Details section for how to specify for each likelihood function.
 #' @param priceCol Variable in \code{dat} containing price information. Required if specifying an expected profit model 
 #'   for the likelihood (epm_normal, epm_weibull, epm_lognormal).
+#' @param expectcatchmodels String, name of expected catch models to include in model run. Defaults to all models.
+#'   Choices are short, medium, long, all. See \code{\link{create_expectations}} for details on the different models.
 #' @param startloc Variable in \code{dat} identifying the location when choice of where to fish next was made.
 #'   Required for logit_correction likelihood.
 #'   Use the \code{\link{create_startingloc}} function to create the starting location vector.
@@ -416,7 +418,8 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
         bCHeader = bCHeader,
         startloc = startloc,
         polyn = polyn,
-        gridVaryingVariables = ExpectedCatch
+        gridVaryingVariables = ExpectedCatch,
+        expectcatchmodels = expectcatchmodels
       )
 
 #     print(str(modelInputData_tosave)) 
@@ -454,7 +457,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       make_model_design_function$args <- list(
         project, catchID, replace, ptname, likelihood,
         initparams, optimOpt, methodname, as.character(mod.name), 
-        vars1, vars2, priceCol, startloc, polyn
+        vars1, vars2, priceCol,expectcatchmodels, startloc, polyn
       )
       make_model_design_function$kwargs <- list()
       

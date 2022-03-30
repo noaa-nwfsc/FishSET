@@ -1118,7 +1118,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }
       }
       
-    ## Main ----  
+      ## Main ----  
      #Add in reactive values once data  call is is not empty
       observeEvent(input$loadDat, {
         
@@ -1206,7 +1206,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
 
-     ## Port ----
+      ## Port ----
       output$port_upload <- renderUI({     
        
         if(input$loadportsource=='Upload new file'){ 
@@ -1408,7 +1408,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       }, ignoreInit = TRUE, ignoreNULL = TRUE)
       
 
-  ## Spatial ----
+      ## Spatial ----
       output$spatial_upload <- renderUI({     
         
         if (input$loadspatialsource == 'Upload new file') {
@@ -1587,7 +1587,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
   }, ignoreInit = TRUE, ignoreNULL = TRUE) 
 
 
- ## Grid ----     
+      ## Grid ----     
       output$grid_upload <- renderUI({     
 
         if (input$loadgridsource=='Upload new file') {
@@ -1707,7 +1707,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }
       })
     
-  ## Auxiliary ----     
+      ## Auxiliary ----     
  
       output$aux_upload <- renderUI({     
         
@@ -3357,14 +3357,24 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                        searchCols = default_search_columns, buttons = c('csv'))
       )
       
+      observeEvent(input$output_table_exploration_cell_edit, {
+        info = 
+        str(info)
+        i = info$row
+        j = info$col + 1
+        v = info$value
+        values$dataset[i, j] <<- DT:::coerceValue(v, values$dataset[i, j])
+        
+        #replaceData(proxy, x, resetPaging = FALSE, rownames = FALSE)
+      })
+      
       observeEvent(input$saveData,{
         req(project$name)
         # when it updates, save the search strings so they're not lost
           # update global search and column search strings
-          #default_search_columns <- c("", input$output_table_exploration_search_columns)
         default_search_columns <- c(input$output_table_exploration_search_columns)
         default_sub <- which(default_search_columns!='')
-        
+        temp <- values$dataset
         table_type <- #switch(input$SelectDatasetExplore, 
                              #"main" = 
                                 "MainDataTable"#,
@@ -3385,12 +3395,16 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                 FilterTable <- rbind(FilterTable, c(paste0(project$name, table_type), (colnames(explore_temp()[default_sub])[i]), 
                                                     paste(colnames(explore_temp()[default_sub])[i], '>', as.numeric(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), head, 1)), '&', 
                                                           colnames(explore_temp()[default_sub])[i], '<', as.numeric(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), tail, 1)))))
-              } else {
+                values$dataset <-  subset(explore_temp(), eval(parse(text=paste(colnames(explore_temp()[default_sub])[i], '>', 
+                                                                                as.numeric(sapply(strsplit(input$output_table_exploration_search_columns[default_sub[i]], "\\..\\."), head, 1)), '&', 
+                                                                                colnames(explore_temp()[default_sub])[i], '<', 
+                                                                                as.numeric(sapply(strsplit(input$output_table_exploration_search_columns[default_sub[i]], "\\..\\."), tail, 1))))))
+               } else {
                 FilterTable <- rbind(FilterTable, c(paste0(project$name, table_type), (colnames(explore_temp()[default_sub])[i]), 
                                                     paste0("grepl('", default_search_columns[default_sub[i]],"', ", colnames(explore_temp()[default_sub])[i],")")))
-              }
+               values$dataset <-  subset(explore_temp(), eval(parse(text=  paste0("grepl('", default_search_columns[default_sub[i]],"', ", colnames(explore_temp()[default_sub])[i],")"))))
+                }
             }
-            
             showNotification('Filter table saved to FishSET database', type='message', duration=10)
             
             filter_data_function <- list()
@@ -3405,11 +3419,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               DBI::dbWriteTable(fishset_db, paste0(project$name, 'FilterTable'),  FilterTable, overwrite=TRUE)
               DBI::dbDisconnect(fishset_db)
             }
-           
+           #values$dataset <- temp
       })
 
       
       observeEvent(input$subsetData,{
+        req(!is.null(input$output_table_exploration_columns_selected))
         values$dataset <- values$dataset[,-(input$output_table_exploration_columns_selected+1)]
       })
       
@@ -4772,7 +4787,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       output$distZoneb <- renderUI({
         if(input$choiceTab=='distm' & !any(colnames(values$dataset)=='ZoneID')){
               if(input$datzone==TRUE){
-                         selectInput('distMatrixZone', 'Column containing zone identifier', choices = c(NULL, colnames(values$dataset)), selected=NULL)
+                         selectInput('distMatrixZone', 'Column containing zone identifier', choices = c('', colnames(values$dataset)), selected='')
                } else{
                   return()
                }
@@ -4810,7 +4825,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                          choices=c(input$priceBase, "none", find_value(values$dataset)),
                                    options = list(create = TRUE, placeholder='Select or type column name')),
           selectizeInput('group','Choose column name containing data that defines groups',
-                         choices=c('Fleet (no group)', category_cols(values$dataset)))
+                         choices=c('Fleet (no group)', category_cols(values$dataset))),
+          selectizeInput('zoneidep', 'Column containing zone identifier', choices=c('', 'ZoneID', colnames(values$dataset)), selected='')
         )
       })
       output$expcatch <-  renderUI({
@@ -4821,21 +4837,25 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                      selected='none', options = list(create = TRUE, placeholder='Select or type column name')))
       })
       sparstable_dat <- reactive({
-        if(!any(colnames(values$dataset)=='ZoneID')){
+        if(!any(colnames(values$dataset)=='ZoneID') & !any(colnames(values$dataset)==input$zoneidep)){
           return()
         } else if(is_empty(input$catche)){
           return()
         } else if(input$temp_var=='none'){
           return()
         } else{
+          if(any(colnames(values$dataset)=='ZoneID')){
           sparsetable(values$dataset, project=project$name, timevar=input$temp_var, zonevar='ZoneID', var=input$catche)
+          } else {
+            sparsetable(values$dataset, project=project$name, timevar=input$temp_var, zonevar=input$zoneidep, var=input$catche)
+          }
         }
       })
       
       
       output$spars_table <- DT::renderDT(sparstable_dat(), server=TRUE)
       output$spars_plot <- renderPlot({
-        if(!any(colnames(values$dataset)=='ZoneID')){
+        if(!any(colnames(values$dataset)=='ZoneID')& !any(colnames(values$dataset)==input$zoneidep)){
           return()
         } else if(is_empty(input$catche)){
           return()
