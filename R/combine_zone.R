@@ -118,7 +118,7 @@ combine_zone <- function(grid, closure, grid.nm, closure.nm, recast = TRUE) {
   #' 
   #' Creates a new spatial dataset that merges regulatory zones with closure areas.
   #' 
-  #' @param grid Grid file containing regulatory zones.
+  #' @param spat Spatial file containing regulatory zones.
   #' @param closure Closure file containing closure areas. 
   #' @param grid.nm Character, column name containing grid ID.
   #' @param closure.nm Character, column name containing closure ID.
@@ -137,13 +137,13 @@ combine_zone <- function(grid, closure, grid.nm, closure.nm, recast = TRUE) {
   #'       dataframe
   #'     \item Assign new zone IDs to intersecting polygons
   #'   } 
-  #'   The result is a single spatial dataset containing all polygons from both \code{grid}
+  #'   The result is a single spatial dataset containing all polygons from both \code{spat}
   #'   and \code{closure} with overlapping (intersecting) polygons receiving new
   #'   IDs (see \code{\link{new_zone_id}}). This allows users to partially close
   #'   regulatory zones during the model design stage. 
   #' @seealso \code{\link{recast_multipoly}} \code{\link{new_zone_id}}
   
-  grid <- check_spatdat(grid)
+  grid <- check_spatdat(spat)
   closure <- check_spatdat(closure)
   
   if (class(grid[[grid.nm]]) != class(closure[[closure.nm]])) {
