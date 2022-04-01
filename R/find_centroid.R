@@ -21,9 +21,7 @@ find_centroid <- function(project, spat, cat, lon.spat = NULL, lat.spat = NULL) 
   # Call in datasets
   spat_out <- data_pull(spat, project)
   spatdat <- spat_out$dataset
-  spat <- parse_data_name(dat, "spat", project)
-  
-
+  spat <- parse_data_name(spatdat, "spat", project)
   
   tmp <- tempfile()
   on.exit(unlink(tmp), add = TRUE)

@@ -12,6 +12,7 @@
 #' @importFrom lubridate year
 #' @importFrom dplyr group_by
 #' @importFrom yaml read_yaml
+#' @importFrom utils head head read.csv read.delim write.csv
 #' @export
 #' @return  Tables containing basic metrics on effects of proposed zone closures.
 #' @details The policy change metrics reflect the impact of proposed policies in the absence of changes in fisher behavior.

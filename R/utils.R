@@ -230,12 +230,7 @@ locdatabase <- function(project) {
   #' 
   
   if(!is.null(project)){
- 
-      if (!exists('loc2')||is.null(loc2)) {
       paste0(locproject(),  project, "/fishset_db.sqlite")
-    } else {
-      paste0(loc2, "/", project, "/fishset_db.sqlite")
-    }
   } else {
     paste0(locproject(), "/fishset_db.sqlite")
   }
@@ -255,18 +250,8 @@ loclog <- function(project) {
   if(is.null(project)){
     warning('Project name must be supplied.')
   } else {
-    
-    if (exists("loc2")) {
-      loc2 <- loc2
-    } else {
-      loc2 <- NULL
-    }
-    if (!exists('loc2')||is.null(loc2)) {
       paste0(locproject(), project, "/src/")
-    } else {
-      paste0(loc2, '/', project, "/src/")
-    }
-  }
+    } 
 }
 
 locoutput <- function(project) {
@@ -302,12 +287,7 @@ loc_map <- function(project) {
   if(is.null(project)){
     warning('Project name must be supplied.')
   } else {
-    if (exists("loc2")) loc2 <- loc2
-    if (!exists('loc2')||is.null(loc2)) {
       paste0(locproject(), project, "/MapViewer/")
-    } else {
-      paste0(loc2, "/", project, "/MapViewer/")
-    }
   }
 }
 
@@ -323,13 +303,7 @@ loc_data <- function(project) {
   if(is.null(project)){
     warning('Project name must be supplied.')
   } else {
-    if (exists("loc2")) loc2 <- loc2
-    if (!exists('loc2')||is.null(loc2)) {
       paste0(locproject(), project, "/data/")
-      
-    } else {
-      paste0(loc2, "/", project, "/data/")
-    }
   }
 }
 
@@ -339,9 +313,11 @@ loc_meta <- function(project) {
   #' @keywords internal
   #' @export
   #' 
-  
+  if(is.null(project)){
+    warning('Project name must be supplied.')
+  } else {
   paste0(locproject(), project, "/doc/meta_log.json")
-  
+  }
 }
 
 
@@ -353,10 +329,10 @@ loc_doc <- function(project) {
   #' @export
   #' @details if loc2 is not in the working environment, then the default location is use
   
-  if (!exists('loc2')||is.null(loc2)) {
-    paste0(locproject(), project, "/doc/")
+  if(is.null(project)){
+    warning('Project name must be supplied.')
   } else {
-    paste0(loc2, "/", project, "/doc/")
+    paste0(locproject(), project, "/doc/")
   }
 }
 
@@ -2180,7 +2156,7 @@ corr_plot <- function(corr, project){
   legend.title = "Corr"
   ggtheme = ggplot2::theme_minimal
   colors = c("blue", "white",  "red")
-  
+  rowname <- c()
   
   #Get lower triangle of the correlation matrix
   get_lower_tri <- function(cormat) {

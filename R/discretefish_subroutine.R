@@ -135,11 +135,48 @@ end <- FALSE
       if (!is.null(x$mod.name) & x$likelihood!='logit_c'){
             exp.names <- NULL
       } else {
-            exp.names <- c("short_exp","short_exp_newDumV","med_exp","med_exp_newDumV","long_exp","long__exp_newDumv","user_defined_exp")
-      }  
-        
+        exp.names <- list()
+      }
+      
+        #---
+        defineexp <- function(epnames){
+            if(any(tolower(epnames) == 'all')){
+              return(c("short_exp","short_exp_newDumV","med_exp","med_exp_newDumV","long_exp","long_exp_newDumv","user_defined_exp"))
+            } else if (length(epnames)>1){
+                epnames[grep('short', epnames)] <- 'short_exp'
+                epnames[grep('med', epnames)] <- 'med_exp'
+                epnames[grep('long', epnames)] <- 'long_exp'
+                epnames[grep('user', epnames)] <- 'user_defined_exp'
+                return(epnames)
+            } else {
+              if(grepl('short', tolower(epnames))) {
+                return('short_exp')
+              } else if(grepl('med', tolower(epnames))) {
+                return('med_exp')
+              } else if(grepl('long', tolower(epnames))) {
+                return('long_exp')
+              } else if(grepl('user', tolower(epnames))){
+               return('user_defined_exp')
+              }
+            }
+         }  
+     
+   
+      for(k in 1:length(x$expectcatchmodels)){
+        if(any(x$expectcatchmodels[[k]]=='individual')){
+          explen <- length(exp.names)
+          g <- list(c("short_exp"),c("short_exp_newDumV"),c("med_exp"),c("med_exp_newDumV"),c("long_exp"),c("long_exp_newDumv"),c("user_defined_exp"))
+          for(i in 1:length(g)){
+             exp.names[[explen+i]] <- g[[i]]
+             }
+        } else {
+        exp.names[[length(exp.names)+1]] <- defineexp(x$expectcatchmodels[[k]])
+        }
+      }
+     
+         
         for(j in 1:length(exp.names)){
-          data.matrix <- create_model_input(project=project, x=x, mod.name=x$mod.name, use.scalers= use.scalers, scaler.func=scaler.func, expected.catch.name=exp.names[j])
+          datamatrix <- create_model_input(project=project, x=x, mod.name=x$mod.name, use.scalers= use.scalers, scaler.func=scaler.func, expected.catch.name=exp.names[j])
         
           
       if (is.factor(x_temp[[i]][["optimOpt"]])) {
@@ -173,20 +210,20 @@ end <- FALSE
       
         
         #Number of inits
-        gridNum <- length(data.matrix$otherdat$griddat[[1]])
-        intNum <-  length(data.matrix$otherdat$intdat[[1]])
+        gridNum <- length(datamatrix$otherdat$griddat[[1]])
+        intNum <-  length(datamatrix$otherdat$intdat[[1]])
         if(fr == 'logit_c'){
           numInits <- gridNum+intNum
         } else if(fr == 'logit_avgcat') {
-          numInits <- gridNum*(max(data.matrix$choice)-1)+intNum
+          numInits <- gridNum*(max(datamatrix$choice)-1)+intNum
         } else if(fr == 'logit_correction'){
-          numInits <- gridNum*max(data.matrix$choice) + intNum + ((((as.numeric(x_temp[[i]]$polyn)+1)*2)+2)*max(data.matrix$choice)) +1+1
+          numInits <- gridNum*max(datamatrix$choice) + intNum + ((((as.numeric(x_temp[[i]]$polyn)+1)*2)+2)*max(datamatrix$choice)) +1+1
           
         } else {
 #          if(input$lockk=='TRUE'){
 #            numInits <- gridNum*max(choice)+intNum+alt+1
 #          } else {
-            numInits <- gridNum*max(data.matrix$choice)+intNum+1+1
+            numInits <- gridNum*max(datamatrix$choice)+intNum+1+1
 #          }
         }
         if(numInits != length(starts2)){
@@ -207,11 +244,11 @@ end <- FALSE
           devr <- if(is.null(dev[i])) { 5} else { dev[i] }
           
           starts2 <- explore_startparams_discrete(space=sp, dev=devr, breakearly=breakearly, startsr=starts2, fr=fr, 
-                                                  d=data.matrix$d, otherdat=data.matrix$otherdat, choice=data.matrix$choice, project=project)
+                                                  d=datamatrix$d, otherdat=datamatrix$otherdat, choice=datamatrix$choice, project=project)
         }
         
-        LL_start <- fr.name(starts2, data.matrix$d, data.matrix$otherdat, max(data.matrix$choice), 
-                            project =project, data.matrix$expname, as.character(data.matrix$mod.name))
+        LL_start <- fr.name(starts2, datamatrix$d, datamatrix$otherdat, max(datamatrix$choice), 
+                            project =project, datamatrix$expname, as.character(datamatrix$mod.name))
         
         if (is.null(LL_start) || is.nan(LL_start) || is.infinite(LL_start)) {
           # haven't checked what happens when error yet
@@ -231,9 +268,9 @@ end <- FALSE
         res <- tryCatch(
           {
             stats::optim(starts2, fr.name,
-                         dat = data.matrix$d, otherdat = data.matrix$otherdat, alts = max(data.matrix$choice), 
+                         dat = datamatrix$d, otherdat = datamatrix$otherdat, alts = max(datamatrix$choice), 
                          method = as.character(x_temp[[i]][['methodname']]), control = controlin, hessian = TRUE, 
-                         project = project, expname = data.matrix$expname, mod.name = as.character(unlist(x_temp[[i]][['mod.name']]))
+                         project = project, expname = datamatrix$expname, mod.name = as.character(unlist(x_temp[[i]][['mod.name']]))
             )
           },
           error = function(e) {
@@ -281,7 +318,7 @@ end <- FALSE
         #############################################################################
         # Model comparison metrics (MCM)
         param <- max(dim(as.matrix(starts2)))
-        obs <- dim(data.matrix$dataCompile)[1]
+        obs <- dim(datamatrix$dataCompile)[1]
         AIC <- round(2 * param - 2 * LL, 3)
         
         AICc <- round(AIC + (2 * param * (param + 1)) / (obs - param - 1), 3)
@@ -293,10 +330,10 @@ end <- FALSE
           mod.out <- data.frame(matrix(NA, nrow = 4, ncol = 1))
           mod.out[, 1] <- c(AIC, AICc, BIC, PseudoR2)
           rownames(mod.out) <- c("AIC", "AICc", "BIC", "PseudoR2")
-          colnames(mod.out) <- paste0(data.matrix$expname, x_temp[[i]][["mod.name"]])
+          colnames(mod.out) <- paste0(datamatrix$expname, x_temp[[i]][["mod.name"]])
         } else {
           temp <- data.frame(c(AIC, AICc, BIC, PseudoR2))
-          colnames(temp) <- paste0(data.matrix$expname, x_temp[[i]][["mod.name"]])
+          colnames(temp) <- paste0(datamatrix$expname, x_temp[[i]][["mod.name"]])
         }
         
 
@@ -385,13 +422,13 @@ end <- FALSE
         if(!exists("modelOut")) {
           modelOut <- list()
           modelOut[[length(modelOut) + 1]] <- list(
-            name = data.matrix$expname, errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput,
-            seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table = data.matrix$choice.table, params=outmat2
+            name = datamatrix$expname, errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput,
+            seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table = datamatrix$choice.table, params=outmat2
           )
         } else {
           modelOut[[length(modelOut) + 1]] <- list(
-            name = data.matrix$expname, errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput,
-            seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table = data.matrix$choice.table, params=outmat2
+            name = datamatrix$expname, errorExplain = errorExplain, OutLogit = OutLogit, optoutput = optoutput,
+            seoutmat2 = seoutmat2, MCM = MCM, H1 = H1, choice.table = datamatrix$choice.table, params=outmat2
           )
         } 
         raw_sql <- paste0(project, "modelOut")

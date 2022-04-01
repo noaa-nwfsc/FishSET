@@ -5009,7 +5009,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                            radioButtons('startlocdefined', 'Starting location variable', choices=c('Exists in data frame'='exists', 'Create variable'='create'))
         ))
         })
-        output$logit_correction_extra <- renderUI({
+      output$logit_correction_extra <- renderUI({
           tagList(
           conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='exists'",
             selectInput('startloc_mod', 'Initial location during choice occassion', choices=c('startingloc', names(values$dataset)), 
@@ -5052,6 +5052,27 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                         )
         )
       })
+      output$logit_c_extra <- renderUI({
+        tagList(
+          conditionalPanel(condition="input.model=='logit_c'",
+                           selectInput('logitcextra', 'Selected expected catch/revenue matrices to include in model', 
+                                       choices=c('All matrices'='all', 'Run each matrix in separate model'='individual', 
+                                                 'Select a subset of matrices to run in model'='subset'),
+                                       selected='all', multiple=FALSE)),
+          conditionalPanel(condition="input.model=='logit_c' & input.logitcextra=='subset'", 
+                           selectInput('logitcextrasub', 'Select one or more expected catch/revenue matrices to include', 
+                                       choices=c( 'User-defined matrix'='user', 'Short-term matrix'='short', 'Medium-term matrix'='medium',  'Long-term matrix'='long'), multiple=TRUE))
+          )
+      })
+      
+      exp.name <- reactive({
+        if(input$logitcextra!='subset'){
+          return(input$logitcextra)
+        } else {
+          return(input$logitcextrasub)
+        }
+      })
+      
       # Data needed
       ## Alternative choices
       Alt_vars <- reactive({
@@ -5071,7 +5092,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
           
       choice <- reactive({Alt_vars()$choice})
-      alt <- reactive({dim(table(choice()))})
+      alt <- reactive({
+        if(dim(table(unique(choice()))) > 100) {
+          return(100)
+        } else {
+          return(dim(table(unique(choice()))))
+        } 
+        })
       
       drop <- reactive({grep('date|port|processor|gear|target|lon|lat|permit|ifq', colnames(values$dataset), ignore.case=TRUE)})
       
@@ -5167,7 +5194,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       rv <- reactiveValues(
         data = data.frame('mod_name'='', 'likelihood'='', 'optimOpt'='', 'inits'='', 
                           'methodname'='', 'vars1'='','vars2'='', 'catch'='',
-                           'project'='', 'price'='', 'startloc'='', 'polyn'=''),
+                           'project'='', 'price'='', 'startloc'='', 'polyn'='', 'exp'=''),
         #model_table,
         deletedRows = NULL,
         deletedRowIndices = list()
@@ -5213,7 +5240,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                 'project'=project$name, 
                                 'price'='',
                                 'startloc'='',
-                                'polyn'='')
+                                'polyn'='',
+                                'exp'='')
                      , rv$data)#model_table())
         } else {
           rv$data = rbind(data.frame('mod_name'=paste0(input$model, '_mod', counter$countervalue), 
@@ -5221,13 +5249,14 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                'optimOpt'=paste(input$mIter,input$relTolX, input$reportfreq, input$detailreport),
                                'inits'=paste(int_name(), collapse=','),#noquote(paste0('input$int',1:numInits())),
                                'methodname' = input$optmeth, 
-                               'vars1'= paste(input$indeVarsForModel, collapse=', '),
+                               'vars1'= paste(input$indeVarsForModel, collapse=','),
                                'vars2'= input$gridVariablesInclude, 
                                'catch'= input$catch,
                                'project'= project$name, 
                                'price'= input$price,
                                'startloc'=  'startingloc',#if(input$startlocdefined=='exists'){input$startloc_mod} else {'startingloc'}, 
-                               'polyn'= input$polyn)
+                               'polyn'= input$polyn,
+                               'exp' = paste(exp.name(), collapse=','))
                     , rv$data)#model_table())
         }
       #  rv$data(t)#model_table(t)
@@ -5244,7 +5273,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           DBI::dbExecute(fishset_db, paste0("CREATE TABLE ", paste0(project$name,'modelDesignTable', format(Sys.Date(), format="%Y%m%d")),
                                             "(mod_name TEXT, likelihood TEXT, optimOpt TEXT, inits TEXT, 
                                             methodname TEXT, vars1 TEXT, vars2 TEXT,   catch TEXT, 
-                                           lon TEXT, lat TEXT, project TEXT, price TEXT, startloc TEXT, polyn TEXT)"))
+                                           lon TEXT, lat TEXT, project TEXT, price TEXT, startloc TEXT, polyn TEXT, exp TEXT)"))
         }
         # Construct the update query by looping over the data fields
         query <- sprintf(
@@ -5326,27 +5355,29 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           input_list <- reactiveValuesToList(input)
           toggle_inputs(input_list,F)
           #print('call model design function, call discrete_subroutine file')
+         rv$data <- subset(rv$data, mod_name!='')
+          
 
          # q_test <- quietly_test(make_model_design)
           
-          times <- nrow(rv$data)-1
+          times <- nrow(rv$data)
          
           showNotification(paste('1 of', times, 'model design files created.'), type='message', duration=10)
           make_model_design(project=as.character(rv$data$project[1]), catchID=as.character(rv$data$catch[1]), replace=TRUE, 
                  likelihood=as.character(rv$data$likelihood[1]), initparams=as.character(rv$data$inits[1]), optimOpt=as.character(rv$data$optimOpt[1]),
                   methodname =as.character(rv$data$methodname[1]), mod.name = as.character(rv$data$mod_name[1]),
                  vars1=as.character(rv$data$vars1[1]), vars2=as.character(rv$data$vars2[1]), priceCol=as.character(rv$data$price[1]), 
-                 startloc=as.character(rv$data$startloc[1]), polyn=as.character(rv$data$polyn[1]))
+                 expectcatchmodels=as.character(rv$data$exp[1]), startloc=as.character(rv$data$startloc[1]), polyn=as.character(rv$data$polyn[1]))
          
-         
+       
           if(times[1]>1){
             for(i in 2:times){
             
-              make_model_design(project=as.character(rv$data$project[i]), catchID=as.character(rv$data$catch[i]), replace=TRUE, 
+              make_model_design(project=as.character(rv$data$project[i]), catchID=as.character(rv$data$catch[i]), replace=FALSE, 
                                 likelihood=as.character(rv$data$likelihood[i]), initparams=as.character(rv$data$inits[i]), optimOpt=as.character(rv$data$optimOpt[i]),
                                 methodname =as.character(rv$data$methodname[i]), mod.name = as.character(rv$data$mod_name[i]),
                                 vars1=as.character(rv$data$vars1[i]), vars2=as.character(rv$data$vars2[i]), priceCol=as.character(rv$data$price[i]), 
-                                startloc=as.character(rv$data$startloc[i]), polyn=as.character(rv$data$polyn[i]))
+                                expectcatchmodels=as.character(rv$data$exp[i]), startloc=as.character(rv$data$startloc[i]), polyn=as.character(rv$data$polyn[i]))
               showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
             }
           } 
@@ -5559,13 +5590,15 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
                     
       observeEvent(input$submitE, {
+        showNotification('Function can take a couple minutes. A message will appear when done.',
+                         type='message', duration=20)
                 q_test <- quietly_test(create_expectations)
                 q_test(values$dataset, project$name, input$catche, price=input$price, 
                                     defineGroup=if(grepl('no group',input$group)){'fleet'} else {input$group},  
                             temp.var=input$temp_var, temporal = input$temporal, calc.method = input$calc_method, lag.method = input$lag_method,
                             empty.catch = input$empty_catch, empty.expectation = input$empty_expectation, temp.window = input$temp_window,  
                             temp.lag = input$temp_lag, year.lag=input$temp_year, dummy.exp = input$dummy_exp, replace.output = TRUE)
-        showNotification('Create expectated catch function called', type='message', duration=10)
+        showNotification('Completed. Expectated catch matrices updated', type='message', duration=10)
       }) 
       
      
