@@ -26,7 +26,6 @@
 
 add_vars_gui <- function(working_dat, raw_dat, project){
   
-  
   #Pull in data
   out <- data_pull(working_dat, project)
    working_dat <- out$dataset

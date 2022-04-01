@@ -105,15 +105,17 @@ sparsplot <- function(project, x = NULL) {
   toplot_sub <- data.frame(day = c(1, 7, 14, 30, 90, 365), sparsity = apply(x[,-1], 1, mean)) # x[,dim(x)[2]])
   fit <- stats::lm(data = toplot_sub, sparsity ~ day)
 
-  g <- ggplot2::ggplot(data = toplot, ggplot2::aes(toplot$Period, toplot$value, color = toplot$variable)) +
+  g <- ggplot2::ggplot(data = toplot, ggplot2::aes(Period, value, color = variable)) +
     ggplot2::geom_point(show.legend = FALSE) +
     ggplot2::geom_smooth(ggplot2::aes(group = 1, color = "Mean of all zones"), method = "loess", size = 1, linetype = "dashed", se = FALSE, show.legend = FALSE) +
-    ggplot2::stat_smooth(method = "nls", formula = "y ~ a*x^b", method.args = list(start = c(a = fit$coefficients[[1]], b = fit$coefficients[[2]])), se = FALSE, show.legend = FALSE) +
+    ggplot2::stat_smooth(method = "nls", formula = "y ~ a*x^b", method.args = list(start = c(a = fit$coefficients[[1]],
+                                                                                             b = fit$coefficients[[2]])), se = FALSE, show.legend = FALSE) +
     ggplot2::xlab("Time") +
     ggplot2::ylab("Sparsity value") +
     ggplot2::theme(legend.title = ggplot2::element_blank()) +
     ggplot2::theme(
-      panel.border = ggplot2::element_blank(), panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(), panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"),
+      panel.border = ggplot2::element_blank(), panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(),
+      panel.background = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"),
       axis.text = ggplot2::element_text(size = 11), axis.title = ggplot2::element_text(size = 11)
     ) +
     ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(linetype = c(rep("blank", 5), "dashed", "blank"))))

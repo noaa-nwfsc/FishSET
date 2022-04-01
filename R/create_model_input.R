@@ -39,7 +39,6 @@ create_model_input <- function(project, x=NULL, mod.name=NULL, use.scalers= TRUE
   
   if(is.null(x)) { stop("Model name is not defined.")}
   
-  
   if(x$likelihood == "logit_c"){
     if(!is.null(expected.catch.name)){
       exp_name <- switch(expected.catch.name,  'short_exp'='short',"short_exp_newDumV" = "short_newDumV",
@@ -131,8 +130,8 @@ create_model_input <- function(project, x=NULL, mod.name=NULL, use.scalers= TRUE
   } else if (fr == "logit_c") {
     expname <- paste0(fr, '_', exp_name)
     otherdat <- list(
-      griddat = list(griddatfin = as.data.frame(x[["gridVaryingVariables"]][grep(exp_name,
-                                                                                 names(x$gridVaryingVariables))])/as.numeric(x$scales[which(names(x$scales)=='griddata')])),
+      griddat = list(griddatfin = as.data.frame(x[["gridVaryingVariables"]][match(expected.catch.name, names(x$gridVaryingVariables))])
+                     /as.numeric(x$scales[which(names(x$scales)=='griddata')])),
       intdat = list(as.data.frame(
         mapply("/",x[["bCHeader"]][["indeVarsForModel"]],
                as.numeric(x$scales[which(names(x$scales)=='intdata')]),SIMPLIFY = FALSE)))

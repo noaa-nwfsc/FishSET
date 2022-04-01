@@ -56,7 +56,7 @@ outlier_table <- function(dat, project, x, sd_val=NULL, log_fun = TRUE) {
       data.frame(Vector = x.name, outlier_check = "None", 
                  N = length(dataset[[x]]), 
                  mean = round(mean(dataset[[x]], na.rm = TRUE), 2),
-                 median = round(stats::median(dataset[ ,x], na.rm = TRUE), 2), 
+                 median = round(stats::median(dataset[[x]], na.rm = TRUE), 2), 
                  SD = round(sd(dataset[[x]], na.rm = TRUE), 2), 
                  min = round(min(dataset[[x]], na.rm = TRUE), 2), 
                  max = round(max(dataset[[x]], na.rm = TRUE), 2), 

@@ -70,19 +70,59 @@ data_verification <- function(dat, project, log_fun = TRUE) {
       cat("\nPass: lat/lon variables in decimal degrees.",
           file = tmp, append = TRUE)
       
-      graphics::par(mar = c(1, 1, 1, 1))
+     
       
-      latitude <- find_lat(dataset)[1]
-      longitude <- find_lon(dataset)[1]
+      lat <- find_lat(dataset)[1]
+      lon <- find_lon(dataset)[1]
+       pts <- sample(nrow(dataset), nrow(dataset) / 10)
+       datatomap <- dataset[pts,c(lat,lon) ]
+       datatomap$lon <- datatomap[[lon]]
+       datatomap$lat <- datatomap[[lat]]
+      
+      if(min(datatomap$lon) < 0 & max(datatomap$lon) > 0){
+        recenter <- TRUE
+        datatomap$lon <- ifelse(datatomap$lon < 0 , datatomap$lon + 360, datatomap$lon)
+        worldmap <- ggplot2::map_data("world", wrap = c(0, 360))
+        
+      } else {
+        recenter <- FALSE
+        worldmap <- ggplot2::map_data("world")
+        
+      }
       
       
-      ggplot2::map_data("world", ylim = c(min(dataset[, latitude], na.rm = TRUE), 
-                                  max(dataset[, latitude], na.rm = TRUE)), 
-                xlim = c(min(dataset[, longitude], na.rm = TRUE),
-                         max(dataset[, longitude], na.rm = TRUE)))
+      g_map <- ggplot2::ggplot() +
+        suppressWarnings(ggplot2::geom_map(map = worldmap, ggplot2::aes(x = worldmap$long, y = worldmap$lat,
+                                                                     map_id = worldmap$region),
+                                           fill = "grey", color = "black", size = 0.375))
       
-      pts <- sample(nrow(dataset), nrow(dataset) / 10)
-      points(as.numeric(as.character(dataset[pts, longitude])), as.numeric(as.character(dataset[pts, latitude])))
+      
+      map_theme <-
+        ggplot2::theme(text = ggplot2::element_text(size = 12),
+                       axis.title.y = ggplot2::element_text(vjust = 1.5),
+                       legend.title = ggplot2::element_blank(),
+                       panel.grid.major = ggplot2::element_blank(),
+                       panel.grid.minor = ggplot2::element_blank(),
+                       panel.background = ggplot2::element_blank(),
+                       panel.border = ggplot2::element_rect(colour = "black",
+                                                            fill = NA, size = 1))
+      
+      
+      mapout <-
+        g_map +
+        ggplot2::geom_point(data = datatomap, ggplot2::aes(x = lon, y = lat),
+                            size = 0.975, alpha = 0.25, colour='red') +
+        ggplot2::scale_x_continuous(limits=c(min(datatomap$lon),max(datatomap$lon))) +
+        ggplot2::ylim(min(datatomap$lat), max(datatomap$lat)) +
+        ggplot2::ggtitle("Points") +
+        ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size = 10))) +
+        
+        map_theme +
+        ggplot2::xlab("Longitude") +
+        ggplot2::ylab("Latitude")
+      
+      
+       print(mapout)
       print("10% of samples plotted. Verify that points occur in correct geographic area.")
     }
   }

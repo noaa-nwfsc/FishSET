@@ -23,6 +23,7 @@ shift_sort_x <- function(x, ch, y, distance, alts, ab) {
   ch <- as.matrix(ch)
   y <- as.matrix(y)
 
+  
   for (j in 1:n) {
     if (ch0[j, ] == 0) {
       xsorted <- t(as.matrix(x[j, ]))

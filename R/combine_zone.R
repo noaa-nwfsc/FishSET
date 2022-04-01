@@ -113,7 +113,7 @@ new_zone_id <- function(combined, id, grid = NULL, closure = NULL,
 }
 
 
-combine_zone <- function(grid, closure, grid.nm, closure.nm, recast = TRUE) {
+combine_zone <- function(spat, closure, grid.nm, closure.nm, recast = TRUE) {
   #' Combine zone and closure area
   #' 
   #' Creates a new spatial dataset that merges regulatory zones with closure areas.

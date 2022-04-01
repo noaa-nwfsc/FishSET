@@ -1224,6 +1224,7 @@ source("map_viewer_app.R", local = TRUE)
                                    div(style="display: inline-block;vertical-align:top; width: 250px;", uiOutput('gridvariables')),
                                    uiOutput('catch_out'),
                                    uiOutput('logit_correction_extra'),
+                                   uiOutput('logit_c_extra'),
                                    h3('Model parameters'),
                                    
                                    fluidRow(
