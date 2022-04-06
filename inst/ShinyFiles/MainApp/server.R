@@ -867,16 +867,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 			      the', tags$code('Catch Variable.'), 'This matrix is required to run the conditional logit model.',
 			  tags$br(), tags$br(),
 				
-			  #  'The primary choices are whether to treat data as a fleet or to group the data', tags$strong('defineGroup'), 'and the time
-			  #  frame of catch data for calculating expected catch. Catch is averaged along a daily or sequential timeline',
-			  #  tags$strong('temporal'), 'using a rolling average.', tags$strong('temp.window'), 'and tags$strong('temp.lat') determine the window size and
-			  #  temporal lag of the window for averaging. Use tags$strong('temp_obs_table') before using this function to assess
-			  #  the availability of data for the desired temporal moving window size. Sparse data is not suited for shorter moving
-			  #  window sizes. For very sparse data, consider setting,' tags$strong('temp.var'), 'to NULL and excluding temporal patterns in
-			  #  catch.', tags$br(),
-			  #  'Empty catch values are considered to be times of no fishing activity. Values of 0 in the catch variable
-			  #  are considered times when fishing activity occurred but with no catch. These points are included in the averaging
-			  #  and dummy creation as points in time when fishing occurred.' 
 			  tags$br(), tags$br(),
             'The function returns four expected catch or expected revenue matrices based on selected parameters:', 
 				tags$br(),
@@ -1128,7 +1118,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }
       }
       
-    ## Main ----  
+      ## Main ----  
      #Add in reactive values once data  call is is not empty
       observeEvent(input$loadDat, {
         
@@ -1216,7 +1206,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
 
-     ## Port ----
+      ## Port ----
       output$port_upload <- renderUI({     
        
         if(input$loadportsource=='Upload new file'){ 
@@ -1418,7 +1408,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       }, ignoreInit = TRUE, ignoreNULL = TRUE)
       
 
-  ## Spatial ----
+      ## Spatial ----
       output$spatial_upload <- renderUI({     
         
         if (input$loadspatialsource == 'Upload new file') {
@@ -1597,7 +1587,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
   }, ignoreInit = TRUE, ignoreNULL = TRUE) 
 
 
- ## Grid ----     
+      ## Grid ----     
       output$grid_upload <- renderUI({     
 
         if (input$loadgridsource=='Upload new file') {
@@ -1717,7 +1707,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }
       })
     
-  ## Auxiliary ----     
+      ## Auxiliary ----     
  
       output$aux_upload <- renderUI({     
         
@@ -2591,7 +2581,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }
       }, ignoreInit = TRUE, ignoreNULL = TRUE)
 
-# Notes ----
+      # Notes ----
       
     notes <- reactiveValues(upload = "Upload data: ",
                             dataQuality = "Data quality evaluation: ",
@@ -2663,7 +2653,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
 
 
-#----  
+      #----  
       #Continue   QAQC   
       
       # output project tracker
@@ -3367,14 +3357,24 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                        searchCols = default_search_columns, buttons = c('csv'))
       )
       
+      observeEvent(input$output_table_exploration_cell_edit, {
+        info = 
+        str(info)
+        i = info$row
+        j = info$col + 1
+        v = info$value
+        values$dataset[i, j] <<- DT:::coerceValue(v, values$dataset[i, j])
+        
+        #replaceData(proxy, x, resetPaging = FALSE, rownames = FALSE)
+      })
+      
       observeEvent(input$saveData,{
         req(project$name)
         # when it updates, save the search strings so they're not lost
           # update global search and column search strings
-          #default_search_columns <- c("", input$output_table_exploration_search_columns)
         default_search_columns <- c(input$output_table_exploration_search_columns)
         default_sub <- which(default_search_columns!='')
-        
+        temp <- values$dataset
         table_type <- #switch(input$SelectDatasetExplore, 
                              #"main" = 
                                 "MainDataTable"#,
@@ -3395,12 +3395,16 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                 FilterTable <- rbind(FilterTable, c(paste0(project$name, table_type), (colnames(explore_temp()[default_sub])[i]), 
                                                     paste(colnames(explore_temp()[default_sub])[i], '>', as.numeric(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), head, 1)), '&', 
                                                           colnames(explore_temp()[default_sub])[i], '<', as.numeric(sapply(strsplit(default_search_columns[default_sub[i]], "\\..\\."), tail, 1)))))
-              } else {
+                values$dataset <-  subset(explore_temp(), eval(parse(text=paste(colnames(explore_temp()[default_sub])[i], '>', 
+                                                                                as.numeric(sapply(strsplit(input$output_table_exploration_search_columns[default_sub[i]], "\\..\\."), head, 1)), '&', 
+                                                                                colnames(explore_temp()[default_sub])[i], '<', 
+                                                                                as.numeric(sapply(strsplit(input$output_table_exploration_search_columns[default_sub[i]], "\\..\\."), tail, 1))))))
+               } else {
                 FilterTable <- rbind(FilterTable, c(paste0(project$name, table_type), (colnames(explore_temp()[default_sub])[i]), 
                                                     paste0("grepl('", default_search_columns[default_sub[i]],"', ", colnames(explore_temp()[default_sub])[i],")")))
-              }
+               values$dataset <-  subset(explore_temp(), eval(parse(text=  paste0("grepl('", default_search_columns[default_sub[i]],"', ", colnames(explore_temp()[default_sub])[i],")"))))
+                }
             }
-            
             showNotification('Filter table saved to FishSET database', type='message', duration=10)
             
             filter_data_function <- list()
@@ -3415,11 +3419,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               DBI::dbWriteTable(fishset_db, paste0(project$name, 'FilterTable'),  FilterTable, overwrite=TRUE)
               DBI::dbDisconnect(fishset_db)
             }
-           
+           #values$dataset <- temp
       })
 
       
       observeEvent(input$subsetData,{
+        req(!is.null(input$output_table_exploration_columns_selected))
         values$dataset <- values$dataset[,-(input$output_table_exploration_columns_selected+1)]
       })
       
@@ -3604,6 +3609,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }
       })
       
+      
       output$mtgt_output <- renderUI({
         tagList( 
           h4('Further options to display measures of spatial autocorrelation'),
@@ -3614,20 +3620,30 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
          tags$div(style = "margin-left:19px;", 
                   selectizeInput('varofint', 'Variable to test for spatial autocorrelation',
                                  choices = numeric_cols(values$dataset))),
-        
-         tags$div(style = "margin-left:19px;",  
+        checkboxInput('datzone_gt', 'Primary data contains a zone/area assignment variable', value=FALSE)
+        )
+      })    
+      
+       output$mtgt_output_secondary <- renderUI({
+         tagList(
+           if(input$datzone_gt==TRUE){
+             selectInput('mtgtZone', 'Column containing zone identifier', choices = c(NULL, colnames(values$dataset)), selected=NULL)
+           } else {
+           tags$div(style = "margin-left:19px;",  
                   selectizeInput('gtmt_lonlat', 'Select lat then lon from data frame to assign observations to zone', 
                                  choices=c(NULL, find_lonlat(values$dataset)), 
                                  multiple = TRUE, options = list(maxItems = 2, 
                                                                  create = TRUE, 
                                                                  placeholder='Select or type variable name')))
-        )
-      })    
+           }
+         )
+       })
+
       
       output$mtgt_out2 <- renderUI({
         tagList(
           tags$div(style = "margin-left:19px;", 
-                   selectInput('mtgtcat', "Variable defining zones or areas", 
+                   selectInput('mtgtcat', "Variable defining zones or areas from spatial data frame", 
                                choices = c('none', names(as.data.frame(spatdat$dataset))),
                                selected='none')),
           
@@ -3649,15 +3665,17 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             
             q_test <- quietly_test(getis_ord_stats)
             gt <- q_test(values$dataset, project=project$name, varofint=input$varofint,
+                         zoneid = input$mtgtZone,
                          spat=spatdat$dataset, lon.dat=input$gtmt_lonlat[2],
                          lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat,
-                         lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$getistable
+                         lon.spat=input$mtgtlonlat[2], lat.spat=input$mtgtlonlat[1])$getistable
             
             q_test <- quietly_test(moran_stats)
             mt <- q_test(values$dataset, project=project$name, varofint=input$varofint,
+                         zoneid=input$mtgtZone,
                          spat=spatdat$dataset, lon.dat=input$gtmt_lonlat[2],
                          lat.dat=input$gtmt_lonlat[1], cat=input$mtgtcat,
-                         lon.grid=input$mtgtlonlat[2], lat.grid=input$mtgtlonlat[1])$morantable
+                         lon.spat=input$mtgtlonlat[2], lat.spat=input$mtgtlonlat[1])$morantable
             
             qaqc_out_proj$gtmt <- project$name
             
@@ -3941,6 +3959,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                       choices = c("string", "integer")))
       })
       
+  
       output$sp_col.select <- renderUI({ 
         
         selectInput('sp_col', "Column containing species names in table containing seasonal data", 
@@ -3961,11 +3980,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       output$input_cpue <- renderUI({
         tagList(
           selectizeInput('xWeight','Weight variable', 
-                         choices=find_catch(values$dataset),
+                         choices=c(NULL, find_catch(values$dataset)),
                          options = list(create = TRUE, placeholder='Select or type variable name')),
           
           selectInput('xTime','Duration. To calculate duration, select the Calculate Duration option.', 
-                      choices=c('Calculate duration', numeric_cols(values$dataset), selectize=TRUE)))
+                      choices=c('Calculate duration', numeric_cols(values$dataset), selectize=TRUE)),
+          selectInput('rpueprice', "Price variable", choices=c(NULL, numeric_cols(values$dataset), selectize=TRUE))
+          )
       })
       
       output$dur_add <- renderUI({
@@ -4279,6 +4300,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         
         conditionalPanel("input.start=='Zonal centroid'||input.end=='Zonal centroid'",
                          style = "margin-left:19px;",  
+                         
+        selectInput('zone_dist', 'Zone/area assignment variable (if exists in data)', choices=c('', 'ZoneID', colnames(values$dataset))),
                        
         selectizeInput('lon_dat', 'Select lat then lon columns from dataframe to assign observations to zone', 
                        choices = find_lonlat(values$dataset),
@@ -4325,6 +4348,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
            
            selectInput('haul_order_SL', 'Variable defining haul order within a trip. Can be time, coded variable, etc.',
                        choices=c('', names(values$dataset)), selectize=TRUE),
+           selectInput('zone_SL', 'Zone/area assignment variable (if exists in data)', 
+                       choices=c("", 'ZoneID', colnames(values$dataset)), selected=''),
            
            selectizeInput('starting_port_SL',  "Variable that identifies port at start of trip", 
                           choices = find_port(values$dataset), 
@@ -4439,7 +4464,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           
               q_test <- quietly_test(temporal_mod)
               values$dataset <- q_test(values$dataset, project = project$name, x=input$TimeVar, 
-                                       define.format=input$define_format, name=input$varname)
+                                       define.format=input$define_format, timezone=input$timezone, name=input$varname)
               
         } else if (input$VarCreateTop=='Data transformations'&input$trans=='set_quants') {
           
@@ -4454,6 +4479,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               values$dataset <- q_test(values$dataset, project = project$name, 
                                        name=input$varname, vars=input$unique_identifier, 
                                        type=input$ID_type)
+        } else if (input$VarCreateTop=='Nominal ID'&input$ID=='binary_seasonID') {      
+              
+              q_test <- quietly_test(seasonalID)
+              values$dataset <- q_test(values$dataset, project = project$name, 
+                                   seasonal.dat=seasonalData(), start=input$seasonstart, 
+                                   end=input$seasonend, overlap=input$overlap, name=input$varname)
               
         } else if (input$VarCreateTop=='Nominal ID'&input$ID=='create_seasonal_ID') {
           
@@ -4498,7 +4529,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             
               q_test <- quietly_test(cpue)
               values$dataset <- q_test(values$dataset, project = project$name, xWeight=input$xWeight, 
-                                       xTime=input$xTime, name=input$varname)
+                                       xTime=input$xTime, price=input$rpueprice, name=input$varname)
           } else {
             
             q_test <- quietly_test(cpue)
@@ -4506,15 +4537,15 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                               start=input$dur_start2, end=input$dur_end2, 
                                               units=input$dur_units2, name='dur')
             values$dataset <- q_test(values$dataset, project=project$name, xWeight=input$xWeight, xTime='dur', 
-                                     name=input$varname)
+                                     price=input$rpueprice, name=input$varname)
           }
         } else if (input$VarCreateTop=='Spatial functions' & input$dist=='zone') {
           
           q_test <- quietly_test(assignment_column)
-          values$dataset <- q_test(dat=values$dataset, project$name, gridfile=spatdat$dataset, 
+          values$dataset <- q_test(dat=values$dataset, project$name, spat=spatdat$dataset, 
                                    lon.dat=input$lon_dat_zone, lat.dat=input$lat_dat_zone, 
                                    cat=input$cat_zone, closest.pt = input$closest_pt_zone, 
-                                   lon.grid=input$lon_grid_zone, lat.grid=input$lat_grid_zone, 
+                                   lon.spat=input$lon_grid_zone, lat.spat=input$lat_grid_zone, 
                                    hull.polygon = input$hull_polygon_zone, epsg=NULL)
           
           if ('ZoneID' %in% names(values$dataset)) {
@@ -4526,10 +4557,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         } else if (input$VarCreateTop=='Spatial functions' & input$dist=='fish_cent') {
           
           q_test <- quietly_test(find_fishing_centroid)
-          values$dataset <- q_test(dat=values$dataset, project$name, gridfile=spatdat$dataset, 
+          values$dataset <- q_test(dat=values$dataset, project$name, spat=spatdat$dataset, 
                                    lon.dat=input$lon_dat_cent, lat.dat=input$lat_dat_cent, 
                                    cat=input$cat_cent, weight.var=input$weight_var_cent,
-                                   lon.grid=input$lon_grid_cent,lat.grid=input$lat_grid_cent)
+                                   lon.spat=input$lon_grid_cent,lat.spat=input$lat_grid_cent)
           
         } else if (input$VarCreateTop=='Spatial functions' & input$dist=='create_dist_between') {
           #'Zonal centroid', 'Port', 'Lat/lon coordinates'
@@ -4550,9 +4581,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             q_test <- quietly_test(create_dist_between_for_gui)
             values$dataset <- q_test(values$dataset, project = project$name, start=startdist, 
                                      end=enddist, units=input$units, name=input$varname, 
-                                     portTable=input$filePort, gridfile=spatdat$dataset,
-                                     lon.dat=input$lon_dat[2], lat.dat=input$lon_dat[1],  
-                                     cat=input$cat, lon.grid=input$long_grid[2], lat.grid=input$long_grid[1])
+                                     portTable=input$filePort, spat=spatdat$dataset,
+                                     zoneid=input$zone_dist, lon.dat=input$lon_dat[2], lat.dat=input$lon_dat[1],  
+                                     cat=input$cat, lon.spat=input$long_grid[2], lat.spat=input$long_grid[1])
              
            } else if (input$VarCreateTop=='Spatial functions' & input$dist=='create_mid_haul') {
              
@@ -4572,12 +4603,11 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         } else if (input$VarCreateTop=='Spatial functions'&input$dist=='create_startingloc') {
           
               q_test <- quietly_test(create_startingloc)
-              values$dataset <- q_test(values$dataset, project=project$name, gridfile=spatdat$dataset,  
+              values$dataset <- q_test(values$dataset, project=project$name, spat=spatdat$dataset,  
                                        portTable=input$port.dat, trip_id=input$trip_id_SL,
-                                       haul_order=input$haul_order_SL, 
-                                       starting_port=input$starting_port_SL, lon.dat = input$lon_dat_SL, 
-                                       lat.dat = input$lat_dat_SL, cat=input$cat_SL, name=input$varname, 
-                                       lon.grid=input$lon_grid_SL, lat.grid=input$lat_grid_SL)
+                                       haul_order=input$haul_order_SL, starting_port=input$starting_port_SL, 
+                                       lon.dat = input$lon_dat_SL, lat.dat = input$lat_dat_SL, cat=input$cat_SL, zoneid=input$zone_SL, 
+                                       name=input$varname, lon.spat=input$lon_grid_SL, lat.spat=input$lat_grid_SL)
               
         } else if (input$VarCreateTop=='Trip-level functions'&input$trip=='haul_to_trip') {
           
@@ -4757,7 +4787,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       output$distZoneb <- renderUI({
         if(input$choiceTab=='distm' & !any(colnames(values$dataset)=='ZoneID')){
               if(input$datzone==TRUE){
-                         selectInput('distMatrixZone', 'Column containing zone identifier', choices = c(colnames(values$dataset)))
+                         selectInput('distMatrixZone', 'Column containing zone identifier', choices = c('', colnames(values$dataset)), selected='')
                } else{
                   return()
                }
@@ -4795,7 +4825,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                          choices=c(input$priceBase, "none", find_value(values$dataset)),
                                    options = list(create = TRUE, placeholder='Select or type column name')),
           selectizeInput('group','Choose column name containing data that defines groups',
-                         choices=c('Fleet (no group)', category_cols(values$dataset)))
+                         choices=c('Fleet (no group)', category_cols(values$dataset))),
+          selectizeInput('zoneidep', 'Column containing zone identifier', choices=c('', 'ZoneID', colnames(values$dataset)), selected='')
         )
       })
       output$expcatch <-  renderUI({
@@ -4806,21 +4837,25 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                      selected='none', options = list(create = TRUE, placeholder='Select or type column name')))
       })
       sparstable_dat <- reactive({
-        if(!any(colnames(values$dataset)=='ZoneID')){
+        if(!any(colnames(values$dataset)=='ZoneID') & !any(colnames(values$dataset)==input$zoneidep)){
           return()
         } else if(is_empty(input$catche)){
           return()
         } else if(input$temp_var=='none'){
           return()
         } else{
+          if(any(colnames(values$dataset)=='ZoneID')){
           sparsetable(values$dataset, project=project$name, timevar=input$temp_var, zonevar='ZoneID', var=input$catche)
+          } else {
+            sparsetable(values$dataset, project=project$name, timevar=input$temp_var, zonevar=input$zoneidep, var=input$catche)
+          }
         }
       })
       
       
       output$spars_table <- DT::renderDT(sparstable_dat(), server=TRUE)
       output$spars_plot <- renderPlot({
-        if(!any(colnames(values$dataset)=='ZoneID')){
+        if(!any(colnames(values$dataset)=='ZoneID')& !any(colnames(values$dataset)==input$zoneidep)){
           return()
         } else if(is_empty(input$catche)){
           return()
@@ -4974,7 +5009,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                            radioButtons('startlocdefined', 'Starting location variable', choices=c('Exists in data frame'='exists', 'Create variable'='create'))
         ))
         })
-        output$logit_correction_extra <- renderUI({
+      output$logit_correction_extra <- renderUI({
           tagList(
           conditionalPanel(condition="input.model=='logit_correction' && input.startlocdefined=='exists'",
             selectInput('startloc_mod', 'Initial location during choice occassion', choices=c('startingloc', names(values$dataset)), 
@@ -5017,6 +5052,27 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                         )
         )
       })
+      output$logit_c_extra <- renderUI({
+        tagList(
+          conditionalPanel(condition="input.model=='logit_c'",
+                           selectInput('logitcextra', 'Selected expected catch/revenue matrices to include in model', 
+                                       choices=c('All matrices'='all', 'Run each matrix in separate model'='individual', 
+                                                 'Select a subset of matrices to run in model'='subset'),
+                                       selected='all', multiple=FALSE)),
+          conditionalPanel(condition="input.model=='logit_c' & input.logitcextra=='subset'", 
+                           selectInput('logitcextrasub', 'Select one or more expected catch/revenue matrices to include', 
+                                       choices=c( 'User-defined matrix'='user', 'Short-term matrix'='short', 'Medium-term matrix'='medium',  'Long-term matrix'='long'), multiple=TRUE))
+          )
+      })
+      
+      exp.name <- reactive({
+        if(input$logitcextra!='subset'){
+          return(input$logitcextra)
+        } else {
+          return(input$logitcextrasub)
+        }
+      })
+      
       # Data needed
       ## Alternative choices
       Alt_vars <- reactive({
@@ -5036,7 +5092,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
           
       choice <- reactive({Alt_vars()$choice})
-      alt <- reactive({dim(table(choice()))})
+      alt <- reactive({
+        if(dim(table(unique(choice()))) > 100) {
+          return(100)
+        } else {
+          return(dim(table(unique(choice()))))
+        } 
+        })
       
       drop <- reactive({grep('date|port|processor|gear|target|lon|lat|permit|ifq', colnames(values$dataset), ignore.case=TRUE)})
       
@@ -5132,7 +5194,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       rv <- reactiveValues(
         data = data.frame('mod_name'='', 'likelihood'='', 'optimOpt'='', 'inits'='', 
                           'methodname'='', 'vars1'='','vars2'='', 'catch'='',
-                           'project'='', 'price'='', 'startloc'='', 'polyn'=''),
+                           'project'='', 'price'='', 'startloc'='', 'polyn'='', 'exp'=''),
         #model_table,
         deletedRows = NULL,
         deletedRowIndices = list()
@@ -5159,10 +5221,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
        
 
         if(input$model=='logit_correction' & input$startlocdefined =='create'){
-          values$dataset$startingloc <- create_startingloc(dat=values$dataset, gridfile=spatdat$dataset, portTable=input$port.datMD, 
+          values$dataset$startingloc <- create_startingloc(dat=values$dataset, spat=spatdat$dataset, portTable=input$port.datMD, 
                                             trip_id=input$trip_id_SL_mod, haul_order=input$haul_order_SL_mod, starting_port=input$starting_port_SL_mod, 
                                             lon.dat=input$lon_dat_SL_mod, lat.dat=input$lat_dat_SL_mod, cat=input$cat_SL_mod, 
-                                            lon.grid=input$lat_grid_SL, lat.grid=input$lat_grid_SL_mod)
+                                            lon.spat=input$lat_grid_SL, lat.spat=input$lat_grid_SL_mod)
         } 
         counter$countervalue <- counter$countervalue + 1
         
@@ -5178,7 +5240,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                 'project'=project$name, 
                                 'price'='',
                                 'startloc'='',
-                                'polyn'='')
+                                'polyn'='',
+                                'exp'='')
                      , rv$data)#model_table())
         } else {
           rv$data = rbind(data.frame('mod_name'=paste0(input$model, '_mod', counter$countervalue), 
@@ -5186,13 +5249,14 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                'optimOpt'=paste(input$mIter,input$relTolX, input$reportfreq, input$detailreport),
                                'inits'=paste(int_name(), collapse=','),#noquote(paste0('input$int',1:numInits())),
                                'methodname' = input$optmeth, 
-                               'vars1'= paste(input$indeVarsForModel, collapse=', '),
+                               'vars1'= paste(input$indeVarsForModel, collapse=','),
                                'vars2'= input$gridVariablesInclude, 
                                'catch'= input$catch,
                                'project'= project$name, 
                                'price'= input$price,
                                'startloc'=  'startingloc',#if(input$startlocdefined=='exists'){input$startloc_mod} else {'startingloc'}, 
-                               'polyn'= input$polyn)
+                               'polyn'= input$polyn,
+                               'exp' = paste(exp.name(), collapse=','))
                     , rv$data)#model_table())
         }
       #  rv$data(t)#model_table(t)
@@ -5209,7 +5273,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           DBI::dbExecute(fishset_db, paste0("CREATE TABLE ", paste0(project$name,'modelDesignTable', format(Sys.Date(), format="%Y%m%d")),
                                             "(mod_name TEXT, likelihood TEXT, optimOpt TEXT, inits TEXT, 
                                             methodname TEXT, vars1 TEXT, vars2 TEXT,   catch TEXT, 
-                                           lon TEXT, lat TEXT, project TEXT, price TEXT, startloc TEXT, polyn TEXT)"))
+                                           lon TEXT, lat TEXT, project TEXT, price TEXT, startloc TEXT, polyn TEXT, exp TEXT)"))
         }
         # Construct the update query by looping over the data fields
         query <- sprintf(
@@ -5291,27 +5355,29 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           input_list <- reactiveValuesToList(input)
           toggle_inputs(input_list,F)
           #print('call model design function, call discrete_subroutine file')
+         rv$data <- subset(rv$data, mod_name!='')
+          
 
          # q_test <- quietly_test(make_model_design)
           
-          times <- nrow(rv$data)-1
+          times <- nrow(rv$data)
          
           showNotification(paste('1 of', times, 'model design files created.'), type='message', duration=10)
           make_model_design(project=as.character(rv$data$project[1]), catchID=as.character(rv$data$catch[1]), replace=TRUE, 
                  likelihood=as.character(rv$data$likelihood[1]), initparams=as.character(rv$data$inits[1]), optimOpt=as.character(rv$data$optimOpt[1]),
                   methodname =as.character(rv$data$methodname[1]), mod.name = as.character(rv$data$mod_name[1]),
                  vars1=as.character(rv$data$vars1[1]), vars2=as.character(rv$data$vars2[1]), priceCol=as.character(rv$data$price[1]), 
-                 startloc=as.character(rv$data$startloc[1]), polyn=as.character(rv$data$polyn[1]))
+                 expectcatchmodels=as.character(rv$data$exp[1]), startloc=as.character(rv$data$startloc[1]), polyn=as.character(rv$data$polyn[1]))
          
-         
+       
           if(times[1]>1){
             for(i in 2:times){
             
-              make_model_design(project=as.character(rv$data$project[i]), catchID=as.character(rv$data$catch[i]), replace=TRUE, 
+              make_model_design(project=as.character(rv$data$project[i]), catchID=as.character(rv$data$catch[i]), replace=FALSE, 
                                 likelihood=as.character(rv$data$likelihood[i]), initparams=as.character(rv$data$inits[i]), optimOpt=as.character(rv$data$optimOpt[i]),
                                 methodname =as.character(rv$data$methodname[i]), mod.name = as.character(rv$data$mod_name[i]),
                                 vars1=as.character(rv$data$vars1[i]), vars2=as.character(rv$data$vars2[i]), priceCol=as.character(rv$data$price[i]), 
-                                startloc=as.character(rv$data$startloc[i]), polyn=as.character(rv$data$polyn[i]))
+                                expectcatchmodels=as.character(rv$data$exp[i]), startloc=as.character(rv$data$startloc[i]), polyn=as.character(rv$data$polyn[i]))
               showNotification(paste(i, 'of', times, 'model design files created.'), type='message', duration=10)
             }
           } 
@@ -5507,28 +5573,32 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                type='message', duration=20)
               q_test <- quietly_test(create_alternative_choice)
               q_test(values$dataset, project=project$name, occasion=input$occasion_ac, alt_var=input$alt_var_ac, griddedDat=NULL, 
-                                  dist.unit=input$dist_ac, min.haul=input$min_haul_ac, gridfile=spatdat$dataset, cat=input$cat_altfc, 
-                                  hull.polygon=input$hull_polygon_ac, 
-                                  lon.grid=input$long_grid_altc, lat.grid=input$lat_grid_altc, 
+                                  dist.unit=input$dist_ac, min.haul=input$min_haul_ac, spat=spatdat$dataset, cat=input$cat_altfc, 
+                                  zoneID=input$distMatrixZone, hull.polygon=input$hull_polygon_ac, 
+                                  lon.spat=input$long_grid_altc, lat.spat=input$lat_grid_altc, 
                                   closest.pt=input$closest_pt_ac)
               showNotification('Completed. Alternative choice matrix updated', type='message', duration=10)
       }, ignoreInit = F) 
       
+    
+      
       observeEvent(input$savecentroid, {
         q_test <- quietly_test(find_centroid)
-        q_test(project = project$name, gridfile=spatdat$dataset, cat = input$cat_altc, lon.grid = input$long_grid_altc, lat.grid = input$lat_grid_altc)
+        q_test(project = project$name, spat=spatdat$dataset, cat = input$cat_altc, lon.spat = input$long_grid_altc, lat.spat = input$lat_grid_altc)
         showNotification('Geographic centroid of zones calculated and saved')
       }, ignoreInit = FALSE)
       
                     
       observeEvent(input$submitE, {
+        showNotification('Function can take a couple minutes. A message will appear when done.',
+                         type='message', duration=20)
                 q_test <- quietly_test(create_expectations)
                 q_test(values$dataset, project$name, input$catche, price=input$price, 
                                     defineGroup=if(grepl('no group',input$group)){'fleet'} else {input$group},  
                             temp.var=input$temp_var, temporal = input$temporal, calc.method = input$calc_method, lag.method = input$lag_method,
                             empty.catch = input$empty_catch, empty.expectation = input$empty_expectation, temp.window = input$temp_window,  
                             temp.lag = input$temp_lag, year.lag=input$temp_year, dummy.exp = input$dummy_exp, replace.output = TRUE)
-        showNotification('Create expectated catch function called', type='message', duration=10)
+        showNotification('Completed. Expectated catch matrices updated', type='message', duration=10)
       }) 
       
      

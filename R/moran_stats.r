@@ -1,4 +1,4 @@
-moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = NULL, cat = NULL, lon.grid = NULL, lat.grid = NULL) {
+moran_stats <- function(dat, project, varofint, zoneid, spat, cat, lon.dat = NULL, lat.dat = NULL, lon.spat = NULL, lat.spat = NULL) {
   #' Calculate and view Moran's I statistic
   #'
   #' Wrapper function to calculate global and local Moran's I by discrete area.
@@ -7,16 +7,18 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
   #' Table in FishSET database contains the string 'MaindataTable'.
   #' @param project String, name of project.
   #' @param varofint Numeric variable from \code{dat} to test for spatial autocorrelation.
+  #' @param zoneid Variable in \code{dat} that identifies the individual zones or areas. Define if exists in \code{dat} and is not named `ZoneID`.
+  #'      Defaults to NULL. 
   #' @param spat Spatial data containing information on fishery management or regulatory zones.
   #' Shape, json, geojson, and csv formats are supported.
-  #' @param lon.dat Longitude variable from \code{dat}.
-  #' @param lat.dat Latitude variable from \code{dat}.
-  #' @param lon.grid Variable or list from \code{spat} containing longitude data. Required for csv files.
-  #' Leave as NULL if \code{spat} is a shape or json file.
-  #' @param lat.grid Variable or list from \code{spat} containing latitude data. Required for csv files.
-  #' Leave as NULL if \code{spat} is a shape or json file.
   #' @param cat Variable or list in \code{spat} that identifies the individual areas or zones.
   #' If \code{spat} is class sf, \code{cat} should be name of list containing information on zones.
+  #' @param lon.dat Longitude variable from \code{dat}.
+  #' @param lat.dat Latitude variable from \code{dat}.
+  #' @param lon.spat Variable or list from \code{spat} containing longitude data. Required for csv files.
+  #' Leave as NULL if \code{spat} is a shape or json file.
+  #' @param lat.spat Variable or list from \code{spat} containing latitude data. Required for csv files.
+  #' Leave as NULL if \code{spat} is a shape or json file.
   #' @details Measure degree of spatial autocorrelation. Function utilizes the \code{\link[spdep]{localmoran}}
   #' and \code{\link[spdep]{knearneigh}} functions from the spdep package. The spatial input is a row-standardized spatial
   #' weights matrix for computed nearest neighbor matrix, which is the null setting for the \code{\link[spdep]{nb2listw}}
@@ -51,32 +53,52 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
   spat <- parse_data_name(spat, 'spat', project)
   
  
+  if(is.null(cat)){
+    stop('`cat` argument not defined')
+  }
+  
   x <- 0
   Moran <- NA
   
-  if (any(abs(dataset[[lon.dat]]) > 180)) {
-    warning("Longitude is not valid (outside -180:180). Function not run")
-    # stop('Longitude is not valid (outside -180:180.')
-    x <- 1
-  }
-  if (any(abs(dataset[[lat.dat]]) > 90)) {
-    warning("Latitude is not valid (outside -90:90. Function not run")
-    x <- 1
-    # stop('Latitude is not valid (outside -90:90.')
-  }
+  
 
   if (x == 0) {
     # Assign data to zone
-    if (!is.null(cat)) {
-      dataset <- suppressWarnings(assignment_column(dat=dataset, project=project, gridfile=spatdat, hull.polygon = TRUE, 
-                                   lon.dat=lon.dat, lat.dat=lat.dat, cat=cat, closest.pt = TRUE, 
-                                   lon.grid=lon.grid, lat.grid=lat.grid, epsg = NULL, log.fun = FALSE))
+    #Assignment column
+    if('ZoneID' %in% names(dataset)){
+      zoneid <- 'ZoneID'
+    } else if(!is.null(zoneid) && zoneid %in% names(dataset)){
+      colnames(dataset)[colnames(dataset)==zoneid] <- 'ZoneID'
+    } else {
+      if(is.null(spat) || is.null(lon.dat)){
+        stop('Observations must be assigned to zones. Function not run.')
+      } else {
+        if (any(abs(dataset[[lon.dat]]) > 180)) {
+          warning("Longitude is not valid (outside -180:180). Function not run")
+          # stop('Longitude is not valid (outside -180:180.')
+          x <- 1
+        }
+        if (any(abs(dataset[[lat.dat]]) > 90)) {
+          warning("Latitude is not valid (outside -90:90. Function not run")
+          x <- 1
+          # stop('Latitude is not valid (outside -90:90.')
+        }
+        dataset <- suppressWarnings(assignment_column(dat=dataset, project=project, spat=spatdat, hull.polygon = TRUE, 
+                                                      lon.dat=lon.dat, lat.dat=lat.dat, cat=cat, closest.pt = TRUE, 
+                                                      lon.spat=lon.spat, lat.spat=lat.spat, epsg = NULL, log.fun = FALSE))
+      }}
       
-      # Idenfity centroid of zone
-      int <- suppressWarnings(find_centroid(gridfile=spatdat, project = project, cat = cat, 
-                           lon.grid = lon.grid, lat.grid=lat.grid))
+      ## Centoid table
+      if(table_exists(paste0(spat, 'Centroid'), project) ==TRUE) {
+        int <- table_view(paste0(spat, 'Centroid'), project)
+      } else if(table_exists('spatCentroid', project)==TRUE){
+        int <- table_view('spatCentroid', project)
+      }
+         else {
+      int <- suppressWarnings(find_centroid(spat=spatdat, project = project, cat = cat, 
+                                            lon.spat=lon.spat, lat.spat=lat.spat))
     }
-
+    
     # Create dataset
     if ("sf" %in% class(spatdat) == FALSE) {
       spatdat <- sf::st_as_sf(spatdat)
@@ -121,32 +143,27 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
     annotatesize <- 6
 
     moranmap <- ggplot2::ggplot(data = spatdat) +
-      ggplot2::geom_sf(data = spatdat, mapping = aes(fill = Moran)) +
+      ggplot2::geom_sf(data = spatdat, mapping =  ggplot2::aes(fill = Moran)) +
       xlim(minlon, maxlon) +
       ylim(minlat, maxlat) +
       ggplot2::scale_fill_gradient2(
         low = "skyblue2", high = "firebrick1",
-        mid = "white", name = "Local\nMoran's I"
-      ) +
+        mid = "white", name = "Local\nMoran's I") +
       ggplot2::geom_map(
         data = world,
-        map = world, aes(map_id = .data$region), 
-        fill = "grey", color = "black", size = 0.375
-      ) +
+        map = world,  ggplot2::aes(map_id = .data$region), 
+        fill = "grey", color = "black", size = 0.375) +
       ggplot2::ggtitle("Moran's I statistics") +
-      annotate(
+      ggplot2::annotate(
         geom = "text",
-        x = min(spatdat$X) * 0.9915, y = min(spatdat$Y) * 0.997, label = paste0("Global Moran's I = ", round(
-          gmoranspdep$estimate[1],
-          2
-        )), parse = FALSE, size = annotatesize, color = "black", hjust = 0
-      ) +
-      annotate(geom = "text", x = min(spatdat$X) * 0.9915, y = min(spatdat$Y) *
-        0.994, label = paste0("p-value = ", round(gmoranspdep$p.value, 2)), parse = FALSE, size = annotatesize, color = "black", hjust = 0) +
-      theme(
+        x = min(spatdat$X) * 0.9915, y = min(spatdat$Y) * 0.997, label = paste0("Global Moran's I = ", 
+          round(gmoranspdep$estimate[1],2)), parse = FALSE, size = annotatesize, color = "black", hjust = 0) +
+      ggplot2::annotate(geom = "text", x = min(spatdat$X) * 0.9915, y = min(spatdat$Y) * 0.994, 
+       label = paste0("p-value = ", round(gmoranspdep$p.value, 2)), parse = FALSE, size = annotatesize, color = "black", hjust = 0) +
+      ggplot2::theme(
         text = element_text(size = 20),
-        axis.title.y = element_text(vjust = 1.5), legend.position = c(0.875, 0.7), legend.text = element_text(size = 15), legend.title = element_text(size = 15)
-      ) +
+        axis.title.y = element_text(vjust = 1.5), legend.position = c(0.875, 0.7), legend.text = element_text(size = 15),
+        legend.title = element_text(size = 15)) +
       xlab("Longitude") +
       ylab("Latitude")
 
@@ -154,7 +171,7 @@ moran_stats <- function(dat, project, varofint, spat, lon.dat = NULL, lat.dat = 
 
     moran_stats_function <- list()
     moran_stats_function$functionID <- "moran_stats"
-    moran_stats_function$args <- list(dat, project, varofint, spat, lon.dat, lat.dat, cat, lon.grid, lat.grid)
+    moran_stats_function$args <- list(dat, project, varofint, zoneid, spat, lon.dat, lat.dat, cat, lon.spat, lat.spat)
     log_call(project, moran_stats_function)
 
     save_plot(project, "moran_stats", moranmap)

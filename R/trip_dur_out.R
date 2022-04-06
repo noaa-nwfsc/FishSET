@@ -100,7 +100,7 @@
 #' @importFrom shiny isRunning
 #' @importFrom gridExtra arrangeGrob grid.arrange marrangeGrob
 
-trip_dur_out <- function(dat, project, start, end, units = "days", vpue = NULL,
+trip_dur_out <- function(dat, project, start, end, units = "days",  vpue = NULL,
                         group = NULL, combine = TRUE, haul_count = TRUE, sub_date = NULL,
                         filter_date = NULL, date_value = NULL, filter_by = NULL, 
                         filter_value = NULL, filter_expr = NULL, facet_by = NULL, 
@@ -140,6 +140,8 @@ trip_dur_out <- function(dat, project, start, end, units = "days", vpue = NULL,
   dataset <- date_check(dataset, start)
   dataset <- date_check(dataset, end)
   
+  
+  
   if (any(class(dataset[[start]]) != class(dataset[[end]]))) {
     warning("Start and end date variables have different classes. Recommend", 
             "converting date variables to same class.")
@@ -148,7 +150,7 @@ trip_dur_out <- function(dat, project, start, end, units = "days", vpue = NULL,
   if (anyNA(dataset[[start]]) | anyNA(dataset[[end]])) {
     warning("NAs detected in dates.")
   }
-  
+ 
   # sub_date ----
   # convert date and/or sub_date to date class
   if (!is.null(sub_date)) {

@@ -29,6 +29,14 @@
 #'   See the Details section for how to specify for each likelihood function.
 #' @param priceCol Variable in \code{dat} containing price information. Required if specifying an expected profit model 
 #'   for the likelihood (epm_normal, epm_weibull, epm_lognormal).
+#' @param expectcatchmodels List, name of expected catch models to include in model run. Defaults to all models.
+#'   Each list item should be a string of expected catch models to include in a model. 
+#'   For example, \code{list(c('medium', 'long'), c('user'))} would run one model with the medium and long expected catch matrices, 
+#'   and one model with just the user-defined expected catch matrix. 
+#'   Choices are short, medium, long, all, individual. See \code{\link{create_expectations}} for details on the different models.
+#'   Option `all` will run all expected catch matrices jointly.
+#'   Option `individual` will run the model for each expected catch matrix separately.
+#'   The final option is to select one more expected catch matrices to run jointly.
 #' @param startloc Variable in \code{dat} identifying the location when choice of where to fish next was made.
 #'   Required for logit_correction likelihood.
 #'   Use the \code{\link{create_startingloc}} function to create the starting location vector.
@@ -145,7 +153,7 @@
 #' @return
 #' Function creates the model matrix list that contains the data and modeling choices. The model design list is saved to the FishSET database and 
 #'   called by the \code{\link{discretefish_subroutine}}.
-#' Alternative fishing options come from the `Alternative Choice`` list, generated from the \code{\link{create_alternative_choice}} function,
+#' Alternative fishing options come from the `Alternative Choice` list, generated from the \code{\link{create_alternative_choice}} function,
 #'  and the expected catch matrices from the \code{\link{create_expectations}}
 #' function. The distance from the starting point to alternative choices is calculated. \cr\cr
 #'   Model design list: \cr
@@ -184,7 +192,7 @@
 make_model_design <- function(project, catchID, replace = TRUE, likelihood = NULL, 
                               initparams, optimOpt=c(100000, 1.0e-08, 1, 1), methodname="BFGS", 
                               mod.name=NULL, vars1 = NULL, vars2 = NULL, 
-                              priceCol = NULL, startloc = NULL, polyn = NULL) {
+                              priceCol = NULL, expectcatchmodels=list('all'), startloc = NULL, polyn = NULL) {
   
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
@@ -230,17 +238,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
   } else {
     mod.name <- mod.name
   }
-  # lon.dat <- as.character(lon.dat)
-  # lat.dat <- as.character(lat.dat)
-
-#  if (any(!is_empty(lonlat))) {
-#    if (lonlat[1] == lonlat[2]) {
-#      warning("Longitude and Latitude variables are identical.")
-#      end <- TRUE
-#    }
-#  }
-  # indeVarsForModel = vars1
-  # gridVariablesInclude=vars2
+ 
 
   
   if (!exists("Alt")) {
@@ -320,23 +318,27 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     
 
     if (any(is_empty(indeVarsForModel))) {
-      bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, indeVarsForModel = as.data.frame(matrix(1, nrow = nrow(choice), ncol = 1)))
+      bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, 
+                       indeVarsForModel = as.data.frame(matrix(1, nrow = nrow(choice), ncol = 1)))
       #    bColumnsWant <- ""
       #    bInterAct <- ""
     } else {
       if (any(indeVarsForModel %in% c("Miles * Miles", "Miles*Miles", "Miles x Miles"))) 
      {
-        bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, indeVarsForModel = lapply(indeVarsForModel[-1], function(x) dataset[[x]][which(dataZoneTrue == 1)]))
+        bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, 
+                         indeVarsForModel = lapply(indeVarsForModel[-1], function(x) dataset[[x]][which(dataZoneTrue == 1)]))
       } else {
-        bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, indeVarsForModel = lapply(indeVarsForModel, function(x) dataset[[x]][which(dataZoneTrue == 1)]))
+        bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, 
+                         indeVarsForModel = lapply(indeVarsForModel, function(x) dataset[[x]][which(dataZoneTrue == 1)]))
       }
     }
+    
     
   ### Initial parameters - need to grab inits from previous model run if required
   #  params <- list()
   #  for (i in 1:length(initparams)){
-      if(grepl(',', initparams)==FALSE){
-        x_temp <-  read_dat(paste0(locoutput(project), pull_output(project, type='table', fun=paste0('params_', initparams[[i]]))))
+      if(!is.numeric(initparams) & !any(grepl(',', initparams))){
+        x_temp <-  read_dat(paste0(locoutput(project), pull_output(project, type='table', fun=paste0('params_', initparams))))
         if(!is.null(x_temp)){
           initparams <- x_temp$estimate#param_temp <- x_temp$estimate
         } else {
@@ -344,9 +346,9 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
           warning('Model not found. Setting parameter estimates to 1.')
         }
        # params[[length(params) + 1]] <- list(param_temp)
-      } #else {
-        #params[[length(params) + 1]] <- list(initparams[[i]])
-    #  }
+      } else {
+        initparams <- initparams
+      }
  #   }
     
   ### Generate Distance Matrix
@@ -416,7 +418,8 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
         bCHeader = bCHeader,
         startloc = startloc,
         polyn = polyn,
-        gridVaryingVariables = ExpectedCatch
+        gridVaryingVariables = ExpectedCatch,
+        expectcatchmodels = expectcatchmodels
       )
 
 #     print(str(modelInputData_tosave)) 
@@ -454,7 +457,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       make_model_design_function$args <- list(
         project, catchID, replace, ptname, likelihood,
         initparams, optimOpt, methodname, as.character(mod.name), 
-        vars1, vars2, priceCol, startloc, polyn
+        vars1, vars2, priceCol,expectcatchmodels, startloc, polyn
       )
       make_model_design_function$kwargs <- list()
       

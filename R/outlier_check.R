@@ -56,7 +56,7 @@ outlier_table <- function(dat, project, x, sd_val=NULL, log_fun = TRUE) {
       data.frame(Vector = x.name, outlier_check = "None", 
                  N = length(dataset[[x]]), 
                  mean = round(mean(dataset[[x]], na.rm = TRUE), 2),
-                 median = round(stats::median(dataset[ ,x], na.rm = TRUE), 2), 
+                 median = round(stats::median(dataset[[x]], na.rm = TRUE), 2), 
                  SD = round(sd(dataset[[x]], na.rm = TRUE), 2), 
                  min = round(min(dataset[[x]], na.rm = TRUE), 2), 
                  max = round(max(dataset[[x]], na.rm = TRUE), 2), 
@@ -543,6 +543,9 @@ outlier_boxplot <- function(dat, project, x=NULL){
   #'   two whiskers (extends to 1.5*IQR where IQR is the distance bewteen the first and third quartiles.
   #'   "Outlying" points, those beyond the two whiskers (1.5*IQR) are shown individually.
   #' @return Box and whisker plot for all nuemric variables. Saved to `output` folder.
+  #' @export
+  #' @import ggplot2
+  #' @importFrom tidyr gather
   
   
   out <- data_pull(dat, project)
@@ -560,9 +563,9 @@ outlier_boxplot <- function(dat, project, x=NULL){
     num_cols <- unlist(lapply(dataset[,c(x, 'id')], is.numeric))   
   }
   
-  ddm = melt(dataset[,num_cols], id='id')
+  ddm = tidyr::gather(dataset[,num_cols], variable, value, -id)
 
-  p <- ggplot(ddm)+geom_boxplot(aes(x=variable, y=(value)))+
+  p <- ggplot2::ggplot(ddm)+ggplot2::geom_boxplot(aes(x=variable, y=(value)))+
     fishset_theme() +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
   
   outlier_boxplot_function <- list()

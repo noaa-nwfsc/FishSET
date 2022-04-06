@@ -86,26 +86,9 @@ create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, ch
             # Data from list
           } else {
             stop("Primary data must be a dataframe.")
-           # toXYa <- data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn[which(dataZoneTrue == 1)]) # data.frame(dataset[[alt_var]][which(dataZoneTrue==1)])#  data[[altToLocal1]]data(v1).dataColumn(dataZoneTrue,:)
-            #colnames(toXYa) <- c(alt_var)
-            # portLL <- data[[alt_var]].codeID[,2] # Extract lat long for selected port variable,
-            # cell2mat(data(v1).codeID(:,2)) # convert cell array to an ordinary array
-           # temp <- data.frame(
-            #  unique(data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn)),
-             # tapply(
-              #  data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn)[, 1],
-               # data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn), mean
-          #    ),
-          #    tapply(
-          #      data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn)[, 2],
-          #      data.frame(dataset[["data"]][, , which(unlist(dataset[["data"]][, 1, ][3, ]) == alt_var)]$dataColumn), mean
-          #    )
-          #  )
-          #  colnames(temp) <- c(alt_var, "LON", "LAT")
-          #  toXY1 <- merge(toXYa, temp)
-          }
-          # Lat/Lon
-        } else {  #End port
+         # Lat/Lon
+        }
+          }else {  #End port
           # Data is from a data frame or matrix
           if (is.data.frame(dataset)) {
             if (length(occasion) < 2) {

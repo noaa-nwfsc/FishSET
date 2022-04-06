@@ -478,6 +478,7 @@ source("map_viewer_app.R", local = TRUE)
                                           
                                           conditionalPanel("input.SelectDatasetExplore=='main' && input.plot_table=='Plots' && input.plot_type=='Spatial'",
                                                            uiOutput("mtgt_output"),
+                                                           uiOutput('mtgt_output_secondary'),
                                                            uiOutput('mtgt_out2'),
                                                            uiOutput("location_info_spatial")),
                                           
@@ -812,12 +813,13 @@ source("map_viewer_app.R", local = TRUE)
                                conditionalPanel("input.VarCreateTop=='Nominal ID'",
                                                 selectInput('ID','Functions', 
                                                             choices = c('Create distinct haul or trip ID'='ID_var',
-                                                                        'Create fishery season identifier'='create_seasonal_ID'),
+                                                                        'Create binary fishery season identifier'='binary_seasonID',
+                                                                        'Create location, gear, species-specific fishery season identifier'='create_seasonal_ID'),
                                                             multiple = FALSE, selected='ID_var')),
                                conditionalPanel("input.VarCreateTop=='Arithmetic functions'",
                                                 selectInput('numfunc','Functions', 
                                                             choices = c('Numeric functions'='create_var_num',
-                                                                        'Catch per unit effort'='cpue'),
+                                                                        'Catch or revenue per unit effort'='cpue'),
                                                 selected = 'create_var_num', multiple = FALSE)),
                                conditionalPanel("input.VarCreateTop=='Dummy variables'",
                                                 selectInput('dummyfunc','Functions',
@@ -845,9 +847,10 @@ source("map_viewer_app.R", local = TRUE)
                                                 style = "margin-left:19px;", 
                                                 uiOutput('trans_time_out'),
                                                 selectInput('define_format','Temporal units to return data in',
-                                                            choices=c('year', "month","day", 'hour', 'minute'), 
-                                                            selected = 'year')),
-                               
+                                                            choices=c(NULL, 'year', "month","day", 'hour', 'minute'), 
+                                                            selected = 'year'),
+                                                textInput('timezone', "Optional: Define timezone", value=NULL, placeholder = c("Examples: 'UTC', 'America/New_York'"))),
+
                                conditionalPanel("input.VarCreateTop=='Data transformations'&&input.trans=='set_quants'",
                                                 style = "margin-left:19px;", 
                                                 uiOutput('trans_quant_name'),
@@ -856,11 +859,22 @@ source("map_viewer_app.R", local = TRUE)
                                                                       '0%, 25%, 50%, 75%, 100%'='0.25', 
                                                                       '0%, 10%, 50%, 90%, 100%'='0.4'))),
                                #More sub choices Nominal IDS  
+                               conditionalPanel("input.VarCreateTop=='Nominal ID'&&input.ID=='ID_var'",
+                                                style = "margin-left:19px;", 
+                                                uiOutput('unique_col_id')
+                               ),
+                               
+                               conditionalPanel("input.VarCreateTop=='Nominal ID'&&input.ID=='binary_seasonID'",
+                                                style = "margin-left:19px;", 
+                                                fileInput("seasonal.dat", "Choose data file containing data on fishery seasons",
+                                                          multiple = FALSE),
+                                                textInput('seasonstart', 'Fishery season start date', value='', placeholder = 'Type variable name or date'),
+                                                textInput('seasonend', 'Fishery season end date', value='', placeholder = 'Type variable name or date'),
+                                                checkboxInput('overlap', 'Include fishing dates that extend beyond season dates', value=FALSE)
+                               ),
                                
                                conditionalPanel("input.VarCreateTop=='Nominal ID'&&input.ID=='create_seasonal_ID'",
                                                 style = "margin-left:19px;", 
-                                                
-                                                uiOutput('unique_col_id'),
                                                 fileInput("seasonal.dat", "Choose data file containing data on fishery seasons",
                                                                                        multiple = FALSE),
                                                 
@@ -1210,6 +1224,7 @@ source("map_viewer_app.R", local = TRUE)
                                    div(style="display: inline-block;vertical-align:top; width: 250px;", uiOutput('gridvariables')),
                                    uiOutput('catch_out'),
                                    uiOutput('logit_correction_extra'),
+                                   uiOutput('logit_c_extra'),
                                    h3('Model parameters'),
                                    
                                    fluidRow(

@@ -1,55 +1,54 @@
 #'  Identify geographic centroid of fishery management or regulatory zone
 
 #' @param project Name of project
-#' @param gridfile Spatial data containing information on fishery management or regulatory zones. Can be shape file, json, geojson, data frame, or list.
-#' @param cat Variable or list in \code{gridfile} that identifies the individual areas or zones. If \code{gridfile} is class sf, \code{cat} should be name of list containing information on zones.
-#' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
-#' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files. Leave as NULL if \code{gridfile} is a shape or json file.
+#' @param spat Spatial data containing information on fishery management or regulatory zones. Can be shape file, json, geojson, data frame, or list.
+#' @param cat Variable or list in \code{spat} that identifies the individual areas or zones. If \code{spat} is class sf, \code{cat} should be name of list containing information on zones.
+#' @param lon.spat Variable or list from \code{spat} containing longitude data. Required for csv files. Leave as NULL if \code{spat} is a shape or json file.
+#' @param lat.spat Variable or list from \code{spat} containing latitude data. Required for csv files. Leave as NULL if \code{spat} is a shape or json file.
 #' @keywords centroid, zone, polygon
 #' @importFrom sf st_centroid  st_as_sf
 #' @importFrom stats ave weighted.mean
 #' @return Returns a data frame where each row is a unique zone and columns are the zone ID and the latitude and longitude 
 #'   defining the centroid of each zone.
 #' @export find_centroid
-#' @details Returns the geographic centroid of each area/zone in \code{gridfile}. The centroid table is saved to the FishSET database.
+#' @details Returns the geographic centroid of each area/zone in \code{spat}. The centroid table is saved to the FishSET database.
 #' Function is called by the \code{create_alternative_choice} and \code{create_dist_between} functions.
 
 
 
-find_centroid <- function(project, gridfile, cat, lon.grid = NULL, lat.grid = NULL) {
-  
+find_centroid <- function(project, spat, cat, lon.spat = NULL, lat.spat = NULL) {
+ 
   # Call in datasets
-  gridout <- data_pull(gridfile, project)
-  grid <- gridout$dataset
-  gridfile <- parse_data_name(dat, "grid", project)
-  
+  spat_out <- data_pull(spat, project)
+  spatdat <- spat_out$dataset
+  spat <- parse_data_name(spatdat, "spat", project)
   
   tmp <- tempfile()
   on.exit(unlink(tmp), add = TRUE)
   cat("", file = tmp, append = TRUE)
   x <- 0
  
-    if (any(grepl("Spatial", class(grid)))) {
-      if(any(class(grid) %in% c("sp", "SpatialPolygonsDataFrame"))) {
-        grid <- sf::st_as_sf(grid)
-        grid <- sf::st_transform(grid, crs = "+proj=longlat +datum=WGS84")
+    if (any(grepl("Spatial", class(spatdat)))) {
+      if(any(class(spatdat) %in% c("sp", "SpatialPolygonsDataFrame"))) {
+        spatdat <- sf::st_as_sf(spatdat)
+        spatdat <- sf::st_transform(spatdat, crs = "+proj=longlat +datum=WGS84")
       } else {
-    if (is_empty(lon.grid) | is_empty(lat.grid)) {
-      warning("lat.grid and lon.grid must be supplied to convert sp object to a sf object.")
+    if (is_empty(lon.spat) | is_empty(spatdat)) {
+      warning("lat.spat and lon.spat must be supplied to convert sp object to a sf object.")
       x <- 1
     } else {
       # map2 <- sf::st_read('Z:/OLDFishSET/NMFS_RA.json')
-      grid <- sf::st_as_sf(
-        x = grid,
-        coords = c(lon.grid, lat.grid),
+      spatdat <- sf::st_as_sf(
+        x = spatdat,
+        coords = c(lon.spat, lat.spat),
         crs = "+proj=longlat +datum=WGS84"
       )
     }
       }}
 
   # For json and shape files
-  if (any(class(grid) == "sf")) {
-      int <-  sf::st_centroid(grid)
+  if (any(class(spatdat) == "sf")) {
+      int <-  sf::st_centroid(spatdat)
       int <- as.data.frame(cbind(int[[cat]], sf::st_coordinates(sf::st_cast(int,"POINT"))))
       colnames(int) <- c("ZoneID", "cent.lon", "cent.lat")
       if (any(abs(int$cent.lon) > 180)) {
@@ -73,9 +72,9 @@ find_centroid <- function(project, gridfile, cat, lon.grid = NULL, lat.grid = NU
   } else {
     # Centroid based on spatial data file or data set
 
-      int <- grid
-      lon <- lon.grid
-      lat <- lat.grid
+      int <- spatdat
+      lon <- lon.spat
+      lat <- lat.spat
 
 
     
@@ -100,7 +99,7 @@ find_centroid <- function(project, gridfile, cat, lon.grid = NULL, lat.grid = NU
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
-  DBI::dbWriteTable(fishset_db, paste0(noquote(gridfile), "Centroid"), int, overwrite = TRUE)
+  DBI::dbWriteTable(fishset_db, paste0('spat', "Centroid"), int, overwrite = TRUE)
   message('Geographic centroid saved to fishset database')
   return(int)
 }
