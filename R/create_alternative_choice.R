@@ -12,49 +12,49 @@
 #' latitude of each port. For lon/lat variables, longitude must be specified first.
 #' @param alt_var Identifies how to find lat/lon for alternative choices. alt_var may be the centroid of zonal assignment 
 #'  \code{"Centroid"}, or lon/lat variables in the primary dataset. Longitude must be specified first.
-# @param PortTable Optional. String, name of data table in FishSET database containing the port table with lat/lon for each port. 
-#   Define if \code{alt_var} is a port.
-#' @param griddedDat Data must contain a variable that varies by the spatial dataset \code{gridfile}.
+#' @param griddedDat Data must contain a variable that varies by the spatial dataset \code{spat}.
 #'  First variable in \code{griddedDat} should match a column in \code{dat}. The remaining columns should match the
-#'  zone IDs in the \code{gridfile}.
+#'  zone IDs in the \code{spat}.
 #' @param dist.unit String, how distance measure should be returned.
 #'  Choices are \code{"meters"} or \code{"M"}, \code{"kilometers"} or \code{"KM"}, \code{"miles"}, or units of 
 #'  \code{griddedDat}. Defaults to miles.
 #' @param min.haul Required, numeric, minimum number of hauls. Zones with fewer hauls than the \code{min.haul}
 #' value will not be included in model data.
-#' @param cat Required, variable in either \code{dat} or \code{gridfile} that identifies the individual areas or zones.
+#' @param cat Required, variable in either \code{dat} or \code{spat} that identifies the individual areas or zones.
 #'  If \code{cat} is a variable in \code{dat} that identifies zone assignments for each occurrence record,
-#'   set \code{gridfile} to NULL. Otherwise, if \code{gridfile} is class sf, \code{cat} should be the name 
+#'   set \code{spat} to NULL. Otherwise, if \code{spat} is class sf, \code{cat} should be the name 
 #'   of the list containing information on zones.
-#' @param gridfile Required, data file or character. 
-#'   \code{gridfile} is a spatial data file containing information on fishery management or regulatory zones boundaries.
+#' @param zoneID Variable in \code{dat} that identifies the individual zones or areas. Define if exists in \code{dat} and is not named `ZoneID`.
+#'      Defaults to NULL. 
+#' @param spat Required, data file or character. 
+#'   \code{spat} is a spatial data file containing information on fishery management or regulatory zones boundaries.
 #'   Shape, json, geojson, and csv formats are supported. geojson is the preferred format. json files must be converted
 #'   into geoson. This is done automatically when the file is loaded with \code{\link{read_dat}} with \code{is.map} set to true.
-#'   \code{gridfile} cannot, at this time, be loaded from the FishSET database. \cr
-#'   \code{lon.dat}, \code{lat.dat}, \code{lon.grid}, and \code{lat.grid} are required for specific \code{gridfile} file formats. \cr
+#'   \code{spat} cannot, at this time, be loaded from the FishSET database. \cr
+#'   \code{lon.dat}, \code{lat.dat}, \code{lon.spat}, and \code{lat.spat} are required for specific \code{spat} file formats. \cr
 #'   \code{cat} must be specified for all file formats.
 #'   If a zonal centroid table exists in the FishSET database and a zonal assignment column 
-#'  exists in \code{dat} then \code{gridfile} may be a table from the FishSET database or a data file. If \code{gridfile} should 
+#'  exists in \code{dat} then \code{spat} may be a table from the FishSET database or a data file. If \code{spat} should 
 #'  come from the FishSET database, it should be the name of the original file name, in quotes. For example, 'NMFS_zones_polygons'.
 #'  \code{cat} would then be the name of the column in \code{dat} containing fishing zone assignments. 
 #'  Use \code{tables_database()} to view names of tables in the FishSET database.
 # @param case Centroid='Centroid of Zonal Assignment', Port, Other
 #' @param hull.polygon Used in \code{\link{assignment_column}} function. Creates polygon using convex
 #'   hull method. Required if zonal assignments in \code{dat} should be identified
-#'   and \code{gridfile} is not NULL.
+#'   and \code{spat} is not NULL.
 #' @param lon.dat Longitude variable from \code{dat}. Required if zonal assignments in \code{dat}
-#'   should be identified and \code{gridfile} is not NULL.
+#'   should be identified and \code{spat} is not NULL.
 #' @param lat.dat Latitude variable from \code{dat}. Required if zonal assignments in \code{dat}
-#'   should be identified and \code{gridfile} is not NULL.
-#' @param lon.grid Variable or list from \code{gridfile} containing longitude data. Required for csv files.
-#'  Leave as NULL if \code{gridfile} is a shape or json file, Required if zonal assignments
-#'  in \code{dat} should be identified and \code{gridfile} is not NULL.
-#' @param lat.grid Variable or list from \code{gridfile} containing latitude data. Required for csv files.
-#' Leave as NULL if \code{gridfile} is a shape or json file, Required if zonal assignments
-#' in \code{dat} should be identified and \code{gridfile} is not NULL.
+#'   should be identified and \code{spat} is not NULL.
+#' @param lon.spat Variable or list from \code{spat} containing longitude data. Required for csv files.
+#'  Leave as NULL if \code{spat} is a shape or json file, Required if zonal assignments
+#'  in \code{dat} should be identified and \code{spat} is not NULL.
+#' @param lat.spat Variable or list from \code{spat} containing latitude data. Required for csv files.
+#' Leave as NULL if \code{spat} is a shape or json file, Required if zonal assignments
+#' in \code{dat} should be identified and \code{spat} is not NULL.
 #' @param closest.pt Logical, if true, zone ID identified as the closest polygon to the point.
 #'   Called in \code{\link{assignment_column}}. Required if zonal assignments for observations in \code{dat}
-#'   should be identified and \code{gridfile} is not NULL.
+#'   should be identified and \code{spat} is not NULL.
 #' @importFrom DBI dbExecute
 #' @export create_alternative_choice
 #' @details Defines the alternative fishing choices. These choices are used to develop the matrix of distances 
@@ -87,9 +87,9 @@
 #'         }
 
 create_alternative_choice <- function(dat, project, occasion='centroid', alt_var='centroid', 
-                                      dist.unit = "miles", min.haul=0, gridfile, cat=NULL, 
+                                      dist.unit = "miles", min.haul=0, spat, cat=NULL, zoneID=NULL,
                                       lon.dat=NULL, lat.dat=NULL, hull.polygon = FALSE,
-                                      closest.pt = FALSE, griddedDat = NULL, lon.grid = NULL, lat.grid = NULL) {
+                                      closest.pt = FALSE, griddedDat = NULL, lon.spat = NULL, lat.spat = NULL) {
   stopanaly <- 0
   case <- "centroid"
   
@@ -98,34 +98,42 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
-
-  gridname <- deparse(substitute(gridfile))
-
+  spat_out <- data_pull(spat, project)
+  spatdat <- spat_out$dataset
+  spat <- parse_data_name(dat, "spat", project)
+  
   x <- 0
 
-  if(!is.null(gridfile)){
-      int <- find_centroid(project = project, gridfile = gridfile, cat = cat, lon.grid = lon.grid, lat.grid = lat.grid)
-  } else if(table_exists(paste0(gridname, 'Centroid'), project)|table_exists('gridfileCentroid', project)){
-        if(table_exists(paste0(gridname, 'Centroid'), project) ==TRUE) {
-          int <- table_view(paste0(gridfile, 'Centroid'), project)
+  
+  if(!is.null(spatdat)){
+      int <- suppressWarnings(find_centroid(project = project, spat = spatdat, cat = cat, lon.spat = lon.spat, lat.spat = lat.spat))
+  } else if(table_exists(paste0(spat, 'Centroid'), project)|table_exists('spatCentroid', project)){
+        if(table_exists(paste0(spat, 'Centroid'), project) ==TRUE) {
+          int <- table_view(paste0(spat, 'Centroid'), project)
         } else {
-          int <- table_view(paste0('gridfileCentroid'), project)
+          int <- table_view('spatCentroid', project)
         }
   } else {
     stop("Zonal centroid must be defined. Function not run.")
   }
  
-  if('ZoneID' %in% names(dataset)){
-    int.data <- dataset
-    cat <- 'ZoneID'
+  if('ZoneID' %in% names(dataset) || cat %in% names(dataset) || !is.null(zoneID) && zoneID %in% names(dataset)){
+        int.data <- dataset
+    if('ZoneID' %in% names(dataset)){
+        cat <- 'ZoneID'
+    } else if(!is.null(zoneID) && zoneID %in% names(dataset)){
+        cat <- zoneID
+    } else if (cat %in% names(dataset)){
+        cat <- cat 
+    }
   } else {
-  if (!is.null(gridfile) & !is.character(gridfile)) {
+  if (!is.null(spatdat) & !is.character(spatdat)) {
       if(is.null(lon.dat)){
         stop('Observations must be assigned to zones. Function not run.')
       } else {
     int.data <- assignment_column(
-      dat = dataset, project=project, gridfile = gridfile, hull.polygon = hull.polygon,
-      lon.grid = lon.grid, lat.grid = lat.grid, lon.dat = lon.dat,
+      dat = dataset, project=project, spat = spatdat, hull.polygon = hull.polygon,
+      lon.spat = lon.spat, lat.spat = lat.spat, lon.dat = lon.dat,
       lat.dat = lat.dat, cat = cat, closest.pt = closest.pt, log.fun = FALSE
     )
       }
@@ -133,12 +141,13 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
   }
 
     if(!any(int[,1] %in% int.data[[cat]])){
-      if(!is.null(gridfile)){
-        int <- find_centroid(project = project, gridfile = gridfile, lon.grid = lon.grid, lat.grid = lat.grid, cat = cat) 
+      if(!is.null(spatdat)){
+        int <- find_centroid(project = project, spat = spatdat, lon.spat = lon.spat, lat.spat = lat.spat, cat = cat) 
       } else
         stop('Zones do not match between centroid table and zonal assignments in main data table. Rerun find_centoid using 
                 same spatial data file as was using with the assignment_column function.')
   }
+
   
   if(x == 0){
     
@@ -172,9 +181,7 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
   } else {
     a <- colnames(dataset)[grep("zon|area", colnames(dataset), ignore.case = TRUE)] # find(zp)   #find data that is zonal type
 
-    # [B,I,C]=unique([gridInfo.assignmentColumn(~isnan(gridInfo.assignmentColumn)),
-    # data(a(v)).dataColumn(~isnan(gridInfo.assignmentColumn),:) ],'rows');%FIXME check that the order of output zones is consistent
-
+  
    
     temp <- cbind(as.character(g), dataset[[a[1]]]) # cbind(unlist(gridInfo['assignmentColumn',,]), unlist(dataset[[a]]))
     B <- unique(temp) # Correct ->> Needs to be lat/long
@@ -241,7 +248,7 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
     }
         
     if (any(noquote(gsub("[^0-9]", "", colnames(gridVar))) %in% g) == FALSE) {
-      stop("Cannot use griddedDat. Column names of griddedDat do not match zone ids in gridfile.")
+      stop("Cannot use griddedDat. Column names of griddedDat do not match zone IDs in spatial dataset")
       st <- 1
     }
 
@@ -314,13 +321,13 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
     create_alternative_choice_function <- list()
     create_alternative_choice_function$functionID <- "create_alternative_choice"
     create_alternative_choice_function$args <- list(
-      'dat'=dat, 'project'=project, 'occasion'=occasion, alt_var, dist.unit, min.haul, deparse(substitute(gridfile)), cat,  
-     lon.dat, lat.dat, hull.polygon, closest.pt
+      'dat'=dat, 'project'=project, 'occasion'=occasion, alt_var, dist.unit, min.haul, spat, cat,  
+     zoneID, lon.dat, lat.dat, hull.polygon, closest.pt
     )
     
     
     
-    create_alternative_choice_function$kwargs <- list("lon.grid" = lon.grid, "lat.grid" = lat.grid, "griddedDat" = griddedDat)
+    create_alternative_choice_function$kwargs <- list("lon.spat" = lon.spat, "lat.spat" = lat.spat, "griddedDat" = griddedDat)
     create_alternative_choice_function$output <- list()
 
     log_call(project, create_alternative_choice_function)

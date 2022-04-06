@@ -52,8 +52,7 @@ long_expectations <- function(dat, project, catch, price, defineGroup, temp.var,
 
 
   if(temp.var=='none' || is_empty(temp.var) || !exists(temp.var)){
-    is.convertible.to.date <- function(x) !is.na(as.Date(as.character(x), tz = 'UTC', format = '%Y-%m-%d'))
-    temp.var <- names(which(apply(dataset, 2, is.convertible.to.date)[1,]==TRUE)[1])
+    temp.var <- date_cols(dataset)[1]
     print(paste('temp.var was not specified. Using', temp.var, 'instead.'))
   }
   #  if (temp.var == "none" | is_empty(temp.var)) {
@@ -84,7 +83,7 @@ long_expectations <- function(dat, project, catch, price, defineGroup, temp.var,
     catchData <- catchData * priceData
   }
   # Time variable not chosen if temp.var is empty
-  tiData <- as.Date(dataset[[temp.var]][which(dataZoneTrue == 1)], origin = "1970-01-01") # (ti(get(mp3V1,'Value'))).dataColumn(Alt.dataZoneTrue,:) # this part involves time which is more complicated
+  tiData <- date_parser(dataset[[temp.var]][which(dataZoneTrue == 1)])
   if (temporal[1] == "daily") {
     # daily time line
     tiDataFloor <- lubridate::floor_date(as.Date(tiData), unit = "day") # assume, we are talking day of for time

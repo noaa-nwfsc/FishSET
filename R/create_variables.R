@@ -4,13 +4,14 @@
 cpue <- function(dat, project, xWeight, xTime, price=NULL, name = "cpue") {
   #' Create catch or revenue per unit effort variable
   #' 
-  #' @description Add catch per unit effort (CPUE) variable to the primary dataset. Catch should be a weight variable 
-  #'   but can be a count. Effort should be in a duration of time, such as days, hours, or minutes.
+  #' @description Add catch per unit effort (CPUE) or revenue per unit effort variable to the primary dataset. 
+  #'   Catch should be a weight variable but can be a count. Effort should be in a duration of time, such as days, hours, or minutes.
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in FishSET database contains the string 'MainDataTable'.
   #' @param project Project name. 
   #' @param xWeight Catch variable in \code{dat}. Variable should be a measure of weight 
-  #'   (pounds, metric tons, etc) but can also be count.
+  #'   (pounds, metric tons, etc) but can also be count. If calculated RPUE and \code{price} is revenue data, set 
+  #'   \code{XWeight=NULL}.
   #' @param xTime Duration of time variable in \code{dat} representing effort, such as
   #'   weeks, days, hours, or minutes.
   #' @param price Optional, variable from \code{dat} containing price/value data.  Price is multiplied against the catch variable,
@@ -18,7 +19,7 @@ cpue <- function(dat, project, xWeight, xTime, price=NULL, name = "cpue") {
   #'   then \code{xWeight} must NULL. Defaults to NULL.
   #' @param name String, name of created variable. Defaults to name of the function if not defined.
   #' @export cpue
-  #' @details Creates the catch per unit effort variable. Catch variable should be in weight (lbs, mts).
+  #' @details Creates the catch or revenue per unit effort variable. Catch variable should be in weight (lbs, mts).
   #'   Effort variable should be a measurement of duration in time. New variable is added to the primary dataset
   #'   with the column name defined by the \code{name} argument. CPUE for individual species should be
   #'   calculated separately.
@@ -81,7 +82,7 @@ cpue <- function(dat, project, xWeight, xTime, price=NULL, name = "cpue") {
     
     create_var_cpue_function <- list()
     create_var_cpue_function$functionID <- "cpue"
-    create_var_cpue_function$args <- list(dat, project, xWeight, xTime, deparse(substitute(name)))
+    create_var_cpue_function$args <- list(dat, project, xWeight, xTime, price, deparse(substitute(name)))
     create_var_cpue_function$kwargs <- list()
     create_var_cpue_function$output <- list(dat)
 
@@ -842,24 +843,20 @@ create_trip_centroid <- function(dat, project, lon, lat, tripID, weight.var = NU
 
 
 #' Interactive application to create distance between points variable
-create_dist_between <- function(dat, project, start, end, units = c("miles", "meters", "km", "midpoint"), name = "distBetween") {
+create_dist_between <- function(dat, project, start, end, units = c("miles", "meters", "km", "midpoint"), zoneid=NULL, name = "distBetween") {
   #' @param dat Primary data frame over which to apply function.
   #'   Table in FishSET database should contain the string `MainDataTable`.
   #' @param project Project name. 
-  #' @param start Starting location. Should be a port, lat/lon location, or the centroid of fishing zone
+  #' @param start,end  Starting and ending location. Should be a port, lat/lon location, or the fishery management zone/area centroid.
   #'   or area. If port is desired, start should be the column name in the \code{dat} containing the port
-  #'   names. Latitude and longitude for the port are extracted from the port table. If a lat/lon location is
+  #'   Latitude and longitude for the port are extracted from the port table. If a lat/lon location is
   #'   desired then start should be a character string of column names from \code{dat}. The order must be lon,
-  #'   lat. If the centroid of the fishing zone or area is to be used then \code{start} should be \code{"centroid"} and
-  #'   \code{\link{find_centroid}} and \code{\link{assignment_column}} will be called to identify the latitude and longitude.
-  #' @param end Ending location. Should be a port, lat/lon location, or the centroid of the fishing zone or area.
-  #'   If port is desired, end should be a variable in \code{dat} containing the port names. Latitude
-  #'   and longitude for the port are extracted from the port table. If a lat, long location is desired then end
-  #'   should be a character string of column names specifying first longitude then latitude. If the centroid of the
-  #'   fishing zone or area is to be used then \code{end} should be \code{"centroid"} and \code{\link{find_centroid}} and
-  #'   \code{\link{assignment_column}} will be called to identify the latitude and longitude.
+  #'   lat. If fishery management centroid is used then set \code{start="centroid"} or \code{end="centroid"}.
+  #'   \code{\link{find_centroid}} and \code{\link{assignment_column}} will be called to identify the latitude and longitude 
+  #'   if the centroid table does not exist in the FishSET database.
   #' @param units  Unit of measurement for calculated distance between start and ending points.
   #'   Can be in \code{"miles"}, \code{"meters"}, \code{"kilometers"}, or \code{"midpoint"} location.
+  #' @param zoneid Variable in \code{dat} that identifies the individual zones or areas. Define if exists in \code{dat} and is not names `ZoneID`.
   #' @param name String, output variable name. Defaults to `distBetween`.
   #' @export
   #' @return Returns primary data set with distance between variable.
@@ -871,8 +868,8 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
   #'   The \code{\link{create_dist_between_for_gui}} function requires all necessary arguments to be specified before running
   #'   and is best used in a non-interactive session. Both versions of the distance between function require that the start
   #'   and end points be different vectors. If the start or ending points are from a port then \code{PortTable} must be specified
-  #'   to obtain lat/lons. If the start or ending points are the center of a fishing zone or area then \code{gridfile}, \code{lon.dat},
-  #'   \code{lat.dat}, \code{cat}, \code{lon.grid}, and \code{lat.grid} must be specified to obtain latitude and longitude.
+  #'   to obtain lat/lons. If the start or ending points are the center of a fishing zone or area then \code{spat}, \code{lon.dat},
+  #'   \code{lat.dat}, \code{cat}, \code{lon.spat}, and \code{lat.spat} must be specified to obtain latitude and longitude.
   #' @examples
   #' \dontrun{
   #' pollockMainDataTable <- create_dist_between(pollockMainDataTable, 'pollock', 'centroid',
@@ -896,13 +893,13 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
   #' \cr\cr
   #' Centroids arguments required:
   #' \tabular{rlll}{
-  #' gridfile: \tab Spatial data set containing information on fishery management or regulatory zones.
+  #' spat: \tab Spatial data set containing information on fishery management or regulatory zones.
   #' Can be shape file, json, geojson, data frame, or list data frame or list. Required if \code{start} or \code{end} is centroid. \cr
   #' lon.dat: \tab Longitude variable from \code{dat}. \cr
   #' lat.dat: \tab Latitude variable from \code{dat}. \cr
-  #' lon.grid: \tab Variable or list from \code{gridfile} containing longitude data. Required if \code{start} or \code{end} is centroid. Leave as NULL if \code{gridfile} is a shape or json file. \cr
-  #' lat.grid: \tab Variable or list from \code{gridfile} containing latitude data. Required if \code{start} or \code{end} is centroid. Leave as NULL if \code{gridfile} is a shape or json file. \cr
-  #' cat: \tab Variable or list in \code{gridfile} that identifies the individual areas or zones. If \code{gridfile} is class sf, \code{cat} should be the name of list containing information on zones.
+  #' lon.spat: \tab Variable or list from \code{spat} containing longitude data. Required if \code{start} or \code{end} is centroid. Leave as NULL if \code{spat} is a shape or json file. \cr
+  #' lat.spat: \tab Variable or list from \code{spat} containing latitude data. Required if \code{start} or \code{end} is centroid. Leave as NULL if \code{spat} is a shape or json file. \cr
+  #' cat: \tab Variable or list in \code{spat} that identifies the individual areas or zones. If \code{spat} is class sf, \code{cat} should be the name of list containing information on zones.
   #' }
 
 
@@ -950,28 +947,42 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
 
     if (any(grepl("centroid", c(start[1], end[1]), ignore.case = TRUE))) {
       fun <- function() {
-        gridfile <- readline("What is the name of the spatial data set? Can be shape file, data frame, or list?")
-        long.grid <- readline("What is the name of the vector containing longitude of points from spatial data set?")
-        lat.grid <- readline("What is the name of the vector containing latitude of points from spatial data set?")
+        spat <- readline("What is the name of the spatial data set? Can be shape file, data frame, or list?")
+        long.spat <- readline("What is the name of the vector containing longitude of points from spatial data set?")
+        lat.spat <- readline("What is the name of the vector containing latitude of points from spatial data set?")
         lon.dat <- readline("What is the name of the vector containing longitude of points from data set?")
         lat.dat <- readline("What is the name of the vector containing latitude of points from data set?")
         cat <- readline("What is the name of the vector defining the individual areas or zones from the spatial data set?")
-        out <- c(gridfile, long.grid, lat.grid, lon.dat, lat.dat, cat)
+        out <- c(spat, long.spat, lat.spat, lon.dat, lat.dat, cat)
       }
       vars <- if (interactive()) {
         fun()
       }
 
-      dataset <- assignment_column(
-        dat = dataset, project = project, gridfile = eval(parse(text = vars[1])), hull.polygon = FALSE, lon.grid = gsub("\"|'", "", vars[2]),
-        lat.grid = gsub("\"|'", "", vars[3]), lon.dat = gsub("\"|'", "", vars[4]), lat.dat = gsub("\"|'", "", vars[5]), cat = gsub(
+      ##Find centroid
+        if(table_exists('spatCentroid', project)){
+          int <- table_view('spatCentroid', project)
+        } else {
+          int <- find_centroid(project=project, spat = eval(parse(text = vars[1])), 
+                           cat = gsub("\"|'", "", vars[6]), lon.spat = gsub("\"|'", "", vars[2]),
+                            lat.spat = gsub("\"|'", "", vars[3]))
+        }
+       
+      
+      ##Assignment column
+      if("ZoneID" %in% names(dataset) == TRUE){
+        zoneid <- 'ZoneID'
+      } else if(!is.null(zoneid) & zoneid %in% names(dataset)){
+        colnames(dataset)[colnames(dataset)==zoneid] <- 'ZoneID'
+      } else {
+        dataset <- assignment_column(
+        dat = dataset, project = project, spat = eval(parse(text = vars[1])), hull.polygon = FALSE, lon.spat = gsub("\"|'", "", vars[2]),
+        lat.spat = gsub("\"|'", "", vars[3]), lon.dat = gsub("\"|'", "", vars[4]), lat.dat = gsub("\"|'", "", vars[5]), cat = gsub(
           "\"|'", "",
           vars[6]
         ), closest.pt = TRUE, log.fun = FALSE
       )
-      int <- find_centroid(project=project, gridfile = eval(parse(text = vars[1])), 
-                           cat = gsub("\"|'", "", vars[6]), lon.grid = gsub("\"|'", "", vars[2]),
-                            lat.grid = gsub("\"|'", "", vars[3]))
+      }
     }
 
     if (grepl("port", start[1], ignore.case = TRUE)) {
@@ -1029,7 +1040,7 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
       # Log the function
       create_dist_between_function <- list()
       create_dist_between_function$functionID <- "create_dist_between"
-      create_dist_between_function$args <- list(dat, project, start, end, units, deparse(substitute(name)))
+      create_dist_between_function$args <- list(dat, project, start, end, units, zoneid, deparse(substitute(name)))
       create_dist_between_function$kwargs <- list(vars)
       create_dist_between_function$output <- list(dat)
 
@@ -1076,7 +1087,7 @@ create_duration <- function(dat, project, start, end, units = c("week", "day", "
   if (any(grepl("date|min|hour|week|month|TRIP_START|TRIP_END", end, ignore.case = TRUE)) == FALSE) {
     warning("Function is designed for temporal variables")
   }
-
+  
   elapsed.time <- lubridate::interval(date_parser(dataset[[start]]), date_parser(dataset[[end]]))
   if (units == "week") {
     newvar <- lubridate::as.duration(elapsed.time) / lubridate::dweeks(1)
@@ -1388,7 +1399,7 @@ lonlat_to_centroid <- function(dat, project, lon, lat, spat, zone) {
     spatdat <- sf::st_as_sf(x = spatdat, crs = "+proj=longlat +datum=WGS84")
   }
   
-  pts <- find_centroid(project=project, gridfile = spatdat, cat = zone)
+  pts <- find_centroid(project=project, spat = spatdat, cat = zone)
   
   colnames(pts) <- c(zone, lon, lat)
   

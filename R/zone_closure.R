@@ -1,25 +1,25 @@
 #' Define zone closure scenarios
 #' 
 #' @param project Required, name of project.
-#' @param gridfile Required, data file or character. 
-#'   \code{gridfile} is a spatial data file containing information on fishery 
+#' @param spat Required, data file or character. 
+#'   \code{spat} is a spatial data file containing information on fishery 
 #'   management or regulatory zones boundaries. Shape, json, geojson, and csv 
 #'   formats are supported. geojson is the preferred format. json files must be 
 #'   converted into geoson. This is done automatically when the file is loaded 
-#'   with \code{\link{read_dat}} with \code{is.map} set to true. \code{gridfile} 
+#'   with \code{\link{read_dat}} with \code{is.map} set to true. \code{spat} 
 #'   cannot, at this time, be loaded from the FishSET database. \cr
-#' @param cat Variable in \code{gridfile} that identifies the individual areas or zones.
-#' @param secondgridfile Optional spatial data file containing information to 
+#' @param cat Variable in \code{spat} that identifies the individual areas or zones.
+#' @param secondspat Optional spatial data file containing information to 
 #'   aid in defining zone closures, such as location of windmills.
 #' @param secondcat Optional, name of variable that identifies individual areas 
-#'   in \code{secondgridfile}
-#' @param lon.grid Required for csv files. Variable or list from \code{gridfile} 
-#'   containing longitude data. Leave as NULL if \code{gridfile} is a shape or json file.
-#' @param lat.grid Required for csv files. Variable or list from \code{gridfile} 
-#'   containing latitude data.  Leave as NULL if \code{gridfile} is a shape or json file.
-#' @param epsg EPSG number. Set the epsg to ensure that \code{gridfile} and 
-#'   \code{secondgridfile} have the same projections. If epsg is not specified but is defined for 
-#'   \code{gridfile}, then the \code{secondgridfile} epsg will be applied to \code{gridfile}. 
+#'   in \code{secondspat}
+#' @param lon.spat Required for csv files. Variable or list from \code{spat} 
+#'   containing longitude data. Leave as NULL if \code{spat} is a shape or json file.
+#' @param lat.spat Required for csv files. Variable or list from \code{spat} 
+#'   containing latitude data.  Leave as NULL if \code{spat} is a shape or json file.
+#' @param epsg EPSG number. Set the epsg to ensure that \code{spat} and 
+#'   \code{secondspat} have the same projections. If epsg is not specified but is defined for 
+#'   \code{spat}, then the \code{secondspat} epsg will be applied to \code{spat}. 
 #'   See \url{http://spatialreference.org/} to help identify optimal epsg number.
 #' @importFrom sf st_crs st_transform
 #' @importFrom yaml write_yaml
@@ -35,8 +35,8 @@
 #' @export
 #' @return Returns a yaml file to the project output folder.
 
-zone_closure <- function(project, gridfile, cat, secondgridfile = NULL, 
-                         secondcat = NULL, lon.grid = NULL, lat.grid = NULL,
+zone_closure <- function(project, spat, cat, secondspat = NULL, 
+                         secondcat = NULL, lon.spat = NULL, lat.spat = NULL,
                          epsg = NULL) {
  
   pass <- TRUE
@@ -45,35 +45,35 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
   x <- 0
   secondLocationID <- NULL
 
-  grid_nm <- deparse(substitute(gridfile)) # won't work in main app
-  close_nm <- deparse(substitute(secondgridfile))
+  grid_nm <- deparse(substitute(spat)) # won't work in main app
+  close_nm <- deparse(substitute(secondspat))
 
   
   # leaflet requires WGS84
-  gridfile <- sf::st_transform(gridfile, "+proj=longlat +datum=WGS84")
+  spat <- sf::st_transform(spat, "+proj=longlat +datum=WGS84")
 
-  if (!is.null(secondgridfile)) {
+  if (!is.null(secondspat)) {
 
-    secondgridfile <- sf::st_transform(secondgridfile, 
+    secondspat <- sf::st_transform(secondspat, 
                                        "+proj=longlat +datum=WGS84")
   }
  
-  gridfile <- check_spatdat(gridfile, id = cat, lon = lon.grid, lat = lat.grid)
+  spat <- check_spatdat(spat, id = cat, lon = lon.spat, lat = lat.spat)
   
-  if(!is.null(secondgridfile)){
+  if(!is.null(secondspat)){
     
-    secondgridfile <- check_spatdat(secondgridfile, id = secondcat)
-    secondgridfile[[secondcat]] <- as.factor(secondgridfile[[secondcat]])
-    secondgridfile$closure_id <- paste0("Closure_", 1:nrow(secondgridfile))
+    secondspat <- check_spatdat(secondspat, id = secondcat)
+    secondspat[[secondcat]] <- as.factor(secondspat[[secondcat]])
+    secondspat$closure_id <- paste0("Closure_", 1:nrow(secondspat))
     # 
-    # qpal <- colorFactor(grDevices::topo.colors(length(unique(secondgridfile[[secondcat]]))), 
-    #                     secondgridfile[[secondcat]],unique(secondgridfile[[secondcat]]))
+    # qpal <- colorFactor(grDevices::topo.colors(length(unique(secondspat[[secondcat]]))), 
+    #                     secondspat[[secondcat]],unique(secondspat[[secondcat]]))
     
   }
   
-  if (!is.null(secondgridfile)) {
+  if (!is.null(secondspat)) {
     
-    if (sf::st_crs(gridfile) != sf::st_crs(secondgridfile)) {
+    if (sf::st_crs(spat) != sf::st_crs(secondspat)) {
       
       warning("Projection does not match. The detected projection in the",
               " spatial file will be used unless epsg is specified.")
@@ -81,34 +81,34 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
     
     if (!is.null(epsg)) {
       
-      gridfile <- sf::st_transform(gridfile, epsg)
-      secondgridfile <- sf::st_transform(secondgridfile, epsg)
+      spat <- sf::st_transform(spat, epsg)
+      secondspat <- sf::st_transform(secondspat, epsg)
       
     } else {
       
-      crs1 <- sf::st_crs(gridfile)
-      crs2 <- sf::st_crs(secondgridfile)
+      crs1 <- sf::st_crs(spat)
+      crs2 <- sf::st_crs(secondspat)
       
       if (is.na(crs1) & is.na(crs2)) {
         
-        gridfile <- sf::st_transform(gridfile, "+proj=longlat +datum=WGS84")
-        secondgridfile <- sf::st_transform(secondgridfile, 
+        spat <- sf::st_transform(spat, "+proj=longlat +datum=WGS84")
+        secondspat <- sf::st_transform(secondspat, 
                                            "+proj=longlat +datum=WGS84")
         
       } else if (is.na(crs1) & !is.na(crs2)) {
         
-        gridfile <- sf::st_transform(gridfile, crs2)
+        spat <- sf::st_transform(spat, crs2)
         
       } else if (!is.na(crs1) & is.na(crs2)) {
         
-        secondgridfile <- sf::st_transform(secondgridfile, crs1)
+        secondspat <- sf::st_transform(secondspat, crs1)
         
       } else if (!is.na(crs1) & !is.na(crs2)) {
         
         if (crs1 != crs2) {
           
-          gridfile <- sf::st_transform(gridfile, "+proj=longlat +datum=WGS84")
-          secondgridfile <- sf::st_transform(secondgridfile, 
+          spat <- sf::st_transform(spat, "+proj=longlat +datum=WGS84")
+          secondspat <- sf::st_transform(secondspat, 
                                              "+proj=longlat +datum=WGS84")
         }
       }
@@ -117,16 +117,16 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
   }
   
   
-  if (cat %in% names(gridfile)) {
+  if (cat %in% names(spat)) {
     
-    gridfile$secondLocationID <- paste("Zone_", as.character(gridfile[[cat]]), sep="")
-    names(gridfile)[which(names(gridfile) == cat)] <- 'zone'
-    gridfile$zone <- as.character(gridfile$zone)
+    spat$secondLocationID <- paste("Zone_", as.character(spat[[cat]]), sep="")
+    names(spat)[which(names(spat) == cat)] <- 'zone'
+    spat$zone <- as.character(spat$zone)
     
-  } else if ('zone' %in% names(gridfile)) {
+  } else if ('zone' %in% names(spat)) {
     
-    gridfile$zone <- as.character(gridfile$zone)
-    gridfile$secondLocationID <- paste("Zone_", as.character(gridfile$zone), sep="")
+    spat$zone <- as.character(spat$zone)
+    spat$secondLocationID <- paste("Zone_", as.character(spat$zone), sep="")
     
   } else {
     
@@ -211,8 +211,8 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
         })
         
         # values ----
-        dat <- reactiveValues(gridfile = gridfile,
-                              secondgridfile = secondgridfile,
+        dat <- reactiveValues(spat = spat,
+                              secondspat = secondspat,
                               combined = NULL)
         
         grid_cache <- reactiveValues(grid_1 = NULL)
@@ -266,7 +266,7 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
         
         output$modeMsg <- renderUI({
           
-          if (is.null(secondgridfile) & input$mode == "combine") {
+          if (is.null(secondspat) & input$mode == "combine") {
             
             div(style = "background-color: yellow; border: 1px solid #999; margin: 5px; margin-bottom: 2em;",
                 p("Upload a second grid file to combine closure areas with grid zones."))
@@ -291,7 +291,7 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
               updateSelectizeInput(session,
                                    inputId = "clicked_locations",
                                    label = "",
-                                   choices = dat$secondgridfile$secondLocationID,
+                                   choices = dat$secondspat$secondLocationID,
                                    selected = NULL,
                                    server = TRUE)
             }
@@ -305,7 +305,7 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
             updateSelectizeInput(session,
                                  inputId = "clicked_locations",
                                  label = "",
-                                 choices = dat$gridfile$secondLocationID,
+                                 choices = dat$spat$secondLocationID,
                                  selected = NULL,
                                  server = TRUE)
           }
@@ -316,7 +316,7 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
         
         output$GridSelect <- renderUI({
           
-          if (!is.null(secondgridfile) & input$mode == "combine") {
+          if (!is.null(secondspat) & input$mode == "combine") {
               
             selectInput("select_grid", "Select grid", 
                         choices = names(grid_cache))
@@ -384,7 +384,7 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
         
         output$combineUI <- renderUI({
           
-          if (!is.null(secondgridfile)) {
+          if (!is.null(secondspat)) {
             
             if (input$mode == "combine") {
               
@@ -411,11 +411,11 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
           
           req(input$clicked_locations)
           
-          closure <- secondgridfile %>% 
+          closure <- secondspat %>% 
             dplyr::filter(.data[[secondcat]] %in% clicked_ids$ids)
           
           q_test <- quietly_test(combine_zone)
-          dat$combined <- q_test(grid = dat$gridfile, 
+          dat$combined <- q_test(grid = dat$spat, 
                                  closure = closure, 
                                  grid.nm = "secondLocationID", 
                                  closure.nm = secondcat)
@@ -446,7 +446,7 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
         # enable/disable addClose ----
         observe({
           
-          if (is.null(secondgridfile)) {
+          if (is.null(secondspat)) {
             
             shinyjs::enable("addClose")
             
@@ -471,7 +471,7 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
          updateSelectizeInput(session,
                               inputId = "clicked_locations",
                               label = "",
-                              choices = dat$gridfile$secondLocationID,
+                              choices = dat$spat$secondLocationID,
                               selected = NULL,
                               server = TRUE)
        })
@@ -493,7 +493,7 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
 
           req(input$clicked_locations)
 
-          if (!is.null(secondgridfile) & input$mode == "combine" & !rv$combined) {
+          if (!is.null(secondspat) & input$mode == "combine" & !rv$combined) {
 
             return(NULL)
             
@@ -518,7 +518,7 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
         # render map ----
         output$map <- renderLeaflet({
           
-        if (!is.null(secondgridfile)) {
+        if (!is.null(secondspat)) {
           
           if (input$mode == "combine") {
             
@@ -540,31 +540,31 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
               
               leaflet() %>%
                 addTiles() %>%
-                addPolygons(data = dat$gridfile,
+                addPolygons(data = dat$spat,
                             fill = FALSE,
                             weight = 1,
                             color = "black") %>% 
-                addPolygons(data = secondgridfile,
+                addPolygons(data = secondspat,
                             weight = 2,
                             fillColor = "white",
                             fillOpacity = 0.5,
                             color = "black",
                             stroke = TRUE,
-                            layerId = secondgridfile[[secondcat]],
+                            layerId = secondspat[[secondcat]],
                             group = "regions",
-                            label = secondgridfile[[secondcat]])
+                            label = secondspat[[secondcat]])
             }
             
           } else { # normal mode
             
             leaflet() %>%
               addTiles() %>%
-              addPolygons(data = secondgridfile,
+              addPolygons(data = secondspat,
                           fill = FALSE,
                           weight = 2,
                           color = "blue") %>% 
-                          # color = ~qpal(secondgridfile[[secondcat]])) %>% 
-              addPolygons(data = dat$gridfile,
+                          # color = ~qpal(secondspat[[secondcat]])) %>% 
+              addPolygons(data = dat$spat,
                           fillColor = "white",
                           fillOpacity = 0.2,
                           color = "black",
@@ -579,7 +579,7 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
             
             leaflet() %>%
               addTiles() %>%
-              addPolygons(data = dat$gridfile,
+              addPolygons(data = dat$spat,
                           fillColor = "white",
                           fillOpacity = 0.5,
                           color = "black",
@@ -599,7 +599,7 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
           
           req(click$id)
           
-          if (!is.null(secondgridfile)) {
+          if (!is.null(secondspat)) {
             
             if (input$mode == "combine") {
               
@@ -611,21 +611,21 @@ zone_closure <- function(project, gridfile, cat, secondgridfile = NULL,
                 
               } else {
                 
-                temp_dat <- dat$secondgridfile
+                temp_dat <- dat$secondspat
                 z_id  <- "closure_id"
                 sec_id <- secondcat
               }
               
             } else {
               
-              temp_dat <- dat$gridfile
+              temp_dat <- dat$spat
               z_id <- "zone"
               sec_id <- "secondLocationID"
             }
         
           } else {
             
-            temp_dat <- dat$gridfile
+            temp_dat <- dat$spat
             z_id <- "zone"
             sec_id <- "secondLocationID"
           }

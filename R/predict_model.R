@@ -2,14 +2,14 @@
 
 # Need to call saved data table
 #1. Save favorite model by model name in separate file
-#2. Pull that data, not the genereric data
+#2. Pull that data, not the generic data
 
 ##Needs
   #data matrix
   #Zone closure
   #Tac
   #Price
-  #Prediction probablity 
+  #Prediction probability 
 
 #' Model prediction function
 #' @param project Name of project
@@ -17,7 +17,7 @@
 #'    Leave \code{mod.name} empty to use the name of the saved "best" model. If more than
 #'   one model is saved, \code{mod.name} should be the numeric indicator of which model to use.
 #'   Use \code{table_view("modelChosen", project)} to view a table of saved models.
-#' @param expected.catch.name Required for conditonal logit (\code{logit_c}) model. 
+#' @param expected.catch.name Required for conditional logit (\code{logit_c}) model. 
 #'   Name of expected catch table to use. 
 #'    Can be the expected catch from the short-term scenario (\code{short}), the medium-term scenario (\code{med}), the 
 #'    long-term scenario (\code{long}), or the user-defined temporal parameters (\code{user}).

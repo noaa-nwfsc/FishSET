@@ -40,7 +40,6 @@ map_kernel <- function(dat, project,latlon,  type='contours', group = NULL, face
 
   ## currently outputs to FishSET not file (could include dirout as argument)
   requireNamespace("ggplot2")
-  world <- ggplot2::map_data("world")
 
   out <- data_pull(dat, project)
   dataset <- out$dataset
@@ -156,8 +155,8 @@ map_kernel <- function(dat, project,latlon,  type='contours', group = NULL, face
     
     gmap <-
       ggplot2::ggplot() +
-      suppressWarnings(ggplot2::geom_map(map = world, ggplot2::aes(x = world$long, y = world$lat,
-                                                  map_id = world$region),
+      suppressWarnings(ggplot2::geom_map(map = worldmap, ggplot2::aes(x = worldmap$long, y = worldmap$lat,
+                                                  map_id = worldmap$region),
                         fill = "grey", color = "black", size = 0.375))
 
     map_theme <-

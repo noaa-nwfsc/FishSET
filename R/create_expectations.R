@@ -104,7 +104,7 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
 
   # for now if no time, only allow mean based on group without options TODO: allow
   # options from tab 2, currently turned off ti=find([data.isTime])# TODO add option for other time
-  if (!any(grepl("DATE|MIN", colnames(dataset)))) {
+  if ( is_empty(date_cols(dataset))) {
     warning("No time variable found, only averaging in groups and per zone is capable")
   }
 
@@ -122,12 +122,14 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
     empty.expectation = empty.expectation, dummy.exp = FALSE
   )
 
+
    ## 2. Option 2 medium: group by fleet (all vessels in dataset) t -7
   med_exp <- medium_expectations(
     dat = dataset, project = project, catch = catch, price = price, defineGroup = defineGroup, temp.var = temp.var,
     temporal = temporal, calc.method = calc.method, lag.method = lag.method, empty.catch = empty.catch,
     empty.expectation = empty.expectation, dummy.exp = FALSE
   )
+
   ## 3. option 3  last year, group by fleet t-7
   long_exp <- long_expectations(
     dat = dataset, project = project, catch = catch, price = price, defineGroup = defineGroup, temp.var = temp.var,
@@ -190,7 +192,8 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
     newDumV <- list()
     # End No time variable temp.var
   } else {
-    tiData <- as.Date(dataset[[temp.var]][which(dataZoneTrue == 1)], origin = "1970-01-01") # (ti(get(mp3V1,'Value'))).dataColumn(Alt.dataZoneTrue,:) # this part involves time which is more complicated
+
+    tiData <- date_parser(dataset[[temp.var]][which(dataZoneTrue == 1)]) # (ti(get(mp3V1,'Value'))).dataColumn(Alt.dataZoneTrue,:) # this part involves time which is more complicated
 
     if (temporal == "daily") {
       # daily time line
@@ -407,7 +410,7 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
     med_exp = med_exp[1], # , g(catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation), '7', '0', '0', sep='_')
     med_exp_newDumV = med_exp[2],
     long_exp = long_exp[1], # , g(catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation), '7', '0', '1', sep='_')
-    long__exp_newDumv = long_exp[2],
+    long_exp_newDumv = long_exp[2],
     user_defined_exp = newCatch, # , g(catch, price, temporal, temp.var, calc.method, lag.method, empty.catch, empty.expectation), h(temp.window, temp.lag, year.lag), sep='_') ,
     scale = sscale,
     newDumV = newDumV,
