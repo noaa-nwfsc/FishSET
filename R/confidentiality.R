@@ -259,46 +259,54 @@ check_confidentiality <- function(dataset, project, v_id, value_var, group = NUL
   #'   variables listed in \code{names_to}.
   #' @keywords internal
   #' @importFrom tidyr pivot_longer
-  #' @importFrom dplyr distinct
-  #' @importFrom tibble as_tibble
+  #' @importFrom dplyr distinct n_distinct
   #'
   
   # stack value vars and filter for non-zero values
-  if (length(value_var) > 1) {
+  if (!is.null(value_var)) {
     
-    dataset <- tidyr::pivot_longer(dataset, cols = !!value_var, 
-                                   names_to = names_to, values_to = values_to)
-    value_var <- values_to
-    group <- c(group, names_to)
-    include_val <- FALSE
-    
-  } else include_val <- TRUE
-  
-  dataset <- dataset[dataset[[value_var]] > 0, ]
+    if (length(value_var) > 1) {
+      
+      dataset <- tidyr::pivot_longer(dataset, cols = !!value_var, 
+                                     names_to = names_to, values_to = values_to)
+      value_var <- values_to
+      group <- c(group, names_to)
+      include_val <- FALSE
+      
+    } else include_val <- TRUE
+  } else include_val <- FALSE
   
   if (rule == "n") {
     
     if (value < 2) value <- 2 
     
-    check <- agg_helper(dataset, v_id, group, fun = function(x) length(unique(x)))
+    check <- agg_helper(dataset, value = v_id, group = group, count = FALSE,
+                        fun = function(x) dplyr::n_distinct(x, na.rm = TRUE))
     
     # filter for obs below threshold
-    ind <- check[[v_id]] < value
+    ind <- check[[v_id]] > 0 & check[[v_id]] < value 
     
   } else if (rule == "k") {
     
-    check <- agg_helper(dataset, value_var, group = c(v_id, group), fun = sum)
+    if (is.null(value_var)) {
+      
+      stop("Value variable required for majority allocation rule (n/k rule).",
+           call. = FALSE)
+    }
     
-    check <- perc_of_total(check, value_var = value_var, group = group)
+    check <- agg_helper(dataset, value = value_var, group = c(v_id, group),
+                        fun = "percent", count = FALSE, within_group = group)
+    
+    # check <- agg_helper(dataset, value_var, group = c(v_id, group), fun = sum)
+    # check <- perc_of_total(check, value_var = value_var, group = group)
     
     val_perc <- paste0(value_var, "_perc")
-    
+    # suppression index
     ind <- check[[val_perc]] >= value
   }
   
-  supr_vals <- sum(ind) > 0
-  
-  if (supr_vals) {
+  # suppress 
+  if (any(ind)) {
     
     if (is.null(group)) group <- v_id
     
@@ -308,18 +316,18 @@ check_confidentiality <- function(dataset, project, v_id, value_var, group = NUL
       group <- c(group, "value_var")
     }
     
-    check <- tibble::as_tibble(check)
+    # check <- tibble::as_tibble(check)
     
     check <- check[ind, group]
     
     check <- dplyr::distinct(check)
     
     cache_check_table(check, project)
-    warning("Confidential data detected.")
+    warning("Confidential data detected.", call. = FALSE)
   }
   
-  list(table = if (supr_vals) check else NULL,
-       suppress = supr_vals) 
+  list(table = if (any(ind)) check else NULL,
+       suppress = if (any(ind)) ind else FALSE) 
 }
 
 
@@ -347,6 +355,7 @@ suppress_table <- function(check, output, value_var, group, rule, type = "code",
   #'   If \code{as_vector == FALSE} the output table is returned. 
   #' @keywords internal
   #' @importFrom rlang parse_exprs
+  #' @importFrom tibble is_tibble as_tibble
   
   # convert check table to expression list
   #group <- names(output)[names(output) != value_var]
@@ -395,6 +404,8 @@ suppress_table <- function(check, output, value_var, group, rule, type = "code",
   
   supr_code <- switch(type, "NA" = NA, "code" = -999, "zero" = 0)
   
+  if (!tibble::is_tibble(output)) output <- tibble::as_tibble(output)
+  
   output[check_ind, value_var] <- supr_code
   
   if (as_vector) output[[value_var]]
@@ -437,7 +448,7 @@ check_and_suppress <- function(dat, output, project, v_id, value_var, group = NU
     check_confidentiality(dat, project, v_id, value_var, group, rule, value, 
                           names_to, values_to)
   
-  if (check$suppress) {
+  if (any(check$suppress)) {
     
     if (!is.null(output)) {
       
@@ -463,6 +474,7 @@ window_cc <- function(x, k) {
   #' @param x List of vessel IDs to count
   #' @param k Window width.
   #' @keywords internal
+  #' @importFrom dplyr n_distinct
   #' @seealso \code{\link{roll_catch}} \code{\link{roll_cc}}
   
   vec_out <- numeric(length(x) - k)
@@ -471,7 +483,7 @@ window_cc <- function(x, k) {
   
   for (i in 1:(length(x) - k + 1)) {
     
-    vec_out[i] <- length(unique(unlist(x[i:(i + (k - 1))])))
+    vec_out[i] <- dplyr::n_distinct(unlist(x[i:(i + (k - 1))]))
   }
   
   vec_out
@@ -557,19 +569,13 @@ check_conf_rc <- function(dat, roll_tab, project, catch, date, group, k, full_da
   } else include_val <- TRUE
   
   # remove catch values before nesting 
-  if (length(catch) == 1) {
-    
-    dat[[catch]] <- NULL
-    
-  } else {
-    
-    dat$catch <- NULL
-  }
+  if (length(catch) == 1) dat[[catch]] <- NULL
+  else dat$catch <- NULL
   
   # nested df with v_id list for each date
   dat_nest <- 
     dat %>% 
-    dplyr::group_by(dplyr::across(c(date, group))) %>% 
+    dplyr::group_by(dplyr::across(dplyr::all_of(c(date, group)))) %>% 
     tidyr::nest(v_id = cc_par$v_id) %>% 
     dplyr::arrange(dplyr::across(date))
   
