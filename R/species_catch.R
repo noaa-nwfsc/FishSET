@@ -107,22 +107,21 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
-  end <- FALSE 
-  
-  not_num <- vapply(dataset[species], function(x) !is.numeric(x), logical(1))
-  
-  if (any(not_num)) {
-    
-    warning("'species' must be numeric.")
-    end <- TRUE
-  }
-  
-  if (!is.null(period)) if (period == "no_period") period <- NULL
+  if (!is.null(period)) if (period == "no_period") period <- NULL # for shiny app
 
-  group_date <- group[group %in% c("year", "month", "week")]
-  facet_date <- facet_by[facet_by %in% c("year", "month", "week")]
-  facet_no_date <- facet_by[!(facet_by %in% c("year", "month", "week"))]
-  group_no_date <- group[!(group %in% c("year", "month", "week"))]
+  pers <- c("year", "month", "week")
+  group_date <- group[group %in% pers]
+  facet_date <- facet_by[facet_by %in% pers]
+  facet_no_date <- facet_by[!facet_by %in% pers]
+  group_no_date <- group[!group %in% pers]
+  facet_check <- facet_no_date[!facet_no_date %in% "species"]
+  
+  column_check(dataset, cols = c(species, date, group_no_date, sub_date, 
+                                 filter_by, facet_check))
+  
+  num <- qaqc_helper(dataset[species], is.numeric)
+  
+  if (!all(num)) stop("Argument 'species' must be numeric.", call. = FALSE)
   
   # date ----
   # convert date and/or sub_date to date class
@@ -134,556 +133,483 @@ species_catch <- function(dat, project, species, date = NULL, period = NULL, fun
   
   # sub_date ----
   # check if sub_date is needed
-  if (!is.null(filter_date)) {
-    if (is.null(sub_date)) {
-      if (!is.null(date)) {
-        sub_date <- date
-      } else {
-        warning("Argument 'sub_date' required when subsetting by date.")
-        end <- TRUE
-      }
-    }
-  }
-  
-  if (!is.null(facet_by)) {
-    if (any(facet_by %in% c("year", "month", "week"))) {
-      if (is.null(sub_date)) {
-        if (!is.null(date)) {
-          sub_date <- date
-        } else {
-          warning("Spliting by a function-created date variable ('year', ",
-                  "'month', or 'week') requires a date variable.")
-          end <- TRUE
-        }
-      }
-    } 
-  }
-  
-  if (!is.null(group)) {
-    if (any(group %in% c("year", "month", "week"))) {
-      if (is.null(sub_date)) {
-        if (!is.null(date)) {
-          sub_date <- date
-        } else {
-          warning("Grouping by a function-created date variable ('year', ",
-                  "'month', or 'week') requires a date variable.")
-          end <- TRUE
-        }
-      }
-    } 
-  }
+  sub_date <- sub_date_check(sub_date, date, filter_date, group, facet_by)
   
   # filter date ----
   if (!is.null(filter_date)) {
     
     if (is.null(date_value)) {
       
-      warning("'date_value' must be provided.")
-      end <- TRUE
+      stop("'date_value' must be provided.", call. = FALSE)
     }
     
     dataset <- subset_date(dataset, sub_date, filter_date, date_value)
-    
-    if (nrow(dataset) == 0) {
-      
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      end <- TRUE
-    }
   }
   
   # filter by variable ----
   if (!is.null(filter_by) | !is.null(filter_expr)) {
     
     dataset <- subset_var(dataset, filter_by, filter_value, filter_expr)
-    
-    if (nrow(dataset) == 0) {
-      
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      end <- TRUE
-    }
   }
+  
+  # add missing ----
+  if ("species" %in% facet_by) {
+    
+    facet <- facet_no_date[facet_no_date != "species"]
+    
+    if (length(facet) == 0) facet <- NULL
+    
+  } else facet <- facet_no_date
+  
+  dataset <- expand_data(dataset, project, date = date, value = species, 
+                               period = period, group = group_no_date, 
+                               facet_by = facet, fun = "sum")
   
   # period ----
+  p_code <- period_check(period, date)
+  
+  if (!is.null(period)) {
+    if (period != "cal_date") dataset[[period]] <- format(dataset[[date]], p_code)
+  }
+  
+  # facet/group date ----
+  if (!is.null(facet_date) | !is.null(group_date)) {
+    
+    dataset <- facet_period(dataset, facet_date = unique(c(facet_date, group_date)),
+                            date = sub_date, period = period)
+  }
+  
+  # group ----
+  if (!is.null(group)) {
+    
+    if (combine == TRUE & length(group) > 1) { 
+      
+      dataset <- ID_var(dataset, project = project, vars = group, type = "string",
+                        log_fun = FALSE)
+      group <- gsub(" ", "", paste(group, collapse = "_"))
+      group1 <- group
+      group2 <- NULL
+      
+    } else group1 <- group[1]
+    
+    if (length(group) == 1) group2 <- NULL else group2 <- group[2]
+    
+    if (length(group) > 2) {
+      
+      warning("Only the first two grouping variables will be displayed in plot.")
+    }
+  }
+   
+  # summary table ----
+  agg_grp <- c(group, facet, facet_date)
+
   if (!is.null(period)) {
     
-    if (is.null(date)) warning("Please enter a date variable.")
+    if (period == "cal_date") period <- date
+  }
+  
+  table_out <- agg_helper(dataset, value = species, period = period, 
+                           group = agg_grp, fun = fun, count = FALSE)
+  
+  # melt table if multiple species columns entered (for ggplot)
+  if (length(species) > 1) { 
     
-    periods <- c("year_month", "month_year", "year", "month", "week", 
-                 "weekday", "day_of_month", "day_of_year", "cal_date")
+    table_out <- tidyr::pivot_longer(table_out, cols = !!species, 
+                                     names_to = "species", values_to = "catch")
+  }
+  
+  f_catch <- function() if (length(species) == 1) species else "catch"
+  
+  # create ordered factor for plots
+  if (!is.null(group)) table_out[group] <- lapply(table_out[group], as.factor)
+  rev <- position == "dodge"
+  
+  if (length(species) > 1) {
     
-    if (period %in% periods == FALSE) {
+    table_out <- order_factor(table_out, "species", "catch", rev = rev)
+  
+  } else {
+    
+    if (!is.null(group)) {
       
-      warning("Invalid period. Please select a valid period name (see documentation for details).")
-      end <- TRUE
-      
-    } else {
-      
-      p_code <- switch(period, year_month = "%Y-%m", month_year = "%Y-%m", year = "%Y",
-                       month = "%b", week = "%U", weekday = "%a", day_of_month = "%d",
-                       day_of_year = "%j", cal_date = NULL)
+      table_out <- order_factor(table_out, group1, species, rev = rev)
     }
   }
   
-  if (end == FALSE) {
-    # add missing ----
-    if ("species" %in% facet_by) {
-      
-      facet <- facet_no_date[facet_no_date != "species"]
-      
-      if (length(facet) == 0) facet <- NULL
-      
-    } else facet <- facet_no_date
-    
-    dataset <- add_missing_dates(dataset, project, date = date, sub_date = sub_date, 
-                                 value = species, group = group_no_date, 
-                                 facet_by = facet)
-    
-    if (!is.null(period)) {
-      if (period != "cal_date") dataset[[period]] <- format(dataset[[date]], p_code)
-    }
-    
-    # facet/group date ----
-    if (!is.null(facet_date) | !is.null(group_date)) {
-      
-      dataset <- facet_period(dataset, facet_date = unique(c(facet_date, group_date)),
-                              date = sub_date, period = period)
-    }
-    
-    # group ----
-    if (!is.null(group)) {
-      
-      if (combine == TRUE & length(group) > 1) { 
+  if (!is.null(period)) {
+    if (!is.null(p_code)) {# if period != "cal_date"
+      # convert period to ordered factor/integer
+      if (p_code %in% c("%Y-%m", "%a", "%b")) {
         
-        dataset <- ID_var(dataset, project = project, vars = group, type = "string",
-                          log_fun = FALSE)
-        group <- gsub(" ", "", paste(group, collapse = "_"))
-        group1 <- group
-        group2 <- NULL
+        table_out <- date_factorize(table_out, period, p_code)
         
-      } else group1 <- group[1]
-      
-      if (length(group) == 1) group2 <- NULL else group2 <- group[2]
-      
-      if (length(group) > 2) {
-        
-        warning("Only the first two grouping variables will be displayed in plot.")
-      }
-    }
-     
-    # summary table ----
-    agg_grp <- c(group, facet, facet_date)
-
-    if (!is.null(period)) {
-      
-      if (period == "cal_date") period <- date
+      } else table_out[[period]] <- as.integer(table_out[[period]])
     }
     
-    table_out <- agg_helper(dataset, value = species, period = period, 
-                            group = agg_grp, fun = fun)
+    table_out <- table_out[order(table_out[[period]]), ]
+  }
+  
+  # convert catch to tons, MT, or custom
+  if (conv != "none") {
     
-    # melt table if multiple species columns entered (for ggplot)
-    if (length(species) > 1) { 
+    if (conv == "tons") {
       
-      table_out <- tidyr::pivot_longer(table_out, cols = !!species, 
-                                       names_to = "species", values_to = "catch")
+      table_out[f_catch()] <- table_out[f_catch()]/2000
+      
+    } else if (conv == "metric_tons") {
+      
+      table_out[f_catch()] <- table_out[f_catch()]/2204.62
+      
+    } else if (is.function(conv)) {
+      
+      table_out[f_catch()] <- do.call(conv, list(table_out[f_catch()]))
     }
+  }
+  
+  if (value == "percent") {
     
-    f_catch <- function() if (length(species) == 1) species else "catch"
+    if (fun == "sum") {
     
-    
-    # create ordered factor for plots
-    if (!is.null(group)) table_out[group] <- lapply(table_out[group], as.factor)
-    rev <- ifelse(position == "dodge", TRUE, FALSE)
-    
-    if (length(species) > 1) {
-      
-      table_out <- order_factor(table_out, "species", "catch", rev = rev)
+      table_out[f_catch()] <- 
+        (table_out[f_catch()]/sum(table_out[f_catch()])) * 100
     
     } else {
       
-      if (!is.null(group)) {
+      warning("Cannot convert to percentage. Change 'fun' argument to 'sum'.")
+    }
+  } 
+  
+  # confidentiality checks ----
+  if (run_confid_check(project)) {
+    
+    cc_par <- get_confid_check(project)
+    
+    check_out <- 
+      check_confidentiality(dataset = dataset, project, cc_par$v_id, value_var = species, 
+                            rule = cc_par$rule, group = c(period, agg_grp), 
+                            value = cc_par$value, names_to = "species", 
+                            values_to = "catch")
+ 
+    if (any(check_out$suppress)) {
+
+      table_out_c <- suppress_table(check_out$table, table_out, value_var = f_catch(),
+                                  group = c(period, agg_grp), rule = cc_par$rule,
+                                  type = "code")
+      save_table(table_out_c, project, "species_catch_confid")
+    }
+  }
+  
+  if (output %in% c("plot", "tab_plot")) {
+    
+    # plot functions ----
+    
+    catch_sym <- rlang::sym(f_catch())
+    
+    catch_exp <- function() {
+     
+      if (tran == "sqrt") rlang::expr(sqrt(!!catch_sym))
+      else catch_sym
+    }
+    
+    xaxis_exp <- function() {
+      
+      if (!is.null(period)) rlang::sym(period)
+      else { 
         
-        table_out <- order_factor(table_out, group1, species, rev = rev)
+        if (!is.null(group)) rlang::sym(group1) 
+        else {
+          
+          if (length(species) == 1) species
+          else if (length(species) > 1) rlang::sym("species")
+        }
+      }
+    }
+    
+    if (!is.null(period)) {
+      
+      interaction_exp <- function() {
+        
+        if (length(species) == 1) {
+          if (is.null(group)) 1
+          else {
+            
+            if (length(group) == 1) rlang::sym(group1)
+            else if (length(group) > 1) {
+              rlang::expr(interaction(!!rlang::sym(group1), !!rlang::sym(group2)))
+            }
+          }
+          
+        } else if (length(species) > 1) {
+          if (is.null(group)) rlang::expr(species)
+          
+          else if (length(group) == 1) {
+            rlang::expr(interaction(species, !!rlang::sym(group1)))
+            
+          } else if (length(group) > 1) {
+            rlang::expr(interaction(species, !!rlang::sym(group1), !!rlang::sym(group2)))
+          }
+        }
+      }
+      
+      color_exp <- function() {
+        
+        if (length(species) == 1) {
+          
+          if (is.null(group)) NULL
+          else rlang::sym(group1)
+          
+        } else if (length(species) > 1) rlang::sym("species")
+      }
+      
+      linetype_exp <- function() {
+        
+        if (length(species) == 1) {
+          if (is.null(group) | length(group) == 1) NULL
+          else rlang::sym(group2)
+        
+        } else if (length(species) > 1) {
+          if (is.null(group)) NULL 
+          else rlang::sym(group1) 
+        }
+      }
+      
+    } else {
+      # aggregating by group only (no dates)
+      
+      interaction_exp <- function() {
+        
+        if (length(species) == 1) {
+          
+          if (is.null(group)) NULL
+          else if (length(group) == 1) 1
+          else if (length(group) > 1) rlang::sym(group2)
+        
+        } else if (length(species) > 1) {
+          
+          if (is.null(group) | length(group) == 1) rlang::sym("species")
+          
+          else if (length(group) > 1) {
+            
+            rlang::expr(interaction(species, !!rlang::sym(group2)))
+          }
+        }
+      }
+      
+      color_exp <- function() {
+        
+        if (length(species) == 1) {
+          
+          if (is.null(group) | length(group) == 1)  NULL
+          else if (length(group) > 1) rlang::sym(group2)
+    
+        } else if (length(species) > 1) rlang::sym("species")
+      }
+      
+      linetype_exp <- function() {
+        
+        if (length(species) > 1 & length(group) > 1) rlang::sym(group2) 
+        else NULL
+      }
+      
+    }  
+    
+    x_lab <- function() {
+      
+      if (!is.null(period)) {
+        
+        p_lab <- switch(period, "year_month" = "year-month", "month_year" = "month-year",
+                        "year" = "year", "month" = "month", "week" = "week", 
+                        "day_of_month" = "day of the month", 
+                        "day_of_year" = "day of the year")
+        
+        if (period != date) paste0(date, " (", p_lab, ")")
+        else date
+        
+      } else if (is.null(group) & length(species) == 1) NULL
+      else rlang::as_string(xaxis_exp())
+    }  
+    
+    y_lab <- function() {
+      
+      f_conv <- function() {
+        
+        if (conv != "none") {
+          
+          c_lab <- switch(conv, "tons" = "T", "metric_tons" = "MT", "")
+          
+          paste0("(", c_lab, ")")
+          
+        } else NULL
+      } 
+      
+      f_tran <- if (tran != "identity") paste(tran, "scale") else NULL
+      
+      paste(fun, f_catch(), f_conv(), f_tran)
+    }
+    
+    y_breaks <- function() {
+      if (tran != "identity") {
+        
+        brk_num <- nchar(trunc(max(dataset[[f_catch()]], na.rm = TRUE)))
+        brk_num <- ifelse(length(brk_num) < 5, 5, brk_num)
+        
+        if (tran %in% c("log", "log2", "log10")) {
+          
+          y_base <- switch(tran, "log" = exp(1), "log2" = 2, "log10" = 10)
+          
+          scales::log_breaks(n = brk_num, base = y_base)
+          
+        } else {
+          
+          scales::breaks_extended(n = brk_num + 2)
+        }
+        
+      } else ggplot2::waiver()
+    }
+    
+    f_label <- function() {
+      if (format_lab == "decimal") scales::label_number(big.mark = ",")
+      else scales::label_scientific()
+    }
+    
+    y_labeller <- function() { 
+      
+      if (value == "percent") {
+        
+        if (tran == "sqrt") function(x) paste0(x^2, "%")
+        else scales::label_percent(scale = 1) 
+        
+      } else {
+        
+        if (tran == "sqrt") {
+          
+          function(x) format(x^2, scientific = format_lab == "scientific")
+          
+        } else f_label()
+      }
+    }
+    
+    f_tran <- function() {
+      
+      if (tran == "sqrt") "identity"
+      else tran
+    }
+    
+    # plot ----
+    s_plot <- ggplot2::ggplot(data = table_out, 
+                              ggplot2::aes(x = !!xaxis_exp(),
+                                           y = !!catch_exp())) +
+      fishset_theme() +
+      ggplot2::theme(legend.position = "bottom") +
+      ggplot2::scale_y_continuous(labels = y_labeller(),
+                                  trans = f_tran(),
+                                  breaks = y_breaks())
+    
+    if (type == "bar") {
+      
+      if (position == "dodge") position <- ggplot2::position_dodge2(preserve = "single")
+      
+      s_plot <- s_plot + ggplot2::geom_col(ggplot2::aes(fill = !!color_exp()), 
+                                           position = position)
+      
+      position <- ifelse(class(position)[1] == "PositionDodge2", "dodge", position)
+      
+    } else if (type == "line") {
+      
+      s_plot <- s_plot + ggplot2::geom_line(ggplot2::aes(group = !!interaction_exp(), 
+                                                         color = !!color_exp(), 
+                                                         linetype = !!linetype_exp())) +
+        ggplot2::geom_point(ggplot2::aes(group = !!interaction_exp(), 
+                                         color = !!color_exp()), 
+                            size = 1)
+    }
+    
+    if (!is.null(facet_by)) {
+      
+      if (length(facet_by) == 1) fm <- stats::reformulate(".", facet_by)
+        
+      else if (length(facet_by) == 2) fm <- paste(facet_by, sep = " ~ ")
+    
+      if (is.null(period)) {
+        s_plot <- s_plot + ggplot2::facet_wrap(fm, scales = scale)
+      } else {
+        s_plot <- s_plot + ggplot2::facet_grid(fm, scales = scale)
       }
     }
     
     if (!is.null(period)) {
       if (!is.null(p_code)) {# if period != "cal_date"
-        # convert period to ordered factor/integer
-        if (p_code %in% c("%Y-%m", "%a", "%b")) {
+        if (!(p_code %in% c("%a", "%b", "%Y-%m"))) {
           
-          table_out <- date_factorize(table_out, period, p_code)
+          s_plot <- 
+            s_plot + ggplot2::scale_x_continuous(breaks = num_breaks(table_out[[period]]))
+        
+          } else if (period == "month_year") {
           
-        } else table_out[[period]] <- as.integer(table_out[[period]])
-      }
-      
-      table_out <- table_out[order(table_out[[period]]), ]
-    }
-    
-    if (conv != "none") {
-      
-      if (conv == "tons") {
-        
-        table_out[f_catch()] <- table_out[f_catch()]/2000
-        
-      } else if (conv == "metric_tons") {
-        
-        table_out[f_catch()] <- table_out[f_catch()]/2204.62
-        
-      } else if (is.function(conv)) {
-        
-        table_out[f_catch()] <- do.call(conv, list(table_out[f_catch()]))
+          d_labs <- levels(table_out$month_year)
+          d_labs <- format(as.Date(paste0(d_labs, "-01")), "%b %y")
+          s_plot <- s_plot + ggplot2::scale_x_discrete(labels = d_labs)
+        }
       }
     }
     
-    if (value == "percent") {
+    # remove legend if
+    if (is.null(period) & is.null(group) & length(species) > 1) {
       
-      if (fun == "sum") {
-      
-        table_out[f_catch()] <- 
-          (table_out[f_catch()]/sum(table_out[f_catch()])) * 100
-      
-      } else {
-        
-        warning("Cannot convert to percentage. Change 'fun' argument to 'sum'.")
-      }
-    } 
+      s_plot <- s_plot + ggplot2::theme(legend.position = "none")
+    }
     
-    # confidentiality checks ----
+    # add labels
+    s_plot <- s_plot  + ggplot2::labs(x = x_lab(), y = y_lab())
+    
+    # save plots
+    save_plot(project, "species_catch")
+    
     if (run_confid_check(project)) {
       
-      cc_par <- get_confid_check(project)
-      
-      check_table <- 
-        check_confidentiality(dataset = dataset, project, cc_par$v_id, value_var = species, 
-                              rule = cc_par$rule, group = c(period, agg_grp), 
-                              value = cc_par$value, names_to = "species", 
-                              values_to = "catch")
-      
-      if (check_table$suppress) {
+      if (any(check_out$suppress)) {
         
-        check_out <- suppress_table(check_table$table, table_out, value_var = f_catch(), 
-                                    group = c(period, agg_grp), rule = cc_par$rule,
-                                    type = "code")
-        save_table(check_out, project, "species_catch_confid")
+        s_plot_c <- s_plot
+        s_plot_c$data <- replace_sup_code(table_out_c)
+        save_plot(project, "species_catch_confid", plot = s_plot_c)
       }
     }
-    
-    if (output %in% c("plot", "tab_plot")) {
-      
-      # plot functions ----
-      
-      catch_sym <- rlang::sym(f_catch())
-      
-      catch_exp <- function() {
-       
-        if (tran == "sqrt") rlang::expr(sqrt(!!catch_sym))
-        else catch_sym
-      }
-      
-      xaxis_exp <- function() {
-        
-        if (!is.null(period)) rlang::sym(period)
-        else { 
-          
-          if (!is.null(group)) rlang::sym(group1) 
-          else {
-            
-            if (length(species) == 1) species
-            else if (length(species) > 1) rlang::sym("species")
-          }
-        }
-      }
-      
-      if (!is.null(period)) {
-        
-        interaction_exp <- function() {
-          
-          if (length(species) == 1) {
-            if (is.null(group)) 1
-            else {
-              
-              if (length(group) == 1) rlang::sym(group1)
-              else if (length(group) > 1) {
-                rlang::expr(interaction(!!rlang::sym(group1), !!rlang::sym(group2)))
-              }
-            }
-            
-          } else if (length(species) > 1) {
-            if (is.null(group)) rlang::expr(species)
-            
-            else if (length(group) == 1) {
-              rlang::expr(interaction(species, !!rlang::sym(group1)))
-              
-            } else if (length(group) > 1) {
-              rlang::expr(interaction(species, !!rlang::sym(group1), !!rlang::sym(group2)))
-            }
-          }
-        }
-        
-        color_exp <- function() {
-          
-          if (length(species) == 1) {
-            
-            if (is.null(group)) NULL
-            else rlang::sym(group1)
-            
-          } else if (length(species) > 1) rlang::sym("species")
-        }
-        
-        linetype_exp <- function() {
-          
-          if (length(species) == 1) {
-            if (is.null(group) | length(group) == 1) NULL
-            else rlang::sym(group2)
-          
-          } else if (length(species) > 1) {
-            if (is.null(group)) NULL 
-            else rlang::sym(group1) 
-          }
-        }
-        
-      } else {
-        # aggregating by group only (no dates)
-        
-        interaction_exp <- function() {
-          
-          if (length(species) == 1) {
-            
-            if (is.null(group)) NULL
-            else if (length(group) == 1) 1
-            else if (length(group) > 1) rlang::sym(group2)
-          
-          } else if (length(species) > 1) {
-            
-            if (is.null(group) | length(group) == 1) rlang::sym("species")
-            
-            else if (length(group) > 1) {
-              
-              rlang::expr(interaction(species, !!rlang::sym(group2)))
-            }
-          }
-        }
-        
-        color_exp <- function() {
-          
-          if (length(species) == 1) {
-            
-            if (is.null(group) | length(group) == 1)  NULL
-            else if (length(group) > 1) rlang::sym(group2)
-      
-          } else if (length(species) > 1) rlang::sym("species")
-        }
-        
-        linetype_exp <- function() {
-          
-          if (length(species) > 1 & length(group) > 1) rlang::sym(group2) 
-          else NULL
-        }
-        
-      }  
-      
-      x_lab <- function() {
-        
-        if (!is.null(period)) {
-          
-          p_lab <- switch(period, "year_month" = "year-month", "month_year" = "month-year",
-                          "year" = "year", "month" = "month", "week" = "week", 
-                          "day_of_month" = "day of the month", 
-                          "day_of_year" = "day of the year")
-          
-          if (period != date) paste0(date, " (", p_lab, ")")
-          else date
-          
-        } else if (is.null(group) & length(species) == 1) NULL
-        else rlang::as_string(xaxis_exp())
-      }  
-      
-      y_lab <- function() {
-        
-        f_conv <- function() {
-          
-          if (conv != "none") {
-            
-            c_lab <- switch(conv, "tons" = "T", "metric_tons" = "MT", "")
-            
-            paste0("(", c_lab, ")")
-            
-          } else NULL
-        } 
-        
-        f_tran <- if (tran != "identity") paste(tran, "scale") else NULL
-        
-        paste(fun, f_catch(), f_conv(), f_tran)
-      }
-      
-      y_breaks <- function() {
-        if (tran != "identity") {
-          
-          brk_num <- nchar(trunc(max(dataset[[f_catch()]], na.rm = TRUE)))
-          brk_num <- ifelse(length(brk_num) < 5, 5, brk_num)
-          
-          if (tran %in% c("log", "log2", "log10")) {
-            
-            y_base <- switch(tran, "log" = exp(1), "log2" = 2, "log10" = 10)
-            
-            scales::log_breaks(n = brk_num, base = y_base)
-            
-          } else {
-            
-            scales::breaks_extended(n = brk_num + 2)
-          }
-          
-        } else ggplot2::waiver()
-      }
-      
-      f_label <- function() {
-        if (format_lab == "decimal") scales::label_number(big.mark = ",")
-        else scales::label_scientific()
-      }
-      
-      y_labeller <- function() { 
-        
-        if (value == "percent") {
-          
-          if (tran == "sqrt") function(x) paste0(x^2, "%")
-          else scales::label_percent(scale = 1) 
-          
-        } else {
-          
-          if (tran == "sqrt") {
-            
-            function(x) format(x^2, scientific = format_lab == "scientific")
-            
-          } else f_label()
-        }
-      }
-      
-      f_tran <- function() {
-        
-        if (tran == "sqrt") "identity"
-        else tran
-      }
-      
-      # plot ----
-      s_plot <- ggplot2::ggplot(data = table_out, 
-                                ggplot2::aes(x = !!xaxis_exp(),
-                                             y = !!catch_exp())) +
-        fishset_theme() +
-        ggplot2::theme(legend.position = "bottom") +
-        ggplot2::scale_y_continuous(labels = y_labeller(),
-                                    trans = f_tran(),
-                                    breaks = y_breaks())
-      
-      if (type == "bar") {
-        
-        if (position == "dodge") position <- ggplot2::position_dodge2(preserve = "single")
-        
-        s_plot <- s_plot + ggplot2::geom_col(ggplot2::aes(fill = !!color_exp()), 
-                                             position = position)
-        
-        position <- ifelse(class(position)[1] == "PositionDodge2", "dodge", position)
-        
-      } else if (type == "line") {
-        
-        s_plot <- s_plot + ggplot2::geom_line(ggplot2::aes(group = !!interaction_exp(), 
-                                                           color = !!color_exp(), 
-                                                           linetype = !!linetype_exp())) +
-          ggplot2::geom_point(ggplot2::aes(group = !!interaction_exp(), 
-                                           color = !!color_exp()), 
-                              size = 1)
-      }
-      
-      if (!is.null(facet_by)) {
-        
-        if (length(facet_by) == 1) fm <- stats::reformulate(".", facet_by)
-          
-        else if (length(facet_by) == 2) fm <- paste(facet_by, sep = " ~ ")
-      
-        if (is.null(period)) {
-          s_plot <- s_plot + ggplot2::facet_wrap(fm, scales = scale)
-        } else {
-          s_plot <- s_plot + ggplot2::facet_grid(fm, scales = scale)
-        }
-      }
-      
-      if (!is.null(period)) {
-        if (!is.null(p_code)) {# if period != "cal_date"
-          if (!(p_code %in% c("%a", "%b", "%Y-%m"))) {
-            
-            s_plot <- 
-              s_plot + ggplot2::scale_x_continuous(breaks = num_breaks(table_out[[period]]))
-          
-            } else if (period == "month_year") {
-            
-            d_labs <- levels(table_out$month_year)
-            d_labs <- format(as.Date(paste0(d_labs, "-01")), "%b %y")
-            s_plot <- s_plot + ggplot2::scale_x_discrete(labels = d_labs)
-          }
-        }
-      }
-      
-      # remove legend if
-      if (is.null(period) & is.null(group) & length(species) > 1) {
-        
-        s_plot <- s_plot + ggplot2::theme(legend.position = "none")
-      }
-      
-      # add labels
-      s_plot <- s_plot  + ggplot2::labs(x = x_lab(), y = y_lab())
-      
-      # save plots
-      save_plot(project, "species_catch")
-      
-      if (run_confid_check(project)) {
-        
-        if (check_table$suppress) {
-          
-          conf_plot <- s_plot
-          conf_plot$data <- replace_sup_code(check_out)
-          save_plot(project, "species_catch_confid", plot = conf_plot)
-        }
-      }
-     
-    }
-    
-    if (!is.null(period)) {
-      if (period == "month_year") {
-        table_out$month_year <- format(as.Date(paste0(table_out$month_year, "-01")), "%b %y")
-      }
-    }
-    
-    # Log function ----
-    species_catch_function <- list()
-    species_catch_function$functionID <- "species_catch"
-    species_catch_function$args <- list(dat, project, species, date, period, fun, group, 
-                                        sub_date, filter_date, date_value, filter_by, 
-                                        filter_value, filter_expr, facet_by, type, 
-                                        conv, tran, format_lab, value, position, 
-                                        combine, scale, output, format_tab)
-    log_call(project, species_catch_function)
-    
-    if (format_tab == "wide") {
-      
-      if (length(species) > 1) {
-        
-        table_out <- tidyr::pivot_wider(table_out, names_from = "species", 
-                                        values_from = "catch")
-      }
-    }
-    
-    save_table(table_out, project, "species_catch")
-    
-    # output ----
-    if (output == "table") table_out
-      
-    else if (output == "plot") s_plot
-      
-    else if (output == "tab_plot") {
-      
-      out_list <- list(table = table_out,
-                       plot = s_plot)
-      out_list
-    } 
+   
   }
+  
+  if (!is.null(period)) {
+    if (period == "month_year") {
+      table_out$month_year <- format(as.Date(paste0(table_out$month_year, "-01")), "%b %y")
+    }
+  }
+  
+  # Log function ----
+  species_catch_function <- list()
+  species_catch_function$functionID <- "species_catch"
+  species_catch_function$args <- list(dat, project, species, date, period, fun, group, 
+                                      sub_date, filter_date, date_value, filter_by, 
+                                      filter_value, filter_expr, facet_by, type, 
+                                      conv, tran, format_lab, value, position, 
+                                      combine, scale, output, format_tab)
+  log_call(project, species_catch_function)
+  
+  if (format_tab == "wide") {
+    
+    if (length(species) > 1) {
+      
+      table_out <- tidyr::pivot_wider(table_out, names_from = "species", 
+                                      values_from = "catch")
+    }
+  }
+  
+  save_table(table_out, project, "species_catch")
+  
+  # output ----
+  if (output == "table") table_out
+  else if (output == "plot") s_plot
+  else if (output == "tab_plot") {
+    
+    out_list <- list(table = table_out, plot = s_plot)
+    out_list
+  } 
 }
