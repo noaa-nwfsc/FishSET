@@ -1488,6 +1488,14 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           
         } else {
           
+          if (!isTruthy(input$spatName)) {
+            
+            showNotification("Please enter a name for spatial table.", 
+                             type = 'message', duration = 10)
+          }
+          
+          req(input$spatName)
+          
           if (!is.null(input$spatialdat) | !is.null(input$spatialdatshape)) {
          
             if (input$filefolder == "Upload single file") {
@@ -1505,8 +1513,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                   type='message', duration=10)
                }
                
-#                 
-              
               track_load$spat$file <- input$spatialdatshape[1,4] 
 
              } else {
@@ -1534,26 +1540,27 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                
                return()
              }
-               
-             previouswd <- getwd()
-             uploaddirectory <- dirname(shpdf$datapath[1])
-             setwd(uploaddirectory)
+             # wd should be the folder containing shiny app
+             previous_wd <- getwd()
+             upload_directory <- dirname(shpdf$datapath[1]) # temp folder containing shapefiles
+             setwd(upload_directory)
              
+             # rename files so st_read can load properly
              for (i in 1:nrow(shpdf)) {
-               
+
                file.rename(shpdf$datapath[i], shpdf$name[i])
              }
              
-             setwd(previouswd)
+             setwd(previous_wd)
 
-             spatdat$dataset <- 
-               sf::st_transform(sf::st_read(paste(uploaddirectory, shpdf$name[grep(pattern="*.shp$", shpdf$name)], sep="/")),
-                                                  "+proj=longlat +ellps=WGS84 +datum=WGS84")
+             spatdat$dataset <- sf::st_read(upload_directory, as_tibble = TRUE)
+             spatdat$dataset <- sf::st_transform(spatdat$dataset, crs = 4326) # WGS 84
              track_load$spat$file <- input$spatialdatshape[1,4] 
             
             } else {
               
-               showNotification("Shapefiles require, at a minimum, .shp, .shx, and .dbf files.'", type='message', duration=10)
+               showNotification("Shapefiles require, at a minimum, .shp, .shx, and .dbf files.'", 
+                                type='message', duration=10)
              }
           }
            
