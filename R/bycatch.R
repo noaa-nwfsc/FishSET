@@ -109,20 +109,18 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
 
-  end <- FALSE
+  pers <- c("year", "month", "week")
+  group_date <- group[group %in% pers]
+  facet_date <- facet_by[facet_by %in% pers]
+  facet_no_date <- facet_by[!facet_by %in% pers]
+  group_no_date <- group[!group %in% pers]
   
-  not_num <- vapply(dataset[c(cpue, catch)], function(x) !is.numeric(x), logical(1))
+  column_check(dataset, cols = c(catch, cpue, date, group_no_date, sub_date, 
+                                 filter_by, facet_no_date))
   
-  if (any(not_num)) {
-    
-    warning("'cpue' and 'catch' must be numeric.")
-    end <- TRUE
-  }
+  num <- qaqc_helper(dataset[c(catch, cpue)], is.numeric)
   
-  group_date <- group[group %in% c("year", "month", "week")]
-  facet_date <- facet_by[facet_by %in% c("year", "month", "week")]
-  facet_no_date <- facet_by[!(facet_by %in% c("year", "month", "week"))]
-  group_no_date <- group[!(group %in% c("year", "month", "week"))]
+  if (!all(num)) stop("Arguments 'catch' and 'cpue' must be numeric.", call. = FALSE)
   
   # date ----
   # convert date and/or sub_date to date class
@@ -134,73 +132,23 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
   
   # sub_date ----
   # check if sub_date is needed
-  if (!is.null(filter_date)) {
-    if (is.null(sub_date)) {
-      if (!is.null(date)) {
-        sub_date <- date
-      } else {
-        warning("Argument 'sub_date' required when subsetting by date.")
-        end <- TRUE
-      }
-    }
-  }
-  
-  if (!is.null(facet_by)) {
-    if (any(facet_by %in% c("year", "month", "week"))) {
-      if (is.null(sub_date)) {
-        if (!is.null(date)) {
-          sub_date <- date
-        } else {
-          warning("Spliting by a function-created date variable ('year', ",
-                  "'month', or 'week') requires a date variable.")
-          end <- TRUE
-        }
-      }
-    } 
-  }
-  
-  if (!is.null(group)) {
-    if (any(group %in% c("year", "month", "week"))) {
-      if (is.null(sub_date)) {
-        if (!is.null(date)) {
-          sub_date <- date
-        } else {
-          warning("Grouping by a function-created date variable ('year', ",
-                  "'month', or 'week') requires a date variable.")
-          end <- TRUE
-        }
-      }
-    } 
-  }
+  sub_date <- sub_date_check(sub_date, date, filter_date, group, facet_by)
   
   # filter date ----
   if (!is.null(filter_date)) {
     
     if (is.null(date_value)) {
       
-      warning("'date_value' must be provided.")
-      end <- TRUE
+      stop("'date_value' must be provided.", call. = FALSE)
     }
     
     dataset <- subset_date(dataset, sub_date, filter_date, date_value)
-    
-    if (nrow(dataset) == 0) {
-      
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      end <- TRUE
-    }
   }
   
   # filter by variable ----
   if (!is.null(filter_by) | !is.null(filter_expr)) {
     
     dataset <- subset_var(dataset, filter_by, filter_value, filter_expr)
-    
-    if (nrow(dataset) == 0) {
-      
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      end <- TRUE
-    }
   }
   
   # Names joining table ----
@@ -213,236 +161,205 @@ bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NU
   
   if (period %in% periods == FALSE) {
     
-    warning("Invalid period. Please select a valid period name (see documentation for details).")
-    end <- TRUE
+    stop("Invalid period. Please select a valid period name (see documentation for details).", 
+         call. = FALSE)
   
   } else p_code <- switch(period, year = "%Y", month = "%b", weeks = "%U")
-
-  if (end == FALSE) {  
-    # add missing ----
-    dataset <- add_missing_dates(dataset, project, date = date, sub_date = sub_date, 
-                                 value = c(cpue, catch), group = group_no_date, 
-                                 facet_by = facet_no_date)
-    
-    if (period != "year") {
-      
-      dataset$year <- as.integer(format(dataset[[date]], "%Y"))
-    }
-    
-    dataset[[period]] <- format(dataset[[date]], p_code)
-    
-    # facet date ----
-    
-    # facet/group date ----
-    if (!is.null(facet_date) | !is.null(group_date)) {
-      
-      dataset <- facet_period(dataset, facet_date = unique(c(facet_date, group_date)),
-                              date = sub_date, period = period)
-    }
-    
-    # group ----
-    if (!is.null(group)) {
-      
-      if (combine == TRUE & length(group) > 1) { 
-        
-        dataset <- ID_var(dataset, project,vars = group, type = "string", log_fun = FALSE)
-        group <- gsub(" ", "", paste(group, collapse = "_"))
-        group1 <- group
-        group2 <- NULL
-        
-      } else {
-        
-        dataset[group] <- lapply(dataset[group], as.factor)
-        group1 <- group[1]
-      }
-      
-      if (length(group) == 1) group2 <- NULL else group2 <- group[2]
-      
-      if (length(group) > 2) {
-        
-        warning("Only the first two grouping variables will be displayed in plot.")
-      }
-    }
+ 
+  # add missing ----
+  dataset <- expand_data(dataset, project, date = date, value = c(cpue, catch), 
+                               group = group_no_date, facet_by = facet_no_date, 
+                               fun = "sum")
   
-    # Mean CPUE summary table ----
-    f_cpue <- function() if (length(cpue) > 1) "mean_cpue" else cpue
-    agg_grp <- c("year", group, facet_by, facet_date)
+  if (period != "year") {
     
-    cpue_tab <- agg_helper(dataset, value = cpue, period = period, group = agg_grp, 
-                           fun = mean)
+    dataset$year <- as.integer(format(dataset[[date]], "%Y"))
+  }
+  
+  dataset[[period]] <- format(dataset[[date]], p_code)
+  
+  # facet/group date ----
+  if (!is.null(facet_date) | !is.null(group_date)) {
     
-    if (length(cpue) > 1) {
+    dataset <- facet_period(dataset, facet_date = unique(c(facet_date, group_date)),
+                            date = sub_date, period = period)
+  }
+  
+  # group ----
+  if (!is.null(group)) {
+    
+    if (combine == TRUE & length(group) > 1) { 
       
-      cpue_tab <- tidyr::pivot_longer(cpue_tab, cols = !!cpue, names_to = "species_cpue", 
-                                      values_to = "mean_cpue")
-    }
-    
-    # Total catch/STC table ----
-    catch_tab <- agg_helper(dataset, value = catch, period = period, 
-                            group = agg_grp, fun = sum)
-    
-    if (length(catch) > 1) {
-      
-      catch_tab <- tidyr::pivot_longer(catch_tab, cols = !!catch, 
-                                       names_to = "species_catch", 
-                                       values_to = "catch")
-    }
-    # conversions ---- 
-    f_catch <- function() if (length(catch) > 1) "catch" else catch
-    
-    ## Tons ----
-    if (conv != "none") {
-      
-      if (conv == "tons") {
-        
-        catch_tab[f_catch()] <- catch_tab[f_catch()]/2000
-        cpue_tab[f_cpue()] <- cpue_tab[f_cpue()]/2000
-        
-      } else if (conv == "metric_tons") {
-        
-        catch_tab[f_catch()] <- catch_tab[f_catch()]/2204.62
-        cpue_tab[f_cpue()] <- cpue_tab[f_cpue()]/2204.62
-        
-      } else if (is.function(conv)) {
-        
-        catch_tab[f_catch()] <- do.call(conv, list(catch_tab[f_catch()]))
-        cpue_tab[f_cpue()] <- do.call(conv, list(cpue_tab[f_cpue()]))
-      }
-    }
-    
-    ## STC ----
-    if (value == "stc") {
-      
-      catch_tab <- perc_of_total(catch_tab, value_var = f_catch(), 
-                                 group = NULL, drop = TRUE, val_type = "perc")
-      names(catch_tab)[ncol(catch_tab)] <- "stc"
-    }
-    
-    # Join catch and effort tables ----
-    if (length(catch) == 1) {
-      
-      bycatch <- dplyr::left_join(cpue_tab, catch_tab, by = unique(c(period, agg_grp)))
+      dataset <- ID_var(dataset, project,vars = group, type = "string", log_fun = FALSE)
+      group <- gsub(" ", "", paste(group, collapse = "_"))
+      group1 <- group
+      group2 <- NULL
       
     } else {
       
-      cpue_tab <- dplyr::left_join(cpue_tab, name_tab, by = "species_cpue")
-      bycatch <- dplyr::left_join(cpue_tab, catch_tab, 
-                                  by = unique(c(period, agg_grp, "species_catch")))
+      dataset[group] <- lapply(dataset[group], as.factor)
+      group1 <- group[1]
     }
     
-    if (p_code == "%b") bycatch <- date_factorize(bycatch, period, p_code)
-      
-    else bycatch[[period]] <- as.integer(bycatch[[period]])
+    if (length(group) == 1) group2 <- NULL else group2 <- group[2]
     
-    bycatch <- bycatch[order(bycatch[[period]]), ]
-    
-    f_stc <- function() if (value == "stc") "stc" else NULL
-    
-    # Confidentiality checks ----
-    if (run_confid_check(project)) {
+    if (length(group) > 2) {
       
-      cc_par <- get_confid_check(project)
-      
-      check_catch <- 
-        check_confidentiality(dataset = dataset, project, cc_par$v_id, value_var = catch, 
-                              rule = cc_par$rule, group = c(period, agg_grp), 
-                              value = cc_par$value, names_to = "species_catch", 
-                              values_to = "catch")
-      
-      if (cc_par$rule == "n") {
-        
-        check_cpue <- 
-          check_confidentiality(dataset = dataset, project, cc_par$v_id, value_var = cpue, 
-                                rule = cc_par$rule, group = c(period, agg_grp), 
-                                value = cc_par$value, names_to = "species_cpue", 
-                                values_to = "mean_cpue")
-      
-      } else check_cpue <- list(suppress = FALSE)
-      
-      if (check_catch$suppress | check_cpue$suppress) {
-        
-        check_out <- bycatch
-        
-        if (check_catch$suppress) {
-          
-          check_out <- suppress_table(check_catch$table, check_out, 
-                                      value_var = c(f_catch(), f_stc()),
-                                      group = c(period, agg_grp), rule = cc_par$rule,
-                                      type = "code")
-        }
-        
-        if (check_cpue$suppress) {
-          
-          check_out <- suppress_table(check_cpue$table, check_out, 
-                                      value_var = f_cpue(), type = "code",
-                                      group = c(period, agg_grp), rule = cc_par$rule)
-        }
-        
-        save_table(check_out, project, "bycatch_confid")
-      }
+      warning("Only the first two grouping variables will be displayed in plot.")
     }
-    
-    # plots ----
-    if (output %in% c("tab_plot", "plot")) {
-      
-      by_plot <- bycatch_plot(bycatch, cpue, catch, period, group, facet_by, 
-                              names = name_tab$species, value, scale, conv, tran,
-                              format_lab)
-      
-      f_plot <- function() {
-        if (shiny::isRunning()) by_plot
-        else gridExtra::grid.arrange(by_plot, ncol = 1)
-      }
-      
-      save_plot(project, "bycatch", by_plot)
-      
-      if (run_confid_check(project)) {
-        if (check_catch$suppress | check_cpue$suppress) {
-          
-          check_out <- replace_sup_code(check_out)
-          
-          conf_plot <- 
-            bycatch_plot(check_out, cpue, catch, period, group, facet_by, 
-                         names = name_tab$species, value, scale, conv, tran,
-                         format_lab)
-          
-          save_plot(project, "bycatch_conf", plot = conf_plot)
-        }
-      }
-    }
-    # remove extra cols used for joining 
-    bycatch[c("species_catch", "species_cpue")] <- NULL
-    
-    if (format_tab == "long") {
-     
-      cols <- c("mean_cpue", "catch", f_stc())
+  }
+
+  # Mean CPUE summary table ----
+  f_cpue <- function() if (length(cpue) > 1) "mean_cpue" else cpue
+  agg_grp <- c("year", group, facet_by, facet_date)
   
-      bycatch <- tidyr::pivot_longer(bycatch, cols = !!cols, names_to = "measure", 
-                                     values_to = "value")
+  cpue_tab <- agg_helper(dataset, value = cpue, period = period, group = agg_grp, 
+                         fun = mean, count = FALSE)
+  
+  if (length(cpue) > 1) {
+    
+    cpue_tab <- tidyr::pivot_longer(cpue_tab, cols = !!cpue, names_to = "species_cpue", 
+                                    values_to = "mean_cpue")
+  }
+  
+  # Total catch/STC table ----
+  catch_tab <- agg_helper(dataset, value = catch, period = period, 
+                          group = agg_grp, fun = sum, count = FALSE)
+  
+  if (length(catch) > 1) {
+    
+    catch_tab <- tidyr::pivot_longer(catch_tab, cols = !!catch, 
+                                     names_to = "species_catch", 
+                                     values_to = "catch")
+  }
+  # conversions ---- 
+  f_catch <- function() if (length(catch) > 1) "catch" else catch
+  
+  ## Tons ----
+  if (conv != "none") {
+    
+    if (conv == "tons") {
+      
+      catch_tab[f_catch()] <- catch_tab[f_catch()]/2000
+      cpue_tab[f_cpue()] <- cpue_tab[f_cpue()]/2000
+      
+    } else if (conv == "metric_tons") {
+      
+      catch_tab[f_catch()] <- catch_tab[f_catch()]/2204.62
+      cpue_tab[f_cpue()] <- cpue_tab[f_cpue()]/2204.62
+      
+    } else if (is.function(conv)) {
+      
+      catch_tab[f_catch()] <- do.call(conv, list(catch_tab[f_catch()]))
+      cpue_tab[f_cpue()] <- do.call(conv, list(cpue_tab[f_cpue()]))
+    }
+  }
+  
+  ## STC ----
+  if (value == "stc") {
+    
+    catch_tab <- perc_of_total(catch_tab, value_var = f_catch(), 
+                               group = NULL, drop = TRUE, val_type = "perc")
+    names(catch_tab)[ncol(catch_tab)] <- "stc"
+  }
+  
+  # Join catch and effort tables ----
+  if (length(catch) == 1) {
+    
+    bycatch <- dplyr::left_join(cpue_tab, catch_tab, by = unique(c(period, agg_grp)))
+    
+  } else {
+    
+    cpue_tab <- dplyr::left_join(cpue_tab, name_tab, by = "species_cpue")
+    bycatch <- dplyr::left_join(cpue_tab, catch_tab, 
+                                by = unique(c(period, agg_grp, "species_catch")))
+  }
+  
+  if (p_code == "%b") bycatch <- date_factorize(bycatch, period, p_code)
+  else bycatch[[period]] <- as.integer(bycatch[[period]])
+  
+  bycatch <- bycatch[order(bycatch[[period]]), ]
+  
+  f_stc <- function() if (value == "stc") "stc" else NULL
+  
+  # Confidentiality checks ----
+  if (run_confid_check(project)) {
+    
+    cc_par <- get_confid_check(project)
+    
+    check_out <- 
+      check_confidentiality(dataset = dataset, project, cc_par$v_id, value_var = catch, 
+                            rule = cc_par$rule, group = c(period, agg_grp), 
+                            value = cc_par$value, names_to = "species_catch", 
+                            values_to = "catch")
+
+    if (any(check_out$suppress)) {
+    
+        bycatch_c <- suppress_table(check_out$table, bycatch,
+                                    value_var = c(f_catch(), f_stc()),
+                                    group = c(period, agg_grp), rule = cc_par$rule,
+                                    type = "code")
+      save_table(bycatch_c, project, "bycatch_confid")
+    }
+  }
+  
+  # plots ----
+  if (output %in% c("tab_plot", "plot")) {
+    
+    by_plot <- bycatch_plot(bycatch, cpue, catch, period, group, facet_by, 
+                            names = name_tab$species, value, scale, conv, tran,
+                            format_lab)
+    
+    f_plot <- function() {
+      if (shiny::isRunning()) by_plot
+      else gridExtra::grid.arrange(by_plot, ncol = 1)
     }
     
-    save_table(bycatch, project, "bycatch")
+    save_plot(project, "bycatch", by_plot)
     
-    # Log Function
-    bycatch_function <- list()
-    bycatch_function$functionID <- "bycatch"
-    bycatch_function$args <- 
-      list(dat, project, cpue, catch, date, period, names, group, sub_date, 
-           filter_date, date_value, filter_by, filter_value, filter_expr, 
-           facet_by, conv, tran, format_lab, value, combine, scale, output, 
-           format_tab)
-    log_call(project, bycatch_function)
-    
-    if (output == "plot") f_plot()
-      
-    else if (output == "table") bycatch
-      
-    else {
-      
-      out_list <- list(table = bycatch,
-                       plot = f_plot())
-      out_list
+    if (run_confid_check(project)) {
+      if (any(check_out$suppress)) {
+        
+        bycatch_c <- replace_sup_code(bycatch_c)
+        
+        by_plot_c <- 
+          bycatch_plot(bycatch_c, cpue, catch, period, group, facet_by, 
+                       names = name_tab$species, value, scale, conv, tran,
+                       format_lab)
+        
+        save_plot(project, "bycatch_conf", plot = by_plot_c)
+      }
     }
+  }
+  # remove extra cols used for joining 
+  bycatch[c("species_catch", "species_cpue")] <- NULL
+  
+  if (format_tab == "long") {
+   
+    cols <- c("mean_cpue", "catch", f_stc())
+
+    bycatch <- tidyr::pivot_longer(bycatch, cols = !!cols, names_to = "measure", 
+                                   values_to = "value")
+  }
+  
+  save_table(bycatch, project, "bycatch")
+  
+  # Log Function
+  bycatch_function <- list()
+  bycatch_function$functionID <- "bycatch"
+  bycatch_function$args <- 
+    list(dat, project, cpue, catch, date, period, names, group, sub_date, 
+         filter_date, date_value, filter_by, filter_value, filter_expr, 
+         facet_by, conv, tran, format_lab, value, combine, scale, output, 
+         format_tab)
+  log_call(project, bycatch_function)
+  
+  if (output == "plot") f_plot()
+  else if (output == "table") bycatch
+  else {
+    
+    out_list <- list(table = bycatch, plot = f_plot())
+    out_list
   }
 }
 

@@ -110,34 +110,21 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
   
   dat <- parse_data_name(dat, "main", project)
   
+  pers <- c("year", "month", "week")
+  group_date <- group[group %in% pers]
+  facet_date <- facet_by[facet_by %in% pers]
+  facet_no_date <- facet_by[!facet_by %in% pers]
+  group_no_date <- group[!group %in% pers]
+  facet_check <- facet_no_date[!facet_no_date %in% "species"]
+  
+  column_check(dataset, cols = c(species, date, group_no_date, sub_date, filter_by,
+                                 facet_check))
   week <- rlang::sym("week")
-  end <- FALSE 
   
-  not_num <- vapply(dataset[species], function(x) !is.numeric(x), logical(1))
+  num <- qaqc_helper(dataset[species], is.numeric)
   
-  if (any(not_num)) {
-    
-    warning("'species' must be numeric.")
-    end <- TRUE
-  }
-  
-  group_date <- group[group %in% c("year", "month", "week")]
-  facet_date <- facet_by[facet_by %in% c("year", "month", "week")]
-  facet_no_date <- facet_by[!(facet_by %in% c("year", "month", "week"))]
-  group_no_date <- group[!(group %in% c("year", "month", "week"))]
+  if (!all(num)) stop("Argument 'species' must be numeric.", call. = FALSE)
 
-  # filter by variable ----
-  if (!is.null(filter_by) | !is.null(filter_expr)) {
-    
-    dataset <- subset_var(dataset, filter_by, filter_value, filter_expr)
-    
-    if (nrow(dataset) == 0) {
-      
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      end <- TRUE
-    }
-  }
-  
   # date ----
   # convert date and/or sub_date to date class
   if (!is.null(date) | !is.null(sub_date)) {
@@ -148,415 +135,373 @@ weekly_catch <- function(dat, project, species, date, fun = "sum", group = NULL,
   
   # sub_date ----
   # check if sub_date is needed
-  if (!is.null(filter_date)) {
-    if (is.null(sub_date)) {
-      if (!is.null(date)) sub_date <- date
-      else {
-        warning("Argument 'sub_date' required when subsetting by date.")
-        end <- TRUE
-      }
-    }
-  }
+  sub_date <- sub_date_check(sub_date, date, filter_date, group, facet_by)
   
-  if (!is.null(facet_by)) {
-    if (any(facet_by %in% c("year", "month", "week"))) {
-      if (is.null(sub_date)) {
-        if (!is.null(date)) sub_date <- date
-        else {
-          warning("Spliting by a function-created date variable ('year', ",
-                  "'month', or 'week') requires a date variable.")
-          end <- TRUE
-        }
-      }
-    } 
-  }
-  
-  if (!is.null(group)) {
-    if (any(group %in% c("year", "month", "week"))) {
-      if (is.null(sub_date)) {
-        if (!is.null(date)) sub_date <- date
-        else {
-          warning("Grouping by a function-created date variable ('year', ",
-                  "'month', or 'week') requires a date variable.")
-          end <- TRUE
-        }
-      }
-    } 
-  }
-  
-  # date filter ----
+  # filter date ----
   if (!is.null(filter_date)) {
     
     if (is.null(date_value)) {
       
-      warning("'date_value' must be provided.")
-      end <- TRUE
+      stop("'date_value' must be provided.", call. = FALSE)
     }
     
     dataset <- subset_date(dataset, sub_date, filter_date, date_value)
+  }
+  
+  # filter by variable ----
+  if (!is.null(filter_by) | !is.null(filter_expr)) {
     
-    if (nrow(dataset) == 0) {
+    dataset <- subset_var(dataset, filter_by, filter_value, filter_expr)
+  }
+ 
+  # add missing ---- 
+  if ("species" %in% facet_by) {
+    
+    facet <- facet_no_date[facet_no_date != "species"]
+    
+    if (length(facet) == 0) facet <- NULL
+  } else facet <- facet_no_date
+  
+  dataset <- expand_data(dataset, project, date = date, period = "week", 
+                               value = species, group = group_no_date, 
+                               facet_by = facet, fun = "sum")
+  
+  # facet date ----
+  # add year and week columns
+  dataset$year <- as.integer(format(dataset[[date]], "%Y"))
+  dataset$week <- as.integer(format(dataset[[date]], "%U"))
+  
+  if (!is.null(facet_date)) {
+    
+    if ("month" %in% facet_date) {
       
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      end <- TRUE
+      dataset$month <- factor(format(dataset[[sub_date]], "%b"), 
+                              levels = month.abb, ordered = TRUE)
     }
   }
   
-  if (end == FALSE) {
+  # group date ----
+  if (length(group_date) > 0) {
+    
+    if ("month" %in% group_date & !("month" %in% facet_date)) {
+      dataset$month <- factor(format(dataset[[sub_date]], "%b"), 
+                              levels = month.abb, ordered = TRUE)
+    }
+  }
   
-    # add missing ---- 
-    if ("species" %in% facet_by) {
-      
-      facet <- facet_no_date[facet_no_date != "species"]
-      
-      if (length(facet) == 0) facet <- NULL
-    } else facet <- facet_no_date
+  # group ----
+  if (!is.null(group)) {
     
-    dataset <- add_missing_dates(dataset, project, date = date, sub_date = sub_date, 
-                                 value = species, group = group_no_date, 
-                                 facet_by = facet)
-    
-    # facet date ----
-    # add year and week columns
-    dataset$year <- as.integer(format(dataset[[date]], "%Y"))
-    dataset$week <- as.integer(format(dataset[[date]], "%U"))
-    
-    if (!is.null(facet_date)) {
+    if (combine == TRUE & length(group) > 1) { 
       
-      if ("month" %in% facet_date) {
-        
-        dataset$month <- factor(format(dataset[[sub_date]], "%b"), 
-                                levels = month.abb, ordered = TRUE)
-      }
+      dataset <- ID_var(dataset, project = project, vars = group, type = "string",
+                        log_fun = FALSE)
+      group <- gsub(" ", "", paste(group, collapse = "_"))
+      group1 <- group
+      group2 <- NULL
+      
+    } else group1 <- group[1]
+    
+    if (length(group) == 1) group2 <- NULL else group2 <- group[2]
+    
+    if (length(group) > 2) {
+      
+      warning("Only the first two grouping variables will be displayed in plot.")
     }
+  }
+
+  # summary table ----
+  agg_grp <- c(group, facet, facet_date)
+  
+  table_out <- agg_helper(dataset, value = species, period = c("year", "week"), 
+                           group = agg_grp, fun = fun, count = FALSE)
+  
+  if (length(species) > 1) {
     
-    # group date ----
-    if (length(group_date) > 0) {
-      
-      if ("month" %in% group_date & !("month" %in% facet_date)) {
-        dataset$month <- factor(format(dataset[[sub_date]], "%b"), 
-                                levels = month.abb, ordered = TRUE)
-      }
-    }
+    table_out <- tidyr::pivot_longer(table_out, cols = !!species, 
+                                     names_to = "species", values_to = "catch")
+  }
+  
+  f_catch <- function() if (length(species) == 1) species else "catch"
+  
+  # create ordered factor for plots
+  if (!is.null(group)) table_out[group] <- lapply(table_out[group], as.factor)
+  rev <- position == "dodge"
+  
+  if (length(species) > 1) {
     
-    # group ----
+    table_out <- order_factor(table_out, "species", "catch", rev = rev)
+    
+  } else {
+    
     if (!is.null(group)) {
       
-      if (combine == TRUE & length(group) > 1) { 
-        
-        dataset <- ID_var(dataset, project = project, vars = group, type = "string",
-                          log_fun = FALSE)
-        group <- gsub(" ", "", paste(group, collapse = "_"))
-        group1 <- group
-        group2 <- NULL
-        
-      } else group1 <- group[1]
-      
-      if (length(group) == 1) group2 <- NULL else group2 <- group[2]
-      
-      if (length(group) > 2) {
-        
-        warning("Only the first two grouping variables will be displayed in plot.")
-      }
+      table_out <- order_factor(table_out, group1, species, rev = rev)
     }
+  }
   
-    # summary table ----
-    agg_grp <- c(group, facet, facet_date)
+  # weight conversion
+  if (conv != "none") {
     
-    table_out <- agg_helper(dataset, value = species, period = c("year", "week"), 
-                            group = agg_grp, fun = fun)
-    
-    if (length(species) > 1) {
+    if (conv == "tons") table_out[f_catch()] <- table_out[f_catch()]/2000
       
-      table_out <- tidyr::pivot_longer(table_out, cols = !!species, 
-                                       names_to = "species", values_to = "catch")
+    else if (conv == "metric_tons") {
+      
+      table_out[f_catch()] <- table_out[f_catch()]/2204.62
+      
+    } else if (is.function(conv)) {
+      
+      table_out[f_catch()] <- do.call(conv, list(table_out[f_catch()]))
     }
+  }
+  
+  if (value == "percent") {
     
-    f_catch <- function() if (length(species) == 1) species else "catch"
-    
-    # create ordered factor for plots
-    if (!is.null(group)) table_out[group] <- lapply(table_out[group], as.factor)
-    rev <- ifelse(position == "dodge", TRUE, FALSE)
-    
-    if (length(species) > 1) {
+    if (fun == "sum") {
       
-      table_out <- order_factor(table_out, "species", "catch", rev = rev)
+      table_out[f_catch()] <- 
+        (table_out[f_catch()]/sum(table_out[f_catch()])) * 100
       
     } else {
       
-      if (!is.null(group)) {
+      warning("Cannot convert to percentage. Change 'fun' argument to 'sum'.")
+    } 
+  }
+  
+  # confidentiality checks ----
+  if (run_confid_check(project)) {
+    
+    cc_par <- get_confid_check(project)
+    
+    check_out <- 
+      check_confidentiality(dataset = dataset, project, cc_par$v_id, value_var = species, 
+                            rule = cc_par$rule, group = c("year", "week", agg_grp), 
+                            value = cc_par$value, names_to = "species", 
+                            values_to = "catch")
+    
+    if (any(check_out$suppress)) {
+      
+      table_out_c <-
+        suppress_table(check_out$table, table_out, value_var = f_catch(),
+                       group = c("year", "week", agg_grp), rule = cc_par$rule,
+                       type = "code")
+      save_table(table_out_c, project, "weekly_catch_confid")
+    }
+  }
+  
+  # plot section ----
+  if (output %in% c("plot", "tab_plot")) {
+    
+    # plot functions ----
+    
+    catch_sym <- rlang::sym(f_catch())
+    
+    if (length(species) > 1) species_sym <- rlang::sym("species")
+    
+    catch_exp <- function() {
+      
+      if (tran == "sqrt") rlang::expr(sqrt(!!catch_sym))
+      else catch_sym
+    }
+    
+    if (!is.null(group)) {
+      
+      group1_sym <- rlang::sym(group1)
+      if (length(group) > 1) group2_sym <- rlang::sym(group2)
+    }
+    
+    interaction_exp <- function() {
+      if (length(species) == 1) {
+        if (is.null(group)) 1
+          
+        else {
+          if (length(group) == 1) group1_sym
+            
+          else if (length(group) > 1) {
+            rlang::expr(interaction(!!group1_sym, !!group2_sym))
+          }
+        }
         
-        table_out <- order_factor(table_out, group1, species, rev = rev)
+      } else if (length(species) > 1) {
+        if (is.null(group)) species_sym
+          
+        else if (length(group) == 1) {
+          rlang::expr(interaction(!!species_sym, !!group1_sym))
+          
+        } else if (length(group) > 1) {
+          rlang::expr(interaction(!!species_sym, !!group1_sym, !!group2_sym))
+        }
       }
     }
     
-    # weight conversion
-    if (conv != "none") {
+    color_exp <- function() {
       
-      if (conv == "tons") table_out[f_catch()] <- table_out[f_catch()]/2000
+      if (length(species) == 1) {
+        if (!is.null(group)) group1_sym
+        else NULL
         
-      else if (conv == "metric_tons") {
-        
-        table_out[f_catch()] <- table_out[f_catch()]/2204.62
-        
-      } else if (is.function(conv)) {
-        
-        table_out[f_catch()] <- do.call(conv, list(table_out[f_catch()]))
-      }
+      } else if (length(species) > 1) species_sym
     }
     
-    if (value == "percent") {
+    linetype_exp <- function() {
       
-      if (fun == "sum") {
+      if (length(species) == 1) {
+        if (length(group) > 1) group2_sym
+        else NULL
         
-        table_out[f_catch()] <- 
-          (table_out[f_catch()]/sum(table_out[f_catch()])) * 100
-        
-      } else {
-        
-        warning("Cannot convert to percentage. Change 'fun' argument to 'sum'.")
+      } else if (length(species) > 1) {
+        if (length(group) > 0) group1_sym
+        else NULL
+      }
+    }
+
+    x_lab <- function() paste0(date, " (week)")
+    
+    y_lab <- function() {
+      
+      f_conv <- function() {
+      
+        if (conv != "none") {
+          
+          c_lab <- switch(conv, "tons" = "T", "metric_tons" = "MT", "")
+          
+          paste0("(", c_lab, ")")
+          
+        } else NULL
       } 
+      
+      f_tran <- if (tran != "identity") paste(tran, "scale") else NULL
+
+      paste(fun, f_catch(), f_conv(), f_tran)
     }
     
-    # confidentiality checks ----
-    if (run_confid_check(project)) {
-      
-      cc_par <- get_confid_check(project)
-      
-      check_table <- 
-        check_confidentiality(dataset = dataset, project, cc_par$v_id, value_var = species, 
-                              rule = cc_par$rule, group = c("year", "week", agg_grp), 
-                              value = cc_par$value, names_to = "species", 
-                              values_to = "catch")
-      
-      if (check_table$suppress) {
+    y_breaks <- function() {
+      if (tran != "identity") {
         
-        check_out <- 
-          suppress_table(check_table$table, table_out, value_var = f_catch(),
-                         group = c("year", "week", agg_grp), rule = cc_par$rule,
-                         type = "code")
-        save_table(check_out, project, "weekly_catch_confid")
-      }
-    }
-    
-    # plot section ----
-    if (output %in% c("plot", "tab_plot")) {
-      
-      # plot functions ----
-      
-      catch_sym <- rlang::sym(f_catch())
-      
-      if (length(species) > 1) species_sym <- rlang::sym("species")
-      
-      catch_exp <- function() {
+        brk_num <- nchar(trunc(max(dataset[[f_catch()]], na.rm = TRUE)))
+        brk_num <- ifelse(length(brk_num) < 5, 5, brk_num)
         
-        if (tran == "sqrt") rlang::expr(sqrt(!!catch_sym))
-        else catch_sym
-      }
-      
-      if (!is.null(group)) {
-        
-        group1_sym <- rlang::sym(group1)
-        if (length(group) > 1) group2_sym <- rlang::sym(group2)
-      }
-      
-      interaction_exp <- function() {
-        if (length(species) == 1) {
-          if (is.null(group)) 1
-            
-          else {
-            if (length(group) == 1) group1_sym
-              
-            else if (length(group) > 1) {
-              rlang::expr(interaction(!!group1_sym, !!group2_sym))
-            }
-          }
+        if (tran %in% c("log", "log2", "log10")) {
           
-        } else if (length(species) > 1) {
-          if (is.null(group)) species_sym
-            
-          else if (length(group) == 1) {
-            rlang::expr(interaction(!!species_sym, !!group1_sym))
-            
-          } else if (length(group) > 1) {
-            rlang::expr(interaction(!!species_sym, !!group1_sym, !!group2_sym))
-          }
-        }
-      }
-      
-      color_exp <- function() {
-        
-        if (length(species) == 1) {
-          if (!is.null(group)) group1_sym
-          else NULL
+          y_base <- switch(tran, "log" = 2.718282, "log2" = 2, "log10" = 10)
           
-        } else if (length(species) > 1) species_sym
-      }
-      
-      linetype_exp <- function() {
-        
-        if (length(species) == 1) {
-          if (length(group) > 1) group2_sym
-          else NULL
-          
-        } else if (length(species) > 1) {
-          if (length(group) > 0) group1_sym
-          else NULL
-        }
-      }
-  
-      x_lab <- function() paste0(date, " (week)")
-      
-      y_lab <- function() {
-        
-        f_conv <- function() {
-        
-          if (conv != "none") {
-            
-            c_lab <- switch(conv, "tons" = "T", "metric_tons" = "MT", "")
-            
-            paste0("(", c_lab, ")")
-            
-          } else NULL
-        } 
-        
-        f_tran <- if (tran != "identity") paste(tran, "scale") else NULL
-  
-        paste(fun, f_catch(), f_conv(), f_tran)
-      }
-      
-      y_breaks <- function() {
-        if (tran != "identity") {
-          
-          brk_num <- nchar(trunc(max(dataset[[f_catch()]], na.rm = TRUE)))
-          brk_num <- ifelse(length(brk_num) < 5, 5, brk_num)
-          
-          if (tran %in% c("log", "log2", "log10")) {
-            
-            y_base <- switch(tran, "log" = 2.718282, "log2" = 2, "log10" = 10)
-            
-            scales::log_breaks(n = brk_num, base = y_base)
-            
-          } else {
-            
-            scales::breaks_extended(n = brk_num + 2)
-          }
-          
-        } else ggplot2::waiver()
-      }
-      
-      f_label <- function() {
-        if (format_lab == "decimal") scales::label_number(big.mark = ",")
-        else scales::label_scientific()
-      }
-      
-      y_labeller <- function() { 
-        
-        if (value == "percent") {
-          
-          if (tran == "sqrt") function(x) paste0(x^2, "%")
-          else scales::label_percent(scale = 1) 
+          scales::log_breaks(n = brk_num, base = y_base)
           
         } else {
           
-          if (tran == "sqrt") {
-            
-            function(x) format(x^2, scientific = format_lab == "scientific")
-            
-          } else f_label()
+          scales::breaks_extended(n = brk_num + 2)
         }
-      }
+        
+      } else ggplot2::waiver()
+    }
+    
+    f_label <- function() {
+      if (format_lab == "decimal") scales::label_number(big.mark = ",")
+      else scales::label_scientific()
+    }
+    
+    y_labeller <- function() { 
       
-      f_tran <- function() {
+      if (value == "percent") {
         
-        if (tran == "sqrt") "identity"
-        else tran
-      }
-      
-      w_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = week, 
-                                                               y = !!catch_exp())) +
-        fishset_theme() +
-        ggplot2::theme(legend.position = "bottom") +
-        ggplot2::scale_y_continuous(labels = y_labeller(), trans = f_tran(), 
-                                    breaks = y_breaks()) +
-        ggplot2::scale_x_continuous(breaks = num_breaks(table_out$week), 
-                                    labels = week_labeller(num_breaks(table_out$week), 
-                                                           year = table_out$year)) +
-        ggplot2::labs(x = x_lab(), y = y_lab())
-      
-      if (type == "bar") {
+        if (tran == "sqrt") function(x) paste0(x^2, "%")
+        else scales::label_percent(scale = 1) 
         
-        if (position == "dodge") position <- ggplot2::position_dodge2(preserve = "single")
+      } else {
         
-        w_plot <- w_plot + ggplot2::geom_col(ggplot2::aes(fill = !!color_exp()), 
-                                             position = position)
-        
-        position <- ifelse(class(position)[1] == "PositionDodge2", "dodge", position)
-        
-      } else if (type == "line") {
-        
-        w_plot <- w_plot + ggplot2::geom_line(ggplot2::aes(group = !!interaction_exp(),
-                                                           color = !!color_exp(), 
-                                                           linetype = !!linetype_exp())) +
-          ggplot2::geom_point(ggplot2::aes(group = !!interaction_exp(), 
-                                           color = !!color_exp()), 
-                              size = 1)
-      }
-      
-      if (!is.null(facet_by)) {
-        
-        if (length(facet_by) == 1) fm <- stats::reformulate(".", facet_by)
+        if (tran == "sqrt") {
           
-        else if (length(facet_by) == 2) fm <- paste(facet_by, sep = " ~ ")
-        
-        w_plot <- w_plot + ggplot2::facet_grid(fm, scales = scale)
-      }
-      
-      if (!is.null(filter_date)) {
-        w_plot <- date_title(w_plot, filter_date, date_value)
-      }
-      
-      # save plots
-      save_plot(project, "weekly_catch", w_plot)
-      
-      if (run_confid_check(project)) {
-        
-        if (check_table$suppress) {
+          function(x) format(x^2, scientific = format_lab == "scientific")
           
-          conf_plot <- w_plot
-          conf_plot$data <- replace_sup_code(check_out)
-          save_plot(project, "weekly_catch_confid", plot = conf_plot)
-        }
+        } else f_label()
       }
-      
     }
     
-    if (length(species) > 1 & format_tab == "wide") {
+    f_tran <- function() {
       
-      table_out <- tidyr::pivot_wider(table_out, names_from = "species", 
-                                      values_from = "catch")
+      if (tran == "sqrt") "identity"
+      else tran
     }
-    # log function
-    weekly_catch_function <- list()
-    weekly_catch_function$functionID <- "weekly_catch"
-    weekly_catch_function$args <- 
-      list(dat, project, species, date, fun, group, sub_date, filter_date, 
-           date_value, filter_by, filter_value, filter_expr, facet_by, type, conv, 
-           tran, format_lab, value, position, combine, scale,  output, format_tab)
-    log_call(project, weekly_catch_function)
     
-    save_table(table_out, project, "weekly_catch")
+    w_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = week, 
+                                                             y = !!catch_exp())) +
+      fishset_theme() +
+      ggplot2::theme(legend.position = "bottom") +
+      ggplot2::scale_y_continuous(labels = y_labeller(), trans = f_tran(), 
+                                  breaks = y_breaks()) +
+      ggplot2::scale_x_continuous(breaks = num_breaks(table_out$week), 
+                                  labels = week_labeller(num_breaks(table_out$week), 
+                                                         year = table_out$year)) +
+      ggplot2::labs(x = x_lab(), y = y_lab())
     
-    if (output == "table") table_out
+    if (type == "bar") {
       
-    else if (output == "plot") w_plot
+      if (position == "dodge") position <- ggplot2::position_dodge2(preserve = "single")
       
-    else {
+      w_plot <- w_plot + ggplot2::geom_col(ggplot2::aes(fill = !!color_exp()), 
+                                           position = position)
       
-      out_list <- list(table = table_out,
-                       plot = w_plot)
-      out_list
+      position <- ifelse(class(position)[1] == "PositionDodge2", "dodge", position)
+      
+    } else if (type == "line") {
+      
+      w_plot <- w_plot + ggplot2::geom_line(ggplot2::aes(group = !!interaction_exp(),
+                                                         color = !!color_exp(), 
+                                                         linetype = !!linetype_exp())) +
+        ggplot2::geom_point(ggplot2::aes(group = !!interaction_exp(), 
+                                         color = !!color_exp()), 
+                            size = 1)
     }
+    
+    if (!is.null(facet_by)) {
+      
+      if (length(facet_by) == 1) fm <- stats::reformulate(".", facet_by)
+        
+      else if (length(facet_by) == 2) fm <- paste(facet_by, sep = " ~ ")
+      
+      w_plot <- w_plot + ggplot2::facet_grid(fm, scales = scale)
+    }
+    
+    if (!is.null(filter_date)) {
+      w_plot <- date_title(w_plot, filter_date, date_value)
+    }
+    
+    # save plots
+    save_plot(project, "weekly_catch", w_plot)
+    
+    if (run_confid_check(project)) {
+      
+      if (any(check_out$suppress)) {
+        
+        w_plot_c <- w_plot
+        w_plot_c$data <- replace_sup_code(table_out_c)
+        save_plot(project, "weekly_catch_confid", plot = w_plot_c)
+      }
+    }
+  }
+  
+  if (length(species) > 1 & format_tab == "wide") {
+    
+    table_out <- tidyr::pivot_wider(table_out, names_from = "species", 
+                                    values_from = "catch")
+  }
+  # log function
+  weekly_catch_function <- list()
+  weekly_catch_function$functionID <- "weekly_catch"
+  weekly_catch_function$args <- 
+    list(dat, project, species, date, fun, group, sub_date, filter_date, 
+         date_value, filter_by, filter_value, filter_expr, facet_by, type, conv, 
+         tran, format_lab, value, position, combine, scale,  output, format_tab)
+  log_call(project, weekly_catch_function)
+  
+  save_table(table_out, project, "weekly_catch")
+  
+  if (output == "table") table_out
+  else if (output == "plot") w_plot
+  else {
+    
+    out_list <- list(table = table_out, plot = w_plot)
+    out_list
   }
 }
 
