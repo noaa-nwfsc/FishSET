@@ -2085,16 +2085,16 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                        "See \"parse_meta\" in the Help Manual for instructions",
                        "on extracting metadata from a data file."),
                      
-                     metaProjUI("meta_create"),
-                     metaCreateSaveUI("meta_create"),
+                     FishSET:::metaProjUI("meta_create"),
+                     FishSET:::metaCreateSaveUI("meta_create"),
                      
                      tags$hr(style = "border-top: 3px solid #bbb;"),
                      
-                     metaRawUI("meta_create")
+                     FishSET:::metaRawUI("meta_create")
                    ),
                    mainPanel(width = 9,
-                     metaOut("meta_create"),
-                    metaRawOut("meta_create"))
+                             FishSET:::metaOut("meta_create"),
+                             FishSET:::metaRawOut("meta_create"))
                  )),
         
         tabPanel("Edit", value = "edit_tab",
@@ -2109,13 +2109,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                        "and click \"Delete meta\". Select \"Delete\" in the popup", 
                        " to confirm. "),
                      
-                     metaProjUI("meta_edit"),
-                     metaEditSaveUI("meta_edit"),
-                     metaDeleteUI("meta_edit")
+                     FishSET:::metaProjUI("meta_edit"),
+                     FishSET:::metaEditSaveUI("meta_edit"),
+                     FishSET:::metaDeleteUI("meta_edit")
                    ),
                    mainPanel(width = 9,
-                     metaOut("meta_edit"),
-                     metaRawOut("meta_edit"))
+                             FishSET:::metaOut("meta_edit"),
+                             FishSET:::metaRawOut("meta_edit"))
                   )
                 ) 
               ) 
