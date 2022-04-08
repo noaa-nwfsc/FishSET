@@ -854,14 +854,14 @@ load_grid <- function(dat, grid, name, over_write = TRUE, project = NULL) {
 }
 
 
-load_spatial <- function(spat, name=NULL, over_write = TRUE, project, data.type = NULL, 
+load_spatial <- function(spat, name = NULL, over_write = TRUE, project, data.type = NULL, 
                          lon = NULL, lat = NULL, id = NULL, ...) {
   #' Import, parse, and save spatial data 
   #'
   #' 
   #' @param spat File name, including path, of spatial data. 
   #' @param name Name spatial data should be saved as in FishSET project folder.
-  #' Cannot contain spaces.
+  #' Cannot be empty or contain spaces.
   #' @param over_write Logical, If TRUE, saves \code{spat} over previously saved data 
   #'   table in the FishSET project folder.
   #' @param project String, name of project.
@@ -896,7 +896,9 @@ load_spatial <- function(spat, name=NULL, over_write = TRUE, project, data.type 
     stop("Project '", project, "' does not exist. Check spelling or create a",
          " new project with load_maindata().")
   }
-
+  
+  stopifnot("Name cannot contain spaces." = !grepl("\\s", name),
+            "Name cannot be empty." = !is_value_empty(name))
   
   if (is.character(spat)) {
     
@@ -912,8 +914,6 @@ load_spatial <- function(spat, name=NULL, over_write = TRUE, project, data.type 
   
   # check that spat can be converted to sf
   spat <- check_spatdat(spat, lon = lon, lat = lat, id = id)
-  
-  stopifnot("Name cannot contain spaces." = !grepl("\\s", name))
   
   # unique names
   
@@ -945,7 +945,6 @@ load_spatial <- function(spat, name=NULL, over_write = TRUE, project, data.type 
   }
   
   lapply(file_names, function(sfn) sf::st_write(spat, dsn = sfn))
-  
   
   # log call
   load_spatial_function <- list()
