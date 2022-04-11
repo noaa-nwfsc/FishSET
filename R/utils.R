@@ -445,17 +445,17 @@ is_value_empty <- function(x) {
   #' Empty value check
   #' @param x A value, input, or argument to check.
   #' @keywords internal
+  #' @importFrom stats na.omit
   #' @export
   
-  if (is.null(x)) {
-    TRUE
-  } else if (length(x) == 0) {
-    TRUE
-  } else if (is.character(x) && nchar(trimws(x)) == 0) {
-    TRUE
-  } else {
-    FALSE
-  }
+  if (inherits(x, "try-error")) return(FALSE)
+  if (is.null(x))  return(FALSE)
+  if (length(x) == 0) return(FALSE)
+  if (all(is.na(x))) return(FALSE)
+  if (is.character(x) && !any(nzchar(stats::na.omit(x)))) return(FALSE)
+  if (is.logical(x) && !any(stats::na.omit(x))) return(FALSE)
+  
+  return(TRUE)
 }
 
 find_first <- function(y) {
@@ -834,26 +834,34 @@ data_pull <- function(dat, project) {
   #' @param project Project name
   #' @keywords internal
   #' @export
-
-  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
-  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
   if (is.character(dat) == TRUE) {
+    
     if (is.null(dat) == TRUE | table_exists(dat, project) == FALSE) {
-      print(DBI::dbListTables(fishset_db))
-      stop(paste(dat, "not defined or does not exist. Consider using one of the tables listed above that exist in the database."))
+      
+      print(project_tables(project))
+      stop(paste(dat, "not defined or does not exist. Consider using one of the",
+                 "tables listed above that exist in the database."))
+      
     } else {
+      
       dataset <- table_view(dat, project)
     }
+    
   } else {
+    
     dataset <- dat
   }
-
+  
   if (is.character(dat) == TRUE) {
+    
     dat <- dat
+    
   } else {
+    
     dat <- deparse(substitute(dat))
   }
+  
   return(list(dat = dat, dataset = dataset))
 }
 
@@ -871,9 +879,7 @@ parse_data_name <- function(dat, type, project) {
   #'   the FishSET project settings file. Otherwise, the data table from the caller 
   #'   environment is used. 
   #' @export
-
-  # dat_type <- switch(type, "main" = "dat_name", "aux" = "aux_name", 
-  #                  "grid" = "grid_name", "port" = "port_name", "spat" = "spat_name")
+  
   
   if (shiny::isRunning()) {
     
@@ -906,43 +912,131 @@ msg_print <- function(temp_file) {
   else message(paste(readLines(temp_file, warn = FALSE), collapse = "\n"))
 }
 
-agg_helper <- function(dataset, value, period = NULL, group = NULL, fun = "sum") {
+
+column_check <- function(dat, cols) {
+  #' Check that column names exists
+  #' 
+  #' Check whether user supplied column names exist in the data.
+  #' 
+  #' @param dat The data used in function.
+  #' @param cols String, the column names used in function. 
+  #' @keywords internal
+  #' 
+  ind <- !cols %in% colnames(dat)
+  
+  if (any(ind)) {
+    
+    non_cols <- cols[ind]
+    msg <- paste("The following columns are not in the dataset:", 
+                 paste(non_cols, collapse = ", "))
+    stop(msg, call. = FALSE)
+  }
+}
+
+agg_helper <- function(dataset, value, period = NULL, group = NULL, within_group = NULL, 
+                       fun = "sum", count = FALSE, format_tab = "decimal") {
   #' Aggregating function 
   #'
   #' @param dataset `MainDataTable` to aggregate. 
   #' @param value String, name of variable to aggregate. 
   #' @param period String, name of period variable to aggregate by.
   #' @param group String, name of grouping variable(s) to aggregate by.
+  #' @param within_group String, name of grouping variables(s) for calculating
+  #'   within group percentages. \code{fun = "percent"} required. 
   #' @param fun String, function name to aggregate by. Also accepts anonymous functions.
+  #'   To calculate percentage, set \code{fun = "percent"}; this will return the 
+  #'   percent of total when \code{within_group = NULL}. 
+  #' @param count Logical, if TRUE then returns the number of observations by
+  #'   \code{period} and/or \code{group}.
+  #' @param format_lab String. Options include \code{"decimal"} (default), 
+  #' \code{"scientific"}, and \code{"PrettyNum"} (rounds to two decimal places
+  #'   and uses commas).
   #' @export
-  #' @keywords internal
-  #' @importFrom rlang syms expr expr_text
-  #' @importFrom stringi stri_isempty
-  #' @importFrom stats aggregate reformulate
+  #' @import dplyr
   
-  agg_cols <- c(value, period, group)
+  agg_cols <- unique(c(value, period, group))
   
-  if (any(!(agg_cols %in% colnames(dataset)))) {
+  column_check(dataset, agg_cols)
     
-    warning("The column(s) ",
-      paste(agg_cols[!(agg_cols %in% colnames(dataset))], collapse = ", "),
-            " are not in data table.")
+  calc_perc <- FALSE
+  
+  if (!is.function(fun)) {
     
-  } else {
+    if (count && !is.null(fun) && fun != "percent") {
+      
+      warning("Argument 'fun' ignored. Performing count.")
+    } 
     
-    by_fm <- paste(unique(c(period, group)), collapse = " + ")
+    if (!is.null(fun) && fun == "percent") {
+      
+      calc_perc <- TRUE
+      fun <- "sum"
+    } 
+  } 
+  
+  tab_out <- 
+    dataset %>% 
+    dplyr::group_by(dplyr::across(.cols = c(dplyr::all_of(period), 
+                                            dplyr::all_of(group)))) %>% 
+    {
+      if (count) {
+        
+        dplyr::count(., dplyr::across(dplyr::all_of(value)), sort = TRUE)
+        
+      } else {
+        
+        dplyr::summarise(., dplyr::across(dplyr::all_of(value), 
+                                          .fns = match.fun(fun))) # .names = {.col}_{.fns}?
+      }
+      
+    } %>% dplyr::ungroup()
+  
+  if (calc_perc) {
     
-    value <- rlang::syms(value)
-    val_fm <- rlang::expr(cbind(!!!value))
-    val_fm <- rlang::expr_text(val_fm)
+    if (!is.null(within_group)) {
+      
+      tab_out <- 
+        tab_out %>% dplyr::group_by(across(dplyr::all_of(within_group)))
+    }
     
-    # if period and group are NULL
-    if (stringi::stri_isempty(by_fm)) by_fm <- val_fm
-    
-    agg_fm <- stats::reformulate(by_fm, val_fm)
-    
-    stats::aggregate(agg_fm, data = dataset, FUN = fun, na.action = NULL)
+    if (count) {
+      
+      tab_out <-  tab_out %>% dplyr::mutate(perc = n/sum(n) * 100)
+      
+    } else {
+      
+      tab_out <-
+        tab_out %>% 
+        dplyr::mutate(dplyr::across(dplyr::all_of(value), 
+                                    .fns = ~ .x/sum(.x) * 100, 
+                                    .names = "{.col}_perc"))
+      
+      cols <- names(tab_out)
+      value <- cols[!cols %in% c(group, period)]
+    }
   }
+  
+  if (count) value <- "n"
+  
+  if (format_tab == "prettyNum") {
+    
+    pretty_fun <- function(x) prettyNum(x, big.mark = ",", digits = 2)
+    
+    tab_out <- 
+      tab_out %>% 
+      dplyr::mutate(dplyr::across(dplyr::all_of(value), 
+                                  .fns = pretty_fun))
+    
+  } else if (format_tab == "scientific") {
+    
+    pretty_fun <- function(x) formatC(x, format = "e", digits = 2)
+    
+    tab_out <- 
+      tab_out %>% 
+      dplyr::mutate(dplyr::across(dplyr::all_of(value), .fns = pretty_fun))
+  }
+  
+  tab_out
 }
 
 spars <- function(x, dname) {
@@ -1024,9 +1118,10 @@ perc_of_total <- function(dat, value_var, group = NULL, drop = FALSE,
 }
 
 
-add_missing_dates <- function(dataset, project, date = NULL, value, sub_date = NULL,
-                              group = NULL, facet_by = NULL, fun = "sum") {
-  #' Add missing dates to `MainDataTable`.
+# change to add_missing_values/levels, or expand_data
+expand_data <- function(dataset, project, date = NULL, value, sub_date = NULL,
+                        period = NULL, group = NULL, facet_by = NULL, fun = "sum") {
+  #' Add missing dates and variable combos to `MainDataTable`.
   #'
   #' @param dataset Object containing `MainDataTable`. 
   #' @param project Name of project. 
@@ -1038,17 +1133,19 @@ add_missing_dates <- function(dataset, project, date = NULL, value, sub_date = N
   #' @export
   #' @keywords internal
   #' @importFrom dplyr anti_join bind_rows
+  #' @details This function expands the data to include missing periods/dates
+  #'   and combinations of grouping variables that will be used to aggregate the
+  #'   data. Only variables needed to aggregate the data are kept to minimize memory usage.
+  #'   If confidentiality checks are turned on, the vessel ID column is included
+  #'   as well.
+
+  if (!is.null(c(period, group, facet_by))) {
   
-  if (is.null(date) & is.null(group) & is.null(facet_by)) {
-    
-    dataset
-  
-  } else {
-    
-    if (!is.null(date) | !is.null(sub_date)) {
+    # convert date col to date type (may be redundant)
+    if (!is.null(date)) {
       
-      dataset[unique(c(date, sub_date))] <- 
-        lapply(dataset[unique(c(date, sub_date))], function(x) {
+      dataset[date] <- 
+        lapply(dataset[date], function(x) {
           
           if (any(!(class(x) %in% c("Date", "POSIXct", "POSIXt")))) {
             date_parser(x)
@@ -1056,49 +1153,107 @@ add_missing_dates <- function(dataset, project, date = NULL, value, sub_date = N
         })
     } 
     
-    if (!is.null(date)) {
-      
-      full_dates <- seq.Date(from = min(dataset[[date]], na.rm = TRUE), 
-                             to = max(dataset[[date]], na.rm = TRUE), 
-                             by = "day")
+    # Find smallest period, then fill missing dates 
+    # E.g. no need to include every day if aggregating by year
+    per_cols <- unique(c(period, group, facet_by))
+    
+    if ("cal_date" %in% per_cols) add_per <- "day"
+    else if ("week" %in% per_cols) add_per <- "week"
+    else if ("month" %in% per_cols) add_per <- "month"
+    else if ("year" %in% per_cols) add_per <- "year"
+    else add_per <- period
+    
+    if (!is.null(add_per)) {
+      # create full dates
+      from_date <- min(dataset[[date]], na.rm = TRUE)
+      to_date <- max(dataset[[date]], na.rm = TRUE)
+      full_dates <- seq.Date(from = from_date, to = to_date, by = add_per)
     }
+
+    cols <- unique(c(date, group, facet_by))
+    cols_exp <- unique(c(group, facet_by))
     
-    if (!is.null(sub_date) & !is.null(date)) {
-      if (date == sub_date) {
-        sub_date <- NULL
-      }
-    }
-    
-    cols <- unique(c(date, sub_date, group, facet_by))
-    aux <- unique(c(group, facet_by))
-    
+    # add vessel ID if running confid check
     if (run_confid_check(project)) {
       
-     check <- get_confid_check(project)
-     cols <- unique(c(cols, check$v_id))
-     aux <- unique(c(aux, check$v_id))
+      check <- get_confid_check(project)
+      
+      if (!check$v_id %in% c(cols, value)) {
+        cols <- c(cols, check$v_id) # include ves ID in data
+      }
     }
+    # Remove unnecessary cols
+    dataset <- dataset[unique(c(cols, value))]
+ 
+    # list of unique values for each grouping column
+    unique_vals <- lapply(dataset[cols_exp], unique)
     
-    missing <- lapply(dataset[aux], function(x) unique(x))
+    # add full dates if aggregating by period
+    if (!is.null(period)) unique_vals[[date]] <- full_dates
     
-    if (!is.null(date)) missing[[date]] <- full_dates
+    # all combos of full dates and/or unique group values
+    unique_vals <- do.call(expand.grid, list(unique_vals))
+    # full join, unmatched values will contain NAs
+    dataset <- dplyr::full_join(unique_vals, dataset)
     
-    missing <- do.call(expand.grid, list(missing))
-    
-    missing <- dplyr::anti_join(missing, dataset[cols])
-    
-    if (nrow(missing) > 0) {
-      
-      if (!is.null(sub_date)) missing[sub_date] <- NA
-      
-      if (fun == "sum") missing[value] <- 0
-      else if (fun == "count") missing[value] <- NA # agg_helper will treat this as zero
-      
-      dataset <- dplyr::bind_rows(dataset[unique(c(cols, value))], missing)
+    if (fun == "sum") {
+      # replace NA with zero
+      replace_list <- lapply(seq(value), function(x) 0)
+      replace_list <- setNames(replace_list, nm = value)
+      dataset <- tidyr::replace_na(dataset, replace = replace_list)
     }
-    
-    dataset
   }
+  
+  dataset
+}
+
+
+sub_date_check <- function(sub_date, date, filter_date, group, facet_by) {
+  #' Check subset date variable
+  #' 
+  #' @param sub_date String, name of date column to subset by.
+  #' @param date String, name of date column used in creating period variables.
+  #' @param filter_date The type of date filter to apply to the data. 
+  #' @param group String, name of group variable(s). Many fleet function allow 
+  #'   users to create a year, month, or week variable to group by. If grouping 
+  #'   by period and \code{sub_date} and \code{date} are null, the function is 
+  #'   stopped. 
+  #' @param facet_by String, name of facetting variable(s). Many fleet function allow 
+  #'   users to create a year, month, or week variable to facet by. If splitting 
+  #'   by period and \code{sub_date} and \code{date} are null, the function is 
+  #'   stopped. 
+  #' @keywords internal
+  #' @returns \code{sub_date}. When used in a function, assign output to \code{sub_date}.
+  
+  if (!is.null(filter_date) && is.null(sub_date)) {
+    
+    if (!is.null(date)) sub_date <- date
+    else {
+      stop("Argument 'sub_date' required when filtering by date.", call. = FALSE)
+    }
+  }
+  
+  if (!is.null(facet_by) && any(facet_by %in% c("year", "month", "week"))) {
+    if (is.null(sub_date)) {
+      if (!is.null(date)) sub_date <- date
+      else {
+        stop("Spliting by a function-created date variable ('year', ",
+             "'month', or 'week') requires a date variable.", call. = FALSE)
+      }
+    }
+  }
+  
+  if (!is.null(group) && (any(group %in% c("year", "month", "week")))) {
+    if (is.null(sub_date)) {
+      if (!is.null(date)) sub_date <- date
+      else {
+        stop("Grouping by a function-created date variable ('year', ",
+             "'month', or 'week') requires a date variable.", call. = FALSE)
+      }
+    }
+  }
+  
+  sub_date
 }
 
 
@@ -1134,6 +1289,11 @@ subset_date <- function(dataset, date, filter, value) {
     }
   }
   
+  if (nrow(dataset) == 0) {
+    
+    stop("Filtered data table has zero rows. Check filter parameters.", call. = FALSE)
+  }
+  
   dataset
 }
 
@@ -1158,7 +1318,7 @@ subset_var <- function(dataset, filter_by = NULL, filter_value = NULL, filter_ex
         
       } else {
         
-        warning("Invalid filter expression.")
+        stop("Invalid filter expression.", call. = FALSE)
       }
     } 
     
@@ -1174,12 +1334,50 @@ subset_var <- function(dataset, filter_by = NULL, filter_value = NULL, filter_ex
         
       } else {
         
-        warning("Invalid filter expression.")
+        stop("Invalid filter expression.", call. = FALSE)
       }
     }
+  
+  if (nrow(dataset) == 0) {
+    
+    stop("Filtered data table has zero rows. Check filter parameters.", call. = FALSE)
+  }
 
-    dataset
-  } 
+  dataset
+} 
+
+
+period_check <- function(period, date) {
+  #' Check for valid period
+  #' 
+  #' @param period String, name of period to create. This is used by fleet functions
+  #'   to summarize data by period. 
+  #' @param date String, name of date variable used to create period variable.
+  #' @keywords internal
+  #' @returns A period code used to format \code{date}. Assign output to a variable
+  #'   when used inside a function.  
+  
+  if (!is.null(period)) {
+    
+    if (is.null(date)) stop("Enter a date variable.", call. = FALSE)
+    
+    periods <- c("year_month", "month_year", "year", "month", "week", 
+                 "weekday", "day_of_month", "day_of_year", "cal_date")
+    
+    if (period %in% periods == FALSE) {
+      
+      stop("Invalid period. Please select a valid period name (see documentation for details).",
+           call. = FALSE)
+      
+    } else {
+      
+      switch(period, year_month = "%Y-%m", month_year = "%Y-%m", year = "%Y",
+             month = "%b", week = "%U", weekday = "%a", day_of_month = "%d", 
+             day_of_year = "%j", cal_date = NULL)
+    }
+  }
+}
+
 
 # Plotting helper functions ----
 fishset_theme <- function() {
@@ -1251,23 +1449,51 @@ save_table <- function(table, project, func_name, ...) {
   #' @param table table name.
   #' @param project project name.
   #' @param func_name function name.
-  #' @param ... addition arguments passed to write.csv function.
+  #' @param ... addition arguments passed to \code{\link{write.csv}}.
   #' @keywords internal
   #' @export
   #' @examples
   #' \dontrun{
   #' save_table(count, project, "species_catch")
   #' }
-  write.csv(table, paste0(locoutput(project=project), project, "_", func_name, "_", Sys.Date(), ".csv"))
+  
+  fn <- paste0(locoutput(project=project), project, "_", func_name, "_", Sys.Date(), ".csv")
+  write.csv(table, fn)
+}
+
+save_ntable <- function(table, project, func_name, id = "num", ...) {
+  #' Save list of tables to output folder
+  #' @param table List containing tables to save.
+  #' @param project project name.
+  #' @param func_name Name of function used to create table.
+  #' @param id String, id to append to function name. Options include "seq" to 
+  #'   save by list entry number or "name" to save by list entry name. 
+  #' @param ... addition arguments passed to \code{\link{write.csv}}.
+  #' @keywords internal
+  #' @export
+  #' @examples
+  #' \dontrun{
+  #' save_ntable(tab_list, project, "species_catch")
+  #' }
+  
+  if (id == "num") vec <- seq_along(table)
+  else if (id == "name") vec <- names(table)
+  
+  lapply(vec, function(x) {
+    
+    fn <- paste0(func_name,"_", x)
+    save_table(table[[x]], project, func_name = fn, ...)
+  })
 }
 
 save_plot <- function(project, func_name, ...) {
-  #' Save table to output folder
+  #' Save plot to output folder
   #' @param project name of project.
-  #' @param func_name function name.
-  #' @param ... addition arguments passed to the ggsave function.
+  #' @param func_name Name of function used to create plot.
+  #' @param ... addition arguments passed to \code{\link{ggplot2::ggsave}}.
   #' @keywords internal
   #' @export
+  #' @importFrom ggplot2 ggsave
   #' @examples
   #' \dontrun{
   #' save_plot(project, "species_catch")
@@ -1276,6 +1502,29 @@ save_plot <- function(project, func_name, ...) {
   filename <- paste0(locoutput(project), project, "_", func_name, "_", Sys.Date(), ".png")
   p_size <- get_proj_settings(project)$plot_size
   ggplot2::ggsave(file = filename, width = p_size[1], height = p_size[2], ...)
+}
+
+
+save_nplot <- function(project, func_name, plot_list, id = "num", ...) {
+  #' Save table to output folder
+  #' @param project name of project.
+  #' @param func_name Name of function used to create plot.
+  #' @param ... addition arguments passed to \code{\link{ggplot2::ggsave}}.
+  #' @keywords internal
+  #' @export
+  #' @examples
+  #' \dontrun{
+  #' save_nplot(project, "species_catch", plot_list)
+  #' }
+  
+  if (id == "num") vec <- seq_along(plot_list)
+  else if (id == "name") vec <- names(plot_list)
+  
+  lapply(vec, function(x) {
+    
+    fn <- paste0(func_name, "_", x)
+    save_plot(project, func_name = fn, plot = plot_list[[x]], ...)
+  })
 }
 
 periods_list <- list(
