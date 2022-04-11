@@ -77,6 +77,7 @@
 #' }
 #' @export vessel_count
 #' @import ggplot2
+#' @importFrom dplyr n_distinct mutate across all_of
 #' @importFrom stats reformulate
 #' @importFrom rlang sym expr as_string
 #' @importFrom scales label_percent breaks_extended log_breaks
@@ -92,20 +93,22 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
-  
-  end <- FALSE 
  
-   if (!is.null(period)) {
-    if(period == "no_period") period <- NULL
+  if (!is.null(period)) {
+    if(period == "no_period") period <- NULL # for shinyapp
   }
   
   # Convert to string if v_id is a factor
   if (is.factor(dataset[[v_id]])) dataset[[v_id]] <- as.character(dataset[[v_id]])
   
-  group_date <- group[group %in% c("year", "month", "week")]
-  facet_date <- facet_by[facet_by %in% c("year", "month", "week")]
-  facet_no_date <- facet_by[!(facet_by %in% c("year", "month", "week"))]
-  group_no_date <- group[!(group %in% c("year", "month", "week"))]
+  pers <- c("year", "month", "week")
+  group_date <- group[group %in% pers]
+  facet_date <- facet_by[facet_by %in% pers]
+  facet_no_date <- facet_by[!facet_by %in% pers]
+  group_no_date <- group[!group %in% pers]
+  
+  column_check(dataset, cols = c(v_id, date, group_no_date, sub_date, filter_by,
+                                 facet_no_date))
   
   # date ----
   # convert date and/or sub_date to date class
@@ -117,438 +120,371 @@ vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group =
   
   # sub_date ----
   # check if sub_date is needed
-  if (!is.null(filter_date)) {
-    if (is.null(sub_date)) {
-      if (!is.null(date)) {
-        sub_date <- date
-      } else {
-        warning("Argument 'sub_date' required when subsetting by date.")
-        end <- TRUE
-      }
-    }
-  }
-  
-  if (!is.null(facet_by)) {
-    if (any(facet_by %in% c("year", "month", "week"))) {
-      if (is.null(sub_date)) {
-        if (!is.null(date)) {
-          sub_date <- date
-        } else {
-          warning("Spliting by a function-created date variable ('year', ",
-                  "'month', or 'week') requires a date variable.")
-          end <- TRUE
-        }
-      }
-    } 
-  }
-  
-  if (!is.null(group)) {
-    if (any(group %in% c("year", "month", "week"))) {
-      if (is.null(sub_date)) {
-        if (!is.null(date)) {
-          sub_date <- date
-        } else {
-          warning("Grouping by a function-created date variable ('year', ",
-                  "'month', or 'week') requires a date variable.")
-          end <- TRUE
-        }
-      }
-    } 
-  }
+  sub_date <- sub_date_check(sub_date, date, filter_date, group, facet_by)
   
   # filter date ----
   if (!is.null(filter_date)) {
     
     if (is.null(date_value)) {
       
-      warning("'date_value' must be provided.")
-      end <- TRUE
+      stop("'date_value' must be provided.", call. = FALSE)
     }
     
     dataset <- subset_date(dataset, sub_date, filter_date, date_value)
-    
-    if (nrow(dataset) == 0) {
-      
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      end <- TRUE
-    }
   }
- 
+  
   # filter by variable ----
   if (!is.null(filter_by) | !is.null(filter_expr)) {
     
     dataset <- subset_var(dataset, filter_by, filter_value, filter_expr)
-    
-    if (nrow(dataset) == 0) {
-      
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      end <- TRUE
-    }
   }
   
+  # add missing values----
+  dataset <- expand_data(dataset, project, date = date, value = v_id, 
+                               period = period, group = group_no_date, 
+                               facet_by = facet_no_date, fun = "count")
+  
   # period ----
-  if (!is.null(period)) {
+  p <- period_check(period, date)
+  
+  # create period column
+  if (!is.null(period) && period != "cal_date") {
     
-    if (is.null(date)) warning("Please enter a date variable.")
+    dataset[[period]] <- format(dataset[[date]], p)
+  }
+  
+  # facet/group date ----
+  # change name to create_period?
+  dataset <- facet_period(dataset, facet_date = unique(c(facet_date, group_date)),
+                          date = sub_date, period = period)
+  
+  # group ----
+  if (!is.null(group)) {
     
-    periods <- c("year_month", "month_year", "year", "month", "week", 
-                 "weekday", "day_of_month", "day_of_year", "cal_date")
-    
-    if (period %in% periods == FALSE) {
+    if (combine == TRUE & length(group) > 1) { 
       
-      warning("Invalid period. Please select a valid period name (see documentation for details).")
-      end <- TRUE
+      dataset <- ID_var(dataset, project = project, vars = group, type = "string",
+                        log_fun = FALSE)
+      group <- gsub(" ", "", paste(group, collapse = "_"))
+      group1 <- group
+      group2 <- NULL
       
     } else {
       
-      p <- switch(period, year_month = "%Y-%m", month_year = "%Y-%m", year = "%Y",
-                  month = "%b", week = "%U", weekday = "%a", day_of_month = "%d", 
-                  day_of_year = "%j", cal_date = NULL)
+      dataset[group] <- lapply(dataset[group], as.factor)
+      group1 <- group[1]
+    }
+    
+    if (length(group) == 1) group2 <- NULL else group2 <- group[2]
+    
+    if (length(group) > 2) {
+      
+      warning("Only the first two grouping variables will be displayed in plot.")
     }
   }
   
-  if (end == FALSE) {
-    # add missing ----
-    dataset <- add_missing_dates(dataset, project, date = date, value = v_id, 
-                                 sub_date = sub_date, group = group_no_date, 
-                                 facet_by = facet_no_date, fun = "count")
+  # summary table ----
+  agg_grp <- unique(c(group, facet_by, facet_date))
   
-      if (!is.null(period)) {
-        if (period != "cal_date") {
-          dataset[[period]] <- format(dataset[[date]], p)
-        }
-      }
+  if (!is.null(period)) {
     
-    # facet/group date ----
-    dataset <- facet_period(dataset, facet_date = unique(c(facet_date, group_date)),
-                            date = sub_date, period = period)
+    if (period == "cal_date") period <- date
+  }
   
-    # group ----
-    if (!is.null(group)) {
-      
-      if (combine == TRUE & length(group) > 1) { 
+  if (value == "percent") fun <- "percent"
+  else fun <- NULL
+  
+  table_out <- agg_helper(dataset, value = v_id, period = period, group = agg_grp,
+                           fun = function(x) dplyr::n_distinct(x, na.rm = TRUE), 
+                           count = FALSE)
+  
+  if (value == "percent") {
+    
+    v_id_perc <- paste0(v_id, "_perc")
+    
+    table_out <- table_out %>% 
+      dplyr::mutate(dplyr::across(dplyr::all_of(v_id), .fns = ~.x/sum(.x) * 100, 
+                                  .names = ".{col}_perc"))
+  }
+  
+  # convert period to factor
+  if (!is.null(period)) {
+    
+    if (!is.null(p)) {# if period != "cal_date"
+      if (p %in% c("%Y-%m", "%a", "%b")) {
         
-        dataset <- ID_var(dataset, project = project, vars = group, type = "string",
-                          log_fun = FALSE)
-        group <- gsub(" ", "", paste(group, collapse = "_"))
-        group1 <- group
-        group2 <- NULL
+        table_out <- date_factorize(table_out, period, p)
         
       } else {
         
-        dataset[group] <- lapply(dataset[group], as.factor)
-        group1 <- group[1]
+        table_out[[period]] <- as.integer(table_out[[period]])
       }
+    }
+    # reorder table by period
+    table_out <- table_out[order(table_out[[period]]), ]
+  }
   
-      if (length(group) == 1) group2 <- NULL else group2 <- group[2]
+  # order group1 by value
+  if (!is.null(group)) {
+    
+    rev <- position == "dodge"
+    or_nm <- ifelse(value == "percent", v_id_perc, v_id)
+    table_out <- order_factor(table_out, group1, or_nm, rev = rev)
+  }
+  
+  row.names(table_out) <- 1:nrow(table_out)
+  
+  # confidentiality check ----
+  if (run_confid_check(project)) {
+    
+    cc_par <- get_confid_check(project)
+    
+    if (cc_par$rule == "n") {
+      # suppression index
+      sup_ind <- table_out[[v_id]] > 0 & table_out[[v_id]] < cc_par$value
       
-      if (length(group) > 2) {
+      if (sum(sup_ind) > 0) {
         
-        warning("Only the first two grouping variables will be displayed in plot.")
+        cache_check_table(table_out[sup_ind, c(period, agg_grp)], project)
+        table_out_c <- table_out
+        table_out_c[sup_ind, v_id] <- -999
+        save_table(table_out_c, project, "vessel_count_confid")
+      }
+    }
+  }
+  
+  # plot ----
+  if (output %in% c("plot", "tab_plot")) {
+    
+    f_vessel <- function() {
+      if (value == "percent") rlang::sym(v_id_perc)
+      else rlang::sym(v_id)
+    }
+    
+    # plot functions ----
+    vessel_exp <- function() {
+      if (tran == "sqrt") rlang::expr(sqrt(!!f_vessel()))
+      else f_vessel()
+    }
+    
+    xaxis_exp <- function() {
+      if (!is.null(period)) rlang::sym(period)
+      
+      else { 
+        if (!is.null(group)) rlang::sym(group1) 
+        else v_id
       }
     }
     
-    # summary table ----
-    agg_grp <- c(group, facet_by, facet_date)
+    group1_exp <- function() if (!is.null(group)) rlang::sym(group1) else NULL
+    group2_exp <- function() if (length(group) > 1) rlang::sym(group2) else NULL
     
     if (!is.null(period)) {
       
-      if (period == "cal_date") period <- date
+      interaction_exp <- function() {
+        if (is.null(group)) 1
+        else if (!is.null(group) & length(group) == 1) group1_exp()
+        else if (length(group) > 1) {
+          rlang::expr(interaction(!!group1_exp(), !!group2_exp())) 
+        }
+      }
+      
+      color_exp <- function() {
+        if (is.null(group)) NULL
+        else if (!is.null(group)) group1_exp()
+      }
+      
+      linetype_exp <- function() {
+        if (is.null(group) | !is.null(group) & length(group) == 1) NULL
+        else if (!is.null(group) & length(group) > 1) group2_exp()
+      }
+      
+    } else {
+      
+      interaction_exp <- function() {
+        if (is.null(group))  NULL
+        else if (!is.null(group) & length(group) == 1) 1
+        else if (length(group) > 1) group2_exp()
+      }
+      
+      color_exp <- function() {
+        if (is.null(group) | !is.null(group) & length(group) == 1) NULL
+        else if (!is.null(group) & length(group) > 1) group2_exp()
+      }
+      
+      linetype_exp <- function() NULL
     }
     
-    table_out <- agg_helper(dataset, value = v_id, period = period, group = agg_grp, 
-                            fun = function(x) length(unique(x[!is.na(x)])))
-    
-    if (value == "percent") {
+    x_lab <- function() {
       
-      v_id_perc <- paste0(v_id, "perc")
-      table_out[[v_id_perc]] <- (table_out[[v_id]]/sum(table_out[[v_id]])) * 100
+      if (!is.null(period)) {
+        
+        p_lab <- switch(period, "year_month" = "year-month", "month_year" = "month-year",
+                        "year" = "year", "month" = "month", "week" = "week", "day_of_month" = "day of the month",
+                        "day_of_year" = "day of the year")
+        
+        if (period != date) paste0(date, " (", p_lab, ")")
+        else date
+        
+      } else if (is.null(group)) NULL
+      else rlang::as_string(xaxis_exp())
     }
     
-    # convert period to factor
-    if (!is.null(period)) {
+    y_lab <- function() {
       
-      if (!is.null(p)) {# if period != "cal_date"
-        if (p %in% c("%Y-%m", "%a", "%b")) {
+      paste("active vessels", ifelse(tran != "identity", paste0("(", tran, " scale)"), ""))
+    }
+    
+    point_size <- function() {
+      
+      if (!is.null(period)) {
+        if (is.null(p)) .5
+        else if (period == "week") 1
+        else 2
+        
+      } else 2
+    }
+    
+    f_label <- function() {
+      if (format_lab == "decimal") scales::label_number(big.mark = ",")
+      else scales::label_scientific()
+    }
+    
+    y_labeller <- function() { 
+      
+      if (value == "percent") {
+        
+        if (tran == "sqrt") function(x) paste0(x^2, "%")
+        else scales::label_percent(scale = 1) 
+        
+      } else {
+        
+        if (tran == "sqrt") {
           
-          table_out <- date_factorize(table_out, period, p)
+          function(x) format(x^2, scientific = format_lab == "scientific")
+          
+        } else f_label()
+      }
+    }
+    
+    y_breaks <- function() {
+      if (tran != "identity") {
+        
+        brk_num <- nchar(trunc(max(dataset[[v_id]], na.rm = TRUE)))
+        brk_num <- ifelse(length(brk_num) < 5, 5, brk_num)
+        
+        if (tran %in% c("log", "log2", "log10")) {
+          
+          y_base <- switch(tran, "log" = exp(1), "log2" = 2, "log10" = 10)
+          
+          scales::log_breaks(n = brk_num, base = y_base)
           
         } else {
           
-          table_out[[period]] <- as.integer(table_out[[period]])
+          scales::breaks_extended(n = brk_num + 2)
+        }
+        
+      } else ggplot2::waiver()
+    }
+    
+    f_tran <- function() {
+      
+      if (tran == "sqrt") "identity"
+      else tran
+    } 
+    
+    v_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = !!xaxis_exp(), 
+                                                             y = !!vessel_exp())) +
+      fishset_theme() +
+      ggplot2::theme(legend.position = "bottom") +
+      ggplot2::scale_y_continuous(labels = y_labeller(), 
+                                  trans = f_tran(), 
+                                  breaks = y_breaks())
+    
+    if (type == "bar") {
+      
+      if (position == "dodge") position <- ggplot2::position_dodge2(preserve = "single")
+      
+      v_plot <- v_plot + ggplot2::geom_col(ggplot2::aes(fill = !!color_exp()), 
+                                           position = position)
+      
+      position <- ifelse(class(position)[1] == "PositionDodge2", "dodge", position)
+      
+    } else if (type == "line") {
+      
+      v_plot <- v_plot + ggplot2::geom_line(ggplot2::aes(group = !!interaction_exp(), 
+                                                         color = !!color_exp(), 
+                                                         linetype = !!linetype_exp())) +
+        ggplot2::geom_point(ggplot2::aes(group = !!interaction_exp(), 
+                                         color = !!color_exp()), size = point_size())
+    }
+    
+    if (!is.null(facet_by)) {
+      
+      if (length(facet_by) == 1) fm <- stats::reformulate(".", facet_by)
+      else if (length(facet_by) == 2) fm <- paste(facet_by, sep = " ~ ")
+      
+      if (is.null(period)) {
+        v_plot <- v_plot + ggplot2::facet_wrap(fm, scales = scale)
+      } else {
+        v_plot <- v_plot + ggplot2::facet_grid(fm, scales = scale)
+      }
+    }
+    # add labels 
+    v_plot <- v_plot + ggplot2::labs(x = x_lab(), y = y_lab())
+    
+    if (!is.null(period)) {
+      # adjust x-axis breaks 
+      if (!is.null(p)) {
+        if (!(p %in% c("%a", "%b", "%Y-%m"))) {
+          
+          v_plot <- v_plot + ggplot2::scale_x_continuous(breaks = num_breaks(table_out[[period]]))
+          
+        } else if (period == "month_year") {
+          
+          d_labs <- levels(table_out$month_year)
+          d_labs <- format(as.Date(paste0(d_labs, "-01")), "%b %y")
+          v_plot <- v_plot + ggplot2::scale_x_discrete(labels = d_labs)
         }
       }
-      # reorder table by period
-      table_out <- table_out[order(table_out[[period]]), ]
     }
     
-    # order group1 by value
-    if (!is.null(group)) {
-      
-      rev <- ifelse(position == "dodge", TRUE, FALSE)
-      or_nm <- ifelse(value == "percent", v_id_perc, v_id)
-      table_out <- order_factor(table_out, group1, or_nm, rev = rev)
-    }
+    save_plot(project, "vessel_count", v_plot)
     
-    row.names(table_out) <- 1:nrow(table_out)
-    
-    # confidentiality check ----
     if (run_confid_check(project)) {
       
-      cc_par <- get_confid_check(project)
-      
-      if (cc_par$rule == "n") {
+      if (exists("table_out_c")) {
         
-        check_out <- table_out
-        check_out <- check_out[check_out[[v_id]] > 0, ] # filter for non-zero counts
-        ind <- check_out[[v_id]] < cc_par$value # index of rows to suppress
-        
-        if (sum(ind) > 0) {
-          
-          check_out <- check_out[ind, ]
-          cache_check_table(check_out[c(period, agg_grp)], project)
-          check_out[ind, v_id] <- -999
-          save_table(check_out, project, "vessel_count_confid")
-        }
+        v_plot_c <- v_plot
+        v_plot_c$data <- replace_sup_code(table_out_c)
+        save_plot(project, "vessel_count_confid", plot = v_plot_c)
       }
     }
-    
-    # plot ----
-    if (output %in% c("plot", "tab_plot")) {
-      
-      f_vessel <- function() {
-        if (value == "percent") rlang::sym(v_id_perc)
-        else rlang::sym(v_id)
-      }
-      
-      # plot functions ----
-      vessel_exp <- function() {
-        if (tran == "sqrt") rlang::expr(sqrt(!!f_vessel()))
-        else f_vessel()
-      }
-      
-      xaxis_exp <- function() {
-        if (!is.null(period)) rlang::sym(period)
-          
-        else { 
-          if (!is.null(group)) rlang::sym(group1) 
-          else v_id
-        }
-      }
-      
-      group1_exp <- function() if (!is.null(group)) rlang::sym(group1) else NULL
-      group2_exp <- function() if (length(group) > 1) rlang::sym(group2) else NULL
-      
-      if (!is.null(period)) {
-        
-        interaction_exp <- function() {
-          if (is.null(group)) 1
-          else if (!is.null(group) & length(group) == 1) group1_exp()
-          else if (length(group) > 1) {
-            rlang::expr(interaction(!!group1_exp(), !!group2_exp())) 
-          }
-        }
-        
-        color_exp <- function() {
-          if (is.null(group)) NULL
-          else if (!is.null(group)) group1_exp()
-        }
-        
-        linetype_exp <- function() {
-          if (is.null(group) | !is.null(group) & length(group) == 1) NULL
-          else if (!is.null(group) & length(group) > 1) group2_exp()
-        }
-        
-      } else {
-        
-        interaction_exp <- function() {
-          if (is.null(group))  NULL
-          else if (!is.null(group) & length(group) == 1) 1
-          else if (length(group) > 1) group2_exp()
-        }
-        
-        color_exp <- function() {
-          if (is.null(group) | !is.null(group) & length(group) == 1) NULL
-          else if (!is.null(group) & length(group) > 1) group2_exp()
-        }
-        
-        linetype_exp <- function() NULL
-      }
-      
-      x_lab <- function() {
-        
-        if (!is.null(period)) {
-          
-          p_lab <- switch(period, "year_month" = "year-month", "month_year" = "month-year",
-          "year" = "year", "month" = "month", "week" = "week", "day_of_month" = "day of the month",
-          "day_of_year" = "day of the year")
-        
-          if (period != date) paste0(date, " (", p_lab, ")")
-          else date
-      
-        } else if (is.null(group)) NULL
-        else rlang::as_string(xaxis_exp())
-      }
-      
-      y_lab <- function() {
-        
-        paste("active vessels", ifelse(tran != "identity", paste0("(", tran, " scale)"), ""))
-      }
-      
-      point_size <- function() {
-        
-        if (!is.null(period)) {
-          if (is.null(p)) .5
-          else if (period == "week") 1
-          else 2
-          
-        } else 2
-      }
-      
-      f_label <- function() {
-        if (format_lab == "decimal") scales::label_number(big.mark = ",")
-        else scales::label_scientific()
-      }
-      
-      y_labeller <- function() { 
-        
-        if (value == "percent") {
-          
-          if (tran == "sqrt") function(x) paste0(x^2, "%")
-          else scales::label_percent(scale = 1) 
-          
-        } else {
-          
-          if (tran == "sqrt") {
-            
-            function(x) format(x^2, scientific = format_lab == "scientific")
-            
-          } else f_label()
-        }
-      }
-     
-      y_breaks <- function() {
-        if (tran != "identity") {
-          
-          brk_num <- nchar(trunc(max(dataset[[v_id]], na.rm = TRUE)))
-          brk_num <- ifelse(length(brk_num) < 5, 5, brk_num)
-          
-          if (tran %in% c("log", "log2", "log10")) {
-            
-            y_base <- switch(tran, "log" = exp(1), "log2" = 2, "log10" = 10)
-            
-            scales::log_breaks(n = brk_num, base = y_base)
-            
-          } else {
-            
-            scales::breaks_extended(n = brk_num + 2)
-          }
-          
-        } else ggplot2::waiver()
-      }
-      
-      f_tran <- function() {
-        
-        if (tran == "sqrt") "identity"
-        else tran
-      } 
-      
-      v_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = !!xaxis_exp(), 
-                                                               y = !!vessel_exp())) +
-        fishset_theme() +
-        ggplot2::theme(legend.position = "bottom") +
-        ggplot2::scale_y_continuous(labels = y_labeller(), 
-                                    trans = f_tran(), 
-                                    breaks = y_breaks())
-      
-      if (type == "bar") {
-        
-        if (position == "dodge") position <- ggplot2::position_dodge2(preserve = "single")
-        
-        v_plot <- v_plot + ggplot2::geom_col(ggplot2::aes(fill = !!color_exp()), 
-                                             position = position)
-        
-        position <- ifelse(class(position)[1] == "PositionDodge2", "dodge", position)
-        
-      } else if (type == "line") {
-        
-        v_plot <- v_plot + ggplot2::geom_line(ggplot2::aes(group = !!interaction_exp(), 
-                                                           color = !!color_exp(), 
-                                                           linetype = !!linetype_exp())) +
-          ggplot2::geom_point(ggplot2::aes(group = !!interaction_exp(), 
-                                           color = !!color_exp()), size = point_size())
-      }
-      
-      if (!is.null(facet_by)) {
-        
-        if (length(facet_by) == 1) fm <- stats::reformulate(".", facet_by)
-        else if (length(facet_by) == 2) fm <- paste(facet_by, sep = " ~ ")
-      
-        if (is.null(period)) {
-          v_plot <- v_plot + ggplot2::facet_wrap(fm, scales = scale)
-        } else {
-        v_plot <- v_plot + ggplot2::facet_grid(fm, scales = scale)
-        }
-      }
-      # add labels 
-      v_plot <- v_plot + ggplot2::labs(x = x_lab(), y = y_lab())
-      
-      if (!is.null(period)) {
-        # adjust x-axis breaks 
-        if (!is.null(p)) {
-          if (!(p %in% c("%a", "%b", "%Y-%m"))) {
-            
-            v_plot <- v_plot + ggplot2::scale_x_continuous(breaks = num_breaks(table_out[[period]]))
-            
-          } else if (period == "month_year") {
-            
-            d_labs <- levels(table_out$month_year)
-            d_labs <- format(as.Date(paste0(d_labs, "-01")), "%b %y")
-            v_plot <- v_plot + ggplot2::scale_x_discrete(labels = d_labs)
-          }
-        }
-      }
-      
-      save_plot(project, "vessel_count", v_plot)
-      
-      if (run_confid_check(project)) {
-        
-        if (exists("check_out")) {
-          
-          conf_plot <- v_plot
-          conf_plot$data <- replace_sup_code(check_out)
-          save_plot(project, "vessel_count_confid", plot = conf_plot)
-        }
-      }
+  }
+  
+  if (!is.null(period)) {
+    if (period == "month_year") {
+      table_out$month_year <- format(as.Date(paste0(table_out$month_year, "-01")), "%b %y")
     }
+  }
+  # Log function
+  vessel_count_function <- list()
+  vessel_count_function$functionID <- "vessel_count"
+  vessel_count_function$args <- 
+    list(dat, project, v_id, date, period, group, sub_date, filter_date,
+         date_value, filter_by, filter_value, filter_expr, facet_by, 
+         combine, position, tran, format_lab, value, type, scale, output)
+  log_call(project, vessel_count_function)
+  
+  # Output folder
+  save_table(table_out, project, "vessel_count")
+  
+  if (output == "table") table_out
+  else if (output == "plot") v_plot
+  else {
     
-    if (!is.null(period)) {
-      if (period == "month_year") {
-        table_out$month_year <- format(as.Date(paste0(table_out$month_year, "-01")), "%b %y")
-      }
-    }
-    # Log function
-    vessel_count_function <- list()
-    vessel_count_function$functionID <- "vessel_count"
-    vessel_count_function$args <- 
-      list(dat, project, v_id, date, period, group, sub_date, filter_date,
-           date_value, filter_by, filter_value, filter_expr, facet_by, 
-           combine, position, tran, format_lab, value, type, scale, output)
-    log_call(project, vessel_count_function)
-    
-    # Output folder
-    save_table(table_out, project, "vessel_count")
-    
-    if (output == "table") table_out
-      
-    else if (output == "plot") v_plot
-      
-    else {
-      
-      out_list <- list(table = table_out,
-                       plot = v_plot)
-      out_list
-    }
+    out_list <- list(table = table_out, plot = v_plot)
+    out_list
   }
 }
 

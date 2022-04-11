@@ -98,33 +98,22 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
-  week <- sym("week")
-  end <- FALSE 
   
-  not_num <- vapply(dataset[cpue], function(x) !is.numeric(x), logical(1))
   
-  if (any(not_num)) {
-    
-    warning("'cpue' must be numeric.")
-    end <- TRUE
-  }
+  pers <- c("year", "month", "week")
+  group_date <- group[group %in% pers]
+  facet_date <- facet_by[facet_by %in% pers]
+  facet_no_date <- facet_by[!(facet_by %in% pers)]
+  group_no_date <- group[!(group %in% pers)]
+  facet_check <- facet_no_date[!facet_no_date %in% "species"]
   
-  group_date <- group[group %in% c("year", "month", "week")]
-  facet_date <- facet_by[facet_by %in% c("year", "month", "week")]
-  facet_no_date <- facet_by[!(facet_by %in% c("year", "month", "week"))]
-  group_no_date <- group[!(group %in% c("year", "month", "week"))]
+  column_check(dataset, cols = c(cpue, date, group_no_date, sub_date, filter_by,
+                                 facet_check))
+  week <- rlang::sym("week")
   
-  # filter by variable ----
-  if (!is.null(filter_by) | !is.null(filter_expr)) {
-    
-    dataset <- subset_var(dataset, filter_by, filter_value, filter_expr)
-    
-    if (nrow(dataset) == 0) {
-      
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      end <- TRUE
-    }
-  }
+  num <- qaqc_helper(dataset[cpue], is.numeric)
+  
+  if (!all(num)) stop("Argument 'cpue' must be numeric.", call. = FALSE)
   
   # date ----
   # convert date and/or sub_date to date class
@@ -136,391 +125,340 @@ weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NUL
   
   # sub_date ----
   # check if sub_date is needed
+  sub_date <- sub_date_check(sub_date, date, filter_date, group, facet_by)
+  
+  # filter date ----
   if (!is.null(filter_date)) {
-    if (is.null(sub_date)) {
-      if (!is.null(date)) {
-        sub_date <- date
-      } else {
-        warning("Argument 'sub_date' required when subsetting by date.")
-        end <- TRUE
-      }
-    }
-  }
-  
-  if (!is.null(facet_by)) {
-    if (any(facet_by %in% c("year", "month", "week"))) {
-      if (is.null(sub_date)) {
-        if (!is.null(date)) {
-          sub_date <- date
-        } else {
-          warning("Splitting by a function-created date variable ('year', ",
-                  "'month', or 'week') requires a date variable.")
-          end <- TRUE
-        }
-      }
-    } 
-  }
-  
-  if (!is.null(group)) {
-    if (any(group %in% c("year", "month", "week"))) {
-      if (is.null(sub_date)) {
-        if (!is.null(date)) {
-          sub_date <- date
-        } else {
-          warning("Grouping by a function-created date variable ('year', ",
-                  "'month', or 'week') requires a date variable.")
-          end <- TRUE
-        }
-      }
-    } 
-  }
-  
-  # date filter ----
-  if (!is.null(filter_date)) {
-    
     
     if (is.null(date_value)) {
       
-      warning("'date_value' must be provided.")
-      end <- TRUE
+      stop("'date_value' must be provided.", call. = FALSE)
     }
     
     dataset <- subset_date(dataset, sub_date, filter_date, date_value)
+  }
+  
+  # filter by variable ----
+  if (!is.null(filter_by) | !is.null(filter_expr)) {
     
-    if (nrow(dataset) == 0) {
+    dataset <- subset_var(dataset, filter_by, filter_value, filter_expr)
+  }
+
+  # add missing ---- 
+  if ("species" %in% facet_by) {
+    
+    facet <- facet_no_date[facet_no_date != "species"]
+    
+    if (length(facet) == 0) facet <- NULL
+  
+  } else facet <- facet_by
+  
+  dataset <- expand_data(dataset, project, date = date, period = "week",
+                               value = cpue, group = group_no_date, 
+                               facet_by = facet, fun = "sum")
+  
+  # add year and week columns
+  dataset$year <- as.integer(format(dataset[[date]], "%Y"))
+  dataset$week <- as.integer(format(dataset[[date]], "%U"))
+  
+  # facet date ----
+  if (!is.null(facet_date)) {
+    
+    if ("month" %in% facet_date) {
       
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      end <- TRUE
+      dataset$month <- factor(format(dataset[[sub_date]], "%b"), levels = month.abb, 
+                              ordered = TRUE)
     }
   }
   
-  if (end == FALSE) {
+  # group date ----
+  if (length(group_date) > 0) {
     
-    # add missing ---- 
-    if ("species" %in% facet_by) {
+    if ("month" %in% group_date & !("month" %in% facet_date)) {
+      dataset$month <- factor(format(dataset[[sub_date]], "%b"), levels = month.abb, 
+                              ordered = TRUE)
+    }
+  }
+  
+  # group ----
+  if (!is.null(group)) {
+    
+    if (combine == TRUE & length(group) > 1) { 
       
-      facet <- facet_no_date[facet_no_date != "species"]
+      dataset <- ID_var(dataset, project = project, vars = group, type = "string",
+                        log_fun = FALSE)
+      group <- gsub(" ", "", paste(group, collapse = "_"))
+      group1 <- group
+      group2 <- NULL
       
-      if (length(facet) == 0) {
-        facet <- NULL
-      }
     } else {
       
-      facet <- facet_by
+      dataset[group] <- lapply(dataset[group], as.factor)
+      group1 <- group[1]
     }
     
-    dataset <- add_missing_dates(dataset, project, date = date, sub_date = sub_date, 
-                                 value = cpue, group = group_no_date, 
-                                 facet_by = facet)
+    if (length(group) == 1) group2 <- NULL else group2 <- group[2]
     
-    # add year and week columns
-    dataset$year <- as.integer(format(dataset[[date]], "%Y"))
-    dataset$week <- as.integer(format(dataset[[date]], "%U"))
-    
-    # facet date ----
-    if (!is.null(facet_date)) {
+    if (length(group) > 2) {
       
-      if ("month" %in% facet_date) {
+      warning("Only the first two grouping variables will be displayed in plot.")
+    }
+  }
+
+  # summary table ----
+  agg_grp <- c(group, facet, facet_date)
+  
+  table_out <- agg_helper(dataset, value = cpue, period = c("year", "week"), 
+                          group = agg_grp, fun = mean, count = FALSE)
+  
+  if (length(cpue) > 1) {
+    
+    table_out <- tidyr::pivot_longer(table_out, cols = !!cpue, names_to = "species", 
+                                     values_to = "mean_cpue")
+  }
+  
+  f_cpue <- function() if (length(cpue) == 1) cpue else "mean_cpue"
+  
+  # weight conversion
+  if (conv != "none") {
+    
+    if (conv == "tons") table_out[f_cpue()] <- table_out[f_cpue()]/2000
+    
+    else if (conv == "metric_tons") {
+      
+      table_out[f_cpue()] <- table_out[f_cpue()]/2204.62
+      
+    } else if (is.function(conv)) {
+      
+      table_out[f_cpue()] <- do.call(conv, list(table_out[f_cpue()]))
+    }
+  }
+  
+  # Confidentiality checks ----
+  if (run_confid_check(project)) {
+    
+    cc_par <- get_confid_check(project)
+    
+    if (cc_par$rule == "n") {
+      
+      check_out <- 
+        check_confidentiality(dataset = dataset, project, cc_par$v_id, value_var = cpue, 
+                              rule = "n", group = c("year", "week", agg_grp), 
+                              value = cc_par$value, names_to = "species", 
+                              values_to = "mean_cpue")
+      
+      if (any(check_out$suppress)) {
         
-        dataset$month <- factor(format(dataset[[sub_date]], "%b"), levels = month.abb, 
-                                ordered = TRUE)
+        table_out_c <-
+          suppress_table(check_out$table, table_out, value_var = f_cpue(),
+                         group = c("year", "week", agg_grp), rule = cc_par$rule,
+                         type = "code")
+        save_table(table_out_c, project, "weekly_effort_confid")
       }
     }
+  }
+  
+  # plot section ----
+  if (output %in% c("plot", "tab_plot")) {
     
-    # group date ----
-    if (length(group_date) > 0) {
-      
-      if ("month" %in% group_date & !("month" %in% facet_date)) {
-        dataset$month <- factor(format(dataset[[sub_date]], "%b"), levels = month.abb, 
-                                ordered = TRUE)
-      }
-    }
+    # plot functions ----
     
-    # group ----
+    cpue_sym <- rlang::sym(f_cpue())
+    
+    if (length(cpue) > 1) species_sym <- rlang::sym("species")
+    
     if (!is.null(group)) {
       
-      if (combine == TRUE & length(group) > 1) { 
-        
-        dataset <- ID_var(dataset, project = project, vars = group, type = "string",
-                          log_fun = FALSE)
-        group <- gsub(" ", "", paste(group, collapse = "_"))
-        group1 <- group
-        group2 <- NULL
-        
-      } else {
-        
-        dataset[group] <- lapply(dataset[group], as.factor)
-        group1 <- group[1]
-      }
-      
-      if (length(group) == 1) group2 <- NULL else group2 <- group[2]
-      
-      if (length(group) > 2) {
-        
-        warning("Only the first two grouping variables will be displayed in plot.")
-      }
-    }
-
-    # summary table ----
-    agg_grp <- c(group, facet, facet_date)
-    
-    table_out <- agg_helper(dataset, value = cpue, period = c("year", "week"), 
-                            group = agg_grp, fun = mean)
-    
-    if (length(cpue) > 1) {
-      
-      table_out <- tidyr::pivot_longer(table_out, cols = !!cpue, names_to = "species", 
-                                       values_to = "mean_cpue")
+      group1_sym <- rlang::sym(group1)
+      if (length(group) > 1) group2_sym <- rlang::sym(group2)
     }
     
-    f_cpue <- function() if (length(cpue) == 1) cpue else "mean_cpue"
+    cpue_exp <- function() {
+        
+        if (tran == "sqrt") rlang::expr(sqrt(!!cpue_sym))
+        else cpue_sym 
+    }
     
-    # weight conversion
-    if (conv != "none") {
-      
-      if (conv == "tons") table_out[f_cpue()] <- table_out[f_cpue()]/2000
-      
-      else if (conv == "metric_tons") {
+    interaction_exp <- function() {
+      if (length(cpue) == 1) {
+        if (is.null(group)) 1
+          
+        else {
+          if (length(group) == 1) group1_sym
+            
+          else if (length(group) > 1) {
+            rlang::expr(interaction(!!group1_sym, !!group2_sym))
+          }
+        }
         
-        table_out[f_cpue()] <- table_out[f_cpue()]/2204.62
-        
-      } else if (is.function(conv)) {
-        
-        table_out[f_cpue()] <- do.call(conv, list(table_out[f_cpue()]))
+      } else if (length(cpue) > 1) {
+        if (is.null(group)) species_sym
+          
+        else if (length(group) == 1) {
+          rlang::expr(interaction(!!species_sym, !!group1_sym))
+          
+        } else if (length(group) > 1) {
+          rlang::expr(interaction(!!species_sym, !!group1_sym, !!group2_sym))
+        }
       }
     }
     
-    # Confidentiality checks ----
+    color_exp <- function() {
+      
+      if (length(cpue) == 1) {
+        if (!is.null(group)) group1_sym
+        else NULL
+        
+      } else if (length(cpue) > 1) species_sym
+    }
+    
+    linetype_exp <- function() {
+      
+      if (length(cpue) == 1) {
+        if (length(group) > 1) group2_sym
+        else NULL
+        
+      } else if (length(cpue) > 1) {
+        if (!is.null(group)) group1_sym
+        else NULL
+      }
+    }
+    
+    x_lab <- function() paste0(date, " (week)")
+    y_lab <- function() {
+      paste("mean", ifelse(length(cpue) == 1, cpue, "CPUE"), 
+            ifelse(tran == "identity", "", paste0("(", tran, ")")))
+    }
+    
+    y_lab <- function() {
+      
+      var <- if (length(cpue) > 1) "CPUE" else f_cpue()
+      
+      f_conv <- function() {
+        
+        if (conv != "none") {
+          
+          c_lab <- switch(conv, "tons" = "T", "metric_tons" = "MT", "")
+          
+          paste0("(", c_lab, ")")
+          
+        } else NULL
+      } 
+      
+      f_tran <- if (tran != "identity") paste(tran, "scale") else NULL
+      
+      paste("mean", var, f_conv(), f_tran)
+    }
+    
+    y_breaks <- function() {
+      if (tran != "identity") {
+        
+        brk_num <- nchar(trunc(max(dataset[[f_cpue()]], na.rm = TRUE)))
+        brk_num <- ifelse(length(brk_num) < 5, 5, brk_num)
+        
+        if (tran %in% c("log", "log2", "log10")) {
+          
+          y_base <- switch(tran, "log" = exp(1), "log2" = 2, "log10" = 10)
+          
+          scales::log_breaks(n = brk_num, base = y_base)
+        
+        } else {
+          
+          scales::breaks_extended(n = brk_num + 2)
+        }
+        
+      } else ggplot2::waiver()
+    }
+    
+    f_label <- function() {
+      if (format_lab == "decimal") scales::label_number(big.mark = ",")
+      else scales::label_scientific()
+    }
+    
+    y_labeller <- function() {
+      
+      if (tran == "sqrt") {
+        
+        function(x) format(x^2, scientific = format_lab == "scientific")
+        
+      } else f_label()
+    }
+    
+    f_tran <- function() {
+      
+      if (tran == "sqrt") "identity"
+      else tran
+    }
+    
+    e_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = week, 
+                                                             y = !!cpue_exp())) +
+      ggplot2::geom_line(ggplot2::aes(group = !!interaction_exp(), 
+                                      color = !!color_exp(), 
+                                      linetype = !!linetype_exp())) +
+      ggplot2::geom_point(ggplot2::aes(group = !!interaction_exp(), 
+                                       color = !!color_exp()), size = 1) +
+      ggplot2::scale_y_continuous(trans = f_tran(), breaks = y_breaks(), 
+                                  labels = y_labeller()) +
+      ggplot2::scale_x_continuous(breaks = num_breaks(table_out$week), 
+                                  labels = week_labeller(num_breaks(table_out$week), 
+                                                         year = table_out$year)) +
+      ggplot2::labs(x = x_lab(), y = y_lab()) +
+      ggplot2::theme(legend.position = "bottom") +
+      fishset_theme()
+    
+    if (!is.null(facet_by)) {
+      
+      if (length(facet_by) == 1) fm <- stats::reformulate(".", facet_by)
+        
+      else if (length(facet_by) == 2) fm <- paste(facet_by, sep = " ~ ")
+      
+      e_plot <- e_plot + ggplot2::facet_grid(fm, scales = scale)
+    }
+    # add year/month filtered to subtitle
+    if (!is.null(filter_date)) {
+      
+      e_plot <- date_title(e_plot, filter_date, date_value)
+    }
+    
+    save_plot(project, "weekly_effort", e_plot)
+    
     if (run_confid_check(project)) {
-      
-      cc_par <- get_confid_check(project)
       
       if (cc_par$rule == "n") {
         
-        check_table <- 
-          check_confidentiality(dataset = dataset, project, cc_par$v_id, value_var = cpue, 
-                                rule = "n", group = c("year", "week", agg_grp), 
-                                value = cc_par$value, names_to = "species", 
-                                values_to = "mean_cpue")
-        
-        if (check_table$suppress) {
+        if (any(check_out$suppress)) {
           
-          check_out <- 
-            suppress_table(check_table$table, table_out, value_var = f_cpue(),
-                           group = c("year", "week", agg_grp), rule = cc_par$rule,
-                           type = "code")
-          save_table(check_out, project, "weekly_effort_confid")
+          e_plot_c <- e_plot
+          e_plot_c$data <- replace_sup_code(table_out_c)
+          save_plot(project, "weekly_effort_confid", plot = e_plot_c)
         }
       }
     }
     
-    #if (!is.null(group)) dataset[group] <- lapply(dataset[group], as.factor)
+  }
+  
+  if (length(cpue) > 1 & format_tab == "wide") {
     
-    # plot section ----
-    if (output %in% c("plot", "tab_plot")) {
-      
-      # plot functions ----
-      
-      cpue_sym <- rlang::sym(f_cpue())
-      
-      if (length(cpue) > 1) species_sym <- rlang::sym("species")
-      
-      if (!is.null(group)) {
-        
-        group1_sym <- rlang::sym(group1)
-        if (length(group) > 1) group2_sym <- rlang::sym(group2)
-      }
-      
-      cpue_exp <- function() {
-          
-          if (tran == "sqrt") rlang::expr(sqrt(!!cpue_sym))
-          else cpue_sym 
-      }
-      
-      interaction_exp <- function() {
-        if (length(cpue) == 1) {
-          if (is.null(group)) 1
-            
-          else {
-            if (length(group) == 1) group1_sym
-              
-            else if (length(group) > 1) {
-              rlang::expr(interaction(!!group1_sym, !!group2_sym))
-            }
-          }
-          
-        } else if (length(cpue) > 1) {
-          if (is.null(group)) species_sym
-            
-          else if (length(group) == 1) {
-            rlang::expr(interaction(!!species_sym, !!group1_sym))
-            
-          } else if (length(group) > 1) {
-            rlang::expr(interaction(!!species_sym, !!group1_sym, !!group2_sym))
-          }
-        }
-      }
-      
-      color_exp <- function() {
-        
-        if (length(cpue) == 1) {
-          if (!is.null(group)) group1_sym
-          else NULL
-          
-        } else if (length(cpue) > 1) species_sym
-      }
-      
-      linetype_exp <- function() {
-        
-        if (length(cpue) == 1) {
-          if (length(group) > 1) group2_sym
-          else NULL
-          
-        } else if (length(cpue) > 1) {
-          if (!is.null(group)) group1_sym
-          else NULL
-        }
-      }
-      
-      x_lab <- function() paste0(date, " (week)")
-      y_lab <- function() {
-        paste("mean", ifelse(length(cpue) == 1, cpue, "CPUE"), 
-              ifelse(tran == "identity", "", paste0("(", tran, ")")))
-      }
-      
-      y_lab <- function() {
-        
-        var <- if (length(cpue) > 1) "CPUE" else f_cpue()
-        
-        f_conv <- function() {
-          
-          if (conv != "none") {
-            
-            c_lab <- switch(conv, "tons" = "T", "metric_tons" = "MT", "")
-            
-            paste0("(", c_lab, ")")
-            
-          } else NULL
-        } 
-        
-        f_tran <- if (tran != "identity") paste(tran, "scale") else NULL
-        
-        paste("mean", var, f_conv(), f_tran)
-      }
-      
-      y_breaks <- function() {
-        if (tran != "identity") {
-          
-          brk_num <- nchar(trunc(max(dataset[[f_cpue()]], na.rm = TRUE)))
-          brk_num <- ifelse(length(brk_num) < 5, 5, brk_num)
-          
-          if (tran %in% c("log", "log2", "log10")) {
-            
-            y_base <- switch(tran, "log" = exp(1), "log2" = 2, "log10" = 10)
-            
-            scales::log_breaks(n = brk_num, base = y_base)
-          
-          } else {
-            
-            scales::breaks_extended(n = brk_num + 2)
-          }
-          
-        } else ggplot2::waiver()
-      }
-      
-      f_label <- function() {
-        if (format_lab == "decimal") scales::label_number(big.mark = ",")
-        else scales::label_scientific()
-      }
-      
-      y_labeller <- function() {
-        
-        if (tran == "sqrt") {
-          
-          function(x) format(x^2, scientific = format_lab == "scientific")
-          
-        } else f_label()
-      }
-      
-      f_tran <- function() {
-        
-        if (tran == "sqrt") "identity"
-        else tran
-      }
-      
-      e_plot <- ggplot2::ggplot(data = table_out, ggplot2::aes(x = week, 
-                                                               y = !!cpue_exp())) +
-        ggplot2::geom_line(ggplot2::aes(group = !!interaction_exp(), 
-                                        color = !!color_exp(), 
-                                        linetype = !!linetype_exp())) +
-        ggplot2::geom_point(ggplot2::aes(group = !!interaction_exp(), 
-                                         color = !!color_exp()), size = 1) +
-        ggplot2::scale_y_continuous(trans = f_tran(), breaks = y_breaks(), 
-                                    labels = y_labeller()) +
-        ggplot2::scale_x_continuous(breaks = num_breaks(table_out$week), 
-                                    labels = week_labeller(num_breaks(table_out$week), 
-                                                           year = table_out$year)) +
-        ggplot2::labs(x = x_lab(), y = y_lab()) +
-        ggplot2::theme(legend.position = "bottom") +
-        fishset_theme()
-      
-      if (!is.null(facet_by)) {
-        
-        if (length(facet_by) == 1) fm <- stats::reformulate(".", facet_by)
-          
-        else if (length(facet_by) == 2) fm <- paste(facet_by, sep = " ~ ")
-        
-        e_plot <- e_plot + ggplot2::facet_grid(fm, scales = scale)
-      }
-      # add year/month filtered to subtitle
-      if (!is.null(filter_date)) {
-        
-        e_plot <- date_title(e_plot, filter_date, date_value)
-      }
-      
-      save_plot(project, "weekly_effort", e_plot)
-      
-      if (run_confid_check(project)) {
-        
-        if (cc_par$rule == "n") {
-          
-          if (check_table$suppress) {
-            
-            conf_plot <- e_plot
-            conf_plot$data <- replace_sup_code(check_out)
-            save_plot(project, "weekly_effort_confid", plot = conf_plot)
-          }
-        }
-      }
-      
-    }
+    table_out <- tidyr::pivot_wider(table_out, names_from = "species", 
+                                    values_from = "mean_cpue")
+  }
+  
+  # Log function
+  weekly_effort_function <- list()
+  weekly_effort_function$functionID <- "weekly_effort"
+  weekly_effort_function$args <- 
+    list(dat, project, cpue, date, group, sub_date, filter_date, date_value, 
+         filter_by, filter_value, filter_expr, facet_by, conv, tran, format_lab, 
+         combine, scale, output, format_tab)
+  log_call(project, weekly_effort_function)
+  
+  save_table(table_out, project, "weekly_effort")
+  
+  if (output == "plot") e_plot
+  else if (output == "table") table_out
+  else {
     
-    if (length(cpue) > 1 & format_tab == "wide") {
-      
-      table_out <- tidyr::pivot_wider(table_out, names_from = "species", 
-                                      values_from = "mean_cpue")
-    }
-    
-    # Log function
-    weekly_effort_function <- list()
-    weekly_effort_function$functionID <- "weekly_effort"
-    weekly_effort_function$args <- 
-      list(dat, project, cpue, date, group, sub_date, filter_date, date_value, 
-           filter_by, filter_value, filter_expr, facet_by, conv, tran, format_lab, 
-           combine, scale, output, format_tab)
-    log_call(project, weekly_effort_function)
-    
-    save_table(table_out, project, "weekly_effort")
-    
-    if (output == "plot") e_plot
-      
-    else if (output == "table") table_out
-      
-    else {
-      
-      out_list <- list(table = table_out,
-                       plot = e_plot)
-      out_list
-    }
+    out_list <- list(table = table_out, plot = e_plot)
+    out_list
   }
 }

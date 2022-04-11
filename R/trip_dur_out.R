@@ -113,15 +113,19 @@ trip_dur_out <- function(dat, project, start, end, units = "days",  vpue = NULL,
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
-  end_fun <- FALSE
+  pers <- c("year", "month", "week")
+  group_date <- group[group %in% pers]
+  facet_date <- facet_by[facet_by %in% pers]
+  facet_no_date <- facet_by[!facet_by %in% pers]
+  group_no_date <- group[!group %in% pers]
   
-  not_num <- vapply(dataset[vpue], function(x) !is.numeric(x), logical(1))
+  column_check(dataset, cols = c(vpue, start, end, group_no_date, sub_date, 
+                                 filter_by, facet_no_date))
   
-  if (any(not_num)) {
-    
-    warning("'vpue' must be numeric.")
-    end_fun <- TRUE
-  }
+  num <- qaqc_helper(dataset[vpue], is.numeric)
+  
+  if (!all(num)) stop("Argument 'vpue' must be numeric.", call. = FALSE)
+  
   
   if (any(units %in% c("secs", "minutes", "hours", "days", "weeks")) == FALSE) {
     
@@ -158,432 +162,378 @@ trip_dur_out <- function(dat, project, start, end, units = "days",  vpue = NULL,
     dataset[sub_date] <- lapply(dataset[sub_date], date_parser)
   } 
   
+  # sub_date ----
   # check if sub_date is needed
-  if (!is.null(filter_date)) {
-    if (is.null(sub_date)) {
-      if (!is.null(start)) sub_date <- start
-      else {
-        warning("Argument 'sub_date' required when subsetting by date.")
-        end_fun <- TRUE
-      }
-    }
-  }
+  sub_date <- sub_date_check(sub_date, date, filter_date, group, facet_by)
   
-  if (!is.null(facet_by)) {
-    if (any(facet_by %in% c("year", "month", "week"))) {
-      if (is.null(sub_date)) {
-        if (!is.null(start)) sub_date <- start
-        else {
-          warning("Spliting by year requires 'sub_date' argument.")
-          end_fun <- TRUE
-        }
-      }
-    } 
-  }
-  
-  if (!is.null(group)) {
-    if (any(group %in% c("year", "month", "week"))) {
-      if (is.null(sub_date)) {
-        if (!is.null(date)) sub_date <- date
-        else {
-          warning("Grouping by year requires 'sub_date' argument.")
-          end_fun <- TRUE
-        }
-      }
-    } 
-  }
-  
-  # filter by date ----
+  # filter date ----
   if (!is.null(filter_date)) {
     
     if (is.null(date_value)) {
       
-      warning("'date_value' must be provided.")
-      end_fun <- TRUE
+      stop("'date_value' must be provided.", call. = FALSE)
     }
     
-    dataset <- subset_date(dataset, start, filter_date, date_value)
-    
-    if (nrow(dataset) == 0) {
-      
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      end_fun <- TRUE
-    }
+    dataset <- subset_date(dataset, sub_date, filter_date, date_value)
   }
   
-  # filter by variable/expression ----
-  if (!is.null(filter_value) | !is.null(filter_expr)) {
+  # filter by variable ----
+  if (!is.null(filter_by) | !is.null(filter_expr)) {
     
     dataset <- subset_var(dataset, filter_by, filter_value, filter_expr)
+  }
+   
+  # calculate trip duration ----
+  if (lubridate::is.POSIXt(dataset[[start]]) | lubridate::is.POSIXt(dataset[[end]])) {
+    trip <- round(as.numeric(difftime(dataset[[end]], dataset[[start]]), 
+                             units = units), 3)
+  } else {
+    trip <- as.numeric(dataset[[end]] - dataset[[start]], units = units)
+  }
+  
+  trip_tab <- data.frame(start = dataset[[start]], end = dataset[[end]])
+  t_nm <- paste0("trip_duration_", units)
+  trip_tab[[t_nm]] <- trip
+  
+  
+  if (any(trip_tab[[t_nm]] < 0)) {
+    warning(paste(sum(trip_tab[[t_nm]] < 0), "negative values produced."))
     
-    if (nrow(dataset) == 0) {
-      
-      warning("Filtered data table has zero rows. Check filter parameters.")
-      end_fun <- TRUE
+    if (sum((trip_tab[[t_nm]] < 0)) / length(trip_tab[[t_nm]]) > 0.05) {
+      warning("Negative values exceed 5% of observations.")
     }
   }
   
-  if (end_fun == FALSE) {
+  # add hauls per trip 
+  if (haul_count & !is.null(tripID)) vpue <- c(vpue, "HAUL_COUNT")
+  
+  # calculate vpue ----
+  if (!is.null(vpue)) {
     
-    # calculate trip duration ----
-    if (lubridate::is.POSIXt(dataset[[start]]) | lubridate::is.POSIXt(dataset[[end]])) {
-      trip <- round(as.numeric(difftime(dataset[[end]], dataset[[start]]), 
-                               units = units), 3)
-    } else {
-      trip <- as.numeric(dataset[[end]] - dataset[[start]], units = units)
+    vpue_nm <- vapply(vpue, FUN = function(x) paste(x, "vpue", sep = "_"), 
+                      FUN.VALUE = "character")
+    
+    trip_tab[vpue_nm] <- lapply(vpue, function(x) {
+      round((dataset[[x]] / trip_tab[[t_nm]]), 3)
+    })
+    
+    if (any(qaqc_helper(trip[vpue_nm], "Inf"))) {
+      warning("Inf values produced for vpue.")
     }
     
-    trip_tab <- data.frame(start = dataset[[start]], end = dataset[[end]])
-    t_nm <- paste0("trip_duration_", units)
-    trip_tab[[t_nm]] <- trip
-    
-    
-    if (any(trip_tab[[t_nm]] < 0)) {
-      warning(paste(sum(trip_tab[[t_nm]] < 0), "negative values produced."))
-      
-      if (sum((trip_tab[[t_nm]] < 0)) / length(trip_tab[[t_nm]]) > 0.05) {
-        warning("Negative values exceed 5% of observations.")
-      }
+    if (any(qaqc_helper(trip[vpue_nm], "NaN"))) {
+      warning("NaN values produced for vpue.")
     }
+  } else vpue_nm <- NULL
+  
+  # add sub_date to trip_tab
+  if (!is.null(sub_date)) trip_tab[[sub_date]] <- dataset[[sub_date]]
+  
+  # facet date ----
+  # add non-function-created facet vars to trip_tab
+  trip_tab[facet_no_date] <- dataset[facet_no_date]
+
+  # group date ----
+  # add non-function-created group variables to trip_tab
+  trip_tab[group_no_date]  <- dataset[group_no_date]
+  
+  trip_tab <- facet_period(trip_tab, facet_date = unique(c(facet_date, group_date)), 
+                           date = sub_date)
+  
+  if (!is.null(group)) {
     
-    # add hauls per trip 
-    if (haul_count & !is.null(tripID)) vpue <- c(vpue, "HAUL_COUNT")
-    
-    # calculate vpue ----
-    if (!is.null(vpue)) {
+    if (length(group) > 1) {
       
-      vpue_nm <- vapply(vpue, FUN = function(x) paste(x, "vpue", sep = "_"), 
-                        FUN.VALUE = "character")
-      
-      trip_tab[vpue_nm] <- lapply(vpue, function(x) {
-        round((dataset[[x]] / trip_tab[[t_nm]]), 3)
-      })
-      
-      if (any(vapply(trip[vpue_nm], FUN = is.infinite, FUN.VALUE = logical(1)))) {
-        warning("Inf values produced for vpue.")
-      }
-      
-      if (any(vapply(trip[vpue_nm], FUN = is.nan, FUN.VALUE = logical(1)))) {
-        warning("NaN values produced for vpue.")
-      }
-    } else vpue_nm <- NULL
-    
-    # add sub_date to trip_tab
-    if (!is.null(sub_date)) trip_tab[[sub_date]] <- dataset[[sub_date]]
-    
-    # facet date ----
-    facet_date <- facet_by[facet_by %in% c("year", "month", "week")]
-    # add non-function-created facet vars to trip_tab
-    trip_tab[facet_by[!(facet_by %in% facet_date)]] <- 
-      dataset[facet_by[!(facet_by %in% facet_date)]]
-    
-   
-    
-    # group date ----
-    group_date <- group[group %in% c("year", "month", "week")]
-    
-    # add non-function-created group variables to trip_tab
-    trip_tab[group[!(group %in% group_date)]]  <- 
-      dataset[group[!(group %in% group_date)]]
-    
-    trip_tab <- facet_period(trip_tab, facet_date = unique(c(facet_date, group_date)), 
-                             date = sub_date)
-    
-    if (!is.null(group)) {
-      
-      if (length(group) > 1) {
+      if (type == "freq_poly" & combine == FALSE) {
         
-        if (type == "freq_poly" & combine == FALSE) {
+        group1 <- group[1] 
+        group2 <- group[2]
+        
+        trip_tab[group] <- lapply(trip_tab[group], as.factor)
+        
+      } else {
+        
+        trip_tab <- ID_var(trip_tab, project = project, vars = group, drop = TRUE,
+                           log_fun = FALSE)
+        group <- paste(group, collapse = "_")
+      }
+      
+    } else {
+      group_nd <- group[!(group %in% group_date)]
+      
+      if (length(group_nd) > 0) {
+        trip_tab[[group_nd]] <- as.factor(dataset[[group_nd]])
+      }
+    }
+  }
+  # remove negative trip durations
+  if (remove_neg) trip_tab <- trip_tab[trip_tab[[t_nm]] >= 0, ]
+  
+  # columns names for trip duration and vpue(s)
+  axis_name <- c(t_nm, vpue_nm)
+  p_nm <- unname(axis_name)
+  names(axis_name)[1] <- p_nm[1]
+  p_type <- function() if (density) "density" else "frequency"
+  
+  grp_fct <- c(group, facet_by)
+  
+  # table output ----
+  if (output %in% c("tab_plot", "table")) {
+    
+    table_out <- nfreq_table(trip_tab, var = p_nm, group = grp_fct, bins = bins, 
+                             type = if (density) "dens" else "freq",
+                             format_lab = format_lab, format_tab = "long")
+    
+    # check_confidentiality ----
+    if (run_confid_check(project)) {
+      
+      cc_par <- get_confid_check(project)
+      
+      if (cc_par$rule == "n") {
+        # add v_id to trip_tab
+        trip_tab[[cc_par$v_id]] <- dataset[[cc_par$v_id]]
+        #count unique vessels by group and bins
+        check_out <- nfreq_table(trip_tab, var = p_nm, group = grp_fct,
+                                 bins = bins, type = "freq", v_id = cc_par$v_id,
+                                 format_lab = format_lab, format_tab = "long")
+        
+        if (is.null(vpue)) { # just trip duration
+    
+          # find rows to suppress
+          ind <- check_out[[p_type()]] > 0 & check_out[[p_type()]] < cc_par$value
           
-          group1 <- group[1] 
-          group2 <- group[2]
+          if (any(ind)) {
+  
+            # cache check table
+            check_table <- check_out[ind, c(p_nm, grp_fct)]
+            cache_check_table(check_table, project)
+            
+            # suppress table
+            table_out_c <- suppress_table(check_table, table_out,
+                                        value_var = p_type(),
+                                        group = c(t_nm, grp_fct),
+                                        rule = "n")
+            save_table(table_out_c, project, "trip_dur_out_confid")
+          }
           
-          trip_tab[group] <- lapply(trip_tab[group], as.factor)
+        } else { # vpue
+          
+          # list of suppression indices
+          sup_list <- lapply(check_out, function(x) {
+            
+            ind <- x[[p_type()]] > 0 & x[[p_type()]] < cc_par$value
+          })
+          
+          check_table <- 
+            lapply(seq_along(check_out), function(x) {
+              
+              check_out[[x]][sup_list[[x]], c(p_nm[[x]], grp_fct)]
+            })
+          
+          table_out_c <- 
+            lapply(seq_along(table_out), function(x) {
+              
+              if (any(sup_list[[x]])) {
+                
+                suppress_table(check_table[[x]], table_out[[x]], value_var = p_type(),
+                               group = c(p_nm[[x]], grp_fct), rule = "n")
+              }
+            })
+          
+          names(table_out_c) <- p_nm
+          c_ind <- vapply(table_out_c, function(x) !is.null(x), logical(1))
+          
+          if (any(c_ind)) {
+            
+            if (!is.null(grp_fct)) {
+              
+              table_out_c <-
+                lapply(names(table_out_c[c_ind]), function(x) {
+                  
+                  tidyr::pivot_wider(table_out_c[[x]], id_cols = !!x,
+                                     names_from = !!grp_fct, values_from = !!p_type(), 
+                                     names_repair = "unique")
+                })
+            }
+            # save to output folder
+            save_ntable(table_out_c, project, "trip_dur_out_confid_", "num")
+          }
+        }
+      }
+    }
+    
+    # save output table
+    if (is.null(vpue) & is.null(tripID)) {
+      
+      if (!is.null(grp_fct)) {
+        
+        table_out <- tidyr::pivot_wider(table_out, id_cols = !!t_nm,
+                                        names_from = !!grp_fct,
+                                        values_from = !!p_type(), 
+                                        names_repair = "unique")
+      }
+      
+      save_table(table_out, project, "trip_dur_out")  
+      
+    } else {
+      
+      if (!is.null(grp_fct)) {
+        
+        table_out <-
+          lapply(names(table_out), function(x) {
+            
+            tidyr::pivot_wider(table_out[[x]], id_cols = !!x, names_from = !!grp_fct,
+                               values_from = !!p_type(), names_repair = "unique")
+          })
+      }
+      
+      save_ntable(table_out, project, "trip_dur_out", id = "num")
+    }
+    
+  }
+  
+  # plot section ----
+  if (output %in% c("tab_plot", "plot")) {
+    
+    group_list <- list(group = group,
+                       group1 = get0("group1"),
+                       group2 = get0("group2"))
+    
+    t_plot <- 
+      trip_duration_plot(trip_tab, trp_nms = axis_name, vpue, group = group_list, 
+                       facet_by, units, type, dens = density, bins, tran, 
+                       format_lab, scale, combine, pages)
+    
+    if (run_confid_check(project)) {
+      
+      if (cc_par$rule == "n") {
+        
+        if (is.null(vpue)) {
+          # recreate breaks from nfreq_table
+          p_brks <- pretty(range(trip_tab[[t_nm]], finite = TRUE), 
+                           n = bins, min.n = 1)
+
+          # add breaks to trip_tab
+          trip_tab$breaks <- as.character(cut(trip_tab[[t_nm]], 
+                                              breaks = p_brks, 
+                                              include.lowest = TRUE, right = TRUE))
+          # check for confid rows
+          check_out_plot <- 
+            check_confidentiality(trip_tab, project, v_id = cc_par$v_id, 
+                                  value_var = p_nm, group = c("breaks", grp_fct), 
+                                  rule = "n", value = cc_par$value)
+          # check table for plot
+          check_out_plot <- check_out_plot$table[c("breaks", grp_fct)]
+          # suppress confid rows for plot
+          trip_tab <- 
+            suppress_table(check_out_plot, trip_tab, t_nm, group = c("breaks", grp_fct), 
+                           rule = "n", type = "NA")
+          
+          t_plot_c <-
+            trip_duration_plot(trip_tab, trp_nms = t_nm, vpue, group = group_list, 
+                             facet_by, units, type, dens = density, bins, tran, 
+                             format_lab, scale, combine, pages)
+          
+        } else { # with vpue
+          
+          brk_cols <- paste0(p_nm, "_breaks")
+          trip_tab[brk_cols] <- lapply(p_nm, function(x) {
+            
+            var <- trip_tab[[x]][is.finite(trip_tab[[x]])]
+            p_brks <- pretty(range(var, finite = TRUE), n = bins, min.n = 1)
+            # add breaks to trip_tab
+            cut(trip_tab[[x]], breaks = p_brks, 
+                include.lowest = TRUE, right = TRUE)
+          })
+          
+          check_out_plot <-
+            lapply(seq_along(brk_cols), function(x) {
+              
+              check_out <-
+              check_confidentiality(trip_tab, project, v_id = cc_par$v_id, 
+                                    value_var = p_nm[x], 
+                                    group = c(brk_cols[x], grp_fct), 
+                                    rule = "n", value = cc_par$value)
+              
+              check_out$table[c(brk_cols[x], grp_fct)]
+            })
+          
+          trip_tab[p_nm] <- 
+            lapply(seq_along(check_out_plot), function(i) {
+              
+              suppress_table(check_out_plot[[i]], trip_tab, p_nm[[i]], 
+                             group = c(brk_cols[i], grp_fct), type = "NA",
+                             rule = "n", as_vector = TRUE)
+            })
+          
+          t_plot_c <-
+            trip_duration_plot(trip_tab, trp_nms = p_nm, vpue, group = group_list, 
+                             facet_by, units, type, dens = density, bins, tran, 
+                             format_lab, scale, combine, pages)
+        }
+      }
+    }
+    
+    f_plot <- function() {
+      
+      if (is.null(vpue)) t_plot$single
+      
+      else {
+        if (pages == "multi") {
+          if (shiny::isRunning()) t_plot$multi
+          else t_plot$single
           
         } else {
-          
-          trip_tab <- ID_var(trip_tab, project = project, vars = group, drop = TRUE,
-                             log_fun = FALSE)
-          group <- paste(group, collapse = "_")
-        }
-        
-      } else {
-        group_nd <- group[!(group %in% group_date)]
-        
-        if (length(group_nd) > 0) {
-          trip_tab[[group_nd]] <- as.factor(dataset[[group_nd]])
-        }
-      }
-    }
-    # remove negative trip durations
-    if (remove_neg) trip_tab <- trip_tab[trip_tab[[t_nm]] >= 0, ]
-    
-    # columns names for trip duration and vpue(s)
-    axis_name <- c(t_nm, vpue_nm)
-    p_nm <- unname(axis_name)
-    names(axis_name)[1] <- p_nm[1]
-    p_type <- function() if (density) "density" else "frequency"
-    
-    grp_fct <- c(group, facet_by)
-    
-    # table output ----
-    if (output %in% c("tab_plot", "table")) {
-      
-      table_out <- nfreq_table(trip_tab, var = p_nm, group = c(group, facet_by),
-                               bins = bins, type = if (density) "dens" else "freq",
-                               format_lab = format_lab, format_tab = "long")
-      
-      # check_confidentiality ----
-      if (run_confid_check(project)) {
-        
-        cc_par <- get_confid_check(project)
-        
-        if (cc_par$rule == "n") {
-          
-          trip_tab[[cc_par$v_id]] <- dataset[[cc_par$v_id]]
-          
-          check_out <- nfreq_table(trip_tab, var = p_nm, group = c(grp_fct, cc_par$v_id),
-                                   bins = bins, type = "freq", format_lab = format_lab,
-                                   format_tab = "long")
-          # iterate over list of tables 
-          
-          if (is.null(vpue)) { # just trip duration
-            
-            check_out <-
-              check_confidentiality(check_out, project, cc_par$v_id, value_var = "frequency", 
-                                    group = c(t_nm, grp_fct), rule = "n", 
-                                    value = cc_par$value)
-            
-            if (check_out$suppress) {
-              check_out <- suppress_table(check_out$table, table_out, 
-                                          value_var = p_type(),
-                                          group = c(t_nm, grp_fct), 
-                                          rule = "n")
-            }
-            
-          } else { # vpue
-            
-            check_out <- 
-              lapply(check_out, function(x) {
-                
-                check_confidentiality(x, project,cc_par$v_id, value_var = "frequency", 
-                                      group = c(names(x)[1], grp_fct), rule = "n", 
-                                      value = cc_par$value)
-              })
-            
-            check_out <-
-              lapply(names(check_out), function(x) {
-                
-                supr <- check_out[[x]]$suppress
-                
-                if (supr) {
-                  
-                  suppress_table(check_out[[x]]$table, table_out[[x]], value_var = p_type(),
-                                 group = c(x, grp_fct), rule = "n")
-                }
-              })
-            
-            names(check_out) <- p_nm
-            c_ind <- vapply(check_out, function(x) !is.null(x), logical(1))
-            
-            if (any(c_ind)) {
-              
-              if (!is.null(grp_fct)) {
-                
-                check_out <-
-                  lapply(names(check_out[c_ind]), function(x) {
-                    
-                    tidyr::pivot_wider(check_out[[x]], id_cols = !!x,
-                                       names_from = !!grp_fct, values_from = !!p_type(), 
-                                       names_repair = "unique")
-                  })
-                
-              }
-              # save to output folder
-              lapply(seq_along(check_out), function(x) {
-                save_table(check_out[[x]], project, paste0("trip_duration_confid_", x))
-              })
-            }
-          }
-        }
-      }
-      
-      # save output table
-      if (is.null(vpue) & is.null(tripID)) {
-        
-        if (!is.null(grp_fct)) {
-          
-          table_out <- tidyr::pivot_wider(table_out, id_cols = !!t_nm,
-                                          names_from = !!grp_fct,
-                                          values_from = !!p_type(), 
-                                          names_repair = "unique")
-        }
-        
-        save_table(table_out, project, "trip_duration")  
-        
-      } else {
-        
-        if (!is.null(grp_fct)) {
-          
-          table_out <-
-            lapply(names(table_out), function(x) {
-              
-              tidyr::pivot_wider(table_out[[x]], id_cols = !!x, names_from = !!grp_fct,
-                                 values_from = !!p_type(), names_repair = "unique")
-            })
-        }
-        
-        lapply(seq_along(table_out), function(x) {
-          save_table(table_out[[x]], project, paste0("trip_duration_", x))
-        })
-      }
-      
-    }
-    
-    # plot section ----
-    if (output %in% c("tab_plot", "plot")) {
-      
-      group_list <- list(group = group,
-                         group1 = get0("group1"),
-                         group2 = get0("group2"))
-      
-      t_plot <- 
-        trip_duration_plot(trip_tab, trp_nms = axis_name, vpue, group = group_list, 
-                         facet_by, units, type, dens = density, bins, tran, 
-                         format_lab, scale, combine, pages)
-      
-      if (run_confid_check(project)) {
-        
-        if (cc_par$rule == "n") {
-          
-          if (is.null(vpue)) {
-            
-            check_out <- tibble::as_tibble(check_out)
-            
-            p_brks <- pretty(range(trip_tab[[t_nm]], finite = TRUE), 
-                             n = bins, min.n = 1)
-            # add breaks to trip_tab
-            trip_tab$breaks <- cut(trip_tab[[t_nm]], breaks = p_brks, 
-                                   include.lowest = TRUE, right = TRUE)
-            
-            check_out$breaks <- levels(trip_tab$breaks)
-            # find which bins to suppress
-            check_out <- check_out[check_out[[p_type()]] == -999, c("breaks", grp_fct)]
-            
-            trip_tab <- 
-              suppress_table(check_out, trip_tab, t_nm, 
-                             group = c("breaks", grp_fct), rule = "n", type = "plot")
-            
-            # trip_tab <- trip_tab[!is.na(trip_tab[[t_nm]]), ]
-            
-            check_plot <-
-              trip_duration_plot(trip_tab, trp_nms = t_nm, vpue, group = group_list, 
-                               facet_by, units, type, dens = density, bins, tran, 
-                               format_lab, scale, combine, pages)
-            
-          } else { # with vpue
-            
-            brk_cols <- paste0(p_nm, "_breaks")
-            trip_tab[brk_cols] <- lapply(p_nm, function(x) {
-              
-              var <- trip_tab[[x]][is.finite(trip_tab[[x]])]
-              p_brks <- pretty(range(var, finite = TRUE), n = bins, min.n = 1)
-              # add breaks to trip_tab
-              cut(trip_tab[[x]], breaks = p_brks, 
-                  include.lowest = TRUE, right = TRUE)
-            })
-            
-            check_out <- 
-              lapply(seq_along(check_out), function(i) {
-                check_out[[i]] <- tibble::as_tibble(check_out[[i]])
-                check_out[[i]][[brk_cols[i]]] <- levels(trip_tab[[brk_cols[i]]])
-                check_out[[i]][check_out[[i]][p_type()] == -999, c(brk_cols[i], grp_fct)]
-              })
-            names(check_out) <- p_nm
-            
-            trip_tab[p_nm] <- 
-              lapply(seq_along(check_out), function(i) {
-                
-                suppress_table(check_out[[i]], trip_tab, p_nm[[i]], 
-                               group = c(brk_cols[i], grp_fct), type = "plot",
-                               rule = "n", as_vector = TRUE)
-              })
-            
-            check_plot <-
-              trip_duration_plot(trip_tab, trp_nms = p_nm, vpue, group = group_list, 
-                               facet_by, units, type, dens = density, bins, tran, 
-                               format_lab, scale, combine, pages)
-          }
-        }
-      }
-      
-      f_plot <- function() {
-        
-        if (is.null(vpue)) t_plot$single
-        
-        else {
-          if (pages == "multi") {
-            if (shiny::isRunning()) t_plot$multi
-            else t_plot$single
-            
-          } else {
-            if (shiny::isRunning()) t_plot$single
-            else gridExtra::grid.arrange(t_plot$single)
-          }
-        }
-      }
-      
-      # save plot(s) 
-      if (pages == "multi" & !is.null(vpue)) {
-        
-        lapply(seq_along(t_plot$multi), function(x) {
-          save_plot(project, paste0("trip_duration_", x), t_plot$multi[[x]])
-        })
-        
-      } else save_plot(project, "trip_duratin", t_plot$single)
-      
-      if (run_confid_check(project)) {
-        
-        if (cc_par$rule == "n") {
-          
-          if (exists("check_plot")) {
-            
-            if (pages == "multi" & !is.null(vpue)) {
-              
-              lapply(seq_along(check_plot$multi), function(x) {
-                save_plot(project, paste0("trip_duration_confid_", x), check_plot$multi[[x]])
-              })
-              
-            } else save_plot(project, "trip_duration_confid", check_plot$single)
-            
-          }
+          if (shiny::isRunning()) t_plot$single
+          else gridExtra::grid.arrange(t_plot$single)
         }
       }
     }
     
-    # Log function
-    trip_dur_out_function <- list()
-    trip_dur_out_function$functionID <- "trip_dur_out"
-    trip_dur_out_function$args <- list(dat, project, start, end, units, vpue,
-                                      group, combine, haul_count, sub_date, filter_date, 
-                                      date_value, filter_by, filter_value, filter_expr,
-                                      facet_by, type, bins, density, scale, tran, 
-                                      format_lab, pages, remove_neg, output, tripID, 
-                                      fun.time, fun.numeric)
-    log_call(project, trip_dur_out_function)
-    
-    if (output == "table") table_out
-    else if (output == "plot") f_plot()
-    else if (output == "tab_plot") {
+    # save plot(s) 
+    if (pages == "multi" & !is.null(vpue)) {
       
-      out_list <- list(table = table_out, plot = f_plot())
-      out_list
+        save_nplot(project, "trip_dur_out", t_plot$multi, id = "num")
+      
+    } else save_plot(project, "trip_dur_out", t_plot$single)
+    
+    if (run_confid_check(project)) {
+      
+      if (cc_par$rule == "n") {
+        
+        if (exists("check_out_plot")) {
+          
+          if (pages == "multi" & !is.null(vpue)) {
+            
+            save_nplot(project, "trip_dur_out_confid", t_plot_c$multi, id = "num")
+            
+          } else save_plot(project, "trip_dur_out_confid", t_plot_c$single)
+          
+        }
+      }
     }
+  }
+  
+  # Log function
+  trip_dur_out_function <- list()
+  trip_dur_out_function$functionID <- "trip_dur_out"
+  trip_dur_out_function$args <- list(dat, project, start, end, units, vpue,
+                                    group, combine, haul_count, sub_date, filter_date, 
+                                    date_value, filter_by, filter_value, filter_expr,
+                                    facet_by, type, bins, density, scale, tran, 
+                                    format_lab, pages, remove_neg, output, tripID, 
+                                    fun.time, fun.numeric)
+  log_call(project, trip_dur_out_function)
+  
+  if (output == "table") table_out
+  else if (output == "plot") f_plot()
+  else if (output == "tab_plot") {
+    
+    out_list <- list(table = table_out, plot = f_plot())
+    out_list
   }
 }
   
- 
-
 
 trip_duration_plot <- function(trip_tab, trp_nms, vpue, group, facet_by, units, type, 
                              dens, bins, tran, format_lab, scale, combine, pages) {
