@@ -1488,6 +1488,14 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           
         } else {
           
+          if (!isTruthy(input$spatName)) {
+            
+            showNotification("Please enter a name for spatial table.", 
+                             type = 'message', duration = 10)
+          }
+          
+          req(input$spatName)
+          
           if (!is.null(input$spatialdat) | !is.null(input$spatialdatshape)) {
          
             if (input$filefolder == "Upload single file") {
@@ -1505,8 +1513,6 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                   type='message', duration=10)
                }
                
-#                 
-              
               track_load$spat$file <- input$spatialdatshape[1,4] 
 
              } else {
@@ -1534,26 +1540,27 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                
                return()
              }
-               
-             previouswd <- getwd()
-             uploaddirectory <- dirname(shpdf$datapath[1])
-             setwd(uploaddirectory)
+             # wd should be the folder containing shiny app
+             previous_wd <- getwd()
+             upload_directory <- dirname(shpdf$datapath[1]) # temp folder containing shapefiles
+             setwd(upload_directory)
              
+             # rename files so st_read can load properly
              for (i in 1:nrow(shpdf)) {
-               
+
                file.rename(shpdf$datapath[i], shpdf$name[i])
              }
              
-             setwd(previouswd)
+             setwd(previous_wd)
 
-             spatdat$dataset <- 
-               sf::st_transform(sf::st_read(paste(uploaddirectory, shpdf$name[grep(pattern="*.shp$", shpdf$name)], sep="/")),
-                                                  "+proj=longlat +ellps=WGS84 +datum=WGS84")
+             spatdat$dataset <- sf::st_read(upload_directory, as_tibble = TRUE)
+             spatdat$dataset <- sf::st_transform(spatdat$dataset, crs = 4326) # WGS 84
              track_load$spat$file <- input$spatialdatshape[1,4] 
             
             } else {
               
-               showNotification("Shapefiles require, at a minimum, .shp, .shx, and .dbf files.'", type='message', duration=10)
+               showNotification("Shapefiles require, at a minimum, .shp, .shx, and .dbf files.'", 
+                                type='message', duration=10)
              }
           }
            
@@ -2078,16 +2085,16 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                        "See \"parse_meta\" in the Help Manual for instructions",
                        "on extracting metadata from a data file."),
                      
-                     metaProjUI("meta_create"),
-                     metaCreateSaveUI("meta_create"),
+                     FishSET:::metaProjUI("meta_create"),
+                     FishSET:::metaCreateSaveUI("meta_create"),
                      
                      tags$hr(style = "border-top: 3px solid #bbb;"),
                      
-                     metaRawUI("meta_create")
+                     FishSET:::metaRawUI("meta_create")
                    ),
                    mainPanel(width = 9,
-                     metaOut("meta_create"),
-                    metaRawOut("meta_create"))
+                             FishSET:::metaOut("meta_create"),
+                             FishSET:::metaRawOut("meta_create"))
                  )),
         
         tabPanel("Edit", value = "edit_tab",
@@ -2102,13 +2109,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                        "and click \"Delete meta\". Select \"Delete\" in the popup", 
                        " to confirm. "),
                      
-                     metaProjUI("meta_edit"),
-                     metaEditSaveUI("meta_edit"),
-                     metaDeleteUI("meta_edit")
+                     FishSET:::metaProjUI("meta_edit"),
+                     FishSET:::metaEditSaveUI("meta_edit"),
+                     FishSET:::metaDeleteUI("meta_edit")
                    ),
                    mainPanel(width = 9,
-                     metaOut("meta_edit"),
-                     metaRawOut("meta_edit"))
+                             FishSET:::metaOut("meta_edit"),
+                             FishSET:::metaRawOut("meta_edit"))
                   )
                 ) 
               ) 
