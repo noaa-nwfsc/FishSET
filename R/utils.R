@@ -1490,7 +1490,7 @@ save_plot <- function(project, func_name, ...) {
   #' Save plot to output folder
   #' @param project name of project.
   #' @param func_name Name of function used to create plot.
-  #' @param ... addition arguments passed to \code{\link{ggplot2::ggsave}}.
+  #' @param ... addition arguments passed to \code{\link[ggplot2]{ggsave}}.
   #' @keywords internal
   #' @export
   #' @importFrom ggplot2 ggsave
@@ -1509,7 +1509,7 @@ save_nplot <- function(project, func_name, plot_list, id = "num", ...) {
   #' Save table to output folder
   #' @param project name of project.
   #' @param func_name Name of function used to create plot.
-  #' @param ... addition arguments passed to \code{\link{ggplot2::ggsave}}.
+  #' @param ... addition arguments passed to \code{\link[ggplot2]{ggsave}}.
   #' @keywords internal
   #' @export
   #' @examples
