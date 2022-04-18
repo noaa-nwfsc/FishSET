@@ -6,6 +6,7 @@ edit_map_manual <- function(spat, id, project, coord = NULL) {
   #' 
   #' @param spat Spatial data to edit. 
   #' @param id Spatial ID column.The name must be unique. 
+  #' @param project Name of project
   #' @param coord Optional, a numeric vector or matrix with two columns containing the 
   #'   coordinates of a polygon. Users can build polygons point-by-point using the
   #'   longitude and latitude boxes in the app. 
