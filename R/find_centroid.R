@@ -95,7 +95,11 @@ find_centroid <- function(project, spat, cat, lon.spat = NULL, lat.spat = NULL) 
     }
   }
 
-
+  if(any(table(int$ZoneID)>1)){
+    int <- int[!duplicated(int$ZoneID),]
+    warning('Duplicate centoids found for at least one zone. Using first centroid.')
+  }
+  
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   

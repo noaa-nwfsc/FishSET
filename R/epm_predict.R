@@ -20,7 +20,7 @@ epm_predict <- function(project, alts, modname, mod.type, price){
   
   #Get model data
   # Need data compile, distance, gridvarying, interaction terms
-  mod.dat <- create_model_input(project, x=NULL, mod.name=modname, use.scalers= TRUE, scaler.func=NULL, expected.catch.name=NULL)
+  mod.dat <- create_model_input(project, x=NULL, mod.name=modname, use.scalers= TRUE, scaler.func=NULL, expected.catch=NULL)
   alts <- dim(unique(mod.dat$choice))[1]
   #Might need to include more parameters here
   mod.dat <- as.matrix(cbind((mod.dat$dataCompile*price), mod.dat$distance, mod.dat$otherdat))

@@ -111,14 +111,12 @@ end <- FALSE
     end <- any(vapply(check, function(x) x$pass == FALSE, logical(1)))
   }
 
- 
+   
   if (end == FALSE) {
 
     # Call in datasets
         if(table_exists(paste0(project, "modelinputdata"), project)){
           fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
-          on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-    
 
            x_temp <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
 
@@ -132,67 +130,52 @@ end <- FALSE
     for (i in 1:length(x_temp)) {
 
       x <- x_temp[[i]]
-      if (!is.null(x$mod.name) & x$likelihood!='logit_c'){
-            exp.names <- NULL
-      } else {
-        exp.names <- list()
-      }
+ #     if (!is.null(x$mod.name) & x$likelihood!='logit_c'){
+ #           exp.names <- NULL
+  #    } else {
+   #     exp.names <- list()
+  #    }
       
-        #---
-        defineexp <- function(epnames){
-            if(any(tolower(epnames) == 'all')){
-              return(c("short_exp","short_exp_newDumV","med_exp","med_exp_newDumV","long_exp","long_exp_newDumv","user_defined_exp"))
-            } else if (length(epnames)>1){
-                epnames[grep('short', epnames)] <- 'short_exp'
-                epnames[grep('med', epnames)] <- 'med_exp'
-                epnames[grep('long', epnames)] <- 'long_exp'
-                epnames[grep('user', epnames)] <- 'user_defined_exp'
-                return(epnames)
-            } else {
-              if(grepl('short', tolower(epnames))) {
-                return('short_exp')
-              } else if(grepl('med', tolower(epnames))) {
-                return('med_exp')
-              } else if(grepl('long', tolower(epnames))) {
-                return('long_exp')
-              } else if(grepl('user', tolower(epnames))){
-               return('user_defined_exp')
-              }
-            }
-         }  
-     
    
-      for(k in 1:length(x$expectcatchmodels)){
-        if(any(x$expectcatchmodels[[k]]=='individual')){
-          explen <- length(exp.names)
-          g <- list(c("short_exp"),c("short_exp_newDumV"),c("med_exp"),c("med_exp_newDumV"),c("long_exp"),c("long_exp_newDumv"),c("user_defined_exp"))
-          for(i in 1:length(g)){
-             exp.names[[explen+i]] <- g[[i]]
-             }
-        } else {
-        exp.names[[length(exp.names)+1]] <- defineexp(x$expectcatchmodels[[k]])
-        }
-      }
+#      for(k in 1:length(x$expectcatchmodels)){
+#        if(any(x$expectcatchmodels[[k]]=='individual')){
+#          explen <- length(exp.names)
+#          g <- list(c("short_exp"),c("short_exp_newDumV"),c("med_exp"),c("med_exp_newDumV"),c("long_exp"),c("long_exp_newDumv"),c("user_defined_exp"))
+#          for(i in 1:length(g)){
+#             exp.names[[explen+i]] <- g[[i]]
+#            }
+#        } else {
+#        exp.names[[length(exp.names)+1]] <- defineexp(x$expectcatchmodels[[k]])
+#        }
+ #     }
      
-         
-        for(j in 1:length(exp.names)){
-          datamatrix <- create_model_input(project=project, x=x, mod.name=x$mod.name, use.scalers= use.scalers, scaler.func=scaler.func, expected.catch.name=exp.names[j])
-        
-          
-      if (is.factor(x_temp[[i]][["optimOpt"]])) {
-            opt <- as.numeric(unlist(strsplit(as.character(x_temp[[i]][["optimOpt"]]), " ")))
-          } else if(is.list(x_temp[[i]][["optimOpt"]])){
-            opt <- as.numeric(unlist(x_temp[[i]][["optimOpt"]]))
+        if(x$expectcatchmodels == 'individual') {
+          length.exp.names <-length(x$gridVaryingVariables)
+        } else {
+          length.exp.names <- 1
+        }
+      
+        for(j in 1:length(length.exp.names)){
+          if(length.exp.names==1){
+          datamatrix <- create_model_input(project=project, x=x, mod.name=x$mod.name, use.scalers= use.scalers, scaler.func=scaler.func, expected.catch=x$gridVaryingVariables)
           } else {
-            opt <- as.numeric(unlist(strsplit(as.character(x_temp[[i]][["optimOpt"]]), " ")))
+            datamatrix <- create_model_input(project=project, x=x, mod.name=x$mod.name, use.scalers= use.scalers, scaler.func=scaler.func, expected.catch=x$gridVaryingVariables[j])  
+          }
+          
+      if (is.factor(x$optimOpt)) {
+            opt <- as.numeric(unlist(strsplit(as.character(x$optimOpt), " ")))
+          } else if(is.list(x$optimOpt)){
+            opt <- as.numeric(unlist(x$optimOpt))
+          } else {
+            opt <- as.numeric(unlist(strsplit(as.character(x$optimOpt), " ")))
           }
       
-          if (is.factor(x_temp[[i]][["initparams"]])) {
-            starts2 <- as.numeric(unlist(strsplit(as.character(x_temp[[i]][["initparams"]]), ","))) # inits
-          } else if(is.list(x_temp[[i]][["initparams"]])){
-            starts2 <- unlist(x_temp[[i]][["initparams"]])
+          if (is.factor(x$initparams)) {
+            starts2 <- as.numeric(unlist(strsplit(as.character(x$initparams), ","))) # inits
+          } else if(is.list(x$initparams)){
+            starts2 <- unlist(x$initparams)
           } else {
-            starts2 <-as.numeric(unlist(strsplit(as.character(x_temp[[i]][["initparams"]]), ","))) # inits
+            starts2 <-as.numeric(unlist(strsplit(as.character(x$initparams), ","))) # inits
           }
       
 #      choice.table <- as.matrix(choice, as.numeric(factor(choice)))
@@ -205,7 +188,7 @@ end <- FALSE
       seoutmat2 <- NULL
       MCM <- NULL
       H1 <- NULL
-      fr <- x_temp[[i]][["likelihood"]] # func  #e.g. logit_c
+      fr <- x$likelihood # func  #e.g. logit_c
       fr.name <- match.fun(find_original_name(match.fun(as.character(fr))))
       
         
@@ -240,12 +223,13 @@ end <- FALSE
 
         #Explore starting parameters
         if(explorestarts==TRUE){
-          sp <- if(is.null(space[i])) {10} else { space[i] }
-          devr <- if(is.null(dev[i])) { 5} else { dev[i] }
+          sp <- if(is_empty(space[i])) {10} else { space[i] }
+          devr <- if(is_empty(dev[i])) { 5} else { dev[i] }
           
           starts2 <- explore_startparams_discrete(space=sp, dev=devr, breakearly=breakearly, startsr=starts2, fr=fr, 
                                                   d=datamatrix$d, otherdat=datamatrix$otherdat, choice=datamatrix$choice, project=project)
         }
+        
         
         LL_start <- fr.name(starts2, datamatrix$d, datamatrix$otherdat, max(datamatrix$choice), 
                             project =project, datamatrix$expname, as.character(datamatrix$mod.name))
@@ -258,6 +242,7 @@ end <- FALSE
         }
 
         #############################################################################
+        res <- c()
         mIter <- opt[1] # should add something to default options here if not specified
         relTolX <- opt[2]
         reportfreq <- opt[3]
@@ -278,8 +263,11 @@ end <- FALSE
           }
         )
         
+        
+        fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
         single_sql <- paste0(project, "ldglobalcheck", format(Sys.Date(), format = "%Y%m%d"))
         second_sql <- paste("INSERT INTO", single_sql, "VALUES (:data)")
+        
         
          if (table_exists(single_sql, project=project) == TRUE) {
            if(any(is_empty(unlist(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", single_sql, " LIMIT 1"))$data)))) {
@@ -298,6 +286,7 @@ end <- FALSE
         
         if (res[[1]][1] == "Optimization error, check 'ldglobalcheck'") {
           print(list(
+            error=paste('optimization error for', x_temp[[i]]$mod.name,', check ldglobalcheck'),
             name = names(x_temp[[i]][["gridVaryingVariables"]])[i], errorExplain = res, OutLogit = OutLogit, optoutput = optoutput,
             seoutmat2 = seoutmat2, MCM = MCM, H1 = H1
           ))
@@ -394,8 +383,8 @@ end <- FALSE
           }
           
           
-          if (H1[1] != "Error, singular, check 'ldglobalcheck'") {
-            if (diag2[1] != "Error, NAs, check 'ldglobalcheck'") {
+          if (H1[1] != "Error, singular, check 'ldglobalcheck'"){
+            if(diag2[1] != "Error, NAs, check 'ldglobalcheck'") {
               se2 <- tryCatch(
                 {
                   sqrt(diag2)
@@ -405,10 +394,15 @@ end <- FALSE
                   sqrt(diag2)
                 }
               )
+            } else {
+              warning = function(war) {
+                print("Cannot compute standard error. Check 'ldglobalcheck'")
+              }
             }
           }
          
-          if (H1[1] != "Error, singular, check 'ldglobalcheck'" & se2[1]!="Cannot compute standard error. Check 'ldglobalcheck'") {
+          if (H1[1] != "Error, singular, check 'ldglobalcheck'"){
+            if(se2[1]!="Cannot compute standard error. Check 'ldglobalcheck'") {
             outmat2 <- t(q2) #best set of parameters found
             seoutmat2 <- t(se2) #standard errors
             optoutput <- output #optimization info - counts, convergence, optimization error
@@ -417,8 +411,8 @@ end <- FALSE
           }
         }
         
-        # if(H1[1]!="Error, singular, check 'ldglobalcheck'") next
-        
+       # if(H1[1]=="Error, singular, check 'ldglobalcheck'") next
+       # if (H1[1] != "Error, singular, check 'ldglobalcheck'") {
         if(!exists("modelOut")) {
           modelOut <- list()
           modelOut[[length(modelOut) + 1]] <- list(
@@ -441,11 +435,11 @@ end <- FALSE
         }
         
         # save param ests, se, and t-vals to output folder
-        if (!is.null(OutLogit)) {
+        if(!is.null(OutLogit)) {
           
           params_out <- as.data.frame(OutLogit)
           names(params_out) <- c("estimate", "std_error", "t_value") 
-          rownames(params_out) <- sort(unique(x_temp[[i]]$choice)[,1])
+          rownames(params_out)[1:length(sort(unique(x_temp[[i]]$choice)[,1]))] <- sort(unique(x_temp[[i]]$choice)[,1])
           params_out <- round(params_out, 3)
 
           save_table(params_out, project=project, x_temp[[i]]$mod.name)
@@ -461,10 +455,15 @@ end <- FALSE
         DBI::dbExecute(fishset_db, raw_second_sql, params = list(data = list(serialize(modelOut, NULL))))
         DBI::dbDisconnect(fishset_db)
 
+        } else {
+          print("Model error, check 'ldglobalcheck'")
+        }
       }## End looping through expected catch cases
     } # end looping through model choices
+   
     } # end model run (if end == false)
     # out.mod <<- out.mod
+    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
     #############################################################################
     if (select.model == TRUE) {
       #  rownames(out.mod)=c("AIC", "AICc", "BIC", "PseudoR2")

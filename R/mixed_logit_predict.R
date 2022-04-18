@@ -10,7 +10,7 @@
 #' @param logitEq Parameter estimates
 #' @param alts  Number of alternatives choices in model
 #' @param mod.name Name of saved model to use
-#' @param expected.catch.name Required for conditonal logit (\code{logit_c}) model. 
+#' @param expected.catch Required for conditional logit (\code{logit_c}) model. 
 #'   Name of expected catch table to use. 
 #'    Can be the expected catch from the short-term scenario (\code{short}), the medium-term scenario (\code{med}), the 
 #'    long-term scenario (\code{long}), or the user-defined temporal parameters (\code{user}).
@@ -18,14 +18,14 @@
 #' @export
 #' @keywords internal
 
-mixed_logit_predict <- function(project, logitEq, alts,  mod.name, expected.catch.name=NULL){
+mixed_logit_predict <- function(project, logitEq, alts,  mod.name, expected.catch=NULL){
   
   #Obtain parameter estimates
   logitEq <- read_dat(paste0(locoutput(project), pull_output(project, type='table', fun='params')))
   
   #Get model data
   # Need data compile, distance, gridvarying, interaction terms
-  mod.dat <- create_model_input(project, x=NULL, mod.name=mod.name, use.scalers= TRUE, scaler.func=NULL, expected.catch.name=expected.catch.name)
+  mod.dat <- create_model_input(project, x=NULL, mod.name=mod.name, use.scalers= TRUE, scaler.func=NULL, expected.catch=expected.catch)
   mod.dat <- as.matrix(cbind(mod.dat$dataCompile, mod.dat$distance, mod.dat$otherdat))
   
   logitEq <- logitEq[,2]

@@ -948,7 +948,7 @@ agg_helper <- function(dataset, value, period = NULL, group = NULL, within_group
   #'   percent of total when \code{within_group = NULL}. 
   #' @param count Logical, if TRUE then returns the number of observations by
   #'   \code{period} and/or \code{group}.
-  #' @param format_lab String. Options include \code{"decimal"} (default), 
+  #' @param format_tab String. Options include \code{"decimal"} (default), 
   #' \code{"scientific"}, and \code{"PrettyNum"} (rounds to two decimal places
   #'   and uses commas).
   #' @export

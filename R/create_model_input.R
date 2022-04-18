@@ -6,9 +6,7 @@
 #' @param mod.name Optional, name of model. Include if building model data for specific defined model.
 #' @param use.scalers Logical, should data be noramalized? Defaults to TRUE. Rescaling factors are the mean of the numeric vector unless specified with \code{scaler}.
 #' @param scaler.func Function to calculate rescaling factors. 
-#' @param expected.catch.name For conditional logit (logit_c) model. Options are \code{short}, \code{med}, \code{long}, and \code{user}.
-#'   \code{short} returns the expected catch from the short-term scenario, \code{med} returns the expected catch from the medium-term scenario,
-#'   \code{long} returns the expected catch from the long-term scenario, and \code{user} returns the user-defined temporal terms.
+#' @param expected.catch For conditional logit. Expected catch matrices to include
 #' @return Returns a list of datacompile/choice matrix, dataCompile, distance, otherdat, expname, choice, choice.table, and mod.name
 #' @importFrom DBI dbConnect dbDisconnect
 #' @importFrom RSQLite SQLite
@@ -16,7 +14,7 @@
 #' @keywords internal
 
 create_model_input <- function(project, x=NULL, mod.name=NULL, use.scalers= TRUE, 
-                               scaler.func=NULL, expected.catch.name=NULL){
+                               scaler.func=NULL, expected.catch=NULL){
   
   # Two scenarios 
   # 1) Pulling from discrete fish subroutine  - x will be supplied
@@ -40,13 +38,8 @@ create_model_input <- function(project, x=NULL, mod.name=NULL, use.scalers= TRUE
   if(is.null(x)) { stop("Model name is not defined.")}
   
   if(x$likelihood == "logit_c"){
-    if(!is.null(expected.catch.name)){
-      exp_name <- switch(expected.catch.name,  'short_exp'='short',"short_exp_newDumV" = "short_newDumV",
-                         'med_exp'= 'med', "med_exp_newDumV" = "med_newDumV", 
-                         'long_exp' = 'long', 'long_exp_newDumv' = "long_newDumv",'user_defined_exp'='user')
-    } else{
-      exp_name <- 'user_defined_exp'
-      warning('Expected catch matrix required but not defined. Defaulting to the user-defined matrix.')
+    if(is.null(expected.catch)){
+      stop('Expected catch matrix required but not defined. Model not run.')
     }
   }
   
@@ -62,6 +55,11 @@ create_model_input <- function(project, x=NULL, mod.name=NULL, use.scalers= TRUE
       } else {
         x$scales$intdata <- scaler.func(x[["bCHeader"]][["indeVarsForModel"]]) 
       }
+      #if(is.list(expected.catch)){
+      #  x$scales$expdat <- lapply(expected.catch, function(x) scaler.func(unlist(x)))
+     # } else {
+     #   x$scales$expdat <- scaler.func(expected.catch) 
+     # }
       
     } 
   } else if(use.scalers == FALSE) {
@@ -85,9 +83,9 @@ create_model_input <- function(project, x=NULL, mod.name=NULL, use.scalers= TRUE
   fr <- x[["likelihood"]] # func  #e.g. logit_c
   
   # remove unnecessary lists
-  x[["gridVaryingVariables"]] <- Filter(Negate(function(x) is.null(unlist(x))), x[["gridVaryingVariables"]])
-  x[["gridVaryingVariables"]] <- x[["gridVaryingVariables"]][names(x[["gridVaryingVariables"]]) != "units"]
-  x[["gridVaryingVariables"]] <- x[["gridVaryingVariables"]][names(x[["gridVaryingVariables"]]) != "scale"]
+ # x[["gridVaryingVariables"]] <- Filter(Negate(function(x) is.null(unlist(x))), x[["gridVaryingVariables"]])
+ # x[["gridVaryingVariables"]] <- x[["gridVaryingVariables"]][names(x[["gridVaryingVariables"]]) != "units"]
+ # x[["gridVaryingVariables"]] <- x[["gridVaryingVariables"]][names(x[["gridVaryingVariables"]]) != "scale"]
   
   
   
@@ -105,7 +103,7 @@ create_model_input <- function(project, x=NULL, mod.name=NULL, use.scalers= TRUE
       griddat = list(griddatfin = as.data.frame(x[["bCHeader"]][["gridVariablesInclude"]])/as.numeric(x$scales[which(names(x$scales)=='griddata')])),
       intdat = list(as.data.frame(
         mapply("/",x[["bCHeader"]][["indeVarsForModel"]],
-               as.numeric(x$scales[which(names(x$scales)=='intdata')]),SIMPLIFY = FALSE))),
+               grep('intdata', names(x$scales)),SIMPLIFY = FALSE))),
       pricedat = as.data.frame(x[["epmDefaultPrice"]]/as.numeric(x$scales[which(names(x$scales)=='pscale')]))
     )
     expname <- fr
@@ -113,7 +111,7 @@ create_model_input <- function(project, x=NULL, mod.name=NULL, use.scalers= TRUE
     otherdat <- list(
       griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))), # x[['bCHeader']][['gridVariablesInclude']]),
       intdat = list(as.data.frame(mapply("/",x[["bCHeader"]][["indeVarsForModel"]],
-                                         as.numeric(x$scales[which(names(x$scales)=='intdata')]),SIMPLIFY = FALSE))),
+                                         grep('intdata', names(x$scales)),SIMPLIFY = FALSE))),
       startloc = as.data.frame(x[["startloc"]]),
       polyn = as.data.frame(x[["polyn"]]),
       distance=list(distance)
@@ -124,17 +122,17 @@ create_model_input <- function(project, x=NULL, mod.name=NULL, use.scalers= TRUE
       griddat = list(griddatfin = data.frame(rep(1, nrow(choice)))),
       intdat = list(as.data.frame(
         mapply("/",x[["bCHeader"]][["indeVarsForModel"]],
-               as.numeric(x$scales[which(names(x$scales)=='intdata')]),SIMPLIFY = FALSE)))
+               grep('intdata', names(x$scales)),SIMPLIFY = FALSE)))# 
     )
     expname <- fr
   } else if (fr == "logit_c") {
-    expname <- paste0(fr, '_', exp_name)
+    expname <- paste0(fr, '_', paste0(names(x$gridVaryingVariables), collapse=""))
     otherdat <- list(
-      griddat = list(griddatfin = as.data.frame(x[["gridVaryingVariables"]][match(expected.catch.name, names(x$gridVaryingVariables))])
-                     /as.numeric(x$scales[which(names(x$scales)=='griddata')])),
+      griddat = list(as.data.frame(lapply(expected.catch, function(sub) {sub <- lapply(sub, `/`,  mean(unlist(do.call(cbind,expected.catch))))
+      sub}))),
       intdat = list(as.data.frame(
         mapply("/",x[["bCHeader"]][["indeVarsForModel"]],
-               as.numeric(x$scales[which(names(x$scales)=='intdata')]),SIMPLIFY = FALSE)))
+               grep('intdata', names(x$scales)),SIMPLIFY = FALSE)))
     )
   }
   

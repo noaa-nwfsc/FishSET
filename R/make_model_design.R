@@ -194,7 +194,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
                               mod.name=NULL, vars1 = NULL, vars2 = NULL, 
                               priceCol = NULL, expectcatchmodels=list('all'), startloc = NULL, polyn = NULL) {
   
-  
+
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
@@ -215,12 +215,20 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
   if (is_empty(vars1) || vars1 == "none") {
     indeVarsForModel <- NULL
   } else {
+    if(any(grepl(',',vars1))){
+      indeVarsForModel <- unlist(strsplit(vars1, ","))
+    } else {
     indeVarsForModel <- vars1
+    }
   }
   if (is_empty(vars2) || vars2 == "none") {
     gridVariablesInclude <- NULL
   } else {
-    gridVariablesInclude <- vars2
+    if(any(grepl(',',vars2))){
+      gridVariablesInclude <- unlist(strsplit(vars2, ","))
+    } else {
+      gridVariablesInclude <- vars2
+    }
   }
   if (is_empty(priceCol) || priceCol == "none") {
     priceCol <- NULL
@@ -239,7 +247,6 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     mod.name <- mod.name
   }
  
-
   
   if (!exists("Alt")) {
     if (!exists("AltMatrixName")) {
@@ -250,13 +257,56 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     }
   }
 
+   ######
+    #Expected catch matrices
+    defineexp <- function(epnames){
+      if (length(epnames)>1){
+        epnames[grep('short', epnames)] <- 'short_exp'
+        epnames[grep('med', epnames)] <- 'med_exp'
+        epnames[grep('long', epnames)] <- 'long_exp'
+        epnames[grep('user', epnames)] <- 'user_defined_exp'
+        return(epnames)
+      } else {
+        if(grepl('short', tolower(epnames))) {
+          return('short_exp')
+        } else if(grepl('med', tolower(epnames))) {
+          return('med_exp')
+        } else if(grepl('long', tolower(epnames))) {
+          return('long_exp')
+        } else if(grepl('user', tolower(epnames))){
+          return('user_defined_exp')
+        }
+      }
+    }  
+    
+    exp.names <- list()
+    
   if (table_exists(paste0(project, "ExpectedCatch"), project) & likelihood == "logit_c") {
     ExpectedCatch <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", project, "ExpectedCatch LIMIT 1"))$data[[1]])
-    
+   
     if(dim(as.data.frame(ExpectedCatch[[1]]))[[1]] != length(Alt$choice[which(Alt[["dataZoneTrue"]]==1),])){
-      warning('Number of observations in Expected catch matrix and catch data do not match. Model design file cannot be created.')
-    }
+      stop('Number of observations in Expected catch matrix and catch data do not match. Model design file cannot be created.')
+    } else {
+      if(is.null(expectcatchmodels)){
+        stop('Expected catch matrix not defined. Model design file cannot be created.')
+      } else {
+      if(any(expectcatchmodels=='individual')){
+        explen <- length(exp.names)
+        g <- list(c("short_exp"),c("short_exp_newDumV"),c("med_exp"),c("med_exp_newDumV"),c("long_exp"),c("long_exp_newDumv"),c("user_defined_exp"))
+        for(i in 1:length(g)){
+          exp.names[[explen+i]] <- g[[i]]
+        }
+      } else  if(any(tolower(expectcatchmodels) == 'all')){
+        exp.names[[1]] <- list(c("short_exp","short_exp_newDumV","med_exp","med_exp_newDumV","long_exp","long_exp_newDumv","user_defined_exp"))
+      } else {
+        exp.names[[length(exp.names)+1]] <- defineexp(expectcatchmodels)
+      }
+      ExpectedCatch <- ExpectedCatch[match(unlist(exp.names), names(ExpectedCatch))[!is.na(match(unlist(exp.names), names(ExpectedCatch)))]]  
+      ExpectedCatch <- Filter(Negate(function(x) is.null(unlist(x))), ExpectedCatch)
+    }}
   }
+    
+    
   if (!exists("ExpectedCatch")) {
     ExpectedCatch <- ""
     newDumV <- 1
@@ -266,7 +316,8 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     }
   }
 
-    if(length(ExpectedCatch)>1){
+  
+    if(is.list(ExpectedCatch)){
       if (length(ExpectedCatch$newDumV)==0) {
         newDumV <- 1
       } else {
@@ -275,6 +326,9 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       }
     }
     
+
+    #####   
+    
     alt_var <- Alt[["alt_var"]]
     occasion <- Alt[["occasion"]]
     dataZoneTrue <- Alt[["dataZoneTrue"]]
@@ -282,6 +336,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     choice_raw <- as.data.frame(Alt$choice)
     choice <- as.data.frame(Alt$choice[which(dataZoneTrue==1),])
     zoneRow <- Alt[["zoneRow"]]
+    zoneID <- Alt[['zoneID']]
     startingloc <- if (!is.null(startloc) & all(is.na(Alt$startingloc))) {
       dataset[[startloc]]
     } else {
@@ -317,6 +372,9 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     }
     
 
+    #---
+    
+
     if (any(is_empty(indeVarsForModel))) {
       bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, newDumV = newDumV, 
                        indeVarsForModel = as.data.frame(matrix(1, nrow = nrow(choice), ncol = 1)))
@@ -333,12 +391,12 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       }
     }
     
-    
+ 
   ### Initial parameters - need to grab inits from previous model run if required
   #  params <- list()
   #  for (i in 1:length(initparams)){
       if(!is.numeric(initparams) & !any(grepl(',', initparams))){
-        x_temp <-  read_dat(paste0(locoutput(project), pull_output(project, type='table', fun=paste0('params_', initparams))))
+        x_temp <- read_dat(paste0(locoutput(project), pull_output(project, type='table', fun=paste0('params_', initparams))))
         if(!is.null(x_temp)){
           initparams <- x_temp$estimate#param_temp <- x_temp$estimate
         } else {
@@ -353,7 +411,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     
   ### Generate Distance Matrix
      dist_out <- create_dist_matrix(dataset=dataset, alt_var=alt_var, occasion=occasion, dataZoneTrue=dataZoneTrue, 
-                                 int=int, choice=choice_raw, units=units, port=port, zoneRow=zoneRow, X=X)
+                                 int=int, choice=choice_raw, units=units, port=port, zoneRow=zoneRow, X=X, zoneID=zoneID)
   
   ### ---- add special terms: ----### add only for EPM model
 
@@ -376,7 +434,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       #r=regexp(num2str(max(max(modelInputData.zonalChoices))),'\.','split');
       
      # r <- nchar(sub("\\.[0-9]+", "", max(max(dist_out[['X']], na.rm = T), na.rm = T)))
-      mscale <-mean(dist_out$X, na.rm = TRUE)# 10^(r - 1)
+      mscale <- mean(dist_out$X, na.rm = TRUE)# 10^(r - 1)
 
       # scales data r in
       # r <- regexp(arrayfun(@num2str,nanmax(dataPerZone),'UniformOutput',false),'\\.','split')){){
@@ -390,11 +448,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
         } else {
           r2 <- as.numeric(lapply(bCHeader$indeVarsForModel, function(x) mean(as.numeric(unlist(x)), na.rm=TRUE)))
         }
-      
-      dscale <- list(list(grid=r), list(inde=r2))
-                 #10^(nchar(sub("\\.[0-9]+", "", max(max(x, na.rm = T), na.rm = T)))-1))
-      #dscale <- if(dscale ==0 ) {1} else {dscale}
-      ### -- Create output list --- ###
+
       modelInputData_tosave <- list(
         likelihood = likelihood,
         catch = catch,
@@ -423,7 +477,9 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       )
 
 #     print(str(modelInputData_tosave)) 
-     
+        
+
+         
       single_sql <- paste0(project, "modelinputdata")
       date_sql <- paste0(project, "modelinputdata", format(Sys.Date(), format = "%Y%m%d"))
       if (table_exists(single_sql, project) & replace == FALSE) {
@@ -441,7 +497,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       if (table_exists(date_sql, project)) {
         table_remove(date_sql, project)
       }
-   
+    
       DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(ModelInputData MODELINPUTDATA)"))
       DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:ModelInputData)"),
                      params = list(ModelInputData = list(serialize(modelInputData, NULL)))

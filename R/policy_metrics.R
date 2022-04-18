@@ -3,8 +3,8 @@
 #'   Table in the FishSET database contains the string 'MainDataTable'.
 #' @param project Name of project
 #' @param tripID Trip identifier. Can be 'row' or the name or names of variables that define trips. 
-#'     If \code{tripID='row'} then each row of the  primary dataset is condsidered to be a unique trip
-#' @param vesselID Vessel identifier. Varible name in primary dataset that contains unique vessel identifier.
+#'     If \code{tripID='row'} then each row of the  primary dataset is considered to be a unique trip
+#' @param vesselID Vessel identifier. Variable name in primary dataset that contains unique vessel identifier.
 #' @param catchID Name of variable in primary dataset that contains catch data.
 #' @param price Name of variable containing data on revenue or price data.
 #' @param datevar Name of variable containing date data. Used to split data into years.
@@ -16,6 +16,7 @@
 #' @export
 #' @return  Tables containing basic metrics on effects of proposed zone closures.
 #' @details The policy change metrics reflect the impact of proposed policies in the absence of changes in fisher behavior.
+#'     Policy scenarios are defined using zone_closure() function. 
 #'     Percent of vessels is calculated from the unique vessel identifiers grouped by year and zone. Trips are identified using the 
 #'     tripID argument, otherwise each row is assumed to be a trip. If \code{price} is not defined then percent of revenue loss will 
 #'     be reported as NA.
