@@ -223,6 +223,7 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
       startingloc = startingloc,
       zoneHist = zoneHist,
       zoneRow = zoneHist[greaterNZ, 3], # zones and choices array
+      zoneID = cat,
       # assignChoice = gridInfo['dataColumnLink',,],
       # zoneType = ifelse(haul.trip == 'Haul', 'Hauls', 'Trips'),
       int = int # centroid data

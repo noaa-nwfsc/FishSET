@@ -5362,7 +5362,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           input_list <- reactiveValuesToList(input)
           toggle_inputs(input_list,F)
           #print('call model design function, call discrete_subroutine file')
-         rv$data <- subset(rv$data, mod_name!='')
+          rv$data <- subset(rv$data, mod_name!='')
           
 
          # q_test <- quietly_test(make_model_design)

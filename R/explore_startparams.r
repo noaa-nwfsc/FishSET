@@ -64,7 +64,6 @@ explore_startparams_discrete <- function(space, dev, breakearly=TRUE, startsr=NU
                                      mod.name=NULL, expname=NULL)
       }
        
-   
       
       if(breakearly==FALSE && (length(unlist(saveLLstarts))) < space){
         k <- length(unlist(saveLLstarts)) + 1

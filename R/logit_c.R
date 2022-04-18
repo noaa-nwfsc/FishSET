@@ -81,6 +81,7 @@ logit_c <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
   #' }
   #'
 
+  
   griddat <- as.matrix(do.call(cbind, otherdat$griddat))
   intdat <- as.matrix(do.call(cbind, otherdat$intdat))
 

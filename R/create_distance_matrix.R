@@ -10,6 +10,7 @@
 #' @param port Port table
 #' @param zoneRow Zone row
 #' @param X distance matrix
+#' @param zoneID Zone identifier
 #' @importFrom geosphere distm
 #' @export 
 #' @keywords internal
@@ -19,7 +20,7 @@
 #' @return
 #' Distance matrix based on choices made in create_alternative_choice
 
-create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, choice, units, port, zoneRow, X) {
+create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, choice, units, port, zoneRow, X, zoneID) {
   
     ################### 
     #Steps if alternative matrix come from gridded data file 
@@ -51,9 +52,9 @@ create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, ch
       ##### ---Begin Alt Var--###
       if (any(grepl("centroid|zon", occasion, ignore.case = T))) {
 
-        temp <- as.matrix(dataset[["ZoneID"]])
+        temp <- as.data.frame(as.matrix(dataset[[zoneID]][which(dataZoneTrue == 1)]))
         colnames(temp) <- "ZoneID"
-        temp <- merge(temp, int)
+        temp <- merge(temp, int[which(int$ZoneID %in% temp$ZoneID),])
         toXY1 <- temp[which(dataZoneTrue == 1), 2:3]
         
         altToLocal1 <- "Centroid of Zonal Assignment"

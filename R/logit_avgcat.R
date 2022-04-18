@@ -80,6 +80,7 @@ logit_avgcat <- function(starts3, dat, otherdat, alts, project, expname, mod.nam
   #' }
   #'
 
+  
   griddat <- as.matrix(do.call(cbind, otherdat$griddat))
   intdat <- as.matrix(do.call(cbind, otherdat$intdat))
   
