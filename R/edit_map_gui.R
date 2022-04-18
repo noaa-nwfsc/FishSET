@@ -1,4 +1,4 @@
-edit_map <- function(spat, id, project, test_coord) {
+edit_map_gui <- function(spat, id, project) {
   
   
   map_nm <- deparse(substitute(spat))
@@ -25,7 +25,6 @@ edit_map <- function(spat, id, project, test_coord) {
                          layerId = map_dat[[id]],
                          label = map_dat[[id]])
   
-  
   shinyApp(
     ui = 
       fluidPage(
@@ -38,42 +37,8 @@ edit_map <- function(spat, id, project, test_coord) {
         
         uiOutput("showTable"),
         
-        
-        h3("Create closure manually"),
-        
-        fluidRow(
-          
-          column(2,
-                 numericInput("add_lon", "Longitude", value = 0),
-                 numericInput("add_lat", "Latitude", value = 0),
-                 ),
-          
-          column(3, offset = 1, 
-                 
-                 DT::DTOutput("coord_m")
-                 )
-          
-        ),
-        
-        
-        actionButton("new_point", "Add new point", 
-                     style = "background: blue; color: white;"),
-        
-        h4("Name closure"),
-        
-        textInput("new_close_id", "ID for new closure"),
-        
-        # choose spatial ID column
-        uiOutput("spatCols"),
-        
-        actionButton("run_add_close", "Add new closure",
-                     style = "background: blue; color: white;"),
-        
-        
-        tags$br(), tags$br(),
-        
         textInput("exprUp", label = "Enter an R expression",
-                  value = "add_close$coord <- test_coord"),
+                  value = ""),
         actionButton("runUp", "Run", class = "btn-success"),
         div(style = "margin-top: 2em;",
             uiOutput('resultUp')
@@ -91,25 +56,6 @@ edit_map <- function(spat, id, project, test_coord) {
       drawn_count <- reactiveVal(value = 0)
       
       # editMod doesn't seem to work with a reactive
-      
-      # leaf_map <- reactive({
-      #   
-      #   leaflet() %>%
-      #     addTiles() %>%
-      #     addPolygons(data = rv$base_map,
-      #                 fillColor = "white",
-      #                 fillOpacity = 0.5,
-      #                 color = "black",
-      #                 stroke = TRUE,
-      #                 weight = 1,
-      #                 group = "editable",
-      #                 layerId = rv$base_map[[id]],
-      #                 label = rv$base_map[[id]])
-      #   
-      # })
-      
-      
-      
       # mapedit mod ----
       edits <- callModule(mapedit::editMod,
                           "mapeditor",
@@ -125,11 +71,11 @@ edit_map <- function(spat, id, project, test_coord) {
       # disable save if new edit is made
       observeEvent(edits(), {
         
-        edit_count(edit_count() + 1)
+        edit_count(edit_count() + 1) # remove
         rv$save <- FALSE
       })
       
-      
+      # remove
       observeEvent(edits()$drawn, {
         
         drawn_count(drawn_count() + 1)
@@ -171,11 +117,8 @@ edit_map <- function(spat, id, project, test_coord) {
         }
         
         rv$base_map <- map_out
-        
       })
-      
-     
-      
+
       output$showTable <- renderUI({
         
         if (rv$showTable) {
@@ -192,13 +135,9 @@ edit_map <- function(spat, id, project, test_coord) {
             ),
             DT::DTOutput("map_add")
           )
-          
         }
-        
       })
-      
-      
-      
+
       # edit new feature attributes ----
       
       output$map_add <- DT::renderDT({
@@ -251,73 +190,6 @@ edit_map <- function(spat, id, project, test_coord) {
         
       }) 
       
-      
-      # manually add closure ----
-      add_close <- reactiveValues(coord = NULL)
-      
-      observeEvent(input$new_point, {
-        
-        new_point <- matrix(c(input$add_lon, input$add_lat), ncol = 2, byrow = TRUE,
-                            dimnames = list(NULL, c("Longitude", "Latitude")))
-        add_close$coord <- rbind(add_close$coord, new_point)
-        
-      })
-      
-      coord_proxy <- DT::dataTableProxy("coord_m")
-      
-      output$coord_m <- DT::renderDT({
-        
-        add_close$coord
-        
-      }, server = TRUE, editable = list(target ='cell'), 
-      options = list(autoWidth = FALSE), rownames = FALSE)
-      
-      observeEvent(input$coord_m_cell_edit, {
-        
-        add_close$coord <- DT::editData(add_close$coord, 
-                                        input$coord_m_cell_edit,
-                                        "coord_m", rownames = FALSE)
-      })
-      
-      
-      output$spatCols <- renderUI({
-        
-        selectInput("zone.spat", "Select spatial ID column", 
-                    choices = colnames(spat))
-      })
-      
-      
-      # combine new closure with spat
-      
-      observeEvent(input$run_add_close, {
-        # check that new close was made
-        if (!isTruthy(add_close$coord)) {
-          
-          showNotification("New closure missing.", type = "message")
-        }
-        
-        req(add_close$coord)
-        
-        # check that new ID is valid (unique?)
-        
-        if (!isTruthy(input$new_close_id)) {
-          
-          showNotification("Closure ID missing.", type = "message")
-        }
-        
-        new_close <- make_polygon(add_close$coord)
-        
-        # check if rv$map_out exists, if not use the base map
-        # If NULL, means that user hasn't used mapedit module yet
-        
-        if (!is.null(rv$map_out)) spat_map <- rv$map_out
-        else spat_map <- rv$base_map
-        
-        rv$map_out <- add_polygon(new_close, spat_map, zone.spat = input$zone.spat,
-                                  new.id = input$new_close_id)
-      })
-      
-      
       # Save ----
       observeEvent(input$save, {
         
@@ -335,7 +207,7 @@ edit_map <- function(spat, id, project, test_coord) {
         
         grid_list <- list()
         
-        grid_list[[map_nm]] <- map_out
+        grid_list[[map_nm]] <- rv$map_out
         
         map_lab <- grid_lab_helper(project, 
                                    grid_info = grid_info, 
