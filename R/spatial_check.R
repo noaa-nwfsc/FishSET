@@ -25,13 +25,15 @@ is_invalid_spat <- function(spat) {
   #' @keywords internal
   #' @return \code{TRUE} if a "GEOMETRYCOLLECTION" is found, if any spatial 
   #' features are not "POLYGON" or "MULTIPOLYGON", if invalid geometries are 
-  #' found, and if any empty geometries are detected. 
+  #' found, if any empty geometries are detected, or if longitude needs to be
+  #' shifted to Pacific view. 
   
   any(sf::st_is(spat, "GEOMETRYCOLLECTION")) ||
     any(!sf::st_is(spat, c("MULTIPOLYGON", "POLYGON"))) ||
     any(!sf::st_is_valid(spat)) ||
     any(is.na(sf::st_is_valid(spat))) || 
-    any(sf::st_is_empty(spat))   
+    any(sf::st_is_empty(spat)) ||
+    shift_long(spat)
 }
 
 
@@ -86,6 +88,7 @@ clean_spat <- function(spat) {
     }
   }
   
+  # shift to Pacific view if needed
   if (shift_long(spat)) {
     
     spat <- sf::st_shift_longitude(spat)
@@ -174,12 +177,7 @@ check_spatdat <- function(spatdat, lon = NULL, lat = NULL, id = NULL) {
   # Convert to WGS84 if projected
   if (any(grepl('PROJCRS',  sf::st_crs(spatdat)))) {
     
-    spatdat <- sf::st_transform(spatdat, "+proj=longlat +ellps=WGS84 +datum=WGS84")
-  }
-  # shift to Pacific view if needed
-  if (shift_long(spatdat)) {
-    
-    spatdat <- sf::st_shift_longitude(spatdat)
+    spatdat <- sf::st_transform(spatdat, 4326) # WGS EPSG
   }
   
   if (is_invalid_spat(spatdat)) {
