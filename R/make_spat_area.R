@@ -2,7 +2,7 @@ make_polygon <- function(coord) {
   #' create a polygon
   #' 
   #' @param coord Longitude and latitude coordinates forming a polygon. Can be a 
-  #' numeric vector of even length or a numeric matrix with two columns.
+  #'    numeric vector of even length or a numeric matrix with two columns.
   #' @keywords internal
   #' @importFrom purrr is_bare_numeric
   #' @import sf
@@ -158,11 +158,15 @@ make_spat_area <- function(spat, coord, spat.id, new.id, combine) {
 #' 
 #' @param spat Spatial dataset to add polygon too.
 #' @param coord Longitude and latitude coordinates forming a polygon. Can be a 
-  #' numeric vector of even length or a numeric matrix with two columns.
+#'    numeric vector of even length or a numeric matrix with two columns.
 #' @param spat.id The ID column in \code{spat}
 #' @param new.id The ID for new polygon. 
+#' @param combine Whether to use \code{\link{combine_zone}}. This will turn 
+#'   the intersections between \code{poly} and \code{spat} into new polygons. 
+#'   Note that the new polygon IDs will be derived from \code{spat} and \code{new.id} 
+#'   will not be used. 
 #' @export
-#' @details 
+#' @details Adds an area/polygone to a spatial area
 #' @seealso \code{\link{make_polygon}} \code{\link{add_polygon}}
   
   new_poly <- make_polygon(coord)

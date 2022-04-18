@@ -17,7 +17,7 @@
 #'    Leave \code{mod.name} empty to use the name of the saved "best" model. If more than
 #'   one model is saved, \code{mod.name} should be the numeric indicator of which model to use.
 #'   Use \code{table_view("modelChosen", project)} to view a table of saved models.
-#' @param expected.catch.name Required for conditional logit (\code{logit_c}) model. 
+#' @param expected.catch Required for conditional logit (\code{logit_c}) model. 
 #'   Name of expected catch table to use. 
 #'    Can be the expected catch from the short-term scenario (\code{short}), the medium-term scenario (\code{med}), the 
 #'    long-term scenario (\code{long}), or the user-defined temporal parameters (\code{user}).
@@ -33,7 +33,7 @@
 #' 
 
 
-model_prediction <- function(project, mod.name, expected.catch.name=NULL, enteredPrice=NULL){
+model_prediction <- function(project, mod.name, expected.catch=NULL, enteredPrice=NULL){
   
 
 #Functions to create
@@ -148,7 +148,7 @@ if (grepl('logit', x_new$likelihood)) {
   InOutLogit <- matrix(0,length(tacAllowedAllTime), 2)  #=zeros(length(tacAllowedAllTime),2);
 
 
-  temp <- logit_predict(project=project, mod.name=modname, expected.catch.name=expected.catch.name) #modelOutput{mChoice},alts,x);
+  temp <- logit_predict(project=project, mod.name=modname, expected.catch=expected.catch) #modelOutput{mChoice},alts,x);
   probLogit <- temp$probLogit
   modelDat <- temp$modelDat
   # Predictions for zonal logit
