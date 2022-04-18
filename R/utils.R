@@ -448,14 +448,14 @@ is_value_empty <- function(x) {
   #' @importFrom stats na.omit
   #' @export
   
-  if (inherits(x, "try-error")) return(FALSE)
-  if (is.null(x))  return(FALSE)
-  if (length(x) == 0) return(FALSE)
-  if (all(is.na(x))) return(FALSE)
-  if (is.character(x) && !any(nzchar(stats::na.omit(x)))) return(FALSE)
-  if (is.logical(x) && !any(stats::na.omit(x))) return(FALSE)
+  if (inherits(x, "try-error")) return(TRUE)
+  if (is.null(x))  return(TRUE)
+  if (length(x) == 0) return(TRUE)
+  if (all(is.na(x))) return(TRUE)
+  if (is.character(x) && !any(nzchar(stats::na.omit(x)))) return(TRUE)
+  if (is.logical(x) && !any(stats::na.omit(x))) return(TRUE)
   
-  return(TRUE)
+  return(FALSE)
 }
 
 find_first <- function(y) {

@@ -182,9 +182,9 @@ combine_zone <- function(spat, closure, grid.nm, closure.nm, recast = TRUE) {
   
   if (is_invalid_spat(c_un)) c_un <- clean_spat(c_un)
   
-  diff <- sf::st_difference(grid, c_un) %>% sf::st_make_valid()
+  diff <- sf::st_difference(grid, c_un) %>% clean_spat()
   
-  inter <- sf::st_intersection(grid, c_un) %>% sf::st_make_valid()
+  inter <- sf::st_intersection(grid, c_un) %>% clean_spat()
   out <- dplyr::bind_rows(diff, inter)
   
   if (is_invalid_spat(out)) out <- clean_spat(out)
