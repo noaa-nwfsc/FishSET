@@ -311,7 +311,6 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     ExpectedCatch <- ""
     newDumV <- 1
     if (likelihood == "logit_c") {
-      
       stop("Expected Catch Matrix does not exist. Please run the create_expectations function if expected catch will be included in the model.")
     }
   }
@@ -412,6 +411,9 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
   ### Generate Distance Matrix
      dist_out <- create_dist_matrix(dataset=dataset, alt_var=alt_var, occasion=occasion, dataZoneTrue=dataZoneTrue, 
                                  int=int, choice=choice_raw, units=units, port=port, zoneRow=zoneRow, X=X, zoneID=zoneID)
+     if(is.null(dist_out)==TRUE){
+      warning('Model design failed. Error in calculating distance matrix')
+     } else {
   
   ### ---- add special terms: ----### add only for EPM model
 
@@ -419,7 +421,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       #r=regexp(num2str(max(modelInputData.catch)),'\.','split');
       #r <- nchar(sub("\\.[0-9]+", "", max(catch, na.rm = T)))
       yscale <- mean(catch, na.rm=T) #2*sd(catch, na.rm=TRUE)#10^(r - 1)
-
+   
         
   ### Some models need price data
       if (is_empty(priceCol) || is.null(priceCol) || priceCol == "") {
@@ -521,6 +523,6 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       
       print('Model design file done')
 
-
+}
 }
 
