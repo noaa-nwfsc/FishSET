@@ -7,7 +7,7 @@
 #'   one model is saved, \code{mod.name} should be the numeric indicator of which model to use.
 #'   Use \code{table_view("modelChosen", project)} to view a table of saved models.
 #' @param enteredPrice Price data. Leave as NULL if using price data from primary dataset.
-#' @param expected.catch.name Required for conditional logit (\code{logit_c}) model. 
+#' @param expected.catch Required for conditional logit (\code{logit_c}) model. 
 #'   Name of expected catch table to use. 
 #'    Can be the expected catch from the short-term scenario (\code{short}), the medium-term scenario (\code{med}), the 
 #'    long-term scenario (\code{long}), or the user-defined temporal parameters (\code{user}).
@@ -28,7 +28,7 @@
 #welfare_predict
 #  sim_welfare
 
-run_policy <- function(project, mod.name=NULL, enteredPrice=NULL, expected.catch.name=NULL){
+run_policy <- function(project, mod.name=NULL, enteredPrice=NULL, expected.catch=NULL){
   
 
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
@@ -68,13 +68,13 @@ run_policy <- function(project, mod.name=NULL, enteredPrice=NULL, expected.catch
     # This is done in the zone closure tab
   
   #3. Run model_prediction function
-  model_prediction(project=project, mod.name=modname, expected.catch.name=expected.catch.name, enteredPrice)
+  model_prediction(project=project, mod.name=modname, expected.catch=expected.catch, enteredPrice)
   
   #4. Output should be temporarily saved to pass to the next function
   #pOutput <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT PredictOutput FROM ", project, "predictoutput LIMIT 1"))$PredictOutput[[1]])
   
   #5. Run welfare predict
-    welfareout <- welfare_predict(project=project, mod.name=modname, expected.catch.name=expected.catch.name, enteredPrice=enteredPrice)
+    welfareout <- welfare_predict(project=project, mod.name=modname, expected.catch=expected.catch, enteredPrice=enteredPrice)
     
   #6. Save output and return tables and plots
   

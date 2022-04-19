@@ -94,11 +94,12 @@ source("map_viewer_app.R", local = TRUE)
                                                         tags$p('The FishSET GUI is divided into tabs to guide users through the steps of creation, 
                                                                 from uploading and exploring data to developing and evaluating models.
                                                                 Tabs can be navigated in any order.  All data is automatically saved to a SQL database called the 
-                                                               FishSET database when first loaded. The database is housed in the projects directory withing the FishSET R package directory. 
+                                                               FishSET database when first loaded. The database is housed in the projects directory withing the FishSETFolder directory. 
+                                                               The FishSETFolder directory is created the first time data is is loaded into FishSET.
                                                                 Modified versions of the data can be saved to the FishSET database in the', tags$em('Data Quality Evaluation'), 'and', 
                                                                tags$em('Compute New Variables'), 'tabs.   
                                                                 Plots and table outputs are saved in an output folder of the project directory. 
-                                                              Function calls, including chosen parameters, are saved to the', tags$em('Logs'), 'folder in the projects directory. 
+                                                              Function calls, including chosen parameters, are saved to the', tags$em('src'), 'folder in the projects directory. 
                                                               The', tags$em('Quickstart Guide'), 'subtab provides further assistance on using the FishSET GUI.',
                                                                "The", tags$em('User Manual'), "provides greater detail and background on functions."),
                                                         tags$p('For questions and comments please contact: FishSET@noaa.gov'))

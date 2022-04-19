@@ -34,8 +34,8 @@ corr_out <- function(dat, project, variables='all', method = "pearson") {
     if (variables == "all") variables <- colnames(dataset)
     else {
       
-      stop("At least two variables must be included.")
-     
+      warning("At least two variables must be included.")
+     end=TRUE
     }
   }
   
@@ -44,11 +44,11 @@ corr_out <- function(dat, project, variables='all', method = "pearson") {
   
   if (length(variables) < 2) {
     
-    stop("All variables must be numeric.")
-   
+    warning("All variables must be numeric.")
+   end==TRUE
   }
 
-  
+  if(end==FALSE){
     if(any(sapply(dataset[,variables], var, na.rm=TRUE)==0)){
       cat(paste0("No variance found in ", names(which(sapply(dataset[,variables], var, na.rm=TRUE)==0)),
                  ". Removed from correlation test"))
@@ -88,5 +88,5 @@ corr_out <- function(dat, project, variables='all', method = "pearson") {
     save_table(c_tab, project, "corr_out")
 
     list(plot = c_plot, table = c_tab)
-
+  }
 }
