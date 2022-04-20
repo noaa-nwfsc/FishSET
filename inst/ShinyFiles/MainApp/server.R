@@ -5578,16 +5578,14 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       observeEvent(input$saveALT, {
               showNotification('Function can take a couple minutes. A message will appear when done.',
                                type='message', duration=20)
-              q_test <- quietly_test(create_alternative_choice)
-              q_test(values$dataset, project=project$name, occasion=input$occasion_ac, alt_var=input$alt_var_ac, griddedDat=NULL, 
+             create_alternative_choice(values$dataset, project=project$name, occasion=input$occasion_ac, alt_var=input$alt_var_ac, 
                                   dist.unit=input$dist_ac, min.haul=input$min_haul_ac, spat=spatdat$dataset, cat=input$cat_altfc, 
                                   zoneID=input$distMatrixZone, hull.polygon=input$hull_polygon_ac, 
-                                  lon.spat=input$long_grid_altc, lat.spat=input$lat_grid_altc, 
+                                  griddedDat=NULL, lon.spat=input$long_grid_altc, lat.spat=input$lat_grid_altc, 
                                   closest.pt=input$closest_pt_ac)
               showNotification('Completed. Alternative choice matrix updated', type='message', duration=10)
       }, ignoreInit = F) 
       
-    
       
       observeEvent(input$savecentroid, {
         q_test <- quietly_test(find_centroid)

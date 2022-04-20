@@ -85,6 +85,8 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
                                 empty.catch = c(NULL, 0, "allCatch", "groupedCatch"), empty.expectation = c(NULL, 1e-04, 0),
                                 temp.window = 7, temp.lag = 0, year.lag = 0, dummy.exp = FALSE, replace.output = TRUE) {
 
+  stopanal <- 0
+  
   # Call in data sets
   out <- data_pull(dat, project = project)
   dataset <- out$dataset
@@ -104,17 +106,19 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
 
   # for now if no time, only allow mean based on group without options TODO: allow
   # options from tab 2, currently turned off ti=find([data.isTime])# TODO add option for other time
-  if ( is_empty(date_cols(dataset))) {
+  if (is_empty(date_cols(dataset))) {
     warning("No time variable found, only averaging in groups and per zone is capable")
   }
 
   # Check that define group is either empty of an actual variable in the dataset
   if (defineGroup != "fleet") {
     if (any(is.null(dataset[[defineGroup]]))) {
-      stop("defineGroup not recognized. Check that parameter is correctly defined")
+      warning("defineGroup not recognized. Check that parameter is correctly defined")
+      stopanal <- 1
     }
   }
   
+  if(stopanal == 0){
   ## 1. Option 1. Short-term, individual grouping t - 2 (window)
  short_exp <- short_expectations(
     dat = dataset, project = project, catch = catch, price = price, defineGroup = defineGroup, temp.var = temp.var,
@@ -448,4 +452,5 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
   create_expectations_function$kwargs <- list()
 
   log_call(project, create_expectations_function)
+  }
 }
