@@ -82,7 +82,7 @@
 #'         occasion: \tab Identifies how to find latitude and longitude for starting point\cr
 #'         alt_var: \tab Identifies how to find latitude and longitude for alternative choice \cr
 #'         zoneRow: \tab Zones and choices array\cr
-#'         int: \tab Geographic entroid for each zone. Generated from \code{\link{find_centroid}}\cr
+#'         int: \tab Geographic centroid for each zone. Generated from \code{\link{find_centroid}}\cr
 #'         matrix: \tab Distance matrix is alternative choices comes from gridded dataset
 #'         }
 
@@ -104,7 +104,6 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
   
   x <- 0
 
-  
   if(!is.null(spatdat)){
       int <- suppressWarnings(find_centroid(project = project, spat = spatdat, cat = cat, lon.spat = lon.spat, lat.spat = lat.spat))
   } else if(table_exists(paste0(spat, 'Centroid'), project)|table_exists('spatCentroid', project)){
@@ -114,7 +113,8 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
           int <- table_view('spatCentroid', project)
         }
   } else {
-    stop("Zonal centroid must be defined. Function not run.")
+    warning("Zonal centroid must be defined. Function not run.")
+    x = 1
   }
  
   if('ZoneID' %in% names(dataset) || cat %in% names(dataset) || !is.null(zoneID) && zoneID %in% names(dataset)){
@@ -129,7 +129,8 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
   } else {
   if (!is.null(spatdat) & !is.character(spatdat)) {
       if(is.null(lon.dat)){
-        stop('Observations must be assigned to zones. Function not run.')
+        warning('Observations must be assigned to zones. Function not run.')
+        x = 1
       } else {
     int.data <- assignment_column(
       dat = dataset, project=project, spat = spatdat, hull.polygon = hull.polygon,
@@ -144,8 +145,9 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
       if(!is.null(spatdat)){
         int <- find_centroid(project = project, spat = spatdat, lon.spat = lon.spat, lat.spat = lat.spat, cat = cat) 
       } else
-        stop('Zones do not match between centroid table and zonal assignments in main data table. Rerun find_centoid using 
+        warning('Zones do not match between centroid table and zonal assignments in main data table. Rerun find_centoid using 
                 same spatial data file as was using with the assignment_column function.')
+      x = 1
   }
 
   
@@ -171,7 +173,7 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
   }
 
   if (is.null(choice)) {
-    stop("Choice must be defined. Ensure that the zone or area assignment variable (cat parameter) is defined.")
+    warning("Choice must be defined. Ensure that the zone or area assignment variable (cat parameter) is defined.")
     stopanaly <- 1
   }
   
@@ -249,7 +251,7 @@ create_alternative_choice <- function(dat, project, occasion='centroid', alt_var
     }
         
     if (any(noquote(gsub("[^0-9]", "", colnames(gridVar))) %in% g) == FALSE) {
-      stop("Cannot use griddedDat. Column names of griddedDat do not match zone IDs in spatial dataset")
+      warning("Cannot use griddedDat. Column names of griddedDat do not match zone IDs in spatial dataset")
       st <- 1
     }
 
