@@ -117,7 +117,7 @@ end <- FALSE
     # Call in datasets
         if(table_exists(paste0(project, "modelinputdata"), project)){
           fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
-
+          on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
            x_temp <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT ModelInputData FROM ", project, "modelinputdata LIMIT 1"))$ModelInputData[[1]])
 
         } else {
@@ -463,7 +463,7 @@ end <- FALSE
    
     } # end model run (if end == false)
     # out.mod <<- out.mod
-    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+    
     #############################################################################
     if (select.model == TRUE) {
       #  rownames(out.mod)=c("AIC", "AICc", "BIC", "PseudoR2")

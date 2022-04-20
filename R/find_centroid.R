@@ -27,7 +27,8 @@ find_centroid <- function(project, spat, cat, lon.spat = NULL, lat.spat = NULL) 
   on.exit(unlink(tmp), add = TRUE)
   cat("", file = tmp, append = TRUE)
   x <- 0
- 
+
+  
     if (any(grepl("Spatial", class(spatdat)))) {
       if(any(class(spatdat) %in% c("sp", "SpatialPolygonsDataFrame"))) {
         spatdat <- sf::st_as_sf(spatdat)
@@ -51,6 +52,9 @@ find_centroid <- function(project, spat, cat, lon.spat = NULL, lat.spat = NULL) 
       int <-  sf::st_centroid(spatdat)
       int <- as.data.frame(cbind(int[[cat]], sf::st_coordinates(sf::st_cast(int,"POINT"))))
       colnames(int) <- c("ZoneID", "cent.lon", "cent.lat")
+      int$cent.lon <- as.numeric(int$cent.lon)
+      int$cent.lat <- as.numeric(int$cent.lat)
+      
       if (any(abs(int$cent.lon) > 180)) {
         cat("Longitude is not valid (outside -180:180).", file = tmp, append = TRUE)
         # stop("Longitude is not valid (outside -180:180.")
