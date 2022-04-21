@@ -47,7 +47,7 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
 
  #Requires temporal data. Need to grab data if not provided
       #Identify the first date variable
-  if(temp.var=='none' || is_empty(temp.var) || !exists(temp.var)){
+  if(temp.var=='none' || is_empty(temp.var)||is.null(temp.var)){
       temp.var <- date_cols(dataset)[1]
       print(paste('temp.var was not specified. Using', temp.var, 'instead.'))
   }

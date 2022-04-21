@@ -124,7 +124,7 @@ sparsplot <- function(project, x = NULL) {
 
   sparsplot_function <- list()
   sparsplot_function$functionID <- "sparsplot"
-  sparsplot_function$args <- list(x, project)
+  sparsplot_function$args <- list(project, deparse(substitute(x)))
   log_call(project, sparsplot_function)
 
   
