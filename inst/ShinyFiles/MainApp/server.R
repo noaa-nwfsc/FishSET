@@ -5156,6 +5156,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
 
       output$Inits <- renderUI({
+        req(input$initchoice)
         if(input$initchoice=='new'){
         i = 1:numInits()
         numwidth <- rep((1/numInits())*100, numInits())
@@ -5189,11 +5190,20 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         eval(parse(text = UI))
       })
       
+      output$paramsourcechoose <- renderUI(
+                 radioButtons('initchoice', "",
+                              if(length(grep(paste0("_", 'params', "_"), grep(".*\\.csv$", project_files(project$name)), value = TRUE))!=0){
+                                choices=c('Use output of previous model as parameter set' = 'prev','Choose parameter set' ='new')
+                                } else { choices=c('Choose parameter set' ='new')}, selected='new')
+      )
+
       output$paramtable <- renderUI({
+        if(length(grep(paste0("_", 'params', "_"), grep(".*\\.csv$", project_files(project$name)), value = TRUE))!=0){
          param_table <- paste0(locoutput(project$name), pull_output(project$name, type='table', fun=paste0('params')))
          param_table <- sub(".*params_", "", param_table)
           param_table <- gsub('.csv', '', param_table)
           selectInput('modname','Select previous model', choices=param_table)
+        }
       })
       
      
@@ -5597,8 +5607,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       observeEvent(input$submitE, {
         showNotification('Function can take a couple minutes. A message will appear when done.',
                          type='message', duration=20)
-                q_test <- quietly_test(create_expectations)
-                q_test(values$dataset, project$name, input$catche, price=input$price, 
+                create_expectations(values$dataset, project$name, input$catche, price=input$price, 
                                     defineGroup=if(grepl('no group',input$group)){'fleet'} else {input$group},  
                             temp.var=input$temp_var, temporal = input$temporal, calc.method = input$calc_method, lag.method = input$lag_method,
                             empty.catch = input$empty_catch, empty.expectation = input$empty_expectation, temp.window = input$temp_window,  
