@@ -29,18 +29,21 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE, lonsig
   #'       'LatLon_START_LON', latsign=FALSE, lonsign=FALSE, replace=TRUE)
   #' }
   #'
-
+  
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
   tmp <- tempfile()
   on.exit(unlink(tmp), add = TRUE)
-  lat_lon <- grep("lat|lon", names(dataset), ignore.case = TRUE)
-  lat_cols <- find_lat(dataset)
-  lon_cols <- find_lon(dataset)
   
-  num_ll <- !qaqc_helper(dataset[lat_lon], is.numeric)
+  if (is.null(lat))  lat_cols <- find_lat(dataset)
+  else lat_cols <- lat
+  
+  if (is.null(lon))  lon_cols <- find_lat(dataset)
+  else lon_cols <- lon
+  
+  num_ll <- !qaqc_helper(dataset[c(lon_cols, lat_cols)], is.numeric)
   
   lat_deg <- qaqc_helper(dataset[lat_cols], function(x) {
     if (!is.numeric(x)) TRUE
@@ -64,9 +67,9 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE, lonsig
     
     cat("Latitude and longitude variables in decimal degrees. No further action required.", file = tmp)
   }
-
+  
   msg_print(tmp)
-
+  
   degree_function <- list()
   degree_function$functionID <- "degree"
   degree_function$args <- list(dat, project, lat, lon, latsign, lonsign, replace)
@@ -75,12 +78,12 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE, lonsig
   log_call(project, degree_function)
   
   unlink(tmp)
-
+  
   if (replace == TRUE) {
     if (!is.null(lat)) {
       # check length of lat
       if(length(lat)>1){
-       latcomb <- paste0(dataset[[lat[1]]],dataset[[lat[2]]],dataset[[lat[3]]],dataset[[lat[4]]])
+        latcomb <- paste0(dataset[[lat[1]]],dataset[[lat[2]]],dataset[[lat[3]]],dataset[[lat[4]]])
         latdir <- gsub("[^A-Z]", "", latcomb)
         latdir <- which(latdir=='N')
         latnew <- as.numeric(gsub("[^0-9]", "", latcomb))
@@ -97,7 +100,7 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE, lonsig
         #   "\\s+"
         # ), "[", 3)) / 360
         
-
+        
         
         dataset[[lat]] <- dms_to_dd(dataset[[lat]])
         
@@ -108,7 +111,7 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE, lonsig
         dataset[[lat]][i] <- paste0(dataset[[lat]][i], "00")
         dataset[[lat]] <- format(as.numeric(stringr::str_pad(abs(as.numeric(dataset[[lat]])), 6, pad = "0")), scientific = FALSE)
         dataset[[lat]] <- as.numeric(substr(dataset[[lat]], start = 1, stop = 2)) + as.numeric(substr(dataset[[lat]], start = 3, stop = 4)) / 60 + as.numeric(substr(dataset[[lat]],
-          start = 5, stop = 6
+                                                                                                                                                                     start = 5, stop = 6
         )) / 3600
         dataset[[lat]][nm] <- dataset[[lat]][nm] * -1
       } 
@@ -146,7 +149,7 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE, lonsig
         dataset[[lon]][nm] <- dataset[[lon]][nm] * -1
       } 
     }
-
+    
     ##Change latsign
     if (!is.null(latsign)) {
       
@@ -170,7 +173,7 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE, lonsig
         dataset[dataset[lon]< 0,lon] <- -1 * dataset[dataset[lon]< 0,lon]
       }
     }
- 
+    
     return(dataset)
   }
 }
