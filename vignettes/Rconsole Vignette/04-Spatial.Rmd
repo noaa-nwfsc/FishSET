@@ -1,0 +1,10 @@
+# Spatial Functions
+
+## Mapping functions
+
+There are several functions to view the data spatially.
+
+    
+    map_kernel()      Kernel density (hotspot).
+    map_plot()        Static map of haul locations without zones.	
+    map_viewer()      Interactive map of haul locations or paths with zones.
