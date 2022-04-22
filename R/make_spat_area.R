@@ -73,7 +73,7 @@ add_polygon <- function(poly, spat, spat.id, new.id = NULL, combine = FALSE) {
   # need to consider whether to allow multiple polygons (not multipolygons)
   # could loop through each.
   
-  if (!sf::st_is(poly, "POLYGON")) {
+  if (!sf::st_is(poly, c("POLYGON", "MULTIPOLYGON"))) {
     
     stop("Object 'poly' must be a polygon.")
   }
@@ -153,10 +153,11 @@ add_polygon <- function(poly, spat, spat.id, new.id = NULL, combine = FALSE) {
 }
 
 
-make_spat_area <- function(spat, coord, spat.id, new.id, combine) {
+make_spat_area <- function(spat, project, coord, spat.id, new.id, combine) {
 #' Add an area/polygon to spatial data
 #' 
 #' @param spat Spatial dataset to add polygon too.
+#' @param project Name of project. 
 #' @param coord Longitude and latitude coordinates forming a polygon. Can be a 
 #'    numeric vector of even length or a numeric matrix with two columns.
 #' @param spat.id The ID column in \code{spat}
@@ -169,8 +170,20 @@ make_spat_area <- function(spat, coord, spat.id, new.id, combine) {
 #' @details Adds an area/polygone to a spatial area
 #' @seealso \code{\link{make_polygon}} \code{\link{add_polygon}}
   
+  out <- data_pull(spat, project)
+  spatdat <- out$dataset
+  spat <- parse_data_name(spat, "spat", project)
+  
   new_poly <- make_polygon(coord)
   
-  add_polygon(new_poly, spat, spat.id, new.id, combine)
+  spatdat <- add_polygon(new_poly, spatdat, spat.id, new.id, combine)
+  
+  # log function
+  make_spat_area_function <- list()
+  make_spat_area_function$functionID <- "make_spat_area"
+  make_spat_area_function$args <- list(spat, project, coord, spat.id, new.id, combine)
+  log_call
+  
+  spatdat
 }
 
