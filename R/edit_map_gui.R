@@ -1,5 +1,24 @@
 edit_map_gui <- function(spat, id, project) {
+  #' Edit spatial table interactively
+  #' 
+  #' Add, delete, or edit a spatial feature interactively
+  #' 
+  #' @param spat Spatial data table to edit.
+  #' @param id String, name of ID column in \code{spat}.
+  #' @param project Name of project. 
+  #' @export
+  #' @import leaflet
+  #' @import shiny
+  #' @importFrom shinyjs useShinyjs toggleState refresh
+  #' @importFrom dplyr %>% 
+  #' 
   
+  if (!requireNamespace("mapedit", quietly = TRUE)) {
+    stop(
+      "Package \"mapedit\" must be installed to use this function.",
+      call. = FALSE
+    )
+  }
   
   map_nm <- deparse(substitute(spat))
   
@@ -85,9 +104,9 @@ edit_map_gui <- function(spat, id, project) {
       observeEvent(input$confirm, {
         
         # merge added polygons
-        map_out <- mapedit::merge_add(rv$base_map, drawn = edits()$drawn)
+        map_out <- mapedit:::merge_add(rv$base_map, drawn = edits()$drawn) 
         # merge edited polygons
-        map_out <- mapedit::merge_edit(map_out, edits = edits()$edited)
+        map_out <- mapedit:::merge_edit(map_out, edits = edits()$edited)
         # remove deleted polygons
         row_drop <- edits()$deleted$layerId
         
