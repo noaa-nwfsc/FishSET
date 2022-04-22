@@ -35,7 +35,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   #' @import ggplot2
   #' @import sf
   #' @importFrom rlang sym
-  #' @importFrom dplyr group_by summarize %>%
+  #' @importFrom dplyr group_by summarize %>% left_join
   #' @importFrom stats dist
   #' @return A list of plots and/or dataframes depending on whether spatial data 
   #' quality issues are detected. The list includes:
@@ -86,8 +86,6 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   land_col <- NULL
   bound_col <- NULL
   expected_col <- NULL
-  
-  grp_len <- length(c("YEAR", group))
   
   # Year ----
   
@@ -356,23 +354,14 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     spat_tab <- agg_helper(dataset, value = c(expected_col, out_col, land_col, bound_col),
                            group = c("YEAR", group), fun = sum)
     
-    year_tab <- agg_helper(dataset, value = "YEAR", group = c("YEAR", group),
-                           fun = length)
+    year_tab <- agg_helper(dataset, value = "YEAR", group = group, count = TRUE, fun = "percent")
     
-    spat_tab$N <- year_tab[[grp_len + 1]]
+    spat_tab <- dplyr::left_join(spat_tab, year_tab, by = "YEAR")
     
-    spat_nm <- names(spat_tab[c(expected_col, out_col, land_col, bound_col)])
-    perc_nm <- paste0(c(expected_col, out_col, land_col, bound_col), "_perc")
-    
-    spat_tab[perc_nm] <-
-      round(spat_tab[ ,c(expected_col, out_col, land_col, bound_col)] / spat_tab[ ,"N"] * 100, 2)
-    
-    spat_tab[spat_nm] <- NULL
+    last_cols <- names(spat_tab)[!names(spat_tab) %in% c("YEAR", "n", group)] 
     
     spat_tab <- spat_tab[order(spat_tab$YEAR), 
-                         c("YEAR", "N", group, perc_nm)]
-    
-    row.names(spat_tab) <- 1:nrow(spat_tab)
+                         c("YEAR", "n", group, last_cols)]
   }
   
   # distance from nearest zone (meters) ----
