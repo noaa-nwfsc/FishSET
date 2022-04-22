@@ -25,6 +25,7 @@ create_proj_settings <- function(project) {
                                value = NULL),
            user_locoutput = locoutput(project),
            plot_size = grDevices::dev.size(),
+           save_plot_rds = FALSE,
            tables = list(main = NULL, 
                          port = NULL,
                          spat = NULL,
@@ -94,7 +95,8 @@ get_proj_settings <- function(project, format = FALSE) {
 
 
 edit_proj_settings <- function(project, confid = NULL, user_out = NULL, 
-                               tab_name = NULL, tab_type = NULL, plot_size = NULL) {
+                               tab_name = NULL, tab_type = NULL, plot_size = NULL,
+                               save_plot_rds = NULL) {
   #' Edit project settings
   #' 
   #' Edit confidentiality settings, user output folder location, default plot 
@@ -109,6 +111,9 @@ edit_proj_settings <- function(project, confid = NULL, user_out = NULL,
   #' @param tab_type Table type. Options include "main", "port", "spat", "grid",
   #'   and "aux". 
   #' @param plot_size Plot size (width, height) in inches. Must be numeric. 
+  #' @param save_plot_rds Logical, whether to save plot as an RDS file in the 
+  #' FishSETFolder ouput folder in addition to save as a PNG. This allows users 
+  #' to edit plots at a later time. 
   #' @keywords internal
   #' @seealso \code{\link{create_proj_settings}} \code{\link{get_proj_settings}}
   #' @importFrom jsonlite write_json
@@ -147,6 +152,11 @@ edit_proj_settings <- function(project, confid = NULL, user_out = NULL,
         
         p_set$plot_size <- plot_size
       }
+    }
+    
+    if (!is.null(save_plot_rds) && is.logical(save_plot_rds)) {
+      
+      p_set$save_plot_rds <- save_plot_rds
     }
     
     if (!is.null(user_out) && dir.exists(user_out)) {

@@ -890,7 +890,26 @@ parse_data_name <- function(dat, type, project) {
     
     if (!is.character(dat)) {
       
-      dat <- deparse(substitute(dat, rlang::caller_env())) 
+      if (type == "main") {
+        
+        dat <- deparse(substitute(dat, rlang::caller_env())) 
+        
+      } else if (type == "aux") {
+        
+        dat <- deparse(substitute(aux, rlang::caller_env())) 
+        
+      } else if (type == "grid") {
+        
+        dat <- deparse(substitute(grid, rlang::caller_env())) 
+        
+      } else if (type == "port") {
+        
+        dat <- deparse(substitute(port, rlang::caller_env())) 
+        
+      } else if (type == "spat") {
+        
+        dat <- deparse(substitute(spat, rlang::caller_env())) 
+      }
     }
   }
   
@@ -1493,15 +1512,25 @@ save_plot <- function(project, func_name, ...) {
   #' @param ... addition arguments passed to \code{\link[ggplot2]{ggsave}}.
   #' @keywords internal
   #' @export
-  #' @importFrom ggplot2 ggsave
+  #' @importFrom ggplot2 ggsave last_plot
   #' @examples
   #' \dontrun{
   #' save_plot(project, "species_catch")
   #' }
 
-  filename <- paste0(locoutput(project), project, "_", func_name, "_", Sys.Date(), ".png")
+  p_set <- get_proj_settings(project)
+  
+  filename <- paste0(locoutput(project), project, "_", func_name, "_", Sys.Date())
+  fn_png <- paste0(filename, ".png")
+  
+  if (!is.null(p_set$save_plot_rds) && p_set$save_plot_rds) {
+    
+    fn_rds <- paste0(filename, ".RDS")
+    saveRDS(object = ggplot2::last_plot(), file = fn_rds)
+  }
+  
   p_size <- get_proj_settings(project)$plot_size
-  ggplot2::ggsave(file = filename, width = p_size[1], height = p_size[2], ...)
+  ggplot2::ggsave(file = fn_png, width = p_size[1], height = p_size[2], ...)
 }
 
 
