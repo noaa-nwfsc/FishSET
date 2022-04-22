@@ -49,7 +49,7 @@ medium_expectations <- function(dat, project, catch, price, defineGroup, temp.va
     numData <- as.integer(as.factor(dataset[[defineGroup]]))
   }
 
-  if(temp.var=='none' || is_empty(temp.var) || !exists(temp.var)){
+  if(temp.var=='none' || is_empty(temp.var) || is.null(temp.var)){
     temp.var <- date_cols(dataset)[1]
     print(paste('temp.var was not specified. Using', temp.var, 'instead.'))
   }
