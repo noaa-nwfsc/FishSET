@@ -1,0 +1,138 @@
+# Creating and Modifying Data
+
+### Data transformation and derivation functions
+Several functions exist that allow users to transform variables or derive new variables and generate specific matrices. These functions are useful to ensure date variables are in the necessary format, to generate rate variables (such as catch/hours fished), calculate more complex variables such as trip distance, and adding variance to confidential data.
+
+  Data transformation 
+
+     set_quants()         Coded variable based on the quantiles.
+     group_perc()         Within-group percentage.
+     group_diff()         Within-group lagged difference.	
+     group_cumsum()       Within-group running sum.
+
+  Dummy
+  
+     dummy_num()          Vector of TRUE or FALSE, based on condition, the length (rows) of the data. 
+     dummy_matrix()       Matrix with same dimensions at the data set filled with TRUE or FALSE.
+
+  Nominal ID
+  
+     ID_var()                Generates a nominal variable to indicate distinct hauls or trips.
+     create_seasonal_ID()    Generates a fishery season identifier (TRUE/FALSE).
+     fleet_table()           Creates and saves a table of fleet conditions for fleet assignment.
+     fleet_assign()          Creates a fleet assignment variable based on saved fleet table.
+
+  Arithmetic
+  
+     create_var_num()     Defined arithmetic function of two variables.
+     cpue()               Catch per unit effort.
+
+  Spatial
+  
+    assignment_column()   Assign hauls to fishery or regulatory zones.
+    create_dist_between() Distance between lon/lat points, port, and/or centroid of fishing zone/area.
+    create_mid_haul()     Returns the midpoint location (lon/lat) for each haul.
+    create_startingloc()  Returns vector of zone/area at point when choice of where to go next was  
+                          made. Used with logit_correction likelihood.
+ 
+  Temporal
+  
+    temp_mod()            Transform date variable into desired units (year, month, month/day, minutes).
+    create_duration()     Duration of time between two temporal variables based on defined time format.
+
+  Trip level 
+
+     haul_to_trip()       Collapse the data table from haul to trip.
+     trip_distance()      Summed trip distance defined by start and end ports and hauls in between.
+     trip_length()        Computes trip duration or hauls per trip. 
+
+All functions require that `dat`, the name of the primary dataset, be specified. Use quotes if the dataset is pulled from FishSET database. Most functions in this section will add a new variable to the primary dataset. The column name of the new variables is defined with `name`. The column name defaults to the function name if `name` is not specified. Spatial functions require a spatial dataset.
+
+###Function details
+
+#### Arithmetic
+
+`create_var_num(dat, x, y, method, name)` creates a new numeric variable based on the defined arithmetic expression. `x` and `y` are names of numeric variables. `method` is an arithmetic expression such as addition, subtraction, multiplication, and division.  
+<br>
+`cpue(dat, xWeight, xTime, name)` creates the catch per unit effort variable. `xWeight` is the name of the variable containing the catch data  as a weight (pounds, tons, metric tons). `xTime` is the duration of time and must be in weeks, days, hours, or minutes. Use `create_duration()` to transform a date variable into a duration of time variable. 
+If group-specific cpue is required, cpue must be calculated for each species. 
+
+#### Data transformation
+
+`group_perc(dat, project, id_group, group, value, name, create_group_ID, drop_total_col)` creates a within-group percentage variable using primary (`id_group`) and secondary (`group`) groups. `value` is the name of a numeric variable to be used to calculate percentages. The `group` percentage is calculated as the sum of `value` across `group` (group_total) divided by the sum of `value` across `id_group` (total_group). `drop_total_col` is logical and defines whether or not to add the total_group and group_total variables to the dataset.  
+<br>
+`group_diff(dat, project, group, sort_by, value, name, lag, create_group_ID, drop_total_col)` creates a group lagged difference variable within groups. `value`, a numeric variable, is first summed by the variable(s) in `group`, then the difference within-group is calculated. `sort_by` is a date variable to order `dat` by. The "group_total" variable gives the total value by group and can be dropped by setting `drop_total_col = TRUE`. A group ID column can be created using the variables in `group` by setting `create_group_ID = TRUE`.  
+<br>
+`group_cumsum(dat, project, group, sort_by, value, name, create_group_ID, drop_total_col)` sums `value` by group, then cumulatively sums within `group`. For example, a running sum by trip can be made by entering variables that identify unique vessels and trips into `group` and a numeric variable (such as catch or number of hauls) into `value`. The group total variable can be dropped by setting `drop_total_col = TRUE`. A group ID column can be created using the variables in group by setting `create_group_ID = TRUE`.  
+<br>
+`set_quants(dat, x, quant.cat = c(0.2, 0.25, 0.4), custom.quant, name)` transform `x` into a quantile category using pre-defined (`quant.cat`) or user-defined (`custom.quant`) quantiles.  
+
+   Predefined quantiles  
+
+: 0.1   (0%, 10%, 20%, 30%, 40%, 50%, 60%, 70%, 80%, 90%, 100%)   
+ 0.2   (0%, 20%, 40%, 60%, 80%, 100%)    
+ 0.25 (0%, 25%, 50%, 75%, 100%)  
+ 0.4   (0%, 10%, 50%, 90%, 100%)  
+
+#### Dummy 
+
+`dummy_num(dat, var, value, opts, name)` creates a binary variable contrasting a variable (`var`) based on a splitting value (`value`) and splitting rule (`opts`). The function is used to contrast before/after a policy is implemented or zone closures. `value` should be a year if `var` is a date variable, a factor level if `var` is a factor variable, a single or range of numbers if `var` is a numeric variable. `Opts` may be *"x_y"* or *“more_less”*. *"x_y"* sets each element of `var` to 1 if the element matches `value`, otherwise 0. For *"more_less"*, each element of `var` less than `value` is set to 0 and all elements greater than `value` are set to 1. If `var` is a factor, then elements that match `value` will be set to 1 and all other elements set to 0. Default is set to *"more_less"*.  
+<br>
+`dummy_matrix(dat, x)` creates a dummy matrix of TRUE/FALSE based on values of variable `x` with dimensions *(number of observations in dataset)* (number of factors in x)* where each column is a unique factor level of `x`. Values are TRUE if the value in the column matches the column factor level and FALSE otherwise.
+
+#### Nominal ID
+
+`ID_var(dat, vars, name, type, drop)` is used to create a haul or trip identifier variable from on or more variables (`vars`). `type` is the class type of the new ID column. Choices are *"string"* and *"integer"*. *"string"* returns a character vector where each column in `vars` is combined and separated with an underscore "_". *"integer"* returns an integer vector where each value corresponds to a unique group in `vars`. Set `drop = TRUE` to drop `vars` columns from `dat`.  
+<br>
+`create_seasonal_ID(dat, seasonal.dat, use.location, use.geartype, sp.col, target)` uses a table of fishery season dates to create one or more fishery season identifier variables. The function matches fishery season dates provided in `seasonal.dat` to the first date variable in `dat`. If fishery season dates vary by location or gear type, set `use.location = TRUE` and `use.geartype = TRUE`.  Output is a seasonID variable and/or multiple *seasonID\*fishery* variables. The seasonID variable is a vector of fisheries. If a target fishery (`target`) is not defined, each row is the first observed fishery in `seasonal.dat` for which the fishery season dates encompasses date in `dat`. If target fishery is defined, then SeasonID is defined by whether the target fishery is open on the date in `dat` or a different fishery. The vector is filled with *"target"* or *"other"*. *SeasonID\*fishery* variables are a TRUE/FALSE seasonID vector for each fishery (labeled by seasonID and fishery) where TRUE indicates the dates for a given row in the main data table fall within the fishery dates for that fishery.
+
+#### Spatial
+
+`assignment_column(dat, project, gridfile, lon.dat, lat.dat, cat, closest.pt = FALSE, lon.grid = NULL, lat.grid = NULL, hull.polygon = FALSE, epsg = NULL)` assigns observations (hauls) to zones. `gridfile` is the spatial dataset defining zone boundaries, `lon.dat` and `lat.dat` are variables in `dat` used to assign each observation to a zone. `cat` is a variable or list in `gridfile` that identifies the individual areas or zones. `lon.grid` and `lat.grid`are properties or lists from `gridfile` containing longitude and latitude data. These data are required if `gridfile` is not class *sf*. `hull.polygon` and `closest.pt` are logical optional arguments. Set `hull.polygon = TRUE` if spatial data creating polygons are sparse or irregular. To assign observations that fall outside any zones to the closest zone polygon set `closest.pt = TRUE`. `epsg` is the spatial reference system. Specify [`epsg`](http://spatialreference.org) if the projected coordinate systems do not match.  
+<br>
+`create_dist_between(dat, start, end, units, name)` adds a distance between two points variable to `dat`. `start` and `end` locations define how to find the lon/lat of starting and ending locations. Options are a port (specify port variable name), observed latitude and longitude location (specify variable name containing longitude data then latitude data as a character string), or the centroid of the observed fishery zone location (specify ‘centroid’).  Distance is returned in the requested `units` (*"miles", "kilometers", "midpoint"*).
+Additional arguments may be required, depending upon the `start` and `end` arguments. These are added through prompts. 
+
+   Additional arguments
+
+:  *Port arguments*   
+  portTable - Table contains the latitude and longitude of ports.
+
+:  *Centroids arguments*  
+  gridfile  -   Spatial data file.  
+  lon.dat - Longitude variable from dat.  
+  lat.dat - Latitude variable from dat.  
+  lon.grid - Property or variable from gridfile containing longitude data.   
+  lat.grid -  Property or variable from gridfile containing latitude data.   
+  cat - Property or variable from gridfile that identifies the individual areas or zones.  
+<br>
+
+`create_mid_haul(dat, start=c("lon", "lat"), end=c("lon", "lat"), name)` returns the latitude and longitude of the midpoint location of each haul. Each row of `dat` must be a unique haul. Requires a `start` and `end` point for each observation. `start` and `end` must be specified in the order of longitude then latitude.  
+<br>
+
+`create_startingloc(dat, gridfile, portTable, trip_id, haul_order, starting_port, lon.dat, lat.dat, cat, name, lon.grid, lat.grid)` creates a variable containing the zone/area location of a vessel when choice of where to fish next was made. This variable is required for the full information model with Dahl's correction (logit_correction). Unique trips in `dat` are identified with `trip_id`. `haul_order` identifies the order of hauls within `trip_id`. Generally, the first zone of a trip is the departure port and is identified with `starting_port`. `gridfile` and `portTable` are additional data tables containing information on zone boundaries and port locations, respectively. These two data tables along with `lon.dat`, `lat.dat`, `cat`, `lon.grid`, and `lat.grid` are called by the `assignment_column()` function to assign starting port locations and haul locations to zones. `lon.grid` and `lat.grid` are required if `gridfile` is a data frame or list.
+
+#### Temporal
+
+`temporal_mod(dat, x, define.format, name)` extracts a time unit from `x`, date variable in `dat`, in the desired format (`define.format`). The FishSET function `date_parser()` is first called to convert the date variable into recognized class if required. The `as.Date()` function from the [base package](https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/as.Date) is then called to extract the time in the desired format. `define.format` can be a predefined format (see below) or [user-defined](https://www.stat.berkeley.edu/~s133/dates.html).
+
+Predefined formats:
+
+    Value    as.Date format      Output   
+    _______________________________________________________________
+    year    "%Y"                 year
+    month   "%Y/%m"              year and month
+    day     "%Y/%m/%d"           year, month, and day
+    hour    "%Y/%m/%d %H"        year, month, day and hour
+    minute  “%Y/%m/%d %H:%M"     year, month, day, hour, and minute
+
+<br>
+`create_duration(dat, start, end, units=c("week", "day", "hour", "minute"), name)` returns the duration of time, in specified `units`, between two temporal variables (`start`, `end`) in `dat`.  A duration of time variable is required for other functions, such as `cpue()`.
+
+#### Trip-level
+
+`haul_to_trip(dat, project, fun.numeric, fun.time, tripID)` collapses `dat` from haul to trip level. Unique trips are identified by `tripID`. `tripID` may be one or more variables from `dat`. `fun.numeric` and `fun.time` define how multiple observations for a trip are collapsed. Options are _min_, _mean_, _max_, and _sum_ for numeric variables and _min_, _mean_, and _max_ for temporal variables. For variables that are not numeric or dates, the first observation is used.  
+<br>
+`create_trip_distance(dat, PortTable, trip_id, starting_port, starting_haul = c("Lon", "Lat"), ending_haul = c("Lon", "Lat"), ending_port, haul_order, name, a = 6378137, f = 1/298.257223563)` sums distance across a trip based on starting and ending ports and hauls in between. Inputs are the trips, ports, and hauls from the primary dataset, and the latitude and longitude of ports from the `PortTable`. The ellipsoid arguments, `a` and `f`, can be changed if an ellipsoid other than WGS84 is appropriate. See the [geosphere R package](https://cran.r-project.org/web/packages/geosphere/geosphere.pdf).  
+<br>
+`create_trip_centroid(dat, lon, lat, weight.var, ...)` returns the centroid, in longitude and latitude, for each trip. Specify a weighting variable (`weight.var`) to calculate the weighted centroid. Additional arguments can be added that define unique trips. If no additional arguments are added, each row will be treated as a unique trip.
