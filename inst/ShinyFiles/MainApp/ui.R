@@ -1,12 +1,20 @@
 source("fleetUI.R", local = TRUE)
 source("fleet_helpers.R", local = TRUE)
 source("map_viewer_app.R", local = TRUE)
-
+shiny::addResourcePath(
+  "hint-assets",
+  system.file("hint", package = "FishSET")
+)
 
    ## USER INTERFACE    
     ui = function(request){
       fluidPage(
       shinyjs::useShinyjs(),
+      # Pop up information icons
+      tags$style(".fa-info-circle {color:#0066FF}"),
+      tags$style(".fa-exclamation-circle {color:#FF0066}"),
+      use_prompt(),
+      
       #--
       # Formatting ----
       #--
@@ -840,7 +848,8 @@ source("map_viewer_app.R", local = TRUE)
                                                                         'Calculate trip centroid'='trip_centroid'),
                                                             selected='haul_to_trip', multiple = FALSE)),
                                conditionalPanel("input.trip!='haul_to_trip'||input.trip!='trip_centroid'", 
-                                                textInput('varname','Name of new variable', value='', placeholder = '')),
+                                                add_prompt(textInput('varname',list('Name of new variable', icon('info-circle')), value='', placeholder = ''),
+                                                position = "bottom", type='info', size='medium', message = "If left empty, default names will be supplied.")),
                                
                                #More sub choices Data Transformations     
                                
@@ -1091,12 +1100,14 @@ source("map_viewer_app.R", local = TRUE)
                                uiOutput('selectcp'),
                                #h5('Compute expectations for the entire fleet or by defined groups'),
                                
-                               
-                               h4('Temporal options'),
-                               h5('Use the entire temporal record of catch or take the timeline of catch into account. 
+                               add_prompt(div(
+                                            div(style="display:inline-block; width: 145px;", h4('Temporal options')), 
+                                            div(style="display:inline-block; width: 10px;", icon('info-circle'))),
+                                          position = "right", type='info', size='large', 
+                                          message = 'Use the entire temporal record of catch or take the timeline of catch into account. 
                                   When timeline is considered, catch for a given day is the average for the defined number of days (window), 
                                   shifted to the past by the defined number of days (lag). For example, a window of 3 days and lag of 1 day means we take the 
-                                  average catch of the three days priors to the given date.'),
+                                  average catch over three days starting one day prior to the given date.'),
                                div(style = "margin-left:19px;font-size: 12px", 
                                    selectInput('temporal', 'Method to sort time:', c('Entire record of catch (no time)', 'Daily timeline'='daily', 'Sequential order'='sequential'))),
                                uiOutput('expcatch'),
@@ -1146,12 +1157,19 @@ source("map_viewer_app.R", local = TRUE)
                                ),
                              mainPanel(
                                tags$br(),tags$br(),
-                               tags$p('Compute expected catch for each observation and zone. 
-                                      Function returns the expected catch or expected revenue data frame based on selected parameters along with three null functions: 
-                                      expected catch/revenue based on catch of the previous two day (short-term expected catch),
-                                      expected catch/revenue based on catch for the previous seven days (medium-term expected catch), and 
-                                      expected catch/revenue based on catch in the previous year (long-term expected catch).
-                                      Output saved in FishSET database. Previously saved expected catch/revenue output will be written over if the', 
+                               tags$p('Compute expected catch for each observation and zone.', 
+                                      tags$br(), tags$br(),
+                                      'Function returns the expected catch or expected revenue data frame based on selected parameters.',
+                                      tags$br(), tags$br(),
+                                      icon('exclamation-circle'), tags$b('Three default matrices are also all computed:'),  icon('exclamation-circle'),
+                                      tags$br(),
+                                      tags$b('Short-term expected catch:'), 'Expected catch/revenue based on catch of the previous two days.',
+                                      tags$br(),
+                                      tags$b('Medium-term expected catch:'), 'Expected catch/revenue based on catch for the previous seven days.', 
+                                      tags$br(),
+                                      tags$b('Long-term expected catch:'), 'Expected catch/revenue based on catch in the previous year.', 
+                                      tags$br(), tags$br(),
+                                      'Output saved in FishSET database. Previously saved expected catch/revenue output will be written over if the', 
                                       tags$i('Replace previously saved'), 'box is checked. Leaving the box unchecked will add new output to existing output.'),
                                tags$br(), tags$br(),
                                conditionalPanel("input.temp_var!='none'",
@@ -1238,9 +1256,18 @@ source("map_viewer_app.R", local = TRUE)
                                      )
                                    ),
                                    fluidRow(
-                                     h4('Initial parameters'),
+                                     add_prompt(div(
+                                       div(style="display: inline-block; width: 145px ;", h4('Initial parameters')), 
+                                       div(style="display: inline-block; width: 5px ;", icon('info-circle'))),
+                                        position = "bottom", type='info', size='large', 
+                                        message = tags$p("Starting values can be changed. 
+                                        The function will explore the parameter space to find better starting values. 
+                                        The order of starting parameter values differ between likelihood functions.
+                                        Conditional logit and average catch logit: alternative-specific parameters,  travel-distance parameters
+                                        Logit correction:  marginal utility from catch, catch-function parameters, polynomial starting parameters, travel-distance parameters, catch sigma
+                                        EPM likelihood functions:  catch-function parameters, travel-distance parameters, catch sigma(s), scale parameter 
+                                        See Likelihood section of Help Manual for more details.")),
                                      uiOutput('paramsourcechoose'),
-                                     
                                      conditionalPanel(condition="input.initchoice=='prev'",
                                             uiOutput("paramtable")),
                                      uiOutput("Inits")
