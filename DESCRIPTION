@@ -54,11 +54,12 @@ Imports:
   yaml,
   zoo
 Suggests: 
-  foreign,
-  graphics,
-  lwgeom,
-  rmarkdown,
-  testthat
+    mapedit,
+    foreign,
+    graphics,
+    lwgeom,
+    rmarkdown,
+    testthat
 Description: The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools for organizing data; developing, improving and disseminating modeling best practices.
 License: GPL-2
 BuildVignettes: yes
