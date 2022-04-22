@@ -63,7 +63,7 @@ clean_spat <- function(spat) {
   
   if (any(sf::st_is(spat, "GEOMETRYCOLLECTION"))) {
     
-    spat <- sf::st_collection_extract(spat, "POLYGON")
+    spat <- sf::st_collection_extract(spat, "POLYGON") # multipoly?
   }
   
   is_polygon <- sf::st_is(spat, c("MULTIPOLYGON", "POLYGON"))

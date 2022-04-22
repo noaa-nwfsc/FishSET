@@ -6,7 +6,7 @@ edit_map_manual <- function(spat, id, project, coord = NULL) {
   #' 
   #' @param spat Spatial data to edit. 
   #' @param id Spatial ID column.The name must be unique. 
-  #' @param project Name of project
+  #' @param project Name of project.
   #' @param coord Optional, a numeric vector or matrix with two columns containing the 
   #'   coordinates of a polygon. Users can build polygons point-by-point using the
   #'   longitude and latitude boxes in the app. 
@@ -43,12 +43,10 @@ edit_map_manual <- function(spat, id, project, coord = NULL) {
   #'                 coord = new_area)
   #' }
   
-  map_nm <- deparse(substitute(spat))
-  
   map_list <- data_pull(spat, project)
   map_dat <- map_list$dataset
   
-  # map_nm <- parse_data_name(map, "spat", project)
+  map_nm <- parse_data_name(map, "spat", project)
   
   map_dat <- sf::st_transform(map_dat, crs = 4326)
   
