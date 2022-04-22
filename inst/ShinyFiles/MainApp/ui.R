@@ -1239,8 +1239,7 @@ source("map_viewer_app.R", local = TRUE)
                                    ),
                                    fluidRow(
                                      h4('Initial parameters'),
-                                     radioButtons('initchoice', "", choices=c('Use output of previous model as parameter set' = 'prev',
-                                                                              'Choose parameter set' ='new'), selected='new'),
+                                     uiOutput('paramsourcechoose'),
                                      
                                      conditionalPanel(condition="input.initchoice=='prev'",
                                             uiOutput("paramtable")),

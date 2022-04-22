@@ -44,14 +44,14 @@ long_expectations <- function(dat, project, catch, price, defineGroup, temp.var,
   if (defineGroup == "fleet") {
     # just use an id=ones to get all info as one group
     numData <- data.frame(rep(1, dim(dataset)[1])) # ones(size(data(1).dataColumn,1),1)
-    # Define by group case u1hmP1
+    # Define by group case 
   } else {
     numData <- as.integer(as.factor(dataset[[defineGroup]]))
   }
 
 
 
-  if(temp.var=='none' || is_empty(temp.var) || !exists(temp.var)){
+  if(temp.var=='none' || is_empty(temp.var) || is.null(temp.var)){
     temp.var <- date_cols(dataset)[1]
     print(paste('temp.var was not specified. Using', temp.var, 'instead.'))
   }

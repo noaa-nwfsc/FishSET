@@ -106,7 +106,7 @@ create_expectations <- function(dat, project, catch, price = NULL, defineGroup =
 
   # for now if no time, only allow mean based on group without options TODO: allow
   # options from tab 2, currently turned off ti=find([data.isTime])# TODO add option for other time
-  if (is_empty(date_cols(dataset))) {
+  if (all(is_empty(date_cols(dataset)))) {
     warning("No time variable found, only averaging in groups and per zone is capable")
   }
 
