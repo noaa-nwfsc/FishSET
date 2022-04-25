@@ -2107,6 +2107,135 @@ deleteButtonColumn <- function(df, id, ...) {
                   columnDefs = list(list(targets = 1, sortable = FALSE))
                 ))
 }
+
+
+#' Add a tooltip for a specific element
+#'
+#' @param ui_element Element on which a tooltip will be added.
+#' @param position Position of the tooltip. Can be `bottom`, `bottom-left`, `bottom-right`, `left`, `right`, `top`, `top-left`, `top-right`. Default is `bottom`.
+#' @param message Message to include in the tooltip. This argument is mandatory.
+#' @param type Type of the tooltip. Can be `NULL` (default), `error`, `warning`, `info`, `success`.
+#' @param size Size of the tooltip. Can be `NULL` (default), `small`, `medium`, `large`.
+#' @param permanent Boolean indicating whether the tooltip should be visible permanently (or at the contrary only when hovering the element). Default is `FALSE`.
+#' @param rounded Boolean indicating whether the corners of the tooltip should be rounded. Default is `FALSE`.
+#' @param animate Boolean indicating whether there is a small animation when the tooltip appears. Default is `TRUE`.
+#' @param bounce Boolean indicating whether there is a small boucing animation when the tooltip appears. Default is `FALSE`.
+#' @param arrow Boolean indicating whether there is an arrow on the tooltip. Default is `TRUE`.
+#' @param shadow Boolean indicating whether there should be a shadow effect. Default is `TRUE`.
+#' @return A tooltip when hovering the element concerned.
+#' @keywords internal
+#' @export
+
+add_prompt <- function(ui_element,position = "bottom",message = NULL,type = NULL,
+  size = NULL,permanent = FALSE,rounded = FALSE,animate = TRUE,bounce = FALSE,
+  arrow = TRUE,shadow = TRUE
+) {
+  
+  if (missing(message)) {
+    stop("Must pass a message")
+  }
+  
+  # if option is TRUE, then keep the option name
+  opts <- lapply(c("permanent", "rounded", "bounce"), function(x) {
+    y <- eval(parse(text = x))
+    if (isTRUE(y)) {
+      x <- paste(x)
+    } else {
+      x <- NULL
+    }
+  })
+  
+  # better to put "animate" than "no-animate" in the function call
+  # so logic is reverted compared to the one above
+  if (isTRUE(animate)) {
+    animate <- NULL
+  } else {
+    animate <- "no-animate"
+  }
+  
+  if (isTRUE(arrow)) {
+    arrow <- NULL
+  } else {
+    arrow <- "no-arrow"
+  }
+  
+  if (isTRUE(shadow)) {
+    shadow <- NULL
+  } else {
+    shadow <- "no-shadow"
+  }
+  
+  opts <- c(unlist(opts), animate, arrow, shadow)
+  opts[which(grepl("permanent", opts))] <- "always"
+  
+  
+  # First if is for echarts4r, second if is for images
+  
+  if (!("shiny.tag" %in% class(ui_element)) &&
+      "shiny.tag.list" %in% class(ui_element)) {
+    
+    shiny::tags$div(
+      ui_element,
+      style = "width: 100%",
+      class = paste(
+        "hint--",
+        c(position, type, size, opts),
+        collapse = " ",
+        sep = ""
+      ),
+      `aria-label` = message
+    )
+    
+  } else if (ui_element$name == "img") {
+    
+    shiny::tags$div(
+      ui_element,
+      class = paste(
+        "hint--",
+        c(position, type, size, opts),
+        collapse = " ",
+        sep = ""
+      ),
+      `aria-label` = message
+    )
+    
+  } else {
+    
+    shiny::tagAppendAttributes(
+      ui_element,
+      class = paste(
+        "hint--",
+        c(position, type, size, opts),
+        collapse = " ",
+        sep = ""
+      ),
+      `aria-label` = message
+    )
+    
+  }
+  
+}
+
+
+#' Load hint.css dependencies
+#'
+#' @return Include dependencies of Hint.css
+#' @export
+#' @keywords internal
+#'
+use_prompt <- function() {
+  shiny::singleton(
+    shiny::tags$head(
+      shiny::tags$link(
+        href = "hint-assets/hint.min.css",
+        rel= "stylesheet",
+        type= "text/css"
+      )
+    )
+  )
+}
+
+
 #Check if project folder exists. If not. Add it.
 # ----
 
