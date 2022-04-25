@@ -4678,42 +4678,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                               selected='', options = list(create = TRUE, placeholder='Select or type LONGITUDE column name')))
                          ))
       })
-      #Zonal centroid options
-      #output$conditionalInput2 <- renderUI({
-      #  conditionalPanel(condition="input.choiceTab=='zone'",
-     #                    tagList(
-     #                     if(names(spatdat$dataset)[1]=='var1'){
-     #                        tags$div(h4('Map file not loaded. Please load on Upload Data tab', style="color:red"))
-     #                      },
-     #                       selectInput('cat_altc', 'Individual areas/zones from the spatial dataset', 
-     #                                   choices=names(as.data.frame(spatdat$dataset))),
-     #                      
-     #                      h5(tags$b('Additional arguments required for calculating weighted centroid')),
-     #                      div(style="display: inline-block;vertical-align:top; width: 200px;",
-     #                          selectizeInput('lat_dat_ac', '',
-     #                                         choices = find_lat(values$dataset),
-     #                                         options = list(create = TRUE, placeholder='Select or type LATITUDE variable name'))),
-     #                      div(style="display: inline-block;vertical-align:top; width: 200px;",
-     #                          selectizeInput('lon_dat_ac', '',
-     #                                         choices = find_lon(values$dataset),
-     #                                         options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name')))
-     #                     
-     #                    ) )
-     # })
-  
-    #  output$cond2 <- renderUI({
-    #    conditionalPanel(condition="input.choiceTab=='zone'",
-    #                     if(!('sf' %in% class(spatdat$dataset))){
-    #                       tagList(
-    #                         h5(tags$b('Select vector containing latitude then longitude from spatial dataset')),
-    #                         div(style="display: inline-block;vertical-align:top; width: 200px;",
-    #                             selectizeInput('lat_grid_altc', '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE)),
-    #                         div(style="display: inline-block;vertical-align:top; width: 200px;",
-    #                             selectizeInput('long_grid_altc',  '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE))
-    #                       )
-    #                     }
-   #     )
-     # })
+   
 
       output$conditionalInput3a <- renderUI({
         conditionalPanel(condition="input.choiceTab=='distm'",
@@ -4727,7 +4692,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         tagList(
         conditionalPanel(condition="input.choiceTab=='distm' && input.distMsource == 'primary'",
                          tagList(
-                          h5(tags$b('Define how alternative fishing choices are calculated between')),
+                          add_prompt(
+                            div(
+                              div(style="display: inline-block; width: 415px ;", h5(tags$b('Define how alternative fishing choices are calculated between'))),
+                              div(style="display: inline-block; width: 5px ;", icon('info-circle'))),
+                                     position = "bottom", type='info', size='medium', 
+                                     message = "To change occurrent or alternative choice selection, click on 'Centroid of zonal assignment' and delete."),
                            div(style="display: inline-block;vertical-align:top; width: 160px;",
                                selectizeInput('occasion_ac', 'occurrence:', 
                                            choices=c('Centroid of zonal assignment'='centroid', 
@@ -4832,7 +4802,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                          choices=c(input$priceBase, "none", find_value(values$dataset)),
                                    options = list(create = TRUE, placeholder='Select or type column name')),
           selectizeInput('group','Choose column name containing data that defines groups',
-                         choices=c('Fleet (no group)', category_cols(values$dataset))),
+                         choices=c('No group', category_cols(values$dataset))),
           selectizeInput('zoneidep', 'Column containing zone identifier', choices=c('', 'ZoneID', colnames(values$dataset)), selected='')
         )
       })
@@ -5126,8 +5096,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       output$gridvariables <- renderUI ({
         gridvariables <- c('none')
-        selectInput('gridVariablesInclude', label = gridlab(), multiple=TRUE,
-                    choices = gridvariables, selected = '')
+        add_prompt(selectInput('gridVariablesInclude', label = list(gridlab(), icon('info-circle')), multiple=TRUE,
+                    choices = gridvariables, selected = ''),
+                   position = "bottom", type='info', size='medium', message = "Generally, variables that vary by zonal alternatives or are interacted with zonal constants. 
+                    See Likelihood functions sections of the FishSET Help Manual for details. Select 'none' if no variables are to be included.")
       })
       
       output$portmd <- renderUI ({
@@ -5608,7 +5580,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         showNotification('Function can take a couple minutes. A message will appear when done.',
                          type='message', duration=20)
                 create_expectations(values$dataset, project$name, input$catche, price=input$price, 
-                                    defineGroup=if(grepl('no group',input$group)){'fleet'} else {input$group},  
+                                    defineGroup=if(grepl('No group',input$group)){'fleet'} else {input$group},  
                             temp.var=input$temp_var, temporal = input$temporal, calc.method = input$calc_method, lag.method = input$lag_method,
                             empty.catch = input$empty_catch, empty.expectation = input$empty_expectation, temp.window = input$temp_window,  
                             temp.lag = input$temp_lag, year.lag=input$temp_year, dummy.exp = input$dummy_exp, replace.output = TRUE)

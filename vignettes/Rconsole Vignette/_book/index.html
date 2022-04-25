@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Using FishSET in the RConsole</title>
+  <meta name="description" content="Using FishSET in the RConsole" />
+  <meta name="generator" content="bookdown 0.26 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Using FishSET in the RConsole" />
+  <meta property="og:type" content="book" />
+  
+  
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Using FishSET in the RConsole" />
+  
+  
+  
+
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+
+<link rel="next" href="data.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+
+
+
+
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Welcome to FishSET</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#introduction"><i class="fa fa-check"></i><b>1.1</b> Introduction</a></li>
+<li class="chapter" data-level="1.2" data-path="index.html"><a href="index.html#getting-started"><i class="fa fa-check"></i><b>1.2</b> Getting started</a></li>
+<li class="chapter" data-level="1.3" data-path="index.html"><a href="index.html#what-is-a-project"><i class="fa fa-check"></i><b>1.3</b> What is a project?</a></li>
+<li class="chapter" data-level="1.4" data-path="index.html"><a href="index.html#chapter-overview"><i class="fa fa-check"></i><b>1.4</b> Chapter overview</a>
+<ul>
+<li class="chapter" data-level="1.4.1" data-path="index.html"><a href="index.html#chapter-2-data"><i class="fa fa-check"></i><b>1.4.1</b> Chapter 2 <span>Data</span></a></li>
+<li class="chapter" data-level="1.4.2" data-path="index.html"><a href="index.html#chapter-3-data-exploration"><i class="fa fa-check"></i><b>1.4.2</b> Chapter 3 <span>Data Exploration</span></a></li>
+<li class="chapter" data-level="1.4.3" data-path="index.html"><a href="index.html#chapter-4-spatial-functions"><i class="fa fa-check"></i><b>1.4.3</b> Chapter 4 <span>Spatial Functions</span></a></li>
+<li class="chapter" data-level="1.4.4" data-path="index.html"><a href="index.html#chapter-5-creating-and-modifying-data"><i class="fa fa-check"></i><b>1.4.4</b> Chapter 5 <span>Creating and Modifying Data</span></a></li>
+<li class="chapter" data-level="1.4.5" data-path="index.html"><a href="index.html#chapter-6-modeling-functions"><i class="fa fa-check"></i><b>1.4.5</b> Chapter 6 <span>Modeling Functions</span></a></li>
+<li class="chapter" data-level="1.4.6" data-path="index.html"><a href="index.html#chapter-7-policy-and-welfare-analysis"><i class="fa fa-check"></i><b>1.4.6</b> Chapter 7 <span>Policy and Welfare Analysis</span></a></li>
+<li class="chapter" data-level="1.4.7" data-path="index.html"><a href="index.html#chapter-8-reporting"><i class="fa fa-check"></i><b>1.4.7</b> Chapter 8 <span>Reporting</span></a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="data.html"><a href="data.html"><i class="fa fa-check"></i><b>2</b> Data</a></li>
+<li class="chapter" data-level="3" data-path="data-exploration.html"><a href="data-exploration.html"><i class="fa fa-check"></i><b>3</b> Data Exploration</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="data-exploration.html"><a href="data-exploration.html#data-exploration-functions"><i class="fa fa-check"></i><b>3.1</b> Data Exploration functions</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="spatial-functions.html"><a href="spatial-functions.html"><i class="fa fa-check"></i><b>4</b> Spatial Functions</a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="spatial-functions.html"><a href="spatial-functions.html#mapping-functions"><i class="fa fa-check"></i><b>4.1</b> Mapping functions</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="creating-and-modifying-data.html"><a href="creating-and-modifying-data.html"><i class="fa fa-check"></i><b>5</b> Creating and Modifying Data</a>
+<ul>
+<li class="chapter" data-level="5.0.1" data-path="creating-and-modifying-data.html"><a href="creating-and-modifying-data.html#data-transformation-and-derivation-functions"><i class="fa fa-check"></i><b>5.0.1</b> Data transformation and derivation functions</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="modeling-functions.html"><a href="modeling-functions.html"><i class="fa fa-check"></i><b>6</b> Modeling Functions</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="modeling-functions.html"><a href="modeling-functions.html#modeling-functions-1"><i class="fa fa-check"></i><b>6.1</b> Modeling functions</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="policy-and-welfare-analysis.html"><a href="policy-and-welfare-analysis.html"><i class="fa fa-check"></i><b>7</b> Policy and Welfare Analysis</a></li>
+<li class="chapter" data-level="8" data-path="reporting.html"><a href="reporting.html"><i class="fa fa-check"></i><b>8</b> Reporting</a></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Using FishSET in the RConsole</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="header">
+<h1 class="title">Using FishSET in the RConsole</h1>
+</div>
+<div id="welcome-to-fishset" class="section level1 hasAnchor" number="1">
+<h1><span class="header-section-number">1</span> Welcome to FishSET<a href="index.html#welcome-to-fishset" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>This chapter details the goals of FishSET, outlines the different chapters of this document, and provides instructions for installing FishSET.</p>
+<div id="introduction" class="section level2 hasAnchor" number="1.1">
+<h2><span class="header-section-number">1.1</span> Introduction<a href="index.html#introduction" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>The Spatial Economics Toolbox for Fisheries (FishSET) is a set of statistical programming and data management tools developed to achieve the following goals:</p>
+<ol style="list-style-type: decimal">
+<li><p>Standardize data management and organization.</p></li>
+<li><p>Provide easily accessible tools to enable location choice models to provide input to the management of key fisheries.</p></li>
+<li><p>Organize statistical code so that predictions of fisher behavior developed by the field’s leading innovators can be incorporated and transparent to all users.</p></li>
+</ol>
+<p>The FishSET package provides functions for:</p>
+<ul>
+<li>Data management</li>
+<li>Data analysis</li>
+<li>Visualizing data</li>
+<li>Mapping fishing effort</li>
+<li>Statistical modeling of fisher behavior</li>
+<li>Policy comparisons</li>
+<li>Reproducibility</li>
+</ul>
+<p>FishSET is designed for reproducibility.</p>
+<ul>
+<li>All input and output are stored in the FishSETFolder directory and organized by projects.</li>
+<li>Data is stored in <em>fishset_db</em> SQLite databases, the FishSET database.</li>
+<li>Function calls and notes are stored in a <em>src</em> folder.</li>
+<li>Output (plots, table, messages, notes) are saved in an <em>Output</em> folder.</li>
+</ul>
+<p>This document contains a brief description of the FishSET functions and assumes familiarity with R.
+If you are unfamiliar with R, we recommended running FishSET functions in the FishSET GUI rather than the RConsole. See the <a href="FishSET_GUI.html">FishSET GUI vignette</a> for more information.</p>
+<p>A more detailed manual is available at the <strong><em><a href="WEBSITE%20URL">FishSET GitHub site</a></em></strong>.</p>
+</div>
+<div id="getting-started" class="section level2 hasAnchor" number="1.2">
+<h2><span class="header-section-number">1.2</span> Getting started<a href="index.html#getting-started" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>If not all ready installed, install <a href="https://cloud.r-project.org/" title="Download R">R</a> and <a href="https://www.rstudio.com/products/rstudio/download/#download" title="Download RStudio">RStudio</a>.
+RStudio is not required but is recommended.</p>
+<p>To install the FishSET package, all users need the <code>devtools</code> package and Windows users must install <a href="https://cran.r-project.org/bin/windows/Rtools/" title="Download Rtools">Rtools</a>.</p>
+<dl>
+<dt>Install devtools (required)</dt>
+<dd><code>install.packages("devtools")</code><br />
+<code>library(devtools)</code>
+</dd>
+</dl>
+<p>FishSET is provided as a compressed file that can be installed directly from the FishSET GitHUB site (recommended) or
+from a locally saved file location.</p>
+<dl>
+<dt>Install FishSET</dt>
+<dd>To install FishSET from GitHUB<br />
+<code>devtools::install_github("name/FishSET")</code>
+</dd>
+<dd><p>To install FishSET from local file directory
+<code>devtools::install_local("PATH/TO/Directory/Containing/FishSET")</code><br />
+<code>library(FishSET)</code></p>
+</dd>
+</dl>
+<p>Dependencies should be automatically installed. This can take awhile.</p>
+<p>For more detailed directions and images, see the <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.1fob9te" title="Installing R and RStudio">Installing R and RStudio</a> and <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.h8fxguvqf0mn" title="Installing FishSET">Installing FishSET</a> section of the FishSET Manual.</p>
+<p>##Using FishSET
+FishSET functions can be called in the R console or through the FishSET Graphical User Interface (FishSET GUI). This document details how to use FishSET in the R Console. The FishSET GUI is detailed in the <em>FishSET GUI</em> vignette. Background and greater detail on functions can be found in the <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit?usp=sharing" title="Help Manual">FishSET Help Manual</a>.</p>
+</div>
+<div id="what-is-a-project" class="section level2 hasAnchor" number="1.3">
+<h2><span class="header-section-number">1.3</span> What is a project?<a href="index.html#what-is-a-project" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Data and output are organized into <em>projects</em>. A <code>project</code> is a unique identifier for a set of data and analyses. <code>Project</code> names can be any set of alpha-numeric characters. For instance, a <code>project</code> can be called <em>pollock</em> or <em>pollock2020</em>. All input and output are saved to a directory with the name of the <code>project</code> within the FishSETFolder directory.</p>
+</div>
+<div id="chapter-overview" class="section level2 hasAnchor" number="1.4">
+<h2><span class="header-section-number">1.4</span> Chapter overview<a href="index.html#chapter-overview" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="chapter-2-data" class="section level3 hasAnchor" number="1.4.1">
+<h3><span class="header-section-number">1.4.1</span> Chapter 2 <a href="data.html#data">Data</a><a href="index.html#chapter-2-data" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>This chapter goes over the types of data used in FishSET and how to load the data into FishSET. The chapter then outlines functions for conducting basic data quality checks and fixing any issues that arise.</p>
+</div>
+<div id="chapter-3-data-exploration" class="section level3 hasAnchor" number="1.4.2">
+<h3><span class="header-section-number">1.4.2</span> Chapter 3 <a href="data-exploration.html#data-exploration">Data Exploration</a><a href="index.html#chapter-3-data-exploration" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>This chapter goes over the functions to visualize and explore the data.</p>
+</div>
+<div id="chapter-4-spatial-functions" class="section level3 hasAnchor" number="1.4.3">
+<h3><span class="header-section-number">1.4.3</span> Chapter 4 <a href="spatial-functions.html#spatial-functions">Spatial Functions</a><a href="index.html#chapter-4-spatial-functions" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>This chapter outlines the numerous functions related to visualizing the data spatially and generating plots of the spatial distribution of the data.</p>
+</div>
+<div id="chapter-5-creating-and-modifying-data" class="section level3 hasAnchor" number="1.4.4">
+<h3><span class="header-section-number">1.4.4</span> Chapter 5 <a href="creating-and-modifying-data.html#creating-and-modifying-data">Creating and Modifying Data</a><a href="index.html#chapter-5-creating-and-modifying-data" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>This chapter outlines the functions to generate new variables, such as catch per unit effort, or modify existing variables, such as extracting year from a date variable.</p>
+</div>
+<div id="chapter-6-modeling-functions" class="section level3 hasAnchor" number="1.4.5">
+<h3><span class="header-section-number">1.4.5</span> Chapter 6 <a href="modeling-functions.html#modeling-functions-1">Modeling Functions</a><a href="index.html#chapter-6-modeling-functions" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>This chapter goes over the steps required to generate the data used in the models, define the models, run the models, and compare output.</p>
+</div>
+<div id="chapter-7-policy-and-welfare-analysis" class="section level3 hasAnchor" number="1.4.6">
+<h3><span class="header-section-number">1.4.6</span> Chapter 7 <a href="policy-and-welfare-analysis.html#policy-and-welfare-analysis">Policy and Welfare Analysis</a><a href="index.html#chapter-7-policy-and-welfare-analysis" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>The chapter goes over how to define policy scenarios and run welfare analyses.</p>
+</div>
+<div id="chapter-8-reporting" class="section level3 hasAnchor" number="1.4.7">
+<h3><span class="header-section-number">1.4.7</span> Chapter 8 <a href="reporting.html#reporting">Reporting</a><a href="index.html#chapter-8-reporting" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>This chapter goes over how to open and use the report template.</p>
+
+</div>
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+
+<a href="data.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"search": {
+"engine": "fuse",
+"options": null
+},
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+</body>
+
+</html>

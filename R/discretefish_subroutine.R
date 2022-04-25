@@ -21,7 +21,7 @@
 #'   the greater the \code{dev} argument should be.
 #' @param use.scalers Logical, should data be noramalized? Defaults to TRUE. Rescaling factors are the mean of the numeric vector unless specified with \code{scaler}.
 #' @param scaler.func Function to calculate rescaling factors. Can be a generic function, such as mean, or a user-defined function.
-#'   User-defined functons must be specified as \code{scaler.fun = function(x, FUN=sd) 2*FUN(x)}. This example returns 2 times the standard deviation of \code{x}.
+#'   User-defined functions must be specified as \code{scaler.fun = function(x, FUN=sd) 2*FUN(x)}. This example returns 2 times the standard deviation of \code{x}.
 
 #' @export discretefish_subroutine
 #' @importFrom DBI dbExecute dbWriteTable dbExistsTable dbReadTable dbGetQuery dbDisconnect
