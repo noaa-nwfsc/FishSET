@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>2 Data | Using FishSET in the RConsole</title>
+  <meta name="description" content="2 Data | Using FishSET in the RConsole" />
+  <meta name="generator" content="bookdown 0.26 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="2 Data | Using FishSET in the RConsole" />
+  <meta property="og:type" content="book" />
+  
+  
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="2 Data | Using FishSET in the RConsole" />
+  
+  
+  
+
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="index.html"/>
+<link rel="next" href="data-exploration.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Welcome to FishSET</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#introduction"><i class="fa fa-check"></i><b>1.1</b> Introduction</a></li>
+<li class="chapter" data-level="1.2" data-path="index.html"><a href="index.html#getting-started"><i class="fa fa-check"></i><b>1.2</b> Getting started</a></li>
+<li class="chapter" data-level="1.3" data-path="index.html"><a href="index.html#what-is-a-project"><i class="fa fa-check"></i><b>1.3</b> What is a project?</a></li>
+<li class="chapter" data-level="1.4" data-path="index.html"><a href="index.html#chapter-overview"><i class="fa fa-check"></i><b>1.4</b> Chapter overview</a>
+<ul>
+<li class="chapter" data-level="1.4.1" data-path="index.html"><a href="index.html#chapter-2-data"><i class="fa fa-check"></i><b>1.4.1</b> Chapter 2 <span>Data</span></a></li>
+<li class="chapter" data-level="1.4.2" data-path="index.html"><a href="index.html#chapter-3-data-exploration"><i class="fa fa-check"></i><b>1.4.2</b> Chapter 3 <span>Data Exploration</span></a></li>
+<li class="chapter" data-level="1.4.3" data-path="index.html"><a href="index.html#chapter-4-spatial-functions"><i class="fa fa-check"></i><b>1.4.3</b> Chapter 4 <span>Spatial Functions</span></a></li>
+<li class="chapter" data-level="1.4.4" data-path="index.html"><a href="index.html#chapter-5-creating-and-modifying-data"><i class="fa fa-check"></i><b>1.4.4</b> Chapter 5 <span>Creating and Modifying Data</span></a></li>
+<li class="chapter" data-level="1.4.5" data-path="index.html"><a href="index.html#chapter-6-modeling-functions"><i class="fa fa-check"></i><b>1.4.5</b> Chapter 6 <span>Modeling Functions</span></a></li>
+<li class="chapter" data-level="1.4.6" data-path="index.html"><a href="index.html#chapter-7-policy-and-welfare-analysis"><i class="fa fa-check"></i><b>1.4.6</b> Chapter 7 <span>Policy and Welfare Analysis</span></a></li>
+<li class="chapter" data-level="1.4.7" data-path="index.html"><a href="index.html#chapter-8-reporting"><i class="fa fa-check"></i><b>1.4.7</b> Chapter 8 <span>Reporting</span></a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="data.html"><a href="data.html"><i class="fa fa-check"></i><b>2</b> Data</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="data.html"><a href="data.html#required-and-optional-data"><i class="fa fa-check"></i><b>2.1</b> Required and optional data</a></li>
+<li class="chapter" data-level="2.2" data-path="data.html"><a href="data.html#loading-and-reading-data"><i class="fa fa-check"></i><b>2.2</b> Loading and reading data</a>
+<ul>
+<li class="chapter" data-level="2.2.1" data-path="data.html"><a href="data.html#loading-data-to-the-fishset-database"><i class="fa fa-check"></i><b>2.2.1</b> Loading data to the FishSET database</a></li>
+<li class="chapter" data-level="2.2.2" data-path="data.html"><a href="data.html#reading-data-into-r"><i class="fa fa-check"></i><b>2.2.2</b> Reading data into R</a></li>
+<li class="chapter" data-level="2.2.3" data-path="data.html"><a href="data.html#loading-data-from-fishset-database-into-the-the-working-environment"><i class="fa fa-check"></i><b>2.2.3</b> Loading data from FishSET database into the the working environment</a></li>
+</ul></li>
+<li class="chapter" data-level="2.3" data-path="data.html"><a href="data.html#merging-gridded-and-auxiliary-data-with-the-primary-data"><i class="fa fa-check"></i><b>2.3</b> Merging gridded and auxiliary data with the primary data</a></li>
+<li class="chapter" data-level="2.4" data-path="data.html"><a href="data.html#working-in-the-fishset-database"><i class="fa fa-check"></i><b>2.4</b> Working in the FishSET database</a></li>
+<li class="chapter" data-level="2.5" data-path="data.html"><a href="data.html#metadata"><i class="fa fa-check"></i><b>2.5</b> Metadata</a></li>
+<li class="chapter" data-level="2.6" data-path="data.html"><a href="data.html#data-management-functions"><i class="fa fa-check"></i><b>2.6</b> Data management functions</a>
+<ul>
+<li class="chapter" data-level="2.6.1" data-path="data.html"><a href="data.html#functions-2"><i class="fa fa-check"></i><b>2.6.1</b> Functions</a></li>
+<li class="chapter" data-level="2.6.2" data-path="data.html"><a href="data.html#function-details-3"><i class="fa fa-check"></i><b>2.6.2</b> Function details</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="data-exploration.html"><a href="data-exploration.html"><i class="fa fa-check"></i><b>3</b> Data Exploration</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="data-exploration.html"><a href="data-exploration.html#data-exploration-functions"><i class="fa fa-check"></i><b>3.1</b> Data Exploration functions</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="spatial-functions.html"><a href="spatial-functions.html"><i class="fa fa-check"></i><b>4</b> Spatial Functions</a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="spatial-functions.html"><a href="spatial-functions.html#mapping-functions"><i class="fa fa-check"></i><b>4.1</b> Mapping functions</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="creating-and-modifying-data.html"><a href="creating-and-modifying-data.html"><i class="fa fa-check"></i><b>5</b> Creating and Modifying Data</a>
+<ul>
+<li class="chapter" data-level="5.0.1" data-path="creating-and-modifying-data.html"><a href="creating-and-modifying-data.html#data-transformation-and-derivation-functions"><i class="fa fa-check"></i><b>5.0.1</b> Data transformation and derivation functions</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="modeling-functions.html"><a href="modeling-functions.html"><i class="fa fa-check"></i><b>6</b> Modeling Functions</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="modeling-functions.html"><a href="modeling-functions.html#modeling-functions-1"><i class="fa fa-check"></i><b>6.1</b> Modeling functions</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="policy-and-welfare-analysis.html"><a href="policy-and-welfare-analysis.html"><i class="fa fa-check"></i><b>7</b> Policy and Welfare Analysis</a></li>
+<li class="chapter" data-level="8" data-path="reporting.html"><a href="reporting.html"><i class="fa fa-check"></i><b>8</b> Reporting</a></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Using FishSET in the RConsole</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="data" class="section level1 hasAnchor" number="2">
+<h1><span class="header-section-number">2</span> Data<a href="data.html#data" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<div id="required-and-optional-data" class="section level2 hasAnchor" number="2.1">
+<h2><span class="header-section-number">2.1</span> Required and optional data<a href="data.html#required-and-optional-data" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>FishSET uses five data types.</p>
+<table>
+<colgroup>
+<col width="20%" />
+<col width="79%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>File Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Primary data</td>
+<td>Required. Contains the main data for the model.</td>
+</tr>
+<tr class="even">
+<td>Port data</td>
+<td>Required. Contains latitude and longitude locations of ports.</td>
+</tr>
+<tr class="odd">
+<td>Spatial data</td>
+<td>Required. File defining boundaries of fishery or regulatory zones.</td>
+</tr>
+<tr class="even">
+<td>Gridded data</td>
+<td>Optional. Contains additional data that varies by two dimensions.</td>
+</tr>
+<tr class="odd">
+<td>Auxiliary data</td>
+<td>Optional. Contains additional data to link to the primary data.</td>
+</tr>
+</tbody>
+</table>
+<p>All optional data files must be linkable to the primary data file.</p>
+<p>FishSET will accept several data formats including:</p>
+<ul>
+<li>csv files</li>
+<li>geojson files</li>
+<li>json files</li>
+<li>matlab files</li>
+<li>R files<br />
+</li>
+<li>shape files</li>
+<li>spss files</li>
+<li>stata files</li>
+<li>txt files</li>
+<li>xls/xlsx files</li>
+</ul>
+<p>Details on the different data types are detailed in the <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.36sb14g0441y">Data Types</a> section of the FishSET manual.</p>
+</div>
+<div id="loading-and-reading-data" class="section level2 hasAnchor" number="2.2">
+<h2><span class="header-section-number">2.2</span> Loading and reading data<a href="data.html#loading-and-reading-data" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="loading-data-to-the-fishset-database" class="section level3 hasAnchor" number="2.2.1">
+<h3><span class="header-section-number">2.2.1</span> Loading data to the FishSET database<a href="data.html#loading-data-to-the-fishset-database" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>All data should be saved to the FishSET database. Doing so ensures that data for a project are stored together.</p>
+<p>The <em>load</em> functions check that the data file can be saved to the FishSET database and, if all checks pass, saves the data file to the FishSET database.</p>
+<p>When the primary data is saved, two versions of the data are created, a raw table with the original data and a working table on which all analyses will be conducted. The working table will also be available in the global environment. Revised data can be saved as interim tables in the database along with a “finalized” data table (data table used for models).</p>
+<div id="functions" class="section level4 hasAnchor" number="2.2.1.1">
+<h4><span class="header-section-number">2.2.1.1</span> Functions<a href="data.html#functions" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<pre><code> load_maindata() Primary data file. 
+ load_port()     Port data file. 
+ load_aux ()     Auxiliary data file. 
+ load_grid()     Gridded data file.</code></pre>
+</div>
+<div id="function-details" class="section level4 hasAnchor" number="2.2.1.2">
+<h4><span class="header-section-number">2.2.1.2</span> Function details<a href="data.html#function-details" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p><code>load_maindata(dat, project, over_write = TRUE, compare = FALSE, y = NULL)</code> read in a data file, then parses it, and finallys saves the data table to the FishSET database if no errors are found. The function calls the <code>data_verification</code> function to check for common data quality issues and that latitude and longitude are defined in <code>dat</code>. If no issues are found, the data is saved in the FishSET database for the <code>project</code> as <code>projectMainDataTable</code> and loaded into the working environment. If <code>over_write =TRUE</code>, the existing data table for the project, if exists in the FishSET database, will be overwritten. If <code>compare = TRUE</code> the <code>fishset_compare</code> function is called and <code>dat</code> is compared with <code>y</code>, a previously saved version of <code>dat</code>.</p>
+<p><code>load_port</code></p>
+<p><code>load_spatial</code></p>
+<p><code>load_aux</code></p>
+<p><code>load_grid</code></p>
+<blockquote>
+<p>“Add details about loading port, spatial , auxiliary, and gridded files.”</p>
+</blockquote>
+</div>
+</div>
+<div id="reading-data-into-r" class="section level3 hasAnchor" number="2.2.2">
+<h3><span class="header-section-number">2.2.2</span> Reading data into R<a href="data.html#reading-data-into-r" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Data can also be read into R without saving it to the FishSET database. This function should only be used to view and evaluate data tables. If the data is going to be used in FishSET it should be loaded into the FishSET database.</p>
+<p>To read data files into the working environment use:</p>
+<pre><code> read_dat(x, data.type = NULL, is.map = F, ...). </code></pre>
+<div id="function-details-1" class="section level4 hasAnchor" number="2.2.2.1">
+<h4><span class="header-section-number">2.2.2.1</span> Function details<a href="data.html#function-details-1" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p><code>read_dat(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NULL, user = NULL, password = NULL, ...)</code> import data from local file directory or webpage into the R environment. <code>x</code>is the name and path, or web address, of the dataset to be read in. <code>data.type</code> is the file extension. It is optional as the function will attempt to detect the file extension. <code>data.type</code> must be defined if <code>x</code> is the path to a shape folder, if <code>x</code> is a Google spreadsheet (<code>data.type = 'google')</code>, or if the correct extension cannot be derived from <code>x</code>. Set <code>is.map = TRUE</code> only for spatial files in a .json file extension. For sql files, additional arguments may be required, including the database driver (<code>drv</code>), the database name (<code>dbname</code>), and user name (<code>user</code>) and password (<code>password</code>) for the SQL database.</p>
+<p><code>read_dat()</code> is flexible and will accommodate several data extensions and additional format-specific arguments. It is a wrapper function that calls a file extension-specific function to read in the data. <code>x</code> is the name and path of the dataset to be read in. <code>data.type</code> is optional argument to specify the file extension. If <code>data.type</code> is not specified, the detected data extension in <code>x</code> will be used. <code>is.map</code> is a logical argument specifying if <code>x</code> is a spatial data file. is.map must be set to TRUE if a spatial data file is not in a geojson or shape file. <code>...</code> is used to add additional extension-specific arguments. See function documentation for more details.</p>
+</div>
+</div>
+<div id="loading-data-from-fishset-database-into-the-the-working-environment" class="section level3 hasAnchor" number="2.2.3">
+<h3><span class="header-section-number">2.2.3</span> Loading data from FishSET database into the the working environment<a href="data.html#loading-data-from-fishset-database-into-the-the-working-environment" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Data saved to the FishSET database can be reloaded into the working environment using</p>
+<pre><code> load_data(project, name=NULL). </code></pre>
+<p>Specify the project name (<code>project</code>) and, optionally, the table name (<code>name</code>). <code>name</code> is optional and is used to specify a specific version of the data table. For example,</p>
+<pre><code> load_data(&quot;pollock&quot;, name=&quot;pollockMainDataTable20200101&quot;)   </code></pre>
+<p>loads the primary data from project <em>pollock</em> that was saved on January 1st, 2020. If <code>name</code> is NULL, the undated working table is pulled.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="data.html#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="do">##Load in the data from the pollock project</span></span>
+<span id="cb5-2"><a href="data.html#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(FishSET)</span>
+<span id="cb5-3"><a href="data.html#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">load_data</span>(<span class="st">&quot;pollock&quot;</span>)</span></code></pre></div>
+</div>
+</div>
+<div id="merging-gridded-and-auxiliary-data-with-the-primary-data" class="section level2 hasAnchor" number="2.3">
+<h2><span class="header-section-number">2.3</span> Merging gridded and auxiliary data with the primary data<a href="data.html#merging-gridded-and-auxiliary-data-with-the-primary-data" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Secondary data (auxiliary, port, gridded) can be merged into the primary dataset. The default method to merge is to use a left join; all columns and rows from the primary dataset are kept whereas only matching columns and rows from the secondary table are joined. Although all secondary data types can be merged into the primary day, generally only auxiliary data (such as vessel characteristics) will need to be merged.</p>
+<div id="functions-1" class="section level4 hasAnchor" number="2.3.0.1">
+<h4><span class="header-section-number">2.3.0.1</span> Functions<a href="data.html#functions-1" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<pre><code>merge_dat()   Merge secondary data into the primary data tahble
+split_dat()   Split and save secondary data from the primary data table</code></pre>
+</div>
+<div id="function-details-2" class="section level4 hasAnchor" number="2.3.0.2">
+<h4><span class="header-section-number">2.3.0.2</span> Function details<a href="data.html#function-details-2" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p><code>merge_dat(dat, other, project, main_key, other_key, other_type = NULL, merge_type = "left")</code> merges secondary data (<code>other</code>) to the primary data (<code>dat</code>) based on one or more variables for <code>dat</code> (<code>main_key</code>) and <code>other</code> (<code>other_key</code>). If more than one variable is being used for merging, include as a list. Variable names do not have to be the same between <code>main_key</code> and <code>other_key</code> but they must be included in the same order. <code>other_type</code> is optional and defines the data type of the secondary data (“aux”, “grid”, “spat”, “port”). <code>merge_type</code> can be “left” or “full”. “left” keeps all columns and rows in <code>dat</code> but only the rows from <code>other</code> in which the column values match column values in <code>dat</code>. “full” keeps all rows of both <code>dat</code> and <code>other.</code> “left” merge is preferred as using “full” can result in a larger frequency of missing data if the secondary data contains observations beyond the scope of <code>dat</code>. For example, <code>dat</code> contains catch data only on catcher vessels but other contains vessel characteristics for catcher vessels, mothership vessels, and catch processor vessels.</p>
+<p><code>split_dat(dat, project, aux = NULL, split_by = NULL, key, output = "main")</code> separates secondary data (auxiliary, gridded, or port data) from the MainDatatable. Identify data to remove from <code>dat</code> using an existing secondary data table or list of column names. If <code>aux</code> is specified, the column names in <code>dat</code> that match the column names in <code>aux</code> are separated from <code>dat</code>. If <code>aux = NULL</code> and <code>split_by</code> is a list, then column names in <code>dat</code> matching <code>split_by</code> are separated from <code>dat</code>. <code>key</code> is the columns that link <code>dat</code> and <code>aux.</code> If <code>aux</code> is null then <code>key</code> should be a column name from <code>split_by</code>. The function can return just the primary data (<code>output = “main”</code>), just the separated table (<code>output = “aux”</code>), or both, in a list (<code>output = “both”</code>).</p>
+</div>
+</div>
+<div id="working-in-the-fishset-database" class="section level2 hasAnchor" number="2.4">
+<h2><span class="header-section-number">2.4</span> Working in the FishSET database<a href="data.html#working-in-the-fishset-database" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>The functions in this section interface with the FishSET database to display the requested output in the R Console. The functions are wrappers for functions in the <strong>DBI</strong> package. They allow users to focus on the data and not on managing the database or learning SQL.</p>
+<p>Basic functions:</p>
+<pre><code> tables_database(project)        View list of all tables in the FishSET database for the project.
+ list_MainDataTables(project)     View list of MainDataTables in FishSET database for the project.
+ list_PortTables(project)         View list of PortTables in FishSET database for the project.
+ list_logs(project)           View list of all log files for the project.
+ table_fields(table, project)          View fields in specified table for the project.
+ table_view(table, project)            Display specified table for the project.
+ table_exists(table, project)         Check if table exists in the FishSET database for the project.
+ table_remove(table, project)         Remove table from the FishSET database for the project.</code></pre>
+<p>Model output files can be viewed in the FishSET database using:</p>
+<pre><code> globalcheck_view(table, project)  View error output discrete choice models for the project
+ model_out_view(table, project)    Load discrete choice model output for the project</code></pre>
+</div>
+<div id="metadata" class="section level2 hasAnchor" number="2.5">
+<h2><span class="header-section-number">2.5</span> Metadata<a href="data.html#metadata" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<blockquote>
+<p>“This needs to be detailed”</p>
+</blockquote>
+</div>
+<div id="data-management-functions" class="section level2 hasAnchor" number="2.6">
+<h2><span class="header-section-number">2.6</span> Data management functions<a href="data.html#data-management-functions" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Data should, at a minimum, be checked for entry errors and errors resulting from data import and conversion. Users should also investigate and summarize the data to understand potential data and statistical problems.</p>
+<p>FishSET provides a number of statistical and graphic functions for evaluating data quality. These functions focus on issues that are most likely to affect model convergence and model performance. They do not cover all potential data quality issues that exist in your data.</p>
+<div id="functions-2" class="section level3 hasAnchor" number="2.6.1">
+<h3><span class="header-section-number">2.6.1</span> Functions<a href="data.html#functions-2" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div id="visualizing-the-data" class="section level4 hasAnchor" number="2.6.1.1">
+<h4><span class="header-section-number">2.6.1.1</span> Visualizing the data<a href="data.html#visualizing-the-data" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<pre><code> summary_stats()    Table with basic summary statistics.
+ spatial_hist()     Histogram of lat and lon by grouping variable.
+ spatial_summary()  Line plots of selected variable against date and zone.
+ map_plot()         Static map of haul locations.</code></pre>
+</div>
+<div id="subsetting-the-data" class="section level4 hasAnchor" number="2.6.1.2">
+<h4><span class="header-section-number">2.6.1.2</span> Subsetting the data<a href="data.html#subsetting-the-data" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<pre><code> select_vars()      Select variables to add back into the working dataset. 
+ add_vars()         Add variables from `select_vars` into primary dataset.</code></pre>
+</div>
+<div id="checking-for-outliers" class="section level4 hasAnchor" number="2.6.1.3">
+<h4><span class="header-section-number">2.6.1.3</span> Checking for outliers<a href="data.html#checking-for-outliers" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p><code>outlier_boxplot(dat, project, x = NULL)</code> returns a box-and-whisker plot of all numeric variables in <code>dat</code>. Use <code>x</code> to define a set of variables to assess. This function helps to identify which variables potentially contain outlier variables and should be run before outlier_table() and outlier_plot() functions, which can be applied to only one variable at a time.</p>
+<pre><code> outlier_table()    Returns table with quantiles for all numeric variables in the data table.
+ outlier_plot()     Returns a plot of the selected variable.
+ outlier_remove()   Returns modified data set where outliers have been removed.</code></pre>
+</div>
+<div id="checking-for-empty-variables-unique-rows-nas-and-nans" class="section level4 hasAnchor" number="2.6.1.4">
+<h4><span class="header-section-number">2.6.1.4</span> Checking for empty variables, unique rows, NAs, and NaNs<a href="data.html#checking-for-empty-variables-unique-rows-nas-and-nans" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<pre><code> empty_vars         checks for emtpy variables.
+ nan_identify()     Checks whether NAs or NaNs are present in any variable.
+ nan_filter()       Returns modified data set where NaNs have been removed or replaced.
+ na_filter()        Returns modified data set where NAs have been removed or replaced.
+ unique_filter()    Check for and remove duplicate rows.</code></pre>
+</div>
+<div id="filtering-rows-of-the-dataset" class="section level4 hasAnchor" number="2.6.1.5">
+<h4><span class="header-section-number">2.6.1.5</span> Filtering rows of the dataset<a href="data.html#filtering-rows-of-the-dataset" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<pre><code> filter_table()     Stores filter functions in a table.     
+ filter_dat()       Apply stored and new filter functions to data.</code></pre>
+</div>
+<div id="converting-class-or-lonlat-units" class="section level4 hasAnchor" number="2.6.1.6">
+<h4><span class="header-section-number">2.6.1.6</span> Converting class or lon/lat units<a href="data.html#converting-class-or-lonlat-units" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<pre><code> changeclass()       Convert variable class.
+ degree()            Convert lon/lat to decimal format.</code></pre>
+</div>
+<div id="wrappers-for-multiple-checking-functions" class="section level4 hasAnchor" number="2.6.1.7">
+<h4><span class="header-section-number">2.6.1.7</span> Wrappers for multiple “checking” functions<a href="data.html#wrappers-for-multiple-checking-functions" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<pre><code> data_check()        Wrapper for data quality check functions, including data_verification().
+ data_verification() Checks for unique column names, each row is a unique choice occurrence, etc.
+ check_model_data()  Checks for presence of NAs, NaNs and Inf in model data. Function must be run before models can be developed.</code></pre>
+</div>
+</div>
+<div id="function-details-3" class="section level3 hasAnchor" number="2.6.2">
+<h3><span class="header-section-number">2.6.2</span> Function details<a href="data.html#function-details-3" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div id="visualizing-the-data-1" class="section level4 hasAnchor" number="2.6.2.1">
+<h4><span class="header-section-number">2.6.2.1</span> Visualizing the data<a href="data.html#visualizing-the-data-1" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p><code>summary_stats(dat, project, x = NULL)</code> prints summary statistics for each variable in the <code>dat</code>. If <code>x</code> is specified, summary stats will be returned only for that variable.</p>
+<pre><code> spatial_hist()    
+ spatial_summary()  
+ map_plot()         </code></pre>
+</div>
+<div id="subsetting-the-data-1" class="section level4 hasAnchor" number="2.6.2.2">
+<h4><span class="header-section-number">2.6.2.2</span> Subsetting the data<a href="data.html#subsetting-the-data-1" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<pre><code> select_vars()       
+ add_vars()         </code></pre>
+</div>
+<div id="checking-for-outliers-1" class="section level4 hasAnchor" number="2.6.2.3">
+<h4><span class="header-section-number">2.6.2.3</span> Checking for outliers<a href="data.html#checking-for-outliers-1" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<pre><code> outlier_boxplot
+ outlier_table()    
+ outlier_plot()     
+ outlier_remove()   </code></pre>
+</div>
+<div id="checking-for-empty-variables-unique-rows-nas-and-nans-1" class="section level4 hasAnchor" number="2.6.2.4">
+<h4><span class="header-section-number">2.6.2.4</span> Checking for empty variables, unique rows, NAs, and NaNs<a href="data.html#checking-for-empty-variables-unique-rows-nas-and-nans-1" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p><code>empty_vars_filter(dat, project, remove = FALSE)</code> checks for empty variables and prints an outcome message to the console. If empty variables are present and <code>remove = TRUE</code>, then empty variables will be removed from <code>dat</code>.</p>
+<pre><code> nan_identify()     
+ nan_filter()  
+ </code></pre>
+<p><code>na_filter(dat, project, x=NULL, replace = F, remove = F, rep.value = NA, over_write = FALSE)</code> checks for NAs and removes or replaces NAs. To check for NAs across <code>dat</code>, run the function specifying only <code>dat</code> [<code>na_filter(pollockMainDataTable)</code>]. The function will return a statement of which variables, if any, contain NAs. To remove NAs, use <code>remove = TRUE</code>. All rows containing NAs in variable(s) <code>x</code> will be removed from <code>dat</code>. To replace NAs, use <code>replace = TRUE</code>. If <code>replace = TRUE</code> and <code>rep.value</code> is not defined, then NAs are replaced with the mean value of <code>x</code>. <code>rep.value</code> must be specified if <code>x</code> is not numeric. The function returns the modified dataset if either <code>replace</code> or <code>remove</code> are true. Save the modified data table to the FishSET database by setting <code>over_write = TRUE</code>.</p>
+<p><code>unique_filter(dat, project, remove = FALSE)</code> returns a statement of whether each row in <code>dat</code> is unique. Set <code>remove=TRUE</code> to remove duplicate rows.</p>
+</div>
+<div id="filtering-rows-of-the-dataset-1" class="section level4 hasAnchor" number="2.6.2.5">
+<h4><span class="header-section-number">2.6.2.5</span> Filtering rows of the dataset<a href="data.html#filtering-rows-of-the-dataset-1" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<pre><code> filter_table()      
+ filter_dat()     </code></pre>
+</div>
+<div id="converting-variable-class-or-lonlat-units" class="section level4 hasAnchor" number="2.6.2.6">
+<h4><span class="header-section-number">2.6.2.6</span> Converting variable class or lon/lat units<a href="data.html#converting-variable-class-or-lonlat-units" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p><code>changeclass(dat, project, x = NULL, newclass = NULL, savedat = FALSE)</code> returns a table with data class for each variable in <code>dat</code> and changes variable classes. To view variable classes run the function with default settings, specifying only <code>dat</code> and <code>project</code>. If variable class should be changed, run the function again, specifying the variables (<code>x</code>) to be change and the newclasses (<code>newclass</code>). Length of <code>newclass</code> should match the length of <code>x</code> unless all variables in <code>x</code> should be the same class. Options are “numeric”, “factor”, “date”, and “character”. Use <code>savedat = TRUE</code> to save modified data table.</p>
+<pre><code> degree()            </code></pre>
+</div>
+<div id="wrappers-for-multiple-checking-functions-1" class="section level4 hasAnchor" number="2.6.2.7">
+<h4><span class="header-section-number">2.6.2.7</span> Wrappers for multiple “checking” functions<a href="data.html#wrappers-for-multiple-checking-functions-1" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p><code>data_check()</code> is the primary function to check for data quality issues in the dataset. The function calls <code>summary_stats</code>, <code>nan_identify</code>, <code>outlier_table</code> and <code>outlier_plot</code>, and <code>data_verification</code>, which contains script to check for unique column names and empty columns, that each row is a unique observation at haul or trip level, and calls the <code>degree</code> function. Use <code>outlier_remove</code>, <code>na_filter</code>, <code>nan_filter</code>, and <code>degree</code> to correct any errors. Empty columns and duplicate rows will be removed.</p>
+<p><code>data_verification(dat, project)</code> checks that all column names in the <code>dat</code> are unique, whether any columns in the data frame are empty, whether each row is a unique choice occurrence at the haul or trip level, and that either latitude and longitude or fishing area are included.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="data.html#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">#data_check(pollockMainDataTable, &#39;pollock&#39;, &#39;OFFICIAL_TOTAL_CATH_MT&#39;)</span></span></code></pre></div>
+<p><code>check_model_data</code> checks for data quality issues that will result in errors when running models, including NAs, NaNs and INF values in the dataset and that each row is a unique occurrence at the haul or trip level. Run this function before creating the model design file (<code>make_model_design</code>). Even if the data passed the <code>data_check</code> tests, errors may be produced by data modification and data creation functions.</p>
+<p>Use <code>filter_table</code> and <code>filter_dat</code> to subset the data, retaining rows that meet the condition. Define and save, for records and future use, conditions in <code>filter_table</code>. Apply filters with <code>filter_dat</code>.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Data table</th>
+<th>Vector</th>
+<th>FilterFunction</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>MainDataTable</td>
+<td>“PORT_CODE”</td>
+<td>PORT_CODE == 1</td>
+</tr>
+<tr class="even">
+<td>MainDataTable</td>
+<td>“TRIP_START”</td>
+<td>TRIP_START &gt;= 2011-02-01</td>
+</tr>
+<tr class="odd">
+<td>PortDataTable</td>
+<td>“LATITUDE”</td>
+<td>LATITUDE &lt; 57</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="index.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="data-exploration.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"search": {
+"engine": "fuse",
+"options": null
+},
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+</body>
+
+</html>

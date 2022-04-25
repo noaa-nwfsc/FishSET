@@ -1,13 +1,14 @@
 ---
-title: "FishSET GUI"
-author: "ESSR"
+title: "FishSET GUI Quickstart Guide"
+#author: "ESSR"
 date: "`r Sys.Date()`"
 output:
-  rmarkdown::html_vignette: default
-vignette: |
-  %\VignetteIndexEntry{FishSET GUI}  
-  %\VignetteEngine{knitr::rmarkdown}   
-  %\VignetteEncoding{UTF-8}
+   rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{FishSET GUI Quickstart Guide} 
+  %\VignetteEngine{knitr::rmarkdown}  
+  %\VignetteEncoding{UTF-8}  
+
 ---
 <!--output: html_document: default -->
 <!--  pdf_document: default -->
@@ -21,30 +22,25 @@ knitr::opts_chunk$set(
 )
 ```
 
-The Spatial Economics Toolbox for Fisheries (FishSET) is a set of statistical programming and data management tools developed to achieve the following goals:
- 
-  1. Standardize data management and organization. 
- 
-  1. Provide easily accessible tools to enable location choice models to provide input to the management of key fisheries.
- 
-  1. Organize statistical code so that predictions of fisher behavior developed by the field’s leading innovators can be incorporated and transparent to all users.
+
+# Introduction
+FishSET is a set of statistical programming and data management tools developed to improve fishery modeling. The tools standardize data management and organization, enable the use of location choice models to provide input into fishery management, and provide various other modeling and visualization tools.
+
+The FishSET toolbox is provided as a set of R functions that can be run in an R console or here in this FishSET Graphical User Interface (FishSET GUI).
+
+# FishSET GUI
+The FishSET GUI is a user-friendly interface that guides users through the steps necessary to run discrete choice models. The FishSET GUI requires no knowledge of coding or the R programming language as all steps to prepare and run discrete choice models can be run in a graphical user interface apart from writing the report. See ***** for details on writing the report. 
+
+The FishSET GUI is divided into tabs to guide users through the steps of creation, from uploading and exploring data to developing and evaluating models. Tabs can be navigated in any order. All data is automatically saved to a SQL database called the FishSET database when first loaded. The database is housed in the projects directory withing the FishSET R package directory. Modified versions of the data can be saved to the FishSET database in the Data Quality Evaluation and Compute New Variables tabs. Plots and table outputs are saved in an output folder within the projects directory. Function calls, including chosen parameters, are saved to the Logs folder within the projects directory. The Quickstart Guide subtab provides further assistance on using the FishSET GUI.
+
+This documents details how to use the FishSET GUI. Details and backgroud on the functions an be found in the FishSET Help Manual available at the FishSET **WEBSITE**. 
+
+For questions and comments please contact: <!--FishSET@noaa.gov -->
 
 
-The FishSET package provides functions for:
+This document walks through the steps of:
 
-* Data management
-* Data analysis
-* Mapping
-* Statistical modeling
-* Reproducibility
-  
-This vignette contains a short description of using the FishSET GUI. A more detailed manual is available at the FishSET **WEBSITE**. 
-
-The FishSET GUI is a user-friendly interface that guides users through the steps necessary to run discrete choice models. The FishSET GUI requires no knowledge of coding or R as all steps to prepare and run discrete choice models can be run in the FishSET GUI apart from writing the report. The report template must be opened in the R console. 
-
-This vignette walks through the steps of:
-
-  1. Installing R
+  1. Installing R and R Studio
   1. Installing and loading the FishSET package
   1. Opening the FishSET GUI
   1. Using the FishSET GUI
@@ -53,22 +49,25 @@ This vignette walks through the steps of:
 ## Installing R
 To use the FishSET GUI, users must first install R and RStudio.
 
-R can be installed from <https://cloud.r-project.org>.  
-RStudio from <https://rstudio.com/products/rstudio/download/#download>. 
+[R can be installed from ](https://cloud.r-project.org "R project website")>.  
+[RStudio from](https://rstudio.com/products/rstudio/download/#download "RStudio website"). 
 
 Installation files for both R and RStudio are platform specific.   
 Install the most recent version of R and RStudio available.     
 Default settings do not need to be changed. 
 
+For more details see the [FishSET Help Manual](https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.1fob9te "Installing R and RStudio").
+
 
 ## Installing the FishSET package
-FishSET is provided as a tarball (tar.gz) that can be installed directly from the FishSet GitHUB site or 
+FishSET is provided as compressed file that can be installed directly from the FishSET GitHUB site or 
 from a locally saved file location. 
 
-We recommend the following steps to install FishSET:
+We recommend installing directly from the GitHUB site.  
+For more details see the [FishSET Manual](https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.h8fxguvqf0mn "Installing FishSET").
 
   1. Open RStudio
-  1. Install **devtools** package (this package is necessary to install and build FishSET)  
+  1. Install the **devtools** package (this package is necessary to install and build FishSET)  
 :  In the RStudio Console paste the following code  
   `install.packages("devtools")`   
   `library(devtools)`
@@ -84,33 +83,33 @@ We recommend the following steps to install FishSET:
 
 **GITHUB SITE TO BE FILLED IN**
 
-See the Help Manual **ADD LINK** if you experience any issues when installing the **devtools** or **FishSET** packages.
+See the [FishSET Help Manual](https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.h8fxguvqf0mn "Installing FishSET") if you experience any issues when installing the **devtools** or **FishSET** packages.
 	  
 ## Opening the FishSET GUI
-To open the FishSET GUI type or paste the following script in the RStudio console
+To open the FishSET GUI type or paste the following script in the RStudio console:
 
 :   `run_fishset_gui()`
 
 ## Using the FishSET GUI
-The FishSET GUI is divided into 12 tabs. The tabs are ordered in the suggested order of steps to build and run a discrete choice model but do not have to be used in a specific order. Below we detail the purpose of each tab and how to use the tabs.
+The FishSET GUI is divided into tabs. The tabs are ordered in the suggested order of steps to build and run a discrete choice model but do not have to be used in a specific order. Next we detail the purpose of each tab and how to use the tabs.
 
 ### Functionality available across all tabs
  * Save plot and table buttons
-    * Saves output to a user-specified location.
-    * Only use if you want to save output to a location other than the FishSET package directory. Tables and plots are automatically saved to the FishSET `Output` folder when generated. 
+    * Optional buttons to save output to a user-specified location.
+    * Tables, plots, and notes are automatically saved to the `Output` folder in the projects directory when generated. These buttons should be used only if you want to save output to a location other than the projects directory.  
  * Refresh data
-    * Pulls the primary data table from the FishSET database.
-    * To refresh to a specific saved version of the dataset, go to the `Upload data` tab.
-    * Unsaved changes to the dataset will be lost when the data is refreshed.
+    * Resets the primary data to the most recently saved version in the FishSET database.
+    * To refresh to a specific saved version of the data table, go to the `Upload data` tab.
+    * Unsaved changes to the data table will be lost when the data is refreshed.
  * Close app
     * Closes the FishSET GUI.
     * This is the preferred method to close the FishSET GUI.
  * Notes 
     * Write observations, comments, or other notes in the `Notes` box. 
-    * Press `Save notes` to save the notes in the Output folder.
+    * Press `Save notes` to save the notes in the `Output` folder.
  * Running R expressions
-    * Located at the bottom of the land-hand panel
-    * Enter and run R code 
+    * Located at the bottom of the land-hand panel.
+    * Enter and run R code.
  
 ### Information
 
@@ -119,7 +118,7 @@ The `Information tab` has four subtabs:
  1.  Background
     * Details purpose of FishSET.
     * Provides general information on FishSET.
- 1.  Quick Start Guide
+ 1.  Quickstart Guide
     * Brief detail on how to use each of the FishSET GUI tabs. 
  1.  Alaska Details
     * Information on the Alaskan fisheries.
@@ -141,6 +140,8 @@ Data files types:
       Contains additional data that links to the primary data.
   * Gridded (Optional)   
      Contains additional data that varies by two dimensions.   
+
+See the [FishSET Manual](https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.36sb14g0441y "Data Types") for more details on the different required and optional data tables.
 
 Steps to upload data:
 
@@ -165,6 +166,8 @@ Steps to upload data:
     * Select a `Threshold` value such as 3 for rule of n or 90% for majority allocation.
     * Click `Save` and repeat if adding the other confidentiality rule.
     * Click the `Close` button.
+
+See the [FishSET Manual](https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.36sb14g0441y "Uploading data") for more details on uploading data and merging data.
 
 ### Data Quality Evaluation
 The `Data Quality and Evaluation` tab is used to identify and correct common data quality issues such as erroneous outliers and missing values. 
@@ -213,6 +216,8 @@ The `Data Quality and Evaluation` tab is used to identify and correct common dat
       * Checks whether values are in decimal degree and that sign is correct.
       * Select variable and action to make corrections.
 
+See the [Recommended data quality check steps](https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.gvjfmr8m6yax) the Cleaning and Data Quality section of the FishSET manual for more details.
+
 ### Data Exploration
 The `Data Exploration` tab is used to view and explore the loaded data. 
 
@@ -236,9 +241,11 @@ The `Data Exploration` tab is used to view and explore the loaded data.
           * Two plots are shown.
           * The first can be zoomed in and out. Individual points can be identified by hovering over them.  
           * Fill out the additional options in the left-hand panel to show Getis-Ord and Moran's I statistics.
+          * NOTE: This spatial check must be completed before you can run models.
       * x-y  
           * Plot selected `x` variable against selected `y` variable.
-
+          
+For more details see the [Data Exploreation section of the FishSET Manual](https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.46r0co2 "Data Exploration").
 
 ### Fleet Assignment and Summary
 The `Fleet Assignment and Summary` tab is used to define fleets and explore data at a fleet level. 
@@ -312,6 +319,7 @@ Populate additional function-specific options.
 
 Click `Run function` button to run function and display output.
 
+For more details see the [Fleet and group summaries section](https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.46r0co2) in the *Exploratory data analysis* chapter of the FishSET Manual.
   
 ### Simple Analyses
 The `Simple Analyses` tab is used to view correlation and simple linear regression among selected variables. 
@@ -346,6 +354,7 @@ Steps:
       * To save the FishSET database, click `Save final table to FishSET DB`.
       * To save to local file directory, select a file format in the `Export data as:` box and click `Download data`.
  
+ Function details can be found in the [Exploratory Data Analysis](https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.3ygebqi) section of the FishSET Manual.
 
 Functions:
 
@@ -435,6 +444,8 @@ If data comes from the primary dataset:
 If data comes from a gridded data file:
 
   1. Load the data
+  
+  See the [Data](https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.3cqmetx) section of the *Model Development* chapter of the FishSET Manual for more details.
 
 ### Expected Catch/Revenue
 The `Expected Catch/Revenue` tab is used to calculate the expected catch or revenue matrix for alternative fishing zones (zones where fishing could have happened but did not). A catch variable is required. Include a price or value variable if you want expected revenue. 
@@ -463,7 +474,8 @@ Steps:
   * Expected catch/revenue based the previous seven days (medium-term) catch.
   * Expected catch/revenue based on the previous years (long-term) catch.
 
-    
+See the [Data](https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.3cqmetx) section of the *Model Development* chapter of the FishSET Manual for more details.
+ 
     
 ### Models
 The `Models` tab is used to define model parameters, run models, and compare output. 
@@ -475,6 +487,7 @@ Steps:
   1. Select variables to include in the model.
   1. Select optimization methods.
   1. Select initial parameter values.  
+      Initial parameter values can be defined or come from parameter values from a previous model.
       The number of required parameter values will auto populate.   
       See function documentation for order of parameters.  
       Parameter starting values should be within the bounds of the variable data. 
@@ -487,6 +500,8 @@ Steps:
 The models may take several minutes to run.   
 When the models are completed, the tables in the `Compare models` subtab will be populated.  
 Use these tables to assess convergence, fit, and select the preferred model for future analyses.
+
+See the [Model Development](https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.3cqmetx) section of the FishSET manual for details on model choices, including likelihood functions, optimization method, and initial parameter estimates.
 
 ### Bookmark Choices
 The `Bookmark Choices` tabs is used to store choices and actions made in the FishSET GUI and enable choices and actions to be reloaded at a later date. 
@@ -524,3 +539,5 @@ Steps:
   1. Begin writing
       * The template provides guidance and how to format and build (knit) the document.
       * Example functions to insert figures, tables, and notes are provided.
+      
+Details on using the report template is in the [Reporting](https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.3q5sasy "Reporting") chapter of the FishSET Manual.

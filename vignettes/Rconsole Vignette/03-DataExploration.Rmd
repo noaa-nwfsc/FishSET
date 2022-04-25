@@ -1,0 +1,127 @@
+# Data Exploration
+
+Several functions are available for summarizing and visualizing data. 
+
+We group exploratory data functions into 1) basic exploratory analysis - functions exploring the distribution, availability, and variance of data, 2) fleet summaries – functions to view and understand fleets and identify meaningful groupings, and 3) simple analyses - functions to evaluate relationships between variables and identify redundant variables.
+
+All output is saved to the output folder.
+  
+## Data Exploration functions
+
+
+Basic exploratory analysis
+
+    map_kernel()      Spatial kernel density plot.	
+    getis_ord_stats() Getis-Ord statistic.	
+    morans_stats()    Moran’s I statistic.	
+    map_plot()        Static map of haul locations.	
+    map_viewer()      Interactive map of haul locations or paths with zone.	
+    spatial_summary() View aggregated variable by date and fishing zone.	
+    spatial_hist()    Assess spatial variance/clumping of grouping variable.	
+    temp_plot()       View distribution of variable over time.	
+
+Fleet summaries
+
+    vessel_count()    Counts of unique vessels active within a specified period.
+    species_catch()   Aggregates total catch for one or more species. 
+    weekly_catch()    Calculates weekly catch for one or more species.
+    weekly_effort()   Generates the average CPUE by week. 
+    density_plot()    Plots the chosen density plot of chosen variable.
+    bycatch()         Compares mean CPUE and share (or count) of total catch by time period.
+    roll_catch()      Rolling catch (specify window size and summary statistic).	
+    trip_length()     View trip duration.	
+
+Simple analyses
+
+    corr_out()        View the correlation coefficient between numeric variables.	
+    xy_plot()         Asses fitted relationship between two variables.	
+
+All tables and plots generated are saved to the output folder. 
+
+###Function details
+
+`map_kernel(dat, project, type, latlon, group, facet, date, filter_date, filter_value, minmax)` returns the kernel density plot in the specified plot `type` (*“point”*, *“contours”*, *“gradient”*) based on the specified latitude and longitude variables (`latlon`).  All other arguments are optional. `group` is the variable in `dat` containing group identifiers. If groups are specified, users can map each group as a separate facet if `facet = TRUE`. Data can be filtered by a `date` variable.  Select how to filter using `filter_date` and values with `filter_value`. `filter_date` options are *“year”*, *“month”*, and *“year-month”*. `filter_value` should be four digits if year and 2 digits if month. Use colon for a range. Use a list if using *"year-month"*, with the format: *list(year(s), month(s))*. For example, *list(2011:2013, 5:7)*. Use `minmax` to limit the map extent. `minmax` is a vector of length four corresponding to c(minlat, maxlat, minlon, maxlon).  
+<br>
+`getis_ord_stats(dat, project, varofint, spat, lon.dat, lat.dat, cat, lon.grid, lat.grid)` is a wrapper function to calculate global and local Getis-Ord (the degree, within each zone, that high or low values of the `varofint` cluster in space) by discrete area. Function utilizes the `localG` and `knearneigh` functions from the **spdep** package. The spatial input is a row-standardized spatial weights matrix for computed nearest neighbor matrix, which is the null setting for the `nb2listw` function. Requires a data frame with area as a factor, the lon/lat centroid for each area, the lon/lat outlining each area, and the variable of interest `varofint` or a spatial data file with lon/lat defining boundaries of area/zones and variable of interest for weighting. If the centroid is not included in the spatial data file, then `find_centroid()` can be called to calculate the centroid of each zone. If the variable of interest is not associated with an area/zone then the `assignment_column()` function can be used to assign each observation to a zone. Arguments to identify centroid and assign variable of interest to area/zone are optional and default to NULL.  
+<br>
+`morans_stats(dat, project, varofint, spat, lon.dat, lat.dat = NULL, cat, lon.grid, lat.grid)` is a wrapper function to calculate global and local Moran's I (degree of spatial autocorrelation) of a variable (`varofint`) by discrete area. Function utilizes the `localmoran()` and `knearneigh()` functions from the **spdep** package. The spatial input is a row-standardized spatial weights matrix for computed nearest neighbor matrix, which is the null setting for the `nb2listw()` function. The function requires a spatial data file with latitude and longitude defining boundaries of area/zones. If zonal centroid is not included in the spatial data file, then FishSET’s `find_centroid()` function is called. If each observation in `dat` is not associated with an area/zone, then FishSET’s `assignment_column()` is called to assign each observation to a zone. Arguments to identify zonal centroids and assign variable of interest to area/zone are optional and default to NULL.  
+<br>
+`map_plot(dat, project, lat, lon, minmax, percshown)` plots observed vessel locations on a map. `lon` and `lat` are the names of variables containing longitude and latitude data in dat. If the predefined map extent needs adjusting, set limits with `minmax = c(minlat, maxlat, minlon, maxlon)`. To show a random subset of points, set `percshown` to the percent of points to show. Please consider any confidentiality concerns before sharing or publishing the map. This graphic return a static but shareable map. See `map_viewer()` to view a dynamic map with greater functionality.  
+<br>
+`map_viewer(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars, lon_start, lat_start, lon_end, lat_end)` opens an interactive map in your default web browser to view vessel points or maps. `gridfile` is required to overlay fishery management/regulatory zones on the map. `dat` and `gridfile` are linked through `avd` (variable in `dat` containing zone name or identifier) and `avm` (property in `gridfile` containing zone name or identifier). Vessel haul points or vessel haul paths can be plotted. `lon_start` and `lat_start` are the variable names in `dat` containing the longitude and latitude of the vessel location points to plot or starting location if plotting paths. `lon_end` and `lat_end` are the ending latitude and longitudes if plotting a path. Leave as NULL if plotting location points. Other plotting and grouping arguments include `num_vars` (a list of one or more numeric variables in `dat`), `temp_vars` (a list of one or more temporal variables in `dat`), and `id_var`s (a list of categorical variables in `dat`). These variables are used to create additional scatter plots for assessing the data. Multiple numeric, temporal, and ID variables can be included but only one will be shown at a time. To close the server connection run `servr::daemon_stop()` in the console. Note that it can take up to a minute for the data to be loaded onto the map. The map cannot be saved.  
+<br>
+`spatial_summary(dat, project, stat.var, variable, gridfile, lon.grid, lat.grid, lon.dat, lat.dat, cat)` returns the variable aggregated by `stat.var` plotted against date and zone. `gridfile`, `lon.grid`, `lat.grid`, `lon.dat`, `lat.dat`, and `cat` are not required if zone assignment variable exists in `dat`.
+
+`stat.var` options
+
+    length         Number of observations
+    no_unique_obs  Number of unique observations
+    perc_total     Percent of total observations
+    mean           Mean  
+    median         Median  
+    min            Minimum  
+    max            Maximum  
+    sum            Sum
+<br>
+
+`spatial_hist(dat, project, group)` returns a histogram of observed lon/lat split by grouping variable (`group`). The function is used to assess spatial variance/clumping of selected grouping variable.
+
+`temp_plot(dat, project, var.select, len.fun, agg.fun, date.var)` returns two plots of selected variable `var.select` over time (`date.var`). The first plot can show the number of observations (`len.fun = "length"`), number of unique observations (`len.fun = "unique"`), percent of options (`len.fun = "percent"`) of `var.select` by time. The second plot shows `var.select` aggregated by `agg.fun` against date. `agg.fun` options are *mean*, *median*, *min*, *max*, and *sum*.
+
+**Fleet and group summaries**
+
+Each function has a different objective but they all have a set of optional arguments that allow for grouping the data (`group`) or filtering by date (`filter_date`) or another value (`filter_value`). These options default to NULL and do not have to be specified. There are additional options to adjust the appearance of the output. These options are detailed first; then the functions are detailed.
+
+*Additional options*
+
+: `group` is the name of the fleet ID variable or other grouping variable(s). Multiple group variables can be included but only the first two will be shown. For most variables, grouping variables can be merged into one variable using `combine`; in this case any number of variables can be joined, but no more than three is recommended. For functions that do not have the `combine` argument, group variables will be automatically combined if three or more are included.
+
+: `date` is the variable name from `dat` used to subset and/or facet the plot by.
+
+: `filter_date` is the type of filter to apply to the table. Options include *“date_range”*, *"year-day"*, *"year-week"*, *"year-month"*, *"year"*, *"month"*, *"week"*, or *"day"*. The *"date_range"* option will subset the data by two date values entered in `date_value`. The argument `date_value` must be provided. 
+
+: `date_value` is the value to filter `date` by. If using `filter_date = "date_range"`, `date_value` should contain a start and end date, e.g. c("2011-01-01", "2011-03-15"). Otherwise, use integers (4 digits if *year*, 1-2 digits if *day*, *month*, or *week*). Use a list if using a two-part filter, e.g. "year-week", with the format `list(year, week)` or a vector if using a single period, `c(week)`. For example, `list(2011:2013, 5:7)` will filter the data table from weeks 5 through 7 for years 2011-2013 if `filter_date = "year-week"`. `c(2:5)` will filter the data February through May when `filter_date = "month"`.
+
+: `filter_by` is the variable name to filter `dat` by.
+
+: `filter_value` is a vector of values in the `filter_by` variable to filter `dat`.
+
+: `filter_expr` a valid R expression to filter `dat` by using the `filter_by` variable.
+
+: `facet_by` is the variable name to facet by. This can be a variable that exists in the dataset, or a variable created by the function such as *"year"*, *"month"*, or *"week"*. For faceting, any variable (including ones listed in `group`) can be used, but *"year"* and *"month"* are also available. Currently, combined variables cannot be faceted.  
+
+: `tran` is the name of function to transform variable by. Options include *“identity”*, *“log”*, *“log2”*, *“log10”*, and *“sqrt”*. *“identify”* (no transformation) is the default.
+
+: `scale` is passed to facet_grid defining whether x- and y-axes should be consistent across plots. Defaults to *"fixed"*. Other options include *"free_y"*, *"free_x"*, and *"free"*.
+
+: `position` The position of the grouped variable for the plot. Options include *"identity"*, *"stack"*, and *"fill"*.
+
+: `output` display as *"plot"*, *"table"*, or both (*“tab_plot”*). Defaults to both.
+
+: `format_tab` defines how table output should be formatted. Options include *"wide"* (the default) and *"long"*.  
+
+<br>
+*Function details*
+
+`vessel_count(dat, project,  v_id, date, period, group, filter_date,  date_value, filter_by, filter_value,  filter_expr, facet_by, combine, position,  tran,  value, type,  scale, output)` aggregates the number (or percent) of active vessels by time period (`period`) using a column of unique vessel IDs (`v_id`). `period` options include *"year"*, *"month"*, *"weeks"* (weeks in the year), *"weekday"*, *"weekday_abv"*, *"day"* (day of the month), and *"day_of_year"*.  
+<br>
+`species_catch(dat, project, species, date, period, fun, group, filter_date, date_value, filter_by, filter_value, filter_expr, facet_by, type, conv, tran, value, position, combine, scale, output, format_tab)` aggregates catch by time period (`period`) and species using one or more columns of catch data (`species`). `fun` is the name of the function to aggregate catch by. Defaults to *“sum”*. Use `conv` to convert catch that is in pounds to *“tons”* or *“metric_tons”*. Set `conv = "none"` if no conversion is desired. Alternative, `conv` can be a user-defined function. This is useful if catch is not in pounds.  
+<br>
+`roll_catch(dat, project, catch, date, group, k = 10, fun, filter_date, date_value, filter_by, filter_value, filter_expr, facet_by, scale, align, conv, tran, output, ...)` returns a rolling window time series aggregation of catch  that can be combined with grouping variable(s) (`group`). `catch` can be one or more columns of catch data. `k` defines the window size and `fun` is the name of the function to aggregate catch by. Defaults to *“mean”*. `align` indicates whether results of window should be left-aligned *("left")*, right-aligned *("right")*, or centered *("center")*. Defaults to *"center"*. Use `conv` to convert catch that is in pounds to “tons” or “metric_tons”. Alternative, conv can be a user-defined function. This is useful if catch is not in pounds.  
+<br>
+`weekly_catch(dat, project, species, date, fun, group, filter_date, date_value, filter_by, filter_value, filter_expr, facet_by, type, conv, tran, value, position, combine, scale, output, format_tab)` aggregates catch by week using one or more columns of catch data (`species`). `fun` is the name of the function to aggregate catch by. Defaults to *“sum”*. Use `conv` to convert catch that is in pounds to *“tons”* or *“metric_tons”*. Alternatively, `conv` can be a user-defined function. This is useful if catch is not in pounds.  
+<br>
+`weekly_effort(dat, project, cpue, date, group, filter_date, date_value, filter_by, filter_value, filter_expr, facet_by, tran, combine, scale, output, format_tab)` calculates mean CPUE by week. This function doesn't calculate CPUE; the CPUE variable must be created in advance. One or more CPUE variables can be included.  
+<br>
+`bycatch(dat, project, cpue, catch, date, period, names, group, filter_date, date_value, filter_by, filter_value, filter_expr, facet_by, tran, value, combine, scale, output, format_tab)` compares the average CPUE and catch total/share of total catch between one or more species. If including multiple species, `cpue`, `catch`, and `names` should be strings and species should be listed in the same order. `names` is an optional string of species names that will be used in the plot. If `names = NULL`, then species names from catch will be used. `period` is the time period to aggregate by. Options include *“year”*, *“month”*, and *“weeks”*. `value` defines whether to return raw catch *("raw")* or share of total catch *("stc")*.  
+<br>
+`trip_dur_out(dat, project, start, end, units, catch, hauls, group, filter_date, date_value, filter_by, filter_value, filter_expr, facet_by, type, bins = 30, density, scale, tran, pages, remove_neg, output, tripID, fun.time, fun.numeric)` calculates vessel trip duration in the desired unit of time given start and end dates. Obsevations with a negative trip duration can be removed from output using `remove_neg = TRUE`. If data is not at a trip level (each row is a unique trip), specify trip identifiers (`tripID`) and how to collapse data (`fun.time` and `fun.numeric`). You can also calculate CPUE and hauls per unit of time by specifying `catch` and `hauls`. Plot output can be a histogram (`type = “hist”`) or a frequency polygon (`type = "freq_poly"`). Plot output can be combined on a single page (`pages = "single"`) or printed on individual pages (`pages = "multi"`).  
+<br>
+`density_plot(dat, project, var, type, group, date, filter_date, date_value, filter_by, filter_value, filter_expr, facet_by, tran, scale="fixed", bw, position)` returns a kernel density estimate, cumulative distribution function, or empirical cdf of selected variable. `type` options are *“kde”*, *“cdf”*, and *“ecdf”*. The `group` and `tran` arguments are not applied to the CDF plot.
+
+**View relationships**
+
+`corr_out(dat, project, variables, ...)` returns the correlation coefficient between numeric variables in `dat`. `variables` can be all numeric variables in `dat` (`variables = “all”`) or a list of column names of selected variables. Additional arguments can be added, such as the method to calculate correlation coefficients. The function defaults to displaying the Pearson correlation coefficient. To change the method, specify `method = ‘kendall’` or `method = ‘spearman’`.  
+<br>
+`xy_plot(dat, project, var1, var2, regress = FALSE)` returns the fitted relationship between two variables. `var1` and `var2` are names of variables in `dat`.  `regress = TRUE` returns the plot with the fitted linear regression line.
+
