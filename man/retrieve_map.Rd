@@ -20,3 +20,4 @@ Get stamen map
 \details{
 This is a wrapper for \code{\link[ggmap]{get_stamenmap}}
 }
+\keyword{internal}

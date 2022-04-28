@@ -2,15 +2,18 @@
 % Please edit documentation in R/sql_functions.R
 \name{tables_database}
 \alias{tables_database}
-\title{View names of tables in the fishset_db database}
+\title{View names of tables in the FishSET database}
 \usage{
-tables_database()
+tables_database(project)
+}
+\arguments{
+\item{project}{Project name}
 }
 \description{
-Function utilizes sql functions to view names of tables in the SQLite fishset_db database.
+Wrapper for \code{\link[DBI]{dbListTables}}. View names of tables in the FishSET database.
 }
 \examples{
-\dontrun{  
-tables_database() 
+\dontrun{
+tables_database('pollock')
 }
 }

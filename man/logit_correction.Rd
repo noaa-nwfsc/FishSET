@@ -15,7 +15,7 @@ The number of polynomial interaction terms is currently set to 2, so
 given the chosen degree 'polyn' there should be
 (((polyn+1)*2) + 2)*(k) polynomial starting parameters, where (k)
 equals the number of alternatives. The marginal utility from catch
-and catch sigma are of length equal to unity respectively. The 
+and catch sigma are of length equal to unity respectively. The
 catch-function and travel-distance parameters are of length (# of
 catch variables)*(k) and (# of cost variables) respectively.}
 
@@ -73,16 +73,16 @@ ld: negative log likelihood
 Full information model with Dahl's correction function
 }
 \section{Graphical examples}{
- 
+
 \if{html}{
-\figure{logit_correction_grid.png}{options: width="40\%" 
-alt="Figure: logit_correction_grid.png"}
+\figure{logit_correction_grid.png}{options: width='40\%'
+alt='Figure: logit_correction_grid.png'}
 \cr
-\figure{logit_correction_travel.png}{options: width="40\%" 
-alt="Figure: logit_correction_travel.png"}
+\figure{logit_correction_travel.png}{options: width='40\%'
+alt='Figure: logit_correction_travel.png'}
 \cr
-\figure{logit_correction_poly.png}{options: width="40\%" 
-alt="Figure: logit_correction_poly.png"}
+\figure{logit_correction_poly.png}{options: width='40\%'
+alt='Figure: logit_correction_poly.png'}
 }
 }
 

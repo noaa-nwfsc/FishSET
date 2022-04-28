@@ -4,10 +4,12 @@
 \alias{insert_table}
 \title{Insert table from user folder}
 \usage{
-insert_table(out)
+insert_table(out, project)
 }
 \arguments{
 \item{out}{String, table file name.}
+
+\item{project}{Name of project.}
 }
 \description{
 Insert table from user folder

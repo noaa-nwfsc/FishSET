@@ -2,14 +2,14 @@
 % Please edit documentation in R/create_expectations.R
 \name{create_expectations}
 \alias{create_expectations}
-\title{Expected catch/Expected Revenue}
+\title{Create expected catch/expected revenue matrix}
 \usage{
 create_expectations(
   dat,
   project,
   catch,
   price = NULL,
-  defineGroup,
+  defineGroup = "fleet",
   temp.var = NULL,
   temporal = c("daily", "sequential"),
   calc.method = c("standardAverage", "simpleLag", "weights"),
@@ -20,73 +20,105 @@ create_expectations(
   temp.lag = 0,
   year.lag = 0,
   dummy.exp = FALSE,
-  replace.output = FALSE
+  replace.output = TRUE
 )
 }
 \arguments{
-\item{dat}{Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips.
+Table in FishSET database contains the string 'MainDataTable'.}
 
-\item{project}{Name of project. Used to pull working alternative choice matrix from fishset_db database.}
+\item{project}{String, name of project.}
 
-\item{catch}{Variable containing catch data.}
+\item{catch}{Variable from \code{dat} containing catch data.}
 
-\item{price}{Variable containing price/value data. Used in calculating expected revenue. Leave null if calculating expected catch. Multiplied against catch to generated revenue.}
+\item{price}{Optional, variable from \code{dat} containing price/value data.  Price is multiplied against
+\code{catch} to generated revenue. If revenue exists in \code{dat} and you wish to use this revenue instead of price,
+then \code{catch} must be a vector of 1 of length equal to \code{dat}. Defaults to NULL.}
 
-\item{defineGroup}{If empty, data is treated as a fleet}
+\item{defineGroup}{Optional, variable from \code{dat} that defines how to split the fleet. Defaults to
+treating entire dataframe \code{dat} as a fleet.}
 
-\item{temp.var}{Variable containing temporal data}
+\item{temp.var}{Optional, temporal variable from \code{dat}. Set to NULL if temporal patterns in
+catch should not be considered.}
 
-\item{temporal}{Daily (Daily time line) or sequential (sequential order)}
+\item{temporal}{String, choices are \code{"daily"} or \code{"sequential"}. Should time, if \code{temp.var} is defined,
+be included as a daily timeline or sequential order of recorded dates.  For daily, catch on dates with no record
+are filled with NA. The choice affects how the rolling average is calculated. If temporal is daily then the window
+size for average and the temporal lag are in days. If sequential, then averaging will occur over the specified
+number of observations, regardless of how many days they represent.}
 
-\item{calc.method}{Select standard average (standardAverage), simple lag regression of means (simpleLag), or weights of regressed groups (weights)}
+\item{calc.method}{String, how catch values are average over window size. Select standard average
+(\code{"standardAverage"}), simple lag regression of means (\code{"simpleLag"}), or weights of regressed groups (\code{"weights"})}
 
-\item{lag.method}{Use regression over entire group (simple) or for grouped time periods (grouped)}
+\item{lag.method}{String, use regression over entire group (\code{"simple"}) or for grouped time periods (\code{"grouped"}).}
 
-\item{empty.catch}{Replace empty catch with NA, 0, mean of all catch (allCatch), or mean of grouped catch(groupCatch)}
+\item{empty.catch}{String, replace empty catch with \code{NA}, \code{"0"}, mean of all catch (\code{"allCatch"}),
+or mean of grouped catch (\code{"groupCatch"}).}
 
-\item{empty.expectation}{Do not replace (NULL) or replace with 0.0001 or 0}
+\item{empty.expectation}{Numeric, how to treat empty expectation values. Choices are to not replace (NULL)
+or replace with 0.0001 or 0.}
 
-\item{temp.window}{Temporal window size. In days. Defaults to 14 (14 days)}
+\item{temp.window}{Numeric, temporal window size. If \code{temp.var} is not NULL, set the window size to
+average catch over. Defaults to 14 (14 days if \code{temporal} is \code{"daily"}).}
 
-\item{temp.lag}{Temporal lag time in days.}
+\item{temp.lag}{Numeric, temporal lag time. If \code{temp.var} is not NULL, how far back to lag \code{temp.window}.}
 
-\item{year.lag}{IF expected catch should be based on catch from previous year(s), set year.lag to the number of years to go back.}
+\item{year.lag}{If expected catch should be based on catch from previous year(s), set year.lag to the number
+of years to go back.}
 
-\item{dummy.exp}{T/F. Defaults to False. If false, no dummy variable is outputted. If true, output dummy variable for originally missing value.}
+\item{dummy.exp}{Logical, should a dummy variable be created? If TRUE, output dummy variable for originally
+missing value. If FALSE, no dummy variable is outputted. Defaults to FALSE}
 
-\item{replace.output}{Default is FALSE. If TRUE, replaces existing saved expected catch dataframe with new expected catch dataframe. 
-If FALSE, add new expected catch dataframes to previously saved expected catch dataframes.}
+\item{replace.output}{Logical, replace existing saved expected catch data frame with new expected catch data
+frame? If FALSE, new expected catch data frames appended to previously saved expected catch data frames.
+Default is TRUE}
 }
 \value{
-newGridVar dataframe. Saved to the global environment. Dataframe called in make_model_design
+Function returns a list of expected catch matrices. The list includes the expected catch matrix from the 
+  user-defined choices, the near-term, the medium-term, and the long-term expected catch matrices.  
+  Additional expected catch cases can be added to the list by specifying \code{replace.output} to FALSE. The model 
+  run function will run through each expected catch case provided. The list is automatically saved to the FishSET 
+  database and is called in \code{\link{make_model_design}}. The expected catch output does not need to be loaded 
+  when defining or running the model.
 
 newGridVar,  newDumV
 }
 \description{
-Expected catch/Expected Revenue
+Create expected catch or expected revenue matrix. The matrix is required for the logit_c model.
 }
 \details{
-Used during model creation to create an expectation of catch or revenue for alternative choices that are added to the model design file.
-IMPORTANT: Use the temp_obs_table function before using this function to assess the availability of data for desired temporal moving window size. Sparse data is not suited for shorter moving window sizes. 
-The expectations created have several options and are created based on the group and time averaging choices of the user.
-The spatial alternatives are built in to the function and come from the structure Alt. 
-The primary choices are whether to treat data as a fleet or to group the data (defineGroup) and the time frame of catch data for calculating expected catch.
-Values must be provided for `defineGroup` and `temporal` parameters. If data should be treated as a fleet, set defineGroup to NULL. If the entire record of catch data is to be used, set temporal to NULL.
-Empty catch values are considered to be times of no fishing activity whereas values of 0 in the catch variable 
-are considered fishing activity with no catch and so those are included in the averaging and dummy creation as a point in time when fishing occurred.
-Three default expected catch cases will be run:
+Function creates an expectation of catch or revenue for alternative fishing zones (zones where they could have 
+ fished but did not). The output is saved to the FishSET database and called
+  by the \code{\link{make_model_design}} function. \code{\link{create_alternative_choice}}
+ must be called first as observed catch and zone inclusion requirements are defined there.\cr
+ The primary choices are whether to treat data as a fleet or to group the data (\code{defineGroup}) and the time
+ frame of catch data for calculating expected catch. Catch is averaged along a daily or sequential timeline
+ (\code{temporal}) using a rolling average. \code{temp.window} and \code{temp.lag} determine the window size and
+ temporal lag of the window for averaging. Use \code{\link{temp_obs_table}} before using this function to assess
+ the availability of data for the desired temporal moving window size. Sparse data is not suited for shorter moving
+ window sizes. For very sparse data, consider setting \code{temp.var} to NULL and excluding temporal patterns in
+ catch. \cr
+ Empty catch values are considered to be times of no fishing activity. Values of 0 in the catch variable
+ are considered times when fishing activity occurred but with no catch. These points are included in the averaging
+ and dummy creation as points in time when fishing occurred. \cr
+ Three default expected catch cases will be run:
 \itemize{
-\item{Near-term: Movng window size of two days. In this case, vessels are grouped based on defineGroup parameter.}
-\item{Medium-term: Moving window size of seven days. In this case, there is no grouping and catch for entire fleet is used.}
-\item{Long-term: Moving window size of seven days from the previous year. In this case, there is no grouping and catch for entire fleet is used.}
+\item{Near-term: Moving window size of two days. In this case, vessels are grouped based on \code{defineGroup}
+argument.}
+\item{Medium-term: Moving window size of seven days. In this case,
+there is no grouping, and catch for entire fleet is used.}
+\item{Long-term: Moving window size of seven days from the previous year. In this case,
+there is no grouping and catch for entire fleet is used.}
 }
 }
 \examples{
 \dontrun{
-create_expectations(MainDataTable, adfg, 'OFFICIAL_TOTAL_CATCH_MT',  price=NULL, temporal='daily', 
-                     temp.var="DATE_FISHING_BEGAN", calc.method='standard average', 
-                     lag.method='simple',  empty.catch='all catch', empty.expectation= 0.0001, 
-                     temp.window=4, temp.lag=2, dummy.exp=FALSE, 
-                     AltMatrixName='pcodaltmatrix20110101', defineGroup=NULL)
+create_expectations(pollockMainDataTable, "pollock", "OFFICIAL_TOTAL_CATCH_MT",
+  price = NULL, defineGroup = "fleet", temp.var = "DATE_FISHING_BEGAN",
+  temporal = "daily", calc.method = "standardAverage", lag.method = "simple",
+  empty.catch = "allCatch", empty.expectation = 0.0001, temp.window = 4,
+  temp.lag = 2, year.lag = 0, dummy.exp = FALSE, replace.output = FALSE
+)
 }
+
 }

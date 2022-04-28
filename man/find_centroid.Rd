@@ -2,46 +2,31 @@
 % Please edit documentation in R/find_centroid.R
 \name{find_centroid}
 \alias{find_centroid}
-\title{Generate centroid of polygon of zone or area}
+\title{Identify geographic centroid of fishery management or regulatory zone}
 \usage{
-find_centroid(
-  dat,
-  gridfile,
-  lon.dat = NULL,
-  lat.dat = NULL,
-  cat,
-  lon.grid = NULL,
-  lat.grid = NULL,
-  weight.var = NULL
-)
+find_centroid(project, spat, cat, lon.spat = NULL, lat.spat = NULL)
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}
+\item{project}{Name of project}
 
-\item{gridfile}{Spatial data set. Can be shape file, data frame, or list.}
+\item{spat}{Spatial data containing information on fishery management or regulatory zones. Can be shape file, json, geojson, data frame, or list.}
 
-\item{lon.dat}{Longitude of points from dataset.}
+\item{cat}{Variable or list in \code{spat} that identifies the individual areas or zones. If \code{spat} is class sf, \code{cat} should be name of list containing information on zones.}
 
-\item{lat.dat}{Latitude of points from dataset.}
+\item{lon.spat}{Variable or list from \code{spat} containing longitude data. Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}
 
-\item{cat}{Variable defining the individual areas or zones.}
-
-\item{lon.grid}{Longitude of points from gridfile.}
-
-\item{lat.grid}{Latitude of points from gridfile.}
-
-\item{weight.var}{Variable for weighted average.}
+\item{lat.spat}{Variable or list from \code{spat} containing latitude data. Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}
 }
 \value{
-Data frame where each row is a unique zone and columns are the latitude and longitude defining the centroid of each zone.
+Returns a data frame where each row is a unique zone and columns are the zone ID and the latitude and longitude 
+  defining the centroid of each zone.
 }
 \description{
-Generate centroid of polygon of zone or area
+Identify geographic centroid of fishery management or regulatory zone
 }
 \details{
-Functions returns the center of a zone or area based on set of latitude and longitudes. Zone centroids are used in calculating distance matrices.
- Function can also return a weighted centroid. Code works for data frames and shape files. Lists can also be used as long as inputs are a list of 
- latitudes, longitudes, and areas or zones. Calls \code{\link{assignment_column}} function.
+Returns the geographic centroid of each area/zone in \code{spat}. The centroid table is saved to the FishSET database.
+Function is called by the \code{create_alternative_choice} and \code{create_dist_between} functions.
 }
 \keyword{centroid,}
 \keyword{polygon}

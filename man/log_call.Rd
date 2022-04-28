@@ -2,16 +2,19 @@
 % Please edit documentation in R/log_reset.R
 \name{log_call}
 \alias{log_call}
-\title{Reset function calls saved in log file}
+\title{Update function calls saved in log file}
 \usage{
-log_call(fun.name)
+log_call(project, fun.name)
 }
 \arguments{
+\item{project}{Name of project}
+
 \item{fun.name}{Function name}
 }
 \description{
-Reset function calls saved in log file
+Update function calls saved in log file
 }
 \details{
-uplodate log file
+update log file
 }
+\keyword{internal}

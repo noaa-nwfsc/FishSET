@@ -22,25 +22,25 @@ distance.}
 
 \item{otherdat}{Other data used in model (as a list containing objects
 `intdat`, `griddat`, and `prices`). \cr \cr
-For this likelihood, `intdat` are "travel-distance variables", which
+For this likelihood, `intdat` are 'travel-distance variables', which
 are alternative-invariant variables that are interacted with travel
 distance to form the cost portion of the likelihood. Each variable
 name therefore corresponds to data with dimensions (number of
 observations) by (unity), and returns a single parameter. \cr \cr
-In `griddat` are "catch-function variables" that are
+In `griddat` are 'catch-function variables' that are
 alternative-invariant variables that are interacted with zonal
 constants to form the catch portion of the likelihood. Each variable
 name therefore corresponds to data with dimensions (number of
 observations) by (unity), and returns (k) parameters where (k) equals
 the number of alternatives. \cr \cr
-For "catch-function variables" `griddat` and "travel-distance
-variables" `intdat`, any number of variables are allowed, as a list
+For 'catch-function variables' `griddat` and 'travel-distance
+variables' `intdat`, any number of variables are allowed, as a list
 of matrices. Note the variables (each as a matrix) within `griddat`
-`intdat` have no naming restrictions. "Catch-function variables" may
+`intdat` have no naming restrictions. 'Catch-function variables' may
 correspond to variables that impact catches by location, or
 interaction variables may be vessel characteristics that affect how
 much disutility is suffered by traveling a greater distance. Note in
-this likelihood the "catch-function variables" vary across
+this likelihood the 'catch-function variables' vary across
 observations but not for each location: they are allowed to impact
 catches differently across alternatives due to the location-specific
 coefficients. If there are no other data, the user can set `griddat`
@@ -66,16 +66,16 @@ ld: negative log likelihood
 Expected profit model lognormal catch function
 }
 \section{Graphical examples}{
- 
+
 \if{html}{
-\figure{epm_lognormal_grid.png}{options: width="40\%" 
-alt="Figure: epm_lognormal_grid.png"}
+\figure{epm_lognormal_grid.png}{options: width='40\%'
+alt='Figure: epm_lognormal_grid.png'}
 \cr
-\figure{epm_lognormal_travel.png}{options: width="40\%" 
-alt="Figure: epm_lognormal_travel.png"}
+\figure{epm_lognormal_travel.png}{options: width='40\%'
+alt='Figure: epm_lognormal_travel.png'}
 \cr
-\figure{epm_lognormal_sigma.png}{options: width="40\%" 
-alt="Figure: epm_lognormal_sigma.png"}
+\figure{epm_lognormal_sigma.png}{options: width='40\%'
+alt='Figure: epm_lognormal_sigma.png'}
 }
 }
 
