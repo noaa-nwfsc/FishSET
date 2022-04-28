@@ -2064,6 +2064,7 @@ quietly_test <- function(.f) {
 
   fun1 <- purrr::quietly(.f)
   fun <- purrr::safely(fun1)
+  
   function(...) {
     res <- fun(...)
 
@@ -2071,10 +2072,19 @@ quietly_test <- function(.f) {
       showNotification(res$error$message, duration = 10, type = "error")
       return(res$result)
     }
+    
     res <- res$result # quietly output
+    
     if (!is.null(res$warnings) && length(res$warnings) > 0) {
+      
       lapply(unique(res$warnings), showNotification, duration = 10, type = "warning")
     }
+    
+    if (!is.null(res$messages) && length(res$message) > 0) {
+      
+      lapply(unique(res$messages), showNotification, duration = 10, type = "message")
+    }
+    
     return(res$result)
   }
 }
