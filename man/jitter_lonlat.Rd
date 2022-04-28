@@ -2,7 +2,7 @@
 % Please edit documentation in R/create_variables.R
 \name{jitter_lonlat}
 \alias{jitter_lonlat}
-\title{Jitter longitude and latitude}
+\title{Jitter longitude and latitude variables}
 \usage{
 jitter_lonlat(dat, project, lon, lat, factor = 1, amount = NULL)
 }
@@ -18,10 +18,11 @@ database should contain the string `MainDataTable`.}
 
 \item{factor}{Numeric, see \code{\link[base]{jitter}} for details.}
 
-\item{amount}{Numeric, see \code{\link[base]{jitter}} for details.}
+\item{amount}{Numeric, see \code{\link[base]{jitter}} for details. 
+Default (NULL): factor * d/5 where d is about the smallest difference between x values.}
 }
 \description{
-Jitter longitude and latitude
+Jitter longitude and latitude variables
 }
 \details{
 This is one of the FishSET confidentiality functions. It "jitters" 
@@ -29,7 +30,7 @@ This is one of the FishSET confidentiality functions. It "jitters"
 }
 \examples{
 \dontrun{
-jitter_lonlat(pollockMainDataTable, 
+jitter_lonlat(pollockMainDataTable, "pollock",
               lon = "LonLat_START_LON", lat = "LonLat_START_LAT")
 }
 }

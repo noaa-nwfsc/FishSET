@@ -2,47 +2,130 @@
 % Please edit documentation in R/vessel_count.R
 \name{vessel_count}
 \alias{vessel_count}
-\title{Vessel count}
+\title{Active vessels by time period in plot or table format}
 \usage{
 vessel_count(
   dat,
   project,
-  v,
-  t,
-  period = "month",
+  v_id,
+  date = NULL,
+  period = NULL,
   group = NULL,
-  position_grp = "stack",
-  output = c("table", "plot"),
-  ...
+  sub_date = NULL,
+  filter_date = NULL,
+  date_value = NULL,
+  filter_by = NULL,
+  filter_value = NULL,
+  filter_expr = NULL,
+  facet_by = NULL,
+  combine = FALSE,
+  position = "stack",
+  tran = "identity",
+  format_lab = "decimal",
+  value = "count",
+  type = "bar",
+  scale = "fixed",
+  output = "tab_plot"
 )
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishset_db 
-database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips. 
+Table in FishSET database contains the string 'MainDataTable'.}
 
-\item{project}{name of project.}
+\item{project}{String, name of project.}
 
-\item{v}{vessel ID variable to count.}
+\item{v_id}{Variable in \code{dat} containing vessel identifier to count.}
 
-\item{t}{time variable containing dates to aggregate by.}
+\item{date}{Date variable to aggregate by.}
 
-\item{period}{Time period to count by. Options include "year", "year_abv", 
-"month", "month_abv", "month_num", "weeks" (weeks in the year), 
-"weekday", "weekday_abv", "weekday_num", "day" (day of the month), 
-and "day_of_year".}
+\item{period}{Time period to aggregate by. Options include \code{"year"}, \code{"month"}, \code{"week"} 
+(weeks in the year), \code{"weekday"}, \code{"weekday_abv"}, \code{"day_of_month"}, 
+\code{"day_of_year"}, and \code{"cal_date"} (calender date).}
 
-\item{group}{factor variable to group count by.}
+\item{group}{Names of grouping variables. For line plots two grouping variables 
+can be entered, the first is passed to "color" and second to "linetype". Only one 
+grouping variable can be used for barplots, which is passed to "fill". When \code{combine = TRUE} 
+all variables in \code{group} will be joined. Grouping by \code{"year"}, 
+\code{"month"}, and \code{"week"} are available if a date variable is added 
+to \code{sub_date}.}
 
-\item{position_grp}{Positioning of bar plot. Options include "stack", "dodge", 
-and "fill".}
+\item{sub_date}{Date variable used for subsetting, grouping, or splitting by date.}
 
-\item{output}{table or plot.}
+\item{filter_date}{The type of filter to apply to `MainDataTable`. To filter by a 
+range of dates, use \code{filter_date = "date_range"}. To filter by a given period, use
+"year-day", "year-week", "year-month", "year", "month", "week", or "day". 
+The argument \code{date_value} must be provided.}
 
-\item{...}{other arguments passed on to \code{\link{aggregate}}.}
+\item{date_value}{This argument is paired with \code{filter_date}. If \code{filter_date = "date_range"}, 
+enter a string containing a start- and end-date, e.g. \code{date_value = c("2011-01-01", "2011-03-15")}. 
+If filtering by period (e.g. "year", "year-month"), use integers 
+(4 digits if year, 1-2 digits if referencing a day, month, or week). Use a 
+list if using a year-period type filter, e.g. "year-week", with the format: 
+\code{list(year, period)}. Use a vector if using a single period (e.g. "month"): 
+\code{c(period)}. For example, \code{date_value = list(2011:2013, 5:7)} will 
+filter the data table from May through July for years 2011-2013 if \code{filter_date = "year-month"}.
+\code{date_value = c(2:5)} will filter the data from February through May when 
+\code{filter_date = "month"}.}
+
+\item{filter_by}{String, variable name to filter `MainDataTable` by. the argument 
+\code{filter_value} must be provided.}
+
+\item{filter_value}{A vector of values to filter `MainDataTable` by using the variable 
+in \code{filter_by}. For example, if \code{filter_by = "GEAR_TYPE"}, \code{filter_value = 1} 
+will include only observations with a gear type of 1.}
+
+\item{filter_expr}{String, a valid R expression to filter `MainDataTable` by using the variable 
+in \code{filter_by}.}
+
+\item{facet_by}{Variable name to facet by. Accepts up to two variables. These can be 
+variables that exist in the dataset, or a variable created by \code{vessel_count()} such 
+as \code{"year"}, \code{"month"}, or \code{"week"} if a date variable is added 
+to \code{sub_date}. The first variable is facetted by row and the second by column.}
+
+\item{combine}{Whether to combine variables listed in \code{group}. This is passed
+to the "fill" or "color" aesthetic for plots.}
+
+\item{position}{Positioning of bar plot. Options include 'stack', 'dodge', 
+and 'fill'.}
+
+\item{tran}{A function to transform the y-axis. Options include log, log2, log10, 
+and sqrt.}
+
+\item{format_lab}{decimal or scientific}
+
+\item{value}{Whether to return \code{"count"} or \code{"percent"} of active vessels. Defaults
+to \code{"count"}.}
+
+\item{type}{Plot type, options include \code{"bar"} (the default) and \code{"line"}.}
+
+\item{scale}{Scale argument passed to \code{\link{facet_grid}}. 
+Options include \code{"free"}, \code{"free_x"}, \code{"free_y"}. Defaults to 
+\code{"fixed"}.}
+
+\item{output}{Whether to display \code{"plot"}, \code{"table"}. Defaults 
+to both (\code{"tab_plot"}).}
 }
 \value{
-Table or plot of the number of unique vessels within a time period.
+\code{vessel_count} aggregates the number (or percent) of active vessels
+  by time period using a column of unique vessel IDs. The data can be filtered by date and/or by a variable.
+   \code{filter_date} specifies the type of date filter to apply--by date-range or by
+   period. \code{date_value} should contain the values to filter the data by. To 
+   filter by a variable, enter its name as a string in \code{filter_by} and
+  include the values to filter by in \code{filter_value}. Up to two grouping variables
+   can be entered. Grouping variables can 
+  be merged into one variable using \code{combine}; in this case any number of 
+  variables can be joined, but no more than three is recommended. For faceting,
+  any variable (including ones listed in \code{group}) can be used, but "year",
+  "month", "week" are also available provided a date variable is added to \code{sub_date}. 
+  Currently, combined variables cannot be faceted.
+  A list containing a table and plot are printed to the console and viewer by default.
 }
 \description{
-Generates a table or plot of the number of unique vessels by time period
+Active vessels by time period in plot or table format
+}
+\examples{
+\dontrun{
+vessel_count(pollockMainDataTable, 'VESSEL_ID', 'DATE_FISHING_BEGAN', period = 'month', 
+             group = 'DISEMBARKED_PORT', position = 'dodge', output = 'plot')
+}
 }

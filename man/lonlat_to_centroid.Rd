@@ -32,7 +32,7 @@ This is one of the FishSET confidentiality functions. It replaces the
 }
 \examples{
 \dontrun{
-lonlat_to_centroid(pollockMainDataTable, spatdat, 
+lonlat_to_centroid(pollockMainDataTable, "pollock", spatdat, 
                   lon = "LonLat_START_LON", lat = "LonLat_START_LAT",
                   zone = "NMFS_AREA")
 }

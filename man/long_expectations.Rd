@@ -20,9 +20,9 @@ long_expectations(
 )
 }
 \arguments{
-\item{dat}{Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Main data frame containing data on hauls or trips. Table in FishSET database should contain the string `MainDataTable`.}
 
-\item{project}{Name of project. Used to pull working alternative choice matrix from fishset_db database.}
+\item{project}{Name of project. Used to pull working alternative choice matrix from FishSET database.}
 
 \item{catch}{Variable containing catch data.}
 
@@ -42,7 +42,7 @@ long_expectations(
 
 \item{empty.expectation}{Do not replace (NULL) or replace with 0.0001 or 0}
 
-\item{dummy.exp}{T/F. Defaults to False. If false, no dummy variable is outputted. If true, output dummy variable for originally missing value.}
+\item{dummy.exp}{Logical, should dummy variable be outputted for originally missing value. Defaults to FALSE.}
 }
 \value{
 Expected catch matrix. Saved to database via create_expectations
@@ -50,3 +50,4 @@ Expected catch matrix. Saved to database via create_expectations
 \description{
 Long expectations
 }
+\keyword{internal}

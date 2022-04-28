@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{accumarray}
 \alias{accumarray}
-\title{Accumarray fucntion}
+\title{Accumarray function}
 \usage{
 accumarray(subs, val, sz = NULL, func = sum, fillval = 0)
 }
@@ -18,5 +18,6 @@ accumarray(subs, val, sz = NULL, func = sum, fillval = 0)
 \item{fillval}{set to 0}
 }
 \description{
-Accumarray fucntion
+Accumarray function
 }
+\keyword{internal}

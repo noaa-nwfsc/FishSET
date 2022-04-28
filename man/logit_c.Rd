@@ -19,23 +19,23 @@ distance.}
 
 \item{otherdat}{Other data used in model (as a list containing objects
 `intdat` and `griddat`). \cr \cr
-For this likelihood, `intdat` are "travel-distance variables", which
+For this likelihood, `intdat` are 'travel-distance variables', which
 are alternative-invariant variables that are interacted with travel
 distance to form the cost portion of the likelihood. Each variable
 name therefore corresponds to data with dimensions (number of
 observations) by (unity), and returns a single parameter. \cr \cr
-In `griddat` are "alternative-specific variables", that vary across
+In `griddat` are 'alternative-specific variables', that vary across
 alternatives, e.g. catch rates. Each variable name therefore
 corresponds to data with dimensions (number of observations) by
 (number of alternatives), and returns a single parameter for each
 variable (e.g. the marginal utility from catch). \cr \cr
 For both objects any number of variables are allowed, as a list of
 matrices. Note the variables (each as a matrix) within `griddat` and
-`intdat` have no naming restrictions. "Alternative-specific
-variables" may correspond to catches that vary by location, and
-"travel-distance variables" may be vessel characteristics that affect
+`intdat` have no naming restrictions. 'Alternative-specific
+variables' may correspond to catches that vary by location, and
+'travel-distance variables' may be vessel characteristics that affect
 how much disutility is suffered by traveling a greater distance. Note
-in this likelihood "alternative-specific variables" vary across
+in this likelihood 'alternative-specific variables' vary across
 alternatives because each variable may have been estimated in a
 previous procedure (i.e. a construction of expected catch). \cr \cr
 If there are no other data, the user can set `griddat` as ones with
@@ -59,13 +59,13 @@ ld: negative log likelihood
 Conditional logit likelihood
 }
 \section{Graphical examples}{
- 
+
 \if{html}{
-\figure{logit_c_grid.png}{options: width="40\%" 
-alt="Figure: logit_c_grid.png"}
+\figure{logit_c_grid.png}{options: width='40\%'
+alt='Figure: logit_c_grid.png'}
 \cr
-\figure{logit_c_travel.png}{options: width="40\%" 
-alt="Figure: logit_c_travel.png"}
+\figure{logit_c_travel.png}{options: width='40\%'
+alt='Figure: logit_c_travel.png'}
 }
 }
 

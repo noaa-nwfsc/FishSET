@@ -2,36 +2,51 @@
 % Please edit documentation in R/merge_dat.R
 \name{merge_dat}
 \alias{merge_dat}
-\title{Merge datasets using a left join}
+\title{Merge data tables using a left join}
 \usage{
-merge_dat(dat, aux, project, mainKey, auxKey)
+merge_dat(
+  dat,
+  project,
+  other,
+  main_key,
+  other_key,
+  other_type = NULL,
+  merge_type = "left"
+)
 }
 \arguments{
 \item{dat}{Primary data containing information on hauls or trips. Table in the FishSET
 database contains the string 'MainDataTable'.}
 
-\item{aux}{Auxiliary data table to join to MainDataTable. Use string if referencing 
+\item{project}{Project name.}
+
+\item{other}{A second data table to join to MainDataTable. Use string if referencing 
 a table saved in the FishSET database.}
 
-\item{project}{String, name of project.}
+\item{main_key}{String, name of column(s) in MainDataTable to join by. The number
+of columns must match "other_key".}
 
-\item{mainKey}{String, name of column(s) in MainDataTable to join by. The number
-of columns must match "auxKey".}
+\item{other_key}{String, name of column(s) in the \code{other} table to join by. The number
+of columns must match "main_key".}
 
-\item{auxKey}{String, name of column(s) in the Auxiliary table to join by. The number
-of columns must match "mainKey".}
+\item{other_type}{String, the type of secondary data being merged. Options 
+include "aux" (auxiliary), "grid" (gridded), "spat" (spatial), and "port".}
+
+\item{merge_type}{String, the type of merge to perform. \code{"left"} keeps all
+rows from \code{dat} and merges shared rows from \code{other}. \code{"full"}
+keeps all rows from each table.}
 }
 \description{
-Merge datasets using a left join
+Merge data tables using a left join
 }
 \details{
 This function merges two datasets using a left join: all columns and rows from the
-  MainDataTable are kept while only matching columns and rows from the auxiliary table 
+  MainDataTable are kept while only matching columns and rows from the secondary table 
   are joined.
 }
 \examples{
 \dontrun{
- merge_dat("pollockMainDataTable", "pollockPortTable", 
-           mainKey = "PORT_CODE", auxKey = "PORT_CODE")
+ pollockMainDataTable <- merge_dat("pollockMainDataTable", "pollock", 
+          "pollockPortTable",  main_key = "PORT_CODE", other_key = "PORT_CODE")
 } 
 }

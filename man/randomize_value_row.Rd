@@ -23,6 +23,6 @@ This is one of the FishSET confidentiality functions. It is useful
 }
 \examples{
 \dontrun{
-randomize_value_row(pollockMainDataTable, "PERMIT")
+randomize_value_row(pollockMainDataTable, "pollock", "PERMIT")
 }
 }

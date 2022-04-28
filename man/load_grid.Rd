@@ -2,29 +2,40 @@
 % Please edit documentation in R/data_parser.R
 \name{load_grid}
 \alias{load_grid}
-\title{Save gridded data}
+\title{Import, parse, and save gridded data to FishSET database}
 \usage{
-load_grid(dat, x, over_write = TRUE, project = NULL)
+load_grid(dat, grid, name, over_write = TRUE, project = NULL)
 }
 \arguments{
-\item{dat}{Main data frame. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips. 
+Table in FishSET database contains the string 'MainDataTable'.}
 
-\item{x}{Name of gridded data frame to be saved}
+\item{grid}{File name, including path, of gridded data.}
 
-\item{over_write}{TRUE/FALSE Save over previously saved file or not.}
+\item{name}{Name gridded data should be saved as in FishSET database.}
 
-\item{project}{Name of project for attaching to name of the table.}
+\item{over_write}{Logical, If TRUE, saves dat over previously saved data table in the FishSET database.}
+
+\item{project}{String, name of project.}
 }
 \description{
-Save gridded data
+Gridded data is data that varies by two dimensions. Column names must be zone names. Load, parse, and save gridded data to FishSET database
 }
 \details{
-Grid data is an optional data frame that contains a variable that varies by the map grid (ex. sea surface temperature, wind speed). It can also vary by a second dimension (e.g., date/time). Both dimensions in the gridded data file need to be variables included in the main data frame. 
-The grid locations (zones) must define the columns and the optional second dimension defines the rows. The row variable must have the exact name as the variable 
-in the main data frame that it will be linked to. The data is saved in the fishset_db database as the raw data and the working data. In both cases, the table name is the `project`, if defined, and the file name `x`. Date is also attached to the name for the raw data.
+Grid data is an optional data frame that contains a variable that varies by the map grid (ex.
+  sea surface temperature, wind speed). Data can also vary by a second dimension (e.g., date/time). Both
+  dimensions in the gridded data file need to be variables included in the primary data set.
+  The grid locations (zones) must define the columns and the optional second dimension defines the rows.
+  The row variable must have the exact name as the variable in the main data frame that it will be linked to. 
+  The function DOES NOT check that column and row variables match a variable in the primary data set.
+  The function checks that each row is unique, that no variables are empty, and that column names are case-insensitive unique. 
+  These data issues are resolved before the data is saved to the database.
+   The data is saved in the FishSET database as the raw
+  data and the working data. In both cases, the table name is the \code{project} and the file name \code{x}.
+  Date is attached to the name for the raw data.
 }
 \examples{
-\dontrun{  
-load_grid(dataset='pcodMainDataTable', x=SeaSurfaceTemp, over_write=TRUE, project='pcod') 
+\dontrun{
+load_grid(dat = 'pcodMainDataTable', name = SeaSurfaceTemp, over_write = TRUE, project = 'pcod')
 }
 }

@@ -2,19 +2,35 @@
 % Please edit documentation in R/log_reset.R
 \name{log_reset}
 \alias{log_reset}
-\title{Reset function calls saved in log file}
+\title{Reset log file}
 \usage{
-log_reset()
+log_reset(project, over_write = FALSE)
+}
+\arguments{
+\item{project}{Project name.}
+
+\item{over_write}{Logical, whether to over write an existing log file. This
+only applies if a log was created and reset in the same day for the same 
+project. See "Details".}
 }
 \description{
-Reset function calls saved in log file
+Reset log file
 }
 \details{
-Removes the three log file lists from the working directory
+Logs are saved by project name and date (date created, not date modified). 
+  For example, "pollock_2021-05-12.json". Calls to log functions are 
+  automatically appended to the existing project log file. Resetting the log 
+  file will create a new project log file with the current date. A log will 
+  not be reset if \code{log_reset()} is run the same day the log was created
+  (or if the log is reset two or more times in a single day), unless 
+  \code{over_write = TRUE}. This will replace that day's log file.
 }
 \examples{
-\dontrun{ 
-log_reset() 
+\dontrun{
+log_reset("pollock")
 }
 
+}
+\seealso{
+\code{\link{list_logs}} \code{\link{project_logs}}
 }
