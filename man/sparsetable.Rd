@@ -2,19 +2,21 @@
 % Please edit documentation in R/sparstable.R
 \name{sparsetable}
 \alias{sparsetable}
-\title{Sparsity table}
+\title{Evaluate sparsity in data over time in table format}
 \usage{
-sparsetable(dat, timevar, zonevar, var)
+sparsetable(dat, project, timevar, zonevar, var)
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function.}
+\item{dat}{Primary data containing information on hauls or trips. Table in the FishSET database contains the string 'MainDataTable'.}
 
-\item{timevar}{Variable containing temporal data}
+\item{project}{String, name of project.}
 
-\item{zonevar}{Variable contianing zone observation assigned to}
+\item{timevar}{Variable in \code{dat} containing temporal data}
 
-\item{var}{Variable containing catch data}
+\item{zonevar}{Variable in \code{dat} containing zone observation assigned to}
+
+\item{var}{Variable in \code{dat} containing catch data}
 }
 \description{
-Function to create sparsity table
+Create table of data sparsity by predefined time periods.
 }

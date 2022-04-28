@@ -2,25 +2,31 @@
 % Please edit documentation in R/create_variables.R
 \name{dummy_var}
 \alias{dummy_var}
-\title{Create new dummy variable}
+\title{Create dummy variable}
 \usage{
-dummy_var(dat, DumFill = "TRUE", name = "dummy_var")
+dummy_var(dat, project, DumFill = 1, name = "dummy_var")
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips.
+Table in the FishSET database contains the string 'MainDataTable'.}
 
-\item{DumFill}{Fill the dummy variable with TRUE or FALSE}
+\item{project}{Project name.}
 
-\item{name}{Name of created dummy variable. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.}
+\item{DumFill}{Fill the dummy variable with 1 or 0}
+
+\item{name}{String, name of created dummy variable. Defaults to name of the function if not defined.}
+}
+\value{
+Primary dataset with dummy variable added.
 }
 \description{
-Create new dummy variable
+Create dummy variable
 }
 \details{
-Creates a dummy variable of either FALSE or TRUE with length of the number of rows of the data set.
+Creates a dummy variable of either 0 or 1 with length of the number of rows of the data set.
 }
 \examples{
 \dontrun{
-MainDataTable$dummyvar <- dummy_var(MainDataTable, DumFill=TRUE)
+pollockMainDataTable <- dummy_var(pollockMainDataTable, 'pollock', DumFill=1, 'dummyvar')
 }
 }

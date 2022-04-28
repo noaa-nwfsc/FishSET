@@ -2,33 +2,47 @@
 % Please edit documentation in R/create_variables.R
 \name{set_quants}
 \alias{set_quants}
-\title{Create quantile variable}
+\title{Create factor variable from quantiles}
 \usage{
-set_quants(dat, x, quant.cat = c(0.2, 0.25, 0.4), name = "set_quants")
+set_quants(
+  dat,
+  project,
+  x,
+  quant.cat = c(0.1, 0.2, 0.25, 0.33, 0.4),
+  custom.quant = NULL,
+  name = "set_quants"
+)
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips.
+Table in FishSET database contains the string 'MainDataTable'.}
 
-\item{x}{Variable to transform into quantiles}
+\item{project}{Project name.}
 
-\item{quant.cat}{Quantile categories. Includes 0.2, 0.25, and 0.4.}
+\item{x}{Variable to transform into quantiles.}
 
-\item{name}{Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.}
+\item{quant.cat}{Quantile options: \code{"0.2"}, \code{"0.25"}, \code{"0.33"}, and \code{"0.4"}
+\itemize{
+  \item{0.1:  (0\%, 10\%, 20\%, 30\%, 40\%, 50\%, 60\%, 70\%, 80\%, 90\%, 100\%)}
+  \item{0.2:  (0\%, 20\%, 40\%, 60\%, 80\%, 100\%)}
+  \item{0.25: (0\%, 25\%, 50\%, 75\%, 100\%)}
+  \item{0.33: (0\%, 33\%, 66\%, 100\%)}
+  \item{0.4:  (0\%, 10\%, 50\%, 90\%, 100\%)}
+  }}
+
+\item{custom.quant}{Vector, user defined quantiles.}
+
+\item{name}{String, name of created vector. Defaults to name of the function if not defined.}
+}
+\value{
+Primary dataset with quantile variable added.
 }
 \description{
-Create quantile variable
-}
-\details{
-Creates a coded variable of 5-6 levels based on the quantiles of x. 
-Quantile options are: 
-\itemize{
-  \item{.2:  (0\%, 20\%, 40\%, 60\%, 80\%, 100\%)}
-  \item{.25: (0\%, 25\%, 50\%, 75\%, 100\%)}
-  \item{.4:  (0\%, 10\%, 50\%, 90\%, 100\%)}
-  }
+Create a factor variable from numeric data.  Numeric variable is split into categories based on quantile categories.
 }
 \examples{
 \dontrun{
-MainDataTable$haul.quant <- set_quants(MainDataTable, 'HAUL', quant.cat=.2)
+pollockMainDataTable <- set_quants(pollockMainDataTable, 'pollock', 'HAUL', 
+   quant.cat=.2, 'haul.quant')
 }
 }

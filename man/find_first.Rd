@@ -12,3 +12,4 @@ find_first(y)
 \description{
 Find earliest date
 }
+\keyword{internal}

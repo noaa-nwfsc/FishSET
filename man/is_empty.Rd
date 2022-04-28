@@ -16,3 +16,4 @@ is_empty(x, trim = TRUE, ...)
 \description{
 Empty variable check
 }
+\keyword{internal}

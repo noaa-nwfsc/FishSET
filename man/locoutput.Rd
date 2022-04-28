@@ -2,20 +2,14 @@
 % Please edit documentation in R/utils.R
 \name{locoutput}
 \alias{locoutput}
-\title{Returns the location of the output folder}
+\title{Output location}
 \usage{
-locoutput()
+locoutput(project)
+}
+\arguments{
+\item{project}{Project name}
 }
 \description{
-Returns the location of the output folder
+Output location
 }
-\details{
-if loc2 is not in the working environment, then the default location is use
-}
-\examples{
-\dontrun{
-locoutput() # will return output folder location within the fishset package
-loc2 <- getwd()
-locoutput() #will return output folder location as within the working directory
-}
-}
+\keyword{internal}

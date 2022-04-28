@@ -2,15 +2,21 @@
 % Please edit documentation in R/sql_functions.R
 \name{globalcheck_view}
 \alias{globalcheck_view}
-\title{View error output from discrete choice model}
+\title{View error output from discrete choice model for the defined project}
 \usage{
-globalcheck_view(table)
+globalcheck_view(table, project)
 }
 \arguments{
-\item{table}{Table name in sqlite database. Should contain the phrase modelout.}
+\item{table}{Table name in FishSET database. Should contain the project, the 
+  phrase 'ldglobalcheck', and a date in YMD format (20200101). 
+Table name must be in quotes.}
+
+\item{project}{Name of project}
 }
 \description{
-Returns error output from running the discretefish_subroutine function. The table parameter must be the full name of the table name in the fishet_db database.
+Returns error output from running the discretefish_subroutine function.
+The table argument must be the full name of the table name in the FishSET database.
+Use 'tables_database()' to view table names in FishSET database.
 }
 \examples{
 \dontrun{

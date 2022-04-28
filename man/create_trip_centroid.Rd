@@ -2,31 +2,36 @@
 % Please edit documentation in R/create_variables.R
 \name{create_trip_centroid}
 \alias{create_trip_centroid}
-\title{Calculate centroid of each trip}
+\title{Create trip centroid variable}
 \usage{
-create_trip_centroid(dat, lon, lat, weight.var = NULL, ...)
+create_trip_centroid(dat, project, lon, lat, tripID, weight.var = NULL)
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips. Table in the FishSET database contains the string 'MainDataTable'.}
 
-\item{lon}{Vector containing longitudinal data.}
+\item{project}{Project name.}
 
-\item{lat}{Vector containing latitudinal data.}
+\item{lon}{Variable in \code{dat} containing longitudinal data.}
 
-\item{weight.var}{Variable for weighted average.}
+\item{lat}{Variable in \code{dat} containing latitudinal data.}
 
-\item{...}{Column(s) that identify the individual trip.}
+\item{tripID}{Variable in \code{dat} containing trip identifier. If trip identifier should be defined by more than one variable then list as \code{c('var1', 'var2')}.}
+
+\item{weight.var}{Variable in \code{dat} for computing the weighted average.}
+}
+\value{
+Returns the primary dataset with centroid latitude and centroid longitude variables added.
 }
 \description{
-Calculate centroid of each trip
+Create latitude and longitude variables containing the centroid of each trip
 }
 \details{
-Returns centroid of each trip
+Computes the average longitude and latitude for each trip. Specify \code{weight.var} to calculate the weighted centroid.
+  Additional arguments can be added that define unique trips. If no additional arguments are added, each row will be treated as a unique trip.
 }
 \examples{
 \dontrun{
-pollockMainDataTable <- create_trip_centroid('pollockMainDataTable', 
-                              'LonLat_START_LON', 'LonLat_START_LAT', 
-                              weight.var=NULL, 'DISEMBARKED_PORT','EMBARKED_PORT')
+pollockMainDataTable <- create_trip_centroid(pollockMainDataTable, 'pollock', 'LonLat_START_LON', 
+  'LonLat_START_LAT', weight.var = NULL, 'DISEMBARKED_PORT', 'EMBARKED_PORT')
 }
 }

@@ -2,21 +2,24 @@
 % Please edit documentation in R/sql_functions.R
 \name{table_exists}
 \alias{table_exists}
-\title{Check if table exists in the fishset_db database}
+\title{Check if table exists in the FishSET database for the defined project}
 \usage{
-table_exists(table)
+table_exists(table, project)
 }
 \arguments{
-\item{table}{Name of table in fishset_db database}
+\item{table}{Name of table in FishSET database.Table name must be in quotes.}
+
+\item{project}{Name of project}
 }
 \value{
-True or False
+Returns a logical statement of table existence.
 }
 \description{
-Function utilizes sql functions to check if a table exists in the SQLite fishset_db database.
+Wrapper for \code{\link[DBI]{dbExistsTable}}. Check if a table 
+  exists in the FishSET database.
 }
 \examples{
-\dontrun{  
-table_exists('MainDataTable') 
+\dontrun{
+table_exists('pollockMainDataTable')
 }
 }

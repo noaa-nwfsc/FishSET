@@ -10,15 +10,15 @@ parse_notes(project, date = NULL, section, output = "print")
 \item{project}{The project name.}
 
 \item{date}{Date to pull notes from. If NULL then the most recent version of notes
-from the project are retreived.}
+from the project are retrieved.}
 
 \item{section}{The note section to display. Options include "upload" for Upload data,
 "quality" for Data quality evaluation, "explore" for Data exploration, "fleet" for
 Fleet functions, "analysis" for Simple analysis, "new_variable" for Create new variable,
-"zone" for Zone definition, "models", and "bookmark".}
+"alt_choice" for Alternative choice, "models", and "bookmark".}
 
 \item{output}{Output type. "print" returns formatted notes. "string" returns a 
-character vector of the notes. "print" is reccomended for displaying notes in a report.}
+character vector of the notes. "print" is recommended for displaying notes in a report.}
 }
 \description{
 Selectively display a note section
