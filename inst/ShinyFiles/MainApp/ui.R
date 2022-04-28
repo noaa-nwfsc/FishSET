@@ -1,10 +1,12 @@
 source("fleetUI.R", local = TRUE)
 source("fleet_helpers.R", local = TRUE)
 source("map_viewer_app.R", local = TRUE)
-shiny::addResourcePath(
-  "hint-assets",
-  system.file("hint", package = "FishSET")
-)
+
+# TODO ask Melanie about this code (related to info icons)
+# shiny::addResourcePath(
+#   "hint-assets",
+#   system.file("hint", package = "FishSET")
+# )
 
    ## USER INTERFACE    
     ui = function(request){

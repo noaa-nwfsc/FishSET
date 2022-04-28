@@ -961,13 +961,15 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
             )
         }
       })
+      
       ###---
       
-      #DATA UPLOAD FUNCTIONS ----
+      # DATA UPLOAD ----
+      
       ###---
       
       output$projects <- renderUI({
-        # req(vars$counter)
+        
         req(input$loadmainsource)
 
          if (input$loadmainsource == 'Upload new file') {
@@ -1090,7 +1092,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
               
               if (track_load[[dat]]$file$datapath == dat_file$datapath) {
                 
-                if (!is_empty(track_load$project)) {
+                if (!is_value_empty(track_load$project)) {
                   
                   if (project$name == track_load$project) FALSE
                   else TRUE
@@ -1821,7 +1823,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       }, ignoreInit = TRUE, ignoreNULL = TRUE) 
       
       ###---
-      ## MERGE ----
+      ## Merge ----
       ###---      
       # Merge aux with main ---
       mergeServer("aux", values, aux, reactive(project$name), 
@@ -1849,7 +1851,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       observeEvent(input$delete_tabs_bttn, {
         
-        if (length(suppressWarnings(projects())) == 0) {#dir.exists(normalizePath('~/FishSETFolder/')) & 
+        if (length(suppressWarnings(projects())) == 0) {
           
           showNotification("No project tables found.", type = "message")
         
@@ -1882,7 +1884,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                       ),
                       easyClose = FALSE, size = "m"))
         
-        warn_ind <- which(dbTab$tabs$type %in% c("final table", "raw table"))
+        warn_ind <- which(grepl("final|raw", dbTab$tabs$type))
         warn_colors <- ifelse(input$dbTables_rows_selected %in% warn_ind, "#FFC20A", "white") # "#E66100" (orange)
         
         output$dbTables_confirm <- DT::renderDT({
@@ -1911,10 +1913,14 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
       
       observeEvent(input$delete_tab_confirm, {
-        #lapply(dbTab$tabs$table[input$dbTables_rows_selected], function(x) table_remove(as.character(x)))
-        for(i in 1:length(dbTab$tabs$table[input$dbTables_rows_selected])){
-          table_remove(as.character(dbTab$tabs$table[input$dbTables_rows_selected][i]), project$name)
-        }
+        
+        tabs_to_delete <- dbTab$tabs$table[input$dbTables_rows_selected]
+        tab_proj <- as.character(dbTab$tabs$project[input$dbTables_rows_selected])
+        
+        lapply(seq_along(tabs_to_delete), function(i) {
+          
+          table_remove(tabs_to_delete[i], project = tab_proj[i])
+        })
         
         dbTab$tabs <- fishset_tables()
         showNotification("Table(s) deleted.")
@@ -1928,6 +1934,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       confid_vals <- reactiveValues(check = FALSE, v_id = NULL, rule = "n", value = 3)
       
       observeEvent(project$name, {
+        
+        req(isTruthy(project$name))
+        
+        # Should only run if data is loaded (load_helper)?
         
         conf_rv$current_len <- length(get_confid_cache(project$name))
         conf_rv$last_len <- conf_rv$current_len
@@ -2189,44 +2199,53 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       ###---
       
-      #DATA QUALITY FUNCTIONS ----
+      # DATA QUALITY ----
+      
       ###---  
       
       #change variable class
-      m <- reactive({
+      # TODO feature doesn't work after first use
+      change_class_tab <- reactive({
+        
         if(colnames(values$dataset)[1] == 'var1') {
+          
           return(NULL)
-        } else if(input$checks=='Variable class'){
+          
+        } else if (input$checks == 'Variable class') {
+          
           int = t(t(sapply(values$dataset, class)))
-          df = matrix(
-            as.character(1:7), nrow = nrow(int), ncol = 7, byrow = TRUE,
+          df = matrix(as.character(1:7), nrow = nrow(int), ncol = 7, byrow = TRUE,
             dimnames = list(rownames(int), c('class', 'first value', 'no changes', 
                                              'numeric', 'character', 'factor', 'date'))
           )
+          # create radio group widget for each col (id = col name)
           for(i in seq_len(nrow(df))) {
             for(j in seq_len(ncol(df))) {
+              
               df[i, j] = sprintf(
                 '<input type="radio" name="%s" value="%s" %s/>',
                 rownames(int)[i], df[i, j], ifelse(j==3, 'checked="checked"', "")
               )
             }
           }
+          
           df[,1] = int  
           df[,2] = t(values$dataset[1,])
+          
           return(df)
-        } else {
-          NULL
-        }
+        } 
       })
       
-      output$changetable <- DT::renderDataTable(
-        if(colnames(values$dataset)[1] == 'var1') {
+      output$changetable <- DT::renderDataTable( 
+        
+        if (colnames(values$dataset)[1] == 'var1') {
+          
           return(NULL)
-        } else if(input$checks=='Variable class'){
-          m()
-          } else {
-            NULL
-          },
+          
+        } else if (input$checks=='Variable class') {
+          
+          change_class_tab()
+        },
         escape = FALSE, selection = 'single', server = FALSE,
         options = list(dom = 't', paging = FALSE, ordering = FALSE),
         callback = DT::JS("table.rows().every(function(i, tab, row) {
@@ -2237,28 +2256,26 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         Shiny.unbindAll(table.table().node());
         Shiny.bindAll(table.table().node());")
       )
-      
-
-      changecode <- reactive({
-        if(colnames(values$dataset)[1] == 'var1') {
-          return(NULL)
-        } else if(input$checks=='Variable class'){
-          g <- c('class', 'first value', 'no changes', 'numeric', 'character', 'factor', 'date')
-          g <- g[as.numeric(as.vector(sapply(names(values$dataset), function(i) input[[i]])))]
-          return(g)
-        } else {
-          NULL
-        } 
-      })     
+    
       
       observeEvent(input$rchclass, {
         
-        xn <- which(changecode()!="no changes")
-        x <- colnames(values$dataset)[xn]
-        newclass <- changecode()[xn]
-        values$dataset <- changeclass(dat=values$dataset, project=project$name, x=x, 
-                                      newclass=newclass, savedat=FALSE)
-        showNotification('Variable class changed.', type='message', duration=10)
+        change_code <- c('class', 'first value', 'no changes', 'numeric', 
+                         'character', 'factor', 'date')
+        class_code <- 
+          vapply(names(values$dataset), 
+                 function(i) as.numeric(input[[i]]), numeric(1))
+        
+        change_code <- change_code[class_code]
+        
+        int <- which(change_code != "no changes")
+        x <- colnames(values$dataset)[int]
+        new_class <- change_code[int]
+        
+        q_test <- quietly_test(change_class)
+
+        values$dataset <- q_test(dat = values$dataset, project = project$name,
+                                 x = x, new_class = new_class, save = FALSE)
       })
       
       ##Table output
@@ -2660,7 +2677,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
 
 
-      #----  
+      #---
       #Continue   QAQC   
       
       # output project tracker
@@ -3297,13 +3314,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                    lonsign = input$spat_filter_lon, replace = TRUE)
         }
       })
-      
-      
 
       ##---        
 
-      #DATA EXPLORATION FUNCTIONS ----
-      ###---
+      # DATA EXPLORATION ----
+      
+      ##---
       #1. TABLE
       
       output$SelectDatasetExploreUI <- renderUI({
@@ -3857,7 +3873,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
        
       ###---    
       
-      #DATA ANALYSIS FUNCTIONS ----
+      # DATA ANALYSIS ----
+      
       ###---
       
       # output project tracker
@@ -3940,7 +3957,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       ###---
       
-      #DATA CREATION/MODIFICATION FUNCTIONS----
+      # DATA CREATION/MODIFICATION ----
+      
       ###---
       # Nominal functions
       
@@ -4651,15 +4669,21 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       )
       
       
-      #Map Viewer ====
+      # ---
+      
+      # MAP VIEWER ----
+      
+      # ---
       
       map_viewer_serv("map", values, spatdat, reactive(project$name))
       
       
       #---
       
-      #Zonal definition ----
+      # ZONAL DEFINITION ----
+      
       #---
+      
       #Choose variables to pass on
       output$conditionalInput1 <- renderUI({
         conditionalPanel("input.choiceTab=='primary'",
@@ -4789,10 +4813,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       
      
-       #---
-      
-      #Expected Catch----     
       #---
+      
+      # EXPECTED CATCH ----     
+      
+      #---
+      
       output$selectcp <- renderUI({
         tagList(
           selectInput('catche','Catch variable for averaging',
@@ -4846,8 +4872,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       #---
       
-      #Model Parameters----
+      # MODEL PARAMETERS ----
+      
       #---
+      
       # helper function for making checkbox
       #names <- c('one','two', 'three')
       inline = function (x) {
@@ -5846,6 +5874,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       observeEvent(c(conf_event(), input$col_select, input$date_select), {
         
+        req(isTruthy(project$name))
+        
         c_rule <- get_confid_check(project$name)
         
         if (!is.null(c_rule) && c_rule$check) {
@@ -5897,7 +5927,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         req(input$uploadbookmark)
         readRDS(input$uploadbookmark$datapath)
       })
-      
+
       observe({
         req(input$uploadbookmark)
           req(bookmarkedstate()$loadDat==1)
@@ -5906,7 +5936,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           #values$dataset <- table_view(paste0(project$name, 'MainDataTable'))
           }
       })
-      
+
       observe({
         req(input$uploadbookmark)
         req(project$name)
@@ -5915,137 +5945,137 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           values$dataset <- table_view(paste0(project$name, 'MainDataTable'), project$name)
         }
       })
-      
+
       observeEvent(input$uploadbookmark, {
         req(project$name)
         if(colnames(values$dataset)[1]!='var1'){
           #---
-        updateSelectInput(session, "alt_var_ac", selected = bookmarkedstate()$alt_var_ac) 
-        updateSelectInput(session, "calc_method", selected = bookmarkedstate()$calc_method) 
-        updateSelectInput(session, "cat", selected = bookmarkedstate()$cat) 
-        updateSelectInput(session, "cat_altc", selected = bookmarkedstate()$cat_altc) 
-        updateSelectInput(session, "cat_SL", selected = bookmarkedstate()$cat_SL) 
-        updateSelectInput(session, "catch", selected = bookmarkedstate()$catch) 
-        updateSelectInput(session, "catchBase", selected = bookmarkedstate()$catchBase) 
-        updateSelectInput(session, "catche", selected = bookmarkedstate()$catche) 
+        updateSelectInput(session, "alt_var_ac", selected = bookmarkedstate()$alt_var_ac)
+        updateSelectInput(session, "calc_method", selected = bookmarkedstate()$calc_method)
+        updateSelectInput(session, "cat", selected = bookmarkedstate()$cat)
+        updateSelectInput(session, "cat_altc", selected = bookmarkedstate()$cat_altc)
+        updateSelectInput(session, "cat_SL", selected = bookmarkedstate()$cat_SL)
+        updateSelectInput(session, "catch", selected = bookmarkedstate()$catch)
+        updateSelectInput(session, "catchBase", selected = bookmarkedstate()$catchBase)
+        updateSelectInput(session, "catche", selected = bookmarkedstate()$catche)
         updateRadioButtons(session, 'checks', selected = bookmarkedstate()$checks)
         updateRadioButtons(session, 'choiceTab', selected=bookmarkedstate()$choiceTab)
         updateCheckboxInput(session, 'sp_colgeartype', value=bookmarkedstate()$sp_colgeartype)
         updateCheckboxInput(session, 'sp_collocation', value=bookmarkedstate()$sp_collocation)
-        updateCheckboxInput(session, "closest_pt_ac", value = bookmarkedstate()$closest_pt_ac) 
-        updateSelectInput(session, "column_check", selected = bookmarkedstate()$column_check) 
-        updateSelectInput(session, "corr_reg", selected = bookmarkedstate()$corr_reg) 
-        updateSelectInput(session, "corr_select", selected = bookmarkedstate()$corr_select) 
+        updateCheckboxInput(session, "closest_pt_ac", value = bookmarkedstate()$closest_pt_ac)
+        updateSelectInput(session, "column_check", selected = bookmarkedstate()$column_check)
+        updateSelectInput(session, "corr_reg", selected = bookmarkedstate()$corr_reg)
+        updateSelectInput(session, "corr_select", selected = bookmarkedstate()$corr_select)
         updateSelectInput(session, "create_method", selected = bookmarkedstate()$create_method)
-        updateSelectInput(session, "define_format", selected = bookmarkedstate()$define_format) 
-        updateNumericInput(session, "detailreport", value = bookmarkedstate()$detailreport) 
-        updateSelectInput(session, "dist", selected = bookmarkedstate()$dist) 
-        updateSelectInput(session, "dist_ac", selected = bookmarkedstate()$dist_ac) 
-        updateSelectInput(session, "dummclosfunc", selected = bookmarkedstate()$dummclosfunc) 
-        updateCheckboxInput(session, "dummy_exp", value = bookmarkedstate()$dummy_exp) 
-        updateSelectInput(session, "dummyfunc", selected = bookmarkedstate()$dummyfunc) 
-        updateSelectInput(session, "dummypolydate", selected = bookmarkedstate()$dummypolydate) 
-        updateSelectInput(session, "dummypolyfunc", selected = bookmarkedstate()$dummypolyfunc) 
-        updateSelectInput(session, "dummyvarfunc", selected = bookmarkedstate()$dummyvarfunc) 
-        updateSelectInput(session, "dur_end", selected = bookmarkedstate()$dur_end) 
-        updateSelectInput(session, "dur_end2", selected = bookmarkedstate()$dur_end2) 
+        updateSelectInput(session, "define_format", selected = bookmarkedstate()$define_format)
+        updateNumericInput(session, "detailreport", value = bookmarkedstate()$detailreport)
+        updateSelectInput(session, "dist", selected = bookmarkedstate()$dist)
+        updateSelectInput(session, "dist_ac", selected = bookmarkedstate()$dist_ac)
+        updateSelectInput(session, "dummclosfunc", selected = bookmarkedstate()$dummclosfunc)
+        updateCheckboxInput(session, "dummy_exp", value = bookmarkedstate()$dummy_exp)
+        updateSelectInput(session, "dummyfunc", selected = bookmarkedstate()$dummyfunc)
+        updateSelectInput(session, "dummypolydate", selected = bookmarkedstate()$dummypolydate)
+        updateSelectInput(session, "dummypolyfunc", selected = bookmarkedstate()$dummypolyfunc)
+        updateSelectInput(session, "dummyvarfunc", selected = bookmarkedstate()$dummyvarfunc)
+        updateSelectInput(session, "dur_end", selected = bookmarkedstate()$dur_end)
+        updateSelectInput(session, "dur_end2", selected = bookmarkedstate()$dur_end2)
         updateSelectInput(session, "dur_start", selected = bookmarkedstate()$dur_start)
-        updateSelectInput(session, "dur_start2", selected = bookmarkedstate()$dur_start2) 
-        updateSelectInput(session, "dur_units", selected = bookmarkedstate()$dur_units) 
-        updateSelectInput(session, "empty_catch", selected = bookmarkedstate()$empty_catch) 
-        updateSelectInput(session, "empty_expectation", selected = bookmarkedstate()$empty_expectation) 
-        updateSelectInput(session, "end", selected = bookmarkedstate()$end) 
-        updateSelectInput(session, "end_latlon", selected = bookmarkedstate()$end_latlon) 
-        updateSelectInput(session, "ending_haul", selected = bookmarkedstate()$ending_haul) 
-        updateSelectInput(session, "ending_port", selected = bookmarkedstate()$ending_port) 
-        updateSelectInput(session, "fun_numeric", selected = bookmarkedstate()$fun_numeric) 
-        updateSelectInput(session, "fun_time", selected = bookmarkedstate()$fun_time) 
-        updateSelectInput(session, "gridVariablesInclude", selected = bookmarkedstate()$gridVariablesInclude) 
-        updateSelectInput(session, "group", selected = bookmarkedstate()$group) 
-        updateSelectInput(session, "haul_order", selected = bookmarkedstate()$haul_order) 
-        updateSelectInput(session, "Haul_Trip_IDVar", selected = bookmarkedstate()$Haul_Trip_IDVar) 
-        updateSelectInput(session, "haul_order_SL", selected = bookmarkedstate()$haul_order_SL) 
+        updateSelectInput(session, "dur_start2", selected = bookmarkedstate()$dur_start2)
+        updateSelectInput(session, "dur_units", selected = bookmarkedstate()$dur_units)
+        updateSelectInput(session, "empty_catch", selected = bookmarkedstate()$empty_catch)
+        updateSelectInput(session, "empty_expectation", selected = bookmarkedstate()$empty_expectation)
+        updateSelectInput(session, "end", selected = bookmarkedstate()$end)
+        updateSelectInput(session, "end_latlon", selected = bookmarkedstate()$end_latlon)
+        updateSelectInput(session, "ending_haul", selected = bookmarkedstate()$ending_haul)
+        updateSelectInput(session, "ending_port", selected = bookmarkedstate()$ending_port)
+        updateSelectInput(session, "fun_numeric", selected = bookmarkedstate()$fun_numeric)
+        updateSelectInput(session, "fun_time", selected = bookmarkedstate()$fun_time)
+        updateSelectInput(session, "gridVariablesInclude", selected = bookmarkedstate()$gridVariablesInclude)
+        updateSelectInput(session, "group", selected = bookmarkedstate()$group)
+        updateSelectInput(session, "haul_order", selected = bookmarkedstate()$haul_order)
+        updateSelectInput(session, "Haul_Trip_IDVar", selected = bookmarkedstate()$Haul_Trip_IDVar)
+        updateSelectInput(session, "haul_order_SL", selected = bookmarkedstate()$haul_order_SL)
         updateCheckboxInput(session, "hull_polygon_ac", value = bookmarkedstate()$hull_polygon_ac)
-        updateSelectInput(session, "ID", selected = bookmarkedstate()$ID) 
-        updateSelectInput(session, "indeVarsForModel", selected = bookmarkedstate()$indeVarsForModel) 
-        updateSelectInput(session, "lag_method", selected = bookmarkedstate()$lag_method) 
-        updateSelectInput(session, "lat", selected = bookmarkedstate()$lat) 
-        updateSelectInput(session, "lat_dat_ac", selected = bookmarkedstate()$lat_dat_ac) 
-        updateSelectInput(session, "lat_dat_SL", selected = bookmarkedstate()$lat_dat_SL) 
-        updateSelectInput(session, "lat_grid_SL", selected = bookmarkedstate()$lat_grid_SL) 
-        updateSelectInput(session, "lat_grid_altc", selected = bookmarkedstate()$lat_grid_altc) 
-        updateSelectInput(session, "latBase", selected = bookmarkedstate()$latBase) 
-        updateCheckboxInput(session, "LatLon_Filter", value = bookmarkedstate()$LatLon_Filter) 
-        updateCheckboxInput(session, "lockk", value = bookmarkedstate()$lockk) 
-        updateSelectInput(session, "lon", selected = bookmarkedstate()$lon) 
-        updateSelectInput(session, "lon_dat", selected = bookmarkedstate()$lon_dat) 
-        updateSelectInput(session, "lon_dat_ac", selected = bookmarkedstate()$lon_dat_ac) 
-        updateSelectInput(session, "lon_dat_SL", selected = bookmarkedstate()$lon_dat_SL) 
-        updateSelectInput(session, "long_grid", selected = bookmarkedstate()$long_grid) 
-        updateSelectInput(session, "lon_grid_SL", selected = bookmarkedstate()$lon_grid_SL) 
-        updateSelectInput(session, "lonBase", selected = bookmarkedstate()$lonBase) 
+        updateSelectInput(session, "ID", selected = bookmarkedstate()$ID)
+        updateSelectInput(session, "indeVarsForModel", selected = bookmarkedstate()$indeVarsForModel)
+        updateSelectInput(session, "lag_method", selected = bookmarkedstate()$lag_method)
+        updateSelectInput(session, "lat", selected = bookmarkedstate()$lat)
+        updateSelectInput(session, "lat_dat_ac", selected = bookmarkedstate()$lat_dat_ac)
+        updateSelectInput(session, "lat_dat_SL", selected = bookmarkedstate()$lat_dat_SL)
+        updateSelectInput(session, "lat_grid_SL", selected = bookmarkedstate()$lat_grid_SL)
+        updateSelectInput(session, "lat_grid_altc", selected = bookmarkedstate()$lat_grid_altc)
+        updateSelectInput(session, "latBase", selected = bookmarkedstate()$latBase)
+        updateCheckboxInput(session, "LatLon_Filter", value = bookmarkedstate()$LatLon_Filter)
+        updateCheckboxInput(session, "lockk", value = bookmarkedstate()$lockk)
+        updateSelectInput(session, "lon", selected = bookmarkedstate()$lon)
+        updateSelectInput(session, "lon_dat", selected = bookmarkedstate()$lon_dat)
+        updateSelectInput(session, "lon_dat_ac", selected = bookmarkedstate()$lon_dat_ac)
+        updateSelectInput(session, "lon_dat_SL", selected = bookmarkedstate()$lon_dat_SL)
+        updateSelectInput(session, "long_grid", selected = bookmarkedstate()$long_grid)
+        updateSelectInput(session, "lon_grid_SL", selected = bookmarkedstate()$lon_grid_SL)
+        updateSelectInput(session, "lonBase", selected = bookmarkedstate()$lonBase)
         updateSelectInput(session, "long_grid_altc", selected = bookmarkedstate()$long_grid_altc)
-        updateSelectInput(session, "mid_end", selected = bookmarkedstate()$mid_end) 
-        updateSelectInput(session, "mid_start", selected = bookmarkedstate()$mid_start) 
-        updateNumericInput(session, "min_haul_ac", value = bookmarkedstate()$min_haul_ac) 
-        updateNumericInput(session, "mIter", value = bookmarkedstate()$mIter) 
-        updateSelectInput(session, "mtgtcat", selected = bookmarkedstate()$mtgtcat) 
-        updateSelectInput(session, "mtgtlonlat", selected = bookmarkedstate()$mtgtlonlat) 
-        updateSelectInput(session, "NA_Filter", selected = bookmarkedstate()$NA_Filter) 
-        updateSelectInput(session, "NAN_Filter", selected = bookmarkedstate()$NAN_Filter) 
-        updateSelectInput(session, "numfunc", selected = bookmarkedstate()$numfunc) 
-        updateSelectInput(session, "occasion_ac", selected = bookmarkedstate()$occasion_ac) 
-        updateSelectInput(session, "plot_table", selected = bookmarkedstate()$plot_table) 
-        updateSelectInput(session, "plot_type", selected = bookmarkedstate()$plot_type) 
+        updateSelectInput(session, "mid_end", selected = bookmarkedstate()$mid_end)
+        updateSelectInput(session, "mid_start", selected = bookmarkedstate()$mid_start)
+        updateNumericInput(session, "min_haul_ac", value = bookmarkedstate()$min_haul_ac)
+        updateNumericInput(session, "mIter", value = bookmarkedstate()$mIter)
+        updateSelectInput(session, "mtgtcat", selected = bookmarkedstate()$mtgtcat)
+        updateSelectInput(session, "mtgtlonlat", selected = bookmarkedstate()$mtgtlonlat)
+        updateSelectInput(session, "NA_Filter", selected = bookmarkedstate()$NA_Filter)
+        updateSelectInput(session, "NAN_Filter", selected = bookmarkedstate()$NAN_Filter)
+        updateSelectInput(session, "numfunc", selected = bookmarkedstate()$numfunc)
+        updateSelectInput(session, "occasion_ac", selected = bookmarkedstate()$occasion_ac)
+        updateSelectInput(session, "plot_table", selected = bookmarkedstate()$plot_table)
+        updateSelectInput(session, "plot_type", selected = bookmarkedstate()$plot_type)
         updateTextInput(session, 'polyear', value = bookmarkedstate()$polyear)
-        updateNumericInput(session, "polyn", value = bookmarkedstate()$polyn) 
-        updateSelectInput(session, "port_dat_dist", selected = bookmarkedstate()$port_dat_dist) 
-        updateSelectInput(session, "port_end", selected = bookmarkedstate()$port_end) 
-        updateSelectInput(session, "port_start", selected = bookmarkedstate()$port_start) 
+        updateNumericInput(session, "polyn", value = bookmarkedstate()$polyn)
+        updateSelectInput(session, "port_dat_dist", selected = bookmarkedstate()$port_dat_dist)
+        updateSelectInput(session, "port_end", selected = bookmarkedstate()$port_end)
+        updateSelectInput(session, "port_start", selected = bookmarkedstate()$port_start)
         updateSelectInput(session, "price", selected = bookmarkedstate()$price)
-        updateSelectInput(session, "priceBase", selected = bookmarkedstate()$priceBase) 
+        updateSelectInput(session, "priceBase", selected = bookmarkedstate()$priceBase)
         updateTextInput(session, 'projectname', value = bookmarkedstate()$projectname)
-        updateSelectInput(session, "p2fun", selected = bookmarkedstate()$p2fun) 
-        updateSelectInput(session, "p3fun", selected = bookmarkedstate()$p3fun) 
-        updateNumericInput(session, "quant_cat", value = bookmarkedstate()$quant_cat) 
-        updateNumericInput(session, "relTolX", value = bookmarkedstate()$relTolX) 
-        updateNumericInput(session, "reportfreq", value = bookmarkedstate()$reportfreq) 
-        updateSelectInput(session, "sp_col", selected = bookmarkedstate()$sp_col) 
-        updateSelectInput(session, "start", selected = bookmarkedstate()$start) 
-        updateSelectInput(session, "start_latlon", selected = bookmarkedstate()$start_latlon) 
-        updateSelectInput(session, "starting_haul", selected = bookmarkedstate()$starting_haul) 
-        updateSelectInput(session, "starting_port", selected = bookmarkedstate()$starting_port) 
-        updateSelectInput(session, "starting_port_SL", selected = bookmarkedstate()$starting_port_SL) 
-        updateSelectInput(session, "startloc", selected = bookmarkedstate()$startloc) 
-        updateTextInput(session, "target", value = bookmarkedstate()$target) 
-        updateNumericInput(session, "temp_lag", value = bookmarkedstate()$temp_lag) 
-        updateNumericInput(session, "temp_window", value = bookmarkedstate()$temp_window) 
-        updateSelectInput(session, "temporal", selected = bookmarkedstate()$temporal) 
-        updateNumericInput(session, "temp_year", value = bookmarkedstate()$temp_year) 
-        updateSelectInput(session, "temp_var", selected = bookmarkedstate()$temp_var) 
-        updateSelectInput(session, "TimeVar", selected = bookmarkedstate()$TimeVar) 
+        updateSelectInput(session, "p2fun", selected = bookmarkedstate()$p2fun)
+        updateSelectInput(session, "p3fun", selected = bookmarkedstate()$p3fun)
+        updateNumericInput(session, "quant_cat", value = bookmarkedstate()$quant_cat)
+        updateNumericInput(session, "relTolX", value = bookmarkedstate()$relTolX)
+        updateNumericInput(session, "reportfreq", value = bookmarkedstate()$reportfreq)
+        updateSelectInput(session, "sp_col", selected = bookmarkedstate()$sp_col)
+        updateSelectInput(session, "start", selected = bookmarkedstate()$start)
+        updateSelectInput(session, "start_latlon", selected = bookmarkedstate()$start_latlon)
+        updateSelectInput(session, "starting_haul", selected = bookmarkedstate()$starting_haul)
+        updateSelectInput(session, "starting_port", selected = bookmarkedstate()$starting_port)
+        updateSelectInput(session, "starting_port_SL", selected = bookmarkedstate()$starting_port_SL)
+        updateSelectInput(session, "startloc", selected = bookmarkedstate()$startloc)
+        updateTextInput(session, "target", value = bookmarkedstate()$target)
+        updateNumericInput(session, "temp_lag", value = bookmarkedstate()$temp_lag)
+        updateNumericInput(session, "temp_window", value = bookmarkedstate()$temp_window)
+        updateSelectInput(session, "temporal", selected = bookmarkedstate()$temporal)
+        updateNumericInput(session, "temp_year", value = bookmarkedstate()$temp_year)
+        updateSelectInput(session, "temp_var", selected = bookmarkedstate()$temp_var)
+        updateSelectInput(session, "TimeVar", selected = bookmarkedstate()$TimeVar)
         updateSelectInput(session, "trans", selected = bookmarkedstate()$trans)
-        updateSelectInput(session, "trans_var_name", selected = bookmarkedstate()$trans_var_name) 
-        updateSelectInput(session, "trip", selected = bookmarkedstate()$trip) 
-        updateSelectInput(session, "trip_cent_id", selected = bookmarkedstate()$trip_cent_id) 
-        updateSelectInput(session, "trip_cent_lat", selected = bookmarkedstate()$trip_cent_lat) 
-        updateSelectInput(session, "trip_cent_lon", selected = bookmarkedstate()$trip_cent_lon) 
-        updateSelectInput(session, "trip_cent_weight", selected = bookmarkedstate()$trip_cent_weight) 
-        updateSelectInput(session, "trip_ID", selected = bookmarkedstate()$trip_ID) 
-        updateSelectInput(session, "trip_id_SL", selected = bookmarkedstate()$trip_id_SL) 
-        updateCheckboxInput(session, "use_geartype", value = bookmarkedstate()$use_geartype ) 
-        updateSelectInput(session, "units", selected = bookmarkedstate()$units) 
-        updateCheckboxInput(session, "Unique_Filter", value = bookmarkedstate()$Unique_Filter) 
-        updateSelectInput(session, "unique_identifier", selected = bookmarkedstate()$unique_identifier) 
-        updateCheckboxInput(session, "use_location", value = bookmarkedstate()$use_location) 
-        updateSelectInput(session, "var_x", selected = bookmarkedstate()$var_x) 
-        updateSelectInput(session, "var_y", selected = bookmarkedstate()$var_y) 
-        updateSelectInput(session, "VarCreateTop", selected = bookmarkedstate()$VarCreateTop) 
-        updateSelectInput(session, "xTime", selected = bookmarkedstate()$xTime) 
+        updateSelectInput(session, "trans_var_name", selected = bookmarkedstate()$trans_var_name)
+        updateSelectInput(session, "trip", selected = bookmarkedstate()$trip)
+        updateSelectInput(session, "trip_cent_id", selected = bookmarkedstate()$trip_cent_id)
+        updateSelectInput(session, "trip_cent_lat", selected = bookmarkedstate()$trip_cent_lat)
+        updateSelectInput(session, "trip_cent_lon", selected = bookmarkedstate()$trip_cent_lon)
+        updateSelectInput(session, "trip_cent_weight", selected = bookmarkedstate()$trip_cent_weight)
+        updateSelectInput(session, "trip_ID", selected = bookmarkedstate()$trip_ID)
+        updateSelectInput(session, "trip_id_SL", selected = bookmarkedstate()$trip_id_SL)
+        updateCheckboxInput(session, "use_geartype", value = bookmarkedstate()$use_geartype )
+        updateSelectInput(session, "units", selected = bookmarkedstate()$units)
+        updateCheckboxInput(session, "Unique_Filter", value = bookmarkedstate()$Unique_Filter)
+        updateSelectInput(session, "unique_identifier", selected = bookmarkedstate()$unique_identifier)
+        updateCheckboxInput(session, "use_location", value = bookmarkedstate()$use_location)
+        updateSelectInput(session, "var_x", selected = bookmarkedstate()$var_x)
+        updateSelectInput(session, "var_y", selected = bookmarkedstate()$var_y)
+        updateSelectInput(session, "VarCreateTop", selected = bookmarkedstate()$VarCreateTop)
+        updateSelectInput(session, "xTime", selected = bookmarkedstate()$xTime)
         updateSelectInput(session, 'xWeight', selected = bookmarkedstate()$xWeight)
-        updateSelectInput(session, "x_dist", selected = bookmarkedstate()$x_dist) 
+        updateSelectInput(session, "x_dist", selected = bookmarkedstate()$x_dist)
         }
-    
+
 #---
         })
       
