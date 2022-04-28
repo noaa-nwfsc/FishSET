@@ -62,9 +62,11 @@ table_view <- function(table, project) {
   #' @param table String, name of table in FishSET database. Table name must be in quotes.
   #' @param project Name of project
   #' @export table_view
-  #' @description Wrapper for \code{\link[DBI]{dbGetQuery}}. View or call the selected table from the FishSET database.
+  #' @description Wrapper for \code{\link[DBI]{dbGetQuery}}. View or call the 
+  #'   selected table from the FishSET database.
   #' @importFrom DBI dbConnect dbDisconnect  dbGetQuery
   #' @importFrom sf st_read
+  #' @importFrom lubridate as_date as_datetime
   #' @examples
   #' \dontrun{
   #' head(table_view('pollockMainDataTable'))
@@ -72,7 +74,7 @@ table_view <- function(table, project) {
   
   if (table_exists(table, project) == FALSE) {
     
-    return("Table not found. Check spelling.")
+    warning("Table not found. Check spelling.")
     
   } else {
     
@@ -86,7 +88,30 @@ table_view <- function(table, project) {
       suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
       on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
       
-      return(DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM", paste0("'", noquote(table), "'"))))
+      tab_out <- DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM", paste0("'", noquote(table), "'")))
+      # convert to tibble?
+      
+      
+      # convert date and date-time from numeric
+      d_cols <- grep("date", names(tab_out), ignore.case = TRUE, value = TRUE)
+      dt_cols <- grep("date.*time", names(tab_out), ignore.case = TRUE, value = TRUE)
+      
+      d_cols <- d_cols[!d_cols %in% dt_cols]
+      
+      date_numeric <- numeric_cols(tab_out[d_cols], out = "names")
+      dt_numeric <- numeric_cols(tab_out[dt_cols], out = "names")
+      
+      if (length(date_numeric) > 0) {
+        # date saved as days since 1970-01-01
+        tab_out[date_numeric] <- lapply(tab_out[date_numeric], lubridate::as_date)
+      }
+      
+      if (length(dt_numeric) > 0) {
+        # date-time saved as secs since 1970-01-01
+        tab_out[dt_numeric] <- lapply(tab_out[dt_numeric], lubridate::as_datetime)
+      }
+      
+      tab_out
     }
   }
 }
@@ -133,7 +158,8 @@ table_exists <- function(table, project) {
   #' @param table Name of table in FishSET database.Table name must be in quotes.
   #' @param project Name of project
   #' @export table_exists
-  #' @description Wrapper for \code{\link[DBI]{dbExistsTable}}. Check if a table exists in the FishSET database.
+  #' @description Wrapper for \code{\link[DBI]{dbExistsTable}}. Check if a table 
+  #'   exists in the FishSET database.
   #' @return Returns a logical statement of table existence.
   #' @importFrom DBI dbConnect dbDisconnect dbExistsTable
   #' @examples
@@ -449,13 +475,25 @@ fishset_tables <- function(project = NULL) {
     db_tabs$project <- p_str
     
     # add a type column (order matters)
-    db_type <- c("MainDataTableInfo", "MainDataTable_raw", "MainDataTable_final", 
-                 "MainDataTable", "ExpectedCatch", "altmatrix", "PortTable", "port", 
-                 "ldglobalcheck", "FleetTable", "modelOut", "modelfit", "modelinputdata", 
-                 "modelDesignTable", "FilterTable", "GridTable", "AuxTable", "SpatTable")
+    db_type <- c("MainDataTableInfo", "MainDataTable\\d{8}", "MainDataTable_final", 
+                 "MainDataTable", "ExpectedCatch", "altmatrix", "PortTable\\d{8}",
+                 "PortTable", "ldglobalcheck", "FleetTable", "modelOut", "modelfit",
+                 "modelinputdata", "modelDesignTable", "FilterTable", "GridTable\\d{8}",  
+                 "GridTable", "AuxTable\\d{8}", "AuxTable", "SpatTable\\d{8}", "SpatTable")
+    
+    raw <- c("MainDataTable\\d{8}", "PortTable\\d{8}", "GridTable\\d{8}", 
+             "AuxTable\\d{8}", "SpatTable\\d{8}")
     
     t_regex <- paste0(db_type, collapse = "|")
     t_str <- stringr::str_extract(db_tabs$table, t_regex)
+    
+    # replace raw table dates with "_raw"
+    for (i in raw) {
+      
+      r_ind <- grepl(i, t_str)
+      t_str[r_ind] <- gsub("\\d{8}", "_raw", t_str[r_ind])
+    }
+    
     t_str[is.na(t_str)] <- "other"
     
     t_str <- 
@@ -463,15 +501,16 @@ fishset_tables <- function(project = NULL) {
         
         switch(i, 
                "MainDataTable" = "main table", "MainDataTable_final" = "final table", 
-               "MainDataTable_raw" = "raw table", "ExpectedCatch" = "expected catch matrix", 
-               "altmatrix" = "alt choice matrix", "PortTable" = "port table", 
-               "port" = "port table", "MainDataTableInfo" = "info table",
+               "MainDataTable_raw" = "raw main table", "ExpectedCatch" = "expected catch matrix", 
+               "altmatrix" = "alt choice matrix", "PortTable_raw" = "raw port table",
+               "PortTable" = "port table", "MainDataTableInfo" = "info table",
                "FilterTable" = "filter table", "ldglobalcheck" = "global check", 
                "FleetTable" = "fleet table", "modelOut" = "model output", 
                "modelfit" = "model fit", "modelinputdata" = "model data", 
                "modelDesignTable" = "model design", "other" = "other",
-               "GridTable" = "grid table", "AuxTable" = "aux table", 
-               "SpatTable" = "spat table")
+               "GridTable_raw" = "raw grid table",  "GridTable" = "grid table",
+               "AuxTable_raw" = "raw aux table", "AuxTable" = "aux table", 
+               "SpatTable_raw" = "raw spat table",  "SpatTable" = "spat table")
       }, character(1))
     
     db_tabs$type <- t_str
