@@ -2,38 +2,37 @@
 % Please edit documentation in R/data_parser.R
 \name{load_maindata}
 \alias{load_maindata}
-\title{Load data into SQL database}
+\title{Import, parse, and save data to the FishSET database}
 \usage{
-load_maindata(
-  dat,
-  over_write = TRUE,
-  project = NULL,
-  compare = FALSE,
-  y = NULL
-)
+load_maindata(dat, project, over_write = TRUE, compare = FALSE, y = NULL)
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips.
+Should be the full path to the file or name of table in the FishSET database.
+ Table in the FishSET database contains the string 'MainDataTable'.}
 
-\item{over_write}{TRUE/FALSE Save over data table previously saved in fishset_db database?}
+\item{project}{String, name of project.}
 
-\item{project}{Name of project. Parameter is used to generate meaningful table names in fishset_db database.}
+\item{over_write}{Logical, If TRUE, saves data over previously saved data table in the FishSET database.}
 
-\item{compare}{TRUE/FALSE If TRUE, compare new data frame to previously saved data frame `y` in fishset_db before saving new data frame to the fishset_db database}
+\item{compare}{Logical, whether to compare new data frame to previously saved data frame \code{y}.}
 
-\item{y}{Name of previously saved table in fishset_db database. y must be defined if `compare==TRUE`.}
+\item{y}{Name of previously saved table in FishSET database. \code{y} must be defined if \code{compare} is TRUE.}
 }
 \description{
-Load data into SQL database
+Import, parse, and save data to the FishSET database
 }
 \details{
-Runs the fishset_compare function if `compare` is TRUE.  Then checks the data for common data issues using the \code{\link{data_verification}} function and that latitude and longitude are defined. 
-The index table that contains information for each variable on units, data format, and specialized variable is then generated. Finally, the data sets (main and index tables) are saved 
-in the fishset_db as raw and working tables. In both cases, the table name is the `project`, if defined, and the table type `MainDataTable` or `MainDataTableInfo`. Date is also attached to the name for the raw data.
+Runs the \code{fishset_compare} function if \code{compare} is TRUE and calls the
+ \code{\link{data_verification}} function to check for common data issues and that latitude
+ and longitude are defined. The dataset is saved in the FishSET database as raw and working tables. 
+ The table name is the \code{project} and the table type, 'MainDataTable'. Date is also attached to the name for the
+ raw data. The main data is also loaded into the working environment as ‘projectMainDataTable’.
 }
 \examples{
-\dontrun{  
-load_maindata(dataset='MainDataTable', over_write=TRUE, project='', 
-              compare=TRUE, y='MainDataTable01012011') 
+\dontrun{
+load_maindata(dat = Mydata, over_write = TRUE, project = 'pollock',
+              compare = TRUE, y = 'MainDataTable01012011')
 }
+
 }

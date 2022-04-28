@@ -4,10 +4,15 @@
 \alias{data_verification}
 \title{Check for common data quality issues that may be present in the data set.}
 \usage{
-data_verification(dat)
+data_verification(dat, project, log_fun = TRUE)
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips.
+Table in FishSET database contains the string 'MainDataTable'.}
+
+\item{project}{String, name of project.}
+
+\item{log_fun}{Logical, whether to log function call (for internal use).}
 }
 \value{
 Statements as to whether data quality issues may exist.
@@ -16,11 +21,14 @@ Statements as to whether data quality issues may exist.
 Function tests for common data quality issues.
 }
 \details{
-Checks that all columnn names in the data frame are unique, whether any columns in the data frame are empty, whether each row is a unique choice 
-occurrence at the haul or trip level, and that either latitude and longitude or fishing area are included.
+Checks that all columnn names in the data frame are unique, whether any columns in the data frame are empty,
+whether each row is a unique choice occurrence at the haul or trip level, and that either latitude and longitude or
+fishing area are included.
 }
 \examples{
-\dontrun{ 
-data_verification(MainDataTable)
+\dontrun{
+data_verification(pollockMainDataTable, 'pollock')
 }
+
 }
+\keyword{internal}

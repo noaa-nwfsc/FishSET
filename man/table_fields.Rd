@@ -2,18 +2,20 @@
 % Please edit documentation in R/sql_functions.R
 \name{table_fields}
 \alias{table_fields}
-\title{Lists fields for the selected fishset_db table}
+\title{Lists fields for FishSET database table}
 \usage{
-table_fields(table)
+table_fields(table, project)
 }
 \arguments{
-\item{table}{name of table in sql database}
+\item{table}{String, name of table in FishSET database. Table name must be in quotes.}
+
+\item{project}{Project name}
 }
 \description{
-Function utilizes sql functions to view tables in the SQLite fishset_db database. View fields of selected table.
+Wrapper for \code{\link[DBI]{dbListFields}}.  View fields of selected table.
 }
 \examples{
-\dontrun{  
-table_fields('MainDataTable') 
+\dontrun{
+table_fields('pollockMainDataTable', 'pollock')
 }
 }

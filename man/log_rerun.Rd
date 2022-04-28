@@ -19,7 +19,15 @@ log_rerun(
 \item{log_file}{String, name of the log file starting with the date (YYYY-MM-DD) and
 ending in ".json".}
 
-\item{dat}{String, new main data table to rerun log with.}
+\item{dat}{String, new main data table to rerun log}
+
+\item{portTable}{String, name of port table. Defualts to NULL.}
+
+\item{aux}{String, name of auxiliary table. Defaults to NULL.}
+
+\item{gridfile}{String, name of gridded data table. Defaults to NULL.}
+
+\item{spat}{String, name of spatial data table. Defaults to NULL.}
 
 \item{ind}{Numeric, indices of function calls to rerun.}
 
@@ -31,8 +39,9 @@ Console function for rerunning project log
 }
 \examples{
 \dontrun{
-log_rerun("2020-10-23.json", run = TRUE) # reruns entire log with original data table
-log_rerun("2020-10-23.json", dat = "pollockMainDataTable", run = TRUE) # runs log with new data table
+log_rerun("pollock_2020-10-23.json", run = TRUE) # reruns entire log with original data table
+# runs log with new data table
+log_rerun("pollock_2020-10-23.json", dat = "pollockMainDataTable", run = TRUE) 
 }
 }
 \seealso{

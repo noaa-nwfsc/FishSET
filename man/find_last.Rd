@@ -12,3 +12,4 @@ find_last(y)
 \description{
 Find latest date
 }
+\keyword{internal}

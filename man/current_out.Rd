@@ -4,7 +4,10 @@
 \alias{current_out}
 \title{Lists most recent output files}
 \usage{
-current_out()
+current_out(project)
+}
+\arguments{
+\item{project}{Project name}
 }
 \description{
 Lists most recent output files
@@ -14,7 +17,7 @@ Prints the name of the most recent output files.
 }
 \examples{
 \dontrun{
-current_out() 
+current_out()
 }
 }
 \keyword{internal}

@@ -2,30 +2,39 @@
 % Please edit documentation in R/create_variables.R
 \name{create_var_num}
 \alias{create_var_num}
-\title{Create numeric variables using arithmetic expression}
+\title{Create numeric variable using arithmetic expression}
 \usage{
-create_var_num(dat, x, y, method, name = "create_var_num")
+create_var_num(dat, project, x, y, method, name = "create_var_num")
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips.
+Table in the FishSET database contains the string 'MainDataTable'.}
 
-\item{x}{variable  Variable will be the numerator if `method` is division.}
+\item{project}{Project name.}
 
-\item{y}{variable  Variable will be the denominator if `method` is division.}
+\item{x}{Variable in \code{dat}. Variable will be the numerator if \code{method} is division.}
 
-\item{method}{Arithmetic expression. Options include: sum, addition, subtraction, multiplication, and division.}
+\item{y}{Variable  in \code{dat}. Variable will be the denominator if \code{method} is division.}
 
-\item{name}{Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.}
+\item{method}{String, arithmetic expression. Options include: \code{"sum"}, addition (\code{"add"}),
+subtraction (\code{"sub"}), multiplication (\code{"mult"}), and division (\code{"div"}).}
+
+\item{name}{String, name of created vector. Defaults to name of the function if not defined.}
+}
+\value{
+Returns primary dataset with new variable added.
 }
 \description{
-Create numeric variables using arithmetic expression
+Creates a new variable based on the arithmetic operation between two variables.  
+  Function is useful for creating rate variables or the summation of two related variables.
 }
 \details{
-Creates a new numeric variable based on defined arithmetic expression `method`. New variable is added to the data set.
+Creates a new numeric variable based on the defined arithmetic expression \code{method}. 
+  New variable is added to the primary dataset.
 }
 \examples{
 \dontrun{
-MainDataTable$tot_salmon <- create_var_num(MainDataTable, 'HAUL_CHINOOK', 'HAUL_CHUM',
-                                            'sum',' TimeChange')
+pollockMainDataTable <- create_var_num(pollockMainDataTable, 'pollock', x = 'HAUL_CHINOOK',
+    y = 'HAUL_CHUM', method = 'sum', name = 'tot_salmon')
 }
 }

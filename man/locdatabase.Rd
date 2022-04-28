@@ -2,20 +2,14 @@
 % Please edit documentation in R/utils.R
 \name{locdatabase}
 \alias{locdatabase}
-\title{Returns the location of the database}
+\title{Define source location}
 \usage{
-locdatabase()
+locdatabase(project)
+}
+\arguments{
+\item{project}{Project name}
 }
 \description{
-Returns the location of the database
+Define source location
 }
-\details{
-if loc is not in the working directory, then the default location is use
-}
-\examples{
-\dontrun{
-locdatabase() # will return sqlite database location within the fishset package
-loc <- getwd()
-locdatabase() #will return sqlite database location as within the working directory
-}
-}
+\keyword{internal}

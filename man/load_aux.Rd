@@ -2,30 +2,40 @@
 % Please edit documentation in R/data_parser.R
 \name{load_aux}
 \alias{load_aux}
-\title{Save auxiliary data}
+\title{Import, parse, and save auxiliary data to FishSET database}
 \usage{
-load_aux(dat, x, over_write = TRUE, project = NULL)
+load_aux(dat, aux, name, over_write = TRUE, project = NULL)
 }
 \arguments{
-\item{dat}{Main data frame. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips.
+Table in the FishSET database contains the string 'MainDataTable'.}
 
-\item{x}{Name of auxiliary data frame to be saved.}
+\item{aux}{File name, including path of auxiliary data.}
 
-\item{over_write}{TRUE/FALSE Save over previously saved file or not.}
+\item{name}{Name auxiliary data should be saved as in FishSET database.}
 
-\item{project}{Name of project for attaching to name of the table.}
+\item{over_write}{Logical, If TRUE, saves data over previously
+saved data table in the FishSET database.}
+
+\item{project}{String, name of project.}
 }
 \description{
-Save auxiliary data
+Auxiliary data is additional data that connects the primary dataset.
+Function pulls the data, parses it, and then and saves the data to the FishSET database.
 }
 \details{
-Auxiliary data is any additional data required beyond the main data and the port data. Auxiliary data can be anything you want to merge with the main data frame (ex. prices by date, vessel characteristics, or fishery season).
-The auxilliary data does not have to be at a haul or trip level but must contain a variable to connect the auxilliary data to the main data.
-The function checks that at least one column name of the auxiliary data matches a column name in the main data table.  Further checks are run using the data_verification_call function before saving the new data frame to the fishset_db database.
-The data is saved in the fishset_db database as the raw data and the working data. In both cases, the table name is the `project`, if defined, and the file name `x`. Date is also attached to the name for the raw data.
+Auxiliary data is any additional data beyond the primary data and the port data.
+  Auxiliary data can be any data that can be merged with the primary dataset (ex. prices by date, vessel
+  characteristics, or fishery season). The auxiliary data does not have to be at a haul or trip level
+  but must contain a variable to connect the auxiliary data to the primary dataset. The function checks
+ that at least one column name of the auxiliary data matches a column name in the primary dataset. The function checks that
+  each row is unique, that no variables are empty, and that column names are case-insensitive unique. 
+  There data issues are resolved before the data is saved to the database.
+  The data is saved in the FishSET database as the raw data and the working data. In
+ both cases, the table name is the \code{project} and the file name \code{name}. Date is also added to the name for the raw data.
 }
 \examples{
-\dontrun{  
-load_aux(dataset='pcodMainDataTable', x=FisherySeason, over_write=TRUE, project='pcod') 
+\dontrun{
+load_aux(pcodMainDataTable, name = FisherySeason, over_write = TRUE, project = 'pcod')
 }
 }

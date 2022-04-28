@@ -2,25 +2,31 @@
 % Please edit documentation in R/data_parser.R
 \name{fishset_compare}
 \alias{fishset_compare}
-\title{Compare column names of new data frame to previously saved version}
+\title{Compare imported data table to the previously saved version of the data table}
 \usage{
-fishset_compare(x, y, compare = c(TRUE, FALSE))
+fishset_compare(x, y, compare = c(TRUE, FALSE), project)
 }
 \arguments{
-\item{x}{Updated data frame to be saved}
+\item{x}{Updated data table to be saved.}
 
-\item{y}{Previously saved version of data frame}
+\item{y}{Previously saved version of data table.}
 
-\item{compare}{TRUE/FALSE Compare new data frame to previously saved data frame before saving data frame `x` to SQLite database.}
+\item{compare}{Logical, if TRUE, compares \code{x} to \code{y} before saving \code{x} to FishSET database.}
+
+\item{project}{Name of project}
 }
 \description{
-Compare column names of new data frame to previously saved version
+Compare imported data table to the previously saved version of the data table
 }
 \details{
-This function is called indirectly by the data import functions (\code{\link{load_maindata}}, \code{\link{load_port}}, \code{\link{load_aux}}, 
-\code{\link{load_grid}}). The function is designed to check for consistency between versions of the same data frame so that the logged functions can be used to rerun the previous analysis on the updated data. 
-To use the logged functions to rerun code after data has been updated (i.e., new year of data), the column names, including spelling and capitalization, must match the previous version.
-Set the `compare` parameter to TRUE to compare column names of the new and previously saved data frames. The new data frame will be saved to the SQLite database if column names match.
-If no previous versions of the data frame exist in the SQLite database or the analysis will not be rerun using saved function calls in the log file, set the `compare` parameter to FALSE.
- No comparison will be made and the new file will be saved to the database.
+Function is optional. It is designed to check for consistency between versions of the same data frame
+so that the logged functions can be used to rerun the previous analysis on the updated data.
+The column names, including spelling and capitalization, must match the previous version
+to use the logged functions to rerun code after data has been updated (i.e., new year of data).
+The function is called by the data import functions (\code{\link{load_maindata}},
+\code{\link{load_port}}, \code{\link{load_aux}}, \code{\link{load_grid}}).
+ Set the \code{compare} argument to TRUE to compare column names of the new and
+previously saved data tables. The new data tables will be saved to the FishSET database if column names match.
+Set the \code{compare} argument to FALSE if no previous versions of the data table exist in the FishSET database.
+No comparison will be made and the new file will be saved to the database.
 }

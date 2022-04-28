@@ -4,7 +4,7 @@
 \alias{subset_var}
 \title{Subset `MainDataTable` by variable}
 \usage{
-subset_var(dataset, filter_by, filter_value = NULL, filter_expr = NULL)
+subset_var(dataset, filter_by = NULL, filter_value = NULL, filter_expr = NULL)
 }
 \arguments{
 \item{dataset}{dataset `MainDataTable` to filter.}
