@@ -2,24 +2,29 @@
 % Please edit documentation in R/select_vars_gui.R
 \name{select_vars}
 \alias{select_vars}
-\title{View and select which variables to include}
+\title{Interactive application to select variables to include/exclude in primary dataset}
 \usage{
 select_vars(dat, project)
 }
 \arguments{
-\item{dat}{Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips.
+Table in the FishSET database contains the string 'MainDataTable'.}
 
-\item{project}{Name of project. Parameter is used to generate meaningful table names in fishset_db database.}
+\item{project}{String, name of project.}
 }
 \description{
-View and select which variables to include
+Opens an R Shiny web application. With the application select on
+  variables in the primary dataset that should be retained.
 }
 \details{
-Opens an interactive table that allows uses to select which variables to included by clicking check boxes. 
-Data should be loaded into the fishset_db database before running this function. Select variables that will be used to generate further variables, such as rates or cpue, and variables to be included in models.
+Opens an interactive table that allows users to select which variables to be included by clicking check boxes.
+  Data should be loaded into the FishSET database before running this function. Select variables that will be used to
+  generate further variables, such as rates or cpue, and variables to be included in models.
+  Removed variables can be added back into the dataset at a later date using the \code{\link{add_vars}} function.
 }
 \examples{
 \dontrun{
-select_vars('pcodMainDataTable', pcod)
+select_vars(pcodMainDataTable, "pcod")
 }
+
 }

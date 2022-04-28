@@ -37,6 +37,6 @@ This function separates auxiliary data (or gridded and port data) from the MainD
 }
 \examples{
 \dontrun{
-split_dat("pollockMainDataTable", aux = "pollockPortTable", key = "PORT_CODE")
+split_dat("pollockMainDataTable", "pollock", aux = "pollockPortTable", key = "PORT_CODE")
 }
 }

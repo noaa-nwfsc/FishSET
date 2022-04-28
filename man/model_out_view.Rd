@@ -2,18 +2,27 @@
 % Please edit documentation in R/sql_functions.R
 \name{model_out_view}
 \alias{model_out_view}
-\title{View discrete choice model output}
+\title{Load discrete choice model output to console for the defined project}
 \usage{
-model_out_view(table)
+model_out_view(table, project)
 }
 \arguments{
-\item{table}{Table name in sqlite database. Should contain the phrase modelout.}
+\item{table}{Table name in FishSET database. Should contain the phrase 
+'modelout'. Table name must be in quotes.}
+
+\item{project}{Name of project}
 }
 \description{
-Returns output from running the discretefish_subroutine function. The table parameter must be the full name of the table name in the fishet_db database.
+Returns output from running the discretefish_subroutine function.
+  The table parameter must be the full name of the table name in the FishSET database.
+}
+\details{
+Returns output from running \code{\link{discretefish_subroutine}}. The table 
+argument must be the full name of the table name in the FishSET database. 
+Output includes information on model convergence, standard errors, t-stats, etc.
 }
 \examples{
 \dontrun{
-model_out_view('pcodmodelout20190604')
+model_out_view('pcodmodelout20190604', 'pcod')
 }
 }

@@ -6,6 +6,7 @@
 \usage{
 create_duration(
   dat,
+  project,
   start,
   end,
   units = c("week", "day", "hour", "minute"),
@@ -13,24 +14,33 @@ create_duration(
 )
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips.
+Table in FishSET database contains the string 'MainDataTable'.}
 
-\item{start}{Variable indicating start of time period}
+\item{project}{Project name.}
 
-\item{end}{Variable indicating end of time period}
+\item{start}{Date variable from \code{dat} indicating start of time period.}
 
-\item{units}{Unit of time for calculating duration. Must be weeks, days, hours, or minutes.}
+\item{end}{Date variable from \code{dat} indicating end of time period.}
 
-\item{name}{Name of created vector. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.}
+\item{units}{String, unit of time for calculating duration. Must be \code{"week"}, \code{"day"}, \code{"hour"}, or \code{"minute"}.}
+
+\item{name}{String, name of created vector. Defaults to name of the function if not defined.}
+}
+\value{
+Returns primary dataset with duration of time variable added.
 }
 \description{
-Create duration of time variable
+Create duration of time variable based on start and ending dates in desired temporal units.
 }
 \details{
-Calculates the duration of time between two temporal variables based on defined unit. The new variable is added to the dataset.
+Calculates the duration of time between two temporal variables based on defined time unit.
+The new variable is added to the dataset.
+A duration of time variable is required for other functions, such as \code{\link{cpue}}.
 }
 \examples{
 \dontrun{
-MainDataTable$TripDur <- create_duration(MainDataTable, 'TRIP_START', 'TRIP_END',  units='minute')
+pollockMainDataTable <- create_duration(pollockMainDataTable, 'pollock', 'TRIP_START', 'TRIP_END',
+  units = 'minute', name = 'TripDur')
 }
 }

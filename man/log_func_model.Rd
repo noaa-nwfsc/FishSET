@@ -4,20 +4,24 @@
 \alias{log_func_model}
 \title{Log user-created functions or models}
 \usage{
-log_func_model(x)
+log_func_model(x, project)
 }
 \arguments{
-\item{x}{Name of function}
+\item{x}{Name of function.}
+
+\item{project}{Project name.}
 }
 \description{
 Log user-created functions or models
 }
 \details{
-Logs names of the function, parameters in function, and function call in the log file. Use this function to log user-defined likelihood functions.
+Logs function name, arguments, and, call. Use this function to log user-defined likelihood functions.
 }
 \examples{
 \dontrun{
-my_func <- function(a,b){ a + b }
+my_func <- function(a, b) {
+  a + b
+}
 log_func_model(my_func)
 }
 

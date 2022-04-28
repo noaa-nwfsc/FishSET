@@ -4,11 +4,14 @@
 \alias{data_pull}
 \title{Pull data from sqlite database}
 \usage{
-data_pull(dat)
+data_pull(dat, project)
 }
 \arguments{
 \item{dat}{Data table}
+
+\item{project}{Project name}
 }
 \description{
 Pull data from sqlite database
 }
+\keyword{internal}

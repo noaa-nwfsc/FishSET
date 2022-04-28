@@ -2,27 +2,31 @@
 % Please edit documentation in R/select_model_gui.R
 \name{select_model}
 \alias{select_model}
-\title{View and select models}
+\title{View model metrics and record best model interactively}
 \usage{
-select_model(project)
+select_model(project, overwrite_table = FALSE)
 }
 \arguments{
-\item{project}{Name of project}
+\item{project}{String, name of project.}
+
+\item{overwrite_table}{Logical, should best model table be written over? If table exists and 
+value is FALSE, appends new results to existing table. Defaults to FALSE.}
 }
 \description{
-View and select models
+Model metrics are displayed as a table in an R Shiny application.
+  Check boxes next to models allow users to record preferred or best model.
 }
 \details{
-Opens an interactive data table that displays model measures of fit for each model run saved in the model measures of fit table in the fishet_db database. 
-The name of this table should contain the string `out.mod`. 
-Users can delete models from the table and select the preferred model by checking the `selected` box. The table is then saved to the fishet_db database with two new columns added, a TRUE/FALSE selected column
-and the date it was selected. The table is saved with the phrase `modelChosen` in the fishset_db database. The function can also be called indirectly in the 
-\code{\link{discretefish_subroutine}} by specifying 
-the `select.model` parameter as TRUE. The `modelChose` table is not used in any functions. The purpose of this function and the `modelChosen` table is to save a
-reference of the preferred model.
+Opens an interactive data table that displays model measures of fit for each model run saved in the model measures of fit table
+  in the FishSET database. The name of this table should contain the string 'out.mod'. Users can delete models from the table and select the
+  preferred model by checking the \code{"selected"} box. The table is then saved to the FishSET database with two new columns added, a TRUE/FALSE
+  selected column and the date it was selected. The table is saved with the phrase 'modelChosen' in the FishSET database. The function can
+  also be called indirectly in the \code{\link{discretefish_subroutine}} by specifying the \code{select.model} argument as TRUE.
+  The 'modelChosen' table is not used in any functions. The purpose of this function and the 'modelChosen' table is to save a reference of the preferred model.
 }
 \examples{
 \dontrun{
-select_model('pollockmodelfit', overwrite.table=FALSE)
+select_model("pollock", overwrite_table = FALSE)
 }
+
 }

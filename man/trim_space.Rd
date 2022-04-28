@@ -23,3 +23,4 @@ trim_space(
 \description{
 trim space function
 }
+\keyword{internal}

@@ -4,7 +4,16 @@
 \alias{agg_helper}
 \title{Aggregating function}
 \usage{
-agg_helper(dataset, value, period = NULL, group = NULL, fun = "sum")
+agg_helper(
+  dataset,
+  value,
+  period = NULL,
+  group = NULL,
+  within_group = NULL,
+  fun = "sum",
+  count = FALSE,
+  format_tab = "decimal"
+)
 }
 \arguments{
 \item{dataset}{`MainDataTable` to aggregate.}
@@ -15,9 +24,20 @@ agg_helper(dataset, value, period = NULL, group = NULL, fun = "sum")
 
 \item{group}{String, name of grouping variable(s) to aggregate by.}
 
-\item{fun}{String, function name to aggregate by. Also accepts anonymous functions.}
+\item{within_group}{String, name of grouping variables(s) for calculating
+within group percentages. \code{fun = "percent"} required.}
+
+\item{fun}{String, function name to aggregate by. Also accepts anonymous functions.
+To calculate percentage, set \code{fun = "percent"}; this will return the 
+percent of total when \code{within_group = NULL}.}
+
+\item{count}{Logical, if TRUE then returns the number of observations by
+\code{period} and/or \code{group}.}
+
+\item{format_tab}{String. Options include \code{"decimal"} (default), 
+\code{"scientific"}, and \code{"PrettyNum"} (rounds to two decimal places
+  and uses commas).}
 }
 \description{
 Aggregating function
 }
-\keyword{internal}

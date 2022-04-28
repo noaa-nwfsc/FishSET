@@ -2,38 +2,61 @@
 % Please edit documentation in R/temp_obs_table.R
 \name{temp_obs_table}
 \alias{temp_obs_table}
-\title{Table of observations by year, month, and zone}
+\title{Number of observations by temporal unit}
 \usage{
-temp_obs_table(dat, gridfile, x, lon.grid, lat.grid, lon.dat, lat.dat, cat)
+temp_obs_table(
+  dat,
+  project,
+  x,
+  zoneid = NULL,
+  spat = NULL,
+  lon.dat = NULL,
+  lat.dat = NULL,
+  cat = NULL,
+  lon.spat = NULL,
+  lat.spat = NULL
+)
 }
 \arguments{
-\item{dat}{Main data frame containing data on hauls or trips. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips. 
+Table in FishSET database contains the string 'MainDataTable'.}
 
-\item{gridfile}{Spatial data. Shape, json, and csv formats are supported.}
+\item{project}{String, name of project.}
 
-\item{x}{Column in data containing date variable}
+\item{x}{Variable in \code{dat} containing date variable.}
 
-\item{lon.grid}{Column containing longitude data in gridfile.}
+\item{zoneid}{Variable in \code{dat} that identifies the individual zones or areas. Defaults to NULL. Define if 
+the name of the zone identifier variable is not `ZoneID`.}
 
-\item{lat.grid}{lColumn containing latitude data in gridfile.}
+\item{spat}{Spatial data containing information on fishery management or
+regulatory zones. Shape, json, geojson, and csv formats are supported. Required if \code{zoneid} does not exist in \code{dat}.}
 
-\item{lon.dat}{Column containing longitude data in main data frame.}
+\item{lon.dat}{Longitude variable in \code{dat}. Required if \code{zoneid} does not exist in \code{dat}.}
 
-\item{lat.dat}{Column containing latitude data in main data frame.}
+\item{lat.dat}{Latitude variable in \code{dat}. Required if \code{zoneid} does not exist in \code{dat}.}
 
-\item{cat}{Column in gridfile that identifies the individual areas or zones. If gridfile is class sf, `cat` should be name of list containing information on zones.}
+\item{cat}{Variable or list in \code{spat} that identifies the individual areas or zones. If \code{spat}
+is class sf, \code{cat} should be name of list containing information on zones. Required if \code{zoneid} does not exist in \code{dat}.}
+
+\item{lon.spat}{Variable or list from \code{spat} containing longitude data. Required if \code{zoneid} does not
+exist in \code{dat} and \code{spat} is a csv file. Leave as NULL if \code{spat} is a shape or json file.}
+
+\item{lat.spat}{Variable or list from \code{spat} containing latitude data. Required if \code{zoneid} does not exist in \code{dat}
+and \code{spat} is a csv file. Leave as NULL if \code{spat} is a shape or json file.}
 }
 \description{
-Table of observations by year, month, and zone
+View the number of observations by year, month, and zone in table format
 }
 \details{
-Prints tables displaying the number of observations by year, month, and zone. The assignment_column function is called to assign observations to zones. 
-Use this function before calling the create_expectations function to inform choices in appropriate window size for analysis.
+Prints tables displaying the number of observations by year, month, and zone. \code{\link{assignment_column}} is called
+to assign observations to zones if \code{zoneid} does not exist in \code{dat}. Output is not saved.
 }
 \examples{
 \dontrun{
-temp_obs_table('pollockMainDataTable', gridfile=map2, x="DATE_FISHING_BEGAN", 
-                lon.grid="", lat.grid="", lon.dat="LonLat_START_LON", 
-                lat.dat="LonLat_START_LAT", cat="NMFS_AREA")
+temp_obs_table(pollockMainDataTable, spat = map2, x = "DATE_FISHING_BEGAN",
+  lon.dat = "LonLat_START_LON", lat.dat = "LonLat_START_LAT", cat = "NMFS_AREA",
+  lon.spat = "", lat.spat = ""
+  )
 }
+
 }

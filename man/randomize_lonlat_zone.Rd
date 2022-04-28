@@ -32,7 +32,7 @@ This is one of the FishSET confidentiality functions. It replaces
 }
 \examples{
 \dontrun{
-jitter_lonlat_zone(pollockMainDataTable, spatdat, 
+randomize_lonlat_zone(pollockMainDataTable, "pollock", spatdat, 
                    lon = "LonLat_START_LON", lat = "LonLat_START_LAT",
                    zone = "NMFS_AREA")
 }

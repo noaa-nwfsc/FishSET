@@ -2,45 +2,83 @@
 % Please edit documentation in R/create_variables.R
 \name{create_dist_between}
 \alias{create_dist_between}
-\title{Distance between two points}
+\title{Interactive application to create distance between points variable}
 \usage{
 create_dist_between(
   dat,
+  project,
   start,
   end,
-  units = c("miles", "meters", "km", "midpoint")
+  units = c("miles", "meters", "km", "midpoint"),
+  zoneid = NULL,
+  name = "distBetween"
 )
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data frame over which to apply function.
+Table in FishSET database should contain the string `MainDataTable`.}
 
-\item{start}{Starting location. Should be a port, lat/long location, or the centroid of zonal assignment. If port is desired, start should be the vector name containing the port name. Latitude and longitude for the port are extracted from the port table. If a lat, long location is desired then start should be specified as c(name of lon vector, name of lat vector). The order must be lon, lat. If the center point of the fishing zone or area is to be used then start should be 'centroid'.}
+\item{project}{Project name.}
 
-\item{end}{Ending location. Should be a port, lat/long location, or the centroid of the fishing zone or area. If port is desired, end should be the vector name containing the port name. Latitude and longitude for the port are extracted from the port table. If a lat, long location is desired then end should be specified as c(name of lat vector, name of lon vector). If the center point of the fishing zone or area is to be used then end should be 'centroid'.}
+\item{start, end}{Starting and ending location. Should be a port, lat/lon location, or the fishery management zone/area centroid.
+or area. If port is desired, start should be the column name in the \code{dat} containing the port
+Latitude and longitude for the port are extracted from the port table. If a lat/lon location is
+desired then start should be a character string of column names from \code{dat}. The order must be lon,
+lat. If fishery management centroid is used then set \code{start="centroid"} or \code{end="centroid"}.
+\code{\link{find_centroid}} and \code{\link{assignment_column}} will be called to identify the latitude and longitude 
+if the centroid table does not exist in the FishSET database.}
 
-\item{units}{Unit of measurement for calculated distance between start and ending points. Can be in miles, meters, kilometers, or midpoint location}
+\item{units}{Unit of measurement for calculated distance between start and ending points.
+Can be in \code{"miles"}, \code{"meters"}, \code{"kilometers"}, or \code{"midpoint"} location.}
+
+\item{zoneid}{Variable in \code{dat} that identifies the individual zones or areas. Define if exists in \code{dat} and is not names `ZoneID`.}
+
+\item{name}{String, output variable name. Defaults to `distBetween`.}
+}
+\value{
+Returns primary data set with distance between variable.
 }
 \description{
-Creates a vector of distance between two points. The start and end points must be different vectors. If the start or ending points are from a port or the center of a fishing zone or area, then a prompt will appear asking for further parameters to be specified. If the starting or ending points are a port, then latitude and longitude are extracted from the port table stored in the fishset_db database.  In this case, PortTable must be specified.  If the starting or ending points are the center of the fishing zone or area, then the assignment_column function will be called to assign each observation to a zone. The find_centroid function will then be called to determine the centroid of each zone. Distance measurements will be between these centroids.
+Adds a variable for distance between two points to the primary dataset. There are two versions of this
+  function. The difference between the two versions is how additional arguments specific to start and end locations are added.
+  This version requires only five arguments to be specified before running. Additional arguments specific to identifying
+  the lat/lon of start or end points are added through prompts. This function is designed for an interactive session.
+  The \code{\link{create_dist_between_for_gui}} function requires all necessary arguments to be specified before running
+  and is best used in a non-interactive session. Both versions of the distance between function require that the start
+  and end points be different vectors. If the start or ending points are from a port then \code{PortTable} must be specified
+  to obtain lat/lons. If the start or ending points are the center of a fishing zone or area then \code{spat}, \code{lon.dat},
+  \code{lat.dat}, \code{cat}, \code{lon.spat}, and \code{lat.spat} must be specified to obtain latitude and longitude.
 }
 \details{
+Additional arguments. \cr
+Further arguments are required to identify the latitude and longitude of the starting or ending location if \code{start} or \code{end}
+is defined as zonal centroid or a column from primary dataset containing port information, such as departing or embarking port.
+Prompts will appear asking for required arguments. \cr\cr
+Port arguments required:
 \tabular{rlll}{
-portTable: \tab Port table from fishset_db database. Required if start or end is a port vector. \cr
-gridfile: \tab patial data set Can be shape file data frame or list. Required if start or end is centroid. \cr 
-lon.dat: \tab Longitude of points from dataset. Required if start or end is centroid. \cr 
-lat.dat: \tab Latitude of points from dataset. Required if start or end is centroid. \cr
-lon.grid: \tab Longitude of points from gridfile. Required if start or end is centroid. \cr 
-lat.grid: \tab Longitude of points from gridfile. Required if start or end is centroid. \cr
-cat: \tab Variable defining the individual areas or zones. Required if start or end is centroid. \cr 
+portTable: \tab Port table from FishSET database. Required if \code{start} or \code{end} is a port vector.
+}
+\cr\cr
+Centroids arguments required:
+\tabular{rlll}{
+spat: \tab Spatial data set containing information on fishery management or regulatory zones.
+Can be shape file, json, geojson, data frame, or list data frame or list. Required if \code{start} or \code{end} is centroid. \cr
+lon.dat: \tab Longitude variable from \code{dat}. \cr
+lat.dat: \tab Latitude variable from \code{dat}. \cr
+lon.spat: \tab Variable or list from \code{spat} containing longitude data. Required if \code{start} or \code{end} is centroid. Leave as NULL if \code{spat} is a shape or json file. \cr
+lat.spat: \tab Variable or list from \code{spat} containing latitude data. Required if \code{start} or \code{end} is centroid. Leave as NULL if \code{spat} is a shape or json file. \cr
+cat: \tab Variable or list in \code{spat} that identifies the individual areas or zones. If \code{spat} is class sf, \code{cat} should be the name of list containing information on zones.
 }
 }
 \examples{
 \dontrun{
-MainDataTable$DistCentPort <- create_dist_between(MainDataTable,'centroid','EMBARKED_PORT', 
-                                                 units='miles')
-MainDataTable$DistLocLock <- create_dist_between(MainDataTable,c('LonLat_START_LON',
-                  'LonLat_START_LAT'),c('LonLat_END_LON','LonLat_END_LAT'), units='midpoint')
-MainDataTable$DistPortPort <- create_dist_between(MainDataTable,'DISEMBARKED_PORT',
-                                     'EMBARKED_PORT', units='meters')
+pollockMainDataTable <- create_dist_between(pollockMainDataTable, 'pollock', 'centroid',
+ 'EMBARKED_PORT', units = 'miles', 'DistCentPort')
+
+pollockMainDataTable <- create_dist_between(pollockMainDataTable, 'pollock', c('LonLat_START_LON',
+ 'LonLat_START_LAT'), c('LonLat_END_LON','LonLat_END_LAT'), units='midpoint', 'DistLocLock')
+ 
+pollockMainDataTable <- create_dist_between(pollockMainDataTable, 'pollock', 'DISEMBARKED_PORT',
+  'EMBARKED_PORT', units='meters', 'DistPortPort')
 }
 }

@@ -2,31 +2,30 @@
 % Please edit documentation in R/data_check.R
 \name{data_check}
 \alias{data_check}
-\title{Guided steps to cleaning data frame}
+\title{Check for common data quality issues}
 \usage{
-data_check(dat, x, dataindex)
+data_check(dat, project, x)
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips. Table in the FishSET database contains the string 'MainDataTable'.}
 
-\item{x}{Column in data frame to check for outliers.}
+\item{project}{String, name of project.}
 
-\item{dataindex}{MainDataTableInfo table from fishet_db database that is associated with the data set. This table contains information on each column of the data frame.
-Must be in quotes if called from the fishset_db database.}
+\item{x}{Variable in \code{dat} to check for outliers.
+Must be in quotes if called from the FishSET database.}
 }
 \description{
-Guided steps to cleaning data frame
+Check primary data for common data quality issues, such as NaNs, NAs, outliers, unique rows, and empty variables.
 }
 \details{
-Prints summary stats for all variable in the main data frame. Checks for NaNs and NAs and prints column names that contain NaNs or NAs.
-Checks for outliers for specified data column. Further actions may be taken to further evaluate and remove NaNs and outliers.
-Checks that all column names in the data frame are unique, whether specialized variables have been identified in the index data set, whether any columns in the data frame are empty, 
-if units are defined and recognized, whether each row is a unique choice occurrence at the haul or trip level, and that data for either lat/long or fishing area are included.
-The function is also called in other functions to check for common issues with data.
+Prints summary stats for all variables in \code{dat}. Prints column names that contain NaNs or NAs. Checks 
+  for outliers for specified variable \code{x}. Checks that all column names are unique, whether any columns in 
+   \code{dat} are empty, whether each row is a unique choice occurrence at the haul or trip level, that data for 
+   either lat/lon or fishing area are included. The function is also called by other functions.
 }
 \examples{
 \dontrun{
-data_check(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', 'MainDataTableInfo')
+data_check(pcodMainDataTable, "OFFICIAL_TOTAL_CATCH_MT")
 }
 
 }

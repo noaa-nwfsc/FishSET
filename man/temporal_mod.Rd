@@ -2,43 +2,73 @@
 % Please edit documentation in R/temporal_mod.R
 \name{temporal_mod}
 \alias{temporal_mod}
-\title{Transform units of a date variable}
+\title{Transform units of date variables}
 \usage{
-temporal_mod(dat, x, define.format)
+temporal_mod(
+  dat,
+  project,
+  x,
+  define.format = NULL,
+  timezone = NULL,
+  name = NULL,
+  log_fun = TRUE,
+  ...
+)
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips.
+Table in FishSET database contains the string 'MainDataTable'.}
 
-\item{x}{Time variable to modify}
+\item{project}{Project name.}
 
-\item{define.format}{Format of temporal data. Format can be user-defined or from pre-defined choices.}
+\item{x}{Time variable to modify from \code{dat}.}
+
+\item{define.format}{Format of temporal data. \code{define.format} should be NULL if converting timezone for \code{x} but not
+  changing format. Format can be user-defined or from pre-defined choices. Format follows \code{\link{as.Date}} format.
+See Details for more information.}
+
+\item{timezone}{String, defaults to NULL. Returns the date-time in the specified time zone. 
+Must be a recognizable timezone, such as "UTC", "America/New_York", "Europe/Amsterdam".}
+
+\item{name}{String, name of created variables. Defaults to `TempMod`.}
+
+\item{log_fun}{Logical, whether to log function call (for internal use).}
+
+\item{...}{Additional arguments. Use \code{tz=''} to specify time zone.}
 }
 \value{
-Variable with modified time units
+Primary data set with new variable added.
 }
 \description{
-Transform units of a date variable
+Creates a new temporal variable by extracting temporal unit, such as year, month, or day
+from a date variable.
 }
 \details{
-Converts a date variable to desired units using \code{\link[base]{as.Date}}. The FishSET date_parse function is 
-also called to ensure the date variable is in a format that can be used by the \code{\link[base]{as.Date}} function.
- `define.format` defines the format that the variable should take on. Examples include `\%Y\%m\%d`, `\%Y-\%m-\%d \%H:\%M:\%S`. Users can define their own format or use one of the predefined ones.
+Converts a date variable to desired timezone or units using \code{\link[base]{as.Date}}. \code{\link{date_parser}} is
+also called to ensure the date variable is in an acceptable format for \code{\link[base]{as.Date}}.
+ \code{define.format} defines the format that the variable should take on. Examples include \code{"\%Y\%m\%d"}, \code{"\%Y-\%m-\%d \%H:\%M:\%S"}.
+   Users can define their own format or use one of the predefined ones. Hours is 0-23. 
+   To return a list of time-zone name in the Olson/IANA database paste \code{OlsonNames()} to the console.
 \itemize{
-Predefined formats
-\item{year: Takes on the format `\%Y` and returns the year.}
-\item{month: Takes on the format `\%Y/\%m` and returns the year and month.}
-\item{day: Takes on the format `\%Y/\%m/\%d` and returns the year, month, and day.}
-\item{hour: Takes on the format `\%Y/\%m/\%d \%H` and returns the year, month, day and hour.}
-\item{minute: Takes on the format `\%Y/\%m/\%d \%H:\%M` and returns the year, month, day, hour, and minute.}
+Predefined formats:
+\item{year: Takes on the format \code{"\%Y"} and returns the year.}
+\item{month: Takes on the format \code{"\%Y/\%m"} and returns the year and month.}
+\item{day: Takes on the format \code{"\%Y/\%m/\%d"} and returns the year, month, and day.}
+\item{hour: Takes on the format \code{"\%Y/\%m/\%d \%H"} and returns the year, month, day and hour.}
+\item{minute: Takes on the format \code{"\%Y/\%m/\%d \%H:\%M"} and returns the year, month, day, hour, and minute.}
 }
 For more information on formats, see \url{https://www.stat.berkeley.edu/~s133/dates.html}.
 }
 \examples{
- 
 \dontrun{
-Date_Landed_YMD <- temporal_mod(MainDataTable, 'DATE_LANDED', define.format = '\%Y\%m\%d') 
-Date_Landed_year <- temporal_mod(MainDataTable, 'DATE_LANDED', define.format = 'year')
+pcodMainDataTable <- temporal_mod(pcodMainDataTable, "pcod", 
+   "DATE_LANDED", define.format = "\%Y\%m\%d")
+pcodMainDataTable <- temporal_mod(pcodMainDataTable, "pcod", 
+   "DATE_LANDED", define.format = "year")
 }
+
+
+# Change to Year, month, day, minutes
 }
 \keyword{Date}
 \keyword{as.Date}

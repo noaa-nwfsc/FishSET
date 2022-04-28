@@ -2,22 +2,20 @@
 % Please edit documentation in R/run_fishset.R
 \name{run_fishset_gui}
 \alias{run_fishset_gui}
-\title{Interactive tool to run FishSET functions 
-Runs functions associated with loading data, exploring data, checking for data quality issues, generating new variables, and basic data analyis function.
-run_fishset_gui}
+\title{Guided user interface for FishSET functions}
 \usage{
 run_fishset_gui()
 }
 \description{
-Interactive tool to run FishSET functions 
-Runs functions associated with loading data, exploring data, checking for data quality issues, generating new variables, and basic data analyis function.
-run_fishset_gui
+Runs functions associated with loading data, exploring data, checking for data quality issues, generating new variables, and basic data analysis function.
 }
 \details{
 Opens an interactive page that allows users to select which functions to run by clicking check boxes.
+Data can be modified and saved. Plot and table output are saved to the output folder. Functions calls are logged in the log file.
 }
 \examples{
 \dontrun{
-run_fishset_gui(pcodMainDataTable, 'pcod')
+run_fishset_gui()
 }
+
 }

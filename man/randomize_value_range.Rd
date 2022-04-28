@@ -2,7 +2,7 @@
 % Please edit documentation in R/create_variables.R
 \name{randomize_value_range}
 \alias{randomize_value_range}
-\title{Randomize value by percentage range}
+\title{Randomize variable value by percentage range}
 \usage{
 randomize_value_range(dat, project, value, perc = NULL)
 }
@@ -18,14 +18,15 @@ database should contain the string `MainDataTable`.}
 Defaults to a range of 0.05 - 0.15 (i.e. 5-15 percent of original value).}
 }
 \description{
-Randomize value by percentage range
+Randomize variable value by percentage range
 }
 \details{
 This is one of the FishSET confidentiality functions. It adjusts a 
-  value by randomly sampling a range of percentages provided in the "perc" argument.
+  value by adding or substracting (chosen at random for each value) a percentage of the value. The percentage is
+  randomly sampled from a range of percentages provided in the "perc" argument.
 }
 \examples{
 \dontrun{
-randomize_value_range(pollockMainDataTable, "LBS_270_POLLOCK_LBS")
+randomize_value_range(pollockMainDataTable, "pollock", "LBS_270_POLLOCK_LBS")
 } 
 }

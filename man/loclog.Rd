@@ -4,7 +4,10 @@
 \alias{loclog}
 \title{Returns the location of the log folder}
 \usage{
-loclog()
+loclog(project)
+}
+\arguments{
+\item{project}{Project name}
 }
 \description{
 Returns the location of the log folder
@@ -14,8 +17,7 @@ if loc2 is not in the working environment, then the default location is use
 }
 \examples{
 \dontrun{
-loclog() # will return log folder location within the fishset package
-loc2 <- getwd()
-loclog() #will return log folder location as within the working directory
+loclog('pollock') # will return log folder location for project pollock within the fishset package
 }
 }
+\keyword{internal}

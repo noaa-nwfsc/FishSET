@@ -4,7 +4,7 @@
 \alias{date_parser}
 \title{Parse date variable}
 \usage{
-date_parser(dates)
+date_parser(dates, args = NULL)
 }
 \arguments{
 \item{dates}{Variable containing dates}
@@ -12,3 +12,4 @@ date_parser(dates)
 \description{
 Parse date variable
 }
+\keyword{internal}

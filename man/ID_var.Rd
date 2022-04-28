@@ -2,28 +2,57 @@
 % Please edit documentation in R/ID_var.R
 \name{ID_var}
 \alias{ID_var}
-\title{Create ID variable from one or more variables}
+\title{Create ID variable}
 \usage{
-ID_var(dat, newID, ...)
+ID_var(
+  dat,
+  project,
+  vars,
+  name = NULL,
+  type = "string",
+  drop = FALSE,
+  sep = "_",
+  log_fun = TRUE
+)
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips.
+Table in FishSET database contains the string `MainDataTable`.}
 
-\item{newID}{name of new ID column}
+\item{project}{Project name.}
 
-\item{...}{Column(s) in main data frame that define unique observations.}
+\item{vars}{Character string, additional column(s) in \code{dat} that define unique observations.}
+
+\item{name}{String, name of new ID column.}
+
+\item{type}{String, the class type of the new ID column. Choices are `string`` or `integar`.
+`string` returns a character vector where each column in \code{vars} 
+is combined and separated by \code{sep}. 
+`integer` returns an integer vector where each value corresponds to a unique
+group in \code{vars}.}
+
+\item{drop}{Logical, whether to drop columns in \code{vars}.}
+
+\item{sep}{Symbol used to combined variables.}
+
+\item{log_fun}{Logical, whether to log function call (for internal use).}
 }
 \value{
-Data frame with `newID` ID variable included.
+Returns the `MainDataTable` with the ID variable included.
 }
 \description{
 Create ID variable from one or more variables
 }
 \details{
-Function is used to create a variable that indicates distinct hauls or trips.
+ID variable can be based on a single or multiple variables.
+ Use \code{sep = TRUE} if dropping variables that create the ID variable.
 }
 \examples{
 \dontrun{
-dat <- ID_var(MainDataTable, newID='PermitID','GEAR_TYPE','TRIP_SEQ')
+pcodMainDataTable <- ID_var(pcodMainDataTable, "pcod", name = "PermitID", 
+        vars = c("GEAR_TYPE", "TRIP_SEQ"), type = 'integar')
+pcodMainDataTable <- ID_var(pcodMainDataTable, "pcod", name = "PermitID", 
+        vars = c("GEAR_TYPE", "TRIP_SEQ"), type = 'string', sep="_")
 }
+
 }

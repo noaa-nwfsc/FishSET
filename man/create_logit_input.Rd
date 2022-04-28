@@ -2,8 +2,7 @@
 % Please edit documentation in R/create_logit_input.R
 \name{create_logit_input}
 \alias{create_logit_input}
-\title{create_logit_input
-Creates a data matrix that is consistent with the built in model forms}
+\title{Creates a data matrix consistent with built-in model forms}
 \usage{
 create_logit_input(choice)
 }
@@ -14,9 +13,9 @@ create_logit_input(choice)
 dataCompile - a data matrix
 }
 \description{
-create_logit_input
-Creates a data matrix that is consistent with the built in model forms
+Creates a data matrix consistent with built-in model forms
 }
 \details{
 Called in the discrete_fish_subroutine function
 }
+\keyword{internal}
