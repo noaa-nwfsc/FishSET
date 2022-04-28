@@ -12,3 +12,4 @@ find_original_name(fun)
 \description{
 find original name
 }
+\keyword{internal}

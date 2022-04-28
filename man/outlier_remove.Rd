@@ -2,41 +2,63 @@
 % Please edit documentation in R/outlier_check.R
 \name{outlier_remove}
 \alias{outlier_remove}
-\title{Evaluate and edit outliers from variable}
+\title{Remove outliers from data table}
 \usage{
-outlier_remove(dat, x, dat.remove = "none", remove = T, over_write = FALSE)
+outlier_remove(
+  dat,
+  project,
+  x,
+  dat.remove = "none",
+  sd_val = NULL,
+  over_write = FALSE
+)
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips.
+Table in the FishSET database contains the string 'MainDataTable'.}
 
-\item{x}{Column in data frame containing potential outliers.}
+\item{project}{Project name.}
 
-\item{dat.remove}{Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD}
+\item{x}{Variable in \code{dat} containing potential outliers.}
 
-\item{remove}{Save data with outliers removed. If TRUE, the revised data table, with values removed outside the `dat.remove` expression, is returned.}
+\item{dat.remove}{Defines measure to subset the data. 
+Users can use the predefined values (see below) or user-defined standard deviations from the mean.
+ For user-defined values, \code{dat.remove} should be a numeric value. For example, \code{dat.remove=6} 
+ would would result in value outside 6SD from the mean being class as outliers. 
+ User-defined standard deviations from the mean can also be applied using \code{sd_val}.
+ Predefined choices: 
+ \code{"none"}, \code{"5_95_quant"}, \code{"25_75_quant"}, \code{"mean_2SD"}, 
+ \code{"median_2SD"}, \code{"mean_3SD"}, \code{"median_3SD"}.}
 
-\item{over_write}{Save over previous file}
+\item{sd_val}{Optional. Number of standard deviations from mean defining outliers. 
+Example, \code{sd_val=6} would mean values outside +/- 6 SD from the mean would be outliers.}
+
+\item{over_write}{Logical, If TRUE, saves data over previously saved data 
+table in the FishSET database.}
 }
 \value{
-Returns the modified dataframe. MOdified dataframe will be saved to fishset_db database.
+Returns the modified primary dataset. Modified dataset will be saved 
+  to the FishSET database.
 }
 \description{
-Evaluate and edit outliers from variable
+Remove outliers based on outlier measure.
 }
 \details{
-The dat.remove choices are
+The \code{dat.remove} choices are:
  \itemize{
- \item{none: No data points are removed}
- \item{5_95_quant: Removes data points outside the 5th and 95th quantiles}
+ \item{numeric value: Remove data points outside +/- `x`SD of the mean}
+ \item{none:        No data points are removed}
+ \item{5_95_quant:  Removes data points outside the 5th and 95th quantiles}
  \item{25_75_quant: Removes data points outside the 25th and 75th quantiles}
- \item{mean_2SD: Removes data points outside +/- 2SD of the mean}
- \item{median_2SD: Removes data points outside +/- 2SD of the median}
- \item{mean_3SD: Removes data points outside +/- 3SD of the mean}
- \item{median_3SD: Removes data points outside +/- 3SD of the median}
+ \item{mean_2SD:    Removes data points outside +/- 2SD of the mean}
+ \item{median_2SD:  Removes data points outside +/- 2SD of the median}
+ \item{mean_3SD:    Removes data points outside +/- 3SD of the mean}
+ \item{median_3SD:  Removes data points outside +/- 3SD of the median}
  }
 }
 \examples{
 \dontrun{
-MainDataTable <- outlier_remove(MainDataTable, 'dist', dat.remove='mean_2SD', save.output=TRUE)
+pollockMainDataTable <- outlier_remove(pollockMainDataTable, 'pollock', 'dist', 
+   dat.remove = 'mean_2SD', save.output = TRUE)
 }
 }

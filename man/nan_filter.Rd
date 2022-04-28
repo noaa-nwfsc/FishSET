@@ -2,39 +2,57 @@
 % Please edit documentation in R/nan_filter.R
 \name{nan_filter}
 \alias{nan_filter}
-\title{Filters NaN's from data frame}
+\title{Remove NaNs}
 \usage{
-nan_filter(dat, x, replace = F, remove = F, rep.value = NA, over_write = FALSE)
+nan_filter(
+  dat,
+  project,
+  x = NULL,
+  replace = FALSE,
+  remove = FALSE,
+  rep.value = NA,
+  over_write = FALSE
+)
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips. Table in the FishSET database contains the string 'MainDataTable'.}
 
-\item{x}{Column(s) in data framce in which to remove or replace NaNs. If multiple columns are passed use x=c().}
+\item{project}{Project name.}
 
-\item{replace}{TRUE/FALSE Replace NaNs in a vector? Defaults to FALSE.}
+\item{x}{Character string of variables to remove or replace NaNs.}
 
-\item{remove}{TRUE/FALSE Remove all remove the entire row of the dataframe where NaN is present in a specified column? Defaults to FALSE.}
+\item{replace}{Logical, If TRUE, NaNs are replaced. Defaults to FALSE.}
+
+\item{remove}{Logical, if TRUE, removes the entire row of the dataset where NaN is present. Defaults to FALSE.}
 
 \item{rep.value}{Value to replace all NaNs in a column. Defaults to the mean value of the column.}
 
-\item{over_write}{Over_write modified data set in fishset_db database?}
+\item{over_write}{Logical, If TRUE, saves data over previously saved data table in the FishSET database.}
 }
 \value{
-Returns the modified data frame
+Returns the modified primary dataset.
 }
 \description{
-Filters NaN's from data frame
+Remove or replace NaNs in primary dataset.
 }
 \details{
-Replaces nans in the data column with the chosen value or removes rows containing NaNs. Modified data frame saved to fishset_db database.
+To check for NaNs across \code{dat} run the function specifying only \code{dat} (\code{nan_filter(dataset)}). 
+The function will return a statement of which variables, if any, contain NaNs. 
+To remove NaNs, use \code{remove = TRUE}. All rows containing NAs in \code{x} will be removed from \code{dat}. 
+To replace NaNs, use \code{replace = TRUE}. If \code{replace} is FALSE and \code{rep.value} is not defined, 
+then NaNs are replaced with mean value. The modified dataset will be returned if \code{replace=TRUE} or 
+\code{remove=TRUE}. Save the modified data table to the FishSET database by setting \code{over_write = TRUE)}.
 }
 \examples{
 \dontrun{
-nan_identify(MainDataTable)
-mod.dat <-nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT') 
-mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T) 
-mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T, rep.value=0) 
-mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', remove=T) 
+nan_identify(pcodMainDataTable)
+mod.dat <- nan_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT')
+mod.dat <- nan_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT', 
+  replace=TRUE)
+mod.dat <- nan_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT',
+    replace=TRUE, rep.value=0)
+mod.dat <- nan_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT', 
+  remove=TRUE)
 }
 }
 \keyword{NaN}

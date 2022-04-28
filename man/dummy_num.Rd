@@ -2,35 +2,54 @@
 % Please edit documentation in R/create_variables.R
 \name{dummy_num}
 \alias{dummy_num}
-\title{Create a dummy variable based on selected values}
+\title{Create a binary vector from numeric, date, and character or factor vectors.}
 \usage{
-dummy_num(dat, var, value, opts = "more_less", name = "dummy_num")
+dummy_num(dat, project, var, value, opts = "more_less", name = "dummy_num")
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips.
+Table in the FishSET database contains the string 'MainDataTable'.}
 
-\item{var}{Variable in data frame to create dummy variable off of}
+\item{project}{Project name.}
 
-\item{value}{The set value will depend whether the data is a date, facotr, or numeric. If date, value should be a year, if factor, value should be a level
-within the variable, if number value should be a single number or range of numbers [use c(1,5)]}
+\item{var}{Variable in \code{dat} to create dummy variable from.}
 
-\item{opts}{Choices are x_y and more_less. x_y sets the selected year, factor, or numeric value (single or range) to 0 and all other values to 1.
-more_less sets sets values before the set year or numberic value to 0 and all values greater than the year or value to 1. 
-Default is set to 'more_less'.}
+\item{value}{String, value to set dummy variable by. If \code{var} is a date, value should be a year,
+If \code{var} is a factor, value should be a factor level. If \code{var} is numeric, value should be a single
+number or range of numbers [use c(1,5)].}
 
-\item{name}{Name of created dummy variable. Used in the logging function to reproduce work flow. Defaults to name of the function if not defined.}
+\item{opts}{String, how dummy variable should be defined. Choices are \code{"x_y"} and \code{"more_less’"}. For \code{"x_y"}, each
+element of \code{var} is set to 1 if the element matches \code{value}, otherwise 0.
+For \code{"more_less"}, each element of \code{var} less than \code{value} is set to 0 and all elements greater than
+\code{value} set to 1. If \code{var} is a factor, then elements that match value will be set to 1 and all other
+elements set to 0. Default is set to \code{"more_less"}.}
+
+\item{name}{String, name of created dummy variable. Defaults to name of the function if not defined.}
+}
+\value{
+Returns primary dataset with dummy variable added.
 }
 \description{
-Create a dummy variable based on selected values
+Create a binary vector from numeric, date, and character or factor vectors.
 }
 \details{
-This function creates a dummy variable. How the dummy variable is created depends upon whether the variable the dummy variable should be created
-from is a date, factor, or numeric variable. 
-For date variables, the dummy variable is defined by a date (year) and may be either this year versus all other years (x_y) or before vs after this year (more_less).
-Use this function to create a variable defining whether a not policy action had been implemented. 
-For example, to create an ammendment 80 variable you would type: `dummy_num('MainDataTable', 'Haul_date', 2008, 'more_less', 'ammend80')` 
-For factor variables, the only option is to compare selected levels against all others.
-For example, to set a variable specifying whether fishers targeted pollock or something else type: `dummy_num('MainDataTable', 'GF_TARGET_FT', c('Pollock - bottom', 'Pollock - midwater'), 'x_y', 'pollock_target')`
-For numeric variables, you can set a single value or a range of continuous values and contrast either the selected value(s) against all others (x_y) or less than the 
-selected value versus more than the selected value (more_less). For more_less, the mean is used as the critical value is a range of values is proviced.
+For date variables, the dummy variable is defined by a date (year) and may be either year \code{x} versus all
+  other years (\code{"x_y"}) or before vs after year \code{x} (\code{"more_less"}). Use this function to create a variable defining whether
+  or not a policy action had been implemented. \cr
+  Example: before vs. after a 2008 amendment: \cr
+  \code{dummy_num('pollockMainDataTable', 'Haul_date', 2008, 'more_less', 'amend08')} \cr\cr
+
+ For factor variables, both choices in \code{opts} compare selected factor level(s) against all other factor levels.\cr
+ Example: Fishers targeting pollock vs. another species:  \cr
+ \code{dummy_num('pollockMainDataTable', 'GF_TARGET_FT', c('Pollock - bottom', 'Pollock - midwater'), 'x_y', 'pollock_target')}  \cr\cr
+
+ For numeric variables, \code{value} can be a single number or a range of numbers. The dummy variable is the
+ selected value(s) against all others (\code{x_y}) or less than the selected value versus more than the selected value
+ (\code{more_less}). For \code{more_less}, the mean is used as the critical value if a range of values is provided.
+}
+\examples{
+\dontrun{
+pollockMainDataTable <- dummy_num(pollockMainDataTable, 'pollock', 'Haul_date', 2008, 
+  'more_less', 'amend80')
+}
 }

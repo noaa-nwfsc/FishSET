@@ -2,23 +2,26 @@
 % Please edit documentation in R/report.R
 \name{pull_output}
 \alias{pull_output}
-\title{Retrieve output file name by project, function, and type.}
+\title{Retrieve output file name by project, function, and type}
 \usage{
-pull_output(project, fun, date = NULL, type = "plot")
+pull_output(project, fun = NULL, date = NULL, type = "plot", conf = TRUE)
 }
 \arguments{
 \item{project}{Name of project}
 
 \item{fun}{Name of function.}
 
-\item{date}{Output file date in "%Y-%m-%d" format to retrieve. If \code{NULL} 
+\item{date}{Output file date in "%Y-%m-%d" format to retrieve. If \code{NULL}
 the most recent output file is pulled.}
 
 \item{type}{Whether to return the \code{"plot"} (.png), \code{"table"} (.csv),
-or \code{"all"} files matching the project name, function, and date.}
+"notes" (.txt) or \code{"all"} files matching the project name, function, and date.}
+
+\item{conf}{Logical, whether to return suppressed confidential data. 
+Unsuppressed output will be pulled if suppressed output is not available.}
 }
 \description{
-Retrieve output file name by project, function, and type.
+Retrieve output file name by project, function, and type
 }
 \examples{
 \dontrun{

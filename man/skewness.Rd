@@ -14,3 +14,4 @@ skewness(x, na.rm = FALSE)
 \description{
 Calculate skewness
 }
+\keyword{internal}

@@ -2,37 +2,48 @@
 % Please edit documentation in R/data_parser.R
 \name{write_dat}
 \alias{write_dat}
-\title{Write a dataset to local file}
+\title{Write a data table to local file directory}
 \usage{
-write_dat(dat, file, file_type = "csv", project)
+write_dat(dat, project, path = NULL, file_type = "csv", ...)
 }
 \arguments{
 \item{dat}{Name of data frame in working environment to save to file.}
 
-\item{file}{String, file or connection to write to.}
+\item{project}{String, project name.}
+
+\item{path}{String, path or connection to write to. If left empty, the file will be written to the dat folder in the project directory.}
 
 \item{file_type}{String, the type of file to write to. Options include \code{"csv"},
 \code{"txt"} (tab-separated text file), \code{"xlsx"} (excel), \code{"rdata"}, \code{"json"}, 
 \code{"stata"}, \code{"spss"},
 \code{"sas"}, and \code{"matlab"}.}
 
-\item{project}{String, project name.}
-
 \item{...}{Additional arguments passed to writing function. See "details" for 
 the list of functions.}
 }
 \description{
-Write a dataset to local file
+Write a data table to local file directory
 }
 \details{
-See \code{\link[utils]{write.csv}} for saving csv files, \code{\link[utils]{write.table}}
- for tab-separated files, \code{\link[base]{save}} for R data files, \code{\link[openxlsx]{write.xlsx}},
- \code{\link[jsonlite]{read_json}} for json files, \code{\link[haven]{write_dta}} 
- for Stata files, \code{\link[haven]{write_sav}} for SPSS files, \code{\link[haven]{write_sas}}
- for SAS files, and \code{\link[R.matlab]{writeMat}} for Matlab files.
+Leave \code{path = NULL} to save \code{dat} to the \code{data} folder in the \code{project} directory
+See \code{\link[utils]{write.table}}  for csv and tab-separated files, 
+   \code{\link[base]{save}} for R data files, 
+   \code{\link[openxlsx]{write.xlsx}},
+   \code{\link[jsonlite]{read_json}} for json files, 
+   \code{\link[sf]{st_write}} for geojson files,
+   \code{\link[haven]{read_dta}} for Stata files, 
+   \code{\link[haven]{read_spss}} for SPSS files, 
+   \code{\link[haven]{read_sas}} for SAS files, and 
+   \code{\link[R.matlab]{writeMat}} for Matlab files, and
+   \code{\link[sf]{st_write}} for shape files.
 }
 \examples{
 \dontrun{
-write_dat(pollockMainDataTable, file = "C://data/pollock_dataset.csv", type = "csv", "pollock")
+# Save to the default data folder in project directory
+   write_dat(pollockMainDataTable, type = "csv", "pollock")
+# Save to defined directory location
+   write_dat(pollockMainDataTable, path = "C://data/pollock_dataset.csv", type = "csv", "pollock")
+#Save shape file
+   write_date(ST6, path = "C://data//ST6.shp", type="shp", project='Pollock')
 }
 }

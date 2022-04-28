@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="ESSR" />
+
+<meta name="date" content="2022-04-19" />
+
+<title>Introduction to FishSET</title>
+
+<script src="data:application/javascript;base64,Ly8gUGFuZG9jIDIuOSBhZGRzIGF0dHJpYnV0ZXMgb24gYm90aCBoZWFkZXIgYW5kIGRpdi4gV2UgcmVtb3ZlIHRoZSBmb3JtZXIgKHRvCi8vIGJlIGNvbXBhdGlibGUgd2l0aCB0aGUgYmVoYXZpb3Igb2YgUGFuZG9jIDwgMi44KS4KZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcignRE9NQ29udGVudExvYWRlZCcsIGZ1bmN0aW9uKGUpIHsKICB2YXIgaHMgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCJkaXYuc2VjdGlvbltjbGFzcyo9J2xldmVsJ10gPiA6Zmlyc3QtY2hpbGQiKTsKICB2YXIgaSwgaCwgYTsKICBmb3IgKGkgPSAwOyBpIDwgaHMubGVuZ3RoOyBpKyspIHsKICAgIGggPSBoc1tpXTsKICAgIGlmICghL15oWzEtNl0kL2kudGVzdChoLnRhZ05hbWUpKSBjb250aW51ZTsgIC8vIGl0IHNob3VsZCBiZSBhIGhlYWRlciBoMS1oNgogICAgYSA9IGguYXR0cmlidXRlczsKICAgIHdoaWxlIChhLmxlbmd0aCA+IDApIGgucmVtb3ZlQXR0cmlidXRlKGFbMF0ubmFtZSk7CiAgfQp9KTsK"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<link rel="stylesheet" href="data:text/css,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" type="text/css" />
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Introduction to FishSET</h1>
+<h4 class="author">ESSR</h4>
+<h4 class="date">2022-04-19</h4>
+
+
+
+<!--  pdf_document: default -->
+<!--   pdf_document: inst/doc -->
+<p>The Spatial Economics Toolbox for Fisheries (FishSET) is a set of statistical programming and data management tools developed to achieve the following goals:</p>
+<ol style="list-style-type: decimal">
+<li>Standardize data management and organization.</li>
+<li>Provide easily accessible tools to enable location choice models to provide input to the management of key fisheries.</li>
+<li>Organize statistical code so that predictions of fisher behavior developed by the field’s leading innovators can be incorporated and transparent to all users.</li>
+</ol>
+<p>The FishSET package provides functions for:</p>
+<ul>
+<li>Data management</li>
+<li>Data analysis</li>
+<li>Mapping</li>
+<li>Statistical modeling</li>
+<li>Reproducibility</li>
+</ul>
+<p>FishSET is designed for reproducibility.</p>
+<ul>
+<li>Data is stored in the <em>fishset_db</em> SQLite database, the FishSET database.</li>
+<li>Function calls are logged in a <em>Logs</em> folder.</li>
+<li>Output (plots, table, messages, notes) are saved in an <em>Output</em> folder.</li>
+<li>The FishSET database and folders are located in the FishSET package directory.</li>
+</ul>
+<p>This vignette contains a brief description of the FishSET functions and assumes familiarity with R. A more detailed manual is available at the <strong><em><a href="WEBSITE%20URL">FishSET GitHub site</a></em></strong>.</p>
+<div id="getting-started" class="section level2">
+<h2>Getting started</h2>
+<p>To use FishSET you first need to install devtools and then install the FishSET R package. FishSET is provided as a tarball (tar.gz) that can be installed directly from the FishSet GitHUB site or from a locally saved file location.</p>
+<dl>
+<dt>Install devtools (required to install FishSET)</dt>
+<dd><code>install.packages(&quot;devtools&quot;)</code><br />
+<code>library(devtools)</code>
+</dd>
+<dt>Install FishSET</dt>
+<dd>To install FishSET from GitHUB<br />
+<code>devtools::install_github(&quot;name/FishSET&quot;)</code>
+</dd>
+<dd><p>To install FishSET from local file directory <code>devtools::install_local(&quot;PATH/TO/Directory/Containing/FishSET&quot;)</code><br />
+<code>library(FishSET)</code></p>
+</dd>
+</dl>
+<p>Dependencies should be automatically installed.</p>
+<p>##Using FishSET FishSET functions can be called in the R console or through the FishSET GUI. This vignette focuses on calling functions in the R console. The FishSET GUI is detailed in the <em>FishSET GUI</em> vignette and FishSET Help Manual.</p>
+</div>
+<div id="project" class="section level2">
+<h2>Project</h2>
+<p>A project argument is required to distinguish data and output between distinct analyses. It is used to obtain data tables from FishSET database, log function calls, and extract the correct plots, tables, and notes when writing a report. The <code>project</code> argument can be any string.</p>
+</div>
+<div id="data" class="section level2">
+<h2>Data</h2>
+<p>FishSET uses five data types.</p>
+<table>
+<colgroup>
+<col width="20%" />
+<col width="79%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>File Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Primary data</td>
+<td>Required. Contains the main data for the model.</td>
+</tr>
+<tr class="even">
+<td>Port data</td>
+<td>Required. Contains latitude and longitude locations of ports.</td>
+</tr>
+<tr class="odd">
+<td>Gridded data</td>
+<td>Optional. Contains additional data that varies by two dimensions.</td>
+</tr>
+<tr class="even">
+<td>Auxiliary data</td>
+<td>Optional. Contains additional data to link to the primary data.</td>
+</tr>
+<tr class="odd">
+<td>Spatial data</td>
+<td>Required. File defining boundaries of fishery or regulatory zones.</td>
+</tr>
+</tbody>
+</table>
+<p>All optional data files must be linkable to the primary data file.<br />
+The spatial data file cannot be saved to the FishSET database.</p>
+<p>FishSET will accept several data formats including:</p>
+<ul>
+<li>csv files</li>
+<li>geojson files</li>
+<li>json files</li>
+<li>matlab files</li>
+<li>R files<br />
+</li>
+<li>shape files</li>
+<li>spss files</li>
+<li>stata files</li>
+<li>txt files</li>
+<li>xls/xlsx files</li>
+</ul>
+<p>###Saving to FishSET database All data should be saved to the FishSET database. Doing so ensures that data for a project are stored together.</p>
+<p>The <em>load</em> functions check that the data file can be saved to the FishSET database and, if all checks pass, saves the data file to the FishSET database.</p>
+<p>Functions:</p>
+<pre><code> load_maindata() Primary data file. 
+ load_port()     Port data file. 
+ load_aux ()     Auxiliary data file. 
+ load_grid()     Gridded data file.</code></pre>
+<p>When the primary data is saved, two versions of the data are created, a raw table with the original data and a working table on which all analyses will be conducted. The working table will also be available in the global environment. Revised data can be saved as interim tables in the database along with a “finalized” data table (data table used for models).</p>
+<p>###Reading data into R Data can also be read into R without saving it to the FishSET database. This is necessary for spatial data files, which cannot be saved to the FishSET database. To read data files into the working environment use</p>
+<pre><code> read_dat(x, data.type = NULL, is.map = F, ...). </code></pre>
+<p><code>read_dat()</code> is flexible and will accommodate several data extensions and additional format-specific arguments. It is a wrapper function that calls a file extension-specific function to read in the data. <code>x</code> is the name and path of the dataset to be read in. <code>data.type</code> is optional argument to specify the file extension. If <code>data.type</code> is not specified, the detected data extension in <code>x</code> will be used. <code>is.map</code> is a logical argument specifying if <code>x</code> is a spatial data file. is.map must be set to TRUE if a spatial data file is not in a geojson or shape file. <code>...</code> is used to add additional extension-specific arguments. See function documentation for more details.</p>
+<p>Supported data extensions are:</p>
+<ul>
+<li>csv</li>
+<li>geojson</li>
+<li>json</li>
+<li>mat</li>
+<li>R</li>
+<li>shp</li>
+<li>spss</li>
+<li>dta</li>
+<li>txt</li>
+<li>xls</li>
+<li>xlsx</li>
+</ul>
+<p>###Loading data from FishSET database Data saved to the FishSET database can be reloaded into the global environment using</p>
+<pre><code> load_data(project, name=NULL). </code></pre>
+<p>Specify the project name (<code>project</code>) and, optionally, the table name (<code>name</code>). <code>name</code> is optional and is used to specify a specific dated version of the data table. For example,</p>
+<pre><code> load_data(&quot;pollock&quot;&quot;, name=&quot;pollockMainDataTable20200101&quot;)   </code></pre>
+<p>loads the primary data from project <em>pollock</em> that was saved on January 1st, 2020. If <code>name</code> is NULL, the undated working table is pulled.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="do">##Load in the data from the pollock project</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(FishSET)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">load_data</span>(<span class="st">&quot;pollock&quot;</span>)</span></code></pre></div>
+<p>###Working in the FishSET database<br />
+The functions in this section interface with the FishSET database to display the requested output in the R Console. The functions are wrappers for functions in the <strong>DBI</strong> package. They allow users to focus on the data and not on managing the database or learning SQL.</p>
+<p>Basic functions:</p>
+<pre><code> tables_database()        View list of all tables in the FishSET database.
+ list_MainDataTables()    View list of MainDataTables in FishSET database.
+ list_PortTables()        View list of PortTables in FishSET database.
+ list_logs()              View list of all log files.
+ table_fields(x)          View fields in specified table.
+ table_view(x)            Display specified table.
+ table_exists(x)          Check if table exists in the FishSET database.
+ table_remove(x)          Remove table from the FishSET database.</code></pre>
+<p>Model output files can be viewed in the FishSET database using:</p>
+<pre><code> globalcheck_view(table)  View error output discrete choice models
+ model_out_view(table)    Load discrete choice model output</code></pre>
+<p>###Data management functions Data management functions provide tools for:</p>
+<p>Visualizing the data</p>
+<pre><code> summary_stats()    Table with basic summary statistics.
+ spatial_hist()     Histogram of lat and lon by grouping variable.
+ spatial_summary()  Line plots of selected variable against date and zone.
+ map_plot()         Static map of haul locations.</code></pre>
+<p>Subsetting the data</p>
+<pre><code> select_vars()      Select variables to add back into the working dataset. 
+ add_vars()         Add variables from `select_vars` into primary dataset.</code></pre>
+<p>Checking for outliers</p>
+<pre><code> outlier_table()    Returns table with quantiles for all numeric variables in the data table.
+ outlier_plot()     Returns a plot of the selected variable.
+ outlier_remove()   Returns modified data set where outliers have been removed.</code></pre>
+<p>Checking for NAs and NaNs</p>
+<pre><code> nan_identify()     Checks whether NAs or NaNs are present in any variable.
+ nan_filter()       Returns modified data set where NaNs have been removed or replaced.
+ na_filter()        Returns modified data set where NAs have been removed or replaced.</code></pre>
+<p>Filtering rows of the dataset</p>
+<pre><code> filter_table()     Stores filter functions in a table.     
+ filter_dat()       Apply stored and new filter functions to data.</code></pre>
+<p>Converting lon/lat units</p>
+<pre><code> degree()            Convert lon/lat to decimal format.</code></pre>
+<p>Wrappers for multiple “checking” functions</p>
+<pre><code> data_check()        Wrapper for data quality check functions, including data_verification().
+ data_verification() Checks for unique column names, each row is a unique choice occurrence, etc.
+ check_model_data()  Checks for presence of NAs, NaNs and Inf in model data. Function must be run before models can be developed.</code></pre>
+<p><code>data_check()</code> is the primary function to check for data quality issues in the dataset. The function calls <code>summary_stats</code>, <code>nan_identify</code>, <code>outlier_table</code> and <code>outlier_plot</code>, and <code>data_verification</code>, which contains script to check for unique column names and empty columns, that each row is a unique observation at haul or trip level, and calls the <code>degree</code> function. Use <code>outlier_remove</code>, <code>na_filter</code>, <code>nan_filter</code>, and <code>degree</code> to correct any errors. Empty columns and duplicate rows will be removed.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">#data_check(pollockMainDataTable, &#39;pollock&#39;, &#39;OFFICIAL_TOTAL_CATH_MT&#39;)</span></span></code></pre></div>
+<p><code>check_model_data</code> checks for data quality issues that will result in errors when running models, including NAs, NaNs and INF values in the dataset and that each row is a unique occurrence at the haul or trip level. Run this function before creating the model design file (<code>make_model_design</code>). Even if the data passed the <code>data_check</code> tests, errors may be produced by data modification and data creation functions.</p>
+<p>Use <code>filter_table</code> and <code>filter_dat</code> to subset the data, retaining rows that meet the condition. Define and save, for records and future use, conditions in <code>filter_table</code>. Apply filters with <code>filter_dat</code>.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Data table</th>
+<th>Vector</th>
+<th>FilterFunction</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>MainDataTable</td>
+<td>“PORT_CODE”</td>
+<td>PORT_CODE == 1</td>
+</tr>
+<tr class="even">
+<td>MainDataTable</td>
+<td>“TRIP_START”</td>
+<td>TRIP_START &gt;= 2011-02-01</td>
+</tr>
+<tr class="odd">
+<td>PortDataTable</td>
+<td>“LATITUDE”</td>
+<td>LATITUDE &lt; 57</td>
+</tr>
+</tbody>
+</table>
+<div id="data-transformation-and-derivation-functions" class="section level3">
+<h3>Data transformation and derivation functions</h3>
+<p>Several functions exist that allow users to transform variables or derive new variables and generate specific matrices. These functions are useful to ensure date variables are in the necessary format, to generate rate variables (such as catch/hours fished), calculate more complex variables such as trip distance, and adding variance to confidential data.</p>
+<p>Data transformation</p>
+<pre><code> set_quants()         Coded variable based on the quantiles.
+ group_perc()         Within-group percentage.
+ group_diff()         Within-group lagged difference.   
+ group_cumsum()       Within-group running sum.</code></pre>
+<p>Dummy</p>
+<pre><code> dummy_num()          Vector of TRUE or FALSE, based on condition, the length (rows) of the data. 
+ dummy_matrix()       Matrix with same dimensions at the data set filled with TRUE or FALSE.</code></pre>
+<p>Nominal ID</p>
+<pre><code> ID_var()                Generates a nominal variable to indicate distinct hauls or trips.
+ create_seasonal_ID()    Generates a fishery season identifier (TRUE/FALSE).
+ fleet_table()           Creates and saves a table of fleet conditions for fleet assignment.
+ fleet_assign()          Creates a fleet assignment variable based on saved fleet table.</code></pre>
+<p>Arithmetic</p>
+<pre><code> create_var_num()     Defined arithmetic function of two variables.
+ cpue()               Catch per unit effort.</code></pre>
+<p>Spatial</p>
+<pre><code>assignment_column()   Assign hauls to fishery or regulatory zones.
+create_dist_between() Distance between lon/lat points, port, and/or centroid of fishing zone/area.
+create_mid_haul()     Returns the midpoint location (lon/lat) for each haul.
+create_startingloc()  Returns vector of zone/area at point when choice of where to go next was  
+                      made. Used with logit_correction likelihood.</code></pre>
+<p>Temporal</p>
+<pre><code>temp_mod()            Transform date variable into desired units (year, month, month/day, minutes).
+create_duration()     Duration of time between two temporal variables based on defined time format.</code></pre>
+<p>Trip level</p>
+<pre><code> haul_to_trip()       Collapse the data table from haul to trip.
+ trip_distance()      Summed trip distance defined by start and end ports and hauls in between.
+ trip_length()        Computes trip duration or hauls per trip. </code></pre>
+<p>All functions require that <code>dat</code>, the name of the primary dataset, be specified. Use quotes if the dataset is pulled from FishSET database. Most functions in this section will add a new variable to the primary dataset. The column name of the new variables is defined with <code>name</code>. The column name defaults to the function name if <code>name</code> is not specified. Spatial functions require a spatial dataset.</p>
+<p>###Function details</p>
+<div id="arithmetic" class="section level4">
+<h4>Arithmetic</h4>
+<p><code>create_var_num(dat, x, y, method, name)</code> creates a new numeric variable based on the defined arithmetic expression. <code>x</code> and <code>y</code> are names of numeric variables. <code>method</code> is an arithmetic expression such as addition, subtraction, multiplication, and division.<br />
+<br> <code>cpue(dat, xWeight, xTime, name)</code> creates the catch per unit effort variable. <code>xWeight</code> is the name of the variable containing the catch data as a weight (pounds, tons, metric tons). <code>xTime</code> is the duration of time and must be in weeks, days, hours, or minutes. Use <code>create_duration()</code> to transform a date variable into a duration of time variable. If group-specific cpue is required, cpue must be calculated for each species.</p>
+</div>
+<div id="data-transformation" class="section level4">
+<h4>Data transformation</h4>
+<p><code>group_perc(dat, project, id_group, group, value, name, create_group_ID, drop_total_col)</code> creates a within-group percentage variable using primary (<code>id_group</code>) and secondary (<code>group</code>) groups. <code>value</code> is the name of a numeric variable to be used to calculate percentages. The <code>group</code> percentage is calculated as the sum of <code>value</code> across <code>group</code> (group_total) divided by the sum of <code>value</code> across <code>id_group</code> (total_group). <code>drop_total_col</code> is logical and defines whether or not to add the total_group and group_total variables to the dataset.<br />
+<br> <code>group_diff(dat, project, group, sort_by, value, name, lag, create_group_ID, drop_total_col)</code> creates a group lagged difference variable within groups. <code>value</code>, a numeric variable, is first summed by the variable(s) in <code>group</code>, then the difference within-group is calculated. <code>sort_by</code> is a date variable to order <code>dat</code> by. The “group_total” variable gives the total value by group and can be dropped by setting <code>drop_total_col = TRUE</code>. A group ID column can be created using the variables in <code>group</code> by setting <code>create_group_ID = TRUE</code>.<br />
+<br> <code>group_cumsum(dat, project, group, sort_by, value, name, create_group_ID, drop_total_col)</code> sums <code>value</code> by group, then cumulatively sums within <code>group</code>. For example, a running sum by trip can be made by entering variables that identify unique vessels and trips into <code>group</code> and a numeric variable (such as catch or number of hauls) into <code>value</code>. The group total variable can be dropped by setting <code>drop_total_col = TRUE</code>. A group ID column can be created using the variables in group by setting <code>create_group_ID = TRUE</code>.<br />
+<br> <code>set_quants(dat, x, quant.cat = c(0.2, 0.25, 0.4), custom.quant, name)</code> transform <code>x</code> into a quantile category using pre-defined (<code>quant.cat</code>) or user-defined (<code>custom.quant</code>) quantiles.</p>
+<dl>
+<dt>Predefined quantiles</dt>
+<dd><p>0.1 (0%, 10%, 20%, 30%, 40%, 50%, 60%, 70%, 80%, 90%, 100%)<br />
+0.2 (0%, 20%, 40%, 60%, 80%, 100%)<br />
+0.25 (0%, 25%, 50%, 75%, 100%)<br />
+0.4 (0%, 10%, 50%, 90%, 100%)</p>
+</dd>
+</dl>
+</div>
+<div id="dummy" class="section level4">
+<h4>Dummy</h4>
+<p><code>dummy_num(dat, var, value, opts, name)</code> creates a binary variable contrasting a variable (<code>var</code>) based on a splitting value (<code>value</code>) and splitting rule (<code>opts</code>). The function is used to contrast before/after a policy is implemented or zone closures. <code>value</code> should be a year if <code>var</code> is a date variable, a factor level if <code>var</code> is a factor variable, a single or range of numbers if <code>var</code> is a numeric variable. <code>Opts</code> may be <em>“x_y”</em> or <em>“more_less”</em>. <em>“x_y”</em> sets each element of <code>var</code> to 1 if the element matches <code>value</code>, otherwise 0. For <em>“more_less”</em>, each element of <code>var</code> less than <code>value</code> is set to 0 and all elements greater than <code>value</code> are set to 1. If <code>var</code> is a factor, then elements that match <code>value</code> will be set to 1 and all other elements set to 0. Default is set to <em>“more_less”</em>.<br />
+<br> <code>dummy_matrix(dat, x)</code> creates a dummy matrix of TRUE/FALSE based on values of variable <code>x</code> with dimensions <em>(number of observations in dataset)</em> (number of factors in x)* where each column is a unique factor level of <code>x</code>. Values are TRUE if the value in the column matches the column factor level and FALSE otherwise.</p>
+</div>
+<div id="nominal-id" class="section level4">
+<h4>Nominal ID</h4>
+<p><code>ID_var(dat, vars, name, type, drop)</code> is used to create a haul or trip identifier variable from on or more variables (<code>vars</code>). <code>type</code> is the class type of the new ID column. Choices are <em>“string”</em> and <em>“integer”</em>. <em>“string”</em> returns a character vector where each column in <code>vars</code> is combined and separated with an underscore &quot;_&quot;. <em>“integer”</em> returns an integer vector where each value corresponds to a unique group in <code>vars</code>. Set <code>drop = TRUE</code> to drop <code>vars</code> columns from <code>dat</code>.<br />
+<br> <code>create_seasonal_ID(dat, seasonal.dat, use.location, use.geartype, sp.col, target)</code> uses a table of fishery season dates to create one or more fishery season identifier variables. The function matches fishery season dates provided in <code>seasonal.dat</code> to the first date variable in <code>dat</code>. If fishery season dates vary by location or gear type, set <code>use.location = TRUE</code> and <code>use.geartype = TRUE</code>. Output is a seasonID variable and/or multiple <em>seasonID*fishery</em> variables. The seasonID variable is a vector of fisheries. If a target fishery (<code>target</code>) is not defined, each row is the first observed fishery in <code>seasonal.dat</code> for which the fishery season dates encompasses date in <code>dat</code>. If target fishery is defined, then SeasonID is defined by whether the target fishery is open on the date in <code>dat</code> or a different fishery. The vector is filled with <em>“target”</em> or <em>“other”</em>. <em>SeasonID*fishery</em> variables are a TRUE/FALSE seasonID vector for each fishery (labeled by seasonID and fishery) where TRUE indicates the dates for a given row in the main data table fall within the fishery dates for that fishery.</p>
+</div>
+<div id="spatial" class="section level4">
+<h4>Spatial</h4>
+<p><code>assignment_column(dat, project, gridfile, lon.dat, lat.dat, cat, closest.pt = FALSE, lon.grid = NULL, lat.grid = NULL, hull.polygon = FALSE, epsg = NULL)</code> assigns observations (hauls) to zones. <code>gridfile</code> is the spatial dataset defining zone boundaries, <code>lon.dat</code> and <code>lat.dat</code> are variables in <code>dat</code> used to assign each observation to a zone. <code>cat</code> is a variable or list in <code>gridfile</code> that identifies the individual areas or zones. <code>lon.grid</code> and <code>lat.grid</code>are properties or lists from <code>gridfile</code> containing longitude and latitude data. These data are required if <code>gridfile</code> is not class <em>sf</em>. <code>hull.polygon</code> and <code>closest.pt</code> are logical optional arguments. Set <code>hull.polygon = TRUE</code> if spatial data creating polygons are sparse or irregular. To assign observations that fall outside any zones to the closest zone polygon set <code>closest.pt = TRUE</code>. <code>epsg</code> is the spatial reference system. Specify <a href="http://spatialreference.org"><code>epsg</code></a> if the projected coordinate systems do not match.<br />
+<br> <code>create_dist_between(dat, start, end, units, name)</code> adds a distance between two points variable to <code>dat</code>. <code>start</code> and <code>end</code> locations define how to find the lon/lat of starting and ending locations. Options are a port (specify port variable name), observed latitude and longitude location (specify variable name containing longitude data then latitude data as a character string), or the centroid of the observed fishery zone location (specify ‘centroid’). Distance is returned in the requested <code>units</code> (<em>“miles”, “kilometers”, “midpoint”</em>). Additional arguments may be required, depending upon the <code>start</code> and <code>end</code> arguments. These are added through prompts.</p>
+<dl>
+<dt>Additional arguments</dt>
+<dd><p><em>Port arguments</em><br />
+portTable - Table contains the latitude and longitude of ports.</p>
+</dd>
+<dd><p><em>Centroids arguments</em><br />
+gridfile - Spatial data file.<br />
+lon.dat - Longitude variable from dat.<br />
+lat.dat - Latitude variable from dat.<br />
+lon.grid - Property or variable from gridfile containing longitude data.<br />
+lat.grid - Property or variable from gridfile containing latitude data.<br />
+cat - Property or variable from gridfile that identifies the individual areas or zones.<br />
+<br></p>
+</dd>
+</dl>
+<p><code>create_mid_haul(dat, start=c(&quot;lon&quot;, &quot;lat&quot;), end=c(&quot;lon&quot;, &quot;lat&quot;), name)</code> returns the latitude and longitude of the midpoint location of each haul. Each row of <code>dat</code> must be a unique haul. Requires a <code>start</code> and <code>end</code> point for each observation. <code>start</code> and <code>end</code> must be specified in the order of longitude then latitude.<br />
+<br></p>
+<p><code>create_startingloc(dat, gridfile, portTable, trip_id, haul_order, starting_port, lon.dat, lat.dat, cat, name, lon.grid, lat.grid)</code> creates a variable containing the zone/area location of a vessel when choice of where to fish next was made. This variable is required for the full information model with Dahl’s correction (logit_correction). Unique trips in <code>dat</code> are identified with <code>trip_id</code>. <code>haul_order</code> identifies the order of hauls within <code>trip_id</code>. Generally, the first zone of a trip is the departure port and is identified with <code>starting_port</code>. <code>gridfile</code> and <code>portTable</code> are additional data tables containing information on zone boundaries and port locations, respectively. These two data tables along with <code>lon.dat</code>, <code>lat.dat</code>, <code>cat</code>, <code>lon.grid</code>, and <code>lat.grid</code> are called by the <code>assignment_column()</code> function to assign starting port locations and haul locations to zones. <code>lon.grid</code> and <code>lat.grid</code> are required if <code>gridfile</code> is a data frame or list.</p>
+</div>
+<div id="temporal" class="section level4">
+<h4>Temporal</h4>
+<p><code>temporal_mod(dat, x, define.format, name)</code> extracts a time unit from <code>x</code>, date variable in <code>dat</code>, in the desired format (<code>define.format</code>). The FishSET function <code>date_parser()</code> is first called to convert the date variable into recognized class if required. The <code>as.Date()</code> function from the <a href="https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/as.Date">base package</a> is then called to extract the time in the desired format. <code>define.format</code> can be a predefined format (see below) or <a href="https://www.stat.berkeley.edu/~s133/dates.html">user-defined</a>.</p>
+<p>Predefined formats:</p>
+<pre><code>Value    as.Date format      Output   
+_______________________________________________________________
+year    &quot;%Y&quot;                 year
+month   &quot;%Y/%m&quot;              year and month
+day     &quot;%Y/%m/%d&quot;           year, month, and day
+hour    &quot;%Y/%m/%d %H&quot;        year, month, day and hour
+minute  “%Y/%m/%d %H:%M&quot;     year, month, day, hour, and minute</code></pre>
+<p><br> <code>create_duration(dat, start, end, units=c(&quot;week&quot;, &quot;day&quot;, &quot;hour&quot;, &quot;minute&quot;), name)</code> returns the duration of time, in specified <code>units</code>, between two temporal variables (<code>start</code>, <code>end</code>) in <code>dat</code>. A duration of time variable is required for other functions, such as <code>cpue()</code>.</p>
+</div>
+<div id="trip-level" class="section level4">
+<h4>Trip-level</h4>
+<p><code>haul_to_trip(dat, project, fun.numeric, fun.time, tripID)</code> collapses <code>dat</code> from haul to trip level. Unique trips are identified by <code>tripID</code>. <code>tripID</code> may be one or more variables from <code>dat</code>. <code>fun.numeric</code> and <code>fun.time</code> define how multiple observations for a trip are collapsed. Options are <em>min</em>, <em>mean</em>, <em>max</em>, and <em>sum</em> for numeric variables and <em>min</em>, <em>mean</em>, and <em>max</em> for temporal variables. For variables that are not numeric or dates, the first observation is used.<br />
+<br> <code>create_trip_distance(dat, PortTable, trip_id, starting_port, starting_haul = c(&quot;Lon&quot;, &quot;Lat&quot;), ending_haul = c(&quot;Lon&quot;, &quot;Lat&quot;), ending_port, haul_order, name, a = 6378137, f = 1/298.257223563)</code> sums distance across a trip based on starting and ending ports and hauls in between. Inputs are the trips, ports, and hauls from the primary dataset, and the latitude and longitude of ports from the <code>PortTable</code>. The ellipsoid arguments, <code>a</code> and <code>f</code>, can be changed if an ellipsoid other than WGS84 is appropriate. See the <a href="https://cran.r-project.org/web/packages/geosphere/geosphere.pdf">geosphere R package</a>.<br />
+<br> <code>create_trip_centroid(dat, lon, lat, weight.var, ...)</code> returns the centroid, in longitude and latitude, for each trip. Specify a weighting variable (<code>weight.var</code>) to calculate the weighted centroid. Additional arguments can be added that define unique trips. If no additional arguments are added, each row will be treated as a unique trip.</p>
+</div>
+</div>
+</div>
+<div id="data-exploration-functions" class="section level2">
+<h2>Data Exploration functions</h2>
+<p>Several functions are available for summarizing and visualizing data.</p>
+<p>We group exploratory data functions into 1) basic exploratory analysis - functions exploring the distribution, availability, and variance of data, 2) fleet summaries – functions to view and understand fleets and identify meaningful groupings, and 3) simple analyses - functions to evaluate relationships between variables and identify redundant variables.</p>
+<p>Basic exploratory analysis</p>
+<pre><code>map_kernel()      Spatial kernel density plot.  
+getis_ord_stats() Getis-Ord statistic.  
+morans_stats()    Moran’s I statistic.  
+map_plot()        Static map of haul locations. 
+map_viewer()      Interactive map of haul locations or paths with zone. 
+spatial_summary() View aggregated variable by date and fishing zone.    
+spatial_hist()    Assess spatial variance/clumping of grouping variable.    
+temp_plot()       View distribution of variable over time.  </code></pre>
+<p>Fleet summaries</p>
+<pre><code>vessel_count()    Counts of unique vessels active within a specified period.
+species_catch()   Aggregates total catch for one or more species. 
+weekly_catch()    Calculates weekly catch for one or more species.
+weekly_effort()   Generates the average CPUE by week. 
+density_plot()    Plots the chosen density plot of chosen variable.
+bycatch()         Compares mean CPUE and share (or count) of total catch by time period.
+roll_catch()      Rolling catch (specify window size and summary statistic).    
+trip_length()     View trip duration.   </code></pre>
+<p>Simple analyses</p>
+<pre><code>corr_out()        View the correlation coefficient between numeric variables.   
+xy_plot()         Asses fitted relationship between two variables.  </code></pre>
+<p>All tables and plots generated are saved to the output folder.</p>
+<p>###Function details</p>
+<p><code>map_kernel(dat, project, type, latlon, group, facet, date, filter_date, filter_value, minmax)</code> returns the kernel density plot in the specified plot <code>type</code> (<em>“point”</em>, <em>“contours”</em>, <em>“gradient”</em>) based on the specified latitude and longitude variables (<code>latlon</code>). All other arguments are optional. <code>group</code> is the variable in <code>dat</code> containing group identifiers. If groups are specified, users can map each group as a separate facet if <code>facet = TRUE</code>. Data can be filtered by a <code>date</code> variable. Select how to filter using <code>filter_date</code> and values with <code>filter_value</code>. <code>filter_date</code> options are <em>“year”</em>, <em>“month”</em>, and <em>“year-month”</em>. <code>filter_value</code> should be four digits if year and 2 digits if month. Use colon for a range. Use a list if using <em>“year-month”</em>, with the format: <em>list(year(s), month(s))</em>. For example, <em>list(2011:2013, 5:7)</em>. Use <code>minmax</code> to limit the map extent. <code>minmax</code> is a vector of length four corresponding to c(minlat, maxlat, minlon, maxlon).<br />
+<br> <code>getis_ord_stats(dat, project, varofint, spat, lon.dat, lat.dat, cat, lon.grid, lat.grid)</code> is a wrapper function to calculate global and local Getis-Ord (the degree, within each zone, that high or low values of the <code>varofint</code> cluster in space) by discrete area. Function utilizes the <code>localG</code> and <code>knearneigh</code> functions from the <strong>spdep</strong> package. The spatial input is a row-standardized spatial weights matrix for computed nearest neighbor matrix, which is the null setting for the <code>nb2listw</code> function. Requires a data frame with area as a factor, the lon/lat centroid for each area, the lon/lat outlining each area, and the variable of interest <code>varofint</code> or a spatial data file with lon/lat defining boundaries of area/zones and variable of interest for weighting. If the centroid is not included in the spatial data file, then <code>find_centroid()</code> can be called to calculate the centroid of each zone. If the variable of interest is not associated with an area/zone then the <code>assignment_column()</code> function can be used to assign each observation to a zone. Arguments to identify centroid and assign variable of interest to area/zone are optional and default to NULL.<br />
+<br> <code>morans_stats(dat, project, varofint, spat, lon.dat, lat.dat = NULL, cat, lon.grid, lat.grid)</code> is a wrapper function to calculate global and local Moran’s I (degree of spatial autocorrelation) of a variable (<code>varofint</code>) by discrete area. Function utilizes the <code>localmoran()</code> and <code>knearneigh()</code> functions from the <strong>spdep</strong> package. The spatial input is a row-standardized spatial weights matrix for computed nearest neighbor matrix, which is the null setting for the <code>nb2listw()</code> function. The function requires a spatial data file with latitude and longitude defining boundaries of area/zones. If zonal centroid is not included in the spatial data file, then FishSET’s <code>find_centroid()</code> function is called. If each observation in <code>dat</code> is not associated with an area/zone, then FishSET’s <code>assignment_column()</code> is called to assign each observation to a zone. Arguments to identify zonal centroids and assign variable of interest to area/zone are optional and default to NULL.<br />
+<br> <code>map_plot(dat, project, lat, lon, minmax, percshown)</code> plots observed vessel locations on a map. <code>lon</code> and <code>lat</code> are the names of variables containing longitude and latitude data in dat. If the predefined map extent needs adjusting, set limits with <code>minmax = c(minlat, maxlat, minlon, maxlon)</code>. To show a random subset of points, set <code>percshown</code> to the percent of points to show. Please consider any confidentiality concerns before sharing or publishing the map. This graphic return a static but shareable map. See <code>map_viewer()</code> to view a dynamic map with greater functionality.<br />
+<br> <code>map_viewer(dat, gridfile, avd, avm, num_vars, temp_vars, id_vars, lon_start, lat_start, lon_end, lat_end)</code> opens an interactive map in your default web browser to view vessel points or maps. <code>gridfile</code> is required to overlay fishery management/regulatory zones on the map. <code>dat</code> and <code>gridfile</code> are linked through <code>avd</code> (variable in <code>dat</code> containing zone name or identifier) and <code>avm</code> (property in <code>gridfile</code> containing zone name or identifier). Vessel haul points or vessel haul paths can be plotted. <code>lon_start</code> and <code>lat_start</code> are the variable names in <code>dat</code> containing the longitude and latitude of the vessel location points to plot or starting location if plotting paths. <code>lon_end</code> and <code>lat_end</code> are the ending latitude and longitudes if plotting a path. Leave as NULL if plotting location points. Other plotting and grouping arguments include <code>num_vars</code> (a list of one or more numeric variables in <code>dat</code>), <code>temp_vars</code> (a list of one or more temporal variables in <code>dat</code>), and <code>id_var</code>s (a list of categorical variables in <code>dat</code>). These variables are used to create additional scatter plots for assessing the data. Multiple numeric, temporal, and ID variables can be included but only one will be shown at a time. To close the server connection run <code>servr::daemon_stop()</code> in the console. Note that it can take up to a minute for the data to be loaded onto the map. The map cannot be saved.<br />
+<br> <code>spatial_summary(dat, project, stat.var, variable, gridfile, lon.grid, lat.grid, lon.dat, lat.dat, cat)</code> returns the variable aggregated by <code>stat.var</code> plotted against date and zone. <code>gridfile</code>, <code>lon.grid</code>, <code>lat.grid</code>, <code>lon.dat</code>, <code>lat.dat</code>, and <code>cat</code> are not required if zone assignment variable exists in <code>dat</code>.</p>
+<p><code>stat.var</code> options</p>
+<pre><code>length         Number of observations
+no_unique_obs  Number of unique observations
+perc_total     Percent of total observations
+mean           Mean  
+median         Median  
+min            Minimum  
+max            Maximum  
+sum            Sum</code></pre>
+<p><br></p>
+<p><code>spatial_hist(dat, project, group)</code> returns a histogram of observed lon/lat split by grouping variable (<code>group</code>). The function is used to assess spatial variance/clumping of selected grouping variable.</p>
+<p><code>temp_plot(dat, project, var.select, len.fun, agg.fun, date.var)</code> returns two plots of selected variable <code>var.select</code> over time (<code>date.var</code>). The first plot can show the number of observations (<code>len.fun = &quot;length&quot;</code>), number of unique observations (<code>len.fun = &quot;unique&quot;</code>), percent of options (<code>len.fun = &quot;percent&quot;</code>) of <code>var.select</code> by time. The second plot shows <code>var.select</code> aggregated by <code>agg.fun</code> against date. <code>agg.fun</code> options are <em>mean</em>, <em>median</em>, <em>min</em>, <em>max</em>, and <em>sum</em>.</p>
+<p><strong>Fleet and group summaries</strong></p>
+<p>Each function has a different objective but they all have a set of optional arguments that allow for grouping the data (<code>group</code>) or filtering by date (<code>filter_date</code>) or another value (<code>filter_value</code>). These options default to NULL and do not have to be specified. There are additional options to adjust the appearance of the output. These options are detailed first; then the functions are detailed.</p>
+<dl>
+<dt><em>Additional options</em></dt>
+<dd><p><code>group</code> is the name of the fleet ID variable or other grouping variable(s). Multiple group variables can be included but only the first two will be shown. For most variables, grouping variables can be merged into one variable using <code>combine</code>; in this case any number of variables can be joined, but no more than three is recommended. For functions that do not have the <code>combine</code> argument, group variables will be automatically combined if three or more are included.</p>
+</dd>
+<dd><p><code>date</code> is the variable name from <code>dat</code> used to subset and/or facet the plot by.</p>
+</dd>
+<dd><p><code>filter_date</code> is the type of filter to apply to the table. Options include <em>“date_range”</em>, <em>“year-day”</em>, <em>“year-week”</em>, <em>“year-month”</em>, <em>“year”</em>, <em>“month”</em>, <em>“week”</em>, or <em>“day”</em>. The <em>“date_range”</em> option will subset the data by two date values entered in <code>date_value</code>. The argument <code>date_value</code> must be provided.</p>
+</dd>
+<dd><p><code>date_value</code> is the value to filter <code>date</code> by. If using <code>filter_date = &quot;date_range&quot;</code>, <code>date_value</code> should contain a start and end date, e.g. c(“2011-01-01”, “2011-03-15”). Otherwise, use integers (4 digits if <em>year</em>, 1-2 digits if <em>day</em>, <em>month</em>, or <em>week</em>). Use a list if using a two-part filter, e.g. “year-week”, with the format <code>list(year, week)</code> or a vector if using a single period, <code>c(week)</code>. For example, <code>list(2011:2013, 5:7)</code> will filter the data table from weeks 5 through 7 for years 2011-2013 if <code>filter_date = &quot;year-week&quot;</code>. <code>c(2:5)</code> will filter the data February through May when <code>filter_date = &quot;month&quot;</code>.</p>
+</dd>
+<dd><p><code>filter_by</code> is the variable name to filter <code>dat</code> by.</p>
+</dd>
+<dd><p><code>filter_value</code> is a vector of values in the <code>filter_by</code> variable to filter <code>dat</code>.</p>
+</dd>
+<dd><p><code>filter_expr</code> a valid R expression to filter <code>dat</code> by using the <code>filter_by</code> variable.</p>
+</dd>
+<dd><p><code>facet_by</code> is the variable name to facet by. This can be a variable that exists in the dataset, or a variable created by the function such as <em>“year”</em>, <em>“month”</em>, or <em>“week”</em>. For faceting, any variable (including ones listed in <code>group</code>) can be used, but <em>“year”</em> and <em>“month”</em> are also available. Currently, combined variables cannot be faceted.</p>
+</dd>
+<dd><p><code>tran</code> is the name of function to transform variable by. Options include <em>“identity”</em>, <em>“log”</em>, <em>“log2”</em>, <em>“log10”</em>, and <em>“sqrt”</em>. <em>“identify”</em> (no transformation) is the default.</p>
+</dd>
+<dd><p><code>scale</code> is passed to facet_grid defining whether x- and y-axes should be consistent across plots. Defaults to <em>“fixed”</em>. Other options include <em>“free_y”</em>, <em>“free_x”</em>, and <em>“free”</em>.</p>
+</dd>
+<dd><p><code>position</code> The position of the grouped variable for the plot. Options include <em>“identity”</em>, <em>“stack”</em>, and <em>“fill”</em>.</p>
+</dd>
+<dd><p><code>output</code> display as <em>“plot”</em>, <em>“table”</em>, or both (<em>“tab_plot”</em>). Defaults to both.</p>
+</dd>
+<dd><p><code>format_tab</code> defines how table output should be formatted. Options include <em>“wide”</em> (the default) and <em>“long”</em>.</p>
+</dd>
+</dl>
+<p><br> <em>Function details</em></p>
+<p><code>vessel_count(dat, project,  v_id, date, period, group, filter_date,  date_value, filter_by, filter_value,  filter_expr, facet_by, combine, position,  tran,  value, type,  scale, output)</code> aggregates the number (or percent) of active vessels by time period (<code>period</code>) using a column of unique vessel IDs (<code>v_id</code>). <code>period</code> options include <em>“year”</em>, <em>“month”</em>, <em>“weeks”</em> (weeks in the year), <em>“weekday”</em>, <em>“weekday_abv”</em>, <em>“day”</em> (day of the month), and <em>“day_of_year”</em>.<br />
+<br> <code>species_catch(dat, project, species, date, period, fun, group, filter_date, date_value, filter_by, filter_value, filter_expr, facet_by, type, conv, tran, value, position, combine, scale, output, format_tab)</code> aggregates catch by time period (<code>period</code>) and species using one or more columns of catch data (<code>species</code>). <code>fun</code> is the name of the function to aggregate catch by. Defaults to <em>“sum”</em>. Use <code>conv</code> to convert catch that is in pounds to <em>“tons”</em> or <em>“metric_tons”</em>. Set <code>conv = &quot;none&quot;</code> if no conversion is desired. Alternative, <code>conv</code> can be a user-defined function. This is useful if catch is not in pounds.<br />
+<br> <code>roll_catch(dat, project, catch, date, group, k = 10, fun, filter_date, date_value, filter_by, filter_value, filter_expr, facet_by, scale, align, conv, tran, output, ...)</code> returns a rolling window time series aggregation of catch that can be combined with grouping variable(s) (<code>group</code>). <code>catch</code> can be one or more columns of catch data. <code>k</code> defines the window size and <code>fun</code> is the name of the function to aggregate catch by. Defaults to <em>“mean”</em>. <code>align</code> indicates whether results of window should be left-aligned <em>(“left”)</em>, right-aligned <em>(“right”)</em>, or centered <em>(“center”)</em>. Defaults to <em>“center”</em>. Use <code>conv</code> to convert catch that is in pounds to “tons” or “metric_tons”. Alternative, conv can be a user-defined function. This is useful if catch is not in pounds.<br />
+<br> <code>weekly_catch(dat, project, species, date, fun, group, filter_date, date_value, filter_by, filter_value, filter_expr, facet_by, type, conv, tran, value, position, combine, scale, output, format_tab)</code> aggregates catch by week using one or more columns of catch data (<code>species</code>). <code>fun</code> is the name of the function to aggregate catch by. Defaults to <em>“sum”</em>. Use <code>conv</code> to convert catch that is in pounds to <em>“tons”</em> or <em>“metric_tons”</em>. Alternatively, <code>conv</code> can be a user-defined function. This is useful if catch is not in pounds.<br />
+<br> <code>weekly_effort(dat, project, cpue, date, group, filter_date, date_value, filter_by, filter_value, filter_expr, facet_by, tran, combine, scale, output, format_tab)</code> calculates mean CPUE by week. This function doesn’t calculate CPUE; the CPUE variable must be created in advance. One or more CPUE variables can be included.<br />
+<br> <code>bycatch(dat, project, cpue, catch, date, period, names, group, filter_date, date_value, filter_by, filter_value, filter_expr, facet_by, tran, value, combine, scale, output, format_tab)</code> compares the average CPUE and catch total/share of total catch between one or more species. If including multiple species, <code>cpue</code>, <code>catch</code>, and <code>names</code> should be strings and species should be listed in the same order. <code>names</code> is an optional string of species names that will be used in the plot. If <code>names = NULL</code>, then species names from catch will be used. <code>period</code> is the time period to aggregate by. Options include <em>“year”</em>, <em>“month”</em>, and <em>“weeks”</em>. <code>value</code> defines whether to return raw catch <em>(“raw”)</em> or share of total catch <em>(“stc”)</em>.<br />
+<br> <code>trip_length(dat, project, start, end, units, catch, hauls, group, filter_date, date_value, filter_by, filter_value, filter_expr, facet_by, type, bins = 30, density, scale, tran, pages, remove_neg, output, tripID, fun.time, fun.numeric)</code> calculates vessel trip duration in the desired unit of time given start and end dates. Obsevations with a negative trip duration can be removed from output using <code>remove_neg = TRUE</code>. If data is not at a trip level (each row is a unique trip), specify trip identifiers (<code>tripID</code>) and how to collapse data (<code>fun.time</code> and <code>fun.numeric</code>). You can also calculate CPUE and hauls per unit of time by specifying <code>catch</code> and <code>hauls</code>. Plot output can be a histogram (<code>type = “hist”</code>) or a frequency polygon (<code>type = &quot;freq_poly&quot;</code>). Plot output can be combined on a single page (<code>pages = &quot;single&quot;</code>) or printed on individual pages (<code>pages = &quot;multi&quot;</code>).<br />
+<br> <code>density_plot(dat, project, var, type, group, date, filter_date, date_value, filter_by, filter_value, filter_expr, facet_by, tran, scale=&quot;fixed&quot;, bw, position)</code> returns a kernel density estimate, cumulative distribution function, or empirical cdf of selected variable. <code>type</code> options are <em>“kde”</em>, <em>“cdf”</em>, and <em>“ecdf”</em>. The <code>group</code> and <code>tran</code> arguments are not applied to the CDF plot.</p>
+<p><strong>View relationships</strong></p>
+<p><code>corr_out(dat, project, variables, ...)</code> returns the correlation coefficient between numeric variables in <code>dat</code>. <code>variables</code> can be all numeric variables in <code>dat</code> (<code>variables = “all”</code>) or a list of column names of selected variables. Additional arguments can be added, such as the method to calculate correlation coefficients. The function defaults to displaying the Pearson correlation coefficient. To change the method, specify <code>method = ‘kendall’</code> or <code>method = ‘spearman’</code>.<br />
+<br> <code>xy_plot(dat, project, var1, var2, regress = FALSE)</code> returns the fitted relationship between two variables. <code>var1</code> and <code>var2</code> are names of variables in <code>dat</code>. <code>regress = TRUE</code> returns the plot with the fitted linear regression line.</p>
+</div>
+<div id="mapping-functions" class="section level2">
+<h2>Mapping functions</h2>
+<p>There are several functions to view the data spatially.</p>
+<pre><code>map_kernel()      Kernel density (hotspot).
+map_plot()        Static map of haul locations without zones.   
+map_viewer()      Interactive map of haul locations or paths with zones.</code></pre>
+</div>
+<div id="modeling-functions" class="section level2">
+<h2>Modeling functions</h2>
+<p>Model development in FishSET requires preparing the data and defining model parameters. This section details the required and optional data, model choices, and model output evaluation functions.</p>
+<p>Generate necessary data</p>
+<pre><code>create_startingloc()        Starting location variable.         
+create_alternative_choice() Define alternative fishing choices.   
+create_expections()         Define expected catch/revenue matrix.   </code></pre>
+<p>Check data</p>
+<pre><code>check_model_data()          Check model data for possible issues with data.</code></pre>
+<p>Design model</p>
+<pre><code>make_model_design()         Make model design.                      
+discretefish_subroutine()   Run model.                              </code></pre>
+<p>Assess model output</p>
+<pre><code>globalcheck_view()          Model error.
+model_out_view()            Model output.   
+Metrics model_fit()         Model comparison.
+select_model()              Select best model.  </code></pre>
+<p>###Generate necessary data All models require catch data, data on the chosen fishing location (choice), and a distance matrix. Price data, location when choice of where to fish next, and expected catch matrices are required for some models. Additional optional data that interact with travel distance or vary by location may also be added. These data and the functions to generate them are outlined next.</p>
+<p><strong>Distance matrix</strong><br />
+This function returns the matrix of distances between observed and alternative fishing choices (where they could have fished but did not). The distance matrix is saved in the model design file in the FishSET database and pulled when the model run function is called.</p>
+<pre><code>create_alternative_choice(dat, project, alt_var, occasion, griddedDat, dist.unit, min.haul, gridfile, cat, lon.dat, lat.dat, hull.polygon, closest.pt, lon.grid, lat.grid, weight.var)</code></pre>
+<p>The distance matrix can be generated from the primary haul-level data (<code>dat</code>) or from gridded data (<code>griddedDat</code>) such as sea surface temperature. We describe generating the distance matrix from <code>dat</code> first.</p>
+<p><em>From <code>dat</code></em><br />
+Define how to find the longitude and latitude for the starting (<code>occasion</code>) and alternative (<code>alt_var</code>) locations. Choices are the centroid of the zone where the haul occurred (<em>“centroid”</em>), a port variable in <code>dat</code> (such as disembarked port), or paired latitude and longitude variables in <code>dat</code> such as haul starting location. Distance can be returned in <em>“miles”</em>, <em>“kilometers”</em>, or <em>“meters”</em> (<code>dist.unit</code>). Remove zones with insufficient data by setting <code>min.haul</code> to the minimum number of hauls required.</p>
+<p>If <code>alt_var</code> or <code>occasion</code> are <em>“centroid”</em> then the centroid of zones must be obtained. If a centroid table exists in the FishSET database and a zone identifier variables is in <code>dat</code>, then only <code>gridfile</code> needs to be defined. <code>gridfile</code> should the name of the gridfile, in quotes. For example, <code>gridfile = &quot;gridname&quot;</code>. If centroids or zone assignments must be calculated then <code>gridfile</code>, <code>cat</code>, <code>lon.dat</code>, and <code>lat.dat</code> must be specified. <code>hull.polygon</code>, <code>closest.pt</code>, <code>weight.var</code> are optional <code>lon.grid</code> and <code>lat.grid</code> must be defined if <code>gridfile</code> is a data frame. See <code>assignment_column()</code> for more details on optional arguments.</p>
+<p>If <code>occasion</code> is a port variable, a port table containing the latitude and longitude of ports is required. If a port table does not exist in the FishSET database run the <code>load_port()</code> function before running <code>create_alternative_choice</code>.</p>
+<p>If <code>alt_var</code> or <code>occasion</code> are paired longitude and latitude variables from <code>dat</code> then <code>alt_var</code> or <code>occasion</code> should be specified as <em><code>c(lon, lat)</code></em>.<br />
+<br> <em>From <code>griddedDat</code></em><br />
+Alternatively, the distance matrix can be generated from a gridded dataset, such as sea surface temperature. In this case, only <code>dat</code>, <code>project</code>, and <code>griddedDat</code> must be specified. Columns in the gridded data file must be individual zones and must match the zone identifier variable in <code>dat</code>. The gridded data can vary over a second dimension, such as date, but must match a variable in <code>dat</code>. We recommend saving the gridded data file to the FishSET database using the <code>load_grid()</code> function.</p>
+<p><strong>Expected catch matrix</strong><br />
+This function returns the expected catch or revenue matrix for alternative fishing zones (zones they could have chosen but that the fisher did not in this choice opportunity). This matrix is required to run the conditional logit model that utilizes an average revenue specification.</p>
+<pre><code>create_expectations(dat, project, catch, price, defineGroup, temp.var, temporal, calc.method, lag.method, empty.catch, empty.expectation, temp.window, temp.lag, year.lag, dummy.exp, replace.output)</code></pre>
+<p>The <code>create_expectations()</code> function requires a catch variable. To return expected revenue, include a price or value variable from <code>dat</code>. <code>price</code> is multiplied against catch to generate revenue. If revenue exists in <code>dat</code> and you wish to use this revenue instead of price, then <code>catch</code> must be a vector of 1 of length equal to <code>dat</code>.</p>
+<p>Expected catch/revenue can be calculated across the entire dataset (<code>defineGroup = “fleet”</code>) or within groups and across the entire record of catch (<code>temp.var = NULL</code>) or can take variation in catch over time into account. To take temporal patterns in catch into account, first identify the temporal variable (<code>temp.var</code>) in <code>dat</code> to use. Next, select whether to use a sequential (<code>temporal = &quot;sequential&quot;</code>) or daily timeline (<code>temporal = &quot;daily&quot;</code>). Sequential timeline sorts data by date but does not take into account that days may be missing. Daily timeline adds in these dates with NA (missing value). With sequential timeline, a window size of seven means catch would be the average over the past seven fishing days. Whereas, with daily timeline, it would be the average over seven calendar days. <code>year.lag</code> can be 0 (current year), 1 (previous year’s data), or any other viable years to go back. Window size (<code>temp.window</code>) is in days and can be current day (0), a week (7), or any other numeric value. <code>temp.lag</code> is numeric and in days. For each day <em>x</em> in <code>temp.var</code>, catch is the average catch across <em>w</em> days (<code>temp.window</code>) starting <em>d</em> days (<code>temp.lag</code>) and <em>y</em> years (<code>year.lag</code>) before <em>x</em>.</p>
+<p>Using the specified moving window parameters, a matrix of average catch is created with <em>zone*group</em> creating rows and <em><code>date</code></em> the columns. This is the standard average catch <code>(calc.method = “standardAverage”</code>). Alternatively, you can use the simple lag regression of the mean (<code>calc.method = “simpleLag”</code>) which calculates the predicted value for each zone<code>*</code>group and date given regression coefficients <em>p</em> for each zone<code>*</code>group. The lag method (<code>lag.method</code>), can use regression over entire group (<em>“simple”</em>) or for grouped time periods (<em>“grouped”</em>).</p>
+<p>The expected catch matrix is pulled from the matrix of calculated catches for each date and zone. The matrix is of dimensions <em>(number of rows of dat)*(number of alternatives)</em>. Expected catch is filled out by mapping the calculated catch for each zone given the observed date (if specified) and group (if specified) in <code>dat</code>. Note that empty catch values are considered to be times of no fishing activity and are not included. Values of 0 in the catch variable are considered times when fishing activity occurred but with no catch. These zero values are included in calculations. Sparsity in data should be considered when deciding how to take into account that catch may vary over time. Check for sparsity with the <code>temp_obs_table()</code> function. A broader window size or using the entire temporal record may be necessary. Empty catch values and empty expected catch values can be filled but only on a limited basis as doing so can lead to biased or misleading results. If there are a lot of empty values, consider changing the temporal arguments to reduce data sparsity. <code>empty.catch</code> can be <em>0</em>, the average of all catch values (<em>“allCatch”</em>&quot;) or the average of grouped catch values (<em>“groupedCatch”</em>). <code>empty.expectation</code> can be 0 or 1e-04.</p>
+<p>The function returns four expected catch or expected revenue matrices based on predefined window size and lags in days and years and all other user-defined arguments :</p>
+<pre><code>selected temporal arguments
+expected catch/revenue based the previous two days (short-term) catch,
+expected catch/revenue based the previous seven days (medium-term) catch,
+and expected catch/revenue based on the previous years (long-term) catch.</code></pre>
+<p><strong>Starting location</strong><br />
+The starting location vector is required for the full information model with Dahl’s correction (<code>logit_correction</code>). The vector is the zone location of a vessel when the decision of where to fish next was made. Generally, the first zone of a trip is the departure port. Create the starting location vector before creating the model design file (<code>make_model_design()</code>).</p>
+<pre><code>create_startingloc(dat, gridfile, portTable, trip_id, haul_order, starting_port, lon.dat, lat.dat, cat, name = &quot;startingloc&quot;, lon.grid, lat.grid)</code></pre>
+<p>The <code>create_startingloc()</code> function adds a starting location vector to the dataset (<code>dat</code>).</p>
+<p>A zonal identifier variable is required. If zone identifier variable does not exist, the <code>assignment_column()</code> function is called to assign starting port locations and haul locations to zones and the following arguments are required: <code>gridfile</code>, <code>lon.dat</code>, <code>lat.dat</code>, <code>cat</code>, <code>lon.grid</code>, <code>lat.grid</code>. See <code>assignment_column</code> documentation for details.</p>
+<p>The first zone is generally the zone of the departure port. The table containing port latitude and longitudes (<code>portTable</code>) is required. This should be in the FishSET database. Also required is the variable in <code>dat</code> containing names of starting ports (<code>starting_port</code>). <code>trip_id</code> is a variable in <code>dat</code> containing unique trip identifiers. <code>haul_order</code> is a variable in <code>dat</code> containing the order of hauls within trips.</p>
+<p><strong>Additional optional data</strong><br />
+<code>vars1</code> is a character string of additional <em>travel-distance</em> variables to include in the model, such as vessel characteristics. <code>vars2</code> is a character string of additional variables to include in the model, wind speed within zones. These depend on the likelihood. The details of the functions depend on the likelihood function and are outlined in the <a href="LINK1!">FishSET Help Manual</a> and likelihood function documentation.</p>
+<p>###Model choices Model choices include the likelihood functions, optimization method, optimization options, and starting parameter values. These, along with the required and optional data are specified in the <code>model_design_function()</code>. The model design file is saved to the FishSET database and called by the <code>discretefish_subroutine()</code> function to run the models.</p>
+<pre><code>make_model_design(dat, project, catchID, replace = TRUE, likelihood = NULL, initparams, optimOpt, methodname, mod.name, vars1 = NULL, vars2 = NULL, priceCol = NULL, startloc = NULL, polyn = NULL)
+
+discretefish_subroutine(project, select.model = FALSE)</code></pre>
+<p>The model design function requires the variable name in <code>dat</code> containing catch data. The distance and expected catch/revenue matrices do not have to be specified. They will be pulled based on <code>project</code> from the FishSET database. <code>startloc</code> is the name of the variable containing starting locations, if required. <code>priceCol</code> is optional argument to specify the variable in <code>dat</code> containing price data. It is required for the expected profit models (<em>epm_normal, epm_weibull, epm_lognormal</em>). <code>vars1</code> is a character string of optional <em>travel-distance</em> variables and <code>vars2</code> is a character string of optional <em>grid-varying</em> variables. These two arguments should be <em>NULL</em> if no additional data is being included. <code>polyn</code> is the correction polynomial degree. It is required for the <em>logit_correction</em> model.</p>
+<p>FishSET allows only one model design file per project. Multiple models can be added to this file. Models are added on at a time using the <code>make_model_design()</code> function. Identify individual models with <code>model.name</code>. Models are added to the model design file by setting <code>replace = FALSE</code>. <code>replace = TRUE</code> will remove the existing model design file and only the currently specified model in <code>make_model_design()</code> will be in the model design file.</p>
+<p>The remaining arguments in <code>make_model_design()</code> are detailed below.</p>
+<p><strong>Likelihood functions (<code>likelihood</code>)</strong></p>
+<p>FishSET has six built-in likelihood functions.</p>
+<pre><code>Function            Likelihood name                                         Reference
+________________________________________________________________________________________________
+logit_c             Conditional logit likelihood                              McFadden 1974
+logit_avgcat        Average catch multinomial logit procedure                 Abbot and Wilen 2011
+logit_correction    Full information model with Dahl’s correction function    Dahl 2002 
+epm_normal          Expected profit model with normal catch function          Haynie and Layton 2010
+epm_weibull         Expected profit model with Weibull catch function         Haynie and Layton 2010
+epm_lognormal       Expected profit model with lognormal catch function       Haynie and Layton 2010</code></pre>
+<p>See function documentation or the <a href="LINK!!!">Help Manual</a> for more details.</p>
+<p><strong>Initial parameter values (<code>initparams</code>)</strong></p>
+<p>The number of initial parameter values and the order depend upon the specified likelihood function and the number of travel-distance and grid-varying variables included.</p>
+<p><em>logit_c</em><br />
+Starting parameter values take the order of <code>c[(alternative-specific parameters), (travel-distance parameters)]</code>. The length is the <em>number of alternative-specific variables</em> plus <em>number of travel-distance variables</em>.</p>
+<p><em>logit_avgcat</em><br />
+Starting parameter values take the order of: <code>c[(average-catch parameters), (travel-distance parameters)]</code>. The length is the <em>(number of average-catch variables)*(k-1)</em> plus the <em>number of travel-distance variables</em>. <code>k</code> equals the number of alternative fishing choices.</p>
+<p><em>logit_correction</em><br />
+starting parameter order takes: <code>c[(marginal utility from catch), (catch-function parameters), (polynomial starting parameters), (travel-distance parameters), (catch sigma)]</code>. The marginal utility from catch and catch sigma are of length equal to unity respectively. The catch-function and travel-distance parameters are of length <em>(number of catch variables)*(k)</em> and <em>number of cost variables</em> respectively. The number of polynomial interaction terms is currently set to 2, so given the chosen degree <code>polyn</code> there should be <em>(((polyn+1)*2)+2)*(k)</em> polynomial starting parameters, where <code>k</code> equals the number of alternative fishing choices.</p>
+<p><em>epm_normal</em><br />
+Starting parameters values take the order of: <code>c[(catch-function parameters), (travel-distance parameters), (catch sigma(s)), (scale parameter)]</code>. The catch-function and travel-distance parameters are of length <em>(number of catch-function variables)*(k)</em> and <em>(number of travel-distance variables)</em> respectively, where <code>k</code> equals the number of alternative fishing choices. The catch sigma(s) are either of length equal to unity or length <code>k</code> if estimating location-specific catch sigma parameters. The scale parameter is of length equal to unity.</p>
+<p><em>epm_weibull</em><br />
+Starting parameter values takes the order of: <code>c[(catch-function parameters), (travel-distance parameters), (catch sigma(s)), (scale parameter)]</code>. The catch-function and travel-distance parameters are of length <em>(number of catch-function variables)*(k)</em> and <em>(number of travel-distance variables)</em> respectively, where <code>k</code> equals the number of alternative fishing choices. The catch sigma(s) are either of length equal to unity or length <code>k</code> if estimating location-specific catch sigma parameters. The scale parameter is of length equal to unity.</p>
+<p><em>epm_lognormal</em><br />
+Starting parameter values takes the order of: <code>c[(catch-function parameters), (travel-distance parameters), (catch sigma(s)), (scale parameter)]</code>. The catch-function and travel-distance parameters are of length <em>(number of catch-function variables)*(k)</em> and <em>(number of travel-distance variables)</em> respectively, where <code>k</code> equals the number of alternative fishing choices. The catch sigma(s) are either of length equal to unity or length <code>k</code> if estimating location-specific catch sigma parameters. The scale parameter is of length equal to unity.</p>
+<dl>
+<dt>Optimization options (<code>optimOpt</code>)</dt>
+<dd><p>Maximum number of iterations<br />
+Relative convergence tolerance<br />
+Report frequency<br />
+Level of tracing information returned</p>
+</dd>
+</dl>
+<p>As a guide, the optimization function <code>optim</code> in the <strong>stats</strong> package defaults to 100 for derivative-based methods, 500 for “Nelder-Mead” and 10000 for “SANN”. The relative tolerance should be very small. The default is 1e-08. Report frequency is the frequency of reports such as every 10 iterations for “BFGS” or every 100 temperatures for “SANN”. Tracing must be 1 or higher for reports to be returned. Higher values return more details.</p>
+<p><strong>Optimization method (<code>methodname</code>)</strong><br />
+Choices are “BFGS”, “L-BFGS-B”, “Nelder-Mead”, “Brent”, “CG”, and “SANN”. Default is “BFGS”.</p>
+<p><strong>Running and saving models</strong> To run the defined models, use <code>discretefish_subroutine(project, select.model = FALSE)</code>. Each model can take 10 or more minutes to run.</p>
+<p>It may be desirable to identify the “best” or preferred models for future reference. Identifying the “best” model can be done in the <code>discretefish_subroutine()</code> function by setting <code>select.model = TRUE</code> or using the <code>select_model(project, overwrite_table=FALSE)</code> function. Both produce a <em>modelChosen</em> table that is saved to the FishSET database. This table is not used in any functions. R Console</p>
+<p>In the R console, an interactive data table can be opened by setting select.model in discretefish_subroutine() to TRUE or with the select_model() function. <code>select_model()</code> The interactive table contains the name of the model and model measures of fit for each model. Users can delete models from the table and select the preferred model by checking the selected box. The table is saved to the FishSET database with two new columns added, a TRUE/FALSE selected column and the date it was selected if overwrite_table is TRUE. The table is saved with the phrase ‘modelChosen’ in the FishSET database. FishSET GUI Identifying and recording the “best” or preferred model is done by checking the Selected box next to the desired model in the Measures of Fit table in the Model Comparison subtab. Click the blue Save Table button to record this selection. Use the Delete Row button to remove a model.</p>
+<p>###Model output evaluation Output from the model is saved to the FishSET database in three tables. These tables are saved based on the project name, table phrase, and the date the model was run in YYMD format. The model output tables all contain the phrase <em>modelout</em> and the error output tables all contain <em>ldglobalcheck</em>.</p>
+<p>The first table contains the initial global log likelihood, initial log likelihood for alternative choices, and starting parameters. Use these for assessing the cause of model errors. The second table contains information on the model output, such as convergence, standard errors, and the inverse Hessian matrix. The model comparison or measure of fit table contains AIC, AIC<sub>c</sub>, BIC, Pseudo R<sup>2</sup>.</p>
+<pre> Purpose                       Function                Table Name  
+Model Error                 globalcheck_view(x)     <em>project</em>ldglobalcheck<em>YYMD</em>  
+Model Output                    model_out_view(x)       <em>project</em>modelout<em>YYMD</em>  
+Model Comparison Metrics    model_fit(x)            <em>project</em></pre>
+<p>##Reporting FishSET includes a report template. It is written in RMarkdown and allows for output from FishSET to be easily incorporated into a shareable report. The template is divided into sections, each with a series of guiding questions and suggestions for your analysis. These questions will prompt you to explain how important aspects of your analysis were conducted, such as how the data was prepared, how models were defined, and which plots and tables to include. This is a suggested report structure. Sections and subsections can be added, deleted, or moved.</p>
+<p>The report template is called <code>report_tempate.Rmd</code> and is available in the <em>report</em> folder of the FishSET package. Open the file and choose <em>Save as…</em> in the <strong>File</strong> tab in RStudio. Save the template to a meaningful name. This can be done for each project. The template contains guidance on working in RMarkdown and examples of script.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

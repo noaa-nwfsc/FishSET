@@ -18,3 +18,4 @@ vgsub(pattern, replacement, x, ...)
 \description{
 vgsub function
 }
+\keyword{internal}

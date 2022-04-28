@@ -2,14 +2,18 @@
 % Please edit documentation in R/report.R
 \name{list_logs}
 \alias{list_logs}
-\title{Lists all logs files}
+\title{View list of all log files}
 \usage{
-list_logs(chron = FALSE)
+list_logs(project = NULL, chron = FALSE, modified = FALSE)
 }
 \arguments{
+\item{project}{Project name. Displays all logs if NULL.}
+
 \item{chron}{Logical, whether to display logs in chronological order (TRUE) or
 reverse chronological order (FALSE).}
+
+\item{modified}{Logical, whether to include date modified.}
 }
 \description{
-Lists all logs files
+View list of all log files
 }

@@ -4,25 +4,33 @@
 \alias{summary_stats}
 \title{View summary statistics}
 \usage{
-summary_stats(dat, x = NULL)
+summary_stats(dat, project, x = NULL, log_fun = TRUE)
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips.
+Table in FishSET database contains the string 'MainDataTable'.}
 
-\item{x}{Optional variable to apply function over.}
+\item{project}{Name of project}
+
+\item{x}{Optional. Variable in \code{dat} to apply function over. If not 
+defined, summary stats are displayed for all columns in the dataset.}
+
+\item{log_fun}{Logical, whether to log function call (for internal use).}
 }
 \description{
-View summary statistics
+View summary statistics in table format for all variables in primary dataset.
 }
 \details{
-Prints summary statistics for each variable in the data set. If `x` is specified, summary stats will be returned only
-for that variable. Function is called in the \code{\link{data_check}} function.
+Prints summary statistics for each variable in the data set. If 
+  \code{x} is specified, summary stats will be returned only for that variable.
+  Function is called in the \code{\link{data_check}} function.
 }
 \examples{
 \dontrun{
-summary_stats(MainDataTable, x='')
-summary_stats(MainDataTable, x='HAUL')
+summary_stats(pcodMainDataTable)
+summary_stats(pcodMainDataTable, x = "HAUL")
 }
+
 }
 \keyword{statistics}
 \keyword{summary}

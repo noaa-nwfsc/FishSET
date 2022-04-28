@@ -2,10 +2,11 @@
 % Please edit documentation in R/trip_distance.R
 \name{create_trip_distance}
 \alias{create_trip_distance}
-\title{Generate haul level trip distance}
+\title{Create haul level trip distance variable}
 \usage{
 create_trip_distance(
   dat,
+  project,
   PortTable,
   trip_id,
   starting_port,
@@ -13,49 +14,60 @@ create_trip_distance(
   ending_haul = c("Lon", "Lat"),
   ending_port,
   haul_order,
+  name = "TripDistance",
   a = 6378137,
   f = 1/298.257223563
 )
 }
 \arguments{
-\item{dat}{Main data frame. In fishset_db database, table name contains phrase `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips.
+Table in the FishSET database contains the string 'MainDataTable'.}
 
-\item{PortTable}{Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat. Table is generated using the load_port function and saved in the fishset_db database.}
+\item{project}{Project name.}
 
-\item{trip_id}{Variable in 'dat' to identify unique trips.}
+\item{PortTable}{Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat.
+Table is generated using the \code{\link{load_port}} function and saved in the FishSET database as the project and PortTable,
+for example 'pollockPortTable'.}
 
-\item{starting_port}{Variable in `dat` to identify port at start of trip}
+\item{trip_id}{Unique trip identifier in \code{dat}.}
 
-\item{starting_haul}{lat/long Variables in `dat` containing lat/long at start of haul. Should contain two vectors.}
+\item{starting_port}{Variable in \code{dat} containing ports at the start of the trip.}
 
-\item{ending_haul}{lat/long Variables in `dat` containing lat/long at end of haul. Should contain two vectors.}
+\item{starting_haul}{Character string, variables containing latitude and longitude at start of haul in \code{dat}.}
 
-\item{ending_port}{Variable in `dat` to identify port at end of trip}
+\item{ending_haul}{Character string, variables containing latitude and longitude at end of haul in \code{dat}.}
 
-\item{haul_order}{Variable in `dat` containing information on the order that hauls occur within a trip. Can be time, coded variable, etc.}
+\item{ending_port}{Variable in \code{dat} containing ports at the end of the trip.}
 
-\item{a}{Major (equatorial) radius of the ellipsoid. The default value is for WGS84 ellipsoid.}
+\item{haul_order}{Variable in \code{dat} that identifies haul order within a trip. Can be time, coded variable, etc.}
 
-\item{f}{Ellipsoid flattening. The default value is for WGS84 ellipsoid.}
+\item{name}{String, name of created variable. Defaults to `TripDistance`.}
+
+\item{a}{Numeric, major (equatorial) radius of the ellipsoid. The default value is for WGS84 ellipsoid.}
+
+\item{f}{Numeric, ellipsoid flattening. The default value is for WGS84 ellipsoid.}
 }
 \value{
-Vector of trip distance
+Returns the primary dataset with a trip distance variable added.
 }
 \description{
-Generate haul level trip distance
+Create haul level trip distance variable
 }
 \details{
-Summation of distance across a trip based on choices by the user for starting and ending ports, and hauls in between.
- Uses longitude and latitude to calculate the distance between hauls within a trip and returns as a new variable. 
- Utilizes the \code{\link[geosphere]{distGeo}} function from the geosphere package to calculate distances between hauls.
-  Inputs are the main data table containing information on trips, ports, etc., and a port data table containing latitude and longitude of ports.
- The ellipsoid parameters `a` and `f` are numeric and can be changed if an ellipsoid other than WGS84 is appropriate. See the geosphere R package for more details 
- \url{https://cran.r-project.org/web/packages/geosphere/geosphere.pdf}.
+Summation of distance across a trip based on starting and ending ports and hauls in between.
+The function uses \code{\link[geosphere]{distGeo}} from the geosphere package to calculate distances
+ between hauls. Inputs are the trips, ports, and hauls from the primary dataset, and the latitude and
+ longitude of ports from the \code{PortTable}. The ellipsoid arguments, \code{a} and \code{f}, are numeric
+ and can be changed if an ellipsoid other than WGS84 is appropriate. See the geosphere R package for more details
+ (\url{https://cran.r-project.org/web/packages/geosphere/geosphere.pdf}).
 }
 \examples{
 \dontrun{
- MainDataTable$TripDistance <- create_trip_distance(MainDataTable, 'pollockPortTable', 'TRIP_SEQ', 
-                               'DISEMBARKED_PORT', c("LonLat_START_LON","LonLat_START_LAT"),
-                               c("LonLat_END_LON","LonLat_END_LAT"), 'EMBARKED_PORT', 'HAUL_SEQ')
- }
+pcodMainDataTable <- create_trip_distance(pcodMainDataTable, "pcod", "pcodPortTable", 
+  "TRIP_SEQ", "DISEMBARKED_PORT", c("LonLat_START_LON", "LonLat_START_LAT"),
+  c("LonLat_END_LON", "LonLat_END_LAT"), "EMBARKED_PORT", "HAUL_SEQ", "TripDistance"
+)
+}
+
+#
 }

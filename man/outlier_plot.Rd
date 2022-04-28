@@ -2,55 +2,97 @@
 % Please edit documentation in R/outlier_check.R
 \name{outlier_plot}
 \alias{outlier_plot}
-\title{Evaluate outliers through plots}
+\title{Evaluate outliers in plot format}
 \usage{
-outlier_plot(dat, x, dat.remove, x.dist, output.screen = FALSE)
+outlier_plot(
+  dat,
+  project,
+  x,
+  dat.remove = "none",
+  sd_val = NULL,
+  x.dist = "normal",
+  date = NULL,
+  group = NULL,
+  output.screen = FALSE,
+  log_fun = TRUE
+)
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips.
+Table in the FishSET database contains the string 'MainDataTable'.}
 
-\item{x}{Column in dataf rame to check for outliers}
+\item{project}{String, name of project.}
 
-\item{dat.remove}{Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD}
+\item{x}{Variable in \code{dat} to check for outliers.}
 
-\item{x.dist}{Distribution of the data. Choices include: normal, lognormal, exponential, weibull, poisson, negative binomial}
+\item{dat.remove}{Outlier measure. Values outside the measure are removed. 
+Users can use the predefined values (see below) or user-defined distance from the mean.
+For user-defined values, \code{dat.remove} should be a numeric value. For example, \code{dat.remove=6} 
+would would result in value outside 6SD from the mean being class as outliers.
+User-defined standard deviations from the mean can also be applied using \code{sd_val}.
+Pre-defined choices: \code{"none"}, \code{"5_95_quant"}, \code{"25_75_quant"}, 
+\code{"mean_2SD"}, \code{"median_2SD"}, \code{"mean_3SD"}, \code{"median_3SD"}.
+See the \emph{Details} section for more information.}
 
-\item{output.screen}{If true, return plots to the screen. If false, returns plot to the inst/output folder as png file.}
+\item{sd_val}{Optional. Number of standard deviations from mean defining outliers. 
+Example, \code{sd_val=6} would mean values outside +/- 6 SD from the mean would be outliers.}
+
+\item{x.dist}{Distribution of the data. Choices include: \code{"normal"}, 
+\code{"lognormal"}, \code{"exponential"}, \code{"Weibull"}, \code{"Poisson"}, 
+\code{"negative binomial"}.}
+
+\item{date}{(Optional) date variable to group by year.}
+
+\item{group}{(Optional) additional variable to group by.}
+
+\item{output.screen}{Logical, if true, return plots to the screen. If false, 
+returns plot to the 'output' folder as a png file.}
+
+\item{log_fun}{Logical, whether to log function call (for internal use).}
 }
 \value{
 Plot of the data
 }
 \description{
-Evaluate outliers through plots
+Visualize spread of data and measures to identify outliers.
 }
 \details{
-The function returns three plots, the data, a probability plot, and a Q-Q plot. The data plot is the value of
- x against row number. Red points are all the data without any points removed. The blue points are the subsetted data. If `dat.remove` is `none`, then only blue points will be shown. 
- The probability plot is a histogram of the data with the fitted probability distribution based on `x.dist`. The Q-Q plot plots are
- sampled quantiles against theoretical quantiles. 
- The dat.remove choices are
+The function returns three plots: the data, a probability plot, 
+ and a Q-Q plot. The \emph{data plot} returns \code{x} against row number. 
+ Red points are data points that would be removed based on \code{dat.remove}. 
+ Blue points are data points within the bounds of \code{dat.remove}. If 
+ \code{dat.remove} is \code{"none"}, then only blue points will be shown.
+ The \emph{probability plot} is a histogram of the data, after applying 
+ \code{dat.remove}, with the fitted probability distribution based on 
+ \code{x.dist}. The \emph{Q-Q plot} plots are sampled quantiles against 
+ theoretical quantiles, after applying \code{dat.remove}. \cr\cr
+ The \code{dat.remove} choices are:
  \itemize{
- \item{none: No data points are removed}
- \item{5_95_quant: Removes data points outside the 5th and 95th quantiles}
- \item{25_75_quant: Removes data points outside the 25th and 75th quantiles}
- \item{mean_2SD: Removes data points outside +/- 2SD of the mean}
- \item{median_2SD: Removes data points outside +/- 2SD of the median}
- \item{mean_3SD: Removes data points outside +/- 3SD of the mean}
- \item{median_3SD: Removes data points outside +/- 3SD of the median}
+ \item{numeric value: Remove data points outside +/- `x`SD of the mean}
+ \item{none:          No data points are removed}
+ \item{5_95_quant:    Removes data points outside the 5th and 95th quantiles}
+ \item{25_75_quant:   Removes data points outside the 25th and 75th quantiles}
+ \item{mean_2SD:      Removes data points outside +/- 2SD of the mean}
+ \item{median_2SD:    Removes data points outside +/- 2SD of the median}
+ \item{mean_3SD:      Removes data points outside +/- 3SD of the mean}
+ \item{median_3SD:    Removes data points outside +/- 3SD of the median}
  }
- The distribution choices are
+ The distribution choices are:
  \itemize{
   \item{normal}
    \item{lognormal}
    \item{exponential}
-   \item{weibull}
-   \item{poisson}
+   \item{Weibull}
+   \item{Poisson}
    \item{negative binomial}
  }
 }
 \examples{
 \dontrun{
-outlier_plot(MainDataTable, 'Haul', dat.remove='mean_2SD', x.dist='normal', output.screen=TRUE)
+outlier_plot(pollockMainDataTable, 'pollock', 'Haul', dat.remove = 'mean_2SD', 
+   x.dist = 'normal', output.screen = TRUE)
+outlier_plot(pollockMainDataTable, 'pollock', 'Haul', dat.remove = 6, 
+   x.dist = 'lognormal', output.screen = TRUE)
 }
 }
 \keyword{outlier}

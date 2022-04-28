@@ -2,87 +2,60 @@
 % Please edit documentation in R/explore_startparams.r
 \name{explore_startparams}
 \alias{explore_startparams}
-\title{Function to explore starting value parameter space}
+\title{Explore starting value parameter space}
 \usage{
-explore_startparams(
-  space,
-  startsr,
-  dev,
-  func,
-  catch,
-  choice,
-  distance,
-  otherdat
-)
+explore_startparams(project, space, dev, startsr = NULL)
 }
 \arguments{
-\item{space}{Number of starting value permutations to test (the size of
-the space to explore). The greater the dev parameter the larger the
-space parameter should be.}
+\item{project}{String, name of project.}
 
-\item{startsr}{Average starting value parameters for
+\item{space}{List of length 1 or length equal to the number of models to be evaluated.
+\code{space} is the number of starting value permutations to test (the size of
+the space to explore). The greater the \code{dev} argument, the larger the
+\code{space} argument should be.}
+
+\item{dev}{List of length 1 or length equal to the number of models to be evaluated.
+\code{dev} refers to how far to deviate from the average parameter values when
+exploring (random normal deviates). The less certain the average parameters are,
+the greater the \code{dev} argument should be.}
+
+\item{startsr}{Optional. List, average starting value parameters for
 revenue/location-specific covariates then cost/distance. The best
 guess at what the starting value parameters should be (e.g. all
-ones). Should correspond to the likelihood and data that you want to
+ones). Specify starting value parameters for each model if values should be differetn than ones.
+The number of starting value parameters should correspond to the likelihood and data that you want to
 test.}
-
-\item{dev}{How far to deviate from the average parameter values when
-exploring (random normal deviates). The less certain the average
-parameters are, the greater the dev parameter should be.}
-
-\item{func}{Name of likelihood function to test.}
-
-\item{catch}{Data corresponding to actual zonal choice.}
-
-\item{choice}{Data corresponding to actual catch.}
-
-\item{distance}{Data corresponding to distance.}
-
-\item{otherdat}{Other data (as a list, corresponding to the likelihood
-function you want to test.)}
 }
 \value{
-newstart: Chosen starting values with smallest likelihood \cr
-saveLLstarts: Likelihood values for each starting value permutation \cr
-savestarts: Starting value permuations (corresponding to each saved
-    likelihood value) \cr
+Returns three data frames. \cr
+ \tabular{rlll}{
+newstart: \tab Chosen starting values with smallest likelihood \cr
+saveLLstarts: \tab Likelihood values for each starting value permutation \cr
+savestarts: \tab Starting value permutations (corresponding to each saved likelihood value) \cr
+    }
 }
 \description{
-Shotgun method to find better starting values by exploring starting value
-     parameter space
+Shotgun method to find better parameter starting values by exploring starting value
+     parameter space.
+}
+\details{
+Function is used to identify better starting parameters when
+  convergence is an issue. For more details on the likelihood functions or data, see \code{\link{make_model_design}}.
+  Function calls the model design file and should be used after the \code{\link{make_model_design}}
+  function is called. \cr
+  If more than one model is defined in the model design file, then starting parameters
+  must be defined for each model.
 }
 \examples{
 \dontrun{
-data(zi)
-data(catch)
-data(choice)
-data(distance)
-data(si)
-data(prices)
+Example with only one model specified
+results <- explore_startparams('myproject', 15, 3, rep(1,17))
 
-space <- 15
-startsr <- rep(1,7)
-dev <- 3
-func <- epm_normal
+Example with three models specified
+results <- explore_startparams('myproject', space = list(15,10,100),
+   dev=list(3,3,1), startsr=list(c(1,2,3), c(1,0, -1), c(0,0,.5)))
 
-otherdat <- list(griddat=list(si=as.matrix(cbind(si,si,si,si))),
-    intdat=list(zi=as.matrix(zi)),
-    pricedat=list(prices=as.matrix(prices)))
-
-explore_startparams(space,startsr,dev,func,catch,choice,distance,
-    otherdat)
-
-startsr <- c(0.5, 0.4, 0.3, 0.2, -0.4, 2, 1)
-explore_startparams(space,startsr,dev,func,catch,choice,distance,
-    otherdat)
-
-space <- 100
-dev <- 1
-
-results <- explore_startparams(space,startsr,dev,func,catch,choice,
-    distance,otherdat)
-results$newstart
-min(unlist(results$saveLLstarts))
-match(min(unlist(results$saveLLstarts)),unlist(results$saveLLstarts))
+View results
+results$startsOut
 }
 }

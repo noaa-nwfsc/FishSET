@@ -2,26 +2,26 @@
 % Please edit documentation in R/nan_filter.R
 \name{nan_identify}
 \alias{nan_identify}
-\title{Identify NaN's and NAs in data set}
+\title{Check whether any columns in the primary dataset contain NAs or NaNs.}
 \usage{
-nan_identify(dat)
+nan_identify(dat, project)
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips. 
+Table in the FishSET database contains the string 'MainDataTable'.}
+
+\item{project}{Project name.}
 }
 \value{
-Message with names of columns containing NAs or NaNs, if any.
+Returns names of columns containing NAs or NaNs, if any.
 }
 \description{
-Check whether any columns in the data frame contain NAs or NaNs. Returns column names containing NAs or NaNs.
+Check whether any columns in the primary dataset contain NAs or NaNs. 
+  Returns column names containing NAs or NaNs.
 }
 \examples{
 \dontrun{
-nan_identify(MainDataTable)
-mod.dat <-nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT') 
-mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T) 
-mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', replace=T, rep.value=0) 
-mod.dat <- nan_filter(MainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', remove=T) 
+nan_identify(pcodMainDataTable, "pcod")
 }
 }
 \keyword{NA}

@@ -4,7 +4,7 @@
 \alias{pull_plot}
 \title{Import and format plots to notebook file}
 \usage{
-pull_plot(project, fun, date = NULL)
+pull_plot(project, fun, date = NULL, conf = TRUE)
 }
 \arguments{
 \item{project}{Project name.}
@@ -13,6 +13,9 @@ pull_plot(project, fun, date = NULL)
 
 \item{date}{the date the plot was created. If NULL, then the most recent version
 is retrieved.}
+
+\item{conf}{Logical, whether to return suppressed confidential data. 
+Unsuppressed output will be pulled if suppressed output is not available.}
 }
 \description{
 Import and format plots to notebook file

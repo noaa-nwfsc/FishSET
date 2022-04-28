@@ -2,36 +2,36 @@
 % Please edit documentation in R/check_model_data.R
 \name{check_model_data}
 \alias{check_model_data}
-\title{Check data table for data quality issues that will affect modeling functions.}
+\title{Check for common data quality issues affecting modeling functions}
 \usage{
-check_model_data(dat, dataindex, uniqueID, save.file = TRUE)
+check_model_data(dat, project, uniqueID, save.file = TRUE)
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.}
 
-\item{dataindex}{Data frame that contains information on each column of the main data frame. In fishset_db database the table will contain the phrase `MainDataTableInfo`}
+\item{project}{Project name.}
 
-\item{uniqueID}{Variable that identifies unique occurrences.}
+\item{uniqueID}{Variable in \code{dat} containing unique occurrence identifier.}
 
-\item{save.file}{TRUE/FALSE Save to fishset_db SQLite database? Defaults to TRUE}
+\item{save.file}{Logical, if TRUE and no data issues are identified, the dataset is saved to the FishSET database. Defaults to TRUE.}
 }
 \value{
-Returns statements as to data quality issues in the data may exist.
+Returns statements of data quality issues in the data. Saves table to FishSET database.
 }
 \description{
-Check data table for data quality issues that will affect modeling functions.
+Check the primary dataset for NAs, NaNs, Inf, and that each row is a unique choice occurrence
 }
 \details{
-Checks data to be used for modeling for presence of NAs, NaNs and Inf and that each row is a unique choice occurrence. 
-   Model functions may fail or return inaccurate results if any of these issues exist.
-   The verified data will not save if any of these issues are in the data set. 
-   If data passes all tests, the verified data will  then be saved as SQL table. 
-   When saving to SQL, the modified table will be saved and the previous, unmodified version of the table 
-   (if it exists), will be saved with the prefix 'raw'.
-   The data index table will also be updated and saved.
+It is best to check the data for NAs, NaNs and Inf, and that each row is a unique choice occurrence 
+after data creation functions have been run but before making the model design file (\code{make_model_design}). 
+These steps should be taken even if the data passed earlier data verification checks, as data quality issues can arise in the creation or 
+modification of data. Model functions may fail or return inaccurate results if data quality issues exist. 
+The integrated data will not save if any of these issues are in the dataset. If data passes all tests, then data
+will be saved in the FishSET database with the prefix ‘final’. The data index table will also be updated and saved.
 }
 \examples{
-\dontrun{ 
-check_model_data('MainDataTable', 'MainDataTableInfo', uniqueID='uniqueID_Code', save.file=TRUE)
+\dontrun{
+check_model_data(MainDataTable, uniqueID = "uniqueID_Code", save.file = TRUE)
 }
+
 }

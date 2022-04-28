@@ -2,40 +2,45 @@
 % Please edit documentation in R/data_parser.R
 \name{load_port}
 \alias{load_port}
-\title{Save port data to fishset_db SQLite database}
+\title{Import, parse, and save port data to FishSET database}
 \usage{
 load_port(
   dat,
   port_name,
+  project,
   over_write = TRUE,
-  project = NULL,
   compare = FALSE,
   y = NULL
 )
 }
 \arguments{
-\item{dat}{Data frame to be saved to fishset_db SQLite database.}
+\item{dat}{Dataset containing port data. At a minimum, must include three columns, the port names, and the latitude and longitude of ports.}
 
-\item{port_name}{Column name or number containing port names. Names should match port names in main data set.}
+\item{port_name}{Variable containing port names. Names should match port names in primary dataset.}
 
-\item{over_write}{TRUE/FALSE Save over data table previously saved in fishset_db database?}
+\item{project}{String, name of project.}
 
-\item{project}{Name of project. Parameter is used to generate meaningful table names in fishset_db database.}
+\item{over_write}{Logical, if TRUE, saves over data table previously saved in the FishSET database.}
 
-\item{compare}{TRUE/FALSE If TRUE, compare new data frame to previously saved data frame `y` in fishset_db before saving new data frame to the fishset_db database}
+\item{compare}{Logical, should new data be compared to previously saved data frame \code{y}.}
 
-\item{y}{Name of previously saved table in fishset_db database. y must be defined if `compare==TRUE`.}
+\item{y}{Name of previously saved table in FishSET database. \code{y} must be defined if \code{compare} is TRUE.}
 }
 \description{
-Save port data to fishset_db SQLite database
+Import, parse, and save port data to FishSET database
 }
 \details{
-Runs a series of checks on the port data. If checks pass, runs the fishset_compare function and saves the new data frame to the fishset_db database.  
-The data is saved in the fishset_db database as the raw data and the working data. In both cases, the table name is the `project`, if defined, and the file type `PortTable`. 
+Runs a series of checks on the port data. The function checks that
+  each row is unique, that no variables are empty, and that column names are case-insensitive unique. 
+  There data issues are resolved before the data is saved to the database.
+ If checks pass, runs the fishset_compare function and
+saves the new data frame to the FishSET database.  The data is saved in the FishSET database
+as the raw data and the working data. In both cases, the table name is the `project` and `PortTable`.
 Date is also attached to the name for the raw data.
 }
 \examples{
-\dontrun{  
-load_port(dataset='PortTable', over_write=TRUE, project='', compare=TRUE, y='PortTable01012011') 
+\dontrun{
+load_port(PortTable, over_write = TRUE, project  ='pollock',
+           compare = TRUE, y = 'pollockPortTable01012011')
 }
 }

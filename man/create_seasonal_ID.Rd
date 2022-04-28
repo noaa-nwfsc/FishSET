@@ -2,11 +2,11 @@
 % Please edit documentation in R/create_seasonal_ID.R
 \name{create_seasonal_ID}
 \alias{create_seasonal_ID}
-\title{create_seasonal_ID
-Create season identifier}
+\title{Create fishery season identifier variable}
 \usage{
 create_seasonal_ID(
   dat,
+  project,
   seasonal.dat,
   use.location = c(TRUE, FALSE),
   use.geartype = c(TRUE, FALSE),
@@ -15,37 +15,49 @@ create_seasonal_ID(
 )
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips.
+Table in the FishSET database contains the string 'MainDataTable'.}
 
-\item{seasonal.dat}{Name of table in fishset_db containing date of fishery season(s).}
+\item{project}{Project name.}
 
-\item{use.location}{TRUE/FALSE If true, fishery season dates depend on fishery location. Column names containing location must match the two data sets.}
+\item{seasonal.dat}{Table containing date of fishery season(s). Can be pulled from the FishSET database.}
 
-\item{use.geartype}{TRUE/FALSE If true, fishery season dates depend on gear type. Column name containing gear type must match the two data sets.}
+\item{use.location}{Logical, should fishery season dates depend on fishery location? Column names containing
+location in \code{dat} and \code{seasonal.dat} must match.}
 
-\item{sp.col}{Column containing species names in seasonaldat.}
+\item{use.geartype}{Logical, should fishery season dates depend on gear type. Column names containing gear
+type in \code{dat} and \code{seasonal.dat} must match.}
 
-\item{target}{Name of target species. If `target` is NULL, runs through fisheries in order listed in seasonal.dat}
+\item{sp.col}{Variable in \code{seasonal.dat} containing species names.}
+
+\item{target}{Name of target species. If \code{target} is NULL, runs through fisheries in order listed in \code{seasonal.dat}}
 }
 \value{
-The input dataset with variables SeasonID, and seasonID*fishery (`seasonIDChinook`).
+Returns the primary dataset with the variable SeasonID, or a series of variables identifying by the individual
+  fisheries included (seasonID*fishery).
 }
 \description{
-create_seasonal_ID
-Create season identifier
+Create fishery season identifier variable
 }
 \details{
-Uses a table of season dates for fisheries to create season ID variables. 
-Output is a SeasonID variable and multiple SeasonID*fishery variables.
-The seasonID variable is a vector where each row is the fishery season based on dates of the observation. 
-If target fishery `target` is defined then the function returns SeasonID as vector of the target fishery `target` or `Other`.
- If `target` is not defined, then, for each row, SeasonID is the first fishery listed in seasonal.dat for which fishery season date encompasses the dates for that row in the main data table. 
-SeasonID*fishery variables are a TRUE/FALSE seasonID vector for each fishery (labeled by seasonID and fishery) where TRUE indicates the dates for a given row in the main data table fall within the fishery dates for that fishery.
+Uses a table of fishery season dates to create fishery season identifier variables. Output is a SeasonID
+variable and/or multiple SeasonID*fishery variables. If fishery season dates vary by location or gear type,
+then \code{use.location} and \code{use.geartype} should be TRUE. \cr\cr
+The function matches fishery season dates provided in \code{seasonal.dat} to the earliest date variable in \code{dat}.
+The `seasonID` variable is a vector of fishery seasons whereas the `SeasonID*fishery` variables are 1/0 depending on whether the
+fishery was open on the observed date. \cr\cr
+If \code{target} is not defined, then each row of seasonID is defined as the earliest fishery listed in \code{seasonal.dat} for
+which the fishery season date encompasses the date variable in the primary dataset. If \code{target} fishery is defined, then
+`SeasonID` is defined by whether the target fishery is open on the date in the primary dataset or a different fishery. The
+vector is filled with 'target' or 'other'.\cr\cr
+`SeasonID*fishery` variables are a 1/0 seasonID vector for each fishery (labeled by seasonID and fishery) where 1
+indicates the dates for a given row in the main data table fall within the fishery dates for that fishery.
 }
 \examples{
-\dontrun{ 
- MainDataTable <- create_seasonal_ID(MainDataTable, seasonal, use.location = TRUE,  
- use.geartype = TRUE, sp.col = 'SPECIES', target = 'POLLOCK')
- }
+\dontrun{
+pcodMainDataTable <- create_seasonal_ID("pcodMainDataTable", seasonal_dat,
+  use.location = TRUE, use.geartype = TRUE, sp.col = "SPECIES", target = "POLLOCK"
+)
+}
 
 }

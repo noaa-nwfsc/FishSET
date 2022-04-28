@@ -2,50 +2,66 @@
 % Please edit documentation in R/map_kernel.r
 \name{map_kernel}
 \alias{map_kernel}
-\title{Wrapper function to map kernel densities}
+\title{Kernel density (hotspot) plot}
 \usage{
-map_kernel(type, latlon, group = NULL, facet = FALSE, minmax = NULL)
+map_kernel(
+  dat,
+  project,
+  latlon,
+  type = "contours",
+  group = NULL,
+  facet = FALSE,
+  date = NULL,
+  filter_date = NULL,
+  filter_value = NULL,
+  minmax = NULL
+)
 }
 \arguments{
-\item{type}{Type of plot ("point", "contours", "gradient"). Note if you
-have a group, you must facet when choosing "gradient" (cannot overlap
-polygons clearly).}
+\item{dat}{Primary data containing information on hauls or trips.
+Table in FishSET database contains the string 'MainDataTable'.}
 
-\item{latlon}{A matrix of (# of observations) x 2 corresponding to 
-latitude/longitude pair coordinates in decimal degrees.}
+\item{project}{String, name of project.}
 
-\item{group}{Optional group parameter if user maps based on a factor 
-group. Should be a factor with length of (# of observations), 
-where each observation corresponds to the latlon coordinate of the same 
+\item{latlon}{Character string, specified as latitude then longitude, in decimal degrees.}
+
+\item{type}{String, plot type. Choices are \code{"point"}, \code{"contours"}, or
+\code{"gradient"}. Note if you have a group, you must facet when choosing \code{"gradient"}
+(cannot overlap polygons clearly).}
+
+\item{group}{Optional group argument. Should be a factor with length of (# of observations),
+where each observation corresponds to the latlon coordinate of the same
 index. Recall that the legend will output the names of
-factor levels as you have named them. (See ?factor).}
+factor levels as you have named them (see \code{?factor}).}
 
-\item{facet}{Optional facet parameter if user maps each group as a 
-separate facet ("TRUE", "FALSE"), default = "FALSE".}
+\item{facet}{Optional facet parameter. TRUE if mapping each group as a
+separate facet. Defaults to FALSE.}
 
-\item{minmax}{Optional map extent parameter, a vector (num) of length 4 
+\item{date}{Optional date variable to filter data by.}
+
+\item{filter_date}{Whether to filter data table by \code{"year"}, \code{"month"}, or
+\code{"year-month"}. \code{date} and \code{filter_value} must be provided.
+Defaults to \code{NULL}.}
+
+\item{filter_value}{Integer (4 digits if year, 1-2 if month). The year, month,
+or year-month to filter data table by. Use a list if using \code{"year-month"},
+with the format: list(year(s), month(s)). For example, \code{list(2011:2013, 5:7)}
+will filter the data table from May to July, 2011-2013.}
+
+\item{minmax}{Optional map extent argument, a vector (num) of length 4
 corresponding to c(minlat, maxlat, minlon, maxlon).}
 }
 \value{
-mapout: ggplot2 object
+Returns ggplot2 object. Map plot saved to Output folder.
 }
 \description{
-Wrapper function to map kernel densities using ggplot2
+Kernel density (hotspot) plot
 }
 \examples{
 \dontrun{
-type <- "contours"
-latlon <- as.matrix(cbind(datatomap.2001$lat, datatomap.2001$lon))
-group <- datatomap.2001$Vessel
-minmax = c(50, max(datatomap.2001$lat,datatomap.2001$lat)*1.001,
- min(datatomap.2001$lon,datatomap.2001$lon)*1.001 , -142.5)
-
-map_kernel(type,latlon,group=group,minmax=minmax)
-
-type <- "gradient"
-map_kernel(type,latlon,group=group,facet=TRUE,minmax=minmax)
-
-type <- "point"
-map_kernel(type,latlon)
-}    
+map_kernel(pollockMainDataTable, project = 'pollock', type = 'contours',
+latlon = c('LonLat_START_LAT', 'LonLat_START_LON'), group = 'PORT_CODE',
+facet = TRUE, minmax = NULL, date = 'FISHING_START_DATE',
+filter_date = 'year-month', filter_value = list(2011, 2:4))
+}
 }

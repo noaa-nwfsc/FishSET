@@ -13,7 +13,7 @@ pull_notes(project, date = NULL, output = "print")
 retrieved.}
 
 \item{output}{Output type. "print" returns formatted notes. "string" returns a 
-character vector of the notes. "print" is reccomended for displaying notes in a report.}
+character vector of the notes. "print" is recommended for displaying notes in a report.}
 }
 \description{
 Pull notes from output folder
@@ -21,6 +21,6 @@ Pull notes from output folder
 \details{
 Notes are saved to the output folder by project name and date. If date is not
   specified then the most recent notes file with the project name is pulled. Notes are
-  are also saved by FishSET app session; if more than one session occured in the same day, each 
+  are also saved by FishSET app session; if more than one session occurred in the same day, each 
   session's notes are pulled and listed in chronological order.
 }

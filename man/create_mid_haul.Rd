@@ -2,37 +2,44 @@
 % Please edit documentation in R/create_variables.R
 \name{create_mid_haul}
 \alias{create_mid_haul}
-\title{Calculate latitude and longitude of haul midpoint}
+\title{Creates haul midpoint latitude and longitude variables}
 \usage{
 create_mid_haul(
   dat,
+  project,
   start = c("lon", "lat"),
   end = c("lon", "lat"),
   name = "mid_haul"
 )
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishset_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips.
+Table in the FishSET database contains the string 'MainDataTable'.}
 
-\item{start}{Starting location of haul. Must be specificied as vector containing longitudinal data and vector containing latitudinal data separated by comma.}
+\item{project}{Project name.}
 
-\item{end}{Ending location of haul. Must be specificied as vector containing longitudinal data and vector containing latitudinal data separated by comma.}
+\item{start}{Character string, variables in \code{dat} defining the longitude and latitude of
+the starting location of haul. Must be in decimal degrees.}
 
-\item{name}{Name of new variable. Defaults to `mid_haul`}
+\item{end}{Character string, variables in \code{dat} defining the longitude and latitude of the
+ending location of haul.  Must be in decimal degrees.}
+
+\item{name}{String, name of new variable. Defaults to `mid_haul`.}
 }
 \value{
-Main data frame with two new variables added, lat and lon of midpoint.
+Returns primary dataset with two new variables added: latitude and longitude of haul midpoint.
 }
 \description{
-Calculate latitude and longitude of haul midpoint
+Calculates latitude and longitude of the haul midpoint and adds two variables
+to the primary data set: the midpoint latitude and the midpoint longitude.
 }
 \details{
-Returns midpoint of each haul. Each row of data must be a unique haul. Requires a start and end point for each observations.
+Each row of data must be a unique haul. Requires a start and end point for each observation.
 }
 \examples{
 \dontrun{
-MainDataTable <- create_mid_haul(MainDataTable, start = c("LonLat_START_LON", 
-                "LonLat_START_LAT"), end = c("LonLat_END_LON", "LonLat_END_LAT"),
-                 name='mid_haul') 
+pollockMainDataTable <- create_mid_haul(pollockMainDataTable, 'pollock', 
+    start = c('LonLat_START_LON', 'LonLat_START_LAT'), 
+   end = c('LonLat_END_LON', 'LonLat_END_LAT'), name = 'mid_haul')
 }
 }

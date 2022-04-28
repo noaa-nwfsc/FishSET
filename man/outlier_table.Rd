@@ -2,32 +2,41 @@
 % Please edit documentation in R/outlier_check.R
 \name{outlier_table}
 \alias{outlier_table}
-\title{Evaluate outliers in a table output}
+\title{Evaluate outliers in a table format}
 \usage{
-outlier_table(dat, x)
+outlier_table(dat, project, x, sd_val = NULL, log_fun = TRUE)
 }
 \arguments{
-\item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}
+\item{dat}{Primary data containing information on hauls or trips.
+Table in the FishSET database contains the string 'MainDataTable'.}
 
-\item{x}{Column in data frame to check for outliers}
+\item{project}{String, name of project.}
+
+\item{x}{Variable or column number in \code{dat} to check for outliers.}
+
+\item{sd_val}{Optional. Number of standard deviations from mean defining outliers. 
+Example, \code{sd_val=6} would mean values outside +/- 6 SD from the mean would be outliers.}
+
+\item{log_fun}{Logical, whether to log function call (for internal use).}
 }
 \value{
-Table for evaluating whether outliers may exist in the selected data column.
+Table for evaluating whether outliers may exist in the selected data 
+  column.
 }
 \description{
-Evaluate outliers in a table output
+Evaluate outliers in a table format
 }
 \details{
-The returned table has dimension 7 x 10. The table allows users to assess outliers by subsetting the data by quantiles or standard deviations, and then
-reporting summary stats for the subsetted data.  
-Each row is a different subset of the data. In the first row, all data is included. 
-In the second row, data within the 5 to 95 percent quantiles are included. Subsequent rows include data within the 25-75\% quantile, the mean of `x` +/2SD, the mean of `x` +/3SD,
-the median of `x` +/2SD, and the median of `x` +/3SD.
-The second column identifies how data were subset. The remaining columns include the mean, median, standard deviation, minimum, maximum, number of NAs, and skew of the data.
+Returns a table of summary statistics (mean, median, standard 
+ deviation, minimum, maximum, number of NAs, and skew of the data) for 
+ \code{x} after values outside the outlier measure have been removed. 
+ Outlier measures include 5-95\% quantiles, 25-75\% quantiles, mean +/-2SD, 
+ mean +/-3SD, median +/-2SD, and median +/-3SD. Only one variable can be 
+ checked at a time. Table is saved to the Output folder.
 }
 \examples{
 \dontrun{
-outlier_table(MainDataTable, 'HAUL') 
+outlier_table(pollockMainDataTable, 'pollock', 'HAUL')
 }
 }
 \keyword{outliers}

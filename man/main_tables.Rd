@@ -2,16 +2,18 @@
 % Please edit documentation in R/sql_functions.R
 \name{main_tables}
 \alias{main_tables}
-\title{Display MainDataTables}
+\title{View list of MainDataTables in FishSET database}
 \usage{
-main_tables(project = NULL)
+main_tables(project, show_all = TRUE)
 }
 \arguments{
-\item{project}{A project name to filter main tables by. Returns all MainDataTables
-if \code{NULL}.}
+\item{project}{A project name to filter main tables by.}
+
+\item{show_all}{Logical, whether to show all main tables (including raw and 
+final tables) or just editable tables.}
 }
 \description{
-Display MainDataTables
+View list of MainDataTables in FishSET database
 }
 \examples{
 \dontrun{

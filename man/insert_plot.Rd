@@ -4,10 +4,12 @@
 \alias{insert_plot}
 \title{Insert plot from user folder}
 \usage{
-insert_plot(out)
+insert_plot(out, project)
 }
 \arguments{
 \item{out}{String, plot file name.}
+
+\item{project}{Name of project.}
 }
 \description{
 Insert plot from user folder

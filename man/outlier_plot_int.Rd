@@ -4,18 +4,27 @@
 \alias{outlier_plot_int}
 \title{Evaluate outliers through plots}
 \usage{
-outlier_plot_int(dat, x, dat.remove = "none", x.dist = "normal", plot_type)
+outlier_plot_int(
+  dat,
+  x,
+  dat_remove = "none",
+  x_dist = "normal",
+  sd_val = NULL,
+  plot_type
+)
 }
 \arguments{
 \item{dat}{Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.}
 
-\item{x}{Column in dataf rame to check for outliers}
+\item{x}{Column in dataframe to check for outliers}
 
-\item{dat.remove}{Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD}
+\item{dat_remove}{Defines method to subset the data. Choices include: none, 5_95_quant, 25_75_quant, mean_2SD, median_2SD, mean_3SD, median_3SD}
 
-\item{x.dist}{Distribution of the data. Choices include: normal, lognormal, exponential, weibull, poisson, negative binomial}
+\item{x_dist}{Distribution of the data. Choices include: normal, lognormal, exponential, weibull, poisson, negative binomial}
 
-\item{plot_type}{Which plot to reeturn}
+\item{sd_val}{User-defined rule}
+
+\item{plot_type}{Which plot to return}
 }
 \value{
 Plot of the data
@@ -25,7 +34,8 @@ Evaluate outliers through plots
 }
 \details{
 The function returns three plots, the data, a probability plot, and a Q-Q plot. The data plot is the value of
- x against row number. Red points are all the data without any points removed. The blue points are the subsetted data. If `dat.remove` is `none`, then only blue points will be shown. 
- The probability plot is a histogram of the data with the fitted probability distribution based on `x.dist`. The Q-Q plot plots are
+ x against row number. Red points are all the data without any points removed. The blue points are the subsetted data. If `dat_remove` is `none`, then only blue points will be shown.
+ The probability plot is a histogram of the data with the fitted probability distribution based on `x_dist`. The Q-Q plot plots are
  sampled quantiles against theoretical quantiles.
 }
+\keyword{internal}
