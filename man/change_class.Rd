@@ -12,27 +12,31 @@ database should contain the string `MainDataTable`.}
 
 \item{project}{Name of project.}
 
-\item{x}{A character string of variable(s) in \code{dat} that will be changed to \code{new_class}. 
-One ore more variables may be included. Default set to NULL.}
+\item{x}{A character string of variable(s) in \code{dat} that will be changed 
+to \code{new_class}. One ore more variables may be included. Default set to NULL.}
 
-\item{new_class}{A character string of data classes that \code{x} should be changed to. Length of \code{new_class}
-should match the length of \code{x} unless all variables in \code{x} should be the same \code{new_class}.
+\item{new_class}{A character string of data classes that \code{x} should be 
+changed to. Length of \code{new_class} should match the length of \code{x} 
+unless all variables in \code{x} should be the same \code{new_class}.
 Defaults to NULL. Options are "numeric", "factor", "date", "character". Must be in quotes.}
 
-\item{save}{Logical. Should the data table be saved in the FishSET database, replacing the working data table
-in the database? Defaults to FALSE.}
+\item{save}{Logical. Should the data table be saved in the FishSET database, 
+replacing the working data table in the database? Defaults to FALSE.}
 }
 \value{
-Table with data class for each variable and the working data with modified data class as specified.
+Table with data class for each variable and the working data with modified 
+  data class as specified.
 }
 \description{
 View data class for each variable and call appropriate functions to change data class as needed.
 }
 \details{
-Returns a table with data class for each variable in \code{dat} and changes variable classes.   
-  To view variable classes run the function with default settings, specifying only \code{dat} and \code{project}. 
-  If variable class should be changed, run the function again, specifying the variable(s) \code{(x)} to be changed 
-  and the new_class(es) \code{(new_class)}. Set \code{save} to TRUE to save modified data table.
+Returns a table with data class for each variable in \code{dat} and 
+  changes variable classes. To view variable classes run the function with default 
+  settings, specifying only \code{dat} and \code{project}. If variable class 
+  should be changed, run the function again, specifying the variable(s) \code{(x)} 
+  to be changed and the new_class(es) \code{(new_class)}. Set \code{save} to 
+  TRUE to save modified data table.
 }
 \examples{
 \dontrun{

@@ -25,8 +25,8 @@ Table in FishSET database contains the string 'MaindataTable'.}
 
 \item{varofint}{Numeric variable from \code{dat} to test for spatial autocorrelation.}
 
-\item{zoneid}{Variable in \code{dat} that identifies the individual zones or areas. Define if exists in \code{dat} and is not named `ZoneID`.
-Defaults to NULL.}
+\item{zoneid}{Variable in \code{dat} that identifies the individual zones or
+areas. Define if exists in \code{dat} and is not named `ZoneID`. Defaults to NULL.}
 
 \item{spat}{Spatial data containing information on fishery management or regulatory zones.
 Shape, json, geojson, and csv formats are supported.}
@@ -38,11 +38,11 @@ If \code{spat} is class sf, \code{cat} should be name of list containing informa
 
 \item{lat.dat}{Latitude variable from \code{dat}.}
 
-\item{lon.spat}{Variable or list from \code{spat} containing longitude data. Required for csv files.
-Leave as NULL if \code{spat} is a shape or json file.}
+\item{lon.spat}{Variable or list from \code{spat} containing longitude data. 
+Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}
 
-\item{lat.spat}{Variable or list from \code{spat} containing latitude data. Required for csv files.
-Leave as NULL if \code{spat} is a shape or json file.}
+\item{lat.spat}{Variable or list from \code{spat} containing latitude data. 
+Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}
 }
 \value{
 Returns a plot and map of Moran’s I. Output is saved to the Output folder.
@@ -51,14 +51,18 @@ Returns a plot and map of Moran’s I. Output is saved to the Output folder.
 Wrapper function to calculate global and local Moran's I by discrete area.
 }
 \details{
-Measure degree of spatial autocorrelation. Function utilizes the \code{\link[spdep]{localmoran}}
-and \code{\link[spdep]{knearneigh}} functions from the spdep package. The spatial input is a row-standardized spatial
-weights matrix for computed nearest neighbor matrix, which is the null setting for the \code{\link[spdep]{nb2listw}}
-function. The function requires a map file with lat/lon defining boundaries of area/zones and \code{varofint}
-for to test for spatial autocorrelation. If zonal centroid is not included in the map file, then the \code{\link{find_centroid}}
-function is called to calculate the centroid of each zone. If the variable of interest is not associated with an
-area/zone then \code{\link{assignment_column}} is called to assign each observation to a zone. Arguments
-to identify centroid and assign variable of interest to area/zone are optional and default to NULL.
+Measure degree of spatial autocorrelation. Function utilizes the 
+\code{\link[spdep]{localmoran}} and \code{\link[spdep]{knearneigh}} functions 
+from the spdep package. The spatial input is a row-standardized spatial
+weights matrix for computed nearest neighbor matrix, which is the null setting 
+for the \code{\link[spdep]{nb2listw}} function. The function requires a map 
+file with lat/lon defining boundaries of area/zones and \code{varofint} for 
+to test for spatial autocorrelation. If zonal centroid is not included in the 
+map file, then the \code{\link{find_centroid}} function is called to calculate 
+the centroid of each zone. If the variable of interest is not associated with an
+area/zone then \code{\link{assignment_column}} is called to assign each observation 
+to a zone. Arguments to identify centroid and assign variable of interest to 
+area/zone are optional and default to NULL.
 }
 \examples{
 \dontrun{
