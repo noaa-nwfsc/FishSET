@@ -116,7 +116,7 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
   } else if (data.type == 'shp' | data.type == "shape") {
     out <- sf::st_read(x, ...)
     #out <- sf::st_as_sf(out)
-    out <- sf::st_transform(out, "+proj=longlat +ellps=WGS84 +datum=WGS84")
+    out <- sf::st_transform(out, crs = 4326) # WGS 84
   } else if (data.type == "xls" | data.type == 'xlsx' | data.type == 'excel'){
     as.data.frame(readxl::read_excel(x, ...))
   } else if (data.type == 'txt') {
