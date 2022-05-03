@@ -6,18 +6,18 @@
 \usage{
 table_save(table, project, type, name = NULL)
 }
+\arguments{
+\item{table}{A dataframe to save to the FishSET Database.}
+
+\item{project}{Name of project.}
+
+\item{type}{The table type. Options include, \code{"main"} for main data tables,
+\code{"port"} for port tables, \code{"grid"} for gridded tables, \code{"aux"}
+for auxiliary tables.}
+
+\item{name}{String, table name. Applicable only for gridded and auxiliary tables.}
+}
 \description{
 \code{table_save()} updates existing FishSET DB tables. If the table doesn't
 exist, the user is reminded to use the appropriate \code{load_} function.
-}
-\details{
-@param table A dataframe to save to the FishSET Database.
- @param project Name of project.
- @param type The table type. Options include, \code{"main"} for main data tables,
-   \code{"port"} for port tables, \code{"grid"} for gridded tables, \code{"aux"}
-   for auxiliary tables. 
- @param name String, table name. Applicable only for gridded and auxiliary tables.
- @export
- @importFrom DBI dbConnect dbDisconnect dbWriteTable
- @importFrom RSQLite SQLite
 }

@@ -20,15 +20,18 @@ map_viewer(
 )
 }
 \arguments{
-\item{dat}{Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.}
+\item{dat}{Primary data containing information on hauls or trips. Table in 
+FishSET database contains the string 'MainDataTable'.}
 
 \item{project}{Project name.}
 
-\item{gridfile}{Spatial data containing information on fishery management or regulatory zones. Shape, json, geojson, and csv formats are supported.}
+\item{gridfile}{Spatial data containing information on fishery management or 
+regulatory zones. Shape, json, geojson, and csv formats are supported.}
 
 \item{avd}{Variable name in \code{dat} that gives the unique ID associated to the polygon.}
 
-\item{avm}{The name of the property in the GeoJson file that identifies the polygon to cross reference to \code{dat}. Often a list of zones.}
+\item{avm}{The name of the property in the GeoJson file that identifies the 
+polygon to cross reference to \code{dat}. Often a list of zones.}
 
 \item{num_vars}{List, name of numeric variable(s) in \code{dat} to include for plotting.}
 
@@ -36,9 +39,11 @@ map_viewer(
 
 \item{id_vars}{List, name of categorical variable(s) in \code{dat} to group by.}
 
-\item{lon_start}{String, variable in \code{dat} that identifies a single longitude point or starting longitude decimal degrees.}
+\item{lon_start}{String, variable in \code{dat} that identifies a single 
+longitude point or starting longitude decimal degrees.}
 
-\item{lat_start}{String, variable in \code{dat} that identifies a single latitude point or starting latitude decimal degrees.}
+\item{lat_start}{String, variable in \code{dat} that identifies a single 
+latitude point or starting latitude decimal degrees.}
 
 \item{lon_end}{String, variable in \code{dat} that identifies ending longitude decimal degrees.}
 
@@ -48,14 +53,14 @@ map_viewer(
 View vessel locations and fishery zones on interactive map.
 }
 \details{
-The map_viewer function creates the files required to run the MapViewer program.
-Users can map points or trip path. To plot points, leave \code{lon_end} and \code{lat_end} and \code{NULL}.
-After creating the inputs, a map with zones is opened in the default web browser. To close
-the server connection run \code{servr::daemon_stop()} in the console.
-Lines on the map represent the starting
-and ending lat/long for each observation in the data set color coded based on the selected variable.
-It can take up to a minute for the data to be loaded onto the map.
-At this time, the map can only be saved by taking a screen shot.
+The map_viewer function creates the files required to run the MapViewer 
+program. Users can map points or trip path. To plot points, leave \code{lon_end} 
+and \code{lat_end} and \code{NULL}. After creating the inputs, a map with zones 
+is opened in the default web browser. To close the server connection run 
+\code{servr::daemon_stop()} in the console. Lines on the map represent the starting
+and ending lat/long for each observation in the data set color coded based 
+on the selected variable. It can take up to a minute for the data to be loaded
+onto the map. At this time, the map can only be saved by taking a screen shot.
 }
 \examples{
 \dontrun{
