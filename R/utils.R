@@ -2053,10 +2053,11 @@ outlier_plot_int <- function(dat, x, dat_remove = "none", x_dist = "normal", sd_
   }
 }
 
-quietly_test <- function(.f) {
+quietly_test <- function(.f, show_msg = FALSE) {
   #' quietly_test
   #' capture console messages if exist and print to shiny app
   #' @param .f function name
+  #' @param show_msg Logical, whether to show messages in shiny app. 
   #' @export
   #' @keywords internal
   #' @importFrom purrr quietly safely
@@ -2069,6 +2070,7 @@ quietly_test <- function(.f) {
     res <- fun(...)
 
     if (!is.null(res$error)) { # safely output
+      
       showNotification(res$error$message, duration = 10, type = "error")
       return(res$result)
     }
@@ -2080,9 +2082,12 @@ quietly_test <- function(.f) {
       lapply(unique(res$warnings), showNotification, duration = 10, type = "warning")
     }
     
-    if (!is.null(res$messages) && length(res$message) > 0) {
+    if (show_msg) {
       
-      lapply(unique(res$messages), showNotification, duration = 10, type = "message")
+      if (!is.null(res$messages) && length(res$message) > 0) {
+        
+        lapply(unique(res$messages), showNotification, duration = 10, type = "message")
+      }
     }
     
     return(res$result)
