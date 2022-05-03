@@ -5,22 +5,27 @@
 #' @param dat Main data frame over which to apply function. Table in FishSET 
 #'   database should contain the string `MainDataTable`.
 #' @param project Name of project.
-#' @param x A character string of variable(s) in \code{dat} that will be changed to \code{new_class}. 
-#'   One ore more variables may be included. Default set to NULL.   
-#' @param new_class A character string of data classes that \code{x} should be changed to. Length of \code{new_class}
-#'   should match the length of \code{x} unless all variables in \code{x} should be the same \code{new_class}.
+#' @param x A character string of variable(s) in \code{dat} that will be changed 
+#'   to \code{new_class}. One ore more variables may be included. Default set to NULL.   
+#' @param new_class A character string of data classes that \code{x} should be 
+#'   changed to. Length of \code{new_class} should match the length of \code{x} 
+#'   unless all variables in \code{x} should be the same \code{new_class}.
 #'   Defaults to NULL. Options are "numeric", "factor", "date", "character". Must be in quotes.
-#' @param save Logical. Should the data table be saved in the FishSET database, replacing the working data table
-#'  in the database? Defaults to FALSE.
-#' @details Returns a table with data class for each variable in \code{dat} and changes variable classes.   
-#'   To view variable classes run the function with default settings, specifying only \code{dat} and \code{project}. 
-#'   If variable class should be changed, run the function again, specifying the variable(s) \code{(x)} to be changed 
-#'   and the new_class(es) \code{(new_class)}. Set \code{save} to TRUE to save modified data table.
-#' @return Table with data class for each variable and the working data with modified data class as specified.
+#' @param save Logical. Should the data table be saved in the FishSET database, 
+#'   replacing the working data table in the database? Defaults to FALSE.
+#' @details Returns a table with data class for each variable in \code{dat} and 
+#'   changes variable classes. To view variable classes run the function with default 
+#'   settings, specifying only \code{dat} and \code{project}. If variable class 
+#'   should be changed, run the function again, specifying the variable(s) \code{(x)} 
+#'   to be changed and the new_class(es) \code{(new_class)}. Set \code{save} to 
+#'   TRUE to save modified data table.
+#' @return Table with data class for each variable and the working data with modified 
+#'   data class as specified.
 #' @importFrom DBI dbWriteTable dbConnect dbDisconnect
 #' @importFrom tibble enframe tibble
 #' @importFrom dplyr bind_cols
 #' @importFrom lubridate as_date
+#' @importFrom purrr safely quietly
 #' @examples
 #' \dontrun{
 #' #View table without changing class or saving
@@ -94,7 +99,7 @@ change_class <- function(dat, project, x = NULL, new_class = NULL, save = FALSE)
     }
     
     # accepted classes 
-    available_classes <- toupper(c("numeric", "character", "date", "factor"))
+    available_classes <- c("NUMERIC", "CHARACTER", "FACTOR", "DATE")
     
     if (any(!new_class %in% available_classes)) {
       
@@ -110,14 +115,15 @@ change_class <- function(dat, project, x = NULL, new_class = NULL, save = FALSE)
     di_n <- names(which((origclass == "DATE" | origclass == 'INTEGER') & (new_class=="NUMERIC")))
     c_n <- names(which((origclass == "CHARACTER") & (new_class=="NUMERIC")))
     f_n <- names(which((origclass == "FACTOR") & (new_class=="NUMERIC")))
-    n_c <- names(which((origclass == "NUMERIC") & (new_class=="CHARACTER")))
-    i_c <- names(which((origclass == "INTEGER") & (new_class=="CHARACTER")))
+    ni_c <- names(which((origclass == "NUMERIC" | origclass == "INTEGER")
+                       & (new_class=="CHARACTER")))
     f_c <- names(which((origclass == "FACTOR") & (new_class=="CHARACTER")))
     d_c <- names(which((origclass == "DATE") & (new_class=="CHARACTER")))
     ncd_f <- names(which((origclass == "NUMERIC" | origclass == "CHARACTER" | 
                             origclass == "DATE" | origclass == "INTEGER") & (new_class=="FACTOR")))
-    c_d <- names(which((origclass == "CHARACTER") & (new_class=="DATE")))
-    nf_d <- names(which((origclass == "NUMERIC" | origclass == "FACTOR" | origclass == "INTEGER") & (new_class=="DATE")))
+    cn_d <- names(which((origclass == "CHARACTER" | origclass == "NUMERIC" | origclass == "INTEGER") & 
+                          (new_class=="DATE")))
+    f_d <- names(which((origclass == "FACTOR") & (new_class=="DATE")))
     
     
     # TODO use error handlers to check for invalid output
@@ -126,25 +132,25 @@ change_class <- function(dat, project, x = NULL, new_class = NULL, save = FALSE)
     # Change date/integer to numeric
     if (length(di_n) > 0) {
       
-      dataset[di_n] <- lapply(di_n, function(x) as.numeric(dataset[[x]]))
+      dataset[di_n] <- lapply(dataset[di_n], function(x) as.numeric)
       change_flag <- TRUE
     }
     
     #from character to numeric
     if (length(c_n) > 0) {
       
-      dataset[c_n] <- lapply(c_n, function(x) as.numeric(as.character(dataset[[x]])))
+      dataset[c_n] <- lapply(dataset[c_n], function(x) as.numeric(as.character(x)))
       change_flag <- TRUE
     }
     
     #from factor to numeric
     if (length(f_n) > 0) {
       
-      dataset[f_n] <- lapply(f_n, function(x) {
+      dataset[f_n] <- lapply(dataset[f_n], function(x) {
         # returns original values back to numeric
-        out <- suppressWarnings(as.numeric(levels(dataset[[x]]))[dataset[[x]]])
+        out <- suppressWarnings(as.numeric(levels(x))[x])
         # returns factor levels as numeric values
-        if (anyNA(out)) out <- as.numeric(dataset[[x]]) 
+        if (anyNA(out)) out <- as.numeric(x) 
         out
       })
       
@@ -152,30 +158,24 @@ change_class <- function(dat, project, x = NULL, new_class = NULL, save = FALSE)
     }
     
     ## To character ---- 
-    # numeric to character
-    if (length(n_c) > 0) {
+    # numeric, integer to character
+    if (length(ni_c) > 0) {
       
-      dataset[n_c] <- lapply(n_c, function(x) as.character(dataset[[x]]))
-      change_flag <- TRUE
-    }
-    # integer to character
-    if (length(i_c) > 0) {
-      
-      dataset[i_c] <- lapply(i_c, function(x) as.character(dataset[[x]]))
+      dataset[ni_c] <- lapply(dataset[ni_c], as.character)
       change_flag <- TRUE
     }
     
     # factor to character
     if (length(f_c) > 0) {
       
-      dataset[f_c] <- lapply(f_c, function(x) as.character.factor(dataset[[x]]))
+      dataset[f_c] <- lapply(dataset[f_c], as.character.factor)
       change_flag <- TRUE
     }
     
     # date to character
     if (length(d_c) > 0) {
       
-      dataset[d_c] <- lapply(d_c, function(x) as.character.Date(dataset[[x]]))
+      dataset[d_c] <- lapply(dataset[d_c], as.character.Date)
       change_flag <- TRUE
     }
     
@@ -183,60 +183,73 @@ change_class <- function(dat, project, x = NULL, new_class = NULL, save = FALSE)
     # numeric, character, date to factor
     if (length(ncd_f) > 0) {
       
-      dataset[ncd_f] <- lapply(ncd_f, function(x) as.factor(dataset[[x]]))
+      dataset[ncd_f] <- lapply(dataset[ncd_f], as.factor)
       change_flag <- TRUE
     }
     
     ## To date ---- 
     # character to date
-    if (length(c_d) > 0) {
+    if (length(cn_d) > 0) {
 
-      dataset[c_d] <- lapply(c_d, function(x) lubridate::as_date(dataset[[x]]))
+      dataset[cn_d] <- lapply(dataset[cn_d], lubridate::as_date)
       change_flag <- TRUE
     }
-    
-    #numeric #factor
-    #as.Date.numeric(x)
-    if (length(nf_d) > 0) {
+ 
+    if (length(f_d) > 0) {
       
-      # TODO find more reliable approach
-      charlength <- nchar(as.character(dataset[[nf_d[1]]][1]))
+      # underlying values can be date, date string, numeric, or numeric as string
+   
+      num_to_date <- function(x) {
+        
+        out <- as.numeric(as.character(x))
+        lubridate::as_date(out)
+      }
       
-      if (charlength > 8) {
+      quiet_safe_test <- function(.f) {
         
-        dataset[nf_d] <- lapply(nf_d, function(x) {
-          
-          as.Date(as.POSIXct(dataset[[nf_d]], origin="1970-01-01"))
-          })
+        fun1 <- purrr::quietly(.f)
+        fun <- purrr::safely(fun1)
+        
+        function(...) fun(...)
+      }
+      
+      qs_test <- quiet_safe_test(lubridate::as_date)
+   
+      # results of attempting as_date
+      res_char <- lapply(dataset[f_d], qs_test)
+      
+      char_keep <- 
+        vapply(res_char, function(x) !is_value_empty(x$result$result), logical(1))
+      
+      qs_test <- quiet_safe_test(num_to_date)
+      
+      res_num <- lapply(dataset[f_d], qs_test)
+      
+      num_keep <- 
+        vapply(res_num, function(x) !is_value_empty(x$result$result), logical(1))
+      
+      if (any(char_keep)) {
+        
+        c_ind <- names(char_keep[char_keep])
+        
+        dataset[c_ind] <- lapply(res_char[c_ind], function(x) x$result$result)
         change_flag <- TRUE
+      }
+      
+      if (any(num_keep)) {
         
-      } else if (charlength == 8) {
-        
-        dataset[nf_d] <- lapply(nf_d, function(x) {
+        n_ind <- names(num_keep[num_keep])
+        # if a var happens to not be empty in both num and char results, default to char result
+        if (any(c_ind %in% n_ind)) {
           
-          as.Date(as.character(dataset[[x]]), format = "%Y%m%d")
-          })
-        change_flag <- TRUE
+          n_ind <- n_ind[!n_ind %in% c_ind]
+        }
         
-      } else if (charlength == 6) {
-        
-        dataset[nf_d] <- lapply(nf_d, function(x) {
+        if (length(n_ind) > 0) {
           
-          as.Date(paste0(as.character(dataset[[x]], "01")), format = "%Y%m%d")
-          })
-        change_flag <- TRUE
-        
-      } else if (charlength) {
-        
-        dataset[nf_d] <- lapply(nf_d, function(x) {
-          
-          as.Date(as.character(paste0(dataset[[x]], "0101")), format = "%Y%m%d")
-          })
-        change_flag <- TRUE
-        
-      } else {
-        
-        message("Unable to convert ", paste(nf_d, collapse = ", "), ' to date class.')
+          dataset[n_ind] <- lapply(res_num[n_ind], function(x) x$result$result)
+          change_flag <- TRUE
+        }
       }
     }
   }
