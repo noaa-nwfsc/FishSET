@@ -24,6 +24,85 @@ tables_database <- function(project) {
   else { cat('Project not found')}
 }
 
+
+table_save <- function(table, project, type, name = NULL) {
+ #' Save an existing FishSET DB table
+ #' 
+ #' \code{table_save()} updates existing FishSET DB tables. If the table doesn't
+ #' exist, the user is reminded to use the appropriate \code{load_} function. 
+ #' 
+ #'  @param table A dataframe to save to the FishSET Database.
+ #'  @param project Name of project.
+ #'  @param type The table type. Options include, \code{"main"} for main data tables,
+ #'    \code{"port"} for port tables, \code{"grid"} for gridded tables, \code{"aux"}
+ #'    for auxiliary tables. 
+ #'  @param name String, table name. Applicable only for gridded and auxiliary tables.
+ #'  @export
+ #'  @importFrom DBI dbConnect dbDisconnect dbWriteTable
+ #'  @importFrom RSQLite SQLite
+  
+  if (type %in% c("grid", "aux", "spat") & is_value_empty(name)) {
+    
+    stop("Name must be provided or grid, auxilary, or spatial tables.")
+  }
+  
+  if (!inherits(table, c("data.frame", "matrix"))) {
+    
+    stop("Table must be a data.frame or matrix.")
+  }
+  
+  if (type == "main") {
+    
+    tab_name <- paste0(project, 'MainDataTable')
+    
+    if (!table_exists(tab_name, project)) {
+      
+     stop("Main table '", tab_name, "' does not exist. Check spelling or use ", 
+          "load_maindata() to import a main data table.")
+    }
+    
+  } else if (type == "port") {
+    
+    tab_name <- paste0(project, 'PortTable')
+    
+    if (!table_exists(tab_name, project)) {
+      
+      stop("Port table '", tab_name, "' does not exist. Check spelling or use ", 
+           "load_port() to import a port table.")
+    }
+    
+  } else if (type == "grid") {
+    
+    tab_name <- paste0(project, name, "GridTable")
+    
+    if (!table_exists(tab_name, project)) {
+      
+      stop("Grid table '", tab_name, "' does not exist. Check spelling or use ", 
+           "load_grid() to import a gridded table.")
+    }
+    
+  } else if (type == "aux") {
+    
+    tab_name <- paste0(project, name, "AuxTable")
+    
+    if (!table_exists(tab_name, project)) {
+      
+      stop("Auxiliary table '", tab_name, "' does not exist. Check spelling or use ", 
+           "load_aux() to import an auxiliary table.")
+    }
+  
+  } else {
+    
+    stop("Table type not recognized. Table not saved.")
+  }
+
+  suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+  
+  DBI::dbWriteTable(fishset_db, tab_name, table, overwrite = TRUE)
+}
+
+
 table_fields <- function(table, project) {
   #' Lists fields for FishSET database table
   #' @param table String, name of table in FishSET database. Table name must be in quotes.
@@ -166,6 +245,11 @@ table_exists <- function(table, project) {
   #' \dontrun{
   #' table_exists('pollockMainDataTable')
   #' }
+  
+  if (!project_exists(project)) {
+    
+    stop("Project '", project, "' does not exist.")
+  }
   
   if (table_type(table) == "spatial") {
     
