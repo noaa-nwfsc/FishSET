@@ -5673,6 +5673,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         
         req(project$name)
         
+        q_test <- quietly_test(table_save)
         saved <- q_test(values$dataset, project = project$name, type = "main")
         
         if (is.logical(saved) && saved) {
@@ -6198,6 +6199,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                       "_notes_", Sys.Date(), "(", (note_int + 1), ").txt"))
     
             } else {
+              
               writeLines(notes_out, con = filename)
             }
           }
