@@ -315,7 +315,7 @@ source("map_viewer_app.R", local = TRUE)
                                           tags$br(),tags$br(),
                                           
                                           tabPlotUI("qaqc", type = "tab_plot"),
-                                          actionButton('saveDataQ','Save data to FishSET database'),
+                                          actionButton('saveData','Save data to FishSET database'),
                                           tags$br(),
                                           tags$button(
                                             id = 'closeQAQC',
@@ -458,7 +458,7 @@ source("map_viewer_app.R", local = TRUE)
                                             actionButton('subsetData', 'Remove variable from dataset')
                                           ),
                                           actionButton('callTextDownloadExplore','Save notes'),
-                                          actionButton('saveData','Save data to FishSET database'),
+                                          actionButton('saveDataExplore','Save data to FishSET database'),
                                           tags$button(
                                             id = 'closeExplore',
                                             type = "button",
@@ -783,7 +783,7 @@ source("map_viewer_app.R", local = TRUE)
                                 # downloadLink('downloadplotNew', label=''),
                                 # actionButton('downloadplotNew', label='Save plot to folder'),
                                 actionButton('callTextDownloadNew','Save notes'),
-                                actionButton('saveDataNew','Save data to FishSET database'),
+                                actionButton('saveData','Save data to FishSET database'),
                                tags$br(),
                                tags$button(
                                  id = 'closeNew',
