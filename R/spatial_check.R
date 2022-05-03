@@ -115,7 +115,7 @@ dat_to_sf <- function(spatdat, lon, lat, id) {
   #'@importFrom dplyr group_by across summarize  %>%
   
   spatdat <- sf::st_as_sf(x = spatdat, coords = c(lon, lat), 
-                          crs = "+proj=longlat +datum=WGS84")
+                          crs = 4326) # WGS 84
   
   # Convert point geometry to polygon
   spatdat <- 
@@ -153,11 +153,13 @@ check_spatdat <- function(spatdat, lon = NULL, lat = NULL, id = NULL) {
   #'   splitting the Alaska region during plotting. 
   #' @importFrom sf st_as_sf st_crs st_transform st_shift_longitude
 
-  if (!("sf" %in% class(spatdat))) {
+  if (!inherits(spatdat, "sf")) {
     
-    if ("sp" %in% class(spatdat)) spatdat <- sf::st_as_sf(spatdat)
-    
-    else {
+    if (inherits(spatdat, c("sp", "SpatialPolygonsDataFrame"))) {
+      
+      spatdat <- sf::st_as_sf(spatdat)
+      
+    } else {
       
       if (!is.null(lon) & !is.null(lat) & !is.null(id)) {
         
@@ -172,7 +174,7 @@ check_spatdat <- function(spatdat, lon = NULL, lat = NULL, id = NULL) {
     }
   }
   
-  stopifnot("Spatial data could not be converted to sf" = "sf" %in% class(spatdat))
+  stopifnot("Spatial data could not be converted to sf" = inherits(spatdat, "sf"))
 
   # Convert to WGS84 if projected
   if (any(grepl('PROJCRS',  sf::st_crs(spatdat)))) {
