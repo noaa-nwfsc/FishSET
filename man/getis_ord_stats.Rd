@@ -25,17 +25,17 @@ Table in the FishSET database contains the string 'MainDataTable'.}
 
 \item{varofint}{Numeric variable in \code{dat} to test for spatial high/low clustering.}
 
-\item{zoneid}{Variable in \code{dat} that identifies the individual zones or areas. Define if exists in \code{dat} and is not named `ZoneID`.
-Defaults to NULL.}
+\item{zoneid}{Variable in \code{dat} that identifies the individual zones or 
+areas. Define if exists in \code{dat} and is not named `ZoneID`. Defaults to NULL.}
 
-\item{spat}{Spatial data containing information on fishery management or regulatory zones.
-Can be shape file, json, geojson, data frame, or list.}
+\item{spat}{Spatial data containing information on fishery management or 
+regulatory zones. See \code{\link{load_spatial}}.}
 
 \item{cat}{Variable in \code{spat} defining the individual areas or zones.}
 
-\item{lon.dat}{Longitude variable in \code{dat}.Require is \code{zoneid} is not defined.}
+\item{lon.dat}{Longitude variable in \code{dat}.Require if \code{zoneid} is not defined.}
 
-\item{lat.dat}{Latitude variable in \code{dat}. Require is \code{zoneid} is not defined.}
+\item{lat.dat}{Latitude variable in \code{dat}. Require if \code{zoneid} is not defined.}
 
 \item{lon.spat}{Variable or list from \code{spat} containing longitude data. Required for csv files.
 Leave as NULL if \code{spat} is a shape or json file.}
@@ -50,16 +50,21 @@ Returns a plot and table. Both are saved to the output folder.
 Wrapper function to calculate global and local Getis-Ord by discrete area
 }
 \details{
-Calculates the degree, within each zone, that high or low values of the \code{varofint} cluster in space.
-  Function utilizes the \code{\link[spdep]{localG}} and \code{\link[spdep]{knearneigh}} functions from the spdep package.
-  The spatial input is a row-standardized spatial weights matrix for computed nearest neighbor matrix,
-  which is the null setting for the \code{\link[spdep]{nb2listw}} function. Requires a data frame with
-  area as a factor, the lon/lat centroid for each area, the lat/lon outlining each area, and the variable of
-  interest (\code{varofint}) or a map file with lat/lon defining boundaries of area/zones and variable of interest
-  for weighting. Also required is the lat/lon defining the center of a zone/area. If the centroid is not included in
-  the map file, then \code{\link{find_centroid}} can be called to calculate the centroid of each zone. If the
-  variable of interest is not associated with an area/zone then the \code{\link{assignment_column}} function can be used to
-  assign each observation to a zone. Arguments to identify centroid and assign variable of interest to area/zone are optional and default to NULL.
+Calculates the degree, within each zone, that high or low values of
+  the \code{varofint} cluster in space. Function utilizes the \code{\link[spdep]{localG}} 
+  and \code{\link[spdep]{knearneigh}} functions from the spdep package. The 
+  spatial input is a row-standardized spatial weights matrix for computed nearest 
+  neighbor matrix, which is the null setting for the \code{\link[spdep]{nb2listw}}
+  function. Requires a data frame with area as a factor, the lon/lat centroid 
+  for each area, the lat/lon outlining each area, and the variable of interest 
+  (\code{varofint}) or a map file with lat/lon defining boundaries of area/zones 
+  and variable of interest for weighting. Also required is the lat/lon defining 
+  the center of a zone/area. If the centroid is not included in the map file, 
+  then \code{\link{find_centroid}} can be called to calculate the centroid of 
+  each zone. If the variable of interest is not associated with an area/zone 
+  then the \code{\link{assignment_column}} function can be used to assign each 
+  observation to a zone. Arguments to identify centroid and assign variable of 
+  interest to area/zone are optional and default to NULL.
 }
 \examples{
 \dontrun{
