@@ -2203,7 +2203,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       ###---  
       
-      #change variable class
+      #change variable class ----
       # TODO feature doesn't work after first use
       change_class_tab <- reactive({
         
@@ -2272,7 +2272,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         x <- colnames(values$dataset)[int]
         new_class <- change_code[int]
         
-        q_test <- quietly_test(change_class)
+        q_test <- quietly_test(change_class, show_msg = TRUE)
 
         values$dataset <- q_test(dat = values$dataset, project = project$name,
                                  x = x, new_class = new_class, save = FALSE)
@@ -3321,7 +3321,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       ##---
       #1. TABLE
-      
+      # TODO add spatial data
       output$SelectDatasetExploreUI <- renderUI({
         
         tagList(
@@ -3636,27 +3636,32 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       output$mtgt_output <- renderUI({
         tagList( 
           h4('Further options to display measures of spatial autocorrelation'),
-          if(names(spatdat$dataset)[1]=='var1'){
+          
+          if (names(spatdat$dataset)[1]=='var1') {
+            
             tags$div(h5('Spatial data file not loaded. Please load on Upload Data tab', style="color:red"))
           },
           
          tags$div(style = "margin-left:19px;", 
                   selectizeInput('varofint', 'Variable to test for spatial autocorrelation',
                                  choices = numeric_cols(values$dataset))),
-        checkboxInput('datzone_gt', 'Primary data contains a zone/area assignment variable', value=FALSE)
+        checkboxInput('datzone_gt', 'Primary data contains a zone/area assignment variable', value = FALSE),
         )
       })    
       
        output$mtgt_output_secondary <- renderUI({
          tagList(
-           if(input$datzone_gt==TRUE){
-             selectInput('mtgtZone', 'Column containing zone identifier', choices = c(NULL, colnames(values$dataset)), selected=NULL)
+           if (!is.null(input$datzone_gt) && input$datzone_gt) {
+
+             selectInput('mtgtZone', 'Column containing zone identifier',
+                         choices = colnames(values$dataset))
            } else {
-           tags$div(style = "margin-left:19px;",  
-                  selectizeInput('gtmt_lonlat', 'Select lat then lon from data frame to assign observations to zone', 
-                                 choices=c(NULL, find_lonlat(values$dataset)), 
-                                 multiple = TRUE, options = list(maxItems = 2, 
-                                                                 create = TRUE, 
+
+           tags$div(style = "margin-left:19px;",
+                  selectizeInput('gtmt_lonlat', 'Select lat then lon from data frame to assign observations to zone',
+                                 choices=find_lonlat(values$dataset),
+                                 multiple = TRUE, options = list(maxItems = 2,
+                                                                 create = TRUE,
                                                                  placeholder='Select or type variable name')))
            }
          )
@@ -3667,12 +3672,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         tagList(
           tags$div(style = "margin-left:19px;", 
                    selectInput('mtgtcat', "Variable defining zones or areas from spatial data frame", 
-                               choices = c('none', names(as.data.frame(spatdat$dataset))),
+                               choices = c('none', names(spatdat$dataset)),
                                selected='none')),
           
           tags$div(style = "margin-left:19px;", 
                    selectizeInput('mtgtlonlat', 'Select vector containing latitude then longitude from spatial data frame', 
-                                  choices= c(NULL, names(as.data.frame(spatdat$dataset))), 
+                                  choices= c(NULL, names(spatdat$dataset)), 
                                   multiple=TRUE, options = list(maxItems = 2,
                                                                 create = TRUE, 
                                                                 placeholder='Select or type variable name')))
@@ -4884,6 +4889,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       # enable run model (modal) button if final table exists
       observeEvent(input$tabs == 'models', {
+        
+        req(isTruthy(project$name))
+        
         shinyjs::toggleState("submit_modal", 
                              condition = {table_exists(paste0(project$name, "MainDataTable_final"), project$name)})
       })
@@ -5623,41 +5631,59 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
       ###---              
       
-      ####---  
-      #Save output----   
+      ### ---  
+      # Save output----   
       ###---   
-      observeEvent(input$saveData, {
+      observeEvent(input$saveDataExplore, {
+        
         req(project$name)
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)))
+        
+        q_test <- quietly_test(table_save)
+        
         if (input$SelectDatasetExplore == "main") {
-          DBI::dbWriteTable(fishset_db, paste0(project$name, 'MainDataTable'), values$dataset, overwrite=TRUE)
+          
+          saved <- q_test(values$dataset, project = project$name, type = "main")
+          
         } else if (input$SelectDatasetExplore == "port") {
-          DBI::dbWriteTable(fishset_db, paste0(project$name, 'PortTable'), ptdat$dataset, overwrite=TRUE)
+          
+          saved <- q_test(ptdat$dataset, project = project$name, type = "port")
+          
         } else if (input$SelectDatasetExplore == "grid") {
-          DBI::dbWriteTable(fishset_db, paste0(project$name, input$GridName), grddat$dataset, overwrite=TRUE)
+          
+          g_name <- gsub(project$name, "", input$grid_select)
+          
+          saved <- q_test(grddat$dataset, project = project$name, type = "grid", name = g_name)
+          
         } else if (input$SelectDatasetExplore == "auxiliary") {
-          DBI::dbWriteTable(fishset_db, paste0(project$name, input$AuxName), aux$dataset, overwrite=TRUE)
+           
+         saved <- q_test(aux$dataset, project = project$name, type = "aux", name = input$AuxName)
         }
-        DBI::dbDisconnect(fishset_db)
-        showNotification('Data saved to FishSET database', type='message', duration=10)
+        
+        if (is.logical(saved) && saved) {
+          
+          showNotification('Data saved to FishSET database', type = 'message', duration = 10)
+          
+        } else {
+          
+          showNotification("Table was not saved.", type = "warning", duration = 10)
+        }
       })
       
-      observeEvent(input$saveDataQ, {
+      observeEvent(input$saveData, {
+        
         req(project$name)
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)))
-        DBI::dbWriteTable(fishset_db, paste0(project$name, 'MainDataTable'), values$dataset, overwrite=TRUE)
-        DBI::dbDisconnect(fishset_db) 
-        showNotification('Data saved to FishSET database', type='message', duration=10)
+        
+        saved <- q_test(values$dataset, project = project$name, type = "main")
+        
+        if (is.logical(saved) && saved) {
+          
+          showNotification('Data saved to FishSET database', type = 'message', duration = 10)
+          
+        } else {
+          
+          showNotification("Table was not saved.", type = "warning", duration = 10)
+        }
       })
-      
-      observeEvent(input$saveDataNew,{
-        req(project$name)
-        fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project$name)))
-        DBI::dbWriteTable(fishset_db, paste0(project$name, 'MainDataTable'),  values$dataset, overwrite=TRUE)
-        DBI::dbDisconnect(fishset_db)
-        showNotification('Data saved to FishSET database', type='message', duration=10)
-      })
-      
 
       # Export data ----
       file_ext <- reactive({

@@ -9,24 +9,30 @@ find_centroid(project, spat, cat, lon.spat = NULL, lat.spat = NULL)
 \arguments{
 \item{project}{Name of project}
 
-\item{spat}{Spatial data containing information on fishery management or regulatory zones. Can be shape file, json, geojson, data frame, or list.}
+\item{spat}{Spatial data containing information on fishery management or regulatory 
+zones. Can be shape file, json, geojson, data frame, or list.}
 
-\item{cat}{Variable or list in \code{spat} that identifies the individual areas or zones. If \code{spat} is class sf, \code{cat} should be name of list containing information on zones.}
+\item{cat}{Variable or list in \code{spat} that identifies the individual areas 
+or zones. If \code{spat} is class sf, \code{cat} should be name of list containing 
+information on zones.}
 
-\item{lon.spat}{Variable or list from \code{spat} containing longitude data. Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}
+\item{lon.spat}{Variable or list from \code{spat} containing longitude data. 
+Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}
 
-\item{lat.spat}{Variable or list from \code{spat} containing latitude data. Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}
+\item{lat.spat}{Variable or list from \code{spat} containing latitude data. 
+Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}
 }
 \value{
-Returns a data frame where each row is a unique zone and columns are the zone ID and the latitude and longitude 
-  defining the centroid of each zone.
+Returns a data frame where each row is a unique zone and columns are 
+  the zone ID and the latitude and longitude defining the centroid of each zone.
 }
 \description{
 Identify geographic centroid of fishery management or regulatory zone
 }
 \details{
-Returns the geographic centroid of each area/zone in \code{spat}. The centroid table is saved to the FishSET database.
-Function is called by the \code{create_alternative_choice} and \code{create_dist_between} functions.
+Returns the geographic centroid of each area/zone in \code{spat}. The 
+  centroid table is saved to the FishSET database. Function is called by the 
+  \code{create_alternative_choice} and \code{create_dist_between} functions.
 }
 \keyword{centroid,}
 \keyword{polygon}
