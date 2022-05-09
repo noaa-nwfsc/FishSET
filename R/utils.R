@@ -950,6 +950,52 @@ msg_print <- function(temp_file) {
 }
 
 
+name_check <- function(dat, names, repair = FALSE) {
+  #' Check for unique and syntatcic column names
+  #' 
+  #' Used for creating new columns.
+  #' 
+  #' @param dat Dataset that will contain new columns. 
+  #' @param names New names to be added to dataset.
+  #' @param repair Logical, whether to return repaired column names (\code{repair = TRUE})
+  #'   or just check for unique column names (\code{repair = FALSE}).
+  #' @importFrom vctrs vec_as_names
+  #' @details \code{name_check()} first checks to see if new column names are unique
+  #'   and returns an error if not. When \code{repair = TRUE}, \code{name_check()} 
+  #'   will check for unique column names and returns new column names that are
+  #'   unique and syntactic (see \code{\link[vctrs]{vec_as_names}} for details).
+  #' 
+
+  if (is_value_empty(names)) {
+    
+    stop("Name is missing.", call. = FALSE)
+  }
+  
+  # check that names are unique, returns error if not
+  d_names <- colnames(dat)
+  dup_names <- names %in% d_names
+  
+  if (any(dup_names)) {
+    
+    stop("Duplicate names found: ", paste(names[dup_names], collapse = ", "), call. = FALSE)
+  }
+  # fallback check
+  vctrs::vec_as_names(names = c(colnames(dat), names), repair = "check_unique")
+  
+  if (repair) {
+    
+    # repair names
+    out <- vctrs::vec_as_names(names = c(colnames(dat), names), repair = "universal")
+    
+    o_len <- length(out)
+    n_len <- length(names)
+    n_ind <- (o_len - (n_len - 1)):o_len
+    
+    out[n_ind] # return repaired nms
+  }
+}
+
+
 column_check <- function(dat, cols) {
   #' Check that column names exists
   #' 
@@ -1868,6 +1914,7 @@ repmat <- function(X, m, n){
   return(matrix(t(matrix(X,mx,nx*n)),mx*m,nx*n,byrow=T))
 }
 
+# Check whether this is better than check_spatdat
 gridcheck <- function(spatialdat, catdat, londat=NULL, latdat=NULL, lon.grid=NULL, lat.grid=NULL){
   #' Check that spatial data is a sf object. Convert if not.
   #' @param spatialdat The spatial dataframe
@@ -1898,6 +1945,24 @@ gridcheck <- function(spatialdat, catdat, londat=NULL, latdat=NULL, lon.grid=NUL
     }
   }
   gridfile <- sf::st_shift_longitude(spatialdat)
+}
+
+
+bbox <- function(dat, lon, lat, f = 0.05) {
+  #' Compute bounding box for a dataframe with lon/lat columns. 
+  #' 
+  #' @param dat Dataframe containing longitude/latitude columns.
+  #' @param lon Name of Longitude column.
+  #' @param lat Name of Latitude column.
+  #' @param f Number specifying the fraction by which to extend the range.
+  #' @export
+  #' @keywords internal
+  
+  lon_range <- extendrange(range(dat[[lon]], na.rm = TRUE), f = f)
+  lat_range <- extendrange(range(dat[[lat]], na.rm = TRUE), f = f)
+  
+  c(left = lon_range[1], bottom = lat_range[1], 
+    right = lon_range[2], top = lat_range[2])
 }
 
 ## ----Shiny util functions-----
@@ -2089,7 +2154,8 @@ quietly_test <- function(.f, show_msg = FALSE) {
 
     if (!is.null(res$error)) { # safely output
       
-      showNotification(res$error$message, duration = 10, type = "error")
+      # showNotification(res$error$message, duration = 10, type = "error")
+      showNotification(conditionMessage(res$error), duration = 10, type = "error")
       return(res$result)
     }
     
@@ -2111,6 +2177,25 @@ quietly_test <- function(.f, show_msg = FALSE) {
     return(res$result)
   }
 }
+
+
+quiet_safe_test <- function(.f) {
+  #' Quietly and safely test function
+  #' 
+  #' Used for package functions: safely catches errors and quietly catches warnings
+  #' and messages. Both capture results.
+  #' 
+  #' @param .f Name of a function to quietly and safely test. 
+  #' @importFrom purrr quietly safely
+  #' @keywords internal
+  #' @seealso \code{\link[purrr]{quietly}} and \code{\link[purrr]{safely}}
+  
+  fun1 <- purrr::quietly(.f)
+  fun <- purrr::safely(fun1)
+  
+  function(...) fun(...)
+}
+
 
 deleteButtonColumn <- function(df, id, ...) {
 #' A column of delete buttons for each row in the data frame for the first column
@@ -2139,133 +2224,6 @@ deleteButtonColumn <- function(df, id, ...) {
                   # Disable sorting for the delete column
                   columnDefs = list(list(targets = 1, sortable = FALSE))
                 ))
-}
-
-
-#' Add a tooltip for a specific element
-#'
-#' @param ui_element Element on which a tooltip will be added.
-#' @param position Position of the tooltip. Can be `bottom`, `bottom-left`, `bottom-right`, `left`, `right`, `top`, `top-left`, `top-right`. Default is `bottom`.
-#' @param message Message to include in the tooltip. This argument is mandatory.
-#' @param type Type of the tooltip. Can be `NULL` (default), `error`, `warning`, `info`, `success`.
-#' @param size Size of the tooltip. Can be `NULL` (default), `small`, `medium`, `large`.
-#' @param permanent Boolean indicating whether the tooltip should be visible permanently (or at the contrary only when hovering the element). Default is `FALSE`.
-#' @param rounded Boolean indicating whether the corners of the tooltip should be rounded. Default is `FALSE`.
-#' @param animate Boolean indicating whether there is a small animation when the tooltip appears. Default is `TRUE`.
-#' @param bounce Boolean indicating whether there is a small boucing animation when the tooltip appears. Default is `FALSE`.
-#' @param arrow Boolean indicating whether there is an arrow on the tooltip. Default is `TRUE`.
-#' @param shadow Boolean indicating whether there should be a shadow effect. Default is `TRUE`.
-#' @return A tooltip when hovering the element concerned.
-#' @keywords internal
-#' @export
-
-add_prompt <- function(ui_element,position = "bottom",message = NULL,type = NULL,
-  size = NULL,permanent = FALSE,rounded = FALSE,animate = TRUE,bounce = FALSE,
-  arrow = TRUE,shadow = TRUE
-) {
-  
-  if (missing(message)) {
-    stop("Must pass a message")
-  }
-  
-  # if option is TRUE, then keep the option name
-  opts <- lapply(c("permanent", "rounded", "bounce"), function(x) {
-    y <- eval(parse(text = x))
-    if (isTRUE(y)) {
-      x <- paste(x)
-    } else {
-      x <- NULL
-    }
-  })
-  
-  # better to put "animate" than "no-animate" in the function call
-  # so logic is reverted compared to the one above
-  if (isTRUE(animate)) {
-    animate <- NULL
-  } else {
-    animate <- "no-animate"
-  }
-  
-  if (isTRUE(arrow)) {
-    arrow <- NULL
-  } else {
-    arrow <- "no-arrow"
-  }
-  
-  if (isTRUE(shadow)) {
-    shadow <- NULL
-  } else {
-    shadow <- "no-shadow"
-  }
-  
-  opts <- c(unlist(opts), animate, arrow, shadow)
-  opts[which(grepl("permanent", opts))] <- "always"
-  
-  
-  # First if is for echarts4r, second if is for images
-  
-  if (!("shiny.tag" %in% class(ui_element)) &&
-      "shiny.tag.list" %in% class(ui_element)) {
-    
-    shiny::tags$div(
-      ui_element,
-      style = "width: 100%",
-      class = paste(
-        "hint--",
-        c(position, type, size, opts),
-        collapse = " ",
-        sep = ""
-      ),
-      `aria-label` = message
-    )
-    
-  } else if (ui_element$name == "img") {
-    
-    shiny::tags$div(
-      ui_element,
-      class = paste(
-        "hint--",
-        c(position, type, size, opts),
-        collapse = " ",
-        sep = ""
-      ),
-      `aria-label` = message
-    )
-    
-  } else {
-    
-    shiny::tagAppendAttributes(
-      ui_element,
-      class = paste(
-        "hint--",
-        c(position, type, size, opts),
-        collapse = " ",
-        sep = ""
-      ),
-      `aria-label` = message
-    )
-    
-  }
-  
-}
-
-
-#' Load hint.css dependencies
-#'
-#' @return Include dependencies of Hint.css
-#' @export
-#' @keywords internal
-#'
-use_prompt <- function() {
-  shiny::singleton(
-    shiny::tags$head(
-      shiny::tags$link(
-        href = "hint-assets/hint.min.css",
-        rel= "stylesheet",
-        type= "text/css"
-      )
-    )
-  )
 }
 
 
