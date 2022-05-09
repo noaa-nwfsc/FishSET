@@ -2913,67 +2913,142 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       #output_table())
       
       
-      observeEvent(input$NA_Filter_all,{
-          if(any(apply(values$dataset, 2, function(x) anyNA(x)))==TRUE){
-            values$dataset <- na_filter(values$dataset, project = project$name, x=names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), 
-                                        replace = FALSE, remove = TRUE, rep.value=NA, over_write=FALSE)  
+      observeEvent(input$NA_Filter_all, {
+        
+        na_names <- qaqc_helper(values$dataset, "NA", output = "names")
+        
+          if (length(na_names) > 0) {
+            
+            q_test <- quietly_test(na_filter)
+            
+            output <- q_test(values$dataset, project = project$name, x = na_names,  
+                             replace = FALSE, remove = TRUE, over_write = FALSE)  
+            
+            if (!is_value_empty(output)) {
+              
+              values$dataset <- output
+            }
+            
           } else {
-            values$dataset <- values$dataset
-            cat('No missing values to remove')
+            
+            showNotification('No missing values to remove', type = "message")
           }
         })
       
-      observeEvent(input$NA_Filter_mean,{
-          if(any(apply(values$dataset, 2, function(x) anyNA(x)))==TRUE){
-            values$dataset <- na_filter(values$dataset, project = project$name, x=names(which(apply(values$dataset, 2, function(x) anyNA(x))==TRUE)), 
-                                        replace = TRUE, remove = FALSE, rep.value=NA, over_write=FALSE)
+      observeEvent(input$NA_Filter_mean, {
+        
+        na_names <- qaqc_helper(values$dataset, "NA", output = "names")
+        
+        if (length(na_names) > 0) {
+          
+          q_test <- quietly_test(na_filter)
+          
+          output <- q_test(values$dataset, project = project$name, x = na_names, 
+                           replace = TRUE, remove = TRUE, rep.value = "mean", over_write = FALSE)  
+          
+          if (!is_value_empty(output)) {
+            
+            values$dataset <- output
+          }
+          
+        } else {
+          
+          showNotification('No missing values to remove', type = "message")
+        }
+      })
+      
+      observeEvent(input$NAN_Filter_all, {
+        
+        nan_names <- qaqc_helper(values$dataset, "NaN", output = "names")
+        
+          if (length(nan_names) > 0) {
+            
+            q_test <- quietly_test(nan_filter)
+            output <- q_test(values$dataset, project = project$name, x = nan_names, 
+                             replace = FALSE, remove = TRUE, over_write = FALSE) 
+            
+            if (!is_value_empty(output)) {
+              
+              values$dataset <- output
+            }
+            
           } else {
-            values$dataset <- values$dataset
-            cat('No missing values to remove')
+            
+            showNotification('No non-numbers to remove.', type = "message")
           }
       })
       
-      observeEvent(input$NAN_Filter_all,{
-          if(any(apply(values$dataset, 2, function(x) any(is.nan(x))))==TRUE){
-            values$dataset <- nan_filter(values$dataset, project = project$name, x=names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), 
-                                         replace = FALSE, remove = TRUE, rep.value=NA, over_write=FALSE)  
-          } else{
-            values$dataset <- values$dataset
-            message('No non-numbers to remove.')
+      observeEvent(input$NAN_Filter_mean, {
+        
+        nan_names <- qaqc_helper(values$dataset, "NaN", output = "names")
+        
+        if (length(nan_names) > 0) {
+          
+          q_test <- quietly_test(nan_filter)
+          output <- q_test(values$dataset, project = project$name, x = nan_names, 
+                           replace = TRUE, remove = FALSE, rep.value = "mean", over_write = FALSE) 
+          
+          if (!is_value_empty(output)) {
+            
+            values$dataset <- output
           }
+          
+        } else {
+          
+          showNotification('No non-numbers to remove.', type = "message")
+        }
       })
       
-      observeEvent(input$NAN_Filter_mean,{
-          if(any(apply(values$dataset, 2, function(x) any(is.nan(x))))==TRUE){
-            values$dataset <- nan_filter(values$dataset, project = project$name, x=names(which(apply(values$dataset, 2, function(x) any(is.nan(x)))==TRUE)), 
-                                         replace = TRUE, remove = FALSE, rep.value=NA, over_write=FALSE)
-          } else {
-            values$dataset <- values$dataset
-            message('No non-numbers to remove.')
-          }
+      observeEvent(input$Outlier_Filter, {
+        
+        q_test <- quietly_test(outlier_remove)
+        output <- q_test(values$dataset, project = project$name, x = input$column_check, 
+                         dat.remove = input$dat.remove, sd_val = input$datremovenum, over_write = FALSE)
+        
+        if (!is_value_empty(output)) {
+          
+          values$dataset <- output
+        }
       })
       
-      observeEvent(input$Outlier_Filter,{
-          values$dataset <- outlier_remove(values$dataset, project = project$name, x=input$column_check, 
-                                           dat.remove = input$dat.remove, sd_val=input$datremovenum, over_write=FALSE)
+      observeEvent(input$Unique_Filter, {
+        
+        q_test <- quietly_test(unique_filter)
+        output <- q_test(values$dataset, project = project$name, remove = TRUE)
+        
+        if (!is_value_empty(output)) {
+          
+          values$dataset <- output
+        }
       })
       
-      observeEvent(input$Unique_Filter,{
-        values$dataset <- unique_filter(values$dataset, project=project$name, remove=TRUE)
+      observeEvent(input$Empty_Filter, {
+        
+        q_test <- quietly_test(empty_vars_filter)
+        output <- q_test(values$dataset,  project = project$name, remove = TRUE) 
+        
+        if (!is_value_empty(output)) {
+          
+          values$dataset <- output
+        }
       })
-      
-      observeEvent(input$Empty_Filter,{
-        values$dataset <- empty_vars_filter(values$dataset,  project=project$name, remove=TRUE)            
-        })
       
       observeEvent(input$LatLon_Filter, {
-            values$dataset <- degree(values$dataset, 
-                                     if(input$LatDirection=='None') { lat=NULL } else { lat=input$LatDirection},
-                                     if(input$LonDirection=='None') { lon=NULL } else { lon=input$LonDirection},
-                                     if(input$input$LatLon_Filter_Lat=='None') { latsign=NULL } else { latsign=input$input$LatLon_Filter_Lat},
-                                     if(input$input$LatLon_Filter_Lon=='None') { lonsign=NULL } else { lonsign=input$input$LatLon_Filter_Lon}, 
-                                     replace=TRUE
-                                      ) 
+        
+        q_test <- quietly_test(degree)
+        
+        lat <- if (input$LatDirection == 'None') NULL else input$LatDirection
+        lon <- if (input$LonDirection == 'None') NULL else input$LonDirection
+        latsign <- if (input$input$LatLon_Filter_Lat=='None') NULL else input$input$LatLon_Filter_Lat
+        lonsign <- if (input$input$LatLon_Filter_Lon=='None') NULL else input$input$LatLon_Filter_Lon
+        
+        output <- q_test(values$dataset, lat = lat, lon = lon, latsign = latsign, 
+                         lonsign = lonsign, replace = TRUE) 
+         
+        if (!is_value_empty(output)) {
+          
+          values$dataset <- output
+        }   
       })
       
       # Spatial QAQC
@@ -3027,15 +3102,19 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                  lon.dat = input$spat_qaqc_lon, lat.dat = input$spat_qaqc_lat,
                  date = input$spat_qaqc_date, group = input$spat_qaqc_grp)
         
-        flag_nms <- c("ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY")
-        spat_qaqc_r$flag <- vapply(flag_nms, function(x) x %in% names(out$dataset), logical(1))
+        if (!is_value_empty(out)) {
+          
+          flag_nms <- c("ON_LAND", "OUTSIDE_ZONE", "ON_ZONE_BOUNDARY")
+          spat_qaqc_r$flag <- vapply(flag_nms, function(x) x %in% names(out$dataset), logical(1))
+          
+          values$dataset <- out$dataset
+          out$dataset <- NULL
+          
+          qaqc_out_proj$spat <- project$name
+          
+          out
+        }
         
-        values$dataset <- out$dataset
-        out$dataset <- NULL
-        
-        qaqc_out_proj$spat <- project$name
-        
-        out
       }, ignoreInit = TRUE, ignoreNULL = TRUE)
       
       # spatial checks output
@@ -3391,6 +3470,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         #replaceData(proxy, x, resetPaging = FALSE, rownames = FALSE)
       })
       
+      
+      # TODO: check that this is working properly 
       observeEvent(input$saveData,{
         req(project$name)
         # when it updates, save the search strings so they're not lost
@@ -3744,48 +3825,25 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                       choices = find_lat(grddat[[input$grid_select]])),
           selectInput("grid_value", "Value", 
                       choices = numeric_cols(grddat[[input$grid_select]])),
-          selectInput("grid_split", "Split plot by",
-                      choices = c("none", colnames(grddat[[input$grid_select]]))),
-          selectInput("grid_agg", "Group mean value by",
-                      choices = c("latlon", colnames(grddat[[input$grid_select]])),
-                      multiple = TRUE),
+          selectizeInput("grid_split", "Split plot by",
+                         choices = colnames(grddat[[input$grid_select]]),
+                         multiple = TRUE, options = list(maxItems = 2, create = TRUE, 
+                                                    placeholder = 'Select or type variable name')),
+          selectizeInput("grid_agg", "Group mean value by",
+                         choices = c("lonlat", colnames(grddat[[input$grid_select]])),
+                         multiple = TRUE, options = list(maxItems = 2, create = TRUE, 
+                                                         placeholder = 'Select or type variable name')),
           selectInput("grid_agg_fun", "Aggregate function", 
                       choices = c("mean", "median", "min", "max"))
         )
       })
       
-      grid_values <- reactiveValues(plot = NULL,
-                                    bbox = FALSE,
-                                    gmap = FALSE)
+      grid_values <- reactiveValues(plot = NULL)
       
       observeEvent(input$run_grid, {
         
-        if (is.logical(grid_values$bbox)) {
+        if (isTruthy(project$name)) {
           
-          grid_values$bbox <- ggmap::make_bbox(grddat[[input$grid_select]][[input$grid_lon]], 
-                                               grddat[[input$grid_select]][[input$grid_lat]])
-          
-          grid_values$gmap <- retrieve_map(grddat[[input$grid_select]], 
-                                           input$grid_lon, 
-                                           input$grid_lat) 
-          
-        } else {
-          
-          incoming_bbox <- ggmap::make_bbox(grddat[[input$grid_select]][[input$grid_lon]], 
-                                            grddat[[input$grid_select]][[input$grid_lat]])
-          
-          same_bbox <- all(round(grid_values$bbox) == round(incoming_bbox))
-          
-          if (same_bbox == FALSE) { # retrieve new map if bbox changes, else keep existing map
-            grid_values$gmap <- retrieve_map(grddat[[input$grid_select]],
-                                             input$grid_lon, 
-                                             input$grid_lat) 
-            
-            grid_values$bbox <- incoming_bbox # update bbox
-          }
-        }
-        
-        if(isTruthy(project$name)){
         edit_proj_settings(project$name, 
                            tab_name = input$grid_select, 
                            tab_type = "grid")
@@ -3797,8 +3855,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         grid_values$plot <-
           q_test(gridfile = grddat[[input$grid_select]], project = project$name,
                  lon = input$grid_lon, lat = input$grid_lat, value = input$grid_value, 
-                 split_by = input$grid_split, agg_by = input$grid_agg, 
-                 agg_fun = input$grid_agg_fun, gmap = grid_values$gmap)
+                 split_by = input$grid_split, group = input$grid_agg, 
+                 agg_fun = input$grid_agg_fun)
         }
       }, ignoreInit = TRUE)
       
@@ -3814,10 +3872,9 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
       # Save buttons
       output$fleetSaveOutputUI <- renderUI({
+        
         tabPlotUI(paste0(fleet_id(), "-save"))
       })
-      
-      
 
       saveDataTableServ("fleet", values, reactive(project$name))
 
@@ -4003,34 +4060,28 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           selectInput('var_x', 'First variable. Will be the numerator if dividing.', 
                       choices = numeric_cols(values$dataset), selectize = TRUE),
           selectInput('var_y', 'Second variable. Will be the denomenator if dividing.',  
-                      choices=numeric_cols(values$dataset), selectize=TRUE))
+                      choices = numeric_cols(values$dataset), selectize = TRUE))
       })
       
       # CPUE
       output$input_cpue <- renderUI({
         tagList(
-          selectizeInput('xWeight','Weight variable', 
-                         choices=c(NULL, find_catch(values$dataset)),
-                         options = list(create = TRUE, placeholder='Select or type variable name')),
+          selectizeInput('xWeight', 'Weight variable', 
+                         choices = numeric_cols(values$dataset),
+                         options = list(maxItem = 1, create = TRUE, 
+                                        placeholder = 'Select or type variable name'),
+                         multiple = TRUE),
           
-          selectInput('xTime','Duration. To calculate duration, select the Calculate Duration option.', 
-                      choices=c('Calculate duration', numeric_cols(values$dataset), selectize=TRUE)),
-          selectInput('rpueprice', "Price variable", choices=c(NULL, numeric_cols(values$dataset), selectize=TRUE))
+          selectizeInput('xTime', 'Duration', 
+                      choices = numeric_cols(values$dataset), 
+                      options = list(create = TRUE, 
+                                     placeholder = 'Select or type variable name')),
+          
+          selectizeInput('rpueprice', "Price variable", choices = numeric_cols(values$dataset), 
+                         options = list(maxItem = 1, create = TRUE, 
+                                        placeholder = 'Select or type variable name'),
+                         multiple = TRUE)
           )
-      })
-      
-      output$dur_add <- renderUI({
-        conditionalPanel("input.xTime=='Calculate duration'",
-         selectizeInput('dur_start2', 'Variable indicating start of time period', 
-                        choices = find_duration(values$dataset),
-                        options = list(create = TRUE, placeholder='Select or type variable name')),
-         
-         selectizeInput('dur_end2', 'Variable indicating end of time period', 
-                        choices = find_duration(values$dataset),
-                        options = list(create = TRUE, placeholder='Select or type variable name')),
-         
-         selectInput('dur_units2', 'Unit of time for calculating duration', 
-                     choices = c("week", "day", "hour", "minute")))
       })
       
       # Temporal functions
@@ -4038,7 +4089,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         
         selectizeInput('TimeVar','Select variable',
                        choices = find_datetime(values$dataset), 
-                       options = list(create=TRUE, placeholder='Select or type input'))                            
+                       options = list(create=TRUE, placeholder = 'Select or type input'))                            
       })
       
       output$input_dur <- renderUI({
@@ -4212,30 +4263,36 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       output$zone_assign_1 <- renderUI({
         
         tagList(
-          if (names(spatdat$dataset)[1]=='var1'){
+          if (names(spatdat$dataset)[1]=='var1') {
+            
            tags$div(h4('Spatial data file not loaded. Please load on Upload Data tab', style="color:red"))
           },
-          h5(tags$b('Select latitude then longitude from primary data frame for assigning observations to zones')),
-          div(style="display: inline-block;vertical-align:top; width: 200px;",
-              selectizeInput('lat_dat_zone', '', choices = find_lat(values$dataset),
-                             options = list(create = TRUE, placeholder='Select or type LATITUDE variable name'))),
-          div(style="display: inline-block;vertical-align:top; width: 200px;",
-              selectizeInput('lon_dat_zone', '', choices = find_lon(values$dataset),
-                             options = list(create = TRUE,placeholder='Select or type LONGITUDE variable name'))),
-          selectInput('cat_zone', 'Individual areas/zones from the spatial data file', choices=names(as.data.frame(spatdat$dataset))),
-          checkboxInput('hull_polygon_zone', 'Use convex hull method to create polygon?', value=FALSE),
-          checkboxInput('closest_pt_zone', 'Use closest polygon to point?', value=FALSE) 
-       ) 
+          
+          selectizeInput('lat_dat_zone', 'Latitude from data', choices = find_lat(values$dataset),
+                         options = list(create = TRUE, placeholder = 'Select or type LATITUDE variable name')),
+          selectizeInput('lon_dat_zone', 'Longitude from data', choices = find_lon(values$dataset),
+                         options = list(create = TRUE, placeholder='Select or type LONGITUDE variable name')),
+          
+          selectInput('cat_zone', 'Individual areas/zones from the spatial data file', 
+                      choices = names(as.data.frame(spatdat$dataset))),
+          checkboxInput('hull_polygon_zone', 'Use convex hull method to create polygon?', value = FALSE),
+          checkboxInput('closest_pt_zone', 'Use closest polygon to point?', value = FALSE) 
+          ) 
       })  
       
       output$zone_assign_2 <- renderUI({
-        if(!('sf' %in% class(spatdat$dataset))) {
+        
+        if (!inherits(spatdat$dataset, "sf")) {
           tagList(
-            h5(tags$b('Select vector containing latitude then longitude from spatial data file')),
-            div(style="display: inline-block;vertical-align:top; width: 200px;",
-                selectizeInput('lat_grid_zone', '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE)),
-            div(style="display: inline-block;vertical-align:top; width: 200px;",
-                selectizeInput('lon_grid_zone',  '', choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE))
+            selectizeInput('lat_grid_zone', 'Latitude from spatial data', 
+                           choices=names(as.data.frame(spatdat$dataset)), multiple = TRUE,
+                           options = list(create = TRUE, maxItem = 1, 
+                                          placeholder = 'Select or type LONGITUDE variable name')),
+            
+                selectizeInput('lon_grid_zone',  'Longitude from spatial data', 
+                               choices=names(as.data.frame(spatdat$dataset)), multiple = TRUE,
+                               options = list(create = TRUE, maxItem = 1, 
+                                              placeholder = 'Select or type LONGITUDE variable name'))
          )
        } 
       })
@@ -4341,7 +4398,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         selectInput('cat', 'Individual areas/zones from the spatial data drame', 
                     choices=names(as.data.frame(spatdat$dataset))),
         
-          if (!("sf" %in% class(spatdat$dataset))) {
+          if (!inherits(spatdat$dataset, "sf")) {
             selectizeInput('long_grid', 'Select vector containing latitude then longitude from spatial data file',
                            choices=names(as.data.frame(spatdat$dataset)), multiple=TRUE, 
                            options = list(maxItems = 2,create = TRUE, 
@@ -4476,193 +4533,199 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       # Run data creation function 
       observeEvent(input$runNew, {
         
-        if (input$VarCreateTop=='Dummy variables'&input$dummyfunc=='From policy dates') {
+        if (input$VarCreateTop == 'Dummy variables' & input$dummyfunc == 'From policy dates') {
           
-              q_test <- quietly_test(dummy_num)
-              values$dataset <- q_test(values$dataset, project = project$name, 
-                                       var=input$dummypolydate, value=dum_pol_year(), 
-                                       opts='more_less', name=input$varname)
+          q_test <- quietly_test(dummy_num)
+          output <- q_test(values$dataset, project = project$name, var = input$dummypolydate, 
+                           value = dum_pol_year(), opts = 'more_less', name = input$varname)
+          notif <- "Policy dummy variable"
               
-        } else if (input$VarCreateTop=='Dummy variables'&input$dummyfunc=='From variable') {
+        } else if (input$VarCreateTop == 'Dummy variables' & input$dummyfunc == 'From variable') {
           
-              q_test <- quietly_test(dummy_num)
-              values$dataset <- q_test(values$dataset, project = project$name, 
-                                       var=input$dummyvarfunc, value=input$select.val, 
-                                       opts=input$dumsubselect, name=input$varname)
+          q_test <- quietly_test(dummy_num)
+          output <- q_test(values$dataset, project = project$name, var = input$dummyvarfunc, 
+                           value = input$select.val, opts = input$dumsubselect, name = input$varname)
+          notif <- "Dummy variable"
               
-        } else if (input$VarCreateTop=='Temporal functions'&input$tempfunc=='temp_mod') {
+        } else if (input$VarCreateTop == 'Temporal functions' & input$tempfunc == 'temp_mod') {
           
-              q_test <- quietly_test(temporal_mod)
-              values$dataset <- q_test(values$dataset, project = project$name, x=input$TimeVar, 
-                                       define.format=input$define_format, timezone=input$timezone, name=input$varname)
+          q_test <- quietly_test(temporal_mod)
+          output <- q_test(values$dataset, project = project$name, x = input$TimeVar, 
+                           define.format = input$define_format, timezone = input$timezone, 
+                           name = input$varname)
+          notif <- "Temporal modification"
               
-        } else if (input$VarCreateTop=='Data transformations'&input$trans=='set_quants') {
+        } else if (input$VarCreateTop == 'Data transformations' & input$trans == 'set_quants') {
           
-              q_test <- quietly_test(set_quants)
-              values$dataset <- q_test(values$dataset, project = project$name, 
-                                       x=input$trans_var_name, quant.cat = input$quant_cat, 
-                                       name=input$varname)
+          q_test <- quietly_test(set_quants)
+          output <- q_test(values$dataset, project = project$name, x = input$trans_var_name, 
+                           quant.cat = input$quant_cat, name = input$varname)
+          notif <- "Quant variable"
               
-        } else if (input$VarCreateTop=='Nominal ID'&input$ID=='ID_var') {
+        } else if (input$VarCreateTop == 'Nominal ID' & input$ID == 'ID_var') {
           
-              q_test <- quietly_test(ID_var)
-              values$dataset <- q_test(values$dataset, project = project$name, 
-                                       name=input$varname, vars=input$unique_identifier, 
-                                       type=input$ID_type)
-        } else if (input$VarCreateTop=='Nominal ID'&input$ID=='binary_seasonID') {      
+          q_test <- quietly_test(ID_var)
+          output <- q_test(values$dataset, project = project$name, name = input$varname, 
+                           vars = input$unique_identifier, type = input$ID_type)
+          notif <- "Nominal ID"
               
-              q_test <- quietly_test(seasonalID)
-              values$dataset <- q_test(values$dataset, project = project$name, 
-                                   seasonal.dat=seasonalData(), start=input$seasonstart, 
-                                   end=input$seasonend, overlap=input$overlap, name=input$varname)
+        } else if (input$VarCreateTop == 'Nominal ID' & input$ID == 'binary_seasonID') {      
               
-        } else if (input$VarCreateTop=='Nominal ID'&input$ID=='create_seasonal_ID') {
+          q_test <- quietly_test(seasonalID)
+          output <- q_test(values$dataset, project = project$name, seasonal.dat = seasonalData(), 
+                           start = input$seasonstart, end = input$seasonend, overlap = input$overlap, 
+                           name = input$varname)
+          notif <- "Binary seasonal ID"
+              
+        } else if (input$VarCreateTop == 'Nominal ID' & input$ID == 'create_seasonal_ID') {
           
-              q_test <- quietly_test(create_seasonal_ID)
-              values$dataset <- q_test(values$dataset, project = project$name, 
-                                       seasonal.dat=seasonalData(), use.location=input$use_location, 
-                                       use.geartype=input$use_geartype, sp.col=input$sp_col,
-                                       target=input$target)
+          q_test <- quietly_test(create_seasonal_ID)
+          output <- q_test(values$dataset, project = project$name, seasonal.dat = seasonalData(), 
+                           use.location = input$use_location, use.geartype = input$use_geartype, 
+                           sp.col = input$sp_col, target = input$target)
+          notif <- "Seasonal ID"
               
-        } else if (input$VarCreateTop=='Data transformations'&input$trans=='group_perc') {
+        } else if (input$VarCreateTop == 'Data transformations' & input$trans == 'group_perc') {
           
           q_test <- quietly_test(group_perc)
-          values$dataset <- q_test(values$dataset, project=project$name, id_group=input$perc_id_grp,
-                                   group=input$perc_grp, value=input$perc_value, name=input$varname, 
-                                   create_group_ID=input$perc_id_col, drop_total_col=input$perc_drop)
+          output <- q_test(values$dataset, project = project$name, id_group = input$perc_id_grp,
+                           group = input$perc_grp, value = input$perc_value, name = input$varname, 
+                           create_group_ID = input$perc_id_col, drop_total_col = input$perc_drop)
+          notif <- "Grouped percentage"
           
-        } else if (input$VarCreateTop=='Data transformations'&input$trans=='group_diff') {
+        } else if (input$VarCreateTop == 'Data transformations' & input$trans == 'group_diff') {
           
           q_test <- quietly_test(group_diff)
-          values$dataset <- q_test(values$dataset, project=project$name, group=input$diff_grp,  
-                                   sort_by=input$diff_sort, value=input$diff_value, name=input$varname, 
-                                   create_group_ID=input$diff_id_col, drop_total_col=input$diff_drop)
+          output <- q_test(values$dataset, project = project$name, group = input$diff_grp,  
+                           sort_by = input$diff_sort, value = input$diff_value, name = input$varname, 
+                           create_group_ID = input$diff_id_col, drop_total_col = input$diff_drop)
+          notif <- "Grouped difference"
           
-        } else if (input$VarCreateTop=='Data transformations'&input$trans=='group_cumsum') {
+        } else if (input$VarCreateTop == 'Data transformations' & input$trans == 'group_cumsum') {
           
           q_test <- quietly_test(group_cumsum)
-          values$dataset <- q_test(values$dataset, project=project$name, group=input$cumsum_grp,  
-                                   sort_by=input$cumsum_sort, value=input$cumsum_value, 
-                                   name=input$varname, create_group_ID=input$cumsum_id_col, 
-                                   drop_total_col=input$cumsum_drop)
+          output <- q_test(values$dataset, project = project$name, group = input$cumsum_grp,  
+                           sort_by = input$cumsum_sort, value = input$cumsum_value, 
+                           name = input$varname, create_group_ID = input$cumsum_id_col, 
+                           drop_total_col = input$cumsum_drop)
+          notif <- "Grouped cumulative sum"
           
-        } else if (input$VarCreateTop=='Arithmetic functions'&input$numfunc=='create_var_num') {
+        } else if (input$VarCreateTop == 'Arithmetic functions' & input$numfunc == 'create_var_num') {
           
-              q_test <- quietly_test(create_var_num)
-              values$dataset <- q_test(values$dataset, project = project$name, 
-                                       x=input$var_x, y=input$var_y, 
-                                       method=input$create_method, name=input$varname)
+          q_test <- quietly_test(create_var_num)
+          output <- q_test(values$dataset, project = project$name, x = input$var_x, 
+                           y = input$var_y, method = input$create_method, name = input$varname)
+          notif <- "Arithemtic variable"
               
-        } else if (input$VarCreateTop=='Arithmetic functions'&input$numfunc=='cpue') {
-          
-          if (input$xTime!='Calculate duration') {
+        } else if (input$VarCreateTop == 'Arithmetic functions' & input$numfunc == 'cpue') {
             
-              q_test <- quietly_test(cpue)
-              values$dataset <- q_test(values$dataset, project = project$name, xWeight=input$xWeight, 
-                                       xTime=input$xTime, price=input$rpueprice, name=input$varname)
-          } else {
-            
-            q_test <- quietly_test(cpue)
-            values$dataset <- create_duration(values$dataset, project = project$name, 
-                                              start=input$dur_start2, end=input$dur_end2, 
-                                              units=input$dur_units2, name='dur')
-            values$dataset <- q_test(values$dataset, project=project$name, xWeight=input$xWeight, xTime='dur', 
-                                     price=input$rpueprice, name=input$varname)
-          }
-        } else if (input$VarCreateTop=='Spatial functions' & input$dist=='zone') {
+          q_test <- quietly_test(cpue)
+          output <- q_test(values$dataset, project = project$name, xWeight = input$xWeight,
+                           xTime = input$xTime, price = input$rpueprice, name = input$varname)
+          notif <- "CPUE variable"
+        
+        } else if (input$VarCreateTop == 'Spatial functions' & input$dist == 'zone') {
           
           q_test <- quietly_test(assignment_column)
-          values$dataset <- q_test(dat=values$dataset, project$name, spat=spatdat$dataset, 
-                                   lon.dat=input$lon_dat_zone, lat.dat=input$lat_dat_zone, 
-                                   cat=input$cat_zone, closest.pt = input$closest_pt_zone, 
-                                   lon.spat=input$lon_grid_zone, lat.spat=input$lat_grid_zone, 
-                                   hull.polygon = input$hull_polygon_zone, epsg=NULL)
+          output <-  q_test(dat = values$dataset, project$name, spat = spatdat$dataset, 
+                            lon.dat = input$lon_dat_zone, lat.dat = input$lat_dat_zone, 
+                            cat = input$cat_zone, name = input$varname, closest.pt = input$closest_pt_zone, 
+                            lon.spat = input$lon_grid_zone, lat.spat = input$lat_grid_zone, 
+                            hull.polygon = input$hull_polygon_zone, epsg = NULL)
+          notif <- "Zone assignment column"
           
-          if ('ZoneID' %in% names(values$dataset)) {
-            showNotification('Zone assignment completed', duration=5, type='message')
-          } else {
-            showNotification('Zone assignment could not be completed', type='message', duration=5)
-          }
-          
-        } else if (input$VarCreateTop=='Spatial functions' & input$dist=='fish_cent') {
+        } else if (input$VarCreateTop == 'Spatial functions' & input$dist == 'fish_cent') {
           
           q_test <- quietly_test(find_fishing_centroid)
-          values$dataset <- q_test(dat=values$dataset, project$name, spat=spatdat$dataset, 
-                                   lon.dat=input$lon_dat_cent, lat.dat=input$lat_dat_cent, 
-                                   cat=input$cat_cent, weight.var=input$weight_var_cent,
-                                   lon.spat=input$lon_grid_cent,lat.spat=input$lat_grid_cent)
+          output <-  q_test(dat = values$dataset, project$name, spat = spatdat$dataset, 
+                            lon.dat = input$lon_dat_cent, lat.dat = input$lat_dat_cent, 
+                            cat = input$cat_cent, weight.var = input$weight_var_cent,
+                            lon.spat = input$lon_grid_cent,lat.spat = input$lat_grid_cent)
+          notif <- "Fishing centroid"
           
-        } else if (input$VarCreateTop=='Spatial functions' & input$dist=='create_dist_between') {
-          #'Zonal centroid', 'Port', 'Lat/lon coordinates'
-          if (input$start=='Lat/Lon coordinates') {
-            startdist <-input$start_latlon
-          } else if (input$start=='Port') {
-            startdist <- input$port_start
-          } else {
-            startdist <- 'centroid'
-          }
-          if(input$end=='Lat/Lon coordinates') {
-            enddist <-input$end_latlon
-          } else if (input$end=='Port'){
-            enddist <- input$port_end
-          } else {
-            enddist <- 'centroid'
-          }
-            q_test <- quietly_test(create_dist_between_for_gui)
-            values$dataset <- q_test(values$dataset, project = project$name, start=startdist, 
-                                     end=enddist, units=input$units, name=input$varname, 
-                                     portTable=input$filePort, spat=spatdat$dataset,
-                                     zoneid=input$zone_dist, lon.dat=input$lon_dat[2], lat.dat=input$lon_dat[1],  
-                                     cat=input$cat, lon.spat=input$long_grid[2], lat.spat=input$long_grid[1])
+        } else if (input$VarCreateTop == 'Spatial functions' & input$dist == 'create_dist_between') {
+          
+          if (input$start == 'Lat/Lon coordinates') startdist <-input$start_latlon
+          else if (input$start == 'Port')           startdist <- input$port_start
+          else                                      startdist <- 'centroid'
+          
+          if (input$end=='Lat/Lon coordinates') enddist <-input$end_latlon
+          else if (input$end=='Port') enddist <- input$port_end
+          else enddist <- 'centroid'
+          
+          q_test <- quietly_test(create_dist_between_for_gui)
+          output <-  q_test(values$dataset, project = project$name, start = startdist, 
+                            end = enddist, units = input$units, name = input$varname, 
+                            portTable = input$filePort, spat = spatdat$dataset,
+                            zoneid = input$zone_dist, lon.dat = input$lon_dat[2], 
+                            at.dat = input$lon_dat[1], cat = input$cat, lon.spat = input$long_grid[2], 
+                            lat.spat = input$long_grid[1])
+          notif <- "Point distance"
              
-           } else if (input$VarCreateTop=='Spatial functions' & input$dist=='create_mid_haul') {
+        } else if (input$VarCreateTop == 'Spatial functions' & input$dist == 'create_mid_haul') {
              
-              q_test <- quietly_test(create_mid_haul)
-              values$dataset <- q_test(values$dataset, project = project$name, 
-                                       start=c(input$mid_start[2], input$mid_start[1]), 
-                                       end=c(input$mid_end[2], input$mid_end[1]), 
-                                       name=input$varname)
+          q_test <- quietly_test(create_mid_haul)
+          output <-  q_test(values$dataset, project = project$name, 
+                            start = c(input$mid_start[2], input$mid_start[1]), 
+                            end = c(input$mid_end[2], input$mid_end[1]), name = input$varname)
+          notif <- "Haul midpoint"
               
-        } else if (input$VarCreateTop=='Temporal functions' & input$tempfunc=='create_duration') {
+        } else if (input$VarCreateTop == 'Temporal functions' & input$tempfunc == 'create_duration') {
           
               q_test <- quietly_test(create_duration)
-              values$dataset <- q_test(values$dataset, project=project$name, 
-                                       start=input$dur_start, end=input$dur_end, 
-                                       units=input$dur_units, name=input$varname)
+              output <-  q_test(values$dataset, project = project$name, start = input$dur_start, 
+                                end = input$dur_end, units = input$dur_units, name = input$varname)
+              notif <- "Duration variable"
               
-        } else if (input$VarCreateTop=='Spatial functions'&input$dist=='create_startingloc') {
+        } else if (input$VarCreateTop == 'Spatial functions' & input$dist == 'create_startingloc') {
           
               q_test <- quietly_test(create_startingloc)
-              values$dataset <- q_test(values$dataset, project=project$name, spat=spatdat$dataset,  
-                                       portTable=input$port.dat, trip_id=input$trip_id_SL,
-                                       haul_order=input$haul_order_SL, starting_port=input$starting_port_SL, 
-                                       lon.dat = input$lon_dat_SL, lat.dat = input$lat_dat_SL, cat=input$cat_SL, zoneid=input$zone_SL, 
-                                       name=input$varname, lon.spat=input$lon_grid_SL, lat.spat=input$lat_grid_SL)
+              output <-  q_test(values$dataset, project = project$name, spat = spatdat$dataset, 
+                                portTable = input$port.dat, trip_id = input$trip_id_SL,
+                                haul_order = input$haul_order_SL, starting_port = input$starting_port_SL, 
+                                lon.dat = input$lon_dat_SL, lat.dat = input$lat_dat_SL, 
+                                cat = input$cat_SL, zoneid = input$zone_SL, name = input$varname, 
+                                lon.spat = input$lon_grid_SL, lat.spat = input$lat_grid_SL)
+              notif <- "Starting location"
               
-        } else if (input$VarCreateTop=='Trip-level functions'&input$trip=='haul_to_trip') {
+        } else if (input$VarCreateTop == 'Trip-level functions' & input$trip == 'haul_to_trip') {
           
               q_test <- quietly_test(haul_to_trip)
-              values$dataset <- q_test(values$dataset, project=project$name, 
-                                       input$fun_numeric, input$fun_time, input$Haul_Trip_IDVar)
+              output <-  q_test(values$dataset, project=project$name, 
+                                input$fun_numeric, input$fun_time, input$Haul_Trip_IDVar)
+              notif <- "Haul-to-trip"
               
-        } else if (input$VarCreateTop=='Trip-level functions'&input$trip=='trip_distance') {
+        } else if (input$VarCreateTop == 'Trip-level functions' & input$trip == 'trip_distance') {
           
               q_test <- quietly_test(create_trip_distance)
-              values$dataset <- q_test(values$dataset, project = project$name, 
-                                       PortTable = input$port_dat_dist, trip_id = input$trip_ID, 
-                                       staring_port = input$starting_port, 
-                                       starting_haul = c(input$starting_haul[2], input$starting_haul[1]), 
-                                       ending_haul = c(input$ending_haul[2],input$ending_haul[1]), 
-                                       ending_port = input$ending_port, 
-                                       haul_order = input$haul_order, name = input$varname)
+              output <-  q_test(values$dataset, project = project$name, 
+                                PortTable = input$port_dat_dist, trip_id = input$trip_ID, 
+                                staring_port = input$starting_port, 
+                                starting_haul = c(input$starting_haul[2], input$starting_haul[1]), 
+                                ending_haul = c(input$ending_haul[2],input$ending_haul[1]), 
+                                ending_port = input$ending_port, 
+                                haul_order = input$haul_order, name = input$varname)
+              notif <- "Trip distance"
               
-        } else if (input$VarCreateTop=='Trip-level functions'&input$trip=='trip_centroid') {
+        } else if (input$VarCreateTop == 'Trip-level functions' & input$trip == 'trip_centroid') {
           
               q_test <- quietly_test(create_trip_centroid)
-              values$dataset <- q_test(values$dataset, project = project$name, 
-                                       lon=input$trip_cent_lon, lat=input$trip_cent_lat, 
-                                      tripID=input$trip_cent_id, weight.var=input$trip_cent_weight)
+              output <-  q_test(values$dataset, project = project$name, 
+                                lon = input$trip_cent_lon, lat=input$trip_cent_lat, 
+                                tripID = input$trip_cent_id, weight.var = input$trip_cent_weight)
+              notif <- "Trip centroid"
         }
+        
+        if (!is_value_empty(output)) {
+          
+          values$dataset <- output
+          showNotification(paste(notif, "was successfully created."), type = "message")
+          
+        } else {
+          
+          showNotification(paste(notif, "could not be created."), type = "error")
+        }
+        
       })
       
       output$output_table_create <- DT::renderDT(
@@ -4694,7 +4757,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         conditionalPanel("input.choiceTab=='primary'",
                          tagList(
                            selectizeInput('catchBase','Column name containing catch data',
-                                          choices= find_catch(values$dataset),
+                                          choices = numeric_cols(values$dataset),
                                           options = list(create = TRUE, placeholder='Select or type column name')),
                            selectizeInput('priceBase', 'Column name containing price or value data', 
                                           choices=c('none selected'='none', find_value(values$dataset)),
@@ -4721,7 +4784,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         tagList(
         conditionalPanel(condition="input.choiceTab=='distm' && input.distMsource == 'primary'",
                          tagList(
-                          add_prompt(
+                          prompter::add_prompt(
                             div(
                               div(style="display: inline-block; width: 415px ;", h5(tags$b('Define how alternative fishing choices are calculated between'))),
                               div(style="display: inline-block; width: 5px ;", icon('info-circle'))),
@@ -4827,7 +4890,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       output$selectcp <- renderUI({
         tagList(
           selectInput('catche','Catch variable for averaging',
-                      choices=c(input$catchBase, find_catch(values$dataset)),
+                      choices=c(input$catchBase, numeric_cols(values$dataset)),
                       selected=input$catchBase),
           selectizeInput('price', 'If expected revenue is to be calculated, column name containing price or value data', 
                          choices=c(input$priceBase, "none", find_value(values$dataset)),
@@ -5007,7 +5070,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       output$catch_out <- renderUI({
         tagList(
           selectInput('catch','Column name containing catch data',
-                      choices=c(input$catchBase, find_catch(values$dataset)), 
+                      choices=c(input$catchBase, numeric_cols(values$dataset)), 
                       selected=input$catchBase),
           conditionalPanel(
             condition="input.model=='epm_normal' || input.model=='epm_lognormal' || input.model=='epm_weibull'",
@@ -5132,7 +5195,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       output$gridvariables <- renderUI ({
         gridvariables <- c('none')
-        add_prompt(selectInput('gridVariablesInclude', label = list(gridlab(), icon('info-circle')), multiple=TRUE,
+        prompter::add_prompt(selectInput('gridVariablesInclude', label = list(gridlab(), icon('info-circle')), multiple=TRUE,
                     choices = gridvariables, selected = ''),
                    position = "bottom", type='info', size='medium', message = "Generally, variables that vary by zonal alternatives or are interacted with zonal constants. 
                     See Likelihood functions sections of the FishSET Help Manual for details. Select 'none' if no variables are to be included.")
