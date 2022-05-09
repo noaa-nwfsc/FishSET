@@ -11,6 +11,7 @@ assignment_column(
   lon.dat,
   lat.dat,
   cat,
+  name = "ZoneID",
   closest.pt = FALSE,
   bufferval = NULL,
   lon.spat = NULL,
@@ -21,26 +22,30 @@ assignment_column(
 )
 }
 \arguments{
-\item{dat}{Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.}
+\item{dat}{Primary data containing information on hauls or trips. Table in FishSET 
+database contains the string 'MainDataTable'.}
 
 \item{project}{name of project.}
 
-\item{spat}{Spatial data containing information on fishery management or regulatory zones. 
-Shape, json, geojson, and csv formats are supported.}
+\item{spat}{Spatial data containing information on fishery management or regulatory 
+zones. Shape, json, geojson, and csv formats are supported.}
 
 \item{lon.dat}{Longitude variable in \code{dat}.}
 
 \item{lat.dat}{Latitude variable in \code{dat}.}
 
-\item{cat}{Variable or list in \code{spat} that identifies the individual areas or zones. 
-If \code{spat} is class sf, \code{cat} should be name of list containing information on zones.}
+\item{cat}{Variable or list in \code{spat} that identifies the individual areas 
+or zones. If \code{spat} is class sf, \code{cat} should be name of list containing 
+information on zones.}
 
-\item{closest.pt}{Logical, if true, observations that fall outside zones are classed as the closest 
-zone polygon to the point.}
+\item{name}{The name of the new assignment column. Defaults to \code{"ZoneID"}.}
 
-\item{bufferval}{Maximum buffer distance, in meters, for assigning observations to the closest zone polygon. 
-If no zone polygons are within the defined \code{bufferval}, then observation will not be assigned to a 
-zone polygon. Required if closest.pt is TRUE.}
+\item{closest.pt}{Logical, if true, observations that fall outside zones are 
+classed as the closest zone polygon to the point.}
+
+\item{bufferval}{Maximum buffer distance, in meters, for assigning observations 
+to the closest zone polygon. If no zone polygons are within the defined \code{bufferval}, 
+then observation will not be assigned to a zone polygon. Required if \code{closest.pt = TRUE}.}
 
 \item{lon.spat}{Variable or list from \code{spat} containing longitude data. 
 Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}
@@ -48,28 +53,30 @@ Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}
 \item{lat.spat}{Variable or list from \code{spat} containing latitude data. 
 Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}
 
-\item{hull.polygon}{Logical, if TRUE, creates convex hull polygon. Use if spatial data creating polygon 
-are sparse or irregular.}
+\item{hull.polygon}{Logical, if TRUE, creates convex hull polygon. Use if spatial 
+data creating polygon are sparse or irregular.}
 
-\item{epsg}{EPSG code. Set the epsg code to ensure that \code{spat} and \code{dat} have the same 
-projections. If epsg is not specified but is defined for \code{spat}, then the 
-\code{spat} coordinate reference system will be applied to \code{dat}. 
+\item{epsg}{EPSG code. Set the epsg code to ensure that \code{spat} and \code{dat} 
+have the same projections. If epsg is not specified but is defined for \code{spat}, 
+then the \code{spat} coordinate reference system will be applied to \code{dat}. 
 See \url{http://spatialreference.org/} to help identify optimal epsg number.}
 
 \item{log.fun}{Logical, whether to log function call (for internal use).}
 }
 \value{
-Returns primary dataset with new assignment column labeled zoneID.
+Returns primary dataset with new assignment column.
 }
 \description{
-Assign each observation in the primary dataset to a fishery management or regulatory zone. 
-   Function is primarily called by other functions that require zone assignment but can also be used on its own.
+Assign each observation in the primary dataset to a fishery management 
+  or regulatory zone. Function is primarily called by other functions that require 
+  zone assignment but can also be used on its own.
 }
 \details{
-Function uses the specified latitude and longitude from the primary dataset to assign each row of the 
-primary dataset to a zone. Zone polygons are defined by the spatial dataset. Set \code{hull.polygon} to TRUE if
- spatial data is sparse or irregular. Function is called by other functions if a zone identifier does not exist 
- in the primary dataset.
+Function uses the specified latitude and longitude from the primary 
+  dataset to assign each row of the primary dataset to a zone. Zone polygons are 
+  defined by the spatial dataset. Set \code{hull.polygon} to TRUE if spatial 
+  data is sparse or irregular. Function is called by other functions if a zone 
+  identifier does not exist in the primary dataset.
 }
 \keyword{polygon}
 \keyword{zone,}
