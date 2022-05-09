@@ -10,24 +10,30 @@ na_filter(
   x = NULL,
   replace = FALSE,
   remove = FALSE,
-  rep.value = NA,
+  rep.value = "mean",
   over_write = FALSE
 )
 }
 \arguments{
-\item{dat}{Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.}
+\item{dat}{Primary data containing information on hauls or trips. Table in 
+FishSET database contains the string 'MainDataTable'.}
 
 \item{project}{Project name.}
 
 \item{x}{Character string. Column(s) in \code{dat} in which to remove or replace NAs.}
 
-\item{replace}{Logical, if TRUE, replaces NAs in a vector with \code{rep.value}. Defaults to FALSE.}
+\item{replace}{Logical, if TRUE, replaces NAs in a vector with \code{rep.value}. 
+Defaults to FALSE.}
 
-\item{remove}{Logical, if TRUE removes the entire row of the \code{dat} where NA is present in a \code{dat}. Defaults to FALSE.}
+\item{remove}{Logical, if TRUE removes the entire row of the \code{dat} where 
+NA is present in a \code{dat}. Defaults to FALSE.}
 
-\item{rep.value}{Value to replace all NAs in a column. Defaults to the mean value of the column.}
+\item{rep.value}{Value to replace all NAs in a numeric column. Defaults to 
+the mean value of the column. Other options include \code{"median"} or a
+numeric value, e.g. \code{rep.value = 0}.}
 
-\item{over_write}{Logical, If TRUE, saves data over previously saved data table in the FishSET database.}
+\item{over_write}{Logical, If TRUE, saves data over previously saved data table 
+in the FishSET database.}
 }
 \value{
 Returns a statement on whether NAs are found and the modified primary dataset.
@@ -36,12 +42,14 @@ Returns a statement on whether NAs are found and the modified primary dataset.
 Identify, remove or replace NAs
 }
 \details{
-To check for NAs across \code{dat} run the function specifying only \code{dat} (\code{na_filter(dataset)}). 
-The function will return a statement of which variables, if any, contain NAs. 
-To remove NAs, use \code{remove = TRUE}. All rows containing NAs in \code{x} will be removed from \code{dat}. 
-To replace NAs, use \code{replace = TRUE}. If \code{replace} is FALSE and \code{rep.value} is not defined, 
-then NAs are replaced with mean value. The modified dataset will be returned if \code{replace=TRUE} or 
-\code{remove=TRUE}. Save the modified data table to the FishSET database by setting \code{over_write = TRUE)}.
+To check for NAs across \code{dat} run the function specifying only 
+  \code{dat} (\code{na_filter(dataset)}). The function will return a statement 
+  of which variables, if any, contain NAs. To remove NAs, use \code{remove = TRUE}. 
+  All rows containing NAs in \code{x} will be removed from \code{dat}. To replace 
+  NAs, use \code{replace = TRUE}. If \code{replace} is FALSE and \code{rep.value} 
+  is not defined, then NAs are replaced with mean value. The modified dataset will
+  be returned if \code{replace=TRUE} or \code{remove=TRUE}. Save the modified data
+  table to the FishSET database by setting \code{over_write = TRUE)}.
 }
 \examples{
 \dontrun{

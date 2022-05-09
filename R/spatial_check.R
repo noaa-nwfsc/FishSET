@@ -98,35 +98,48 @@ clean_spat <- function(spat) {
 }
 
 
-dat_to_sf <- function(spatdat, lon, lat, id) {
+dat_to_sf <- function(dat, lon, lat, id, cast = "POLYGON", multi = FALSE,
+crs = 4326) {
   #' Convert dataframe to sf
   #' 
   #' Used to convert spatial data with no spatial class to a \code{sf} object. 
   #' This is useful if the spatial data was read from a non-spatial file type, 
   #' e.g. a CSV file. 
   #'
-  #'@param spatdat Spatial data containing information on fishery management or 
+  #'@param dat Spatial data containing information on fishery management or 
   #'   regulatory zones. 
   #' @param lon Longitude variable in \code{spatdat}. 
   #' @param lat Latitude variable in \code{spatdat}. 
-  #' @param id Polygon ID column. 
+  #' @param id Spatial feature ID column. 
+  #' @param cast Spatial feature type to create. Commonly used options are \code{"POINT"},
+  #'   \code{"LINESTRING"}, and \code{"POLYGON"}. See \code{\link[sf]{st_cast}} 
+  #'   for details. 
+  #' @param multi Logical, use if needing to convert to a multi-featured (grouped)
+  #'   \code{sf} object, e.g. \code{MULTIPOLYGON} or \code{MULTILINESTRING}.
+  #' @param crs Coordinate reference system to assign to \code{dat}. Defaults to
+  #' WGS 84 (EPSG: 4326).
   #' @export
   #'@importFrom sf st_as_sf st_cast
   #'@importFrom dplyr group_by across summarize  %>%
   
-  spatdat <- sf::st_as_sf(x = spatdat, coords = c(lon, lat), 
-                          crs = 4326) # WGS 84
+  spatdat <- sf::st_as_sf(x = dat, coords = c(lon, lat), crs = crs)
   
   # Convert point geometry to polygon
   spatdat <- 
     spatdat %>%
     dplyr::group_by(dplyr::across(id)) %>% 
     dplyr::summarize(do_union = FALSE) %>% 
-    sf::st_cast("POLYGON")
+    sf::st_cast(cast)
   
-  # convert polygon to multi-polygon
-  spatdat <- sf::st_cast(spatdat, "MULTIPOLYGON")
-  
+  # error cases?
+  if (multi) {
+    # unexpected type?
+    m_cast <- switch(cast, "POINT" = "MULTIPOINT", "LINESTRING" = "MULTILINESTRING",
+                     "POLYGON" = "MULTIPOLYGON")
+    
+    spatdat <- sf::st_cast(spatdat, m_cast)
+  }
+ 
   spatdat
 } 
 
