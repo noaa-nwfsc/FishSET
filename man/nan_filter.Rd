@@ -10,12 +10,13 @@ nan_filter(
   x = NULL,
   replace = FALSE,
   remove = FALSE,
-  rep.value = NA,
+  rep.value = "mean",
   over_write = FALSE
 )
 }
 \arguments{
-\item{dat}{Primary data containing information on hauls or trips. Table in the FishSET database contains the string 'MainDataTable'.}
+\item{dat}{Primary data containing information on hauls or trips. Table in 
+the FishSET database contains the string 'MainDataTable'.}
 
 \item{project}{Project name.}
 
@@ -23,11 +24,15 @@ nan_filter(
 
 \item{replace}{Logical, If TRUE, NaNs are replaced. Defaults to FALSE.}
 
-\item{remove}{Logical, if TRUE, removes the entire row of the dataset where NaN is present. Defaults to FALSE.}
+\item{remove}{Logical, if TRUE, removes the entire row of the dataset where 
+NaN is present. Defaults to FALSE.}
 
-\item{rep.value}{Value to replace all NaNs in a column. Defaults to the mean value of the column.}
+\item{rep.value}{Value to replace all NaNs in a numeric column. Defaults to 
+the mean value of the column. Other options include \code{"median"} or a
+numeric value, e.g. \code{rep.value = 0}.}
 
-\item{over_write}{Logical, If TRUE, saves data over previously saved data table in the FishSET database.}
+\item{over_write}{Logical, If TRUE, saves data over previously saved data table 
+in the FishSET database.}
 }
 \value{
 Returns the modified primary dataset.
@@ -36,12 +41,14 @@ Returns the modified primary dataset.
 Remove or replace NaNs in primary dataset.
 }
 \details{
-To check for NaNs across \code{dat} run the function specifying only \code{dat} (\code{nan_filter(dataset)}). 
-The function will return a statement of which variables, if any, contain NaNs. 
-To remove NaNs, use \code{remove = TRUE}. All rows containing NAs in \code{x} will be removed from \code{dat}. 
-To replace NaNs, use \code{replace = TRUE}. If \code{replace} is FALSE and \code{rep.value} is not defined, 
-then NaNs are replaced with mean value. The modified dataset will be returned if \code{replace=TRUE} or 
-\code{remove=TRUE}. Save the modified data table to the FishSET database by setting \code{over_write = TRUE)}.
+To check for NaNs across \code{dat} run the function specifying only 
+  \code{dat} (\code{nan_filter(dataset, project)}). The function will return a statement  
+  of which variables, if any, contain NaNs. To remove NaNs, use \code{remove = TRUE}. 
+  All rows containing NAs in \code{x} will be removed from \code{dat}. To replace 
+  NaNs, use \code{replace = TRUE}. If \code{replace} is FALSE and \code{rep.value} 
+  is not defined, then NaNs are replaced with mean value. The modified dataset will 
+  be returned if \code{replace=TRUE} or \code{remove=TRUE}. Save the modified data 
+  table to the FishSET database by setting \code{over_write = TRUE)}.
 }
 \examples{
 \dontrun{

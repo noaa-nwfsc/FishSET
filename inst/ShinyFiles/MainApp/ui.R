@@ -2,20 +2,14 @@ source("fleetUI.R", local = TRUE)
 source("fleet_helpers.R", local = TRUE)
 source("map_viewer_app.R", local = TRUE)
 
-# TODO ask Melanie about this code (related to info icons)
-# shiny::addResourcePath(
-#   "hint-assets",
-#   system.file("hint", package = "FishSET")
-# )
-
    ## USER INTERFACE    
     ui = function(request){
       fluidPage(
       shinyjs::useShinyjs(),
+      prompter::use_prompt(),
       # Pop up information icons
       tags$style(".fa-info-circle {color:#0066FF}"),
       tags$style(".fa-exclamation-circle {color:#FF0066}"),
-      use_prompt(),
       
       #--
       # Formatting ----
@@ -850,8 +844,12 @@ source("map_viewer_app.R", local = TRUE)
                                                                         'Calculate trip centroid'='trip_centroid'),
                                                             selected='haul_to_trip', multiple = FALSE)),
                                conditionalPanel("input.trip!='haul_to_trip'||input.trip!='trip_centroid'", 
-                                                add_prompt(textInput('varname',list('Name of new variable', icon('info-circle')), value='', placeholder = ''),
-                                                position = "bottom", type='info', size='medium', message = "If left empty, default names will be supplied.")),
+                                                
+                                                prompter::add_prompt(
+                                                   textInput('varname', list('Name of new variable', icon('info-circle')), 
+                                                             value = '', placeholder = ''),
+                                                   position = "bottom", type='info', size='medium', 
+                                                   message = "If left empty, default names will be supplied.")),
                                
                                #More sub choices Data Transformations     
                                
@@ -920,8 +918,7 @@ source("map_viewer_app.R", local = TRUE)
                                
                                conditionalPanel("input.VarCreateTop=='Arithmetic functions'&&input.numfunc=='cpue'",
                                                 style = "margin-left:19px;",
-                                 uiOutput("input_cpue"),
-                                 uiOutput('dur_add')
+                                 uiOutput("input_cpue")
                                                 ),
                               
                                
@@ -1102,7 +1099,7 @@ source("map_viewer_app.R", local = TRUE)
                                uiOutput('selectcp'),
                                #h5('Compute expectations for the entire fleet or by defined groups'),
                                
-                               add_prompt(div(
+                               prompter::add_prompt(div(
                                             div(style="display:inline-block; width: 145px;", h4('Temporal options')), 
                                             div(style="display:inline-block; width: 10px;", icon('info-circle'))),
                                           position = "right", type='info', size='large', 
@@ -1258,7 +1255,7 @@ source("map_viewer_app.R", local = TRUE)
                                      )
                                    ),
                                    fluidRow(
-                                     add_prompt(div(
+                                     prompter::add_prompt(div(
                                        div(style="display: inline-block; width: 145px ;", h4('Initial parameters')), 
                                        div(style="display: inline-block; width: 5px ;", icon('info-circle'))),
                                         position = "bottom", type='info', size='large', 

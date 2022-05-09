@@ -162,12 +162,6 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   dat_sf <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), 
                          crs = 4326)
   
-  # shift to Pacific view if needed
-  if (shift_long(spatdat)) {
-    
-    spatdat <- sf::st_shift_longitude(spatdat)
-  }
-  
   spatdat <- check_spatdat(spatdat, lon.dat, lat.dat, id.spat)
   
   if (sf::st_crs(spatdat) != sf::st_crs(dat_sf)) {
@@ -178,8 +172,8 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
   
   if (!is.null(epsg)) {
     
-    dat_sf <- sf::st_transform(dat_sf, epsg)
-    spatdat <- sf::st_transform(spatdat, epsg)
+    dat_sf <- sf::st_transform(dat_sf, crs = epsg)
+    spatdat <- sf::st_transform(spatdat, crs = epsg)
     
   } else if (!is.na(sf::st_crs(spatdat))) {
     
@@ -187,7 +181,7 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
     
   } else {
     
-    spatdat <- sf::st_transform(spatdat, "+proj=longlat +datum=WGS84")
+    spatdat <- sf::st_transform(spatdat, crs = 4326)
   }
   
   # base map ---- 
@@ -198,15 +192,9 @@ spatial_qaqc <- function(dat, project, spat, lon.dat, lat.dat, lon.spat = NULL,
                                 xlim = c(bbox["xmin"], bbox["xmax"]), 
                                 ylim = c(bbox["ymin"], bbox["ymax"]))
   
-  base_map <- sf::st_as_sf(base_map, coords = c("long", "lat"), 
-                           crs = sf::st_crs(spatdat))
   
-  # convert points to polygon
-  base_map <- 
-    base_map %>%
-    dplyr::group_by(group) %>% 
-    dplyr::summarize(do_union = FALSE) %>% 
-    sf::st_cast("POLYGON")
+  base_map <- dat_to_sf(base_map, lon = "long", lat = "lat", id = "group", 
+                        cast = "POLYGON", multi = TRUE, crs = sf::st_crs(spatdat))
   
   # plot functions 
   lon_sym <- rlang::sym(lon.dat)
