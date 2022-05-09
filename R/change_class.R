@@ -205,14 +205,6 @@ change_class <- function(dat, project, x = NULL, new_class = NULL, save = FALSE)
         lubridate::as_date(out)
       }
       
-      quiet_safe_test <- function(.f) {
-        
-        fun1 <- purrr::quietly(.f)
-        fun <- purrr::safely(fun1)
-        
-        function(...) fun(...)
-      }
-      
       qs_test <- quiet_safe_test(lubridate::as_date)
    
       # results of attempting as_date
