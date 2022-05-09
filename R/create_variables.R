@@ -1,93 +1,119 @@
 # Create variables or matrix.
 
 ## --- CPUE ----##
-cpue <- function(dat, project, xWeight, xTime, price=NULL, name = "cpue") {
+cpue <- function(dat, project, xWeight = NULL, xTime, price = NULL, name = NULL) {
   #' Create catch or revenue per unit effort variable
   #' 
-  #' @description Add catch per unit effort (CPUE) or revenue per unit effort variable to the primary dataset. 
-  #'   Catch should be a weight variable but can be a count. Effort should be in a duration of time, such as days, hours, or minutes.
-  #' @param dat Primary data containing information on hauls or trips.
-  #'   Table in FishSET database contains the string 'MainDataTable'.
+  #' @description Add catch per unit effort (CPUE) or revenue per unit effort 
+  #'   variable to the primary dataset. Catch should be a weight variable but can 
+  #'   be a count. Effort should be in a duration of time, such as days, hours, or minutes.
+  #' @param dat Primary data containing information on hauls or trips. Table in 
+  #'   FishSET database contains the string 'MainDataTable'.
   #' @param project Project name. 
-  #' @param xWeight Catch variable in \code{dat}. Variable should be a measure of weight 
-  #'   (pounds, metric tons, etc) but can also be count. If calculated RPUE and \code{price} is revenue data, set 
-  #'   \code{XWeight=NULL}.
+  #' @param xWeight Catch variable in \code{dat}. Variable should be a measure of 
+  #'   weight (pounds, metric tons, etc) but can also be count. If calculated RPUE 
+  #'   and \code{price} is revenue data, set \code{XWeight = NULL}.
   #' @param xTime Duration of time variable in \code{dat} representing effort, such as
   #'   weeks, days, hours, or minutes.
-  #' @param price Optional, variable from \code{dat} containing price/value data.  Price is multiplied against the catch variable,
-  #'   \code{xWeight}, to generated revenue. If revenue exists in \code{dat} and you wish to use this revenue instead of price,
-  #'   then \code{xWeight} must NULL. Defaults to NULL.
-  #' @param name String, name of created variable. Defaults to name of the function if not defined.
+  #' @param price Optional, variable from \code{dat} containing price/value data. 
+  #'   Price is multiplied against the catch variable, \code{xWeight}, to generated 
+  #'   revenue. If revenue exists in \code{dat} and you wish to use this revenue 
+  #'   instead of price, then \code{xWeight} must NULL. Defaults to NULL.
+  #' @param name String, name of created variable. Defaults to name of the function 
+  #'   if not defined.
   #' @export cpue
-  #' @details Creates the catch or revenue per unit effort variable. Catch variable should be in weight (lbs, mts).
-  #'   Effort variable should be a measurement of duration in time. New variable is added to the primary dataset
-  #'   with the column name defined by the \code{name} argument. CPUE for individual species should be
-  #'   calculated separately.
+  #' @details Creates the catch or revenue per unit effort variable. Catch variable 
+  #'   should be in weight (lbs, mts). Effort variable should be a measurement of 
+  #'   duration in time. New variable is added to the primary dataset with the 
+  #'   column name defined by the \code{name} argument. CPUE for individual species
+  #'   should be calculated separately.
   #' @return Returns primary dataset with CPUE variable added.
   #' @examples
   #' \dontrun{
   #' pollockMainDataTable <- cpue(pollockMainDataTable, 'pollock', 'OFFICIAL_TOTAL_CATCH_MT', 
   #'     'DURATION_IN_MIN', 'cpue')
   #' }
-
+  
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
- if(is_empty(name)){
-    if(!is.null(price)) {
-      name = 'rpue'
-    } else {
-      name = 'cpue'
-    }
- } else {
-    name= name
+  if (is_value_empty(xWeight) & is_value_empty(price)) {
+    
+    stop("'xWeight' and/or 'price' argument must be provided.", call. = FALSE)
   }
   
-  tmp <- 0
+  column_check(dataset, cols = c(xWeight, xTime, price))
+  
+  if (is_value_empty(name)) {
+
+   if (!is.null(price)) name = 'rpue'
+   else name = 'cpue'
+
+   warning("'name' empty, using '", name, "'.", call. = FALSE)
+  }
+  
+  name <- name_check(dataset, name, repair = TRUE)
   
   # Deal with revenue issue
-  if(!is.null(price)){
-    if(!is.null(xWeight) & xWeight!=1){
-      stopifnot(is.numeric(dataset[[xWeight]]))
-      stopifnot(is.numeric(dataset[[price]]))
+  if (!is.null(price)) {
+    
+    if (!is.null(xWeight)) {
+      
+      stopifnot("xWeight must be numeric" = is.numeric(dataset[[xWeight]]))
+      stopifnot("price must be numeric" = is.numeric(dataset[[price]]))
+      
       if (!grepl("LB|Pounds|MT", xWeight, ignore.case = TRUE)) {
-        warning("xWeight must a measurement of mass. RPUE calculated.")
+        
+        warning("xWeight must a measurement of mass. RPUE calculated.", call. = FALSE)
       }
-      weight <- dataset[[xWeight]]*dataset[[price]]
+      
+      weight <- dataset[[xWeight]] * dataset[[price]]
+      
     } else {
+      
       weight <- dataset[[price]]
     }
+    
   } else {
-    stopifnot(is.numeric(dataset[[xWeight]]))
+    
+    stopifnot("xWeight must be numeric" = is.numeric(dataset[[xWeight]]))
+    
     if (!grepl("LB|Pounds|MT", xWeight, ignore.case = TRUE)) {
-      warning("xWeight must a measurement of mass. CPUE calculated.")
+      
+      warning("xWeight must a measurement of mass. CPUE calculated.", call. = FALSE)
     }
+    
     weight <- dataset[[xWeight]]
   }
 
-  stopifnot(is.numeric(dataset[[xTime]])) 
+  stopifnot("xTime must be numeric" = is.numeric(dataset[[xTime]])) 
   
- 
-    # Check that Weight variable is indeed a weight variable
-    if (!grepl("Duration", xTime, ignore.case = TRUE)) {
-      warning("xTime should be a measurement of time. Use the create_duration function. CPUE calculated.")
-    }
-
-    newvar <- weight/ dataset[[xTime]]
-
-    g <- cbind(dataset, newvar)
-    colnames(g)[dim(g)[2]] = name
+  # Check that Weight variable is indeed a weight variable
+  if (!grepl("Duration", xTime, ignore.case = TRUE)) {
     
-    create_var_cpue_function <- list()
-    create_var_cpue_function$functionID <- "cpue"
-    create_var_cpue_function$args <- list(dat, project, xWeight, xTime, price, deparse(substitute(name)))
-    create_var_cpue_function$kwargs <- list()
-    create_var_cpue_function$output <- list(dat)
+    warning("xTime should be a measurement of time. Use the create_duration ", 
+            "function. CPUE calculated.", call. = FALSE)
+  }
 
-    log_call(project, create_var_cpue_function)
-    return(g)
+  # safely test
+  dataset[[name]] <- weight / dataset[[xTime]]
+  
+  if (qaqc_helper(dataset[name], "Inf")) {
+    
+    warning("Inf values detected in '", name, "'.", call. = FALSE)
+  }
+  
+  cpue_function <- list()
+  cpue_function$functionID <- "cpue"
+  cpue_function$args <- list(dat, project, xWeight, xTime, price, name)
+  cpue_function$kwargs <- list()
+  cpue_function$output <- list(dat)
+
+  log_call(project, cpue_function)
+  
+  return(dataset)
 }
 
 ## ---- Dummy  Variables ----##
@@ -163,13 +189,13 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
   g <- cbind(dataset, newvar)
   colnames(g)[dim(g)[2]] = name
   
-  create_var_dummy_num_function <- list()
-  create_var_dummy_num_function$functionID <- "dummy_num"
-  create_var_dummy_num_function$args <- list(dat, project, var, value, opts, deparse(substitute(name)))
-  create_var_dummy_num_function$kwargs <- list()
-  create_var_dummy_num_function$output <- list(dat)
+  dummy_num_function <- list()
+  dummy_num_function$functionID <- "dummy_num"
+  dummy_num_function$args <- list(dat, project, var, value, opts, name)
+  dummy_num_function$kwargs <- list()
+  dummy_num_function$output <- list(dat)
 
-  log_call(project, create_var_dummy_num_function)
+  log_call(project, dummy_num_function)
   return(g)
 }
 
@@ -202,13 +228,13 @@ dummy_var <- function(dat, project, DumFill = 1, name = "dummy_var") {
   g <- cbind(dataset, newvar)
   colnames(g)[dim(g)[2]] = name
   
-  create_var_dummy_var_function <- list()
-  create_var_dummy_var_function$functionID <- "dummy_var"
-  create_var_dummy_var_function$args <- list(dat, project, DumFill, deparse(substitute(name)))
-  create_var_dummy_var_function$kwargs <- list()
-  create_var_dummy_var_function$output <- list(dat)
+  dummy_var_function <- list()
+  dummy_var_function$functionID <- "dummy_var"
+  dummy_var_function$args <- list(dat, project, DumFill, name)
+  dummy_var_function$kwargs <- list()
+  dummy_var_function$output <- list(dat)
 
-  log_call(project, create_var_dummy_var_function)
+  log_call(project, dummy_var_function)
 
   return(g)
 }
@@ -244,12 +270,12 @@ dummy_matrix <- function(dat, project, x) {
   int <- data.frame(lapply(1:length(factor.levels), function(x) ifelse(int[, x] == colnames(int)[x], 1, 0)))
   colnames(int) <- paste(x, "_", levels(as.factor(dataset[[x]])))
 
-  create_var_dummy_matrix_function <- list()
-  create_var_dummy_matrix_function$functionID <- "dummy_matrix"
-  create_var_dummy_matrix_function$args <- list(dat, project, x)
-  create_var_dummy_matrix_function$kwargs <- list()
-  create_var_dummy_matrix_function$output <- list()
-  log_call(project, create_var_dummy_matrix_function)
+  dummy_matrix_function <- list()
+  dummy_matrix_function$functionID <- "dummy_matrix"
+  dummy_matrix_function$args <- list(dat, project, x)
+  dummy_matrix_function$kwargs <- list()
+  dummy_matrix_function$output <- list()
+  log_call(project, dummy_matrix_function)
 
   return(int)
 }
@@ -319,13 +345,13 @@ set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25,0.33, 0.4),
     g <- cbind(dataset, newvar)
     colnames(g)[dim(g)[2]] = name
 
-    create_var_set_quants_function <- list()
-    create_var_set_quants_function$functionID <- "set_quants"
-    create_var_set_quants_function$args <- list(dat, project, x, quant.cat, custom.quant, name)
-    create_var_set_quants_function$kwargs <- list()
-    create_var_set_quants_function$output <- list(dat)
+    set_quants_function <- list()
+    set_quants_function$functionID <- "set_quants"
+    set_quants_function$args <- list(dat, project, x, quant.cat, custom.quant, name)
+    set_quants_function$kwargs <- list()
+    set_quants_function$output <- list(dat)
 
-    log_call(project, create_var_set_quants_function)
+    log_call(project, set_quants_function)
     return(g)
   }
 }
@@ -375,7 +401,7 @@ bin_var <- function(dat, project, var, br, name, labs = NULL, ...) {
     # Log function
     bin_var_function <- list()
     bin_var_function$functionID <- "bin_var"
-    bin_var_function$args <- c(dat, project, var, project, br, deparse(substitute(name)), labs)
+    bin_var_function$args <- c(dat, project, var, project, br, name, labs)
     bin_var_function$kwargs <- list()
     bin_var_function$output <- list(dat)
     log_call(project, bin_var_function)
@@ -680,7 +706,7 @@ create_var_num <- function(dat, project, x, y, method, name = "create_var_num") 
     
     create_var_num_function <- list()
     create_var_num_function$functionID <- "create_var_num"
-    create_var_num_function$args <- list(dat, project, x, y, method, deparse(substitute(name)))
+    create_var_num_function$args <- list(dat, project, x, y, method, name)
     create_var_num_function$kwargs <- list()
     create_var_num_function$output <- list(dat)
     log_call(project, create_var_num_function)
@@ -1040,7 +1066,7 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
       # Log the function
       create_dist_between_function <- list()
       create_dist_between_function$functionID <- "create_dist_between"
-      create_dist_between_function$args <- list(dat, project, start, end, units, zoneid, deparse(substitute(name)))
+      create_dist_between_function$args <- list(dat, project, start, end, units, zoneid, name)
       create_dist_between_function$kwargs <- list(vars)
       create_dist_between_function$output <- list(dat)
 
@@ -1103,12 +1129,12 @@ create_duration <- function(dat, project, start, end, units = c("week", "day", "
   colnames(g)[dim(g)[2]] = name
   
  
-  create_var_temp_function <- list()
-  create_var_temp_function$functionID <- "create_duration"
-  create_var_temp_function$args <- list(dat, project, start, end, units, deparse(substitute(name)))
-  create_var_temp_function$kwargs <- list()
-  create_var_temp_function$output <- list(dat)
-  log_call(project, create_var_temp_function)
+  create_duration_function <- list()
+  create_duration_function$functionID <- "create_duration"
+  create_duration_function$args <- list(dat, project, start, end, units, name)
+  create_duration_function$kwargs <- list()
+  create_duration_function$output <- list(dat)
+  log_call(project, create_duration_function)
 
   return(g)
 }
