@@ -1,8 +1,5 @@
-
-
-
 view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL, 
-                          agg_by = NULL, agg_fun = "mean", gmap = FALSE) {
+                          group = NULL, agg_fun = "mean") {
   #' Visualize gridded data on a map
   #' 
   #' 
@@ -14,49 +11,36 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL,
   #' @param value String, variable name containing gridded values, e.g. sea surface 
   #'   temperature, wind speed, etc. 
   #' @param split_by String, variable in gridded data table to split by. 
-  #' @param agg_by String, variable in gridded data table to group \code{value} by.
-  #'   By default, the mean is aggregated. The string "latlon" is a shortcut for 
-  #'   \code{agg_by = c("lon", "lat")} which aggregates the "value" for each 
-  #'   latitude-longitude pair across the entire dataset.
-  #' @param agg_fun Aggregating function applied to \code{agg_by}. Defaults to mean.
-  #' @param gmap A ggmap object to be passed to \code{\link[ggmap]{ggmap}}. If FALSE, 
-  #'   then a ggmap is automatically retrieved. Defaults to FALSE. 
+  #' @param group String, variable in gridded data table to group \code{value} by.
+  #'   In addition to the variable(s) in \code{group}, \code{value} is also 
+  #'   aggregated by each longitude-latitude pair. The string \code{"lonlat"} is 
+  #'   a shortcut for \code{group = c("lon", "lat")} which aggregates the \code{value} 
+  #'   for each longitude-latitude pair across the entire dataset.
+  #' @param agg_fun Aggregating function applied to \code{group}. Defaults to mean.
   #' @export
   #' @import ggplot2
-  #' @import dplyr 
-  #' @importFrom ggmap make_bbox ggmap
+  #' @importFrom rlang sym
   #' @examples 
   #' \dontrun{
   #' view_grid_dat('SST', "pollock", "lon", "lat", value = "analysed_sst")
   #' }
   #'
-  #
 
-  #color gradient for mapping
- # map_color <- colors$temperature
-  
   out <- data_pull(gridfile, project)
   grid <- out$dataset
   
   gridfile <- parse_data_name(gridfile, "grid", project)
   
-#  data(colors) # load in colors.RData in Data/
-  
   # make bounding box
-  bbox <- ggmap::make_bbox(lon, lat, grid)
+  bbox <- bbox(grid, lon = lon, lat = lat)
   
   xlim <- c(bbox["left"], bbox["right"])
   ylim <- c(bbox["bottom"], bbox["top"])
   
-  if (is.logical(gmap)) { # Check if existing ggmap is present
-    
-    grid_map <- retrieve_map(grid, lon, lat)
-
-  } else {
-    
-    grid_map <- gmap
-    gmap <- deparse(substitute(gmap))
-  }
+  base_map <- ggplot2::map_data("world", xlim = xlim, ylim = ylim)
+  
+  base_map <- dat_to_sf(base_map, lon = "long", lat = "lat", id = "group", 
+                        cast = "POLYGON", multi = TRUE)
   
   # remove NA values
   grid <- grid[!is.na(grid[[value]]), ]
@@ -65,9 +49,9 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL,
   if (!is.null(split_by)) if (split_by == "none") split_by <- NULL
   
   # aggregate 
-  if (!is.null(agg_by)) {
+  if (!is.null(group)) {
     
-    if (agg_by == "latlon") agg_by <- c(lon, lat)
+    if (group == "lonlat") group <- c(lon, lat)
     
     if (!is.function(agg_fun)) {
       
@@ -77,23 +61,27 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL,
       }
     }
     
-    grid <- 
-      grid %>% 
-        dplyr::group_by(dplyr::across(agg_by)) %>% 
-        dplyr::mutate(dplyr::across(value, agg_fun, na.rm = TRUE))
+    grp <- unique(c(lon, lat, group, split_by))
+    
+    grid <- agg_helper(grid, value = value, group = grp, fun = agg_fun)
   }
   
+  # plot functions 
+  lon_sym <- rlang::sym(lon)
+  lat_sym <- rlang::sym(lat)
+  val_sym <- rlang::sym(value)
+  
   map_out <- 
-    ggmap::ggmap(grid_map) +
-    ggplot2::geom_raster(data = grid, 
-                         ggplot2::aes_string(x = lon, y = lat, fill = value),
+    ggplot2::ggplot(data = grid) +
+    ggplot2::geom_sf(data = base_map) + 
+    ggplot2::geom_raster(ggplot2::aes(x = !!lon_sym, y = !!lat_sym, fill = !!val_sym),
                          interpolate = FALSE, 
                          na.rm = TRUE,
                          alpha = .85) + # slight transparency for maps feature visibility
-    ggplot2::coord_fixed(ratio = 1.5, xlim = xlim, ylim = ylim) +
+    ggplot2::coord_sf(xlim = xlim, ylim = ylim, expand = TRUE) +
     fishset_theme() + 
-    ggplot2::labs(x = "longitude", y = "latitude") #+
-#    ggplot2::scale_fill_gradientn(colors = map_color, na.value = NA) 
+    ggplot2::labs(x = "longitude", y = "latitude") +
+   ggplot2::scale_fill_gradientn(colors = fishset_viridis(10), na.value = NA)
   
   # check # of unique values in split_by, if high use facet_wrap
   if (!is.null(split_by)) {
@@ -116,35 +104,9 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL,
   view_grid_dat_function <- list()
   view_grid_dat_function$functionID <- "view_grid_dat"
   view_grid_dat_function$args <- list(gridfile, project, lon, lat, value, 
-                                      split_by, agg_by, agg_fun, gmap)
+                                      split_by, group, agg_fun)
   log_call(project, view_grid_dat_function)
   
   map_out
 }
 
-retrieve_map <- function(grid, lon, lat) {
-  #' Get stamen map 
-  #' 
-  #' @param grid Gridded data table to visualize. Use string if visualizing a gridded data
-  #'   table in the FishSET Database. 
-  #' @param lon String, variable name containing longitude.
-  #' @param lat String, variable name containing latitude.
-  #' @importFrom ggmap ggmap calc_zoom make_bbox get_stamenmap
-  #' @keywords internal
-  #' @export
-  #' @details This is a wrapper for \code{\link[ggmap]{get_stamenmap}}
-  
-  # make bounding box
-  
-  bbox <- ggmap::make_bbox(lon, lat, grid)
-  
-  # Find ideal zoom level
-  zm <- ggmap::calc_zoom(lon, lat, grid)
-  
-  grid_map <- ggmap::get_stamenmap(bbox = bbox, 
-                                   zoom = zm,
-                                   maptype = "toner-lite",
-                                   crop = FALSE)
-  
-  grid_map
-}
