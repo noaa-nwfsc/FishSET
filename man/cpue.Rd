@@ -4,39 +4,43 @@
 \alias{cpue}
 \title{Create catch or revenue per unit effort variable}
 \usage{
-cpue(dat, project, xWeight, xTime, price = NULL, name = "cpue")
+cpue(dat, project, xWeight = NULL, xTime, price = NULL, name = NULL)
 }
 \arguments{
-\item{dat}{Primary data containing information on hauls or trips.
-Table in FishSET database contains the string 'MainDataTable'.}
+\item{dat}{Primary data containing information on hauls or trips. Table in 
+FishSET database contains the string 'MainDataTable'.}
 
 \item{project}{Project name.}
 
-\item{xWeight}{Catch variable in \code{dat}. Variable should be a measure of weight 
-(pounds, metric tons, etc) but can also be count. If calculated RPUE and \code{price} is revenue data, set 
-\code{XWeight=NULL}.}
+\item{xWeight}{Catch variable in \code{dat}. Variable should be a measure of 
+weight (pounds, metric tons, etc) but can also be count. If calculated RPUE 
+and \code{price} is revenue data, set \code{XWeight = NULL}.}
 
 \item{xTime}{Duration of time variable in \code{dat} representing effort, such as
 weeks, days, hours, or minutes.}
 
-\item{price}{Optional, variable from \code{dat} containing price/value data.  Price is multiplied against the catch variable,
-\code{xWeight}, to generated revenue. If revenue exists in \code{dat} and you wish to use this revenue instead of price,
-then \code{xWeight} must NULL. Defaults to NULL.}
+\item{price}{Optional, variable from \code{dat} containing price/value data. 
+Price is multiplied against the catch variable, \code{xWeight}, to generated 
+revenue. If revenue exists in \code{dat} and you wish to use this revenue 
+instead of price, then \code{xWeight} must NULL. Defaults to NULL.}
 
-\item{name}{String, name of created variable. Defaults to name of the function if not defined.}
+\item{name}{String, name of created variable. Defaults to name of the function 
+if not defined.}
 }
 \value{
 Returns primary dataset with CPUE variable added.
 }
 \description{
-Add catch per unit effort (CPUE) or revenue per unit effort variable to the primary dataset. 
-  Catch should be a weight variable but can be a count. Effort should be in a duration of time, such as days, hours, or minutes.
+Add catch per unit effort (CPUE) or revenue per unit effort 
+  variable to the primary dataset. Catch should be a weight variable but can 
+  be a count. Effort should be in a duration of time, such as days, hours, or minutes.
 }
 \details{
-Creates the catch or revenue per unit effort variable. Catch variable should be in weight (lbs, mts).
-  Effort variable should be a measurement of duration in time. New variable is added to the primary dataset
-  with the column name defined by the \code{name} argument. CPUE for individual species should be
-  calculated separately.
+Creates the catch or revenue per unit effort variable. Catch variable 
+  should be in weight (lbs, mts). Effort variable should be a measurement of 
+  duration in time. New variable is added to the primary dataset with the 
+  column name defined by the \code{name} argument. CPUE for individual species
+  should be calculated separately.
 }
 \examples{
 \dontrun{

@@ -4,17 +4,27 @@
 \alias{dat_to_sf}
 \title{Convert dataframe to sf}
 \usage{
-dat_to_sf(spatdat, lon, lat, id)
+dat_to_sf(dat, lon, lat, id, cast = "POLYGON", multi = FALSE, crs = 4326)
 }
 \arguments{
-\item{spatdat}{Spatial data containing information on fishery management or 
+\item{dat}{Spatial data containing information on fishery management or 
 regulatory zones.}
 
 \item{lon}{Longitude variable in \code{spatdat}.}
 
 \item{lat}{Latitude variable in \code{spatdat}.}
 
-\item{id}{Polygon ID column.}
+\item{id}{Spatial feature ID column.}
+
+\item{cast}{Spatial feature type to create. Commonly used options are \code{"POINT"},
+\code{"LINESTRING"}, and \code{"POLYGON"}. See \code{\link[sf]{st_cast}} 
+for details.}
+
+\item{multi}{Logical, use if needing to convert to a multi-featured (grouped)
+\code{sf} object, e.g. \code{MULTIPOLYGON} or \code{MULTILINESTRING}.}
+
+\item{crs}{Coordinate reference system to assign to \code{dat}. Defaults to
+WGS 84 (EPSG: 4326).}
 }
 \description{
 Used to convert spatial data with no spatial class to a \code{sf} object. 

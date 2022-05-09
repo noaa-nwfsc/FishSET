@@ -11,9 +11,8 @@ view_grid_dat(
   lat,
   value,
   split_by = NULL,
-  agg_by = NULL,
-  agg_fun = "mean",
-  gmap = FALSE
+  group = NULL,
+  agg_fun = "mean"
 )
 }
 \arguments{
@@ -31,15 +30,13 @@ temperature, wind speed, etc.}
 
 \item{split_by}{String, variable in gridded data table to split by.}
 
-\item{agg_by}{String, variable in gridded data table to group \code{value} by.
-By default, the mean is aggregated. The string "latlon" is a shortcut for 
-\code{agg_by = c("lon", "lat")} which aggregates the "value" for each 
-latitude-longitude pair across the entire dataset.}
+\item{group}{String, variable in gridded data table to group \code{value} by.
+In addition to the variable(s) in \code{group}, \code{value} is also 
+aggregated by each longitude-latitude pair. The string \code{"lonlat"} is a shortcut for 
+\code{group = c("lon", "lat")} which aggregates the \code{value} for each 
+longitude-latitude pair across the entire dataset.}
 
-\item{agg_fun}{Aggregating function applied to \code{agg_by}. Defaults to mean.}
-
-\item{gmap}{A ggmap object to be passed to \code{\link[ggmap]{ggmap}}. If FALSE, 
-then a ggmap is automatically retrieved. Defaults to FALSE.}
+\item{agg_fun}{Aggregating function applied to \code{group}. Defaults to mean.}
 }
 \description{
 Visualize gridded data on a map
