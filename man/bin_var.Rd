@@ -4,7 +4,7 @@
 \alias{bin_var}
 \title{Creates numeric variables divided into equal sized groups}
 \usage{
-bin_var(dat, project, var, br, name, labs = NULL, ...)
+bin_var(dat, project, var, br, name = "bin", labs = NULL, ...)
 }
 \arguments{
 \item{dat}{Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.}

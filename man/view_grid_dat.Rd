@@ -5,7 +5,7 @@
 \title{Visualize gridded data on a map}
 \usage{
 view_grid_dat(
-  gridfile,
+  grid,
   project,
   lon,
   lat,
@@ -16,7 +16,7 @@ view_grid_dat(
 )
 }
 \arguments{
-\item{gridfile}{Gridded data table to visualize. Use string if visualizing 
+\item{grid}{Gridded data table to visualize. Use string if visualizing 
 a gridded data table in the FishSET Database.}
 
 \item{project}{String, project name.}
@@ -32,9 +32,9 @@ temperature, wind speed, etc.}
 
 \item{group}{String, variable in gridded data table to group \code{value} by.
 In addition to the variable(s) in \code{group}, \code{value} is also 
-aggregated by each longitude-latitude pair. The string \code{"lonlat"} is a shortcut for 
-\code{group = c("lon", "lat")} which aggregates the \code{value} for each 
-longitude-latitude pair across the entire dataset.}
+aggregated by each longitude-latitude pair. The string \code{"lonlat"} is 
+a shortcut for \code{group = c("lon", "lat")} which aggregates the \code{value} 
+for each longitude-latitude pair across the entire dataset.}
 
 \item{agg_fun}{Aggregating function applied to \code{group}. Defaults to mean.}
 }
