@@ -12,6 +12,7 @@
 #'   Required for csv files. Leave as NULL if \code{spat} is a shape or json file.
 #' @keywords centroid, zone, polygon
 #' @importFrom sf st_centroid st_coordinates st_cast
+#' @importFrom tibble tibble
 #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
 #' @importFrom RSQLite SQLite
 #' @return Returns a data frame where each row is a unique zone and columns are 
@@ -28,45 +29,62 @@ find_centroid <- function(project, spat, cat, lon.spat = NULL, lat.spat = NULL) 
   # Call in datasets
   spat_out <- data_pull(spat, project)
   spatdat <- spat_out$dataset
-  spat <- parse_data_name(spatdat, "spat", project)
+  spat <- parse_data_name(spat, "spat", project)
   
   tmp <- tempfile()
   on.exit(unlink(tmp), add = TRUE)
   cat("", file = tmp, append = TRUE)
   
+  column_check(spatdat, cols = c(cat, lon.spat, lat.spat))
+  
   spatdat <- check_spatdat(spatdat, lon = lon.spat, lat = lat.spat, id = cat)
     
-  int <-  sf::st_centroid(spatdat)
-  int <- as.data.frame(cbind(int[[cat]], 
-                             sf::st_coordinates(sf::st_cast(int, "POINT"))))
+  cent <- sf::st_centroid(spatdat)
   
-  colnames(int) <- c("ZoneID", "cent.lon", "cent.lat")
+  # check if any feature is not a point (possible/necessary?)
+  if (any(!sf::st_is(cent, "POINT"))) {
+    
+    cent <- sf::st_cast(cent, "POINT")
+  }
   
-  int$cent.lon <- as.numeric(int$cent.lon)
-  int$cent.lat <- as.numeric(int$cent.lat)
+  # TODO: consider different name for ZoneID, e.g. cent.id (or name in "cat" var). Update other functions.
+  cent_coord <- sf::st_coordinates(cent)
+  cent <- tibble::tibble(ZoneID = cent[[cat]], 
+                         cent.lon = cent_coord[ , 1], 
+                         cent.lat = cent_coord[ , 2])
   
-  if (any(abs(int$cent.lon) > 180)) {
+  cent$cent.lon <- as.numeric(cent$cent.lon)
+  cent$cent.lat <- as.numeric(cent$cent.lat)
+  
+  if (any(abs(cent$cent.lon) > 180)) {
     
     cat("Longitude is not valid (outside -180:180).", file = tmp, append = TRUE)
     stop("Longitude is not valid (outside -180:180).")
   }
   
-  if (any(abs(int$cent.lat) > 90)) {
+  if (any(abs(cent$cent.lat) > 90)) {
     
     cat("\nLatitude is not valid (outside -90:90).", file = tmp, append = TRUE)
     stop("Latitude is not valid (outside -90:90).")
   }
   
-  if (any(table(int$ZoneID) > 1)) {
+  if (any(table(cent$ZoneID) > 1)) {
     
-    int <- int[!duplicated(int$ZoneID),]
+    cent <- cent[!duplicated(cent$ZoneID),]
     warning('Duplicate centoids found for at least one zone. Using first centroid.')
   }
+  
+  # TODO: needs to be logged when used directly, and not logged when used by
+  # another function. Ex, "log.fun = TRUE" argument. 
   
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
-  DBI::dbWriteTable(fishset_db, paste0('spat', "Centroid"), int, overwrite = TRUE)
+  DBI::dbWriteTable(fishset_db, paste0(spat, "Centroid"), cent, overwrite = TRUE)
+  
+  # this should be removed eventually; create_alternative_choice() tends to break
+  # if "spatCentroid" hasn't been saved
+  DBI::dbWriteTable(fishset_db, "spatCentroid", cent, overwrite = TRUE)
   message('Geographic centroid saved to fishset database')
-  return(int)
+  return(cent)
 }
