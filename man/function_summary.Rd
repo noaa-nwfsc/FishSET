@@ -27,7 +27,7 @@ Displays a list of functions by type and their arguments from a log file.
 }
 \examples{
 \dontrun{
-function_summary()
+function_summary("pollock")
 }
 }
 \seealso{

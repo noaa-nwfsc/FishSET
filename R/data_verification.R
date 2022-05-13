@@ -177,13 +177,19 @@ unique_filter <- function(dat, project, remove = FALSE) {
       format(Sys.Date(), format = "%Y%m%d"), "\n", file = tmp, append = TRUE)
 
   if (nrow(dataset) == nrow(dplyr::distinct(dataset))) {
+    
     cat("Each row is a unique choice occurrence. No further action required.\n", 
         file = tmp, append = TRUE)
+    
   } else {
+    
     if (remove == FALSE) {
+      
       cat("Each row in data set is not a unique choice occurrence at haul or trip level. \nConsider removing non-unique rows.\n", 
           file = tmp, append = TRUE)
+      
     } else {
+      
       cat("Each row in data set is not a unique choice occurrence at haul or trip level. \nNon-unique rows removed.\n", 
           file = tmp, append = TRUE)
       dataset <- dplyr::distinct(dataset)

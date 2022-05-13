@@ -54,7 +54,7 @@ getis_ord_stats <- function(dat, project, varofint, zoneid, spat, cat, lon.dat =
   
   spat_out <- data_pull(spat, project)
   spatdat <- spat_out$dataset
-  spat <- parse_data_name(dat, "spat", project)
+  spat <- parse_data_name(spat, "spat", project)
   
   spatdat <- check_spatdat(spatdat = spatdat, lon = lon.spat, lat = lat.spat, id = cat)
   

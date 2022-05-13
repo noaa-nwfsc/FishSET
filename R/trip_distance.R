@@ -3,8 +3,8 @@
 #' @param dat Primary data containing information on hauls or trips.
 #' Table in the FishSET database contains the string 'MainDataTable'.
 #' @param project Project name. 
-#' @param PortTable Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat.
-#' Table is generated using the \code{\link{load_port}} function and saved in the FishSET database as the project and PortTable,
+#' @param port Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat.
+#' Table is generated using the \code{\link{load_port}} function and saved in the FishSET database as the project and port,
 #' for example 'pollockPortTable'.
 #' @param trip_id Unique trip identifier in \code{dat}.
 #' @param starting_port Variable in \code{dat} containing ports at the start of the trip.
@@ -21,7 +21,7 @@
 #' @details Summation of distance across a trip based on starting and ending ports and hauls in between.
 #' The function uses \code{\link[geosphere]{distGeo}} from the geosphere package to calculate distances
 #'  between hauls. Inputs are the trips, ports, and hauls from the primary dataset, and the latitude and
-#'  longitude of ports from the \code{PortTable}. The ellipsoid arguments, \code{a} and \code{f}, are numeric
+#'  longitude of ports from the \code{port}. The ellipsoid arguments, \code{a} and \code{f}, are numeric
 #'  and can be changed if an ellipsoid other than WGS84 is appropriate. See the geosphere R package for more details
 #'  (\url{https://cran.r-project.org/web/packages/geosphere/geosphere.pdf}).
 #' @examples
@@ -33,7 +33,7 @@
 #' }
 #'
 #' #
-create_trip_distance <- function(dat, project, PortTable, trip_id, starting_port, starting_haul = c("Lon", "Lat"), ending_haul = c("Lon", "Lat"),
+create_trip_distance <- function(dat, project, port, trip_id, starting_port, starting_haul = c("Lon", "Lat"), ending_haul = c("Lon", "Lat"),
                                  ending_port, haul_order, name = "TripDistance", a = 6378137, f = 1 / 298.257223563) {
 
   # Call in datasets
@@ -42,9 +42,9 @@ create_trip_distance <- function(dat, project, PortTable, trip_id, starting_port
   dat <- parse_data_name(dat, "main", project)
   
 
-  out <- data_pull(PortTable, project)
+  out <- data_pull(port, project)
   port.table <- out$dataset
-  PortTable <- parse_data_name(PortTable, 'port', project)
+  port <- parse_data_name(port, 'port', project)
 
     if(is_empty(name)){ "TripDistance" } else {name}
  
@@ -146,7 +146,7 @@ create_trip_distance <- function(dat, project, PortTable, trip_id, starting_port
 
     create_TD_function <- list()
     create_TD_function$functionID <- "create_trip_distance"
-    create_TD_function$args <- list(dat, project, PortTable, trip_id, starting_port, starting_haul, 
+    create_TD_function$args <- list(dat, project, port, trip_id, starting_port, starting_haul, 
                                     ending_haul, ending_port, haul_order, name, a, f)
     create_TD_function$output <- list(dat)
     log_call(project, create_TD_function)

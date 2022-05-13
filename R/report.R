@@ -647,7 +647,7 @@ function_summary <- function(project, date = NULL, type = "dat_load", show = "al
   #' @seealso \code{\link{filter_summary}}
   #' @examples
   #' \dontrun{
-  #' function_summary()
+  #' function_summary("pollock")
   #' }
 
   dat_load <- c(
