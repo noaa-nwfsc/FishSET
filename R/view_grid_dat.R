@@ -1,9 +1,9 @@
-view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL, 
+view_grid_dat <- function(grid, project, lon, lat, value, split_by = NULL, 
                           group = NULL, agg_fun = "mean") {
   #' Visualize gridded data on a map
   #' 
   #' 
-  #' @param gridfile Gridded data table to visualize. Use string if visualizing 
+  #' @param grid Gridded data table to visualize. Use string if visualizing 
   #'   a gridded data table in the FishSET Database. 
   #' @param project String, project name. 
   #' @param lon String, variable name containing longitude.
@@ -26,13 +26,12 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL,
   #' }
   #'
 
-  out <- data_pull(gridfile, project)
-  grid <- out$dataset
-  
-  gridfile <- parse_data_name(gridfile, "grid", project)
+  out <- data_pull(grid, project)
+  grid_dat <- out$dataset
+  grid <- parse_data_name(grid, "grid", project)
   
   # make bounding box
-  bbox <- bbox(grid, lon = lon, lat = lat)
+  bbox <- bbox(grid_dat, lon = lon, lat = lat)
   
   xlim <- c(bbox["left"], bbox["right"])
   ylim <- c(bbox["bottom"], bbox["top"])
@@ -43,7 +42,7 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL,
                         cast = "POLYGON", multi = TRUE)
   
   # remove NA values
-  grid <- grid[!is.na(grid[[value]]), ]
+  grid_dat <- grid_dat[!is.na(grid_dat[[value]]), ]
   
   # Shiny app 
   if (!is.null(split_by)) if (split_by == "none") split_by <- NULL
@@ -63,7 +62,7 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL,
     
     grp <- unique(c(lon, lat, group, split_by))
     
-    grid <- agg_helper(grid, value = value, group = grp, fun = agg_fun)
+    grid_dat <- agg_helper(grid_dat, value = value, group = grp, fun = agg_fun)
   }
   
   # plot functions 
@@ -72,7 +71,7 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL,
   val_sym <- rlang::sym(value)
   
   map_out <- 
-    ggplot2::ggplot(data = grid) +
+    ggplot2::ggplot(data = grid_dat) +
     ggplot2::geom_sf(data = base_map) + 
     ggplot2::geom_raster(ggplot2::aes(x = !!lon_sym, y = !!lat_sym, fill = !!val_sym),
                          interpolate = FALSE, 
@@ -86,7 +85,7 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL,
   # check # of unique values in split_by, if high use facet_wrap
   if (!is.null(split_by)) {
     
-    if (length(unique(grid[[split_by]])) > 3) {
+    if (length(unique(grid_dat[[split_by]])) > 3) {
       
       map_out <- map_out + ggplot2::facet_wrap(split_by)
     
@@ -94,7 +93,7 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL,
     
       fm <- paste(split_by, "~ .")
       
-      map_out <- map_out + ggplot2::facet_grid(fm)
+      map_out <- map_out + ggplot2::facet_grid_dat(fm)
     }
   }
   
@@ -103,7 +102,7 @@ view_grid_dat <- function(gridfile, project, lon, lat, value, split_by = NULL,
   # log function
   view_grid_dat_function <- list()
   view_grid_dat_function$functionID <- "view_grid_dat"
-  view_grid_dat_function$args <- list(gridfile, project, lon, lat, value, 
+  view_grid_dat_function$args <- list(grid, project, lon, lat, value, 
                                       split_by, group, agg_fun)
   log_call(project, view_grid_dat_function)
   
