@@ -162,7 +162,8 @@ dummy_num <- function(dat, project, var, value, opts = "more_less", name = "dumm
   
   dat <- parse_data_name(dat, "main", project)
   
-  name <- ifelse(is_empty(name), "dummy_num", name)
+  # name <- ifelse(is_empty(name), "dummy_num", name)
+  name <- name_check(dataset, name, repair = TRUE)
   
   if (grepl("dat|year", var, ignore.case = TRUE)) {
     if (length(value) == 6) {
@@ -220,8 +221,8 @@ dummy_var <- function(dat, project, DumFill = 1, name = "dummy_var") {
   
   dat <- parse_data_name(dat, "main", project)
   
-  name <- ifelse(is_empty(name), "dummy_var", name)
-  
+  # name <- ifelse(is_empty(name), "dummy_var", name)
+  name <- name_check(dataset, name, repair = TRUE)
 
   newvar <- as.vector(rep(DumFill, nrow(dataset)))
   
@@ -357,7 +358,7 @@ set_quants <- function(dat, project, x, quant.cat = c(0.1, 0.2, 0.25,0.33, 0.4),
 }
 
 
-bin_var <- function(dat, project, var, br, name, labs = NULL, ...) {
+bin_var <- function(dat, project, var, br, name = "bin", labs = NULL, ...) {
   #'
   #' Creates numeric variables divided into equal sized groups
   #'
@@ -383,7 +384,8 @@ bin_var <- function(dat, project, var, br, name, labs = NULL, ...) {
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
 
-  name <- ifelse(is_empty(name), "bin", name)
+  # name <- ifelse(is_empty(name), "bin", name)
+  name <- name_check(dataset, name, repair = TRUE)
   
   tmp <- 0
 
@@ -455,7 +457,8 @@ group_perc <- function(dat, project, id_group, group = NULL, value, name = "grou
   
   dat <- parse_data_name(dat, "main", project)
   
-  name <- ifelse(is_empty(name), "group_perc", name)
+  # name <- ifelse(is_empty(name), "group_perc", name)
+  name <- name_check(dataset, name, repair = TRUE)
   
   
   if (create_group_ID) dataset <- ID_var(dataset, project, vars = c(id_group, group), 
@@ -534,7 +537,8 @@ group_diff <- function(dat, project, group, sort_by, value, name = "group_diff",
   
   dat <- parse_data_name(dat, "main", project)
   
-  name <- ifelse(is_empty(name), "group_diff", name)
+  # name <- ifelse(is_empty(name), "group_diff", name)
+  name <- name_check(dataset, name, repair = TRUE)
   
   
   . <- group_total <- NULL
@@ -616,7 +620,8 @@ group_cumsum <- function(dat, project, group, sort_by, value, name = "group_cums
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
-  name <- ifelse(is_empty(name), "group_cumsum", name)
+  # name <- ifelse(is_empty(name), "group_cumsum", name)
+  name <- name_check(dataset, name, repair = TRUE)
   
   . <- group_total <- NULL
   
@@ -684,7 +689,8 @@ create_var_num <- function(dat, project, x, y, method, name = "create_var_num") 
   
   dat <- parse_data_name(dat, "main", project)
 
-  name <- ifelse(is_empty(name), "create_var_num", name)
+  # name <- ifelse(is_empty(name), "create_var_num", name)
+  name <- name_check(dataset, name, repair = TRUE)
   
 
   if (is.numeric(dataset[[x]]) == FALSE | is.numeric(dataset[[y]]) == FALSE) {
@@ -718,7 +724,8 @@ create_var_num <- function(dat, project, x, y, method, name = "create_var_num") 
 ## ---- Spatial  Variables ----##
 
 #' Creates haul midpoint latitude and longitude variables
-create_mid_haul <- function(dat, project, start = c("lon", "lat"), end = c("lon", "lat"), name = "mid_haul") {
+create_mid_haul <- function(dat, project, start = c("lon", "lat"), end = c("lon", "lat"), 
+                            name = "mid_haul") {
   #' @description Calculates latitude and longitude of the haul midpoint and adds two variables
   #' to the primary data set: the midpoint latitude and the midpoint longitude.
   #'
@@ -747,13 +754,15 @@ create_mid_haul <- function(dat, project, start = c("lon", "lat"), end = c("lon"
   
   dat <- parse_data_name(dat, "main", project)
 
-  name <- ifelse(is_empty(name), "mid_haul" , name)
-  
+  # name <- ifelse(is_empty(name), "mid_haul" , name)
+  name <- name_check(dataset, name, repair = TRUE)
 
   if (is_empty(start) || is_empty(end)) {
     stop("Starting and end locations must both be specified. Function not run.")
   }
 
+  # this checks the length of the vars, but dataframes already must have same length
+  # for each column. Not sure this check is fleshed out. 
   if (dim(dataset[, c(start)])[1] != dim(dataset[, c(end)])[1]) {
     stop("Starting and ending locations are of different lengths. Function not run.")
   }
@@ -763,24 +772,26 @@ create_mid_haul <- function(dat, project, start = c("lon", "lat"), end = c("lon"
     # stop('Longitude is not valid (outside -180:180.')
    
   }
+  
   if (any(abs(dataset[, c(start)][2]) > 90) | any(abs(dataset[, c(end)][2]) > 90)) {
     stop("Latitude is not valid (outside -90:90. Function not run")
    
     # stop('Latitude is not valid (outside -90:90.')
   }
 
-    distBetween <- geosphere::midPoint(dataset[, c(start)], dataset[, c(end)])
-    colnames(distBetween) <- c(paste0(name, "Lon"), paste0(name, "Lat"))
-    out <- cbind(dataset, distBetween)
+  # TODO: check whether this can be done in sf; if so remove geosphere package
+  distBetween <- geosphere::midPoint(dataset[, c(start)], dataset[, c(end)])
+  colnames(distBetween) <- c(paste0(name, "Lon"), paste0(name, "Lat"))
+  out <- cbind(dataset, distBetween)
 
-    create_mid_haul_function <- list()
-    create_mid_haul_function$functionID <- "create_mid_haul"
-    create_mid_haul_function$args <- list(dat, project, start, end, name)
-    create_mid_haul_function$kwargs <- list()
-    create_mid_haul_function$output <- list(dat)
-    log_call(project, create_mid_haul_function)
+  create_mid_haul_function <- list()
+  create_mid_haul_function$functionID <- "create_mid_haul"
+  create_mid_haul_function$args <- list(dat, project, start, end, name)
+  create_mid_haul_function$kwargs <- list()
+  create_mid_haul_function$output <- list(dat)
+  log_call(project, create_mid_haul_function)
 
-    return(out)
+  return(out)
   
 }
 
@@ -869,7 +880,9 @@ create_trip_centroid <- function(dat, project, lon, lat, tripID, weight.var = NU
 
 
 #' Interactive application to create distance between points variable
-create_dist_between <- function(dat, project, start, end, units = c("miles", "meters", "km", "midpoint"), zoneid=NULL, name = "distBetween") {
+create_dist_between <- function(dat, project, start, end, 
+                                units = c("miles", "meters", "km", "midpoint"), 
+                                zoneid=NULL, name = "distBetween") {
   #' @param dat Primary data frame over which to apply function.
   #'   Table in FishSET database should contain the string `MainDataTable`.
   #' @param project Project name. 
@@ -948,7 +961,8 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
     
     dat <- parse_data_name(dat, "main", project)
     
-    if(is_empty(name)){ "distBetween" } else {name}
+    # if(is_empty(name)){ "distBetween" } else {name}
+    name <- name_check(dataset, name, repair = TRUE)
     
     vars <- NULL
     
@@ -1078,7 +1092,9 @@ create_dist_between <- function(dat, project, start, end, units = c("miles", "me
 
 ## ---- Temporal  Variables ----##
 #' Create duration of time variable
-create_duration <- function(dat, project, start, end, units = c("week", "day", "hour", "minute"), name = "create_duration") {
+create_duration <- function(dat, project, start, end, 
+                            units = c("week", "day", "hour", "minute"),
+                            name = "create_duration") {
   #' @description  Create duration of time variable based on start and ending dates in desired temporal units.
   #' @param dat Primary data containing information on hauls or trips.
   #' Table in FishSET database contains the string 'MainDataTable'.
@@ -1105,7 +1121,8 @@ create_duration <- function(dat, project, start, end, units = c("week", "day", "
   
   dat <- parse_data_name(dat, "main", project)
 
-  name <- if(is_empty(name)){ "create_duration" } else {name}
+  # name <- if(is_empty(name)){ "create_duration" } else {name}
+  name <- name_check(dataset, name, repair = TRUE)
 
   if (any(grepl("date|min|hour|week|month|TRIP_START|TRIP_END", start, ignore.case = TRUE)) == FALSE) {
     warning("Function is designed for temporal variables")
@@ -1421,6 +1438,7 @@ lonlat_to_centroid <- function(dat, project, lon, lat, spat, zone) {
   spat <- spat_out$dat
   spatdat <- parse_data_name(spat, 'spat', project)
   
+  # TODO: update with spatial checks
   if (!("sf" %in% class(spatdat))) {
     spatdat <- sf::st_as_sf(x = spatdat, crs = "+proj=longlat +datum=WGS84")
   }
