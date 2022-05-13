@@ -157,6 +157,8 @@ fleet_table <- function(dat, project, cond = NULL, fleet_val = NULL, table = NUL
     
     save_table(f_tab, project, "fleet_table")
     
+    # TODO: return invisible(TRUE) if saved, invisible(FALSE) if not
+    
     f_tab
   }
 }
