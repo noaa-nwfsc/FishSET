@@ -116,7 +116,7 @@ spatial_summary <- function(dat, project, stat.var = c("length", "no_unique_obs"
   
   spat_out <- data_pull(spat, project)
   spatdat <- spat_out$dataset
-  spat <- parse_data_name(dat, "spat", project)
+  spat <- parse_data_name(spat, "spat", project)
   
   
   if ("ZoneID" %in% names(dataset) == FALSE) {

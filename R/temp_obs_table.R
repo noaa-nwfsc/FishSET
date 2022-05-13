@@ -40,7 +40,7 @@ temp_obs_table <- function(dat, project, x, zoneid=NULL, spat=NULL, lon.dat=NULL
   # Call in datasets
   spat_out <- data_pull(spat, project)
   spatdat <- spat_out$dataset
-  spat <- parse_data_name(dat, "spat", project)
+  spat <- parse_data_name(spat, "spat", project)
   
   if ("ZoneID" %in% names(dat)) {
     out <- dataset

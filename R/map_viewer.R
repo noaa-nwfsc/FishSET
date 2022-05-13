@@ -1,6 +1,6 @@
 
 # map viewer
-map_viewer <- function(dat, project, gridfile, avd, avm, num_vars, temp_vars, id_vars, 
+map_viewer <- function(dat, project, spat, avd, avm, num_vars, temp_vars, id_vars, 
                        lon_start, lat_start, lon_end = NULL, lat_end = NULL) {
   #' Interactive vessel locations and fishery zones map
   #'
@@ -8,7 +8,7 @@ map_viewer <- function(dat, project, gridfile, avd, avm, num_vars, temp_vars, id
   #' @param dat Primary data containing information on hauls or trips. Table in 
   #'   FishSET database contains the string 'MainDataTable'.
   #' @param project Project name. 
-  #' @param gridfile Spatial data containing information on fishery management or 
+  #' @param spat Spatial data containing information on fishery management or 
   #'   regulatory zones. Shape, json, geojson, and csv formats are supported.
   #' @param avd Variable name in \code{dat} that gives the unique ID associated to the polygon.
   #' @param avm The name of the property in the GeoJson file that identifies the 
@@ -39,13 +39,13 @@ map_viewer <- function(dat, project, gridfile, avd, avm, num_vars, temp_vars, id
   #' @examples
   #' \dontrun{
   #' #Plot haul path
-  #' map_viewer(pollockMainDataTable, 'pollock', gridfile=spatdat, avd='NMFS_AREA',
+  #' map_viewer(pollockMainDataTable, 'pollock', spat=spatdat, avd='NMFS_AREA',
   #' avm='NMFS_AREA', num_vars=c('HAUL','OFFICIAL_TOTAL_CATCH'),
   #' temp_vars='HAUL_DATE', id_vars=c('GEAR_TYPE', 'PORT'), 
   #'        'Lon_Start', 'Lat_Start', 'Lon_End', 'Lat_End')
   #' 
   #' #Plot haul midpoint
-  #' map_viewer(pollockMainDataTable, 'pollock', gridfile=spatdat, avd='NMFS_AREA',
+  #' map_viewer(pollockMainDataTable, 'pollock', spat=spatdat, avd='NMFS_AREA',
   #' avm='NMFS_AREA', num_vars=c('HAUL','OFFICIAL_TOTAL_CATCH'),
   #' temp_vars='HAUL_DATE', id_vars=c('GEAR_TYPE', 'PORT'), 'Lon_Mid', 'Lat_Mid')
   
@@ -56,8 +56,8 @@ map_viewer <- function(dat, project, gridfile, avd, avm, num_vars, temp_vars, id
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
-  out <- data_pull(gridfile, project)
-  spatname <- parse_data_name(gridfile, 'spat', project)
+  out <- data_pull(spat, project)
+  spatname <- parse_data_name(spat, 'spat', project)
   spatdat <- out$dataset
   
   if (!is.null(spatdat)) {
