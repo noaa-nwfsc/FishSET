@@ -14,7 +14,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       options(shiny.maxRequestSize = 8000*1024^2)
       
       #Disable buttons
-      toggle_inputs <- function(input_list, enable_inputs=T){
+      toggle_inputs <- function(input_list, enable_inputs = TRUE){
         # Toggle elements
         for(x in names(input_list))
           if(enable_inputs){
@@ -2213,7 +2213,10 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           
         } else if (input$checks == 'Variable class') {
           
-          int = t(t(sapply(values$dataset, class)))
+          first_class <- function(x) class(x)[1]
+          
+          int = t(t(vapply(values$dataset, first_class, character(1))))
+          
           df = matrix(as.character(1:7), nrow = nrow(int), ncol = 7, byrow = TRUE,
             dimnames = list(rownames(int), c('class', 'first value', 'no changes', 
                                              'numeric', 'character', 'factor', 'date'))
@@ -3051,10 +3054,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         }   
       })
       
-      # Spatial QAQC
+      ## Spatial QAQC ----
+      
       spat_ui <- reactiveValues(lon_cols = NULL, lat_cols = NULL,
                                 date_cols = NULL, grp_cols = NULL)
       
+      # TODO: update so that these are done in selectizeInput, add placeholder
       observeEvent(load_r$main, {
           
         spat_ui$lon_cols <- find_lon(values$dataset)
@@ -3471,7 +3476,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       })
       
       
-      # TODO: check that this is working properly 
+      # TODO: check that this is working properly (very messy)
       observeEvent(input$saveData,{
         req(project$name)
         # when it updates, save the search strings so they're not lost
@@ -3884,7 +3889,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       output$run_fleet_fun <- renderUI(runFunUI(fleet_id()))
       
-      # server modules
+      # Fleet modules
       density_serv("den", values, reactive(project$name))
 
       vessel_serv("ves",  values, reactive(project$name))
@@ -5690,12 +5695,13 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
        ####---
       ##Resetting inputs
       observeEvent(input$refresh1,{
+        
         updateCheckboxInput(session, 'Outlier_Filter', value=FALSE)
       })
       ###---              
       
       ### ---  
-      # Save output----   
+      # Save output ----   
       ###---   
       observeEvent(input$saveDataExplore, {
         
@@ -5774,7 +5780,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       #  showModal(
 
           modalDialog(title = "Save the final version of the data before modeling",
-                      
+                      # TODO: check uniqueID select, not sure it works as intended 
                       selectInput("final_uniqueID", "Select column containing unique occurrence identifier",
                                   if(any(duplicated(values$dataset))==FALSE){
                                     choices = c(RowID = rownames(values$dataset), names(values$dataset))
@@ -5794,6 +5800,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       }#)
          
       observeEvent(input$save_final_modal, {
+        
         showModal(saveModal(session$ns))
       })
       
@@ -5828,7 +5835,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
 
       #Downloads ====  
     savedText <- reactiveValues(answers = logical(0))
-    
+    # TODO: choose location to display notes, add info icons to note text boxes
     observeEvent(c(input$callTextDownloadAnal,
                    input$callTextDownloadExplore,
                    input$callTextDownloadQAQC,

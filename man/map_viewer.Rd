@@ -7,7 +7,7 @@
 map_viewer(
   dat,
   project,
-  gridfile,
+  spat,
   avd,
   avm,
   num_vars,
@@ -25,7 +25,7 @@ FishSET database contains the string 'MainDataTable'.}
 
 \item{project}{Project name.}
 
-\item{gridfile}{Spatial data containing information on fishery management or 
+\item{spat}{Spatial data containing information on fishery management or 
 regulatory zones. Shape, json, geojson, and csv formats are supported.}
 
 \item{avd}{Variable name in \code{dat} that gives the unique ID associated to the polygon.}
@@ -65,13 +65,13 @@ onto the map. At this time, the map can only be saved by taking a screen shot.
 \examples{
 \dontrun{
 #Plot haul path
-map_viewer(pollockMainDataTable, 'pollock', gridfile=spatdat, avd='NMFS_AREA',
+map_viewer(pollockMainDataTable, 'pollock', spat=spatdat, avd='NMFS_AREA',
 avm='NMFS_AREA', num_vars=c('HAUL','OFFICIAL_TOTAL_CATCH'),
 temp_vars='HAUL_DATE', id_vars=c('GEAR_TYPE', 'PORT'), 
        'Lon_Start', 'Lat_Start', 'Lon_End', 'Lat_End')
 
 #Plot haul midpoint
-map_viewer(pollockMainDataTable, 'pollock', gridfile=spatdat, avd='NMFS_AREA',
+map_viewer(pollockMainDataTable, 'pollock', spat=spatdat, avd='NMFS_AREA',
 avm='NMFS_AREA', num_vars=c('HAUL','OFFICIAL_TOTAL_CATCH'),
 temp_vars='HAUL_DATE', id_vars=c('GEAR_TYPE', 'PORT'), 'Lon_Mid', 'Lat_Mid')
 }
