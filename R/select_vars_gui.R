@@ -23,7 +23,7 @@
 #'
 select_vars <- function(dat, project) {
   #  requireNamespace(shiny)
-
+# TODO: Need to log which variables were selected/removed; non-interactive version?
 
   out <- data_pull(dat, project)
   dataset <- out$dataset
