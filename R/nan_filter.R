@@ -235,7 +235,7 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   #' @param over_write Logical, If TRUE, saves data over previously saved data table 
   #'   in the FishSET database.
   #' @details To check for NAs across \code{dat} run the function specifying only 
-  #'   \code{dat} (\code{na_filter(dataset)}). The function will return a statement 
+  #'   \code{dat} (\code{na_filter(dataset, project)}). The function will return a statement 
   #'   of which variables, if any, contain NAs. To remove NAs, use \code{remove = TRUE}. 
   #'   All rows containing NAs in \code{x} will be removed from \code{dat}. To replace 
   #'   NAs, use \code{replace = TRUE}. If \code{replace} is FALSE and \code{rep.value} 

@@ -7,7 +7,7 @@
 create_trip_distance(
   dat,
   project,
-  PortTable,
+  port,
   trip_id,
   starting_port,
   starting_haul = c("Lon", "Lat"),
@@ -25,8 +25,8 @@ Table in the FishSET database contains the string 'MainDataTable'.}
 
 \item{project}{Project name.}
 
-\item{PortTable}{Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat.
-Table is generated using the \code{\link{load_port}} function and saved in the FishSET database as the project and PortTable,
+\item{port}{Port data frame. Contains columns: Port_Name, Port_Long, Port_Lat.
+Table is generated using the \code{\link{load_port}} function and saved in the FishSET database as the project and port,
 for example 'pollockPortTable'.}
 
 \item{trip_id}{Unique trip identifier in \code{dat}.}
@@ -57,7 +57,7 @@ Create haul level trip distance variable
 Summation of distance across a trip based on starting and ending ports and hauls in between.
 The function uses \code{\link[geosphere]{distGeo}} from the geosphere package to calculate distances
  between hauls. Inputs are the trips, ports, and hauls from the primary dataset, and the latitude and
- longitude of ports from the \code{PortTable}. The ellipsoid arguments, \code{a} and \code{f}, are numeric
+ longitude of ports from the \code{port}. The ellipsoid arguments, \code{a} and \code{f}, are numeric
  and can be changed if an ellipsoid other than WGS84 is appropriate. See the geosphere R package for more details
  (\url{https://cran.r-project.org/web/packages/geosphere/geosphere.pdf}).
 }

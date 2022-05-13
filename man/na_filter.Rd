@@ -43,7 +43,7 @@ Identify, remove or replace NAs
 }
 \details{
 To check for NAs across \code{dat} run the function specifying only 
-  \code{dat} (\code{na_filter(dataset)}). The function will return a statement 
+  \code{dat} (\code{na_filter(dataset, project)}). The function will return a statement 
   of which variables, if any, contain NAs. To remove NAs, use \code{remove = TRUE}. 
   All rows containing NAs in \code{x} will be removed from \code{dat}. To replace 
   NAs, use \code{replace = TRUE}. If \code{replace} is FALSE and \code{rep.value} 
