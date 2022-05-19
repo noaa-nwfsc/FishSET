@@ -5675,7 +5675,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       observeEvent(input$savecentroid, {
         q_test <- quietly_test(find_centroid)
-        q_test(project = project$name, spat=spatdat$dataset, cat = input$cat_altc, lon.spat = input$long_grid_altc, lat.spat = input$lat_grid_altc)
+        q_test(spat=spatdat$dataset, project = project$name, cat = input$cat_altc, lon.spat = input$long_grid_altc, lat.spat = input$lat_grid_altc)
         showNotification('Geographic centroid of zones calculated and saved')
       }, ignoreInit = FALSE)
       

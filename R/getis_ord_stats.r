@@ -106,7 +106,7 @@ getis_ord_stats <- function(dat, project, varofint, zoneid, spat, cat, lon.dat =
     
     int <- suppressWarnings(
     find_centroid(spat=spatdat, project = project, cat = cat, 
-                           lon.spat=lon.spat, lat.spat=lat.spat)
+                  lon.spat=lon.spat, lat.spat=lat.spat, log.fun = FALSE)
     )
   }
    
