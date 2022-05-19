@@ -123,7 +123,7 @@ assignment_column <- function(dat, project, spat, lon.dat, lat.dat, cat, name = 
   if (closest.pt) {
     
     if(anyNA(inter)) {
-      
+      #TODO: double-check that this is good. Consider using sf::st_is_within_distance
       dub <- which(is.na(inter))
       nearest <- sf::st_nearest_feature(dat_sf[dub, ], spatdat)  
       dist.rec <- sf::st_distance(dat_sf[dub, ], spatdat[nearest,], by_element = TRUE)
