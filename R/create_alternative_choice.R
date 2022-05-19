@@ -144,7 +144,7 @@ create_alternative_choice <-
       int <- table_view(paste0(spat, 'Centroid'), project)
 
     } else {
-      
+      # Not sure it makes sense to have two different centroid saving rules
       int <- table_view('spatCentroid', project)
     }
     
@@ -154,8 +154,8 @@ create_alternative_choice <-
     x = 1
   }
  
-  # TODO: remove 'ZoneID' default. Make zoneID required (must exist in dat). 
-  # Not clear why cat is changed
+  # TODO: Simplify this. Remove 'ZoneID' default. Make zoneID required (must exist in dat). 
+  # Not clear why cat is changed.
   
   if ('ZoneID' %in% names(dataset) || cat %in% names(dataset) || 
      !is.null(zoneID) && zoneID %in% names(dataset)) {
@@ -170,14 +170,14 @@ create_alternative_choice <-
       
         cat <- zoneID
         
-    } else if (cat %in% names(dataset)){
+    } else if (cat %in% names(dataset)) {
       
         cat <- cat 
     }
         
   } else {
     
-  if (!is.null(spatdat) & !is.character(spatdat)) {
+  if (!is.null(spatdat) & !is.character(spatdat)) { # is.character(spatdat) shouldn't happen
     
       if (is.null(lon.dat)) {
         
@@ -185,26 +185,27 @@ create_alternative_choice <-
         x = 1
         
       } else {
-        
+        # name will default to "ZoneID" 
         int.data <- assignment_column(
           dat = dataset, project=project, spat = spatdat, hull.polygon = hull.polygon,
           lon.spat = lon.spat, lat.spat = lat.spat, lon.dat = lon.dat,
           lat.dat = lat.dat, cat = cat, closest.pt = closest.pt, log.fun = FALSE
         )
       }
-    } 
+    } # FALSE case?
   }
 
  
   if (!any(int[,1] %in% int.data[[cat]])) {
     # Not sure what this is checking. Is it,
     # "are any centroid zone IDs not in main data?"
+    # Meant to update centroid table, I think. 
     # should also refer to this column by it's assigned name used in find_centroid(): currently ZoneID
 
     if (!is.null(spatdat)) {
 
-      int <- find_centroid(project = project, spat = spatdat, lon.spat = lon.spat,
-                           lat.spat = lat.spat, cat = cat)
+      int <- find_centroid(spat = spatdat, project = project, lon.spat = lon.spat,
+                           lat.spat = lat.spat, cat = cat, log.fun = FALSE)
 
     } else {
 
@@ -237,6 +238,7 @@ create_alternative_choice <-
     choice <- data.frame(g)  
     
     # Is this meant to check whether "startingloc" exists as a column in dat?
+    # What if named something else? Needs to be an arg. 
     startingloc <- if (!"startingloc" %in% int.data) {
       
       rep(NA, nrow(int.data))
@@ -271,11 +273,14 @@ create_alternative_choice <-
       C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*")) #    C <- data(a(v))[dataColumn,'rows']
     }
   
+    # Zone counts 
     numH <- accumarray(C, C)
     binH <- 1:length(numH)
     numH <- numH / t(binH)
+    # numH = number of obs, binH = zone index, B = name of zone
     zoneHist <- data.frame(numH = as.vector(numH), binH = as.vector(binH), B[, 1])
   
+    # mark zones under min.haul as NA
     zoneHist[which(zoneHist[, 1] < min.haul), 3] <- NA
   
     if (any(is_empty(which(is.na(zoneHist[, 3]) == FALSE)))) {
@@ -287,9 +292,13 @@ create_alternative_choice <-
   
     # dataZoneTrue=ismember(gridInfo.assignmentColumn,zoneHist(greaterNZ,3));
   
+    # matrix of which zones to include: first column whether to include, second 
+    # the index of the assigned zone
     dataZoneTrue <- cbind(g %in% zoneHist[, 3], match(g, zoneHist[, 3], nomatch = 0))
    
     # dataZoneTrue=ismember(gridInfo.assignmentColumn,zoneHist(greaterNZ,3));
+    
+    # vector index of zones that meet/exceed min.haul
     greaterNZ <- which(zoneHist[, 1] >= min.haul) # ifelse(!is.na(zoneHist[, 1]) & zoneHist[, 1] >= 0, 1, 0)
     numOfNecessary <- min.haul
   
