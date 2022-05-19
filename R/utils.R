@@ -985,13 +985,14 @@ name_check <- function(dat, names, repair = FALSE) {
   if (repair) {
     
     # repair names
-    out <- vctrs::vec_as_names(names = c(colnames(dat), names), repair = "universal")
-    
-    o_len <- length(out)
-    n_len <- length(names)
-    n_ind <- (o_len - (n_len - 1)):o_len
-    
-    out[n_ind] # return repaired nms
+    # out <- vctrs::vec_as_names(names = c(colnames(dat), names), repair = "universal")
+    # 
+    # o_len <- length(out)
+    # n_len <- length(names)
+    # n_ind <- (o_len - (n_len - 1)):o_len
+    # 
+    # out[n_ind] # return repaired nms
+    vctrs::vec_as_names(names = names, repair = "universal")
   }
 }
 
