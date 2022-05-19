@@ -4,13 +4,15 @@
 \alias{view_spat}
 \title{View interactive map of spatial data}
 \usage{
-view_spat(spat, id = NULL)
+view_spat(spat, id = NULL, type = "polygon")
 }
 \arguments{
 \item{spat}{Spatial dataset to view. Must be an object of class \code{sf} 
 or \code{sfc}.}
 
 \item{id}{Optional, name of spatial ID column to view with spatial data.}
+
+\item{type}{Can be \code{"polygon"}, \code{"line"}, or \code{"point"}.}
 }
 \description{
 View interactive map of spatial data
