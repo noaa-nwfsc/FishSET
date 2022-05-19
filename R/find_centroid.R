@@ -1,8 +1,8 @@
 #'  Identify geographic centroid of fishery management or regulatory zone
-
-#' @param project Name of project
+#'
 #' @param spat Spatial data containing information on fishery management or regulatory 
 #'   zones. Can be shape file, json, geojson, data frame, or list.
+#' @param project Name of project
 #' @param cat Variable or list in \code{spat} that identifies the individual areas 
 #'   or zones. If \code{spat} is class sf, \code{cat} should be name of list containing 
 #'   information on zones.
@@ -10,6 +10,7 @@
 #'   Required for csv files. Leave as NULL if \code{spat} is a shape or json file.
 #' @param lat.spat Variable or list from \code{spat} containing latitude data. 
 #'   Required for csv files. Leave as NULL if \code{spat} is a shape or json file.
+#' @param log.fun Logical, whether to log function call (for internal use).
 #' @keywords centroid, zone, polygon
 #' @importFrom sf st_centroid st_coordinates st_cast
 #' @importFrom tibble tibble
@@ -22,9 +23,8 @@
 #'   centroid table is saved to the FishSET database. Function is called by the 
 #'   \code{create_alternative_choice} and \code{create_dist_between} functions.
 
-
-
-find_centroid <- function(project, spat, cat, lon.spat = NULL, lat.spat = NULL) {
+find_centroid <- function(spat, project, cat, lon.spat = NULL, lat.spat = NULL,
+                          log.fun = TRUE) {
  
   # Call in datasets
   spat_out <- data_pull(spat, project)
@@ -74,9 +74,7 @@ find_centroid <- function(project, spat, cat, lon.spat = NULL, lat.spat = NULL) 
     warning('Duplicate centoids found for at least one zone. Using first centroid.')
   }
   
-  # TODO: needs to be logged when used directly, and not logged when used by
-  # another function. Ex, "log.fun = TRUE" argument. 
-  
+  # TODO: add project name to centroid table name, update other funs
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
@@ -86,5 +84,15 @@ find_centroid <- function(project, spat, cat, lon.spat = NULL, lat.spat = NULL) 
   # if "spatCentroid" hasn't been saved
   DBI::dbWriteTable(fishset_db, "spatCentroid", cent, overwrite = TRUE)
   message('Geographic centroid saved to fishset database')
+  
+  if (log.fun) {
+    
+    find_centroid_function <- list()
+    find_centroid_function$functionID <- "find_centroid"
+    find_centroid_function$args <- list(spat, project, cat, lon.spat, lat.spat, 
+                                        log.fun)
+    log_call(project, find_centroid_function)
+  }
+  
   return(cent)
 }
