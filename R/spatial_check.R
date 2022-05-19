@@ -63,7 +63,7 @@ clean_spat <- function(spat) {
   
   if (any(sf::st_is(spat, "GEOMETRYCOLLECTION"))) {
     
-    spat <- sf::st_collection_extract(spat, "POLYGON") # multipoly?
+    spat <- sf::st_collection_extract(spat, "POLYGON") # multipoly? Other types? Lines?
   }
   
   is_polygon <- sf::st_is(spat, c("MULTIPOLYGON", "POLYGON"))
@@ -124,20 +124,23 @@ crs = 4326) {
   
   spatdat <- sf::st_as_sf(x = dat, coords = c(lon, lat), crs = crs)
   
-  # Convert point geometry to polygon
-  spatdat <- 
-    spatdat %>%
-    dplyr::group_by(dplyr::across(id)) %>% 
-    dplyr::summarize(do_union = FALSE) %>% 
-    sf::st_cast(cast)
-  
-  # error cases?
-  if (multi) {
-    # unexpected type?
-    m_cast <- switch(cast, "POINT" = "MULTIPOINT", "LINESTRING" = "MULTILINESTRING",
-                     "POLYGON" = "MULTIPOLYGON")
+  if (cast != "POINT") { # allow if multi = TRUE
     
-    spatdat <- sf::st_cast(spatdat, m_cast)
+    # Convert point geometry to polygon
+    spatdat <- 
+      spatdat %>%
+      dplyr::group_by(dplyr::across(id)) %>% 
+      dplyr::summarize(do_union = FALSE) %>% 
+      sf::st_cast(cast)
+    
+    # error cases?
+    if (multi) {
+      # unexpected type?
+      m_cast <- switch(cast, "POINT" = "MULTIPOINT", "LINESTRING" = "MULTILINESTRING",
+                       "POLYGON" = "MULTIPOLYGON")
+      
+      spatdat <- sf::st_cast(spatdat, m_cast)
+    }
   }
  
   spatdat
