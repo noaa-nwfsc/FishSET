@@ -8,7 +8,7 @@ create_startingloc(
   dat,
   project = NULL,
   spat,
-  portTable,
+  port,
   trip_id,
   haul_order,
   starting_port,
@@ -30,27 +30,33 @@ Table in FishSET database contains the string 'MainDataTable'.}
 \item{spat}{Spatial data. Required if \emph{ZoneID} does not exists in \code{dat}.
 Shape, json, geojson, and csv formats are supported.}
 
-\item{portTable}{Port data. Contains columns: Port_Name, Port_Long, Port_Lat. Table is generated using
-the \code{\link{load_port}} and saved in the FishSET database as the project and PortTable, for example 'pollockPortTable'.}
+\item{port}{Port data. Contains columns: Port_Name, Port_Long, Port_Lat. 
+Table is generated using the \code{\link{load_port}} and saved in the FishSET 
+database as the project and port table, for example 'pollockPortTable'.}
 
 \item{trip_id}{Variable in \code{dat} that identifies unique trips.}
 
-\item{haul_order}{Variable in \code{dat} containing information on the order that hauls occur within a trip. Can be time, coded variable, etc.}
+\item{haul_order}{Variable in \code{dat} containing information on the order 
+that hauls occur within a trip. Can be time, coded variable, etc.}
 
 \item{starting_port}{Variable in \code{dat} to identify port at start of trip.}
 
-\item{lon.dat}{Longitude variable from \code{dat}. Required if \emph{ZoneID} does not exist in \code{dat}.}
+\item{lon.dat}{Longitude variable from \code{dat}. Required if \emph{ZoneID} 
+does not exist in \code{dat}.}
 
-\item{lat.dat}{Latitude variable from \code{dat}. Required if \emph{ZoneID} does not exist in \code{dat}.}
+\item{lat.dat}{Latitude variable from \code{dat}. Required if \emph{ZoneID} 
+does not exist in \code{dat}.}
 
-\item{cat}{Variable or list in \code{spat} that identifies the individual areas or zones. 
-Required if \emph{ZoneID} does not exist in \code{dat}.
-If \code{spat} is class sf, \code{cat} should be name of list containing information on zones.}
+\item{cat}{Variable or list in \code{spat} that identifies the individual areas 
+or zones. Required if \emph{ZoneID} does not exist in \code{dat}. If \code{spat} 
+is class sf, \code{cat} should be name of list containing information on zones.}
 
-\item{zoneid}{Variable in \code{dat} that identifies the individual zones or areas. Defaults to NULL. Define if 
-the name of the zone identifier variable is not `ZoneID`.}
+\item{zoneid}{Variable in \code{dat} that identifies the individual zones or 
+areas. Defaults to NULL. Define if the name of the zone identifier variable 
+is not `ZoneID`.}
 
-\item{name}{String, name of created variable. Defaults to name of the function if not defined.}
+\item{name}{String, name of created variable. Defaults to name of the function 
+if not defined.}
 
 \item{lon.spat}{Variable or list from \code{spat} containing longitude data. 
 Required if \emph{ZoneID} does not exist in \code{dat}. Required for csv files. 
@@ -64,14 +70,19 @@ Leave as NULL if \code{spat} is a shape or json file.}
 Primary data set with starting location variable added.
 }
 \description{
-Creates a variable containing the zone/area location of a vessel when choice of where to fish next was made. This variable is required for the full information model with Dahl's correction (\code{\link{logit_correction}}).
+Creates a variable containing the zone/area location of a vessel when choice of 
+where to fish next was made. This variable is required for the full information 
+model with Dahl's correction (\code{\link{logit_correction}}).
 }
 \details{
-Function creates the \code{startloc} vector that is required for the full information model with Dahl's correction \code{\link{logit_correction}}. 
-  The vector is the zone location of a vessel when the decision of where to fish next was made. Generally, the first zone of a trip is the departure port. 
-  The \code{\link{assignment_column}} function is called to assign starting port locations and haul locations to zones. 
-  If ZoneID exists in \code{dat}, \code{\link{assignment_column}} is not called and the following arguments are not required:
-  \code{spat, lon.dat, lat.dat, cat, lon.grid, lat.grid}.
+Function creates the \code{startloc} vector that is required for the 
+  full information model with Dahl's correction \code{\link{logit_correction}}. 
+  The vector is the zone location of a vessel when the decision of where to fish 
+  next was made. Generally, the first zone of a trip is the departure port. 
+  The \code{\link{assignment_column}} function is called to assign starting port 
+  locations and haul locations to zones. If ZoneID exists in \code{dat}, 
+  \code{\link{assignment_column}} is not called and the following arguments are 
+  not required: \code{spat, lon.dat, lat.dat, cat, lon.grid, lat.grid}.
 }
 \examples{
 \dontrun{
