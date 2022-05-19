@@ -4,13 +4,20 @@
 \alias{find_centroid}
 \title{Identify geographic centroid of fishery management or regulatory zone}
 \usage{
-find_centroid(project, spat, cat, lon.spat = NULL, lat.spat = NULL)
+find_centroid(
+  spat,
+  project,
+  cat,
+  lon.spat = NULL,
+  lat.spat = NULL,
+  log.fun = TRUE
+)
 }
 \arguments{
-\item{project}{Name of project}
-
 \item{spat}{Spatial data containing information on fishery management or regulatory 
 zones. Can be shape file, json, geojson, data frame, or list.}
+
+\item{project}{Name of project}
 
 \item{cat}{Variable or list in \code{spat} that identifies the individual areas 
 or zones. If \code{spat} is class sf, \code{cat} should be name of list containing 
@@ -21,6 +28,8 @@ Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}
 
 \item{lat.spat}{Variable or list from \code{spat} containing latitude data. 
 Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}
+
+\item{log.fun}{Logical, whether to log function call (for internal use).}
 }
 \value{
 Returns a data frame where each row is a unique zone and columns are 

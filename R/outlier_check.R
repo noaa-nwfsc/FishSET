@@ -86,27 +86,28 @@ outlier_table <- function(dat, project, x, sd_val=NULL, log_fun = TRUE) {
     }))
     # Row 6 Median +/-2SD
     temp <- dataset[dataset[[x]] < (stats::median(dataset[[x]], na.rm = TRUE) + 2 * stats::sd(dataset[[x]], na.rm = TRUE)) & 
-                      dataset[[x]] > (stats::median(dataset[,x], na.rm = TRUE) - 2 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
+                      dataset[[x]] > (stats::median(dataset[[x]], na.rm = TRUE) - 2 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
     dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "median_2SD", 
                                   if (dim(temp)[1] == 0) { emptyrow} else { filledrow(temp, x) }
    ))
     # Row 7 Median +/-3SD
     temp <- dataset[dataset[[x]] < (stats::median(dataset[[x]], na.rm = TRUE) + 3 * stats::sd(dataset[[x]], na.rm = TRUE)) & 
-                      dataset[[x]] > (stats::median(dataset[,x], na.rm = TRUE) - 3 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
+                      dataset[[x]] > (stats::median(dataset[[x]], na.rm = TRUE) - 3 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
     dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = "median_3SD", 
                                   if (dim(temp)[1] == 0) { emptyrow} else {filledrow(temp, x)}
     ))
     
     if(!is.null(sd_val) & is.numeric(sd_val)){
       temp <- dataset[dataset[[x]] < (mean(dataset[[x]], na.rm = TRUE) + sd_val * stats::sd(dataset[[x]], na.rm = TRUE)) & 
-                        dataset[[x]] > (mean(dataset[,x], na.rm = TRUE) - sd_val * stats::sd(dataset[[x]], na.rm = TRUE)), ]
+                        dataset[[x]] > (mean(dataset[[x]], na.rm = TRUE) - sd_val * stats::sd(dataset[[x]], na.rm = TRUE)), ]
       dat.table <- rbind(dat.table, data.frame(Vector = x.name, outlier_check = paste0("mean_",sd_val,"SD"), 
                                     if (dim(temp)[1] == 0) {emptyrow} else {filledrow(temp, x) }
      ))
     }
     
-    return(dat.table)
+    
   } else {
+    
     print("Data is not numeric.")
   }
 
@@ -119,11 +120,13 @@ outlier_table <- function(dat, project, x, sd_val=NULL, log_fun = TRUE) {
     log_call(project, outlier_table_function)
   }
 
-  if(is.numeric(dataset[,x])){
+  if(is.numeric(dataset[[x]])){
     save_table(dat.table, project, "outlier_table")
   } else  {
     cat('Table not available. Data is not numeric.')
   }
+  
+  return(dat.table)
 }
 
 ## ---------------------------##
@@ -483,7 +486,7 @@ outlier_remove <- function(dat, project, x, dat.remove = "none", sd_val=NULL, ov
     # Begin outlier check
       if(is.numeric(dat.remove)){
         dataset <- dataset[dataset[[x]] < (mean(dataset[[x]], na.rm = TRUE) + dat.remove * stats::sd(dataset[[x]], na.rm = TRUE)) & 
-                             dataset[[x]] > (mean(dataset[,x], na.rm = TRUE) - dat.remove * stats::sd(dataset[[x]], na.rm = TRUE)), ]
+                             dataset[[x]] > (mean(dataset[[x]], na.rm = TRUE) - dat.remove * stats::sd(dataset[[x]], na.rm = TRUE)), ]
       } else {
       if (dat.remove == "none") {
         dataset <- dataset
@@ -495,13 +498,13 @@ outlier_remove <- function(dat, project, x, dat.remove = "none", sd_val=NULL, ov
                              dataset[[x]] > stats::quantile(dataset[[x]], 0.25, na.rm = TRUE), ]
       } else if (dat.remove == "mean_2SD") {
         dataset <- dataset[dataset[[x]] < (mean(dataset[[x]], na.rm = TRUE) + 2 * stats::sd(dataset[[x]], na.rm = TRUE)) & 
-                             dataset[[x]] > (mean(dataset[,x], na.rm = TRUE) - 2 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
+                             dataset[[x]] > (mean(dataset[[x]], na.rm = TRUE) - 2 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
       } else if (dat.remove == "median_2SD") {
         dataset <- dataset[dataset[[x]] < (stats::median(dataset[[x]], na.rm = TRUE) + 2 * stats::sd(dataset[[x]], na.rm = TRUE)) & 
                              dataset[[x]] > (stats::median(dataset[[x]], na.rm = TRUE) - 2 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
       } else if (dat.remove == "mean_3SD") {
         dataset <- dataset[dataset[[x]] < (mean(dataset[[x]], na.rm = TRUE) + 3 * stats::sd(dataset[[x]], na.rm = TRUE)) & 
-                             dataset[[x]] > (mean(dataset[,x], na.rm = TRUE) - 3 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
+                             dataset[[x]] > (mean(dataset[[x]], na.rm = TRUE) - 3 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
       } else if (dat.remove == "median_3SD") {
         dataset <- dataset[dataset[[x]] < (stats::median(dataset[[x]], na.rm = TRUE) + 3 * stats::sd(dataset[[x]], na.rm = TRUE)) & 
                              dataset[[x]] > (stats::median(dataset[[x]], na.rm = TRUE) - 3 * stats::sd(dataset[[x]], na.rm = TRUE)), ]
@@ -518,7 +521,7 @@ outlier_remove <- function(dat, project, x, dat.remove = "none", sd_val=NULL, ov
     
       outlier_remove_function <- list()
       outlier_remove_function$functionID <- "outlier_remove"
-      outlier_remove_function$args <- c(dat, project, deparse(substitute(x)), dat.remove, over_write)
+      outlier_remove_function$args <- c(dat, project, x, dat.remove, over_write)
       outlier_remove_function$kwargs <- list()
       outlier_remove_function$output <- c("")
       outlier_remove_function$msg <- paste("outliers removed using", dat.remove)
@@ -545,7 +548,7 @@ outlier_boxplot <- function(dat, project, x=NULL){
   #' @return Box and whisker plot for all nuemric variables. Saved to `output` folder.
   #' @export
   #' @import ggplot2
-  #' @importFrom tidyr gather
+  #' @importFrom tidyr pivot_longer
   
   
   out <- data_pull(dat, project)
@@ -564,6 +567,7 @@ outlier_boxplot <- function(dat, project, x=NULL){
   }
   
   ddm = tidyr::gather(dataset[,num_cols], variable, value, -id)
+  # ddm = tidyr::pivot_longer(dataset[,num_cols], variable, value, -id)
 
   p <- ggplot2::ggplot(ddm)+ggplot2::geom_boxplot(aes(x=variable, y=(value)))+
     fishset_theme() +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
