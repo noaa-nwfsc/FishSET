@@ -109,7 +109,7 @@ moran_stats <- function(dat, project, varofint, zoneid, spat, cat, lon.dat = NUL
     } else {
       
     int <- suppressWarnings(find_centroid(spat=spatdat, project = project, cat = cat, 
-                                          lon.spat=lon.spat, lat.spat=lat.spat))
+                                          lon.spat=lon.spat, lat.spat=lat.spat, log.fun = FALSE))
   }
   
   int <- merge(int, dataset[, c(varofint, "ZoneID")], by = "ZoneID")
