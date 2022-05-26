@@ -30,7 +30,7 @@ sparsetable <- function(dat, project, timevar, zonevar, var) {
   }
   
   out <- data_pull(dat, project)
-  dat <- out$dat
+  dat <- parse_data_name(dat, "main", project)
   dataset <- out$dataset
 
   #tmp <- reshape2::acast(dataset[, c(zonevar, var, timevar)], dataset[[timevar]] ~ dataset[[zonevar]], value.var = var)

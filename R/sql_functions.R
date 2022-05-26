@@ -195,6 +195,35 @@ table_view <- function(table, project) {
   }
 }
 
+
+unserialize_table <- function(table, project) {
+  
+  
+  tab_type <- table_type(table)
+  
+  serial_tabs <- c("alt choice matrix", "expected catch matrix", "model data", 
+                   "predict output")
+  
+  if (!tab_type %in% serial_tabs) {
+    
+    stop("Invaid table.", call. = FALSE)
+  }
+  
+  tab_qry <- switch(tab_type, 
+                    "alt choice matrix" = "AlternativeMatrix", 
+                    "expected catch matrix" = "data",
+                    "model data" = "ModelInputData", # check for consistency, seen lowercase version
+                    "predict output" = "PredictOutput") # hasn't been added to table_type
+  
+  sql_qry <- paste0("SELECT ",tab_qry, " FROM ", table, " LIMIT 1")
+  
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+
+  unserialize(DBI::dbGetQuery(fishset_db, sql_qry)[[tab_qry]][[1]])
+}
+
+
 table_remove <- function(table, project) {
   #' Remove table from FishSET database
   #'
@@ -478,6 +507,16 @@ list_tables <- function(project, type = "main") {
   #' list_tables(type = "main")
   #' list_tables("pollock", "ec")
   #' }
+  #' 
+
+  tab_types <- c("info", "main", "ec", "altc", "port", "gc", "fleet", "model", 
+                 "model_data", "model_design", "grid", "aux", "spat", "filter")
+  
+  if (!type %in% tab_types) {
+    
+    stop("Invalid table type. Currently options are: ", 
+         paste(tab_types, collapse = ", "), ".", call. = FALSE)
+  }
   
   sql_tab <- 
     switch(type, 

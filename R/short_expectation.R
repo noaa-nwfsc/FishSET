@@ -26,6 +26,7 @@ short_expectations <- function(dat, project, catch, price, defineGroup, temp.var
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
   
+  # This will always be TRUE if Alt isn't passed to function
   if (!exists("Alt")) {
     fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
     on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
