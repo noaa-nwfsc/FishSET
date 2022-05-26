@@ -1,8 +1,8 @@
 #' Define alternative fishing choice 
 #'
 #' Required step. Creates a list identifying how alternative fishing choices should 
-#' be defined. Output is saved to the FishSET database.
-#' Run this function before running models.  
+#' be defined. Output is saved to the FishSET database. Run this function before 
+#' running models.  
 #'
 #' @param dat  Required, main data frame containing data on hauls or trips.
 #'   Table in FishSET database should contain the string `MainDataTable`.
@@ -35,7 +35,7 @@
 #' @param spat Required, data file or character. \code{spat} is a spatial data file 
 #'   containing information on fishery management or regulatory zones boundaries.
 #'   Shape, json, geojson, and csv formats are supported. geojson is the preferred 
-#'   format. json files must be converted into geoson. This is done automatically 
+#'   format. json files must be converted into geojson. This is done automatically 
 #'   when the file is loaded with \code{\link{read_dat}} with \code{is.map = TRUE}.
 #'   \code{lon.dat}, \code{lat.dat}, \code{lon.spat}, and \code{lat.spat} are required 
 #'   for specific \code{spat} file formats. \code{cat} must be specified for all 
@@ -90,7 +90,7 @@
 #' \tabular{rlll}{
 #'         dataZoneTrue: \tab Vector of 0/1 indicating whether the data from that 
 #'         zone is to be included in the model\cr
-#'         greaterNZ: \tab Zone which pass numofNecessary test\cr
+#'         greaterNZ: \tab Zones which pass numofNecessary test\cr
 #'         numOfNecessary: \tab Minimum number of hauls for zone to be included\cr
 #'         altChoiceUnits: \tab Set to miles\cr
 #'         altChoiceType: \tab Set to distance\cr
@@ -255,7 +255,7 @@ create_alternative_choice <-
       stopanaly <- 1
     }
     
-    # this will always be true (see line 111)
+    # TODO: this will always be true (see line 111)
     if (case == "centroid") {
       
       # unique zones w/o NAs
@@ -265,7 +265,8 @@ create_alternative_choice <-
       C <- match(g[!is.na(g)], unique(g[!is.na(g)]))#  match(unlist(gridInfo['assignmentColumn',,]), unique(unlist(gridInfo['assignmentColumn',,])))
     
     } else {
-      
+      # TODO: this is a potentially error-prone method for find area/zone cols
+      # should use zoneID
       a <- colnames(dataset)[grep("zon|area", colnames(dataset), ignore.case = TRUE)] # find(zp)   #find data that is zonal type
   
       temp <- cbind(as.character(g), dataset[[a[1]]]) # cbind(unlist(gridInfo['assignmentColumn',,]), unlist(dataset[[a]]))
@@ -292,7 +293,7 @@ create_alternative_choice <-
   
     # dataZoneTrue=ismember(gridInfo.assignmentColumn,zoneHist(greaterNZ,3));
   
-    # matrix of which zones to include: first column whether to include, second 
+    # matrix of which zones to include: first column whether to include (0/1), second 
     # the index of the assigned zone
     dataZoneTrue <- cbind(g %in% zoneHist[, 3], match(g, zoneHist[, 3], nomatch = 0))
    
@@ -445,6 +446,7 @@ create_alternative_choice <-
       # DBI::dbExecute (fishset_db, "CREATE TABLE IF NOT EXISTS altmatrix (AlternativeMatrix ALT)")
       # DBI::dbExecute (fishset_db, "INSERT INTO altmatrix VALUES (:AlternativeMatrix)", params = list(AlternativeMatrix = list(serialize(Alt, NULL))))
       
+      # TODO: add message that altmatrix was created/saved to FishSETDB
    
       create_alternative_choice_function <- list()
       create_alternative_choice_function$functionID <- "create_alternative_choice"
