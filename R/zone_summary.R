@@ -78,6 +78,9 @@ zone_summary <- function(dat, spat, project, lon.dat, lat.dat, zone.dat,
   
   # secondary column when fun = percent
   val_2 <- NULL
+  val_rescale <- is.null(bin_colors)
+  scale_args <- list(brks = breaks, bc = bin_colors)
+  binned <- (count | (!is.null(scale_args$brks) & !is.null(scale_args$bc)))
   
   # summary table ----
   
@@ -190,7 +193,7 @@ zone_summary <- function(dat, spat, project, lon.dat, lat.dat, zone.dat,
     
     # convert dat to sf object
     dat_sf <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), 
-                           crs = "+proj=longlat +datum=WGS84")
+                           crs = 4326)
     
     merge_spat <- function(z_tab) {
       
@@ -206,7 +209,7 @@ zone_summary <- function(dat, spat, project, lon.dat, lat.dat, zone.dat,
         
       } else {
         
-        spat_join <- sf::st_transform(spat_join, "+proj=longlat +datum=WGS84")
+        spat_join <- sf::st_transform(spat_join, crs = 4326)
       }
 
       if (any(!(sf::st_is_valid(spatdat)))) {
@@ -250,51 +253,40 @@ zone_summary <- function(dat, spat, project, lon.dat, lat.dat, zone.dat,
     # breaks ----
     z_brk_fun <- function(dat, breaks, n.breaks, bin_colors, count) {
       
-      if (!is.null(breaks)) {
+      # check if breaks include range, show.limits = TRUE will add additional bins
+      # this can reject users bin_colors 
+      val_range <- range(dat[[val_var]])
+      
+      if (is.null(breaks)) brks <- pretty(dat[[val_var]], n = n.breaks)
+      else                 brks <- breaks
         
-        brks <- breaks 
+      if (!is.null(bin_colors)) {
         
-        if (!is.null(bin_colors)) {
+        if (length(bin_colors) != length(brks)) {
           
-          if (length(bin_colors) != length(brks)) {
-            
-            warning("bin_colors length is not equal to breaks. Using default colors.")
-            # bin_colors <- viridis::viridis(length(brks), option = "H")
-            bin_colors <- fishset_viridis(length(brks))
-          }
-          
-        } else {
-          
+          warning("bin_colors length is not equal to breaks. Using default colors.")
           # bin_colors <- viridis::viridis(length(brks), option = "H")
           bin_colors <- fishset_viridis(length(brks))
         }
         
       } else {
         
-        brks <- pretty(dat[[val_var]], n = n.breaks)
+        # bin_colors <- viridis::viridis(length(brks), option = "H")
+        # bin_colors <- c("white", fishset_viridis(length(brks) - 1))
+        bin_colors <- fishset_viridis(length(brks))
+      }
         
-        if (!is.null(bin_colors)) {
+      if (count) {
+        
+        if (min(brks) == 0) {
           
-          if (length(bin_colors) != length(brks)) {
-            
-            warning("bin_colors length is not equal to breaks. Using default colors.")
-            # bin_colors <- c("gray", viridis::viridis(length(brks) - 1, option = "H"))
-            bin_colors <- c("gray", fishset_viridis(length(brks) - 1))
-          }
-          
-        } else {
-          
-          # bin_colors <- c("gray", viridis::viridis(length(brks) - 1, option = "H"))
-          bin_colors <- c("gray", fishset_viridis(length(brks) - 1))
+          if (brks[2] > 10) brks[1] <- 10
+          else  brks[1] <- round((brks[2]/2))
         }
         
-        if (count) {
+        if (is.null(scale_args$bc)) {
           
-          if (min(brks) == 0) {
-            
-            if (brks[2] > 10) brks[1] <- 10
-            else  brks[1] <- round((brks[2]/2))
-          }
+          bin_colors <- c("white", fishset_viridis(length(brks - 1)))
         }
       }
       
@@ -306,21 +298,49 @@ zone_summary <- function(dat, spat, project, lon.dat, lat.dat, zone.dat,
     
     z_plot_fun <- function(spatdat, brks, bin_colors, legend_name) {
       
+      rescale_val <- function() if (val_rescale) scales::rescale(brks) else NULL
+     
+      out <- 
       ggplot2::ggplot() +  
         ggplot2::geom_sf(data = base_map) +  
         ggplot2::geom_sf(data = spatdat, 
                          ggplot2::aes(fill = !!var_sym()), color = "black", alpha = .8) +
         ggplot2::coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]),
-                          expand = TRUE) +
-        ggplot2::scale_fill_stepsn(breaks = brks,
-                                   colors = bin_colors, 
-                                   labels = scales::comma,
-                                   show.limits = TRUE,
-                                   values = scales::rescale(brks),
-                                   name = legend_name,
-                                   na.value = "white") +
-        fishset_theme() +
-        ggplot2::theme(legend.key.size = unit(1, "cm"))
+                          expand = TRUE) 
+      
+      # binned <- (count | (!is.null(scale_args$brks) & !is.null(scale_args$bc)))
+      
+      # choose between stepn and binned scale
+      if (binned) {
+        # # this gives the exact color from bin_colors
+        out <- out + 
+          ggplot2::binned_scale(aesthetics = "fill",
+                                scale_name = "stepsn", 
+                                palette = function(x) bin_colors,
+                                breaks = brks,
+                                show.limits = TRUE,
+                                guide = "colorsteps",
+                                name = legend_name,
+                                labels = scales::comma)
+        
+      } else {
+        # this will "ramp" the colors in bin_colors
+        out <- out +
+          ggplot2::scale_fill_stepsn(breaks = brks,
+                                     colors = bin_colors,
+                                     labels = scales::comma,
+                                     show.limits = TRUE,
+                                     values = scales::rescale(brks),
+                                     name = legend_name,
+                                     na.value = "white")
+      }
+        
+     out <- 
+       out + fishset_theme() +
+       ggplot2::theme(legend.key.size = unit(1, "cm"), 
+                      legend.background = ggplot2::element_rect(fill = "grey90"))
+     
+     out
     }
     
     if (multi_plot) {
