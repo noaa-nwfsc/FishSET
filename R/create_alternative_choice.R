@@ -121,14 +121,14 @@ create_alternative_choice <-
   
   x <- 0
   
-  # TODO: column name checks for dat, spat, and grid 
+  # TODO: column name checks for dat, spat, and grid (make sure columns exist)
   
   
   cent_exists <- 
     table_exists(paste0(spat, 'Centroid'), project) || 
     table_exists("spatCentroid", project)
 
-  # TODO: check whether centroid is used, then if it exists
+  # TODO: check whether centroid exists first
   if (!is.null(spatdat)) {
     
       int <- suppressWarnings(
@@ -144,7 +144,7 @@ create_alternative_choice <-
       int <- table_view(paste0(spat, 'Centroid'), project)
 
     } else {
-      # Not sure it makes sense to have two different centroid saving rules
+      # Not sure it makes sense to have two different centroid naming conventions
       int <- table_view('spatCentroid', project)
     }
     
@@ -197,9 +197,9 @@ create_alternative_choice <-
 
  
   if (!any(int[,1] %in% int.data[[cat]])) {
-    # Not sure what this is checking. Is it,
-    # "are any centroid zone IDs not in main data?"
+    # Not sure what this is checking. Is it, "are any centroid zone IDs not in main data?"
     # Meant to update centroid table, I think. 
+    # This statement will return FALSE if any zones from centroid table are in the dataset
     # should also refer to this column by it's assigned name used in find_centroid(): currently ZoneID
 
     if (!is.null(spatdat)) {
@@ -325,7 +325,8 @@ create_alternative_choice <-
       )
   
   
-    
+    # Why do this after creating Alt list?
+    # TODO: find a gridded dataset to test this
     ### Add gridded data ###
     if (!is.null(griddedDat)) {
       # TODO: griddedDat should be grid; data_pull() and parse_data_name() need to be called
@@ -413,7 +414,7 @@ create_alternative_choice <-
       Alt <- c(Alt, matrix = list(allMat[Alt[["dataZoneTrue"]], ])) # allMat[Alt[[dataZoneTrue]],]
       
       } else {
-        
+        # TODO: redundant, remove
         Alt = Alt
       }
     }
@@ -433,12 +434,12 @@ create_alternative_choice <-
         
         table_remove(date_sql, project)
       }
-      
+      # Creates an undated alt matrix table
       DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(AlternativeMatrix ALT)"))
       DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:AlternativeMatrix)"),
         params = list(AlternativeMatrix = list(serialize(Alt, NULL)))
       )
-      
+      # Creates a dated alt matrix table
       DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", date_sql, "(AlternativeMatrix ALT)"))
       DBI::dbExecute(fishset_db, paste("INSERT INTO", date_sql, "VALUES (:AlternativeMatrix)"),
         params = list(AlternativeMatrix = list(serialize(Alt, NULL)))
@@ -447,6 +448,7 @@ create_alternative_choice <-
       # DBI::dbExecute (fishset_db, "INSERT INTO altmatrix VALUES (:AlternativeMatrix)", params = list(AlternativeMatrix = list(serialize(Alt, NULL))))
       
       # TODO: add message that altmatrix was created/saved to FishSETDB
+      # TODO: return TRUE invisibly if successful, FALSE if not (for testing and app)
    
       create_alternative_choice_function <- list()
       create_alternative_choice_function$functionID <- "create_alternative_choice"
