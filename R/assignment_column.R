@@ -55,6 +55,7 @@ assignment_column <- function(dat, project, spat, lon.dat, lat.dat, cat, name = 
   spatdat <- spat_out$dataset
   spat <- parse_data_name(dat, "spat", project)
   
+  # why use as.vector? 
   dataset[[lat.dat]] <- as.numeric(as.vector(dataset[[lat.dat]]))
   dataset[[lon.dat]] <- as.numeric(as.vector(dataset[[lon.dat]]))
   
@@ -85,8 +86,8 @@ assignment_column <- function(dat, project, spat, lon.dat, lat.dat, cat, name = 
   
   if (sf::st_crs(spatdat) != sf::st_crs(dat_sf)) {
     
-    warning("Projection does not match. The detected projection in the",
-            " spatial file will be used unless epsg is specified.", call. = FALSE)
+    warning("Projection does not match. The detected projection in the ",
+            "spatial file will be used unless epsg is specified.", call. = FALSE)
   }
   
   if (!is.null(epsg)) {
@@ -94,11 +95,11 @@ assignment_column <- function(dat, project, spat, lon.dat, lat.dat, cat, name = 
     dat_sf <- sf::st_transform(dat_sf, crs = epsg)
     spatdat <- sf::st_transform(spatdat, crs = epsg)
     
-  } else if (!is.na(sf::st_crs(spatdat))) {
+  } else if (!is.na(sf::st_crs(spatdat))) { # if crs isn't missing from spatdat
     
     dat_sf <- sf::st_transform(dat_sf, sf::st_crs(spatdat))
     
-  } else {
+  } else { # default to WGS 84
     
     spatdat <- sf::st_transform(spatdat, crs = 4326)
   }
@@ -112,7 +113,7 @@ assignment_column <- function(dat, project, spat, lon.dat, lat.dat, cat, name = 
   
   if (any(lengths(inter) > 1)) {
     
-    warning('At least one observation assigned to multiple regulatory zones.',  
+    warning('At least one observation assigned to multiple regulatory zones. ',  
             'Assigning observations to nearest polygon.', call. = FALSE)
     
     dub <- which(lengths(inter) > 1)
@@ -122,17 +123,25 @@ assignment_column <- function(dat, project, spat, lon.dat, lat.dat, cat, name = 
   
   if (closest.pt) {
     
-    if(anyNA(inter)) {
-      #TODO: double-check that this is good. Consider using sf::st_is_within_distance
-      dub <- which(is.na(inter))
-      nearest <- sf::st_nearest_feature(dat_sf[dub, ], spatdat)  
-      dist.rec <- sf::st_distance(dat_sf[dub, ], spatdat[nearest,], by_element = TRUE)
-      distkeep <- which(as.numeric(dist.rec) < bufferval)
-      inter[dub[distkeep]] <- nearest[distkeep]
+    if (any(lengths(inter) == 0)) { 
       
-      message(length(distkeep), ' observations assigned to nearest zone polygon within ', 
-              bufferval, ' meters. ', length(which(as.numeric(dist.rec) > 0.01)), 
-              ' observations were greater than ', bufferval, ' and were not assigned.')
+      # index of obs that didn't intersect area
+      ind <- which(lengths(inter) == 0)
+      
+      dist.rec <- sf::st_is_within_distance(dat_sf[ind, ], spatdat, dist = bufferval)
+      
+      # index of obs within buffer 
+      within_buff <- which(lengths(dist.rec) > 0)
+      
+      # index of area closest to obs
+      nearest <- sf::st_nearest_feature(dat_sf[ind[within_buff], ], spatdat) 
+      
+      # assign obs within buffer to nearest area
+      inter[ind[within_buff]] <- nearest
+      
+      message(length(within_buff), ' observations assigned to nearest zone polygon within ', 
+              bufferval, ' meters. ', length(ind) - length(within_buff), 
+              ' observations had distances greater than ', bufferval, ' meters and were not assigned.')
     }
   }
   
@@ -145,8 +154,9 @@ assignment_column <- function(dat, project, spat, lon.dat, lat.dat, cat, name = 
     assignment_column_function <- list()
     assignment_column_function$functionID <- "assignment_column"
     assignment_column_function$args <- list(dat, project, spat, lon.dat, lat.dat, 
-                                            cat, name, closest.pt, lon.spat, lat.spat, 
-                                            hull.polygon, epsg, log.fun)
+                                            cat, name, closest.pt,  bufferval, 
+                                            lon.spat, lat.spat, hull.polygon, epsg, 
+                                            log.fun)
     log_call(project, assignment_column_function)
   }
 
