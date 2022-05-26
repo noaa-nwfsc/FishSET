@@ -58,6 +58,7 @@ create_startingloc <- function(dat, project = NULL, spat, port, trip_id, haul_or
                                name = "startingloc", lon.spat = NULL, lat.spat = NULL) {
 
   # TODO: Change this to required? project is required for nearly every other function
+  # why not here?
   if (is.null(project)) {
     
     project <- sub("\\MainDataTable", "", dat)
