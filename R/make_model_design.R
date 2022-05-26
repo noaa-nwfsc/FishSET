@@ -349,10 +349,12 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
       X <- NULL
     }
     
+    # TODO: find less error-prone check for detecting port occasion
     if (any(grepl("Port", occasion, ignore.case = TRUE) == T)) {
       pt <- data_pull(paste0(project, 'PortTable'), project)
+      # TODO: Use a different check (this will always be TRUE unless data_pull returns an error)
       if(exists('pt')){
-        ptname <- pt$dat
+        ptname <- pt$dat # what is ptname used for?
         port <- pt$dataset
       } else {
         "Port table not found in database. Check spelling and ensure port table is loaded into the FishSET database."
@@ -465,7 +467,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
         instances = dim(dist_out[['X']])[1],
         alts = dim(dist_out[['X']])[2],
         epmDefaultPrice = epmDefaultPrice,
-        dataZoneTrue <- dataZoneTrue,
+        dataZoneTrue = dataZoneTrue,
         typeOfNecessary = Alt[["zoneType"]],
         altChoiceType = dist_out[['altChoiceType']],
         altChoiceUnits = dist_out[['altChoiceUnits']],
@@ -509,11 +511,10 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
                      params = list(ModelInputData = list(serialize(modelInputData, NULL)))
       )
       
-      
       make_model_design_function <- list()
       make_model_design_function$functionID <- "make_model_design"
       make_model_design_function$args <- list(
-        project, catchID, replace, ptname, likelihood,
+        project, catchID, replace,  likelihood,
         initparams, optimOpt, methodname, as.character(mod.name), 
         vars1, vars2, priceCol,expectcatchmodels, startloc, polyn
       )
