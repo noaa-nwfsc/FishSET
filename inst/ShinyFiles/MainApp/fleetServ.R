@@ -2804,7 +2804,10 @@ fleet_table_serv <- function(id, values, project) {
     # run fleet_table/save table
     observeEvent(input$save, {
       
-      fleet_table(values$dataset, project = project(), table = f_r$f_DT, save = TRUE)
+      q_test <- quietly_test(fleet_table)
+      
+      # TODO: return invisible(TRUE) if saved, invisible(FALSE) if not
+      q_test(values$dataset, project = project(), table = f_r$f_DT, save = TRUE)
       showNotification("Table saved.", type = 'message', duration = 10)
     })
   })
@@ -2841,22 +2844,32 @@ fleet_assign_serv <- function(id, values, project) {
                                        escape = FALSE)
     
     fa_out <- eventReactive(input$fun_run, {
+      
       validate(need(f_tab$tab, "Please upload a fleet table."))
       
-      fleet_assign(values$dataset, project = project(), fleet_tab = input$tab, 
-                   overlap = input$overlap, format_var = input$format, 
-                   assign = input$tab_preview_rows_selected)
+      q_test <- quietly_test(fleet_assign)
+      
+      q_test(values$dataset, project = project(), fleet_tab = input$tab, 
+             overlap = input$overlap, format_var = input$format, 
+             assign = input$tab_preview_rows_selected)
     })
     
     observeEvent(input$fun_run, {
       
-      if (is.null(fa_out())) {
-        showNotification("Overlap detected, no fleets assigned.", type = "warning")
+      # if (is.null(fa_out())) {
+      #   
+      #   showNotification("Overlap detected, no fleets assigned.", type = "warning")
+      # 
+      # } else {
+      #   
+      #   values$dataset <- fa_out()
+      # }
       
-      } else {
+      if (!is_value_empty(fa_out())) {
         
-        values$dataset <- fa_out()
+        values$dataset <- fa_out() 
       }
+      
     })
     
     output$final_tab <- DT::renderDT({fa_out()})
@@ -2911,6 +2924,7 @@ fleet_assign_serv <- function(id, values, project) {
     
     # table of fleet frequencies
     output$tab_count <- DT::renderDT(
+      
       if (!is.null(fa_out())) {
        
         f_tab$count 
