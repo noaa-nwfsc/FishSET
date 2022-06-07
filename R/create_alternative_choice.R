@@ -16,12 +16,12 @@
 #' @param alt_var Identifies how to find lat/lon for alternative choices. \code{alt_var} 
 #'   may be the centroid of zonal assignment \code{"Centroid"}, or lon/lat variables 
 #'   in the primary dataset. Longitude must be specified first.
-#' @param griddedDat Data must contain a variable that varies by the spatial dataset 
-#'   \code{spat}. First variable in \code{griddedDat} should match a column in \code{dat}. 
+#' @param grid Data must contain a variable that varies by the spatial dataset 
+#'   \code{spat}. First variable in \code{grid} should match a column in \code{dat}. 
 #'   The remaining columns should match the zone IDs in the \code{spat}.
 #' @param dist.unit String, how distance measure should be returned. Choices are 
 #'   \code{"meters"} or \code{"M"}, \code{"kilometers"} or \code{"KM"}, \code{"miles"}, 
-#'   or units of \code{griddedDat}. Defaults to miles.
+#'   or units of \code{grid}. Defaults to miles.
 #' @param min.haul Required, numeric, minimum number of hauls. Zones with fewer 
 #'   hauls than the \code{min.haul} value will not be included in model data.
 #' @param cat Required, variable in either \code{dat} or \code{spat} that identifies 
@@ -72,9 +72,9 @@
 #'   the matrix of distances between observed and alternative fishing choices (where 
 #'   they could have fished but did not). The distance matrix is calculated by the 
 #'   \code{\link{make_model_design}} function. The distance matrix can come from 
-#'   \code{dat} or from the gridded data frame \code{griddedDat}. If the distance 
+#'   \code{dat} or from the gridded data frame \code{grid}. If the distance 
 #'   matrix is to come from \code{dat}, then \code{occasion} (observed fishing location) 
-#'   and \code{alt_var} (alternative fishing location) must be specified. \code{griddedDat}, 
+#'   and \code{alt_var} (alternative fishing location) must be specified. \code{grid}, 
 #'   if used, must be a variable that varies by the spatial dataset, such as wind 
 #'   speed. Each column must be a unique zone that matches the zones in \code{dat}.
 #'   
@@ -104,10 +104,9 @@
 create_alternative_choice <- 
   function(dat, project, occasion = 'centroid', alt_var = 'centroid', dist.unit = "miles", 
            min.haul = 0, spat, cat = NULL, zoneID = NULL, lon.dat = NULL, lat.dat = NULL, 
-           hull.polygon = FALSE, closest.pt = FALSE, griddedDat = NULL, lon.spat = NULL, 
+           hull.polygon = FALSE, closest.pt = FALSE, grid = NULL, lon.spat = NULL, 
            lat.spat = NULL) {
     
-  stopanaly <- 0
   case <- "centroid"
   
   # Call in datasets
@@ -119,11 +118,14 @@ create_alternative_choice <-
   spatdat <- spat_out$dataset
   spat <- parse_data_name(dat, "spat", project)
   
-  x <- 0
+  grid_out <- data_pull(grid, project)
+  griddat <- grid_out$dataset
+  grid <- parse_data_name(grid, "grid", project)
   
   # TODO: column name checks for dat, spat, and grid (make sure columns exist)
   
   
+  # Note: Currently, only one centroid table can exist for each project
   cent_exists <- 
     table_exists(paste0(spat, 'Centroid'), project) || 
     table_exists("spatCentroid", project)
@@ -150,8 +152,7 @@ create_alternative_choice <-
     
   } else {
     
-    warning("Zonal centroid must be defined. Function not run.")
-    x = 1
+    stop("Zonal centroid must be defined. Function not run.", call. = FALSE)
   }
  
   # TODO: Simplify this. Remove 'ZoneID' default. Make zoneID required (must exist in dat). 
@@ -181,8 +182,7 @@ create_alternative_choice <-
     
       if (is.null(lon.dat)) {
         
-        warning('Observations must be assigned to zones. Function not run.')
-        x = 1
+        stop('Observations must be assigned to zones. Function not run.', call. = FALSE)
         
       } else {
         # name will default to "ZoneID" 
@@ -197,10 +197,10 @@ create_alternative_choice <-
 
  
   if (!any(int[,1] %in% int.data[[cat]])) {
-    # Not sure what this is checking. Is it, "are any centroid zone IDs not in main data?"
+    # Not sure what this is checking. Is it, "are any zone IDs from the centroid table not in main data?"
     # Meant to update centroid table, I think. 
     # This statement will return FALSE if any zones from centroid table are in the dataset
-    # should also refer to this column by it's assigned name used in find_centroid(): currently ZoneID
+    # Nit: should also refer to this column by it's assigned name used in find_centroid(): currently ZoneID
 
     if (!is.null(spatdat)) {
 
@@ -208,17 +208,131 @@ create_alternative_choice <-
                            lat.spat = lat.spat, cat = cat, log.fun = FALSE)
 
     } else {
-
-      warning('Zones do not match between centroid table and zonal assignments',
-              ' in main data table. Rerun find_centoid using same spatial data file',
-              ' as was using with the assignment_column function.')
-      x = 1
+      
+      stop('Zones do not match between centroid table and zonal assignments',
+           ' in main data table. Rerun find_centoid using same spatial data file',
+           ' as was using with the assignment_column function.', call. = FALSE)
     }
   }
 
-  
-  if (x == 0) {
     
+  if (!is.null(int.data[[cat]])) {
+    
+    g <- int.data[[cat]]
+    
+  } else if (!is.null(int.data[['ZoneID']])) {
+    
+    g <- int.data[['ZoneID']]
+  }
+  
+  if (anyNA(g) == TRUE) {
+    
+    warning(paste("No zone identified for", sum(is.na(g)), "observations. 
+                  These observations will be removed in future analyses."))
+  }
+  
+
+  choice <- data.frame(g)  
+  
+  # Is this meant to check whether "startingloc" exists as a column in dat?
+  # What if named something else? Add as new arg?  
+  startingloc <- if (!"startingloc" %in% int.data) {
+    
+    rep(NA, nrow(int.data))
+    
+  } else {
+    
+    data.frame(int.data$startingloc)
+  }
+
+  if (is.null(choice)) {
+    
+    stop("Choice must be defined. Ensure that the zone or area assignment variable",
+         " (cat parameter) is defined.")
+  }
+  
+  # TODO: this will always be true (see line 111)
+  if (case == "centroid") {
+    
+    # unique zones w/o NAs
+    B <- as.data.frame(unique(g[!is.na(g)])) # unique(unlist(gridInfo['assignmentColumn',,]))
+    
+    # zone index (of B)
+    C <- match(g[!is.na(g)], unique(g[!is.na(g)]))#  match(unlist(gridInfo['assignmentColumn',,]), unique(unlist(gridInfo['assignmentColumn',,])))
+  
+  } else {
+    # TODO: this is an unreliable method for finding area/zone cols
+    # should use zoneID
+    a <- colnames(dataset)[grep("zon|area", colnames(dataset), ignore.case = TRUE)] # find(zp)   #find data that is zonal type
+
+    temp <- cbind(as.character(g), dataset[[a[1]]]) # cbind(unlist(gridInfo['assignmentColumn',,]), unlist(dataset[[a]]))
+    B <- unique(temp) # Correct ->> Needs to be lat/long
+    C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*")) #    C <- data(a(v))[dataColumn,'rows']
+  }
+
+  # Zone counts 
+  numH <- accumarray(C, C)
+  binH <- 1:length(numH)
+  numH <- numH / t(binH)
+  # numH = number of obs, binH = zone index, B = name of zone
+  zoneHist <- data.frame(numH = as.vector(numH), binH = as.vector(binH), B[, 1])
+
+  # mark zones under min.haul as NA
+  zoneHist[which(zoneHist[, 1] < min.haul), 3] <- NA
+
+  # TODO: simplify this check
+  if (any(is_empty(which(is.na(zoneHist[, 3]) == FALSE)))) {
+    
+    stop("No zones meet criteria. No data will be included in further analyses.",
+         " Check the min.haul parameter or zone identification.")
+  }
+
+  # dataZoneTrue=ismember(gridInfo.assignmentColumn,zoneHist(greaterNZ,3));
+
+  # matrix of which zones to include: first column whether to include (0/1), 
+  # second column the index of the assigned zone
+  dataZoneTrue <- cbind(g %in% zoneHist[, 3], match(g, zoneHist[, 3], nomatch = 0))
+ 
+  # dataZoneTrue=ismember(gridInfo.assignmentColumn,zoneHist(greaterNZ,3));
+  
+  # vector index of zones that meet/exceed min.haul
+  greaterNZ <- which(zoneHist[, 1] >= min.haul) # ifelse(!is.na(zoneHist[, 1]) & zoneHist[, 1] >= 0, 1, 0)
+  numOfNecessary <- min.haul
+
+  fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
+  on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
+
+  Alt <- list(
+    dataZoneTrue = dataZoneTrue[, 1], # array of logical values to identify which are to be used in model
+    greaterNZ = greaterNZ,
+    numOfNecessary = numOfNecessary, # input
+    choice = choice,
+    altChoiceUnits = dist.unit, # miles
+    altChoiceType = "distance",
+    occasion = occasion, # altToLocal1
+    alt_var = alt_var, # altToLocal2
+    startingloc = startingloc,
+    zoneHist = zoneHist,
+    zoneRow = zoneHist[greaterNZ, 3], # zones and choices array
+    zoneID = cat,
+    # assignChoice = gridInfo['dataColumnLink',,],
+    # zoneType = ifelse(haul.trip == 'Haul', 'Hauls', 'Trips'),
+    int = int # centroid table
+    )
+
+
+  # Q: Why do this after creating Alt list?
+  # TODO: Consider making a function that converts gridded datasets to required 
+  # matrix output. Handle both wide and long formats. Need additional arguments. 
+  ### Add gridded data ###
+  if (!is.null(grid)) {
+    # TODO: change gridVar to griddat
+    gridVar <- griddat
+    
+    # removes non-numerical characters from column names
+    # grid_names <- noquote(gsub("[^0-9]", "", colnames(gridVar)))
+    grid_names <- colnames(gridVar)
+
     if (!is.null(int.data[[cat]])) {
       
       g <- int.data[[cat]]
@@ -227,240 +341,120 @@ create_alternative_choice <-
       
       g <- int.data[['ZoneID']]
     }
+        
+    # Note: Assumes that area values can't have non-numeric characters
+    # TODO: change this so that long-form data can work
     
-    if (anyNA(g) == TRUE) {
+    # if (any(noquote(gsub("[^0-9]", "", colnames(gridVar))) %in% g) == FALSE) {
+    #   
+    #   stop("Cannot use grid. Column names of grid do not match zone",
+    #        " IDs in spatial dataset")
+    # }
+
+    # If gridded data is not an array, need to create matrix
+    
+    # Q: is this for cases where gridded data contains a single value for 
+    # each area, i.e. does not vary by time etc? An alternative specific constant?
+    if (dim(gridVar)[1] == 1) { # (is_empty(gridVar.row.array)){ #1d
       
-      warning(paste("No zone identified for", sum(is.na(g)), "observations. 
-                    These observations will be removed in future analyses."))
-    }
-    
-  
-    choice <- data.frame(g)  
-    
-    # Is this meant to check whether "startingloc" exists as a column in dat?
-    # What if named something else? Needs to be an arg. 
-    startingloc <- if (!"startingloc" %in% int.data) {
+      biG <- match(Alt[["zoneRow"]], grid_names) # [aiG,biG] = ismember(Alt.zoneRow, gridVar.col.array) #FIXME FOR STRING CONNECTIONS
+      numRows <- nrow(dataset)
       
-      rep(NA, nrow(int.data))
+      if (!any(biG)) {
+        
+        stop("The map associated to the data and the grid information in the",
+             " gridded variable do not overlap.")
+      }
+      # matrix # of obs x Area. Each row is identical. 
+      allMat <- matrix(1, numRows, 1) %x% as.matrix(gridVar[1, biG]) # repmat(gridVar.matrix(1,biG), numRows, 1)
       
     } else {
       
-      data.frame(int.data$startingloc)
-    }
-  
-    if (is.null(choice)) {
+      # [aiG,biG] = ismember(Alt.zoneRow, gridVar.col.array)#FIXME FOR STRING CONNECTIONS
       
-      warning("Choice must be defined. Ensure that the zone or area assignment variable",
-      " (cat parameter) is defined.")
-      stopanaly <- 1
+      # biG <- match(Alt[["zoneRow"]], grid_names[-1]) 
+      biG <- Alt$zoneRow %in% grid_names[-1] # TODO: change grid_names[-1] to less faulty approach
+      if (!any(biG)) { # if no areas from grid are in dataset
+        
+        stop("The map associated to the data and the grid information in the",
+             " gridded variable do not overlap.")
+      }
+
+      # TODO: check if this is necessary
+      if (names(gridVar)[1] %in% colnames(dataset) == FALSE) {
+        # wrong occurrence variable to connect data
+        stop("The data in the workspace and the loaded grid file do not have a", 
+             " matching variable for connecting.")
+      }
+
+      # Note: believe the "D" in "biD" stands for date
+      # Assuming we know which columns in grid are date/id cols -- add args?
+      # Match ids between dataset and grid
+      biD <- match(dataset[, names(gridVar)[1]], gridVar[, 1]) # [aiD,biD]=ismember(data(occasVar).dataColumn,gridVar.row.array)
+      
+      biD <- dataset[[names(gridVar)[1]]] %in% gridVar[, 1]
+      
+      if (!any(biD)) {
+        # stop?
+        message("The data in the workspace and the loaded grid file do not have a",
+                " matching variable for connecting.")
+      }
+
+      # Note: believe this is suppose to be a matrix of gridded values from areas 
+      # and dates that exist in dat (with date col removed)
+      # TODO: this repeats the first row of the gridded data by # of obs in data.
+      # All other rows are dropped, why? 
+      # Q: how many rows should there be? should dim = # obs x # zones? 
+      # Join to dataset instead? Need to know what correct format is. 
+      allMat <- gridVar[, -1][biD, biG]
     }
     
-    # TODO: this will always be true (see line 111)
-    if (case == "centroid") {
+    if (anyNA(allMat[Alt[["dataZoneTrue"]], ])) {
       
-      # unique zones w/o NAs
-      B <- as.data.frame(unique(g[!is.na(g)])) # unique(unlist(gridInfo['assignmentColumn',,]))
-      
-      # zone index (of B)
-      C <- match(g[!is.na(g)], unique(g[!is.na(g)]))#  match(unlist(gridInfo['assignmentColumn',,]), unique(unlist(gridInfo['assignmentColumn',,])))
-    
-    } else {
-      # TODO: this is a potentially error-prone method for find area/zone cols
-      # should use zoneID
-      a <- colnames(dataset)[grep("zon|area", colnames(dataset), ignore.case = TRUE)] # find(zp)   #find data that is zonal type
-  
-      temp <- cbind(as.character(g), dataset[[a[1]]]) # cbind(unlist(gridInfo['assignmentColumn',,]), unlist(dataset[[a]]))
-      B <- unique(temp) # Correct ->> Needs to be lat/long
-      C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*")) #    C <- data(a(v))[dataColumn,'rows']
+      stop("Problem with loaded matrix, NA found.")
     }
-  
-    # Zone counts 
-    numH <- accumarray(C, C)
-    binH <- 1:length(numH)
-    numH <- numH / t(binH)
-    # numH = number of obs, binH = zone index, B = name of zone
-    zoneHist <- data.frame(numH = as.vector(numH), binH = as.vector(binH), B[, 1])
-  
-    # mark zones under min.haul as NA
-    zoneHist[which(zoneHist[, 1] < min.haul), 3] <- NA
-  
-    if (any(is_empty(which(is.na(zoneHist[, 3]) == FALSE)))) {
-      
-      stop("No zones meet criteria. No data will be included in further analyses.",
-           " Check the min.haul parameter or zone identification.")
-      stopanaly <- 1
-    }
-  
-    # dataZoneTrue=ismember(gridInfo.assignmentColumn,zoneHist(greaterNZ,3));
-  
-    # matrix of which zones to include: first column whether to include (0/1), second 
-    # the index of the assigned zone
-    dataZoneTrue <- cbind(g %in% zoneHist[, 3], match(g, zoneHist[, 3], nomatch = 0))
    
-    # dataZoneTrue=ismember(gridInfo.assignmentColumn,zoneHist(greaterNZ,3));
-    
-    # vector index of zones that meet/exceed min.haul
-    greaterNZ <- which(zoneHist[, 1] >= min.haul) # ifelse(!is.na(zoneHist[, 1]) & zoneHist[, 1] >= 0, 1, 0)
-    numOfNecessary <- min.haul
-  
-    fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
-    on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
-  
-    Alt <- list(
-      dataZoneTrue = dataZoneTrue[, 1], # array of logical values to identify which are to be used in model
-      greaterNZ = greaterNZ,
-      numOfNecessary = numOfNecessary, # input
-      choice = choice,
-      altChoiceUnits = dist.unit, # miles
-      altChoiceType = "distance",
-      occasion = occasion, # altToLocal1
-      alt_var = alt_var, # altToLocal2
-      startingloc = startingloc,
-      zoneHist = zoneHist,
-      zoneRow = zoneHist[greaterNZ, 3], # zones and choices array
-      zoneID = cat,
-      # assignChoice = gridInfo['dataColumnLink',,],
-      # zoneType = ifelse(haul.trip == 'Haul', 'Hauls', 'Trips'),
-      int = int # centroid data
-      )
-  
-  
-    # Why do this after creating Alt list?
-    # TODO: find a gridded dataset to test this
-    ### Add gridded data ###
-    if (!is.null(griddedDat)) {
-      # TODO: griddedDat should be grid; data_pull() and parse_data_name() need to be called
-      gridVar <- griddedDat
-      st <- 0
-      # grid table needs to be imported first, this circumvents checks and 
-      # naming conventions used in load_grid() 
-      if (DBI::dbExistsTable(fishset_db, griddedDat) == FALSE) {
-        DBI::dbWriteTable(fishset_db, griddedDat, gridVar)
-      }
-  
-      int <- noquote(gsub("[^0-9]", "", colnames(gridVar)))
-  
-      if (!is.null(int.data[[cat]])) {
-        
-        g <- int.data[[cat]]
-        
-      } else if (!is.null(int.data[['ZoneID']])) {
-        
-        g <- int.data[['ZoneID']]
-      }
-          
-      if (any(noquote(gsub("[^0-9]", "", colnames(gridVar))) %in% g) == FALSE) {
-        warning("Cannot use griddedDat. Column names of griddedDat do not match zone",
-                " IDs in spatial dataset")
-        st <- 1
-      }
-  
-      # If gridded data is not an array, need to create matrix
-      if (st == 0) {
-        
-        if (dim(gridVar)[1] == 1) { # (is_empty(gridVar.row.array)){ #1d
-          
-          biG <- match(Alt[["zoneRow"]], int) # [aiG,biG] = ismember(Alt.zoneRow, gridVar.col.array) #FIXME FOR STRING CONNECTIONS
-          numRows <- nrow(dataset) # size(data(1).dataColumn,1)  
-          
-          if (!any(biG)) {
-            
-            stop("The map associated to the data and the grid information in the",
-                 " gridded variable do not overlap.")
-            st <- 1
-          }
-          
-          allMat <- matrix(1, numRows, 1) %x% as.matrix(gridVar[1, biG]) # repmat(gridVar.matrix(1,biG), numRows, 1)
-          
-        } else {
-          
-          # [aiG,biG] = ismember(Alt.zoneRow, gridVar.col.array)#FIXME FOR STRING CONNECTIONS
-          biG <- match(Alt[["zoneRow"]], int[-1]) # gridVar.col.array
-          
-          if (!any(biG)) {
-            
-            stop("The map associated to the data and the grid information in the",
-                 " gridded variable do not overlap.")
-            st <- 1
-          }
-  
-          if (names(gridVar)[1] %in% colnames(dataset) == FALSE) {
-            # wrong occourance variable to connect data
-            stop("The data in the workspace and the loaded grid file do not have a", 
-                 " matching variable for connecting.")
-            st <- 1
-          }
-    
-          biD <- match(dataset[, names(gridVar)[1]], gridVar[, 1]) # [aiD,biD]=ismember(data(occasVar).dataColumn,gridVar.row.array)
-    
-          if (!any(biD)) {
-            
-            message("The data in the workspace and the loaded grid file do not have a",
-                    " matching variable for connecting.")
-          }
-    
-          allMat <- gridVar[, -1][biD, biG]
-        }
-      }
-      
-      if (anyNA(allMat[Alt[["dataZoneTrue"]], ])) {
-        
-        stop("Problem with loaded matrix, NA found.")
-        st <- 1
-      }
-      
-      if (st == 0) {
-        
-      Alt <- c(Alt, matrix = list(allMat[Alt[["dataZoneTrue"]], ])) # allMat[Alt[[dataZoneTrue]],]
-      
-      } else {
-        # TODO: redundant, remove
-        Alt = Alt
-      }
-    }
-  
-    # write Alt to datafile
-    if (stopanaly == 0) {
-      
-      single_sql <- paste0(project, "altmatrix")
-      date_sql <- paste0(project, "altmatrix", format(Sys.Date(), format = "%Y%m%d"))
-      
-      if (table_exists(single_sql, project)) {
-        
-        table_remove(single_sql, project)
-      }
-      
-      if (table_exists(date_sql, project)) {
-        
-        table_remove(date_sql, project)
-      }
-      # Creates an undated alt matrix table
-      DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(AlternativeMatrix ALT)"))
-      DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:AlternativeMatrix)"),
-        params = list(AlternativeMatrix = list(serialize(Alt, NULL)))
-      )
-      # Creates a dated alt matrix table
-      DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", date_sql, "(AlternativeMatrix ALT)"))
-      DBI::dbExecute(fishset_db, paste("INSERT INTO", date_sql, "VALUES (:AlternativeMatrix)"),
-        params = list(AlternativeMatrix = list(serialize(Alt, NULL)))
-      )
-      # DBI::dbExecute (fishset_db, "CREATE TABLE IF NOT EXISTS altmatrix (AlternativeMatrix ALT)")
-      # DBI::dbExecute (fishset_db, "INSERT INTO altmatrix VALUES (:AlternativeMatrix)", params = list(AlternativeMatrix = list(serialize(Alt, NULL))))
-      
-      # TODO: add message that altmatrix was created/saved to FishSETDB
-      # TODO: return TRUE invisibly if successful, FALSE if not (for testing and app)
-   
-      create_alternative_choice_function <- list()
-      create_alternative_choice_function$functionID <- "create_alternative_choice"
-      create_alternative_choice_function$args <- 
-        list('dat' = dat, 'project' = project, 'occasion' = occasion, alt_var,  dist.unit, 
-             min.haul, spat, cat, zoneID, lon.dat, lat.dat, hull.polygon, closest.pt)
-      
-      create_alternative_choice_function$kwargs <- 
-        list("lon.spat" = lon.spat, "lat.spat" = lat.spat, "griddedDat" = griddedDat)
-      create_alternative_choice_function$output <- list()
-  
-      log_call(project, create_alternative_choice_function)
-    }
+    # add grid matrix to Alt choice list
+    # Note: Need to change this if adding more than one gridded dataset
+    Alt <- c(Alt, matrix = list(allMat[Alt[["dataZoneTrue"]], ]))
   }
+
+  # write Alt to datafile
+    
+  single_sql <- paste0(project, "altmatrix")
+  date_sql <- paste0(project, "altmatrix", format(Sys.Date(), format = "%Y%m%d"))
+  
+  if (table_exists(single_sql, project)) {
+    
+    table_remove(single_sql, project)
+  }
+  
+  if (table_exists(date_sql, project)) {
+    
+    table_remove(date_sql, project)
+  }
+  # Creates an undated alt matrix table (why?)
+  DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(AlternativeMatrix ALT)"))
+  DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:AlternativeMatrix)"),
+    params = list(AlternativeMatrix = list(serialize(Alt, NULL)))
+  )
+  # Creates a dated alt matrix table
+  DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", date_sql, "(AlternativeMatrix ALT)"))
+  DBI::dbExecute(fishset_db, paste("INSERT INTO", date_sql, "VALUES (:AlternativeMatrix)"),
+    params = list(AlternativeMatrix = list(serialize(Alt, NULL))))
+  
+  # TODO: add message that altmatrix was created/saved to FishSETDB
+  # TODO: return TRUE invisibly if successful, FALSE if not (for testing and app)
+
+  create_alternative_choice_function <- list()
+  create_alternative_choice_function$functionID <- "create_alternative_choice"
+  create_alternative_choice_function$args <- 
+    list('dat' = dat, 'project' = project, 'occasion' = occasion, alt_var,  dist.unit, 
+         min.haul, spat, cat, zoneID, lon.dat, lat.dat, hull.polygon, closest.pt)
+  
+  create_alternative_choice_function$kwargs <- 
+    list("lon.spat" = lon.spat, "lat.spat" = lat.spat, "grid" = grid)
+  create_alternative_choice_function$output <- list()
+
+  log_call(project, create_alternative_choice_function)
 }
