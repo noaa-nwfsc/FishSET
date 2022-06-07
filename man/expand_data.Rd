@@ -27,6 +27,8 @@ expand_data(
 
 \item{sub_date}{String, name of date variable to subset by.}
 
+\item{period}{String, name of period variable(s).}
+
 \item{group}{String, name of grouping variable(s).}
 
 \item{facet_by}{String, name of variable(s) to be facetted (split).}
