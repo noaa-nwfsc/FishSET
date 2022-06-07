@@ -24,91 +24,106 @@ create_expectations(
 )
 }
 \arguments{
-\item{dat}{Primary data containing information on hauls or trips.
-Table in FishSET database contains the string 'MainDataTable'.}
+\item{dat}{Primary data containing information on hauls or trips.Table in FishSET 
+database contains the string 'MainDataTable'.}
 
 \item{project}{String, name of project.}
 
 \item{catch}{Variable from \code{dat} containing catch data.}
 
-\item{price}{Optional, variable from \code{dat} containing price/value data.  Price is multiplied against
-\code{catch} to generated revenue. If revenue exists in \code{dat} and you wish to use this revenue instead of price,
-then \code{catch} must be a vector of 1 of length equal to \code{dat}. Defaults to NULL.}
+\item{price}{Optional, variable from \code{dat} containing price/value data.
+Price is multiplied against \code{catch} to generated revenue. If revenue exists 
+in \code{dat} and you wish to use this revenue instead of price, then \code{catch} 
+must be a vector of 1 of length equal to \code{dat}. Defaults to \code{NULL}.}
 
-\item{defineGroup}{Optional, variable from \code{dat} that defines how to split the fleet. Defaults to
-treating entire dataframe \code{dat} as a fleet.}
+\item{defineGroup}{Optional, variable from \code{dat} that defines how to split 
+the fleet. Defaults to treating entire dataframe \code{dat} as a fleet.}
 
-\item{temp.var}{Optional, temporal variable from \code{dat}. Set to NULL if temporal patterns in
-catch should not be considered.}
+\item{temp.var}{Optional, temporal variable from \code{dat}. Set to \code{NULL} 
+if temporal patterns in catch should not be considered.}
 
-\item{temporal}{String, choices are \code{"daily"} or \code{"sequential"}. Should time, if \code{temp.var} is defined,
-be included as a daily timeline or sequential order of recorded dates.  For daily, catch on dates with no record
-are filled with NA. The choice affects how the rolling average is calculated. If temporal is daily then the window
-size for average and the temporal lag are in days. If sequential, then averaging will occur over the specified
-number of observations, regardless of how many days they represent.}
+\item{temporal}{String, choices are \code{"daily"} or \code{"sequential"}. Should 
+time, if \code{temp.var} is defined, be included as a daily timeline or sequential 
+order of recorded dates. For daily, catch on dates with no record are filled 
+with \code{NA}. The choice affects how the rolling average is calculated. If 
+temporal is daily then the window size for average and the temporal lag are 
+in days. If sequential, then averaging will occur over the specified number 
+of observations, regardless of how many days they represent.}
 
-\item{calc.method}{String, how catch values are average over window size. Select standard average
-(\code{"standardAverage"}), simple lag regression of means (\code{"simpleLag"}), or weights of regressed groups (\code{"weights"})}
+\item{calc.method}{String, how catch values are average over window size. Select 
+standard average (\code{"standardAverage"}), simple lag regression of means 
+(\code{"simpleLag"}), or weights of regressed groups (\code{"weights"})}
 
-\item{lag.method}{String, use regression over entire group (\code{"simple"}) or for grouped time periods (\code{"grouped"}).}
+\item{lag.method}{String, use regression over entire group (\code{"simple"}) 
+or for grouped time periods (\code{"grouped"}).}
 
-\item{empty.catch}{String, replace empty catch with \code{NA}, \code{"0"}, mean of all catch (\code{"allCatch"}),
-or mean of grouped catch (\code{"groupCatch"}).}
+\item{empty.catch}{String, replace empty catch with \code{NA}, \code{"0"}, mean 
+of all catch (\code{"allCatch"}), or mean of grouped catch (\code{"groupCatch"}).}
 
-\item{empty.expectation}{Numeric, how to treat empty expectation values. Choices are to not replace (NULL)
-or replace with 0.0001 or 0.}
+\item{empty.expectation}{Numeric, how to treat empty expectation values. Choices 
+are to not replace (\code{NULL}) or replace with 0.0001 or 0.}
 
-\item{temp.window}{Numeric, temporal window size. If \code{temp.var} is not NULL, set the window size to
-average catch over. Defaults to 14 (14 days if \code{temporal} is \code{"daily"}).}
+\item{temp.window}{Numeric, temporal window size. If \code{temp.var} is not \code{NULL}, 
+set the window size to average catch over. Defaults to 14 (14 days if \code{temporal} 
+is \code{"daily"}).}
 
-\item{temp.lag}{Numeric, temporal lag time. If \code{temp.var} is not NULL, how far back to lag \code{temp.window}.}
+\item{temp.lag}{Numeric, temporal lag time. If \code{temp.var} is not \code{NULL}, 
+how far back to lag \code{temp.window}.}
 
-\item{year.lag}{If expected catch should be based on catch from previous year(s), set year.lag to the number
-of years to go back.}
+\item{year.lag}{If expected catch should be based on catch from previous year(s), 
+set \code{year.lag} to the number of years to go back.}
 
-\item{dummy.exp}{Logical, should a dummy variable be created? If TRUE, output dummy variable for originally
-missing value. If FALSE, no dummy variable is outputted. Defaults to FALSE}
+\item{dummy.exp}{Logical, should a dummy variable be created? If \code{TRUE}, 
+output dummy variable for originally missing value. If \code{FALSE}, no dummy 
+variable is outputted. Defaults to \code{FALSE}.}
 
-\item{replace.output}{Logical, replace existing saved expected catch data frame with new expected catch data
-frame? If FALSE, new expected catch data frames appended to previously saved expected catch data frames.
-Default is TRUE}
+\item{replace.output}{Logical, replace existing saved expected catch data frame 
+with new expected catch data frame? If \code{FALSE}, new expected catch data 
+frames appended to previously saved expected catch data frames. Default is \code{TRUE}}
 }
 \value{
-Function returns a list of expected catch matrices. The list includes the expected catch matrix from the 
-  user-defined choices, the near-term, the medium-term, and the long-term expected catch matrices.  
-  Additional expected catch cases can be added to the list by specifying \code{replace.output} to FALSE. The model 
-  run function will run through each expected catch case provided. The list is automatically saved to the FishSET 
-  database and is called in \code{\link{make_model_design}}. The expected catch output does not need to be loaded 
-  when defining or running the model.
+Function returns a list of expected catch matrices. The list includes 
+  the expected catch matrix from the user-defined choices, the near-term, the 
+  medium-term, and the long-term expected catch matrices. Additional expected 
+  catch cases can be added to the list by specifying \code{replace.output} to 
+  \code{FALSE}. The model run function will run through each expected catch case 
+  provided. The list is automatically saved to the FishSET database and is called 
+  in \code{\link{make_model_design}}. The expected catch output does not need 
+  to be loaded when defining or running the model.
 
 newGridVar,  newDumV
 }
 \description{
-Create expected catch or expected revenue matrix. The matrix is required for the logit_c model.
+Create expected catch or expected revenue matrix. The matrix is required for 
+the logit_c model.
 }
 \details{
-Function creates an expectation of catch or revenue for alternative fishing zones (zones where they could have 
- fished but did not). The output is saved to the FishSET database and called
-  by the \code{\link{make_model_design}} function. \code{\link{create_alternative_choice}}
- must be called first as observed catch and zone inclusion requirements are defined there.\cr
- The primary choices are whether to treat data as a fleet or to group the data (\code{defineGroup}) and the time
- frame of catch data for calculating expected catch. Catch is averaged along a daily or sequential timeline
- (\code{temporal}) using a rolling average. \code{temp.window} and \code{temp.lag} determine the window size and
- temporal lag of the window for averaging. Use \code{\link{temp_obs_table}} before using this function to assess
- the availability of data for the desired temporal moving window size. Sparse data is not suited for shorter moving
- window sizes. For very sparse data, consider setting \code{temp.var} to NULL and excluding temporal patterns in
- catch. \cr
- Empty catch values are considered to be times of no fishing activity. Values of 0 in the catch variable
- are considered times when fishing activity occurred but with no catch. These points are included in the averaging
- and dummy creation as points in time when fishing occurred. \cr
- Three default expected catch cases will be run:
-\itemize{
-\item{Near-term: Moving window size of two days. In this case, vessels are grouped based on \code{defineGroup}
-argument.}
-\item{Medium-term: Moving window size of seven days. In this case,
-there is no grouping, and catch for entire fleet is used.}
-\item{Long-term: Moving window size of seven days from the previous year. In this case,
-there is no grouping and catch for entire fleet is used.}
+Function creates an expectation of catch or revenue for alternative 
+  fishing zones (zones where they could have fished but did not). The output is 
+  saved to the FishSET database and called by the \code{\link{make_model_design}} 
+  function. \code{\link{create_alternative_choice}} must be called first as observed 
+  catch and zone inclusion requirements are defined there.\cr The primary choices 
+  are whether to treat data as a fleet or to group the data (\code{defineGroup}) 
+  and the time frame of catch data for calculating expected catch. Catch is averaged 
+  along a daily or sequential timeline (\code{temporal}) using a rolling average. 
+  \code{temp.window} and \code{temp.lag} determine the window size and temporal 
+  lag of the window for averaging. Use \code{\link{temp_obs_table}} before using 
+  this function to assess the availability of data for the desired temporal moving 
+  window size. Sparse data is not suited for shorter moving window sizes. For very 
+  sparse data, consider setting \code{temp.var} to \code{NULL} and excluding 
+  temporal patterns in catch. \cr
+  Empty catch values are considered to be times of no fishing activity. Values 
+  of 0 in the catch variable are considered times when fishing activity occurred 
+  but with no catch. These points are included in the averaging and dummy creation 
+  as points in time when fishing occurred. \cr
+  Three default expected catch cases will be run:
+  \itemize{
+  \item{Near-term: Moving window size of two days. In this case, vessels are 
+  grouped based on \code{defineGroup} argument.}
+  \item{Medium-term: Moving window size of seven days. In this case, there is 
+  no grouping, and catch for entire fleet is used.}
+   \item{Long-term: Moving window size of seven days from the previous year. 
+   In this case, there is no grouping and catch for entire fleet is used.}
 }
 }
 \examples{
