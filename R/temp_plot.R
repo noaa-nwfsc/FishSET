@@ -70,18 +70,18 @@ temp_plot <- function(dat, project, var.select, len.fun = c("length", "unique", 
    
   dataset[[date.var]] <- date_parser(dataset[[date.var]])
   
-  plot_by_yr <- length(unique(dataset$year)) > 1
-  
-  agg_per <- ifelse(plot_by_yr, "year", "month")
-  
-  dataset <- expand_data(dataset, project, date = date.var,
-                               value = var.select, period = agg_per, fun = "count")
-  
+ 
+  # add year and month columns
   dataset <- facet_period(dataset, c("year", "month"), date.var)
   
   plot_by_yr <- length(unique(dataset$year)) > 1
   
   agg_per <- ifelse(plot_by_yr, "year", "month")
+  
+  # TODO: expand_data() is dropping year/month cols, need to fix
+  # add missing dates, if any
+  # dataset <- expand_data(dataset, project, date = date.var, value = var.select, 
+  #                        period = agg_per, fun = "count")
   
   if (plot_by_yr) dataset$year <- as.factor(dataset$year)
   
@@ -174,7 +174,8 @@ temp_plot_helper <- function(dataset, len_df, agg_df, var.select, date.var, agg_
   
   scale_lab <- function() {
     if (len.fun == "percent") scales::label_percent(scale = 1) 
-    else ggplot2::waiver()
+    # else ggplot2::waiver()
+    else scales::comma
   }
   
   break_fun <- function() {
@@ -186,10 +187,12 @@ temp_plot_helper <- function(dataset, len_df, agg_df, var.select, date.var, agg_
   p1 <- 
     ggplot2::ggplot(dataset, ggplot2::aes(x = !!date_sym, y = !!var_sym)) +
     ggplot2::geom_point() +
+    ggplot2::scale_y_continuous(labels = scales::comma) + 
     ggplot2::labs(subtitle = paste(var.select, "by Date"), 
                   x = "Date", y = var.select) +
     fishset_theme() + 
-    ggplot2::theme(axis.text.x = ggplot2::element_text(size = text.size, angle = 45, hjust = 1))
+    ggplot2::theme(axis.text.x = ggplot2::element_text(size = text.size, angle = 45, hjust = 1),
+                   axis.text.y = ggplot2::element_text(size = text.size, angle = 45))
   
   # length bar plot
   p2 <- 
@@ -208,11 +211,13 @@ temp_plot_helper <- function(dataset, len_df, agg_df, var.select, date.var, agg_
     p3 <- 
       ggplot2::ggplot(agg_df, ggplot2::aes(x = !!per_sym, y = !!var_sym)) +
       ggplot2::geom_bar(stat = "identity") +
+      ggplot2::scale_y_continuous(labels = scales::comma) + 
       ggplot2::labs(subtitle = paste(simpleCap(agg.fun),"of value by", tolower(t2)),
                     x = t2, y = "") +
       ggplot2::scale_x_discrete(breaks = break_fun()) +
       fishset_theme() + 
-      ggplot2::theme(axis.text.x = ggplot2::element_text(size = text.size, angle = 45, hjust = 1))
+      ggplot2::theme(axis.text.x = ggplot2::element_text(size = text.size, angle = 45, hjust = 1),
+                     axis.text.y = ggplot2::element_text(size = text.size, angle = 45))
   }
   t_plot <- suppressWarnings(ggpubr::ggarrange(p1, p2, p3, ncol = 3, nrow = 1))
   
