@@ -197,7 +197,7 @@ table_view <- function(table, project) {
 
 
 unserialize_table <- function(table, project) {
-  
+  # TODO: add documentation
   
   tab_type <- table_type(table)
   
@@ -212,7 +212,8 @@ unserialize_table <- function(table, project) {
   tab_qry <- switch(tab_type, 
                     "alt choice matrix" = "AlternativeMatrix", 
                     "expected catch matrix" = "data",
-                    "model data" = "ModelInputData", # check for consistency, seen lowercase version
+                    "model data" = "ModelInputData", # check for consistency, seen lowercase version 
+                                                     # (depends on whether created in app or console)
                     "predict output" = "PredictOutput") # hasn't been added to table_type
   
   sql_qry <- paste0("SELECT ",tab_qry, " FROM ", table, " LIMIT 1")
