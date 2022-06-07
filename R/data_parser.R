@@ -448,6 +448,7 @@ load_maindata <- function(dat, project, over_write = TRUE, compare = FALSE, y = 
   # Quality Checks
   check <- TRUE
   
+  # TODO: Use name_check() 
   # check that names are unique in dataset
   x <- colnames(dataset)
   
@@ -610,6 +611,7 @@ load_port <- function(dat, port_name, project, over_write = TRUE, compare = FALS
   #unique rows
   x <- unique_rows(x)
   
+  # TODO: Use name_check() 
   #unique column names
   if(length(toupper(colnames(x))) != length(unique(toupper(colnames(x))))){
     print('Duplicate case-insensitive column names found. Duplicate column names adjusted.')
@@ -725,6 +727,7 @@ load_aux <- function(dat, aux, name, over_write = TRUE, project = NULL) {
     #unique rows
     aux <- unique_rows(aux)
     
+    # TODO: Use name_check() 
     #unique column names
     if(length(toupper(colnames(aux))) != length(unique(toupper(colnames(aux))))){
       print('Duplicate case-insensitive column names found. Duplicate column names adjusted.')
@@ -761,29 +764,36 @@ load_aux <- function(dat, aux, name, over_write = TRUE, project = NULL) {
 load_grid <- function(dat, grid, name, over_write = TRUE, project = NULL) {
   #' Import, parse, and save gridded data to FishSET database
   #'
-  #' Gridded data is data that varies by two dimensions. Column names must be zone names. Load, parse, and save gridded data to FishSET database
+  #' Gridded data is data that varies by two dimensions. Column names must be zone 
+  #' names. Load, parse, and save gridded data to FishSET database
   #' @param dat Primary data containing information on hauls or trips. 
   #'   Table in FishSET database contains the string 'MainDataTable'.
   #' @param grid File name, including path, of gridded data. 
   #' @param name Name gridded data should be saved as in FishSET database.
-  #' @param over_write Logical, If TRUE, saves dat over previously saved data table in the FishSET database.
+  #' @param over_write Logical, If TRUE, saves dat over previously saved data table 
+  #'   in the FishSET database.
   #' @param project String, name of project.
-  #' @details Grid data is an optional data frame that contains a variable that varies by the map grid (ex.
-  #'   sea surface temperature, wind speed). Data can also vary by a second dimension (e.g., date/time). Both
-  #'   dimensions in the gridded data file need to be variables included in the primary data set.
-  #'   The grid locations (zones) must define the columns and the optional second dimension defines the rows.
-  #'   The row variable must have the exact name as the variable in the main data frame that it will be linked to. 
-  #'   The function DOES NOT check that column and row variables match a variable in the primary data set.
-  #'   The function checks that each row is unique, that no variables are empty, and that column names are case-insensitive unique. 
-  #'   These data issues are resolved before the data is saved to the database.
-  #'    The data is saved in the FishSET database as the raw
-  #'   data and the working data. In both cases, the table name is the \code{project} and the file name \code{x}.
-  #'   Date is attached to the name for the raw data.
+  #' @details Grid data is an optional data frame that contains a variable that 
+  #'   varies by the map grid (ex. sea surface temperature, wind speed). Data can 
+  #'   also vary by a second dimension (e.g., date/time). Both dimensions in the 
+  #'   gridded data file need to be variables included in the primary data set.
+  #'   The grid locations (zones) must define the columns and the optional second 
+  #'   dimension defines the rows. The row variable must have the exact name as the 
+  #'   variable in the main data frame that it will be linked to. The function DOES 
+  #'   NOT check that column and row variables match a variable in the primary data set.
+  #'   The function checks that each row is unique, that no variables are empty, 
+  #'   and that column names are case-insensitive unique. These data issues are 
+  #'   resolved before the data is saved to the database. The data is saved in the 
+  #'   FishSET database as the raw data and the working data. In both cases, the 
+  #'   table name is the \code{project} and the file name \code{x}. Date is attached 
+  #'   to the name for the raw data.
   #' @export
   #' @examples
   #' \dontrun{
   #' load_grid(dat = 'pcodMainDataTable', name = SeaSurfaceTemp, over_write = TRUE, project = 'pcod')
   #' }
+  #' 
+
   check <- TRUE
   fishset_db <- suppressWarnings(DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
@@ -796,7 +806,7 @@ load_grid <- function(dat, grid, name, over_write = TRUE, project = NULL) {
     } else {
       old <- table_view(dat, project)
     }
-  } else {
+  } else { # TODO: redundant (also old not used)
     old <- dat
   }
 
@@ -822,6 +832,7 @@ load_grid <- function(dat, grid, name, over_write = TRUE, project = NULL) {
     #unique rows
     grid <- unique_rows(grid)
     
+    # TODO: Use name_check() 
     #unique column names
     if(length(toupper(colnames(grid))) != length(unique(toupper(colnames(grid))))){
       print('Duplicate case-insensitive column names found. Duplicate column names adjusted.')
@@ -832,7 +843,7 @@ load_grid <- function(dat, grid, name, over_write = TRUE, project = NULL) {
     grid <- empty_vars(grid, remove = TRUE)
     
     # save grid
-    if (table_exists(paste0(project, name), project) == FALSE | over_write == TRUE) {
+    if (table_exists(paste0(project, name, "GridTable"), project) == FALSE | over_write == TRUE) {
       
       DBI::dbWriteTable(fishset_db, paste0(project, name, "GridTable"), grid, overwrite = over_write)
       
@@ -916,6 +927,7 @@ load_spatial <- function(spat, name = NULL, over_write = TRUE, project, data.typ
   spat <- check_spatdat(spat, lon = lon, lat = lat, id = id)
   
   # unique names
+  # TODO: Use name_check() 
   
   # check for unique rows
   spat <- unique_rows(spat)

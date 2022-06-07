@@ -18,7 +18,7 @@ create_alternative_choice(
   lat.dat = NULL,
   hull.polygon = FALSE,
   closest.pt = FALSE,
-  griddedDat = NULL,
+  grid = NULL,
   lon.spat = NULL,
   lat.spat = NULL
 )
@@ -42,7 +42,7 @@ in the primary dataset. Longitude must be specified first.}
 
 \item{dist.unit}{String, how distance measure should be returned. Choices are 
 \code{"meters"} or \code{"M"}, \code{"kilometers"} or \code{"KM"}, \code{"miles"}, 
-or units of \code{griddedDat}. Defaults to miles.}
+or units of \code{grid}. Defaults to miles.}
 
 \item{min.haul}{Required, numeric, minimum number of hauls. Zones with fewer 
 hauls than the \code{min.haul} value will not be included in model data.}
@@ -50,7 +50,7 @@ hauls than the \code{min.haul} value will not be included in model data.}
 \item{spat}{Required, data file or character. \code{spat} is a spatial data file 
 containing information on fishery management or regulatory zones boundaries.
 Shape, json, geojson, and csv formats are supported. geojson is the preferred 
-format. json files must be converted into geoson. This is done automatically 
+format. json files must be converted into geojson. This is done automatically 
 when the file is loaded with \code{\link{read_dat}} with \code{is.map = TRUE}.
 \code{lon.dat}, \code{lat.dat}, \code{lon.spat}, and \code{lat.spat} are required 
 for specific \code{spat} file formats. \code{cat} must be specified for all 
@@ -87,8 +87,8 @@ to the point. Called in \code{\link{assignment_column}}. Required if zonal
 assignments for observations in \code{dat} should be identified and \code{spat} 
 is not \code{NULL}.}
 
-\item{griddedDat}{Data must contain a variable that varies by the spatial dataset 
-\code{spat}. First variable in \code{griddedDat} should match a column in \code{dat}. 
+\item{grid}{Data must contain a variable that varies by the spatial dataset 
+\code{spat}. First variable in \code{grid} should match a column in \code{dat}. 
 The remaining columns should match the zone IDs in the \code{spat}.}
 
 \item{lon.spat}{Variable or list from \code{spat} containing longitude data. 
@@ -107,7 +107,7 @@ Saves the alternative choice list to the FishSET database as a list.
 \tabular{rlll}{
         dataZoneTrue: \tab Vector of 0/1 indicating whether the data from that 
         zone is to be included in the model\cr
-        greaterNZ: \tab Zone which pass numofNecessary test\cr
+        greaterNZ: \tab Zones which pass numofNecessary test\cr
         numOfNecessary: \tab Minimum number of hauls for zone to be included\cr
         altChoiceUnits: \tab Set to miles\cr
         altChoiceType: \tab Set to distance\cr
@@ -120,17 +120,17 @@ Saves the alternative choice list to the FishSET database as a list.
 }
 \description{
 Required step. Creates a list identifying how alternative fishing choices should 
-be defined. Output is saved to the FishSET database.
-Run this function before running models.
+be defined. Output is saved to the FishSET database. Run this function before 
+running models.
 }
 \details{
 Defines the alternative fishing choices. These choices are used to develop 
   the matrix of distances between observed and alternative fishing choices (where 
   they could have fished but did not). The distance matrix is calculated by the 
   \code{\link{make_model_design}} function. The distance matrix can come from 
-  \code{dat} or from the gridded data frame \code{griddedDat}. If the distance 
+  \code{dat} or from the gridded data frame \code{grid}. If the distance 
   matrix is to come from \code{dat}, then \code{occasion} (observed fishing location) 
-  and \code{alt_var} (alternative fishing location) must be specified. \code{griddedDat}, 
+  and \code{alt_var} (alternative fishing location) must be specified. \code{grid}, 
   if used, must be a variable that varies by the spatial dataset, such as wind 
   speed. Each column must be a unique zone that matches the zones in \code{dat}.
   
