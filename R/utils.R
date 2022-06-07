@@ -1211,6 +1211,7 @@ expand_data <- function(dataset, project, date = NULL, value, sub_date = NULL,
   #' @param project Name of project. 
   #' @param date String, name of date variable to find missing days.
   #' @param sub_date String, name of date variable to subset by. 
+  #' @param period String, name of period variable(s).
   #' @param value String, name of value variable to be aggregated by \code{agg_helper}.
   #' @param group String, name of grouping variable(s).
   #' @param facet_by String, name of variable(s) to be facetted (split). 
