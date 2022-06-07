@@ -24,4 +24,5 @@ Display tables in FishSET database by type for the defined project
 list_tables(type = "main")
 list_tables("pollock", "ec")
 }
+
 }
