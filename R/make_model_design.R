@@ -247,7 +247,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     mod.name <- mod.name
   }
  
-  
+  # Note: why use exist? Not in function environment
   if (!exists("Alt")) {
     if (!exists("AltMatrixName")) {
       Alt <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT AlternativeMatrix FROM ", project, "altmatrix LIMIT 1"))$AlternativeMatrix[[1]])
@@ -331,7 +331,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     alt_var <- Alt[["alt_var"]]
     occasion <- Alt[["occasion"]]
     dataZoneTrue <- Alt[["dataZoneTrue"]]
-    int <- Alt[["int"]]
+    int <- Alt[["int"]] # centroid table
     choice_raw <- as.data.frame(Alt$choice)
     choice <- as.data.frame(Alt$choice[which(dataZoneTrue==1),])
     zoneRow <- Alt[["zoneRow"]]
@@ -343,6 +343,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     }
     units <- Alt[["altChoiceUnits"]]
     
+    # Gridded
     if (!is.null(Alt[["matrix"]])) {
       X <- Alt[["matrix"]]
     } else {
