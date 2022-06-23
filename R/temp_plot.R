@@ -1,7 +1,6 @@
-temp_plot <- function(dat, project, var.select, len.fun = c("length", "unique", "percent"), 
-                      agg.fun = c("mean", "median", "min", "max", "sum"), date.var = NULL,
-                      text.size = 8) {
-  #' Returns three different plots of variable by month/year
+temp_plot <- function(dat, project, var.select, len.fun = "length", agg.fun = "mean", 
+                      date.var = NULL, text.size = 8) {
+  #' Plot variable by month/year
   #'
   #' Returns three plots showing the variable of interest against time (as month 
   #' or month/year). Plots are raw points by time, number of observations by time, 
@@ -10,7 +9,7 @@ temp_plot <- function(dat, project, var.select, len.fun = c("length", "unique", 
   #'   Table in FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
   #' @param var.select Variable in \code{dat} to plot against a date variable.
-  #' @param len.fun Method,\code{"length"} returns the number of observations, 
+  #' @param len.fun Method, \code{"length"} returns the number of observations, 
   #'   \code{"unique"} returns the number of unique observations, \code{"percent"}
   #'   returns the percentage of total observations.
   #' @param agg.fun Method to aggregate \code{var.select} by date. Choices are 
@@ -28,10 +27,13 @@ temp_plot <- function(dat, project, var.select, len.fun = c("length", "unique", 
   #' @export
   #' @examples
   #' \dontrun{
-  #' temp_plot(pollockMainDataTable, project='pollock', var.select = 'OFFICIAL_TOTAL_CATCH_MT',
-  #'            len.fun = 'percent', agg.fun = 'mean', date.var = 'HAUL_DATE')
-  #' temp_plot(pollockMainDataTable, project='pollock', var.select = 'OFFICIAL_TOTAL_CATCH_MT',
-  #'            len.fun = 'length', agg.fun = 'max')
+  #' temp_plot(pollockMainDataTable, project='pollock', 
+  #'           var.select = 'OFFICIAL_TOTAL_CATCH_MT', len.fun = 'percent', 
+  #'           agg.fun = 'mean', date.var = 'HAUL_DATE')
+  #'           
+  #' temp_plot(pollockMainDataTable, project='pollock', 
+  #'           var.select = 'OFFICIAL_TOTAL_CATCH_MT', len.fun = 'length',
+  #'           agg.fun = 'max')
   #' }
   #' 
   # Call in datasets

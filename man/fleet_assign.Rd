@@ -14,19 +14,21 @@ fleet_assign(
 )
 }
 \arguments{
-\item{dat}{Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.}
+\item{dat}{Primary data containing information on hauls or trips. Table in 
+FishSET database contains the string 'MainDataTable'.}
 
 \item{project}{String, name of project.}
 
-\item{fleet_tab}{String, name of the fleet table stored in FishSET database. Should contain the
-string `FleetTable`.}
+\item{fleet_tab}{String, name of the fleet table stored in FishSET database. 
+Should contain the string `FleetTable`.}
 
 \item{assign}{Integer, a vector of row numbers from \code{fleet_tab}. Only 
 fleet definitions in these rows will be used and added to `MainDataTable`. 
-If \code{assign = NULL} (the default), all fleet definitions in the table will be used.}
+If \code{assign = NULL} (the default), all fleet definitions in the table 
+will be used.}
 
-\item{overlap}{Logical; whether overlapping fleet assignments are allowed. Defaults to
-\code{FALSE}.}
+\item{overlap}{Logical; whether overlapping fleet assignments are allowed. 
+Defaults to \code{FALSE}.}
 
 \item{format_var}{String. If \code{format_var = "string"}, a single column named 
 "fleet" will be added to `MainDataTable`. If \code{overlap = TRUE},
@@ -37,11 +39,13 @@ If \code{assign = NULL} (the default), all fleet definitions in the table will b
 Returns the primary dataset with added fleet variable(s).
 }
 \description{
-Creates a fleet variable using a fleet table from the FishSET database.
+Add a fleet ID column to the main data using a fleet table (see \code{\link{fleet_table}} 
+for details).
 }
 \examples{
 \dontrun{
-fleet_assign(pollockMainDataTable, 'pollock', fleet_tab = 'pollockFleetTable', overlap = TRUE)
+fleet_assign(pollockMainDataTable, 'pollock', fleet_tab = 'pollockFleetTable', 
+             overlap = TRUE)
 }
 }
 \seealso{

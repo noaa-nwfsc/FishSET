@@ -2,7 +2,7 @@
 % Please edit documentation in R/sql_functions.R
 \name{list_tables}
 \alias{list_tables}
-\title{Display tables in FishSET database by type for the defined project}
+\title{Display FishSET database tables by type}
 \usage{
 list_tables(project, type = "main")
 }
@@ -17,11 +17,12 @@ list_tables(project, type = "main")
 and "model_design" (modelDesignTable).}
 }
 \description{
-Display tables in FishSET database by type for the defined project
+Show project table names by table type. To see all tables for all projects 
+in the FishSETFolder, use \code{\link{fishset_tables}}.
 }
 \examples{
 \dontrun{
-list_tables(type = "main")
+list_tables("pollock", type = "main")
 list_tables("pollock", "ec")
 }
 

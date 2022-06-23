@@ -1,26 +1,26 @@
-# Create variables or matrix.
-
-## --- CPUE ----##
 cpue <- function(dat, project, xWeight = NULL, xTime, price = NULL, name = NULL) {
   #' Create catch or revenue per unit effort variable
   #' 
   #' @description Add catch per unit effort (CPUE) or revenue per unit effort 
   #'   variable to the primary dataset. Catch should be a weight variable but can 
-  #'   be a count. Effort should be in a duration of time, such as days, hours, or minutes.
+  #'   be a count. Effort should be in a duration of time, such as days, hours, 
+  #'   or minutes.
   #' @param dat Primary data containing information on hauls or trips. Table in 
   #'   FishSET database contains the string 'MainDataTable'.
   #' @param project Project name. 
   #' @param xWeight Catch variable in \code{dat}. Variable should be a measure of 
-  #'   weight (pounds, metric tons, etc) but can also be count. If calculated RPUE 
-  #'   and \code{price} is revenue data, set \code{XWeight = NULL}.
-  #' @param xTime Duration of time variable in \code{dat} representing effort, such as
-  #'   weeks, days, hours, or minutes.
+  #'   weight (pounds, metric tons, etc) but can also be count. If calculating
+  #'   revenue per unit effort (RPUE) and a revenue column exists in \code{dat}, 
+  #'   then add the revenue column to \code{price} and set \code{xWeight = NULL}.
+  #' @param xTime Duration of time variable in \code{dat} representing effort, 
+  #'   such as weeks, days, hours, or minutes.
   #' @param price Optional, variable from \code{dat} containing price/value data. 
   #'   Price is multiplied against the catch variable, \code{xWeight}, to generated 
   #'   revenue. If revenue exists in \code{dat} and you wish to use this revenue 
-  #'   instead of price, then \code{xWeight} must NULL. Defaults to NULL.
-  #' @param name String, name of created variable. Defaults to name of the function 
-  #'   if not defined.
+  #'   instead of price, then \code{xWeight} must be \code{NULL}. Defaults to 
+  #'   \code{NULL}.
+  #' @param name String, name of created variable. Defaults to "cpue" or "rpue" 
+  #'   if \code{price} is not \code{NULL}.
   #' @export cpue
   #' @details Creates the catch or revenue per unit effort variable. Catch variable 
   #'   should be in weight (lbs, mts). Effort variable should be a measurement of 
@@ -30,8 +30,9 @@ cpue <- function(dat, project, xWeight = NULL, xTime, price = NULL, name = NULL)
   #' @return Returns primary dataset with CPUE variable added.
   #' @examples
   #' \dontrun{
-  #' pollockMainDataTable <- cpue(pollockMainDataTable, 'pollock', 'OFFICIAL_TOTAL_CATCH_MT', 
-  #'     'DURATION_IN_MIN', 'cpue')
+  #' pollockMainDataTable <- cpue(pollockMainDataTable, 'pollock', 
+  #'                              xWeight = 'OFFICIAL_TOTAL_CATCH_MT', 
+  #'                              xTime = 'DURATION_IN_MIN', name = 'cpue')
   #' }
   
   # Call in datasets
@@ -56,7 +57,7 @@ cpue <- function(dat, project, xWeight = NULL, xTime, price = NULL, name = NULL)
   
   name <- name_check(dataset, name, repair = TRUE)
   
-  # Deal with revenue issue
+  # TODO: Deal with revenue issue
   if (!is.null(price)) {
     
     if (!is.null(xWeight)) {
@@ -97,7 +98,7 @@ cpue <- function(dat, project, xWeight = NULL, xTime, price = NULL, name = NULL)
             "function. CPUE calculated.", call. = FALSE)
   }
 
-  # safely test
+  # TODO: safely test
   dataset[[name]] <- weight / dataset[[xTime]]
   
   if (qaqc_helper(dataset[name], "Inf")) {

@@ -1,13 +1,15 @@
 xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
-  #' Evaluate relationship of two variables in a plot format
+  #' Plot relationship of two variables
   #' 
   #' @description Evaluate relationship of two variables in a plot format. 
   #'   Plots first variable against second variable.
-  #' @param dat Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.
+  #' @param dat Primary data containing information on hauls or trips. Table in 
+  #'   FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
   #' @param var1 First variable in \code{dat}.
   #' @param var2 Second variable in \code{dat}.
-  #' @param regress Logical, if TRUE, returns plot with fitted linear regression line. Defaults to FALSE.
+  #' @param regress Logical, if TRUE, returns plot with fitted linear regression 
+  #'   line. Defaults to \code{FALSE}.
   #' @keywords xy plot
   #' @description Plot of var1 against var 2
   #' @return Returns plot output to R console and saves plot to Output folder.
@@ -18,7 +20,8 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
   #' @export
   #' @examples
   #' \dontrun{
-  #' xy_plot(pollockMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', 'HAUL', regress=TRUE)
+  #' xy_plot(pollockMainDataTable, var1 = 'OFFICIAL_TOTAL_CATCH_MT',
+  #'         var2 = 'HAUL', regress = TRUE)
   #' }
 
 

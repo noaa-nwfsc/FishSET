@@ -14,33 +14,46 @@ load_port(
 )
 }
 \arguments{
-\item{dat}{Dataset containing port data. At a minimum, must include three columns, the port names, and the latitude and longitude of ports.}
+\item{dat}{Dataset containing port data. At a minimum, must include three 
+columns, the port names, and the latitude and longitude of ports. \code{dat}
+can be a filepath, a existing FishSET table, or a dataframe in the working
+environment.}
 
-\item{port_name}{Variable containing port names. Names should match port names in primary dataset.}
+\item{port_name}{Variable containing port names. Names should match port names 
+in primary dataset.}
 
 \item{project}{String, name of project.}
 
-\item{over_write}{Logical, if TRUE, saves over data table previously saved in the FishSET database.}
+\item{over_write}{Logical, if TRUE, saves over data table previously saved 
+in the FishSET database.}
 
-\item{compare}{Logical, should new data be compared to previously saved data frame \code{y}.}
+\item{compare}{Logical, should new data be compared to previously saved 
+dataframe \code{y}.}
 
-\item{y}{Name of previously saved table in FishSET database. \code{y} must be defined if \code{compare} is TRUE.}
+\item{y}{Name of previously saved table in FishSET database. \code{y} must be 
+defined if \code{compare} is TRUE.}
 }
 \description{
-Import, parse, and save port data to FishSET database
+A project must exist before running \code{load_port()}. See \code{\link{load_maindata}}
+to create a new project.
 }
 \details{
 Runs a series of checks on the port data. The function checks that
-  each row is unique, that no variables are empty, and that column names are case-insensitive unique. 
-  There data issues are resolved before the data is saved to the database.
- If checks pass, runs the fishset_compare function and
-saves the new data frame to the FishSET database.  The data is saved in the FishSET database
-as the raw data and the working data. In both cases, the table name is the `project` and `PortTable`.
-Date is also attached to the name for the raw data.
+  each row is unique, that no variables are empty, and that column names are 
+  case-insensitive unique. There data issues are resolved before the data is 
+  saved to the database. If checks pass, runs the fishset_compare function and
+  saves the new data frame to the FishSET database.  The data is saved in the 
+  FishSET database as the raw data and the working data. The naming convention 
+  for port tables is "projectPortTable".  Date is also attached to the 
+  name for the raw data. See \code{\link{table_view}} to view/load port tables 
+  into the working environment.
 }
 \examples{
 \dontrun{
 load_port(PortTable, over_write = TRUE, project  ='pollock',
-           compare = TRUE, y = 'pollockPortTable01012011')
+          compare = TRUE, y = 'pollockPortTable01012011')
 }
+}
+\seealso{
+\code{\link{table_view}}, \code{\link{load_maindata}}, \code{\link{write_dat}}
 }

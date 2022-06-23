@@ -2,7 +2,7 @@
 % Please edit documentation in R/species_catch.R
 \name{species_catch}
 \alias{species_catch}
-\title{Creates a table or plot of total species catch by period}
+\title{Summarize species catch}
 \usage{
 species_catch(
   dat,
@@ -37,78 +37,90 @@ Table in FishSET database contains the string 'MainDataTable'.}
 
 \item{project}{String, name of project.}
 
-\item{species}{Variable in \code{dat} containing the species catch 
-or a vector of species variables (in pounds).}
+\item{species}{Variable in \code{dat} containing the species catch or a vector 
+of species variables (in pounds).}
 
 \item{date}{Variable in \code{dat} containing dates to aggregate by.}
 
 \item{period}{Time period to count by. Options include 'year', 'month', 'week' 
-(week of the year), 'weekday', 'day' (day of the month), and 'day_of_year'.}
+(week of the year), 'weekday', 'day' (day of the month), and 'day_of_year'. 
+\code{date} is required.}
 
-\item{fun}{String, name of function to aggregate by. Defaults to \code{\link[base]{sum}}.}
+\item{fun}{String, name of function to aggregate by. Defaults to 
+\code{\link[base]{sum}}.}
 
-\item{group}{Grouping variable names(s). Up to two grouping variables are available for 
-line plots and one for bar plots. For bar plots, if only one species is entered the first 
-group variable is passed to 'fill'. If multiple species are entered, species is passed to 
-"fill" and the grouping variable is dropped. An exception occurs when facetting by species, 
-then the grouping variable is passed to "fill". For line plots, the first grouping variable 
-is passed to "fill" and the second to "linetype" if a single species column is entered or if 
-facetting by species. Otherwise, species is passed to "fill", the first group variable to 
-"linetype", and second is dropped.}
+\item{group}{Grouping variable name(s). Up to two grouping variables are available 
+for line plots and one for bar plots. For bar plots, if only one species is 
+entered the first group variable is passed to 'fill'. If multiple species are 
+entered, species is passed to "fill" and the grouping variable is dropped.
+An exception occurs when facetting by species, then the grouping variable is 
+passed to "fill". For line plots, the first grouping variable is passed to 
+"fill" and the second to "linetype" if a single species column is entered or 
+if facetting by species. Otherwise species is passed to "fill", the first 
+group variable to "linetype", and second is dropped.}
 
 \item{sub_date}{Date variable used for subsetting, grouping, or splitting by date.}
 
 \item{filter_date}{The type of filter to apply to `MainDataTable`. To filter by a 
-range of dates, use \code{filter_date = "date_range"}. To filter by a given period, use
-"year-day", "year-week", "year-month", "year", "month", "week", or "day". 
-The argument \code{date_value} must be provided.}
+range of dates, use \code{filter_date = "date_range"}. To filter by a given 
+period, use "year-day", "year-week", "year-month", "year", "month", "week", 
+or "day".  The argument \code{date_value} must be provided.}
 
-\item{date_value}{This argument is paired with \code{filter_date}. If \code{filter_date = "date_range"}, 
-enter a string containing a start- and end-date, e.g. \code{date_value = c("2011-01-01", "2011-03-15")}. 
-If filtering by period (e.g. "year", "year-month"), use integers 
-(4 digits if year, 1-2 digits if referencing a day, month, or week). Use a 
-list if using a year-period type filter, e.g. "year-week", with the format: 
-\code{list(year, period)}. Use a vector if using a single period (e.g. "month"): 
-\code{c(period)}. For example, \code{date_value = list(2011:2013, 5:7)} will 
-filter the data table from May through July for years 2011-2013 if \code{filter_date = "year-month"}.
-\code{date_value = c(2:5)} will filter the data from February through May when 
-\code{filter_date = "month"}.}
+\item{date_value}{This argument is paired with \code{filter_date}. To filter
+by date range, set \code{filter_date = "date_range"} and enter a  start- and 
+end-date into \code{date_value} as a string: 
+\code{date_value = c("2011-01-01", "2011-03-15")}. 
+
+To filter by period (e.g. "year", "year-month"), use integers (4 digits if year, 1-2 
+digits if referencing a day, month, or week). Use a vector if filtering by 
+a single period: \code{date_filter = "month"} and \code{date_value = c(1, 3, 5)}. 
+This would filter the data to January, March, and May. 
+
+Use a list if using a year-period type filter, e.g. "year-week", with the 
+format: \code{list(year, period)}. For example, \code{filter_date = "year-month"}
+and \code{date_value = list(2011:2013, 5:7)} will filter the data table from 
+May through July for years 2011-2013.}
 
 \item{filter_by}{String, variable name to filter `MainDataTable` by. the argument 
 \code{filter_value} must be provided.}
 
-\item{filter_value}{A vector of values to filter `MainDataTable` by using the variable 
-in \code{filter_by}. For example, if \code{filter_by = "GEAR_TYPE"}, \code{filter_value = 1} 
-will include only observations with a gear type of 1.}
+\item{filter_value}{A vector of values to filter `MainDataTable` by using the 
+variable in \code{filter_by}. For example, if \code{filter_by = "GEAR_TYPE"}, 
+\code{filter_value = 1} will include only observations with a gear type of 1.}
 
-\item{filter_expr}{String, a valid R expression to filter `MainDataTable` by using the variable 
-in \code{filter_by}.}
+\item{filter_expr}{String, a valid R expression to filter `MainDataTable` by 
+using the variable in \code{filter_by}.}
 
-\item{facet_by}{Variable name to facet by. Accepts up to two variables. These can be 
-variables that exist in the dataset, or a variable created by \code{species_catch()} such 
-as \code{"year"}, \code{"month"}, or \code{"week"} if a date variable is added 
-to \code{sub_date}. Facetting by \code{"species"} is available if multiple catch columns 
-are included in \code{"species"}. The first variable is facetted by row and the second by column.}
+\item{facet_by}{Variable name to facet by. Accepts up to two variables. These 
+can be variables that exist in the \code{dat}, or a variable created by 
+\code{species_catch()} such as \code{"year"}, \code{"month"}, or \code{"week"} 
+if a date variable is added to \code{sub_date}. Facetting by \code{"species"} 
+is available if multiple catch columns are included in \code{"species"}. The 
+first variable is facetted by row and the second by column.}
 
 \item{type}{Plot type, options include \code{"bar"} (the default) and \code{"line"}.}
 
 \item{conv}{Convert catch variable to \code{"tons"}, \code{"metric_tons"}, or 
-by using a function entered as a string. Defaults to \code{"none"} for no conversion.}
+by using a function entered as a string. Defaults to \code{"none"} for no 
+conversion.}
 
-\item{tran}{A function to transform the y-axis. Options include log, log2, log10, sqrt.}
+\item{tran}{A function to transform the y-axis. Options include log, log2, 
+log10, sqrt.}
 
 \item{format_lab}{Formatting option for y-axis labels. Options include 
 \code{"decimal"} or \code{"scientific"}.}
 
-\item{value}{Whether to calculate raw \code{"count"} or \code{"percent"} of total catch.}
+\item{value}{Whether to calculate raw \code{"count"} or \code{"percent"} of 
+total catch.}
 
 \item{position}{Positioning of bar plot. Options include 'stack', 'dodge', 
 and 'fill'.}
 
-\item{combine}{Whether to combine variables listed in \code{group}. This is passed
-to the "fill" or "color" aesthetic for plots.}
+\item{combine}{Whether to combine variables listed in \code{group}. This is 
+passed to the "fill" or "color" aesthetic for plots.}
 
-\item{scale}{Scale argument passed to \code{\link{facet_grid}}. Defaults to \code{"fixed"}.}
+\item{scale}{Scale argument passed to \code{\link{facet_grid}}. Defaults to 
+\code{"fixed"}.}
 
 \item{output}{Output a \code{"plot"} or \code{"table"}. Defaults 
 to both (\code{"tab_plot"}).}
@@ -117,33 +129,59 @@ to both (\code{"tab_plot"}).}
 (the default) and 'long'.}
 }
 \value{
-\code{species_catch()} aggregates catch using one or more columns of catch 
-  data. Users can aggregate by time period, by group, or by both. When multiple catch variables
-  are entered, a new column "species" is created and used to group values in plots. 
-  The "species" column can also be used to split (or facet) the plot. For table output,
-  the "species" column will be kept if \code{format_tab = "long"}, i.e. a column of
-  species names ("species") and a column containing catch ("catch"). When 
-  \code{format_tab = "wide"}, each species is given its own column of catch.  
+\code{species_catch()} aggregates catch using one or more columns of 
+  catch data. Users can aggregate by time period, by group, or by both. When 
+  multiple catch variables are entered, a new column "species" is created and 
+  used to group values in plots. The "species" column can also be used to split 
+  (or facet) the plot. For table output,
+  the "species" column will be kept if \code{format_tab = "long"}, i.e. a column 
+  of species names ("species") and a column containing catch ("catch"). When 
+  \code{format_tab = "wide"}, each species is given its own column of catch. 
+   
   The data can be filtered by date and/or by a variable. \code{filter_date} 
   specifies the type of date filter to apply--by date-range or by period. 
   \code{date_value} should contain the values to filter the data by. To filter 
   by a variable, enter its name as a string in \code{filter_by} and include the 
-  values to filter by in \code{filter_value}. Up to two grouping variables can 
-  be entered. Grouping variables can be merged into one variable using \code{combine}; 
-  in this case any number of variables can be joined, but no more than three is 
-  recommended. For faceting, any variable (including ones listed in \code{group}) 
+  values to filter by in \code{filter_value}. 
+  
+  Plots can handle Up to two grouping variables, there is no limit for tables. 
+  Grouping variables can be merged into one variable using \code{combine}; in 
+  this case any number of variables  can be joined, but no more than three is
+  recommended. 
+  
+  For faceting, any variable (including ones listed in \code{group}) 
   can be used, but "year", "month", "week" are also available provided a date 
   variable is added to \code{sub_date}. Currently, combined variables cannot be 
   faceted. A list containing a table and plot are printed to the console and 
   viewer by default.
 }
 \description{
-Creates a table or plot of total species catch by period
+\code{species_catch} summarizes catch (or other numeric variables) in the
+main table. It can summarize by period if \code{date} is provided, grouping 
+variables, and filter by period or value. There are several options for 
+customizing the table and plot output.
 }
 \examples{
 \dontrun{
-species_catch('pollockMainDataTable', species = c('HAUL_LBS_270_POLLOCK_LBS', 
-'HAUL_LBS_110_PACIFIC_COD_LBS', 'HAUL_LBS_OTHER_LBS'), date = 'HAUL_DATE', 
-value = 'count', period = 'month_num', output = 'plot', year = 2011, conv='tons')
+# summarizing one catch column by one group variable
+species_catch(pollockMainDataTable, species = "OFFICIAL_TOTAL_CATCH_MT",
+              group = "GEAR_TYPE", ouput = "tab_plot")
+
+# summarizing three catch columns by month
+species_catch('pollockMainDataTable', 
+              species = c('HAUL_LBS_270_POLLOCK_LBS', 
+                          'HAUL_LBS_110_PACIFIC_COD_LBS', 
+                          'HAUL_LBS_OTHER_LBS'), 
+              date = 'HAUL_DATE', period = 'month_num', output = 'plot', 
+              conv = 'tons')
+
+# filtering by variable
+species_catch(pollockMainDataTable, species = "OFFICAL_TOTAL_CATCH_MT",
+              group = "GEAR_TYPE", filter_by = "PORT_CODE", 
+              filter_value = "Dutch Harbor")
+              
+ # filtering by date
+ species_catch(pollockMainDataTable, species = "OFFICAL_TOTAL_CATCH_MT",
+               sub_date = "HAUL_DATE", filter_date = "month", date_value = 7:10)
 }
 }
