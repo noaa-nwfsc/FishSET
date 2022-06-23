@@ -21,21 +21,32 @@ saved data table in the FishSET database.}
 }
 \description{
 Auxiliary data is additional data that connects the primary dataset.
-Function pulls the data, parses it, and then and saves the data to the FishSET database.
+Function pulls the data, parses it, and then and saves the data to the FishSET 
+database. A project must exist before running \code{load_aux()}. See 
+\code{\link{load_maindata}} to create a new project.
 }
 \details{
-Auxiliary data is any additional data beyond the primary data and the port data.
-  Auxiliary data can be any data that can be merged with the primary dataset (ex. prices by date, vessel
-  characteristics, or fishery season). The auxiliary data does not have to be at a haul or trip level
-  but must contain a variable to connect the auxiliary data to the primary dataset. The function checks
- that at least one column name of the auxiliary data matches a column name in the primary dataset. The function checks that
-  each row is unique, that no variables are empty, and that column names are case-insensitive unique. 
-  There data issues are resolved before the data is saved to the database.
-  The data is saved in the FishSET database as the raw data and the working data. In
- both cases, the table name is the \code{project} and the file name \code{name}. Date is also added to the name for the raw data.
+Auxiliary data is any additional data beyond the primary data and 
+  the port data. Auxiliary data can be any data that can be merged with the 
+  primary dataset (ex. prices by date, vessel characteristics, or fishery season). 
+  The auxiliary data does not have to be at a haul or trip level but must 
+  contain a variable to connect the auxiliary data to the primary dataset. 
+  The function checks that at least one column name of the auxiliary data 
+  matches a column name in the primary dataset. The function checks that
+  each row is unique, that no variables are empty, and that column names are 
+  case-insensitive unique. There data issues are resolved before the data is 
+  saved to the database. The data is saved in the FishSET database as the raw 
+  data and the working data. The naming convention for auxiliary tables is 
+  "projectNameAuxTable". Date is also added to the name for the raw data. 
+  See \code{\link{table_view}} to view/load auxiliary tables into the working 
+  environment.
 }
 \examples{
 \dontrun{
-load_aux(pcodMainDataTable, name = FisherySeason, over_write = TRUE, project = 'pcod')
+load_aux(pcodMainDataTable, name = 'FisherySeason', over_write = TRUE, 
+         project = 'pcod')
 }
+}
+\seealso{
+\code{\link{table_view}}, \code{\link{load_maindata}}, \code{\link{write_dat}}
 }

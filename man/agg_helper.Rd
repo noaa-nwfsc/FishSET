@@ -20,18 +20,21 @@ agg_helper(
 
 \item{value}{String, name of variable to aggregate.}
 
-\item{period}{String, name of period variable to aggregate by.}
+\item{period}{String, name of period variable to aggregate by. Primarily for 
+internal use. Places temporal variables to the right-end of the summary
+table.}
 
 \item{group}{String, name of grouping variable(s) to aggregate by.}
 
-\item{within_group}{String, name of grouping variables(s) for calculating
-within group percentages. \code{fun = "percent"} required.}
+\item{within_group}{String, name of grouping variable(s) for calculating
+within group percentages. \code{fun = "percent"} and \code{period} or 
+\code{group} are required.}
 
 \item{fun}{String, function name to aggregate by. Also accepts anonymous functions.
 To calculate percentage, set \code{fun = "percent"}; this will return the 
 percent of total when \code{within_group = NULL}.}
 
-\item{count}{Logical, if TRUE then returns the number of observations by
+\item{count}{Logical, if \code{TRUE} then returns the number of observations by
 \code{period} and/or \code{group}.}
 
 \item{format_tab}{String. Options include \code{"decimal"} (default), 
@@ -40,4 +43,28 @@ percent of total when \code{within_group = NULL}.}
 }
 \description{
 Aggregating function
+}
+\examples{
+\dontrun{
+
+# total catch by port
+agg_helper(pollockMainDataTable, value = "OFFICIAL_TOTAL_CATCH_MT", 
+           group = "PORT_CODE", fun = "sum")
+
+# count permits
+agg_helper(pollockMainDataTable, value = "PERMIT", count = TRUE, fun = NULL)
+
+# count permits by gear type
+agg_helper(pollockMainDataTable, value = "PERMIT", group = "GEAR_TYPE",
+           count = TRUE, fun = NULL)
+
+# percent of total by gear type
+agg_helper(pollockMainDataTable, value = "PERMIT", group = "GEAR_TYPE",
+           count = TRUE, fun = "percent")
+ 
+# within group percentage          
+agg_helper(pollockMainDataTable, value = "OFFICIAL_TOTAL_CATCH_MT", 
+           fun = "percent", group = c("PORT_CODE", "GEAR_TYPE"), 
+           within_group = "PORT_CODE")
+}
 }

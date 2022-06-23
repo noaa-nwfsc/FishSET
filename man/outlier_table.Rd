@@ -2,7 +2,7 @@
 % Please edit documentation in R/outlier_check.R
 \name{outlier_table}
 \alias{outlier_table}
-\title{Evaluate outliers in a table format}
+\title{Evaluate outliers in Data}
 \usage{
 outlier_table(dat, project, x, sd_val = NULL, log_fun = TRUE)
 }
@@ -15,7 +15,8 @@ Table in the FishSET database contains the string 'MainDataTable'.}
 \item{x}{Variable or column number in \code{dat} to check for outliers.}
 
 \item{sd_val}{Optional. Number of standard deviations from mean defining outliers. 
-Example, \code{sd_val=6} would mean values outside +/- 6 SD from the mean would be outliers.}
+Example, \code{sd_val = 4} would mean values outside +/- 4 SD from the mean 
+would be outliers.}
 
 \item{log_fun}{Logical, whether to log function call (for internal use).}
 }
@@ -24,7 +25,8 @@ Table for evaluating whether outliers may exist in the selected data
   column.
 }
 \description{
-Evaluate outliers in a table format
+\code{outlier_table()} returns a summary table which shows summary
+statistics of a variable after applying several outlier filters.
 }
 \details{
 Returns a table of summary statistics (mean, median, standard 
@@ -36,7 +38,7 @@ Returns a table of summary statistics (mean, median, standard
 }
 \examples{
 \dontrun{
-outlier_table(pollockMainDataTable, 'pollock', 'HAUL')
+outlier_table(pollockMainDataTable, 'pollock', x = 'HAUL')
 }
 }
 \keyword{outliers}

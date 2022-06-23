@@ -2,14 +2,14 @@
 % Please edit documentation in R/temp_plot.R
 \name{temp_plot}
 \alias{temp_plot}
-\title{Returns three different plots of variable by month/year}
+\title{Plot variable by month/year}
 \usage{
 temp_plot(
   dat,
   project,
   var.select,
-  len.fun = c("length", "unique", "percent"),
-  agg.fun = c("mean", "median", "min", "max", "sum"),
+  len.fun = "length",
+  agg.fun = "mean",
   date.var = NULL,
   text.size = 8
 )
@@ -22,7 +22,7 @@ Table in FishSET database contains the string 'MainDataTable'.}
 
 \item{var.select}{Variable in \code{dat} to plot against a date variable.}
 
-\item{len.fun}{Method,\code{"length"} returns the number of observations, 
+\item{len.fun}{Method, \code{"length"} returns the number of observations, 
 \code{"unique"} returns the number of unique observations, \code{"percent"}
 returns the percentage of total observations.}
 
@@ -49,10 +49,13 @@ and aggregated variable of interest by time.
 }
 \examples{
 \dontrun{
-temp_plot(pollockMainDataTable, project='pollock', var.select = 'OFFICIAL_TOTAL_CATCH_MT',
-           len.fun = 'percent', agg.fun = 'mean', date.var = 'HAUL_DATE')
-temp_plot(pollockMainDataTable, project='pollock', var.select = 'OFFICIAL_TOTAL_CATCH_MT',
-           len.fun = 'length', agg.fun = 'max')
+temp_plot(pollockMainDataTable, project='pollock', 
+          var.select = 'OFFICIAL_TOTAL_CATCH_MT', len.fun = 'percent', 
+          agg.fun = 'mean', date.var = 'HAUL_DATE')
+          
+temp_plot(pollockMainDataTable, project='pollock', 
+          var.select = 'OFFICIAL_TOTAL_CATCH_MT', len.fun = 'length',
+          agg.fun = 'max')
 }
 
 }

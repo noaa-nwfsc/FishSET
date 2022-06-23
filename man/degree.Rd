@@ -19,39 +19,58 @@ degree(
 
 \item{project}{Project name.}
 
-\item{lat}{Variable containing latitude data.}
+\item{lat}{Variable(s) containing latitude data. If \code{NULL} the function
+will attempt to search for all latitude variables by name (e.g. by matching
+"lat" or "LAT").}
 
-\item{lon}{Variable containing longitude data.}
+\item{lon}{Variable(s) containing longitude data. If \code{NULL} the function
+will attempt to search for all longitude variables by name (e.g. by matching
+"lon" or "LON").}
 
-\item{latsign}{How should the sign value of \code{lat} be changed? Choices are \code{NULL}, no change, 
-\code{"all"}, change all values, \code{"neg"}, convert all positive values to negative, or 
-\code{"pos"}, convert all negative values to positive.}
+\item{latsign}{How should the sign value of \code{lat} be changed? Choices 
+are \code{NULL} for no change, \code{"neg"} to convert all positive values to 
+negative, \code{"pos"} to convert all negative values to positive, and
+\code{"all"} to change all values.}
 
-\item{lonsign}{How should the sign value of \code{lon} be changed? Choices are \code{NULL}, no change, 
-\code{"all"}, change all values, \code{"neg"}, convert all positive values to negative, or 
-\code{"pos"}, convert all negative values to positive.}
+\item{lonsign}{How should the sign value of \code{lon} be changed? Choices 
+are \code{NULL} for no change, \code{"neg"} to convert all positive values to 
+negative, \code{"pos"} to convert all negative values to positive, and
+\code{"all"} to change all values.}
 
-\item{replace}{Logical, should \code{lat} and \code{lon} in \code{dat} be converted to decimal degrees? 
-Defaults to TRUE. Set to FALSE if checking for compliance}
+\item{replace}{Logical, should \code{lat} and \code{lon} in \code{dat} be 
+converted to decimal degrees? Defaults to \code{TRUE}. Set to \code{FALSE} 
+if checking for compliance.}
 }
 \value{
-Returns the primary dataset with the latitudes and longitudes converted to decimal degrees. 
-   Changing the sign, transforms all values in the variable.
+Returns the primary dataset with the latitudes and longitudes converted 
+  to decimal degrees if \code{replace = TRUE} or if Changing the sign. 
+  Otherwise, a message indicating whether selected longitude and latitude
+  variables are in the correct format.
 }
 \description{
-Check that latitude and longitude are in decimal degrees and the variable sign is correct. Correct lat/lon if required.
+Check that latitude and longitude are in decimal degrees and the variable 
+sign is correct. Correct lat/lon if required.
 }
 \details{
-First checks whether any variables containing 'lat' or 'lon' in their names are numeric. Returns 
-  a message on results. To convert a variable to decimal degrees, identify the \code{lat} or \code{lon}
-  variable(s) and set \code{replace} to TRUE. To change the sign, set \code{latsign} (for \code{lat}) 
-  or \code{lonsign} (for \code{lon} to TRUE. FishSET requires that latitude and longitude 
-  be in decimal degrees.
+First checks whether any variables containing 'lat' or 'lon' in their 
+  names are numeric. Returns a message on results. To convert a variable to 
+  decimal degrees, identify the \code{lat} or \code{lon} variable(s) and set 
+  \code{replace = TRUE}. To change the sign, set \code{latsign} (for \code{lat}) 
+  or \code{lonsign} (for \code{lon = TRUE}. FishSET requires that latitude 
+  and longitude be in decimal degrees.
 }
 \examples{
 \dontrun{
-pollockMainDataTable <- degree(pollockMainDataTable, 'pollock', 'LatLon_START_LAT', 
-      'LatLon_START_LON', latsign=FALSE, lonsign=FALSE, replace=TRUE)
+# check format
+degree(pollockMainDataTable, 'pollock', lat = 'LatLon_START_LAT',
+       lon = 'LatLon_START_LON')
+
+# change signs and convert to decimal degrees
+pollockMainDataTable <- degree(pollockMainDataTable, 'pollock', 
+                               lat = 'LatLon_START_LAT', 
+                               lon = 'LatLon_START_LON', latsign = FALSE, 
+                               lonsign = FALSE, replace = TRUE)
 }
+
 
 }

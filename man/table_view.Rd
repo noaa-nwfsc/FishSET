@@ -2,21 +2,28 @@
 % Please edit documentation in R/sql_functions.R
 \name{table_view}
 \alias{table_view}
-\title{View FishSET database table}
+\title{View FishSET Database table}
 \usage{
 table_view(table, project)
 }
 \arguments{
 \item{table}{String, name of table in FishSET database. Table name must be in quotes.}
 
-\item{project}{Name of project}
+\item{project}{Name of project.}
 }
 \description{
 Wrapper for \code{\link[DBI]{dbGetQuery}}. View or call the 
   selected table from the FishSET database.
 }
+\details{
+\code{table_view()} returns a table from a project's FishSET Database.
+}
 \examples{
 \dontrun{
-head(table_view('pollockMainDataTable'))
+head(table_view('pollockMainDataTable', project = 'pollock'))
 }
+}
+\seealso{
+\code{\link{list_tables}} to show existing tables by project and type.
+  \code{\link{fishset_tables}} to show all tables in the FishSETFolder.
 }

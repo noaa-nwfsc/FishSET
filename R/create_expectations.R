@@ -3,7 +3,7 @@
 #' Create expected catch or expected revenue matrix. The matrix is required for 
 #' the logit_c model.
 
-#' @param dat  Primary data containing information on hauls or trips.Table in FishSET 
+#' @param dat  Primary data containing information on hauls or trips. Table in FishSET 
 #'   database contains the string 'MainDataTable'.
 #' @param project String, name of project.
 #' @param catch Variable from \code{dat} containing catch data.

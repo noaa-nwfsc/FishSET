@@ -14,3 +14,12 @@ be displayed.}
 Returns a data frame containing all tables along with their project names
 and table type.
 }
+\examples{
+\dontrun{
+# return all tables for all projects
+fishset_tables()
+
+# return all tables for a specific project
+fishset_tables("pollock")
+}
+}
