@@ -146,7 +146,7 @@ create_alternative_choice <-
       int <- table_view(paste0(spat, 'Centroid'), project)
 
     } else {
-      # Not sure it makes sense to have two different centroid naming conventions
+      # Nit: Not sure it makes sense to have two different centroid naming conventions
       int <- table_view('spatCentroid', project)
     }
     
@@ -325,7 +325,7 @@ create_alternative_choice <-
   # TODO: Consider making a function that converts gridded datasets to required 
   # matrix output. Handle both wide and long formats. Need additional arguments. 
   ### Add gridded data ###
-  if (!is.null(grid)) {
+  if (!is.null(griddat)) {
     # TODO: change gridVar to griddat
     gridVar <- griddat
     
