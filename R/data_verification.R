@@ -154,17 +154,22 @@ unique_filter <- function(dat, project, remove = FALSE) {
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
-  #' @param remove Logical, if TRUE removes non-unique rows. Defaults to FALSE.
-  #' @details Output is determined by \code{remove}. If \code{remove} is TRUE then
-  #' non-unique rows are removed. If \code{remove} is FALSE then only a statement is
+  #' @param remove Logical, if \code{TRUE} removes non-unique rows. Defaults to 
+  #'   \code{FALSE}.
+  #' @details Output is determined by \code{remove}. If \code{remove = TRUE} then
+  #' non-unique rows are removed. If \code{remove = FALSE} then only a statement is
   #' returned regarding the number of rows that are not unique.
-  #' @return Returns the modified primary dataset with non-unique rows removed if \code{remove} is TRUE.
+  #' @return Returns the modified primary dataset with non-unique rows removed if 
+  #'   \code{remove = TRUE}.
   #' @export unique_filter
   #' @importFrom dplyr distinct
   #' @examples
   #' \dontrun{
+  #' # check for unique rows
   #' unique_filter(pollockMainDataTable)
-  #' mod.dat <- unique_filter(pollockMainDataTable, remove=TRUE)
+  #' 
+  #' # remove non-unique rows from dataset
+  #' mod.dat <- unique_filter(pollockMainDataTable, remove = TRUE)
   #' }
 
   # Call in datasets
@@ -213,23 +218,28 @@ unique_filter <- function(dat, project, remove = FALSE) {
 }
 
 
-# EMPTY Vars
 empty_vars_filter <- function(dat, project, remove = FALSE) {
   #' Check variables are not empty
   #'
-  #' Check for and remove empty variables.
+  #' Check for and remove empty variables from dataset. Empty variables are 
+  #' columns in the data that contain all NAs and/or empty strings. 
   #'
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
-  #' @param remove Logical, whether to remove empty variables. Defaults to FALSE.
-  #' @details Function checks for empty variables and prints an outcome message to the console. 
-  #'   If empty variables are present and \code{remove} = TRUE, then empty variables will be removed from the dataset.
-  #' @return Returns the dataset with empty variables removed if \code{remove} is TRUE.
+  #' @param remove Logical, whether to remove empty variables. Defaults to \code{FALSE}.
+  #' @details Function checks for empty variables and prints an outcome message to 
+  #'   the console. If empty variables are present and \code{remove = TRUE}, then 
+  #'   empty variables will be removed from the dataset. Empty variables are 
+  #'   columns in the dataset that contain all NAs or empty strings. 
+  #' @return Returns the dataset with empty variables removed if \code{remove = TRUE}.
   #' @export empty_vars_filter
   #' @examples
   #' \dontrun{
+  #' # check for empty vars
   #' empty_vars_filter(pollockMainDataTable)
+  #' 
+  #' # remove empty vars from data
   #' mod.dat <- empty_vars_filter(pollockMainDataTable, 'pollock', remove = TRUE)
   #' }
 
@@ -243,7 +253,7 @@ empty_vars_filter <- function(dat, project, remove = FALSE) {
   cat("Empty vars check for", dat, "dataset on", 
       format(Sys.Date(), format = "%Y%m%d"), "\n", file = tmp, append = TRUE)
 
-  empty_ind <- qaqc_helper(dataset, function(x) all(is.na(x)))
+  empty_ind <- qaqc_helper(dataset, is_value_empty)
   
   if (any(empty_ind)) {
     

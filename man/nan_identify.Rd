@@ -2,7 +2,7 @@
 % Please edit documentation in R/nan_filter.R
 \name{nan_identify}
 \alias{nan_identify}
-\title{Check whether any columns in the primary dataset contain NAs or NaNs.}
+\title{Identify NaNs and NAs}
 \usage{
 nan_identify(dat, project)
 }
@@ -19,10 +19,16 @@ Returns names of columns containing NAs or NaNs, if any.
 Check whether any columns in the primary dataset contain NAs or NaNs. 
   Returns column names containing NAs or NaNs.
 }
+\details{
+Check whether any columns in the primary dataset contain NAs or NaNs.
+}
 \examples{
 \dontrun{
 nan_identify(pcodMainDataTable, "pcod")
 }
+}
+\seealso{
+\code{\link{na_filter}} and  \code{\link{nan_filter}}
 }
 \keyword{NA}
 \keyword{NaN,}

@@ -22,40 +22,57 @@ load_spatial(
 \item{name}{Name spatial data should be saved as in FishSET project folder.
 Cannot be empty or contain spaces.}
 
-\item{over_write}{Logical, If TRUE, saves \code{spat} over previously saved data 
-table in the FishSET project folder.}
+\item{over_write}{Logical, If \code{TRUE}, saves \code{spat} over previously 
+saved data table in the FishSET project folder.}
 
 \item{project}{String, name of project.}
 
-\item{data.type}{Data type argument passed to \code{\link{read_dat}}. Must 
-be given if reading from a shape folder, e.g. \code{data.type = "shape"}. 
-Otherwise, this argument is optional.}
+\item{data.type}{Data type argument passed to \code{\link{read_dat}}. If 
+reading from a shape folder use \code{data.type = "shape"}.}
 
 \item{lon}{Variable or list from \code{spat} containing longitude data. 
-Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}
+Required for csv files. Leave as \code{NULL} if \code{spat} is a shape or 
+json file.}
 
 \item{lat}{Variable or list from \code{spat} containing latitude data. 
-Required for csv files. Leave as NULL if \code{spat} is a shape or json file}
+Required for csv files. Leave as \code{NULL} if \code{spat} is a shape or 
+json file}
 
-\item{id}{Polygon ID column. Required for csv files. Leave as NULL if 
+\item{id}{Polygon ID column. Required for csv files. Leave as \code{NULL} if 
 \code{spat} is a shape or json file.}
 
 \item{...}{Additional argument passed to \code{\link{read_dat}}.}
 }
 \description{
-Import, parse, and save spatial data
+Saves a spatial table to the FishSETFolder as a geojson file. A project must 
+exist before running \code{load_spatial()}. See \code{\link{load_maindata}} 
+to create a new project.
 }
 \details{
 Function to import, parse, and saved project folder in `FishSETFolder` 
- directory. Note, the spatial file is saved as a geojson. To export as  shape 
- file, use \code{\link{write_dat}} specifying `type='shp'`. \code{load_spatial} 
- performs basic quality check before saving spatial tables to the project 
- data folder. To be saved, the spatial must pass the checks in 
- \code{\link{check_spatdat}}. The spatial table is converted to an \code{sf} 
- object, and checked for unique rows and empty columns.
+ directory. To export as  shape file, use \code{\link{write_dat}} specifying 
+ `type='shp'`. \code{load_spatial()} performs basic quality check before saving 
+ spatial tables to the project data folder as a geojson file. To be saved, 
+ the spatial must pass the checks in \code{\link{check_spatdat}}. The spatial 
+ table is converted to an \code{sf} object, and checked for unique rows and 
+ empty columns. The naming convention for spatial tables is "projectNameSpatTable". 
+ See \code{\link{table_view}} to view/load spatial tables into the working 
+ environment.
 }
 \examples{
 \dontrun{
-load_spatial(spat = 'pcodMainDataTable', name = 'tenMinSqr', over_write = TRUE, project = 'pcod')
+# upload from filepath
+load_spatial(spat = "FILE/PATH/TO/SPAT", name = 'tenMinSqr', 
+             over_write = TRUE, project = 'pcod')
+
+# upload from object in working environment
+load_spatial(spat = NMFSAreas, name = "NMFS", project = "pcod")
+
+# upload from an existing FishSET spatial table
+load_spatial(spat = "pcodNMFSSpatTable", name = "NMFS", project = "pcod2020")
 }
+}
+\seealso{
+\code{\link{table_view}}, \code{\link{load_maindata}}, 
+\code{\link{write_dat}}
 }

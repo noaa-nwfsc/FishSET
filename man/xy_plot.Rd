@@ -2,12 +2,13 @@
 % Please edit documentation in R/xy_plot.R
 \name{xy_plot}
 \alias{xy_plot}
-\title{Evaluate relationship of two variables in a plot format}
+\title{Plot relationship of two variables}
 \usage{
 xy_plot(dat, project, var1, var2, regress = FALSE)
 }
 \arguments{
-\item{dat}{Primary data containing information on hauls or trips. Table in FishSET database contains the string 'MainDataTable'.}
+\item{dat}{Primary data containing information on hauls or trips. Table in 
+FishSET database contains the string 'MainDataTable'.}
 
 \item{project}{String, name of project.}
 
@@ -15,7 +16,8 @@ xy_plot(dat, project, var1, var2, regress = FALSE)
 
 \item{var2}{Second variable in \code{dat}.}
 
-\item{regress}{Logical, if TRUE, returns plot with fitted linear regression line. Defaults to FALSE.}
+\item{regress}{Logical, if TRUE, returns plot with fitted linear regression 
+line. Defaults to \code{FALSE}.}
 }
 \value{
 Returns plot output to R console and saves plot to Output folder.
@@ -28,7 +30,8 @@ Plot of var1 against var 2
 }
 \examples{
 \dontrun{
-xy_plot(pollockMainDataTable, 'OFFICIAL_TOTAL_CATCH_MT', 'HAUL', regress=TRUE)
+xy_plot(pollockMainDataTable, var1 = 'OFFICIAL_TOTAL_CATCH_MT',
+        var2 = 'HAUL', regress = TRUE)
 }
 }
 \keyword{plot}

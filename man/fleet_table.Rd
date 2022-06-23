@@ -20,42 +20,46 @@ FishSET database contains the string 'MainDataTable'.}
 \item{project}{String, name of project.}
 
 \item{cond}{String; a vector containing valid R expressions saved as strings. 
-Must be used with the \code{fleet_val} argument.
-Each expression should be in quotes (double or single) with nested quotes indicated
-with escaped quotes (\') or with the opposite quote used to contain the expression. For example,
+Must be used with the \code{fleet_val} argument. Each expression should be 
+in quotes (double or single) with nested quotes indicated with escaped quotes 
+(\') or with the opposite quote used to contain the expression. For example, 
 "species == 'cod'" and "species == \'cod\'" are both valid.}
 
-\item{fleet_val}{String; a vector of fleet names to be assigned. Must be used with the
-\code{cond} argument.}
+\item{fleet_val}{String; a vector of fleet names to be assigned. Must be used 
+with the \code{cond} argument.}
 
 \item{table}{A data frame that has one condition column and one fleet column. See
 'Details' for table formatting.}
 
-\item{save}{Logical; whether to save the current fleet_table to the FishSET database. Defaults to \code{TRUE}.
-Tables are saved in the format of 'projectFleetTable'. Each project can only have one fleet table.
-New fleet definitions are appended to the exiting fleet table. See \code{\link{table_remove}} to delete a table.}
+\item{save}{Logical; whether to save the current fleet_table to the FishSET 
+database. Defaults to \code{TRUE}. Tables are saved in the format of 
+'projectFleetTable'. Each project can only have one fleet table. New fleet 
+definitions are appended to the exiting fleet table. See \code{\link{table_remove}} 
+to delete a table.}
 }
 \value{
-Returns a table of fleet conditions that is saved to the FishSET database with the name
-  'projectFleetTable'.
+Returns a table of fleet conditions that is saved to the FishSET database 
+  with the name 'projectFleetTable'.
 }
 \description{
-\code{fleet_table} saves a table of fleet expression to the FishSET database which
-  can then be applied to a dataset with fleet_assign. The table must contain a 'condition'
-  and 'fleet' column with each row corresponding to a set of expressions that will be used to
-  assign observations to fleets. A table can be created with the \code{cond} and \code{fleet_val}
-  arguments or by uploading an existing table that matches the format requirements. See 'Details'
-  below for examples of how tables can be formatted.
+\code{fleet_table} saves a table of fleet expression to the FishSET
+  database which can then be applied to a dataset with \code{\link{fleet_assign}}. 
+  The table must contain a 'condition' and 'fleet' column with each row corresponding 
+  to a set of expressions that will be used to assign observations to fleets. 
+  A table can be created with the \code{cond} and \code{fleet_val} arguments 
+  or by uploading an existing table that matches the format requirements. See 
+  'Details' below for examples of how tables can be formatted.
 }
 \details{
-Below is a simple example of a fleet table. For a fleet table to be created, it must contain
-  one "condition" column and one "fleet" column. Each fleet definition can be as long 
-  as necessary. For example, the first expression in the condition column example could also be
-  \code{"GEAR == 8 & species == 'pollock'"}. Use the '&' operator when combining expressions.
+Below is a simple example of a fleet table. For a fleet table to be created, 
+  it must contain one "condition" column and one "fleet" column. Each fleet 
+  definition can be as long as necessary. For example, the first expression 
+  in the condition column example could also be \code{"GEAR == 8 & species == 'pollock'"}. 
+  Use the '&' operator when combining expressions.
 \tabular{lllll}{
 condition                 \tab fleet\cr
 'GEAR == 8'               \tab 'A'\cr
-'species == 'cod'         \tab 'B'\cr
+'species == "cod"'        \tab 'B'\cr
 'area \%in\% c(640, 620)' \tab 'C'\cr
 }
 }

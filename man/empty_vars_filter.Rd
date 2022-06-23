@@ -12,21 +12,27 @@ Table in the FishSET database contains the string 'MainDataTable'.}
 
 \item{project}{String, name of project.}
 
-\item{remove}{Logical, whether to remove empty variables. Defaults to FALSE.}
+\item{remove}{Logical, whether to remove empty variables. Defaults to \code{FALSE}.}
 }
 \value{
-Returns the dataset with empty variables removed if \code{remove} is TRUE.
+Returns the dataset with empty variables removed if \code{remove = TRUE}.
 }
 \description{
-Check for and remove empty variables.
+Check for and remove empty variables from dataset. Empty variables are 
+columns in the data that contain all NAs and/or empty strings.
 }
 \details{
-Function checks for empty variables and prints an outcome message to the console. 
-  If empty variables are present and \code{remove} = TRUE, then empty variables will be removed from the dataset.
+Function checks for empty variables and prints an outcome message to 
+  the console. If empty variables are present and \code{remove = TRUE}, then 
+  empty variables will be removed from the dataset. Empty variables are 
+  columns in the dataset that contain all NAs or empty strings.
 }
 \examples{
 \dontrun{
+# check for empty vars
 empty_vars_filter(pollockMainDataTable)
+
+# remove empty vars from data
 mod.dat <- empty_vars_filter(pollockMainDataTable, 'pollock', remove = TRUE)
 }
 }

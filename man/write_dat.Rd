@@ -11,12 +11,12 @@ write_dat(dat, project, path = NULL, file_type = "csv", ...)
 
 \item{project}{String, project name.}
 
-\item{path}{String, path or connection to write to. If left empty, the file will be written to the dat folder in the project directory.}
+\item{path}{String, path or connection to write to. If left empty, the file 
+will be written to the dat folder in the project directory.}
 
 \item{file_type}{String, the type of file to write to. Options include \code{"csv"},
-\code{"txt"} (tab-separated text file), \code{"xlsx"} (excel), \code{"rdata"}, \code{"json"}, 
-\code{"stata"}, \code{"spss"},
-\code{"sas"}, and \code{"matlab"}.}
+\code{"txt"} (tab-separated text file), \code{"xlsx"} (excel), \code{"rdata"}, 
+\code{"json"}, \code{"stata"}, \code{"spss"}, \code{"sas"}, and \code{"matlab"}.}
 
 \item{...}{Additional arguments passed to writing function. See "details" for 
 the list of functions.}
@@ -25,7 +25,8 @@ the list of functions.}
 Write a data table to local file directory
 }
 \details{
-Leave \code{path = NULL} to save \code{dat} to the \code{data} folder in the \code{project} directory
+Leave \code{path = NULL} to save \code{dat} to the \code{data} folder in the 
+\code{project} directory
 See \code{\link[utils]{write.table}}  for csv and tab-separated files, 
    \code{\link[base]{save}} for R data files, 
    \code{\link[openxlsx]{write.xlsx}},
@@ -40,10 +41,13 @@ See \code{\link[utils]{write.table}}  for csv and tab-separated files,
 \examples{
 \dontrun{
 # Save to the default data folder in project directory
-   write_dat(pollockMainDataTable, type = "csv", "pollock")
+write_dat(pollockMainDataTable, type = "csv", "pollock")
+
 # Save to defined directory location
-   write_dat(pollockMainDataTable, path = "C://data/pollock_dataset.csv", type = "csv", "pollock")
-#Save shape file
-   write_date(ST6, path = "C://data//ST6.shp", type="shp", project='Pollock')
+write_dat(pollockMainDataTable, path = "C://data/pollock_dataset.csv", 
+          type = "csv", "pollock")
+          
+# Save shape file
+write_date(ST6, path = "C://data//ST6.shp", type = "shp", project = 'Pollock')
 }
 }

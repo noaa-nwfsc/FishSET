@@ -145,7 +145,9 @@ check_proj <- function(project = NULL) {
       
       dir.create(file.path(locproject()), showWarnings = FALSE)
     }
+    
     proj_dir <- paste0(locproject(), '/', project) 
+    
     if (project_exists(project) == FALSE) {
       
       dir.create(file.path(proj_dir), showWarnings = FALSE)
@@ -853,9 +855,9 @@ data_pull <- function(dat, project) {
   #' @keywords internal
   #' @export
   
-  if (is.character(dat) == TRUE) {
+  if (is.character(dat)) {
     
-    if (is.null(dat) == TRUE | table_exists(dat, project) == FALSE) {
+    if (is.null(dat) | table_exists(dat, project) == FALSE) {
       
       print(project_tables(project))
       stop(paste(dat, "not defined or does not exist. Consider using one of the",
@@ -934,6 +936,87 @@ parse_data_name <- function(dat, type, project) {
   dat
 }
 
+data_upload_helper <- function(dat, type, ...) {
+  #' Upload data from file, FishSET DB, or working environment
+  #' 
+  #' Helper function that can read data from file, from FishSET DB, or a dataframe
+  #' in the working environment. Used for data upload functions: 
+  #' \code{load_maindata}, \code{load_port}, \code{load_aux}, \code{load_grid},
+  #' \code{load_spatial}.
+  #' 
+  #' @param dat Reference to a dataframe. This can be a filepath, the name of an
+  #'   existing FishSET table, or a dataframe object in the working environment.
+  #' @param type The type of data to upload. Options include \code{"main"}, 
+  #' \code{"port"}, \code{"grid"}, \code{"aux"}, and \code{"spat"}.
+  #' @param ... Additional arguments passed to \code{\link{read_dat}}.
+  #' @examples 
+  #' \dontrun{
+  #' dataset <- data_upload_helper(dat, type = "main")
+  #' }
+  
+  if (is.character(dat)) {
+    
+    if (file.exists(dat)) {
+      
+      dataset <- read_dat(dat, ...)
+      
+    } else {
+      
+      # TODO: for type = spat, copy from spatial data folder
+      
+      type_vec <- 
+        switch(type, 
+               "main" = c("main table", "raw main table"),
+               "port" = c("port table", "raw port table"), 
+               "grid" = c("grid table", "raw grid table"),
+               "aux" = c("aux table", "raw aux table"),
+               "spat" = c("spat table", "raw spat table"))
+      
+      # check if table exists in FishSET DB
+      f_tabs <- fishset_tables() # contains table, project, and type
+      
+      f_tabs <- subset(f_tabs, type %in% type_vec)
+      
+      main_tabs <- f_tabs$table
+      
+      if (dat %in% main_tabs) {
+        
+        dat_string <- glob2rx(dat)
+        
+        f_proj <- f_tabs$project[grepl(dat_string, main_tabs)]
+        
+        dataset <- table_view(dat, project = f_proj)
+        
+      } else { # table/filepath not found
+        
+        if (!is_value_empty(file_ext(dat))) { # contains a filepath extension
+          
+          stop("File not found.", call. = FALSE)
+          
+        } else { # assume user is referencing a FishSET table
+          
+          stop("FishSET table not found. Run fishset_tables() to see all FishSET tables.", 
+               call. = FALSE)
+        }
+      }
+    }
+    
+  } else {
+    
+    if (is.data.frame(dat)) {
+      
+      dataset <- dat
+      
+    } else {
+      
+      stop("'dat' not recognized. 'dat' must be a filepath, a FishSET DB table, ",
+           "or a dataframe object in working environment.", call. = FALSE)
+    }
+  }
+  
+  dataset
+}
+
 msg_print <- function(temp_file) {
   #' Display temporary file using message or print
   #' 
@@ -971,6 +1054,7 @@ name_check <- function(dat, names, repair = FALSE) {
     stop("Name is missing.", call. = FALSE)
   }
   
+  # TODO: Check for case-insensitive names (SQLite requirement?)
   # check that names are unique, returns error if not
   d_names <- colnames(dat)
   dup_names <- names %in% d_names
@@ -1021,22 +1105,49 @@ agg_helper <- function(dataset, value, period = NULL, group = NULL, within_group
                        fun = "sum", count = FALSE, format_tab = "decimal") {
   #' Aggregating function 
   #'
+  #'
   #' @param dataset `MainDataTable` to aggregate. 
   #' @param value String, name of variable to aggregate. 
-  #' @param period String, name of period variable to aggregate by.
+  #' @param period String, name of period variable to aggregate by. Primarily for 
+  #'   internal use. Places temporal variables to the right-end of the summary
+  #'   table.
   #' @param group String, name of grouping variable(s) to aggregate by.
-  #' @param within_group String, name of grouping variables(s) for calculating
-  #'   within group percentages. \code{fun = "percent"} required. 
+  #' @param within_group String, name of grouping variable(s) for calculating
+  #'   within group percentages. \code{fun = "percent"} and \code{period} or 
+  #'   \code{group} are required. 
   #' @param fun String, function name to aggregate by. Also accepts anonymous functions.
   #'   To calculate percentage, set \code{fun = "percent"}; this will return the 
   #'   percent of total when \code{within_group = NULL}. 
-  #' @param count Logical, if TRUE then returns the number of observations by
+  #' @param count Logical, if \code{TRUE} then returns the number of observations by
   #'   \code{period} and/or \code{group}.
   #' @param format_tab String. Options include \code{"decimal"} (default), 
   #' \code{"scientific"}, and \code{"PrettyNum"} (rounds to two decimal places
   #'   and uses commas).
   #' @export
   #' @import dplyr
+  #' @examples 
+  #' \dontrun{
+  #' 
+  #' # total catch by port
+  #' agg_helper(pollockMainDataTable, value = "OFFICIAL_TOTAL_CATCH_MT", 
+  #'            group = "PORT_CODE", fun = "sum")
+  #' 
+  #' # count permits
+  #' agg_helper(pollockMainDataTable, value = "PERMIT", count = TRUE, fun = NULL)
+  #' 
+  #' # count permits by gear type
+  #' agg_helper(pollockMainDataTable, value = "PERMIT", group = "GEAR_TYPE",
+  #'            count = TRUE, fun = NULL)
+  #'
+  #' # percent of total by gear type
+  #' agg_helper(pollockMainDataTable, value = "PERMIT", group = "GEAR_TYPE",
+  #'            count = TRUE, fun = "percent")
+  #'  
+  #' # within group percentage          
+  #' agg_helper(pollockMainDataTable, value = "OFFICIAL_TOTAL_CATCH_MT", 
+  #'            fun = "percent", group = c("PORT_CODE", "GEAR_TYPE"), 
+  #'            within_group = "PORT_CODE")
+  #' }
   
   agg_cols <- unique(c(value, period, group))
   
@@ -1076,8 +1187,13 @@ agg_helper <- function(dataset, value, period = NULL, group = NULL, within_group
     } %>% dplyr::ungroup()
   
   if (calc_perc) {
-    
+    # TODO: check that a group/period has been used, otherwise within_group doesn't work 
     if (!is.null(within_group)) {
+      
+      if (is_value_empty(c(group, period))) {
+        
+        stop("'within_group' requires that 'group' or 'period' be used.", call. = FALSE)
+      }
       
       tab_out <- 
         tab_out %>% dplyr::group_by(across(dplyr::all_of(within_group)))

@@ -1,69 +1,110 @@
-zone_summary <- function(dat, spat, project, lon.dat, lat.dat, zone.dat, 
-                         zone.spat, count = TRUE, var = NULL, group = NULL, fun = NULL, 
-                         breaks = NULL, n.breaks = 10, bin_colors = NULL, na.rm = TRUE, 
-                         dat.center = TRUE, output = "plot") {
-  
-  #' Summarize zones/closure areas
-  #' 
-  #' \code{zone_summary} counts observations and aggregates values in \code{dat} 
-  #' by regulatory zone or closure area.
-  #' 
-  #'@param dat Primary data containing information on hauls or trips. 
-  #'  Table in FishSET database contains the string 'MainDataTable'.
-  #'@param spat Spatial data containing information on fishery management or 
-  #'   regulatory zones.
-  #'@param project Name of project.
-  #'@param lon.dat Name of longitude column in \code{dat}.
-  #'@param lat.dat Name of latitude column in \code{dat}.
-  #'@param zone.dat Name of zone ID column in \code{dat}.
-  #'@param zone.spat Name of zone ID column in \code{spat}.
-  #'@param count Logical. if \code{TRUE}, then the number observations per zone 
-  #'  will be returned. Can be paired with \code{fun = "percent"} and \code{group}.
-  #'  \code{zone_summary} will return an error if \code{var} is include and 
-  #'  \code{count = TRUE}.
-  #'@param var Optional, name of numeric variable to aggregate by zone/closure
-  #'  area. 
-  #'@param group Name of grouping variable to aggregate by zone/closure area. Only
-  #'  one variable is allowed. 
-  #'@param fun Function name (string) to aggregate by. \code{"percent"} the 
-  #'  percentage of observations in a given zone. Other options include "sum", 
-  #'  "mean", "median", "min", and "max". 
-  #'@param breaks A numeric vector of breaks to bin zone frequencies by. Overrides
-  #'  \code{n.breaks} if entered. 
-  #'@param n.breaks The number of break points to create if breaks are not given 
-  #'  directly. Defaults to 10. 
-  #'@param bin_colors Optional, a vector of colors to use in plot. Must be same length
-  #'  as breaks. Defaults to \code{viridis::viridis(option = "H")}.
-  #'@param na.rm Logical, whether to remove zones with zero counts. 
-  #'@param dat.center Logical, whether the plot should center on \code{dat} 
-  #'  (\code{TRUE}) or \code{spat} (\code{FALSE}). Recommend \code{dat.center = TRUE}
-  #'  when aggregating by regulatory zone and \code{dat.center = FALSE} when
-  #'  aggregating by closure area. 
-  #'@param output  Output a \code{"plot"}, \code{"table"}, or both (\code{"tab_plot"}).
-  #'  Defaults to \code{"plot"}.
-  #'@details Observations in \code{dat} must be assigned to regulatory zones to 
-  #'  use this function. See \code{\link{assignment_column}} for details. 
-  #'  \code{zone_summary} can return: the number of observations per zone 
-  #'  (\code{count = TRUE}, \code{fun = NULL}, \code{group = NULL}), the percentage
-  #'  of observations by zone (\code{count = TRUE}, \code{fun = "percent"}, \code{group = NULL}),
-  #'  the percentage of observations by zone and group (\code{count = TRUE}, \code{fun = "percent"}, 
-  #'  \code{group = "group"}), summary of a numeric variable by zone (\code{count = FALSE}, 
-  #'  \code{var = "var"}, \code{fun = "sum"}, \code{group = NULL}), summary of a numeric variable
-  #'  by zone and group (\code{count = FALSE}, \code{var = "var"}, \code{fun = "sum"}, 
-  #'  \code{group = "group"}), share (percentage) of a numeric variable by zone
-  #'  (\code{count = FALSE}, \code{var = "var"}, \code{fun = "percent"}, \code{group = NULL}), 
-  #'  share (percentage) of a numeric variable by zone and group (\code{count = FALSE}, 
-  #'  \code{var = "var"}, \code{fun = "percent"}, \code{group = "group"}).
-  #'@export
-  #'@import ggplot2
-  #'@import dplyr
-  #'@import sf
-  #'@examples 
-  #'\dontrun{
-  #'zone_summary(pollockMainTable, nmfs_area, "LonLat_START_LON", "LonLat_START_LAT",
-  #'              zone.dat = "ZoneID", zone.spat = "NMFS_AREA")
-  #'}
-  
+#' Summarize zones, closure areas
+#' 
+#' \code{zone_summary} counts observations and aggregates values in \code{dat} 
+#' by regulatory zone or closure area.
+#' 
+#'@param dat Primary data containing information on hauls or trips. 
+#'  Table in FishSET database contains the string 'MainDataTable'.
+#'@param spat Spatial data containing information on fishery management or 
+#'   regulatory zones. \code{sf} objects are recommended, but \code{sp} objects
+#'   can be used as well. If using a spatial table read from a csv file, then
+#'   arguments \code{lon.spat} and \code{lat.spat} are required. To upload your
+#'   spatial data to the FishSETFolder see \code{\link{load_spatial}}.
+#'@param project Name of project.
+#'@param lon.dat Name of longitude column in \code{dat}.
+#'@param lat.dat Name of latitude column in \code{dat}.
+#'@param zone.dat Name of zone ID column in \code{dat}.
+#'@param zone.spat Name of zone ID column in \code{spat}.
+#'@param count Logical. if \code{TRUE}, then the number observations per zone 
+#'  will be returned. Can be paired with \code{fun = "percent"} and \code{group}.
+#'  \code{zone_summary} will return an error if \code{var} is include and 
+#'  \code{count = TRUE}.
+#'@param var Optional, name of numeric variable to aggregate by zone/closure
+#'  area. 
+#'@param group Name of grouping variable to aggregate by zone/closure area. Only
+#'  one variable is allowed. 
+#'@param fun Function name (string) to aggregate by. \code{"percent"} the 
+#'  percentage of observations in a given zone. Other options include "sum", 
+#'  "mean", "median", "min", and "max". 
+#'@param breaks A numeric vector of breaks to bin zone frequencies by. Overrides
+#'  \code{n.breaks} if entered. 
+#'@param n.breaks The number of break points to create if breaks are not given 
+#'  directly. Defaults to 10. 
+#'@param bin_colors Optional, a vector of colors to use in plot. Must be same length
+#'  as breaks. Defaults to \code{viridis::viridis(option = "H")}.
+#'@param na.rm Logical, whether to remove zones with zero counts. 
+#'@param dat.center Logical, whether the plot should center on \code{dat} 
+#'  (\code{TRUE}) or \code{spat} (\code{FALSE}). Recommend \code{dat.center = TRUE}
+#'  when aggregating by regulatory zone and \code{dat.center = FALSE} when
+#'  aggregating by closure area. 
+#'@param output  Output a \code{"plot"}, \code{"table"}, or both (\code{"tab_plot"}).
+#'  Defaults to \code{"plot"}.
+#'@details Observations in \code{dat} must be assigned to regulatory zones to 
+#'  use this function. See \code{\link{assignment_column}} for details. 
+#'  \code{zone_summary} can return: the number of observations per zone 
+#'  (\code{count = TRUE}, \code{fun = NULL}, \code{group = NULL}), the percentage
+#'  of observations by zone (\code{count = TRUE}, \code{fun = "percent"}, 
+#'  \code{group = NULL}), the percentage of observations by zone and group 
+#'  (\code{count = TRUE}, \code{fun = "percent"}, \code{group = "group"}), summary 
+#'  of a numeric variable by zone (\code{count = FALSE}, \code{var = "var"}, 
+#'  \code{fun = "sum"}, \code{group = NULL}), summary of a numeric variable
+#'  by zone and group (\code{count = FALSE}, \code{var = "var"}, \code{fun = "sum"}, 
+#'  \code{group = "group"}), share (percentage) of a numeric variable by zone
+#'  (\code{count = FALSE}, \code{var = "var"}, \code{fun = "percent"}, \code{group = NULL}), 
+#'  share (percentage) of a numeric variable by zone and group (\code{count = FALSE}, 
+#'  \code{var = "var"}, \code{fun = "percent"}, \code{group = "group"}).
+#'@export
+#'@import ggplot2
+#'@import dplyr
+#'@import sf
+#'@examples 
+#'\dontrun{
+#'
+#'# count # of obs
+#'zone_summary(pollockMainTable, spat = nmfs_area, lon.dat = "LonLat_START_LON", 
+#'             lat.dat = "LonLat_START_LAT", zone.dat = "ZoneID", 
+#'             zone.spat = "NMFS_AREA")
+#'             
+#'# percent of obs
+#'zone_summary(pollockMainTable, spat = nmfs_area, lon.dat = "LonLat_START_LON", 
+#'             lat.dat = "LonLat_START_LAT", zone.dat = "ZoneID", 
+#'             zone.spat = "NMFS_AREA", count = TRUE, fun = "percent")
+#'
+#'# count by group
+#'zone_summary(pollockMainTable, spat = nmfs_area, lon.dat = "LonLat_START_LON", 
+#'             lat.dat = "LonLat_START_LAT", zone.dat = "ZoneID", 
+#'             zone.spat = "NMFS_AREA", group = "GEAR_TYPE")   
+#'
+#'# total catch by zone           
+#'zone_summary(pollockMainTable, spat = nmfs_area, lon.dat = "LonLat_START_LON", 
+#'             lat.dat = "LonLat_START_LAT", zone.dat = "ZoneID", 
+#'             zone.spat = "NMFS_AREA", var = "OFFICIAL_TOTAL_CATCH_MT",
+#'             count = FALSE, fun = "sum")  
+#'
+#'# percent of catch by zone           
+#'zone_summary(pollockMainTable, spat = nmfs_area, lon.dat = "LonLat_START_LON", 
+#'             lat.dat = "LonLat_START_LAT", zone.dat = "ZoneID", 
+#'             zone.spat = "NMFS_AREA", var = "OFFICIAL_TOTAL_CATCH_MT",
+#'             count = FALSE, fun = "percent")         
+#'             
+#'}
+zone_summary <- function(dat,
+                         spat,
+                         project,
+                         lon.dat,
+                         lat.dat,
+                         zone.dat,
+                         zone.spat,
+                         count = TRUE,
+                         var = NULL,
+                         group = NULL,
+                         fun = NULL,
+                         breaks = NULL,
+                         n.breaks = 10,
+                         bin_colors = NULL,
+                         na.rm = TRUE,
+                         dat.center = TRUE,
+                         output = "plot") {
   
   # Call in datasets
   out <- data_pull(dat, project)

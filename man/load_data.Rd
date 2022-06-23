@@ -26,6 +26,7 @@ Pulls the primary data table from the FishSET database and loads it into the wor
 \examples{
 \dontrun{
 load_data('pollock')
+
 load_data('pollock', 'pollockMainDataTable20190101')
 }
 
