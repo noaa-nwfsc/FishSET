@@ -2,6 +2,8 @@
 
 
 nan_identify <- function(dat, project) {
+  #' Identify NaNs and NAs
+  #' 
   #' Check whether any columns in the primary dataset contain NAs or NaNs.
   #' 
   #' @description Check whether any columns in the primary dataset contain NAs or NaNs. 
@@ -12,6 +14,7 @@ nan_identify <- function(dat, project) {
   #' @keywords NaN, NA
   #' @return Returns names of columns containing NAs or NaNs, if any.
   #' @export nan_identify
+  #' @seealso \code{\link{na_filter}} and  \code{\link{nan_filter}}
   #' @examples
   #' \dontrun{
   #' nan_identify(pcodMainDataTable, "pcod")
@@ -43,7 +46,8 @@ nan_identify <- function(dat, project) {
   if (length(na2_cols) > 0) {
      
      cat("The following columns contain the value -999: ", paste(na2_cols, collapse = ", "),
-         ". Check that this is a valid value or stands for NA.\n", file = tmp,sep = "", append = TRUE)
+         ". Check that this is a valid value or stands for NA.\n", file = tmp,sep = "", 
+         append = TRUE)
   }
   
   # check for NaNs
@@ -52,7 +56,8 @@ nan_identify <- function(dat, project) {
   if (length(nan_cols) > 0) {
     
     cat("The following columns contain NaNs: ", paste(nan_cols, collapse = ", "),
-        ". Consider using na_filter to replace or remove NaNs.\n", file = tmp, sep = "", append = TRUE)
+        ". Consider using na_filter to replace or remove NaNs.\n", file = tmp, sep = "", 
+        append = TRUE)
 
   } else {
    
@@ -71,47 +76,53 @@ nan_identify <- function(dat, project) {
 }
 
 
-# Replaces nans in the data column with the chosen value or removes rows containing NaNs
 nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE, 
                        rep.value = "mean", over_write = FALSE) {
-  #' Remove NaNs
+  #' Identify, remove, or replace NaNs
   #'
-  #' Remove or replace NaNs in primary dataset.
+  #' Replaces NaNs in the primary data with the chosen value or removes rows 
+  #' containing NaNs
   #'
   #' @param dat Primary data containing information on hauls or trips. Table in 
   #'   the FishSET database contains the string 'MainDataTable'.
   #' @param project Project name.
   #' @param x  Character string of variables to remove or replace NaNs.
-  #' @param replace Logical, If TRUE, NaNs are replaced. Defaults to FALSE.
-  #' @param remove  Logical, if TRUE, removes the entire row of the dataset where 
-  #'   NaN is present. Defaults to FALSE.
+  #' @param replace Logical, If \code{TRUE}, NaNs are replaced. Defaults to \code{FALSE}.
+  #' @param remove  Logical, if \code{TRUE}, removes the entire row of the dataset 
+  #'   where NaN is present. Defaults to \code{FALSE}.
   #' @param rep.value Value to replace all NaNs in a numeric column. Defaults to 
   #'   the mean value of the column. Other options include \code{"median"} or a
   #'   numeric value, e.g. \code{rep.value = 0}. 
-  #' @param over_write Logical, If TRUE, saves data over previously saved data table 
-  #'   in the FishSET database.
+  #' @param over_write Logical, If \code{TRUE}, saves data over previously saved 
+  #'   data table in the FishSET database. Defaults to \code{FALSE}.
   #' @details To check for NaNs across \code{dat} run the function specifying only 
-  #'   \code{dat} (\code{nan_filter(dataset, project)}). The function will return a statement  
-  #'   of which variables, if any, contain NaNs. To remove NaNs, use \code{remove = TRUE}. 
-  #'   All rows containing NAs in \code{x} will be removed from \code{dat}. To replace 
-  #'   NaNs, use \code{replace = TRUE}. If \code{replace} is FALSE and \code{rep.value} 
-  #'   is not defined, then NaNs are replaced with mean value. The modified dataset will 
-  #'   be returned if \code{replace=TRUE} or \code{remove=TRUE}. Save the modified data 
+  #'   \code{dat} (\code{nan_filter(dataset, project)}). The function will return 
+  #'   a statement of which variables, if any, contain NaNs. To remove NaNs, use 
+  #'   \code{remove = TRUE}. All rows containing NAs in \code{x} will be removed 
+  #'   from \code{dat}. To replace NaNs, use \code{replace = TRUE}. If both 
+  #'   \code{replace} and \code{remove} are \code{TRUE} then \code{replace} is used. 
+  #'   If \code{replace} is \code{FALSE} and \code{rep.value} is not defined, then 
+  #'   NaNs are replaced  with mean value. The modified dataset will be returned 
+  #'   if \code{replace = TRUE} or \code{remove = TRUE}. Save the modified data 
   #'   table to the FishSET database by setting \code{over_write = TRUE)}.
   #' @keywords NaN
-  #' @return Returns the modified primary dataset.
+  #' @return If \code{replace} and \code{remove} are \code{FALSE} then a statement 
+  #' of whether NaNs are found is returned. If either \code{replace} or \code{remove} 
+  #' is \code{TRUE} the modified primary dataset is returned.
   #' @importFrom shiny isRunning
   #' @export nan_filter
   #' @examples
   #' \dontrun{
-  #' nan_identify(pcodMainDataTable)
-  #' mod.dat <- nan_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT')
+  #' nan_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT')
+  #' 
   #' mod.dat <- nan_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT', 
-  #'   replace=TRUE)
+  #'                       replace = TRUE)
+  #'                       
   #' mod.dat <- nan_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT',
-  #'     replace=TRUE, rep.value=0)
+  #'                       replace = TRUE, rep.value = 0)
+  #'                       
   #' mod.dat <- nan_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT', 
-  #'   remove=TRUE)
+  #'                       remove = TRUE)
   #' }
 
   # Call in datasets
@@ -155,7 +166,7 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
                 rep.value <- mean(dataset[[i]], na.rm = TRUE)
                 rep.value <- do.call(rep.value, list(dataset[[i]], na.rm = TRUE))
               }
-              
+              # TODO: extend rep.value to non-numeric vars
               if (!is.numeric(rep.value)) {
                 
                 stop("Replacement value must be numeric.", call. = FALSE)
@@ -189,7 +200,8 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
       }
       
       if (over_write == TRUE) {
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
+        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), 
+                                                      locdatabase(project = project)))
         on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
         
         DBI::dbWriteTable(fishset_db, dat, dataset, overwrite = over_write)
@@ -201,7 +213,8 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   
   nan_filter_function <- list()
   nan_filter_function$functionID <- "nan_filter"
-  nan_filter_function$args <- list(dat, project, x, replace, remove, rep.value, over_write)
+  nan_filter_function$args <- list(dat, project, x, replace, remove, rep.value, 
+                                   over_write)
   nan_filter_function$output <- list(dat)
   nan_filter_function$msg <- suppressWarnings(readLines(tmp))
   log_call(project, nan_filter_function)
@@ -215,45 +228,54 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
 }
 
 
-#### ----
-# Replaces NAs in the dataColumn with the chosen value or removes rows containing NAs
 na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE, 
                       rep.value = "mean", over_write = FALSE) {
-  #' Identify, remove or replace NAs 
+  #' Identify, remove, or replace NAs 
+  #' 
+  #' Replaces NAs in the primary data with the chosen value or removes rows 
+  #' containing NAs.
   #'
   #' @param dat Primary data containing information on hauls or trips. Table in 
   #'   FishSET database contains the string 'MainDataTable'.
   #' @param project Project name. 
   #' @param x Character string. Column(s) in \code{dat} in which to remove or replace NAs.
-  #' @param replace Logical, if TRUE, replaces NAs in a vector with \code{rep.value}. 
-  #'   Defaults to FALSE.
-  #' @param remove Logical, if TRUE removes the entire row of the \code{dat} where 
-  #'   NA is present in a \code{dat}. Defaults to FALSE.
+  #' @param replace Logical, if \code{TRUE}, replaces NAs in a vector with \code{rep.value}. 
+  #'   Defaults to \code{FALSE}.
+  #' @param remove Logical, if \code{TRUE} removes the entire row of the \code{dat} where 
+  #'   NA is present in a \code{dat}. Defaults to \code{FALSE}.
   #' @param rep.value Value to replace all NAs in a numeric column. Defaults to 
   #'   the mean value of the column. Other options include \code{"median"} or a
   #'   numeric value, e.g. \code{rep.value = 0}. 
-  #' @param over_write Logical, If TRUE, saves data over previously saved data table 
-  #'   in the FishSET database.
+  #' @param over_write Logical, If \code{TRUE}, saves data over previously saved 
+  #'   data table in the FishSET database.
   #' @details To check for NAs across \code{dat} run the function specifying only 
   #'   \code{dat} (\code{na_filter(dataset, project)}). The function will return a statement 
   #'   of which variables, if any, contain NAs. To remove NAs, use \code{remove = TRUE}. 
   #'   All rows containing NAs in \code{x} will be removed from \code{dat}. To replace 
-  #'   NAs, use \code{replace = TRUE}. If \code{replace} is FALSE and \code{rep.value} 
+  #'   NAs, use \code{replace = TRUE}. If \code{replace = FALSE} and \code{rep.value} 
   #'   is not defined, then NAs are replaced with mean value. The modified dataset will
-  #'   be returned if \code{replace=TRUE} or \code{remove=TRUE}. Save the modified data
-  #'   table to the FishSET database by setting \code{over_write = TRUE)}.
+  #'   be returned if \code{replace = TRUE} or \code{remove = TRUE}. If both 
+  #'   \code{replace} and \code{remove} are \code{TRUE} then \code{replace} is used. 
+  #'   Save the modified data table to the FishSET database by setting 
+  #'   \code{over_write = TRUE)}.
   #' @keywords NA
-  #' @return Returns a statement on whether NAs are found and the modified primary dataset.
+  #' @return If \code{replace} and \code{remove} are \code{FALSE} then a statement 
+  #' of whether NAs are found is returned. If either \code{replace} or \code{remove} 
+  #' is \code{TRUE} the modified primary dataset is returned.
   #' @export na_filter
   #' @examples
   #' \dontrun{
-  #' na_filter(pcodMainDataTable)
-  #' mod.dat <- na_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT')
-  #' mod.dat <- na_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT', replace=TRUE)
+  #' na_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT')
+  #' 
+  #' mod.dat <- na_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT', 
+  #'                      replace = TRUE)
+  #'                      
   #' mod.dat <- na_filter(pcodMainDataTable,'pcod', 'OFFICIAL_TOTAL_CATCH_MT',
-  #'    replace=TRUE, rep.value=0)
+  #'                      replace = TRUE, rep.value = 0)
+  #'                      
   #' mod.dat <- na_filter(pcodMainDataTable, 'pcod',
-  #'    c('OFFICIAL_TOTAL_CATCH_MT', 'CATCH_VALUE'), remove=TRUE)
+  #'                      c('OFFICIAL_TOTAL_CATCH_MT', 'CATCH_VALUE'), 
+  #'                      remove = TRUE)
   #' }
 
   # Call in datasets
@@ -309,7 +331,7 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
                 rep.value <- mean(dataset[[i]], na.rm = TRUE)
                 rep.value <- do.call(rep.value, list(dataset[[i]], na.rm = TRUE))
               }
-              
+              # TODO: extend rep.value to non-numeric vars
               if (!is.numeric(rep.value)) {
                 
                 stop("Replacement value must be numeric.", call. = FALSE)
@@ -344,10 +366,11 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
       
       if (over_write == TRUE) {
         
-        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
+        suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), 
+                                                      locdatabase(project = project)))
         on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
         
-        DBI::dbWriteTable(fishset_db, dat, dataset, overwrite = over_write)
+        DBI::dbWriteTable(fishset_db, dat, dataset, overwrite = TRUE)
       }
     }
   }
@@ -356,7 +379,8 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   
   na_filter_function <- list()
   na_filter_function$functionID <- "na_filter"
-  na_filter_function$args <- list(dat, project, x, replace, remove, rep.value, over_write)
+  na_filter_function$args <- list(dat, project, x, replace, remove, rep.value, 
+                                  over_write)
   na_filter_function$output <- list(dat)
   na_filter_function$msg <- suppressWarnings(readLines(tmp))
   log_call(project, na_filter_function)

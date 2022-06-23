@@ -1,7 +1,8 @@
-# Weekly Effort
-
-#'
 #' Summarize average CPUE by week
+#' 
+#' \code{weekly_effort} summarizes CPUE (or other numeric variables) in the
+#' main table by week. It can summarize by grouping variables and filter by period 
+#' or value. There are several options for customizing the table and plot output. 
 #'
 #' @param dat Primary data containing information on hauls or trips.
 #'    Table in FishSET database contains the string 'MainDataTable'.
@@ -18,17 +19,21 @@
 #'   range of dates, use \code{filter_date = "date_range"}. To filter by a given period, use
 #'   "year-day", "year-week", "year-month", "year", "month", "week", or "day". 
 #'   The argument \code{date_value} must be provided. 
-#' @param date_value This argument is paired with \code{filter_date}. If 
-#'   \code{filter_date = "date_range"}, enter a string containing a start- and end-date, 
-#'   e.g. \code{date_value = c("2011-01-01", "2011-03-15")}. If filtering by period 
-#'   (e.g. "year", "year-month"), use integers (4 digits if year, 1-2 digits if 
-#'   referencing a day, month, or week). Use a list if using a year-period type filter, 
-#'   e.g. "year-week", with the format: \code{list(year, period)}. Use a vector if 
-#'   using a single period (e.g. "month"): \code{c(period)}. For example, 
-#'   \code{date_value = list(2011:2013, 5:7)} will filter the data table from May 
-#'   through July for years 2011-2013 if \code{filter_date = "year-month"}.
-#'   \code{date_value = c(2:5)} will filter the data from February through May when 
-#'   \code{filter_date = "month"}.
+#' @param date_value This argument is paired with \code{filter_date}. To filter
+#'   by date range, set \code{filter_date = "date_range"} and enter a  start- and 
+#'   end-date into \code{date_value} as a string: 
+#'   \code{date_value = c("2011-01-01", "2011-03-15")}. 
+#'   
+#'   To filter by period (e.g. "year", "year-month"), use integers (4 digits if year, 1-2 
+#'   digits if referencing a day, month, or week). Use a vector if filtering by 
+#'   a single period: \code{date_filter = "month"} and \code{date_value = c(1, 3, 5)}. 
+#'   This would filter the data to January, March, and May. 
+#'   
+#'   Use a list if using a year-period type filter, e.g. "year-week", with the 
+#'   format: \code{list(year, period)}. For example, \code{filter_date = "year-month"}
+#'   and \code{date_value = list(2011:2013, 5:7)} will filter the data table from 
+#'   May through July for years 2011-2013. 
+#'   
 #' @param filter_by String, variable name to filter `MainDataTable` by. the argument 
 #'   \code{filter_value} must be provided.
 #' @param filter_value A vector of values to filter `MainDataTable` by using the 
@@ -86,12 +91,26 @@
 #' @importFrom rlang expr sym
 #' @importFrom scales breaks_extended log_breaks label_number label_scientific
 
-weekly_effort <- function(dat, project, cpue, date, group = NULL, sub_date = NULL, 
-                          filter_date = NULL, date_value = NULL, filter_by = NULL, 
-                          filter_value = NULL, filter_expr = NULL, facet_by = NULL,
-                          conv = "none", tran = "identity", format_lab = "decimal", 
-                          combine = FALSE, scale = "fixed", output = "tab_plot", 
+weekly_effort <- function(dat,
+                          project,
+                          cpue,
+                          date,
+                          group = NULL,
+                          sub_date = NULL,
+                          filter_date = NULL,
+                          date_value = NULL,
+                          filter_by = NULL,
+                          filter_value = NULL,
+                          filter_expr = NULL,
+                          facet_by = NULL,
+                          conv = "none",
+                          tran = "identity",
+                          format_lab = "decimal",
+                          combine = FALSE,
+                          scale = "fixed",
+                          output = "tab_plot",
                           format_tab = "wide") {
+  
   
   # Call in datasets
   out <- data_pull(dat, project)

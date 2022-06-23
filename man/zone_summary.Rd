@@ -2,7 +2,7 @@
 % Please edit documentation in R/zone_summary.R
 \name{zone_summary}
 \alias{zone_summary}
-\title{Summarize zones/closure areas}
+\title{Summarize zones, closure areas}
 \usage{
 zone_summary(
   dat,
@@ -29,7 +29,10 @@ zone_summary(
 Table in FishSET database contains the string 'MainDataTable'.}
 
 \item{spat}{Spatial data containing information on fishery management or 
-regulatory zones.}
+regulatory zones. \code{sf} objects are recommended, but \code{sp} objects
+can be used as well. If using a spatial table read from a csv file, then
+arguments \code{lon.spat} and \code{lat.spat} are required. To upload your
+spatial data to the FishSETFolder see \code{\link{load_spatial}}.}
 
 \item{project}{Name of project.}
 
@@ -84,10 +87,11 @@ Observations in \code{dat} must be assigned to regulatory zones to
  use this function. See \code{\link{assignment_column}} for details. 
  \code{zone_summary} can return: the number of observations per zone 
  (\code{count = TRUE}, \code{fun = NULL}, \code{group = NULL}), the percentage
- of observations by zone (\code{count = TRUE}, \code{fun = "percent"}, \code{group = NULL}),
- the percentage of observations by zone and group (\code{count = TRUE}, \code{fun = "percent"}, 
- \code{group = "group"}), summary of a numeric variable by zone (\code{count = FALSE}, 
- \code{var = "var"}, \code{fun = "sum"}, \code{group = NULL}), summary of a numeric variable
+ of observations by zone (\code{count = TRUE}, \code{fun = "percent"}, 
+ \code{group = NULL}), the percentage of observations by zone and group 
+ (\code{count = TRUE}, \code{fun = "percent"}, \code{group = "group"}), summary 
+ of a numeric variable by zone (\code{count = FALSE}, \code{var = "var"}, 
+ \code{fun = "sum"}, \code{group = NULL}), summary of a numeric variable
  by zone and group (\code{count = FALSE}, \code{var = "var"}, \code{fun = "sum"}, 
  \code{group = "group"}), share (percentage) of a numeric variable by zone
  (\code{count = FALSE}, \code{var = "var"}, \code{fun = "percent"}, \code{group = NULL}), 
@@ -96,7 +100,33 @@ Observations in \code{dat} must be assigned to regulatory zones to
 }
 \examples{
 \dontrun{
-zone_summary(pollockMainTable, nmfs_area, "LonLat_START_LON", "LonLat_START_LAT",
-             zone.dat = "ZoneID", zone.spat = "NMFS_AREA")
+
+# count # of obs
+zone_summary(pollockMainTable, spat = nmfs_area, lon.dat = "LonLat_START_LON", 
+            lat.dat = "LonLat_START_LAT", zone.dat = "ZoneID", 
+            zone.spat = "NMFS_AREA")
+            
+# percent of obs
+zone_summary(pollockMainTable, spat = nmfs_area, lon.dat = "LonLat_START_LON", 
+            lat.dat = "LonLat_START_LAT", zone.dat = "ZoneID", 
+            zone.spat = "NMFS_AREA", count = TRUE, fun = "percent")
+
+# count by group
+zone_summary(pollockMainTable, spat = nmfs_area, lon.dat = "LonLat_START_LON", 
+            lat.dat = "LonLat_START_LAT", zone.dat = "ZoneID", 
+            zone.spat = "NMFS_AREA", group = "GEAR_TYPE")   
+
+# total catch by zone           
+zone_summary(pollockMainTable, spat = nmfs_area, lon.dat = "LonLat_START_LON", 
+            lat.dat = "LonLat_START_LAT", zone.dat = "ZoneID", 
+            zone.spat = "NMFS_AREA", var = "OFFICIAL_TOTAL_CATCH_MT",
+            count = FALSE, fun = "sum")  
+
+# percent of catch by zone           
+zone_summary(pollockMainTable, spat = nmfs_area, lon.dat = "LonLat_START_LON", 
+            lat.dat = "LonLat_START_LAT", zone.dat = "ZoneID", 
+            zone.spat = "NMFS_AREA", var = "OFFICIAL_TOTAL_CATCH_MT",
+            count = FALSE, fun = "percent")         
+            
 }
 }

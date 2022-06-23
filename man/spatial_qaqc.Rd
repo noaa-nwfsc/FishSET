@@ -26,21 +26,26 @@ FishSET database contains the string 'MainDataTable'.}
 \item{project}{Name of project.}
 
 \item{spat}{Spatial data containing information on fishery management or 
-regulatory zones. See \code{\link{read_dat}} for details on importing 
-spatial data.}
+regulatory zones. \code{sf} objects are recommended, but \code{sp} objects
+can be used as well. If using a spatial table read from a csv file, then
+arguments \code{lon.spat} and \code{lat.spat} are required. To upload your
+spatial data to the FishSETFolder see \code{\link{load_spatial}}.}
 
 \item{lon.dat}{Longitude variable in \code{dat}.}
 
 \item{lat.dat}{Latitude variable in \code{dat}.}
 
 \item{lon.spat}{Variable or list from \code{spat} containing longitude data. 
-Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}
+ Required for spatial tables read from csv files. Leave as \code{NULL} if 
+ \code{spat} is an \code{sf} or 
+\code{sp} object.}
 
 \item{lat.spat}{Variable or list from \code{spat} containing latitude data. 
-Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}
+Required for spatial tables read from csv files. Leave as \code{NULL} if 
+\code{spat} is an \code{sf} or \code{sp} object.}
 
-\item{id.spat}{Polygon ID column. Required for csv files. Leave as NULL if 
-\code{spat} is a shape or json file.}
+\item{id.spat}{Polygon ID column. Required for spatial tables read from csv 
+files. Leave as \code{NULL} if \code{spat} is an \code{sf} or \code{sp} object.}
 
 \item{epsg}{EPSG number. Set the epsg to ensure that \code{spat} and \code{dat} 
 have the same projections. If epsg is not specified but is defined for 
@@ -53,8 +58,8 @@ columns can be found.}
 
 \item{group}{String, optional. Name of variable to group spatial summary by.}
 
-\item{filter_dist}{(Optional) Numeric, distance value to filter primary data by. 
-Rows containing distance values greater than or equal to \code{filter_dist}
+\item{filter_dist}{(Optional) Numeric, distance value to filter primary data by
+(in meters). Rows containing distance values greater than or equal to \code{filter_dist}
 will be removed from the data. This action will be saved to the filter table.}
 }
 \value{
@@ -86,12 +91,24 @@ quality issues are detected. The list includes:
 }
 \description{
 This function performs spatial quality checks and outputs summary tables and 
-plots.
+plots. Checks include percent of observations on land, outside regulatory zone
+(\code{spat}), and on a zone boundary. If any observation occurs outside the 
+regulatory zones then summary information on distance from nearest zone is 
+provided. \code{spatial_qaqc} can filter out observations that fall outside
+a specified distance (see \code{filter_dist}).
 }
 \examples{
 \dontrun{
-spatial_qaqc("pollockMainDataTable", "pollock", "NMFS_ZONE", lon.dat = "LonLat_START_LON",
-             lat.dat = "LonLat_START_LAT")
+# run spatial checks
+spatial_qaqc("pollockMainDataTable", "pollock", spat = NMFS_AREAS, 
+             lon.dat = "LonLat_START_LON", lat.dat = "LonLat_START_LAT")
+             
+# filter obs by distance
+spat_out <- 
+     spatial_qaqc(pollockMainDataTable, "pollock", spat = NMFS_AREAS,
+                  lon.dat = "LonLat_START_LON", lat.dat = "LonLat_START_LAT",
+                  filter_dist = 100)
+mod.dat <- spat_out$dataset
 }
   
 }

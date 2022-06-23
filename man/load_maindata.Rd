@@ -2,37 +2,61 @@
 % Please edit documentation in R/data_parser.R
 \name{load_maindata}
 \alias{load_maindata}
-\title{Import, parse, and save data to the FishSET database}
+\title{Import, parse, and save data to the FishSET Database}
 \usage{
-load_maindata(dat, project, over_write = TRUE, compare = FALSE, y = NULL)
+load_maindata(dat, project, over_write = FALSE, compare = FALSE, y = NULL)
 }
 \arguments{
-\item{dat}{Primary data containing information on hauls or trips.
-Should be the full path to the file or name of table in the FishSET database.
- Table in the FishSET database contains the string 'MainDataTable'.}
+\item{dat}{Primary data containing information on hauls or trips. This can be
+the full path to the file, the name of a main table in the FishSET database,
+or a dataframe object in the working environment. Main tables in the FishSET 
+database contain the string 'MainDataTable'. A complete list of FishSET
+tables can be display by running \code{fishset_tables()}.}
 
-\item{project}{String, name of project.}
+\item{project}{String, name of project. Cannot contain spaces.}
 
-\item{over_write}{Logical, If TRUE, saves data over previously saved data table in the FishSET database.}
+\item{over_write}{Logical, If \code{TRUE}, saves data over previously saved data 
+table in the FishSET database. Defaults to \code{FALSE}.}
 
-\item{compare}{Logical, whether to compare new data frame to previously saved data frame \code{y}.}
+\item{compare}{Logical, whether to compare new dataframe to previously saved 
+dataframe \code{y}. See \code{\link{fishset_compare}}.}
 
-\item{y}{Name of previously saved table in FishSET database. \code{y} must be defined if \code{compare} is TRUE.}
+\item{y}{Name of previously saved table in FishSET Database. \code{y} must 
+be defined if \code{compare = TRUE}.}
 }
 \description{
-Import, parse, and save data to the FishSET database
+\code{load_maindata()} saves the main dataset to the FishSET Database (located
+in the FishSETFolder) and is a required step. The main data will also be loaded 
+into the working environment as a dataframe named "projectMainDataTable". 
+Running \code{load_maindata()} creates a new project directory in the FishSETFolder.
+To see a list of existing projects run \code{projects()} or open the FishSETFolder.
 }
 \details{
-Runs the \code{fishset_compare} function if \code{compare} is TRUE and calls the
- \code{\link{data_verification}} function to check for common data issues and that latitude
- and longitude are defined. The dataset is saved in the FishSET database as raw and working tables. 
- The table name is the \code{project} and the table type, 'MainDataTable'. Date is also attached to the name for the
- raw data. The main data is also loaded into the working environment as ‘projectMainDataTable’.
+The dataset is saved in the FishSET database as raw and working tables. 
+  The table name is the \code{project} and the table type, 'MainDataTable'. 
+  The raw table is the original, unedited table. The working table contains 
+  any changes made to the table after uploading. An eight digit date string 
+  is included in the name of the raw table (e.g. "pollockMainDataTable20220210"). 
+  The main data is loaded into the working environment as ‘projectMainDataTable’.
+  The \code{fishset_compare} argument compares \code{dat} to an existing FishSET 
+  table in \code{y} and returns a message noting basic differences between the two.
+  The column names are checked for case-insensitivity and uniqueness.
 }
 \examples{
 \dontrun{
-load_maindata(dat = Mydata, over_write = TRUE, project = 'pollock',
+# upload data from filepath
+load_maindata(dat = "PATH/TO/DATA", project = "pollock")
+
+# upload from dataframe in working environment
+load_maindata(dat = Mydata, project = 'pollock', over_write = TRUE, 
               compare = TRUE, y = 'MainDataTable01012011')
+              
+# upload from an exisitng FishSET main data table
+looad_maindata(dat = "pollockMainDataTable", project = "pollock2020")
 }
 
+}
+\seealso{
+\code{\link{save_dat}}, \code{\link{write_dat}}, \code{\link{load_data}},
+  \code{\link{fishset_tables}}
 }

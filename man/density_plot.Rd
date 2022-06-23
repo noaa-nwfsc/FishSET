@@ -2,7 +2,7 @@
 % Please edit documentation in R/density_plot.R
 \name{density_plot}
 \alias{density_plot}
-\title{Creates the KDE, CDF, or empirical CDF plots of the selected variable.}
+\title{Create KDE, CDF, or empirical CDF plots}
 \usage{
 density_plot(
   dat,
@@ -35,16 +35,17 @@ FishSET database contains the string 'MainDataTable'.}
 
 \item{var}{String, name of variable to plot.}
 
-\item{type}{String, type of density plot. Options include "kde" (kernel density 
-estimate), "ecdf" (empirical cdf), "cdf" (cumulative dstribution function), 
-or "all" (containing all plot types). Two or more plot types can be chosen.}
+\item{type}{String, type of density plot. Options include \code{"kde"} (kernel 
+density estimate), \code{"ecdf"} (empirical cdf), \code{"cdf"} (cumulative 
+distribution function), or "all" (all plot types). Two or more plot types can 
+be chosen.}
 
-\item{group}{Optional, string names of variables to group by. By default, grouping 
-variables are combined unless \code{combine = FALSE} and \code{type} is "cdf" 
-and/or "ecdf". If \code{type} is "kde" or "all" grouping variables are 
-automatically combined. "cdf" and "ecdf" plots can use up to two grouping 
-variables if \code{combine = FALSE}: the first variable is assigned to the 
-"color" aesthetic and second to the "linetype" aesthetic.}
+\item{group}{Optional, string names of variables to group by. If two or grouping
+variables are included, the default for \code{"cdf"} and \code{"ecdf"} plots 
+is to not combine groups. This can be changed using \code{combine = TRUE}. 
+\code{"kde"} plots always combine two or more groups. \code{"cdf"} and 
+\code{"ecdf"} plots can use up to two grouping variables if \code{combine = FALSE}: 
+the first variable is represented by color and second by line type.}
 
 \item{combine}{Logical, whether to combine the variables listed in \code{group} 
 for plot.}
@@ -56,17 +57,20 @@ range of dates, use \code{filter_date = "date_range"}. To filter by a given
 period, use "year-day", "year-week", "year-month", "year", "month", "week", 
 or "day". The argument \code{date_value} must be provided.}
 
-\item{date_value}{This argument is paired with \code{filter_date}. If 
-\code{filter_date = "date_range"}, enter a string containing a start- and 
-end-date, e.g. \code{date_value = c("2011-01-01", "2011-03-15")}. If filtering 
-by period (e.g. "year", "year-month"), use integers (4 digits if year, 1-2 
-digits if referencing a day, month, or week). Use a list if using a year-period 
-type filter, e.g. "year-week", with the format: \code{list(year, period)}. 
-Use a vector if using a single period (e.g. "month"): \code{c(period)}. For 
-example, \code{date_value = list(2011:2013, 5:7)} will filter the data table 
-from May through July for years 2011-2013 if \code{filter_date = "year-month"}.
-\code{date_value = c(2:5)} will filter the data from February through May when 
-\code{filter_date = "month"}.}
+\item{date_value}{This argument is paired with \code{filter_date}. To filter
+by date range, set \code{filter_date = "date_range"} and enter a  start- and 
+end-date into \code{date_value} as a string: 
+\code{date_value = c("2011-01-01", "2011-03-15")}. 
+
+To filter by period (e.g. "year", "year-month"), use integers (4 digits if year, 1-2 
+digits if referencing a day, month, or week). Use a vector if filtering by 
+a single period: \code{date_filter = "month"} and \code{date_value = c(1, 3, 5)}. 
+This would filter the data to January, March, and May. 
+
+Use a list if using a year-period type filter, e.g. "year-week", with the 
+format: \code{list(year, period)}. For example, \code{filter_date = "year-month"}
+and \code{date_value = list(2011:2013, 5:7)} will filter the data table from 
+May through July for years 2011-2013.}
 
 \item{filter_by}{String, variable name to filter `MainDataTable` by. the argument 
 \code{filter_value} must be provided.}
@@ -78,45 +82,61 @@ variable in \code{filter_by}. For example, if \code{filter_by = "GEAR_TYPE"},
 \item{filter_expr}{String, a valid R expression to filter `MainDataTable` by.}
 
 \item{facet_by}{Variable name to facet by. This can be a variable that exists in
-the dataset, or a variable created by \code{density_plot()} such as "year", 
-"month", or "week".}
+\code{dat} or a variable created by \code{density_plot()} such as \code{"year"}, 
+\code{"month"}, or \code{"week"}. \code{date} is required if facetting by period.}
 
 \item{conv}{Convert catch variable to \code{"tons"}, \code{"metric_tons"}, or 
-by using a function entered as a string. Defaults to \code{"none"} for no conversion.}
+by using a function entered as a string. Defaults to \code{"none"} for no 
+conversion.}
 
-\item{tran}{String; name of function to transform variable, for example "log" or
-"sqrt".}
+\item{tran}{String; name of function to transform variable, for example 
+\code{"log"} or \code{"sqrt"}.}
 
 \item{format_lab}{Formatting option for x-axis labels. Options include 
 \code{"decimal"} or \code{"scientific"}.}
 
-\item{scale}{Scale argument passed to \code{\link{facet_grid}}. Defaults to "fixed". 
-Other options include "free_y", "free_x", and "free".}
+\item{scale}{Scale argument passed to \code{\link{facet_grid}}. Defaults to 
+\code{"fixed"}. Other options include \code{"free_y"}, \code{"free_x"}, and 
+\code{"free"}.}
 
 \item{bw}{Adjusts KDE bandwidth. Defaults to 1.}
 
 \item{position}{The position of the grouped variable for KDE plot. Options include
-"identity", "stack", and "fill".}
+\code{"identity"}, \code{"stack"}, and \code{"fill"}.}
 
-\item{pages}{Whether to output plots on a single page (\code{"single"}, the default) 
-or multiple pages (\code{"multi"}).}
+\item{pages}{Whether to output plots on a single page (\code{"single"}, the 
+default) or multiple pages (\code{"multi"}).}
 }
 \value{
-Returns a KDE, empirical CDF, or CDF of a selected variable.
-  The data can be filtered by date or by variable (see \code{filter_date} and
-  \code{filter_by}). If \code{type} contains "kde" or "all" then grouping variables 
-  are automatically combined. Any variable in the dataset can be used for faceting,
-  but "year", "month", and "week" are also available.
+\code{denstiy_plot()} can return up to three plots in a single call. 
+  When \code{pages = "single"} all plots are combined and stacked vertically.
+  \code{pages = "multi"} will return separate plots.
 }
 \description{
 Creates a kernel density estimate, empirical cumulative distribution function,
-or cumulative distribution function plot of selected variable.
+or cumulative distribution function plot of selected variable. Grouping,
+filtering, and several plot options are available.
+}
+\details{
+The data can be filtered by date or by variable (see \code{filter_date} 
+  and \code{filter_by}). If \code{type} contains \code{"kde"} or \code{"all"} then 
+  grouping variables are automatically combined. Any variable in \code{dat} 
+  can be used for faceting, but \code{"year"}, \code{"month"}, or \code{"week"} 
+  are also available if \code{date} is provided.
 }
 \examples{
 \dontrun{
-density_plot(pollockMainDataTable, "pollock", var = "OFFICIAL_TOTAL_CATCH_MT", "kde", 
-  group = "GEAR_TYPE", date = "FISHING_START_DATE", filter_date = "year-month", 
-  filter_value = list(2011, 9:11), tran = "log"
-)
+
+density_plot(pollockMainDataTable, "pollock", var = "OFFICIAL_TOTAL_CATCH_MT",
+             type = c("kde", "ecdf"))
+
+# facet 
+density_plot(pollockMainDataTable, "pollock", var = "OFFICIAL_TOTAL_CATCH_MT",
+             type = c("kde", "ecdf"), facet_by = "GEAR_TYPE")
+
+# filter by period
+density_plot(pollockMainDataTable, "pollock", var = "OFFICIAL_TOTAL_CATCH_MT", 
+             type = "kde", date = "FISHING_START_DATE", filter_date = "year-month", 
+             filter_value = list(2011, 9:11))
 }
 }

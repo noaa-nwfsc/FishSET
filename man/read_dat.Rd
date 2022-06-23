@@ -76,15 +76,14 @@ Uses the appropriate function to read in data based on data type.
 \examples{
 \dontrun{
 # Read in shape file
-  dat <- read_dat('C:/data/nmfs_manage_simple', data.type = 'shape')
+dat <- read_dat('C:/data/nmfs_manage_simple', data.type = 'shape')
+
 # Read in spatial data file in json format
-  dat <- read_dat('C:/data/nmfs_manage_simple.json', is.map = TRUE)
-# read in data directly from webpage
-  dat <- read_dat("https://s3.amazonaws.com/assets.datacamp.com/blog_assets/test.txt", 
-     data.type = 'delim', sep='', header = FALSE)
- 
- #Save the data to project directory
-   write_dat(dat, file_type = "json", project='pollock')
+dat <- read_dat('C:/data/nmfs_manage_simple.json', is.map = TRUE)
+
+# read in data directly from web page
+dat <- read_dat("https://s3.amazonaws.com/assets.datacamp.com/blog_assets/test.txt", 
+                data.type = 'delim', sep = '', header = FALSE)
 }
 
 }

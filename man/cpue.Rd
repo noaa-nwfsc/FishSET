@@ -13,19 +13,21 @@ FishSET database contains the string 'MainDataTable'.}
 \item{project}{Project name.}
 
 \item{xWeight}{Catch variable in \code{dat}. Variable should be a measure of 
-weight (pounds, metric tons, etc) but can also be count. If calculated RPUE 
-and \code{price} is revenue data, set \code{XWeight = NULL}.}
+weight (pounds, metric tons, etc) but can also be count. If calculating
+revenue per unit effort (RPUE) and a revenue column exists in \code{dat}, 
+then add the revenue column to \code{price} and set \code{xWeight = NULL}.}
 
-\item{xTime}{Duration of time variable in \code{dat} representing effort, such as
-weeks, days, hours, or minutes.}
+\item{xTime}{Duration of time variable in \code{dat} representing effort, 
+such as weeks, days, hours, or minutes.}
 
 \item{price}{Optional, variable from \code{dat} containing price/value data. 
 Price is multiplied against the catch variable, \code{xWeight}, to generated 
 revenue. If revenue exists in \code{dat} and you wish to use this revenue 
-instead of price, then \code{xWeight} must NULL. Defaults to NULL.}
+instead of price, then \code{xWeight} must be \code{NULL}. Defaults to 
+\code{NULL}.}
 
-\item{name}{String, name of created variable. Defaults to name of the function 
-if not defined.}
+\item{name}{String, name of created variable. Defaults to "cpue" or "rpue" 
+if \code{price} is not \code{NULL}.}
 }
 \value{
 Returns primary dataset with CPUE variable added.
@@ -33,7 +35,8 @@ Returns primary dataset with CPUE variable added.
 \description{
 Add catch per unit effort (CPUE) or revenue per unit effort 
   variable to the primary dataset. Catch should be a weight variable but can 
-  be a count. Effort should be in a duration of time, such as days, hours, or minutes.
+  be a count. Effort should be in a duration of time, such as days, hours, 
+  or minutes.
 }
 \details{
 Creates the catch or revenue per unit effort variable. Catch variable 
@@ -44,7 +47,8 @@ Creates the catch or revenue per unit effort variable. Catch variable
 }
 \examples{
 \dontrun{
-pollockMainDataTable <- cpue(pollockMainDataTable, 'pollock', 'OFFICIAL_TOTAL_CATCH_MT', 
-    'DURATION_IN_MIN', 'cpue')
+pollockMainDataTable <- cpue(pollockMainDataTable, 'pollock', 
+                             xWeight = 'OFFICIAL_TOTAL_CATCH_MT', 
+                             xTime = 'DURATION_IN_MIN', name = 'cpue')
 }
 }

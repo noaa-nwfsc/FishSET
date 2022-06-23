@@ -1,35 +1,56 @@
-degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE, lonsign = FALSE, replace = TRUE) {
+degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE, 
+                   lonsign = FALSE, replace = TRUE) {
   #' Check and convert lat/lon to decimal degrees
   #'
-  #' Check that latitude and longitude are in decimal degrees and the variable sign is correct. Correct lat/lon if required.
+  #' Check that latitude and longitude are in decimal degrees and the variable 
+  #' sign is correct. Correct lat/lon if required.
+  #' 
   #' @param dat Dataset containing latitude and longitude data.
   #' @param project Project name. 
-  #' @param lat Variable containing latitude data.
-  #' @param lon Variable containing longitude data.
-  #' @param latsign How should the sign value of \code{lat} be changed? Choices are \code{NULL}, no change, 
-  #'    \code{"all"}, change all values, \code{"neg"}, convert all positive values to negative, or 
-  #'    \code{"pos"}, convert all negative values to positive.
-  #' @param lonsign How should the sign value of \code{lon} be changed? Choices are \code{NULL}, no change, 
-  #'    \code{"all"}, change all values, \code{"neg"}, convert all positive values to negative, or 
-  #'    \code{"pos"}, convert all negative values to positive.
-  #' @param replace Logical, should \code{lat} and \code{lon} in \code{dat} be converted to decimal degrees? 
-  #'   Defaults to TRUE. Set to FALSE if checking for compliance
+  #' @param lat Variable(s) containing latitude data. If \code{NULL} the function
+  #'   will attempt to search for all latitude variables by name (e.g. by matching
+  #'   "lat" or "LAT"). 
+  #' @param lon Variable(s) containing longitude data. If \code{NULL} the function
+  #'   will attempt to search for all longitude variables by name (e.g. by matching
+  #'   "lon" or "LON"). 
+  #' @param latsign How should the sign value of \code{lat} be changed? Choices 
+  #'   are \code{NULL} for no change, \code{"neg"} to convert all positive values to 
+  #'   negative, \code{"pos"} to convert all negative values to positive, and
+  #'   \code{"all"} to change all values.
+  #' @param lonsign How should the sign value of \code{lon} be changed? Choices 
+  #'   are \code{NULL} for no change, \code{"neg"} to convert all positive values to 
+  #'   negative, \code{"pos"} to convert all negative values to positive, and
+  #'   \code{"all"} to change all values.
+  #' @param replace Logical, should \code{lat} and \code{lon} in \code{dat} be 
+  #'   converted to decimal degrees? Defaults to \code{TRUE}. Set to \code{FALSE} 
+  #'   if checking for compliance.
   #' @export degree
-  #' @importFrom stringr str_pad
-  #' @details First checks whether any variables containing 'lat' or 'lon' in their names are numeric. Returns 
-  #'   a message on results. To convert a variable to decimal degrees, identify the \code{lat} or \code{lon}
-  #'   variable(s) and set \code{replace} to TRUE. To change the sign, set \code{latsign} (for \code{lat}) 
-  #'   or \code{lonsign} (for \code{lon} to TRUE. FishSET requires that latitude and longitude 
-  #'   be in decimal degrees.
-  #' @return Returns the primary dataset with the latitudes and longitudes converted to decimal degrees. 
-  #'    Changing the sign, transforms all values in the variable.
+  #' @importFrom stringi stri_pad
+  #' @details First checks whether any variables containing 'lat' or 'lon' in their 
+  #'   names are numeric. Returns a message on results. To convert a variable to 
+  #'   decimal degrees, identify the \code{lat} or \code{lon} variable(s) and set 
+  #'   \code{replace = TRUE}. To change the sign, set \code{latsign} (for \code{lat}) 
+  #'   or \code{lonsign} (for \code{lon = TRUE}. FishSET requires that latitude 
+  #'   and longitude be in decimal degrees.
+  #' @return Returns the primary dataset with the latitudes and longitudes converted 
+  #'   to decimal degrees if \code{replace = TRUE} or if Changing the sign. 
+  #'   Otherwise, a message indicating whether selected longitude and latitude
+  #'   variables are in the correct format. 
   #' @examples
   #' \dontrun{
-  #' pollockMainDataTable <- degree(pollockMainDataTable, 'pollock', 'LatLon_START_LAT', 
-  #'       'LatLon_START_LON', latsign=FALSE, lonsign=FALSE, replace=TRUE)
+  #' # check format
+  #' degree(pollockMainDataTable, 'pollock', lat = 'LatLon_START_LAT',
+  #'        lon = 'LatLon_START_LON')
+  #'
+  #' # change signs and convert to decimal degrees
+  #' pollockMainDataTable <- degree(pollockMainDataTable, 'pollock', 
+  #'                                lat = 'LatLon_START_LAT', 
+  #'                                lon = 'LatLon_START_LON', latsign = FALSE, 
+  #'                                lonsign = FALSE, replace = TRUE)
   #' }
   #'
-  
+  #'
+
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
@@ -109,7 +130,7 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE, lonsig
         dataset[[lat]] <- abs(dataset[[lat]])
         i <- nchar(abs(dataset[[lat]])) <= 4 & !is.na(dataset[[lat]])
         dataset[[lat]][i] <- paste0(dataset[[lat]][i], "00")
-        dataset[[lat]] <- format(as.numeric(stringr::str_pad(abs(as.numeric(dataset[[lat]])), 6, pad = "0")), scientific = FALSE)
+        dataset[[lat]] <- format(as.numeric(stringi::stri_pad(abs(as.numeric(dataset[[lat]])), 6, pad = "0")), scientific = FALSE)
         dataset[[lat]] <- as.numeric(substr(dataset[[lat]], start = 1, stop = 2)) + as.numeric(substr(dataset[[lat]], start = 3, stop = 4)) / 60 + as.numeric(substr(dataset[[lat]],
                                                                                                                                                                      start = 5, stop = 6
         )) / 3600
@@ -143,7 +164,7 @@ degree <- function(dat, project, lat = NULL, lon = NULL, latsign = FALSE, lonsig
         dataset[[lon]] <- abs(dataset[[lon]])
         i <- nchar(dataset[[lon]]) <= 5 & !is.na(dataset[[lon]])
         dataset[[lon]][i] <- paste0(dataset[[lon]][i], "00")
-        dataset[[lon]] <- format(as.numeric(stringr::str_pad(as.numeric(dataset[[lon]]), 7, pad = "0")), scientific = FALSE)
+        dataset[[lon]] <- format(as.numeric(stringi::stri_pad(as.numeric(dataset[[lon]]), 7, pad = "0")), scientific = FALSE)
         dataset[[lon]] <- as.numeric(substr(dataset[[lon]], start = 1, stop = 3)) + as.numeric(substr(dataset[[lon]], start = 4, stop = 5)) / 60 + 
           as.numeric(substr(dataset[[lon]],start = 6, stop = 7)) / 3600
         dataset[[lon]][nm] <- dataset[[lon]][nm] * -1

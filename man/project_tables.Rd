@@ -20,3 +20,6 @@ project_tables("pollock")
 project_tables("pollock", "main")
 }
 }
+\seealso{
+\code{\link{list_tables}}, \code{\link{fishset_tables}}
+}

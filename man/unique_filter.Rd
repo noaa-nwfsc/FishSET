@@ -12,22 +12,27 @@ Table in the FishSET database contains the string 'MainDataTable'.}
 
 \item{project}{String, name of project.}
 
-\item{remove}{Logical, if TRUE removes non-unique rows. Defaults to FALSE.}
+\item{remove}{Logical, if \code{TRUE} removes non-unique rows. Defaults to 
+\code{FALSE}.}
 }
 \value{
-Returns the modified primary dataset with non-unique rows removed if \code{remove} is TRUE.
+Returns the modified primary dataset with non-unique rows removed if 
+  \code{remove = TRUE}.
 }
 \description{
 Check for and remove non-unique rows from primary dataset.
 }
 \details{
-Output is determined by \code{remove}. If \code{remove} is TRUE then
-non-unique rows are removed. If \code{remove} is FALSE then only a statement is
+Output is determined by \code{remove}. If \code{remove = TRUE} then
+non-unique rows are removed. If \code{remove = FALSE} then only a statement is
 returned regarding the number of rows that are not unique.
 }
 \examples{
 \dontrun{
+# check for unique rows
 unique_filter(pollockMainDataTable)
-mod.dat <- unique_filter(pollockMainDataTable, remove=TRUE)
+
+# remove non-unique rows from dataset
+mod.dat <- unique_filter(pollockMainDataTable, remove = TRUE)
 }
 }
