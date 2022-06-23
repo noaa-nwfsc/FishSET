@@ -1,53 +1,64 @@
-# Vessel count
-#' 
-#'  Active vessels by time period in plot or table format
+#' Summarize active vessels
+#'
+#' \code{vessel_count} counts the number of active vessels in the main table. It
+#' can summarize by period if \code{date} is provided, group by any number of 
+#' grouping variables, and filter by period or value. There are several options 
+#' for customizing table/plot output. 
 #' 
 #' @param dat Primary data containing information on hauls or trips. 
 #'   Table in FishSET database contains the string 'MainDataTable'.
 #' @param project String, name of project.
 #' @param v_id Variable in \code{dat} containing vessel identifier to count.
 #' @param date Date variable to aggregate by.
-#' @param period Time period to aggregate by. Options include \code{"year"}, \code{"month"}, \code{"week"} 
-#'   (weeks in the year), \code{"weekday"}, \code{"weekday_abv"}, \code{"day_of_month"}, 
-#'   \code{"day_of_year"}, and \code{"cal_date"} (calender date).
-#' @param group Names of grouping variables. For line plots two grouping variables 
-#'   can be entered, the first is passed to "color" and second to "linetype". Only one 
-#'   grouping variable can be used for barplots, which is passed to "fill". When \code{combine = TRUE} 
+#' @param period Time period to aggregate by. Options include \code{"year"}, 
+#'   \code{"month"}, \code{"week"} (weeks in the year), \code{"weekday"}, 
+#'   \code{"weekday_abv"}, \code{"day_of_month"}, \code{"day_of_year"}, and 
+#'   \code{"cal_date"} (calender date).
+#' @param group Names of grouping variables. For line plots (\code{type = "line"})
+#'   two grouping variables can be entered, the first is passed to "color" and second 
+#'   to "linetype". Only one grouping variable can be used for barplots 
+#'   (\code{type = "bar"}), which is passed to "fill". When \code{combine = TRUE} 
 #'   all variables in \code{group} will be joined. Grouping by \code{"year"}, 
 #'   \code{"month"}, and \code{"week"} are available if a date variable is added 
 #'   to \code{sub_date}.
 #' @param sub_date Date variable used for subsetting, grouping, or splitting by date. 
-#' @param filter_date The type of filter to apply to `MainDataTable`. To filter by a 
-#'   range of dates, use \code{filter_date = "date_range"}. To filter by a given period, use
-#'   "year-day", "year-week", "year-month", "year", "month", "week", or "day". 
-#'   The argument \code{date_value} must be provided. 
-#' @param date_value This argument is paired with \code{filter_date}. If \code{filter_date = "date_range"}, 
-#'   enter a string containing a start- and end-date, e.g. \code{date_value = c("2011-01-01", "2011-03-15")}. 
-#'   If filtering by period (e.g. "year", "year-month"), use integers 
-#'   (4 digits if year, 1-2 digits if referencing a day, month, or week). Use a 
-#'   list if using a year-period type filter, e.g. "year-week", with the format: 
-#'   \code{list(year, period)}. Use a vector if using a single period (e.g. "month"): 
-#'   \code{c(period)}. For example, \code{date_value = list(2011:2013, 5:7)} will 
-#'   filter the data table from May through July for years 2011-2013 if \code{filter_date = "year-month"}.
-#'   \code{date_value = c(2:5)} will filter the data from February through May when 
-#'   \code{filter_date = "month"}.
+#' @param filter_date The type of filter to apply to `MainDataTable`. To filter 
+#'   by a range of dates, use \code{filter_date = "date_range"}. To filter by a 
+#'   given period, use "year-day", "year-week", "year-month", "year", "month", 
+#'   "week", or "day". The argument \code{date_value} must be provided. 
+#' @param date_value This argument is paired with \code{filter_date}. To filter
+#'   by date range, set \code{filter_date = "date_range"} and enter a  start- and 
+#'   end-date into \code{date_value} as a string: 
+#'   \code{date_value = c("2011-01-01", "2011-03-15")}. 
+#'   
+#'   To filter by period (e.g. "year", "year-month"), use integers (4 digits if year, 1-2 
+#'   digits if referencing a day, month, or week). Use a vector if filtering by 
+#'   a single period: \code{date_filter = "month"} and \code{date_value = c(1, 3, 5)}. 
+#'   This would filter the data to January, March, and May. 
+#'   
+#'   Use a list if using a year-period type filter, e.g. "year-week", with the 
+#'   format: \code{list(year, period)}. For example, \code{filter_date = "year-month"}
+#'   and \code{date_value = list(2011:2013, 5:7)} will filter the data table from 
+#'   May through July for years 2011-2013. 
+#'   
 #' @param filter_by String, variable name to filter `MainDataTable` by. the argument 
 #'   \code{filter_value} must be provided.
-#' @param filter_value A vector of values to filter `MainDataTable` by using the variable 
-#'   in \code{filter_by}. For example, if \code{filter_by = "GEAR_TYPE"}, \code{filter_value = 1} 
-#'   will include only observations with a gear type of 1. 
-#' @param filter_expr String, a valid R expression to filter `MainDataTable` by using the variable 
-#'   in \code{filter_by}. 
-#' @param facet_by Variable name to facet by. Accepts up to two variables. These can be 
-#'   variables that exist in the dataset, or a variable created by \code{vessel_count()} such 
-#'   as \code{"year"}, \code{"month"}, or \code{"week"} if a date variable is added 
-#'   to \code{sub_date}. The first variable is facetted by row and the second by column. 
+#' @param filter_value A vector of values to filter `MainDataTable` by using the 
+#'   variable in \code{filter_by}. For example, if \code{filter_by = "GEAR_TYPE"}, 
+#'   \code{filter_value = 1} will include only observations with a gear type of 1. 
+#' @param filter_expr String, a valid R expression to filter `MainDataTable` by 
+#'   using the variable in \code{filter_by}. 
+#' @param facet_by Variable name to facet by. Accepts up to two variables. These 
+#'   can be variables that exist in \code{dat}, or a variable created by 
+#'   \code{vessel_count()} such as \code{"year"}, \code{"month"}, or \code{"week"} 
+#'   if a date variable is added to \code{sub_date}. The first variable is facetted 
+#'   by row and the second by column. 
 #' @param combine Whether to combine variables listed in \code{group}. This is passed
 #'   to the "fill" or "color" aesthetic for plots. 
 #' @param position Positioning of bar plot. Options include 'stack', 'dodge', 
 #'   and 'fill'.
-#' @param value Whether to return \code{"count"} or \code{"percent"} of active vessels. Defaults
-#'   to \code{"count"}. 
+#' @param value Whether to return \code{"count"} or \code{"percent"} of active 
+#'   vessels. Defaults to \code{"count"}. 
 #' @param tran A function to transform the y-axis. Options include log, log2, log10, 
 #'   and sqrt.
 #' @param format_lab decimal or scientific
@@ -57,23 +68,50 @@
 #'   \code{"fixed"}. 
 #' @param output Whether to display \code{"plot"}, \code{"table"}. Defaults 
 #'   to both (\code{"tab_plot"}). 
-#' @return \code{vessel_count} aggregates the number (or percent) of active vessels
-#'   by time period using a column of unique vessel IDs. The data can be filtered by date and/or by a variable.
-#'    \code{filter_date} specifies the type of date filter to apply--by date-range or by
-#'    period. \code{date_value} should contain the values to filter the data by. To 
-#'    filter by a variable, enter its name as a string in \code{filter_by} and
-#'   include the values to filter by in \code{filter_value}. Up to two grouping variables
-#'    can be entered. Grouping variables can 
-#'   be merged into one variable using \code{combine}; in this case any number of 
-#'   variables can be joined, but no more than three is recommended. For faceting,
-#'   any variable (including ones listed in \code{group}) can be used, but "year",
-#'   "month", "week" are also available provided a date variable is added to \code{sub_date}. 
-#'   Currently, combined variables cannot be faceted.
-#'   A list containing a table and plot are printed to the console and viewer by default. 
+#' @details \code{vessel_count} gives the number (or percent) of active vessels
+#'   using a column of unique vessel IDs. The data can be filtered by date and/or 
+#'   by a variable. (console users may want to use a separate filtering function, 
+#'   like \code{dplyr::filter}, before running \code{vessel_count}: note that this 
+#'   is okay but will lead to different output if using \code{\link{log_rerun}}).
+#'   \code{filter_date} specifies the type of date filter to apply--by date-range or by
+#'   period. \code{date_value} should contain the values to filter the data by. To 
+#'   filter by a variable, enter its name as a string in \code{filter_by} and
+#'   include the values to filter by in \code{filter_value}. 
+#'   
+#'   Up to two grouping variables can be entered. Grouping variables can be merged 
+#'   into one variable using \code{combine = TRUE}; in this case any number of variables 
+#'   can be joined, but no more than three is recommended. 
+#'   
+#'   For faceting, any variable (including ones listed in \code{group}) can be used, 
+#'   but "year", "month", "week" are also available provided a date variable is 
+#'   added to \code{sub_date}. Currently, combined variables cannot be faceted. 
+#'   
+#' @return  When \code{output = "tab_plot"} a list containing a table and plot are  
+#' returned. If \code{output = "table"} only the summary table is returned, if 
+#' \code{output = "plot"} only the plot. 
 #' @examples 
 #' \dontrun{
-#' vessel_count(pollockMainDataTable, 'VESSEL_ID', 'DATE_FISHING_BEGAN', period = 'month', 
-#'              group = 'DISEMBARKED_PORT', position = 'dodge', output = 'plot')
+#' # grouping by two variables
+#' vessel_count(pollockMainDataTable, v_id = "VESSEL_ID", 
+#'              group = c("GEAR_TYPE", "IFQ"))
+#'              
+#' # filter by variable
+#' vessel_count(pollockMainDataTable, v_id = "VESSEL_ID", group = "GEAR_TYPE",
+#'              filter_by = "IFQ", filter_value = "Y")
+#'              
+#' # filter by month
+#' vessel_count(pollockMainDataTable, v_id = "VESSEL_ID", group = "GEAR_TYPE",
+#'              sub_date = "HAUL_DATE", date_filter = "month", date_value = 1:5)
+#'              
+#' #' # filter by date
+#' vessel_count(pollockMainDataTable, v_id = "VESSEL_ID", group = "GEAR_TYPE",
+#'              sub_date = "HAUL_DATE", date_filter = "date_range", 
+#'              date_value = c("2011-01-01", "2011-02-05"))
+#' 
+#' # summarize by month
+#' vessel_count(pollockMainDataTable, v_id = 'VESSEL_ID', date = 'DATE_FISHING_BEGAN', 
+#'              period = 'month', group = 'DISEMBARKED_PORT', position = 'dodge', 
+#'              output = 'plot')
 #' }
 #' @export vessel_count
 #' @import ggplot2
@@ -82,12 +120,28 @@
 #' @importFrom rlang sym expr as_string
 #' @importFrom scales label_percent breaks_extended log_breaks
 
-vessel_count <- function(dat, project, v_id, date = NULL, period = NULL, group = NULL, 
-                         sub_date = NULL, filter_date = NULL, date_value = NULL, 
-                         filter_by = NULL, filter_value = NULL, filter_expr = NULL, 
-                         facet_by = NULL, combine = FALSE, position = "stack",
-                         tran = "identity", format_lab = "decimal", value = "count", 
-                         type = "bar", scale = "fixed", output = "tab_plot") {
+vessel_count <- function(dat,
+                         project,
+                         v_id,
+                         date = NULL,
+                         period = NULL,
+                         group = NULL,
+                         sub_date = NULL,
+                         filter_date = NULL,
+                         date_value = NULL,
+                         filter_by = NULL,
+                         filter_value = NULL,
+                         filter_expr = NULL,
+                         facet_by = NULL,
+                         combine = FALSE,
+                         position = "stack",
+                         tran = "identity",
+                         format_lab = "decimal",
+                         value = "count",
+                         type = "bar",
+                         scale = "fixed",
+                         output = "tab_plot") {
+  
   
   # Call in datasets
   out <- data_pull(dat, project)

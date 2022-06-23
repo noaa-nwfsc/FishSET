@@ -24,7 +24,7 @@ create_expectations(
 )
 }
 \arguments{
-\item{dat}{Primary data containing information on hauls or trips.Table in FishSET 
+\item{dat}{Primary data containing information on hauls or trips. Table in FishSET 
 database contains the string 'MainDataTable'.}
 
 \item{project}{String, name of project.}
