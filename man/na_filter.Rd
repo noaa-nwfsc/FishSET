@@ -2,7 +2,7 @@
 % Please edit documentation in R/nan_filter.R
 \name{na_filter}
 \alias{na_filter}
-\title{Identify, remove or replace NAs}
+\title{Identify, remove, or replace NAs}
 \usage{
 na_filter(
   dat,
@@ -22,44 +22,53 @@ FishSET database contains the string 'MainDataTable'.}
 
 \item{x}{Character string. Column(s) in \code{dat} in which to remove or replace NAs.}
 
-\item{replace}{Logical, if TRUE, replaces NAs in a vector with \code{rep.value}. 
-Defaults to FALSE.}
+\item{replace}{Logical, if \code{TRUE}, replaces NAs in a vector with \code{rep.value}. 
+Defaults to \code{FALSE}.}
 
-\item{remove}{Logical, if TRUE removes the entire row of the \code{dat} where 
-NA is present in a \code{dat}. Defaults to FALSE.}
+\item{remove}{Logical, if \code{TRUE} removes the entire row of the \code{dat} where 
+NA is present in a \code{dat}. Defaults to \code{FALSE}.}
 
 \item{rep.value}{Value to replace all NAs in a numeric column. Defaults to 
 the mean value of the column. Other options include \code{"median"} or a
 numeric value, e.g. \code{rep.value = 0}.}
 
-\item{over_write}{Logical, If TRUE, saves data over previously saved data table 
-in the FishSET database.}
+\item{over_write}{Logical, If \code{TRUE}, saves data over previously saved 
+data table in the FishSET database.}
 }
 \value{
-Returns a statement on whether NAs are found and the modified primary dataset.
+If \code{replace} and \code{remove} are \code{FALSE} then a statement 
+of whether NAs are found is returned. If either \code{replace} or \code{remove} 
+is \code{TRUE} the modified primary dataset is returned.
 }
 \description{
-Identify, remove or replace NAs
+Replaces NAs in the primary data with the chosen value or removes rows 
+containing NAs.
 }
 \details{
 To check for NAs across \code{dat} run the function specifying only 
   \code{dat} (\code{na_filter(dataset, project)}). The function will return a statement 
   of which variables, if any, contain NAs. To remove NAs, use \code{remove = TRUE}. 
   All rows containing NAs in \code{x} will be removed from \code{dat}. To replace 
-  NAs, use \code{replace = TRUE}. If \code{replace} is FALSE and \code{rep.value} 
+  NAs, use \code{replace = TRUE}. If \code{replace = FALSE} and \code{rep.value} 
   is not defined, then NAs are replaced with mean value. The modified dataset will
-  be returned if \code{replace=TRUE} or \code{remove=TRUE}. Save the modified data
-  table to the FishSET database by setting \code{over_write = TRUE)}.
+  be returned if \code{replace = TRUE} or \code{remove = TRUE}. If both 
+  \code{replace} and \code{remove} are \code{TRUE} then \code{replace} is used. 
+  Save the modified data table to the FishSET database by setting 
+  \code{over_write = TRUE)}.
 }
 \examples{
 \dontrun{
-na_filter(pcodMainDataTable)
-mod.dat <- na_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT')
-mod.dat <- na_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT', replace=TRUE)
+na_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT')
+
+mod.dat <- na_filter(pcodMainDataTable, 'pcod', 'OFFICIAL_TOTAL_CATCH_MT', 
+                     replace = TRUE)
+                     
 mod.dat <- na_filter(pcodMainDataTable,'pcod', 'OFFICIAL_TOTAL_CATCH_MT',
-   replace=TRUE, rep.value=0)
+                     replace = TRUE, rep.value = 0)
+                     
 mod.dat <- na_filter(pcodMainDataTable, 'pcod',
-   c('OFFICIAL_TOTAL_CATCH_MT', 'CATCH_VALUE'), remove=TRUE)
+                     c('OFFICIAL_TOTAL_CATCH_MT', 'CATCH_VALUE'), 
+                     remove = TRUE)
 }
 }
 \keyword{NA}

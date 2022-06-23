@@ -26,26 +26,28 @@ Table in the FishSET database contains the string 'MainDataTable'.}
 \item{x}{Variable in \code{dat} to check for outliers.}
 
 \item{dat.remove}{Outlier measure. Values outside the measure are removed. 
-Users can use the predefined values (see below) or user-defined distance from the mean.
-For user-defined values, \code{dat.remove} should be a numeric value. For example, \code{dat.remove=6} 
-would would result in value outside 6SD from the mean being class as outliers.
-User-defined standard deviations from the mean can also be applied using \code{sd_val}.
-Pre-defined choices: \code{"none"}, \code{"5_95_quant"}, \code{"25_75_quant"}, 
-\code{"mean_2SD"}, \code{"median_2SD"}, \code{"mean_3SD"}, \code{"median_3SD"}.
-See the \emph{Details} section for more information.}
+Users can use the predefined values (see below) or user-defined distance 
+from the mean. For user-defined values, \code{dat.remove} should be a numeric 
+value. For example, \code{dat.remove = 6} would would result in value outside 
+6SD from the mean being class as outliers. User-defined standard deviations 
+from the mean can also be applied using \code{sd_val}. Pre-defined choices: 
+\code{"none"}, \code{"5_95_quant"}, \code{"25_75_quant"}, \code{"mean_2SD"}, 
+\code{"median_2SD"}, \code{"mean_3SD"}, \code{"median_3SD"}. See the 
+\emph{Details} section for more information.}
 
 \item{sd_val}{Optional. Number of standard deviations from mean defining outliers. 
-Example, \code{sd_val=6} would mean values outside +/- 6 SD from the mean would be outliers.}
+Example, \code{sd_val = 6} would mean values outside +/- 6 SD from the mean 
+would be outliers.}
 
 \item{x.dist}{Distribution of the data. Choices include: \code{"normal"}, 
 \code{"lognormal"}, \code{"exponential"}, \code{"Weibull"}, \code{"Poisson"}, 
 \code{"negative binomial"}.}
 
-\item{date}{(Optional) date variable to group by year.}
+\item{date}{(Optional) date variable to group the histogram by year.}
 
-\item{group}{(Optional) additional variable to group by.}
+\item{group}{(Optional) additional variable to group the histogram by.}
 
-\item{output.screen}{Logical, if true, return plots to the screen. If false, 
+\item{output.screen}{Logical, if true, return plots to the screen. If \code{FALSE}, 
 returns plot to the 'output' folder as a png file.}
 
 \item{log_fun}{Logical, whether to log function call (for internal use).}
@@ -64,8 +66,10 @@ The function returns three plots: the data, a probability plot,
  \code{dat.remove} is \code{"none"}, then only blue points will be shown.
  The \emph{probability plot} is a histogram of the data, after applying 
  \code{dat.remove}, with the fitted probability distribution based on 
- \code{x.dist}. The \emph{Q-Q plot} plots are sampled quantiles against 
- theoretical quantiles, after applying \code{dat.remove}. \cr\cr
+ \code{x.dist}. \code{group} groups the histogram by a variable from \code{dat}, 
+ \code{date} groups the histogram by year. The \emph{Q-Q plot} plots are 
+ sampled quantiles against theoretical quantiles, after applying \code{dat.remove}. 
+ \cr\cr
  The \code{dat.remove} choices are:
  \itemize{
  \item{numeric value: Remove data points outside +/- `x`SD of the mean}
@@ -89,10 +93,12 @@ The function returns three plots: the data, a probability plot,
 }
 \examples{
 \dontrun{
-outlier_plot(pollockMainDataTable, 'pollock', 'Haul', dat.remove = 'mean_2SD', 
-   x.dist = 'normal', output.screen = TRUE)
-outlier_plot(pollockMainDataTable, 'pollock', 'Haul', dat.remove = 6, 
-   x.dist = 'lognormal', output.screen = TRUE)
+
+outlier_plot(pollockMainDataTable, 'pollock', x = 'Haul', dat.remove = 'mean_2SD', 
+             x.dist = 'normal', output.screen = TRUE)
+# user-defined outlier        
+outlier_plot(pollockMainDataTable, 'pollock', x = 'Haul', dat.remove = 6, 
+             x.dist = 'lognormal', output.screen = TRUE)
 }
 }
 \keyword{outlier}

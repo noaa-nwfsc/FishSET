@@ -2,7 +2,8 @@
 % Please edit documentation in R/assignment_column.R
 \name{assignment_column}
 \alias{assignment_column}
-\title{Assign each observation in the primary dataset to a fishery management or regulatory zone}
+\title{Assign each observation in the primary dataset to a fishery management or 
+ regulatory zone}
 \usage{
 assignment_column(
   dat,
@@ -27,31 +28,37 @@ database contains the string 'MainDataTable'.}
 
 \item{project}{name of project.}
 
-\item{spat}{Spatial data containing information on fishery management or regulatory 
-zones. Shape, json, geojson, and csv formats are supported.}
+\item{spat}{Spatial data containing information on fishery management or 
+regulatory zones. \code{sf} objects are recommended, but \code{sp} objects
+can be used as well. If using a spatial table read from a csv file, then
+arguments \code{lon.spat} and \code{lat.spat} are required. To upload your
+spatial data to the FishSETFolder see \code{\link{load_spatial}}.}
 
 \item{lon.dat}{Longitude variable in \code{dat}.}
 
 \item{lat.dat}{Latitude variable in \code{dat}.}
 
 \item{cat}{Variable or list in \code{spat} that identifies the individual areas 
-or zones. If \code{spat} is class sf, \code{cat} should be name of list containing 
-information on zones.}
+or zones. If \code{spat} is class \code{sf}, \code{cat} should be name of list 
+containing information on zones.}
 
 \item{name}{The name of the new assignment column. Defaults to \code{"ZoneID"}.}
 
-\item{closest.pt}{Logical, if true, observations that fall outside zones are 
+\item{closest.pt}{Logical, if \code{TRUE}, observations that fall outside zones are 
 classed as the closest zone polygon to the point.}
 
 \item{bufferval}{Maximum buffer distance, in meters, for assigning observations 
-to the closest zone polygon. If no zone polygons are within the defined \code{bufferval}, 
-then observation will not be assigned to a zone polygon. Required if \code{closest.pt = TRUE}.}
+to the closest zone polygon. If no zone polygons are within the defined 
+\code{bufferval}, then observation will not be assigned to a zone polygon. 
+Required if \code{closest.pt = TRUE}.}
 
 \item{lon.spat}{Variable or list from \code{spat} containing longitude data. 
-Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}
+Required for spatial tables read from csv files. Leave as \code{NULL} if 
+\code{spat} is an \code{sf} or \code{sp} object.}
 
 \item{lat.spat}{Variable or list from \code{spat} containing latitude data. 
-Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}
+Required for spatial tables read from csv files. Leave as \code{NULL} if 
+\code{spat} is an \code{sf} or \code{sp} object.}
 
 \item{hull.polygon}{Logical, if TRUE, creates convex hull polygon. Use if spatial 
 data creating polygon are sparse or irregular.}
@@ -73,10 +80,17 @@ Assign each observation in the primary dataset to a fishery management
 }
 \details{
 Function uses the specified latitude and longitude from the primary 
-  dataset to assign each row of the primary dataset to a zone. Zone polygons are 
-  defined by the spatial dataset. Set \code{hull.polygon} to TRUE if spatial 
-  data is sparse or irregular. Function is called by other functions if a zone 
-  identifier does not exist in the primary dataset.
+  dataset to assign each row of the primary dataset to a zone. Zone polygons 
+  are defined by the spatial dataset. Set \code{hull.polygon} to \code{TRUE} 
+  if spatial data is sparse or irregular. Function is called by other functions 
+  if a zone identifier does not exist in the primary dataset.
+}
+\examples{
+\dontrun{
+pollockMainDataTable <- 
+     assignment_column(pollockMainDataTable, "pollock", spat = pollockNMFSSpatTable,
+                       lon.dat = "LonLat_START_LON", lat.dat = "LonLat_START_LAT")
+}
 }
 \keyword{polygon}
 \keyword{zone,}

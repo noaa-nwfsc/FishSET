@@ -21,7 +21,9 @@ in the FishSET database.}
 }
 \description{
 Gridded data is data that varies by two dimensions. Column names must be zone 
-names. Load, parse, and save gridded data to FishSET database
+names. Load, parse, and save gridded data to FishSET database.  A project must 
+exist before running \code{load_grid()}. See \code{\link{load_maindata}}
+to create a new project.
 }
 \details{
 Grid data is an optional data frame that contains a variable that 
@@ -37,11 +39,18 @@ Grid data is an optional data frame that contains a variable that
   resolved before the data is saved to the database. The data is saved in the 
   FishSET database as the raw data and the working data. In both cases, the 
   table name is the \code{project} and the file name \code{x}. Date is attached 
-  to the name for the raw data.
+  to the name for the raw data. The naming convention for gridded tables is 
+  "projectNameGridTable". See \code{\link{table_view}} to view/load gridded 
+  tables into the working environment.
 }
 \examples{
 \dontrun{
-load_grid(dat = 'pcodMainDataTable', name = SeaSurfaceTemp, over_write = TRUE, project = 'pcod')
+load_grid(dat = 'pcodMainDataTable', name = 'SeaSurfaceTemp', 
+          over_write = TRUE, project = 'pcod')
 }
 
+}
+\seealso{
+\code{\link{table_view}}, \code{\link{load_maindata}},
+  \code{\link{write_dat}}
 }

@@ -1,14 +1,16 @@
-# Outlier check functions.
-
-outlier_table <- function(dat, project, x, sd_val=NULL, log_fun = TRUE) {
-  #' Evaluate outliers in a table format
+outlier_table <- function(dat, project, x, sd_val = NULL, log_fun = TRUE) {
+  #' Evaluate outliers in Data
+  #' 
+  #' \code{outlier_table()} returns a summary table which shows summary
+  #' statistics of a variable after applying several outlier filters. 
   #'
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
   #' @param x Variable or column number in \code{dat} to check for outliers.
   #' @param sd_val Optional. Number of standard deviations from mean defining outliers. 
-  #'    Example, \code{sd_val=6} would mean values outside +/- 6 SD from the mean would be outliers.
+  #'    Example, \code{sd_val = 4} would mean values outside +/- 4 SD from the mean 
+  #'    would be outliers.
   #' @param log_fun Logical, whether to log function call (for internal use).
   #' @importFrom stats quantile sd var median
   #' @keywords outliers
@@ -23,15 +25,13 @@ outlier_table <- function(dat, project, x, sd_val=NULL, log_fun = TRUE) {
   #'  checked at a time. Table is saved to the Output folder.
   #' @examples
   #' \dontrun{
-  #' outlier_table(pollockMainDataTable, 'pollock', 'HAUL')
+  #' outlier_table(pollockMainDataTable, 'pollock', x = 'HAUL')
   #' }
-
 
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
-  
 
   x.name <- x
 
@@ -50,7 +50,11 @@ outlier_table <- function(dat, project, x, sd_val=NULL, log_fun = TRUE) {
                skew = round(skewness(temp[[x]], na.rm = TRUE), 2))
   }
   # numeric. Cannot check outliers if not.
-  if (is.numeric(dataset[[x]])) {
+  if (!is.numeric(dataset[[x]])) {
+    
+    stop("Data is not numeric.", call. = FALSE)
+    
+  } else {
     # Output table of summary statistics Row 1 No data removed
     dat.table <- 
       data.frame(Vector = x.name, outlier_check = "None", 
@@ -104,35 +108,26 @@ outlier_table <- function(dat, project, x, sd_val=NULL, log_fun = TRUE) {
                                     if (dim(temp)[1] == 0) {emptyrow} else {filledrow(temp, x) }
      ))
     }
-    
-    
-  } else {
-    
-    print("Data is not numeric.")
-  }
 
-  if (log_fun) {
-    
-    outlier_table_function <- list()
-    outlier_table_function$functionID <- "outlier_table"
-    outlier_table_function$args <- list(dat, project, x, log_fun)
-    
-    log_call(project, outlier_table_function)
-  }
-
-  if(is.numeric(dataset[[x]])){
-    save_table(dat.table, project, "outlier_table")
-  } else  {
-    cat('Table not available. Data is not numeric.')
-  }
+    if (log_fun) {
+      
+      outlier_table_function <- list()
+      outlier_table_function$functionID <- "outlier_table"
+      outlier_table_function$args <- list(dat, project, x, log_fun)
+      
+      log_call(project, outlier_table_function)
+    }
   
-  return(dat.table)
+    save_table(dat.table, project, "outlier_table")
+    
+    return(dat.table)
+  }
 }
 
-## ---------------------------##
-outlier_plot <- function(dat, project, x, dat.remove='none', sd_val=NULL, x.dist='normal', 
-                         date = NULL, group = NULL, output.screen = FALSE,
-                         log_fun = TRUE) {
+
+outlier_plot <- function(dat, project, x, dat.remove = 'none', sd_val = NULL, 
+                         x.dist = 'normal', date = NULL, group = NULL, 
+                         output.screen = FALSE, log_fun = TRUE) {
   #' Evaluate outliers in plot format
   #'
   #' Visualize spread of data and measures to identify outliers.
@@ -141,21 +136,23 @@ outlier_plot <- function(dat, project, x, dat.remove='none', sd_val=NULL, x.dist
   #' @param project String, name of project.
   #' @param x Variable in \code{dat} to check for outliers.
   #' @param dat.remove Outlier measure. Values outside the measure are removed. 
-  #'   Users can use the predefined values (see below) or user-defined distance from the mean.
-  #'   For user-defined values, \code{dat.remove} should be a numeric value. For example, \code{dat.remove=6} 
-  #'   would would result in value outside 6SD from the mean being class as outliers.
-  #'   User-defined standard deviations from the mean can also be applied using \code{sd_val}.
-  #'   Pre-defined choices: \code{"none"}, \code{"5_95_quant"}, \code{"25_75_quant"}, 
-  #'   \code{"mean_2SD"}, \code{"median_2SD"}, \code{"mean_3SD"}, \code{"median_3SD"}.
-  #'   See the \emph{Details} section for more information.
+  #'   Users can use the predefined values (see below) or user-defined distance 
+  #'   from the mean. For user-defined values, \code{dat.remove} should be a numeric 
+  #'   value. For example, \code{dat.remove = 6} would would result in value outside 
+  #'   6SD from the mean being class as outliers. User-defined standard deviations 
+  #'   from the mean can also be applied using \code{sd_val}. Pre-defined choices: 
+  #'   \code{"none"}, \code{"5_95_quant"}, \code{"25_75_quant"}, \code{"mean_2SD"}, 
+  #'   \code{"median_2SD"}, \code{"mean_3SD"}, \code{"median_3SD"}. See the 
+  #'   \emph{Details} section for more information.
   #'@param sd_val Optional. Number of standard deviations from mean defining outliers. 
-  #'    Example, \code{sd_val=6} would mean values outside +/- 6 SD from the mean would be outliers.
+  #'    Example, \code{sd_val = 6} would mean values outside +/- 6 SD from the mean 
+  #'    would be outliers.
   #' @param x.dist Distribution of the data. Choices include: \code{"normal"}, 
   #'   \code{"lognormal"}, \code{"exponential"}, \code{"Weibull"}, \code{"Poisson"}, 
   #'   \code{"negative binomial"}.
-  #' @param date (Optional) date variable to group by year.
-  #' @param group (Optional) additional variable to group by.
-  #' @param output.screen Logical, if true, return plots to the screen. If false, 
+  #' @param date (Optional) date variable to group the histogram by year.
+  #' @param group (Optional) additional variable to group the histogram by.
+  #' @param output.screen Logical, if true, return plots to the screen. If \code{FALSE}, 
   #'   returns plot to the 'output' folder as a png file.
   #' @param log_fun Logical, whether to log function call (for internal use).
   #' @keywords outlier
@@ -170,8 +167,10 @@ outlier_plot <- function(dat, project, x, dat.remove='none', sd_val=NULL, x.dist
   #'  \code{dat.remove} is \code{"none"}, then only blue points will be shown.
   #'  The \emph{probability plot} is a histogram of the data, after applying 
   #'  \code{dat.remove}, with the fitted probability distribution based on 
-  #'  \code{x.dist}. The \emph{Q-Q plot} plots are sampled quantiles against 
-  #'  theoretical quantiles, after applying \code{dat.remove}. \cr\cr
+  #'  \code{x.dist}. \code{group} groups the histogram by a variable from \code{dat}, 
+  #'  \code{date} groups the histogram by year. The \emph{Q-Q plot} plots are 
+  #'  sampled quantiles against theoretical quantiles, after applying \code{dat.remove}. 
+  #'  \cr\cr
   #'  The \code{dat.remove} choices are:
   #'  \itemize{
   #'  \item{numeric value: Remove data points outside +/- `x`SD of the mean}
@@ -196,11 +195,12 @@ outlier_plot <- function(dat, project, x, dat.remove='none', sd_val=NULL, x.dist
   #' @return Plot of the data
   #' @examples
   #' \dontrun{
-  #' outlier_plot(pollockMainDataTable, 'pollock', 'Haul', dat.remove = 'mean_2SD', 
-  #'    x.dist = 'normal', output.screen = TRUE)
-  #' outlier_plot(pollockMainDataTable, 'pollock', 'Haul', dat.remove = 6, 
-  #'    x.dist = 'lognormal', output.screen = TRUE)
-  
+  #' 
+  #' outlier_plot(pollockMainDataTable, 'pollock', x = 'Haul', dat.remove = 'mean_2SD', 
+  #'              x.dist = 'normal', output.screen = TRUE)
+  #' # user-defined outlier        
+  #' outlier_plot(pollockMainDataTable, 'pollock', x = 'Haul', dat.remove = 6, 
+  #'              x.dist = 'lognormal', output.screen = TRUE)
   #' }
 
 
@@ -391,6 +391,8 @@ outlier_plot <- function(dat, project, x, dat.remove='none', sd_val=NULL, x.dist
                     title = paste("Q-Q plot of", x.dist, "fit against data")) +
       mytheme
 
+    # TODO: switch from ggpubr to gridExtra
+    
     # Put it all together
     fig <- suppressWarnings(ggpubr::ggarrange(p1, p2, p3, ncol = 2, nrow = 2))
 
@@ -427,7 +429,7 @@ outlier_plot <- function(dat, project, x, dat.remove='none', sd_val=NULL, x.dist
   }
 }
 
-## ---------------------------##
+
 outlier_remove <- function(dat, project, x, dat.remove = "none", sd_val=NULL, over_write = FALSE) {
   #' Remove outliers from data table
   #'
@@ -530,7 +532,7 @@ outlier_remove <- function(dat, project, x, dat.remove = "none", sd_val=NULL, ov
       dataset #
       assign('pollockMainDataTable', dataset, envir=.GlobalEnv)
       return(dataset)
-} # End Outlier check
+}
     
 
 outlier_boxplot <- function(dat, project, x=NULL){
