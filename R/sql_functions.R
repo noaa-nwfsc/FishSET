@@ -137,18 +137,24 @@ table_fields <- function(table, project) {
 }
 
 table_view <- function(table, project) {
-  #' View FishSET database table
+  #' View FishSET Database table
+  #' 
+  #' \code{table_view()} returns a table from a project's FishSET Database. 
+  #' 
   #' @param table String, name of table in FishSET database. Table name must be in quotes.
-  #' @param project Name of project
+  #' @param project Name of project.
   #' @export table_view
   #' @description Wrapper for \code{\link[DBI]{dbGetQuery}}. View or call the 
   #'   selected table from the FishSET database.
-  #' @importFrom DBI dbConnect dbDisconnect  dbGetQuery
+  #' @importFrom DBI dbConnect dbDisconnect dbGetQuery
   #' @importFrom sf st_read
   #' @importFrom lubridate as_date as_datetime
+  #' @importFrom tibble as_tibble
+  #' @seealso \code{\link{list_tables}} to show existing tables by project and type.
+  #'   \code{\link{fishset_tables}} to show all tables in the FishSETFolder. 
   #' @examples
   #' \dontrun{
-  #' head(table_view('pollockMainDataTable'))
+  #' head(table_view('pollockMainDataTable', project = 'pollock'))
   #' }
   
   if (table_exists(table, project) == FALSE) {
@@ -167,9 +173,8 @@ table_view <- function(table, project) {
       suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project)))
       on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
       
-      tab_out <- DBI::dbGetQuery(fishset_db, paste0("SELECT * FROM", paste0("'", noquote(table), "'")))
-      # convert to tibble?
-      
+      tab_out <- DBI::dbGetQuery(fishset_db, 
+                                 paste0("SELECT * FROM", paste0("'", noquote(table), "'")))
       
       # convert date and date-time from numeric
       d_cols <- grep("date", names(tab_out), ignore.case = TRUE, value = TRUE)
@@ -190,14 +195,22 @@ table_view <- function(table, project) {
         tab_out[dt_numeric] <- lapply(tab_out[dt_numeric], lubridate::as_datetime)
       }
       
-      tab_out
+      tibble::as_tibble(tab_out)
     }
   }
 }
 
 
 unserialize_table <- function(table, project) {
-  # TODO: add documentation
+  #' Unserialize special tables in FishSET DB
+  #' 
+  #' @param table The name of the special table to unserialize. Special tables
+  #'   include alternative choice matrix output, expected catch matrix output,
+  #'   the model data list, and the prediction output (not available yet). 
+  #' @param project Name of project.
+  #' @keywords internal
+  #' @importFrom DBI dbConnect dbDisconnect dbGetQuery
+  #' @importFrom RSQLite SQLite
   
   tab_type <- table_type(table)
   
@@ -216,7 +229,7 @@ unserialize_table <- function(table, project) {
                                                      # (depends on whether created in app or console)
                     "predict output" = "PredictOutput") # hasn't been added to table_type
   
-  sql_qry <- paste0("SELECT ",tab_qry, " FROM ", table, " LIMIT 1")
+  sql_qry <- paste0("SELECT ", tab_qry, " FROM ", table, " LIMIT 1")
   
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
@@ -442,29 +455,40 @@ project_tables <- function(project, ...) {
   #' @param project Name of project.
   #' @param ... String, additional characters to match by. 
   #' @export
+  #' @seealso \code{\link{list_tables}}, \code{\link{fishset_tables}}
   #' @examples 
   #' \dontrun{
   #' project_tables("pollock")
   #' project_tables("pollock", "main")
   #' }
 
-  if(!project_exists(project)) {
-    out <- NULL
-  } else {
-  if(is_empty(tables_database(project = project))){
-    out <- NULL
-  } else {
-    out <- grep(paste0("^", project, ...), tables_database(project = project), 
-              value = TRUE, ignore.case = TRUE)
-  }
+  # NOTE: this is equivalent to tables_database()
+  # TODO: remove project_tables() or replace tables_database()
   
-  if (length(out) == 0) {
+  if (!project_exists(project)) {
     
-    paste0("No database tables found for project ", project)
+    out <- NULL
+    
   } else {
     
-    out
-  }
+    if (is_value_empty(tables_database(project = project))) {
+      
+      out <- NULL
+      
+    } else {
+      
+      out <- grep(paste0("^", project, ...), tables_database(project = project), 
+                value = TRUE, ignore.case = TRUE)
+    }
+    
+    if (length(out) == 0) {
+      
+      message("No database tables found for project ", project)
+      
+    } else {
+      
+      out
+    }
   }
 }
 
@@ -493,7 +517,10 @@ main_tables <- function(project, show_all = TRUE) {
 }
 
 list_tables <- function(project, type = "main") {
-  #' Display tables in FishSET database by type for the defined project
+  #' Display FishSET database tables by type
+  #' 
+  #' Show project table names by table type. To see all tables for all projects 
+  #' in the FishSETFolder, use \code{\link{fishset_tables}}. 
   #' 
   #' @param project A project name to show main tables by. 
   #' @param type the type of fishset_db table to search for. Options include 
@@ -505,7 +532,7 @@ list_tables <- function(project, type = "main") {
   #' @export
   #' @examples 
   #' \dontrun{
-  #' list_tables(type = "main")
+  #' list_tables("pollock", type = "main")
   #' list_tables("pollock", "ec")
   #' }
   #' 
@@ -527,7 +554,7 @@ list_tables <- function(project, type = "main") {
            "model_design" = "modelDesignTable", "grid" = "GridTable", "aux" = "AuxTable",
            "spat" = "SpatTable", "filter" = "FilterTable")
   
-  if (is.null(project)) {
+  if (is_value_empty(project)) {
     
     warning('Project must be specified.')
     
@@ -575,6 +602,14 @@ fishset_tables <- function(project = NULL) {
   #'  be displayed. 
   #'@importFrom stringr str_extract
   #'@export
+  #'@examples 
+  #'\dontrun{
+  #' # return all tables for all projects
+  #' fishset_tables()
+  #' 
+  #' # return all tables for a specific project
+  #' fishset_tables("pollock")
+  #'}
   
   # dataframe containing all sql tables 
   
