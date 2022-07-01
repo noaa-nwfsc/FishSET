@@ -16,17 +16,21 @@ read_dat(
 )
 }
 \arguments{
-\item{x}{Name and path of dataset to be read in. To load data directly from a webpage, \code{x} should be the web address.}
+\item{x}{Name and path of dataset to be read in. To load data directly from 
+a webpage, \code{x} should be the web address.}
 
-\item{data.type}{Optional. Data type can be defined by user or based on the file extension.
-If undefined, \code{data.type} is the string after the last period or equal sign. \code{data.type} must be 
-defined if \code{x} is the path to a shape folder, if the file is a Google spreadsheet use \code{data.type = 'google'},
-or if the correct extension cannot be derived from \code{x}.
-R, comma-delimited, tab-delimited, excel, Matlab, json, geojson, sas,
-spss, stata, and html, and XML data extensions do not have to be specified.}
+\item{data.type}{Optional. Data type can be defined by user or based on the 
+file extension. If undefined, \code{data.type} is the string after the 
+last period or equal sign. \code{data.type} must be defined if \code{x} is 
+the path to a shape folder, if the file is a Google spreadsheet use 
+\code{data.type = 'google'}, or if the correct extension cannot be derived 
+from \code{x}. R, comma-delimited, tab-delimited, excel, Matlab, json, 
+geojson, sas, spss, stata, and html, and XML data extensions do not have 
+to be specified.}
 
-\item{is.map}{logical, for .json file extension, set \code{is.map} to TRUE if data is a spatial file.
-Spatial files ending in .json will not be read in properly unless \code{is.map = TRUE}.}
+\item{is.map}{logical, for .json file extension, set \code{is.map = TRUE} 
+if data is a spatial file. Spatial files ending in .json will not be read 
+in properly unless \code{is.map = TRUE}.}
 
 \item{drv}{Use with sql files. Database driver.}
 
@@ -43,35 +47,40 @@ Import data from local file directory or webpage into the R environment
 }
 \details{
 Uses the appropriate function to read in data based on data type.
-  Use \code{\link[FishSET]{write_dat}} to save data to the \code{data} folder in the \code{project} directory.
-  Supported data types include shape, csv, json, matlab, R, spss, and stata files.
-  Use \code{data.type = 'shape'} if \code{x} is the path to a shape folder. 
-  Use \code{data.type = 'google'} if the file is a Google spreadsheet.
+  Use \code{\link[FishSET]{write_dat}} to save data to the \code{data} folder 
+  in the \code{project} directory. Supported data types include shape, csv, 
+  json, matlab, R, spss, and stata files. Use \code{data.type = 'shape'} if 
+  \code{x} is the path to a shape folder. Use \code{data.type = 'google'} if 
+  the file is a Google spreadsheet.
   
-  For sql files, use \code{data.type = 'sql'}. The function will connect to the specified DBI and pull the table. 
-  Users must specify the DBI driver (\code{drv}), for example: \code{RSQLite::SQLite()}, \code{RPostgreSQL::PostgreSQL()}, 
-  \code{odbc::odbc()}. Further arguments may be required, including database name (\code{dbname}),
-   user id (\code{user}), and password (\code{password}). 
+  For sql files, use \code{data.type = 'sql'}. The function will connect to 
+  the specified DBI and pull the table. Users must specify the DBI driver 
+  (\code{drv}), for example: \code{RSQLite::SQLite()}, 
+  \code{RPostgreSQL::PostgreSQL()}, \code{odbc::odbc()}. Further arguments 
+  may be required, including database name (\code{dbname}), user id 
+  (\code{user}), and password (\code{password}). 
   
-  Additional arguments can be added, such as skip lines \code{skip = 2} and header \code{header = FALSE}. 
-  To specify the separator argument for a delimited file, include tab-delimited, specify \code{data.type = 'delim'}.
+  Additional arguments can be added, such as skip lines \code{skip = 2} and 
+  header \code{header = FALSE}. To specify the separator argument for a 
+  delimited file, include tab-delimited, specify \code{data.type = 'delim'}.
  
   For more details, see \code{\link[base]{load}} for loading R objects, 
   \code{\link[readr]{read_csv}} for reading in comma separated value files,
   \code{\link[readr]{read_tsv}} for reading in tab separated value files,
   \code{\link[readr]{read_delim}} for reading in delimited files,
   \code{\link[readxl]{read_excel}} for reading in excel files (xls, xlsx), 
-  \code{\link[sf]{st_read}} for reading in geojson , GeoPackage files, and shape files,
-  \code{\link[R.matlab]{readMat}} for reading in matlab data files,
+  \code{\link[sf]{st_read}} for reading in geojson , GeoPackage files, and 
+  shape files, \code{\link[R.matlab]{readMat}} for reading in matlab data files,
   \code{\link[haven]{read_dta}} for reading in stata data files,
   \code{\link[haven]{read_spss}} for reading in spss data files,
   \code{\link[haven]{read_sas}} for reading in sas data files, and 
   \code{\link[jsonlite]{fromJSON}} for reading in json files.
-  \code{\link[xml2]{read_xml}} for reading in XML files. Further processing may be required.
-  \code{\link[xml2]{read_html}} for reading in html tables.
-  See \code{read_sheet} in \code{\link[googlesheets4]{range_read}} for reading in google spreadsheets.
-      Google spreadsheets require \code{data.type} be specified. Use \code{data.type = 'google'}.
-  \code{\link[readODS]{read_ods}} for reading in open document spreadsheets.
+  \code{\link[xml2]{read_xml}} for reading in XML files. Further processing 
+  may be required. \code{\link[xml2]{read_html}} for reading in html tables.
+  See \code{read_sheet} in \code{\link[googlesheets4]{range_read}} for 
+  reading in google spreadsheets. Google spreadsheets require \code{data.type} 
+  be specified. Use \code{data.type = 'google'}. \code{\link[readODS]{read_ods}} 
+  for reading in open document spreadsheets.
 }
 \examples{
 \dontrun{
