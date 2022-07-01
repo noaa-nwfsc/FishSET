@@ -17,7 +17,7 @@ Prints the name of the most recent output files.
 }
 \examples{
 \dontrun{
-current_out()
+current_out("pollock")
 }
 }
 \keyword{internal}

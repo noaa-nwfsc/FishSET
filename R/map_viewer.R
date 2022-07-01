@@ -22,7 +22,7 @@ map_viewer <- function(dat, project, spat, avd, avm, num_vars, temp_vars, id_var
   #'   latitude point or starting latitude decimal degrees.
   #' @param lon_end String, variable in \code{dat} that identifies ending longitude decimal degrees.
   #' @param lat_end String, variable in \code{dat} that identifies ending latitude decimal degrees.
-  #' @importFrom geojsonio geojson_write
+  #' @importFrom sf st_write
   #' @importFrom jsonlite toJSON
   #' @importFrom servr httd
   #' @importFrom shiny isRunning
@@ -62,8 +62,8 @@ map_viewer <- function(dat, project, spat, avd, avm, num_vars, temp_vars, id_var
   
   if (!is.null(spatdat)) {
     
-    geojsonio::geojson_write(spatdat, file = paste0(loc_map(project=project), "spatdat.geojson"), 
-                             overwrite = TRUE)
+    sf::st_write(spatdat, dsn = paste0(loc_map(project = project), "spatdat.geojson"), 
+                 overwrite = TRUE)
   }
   
   # 2 Create data file

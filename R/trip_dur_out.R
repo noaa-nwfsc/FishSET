@@ -104,14 +104,35 @@
 #' @importFrom shiny isRunning
 #' @importFrom gridExtra arrangeGrob grid.arrange marrangeGrob
 
-trip_dur_out <- function(dat, project, start, end, units = "days",  vpue = NULL,
-                        group = NULL, combine = TRUE, haul_count = TRUE, sub_date = NULL,
-                        filter_date = NULL, date_value = NULL, filter_by = NULL, 
-                        filter_value = NULL, filter_expr = NULL, facet_by = NULL, 
-                        type = "hist", bins = 30, density = TRUE, scale = "fixed", 
-                        tran = "identity", format_lab = "decimal", pages = "single", 
-                        remove_neg = FALSE, output = "tab_plot", tripID = NULL, 
-                        fun.time = NULL, fun.numeric = NULL) {
+trip_dur_out <- function(dat,
+                         project,
+                         start,
+                         end,
+                         units = "days",
+                         vpue = NULL,
+                         group = NULL,
+                         combine = TRUE,
+                         haul_count = TRUE,
+                         sub_date = NULL,
+                         filter_date = NULL,
+                         date_value = NULL,
+                         filter_by = NULL,
+                         filter_value = NULL,
+                         filter_expr = NULL,
+                         facet_by = NULL,
+                         type = "hist",
+                         bins = 30,
+                         density = TRUE,
+                         scale = "fixed",
+                         tran = "identity",
+                         format_lab = "decimal",
+                         pages = "single",
+                         remove_neg = FALSE,
+                         output = "tab_plot",
+                         tripID = NULL,
+                         fun.time = NULL,
+                         fun.numeric = NULL) {
+  
   
   out <- data_pull(dat, project)
   dataset <- out$dataset

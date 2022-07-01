@@ -25,7 +25,6 @@
 #' @importFrom yaml read_yaml
 #' @importFrom DBI dbConnect dbDisconnect dbGetQuery
 #' @importFrom RSQLite SQLite
-#' @importFrom stringr str_remove
 #' @details Calls \code{\link{logit_predict}}, \code{\link{epm_predict}}, and \code{\link{predict_probability}}.
 #'    Closure scenarios and TAC must be define using \code{\link{zone_closure}} function before function can be run. 
 #' @export
@@ -110,7 +109,7 @@ for(i in 1:length(closures)){
   scenarioname <- closures[[i]]$scenario
   zone.closure <- closures[[i]]$zone
   tac <- as.numeric(closures[[i]]$tac)
-  zone.closure <- stringr::str_remove(zone.closure, "Zone_")
+  zone.closure <- gsub("Zone_", "", zone.closure)
   
   if(any(zone.closure %in% zoneID)){
         z <- zone.closure

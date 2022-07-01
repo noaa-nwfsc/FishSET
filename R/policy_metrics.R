@@ -173,7 +173,7 @@ for(i in 1:length(closures)){
   
   tac <- as.numeric(closures[[i]]$tac)
   closure[i] <- closures[[i]]$zone
-  zone.closure <- stringr::str_remove(closure, "Zone_")
+  zone.closure <- gsub("Zone_", "", zone.closure)
 
   temp <- return_dat(dataset, zone.closure)
 

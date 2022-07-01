@@ -11,11 +11,11 @@ create_expectations(
   price = NULL,
   defineGroup = "fleet",
   temp.var = NULL,
-  temporal = c("daily", "sequential"),
-  calc.method = c("standardAverage", "simpleLag", "weights"),
-  lag.method = c("simple", "grouped"),
-  empty.catch = c(NULL, 0, "allCatch", "groupedCatch"),
-  empty.expectation = c(NULL, 1e-04, 0),
+  temporal = "daily",
+  calc.method = "standardAverage",
+  lag.method = "simple",
+  empty.catch = NULL,
+  empty.expectation = NULL,
   temp.window = 7,
   temp.lag = 0,
   year.lag = 0,
@@ -57,7 +57,7 @@ standard average (\code{"standardAverage"}), simple lag regression of means
 \item{lag.method}{String, use regression over entire group (\code{"simple"}) 
 or for grouped time periods (\code{"grouped"}).}
 
-\item{empty.catch}{String, replace empty catch with \code{NA}, \code{"0"}, mean 
+\item{empty.catch}{String, replace empty catch with \code{NA}, \code{0}, mean 
 of all catch (\code{"allCatch"}), or mean of grouped catch (\code{"groupCatch"}).}
 
 \item{empty.expectation}{Numeric, how to treat empty expectation values. Choices 

@@ -94,8 +94,8 @@ This function performs spatial quality checks and outputs summary tables and
 plots. Checks include percent of observations on land, outside regulatory zone
 (\code{spat}), and on a zone boundary. If any observation occurs outside the 
 regulatory zones then summary information on distance from nearest zone is 
-provided. \code{spatial_qaqc} can filter out observations that fall outside
-a specified distance (see \code{filter_dist}).
+provided. \code{spatial_qaqc} can filter out observations that are not within
+the distance specified in \code{filter_dist}.
 }
 \examples{
 \dontrun{

@@ -14,9 +14,9 @@ Table in the FishSET database contains the string 'MainDataTable'.}
 
 \item{x}{Variable or column number in \code{dat} to check for outliers.}
 
-\item{sd_val}{Optional. Number of standard deviations from mean defining outliers. 
-Example, \code{sd_val = 4} would mean values outside +/- 4 SD from the mean 
-would be outliers.}
+\item{sd_val}{Optional. Number of standard deviations from mean defining 
+outliers. For example, \code{sd_val = 4} would mean values outside +/- 4 
+SD from the mean would be outliers.}
 
 \item{log_fun}{Logical, whether to log function call (for internal use).}
 }
