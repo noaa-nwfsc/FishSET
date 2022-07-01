@@ -76,8 +76,9 @@ current_log <- function(project) {
   else logs <- list.files(loclog(project = project))
 
   if (!is.null(logs)) {
+    
     g <- gsub("[^0-9]", "", logs)
-    log <- logs[which(g == max(g))]
+    log <- logs[which(g == max(g, na.rm = TRUE))]
     
     log
     
@@ -90,8 +91,8 @@ pull_log <- function(project, log_date = NULL) {
   #'  pull log file
   #'
   #' @param project Project name. 
-  #' @param log_date Date of log to be pulled. If \code{NULL}, then most recent log file
-  #'   is retrieved.
+  #' @param log_date Date of log to be pulled. If \code{NULL}, then most recent 
+  #'   log file is retrieved.
   #' @importFrom jsonlite fromJSON
   #' @keywords internal
   #' @export
@@ -107,10 +108,10 @@ pull_log <- function(project, log_date = NULL) {
       
       log_file <- grep(log_date, project_logs(project), value = TRUE)
       
-    #if (file.exists(paste0(loclog(), log_date, ".json"))) {
     if (length(log_file) > 0) {
       
-      log <- jsonlite::fromJSON(paste0(loclog(project = project), log_file), simplifyVector = FALSE)
+      log <- jsonlite::fromJSON(paste0(loclog(project = project), log_file), 
+                                simplifyVector = FALSE)
       
     } else {
       
@@ -129,20 +130,22 @@ current_out <- function(project) {
   #' @param project Project name
   #' @keywords internal
   #' @export
-  #' @importFrom stringr str_extract_all
+  #' @importFrom stringi stri_extract_first_regex
   #' @details Prints the name of the most recent output files.
   #' @examples
   #' \dontrun{
-  #' current_out()
+  #' current_out("pollock")
   #' }
 
   outs <- list.files(locoutput(project = project))
 
-  cur <- stringr::str_extract_all(outs, "\\d{4}-\\d{2}-\\d{2}", simplify = TRUE)
+  cur <- stringi::stri_extract_first_regex(outs, "\\d{4}-\\d{2}-\\d{2}")
+  
+  if (is_value_empty(cur)) return(NULL)
 
   cur <- gsub("[^0-9]", "", cur)
 
-  outs <- outs[which(cur == max(cur))]
+  outs <- outs[which(cur == max(cur, na.rm = TRUE))]
 
   outs
 }
@@ -179,10 +182,11 @@ pull_output <- function(project, fun = NULL, date = NULL, type = "plot", conf = 
   #' @param date Output file date in "%Y-%m-%d" format to retrieve. If \code{NULL}
   #'   the most recent output file is pulled.
   #' @param type Whether to return the \code{"plot"} (.png), \code{"table"} (.csv),
-  #'  "notes" (.txt) or \code{"all"} files matching the project name, function, and date.
+  #'  "notes" (.txt) or \code{"all"} files matching the project name, function, 
+  #'  and date.
   #' @param conf Logical, whether to return suppressed confidential data. 
   #'    Unsuppressed output will be pulled if suppressed output is not available. 
-  #' @importFrom stringr str_extract_all
+  #' @importFrom stringi stri_extract_first_regex
   #' @export
   #' @examples
   #' \dontrun{
@@ -191,7 +195,8 @@ pull_output <- function(project, fun = NULL, date = NULL, type = "plot", conf = 
   end <- FALSE
   
   outs <- project_files(project)
-  ext <- switch(type, "plot" = ".*\\.png$", "table" = ".*\\.csv$", "notes" = ".*\\.txt$", "zone" = ".*\\.yaml")
+  ext <- switch(type, "plot" = ".*\\.png$", "table" = ".*\\.csv$", 
+                "notes" = ".*\\.txt$", "zone" = ".*\\.yaml")
   
   out <- grep(ext, outs, value = TRUE)
   
@@ -220,9 +225,9 @@ pull_output <- function(project, fun = NULL, date = NULL, type = "plot", conf = 
       
       if (is.null(date)) {
         
-        dates <- stringr::str_extract_all(out, "\\d{4}-\\d{2}-\\d{2}", simplify = TRUE)
+        dates <- stringi::stri_extract_first_regex(out, "\\d{4}-\\d{2}-\\d{2}")
         dates <- gsub("[^0-9]", "", dates)
-        out <- out[which(dates == max(dates))]
+        out <- out[which(dates == max(dates, na.rm = TRUE))]
        
       } else {
         
@@ -261,8 +266,8 @@ pull_table <- function(project, fun, date = NULL, conf = TRUE) {
   #' 
   #' @param project Project name.
   #' @param fun String, the name of the function that created the table. 
-  #' @param date the date the table was created. If NULL, then the most recent version
-  #'   is retrieved. 
+  #' @param date the date the table was created. If NULL, then the most recent 
+  #'   version is retrieved. 
   #' @param conf Logical, whether to return suppressed confidential data. 
   #'    Unsuppressed output will be pulled if suppressed output is not available.
   #' @export
@@ -288,8 +293,8 @@ pull_plot <- function(project, fun, date = NULL, conf = TRUE) {
   #' 
   #' @param project Project name.
   #' @param fun String, the name of the function that created the plot. 
-  #' @param date the date the plot was created. If NULL, then the most recent version
-  #'   is retrieved. 
+  #' @param date the date the plot was created. If NULL, then the most recent 
+  #'   version is retrieved. 
   #' @param conf Logical, whether to return suppressed confidential data. 
   #'   Unsuppressed output will be pulled if suppressed output is not available.
   #' @export
@@ -341,7 +346,7 @@ current_db_table <- function(project, table) {
   } else if (length(proj_tab) > 1) {
     # pull most recent table
     new_tab <- gsub("[^0-9\\.]", "", proj_tab)
-    tab_out <- proj_tab[which(new_tab == max(new_tab))]
+    tab_out <- proj_tab[which(new_tab == max(new_tab, na.rm = TRUE))]
     
     if (!table_exists(tab_out, project)) {
       
@@ -486,7 +491,7 @@ pull_notes <- function(project, date = NULL, output = "print") {
   #'   character vector of the notes. "print" is recommended for displaying notes in a report.  
   #' @export
   #' @importFrom stringi stri_omit_empty
-  #' @importFrom stringr str_extract
+  #' @importFrom stringi stri_extract_first_regex
   #' @details Notes are saved to the output folder by project name and date. If date is not
   #'   specified then the most recent notes file with the project name is pulled. Notes are
   #'   are also saved by FishSET app session; if more than one session occurred in the same day, each 
@@ -516,7 +521,7 @@ pull_notes <- function(project, date = NULL, output = "print") {
     }
   } else if (length(out) > 1) { # if users has multiple notes from different sessions
     # order notes chronologically
-    n_id <- stringr::str_extract(out, "\\d{4}-\\d{2}-\\d{2}.*")
+    n_id <- stringi::stri_extract_first_regex(out, "\\d{4}-\\d{2}-\\d{2}.*")
     n_id <- gsub("[^0-9]", "", n_id)
     n_id <- order(n_id)
     
@@ -1288,7 +1293,7 @@ table_type <- function(tab) {
   #' Detect table type
   #' 
   #' @param tab FishSET table.
-  #' @importFrom stringr str_extract
+  #' @importFrom stringi stri_extract_first_regex
   #' @keywords internal
   #' @examples
   #' \dontrun{
@@ -1311,7 +1316,7 @@ table_type <- function(tab) {
                  "modelDesignTable", "FilterTable", "GridTable", "AuxTable", "SpatTable")
     
     t_regex <- paste0(db_type, collapse = "|")
-    t_str <- stringr::str_extract(tab, t_regex)
+    t_str <- stringi::stri_extract_first_regex(tab, t_regex)
     t_str[is.na(t_str)] <- "other"
     
     out <- switch(t_str, 

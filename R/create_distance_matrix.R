@@ -12,6 +12,7 @@
 #' @param X distance matrix
 #' @param zoneID Zone identifier
 #' @importFrom geosphere distm
+#' @importFrom stringi stri_count
 #' @export 
 #' @keywords internal
 #' @details Function is called by \code{\link{make_model_design}} generate the distance matrix. 
@@ -111,8 +112,8 @@ create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, ch
             if(any(grepl('lat', occasion, ignore.case=TRUE))){
               if(breakearly==0){
               toXY1 <- data.frame(
-                dataset[[occasion[which(stringr::str_count(occasion, '(?=LON|Lon|lon)')==max(stringr::str_count(occasion, '(?=LON|Lon|lon)')))]]][which(dataZoneTrue == 1)],
-                dataset[[occasion[which(stringr::str_count(occasion, '(?=LAT|lat|Lat)')==max(stringr::str_count(occasion, '(?=LAT|Lat|lat)')))]]][which(dataZoneTrue == 1)]
+                dataset[[occasion[which(stringi::stri_count(occasion, '(?=LON|Lon|lon)')==max(stringi::stri_count(occasion, '(?=LON|Lon|lon)')))]]][which(dataZoneTrue == 1)],
+                dataset[[occasion[which(stringi::stri_count(occasion, '(?=LAT|lat|Lat)')==max(stringi::stri_count(occasion, '(?=LAT|Lat|lat)')))]]][which(dataZoneTrue == 1)]
               )
               }
             } else {
