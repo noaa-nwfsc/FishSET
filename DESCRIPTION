@@ -1,26 +1,28 @@
-Package: FishSET
 Type: Package
+Package: FishSET
 Title: Spatial Economics Toolbox for Fisheries
 Version: 0.1
 Date: 2021
-Depends: R (>= 3.5.0)
 Author: Alan Haynie, Melanie Harsch, Bryce McManus
 Maintainer: Alan Haynie - NOAA Federal <FishSET@noaa.gov>
+Description: The Spatial Economics Toolbox for Fisheries (FishSET) is a
+    set of tools for organizing data; developing, improving and
+    disseminating modeling best practices.
+License: GPL-2
+URL: to provide
+BugReports: https://pkgname.bugtracker.url
+Depends: 
+    R (>= 3.5.0)
 Imports: 
     DBI,
     dplyr,
     DT,
-    geojsonio,
     geosphere,
-    ggmap,
-    ggpubr,
     ggplot2,
-    googlesheets4,
-    gridExtra,
     grDevices,
+    grid,
+    gridExtra,
     gt,
-    gWidgets2,
-    haven,
     htmltools,
     jsonlite,
     knitr,
@@ -28,47 +30,44 @@ Imports:
     lubridate,
     openxlsx,
     pander,
+    prompter,
     purrr,
-    R.matlab,
     RCurl,
     readr,
     readxl,
-    rChoiceDialogs,
-    readODS,
     rlang,
     RSQLite,
-    rstudioapi,
     scales,
     servr,
-    sf,
+    sf (>= 1.0-0),
     shiny,
-    shinyjs,
     shinycssloaders,
+    shinyjs,
     spdep,
     stats,
     stringi,
-    stringr,
     tibble,
     tidyr,
+    vctrs,
     xml2,
     yaml,
-    zoo,
-    prompter,
-    vctrs
+    zoo
 Suggests: 
-    mapedit,
     foreign,
+    googlesheets4,
     graphics,
+    haven,
     lwgeom,
+    mapedit,
+    R.matlab,
+    readODS,
     rmarkdown,
+    rstudioapi (>= 1.1.287),
     testthat
-Description: The Spatial Economics Toolbox for Fisheries (FishSET) is a set of tools for organizing data; developing, improving and disseminating modeling best practices.
-License: GPL-2
+VignetteBuilder: 
+    knitr
 BuildVignettes: yes
 ByteCompile: TRUE
-URL: to provide
-BugReports: https://pkgname.bugtracker.url
 devtools: :use_data(MainDataTable)
-RoxygenNote: 7.1.2
 Encoding: UTF-8
-VignetteBuilder: knitr
+RoxygenNote: 7.1.2
