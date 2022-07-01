@@ -9,8 +9,8 @@ pull_log(project, log_date = NULL)
 \arguments{
 \item{project}{Project name.}
 
-\item{log_date}{Date of log to be pulled. If \code{NULL}, then most recent log file
-is retrieved.}
+\item{log_date}{Date of log to be pulled. If \code{NULL}, then most recent 
+log file is retrieved.}
 }
 \description{
 pull log file
