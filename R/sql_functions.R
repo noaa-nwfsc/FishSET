@@ -1,6 +1,7 @@
-# SQL call functions @description Functions call sql functions to view tables in the FishSET database. Functions allow users to view names of tables
-# in the database, view fields of selected table, view the selected table, remove tables from the database, and check whether a specific table exists
-# in the database.
+# SQL call functions @description Functions call sql functions to view tables in 
+# the FishSET database. Functions allow users to view names of tables in the 
+# database, view fields of selected table, view the selected table, remove tables 
+# from the database, and check whether a specific table exists in the database.
 
 tables_database <- function(project) {
   #' View names of tables in the FishSET database
@@ -159,7 +160,7 @@ table_view <- function(table, project) {
   
   if (table_exists(table, project) == FALSE) {
     
-    warning("Table not found. Check spelling.")
+    warning("Table not found. Check spelling.", call. = FALSE)
     
   } else {
     
@@ -432,20 +433,19 @@ projects <- function() {
   #' } 
   #' 
  
-    projloc <- locproject()
+  projloc <- locproject()
 
-  
-   tab <- list_dirs(path=projloc)
+  tab <- list_dirs(path = projloc)
  
   if (length(tab) == 0) {
     
-    warning("No projects found. Upload a new file to create a project.")
-    p_names <- NULL
+    warning("No projects found. Upload a new file to create a project.", 
+            call. = FALSE)
+    invisible(NULL)
+    
   } else {
     
-    
-   p_names <- unique(tab)
-   p_names
+    unique(tab)
   }
 }
 
@@ -556,7 +556,7 @@ list_tables <- function(project, type = "main") {
   
   if (is_value_empty(project)) {
     
-    warning('Project must be specified.')
+    warning('Project must be specified.', call. = FALSE)
     
   } else {
     
@@ -580,13 +580,15 @@ list_tables <- function(project, type = "main") {
       if (length(tabs) > 0) tabs
       else {
         
-        warning("No ", sql_tab, " tables were found for project '", project, "'")
+        warning("No ", sql_tab, " tables were found for project '", project, "'",
+                call. = FALSE)
         invisible(NULL)
       }
       
     } else {
       
-      warning("Project name not found in FishSET Database. Check spelling.")
+      warning("Project name not found in FishSET Database. Check spelling.",
+              call. = FALSE)
       invisible(NULL)
     }
   }
@@ -600,7 +602,7 @@ fishset_tables <- function(project = NULL) {
   #'
   #'@param project Project name. If NULL, tables from all available projects will
   #'  be displayed. 
-  #'@importFrom stringr str_extract
+  #'@importFrom stringi stri_extract_first_regex
   #'@export
   #'@examples 
   #'\dontrun{
@@ -629,7 +631,7 @@ fishset_tables <- function(project = NULL) {
     # add a project column
     p_regex <- paste0(projects(), collapse = "|")
     
-    p_str <- stringr::str_extract(db_tabs$table, p_regex)
+    p_str <- stringi::stri_extract_first_regex(db_tabs$table, p_regex)
     p_str[is.na(p_str)] <- "no project"
     db_tabs$project <- p_str
     
@@ -644,7 +646,7 @@ fishset_tables <- function(project = NULL) {
              "AuxTable\\d{8}", "SpatTable\\d{8}")
     
     t_regex <- paste0(db_type, collapse = "|")
-    t_str <- stringr::str_extract(db_tabs$table, t_regex)
+    t_str <- stringi::stri_extract_first_regex(db_tabs$table, t_regex)
     
     # replace raw table dates with "_raw"
     for (i in raw) {
