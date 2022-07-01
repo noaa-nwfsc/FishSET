@@ -416,12 +416,12 @@ saveDataTableServ <- function(id, values, project) {
 refreshServ <- function(id, values, project) {
   
   moduleServer(id, function(input, output, session) {
-    
+    # TODO: simplify/clean this
     observeEvent(input$refresh, {
       req(project)
       temp <- tables_database(project())[grep(paste0(project(), 'MainDataTable\\d+'), tables_database(project()))][which(
-        unlist(stringr::str_extract_all(tables_database(project())[grep(paste0(project(), 'MainDataTable\\d+'), 
-                                                               tables_database(project()))], "\\d+"))==max((unlist(stringr::str_extract_all(tables_database(project())[grep(paste0(project(), 
+        unlist(stringi::stri_extract_all_regex(tables_database(project())[grep(paste0(project(), 'MainDataTable\\d+'), 
+                                                               tables_database(project()))], "\\d+"))==max((unlist(stringi::stri_extract_all_regex(tables_database(project())[grep(paste0(project(), 
                                                                                                                                                                  'MainDataTable\\d+'), tables_database(project()))], "\\d+")))))]
       values$dataset <- table_view(temp, project())
       showNotification("Data refreshed", type = 'message', duration = 10)
