@@ -8,9 +8,9 @@ outlier_table <- function(dat, project, x, sd_val = NULL, log_fun = TRUE) {
   #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project String, name of project.
   #' @param x Variable or column number in \code{dat} to check for outliers.
-  #' @param sd_val Optional. Number of standard deviations from mean defining outliers. 
-  #'    Example, \code{sd_val = 4} would mean values outside +/- 4 SD from the mean 
-  #'    would be outliers.
+  #' @param sd_val Optional. Number of standard deviations from mean defining 
+  #'    outliers. For example, \code{sd_val = 4} would mean values outside +/- 4 
+  #'    SD from the mean would be outliers.
   #' @param log_fun Logical, whether to log function call (for internal use).
   #' @importFrom stats quantile sd var median
   #' @keywords outliers
@@ -157,7 +157,8 @@ outlier_plot <- function(dat, project, x, dat.remove = 'none', sd_val = NULL,
   #' @param log_fun Logical, whether to log function call (for internal use).
   #' @keywords outlier
   #' @importFrom stats density dnorm dpois dweibull rnorm dbinom dlnorm dexp dnbinom
-  #' @importFrom ggpubr annotate_figure text_grob
+  #' @importFrom gridExtra grid.arrange
+  #' @importFrom grid textGrob gpar
   #' @importFrom rlang sym
   #' @import ggplot2
   #' @details  The function returns three plots: the data, a probability plot, 
@@ -393,20 +394,23 @@ outlier_plot <- function(dat, project, x, dat.remove = 'none', sd_val = NULL,
 
     # TODO: switch from ggpubr to gridExtra
     
-    # Put it all together
-    fig <- suppressWarnings(ggpubr::ggarrange(p1, p2, p3, ncol = 2, nrow = 2))
-
-    if(is.numeric(dat.remove)){
-      fig <- ggpubr::annotate_figure(fig, top = ggpubr::text_grob(paste(
-        "Plots for ", x, " with ", x.dist, " distribution and data removed based on '",
-        dat.remove, "SD from the mean'. \nBlue: Included points   Red: Removed points"
-      ), size = 10)) 
+    if (is.numeric(dat.remove)) {
+      
+      p_title <- paste0("Plots for ", x, " with ", x.dist, 
+                        " distribution and data removed based on '", 
+                        dat.remove, "SD from the mean'. \nBlue: Included points",
+                        "   Red: Removed points") 
+      
     } else {
-    fig <- ggpubr::annotate_figure(fig, top = ggpubr::text_grob(paste(
-      "Plots for ", x, " with ", x.dist, " distribution and data removed based on '",
-      dat.remove, "'. \nBlue: Included points   Red: Removed points"
-    ), size = 10))
+      
+      p_title <- paste0("Plots for ", x, " with ", x.dist,
+                        " distribution and data removed based on '",
+                        dat.remove, "'. \nBlue: Included points   Red: Removed points")
     }
+    
+    # Put it all together
+    fig <- gridExtra::grid.arrange(p1, p2, p3, ncol = 2, nrow = 2, 
+                                   top = grid::textGrob(p_title, gp = grid::gpar(fontsize = 10)))
 
     # Log function
     if (log_fun) {
@@ -419,9 +423,13 @@ outlier_plot <- function(dat, project, x, dat.remove = 'none', sd_val = NULL,
     }
    
     if (output.screen == FALSE) {
+      
       save_plot(project, "outlier_plot", fig)
     
-    } else fig
+    } else {
+      
+      fig
+    }
     
   } else {
     # Actions to take if data is not numeric

@@ -56,6 +56,9 @@ find_fishing_centroid <- function(dat, project=NULL, cat='ZoneID', weight.var = 
   
   if(x == 0){
 # Call assignment column function if zonal assignment does not exist
+ # TODO: consider requiring that zonal assignment col exists before running function.
+ # The only purpose for including assignment_column() here is for convenience, drawback is
+ # it doesn't allow user to set other args like bufferval, closest.pt, and name.
  if(!cat %in% names(dataset)){
    dataset <- assignment_column(dat=dataset, project=project, spat=spatdat, lon.dat=lon.dat, lat.dat=lat.dat, cat=cat, 
                      closest.pt = FALSE, bufferval = NULL, lon.spat = lon.spat, lat.spat = lat.spat)

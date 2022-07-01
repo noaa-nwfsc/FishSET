@@ -14,7 +14,8 @@ Table in the FishSET database contains the string 'MainDataTable'.}
 
 \item{x}{Variable in \code{dat} over which filter will be applied.}
 
-\item{exp}{Filter expression. Should take on the form of \code{"x<100"} or \code{"is.na(x) == F"}.}
+\item{exp}{Filter expression. Should take on the form of \code{"x < 100"} or 
+\code{"is.na(x) == FALSE"}.}
 }
 \value{
 Filter expressions saved as a table to the FishSET database.
@@ -23,14 +24,17 @@ Filter expressions saved as a table to the FishSET database.
 Define and store filter expressions
 }
 \details{
-This function allows users to define and store data filter expressions which can then be applied to the data.
-The filter table will be saved in the FishSET database under the \code{project} name and `filterTable`.
-The new filter functions are added each time the function is run and the table is  automatically updated in the
-FishSET database. The function call will be logged in the log file.
+This function allows users to define and store data filter expressions 
+  which can then be applied to the data. The filter table will be saved in 
+  the FishSET database under the \code{project} name and `filterTable`. The 
+  new filter functions are added each time the function is run and the table 
+  is automatically updated in the FishSET database. The function call will be 
+  logged in the log file.
 }
 \examples{
 \dontrun{
-filter_table(pcodMainDataTable, 'pcod', 'PERFORMANCE_Code','PERFORMANCE_Code==1')
+filter_table(pcodMainDataTable, 'pcod', x = 'PERFORMANCE_Code',
+             exp = 'PERFORMANCE_Code == 1')
 }
 
 }

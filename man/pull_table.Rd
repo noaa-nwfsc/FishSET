@@ -11,8 +11,8 @@ pull_table(project, fun, date = NULL, conf = TRUE)
 
 \item{fun}{String, the name of the function that created the table.}
 
-\item{date}{the date the table was created. If NULL, then the most recent version
-is retrieved.}
+\item{date}{the date the table was created. If NULL, then the most recent 
+version is retrieved.}
 
 \item{conf}{Logical, whether to return suppressed confidential data. 
 Unsuppressed output will be pulled if suppressed output is not available.}

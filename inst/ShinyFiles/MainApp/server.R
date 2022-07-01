@@ -240,8 +240,8 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       observeEvent(c(input$refresh,input$refresh1,input$refresh2,input$refreshNew), {
         if(!is.null(project$name)){
         temp <- tables_database(project$name)[grep(paste0(project$name, 'MainDataTable\\d+'), tables_database(project$name))][which(
-                      unlist(stringr::str_extract_all(tables_database(project$name)[grep(paste0(project$name, 'MainDataTable\\d+'), 
-                      tables_database(project$name))], "\\d+"))==max((unlist(stringr::str_extract_all(tables_database(project$name)[grep(paste0(project$name, 
+                      unlist(stringi::stri_extract_all_regex(tables_database(project$name)[grep(paste0(project$name, 'MainDataTable\\d+'), 
+                      tables_database(project$name))], "\\d+"))==max((unlist(stringi::stri_extract_all_regex(tables_database(project$name)[grep(paste0(project$name, 
                       'MainDataTable\\d+'), tables_database(project$name))], "\\d+")))))]
         values$dataset <- table_view(temp, project$name)
         showNotification("Data refreshed", type='message', duration=10)
@@ -2824,9 +2824,12 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       # combine outlier plots into one
       outlierPlotAll <- reactive({  
         
-        fig <- suppressWarnings(
-          ggpubr::ggarrange(outlierPlot1(), outlierPlot2(), outlierPlot3(),
-                            ncol = 2, nrow = 2))
+        # fig <- suppressWarnings(
+        #   ggpubr::ggarrange(outlierPlot1(), outlierPlot2(), outlierPlot3(),
+        #                     ncol = 2, nrow = 2))
+        # TODO: convert to gridExtra::grid.arrange()
+        # fig <- gridExtra::grid.arrange(outlierPlot1(), outlierPlot2(), outlierPlot3(),
+        #                                ncol = 2, nrow = 2)
         fig
       }) 
       

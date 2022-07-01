@@ -12,7 +12,7 @@
 #'   can be used as well. If using a spatial table read from a csv file, then
 #'   arguments \code{lon.spat} and \code{lat.spat} are required. To upload your
 #'   spatial data to the FishSETFolder see \code{\link{load_spatial}}.
-#' @param hull.polygon Logical, if TRUE, creates convex hull polygon. Use if spatial 
+#' @param hull.polygon Logical, if \code{TRUE}, creates convex hull polygon. Use if spatial 
 #'   data creating polygon are sparse or irregular.
 #' @param lon.dat Longitude variable in \code{dat}.
 #' @param lat.dat Latitude variable in \code{dat}.
@@ -33,8 +33,8 @@
 #' @param closest.pt  Logical, if \code{TRUE}, observations that fall outside zones are 
 #'   classed as the closest zone polygon to the point.
 #' @param bufferval Maximum buffer distance, in meters, for assigning observations 
-#'   to the closest zone polygon. If no zone polygons are within the defined 
-#'   \code{bufferval}, then observation will not be assigned to a zone polygon. 
+#'   to the closest zone polygon. If the observation is not within the defined 
+#'   \code{bufferval}, then it will not be assigned to a zone polygon. 
 #'   Required if \code{closest.pt = TRUE}. 
 #' @param log.fun Logical, whether to log function call (for internal use).
 #' @importFrom sf st_transform st_as_sf
@@ -136,6 +136,11 @@ assignment_column <- function(dat, project, spat, lon.dat, lat.dat, cat, name = 
   if (closest.pt) {
     
     if (any(lengths(inter) == 0)) { 
+      
+      if (is_value_empty(bufferval)) {
+        
+        stop("'bufferval' must be provided if closet.pt = TRUE.", call. = FALSE)
+      }
       
       # index of obs that didn't intersect area
       ind <- which(lengths(inter) == 0)

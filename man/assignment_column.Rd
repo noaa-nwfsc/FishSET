@@ -48,8 +48,8 @@ containing information on zones.}
 classed as the closest zone polygon to the point.}
 
 \item{bufferval}{Maximum buffer distance, in meters, for assigning observations 
-to the closest zone polygon. If no zone polygons are within the defined 
-\code{bufferval}, then observation will not be assigned to a zone polygon. 
+to the closest zone polygon. If the observation is not within the defined 
+\code{bufferval}, then it will not be assigned to a zone polygon. 
 Required if \code{closest.pt = TRUE}.}
 
 \item{lon.spat}{Variable or list from \code{spat} containing longitude data. 
@@ -60,7 +60,7 @@ Required for spatial tables read from csv files. Leave as \code{NULL} if
 Required for spatial tables read from csv files. Leave as \code{NULL} if 
 \code{spat} is an \code{sf} or \code{sp} object.}
 
-\item{hull.polygon}{Logical, if TRUE, creates convex hull polygon. Use if spatial 
+\item{hull.polygon}{Logical, if \code{TRUE}, creates convex hull polygon. Use if spatial 
 data creating polygon are sparse or irregular.}
 
 \item{epsg}{EPSG code. Set the epsg code to ensure that \code{spat} and \code{dat} 

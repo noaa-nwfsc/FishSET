@@ -101,12 +101,30 @@
 #' @importFrom rlang sym
 #' @importFrom shiny isRunning
 
-bycatch <- function(dat, project, cpue, catch, date, period = "year", names = NULL, 
-                    group = NULL, sub_date = NULL, filter_date = NULL, date_value = NULL, 
-                    filter_by = NULL, filter_value = NULL, filter_expr = NULL, 
-                    facet_by = NULL, conv = "none", tran = "identity", 
-                    format_lab = "decimal", value = "stc", combine = FALSE, 
-                    scale = "fixed", output = "tab_plot",  format_tab = "wide") {
+bycatch <- function(dat,
+                    project,
+                    cpue,
+                    catch,
+                    date,
+                    period = "year",
+                    names = NULL,
+                    group = NULL,
+                    sub_date = NULL,
+                    filter_date = NULL,
+                    date_value = NULL,
+                    filter_by = NULL,
+                    filter_value = NULL,
+                    filter_expr = NULL,
+                    facet_by = NULL,
+                    conv = "none",
+                    tran = "identity",
+                    format_lab = "decimal",
+                    value = "stc",
+                    combine = FALSE,
+                    scale = "fixed",
+                    output = "tab_plot",
+                    format_tab = "wide") {
+  
   
   # Call in datasets
   out <- data_pull(dat, project = project)
