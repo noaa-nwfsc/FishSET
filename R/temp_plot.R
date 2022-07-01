@@ -157,6 +157,7 @@ temp_plot_helper <- function(dataset, len_df, agg_df, var.select, date.var, agg_
   #' @param plot_by_yr Whether to plot by year. 
   #' @param text.size Text size of x-axes. 
   #' @importFrom rlang sym
+  #' @importFrom gridExtra grid.arrange
   #' @import ggplot2
   #' @export
   #' @keywords internal
@@ -205,7 +206,8 @@ temp_plot_helper <- function(dataset, len_df, agg_df, var.select, date.var, agg_
     ggplot2::scale_y_continuous(labels = scale_lab()) +
     ggplot2::scale_x_discrete(breaks = break_fun()) +
     fishset_theme() + 
-    ggplot2::theme(axis.text.x = ggplot2::element_text(size = text.size, angle = 45, hjust = 1))
+    ggplot2::theme(axis.text.x = ggplot2::element_text(size = text.size, angle = 45, hjust = 1),
+                   axis.text.y = ggplot2::element_text(size = text.size, angle = 45))
   
   if (!is.numeric(dataset[[var.select]])) p3 <- NULL
   else {
@@ -221,7 +223,8 @@ temp_plot_helper <- function(dataset, len_df, agg_df, var.select, date.var, agg_
       ggplot2::theme(axis.text.x = ggplot2::element_text(size = text.size, angle = 45, hjust = 1),
                      axis.text.y = ggplot2::element_text(size = text.size, angle = 45))
   }
-  t_plot <- suppressWarnings(ggpubr::ggarrange(p1, p2, p3, ncol = 3, nrow = 1))
+  
+  t_plot <- gridExtra::grid.arrange(p1, p2, p3, ncol = 3, nrow = 1)
   
   t_plot
 }
