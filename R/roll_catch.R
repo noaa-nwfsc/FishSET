@@ -62,12 +62,28 @@
 #' )
 #' }
 #'
-roll_catch <- function(dat, project, catch, date, group = NULL, combine = FALSE, 
-                       k = 10, fun = "mean", filter_date = NULL, date_value = NULL, 
-                       filter_by = NULL, filter_value = NULL, filter_expr = NULL, 
-                       facet_by = NULL, scale = "fixed", align = "center", 
-                       conv = "none", tran = "identity", format_lab = "decimal", 
-                       output = "tab_plot", ...) {
+roll_catch <- function(dat,
+                       project,
+                       catch,
+                       date,
+                       group = NULL,
+                       combine = FALSE,
+                       k = 10,
+                       fun = "mean",
+                       filter_date = NULL,
+                       date_value = NULL,
+                       filter_by = NULL,
+                       filter_value = NULL,
+                       filter_expr = NULL,
+                       facet_by = NULL,
+                       scale = "fixed",
+                       align = "center",
+                       conv = "none",
+                       tran = "identity",
+                       format_lab = "decimal",
+                       output = "tab_plot",
+                       ...) {
+  
 
   out <- data_pull(dat, project)
   dataset <- out$dataset

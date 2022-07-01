@@ -534,10 +534,14 @@ dens_plot_helper <- function(dataset, var, group, date, facet_by, filter_date,
       }
       
       if (!is.null(facet_by)) {
+        
         if (length(facet_by) == 1) {
+          
           fm <- stats::reformulate(".", facet_by)
           plot <- plot + ggplot2::facet_wrap(fm, scales = scale)
+          
         } else if (length(facet_by) == 2) {
+          
           fm <- paste(facet_by, sep = " ~ ")
           plot <- plot + ggplot2::facet_grid(fm, scales = scale)
         }

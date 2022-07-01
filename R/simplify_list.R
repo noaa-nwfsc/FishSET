@@ -216,7 +216,9 @@ simplify_list <- function(l, format = FALSE) {
   #' @examples 
   #' \dontrun{
   #' simplify_list(list(A = 1:10, B = 11:20))
+  #' 
   #' simplify_list(list(A = list(X = 1:10, Y = letters[1:10])))
+  #' 
   #' simplify_list(list(A = 1:10, B = "Text", C = c("text", "text")))
   #' }
   
