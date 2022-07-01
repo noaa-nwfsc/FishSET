@@ -195,8 +195,8 @@ vessel_count <- function(dat,
   
   # add missing values----
   dataset <- expand_data(dataset, project, date = date, value = v_id, 
-                               period = period, group = group_no_date, 
-                               facet_by = facet_no_date, fun = "count")
+                         period = period, group = group_no_date, 
+                         facet_by = facet_no_date, fun = "count")
   
   # period ----
   p <- period_check(period, date)

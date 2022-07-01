@@ -15,7 +15,8 @@ pull_output(project, fun = NULL, date = NULL, type = "plot", conf = TRUE)
 the most recent output file is pulled.}
 
 \item{type}{Whether to return the \code{"plot"} (.png), \code{"table"} (.csv),
-"notes" (.txt) or \code{"all"} files matching the project name, function, and date.}
+"notes" (.txt) or \code{"all"} files matching the project name, function, 
+and date.}
 
 \item{conf}{Logical, whether to return suppressed confidential data. 
 Unsuppressed output will be pulled if suppressed output is not available.}

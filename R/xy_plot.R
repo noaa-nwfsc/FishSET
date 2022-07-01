@@ -16,7 +16,8 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
   #' @import ggplot2
   #' @importFrom rlang sym expr enexpr current_env parse_expr
   #' @importFrom stats reformulate
-  #' @importFrom ggpubr annotate_figure
+  #' @importFrom gridExtra grid.arrange
+  #' @importFrom grid textGrob gpar
   #' @export
   #' @examples
   #' \dontrun{
@@ -46,21 +47,24 @@ xy_plot <- function(dat, project, var1, var2, regress = FALSE) {
     
   } else {
     
-    x_plot <- 
-      ggpubr::annotate_figure(
-        ggpubr::ggarrange(
-          ggplot2::ggplot(dataset, ggplot2::aes(x = !!x_sym, y = !!y_sym)) +
-            ggplot2::geom_point() +
-            ggplot2::geom_smooth(method = lm) +
-            ggplot2::labs(subtitle = paste(var1, "against", var2), x = var1, y = var2) +
-            fishset_theme(), 
-          ggplot2::ggplot(lm(dataset[[var1]] ~ dataset[[var2]])) +
-            ggplot2::geom_point(ggplot2::aes(x = .fitted, y = .resid)) +
-            ggplot2::labs(subtitle = "Residuals against fitted values", 
-                          x = "Fitted", y = "Residuals") +
-            fishset_theme(),
-          ncol = 2, nrow = 1), 
-        top = ggpubr::text_grob("Simple linear regression plots", size = 14))
+    
+    p1 <- 
+      ggplot2::ggplot(dataset, ggplot2::aes(x = !!x_sym, y = !!y_sym)) +
+      ggplot2::geom_point() +
+      ggplot2::geom_smooth(method = lm) +
+      ggplot2::labs(subtitle = paste(var1, "against", var2), x = var1, y = var2) +
+      fishset_theme()
+    
+    p2 <- 
+      ggplot2::ggplot(lm(dataset[[var1]] ~ dataset[[var2]])) +
+      ggplot2::geom_point(ggplot2::aes(x = .fitted, y = .resid)) +
+      ggplot2::labs(subtitle = "Residuals against fitted values", 
+                    x = "Fitted", y = "Residuals") +
+      fishset_theme()
+    
+    x_plot <- gridExtra::grid.arrange(p1, p2, ncol = 2, nrow = 1, 
+                                      top = grid::textGrob("Simple linear regression plots", 
+                                                           gp = grid::gpar(fontsize = 14)))
 
     fm <- stats::reformulate(var1, var2)
     formula <- rlang::enexpr(fm)
