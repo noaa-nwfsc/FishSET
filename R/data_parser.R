@@ -1,16 +1,29 @@
 #  Import data
 
-read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NULL, user = NULL, password = NULL, ...) {
+read_dat <- function(x,
+                     data.type = NULL,
+                     is.map = FALSE,
+                     drv = NULL,
+                     dbname = NULL,
+                     user = NULL,
+                     password = NULL,
+                     ...) {
+  
   #' Import data from local file directory or webpage into the R environment
-  #' @param x Name and path of dataset to be read in. To load data directly from a webpage, \code{x} should be the web address.  
-  #' @param data.type Optional. Data type can be defined by user or based on the file extension.
-  #'    If undefined, \code{data.type} is the string after the last period or equal sign. \code{data.type} must be 
-  #'    defined if \code{x} is the path to a shape folder, if the file is a Google spreadsheet use \code{data.type = 'google'},
-  #'    or if the correct extension cannot be derived from \code{x}.
-  #'    R, comma-delimited, tab-delimited, excel, Matlab, json, geojson, sas,
-  #'    spss, stata, and html, and XML data extensions do not have to be specified. 
-  #' @param is.map logical, for .json file extension, set \code{is.map} to TRUE if data is a spatial file.  
-  #'   Spatial files ending in .json will not be read in properly unless \code{is.map = TRUE}.
+  #' 
+  #' @param x Name and path of dataset to be read in. To load data directly from 
+  #'   a webpage, \code{x} should be the web address.  
+  #' @param data.type Optional. Data type can be defined by user or based on the 
+  #'   file extension. If undefined, \code{data.type} is the string after the 
+  #'   last period or equal sign. \code{data.type} must be defined if \code{x} is 
+  #'   the path to a shape folder, if the file is a Google spreadsheet use 
+  #'   \code{data.type = 'google'}, or if the correct extension cannot be derived 
+  #'   from \code{x}. R, comma-delimited, tab-delimited, excel, Matlab, json, 
+  #'   geojson, sas, spss, stata, and html, and XML data extensions do not have 
+  #'   to be specified. 
+  #' @param is.map logical, for .json file extension, set \code{is.map = TRUE} 
+  #'   if data is a spatial file. Spatial files ending in .json will not be read 
+  #'   in properly unless \code{is.map = TRUE}.
   #' @param drv Use with sql files. Database driver.
   #' @param dbname Use with sql files. If required, database name.
   #' @param user Use with sql files.  If required, user name for SQL database.
@@ -27,36 +40,42 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
   #' @importFrom googlesheets4 read_sheet
   #' @importFrom readODS read.ods
   #' @importFrom DBI dbDisconnect dbConnect
+  #' @importFrom rlang check_installed
   #' @details Uses the appropriate function to read in data based on data type.
-  #'   Use \code{\link[FishSET]{write_dat}} to save data to the \code{data} folder in the \code{project} directory.
-  #'   Supported data types include shape, csv, json, matlab, R, spss, and stata files.
-  #'   Use \code{data.type = 'shape'} if \code{x} is the path to a shape folder. 
-  #'   Use \code{data.type = 'google'} if the file is a Google spreadsheet.
+  #'   Use \code{\link[FishSET]{write_dat}} to save data to the \code{data} folder 
+  #'   in the \code{project} directory. Supported data types include shape, csv, 
+  #'   json, matlab, R, spss, and stata files. Use \code{data.type = 'shape'} if 
+  #'   \code{x} is the path to a shape folder. Use \code{data.type = 'google'} if 
+  #'   the file is a Google spreadsheet.
   #'   
-  #'   For sql files, use \code{data.type = 'sql'}. The function will connect to the specified DBI and pull the table. 
-  #'   Users must specify the DBI driver (\code{drv}), for example: \code{RSQLite::SQLite()}, \code{RPostgreSQL::PostgreSQL()}, 
-  #'   \code{odbc::odbc()}. Further arguments may be required, including database name (\code{dbname}),
-  #'    user id (\code{user}), and password (\code{password}). 
+  #'   For sql files, use \code{data.type = 'sql'}. The function will connect to 
+  #'   the specified DBI and pull the table. Users must specify the DBI driver 
+  #'   (\code{drv}), for example: \code{RSQLite::SQLite()}, 
+  #'   \code{RPostgreSQL::PostgreSQL()}, \code{odbc::odbc()}. Further arguments 
+  #'   may be required, including database name (\code{dbname}), user id 
+  #'   (\code{user}), and password (\code{password}). 
   #'   
-  #'   Additional arguments can be added, such as skip lines \code{skip = 2} and header \code{header = FALSE}. 
-  #'   To specify the separator argument for a delimited file, include tab-delimited, specify \code{data.type = 'delim'}.
+  #'   Additional arguments can be added, such as skip lines \code{skip = 2} and 
+  #'   header \code{header = FALSE}. To specify the separator argument for a 
+  #'   delimited file, include tab-delimited, specify \code{data.type = 'delim'}.
   #'  
   #'   For more details, see \code{\link[base]{load}} for loading R objects, 
   #'   \code{\link[readr]{read_csv}} for reading in comma separated value files,
   #'   \code{\link[readr]{read_tsv}} for reading in tab separated value files,
   #'   \code{\link[readr]{read_delim}} for reading in delimited files,
   #'   \code{\link[readxl]{read_excel}} for reading in excel files (xls, xlsx), 
-  #'   \code{\link[sf]{st_read}} for reading in geojson , GeoPackage files, and shape files,
-  #'   \code{\link[R.matlab]{readMat}} for reading in matlab data files,
+  #'   \code{\link[sf]{st_read}} for reading in geojson , GeoPackage files, and 
+  #'   shape files, \code{\link[R.matlab]{readMat}} for reading in matlab data files,
   #'   \code{\link[haven]{read_dta}} for reading in stata data files,
   #'   \code{\link[haven]{read_spss}} for reading in spss data files,
   #'   \code{\link[haven]{read_sas}} for reading in sas data files, and 
   #'   \code{\link[jsonlite]{fromJSON}} for reading in json files.
-  #'   \code{\link[xml2]{read_xml}} for reading in XML files. Further processing may be required.
-  #'   \code{\link[xml2]{read_html}} for reading in html tables.
-  #'   See \code{read_sheet} in \code{\link[googlesheets4]{range_read}} for reading in google spreadsheets.
-  #'       Google spreadsheets require \code{data.type} be specified. Use \code{data.type = 'google'}.
-  #'   \code{\link[readODS]{read_ods}} for reading in open document spreadsheets.
+  #'   \code{\link[xml2]{read_xml}} for reading in XML files. Further processing 
+  #'   may be required. \code{\link[xml2]{read_html}} for reading in html tables.
+  #'   See \code{read_sheet} in \code{\link[googlesheets4]{range_read}} for 
+  #'   reading in google spreadsheets. Google spreadsheets require \code{data.type} 
+  #'   be specified. Use \code{data.type = 'google'}. \code{\link[readODS]{read_ods}} 
+  #'   for reading in open document spreadsheets.
   #' @export
   #' @examples
   #' \dontrun{
@@ -73,64 +92,100 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
   #' 
   
   
-  if(is.null(data.type)) {
-    if(grepl('=', sub('.*\\.', '', x)) == FALSE){
+  if (is.null(data.type)) {
+    
+    if (grepl('=', sub('.*\\.', '', x)) == FALSE) {
+      
         data.type <- sub('.*\\.', '', x)
+        
     } else {
+      
        data.type <- sub('.*\\=', '', x)
     }
   }
   
   data.type <- tolower(data.type)
   
-  if(data.type == 'json' & is.map == TRUE) {
+  if (data.type == 'json' & is.map == TRUE) {
+    
     data.type = 'geojson'
   }
   
   if (data.type == 'rdata' | data.type == "r") {
+    
     out <- get(load(x))
-    if (any(c("sf", "sp") %in% class(out))) {
-      out
-    } else {
-      return(as.data.frame(out))
-    }
+    
+    if (any(c("sf", "sp") %in% class(out))) out
+    else return(as.data.frame(out))
+    
   } else if (data.type == "rds") {
+    
     readr::read_rds(x, ...)
+    
   } else if (data.type == "mat" | data.type == 'matlab') {
+    
+    rlang::check_installed("R.matlab", "to use `readMat()`")
+    
     cat('Data returned as named list structure. Further processing is required.')
     R.matlab::readMat(x, ...)
-  } else if (data.type == "json"){
+    
+  } else if (data.type == "json") {
+    
     cat('Data may require additional processing.')
     jsonlite::fromJSON(x, ...)
-  } else if (data.type == "geojson"|data.type == 'geopackage' | data.type == 'gpkg') {
+    
+  } else if (data.type %in% c('geojson', 'geopackage', 'gpkg', 'shp', 'shape')) {
+    
     sf::st_read(x, ...)
+    
   }  else if (data.type == "csv") {
+    
     readr::read_csv(x, ...)
+    
   } else if (data.type == 'sas7bdat' | data.type == 'sas') {
+    
+    rlang::check_installed("haven", "to use `read_sas()`")
     as.data.frame(haven::read_sas(x, ...))
-  } else if (data.type == "sav" | data.type == 'spss' | data.type == 'por' | data.type == 'sas') {
+    
+  } else if (data.type %in% c("sav", "spss", "por", "sas")) {
+    
+    rlang::check_installed("haven", "to use `read_spss()`")
     as.data.frame(haven::read_spss(x, ...))
+    
   } else if (data.type == "dta" | data.type == "stata") {
+    
+    rlang::check_installed("haven", "to use `read_stata()`")
     as.data.frame(haven::read_stata(x, ...))
-  } else if (data.type == 'shp' | data.type == "shape") {
-    out <- sf::st_read(x, ...)
-    #out <- sf::st_as_sf(out)
-    # out <- sf::st_transform(out, crs = 4326) # WGS 84 
-  } else if (data.type == "xls" | data.type == 'xlsx' | data.type == 'excel'){
+    
+  } else if (data.type %in% c("xls", "xlsx", "excel")) {
+    
     as.data.frame(readxl::read_excel(x, ...))
-  } else if (data.type == 'txt') {
+    
+  } else if (data.type %in% c('txt', 'delim')) {
+    
     readr::read_delim(x, ...)
-  } else if (data.type == 'delim'){
-    readr::read_delim(x, ...)
-  } else if(data.type == 'xml'){
+    
+  } else if (data.type == 'xml') {
+    
     xml2::read_xml(x, ...)
-  } else if(data.type == 'html'){
+    
+  } else if (data.type == 'html') {
+    
     xml2::read_html(RCurl::getURL(x), stringsAsFactors = FALSE, ...)
-  } else if(data.type == 'google'){
+    
+  } else if (data.type == 'google') {
+    
+    rlang::check_installed("googlesheets4", "to use `read_sheet()`")
+    
     googlesheets4::read_sheet(x, ...)
-  } else if(data.type == 'ods'){
+    
+  } else if (data.type == 'ods') {
+    
+    rlang::check_installed("readODS", "to use `read_ods()`")
     readODS::read_ods(x, ...)
+    
   } else if(data.type == 'sql') {
+    
     conn <- DBI::dbConnect(
       drv = drv,
       dbname = dbname,
@@ -140,11 +195,13 @@ read_dat <- function(x, data.type=NULL, is.map = FALSE, drv = NULL, dbname = NUL
     )
     out <- DBI::dbGetQuery(conn, paste("SELECT * FROM", x))
     DBI::dbDisconnect(conn)
+    
     return(out)
+    
   } else {
+    
     cat('Data extension not recognized.')
   }
-
 }
 
 write_dat <- function (dat, project, path=NULL, file_type = "csv",  ...) {
@@ -164,8 +221,8 @@ write_dat <- function (dat, project, path=NULL, file_type = "csv",  ...) {
   #'@importFrom haven write_dta write_sav write_sas
   #'@importFrom R.matlab writeMat
   #'@importFrom utils write.table
-  #'@importFrom geojsonio geojson_json
   #'@importFrom sf st_write
+  #'@importFrom rlang check_installed
   #'@export
   #'@details  
   #' Leave \code{path = NULL} to save \code{dat} to the \code{data} folder in the 
@@ -196,8 +253,6 @@ write_dat <- function (dat, project, path=NULL, file_type = "csv",  ...) {
   out <- data_pull(dat, project)
   dataset <- out$dataset
   dat <- parse_data_name(dat, "main", project)
-  
-  pass <- TRUE
   
   if (is.null(path)) {
     
@@ -234,44 +289,42 @@ write_dat <- function (dat, project, path=NULL, file_type = "csv",  ...) {
     
   } else if (file_type == "stata") {
     
+    rlang::check_installed("haven", "to use `write_dta()`")
     haven::write_dta(dataset, path = path, ...)
     
   } else if (file_type == "spss") {
     
+    rlang::check_installed("haven", "to use `write_sav()`")
     haven::write_sav(data = dataset, path = path, ...)
     
   } else if (file_type == "sas") {
+    
     # has column length restriction
+    rlang::check_installed("haven", "to use `write_sas()`")
     haven::write_sas(dataset, path = path, ...)
     
   } else if (file_type == "matlab") {
     # has column length restriction (32 characters)
+    rlang::check_installed("R.matlab", "to use `writeMat()`")
     R.matlab::writeMat(con = path, dataset, ...)
     
   } else {
-    warning("Data extention not recognized.")
-    pass <- FALSE
+    
+    stop("Data extention not recognized.", call. = FALSE)
   }
   
-  if (pass) {
-    
-    path <- path.expand(path)
-    
-    # Log the function
-    write_dat_function <- list()
-    write_dat_function$functionID <- "write_dat"
-    write_dat_function$args <- list(dat, path, file_type, project)
-    write_dat_function$kwargs <- list(...)
-    
-    log_call(project, write_dat_function)
-    
-    message(paste("Table saved to", path))
-    invisible(TRUE)
-    
-  } else {
-    
-    invisible(FALSE)
-  }
+  path <- path.expand(path)
+  
+  # Log the function
+  write_dat_function <- list()
+  write_dat_function$functionID <- "write_dat"
+  write_dat_function$args <- list(dat, path, file_type, project)
+  write_dat_function$kwargs <- list(...)
+  
+  log_call(project, write_dat_function)
+  
+  message(paste("Table saved to", path))
+  invisible(TRUE)
 }
 
 # Read in main data table from database into working environment
