@@ -2,7 +2,8 @@
 
 # First a helper function to load packages, installing them first if necessary
 # Returns logical value for whether successful
-ensure_library = function (lib.name){
+# TODO: consider removing this function
+ensure_library = function (lib.name) {
   #' Helper function to load packages that may be missing
   #' @param lib.name Library name required
   #' @keywords internal
@@ -19,32 +20,31 @@ ensure_library = function (lib.name){
 select_directory_method = function() {
   #' Search for method to select directory
   #' @keywords internal
-  #' @importFrom utils choose.dir install.packages str
+  #' @importFrom utils choose.dir
   #' @importFrom rstudioapi isAvailable getVersion
-  #' @importFrom tcltk tkdestroy tktoplevel
   #' @export
   #' @details  Tries out a sequence of potential methods for selecting a directory to find one that works 
   #'    The fallback default method if nothing else works is to get user input from the console.
  
-   if (!exists('.dir.method')){  # if we already established the best method, just use that
+  if (!exists('.dir.method')) {  # if we already established the best method, just use that
     # otherwise let's try out some options to find the best one that works here
-    if (exists('utils::choose.dir')) {
-      .dir.method = 'choose.dir'
-    } else if (rstudioapi::isAvailable() & rstudioapi::getVersion() > '1.1.287') {
+
+    if (requireNamespace("rstudioapi", quietly = TRUE)) {
+      
       .dir.method = 'RStudioAPI'
-      ensure_library('rstudioapi')
-    } else if(ensure_library('tcltk') & 
-              class(try({tt  <- tcltk::tktoplevel(); tcltk::tkdestroy(tt)}, silent = TRUE)) != "try-error") {
-      .dir.method = 'tcltk'
-    } else if (ensure_library('gWidgets2') & ensure_library('RGtk2')) {
-      .dir.method = 'gWidgets2RGtk2'
-    } else if (ensure_library('rJava') & ensure_library('rChoiceDialogs')) {
-      .dir.method = 'rChoiceDialogs'
-    } else {
+      
+    } else if (requireNamespace("utils", quietly = TRUE)) {
+       
+      .dir.method = 'choose.dir'
+      
+    } else { # fallback to console
+      
       .dir.method = 'console'
     }
+     # TODO: move this to project settings file
     assign('.dir.method', .dir.method, envir = .GlobalEnv) # remember the chosen method for later
-  }
+   }
+  
   return(.dir.method)
 }
 
@@ -53,25 +53,20 @@ choose_directory = function(method = select_directory_method(),
   #' Choose directory
   #' @param method Method function
   #' @param title Title to show
-  #' @importFrom tcltk tk_choose.dir
-  #' @importFrom rChoiceDialogs rchoose.dir
-  #' @importFrom gWidgets2 gfile
   #' @importFrom rstudioapi selectDirectory
   #' @importFrom utils choose.dir
   #' @export
   #' @keywords internal
   
-  switch (method,
-          'choose.dir' = utils::choose.dir(caption = title),
-          'RStudioAPI' = rstudioapi::selectDirectory(caption = title),
-          'tcltk' = tcltk::tk_choose.dir(caption = title),
-          'rChoiceDialogs' = rChoiceDialogs::rchoose.dir(caption = title),
-          'gWidgets2RGtk2' = gWidgets2::gfile(type = 'selectdir', text = title),
-          readline('Please enter directory path: ')
- )
+  
+  switch(method,
+         'choose.dir' = utils::choose.dir(caption = title),
+         'RStudioAPI' = rstudioapi::selectDirectory(caption = title), 
+         readline('Please enter directory path: ') # Console method
+        )
 }
 
-loc <- function(){
+loc <- function() {
     #' Define FishSETFolder location
     #' @keywords internal
     #' @export
@@ -103,7 +98,8 @@ locproject <- function() {
   } else if(dir.exists("/../../FishSETFolder")){
     proj_dir <- ("/../../FishSETFolder/")
   } else if(exists('folderpath')){
-    proj_dir <- folderpath
+    # proj_dir <- folderpath
+    proj_dir <- get("folderpath")
   } else {
     proj_dir <-  loc()
     assign('folderpath', normalizePath(proj_dir), envir = as.environment(1L))
@@ -619,7 +615,7 @@ empty_vars <- function(dat, remove = TRUE) {
   #' dat <- empty_vars(dat)
   #' }
   
-  empty_ind <- qaqc_helper(dat, function(x) all(is.na(x)))
+  empty_ind <- qaqc_helper(dat, is_value_empty)
   
   if (any(empty_ind)) {
     
@@ -630,7 +626,7 @@ empty_vars <- function(dat, remove = TRUE) {
       dat <- dat[!empty_ind]
       
       warning("The following variables were empty and removed: ", 
-              paste(names(empty_ind[empty_ind]), sep = ", "), call. = FALSE)
+              paste(names(empty_ind[empty_ind]), collapse = ", "), call. = FALSE)
       
     } else {
       
@@ -2093,7 +2089,6 @@ outlier_plot_int <- function(dat, x, dat_remove = "none", x_dist = "normal", sd_
   #' @param sd_val User-defined rule
   #' @param plot_type Which plot to return
   #' @importFrom graphics points
-  #' @importFrom ggpubr annotate_figure text_grob
   #' @import ggplot2
   #' @keywords internal
   #' @export
@@ -2116,7 +2111,7 @@ outlier_plot_int <- function(dat, x, dat_remove = "none", x_dist = "normal", sd_
   
 
   
-  if (is.numeric(dataset[, x]) == T) {
+  if (is.numeric(dataset[[x]])) {
     # Begin outlier check
     dataset$val <- 1:nrow(dataset)
     if (dat_remove == "none") {
@@ -2243,6 +2238,16 @@ outlier_plot_int <- function(dat, x, dat_remove = "none", x_dist = "normal", sd_
       suppressWarnings(return(temp))
     }
     # Put it all together
+    
+    p_title <- paste0("Plots for ", x, " with ", x_dist,
+                     " distribution and data removed based on '", dat_remove,
+                     "'. \nBlue: included points   Red: removed points")
+    
+    fig <- gridExtra::grid.arrange(p1, p2, p3, ncol = 2, nrow = 2, 
+                                   top = grid::textGrob(p_title, gp = grid::gpar(fontsize = 10)))
+    
+    fig
+    
     # fig <- suppressWarnings(ggpubr::ggarrange(p1, p2, p3 , ncol = 2, nrow = 2))
     # labels = c("A", "B", "C"),
     # fig <- ggpubr::annotate_figure(fig, top = ggpubr::text_grob(paste("Plots for ", x, " with ", x_dist,
@@ -2364,44 +2369,43 @@ find_lon <- function(dat) {
  #' Find columns that may be longitude data
  #' @param dat Data set to search over
  #' @keywords internal
+ #' @importFrom stringi stri_count_regex
  #' @export
  
-  #cols <- colnames(dat)
-  if(all(is_empty(dat[1,]))) return()
-  cols <- colnames(dat)[grep('lon', colnames(dat), ignore.case=TRUE)]
-  lat_find <- stringr::str_count(cols, '(?=LAT|Lat|lat)')
+  if (all(is_empty(dat[1, ]))) return(NULL)
   
-  if(any(lat_find>0)){
-  lat_rem <- which(lat_find %in% max(lat_find))
-  cols <- cols[-c(lat_rem)]
+  cols <- colnames(dat)[grep('lon', colnames(dat), ignore.case = TRUE)]
+  lat_find <- stringi::stri_count_regex(cols, '(?=LAT|Lat|lat)')
+  
+  if (any(lat_find > 0)) {
+    
+    lat_rem <- which(lat_find %in% max(lat_find))
+    cols <- cols[-c(lat_rem)]
   }
   
-  #lon_match <- stringi::stri_count_regex(cols, '(?=LON|Lon|lon)')
-  #lon_cols <- which(lon_match %in% max(lon_match))
   return(cols)
-  #cols[lon_cols]
 }
 
 find_lat <- function(dat) {
   #' Find columns that may be latitude data
   #' @param dat Data set to search over
   #' @keywords internal
+  #' @importFrom stringi stri_count_regex
   #' @export
-  if(all(is_empty(dat[1,]))) return()
-  cols <- colnames(dat)[grep('lat', colnames(dat), ignore.case=TRUE)]
-  lon_find <- stringr::str_count(cols, '(?=LON|Lon|lon)')
+  #' 
+
+  if (all(is_empty(dat[1,]))) return()
   
-  if(any(lon_find > 0) ){
-  lon_rem <- which(lon_find %in% max(lon_find))
-  cols <- cols[-c(lon_rem)]
+  cols <- colnames(dat)[grep('lat', colnames(dat), ignore.case = TRUE)]
+  lon_find <- stringi::stri_count_regex(cols, '(?=LON|Lon|lon)')
+  
+  if (any(lon_find > 0)) {
+    
+    lon_rem <- which(lon_find %in% max(lon_find))
+    cols <- cols[-c(lon_rem)]
   }
   
   return(cols)
-  #cols <- colnames(dat)
-  #lat_match <- stringi::stri_count_regex(cols, '(?=LAT|Lat|lat)')
-  #lat_cols <- which(lat_match %in% max(lat_match))
-  
-  #cols[lat_cols]
 }
 
 find_lonlat <- function(dat) {
@@ -2510,7 +2514,6 @@ date_cols <- function(dat, out = "names") {
   #'   (\code{"logical"}).
   #' @export
   #' @keywords internal
-  #' @importFrom stringr str_trim str_remove
   #' @importFrom purrr map_lgl
   #' @importFrom rlang expr
   #' @importFrom lubridate mdy dmy ymd ydm dym
@@ -2530,10 +2533,10 @@ date_cols <- function(dat, out = "names") {
   
   date_helper <- function(dates, fun) {
     
-    dates <- stringr::str_trim(dates)
+    dates <- trimws(dates)
     
     # remove time info
-    dates <- stringr::str_remove(dates, "\\s\\d{2}:\\d{2}:\\d{2}$")
+    dates <- gsub("\\s\\d{2}:\\d{2}:\\d{2}$", "", dates)
     
     out <- rlang::expr(!all(is.na(suppressWarnings((!!fun)(!!dates)))))
     
