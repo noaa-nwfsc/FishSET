@@ -11,7 +11,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
 
-<meta name="date" content="2022-04-21" />
+<meta name="date" content="2022-07-12" />
 
 <title>FishSET GUI Quickstart Guide</title>
 
@@ -45,7 +45,7 @@
 
 
 <h1 class="title toc-ignore">FishSET GUI Quickstart Guide</h1>
-<h4 class="date">2022-04-21</h4>
+<h4 class="date">2022-07-12</h4>
 
 
 
@@ -79,7 +79,7 @@
 <a href="https://rstudio.com/products/rstudio/download/#download" title="RStudio website">RStudio from</a>.</p>
 <p>Installation files for both R and RStudio are platform specific.<br />
 Install the most recent version of R and RStudio available.<br />
-Default settings do not need to be changed.</p>
+Default settings do not need to be changed .</p>
 <p>For more details see the <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.1fob9te" title="Installing R and RStudio">FishSET Help Manual</a>.</p>
 </div>
 <div id="installing-the-fishset-package" class="section level2">
@@ -88,23 +88,23 @@ Default settings do not need to be changed.</p>
 <p>We recommend installing directly from the GitHUB site.<br />
 For more details see the <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.h8fxguvqf0mn" title="Installing FishSET">FishSET Manual</a>.</p>
 <ol style="list-style-type: decimal">
-<li>Open RStudio</li>
+<li><p>Open RStudio</p></li>
 <li><dl>
 <dt>Install the <strong>devtools</strong> package (this package is necessary to install and build FishSET)</dt>
-<dd>In the RStudio Console paste the following code<br />
+<dd><p>In the RStudio Console paste the following code<br />
 <code>install.packages(&quot;devtools&quot;)</code><br />
-<code>library(devtools)</code>
+<code>library(devtools)</code></p>
 </dd>
 </dl></li>
 <li><dl>
 <dt>Install the FishSET package</dt>
-<dd>To install FishSET from GitHUB In the RStudio Console paste the following code<br />
+<dd><p>To install FishSET from GitHUB In the RStudio Console paste the following code<br />
 <code>devtools::install_github(&quot;name/FishSET&quot;)</code><br />
-<code>library(FishSET)</code>
+<code>library(FishSET)</code></p>
 </dd>
-<dd>To install FishSET from local file directory<br />
+<dd><p>To install FishSET from local file directory<br />
 <code>devtools::install_local(&quot;PATH/TO/Directory/Containing/FishSET&quot;)</code><br />
-<code>library(FishSET)</code>
+<code>library(FishSET)</code></p>
 </dd>
 </dl></li>
 </ol>
@@ -125,29 +125,29 @@ For more details see the <a href="https://docs.google.com/document/d/1dzXsVt5iWc
 <div id="functionality-available-across-all-tabs" class="section level3">
 <h3>Functionality available across all tabs</h3>
 <ul>
-<li>Save plot and table buttons
+<li><p>Save plot and table buttons</p>
 <ul>
 <li>Optional buttons to save output to a user-specified location.</li>
 <li>Tables, plots, and notes are automatically saved to the <code>Output</code> folder in the projects directory when generated. These buttons should be used only if you want to save output to a location other than the projects directory.<br />
 </li>
 </ul></li>
-<li>Refresh data
+<li><p>Refresh data</p>
 <ul>
 <li>Resets the primary data to the most recently saved version in the FishSET database.</li>
 <li>To refresh to a specific saved version of the data table, go to the <code>Upload data</code> tab.</li>
 <li>Unsaved changes to the data table will be lost when the data is refreshed.</li>
 </ul></li>
-<li>Close app
+<li><p>Close app</p>
 <ul>
 <li>Closes the FishSET GUI.</li>
 <li>This is the preferred method to close the FishSET GUI.</li>
 </ul></li>
-<li>Notes
+<li><p>Notes</p>
 <ul>
 <li>Write observations, comments, or other notes in the <code>Notes</code> box.</li>
 <li>Press <code>Save notes</code> to save the notes in the <code>Output</code> folder.</li>
 </ul></li>
-<li>Running R expressions
+<li><p>Running R expressions</p>
 <ul>
 <li>Located at the bottom of the land-hand panel.</li>
 <li>Enter and run R code.</li>
@@ -183,26 +183,26 @@ Contains additional data that varies by two dimensions.</li>
 <p>See the <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.36sb14g0441y" title="Data Types">FishSET Manual</a> for more details on the different required and optional data tables.</p>
 <p>Steps to upload data:</p>
 <ol style="list-style-type: decimal">
-<li>Select or fill in project name.</li>
-<li>For primary, port, auxiliary, and gridded data files select to:
+<li><p>Select or fill in project name.</p></li>
+<li><p>For primary, port, auxiliary, and gridded data files select to:</p>
 <ul>
-<li><code>Upload new file</code> from local file directory then
+<li><p><code>Upload new file</code> from local file directory then</p>
 <ul>
 <li><code>Browse</code> to file directory location.</li>
 </ul></li>
-<li>Load data from <code>FishSET database</code> then
+<li><p>Load data from <code>FishSET database</code> then</p>
 <ul>
 <li><code>Choose a table</code>.</li>
 </ul></li>
 </ul></li>
-<li>For spatial data files, the only option is to:
+<li><p>For spatial data files, the only option is to:</p>
 <ul>
 <li>Browse to file directory location.</li>
 </ul></li>
-<li>To load the data, click the <code>Load Data</code> button.</li>
-<li>Merge auxiliary data with primary data: * Check <code>Merge auxiliary table</code>. * Select <code>Main table keys</code> and <code>Auxiliary table keys</code>.<br />
-These are column names to merge the two data tables by.</li>
-<li>If including confidentiality checks: * Click blue <code>Confidentiality</code> button. * Check the <code>Check for confidentiality</code> box. * From <code>Select vessel identifier column</code>, select the column name containing identifier of unique observational units. * Select a <code>Rule</code> (<code>n</code>: rule of n or <code>k</code>: majority allocation). * Select a <code>Threshold</code> value such as 3 for rule of n or 90% for majority allocation. * Click <code>Save</code> and repeat if adding the other confidentiality rule. * Click the <code>Close</code> button.</li>
+<li><p>To load the data, click the <code>Load Data</code> button.</p></li>
+<li><p>Merge auxiliary data with primary data: * Check <code>Merge auxiliary table</code>. * Select <code>Main table keys</code> and <code>Auxiliary table keys</code>.<br />
+These are column names to merge the two data tables by.</p></li>
+<li><p>If including confidentiality checks: * Click blue <code>Confidentiality</code> button. * Check the <code>Check for confidentiality</code> box. * From <code>Select vessel identifier column</code>, select the column name containing identifier of unique observational units. * Select a <code>Rule</code> (<code>n</code>: rule of n or <code>k</code>: majority allocation). * Select a <code>Threshold</code> value such as 3 for rule of n or 90% for majority allocation. * Click <code>Save</code> and repeat if adding the other confidentiality rule. * Click the <code>Close</code> button.</p></li>
 </ol>
 <p>See the <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.36sb14g0441y" title="Uploading data">FishSET Manual</a> for more details on uploading data and merging data.</p>
 </div>
@@ -210,21 +210,21 @@ These are column names to merge the two data tables by.</li>
 <h3>Data Quality Evaluation</h3>
 <p>The <code>Data Quality and Evaluation</code> tab is used to identify and correct common data quality issues such as erroneous outliers and missing values.</p>
 <ul>
-<li>Variable class
+<li><p>Variable class</p>
 <ul>
 <li>Check and change variable classes.<br />
 </li>
 <li>Classes are numeric, character, factor, and date.</li>
 </ul></li>
-<li>Summary table
+<li><p>Summary table</p>
 <ul>
 <li>View minimum, median, mean, maximum, no. missing, no. unique observations, no. 0s.</li>
 </ul></li>
-<li>Outliers<br />
-View tables and plots to assess if outliers exist.
+<li><p>Outliers<br />
+View tables and plots to assess if outliers exist.</p>
 <ol style="list-style-type: decimal">
-<li><code>Choose variable</code> to assess.</li>
-<li>Select <code>Method to subset the data</code> by:
+<li><p><code>Choose variable</code> to assess.</p></li>
+<li><p>Select <code>Method to subset the data</code> by:</p>
 <ul>
 <li>none</li>
 <li>5_95_quant (remove values outside 5th and 95th quantiles)</li>
@@ -234,7 +234,7 @@ View tables and plots to assess if outliers exist.
 <li>median_2SD (remove values outside 2 standard deviations from the median)</li>
 <li>median_3SD (remove values outside 3 standard deviations from the median)</li>
 </ul></li>
-<li>Select <code>Distribution</code> of data:
+<li><p>Select <code>Distribution</code> of data:</p>
 <ul>
 <li>Normal</li>
 <li>Lognormal</li>
@@ -244,35 +244,35 @@ View tables and plots to assess if outliers exist.
 <li>Negative binomial</li>
 </ul></li>
 </ol></li>
-<li>NAs
+<li><p>NAs</p>
 <ul>
-<li>Displays table of variables containing missing values.</li>
-<li>Remove or replace NAs:
+<li><p>Displays table of variables containing missing values.</p></li>
+<li><p>Remove or replace NAs:</p>
 <ul>
 <li><code>Remove NAs</code> removes the entire row of data containing NAs.</li>
 <li><code>Replace NAs with mean values</code> replaces NAs.</li>
 </ul></li>
 </ul></li>
-<li>NaNs
+<li><p>NaNs</p>
 <ul>
-<li>Displays table of variables containing non-numbers.</li>
-<li>Remove or replace NaNs:
+<li><p>Displays table of variables containing non-numbers.</p></li>
+<li><p>Remove or replace NaNs:</p>
 <ul>
 <li><code>Remove NaNs</code> removes the entire row of data containing NaNs.</li>
 <li><code>Replace NaNs with mean values</code> replaces NaNs.</li>
 </ul></li>
 </ul></li>
-<li>Unique observations
+<li><p>Unique observations</p>
 <ul>
 <li>Checks that all rows of the dataset are unique.</li>
 <li>To remove non-unique rows, select <code>Remove non-unique rows</code>.</li>
 </ul></li>
-<li>Empty variables
+<li><p>Empty variables</p>
 <ul>
 <li>Returns a list of variables that are empty.</li>
 <li>To remove, press <code>Remove empty variables</code>.</li>
 </ul></li>
-<li>Latitude and Longitude units
+<li><p>Latitude and Longitude units</p>
 <ul>
 <li>Returns the first six rows of all latitude and longitude variables.<br />
 </li>
@@ -287,33 +287,33 @@ View tables and plots to assess if outliers exist.
 <p>The <code>Data Exploration</code> tab is used to view and explore the loaded data.</p>
 <p>Select to view data tables or plots.</p>
 <ul>
-<li>Tables
+<li><p>Tables</p>
 <ul>
-<li>Select data file type to view.</li>
-<li>Edit cells:
+<li><p>Select data file type to view.</p></li>
+<li><p>Edit cells:</p>
 <ul>
 <li>Double click on a cell to edit.</li>
 </ul></li>
-<li>Filter table:
+<li><p>Filter table:</p>
 <ul>
 <li>Add and apply filters in the boxes between column names and first row of data.</li>
 </ul></li>
-<li>Remove variables:
+<li><p>Remove variables:</p>
 <ul>
 <li>Click anywhere on a column to highlight column. Multiple columns can be selected at a time.</li>
 <li>Press the <code>Remove data from dataset</code> to remove the variables from the dataset.</li>
 </ul></li>
-<li>Changes will be applied but will not be saved until the <code>Save to FishSET database</code> button is pressed.</li>
+<li><p>Changes will be applied but will not be saved until the <code>Save to FishSET database</code> button is pressed.</p></li>
 </ul></li>
-<li>Plots
+<li><p>Plots</p>
 <ul>
-<li>Temporal
+<li><p>Temporal</p>
 <ul>
 <li>Displays three plots for the selected variable.<br />
 </li>
 <li>The first data variable in the data set will used for the x-axis.</li>
 </ul></li>
-<li>Spatial
+<li><p>Spatial</p>
 <ul>
 <li>Two plots are shown.</li>
 <li>The first can be zoomed in and out. Individual points can be identified by hovering over them.<br />
@@ -321,7 +321,7 @@ View tables and plots to assess if outliers exist.
 <li>Fill out the additional options in the left-hand panel to show Getis-Ord and Moran’s I statistics.</li>
 <li>NOTE: This spatial check must be completed before you can run models.</li>
 </ul></li>
-<li>x-y
+<li><p>x-y</p>
 <ul>
 <li>Plot selected <code>x</code> variable against selected <code>y</code> variable.</li>
 </ul></li>
@@ -338,13 +338,13 @@ View tables and plots to assess if outliers exist.
 <p>Define fleets and apply fleet definitions to the primary dataset.</p>
 <p>Under <code>Select task</code> (in left-hand panel), select <code>Define Fleets</code>.</p>
 <ol style="list-style-type: decimal">
-<li>Expression Builder
+<li><p>Expression Builder</p>
 <ol style="list-style-type: decimal">
 <li>Select a variable, operator, and value to create an expression.</li>
 <li>Select <code>Add to expression</code> to expand the expression if needed.</li>
 <li>Select <code>Insert expression</code> to insert an expression into the Fleet Definition Table.</li>
 </ol></li>
-<li>Fleet Definition Table
+<li><p>Fleet Definition Table</p>
 <ul>
 <li>To insert into a specific cell, click <code>Select cell</code>, choose a cell, and then select <code>Insert expression</code>.</li>
 <li>To enter a fleet name, double-click the definition table.</li>
@@ -356,13 +356,13 @@ View tables and plots to assess if outliers exist.
 </ol>
 <p>Select <code>Fleet Assignment</code> under <code>Select task</code> (in left-hand panel).</p>
 <ol style="list-style-type: decimal">
-<li>Load fleet definition table. * Select from available fleet tables.
+<li><p>Load fleet definition table. * Select from available fleet tables.</p>
 <ul>
 <li>If no tables are shown or the desired table is not shown, press <code>Refresh saved tables</code>. * Press <code>Load table</code><br />
 The table should now be in the main panel.</li>
 <li>Repeat the previous steps if the loaded table is not the desired table.</li>
 </ul></li>
-<li>Press the <code>Assign fleets</code> button to assign vessels to defined fleets.</li>
+<li><p>Press the <code>Assign fleets</code> button to assign vessels to defined fleets.</p></li>
 </ol>
 </div>
 <div id="fleet-summary" class="section level4">
@@ -391,21 +391,21 @@ View density plot.</li>
 </ul>
 <p>Plotting options:</p>
 <ul>
-<li>View table and/or plot.</li>
-<li>Subset
+<li><p>View table and/or plot.</p></li>
+<li><p>Subset</p>
 <ul>
 <li>Subset by date.</li>
 <li>Subset by variable.</li>
 </ul></li>
-<li>Group
+<li><p>Group</p>
 <ul>
 <li>Select grouping variable or time period.</li>
 </ul></li>
-<li>Split
+<li><p>Split</p>
 <ul>
 <li>Select variable or time period to split plot by.</li>
 </ul></li>
-<li>Plot options
+<li><p>Plot options</p>
 <ul>
 <li>Change format, adjust axes, etc.</li>
 <li>Adjust table (wide &lt;-&gt; long).</li>
@@ -420,26 +420,26 @@ View density plot.</li>
 <h3>Simple Analyses</h3>
 <p>The <code>Simple Analyses</code> tab is used to view correlation and simple linear regression among selected variables.</p>
 <ul>
-<li>Select to show correlations or simple linear regression.
+<li><p>Select to show correlations or simple linear regression.</p>
 <ul>
 <li>Option in left-hand panel.</li>
 </ul></li>
-<li>Correlations
+<li><p>Correlations</p>
 <ul>
-<li>Select variables to include in correlation test.
+<li><p>Select variables to include in correlation test.</p>
 <ul>
 <li>To remove a variable, click on it and press <code>Delete</code> or <code>Backspace</code>.</li>
 <li>To add variables back in, click on an empty space and then click on the desired variable.</li>
 </ul></li>
-<li>Table shows correlation values.</li>
-<li>Correlation matrix plot:
+<li><p>Table shows correlation values.</p></li>
+<li><p>Correlation matrix plot:</p>
 <ul>
 <li>Color strength represents strength of correlation.</li>
 <li>Red is positively correlated.</li>
 <li>Blue is negatively correlated.</li>
 </ul></li>
 </ul></li>
-<li>Linear regression
+<li><p>Linear regression</p>
 <ul>
 <li>Select a response variable.</li>
 <li>Select an explanatory variable.</li>
@@ -451,14 +451,14 @@ View density plot.</li>
 <p>The <code>Compute New Variables</code> tab is used to transform or derive new variables.</p>
 <p>Steps:</p>
 <ol style="list-style-type: decimal">
-<li>Select to <code>Create variables based</code> on the desired broad categories.</li>
-<li>Select a function.</li>
-<li>Populate options.</li>
-<li>Press the <code>Run Function</code> button.
+<li><p>Select to <code>Create variables based</code> on the desired broad categories.</p></li>
+<li><p>Select a function.</p></li>
+<li><p>Populate options.</p></li>
+<li><p>Press the <code>Run Function</code> button.</p>
 <ul>
 <li>The new variable will be added to the end of the table.</li>
 </ul></li>
-<li>Save the finalized dataset before moving on to modeling functions.
+<li><p>Save the finalized dataset before moving on to modeling functions.</p>
 <ul>
 <li>To save the FishSET database, click <code>Save final table to FishSET DB</code>.</li>
 <li>To save to local file directory, select a file format in the <code>Export data as:</code> box and click <code>Download data</code>.</li>
@@ -467,12 +467,12 @@ View density plot.</li>
 <p>Function details can be found in the <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.3ygebqi">Exploratory Data Analysis</a> section of the FishSET Manual.</p>
 <p>Functions:</p>
 <ul>
-<li>Arithmetic
+<li><p>Arithmetic</p>
 <ul>
 <li>Numeric functions (add, subtract, multiply, divide two variables)</li>
 <li>Catch per unit</li>
 </ul></li>
-<li>Data transformations
+<li><p>Data transformations</p>
 <ul>
 <li>Within-group percentage</li>
 <li>Within-group lagged difference<br />
@@ -481,7 +481,7 @@ View density plot.</li>
 </li>
 <li>Coded variable based on quartiles</li>
 </ul></li>
-<li>Dummy
+<li><p>Dummy</p>
 <ul>
 <li>From variable<br />
 </li>
@@ -489,14 +489,14 @@ View density plot.</li>
 </li>
 <li>From area/zone closures</li>
 </ul></li>
-<li>Nominal ID
+<li><p>Nominal ID</p>
 <ul>
 <li>Create distinct haul or trip ID<br />
 </li>
 <li>Create fishery season identifier<br />
 </li>
 </ul></li>
-<li>Spatial
+<li><p>Spatial</p>
 <ul>
 <li>Assign observations to zones<br />
 </li>
@@ -505,12 +505,12 @@ View density plot.</li>
 <li>Zone when choice of where to go next was made<br />
 </li>
 </ul></li>
-<li>Temporal
+<li><p>Temporal</p>
 <ul>
 <li>Change time unit (convert or extract)</li>
 <li>Duration of time between two temporal variables</li>
 </ul></li>
-<li>Trip-level
+<li><p>Trip-level</p>
 <ul>
 <li>Collapse data from haul-level to trip-level</li>
 <li>Calculate trip distance</li>
@@ -528,30 +528,30 @@ View density plot.</li>
 </ol>
 <p>Choices:</p>
 <ol style="list-style-type: decimal">
-<li>Area variable (data)<br />
-Variable in primary data containing zone identifier such as ZoneID.</li>
-<li>Area variable (map)<br />
+<li><p>Area variable (data)<br />
+Variable in primary data containing zone identifier such as ZoneID.</p></li>
+<li><p>Area variable (map)<br />
 Name of the property in the spatial data file that identifies the zones.<br />
-Links to Area variable (data).</li>
-<li>Numeric variables (required)<br />
+Links to Area variable (data).</p></li>
+<li><p>Numeric variables (required)<br />
 Points on the map are color coded based on the numeric variable value.<br />
-Multiple numeric variables can be included but only one will be plotted at a time.</li>
-<li>Temporal variables (required)<br />
+Multiple numeric variables can be included but only one will be plotted at a time.</p></li>
+<li><p>Temporal variables (required)<br />
 Used in scatter plot. Temporal variable is plotted against numeric variable.<br />
-Multiple temporal variables can be included but only one will be plotted at a time.</li>
-<li>ID variables (recommended)<br />
+Multiple temporal variables can be included but only one will be plotted at a time.</p></li>
+<li><p>ID variables (recommended)<br />
 Categorical variables for grouping in plots.<br />
-Multiple ID variables can be included but only one will be plotted at a time.</li>
-<li>Location point or path<br />
-Should the map show hauls as individual points or paths?
+Multiple ID variables can be included but only one will be plotted at a time.</p></li>
+<li><p>Location point or path<br />
+Should the map show hauls as individual points or paths?</p>
 <ul>
-<li>Points
+<li><p>Points</p>
 <ul>
 <li>Longitude point<br />
 </li>
 <li>Latitude point</li>
 </ul></li>
-<li>Path
+<li><p>Path</p>
 <ul>
 <li>Starting longitude<br />
 </li>
@@ -569,7 +569,7 @@ Should the map show hauls as individual points or paths?
 <p>The <code>Define Alternative Fishing Choices</code> tab is used to define how the distance matrix between observed fishing locations and alternative fishing locations should be calculated.</p>
 <p>Steps:</p>
 <ol style="list-style-type: decimal">
-<li>Should distance matrix come from:
+<li><p>Should distance matrix come from:</p>
 <ul>
 <li>Primary haul- or trip-level data or</li>
 <li>Gridded data file.</li>
@@ -577,14 +577,14 @@ Should the map show hauls as individual points or paths?
 </ol>
 <p>If data comes from the primary dataset:</p>
 <ol style="list-style-type: decimal">
-<li>Define how alternative fishing choices are calculated between:
+<li><p>Define how alternative fishing choices are calculated between:</p>
 <ul>
 <li>occurrence</li>
 <li>and alternative locations.</li>
 </ul></li>
-<li>Select the distance units.</li>
-<li>Select the minimum number of hauls required for the zone to be included.</li>
-<li>Press <code>Save choices</code>.</li>
+<li><p>Select the distance units.</p></li>
+<li><p>Select the minimum number of hauls required for the zone to be included.</p></li>
+<li><p>Press <code>Save choices</code>.</p></li>
 </ol>
 <p>If data comes from a gridded data file:</p>
 <ol style="list-style-type: decimal">
@@ -597,17 +597,17 @@ Should the map show hauls as individual points or paths?
 <p>The <code>Expected Catch/Revenue</code> tab is used to calculate the expected catch or revenue matrix for alternative fishing zones (zones where fishing could have happened but did not). A catch variable is required. Include a price or value variable if you want expected revenue.</p>
 <p>Steps:</p>
 <ol style="list-style-type: decimal">
-<li>Select catch variable.</li>
-<li>Select price or value variable if calculating expected revenue.<br />
+<li><p>Select catch variable.</p></li>
+<li><p>Select price or value variable if calculating expected revenue.<br />
 Price is multiplied against catch to produce revenue. If a revenue variable exists in the dataset, it can be used for the Catch Variable.<br />
-This matrix is required to run the conditional logit model.</li>
-<li>Decide whether to account for potential that catch differs between groups.
+This matrix is required to run the conditional logit model.</p></li>
+<li><p>Decide whether to account for potential that catch differs between groups.</p>
 <ul>
 <li>Select <code>Fleet (no group)</code> or column name containing group identifier.</li>
 </ul></li>
-<li>Decide whether temporal patterns in catch should be taken into account.
+<li><p>Decide whether temporal patterns in catch should be taken into account.</p>
 <ul>
-<li>If taking temporal patterns into account select:
+<li><p>If taking temporal patterns into account select:</p>
 <ul>
 <li>Temporal variable</li>
 <li>Time lags</li>
@@ -615,8 +615,8 @@ This matrix is required to run the conditional logit model.</li>
 <li>Populate other options</li>
 </ul></li>
 </ul></li>
-<li>Decide how to hand empty expected catch values.</li>
-<li>Press <code>Run expected catch/revenue function</code>.</li>
+<li><p>Decide how to hand empty expected catch values.</p></li>
+<li><p>Press <code>Run expected catch/revenue function</code>.</p></li>
 </ol>
 <p>Four expected catch or expected revenue matrices will be generated and saved to the FishSET database based on <em>predefined window size and lags in days and years</em> and all other user-defined arguments:</p>
 <ul>
@@ -648,7 +648,7 @@ Models can be removed using the table.</li>
 </ol>
 <p>The models may take several minutes to run.<br />
 When the models are completed, the tables in the <code>Compare models</code> subtab will be populated.<br />
-Use these tables to assess convergence, fit, and select the preferred model for future analyses.</p>
+Use these tables to assess convergence, fit, and select the preferred model for future analyses .</p>
 <p>See the <a href="https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.3cqmetx">Model Development</a> section of the FishSET manual for details on model choices, including likelihood functions, optimization method, and initial parameter estimates.</p>
 </div>
 <div id="bookmark-choices" class="section level3">
@@ -658,7 +658,7 @@ Use these tables to assess convergence, fit, and select the preferred model for 
 <h4>Bookmark subtab</h4>
 <p>Restore selections made in the FishSET GUI.<br />
 Data will not be reloaded. Got to the <em>Upload Data</em> tab to load data.<br />
-Previous actions, such as deriving variables, will not be rerun.</p>
+Previous actions, such as deriving variables, will not be rerun .</p>
 </div>
 <div id="rerun-logged-function-subtab" class="section level4">
 <h4>Rerun logged function subtab</h4>
@@ -672,26 +672,26 @@ Previous actions, such as deriving variables, will not be rerun.</p>
 <p>This report cannot be written in the FishSET GUI. It must be opened in the R console.</p>
 <p>Steps:</p>
 <ol style="list-style-type: decimal">
-<li>Open RStudio</li>
-<li>Locate the report template file location.
+<li><p>Open RStudio</p></li>
+<li><p>Locate the report template file location.</p>
 <ul>
 <li><dl>
 <dt>In the RStudio Console paste</dt>
-<dd><pre><code> `system.file(&#39;rmd&#39;, &#39;report_template.Rmd&#39;, package=&#39;FishSET&#39;)`</code></pre>
+<dd><p><code>system.file(&#39;rmd&#39;, &#39;report_template.Rmd&#39;, package=&#39;FishSET&#39;)</code></p>
 </dd>
 </dl></li>
 </ul></li>
-<li>Open the template
+<li><p>Open the template</p>
 <ul>
 <li>Press Ctrl+O in RStudio or click File -&gt; Open File.</li>
 <li>Browse to file and click Open.</li>
 </ul></li>
-<li>Resave the report template * Click <code>File</code>.
+<li><p>Resave the report template * Click <code>File</code>.</p>
 <ul>
 <li>Select <code>Save As...</code>.</li>
 <li>Provide an informative project-specific name.</li>
 </ul></li>
-<li>Begin writing
+<li><p>Begin writing</p>
 <ul>
 <li>The template provides guidance and how to format and build (knit) the document.</li>
 <li>Example functions to insert figures, tables, and notes are provided.</li>
