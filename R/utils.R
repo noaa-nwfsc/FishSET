@@ -21,7 +21,6 @@ select_directory_method = function() {
   #' Search for method to select directory
   #' @keywords internal
   #' @importFrom utils choose.dir
-  #' @importFrom rstudioapi isAvailable getVersion
   #' @export
   #' @details  Tries out a sequence of potential methods for selecting a directory to find one that works 
   #'    The fallback default method if nothing else works is to get user input from the console.
@@ -53,7 +52,6 @@ choose_directory = function(method = select_directory_method(),
   #' Choose directory
   #' @param method Method function
   #' @param title Title to show
-  #' @importFrom rstudioapi selectDirectory
   #' @importFrom utils choose.dir
   #' @export
   #' @keywords internal
