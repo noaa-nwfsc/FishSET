@@ -9,7 +9,7 @@ create_expectations(
   project,
   catch,
   price = NULL,
-  defineGroup = "fleet",
+  defineGroup = NULL,
   temp.var = NULL,
   temporal = "daily",
   calc.method = "standardAverage",
