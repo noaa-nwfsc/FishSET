@@ -30,15 +30,11 @@ read_dat <- function(x,
   #' @param password Use with sql files. If required, SQL database password.
   #' @param ... Optional arguments 
   #' @importFrom sf read_sf st_read st_transform
-  #' @importFrom R.matlab readMat
   #' @importFrom jsonlite fromJSON
-  #' @importFrom haven read_spss read_stata read_sas
   #' @importFrom readr read_csv read_delim read_rds read_tsv
   #' @importFrom readxl read_excel
   #' @importFrom xml2 read_xml read_html
   #' @importFrom RCurl getURL
-  #' @importFrom googlesheets4 read_sheet
-  #' @importFrom readODS read.ods
   #' @importFrom DBI dbDisconnect dbConnect
   #' @importFrom rlang check_installed
   #' @details Uses the appropriate function to read in data based on data type.
@@ -218,8 +214,6 @@ write_dat <- function (dat, project, path=NULL, file_type = "csv",  ...) {
   #'  the list of functions. 
   #'@importFrom openxlsx write.xlsx
   #'@importFrom jsonlite write_json
-  #'@importFrom haven write_dta write_sav write_sas
-  #'@importFrom R.matlab writeMat
   #'@importFrom utils write.table
   #'@importFrom sf st_write
   #'@importFrom rlang check_installed
