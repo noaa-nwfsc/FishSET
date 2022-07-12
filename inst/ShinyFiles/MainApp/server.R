@@ -4908,6 +4908,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
           selectizeInput('zoneidep', 'Column containing zone identifier', choices=c('', 'ZoneID', colnames(values$dataset)), selected='')
         )
       })
+      
       output$expcatch <-  renderUI({
         conditionalPanel(condition="input.temporal!='Entire record of catch (no time)'",
                          style = "margin-left:19px;font-size: 12px", 
@@ -4915,32 +4916,55 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
                                      choices=c('none', find_datetime(values$dataset)),
                                      selected='none', options = list(create = TRUE, placeholder='Select or type column name')))
       })
+      
       sparstable_dat <- reactive({
-        if(!any(colnames(values$dataset)=='ZoneID') & !any(colnames(values$dataset)==input$zoneidep)){
+        
+        if (!any(colnames(values$dataset)=='ZoneID') & !any(colnames(values$dataset)==input$zoneidep)) {
+          
           return()
-        } else if(is_empty(input$catche)){
+          
+        } else if (is_empty(input$catche)) {
+          
           return()
-        } else if(input$temp_var=='none'){
+          
+        } else if (input$temp_var=='none') {
+          
           return()
-        } else{
-          if(any(colnames(values$dataset)=='ZoneID')){
-          sparsetable(values$dataset, project=project$name, timevar=input$temp_var, zonevar='ZoneID', var=input$catche)
+          
+        } else {
+          
+          if (any(colnames(values$dataset)=='ZoneID')) {
+            
+            sparsetable(values$dataset, project=project$name, timevar=input$temp_var, 
+                        zonevar='ZoneID', var=input$catche)
+            
           } else {
-            sparsetable(values$dataset, project=project$name, timevar=input$temp_var, zonevar=input$zoneidep, var=input$catche)
+            
+            sparsetable(values$dataset, project=project$name, timevar=input$temp_var, 
+                        zonevar=input$zoneidep, var=input$catche)
           }
         }
       })
       
       
       output$spars_table <- DT::renderDT(sparstable_dat(), server=TRUE)
+      
       output$spars_plot <- renderPlot({
-        if(!any(colnames(values$dataset)=='ZoneID')& !any(colnames(values$dataset)==input$zoneidep)){
+        
+        if (!any(colnames(values$dataset)=='ZoneID')& !any(colnames(values$dataset)==input$zoneidep)) {
+          
           return()
-        } else if(is_empty(input$catche)){
+          
+        } else if (is_empty(input$catche)) {
+          
           return()
-        } else if(input$temp_var=='none'){
+          
+        } else if (input$temp_var=='none') {
+          
           return()
+          
         } else {
+          
           message(sparsplot(project=project$name, x=sparstable_dat()))
         }
       })
