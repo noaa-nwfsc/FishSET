@@ -129,6 +129,7 @@ logit_c <- function(starts3, dat, otherdat, alts, project, expname, mod.name) {
                         paramsglobalcheck = paramsglobalcheck, 
                         ldglobalcheck = ldglobalcheck)
 
+  # TODO: output a list containing ldglobalcheck and ld. Adjust discretefish_subroutine()
   assign("ldglobalcheck", value = ldglobalcheck, pos = 1, envir = rlang::caller_env())
   
   return(ld)
