@@ -14,7 +14,7 @@
 #'   which contains the port name and the longitude and latitude of each port. For 
 #'   lon/lat variables, longitude must be specified first.
 #' @param alt_var Identifies how to find lat/lon for alternative choices. \code{alt_var} 
-#'   may be the centroid of zonal assignment \code{"Centroid"}, or lon/lat variables 
+#'   may be the centroid of zonal assignment \code{"centroid"}, or lon/lat variables 
 #'   in the primary dataset. Longitude must be specified first.
 #' @param grid Data must contain a variable that varies by the spatial dataset 
 #'   \code{spat}. First variable in \code{grid} should match a column in \code{dat}. 
@@ -107,6 +107,11 @@ create_alternative_choice <-
            hull.polygon = FALSE, closest.pt = FALSE, grid = NULL, lon.spat = NULL, 
            lat.spat = NULL) {
     
+  # TODO: remove grid feature for now, add later if needed
+  # TODO: remove find_centroid() and assignment_column()--check if they are needed
+  # based on current args and inform user
+  # TODO: Let users associate a column from dat w/ area column in spat 
+  # Needed if user doesn't have lon/lat data (ex. Fish Tickets)
   case <- "centroid"
   
   # Call in datasets
@@ -197,7 +202,7 @@ create_alternative_choice <-
 
  
   if (!any(int[,1] %in% int.data[[cat]])) {
-    # Not sure what this is checking. Is it, "are any zone IDs from the centroid table not in main data?"
+    # Note: Not sure what this is checking. Is it, "are any zone IDs from the centroid table not in main data?"
     # Meant to update centroid table, I think. 
     # This statement will return FALSE if any zones from centroid table are in the dataset
     # Nit: should also refer to this column by it's assigned name used in find_centroid(): currently ZoneID
@@ -234,7 +239,7 @@ create_alternative_choice <-
 
   choice <- data.frame(g)  
   
-  # Is this meant to check whether "startingloc" exists as a column in dat?
+  # Q: Is this meant to check whether "startingloc" exists as a column in dat?
   # What if named something else? Add as new arg?  
   startingloc <- if (!"startingloc" %in% int.data) {
     

@@ -20,6 +20,6 @@ Use 'tables_database()' to view table names in FishSET database.
 }
 \examples{
 \dontrun{
-globalcheck_view('pcodldglobalcheck20190604')
+globalcheck_view('pcodldglobalcheck20190604', 'pcod')
 }
 }

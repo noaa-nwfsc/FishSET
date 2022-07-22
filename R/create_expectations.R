@@ -131,14 +131,11 @@ create_expectations <-
     
     warning("No time variable found, only averaging in groups and per zone is capable")
   }
-
-  # TODO: treating entire dataset as one fleet when defineFleet = "fleet" is confusing,
-  # esp if your fleet variable is named "fleet". Change default to NULL. 
   
   # Check that define group is either empty of an actual variable in the dataset
   if (!is_value_empty(defineGroup)) {
     
-    if (any(is.null(dataset[[defineGroup]]))) { # Note: not sure this works, check for NAs instead?
+    if (any(is.null(dataset[[defineGroup]]))) { # Note: this won't work check for NAs instead?
       
       stop("defineGroup not recognized. Check that parameter is correctly defined",
            call. = FALSE)
@@ -162,8 +159,7 @@ create_expectations <-
   # TODO: Skip short, med, long expectations if they already exist or else overwrite
   # Otherwise they will be duplicated in the exp list. 
     
-  ## 1. Option 1. Short-term, individual grouping t - 2 (window)
-
+  # 1. Option 1. Short-term, individual grouping t - 2 (window)
   short_exp <- calc_exp(dataset = dataset, catch = catch, price = price,
                         defineGroup = defineGroup, temp.var = temp.var,
                         temp.window = 2, temp.lag = 0, year.lag = 0,  # "short"
@@ -171,9 +167,8 @@ create_expectations <-
                         lag.method = lag.method, empty.catch = empty.catch,
                         empty.expectation = empty.expectation, dummy.exp = dummy.exp,
                         Alt = Alt)
- # 
- # #   ## 2. Option 2 medium: group by fleet (all vessels in dataset) t -7
- #  
+ 
+  # 2. Option 2 medium: group by fleet (all vessels in dataset) t -7
   med_exp <- calc_exp(dataset = dataset, catch = catch, price = price,
                       defineGroup = defineGroup, temp.var = temp.var,
                       temp.window = 7, temp.lag = 0, year.lag = 0,  # "medium"
@@ -182,9 +177,7 @@ create_expectations <-
                       empty.expectation = empty.expectation, dummy.exp = dummy.exp,
                       Alt = Alt)
   
- 
- #  ## 3. option 3  last year, group by fleet t-7
-
+ # 3. option 3  last year, group by fleet t-7
   long_exp <- calc_exp(dataset = dataset, catch = catch, price = price,
                        defineGroup = defineGroup, temp.var = temp.var, 
                        temp.window = 7, temp.lag = 0, year.lag = 1,  # "long"

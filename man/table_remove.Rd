@@ -19,6 +19,6 @@ Function utilizes sql functions to remove tables from the FishSET database.
 }
 \examples{
 \dontrun{
-table_remove('pollockMainDataTable')
+table_remove('pollockMainDataTable', 'pollock')
 }
 }

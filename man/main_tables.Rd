@@ -17,7 +17,6 @@ View list of MainDataTables in FishSET database
 }
 \examples{
 \dontrun{
-main_tables()
 main_tables("pollock")
 }
 }
