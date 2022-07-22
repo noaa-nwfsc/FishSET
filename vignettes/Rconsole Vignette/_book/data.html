@@ -56,7 +56,6 @@
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
 pre.sourceCode { margin: 0; }
 @media screen {
@@ -233,12 +232,21 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <td>Optional. Contains additional data that varies by two dimensions.</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td>Example, sea surface temperature measure</td>
+</tr>
+<tr class="even">
 <td>Auxiliary data</td>
 <td>Optional. Contains additional data to link to the primary data.</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Example, vessel characteristics.</td>
 </tr>
 </tbody>
 </table>
 <p>All optional data files must be linkable to the primary data file.</p>
+<p>Gridded data should link to the fishery or regulatory areas in the spatial data. Auxilary data must link to a variable in the primary data table.</p>
 <p>FishSET will accept several data formats including:</p>
 <ul>
 <li>csv files</li>
@@ -323,13 +331,13 @@ split_dat()   Split and save secondary data from the primary data table</code></
 <p>The functions in this section interface with the FishSET database to display the requested output in the R Console. The functions are wrappers for functions in the <strong>DBI</strong> package. They allow users to focus on the data and not on managing the database or learning SQL.</p>
 <p>Basic functions:</p>
 <pre><code> tables_database(project)        View list of all tables in the FishSET database for the project.
- list_MainDataTables(project)     View list of MainDataTables in FishSET database for the project.
- list_PortTables(project)         View list of PortTables in FishSET database for the project.
- list_logs(project)           View list of all log files for the project.
- table_fields(table, project)          View fields in specified table for the project.
- table_view(table, project)            Display specified table for the project.
- table_exists(table, project)         Check if table exists in the FishSET database for the project.
- table_remove(table, project)         Remove table from the FishSET database for the project.</code></pre>
+ list_MainDataTables(project)      View list of MainDataTables in FishSET database for the project.
+ list_PortTables(project)          View list of PortTables in FishSET database for the project.
+ list_logs(project)                View list of all log files for the project.
+ table_fields(table, project)    View fields in specified table for the project.
+ table_view(table, project)      Display specified table for the project.
+ table_exists(table, project)      Check if table exists in the FishSET database for the project.
+ table_remove(table, project)      Remove table from the FishSET database for the project.</code></pre>
 <p>Model output files can be viewed in the FishSET database using:</p>
 <pre><code> globalcheck_view(table, project)  View error output discrete choice models for the project
  model_out_view(table, project)    Load discrete choice model output for the project</code></pre>
@@ -516,7 +524,7 @@ gitbook.start({
 "link": null,
 "text": null
 },
-"download": null,
+"download": ["_main.pdf"],
 "search": {
 "engine": "fuse",
 "options": null
