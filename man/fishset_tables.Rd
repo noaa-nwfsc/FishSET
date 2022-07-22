@@ -2,16 +2,16 @@
 % Please edit documentation in R/sql_functions.R
 \name{fishset_tables}
 \alias{fishset_tables}
-\title{Show all SQL Tables in fishset_db for each project and table type}
+\title{Show all SQL Tables in FishSET Folder}
 \usage{
 fishset_tables(project = NULL)
 }
 \arguments{
-\item{project}{Project name. If NULL, tables from all available projects will
-be displayed.}
+\item{project}{Project name. If \code{NULL}, tables from all available projects 
+will be displayed.}
 }
 \description{
-Returns a data frame containing all tables along with their project names
+Returns a data frame containing all tables from each project by project name
 and table type.
 }
 \examples{
