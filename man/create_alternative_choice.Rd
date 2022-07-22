@@ -37,7 +37,7 @@ which contains the port name and the longitude and latitude of each port. For
 lon/lat variables, longitude must be specified first.}
 
 \item{alt_var}{Identifies how to find lat/lon for alternative choices. \code{alt_var} 
-may be the centroid of zonal assignment \code{"Centroid"}, or lon/lat variables 
+may be the centroid of zonal assignment \code{"centroid"}, or lon/lat variables 
 in the primary dataset. Longitude must be specified first.}
 
 \item{dist.unit}{String, how distance measure should be returned. Choices are 

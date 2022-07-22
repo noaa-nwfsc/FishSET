@@ -172,6 +172,7 @@ griddat <- matrix(apply(griddat, 2, function(x) rep(x, times = alts)), obsnum, g
 
   ldglobalcheck <- list(model = paste0(project, expname, mod.name), ldsumglobalcheck = ldsumglobalcheck, paramsglobalcheck = paramsglobalcheck, ldglobalcheck = ldglobalcheck)
 
+  # TODO: output a list containing ldglobalcheck and ld. Adjust discretefish_subroutine()
   assign("ldglobalcheck", value = ldglobalcheck, pos = 1, envir = rlang::caller_env())
 
   return(ld)

@@ -93,7 +93,8 @@ view_grid_dat <- function(grid, project, lon, lat, value, split_by = NULL,
     
       fm <- paste(split_by, "~ .")
       
-      map_out <- map_out + ggplot2::facet_grid_dat(fm)
+      # map_out <- map_out + ggplot2::facet_grid_dat(fm)
+      map_out <- map_out + ggplot2::facet_grid(fm)
     }
   }
   

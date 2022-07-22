@@ -70,16 +70,16 @@ create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, ch
             }
             
             if(breakearly==0){
-            toXYa <- data.frame(dataset[[occasion]][which(dataZoneTrue == 1)]) #  data[[altToLocal1]]data(v1).dataColumn(dataZoneTrue,:)      #subset data to when dataZoneTrue==1
-            
-            colnames(toXYa) <- c(occasion)
-            toXYa[[occasion]] <- trimws(toXYa[[occasion]])
-            colnames(port)[1] <- occasion
-            port[[occasion]] <- trimws(port[[occasion]])
+              
+              toXYa <- data.frame(dataset[[occasion]][which(dataZoneTrue == 1)]) #  data[[altToLocal1]]data(v1).dataColumn(dataZoneTrue,:)      #subset data to when dataZoneTrue==1
+              
+              colnames(toXYa) <- c(occasion)
+              toXYa[[occasion]] <- trimws(toXYa[[occasion]])
+              colnames(port)[1] <- occasion
+              port[[occasion]] <- trimws(port[[occasion]])
             }
             
-            
-            if (any(unique(toXYa[[occasion]]) %in% unique(port[[occasion]]) == FALSE)) {
+            if (all(unique(toXYa[[occasion]]) %in% unique(port[[occasion]])) == FALSE) {
               #     if (any(is_empty(lonlat))) {
               return(NULL)
               stop("At least one port not included in PortTable.")
@@ -207,10 +207,27 @@ create_dist_matrix <- function(dataset, alt_var, occasion, dataZoneTrue, int, ch
       # #m_idist(toXY1[q,1],toXY1[q,2], centersZone[,1], centersZone[,2])
 
       if (dim(toXY1)[2] > 2) {
+        
+        # TODO: switch to sf::st_distance()? 
+        # Note: different output, check units 
+        if (FALSE) {
+          
+          st_zone <- sf::st_as_sf(toXY1[, 2:3],
+                                  coords = c(find_lon(toXY1), find_lat(toXY1)))
+          st_cent <- sf::st_as_sf(centersZone[, 1:2],
+                                  coords = c(find_lon(centersZone), find_lat(centersZone)))
+
+          distMatrix <- sf::st_distance(st_zone, st_cent)
+        }
+        
+        # Note: distGeo uses meters
         toXY1[, 2] <- as.numeric(toXY1[, 2])
         toXY1[, 3] <- as.numeric(toXY1[, 3])
-        distMatrix <- geosphere::distm(toXY1[, 2:3], centersZone[, 1:2])
+        distMatrix <- geosphere::distm(toXY1[, c(find_lon(toXY1), find_lat(toXY1))], 
+                                       centersZone[, c(find_lon(centersZone), find_lat(centersZone))])
       } else {
+        
+        # Note: this will break if cols aren't in long-lat order.
         toXY1[, 1] <- as.numeric(toXY1[, 1])
         toXY1[, 2] <- as.numeric(toXY1[, 2])
         distMatrix <- geosphere::distm(toXY1[, 1:2], centersZone[, 1:2])
