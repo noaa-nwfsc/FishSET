@@ -2,7 +2,7 @@
 % Please edit documentation in R/sql_functions.R
 \name{tables_database}
 \alias{tables_database}
-\title{View names of tables in the FishSET database}
+\title{View names of project tables}
 \usage{
 tables_database(project)
 }
@@ -10,7 +10,8 @@ tables_database(project)
 \item{project}{Project name}
 }
 \description{
-Wrapper for \code{\link[DBI]{dbListTables}}. View names of tables in the FishSET database.
+Wrapper for \code{\link[DBI]{dbListTables}}. View names of tables in a  
+project's FishSET database.
 }
 \examples{
 \dontrun{

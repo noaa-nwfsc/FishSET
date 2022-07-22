@@ -20,6 +20,6 @@ Wrapper for \code{\link[DBI]{dbExistsTable}}. Check if a table
 }
 \examples{
 \dontrun{
-table_exists('pollockMainDataTable')
+table_exists('pollockMainDataTable', 'pollock')
 }
 }
