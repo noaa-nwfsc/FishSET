@@ -4,9 +4,10 @@
 # from the database, and check whether a specific table exists in the database.
 
 tables_database <- function(project) {
-  #' View names of tables in the FishSET database
+  #' View names of project tables
   #'
-  #' Wrapper for \code{\link[DBI]{dbListTables}}. View names of tables in the FishSET database.
+  #' Wrapper for \code{\link[DBI]{dbListTables}}. View names of tables in a  
+  #' project's FishSET database.
   #' @param project Project name
   #' @export tables_database
   #' @importFrom DBI dbConnect dbRemoveTable dbListTables dbExistsTable dbGetQuery
@@ -37,7 +38,8 @@ table_save <- function(table, project, type, name = NULL) {
  #' @param type The table type. Options include, \code{"main"} for main data tables,
  #'    \code{"port"} for port tables, \code{"grid"} for gridded tables, \code{"aux"}
  #'    for auxiliary tables. 
- #' @param name String, table name. Applicable only for gridded and auxiliary tables.
+ #' @param name String, table name. Applicable only for gridded, auxiliary, and
+ #'   spatial tables.
  #' @export
  #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
  #' @importFrom RSQLite SQLite
@@ -90,6 +92,16 @@ table_save <- function(table, project, type, name = NULL) {
       
       stop("Auxiliary table '", tab_name, "' does not exist. Check spelling or use ", 
            "load_aux() to import an auxiliary table.")
+    }
+  
+  } else if (type == "spat") {
+    
+    tab_name <- paste0(project, name, "SpatTable")
+    
+    if (!table_exists(tab_name, project)) {
+      
+      stop("Spatial table '", tab_name, "' does not exist. Check spelling or use ", 
+           "load_spat() to import an auxiliary table.")
     }
   
   } else {
@@ -250,7 +262,7 @@ table_remove <- function(table, project) {
   #' @importFrom DBI dbConnect dbDisconnect dbRemoveTable
   #' @examples
   #' \dontrun{
-  #' table_remove('pollockMainDataTable')
+  #' table_remove('pollockMainDataTable', 'pollock')
   #' }
   
   if (table_exists(table, project) == FALSE) {
@@ -287,7 +299,7 @@ table_exists <- function(table, project) {
   #' @importFrom DBI dbConnect dbDisconnect dbExistsTable
   #' @examples
   #' \dontrun{
-  #' table_exists('pollockMainDataTable')
+  #' table_exists('pollockMainDataTable', 'pollock')
   #' }
   
   if (!project_exists(project)) {
@@ -389,7 +401,7 @@ globalcheck_view <- function(table, project) {
   #' @export
   #' @examples
   #' \dontrun{
-  #' globalcheck_view('pcodldglobalcheck20190604')
+  #' globalcheck_view('pcodldglobalcheck20190604', 'pcod')
   #' }
 
   if (table_exists(table, project) == FALSE) {
@@ -502,7 +514,6 @@ main_tables <- function(project, show_all = TRUE) {
   #' @export
   #' @examples 
   #' \dontrun{
-  #' main_tables()
   #' main_tables("pollock")
   #' }
   
@@ -595,13 +606,13 @@ list_tables <- function(project, type = "main") {
 }
 
 fishset_tables <- function(project = NULL) {
-  #' Show all SQL Tables in fishset_db for each project and table type
+  #' Show all SQL Tables in FishSET Folder
   #' 
-  #' Returns a data frame containing all tables along with their project names
+  #' Returns a data frame containing all tables from each project by project name
   #' and table type.
   #'
-  #'@param project Project name. If NULL, tables from all available projects will
-  #'  be displayed. 
+  #'@param project Project name. If \code{NULL}, tables from all available projects 
+  #'  will be displayed. 
   #'@importFrom stringi stri_extract_first_regex
   #'@export
   #'@examples 
