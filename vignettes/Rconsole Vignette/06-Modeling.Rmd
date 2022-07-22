@@ -161,7 +161,7 @@ Identifying and recording the “best” or preferred model is done by checking 
 Output from the model is saved to the FishSET database in three tables. These tables are saved based on the project name, table phrase, and the date the model was run in YYMD format. The model output tables all contain the phrase *modelout* and the error output tables all contain *ldglobalcheck*.
 
 ```{r pressure, echo=FALSE, fig.cap="Example of interactive table", out.width = '1%'}
-knitr::include_graphics('C:/Users/melanie.harsch/Pictures/Screenshots/ModelOutTable.png')
+#knitr::include_graphics('C:/Users/melanie.harsch/Pictures/Screenshots/ModelOutTable.png')
 ```
 
 The first table contains the initial global log likelihood, initial log likelihood for alternative choices, and starting parameters. Use these for assessing the cause of model errors. The second table contains information on the model output, such as convergence, standard errors, and the inverse Hessian matrix. The model comparison or measure of fit table contains AIC, AIC~c~, BIC, Pseudo R^2^. 
