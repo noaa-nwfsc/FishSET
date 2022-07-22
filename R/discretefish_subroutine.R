@@ -127,7 +127,7 @@ end <- FALSE
   }
 
   if(end == FALSE){
-    for (i in 1:length(x_temp)) {
+    for (i in 1:length(x_temp)) { # loop thru each model
 
       x <- x_temp[[i]]
  #     if (!is.null(x$mod.name) & x$likelihood!='logit_c'){
