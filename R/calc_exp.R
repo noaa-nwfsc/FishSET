@@ -148,6 +148,7 @@ calc_exp <- function(dataset,
     df$ID <- paste0(df$numData, df$spData)
     
     # Lag time
+    # Note: this is ad hoc, revisit 
     if (sum(duplicated(df$ID)) == 0) {
       
       temp.lag <- 0
@@ -173,7 +174,8 @@ calc_exp <- function(dataset,
     if (sum(na_ind) > 0) {
       
       # TODO: treat -Inf before replacing empty catch
-      
+      # Note: Is NA necessary/desirable? Depends on how it's treated later in 
+      # modeling process.
       if (is.na(empty.catch) || is_value_empty(empty.catch)) {
         
         df$catchData[na_ind] <- NA  
@@ -186,6 +188,7 @@ calc_exp <- function(dataset,
         
         # Q: ave yearly catch across all areas or by area?
         # TODO: make this more efficient
+        # Note: allow user to make this choice. No right answer for default
         year_all <- lubridate::year(df$tiData)
         
         yr <- aggregate(df$catchData, by = list(year = year_all), 
@@ -200,7 +203,8 @@ calc_exp <- function(dataset,
         # average catch for year and fleet
         
         # Q: fleet's ave yearly catch across all areas or by area?
-        
+        # Note: allow user to make this choice. No right answer for default
+        # Do both? Show user output?
         # old function (group by year, fleet, and area)
         myfunc_GC <- function(x, y) {
           
@@ -232,8 +236,8 @@ calc_exp <- function(dataset,
     if (temp.lag > 0) {
       
       df$lag.value <- c(rep(NA, temp.lag), df$catchData[-c(1:temp.lag)])
-      # Note: Ask why values from non-duplicated IDs are replaced w/ NAs,
-      # to prevent additional NAs/NaNs?
+      # this will omit the first ob ID even if duplicated ex: duplicated(rep(1, 3))
+      # TODO: count IDs and replace catch for IDs with single count
       # df$lag.value[which(!duplicated(df$ID))] <- NA
       
     } else {
@@ -278,7 +282,7 @@ calc_exp <- function(dataset,
       } else {
         
         if (sum(ind) == 0) { # empty dataframe
-          
+          # TODO: update for fleet
           return(data.frame(ID = altc_names, lag.value = NA))
         }
         
@@ -303,7 +307,7 @@ calc_exp <- function(dataset,
     ec_small <- do.call(rbind, ave_list)
     
     dimnames(ec_small) <- list(as.character(tLine), altc_names)
-    
+    # Note: pickup here next time 
     # calc method ----
     if (calc.method == "simpleLag") {
       # at this point could use means to get a regression compared to a lag of 

@@ -351,7 +351,7 @@ make_model_design <- function(project, catchID, replace = TRUE, likelihood = NUL
     }
     
     # TODO: find less error-prone check for detecting port occasion
-    if (any(grepl("Port", occasion, ignore.case = TRUE) == T)) {
+    if (any(grepl("Port", occasion, ignore.case = TRUE))) {
       pt <- data_pull(paste0(project, 'PortTable'), project)
       # TODO: Use a different check (this will always be TRUE unless data_pull returns an error)
       if(exists('pt')){

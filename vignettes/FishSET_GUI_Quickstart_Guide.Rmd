@@ -1,6 +1,5 @@
 ---
 title: "FishSET GUI Quickstart Guide"
-#author: "ESSR"
 date: "`r Sys.Date()`"
 output:
    rmarkdown::html_vignette
@@ -197,10 +196,17 @@ Steps to upload data:
 
 4.  To load the data, click the `Load Data` button.
 
-5.  Merge auxiliary data with primary data: \* Check `Merge auxiliary table`. \* Select `Main table keys` and `Auxiliary table keys`.\
+5.  Merge auxiliary data with primary data: \* Check `Merge auxiliary table`.
+    \* Select `Main table keys` and `Auxiliary table keys`.\
     These are column names to merge the two data tables by.
 
-6.  If including confidentiality checks: \* Click blue `Confidentiality` button. \* Check the `Check for confidentiality` box. \* From `Select vessel identifier column`, select the column name containing identifier of unique observational units. \* Select a `Rule` (`n`: rule of n or `k`: majority allocation). \* Select a `Threshold` value such as 3 for rule of n or 90% for majority allocation. \* Click `Save` and repeat if adding the other confidentiality rule. \* Click the `Close` button.
+6.  If including confidentiality checks: \* Click blue `Confidentiality` button.
+    \* Check the `Check for confidentiality` box.
+    \* From `Select vessel identifier column`, select the column name containing identifier of unique observational units.
+    \* Select a `Rule` (`n`: rule of n or `k`: majority allocation).
+    \* Select a `Threshold` value such as 3 for rule of n or 90% for majority allocation.
+    \* Click `Save` and repeat if adding the other confidentiality rule.
+    \* Click the `Close` button.
 
 See the [FishSET Manual](https://docs.google.com/document/d/1dzXsVt5iWcAQooDDXRJ3XyMoqnSmpZOqirU_f_PnQUM/edit#heading=h.36sb14g0441y "Uploading data") for more details on uploading data and merging data.
 
@@ -351,7 +357,8 @@ Under `Select task` (in left-hand panel), select `Define Fleets`.
 
 Select `Fleet Assignment` under `Select task` (in left-hand panel).
 
-1.  Load fleet definition table. \* Select from available fleet tables.
+1.  Load fleet definition table.
+    \* Select from available fleet tables.
 
     -   If no tables are shown or the desired table is not shown, press `Refresh saved tables`. \* Press `Load table`\
         The table should now be in the main panel.
@@ -518,19 +525,24 @@ Choices:
 
 2.  Area variable (map)\
     Name of the property in the spatial data file that identifies the zones.\
-    Links to Area variable (data).
+    Links to Area variable (data)
+    .
 
 3.  Numeric variables (required)\
     Points on the map are color coded based on the numeric variable value.\
-    Multiple numeric variables can be included but only one will be plotted at a time.
+    Multiple numeric variables can be included but only one will be plotted at a time
+    .
 
 4.  Temporal variables (required)\
-    Used in scatter plot. Temporal variable is plotted against numeric variable.\
-    Multiple temporal variables can be included but only one will be plotted at a time.
+    Used in scatter plot.
+    Temporal variable is plotted against numeric variable.\
+    Multiple temporal variables can be included but only one will be plotted at a time
+    .
 
 5.  ID variables (recommended)\
     Categorical variables for grouping in plots.\
-    Multiple ID variables can be included but only one will be plotted at a time.
+    Multiple ID variables can be included but only one will be plotted at a time
+    .
 
 6.  Location point or path\
     Should the map show hauls as individual points or paths?
@@ -588,8 +600,10 @@ Steps:
 1.  Select catch variable.
 
 2.  Select price or value variable if calculating expected revenue.\
-    Price is multiplied against catch to produce revenue. If a revenue variable exists in the dataset, it can be used for the Catch Variable.\
-    This matrix is required to run the conditional logit model.
+    Price is multiplied against catch to produce revenue.
+    If a revenue variable exists in the dataset, it can be used for the Catch Variable.\
+    This matrix is required to run the conditional logit model
+    .
 
 3.  Decide whether to account for potential that catch differs between groups.
 
@@ -676,7 +690,7 @@ Steps:
 
         In the RStudio Console paste
 
-        :    `system.file('rmd', 'report_template.Rmd', package='FishSET')`
+        :   `system.file('rmd', 'report_template.Rmd', package='FishSET')`
 
 3.  Open the template
 

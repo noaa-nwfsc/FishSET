@@ -15,7 +15,8 @@ table_save(table, project, type, name = NULL)
 \code{"port"} for port tables, \code{"grid"} for gridded tables, \code{"aux"}
 for auxiliary tables.}
 
-\item{name}{String, table name. Applicable only for gridded and auxiliary tables.}
+\item{name}{String, table name. Applicable only for gridded, auxiliary, and
+spatial tables.}
 }
 \description{
 \code{table_save()} updates existing FishSET DB tables. If the table doesn't
