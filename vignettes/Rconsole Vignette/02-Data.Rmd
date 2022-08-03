@@ -113,7 +113,7 @@ Secondary data (auxiliary, port, gridded) can be merged into the primary dataset
 #### Function details
 `merge_dat(dat, other, project, main_key, other_key, other_type = NULL, merge_type = "left")` merges secondary data (`other`) to the primary data (`dat`) based on one or more variables for `dat` (`main_key`) and `other` (`other_key`). If more than one variable is being used for merging, include as a list. Variable names do not have to be the same between `main_key` and `other_key` but they must be included in the same order. `other_type` is optional and defines the data type of the secondary data (“aux”, “grid”, “spat”, “port”).  `merge_type` can be “left” or “full”. “left” keeps all columns and rows in `dat` but only the rows from `other` in which the column values match column values in `dat`. “full” keeps all rows of both `dat` and `other.` “left” merge is preferred as using “full” can result in a larger frequency of missing data if the secondary data contains observations beyond the scope of `dat`. For example, `dat` contains catch data only on catcher vessels but other contains vessel characteristics for catcher vessels, mothership vessels, and catch processor vessels.
 
-`split_dat(dat, project, aux = NULL, split_by = NULL, key, output = "main")` separates secondary data (auxiliary, gridded, or port data) from the MainDatatable. Identify data to remove from `dat` using an existing secondary data table or list of column names. If `aux` is specified, the column names in `dat` that match the column names in `aux` are separated from `dat`. If `aux = NULL` and `split_by` is a list, then column names in `dat` matching `split_by` are separated from `dat`. `key` is the columns that link `dat` and `aux.` If `aux` is null then `key` should be a column name from `split_by`. The function can return just the primary data (`output = “main”`), just the separated table (`output = “aux”`), or both, in a list (`output = “both”`).
+`split_dat(dat, aux = NULL, project, split_by = NULL, key, output = "main")` separates secondary data (auxiliary, gridded, or port data) from the MainDatatable. Identify data to remove from `dat` using an existing secondary data table or list of column names. If `aux` is specified, the column names in `dat` that match the column names in `aux` are separated from `dat`. If `aux = NULL` and `split_by` is a list, then column names in `dat` matching `split_by` are separated from `dat`. `key` is the columns that link `dat` and `aux.` If `aux` is null then `key` should be a column name from `split_by`. The function can return just the primary data (`output = “main”`), just the separated table (`output = “aux”`), or both, in a list (`output = “both”`).
 
 
 ## Working in the FishSET database  
@@ -182,7 +182,7 @@ FishSET provides a number of statistical and graphic functions for evaluating da
  
 ####   Converting class or lon/lat units
      
-     changeclass()       Convert variable class.
+     change_class()       Convert variable class.
      degree()            Convert lon/lat to decimal format.
 
 ####  Wrappers for multiple "checking" functions
@@ -230,7 +230,7 @@ FishSET provides a number of statistical and graphic functions for evaluating da
  
 ####   Converting variable class or lon/lat units
 
-`changeclass(dat, project, x = NULL, newclass = NULL, savedat = FALSE)` returns a table with data class for each variable in `dat` and changes variable classes. To view variable classes run the function with default settings, specifying only `dat` and `project`. If variable class should be changed, run the function again, specifying the variables (`x`) to be change and the newclasses (`newclass`). Length of `newclass` should match the length of `x` unless all variables in `x` should be the same class. Options are "numeric", "factor", "date", and "character". Use `savedat = TRUE` to save modified data table.
+`change_class(dat, project, x = NULL, newclass = NULL, savedat = FALSE)` returns a table with data class for each variable in `dat` and changes variable classes. To view variable classes run the function with default settings, specifying only `dat` and `project`. If variable class should be changed, run the function again, specifying the variables (`x`) to be change and the newclasses (`newclass`). Length of `newclass` should match the length of `x` unless all variables in `x` should be the same class. Options are "numeric", "factor", "date", and "character". Use `savedat = TRUE` to save modified data table.
 
      
      degree()            
