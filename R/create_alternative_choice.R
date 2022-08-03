@@ -241,7 +241,7 @@ create_alternative_choice <-
   
   # Q: Is this meant to check whether "startingloc" exists as a column in dat?
   # What if named something else? Add as new arg?  
-  startingloc <- if (!"startingloc" %in% int.data) {
+  startingloc <- if (!"startingloc" %in% colnames(int.data)) {
     
     rep(NA, nrow(int.data))
     
@@ -260,19 +260,19 @@ create_alternative_choice <-
   if (case == "centroid") {
     
     # unique zones w/o NAs
-    B <- as.data.frame(unique(g[!is.na(g)])) # unique(unlist(gridInfo['assignmentColumn',,]))
+    B <- as.data.frame(unique(g[!is.na(g)])) 
     
     # zone index (of B)
-    C <- match(g[!is.na(g)], unique(g[!is.na(g)]))#  match(unlist(gridInfo['assignmentColumn',,]), unique(unlist(gridInfo['assignmentColumn',,])))
+    C <- match(g[!is.na(g)], unique(g[!is.na(g)]))
   
   } else {
     # TODO: this is an unreliable method for finding area/zone cols
     # should use zoneID
-    a <- colnames(dataset)[grep("zon|area", colnames(dataset), ignore.case = TRUE)] # find(zp)   #find data that is zonal type
+    a <- colnames(dataset)[grep("zon|area", colnames(dataset), ignore.case = TRUE)] # find data that is zonal type
 
-    temp <- cbind(as.character(g), dataset[[a[1]]]) # cbind(unlist(gridInfo['assignmentColumn',,]), unlist(dataset[[a]]))
+    temp <- cbind(as.character(g), dataset[[a[1]]]) 
     B <- unique(temp) # Correct ->> Needs to be lat/long
-    C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*")) #    C <- data(a(v))[dataColumn,'rows']
+    C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*"))
   }
 
   # Zone counts 
@@ -292,16 +292,12 @@ create_alternative_choice <-
          " Check the min.haul parameter or zone identification.")
   }
 
-  # dataZoneTrue=ismember(gridInfo.assignmentColumn,zoneHist(greaterNZ,3));
-
   # matrix of which zones to include: first column whether to include (0/1), 
   # second column the index of the assigned zone
   dataZoneTrue <- cbind(g %in% zoneHist[, 3], match(g, zoneHist[, 3], nomatch = 0))
- 
-  # dataZoneTrue=ismember(gridInfo.assignmentColumn,zoneHist(greaterNZ,3));
   
   # vector index of zones that meet/exceed min.haul
-  greaterNZ <- which(zoneHist[, 1] >= min.haul) # ifelse(!is.na(zoneHist[, 1]) & zoneHist[, 1] >= 0, 1, 0)
+  greaterNZ <- which(zoneHist[, 1] >= min.haul)
   numOfNecessary <- min.haul
 
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project=project))
@@ -320,8 +316,6 @@ create_alternative_choice <-
     zoneHist = zoneHist,
     zoneRow = zoneHist[greaterNZ, 3], # zones and choices array
     zoneID = cat,
-    # assignChoice = gridInfo['dataColumnLink',,],
-    # zoneType = ifelse(haul.trip == 'Haul', 'Hauls', 'Trips'),
     int = int # centroid table
     )
 
