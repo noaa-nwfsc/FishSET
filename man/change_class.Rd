@@ -28,7 +28,8 @@ Table with data class for each variable and the working data with modified
   data class as specified.
 }
 \description{
-View data class for each variable and call appropriate functions to change data class as needed.
+View data class for each variable and call appropriate functions to change 
+data class as needed.
 }
 \details{
 Returns a table with data class for each variable in \code{dat} and 

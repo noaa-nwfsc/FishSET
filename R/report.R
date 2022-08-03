@@ -664,7 +664,7 @@ function_summary <- function(project, date = NULL, type = "dat_load", show = "al
     "data_verification", "data_check", "nan_identify", "nan_filter", "na_filter",
     "outlier_table", "outlier_plot", "outlier_plot_int", "outlier_remove", "degree", 
     "unique_filter", "empty_vars_filter", "check_model_data", "filter_table", 
-    "filter_dat", "add_vars", "changeclass", "summary_stats", "spatial_qaqc"
+    "filter_dat", "add_vars", "change_class", "summary_stats", "spatial_qaqc"
   )
 
   dat_create <- c(
@@ -681,7 +681,7 @@ function_summary <- function(project, date = NULL, type = "dat_load", show = "al
   dat_exploration <- c(
     "map_plot", "map_kernel", "getis_ord_stats", "moran_stats", "temp_plot", 
     "xy_plot", "corr_out", "map_viewer", "spatial_hist", "spatial_summary",
-    "view_grid_dat"
+    "view_grid_dat", "zone_summary"
   )
 
   fleet <- c(

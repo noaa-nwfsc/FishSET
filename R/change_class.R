@@ -1,6 +1,7 @@
 #' Change variable data class
 #'
-#' View data class for each variable and call appropriate functions to change data class as needed.
+#' View data class for each variable and call appropriate functions to change 
+#' data class as needed.
 #'
 #' @param dat Main data frame over which to apply function. Table in FishSET 
 #'   database should contain the string `MainDataTable`.
@@ -99,6 +100,7 @@ change_class <- function(dat, project, x = NULL, new_class = NULL, save = FALSE)
     }
     
     # accepted classes 
+    # TODO: add integer to available classes
     available_classes <- c("NUMERIC", "CHARACTER", "FACTOR", "DATE")
     
     if (any(!new_class %in% available_classes)) {
@@ -277,7 +279,7 @@ change_class <- function(dat, project, x = NULL, new_class = NULL, save = FALSE)
     
   } else {
     
-    warning("Variable class was not changed.")
+    warning("Variable class was not changed.", call. = FALSE)
   }
 
   if (class_change) {
