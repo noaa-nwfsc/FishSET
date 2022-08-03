@@ -4,17 +4,17 @@
 \alias{split_dat}
 \title{Separate secondary data table from MainDataTable}
 \usage{
-split_dat(dat, project, aux = NULL, split_by = NULL, key, output = "main")
+split_dat(dat, aux = NULL, project, split_by = NULL, key, output = "main")
 }
 \arguments{
 \item{dat}{Primary data containing information on hauls or trips. Table in the FishSET
 database contains the string 'MainDataTable'.}
 
-\item{project}{String, name of project.}
-
 \item{aux}{Auxiliary data table in fishset_db or environment. Use string if referencing 
 a table saved in the FishSET database. The column names from "aux"
 will be used to find and separate the auxiliary table from the MainDataTable.}
+
+\item{project}{String, name of project.}
 
 \item{split_by}{String, columns in MainDataTable to split by. These columns will be 
 separated from MainDataTable. Must contain values from "key".}
