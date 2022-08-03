@@ -11,8 +11,6 @@
 #'   arguments \code{lon.spat} and \code{lat.spat} are required. To upload your
 #'   spatial data to the FishSETFolder see \code{\link{load_spatial}}.
 #'@param project Name of project.
-#'@param lon.dat Name of longitude column in \code{dat}.
-#'@param lat.dat Name of latitude column in \code{dat}.
 #'@param zone.dat Name of zone ID column in \code{dat}.
 #'@param zone.spat Name of zone ID column in \code{spat}.
 #'@param count Logical. if \code{TRUE}, then the number observations per zone 
@@ -61,29 +59,24 @@
 #'\dontrun{
 #'
 #'# count # of obs
-#'zone_summary(pollockMainTable, spat = nmfs_area, lon.dat = "LonLat_START_LON", 
-#'             lat.dat = "LonLat_START_LAT", zone.dat = "ZoneID", 
+#'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
 #'             zone.spat = "NMFS_AREA")
 #'             
 #'# percent of obs
-#'zone_summary(pollockMainTable, spat = nmfs_area, lon.dat = "LonLat_START_LON", 
-#'             lat.dat = "LonLat_START_LAT", zone.dat = "ZoneID", 
+#'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
 #'             zone.spat = "NMFS_AREA", count = TRUE, fun = "percent")
 #'
 #'# count by group
-#'zone_summary(pollockMainTable, spat = nmfs_area, lon.dat = "LonLat_START_LON", 
-#'             lat.dat = "LonLat_START_LAT", zone.dat = "ZoneID", 
+#'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
 #'             zone.spat = "NMFS_AREA", group = "GEAR_TYPE")   
 #'
 #'# total catch by zone           
-#'zone_summary(pollockMainTable, spat = nmfs_area, lon.dat = "LonLat_START_LON", 
-#'             lat.dat = "LonLat_START_LAT", zone.dat = "ZoneID", 
+#'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
 #'             zone.spat = "NMFS_AREA", var = "OFFICIAL_TOTAL_CATCH_MT",
 #'             count = FALSE, fun = "sum")  
 #'
 #'# percent of catch by zone           
-#'zone_summary(pollockMainTable, spat = nmfs_area, lon.dat = "LonLat_START_LON", 
-#'             lat.dat = "LonLat_START_LAT", zone.dat = "ZoneID", 
+#'zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
 #'             zone.spat = "NMFS_AREA", var = "OFFICIAL_TOTAL_CATCH_MT",
 #'             count = FALSE, fun = "percent")         
 #'             
@@ -91,8 +84,6 @@
 zone_summary <- function(dat,
                          spat,
                          project,
-                         lon.dat,
-                         lat.dat,
                          zone.dat,
                          zone.spat,
                          count = TRUE,
@@ -232,9 +223,8 @@ zone_summary <- function(dat,
   
   if (output %in% c("plot", "tab_plot")) {
     
-    # convert dat to sf object
-    dat_sf <- sf::st_as_sf(x = dataset, coords = c(lon.dat, lat.dat), 
-                           crs = 4326)
+    zone_tab[[zone.dat]] <- as.character(zone_tab[[zone.dat]])
+    spatdat[[zone.spat]] <- as.character(spatdat[[zone.spat]])
     
     merge_spat <- function(z_tab) {
       
@@ -244,14 +234,11 @@ zone_summary <- function(dat,
       # merge spatdat w/ zone summary
       spat_join <- dplyr::left_join(spatdat[zone.spat], z_tab, by = by_vec)
       
-      if (!is.na(sf::st_crs(spatdat))) {
-        
-        dat_sf <- sf::st_transform(dat_sf, sf::st_crs(spatdat))
-        
-      } else {
+      # use WGS 84 if crs is missing
+      if (is.na(sf::st_crs(spatdat))) {
         
         spat_join <- sf::st_transform(spat_join, crs = 4326)
-      }
+      } 
 
       if (any(!(sf::st_is_valid(spatdat)))) {
         
@@ -270,13 +257,19 @@ zone_summary <- function(dat,
     spat_join <- merge_spat(zone_tab)
     
     # base map ----
-    if (dat.center)  bbox <- sf::st_bbox(dat_sf)
-    else  bbox <- sf::st_bbox(spatdat)
+    if (dat.center)  {
+      # create a bbox using zones that exist in dat
+      z_ind <- spatdat[[zone.spat]] %in% unique(zone_tab[[zone.dat]])
+      bbox <- sf::st_bbox(spatdat[z_ind, ]) # keeps shifted long
+      
+    } else  bbox <- sf::st_bbox(spatdat) # use entire spatial data
 
-    base_map <- ggplot2::map_data("world",
+    # world2 uses 0 - 360 lon format
+    base_map <- ggplot2::map_data(map = ifelse(shift_long(spatdat), "world2", "world"),
                                   xlim = c(bbox["xmin"], bbox["xmax"]),
                                   ylim = c(bbox["ymin"], bbox["ymax"]))
-
+    
+    # convert data to sf for plotting purposes
     base_map <- sf::st_as_sf(base_map, coords = c("long", "lat"),
                              crs = sf::st_crs(spat_join))
 
@@ -286,16 +279,12 @@ zone_summary <- function(dat,
       dplyr::group_by(across(all_of("group"))) %>%
       dplyr::summarize(do_union = FALSE) %>%
       sf::st_cast("POLYGON")
-    
-    # plot functions 
-    lon_sym <- rlang::sym(lon.dat)
-    lat_sym <- rlang::sym(lat.dat)
 
     # breaks ----
     z_brk_fun <- function(dat, breaks, n.breaks, bin_colors, count) {
       
       # check if breaks include range, show.limits = TRUE will add additional bins
-      # this can reject users bin_colors 
+      # Note: this can reject users bin_colors 
       val_range <- range(dat[[val_var]])
       
       if (is.null(breaks)) brks <- pretty(dat[[val_var]], n = n.breaks)
@@ -365,7 +354,7 @@ zone_summary <- function(dat,
                                 labels = scales::comma)
         
       } else {
-        # this will "ramp" the colors in bin_colors
+        # this will "ramp" (scale) the colors in bin_colors
         out <- out +
           ggplot2::scale_fill_stepsn(breaks = brks,
                                      colors = bin_colors,
@@ -463,10 +452,9 @@ zone_summary <- function(dat,
   # log function
   zone_summary_function <- list()
   zone_summary_function$functionID <- "zone_summary"
-  zone_summary_function$args <- list(dat, spat, project, lon.dat, lat.dat,
-                                     zone.dat, zone.spat, count, var, group,
-                                     fun, breaks, n.breaks, bin_colors, na.rm,
-                                     dat.center, output)
+  zone_summary_function$args <- list(dat, spat, project, zone.dat, zone.spat, 
+                                     count, var, group, fun, breaks, n.breaks, 
+                                     bin_colors, na.rm, dat.center, output)
   log_call(project, zone_summary_function)
   
   if (output == "plot") z_plot
