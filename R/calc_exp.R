@@ -50,44 +50,44 @@ calc_exp <- function(dataset,
   # check whether defining a group or using all fleet averaging
   if (is_value_empty(defineGroup)) {
     # just use an id=ones to get all info as one group
-    numData <- rep(1, dim(dataset)[1])
+    fleet <- rep(1, dim(dataset)[1])
     # Define by group case
   } else {
     
-    numData <- as.integer(as.factor(dataset[[defineGroup]]))
+    fleet <- as.integer(as.factor(dataset[[defineGroup]]))
   }
   
   z_ind <- which(dataZoneTrue == 1)
-  numData <- numData[z_ind]
+  fleet <- fleet[z_ind]
   
-  spData <- choice$g[z_ind] # mapping to to the map file (zones)
-  altc_areas <- as.character(unique(spData)) 
-  altc_fleet <- unique(paste0(numData, spData))
+  areas <- choice$g[z_ind] # mapping to to the map file (zones)
+  altc_areas <- as.character(unique(areas)) 
+  altc_fleet <- unique(paste0(fleet, areas))
   
   altc_names <- if (is_value_empty(defineGroup)) altc_areas else altc_fleet
   
-  spNA <- which(is.na(spData))
+  areaNA <- which(is.na(areas))
   
   # TODO: check if this is needed 
-  if (any(!is_empty(spNA))) {
+  if (any(!is_empty(areaNA))) {
     
-    spData[spNA] <- rep(Inf, length(spNA)) # better for grouping than nas because aggregated
+    areas[areaNA] <- Inf # better for grouping than nas because aggregated
   }
   
   # TODO: check if this is needed
-  numNAN <- which(is.nan(numData))
+  fleetNAN <- which(is.nan(fleet))
   
-  if (any(!is_empty(numNAN))) {
+  if (any(!is_empty(fleetNAN))) {
     
-    numData[numNAN] <- rep(Inf, length(numNAN))
+    fleet[fleetNAN] <- Inf
   }
   
-  catchData <- as.numeric(dataset[[catch]][z_ind])
+  catch <- as.numeric(dataset[[catch]][z_ind])
   
   if (price != "none" && !is_value_empty(price)) {
     
-    priceData <- as.numeric(dataset[[price]][z_ind])
-    catchData <- catchData * priceData
+    price <- as.numeric(dataset[[price]][z_ind])
+    catch <- catch * price
   }
   
   # no time var ----
@@ -95,7 +95,7 @@ calc_exp <- function(dataset,
   # NOTE currently doesn't allow dummy or other options if no time detected
   if (temp.var == "none" || is_value_empty(temp.var)) {
     
-    allCatch <- stats::aggregate(catchData, by = list(spData = spData, numData = numData), 
+    allCatch <- stats::aggregate(catch, by = list(areas = areas, fleet = fleet), 
                                  FUN = mean, na.rm = TRUE) 
     # TODO: update for groups
     exp_matrix <- matrix(allCatch$x, nrow = nrow(dataset), ncol = length(altc_areas),
@@ -106,49 +106,45 @@ calc_exp <- function(dataset,
   } else {
     
     # with time var ----
-    tiData <- date_parser(dataset[[temp.var]][z_ind]) 
+    date <- date_parser(dataset[[temp.var]][z_ind]) 
     
-    tiDataFloor <- lubridate::floor_date(tiData, unit = "day")
-    
+    dateFloor <- lubridate::floor_date(date, unit = "day")
     
     if (temporal == "daily") { # check if temp.var exists
-      # daily time line
-      # Note: order matters 
-      # Note: na.rm = TRUE?
-      tLine <- seq.Date(from = min(tiDataFloor), to = max(tiDataFloor), by = "day")
+      
+      tLine <- seq.Date(from = min(dateFloor), to = max(dateFloor), by = "day")
       
       # fill in missing days 
-      missing_days <- tLine[!tLine %in% tiDataFloor]
+      missing_days <- tLine[!tLine %in% dateFloor]
       
       if (length(missing_days) > 0) {
         
         missing_days_df <- 
-          expand.grid(numData = unique(numData), spData = altc_areas,
-                      catchData = NA, tiDataFloor = missing_days)
+          expand.grid(fleet = unique(fleet), areas = altc_areas,
+                      catch = NA, dateFloor = missing_days)
       }
       
     } else if (temporal == "sequential") {
       # observation time line
-      tLine <- unique(tiDataFloor)
+      tLine <- unique(sort(dateFloor))
     }
     
-    df <- data.frame(numData = numData,
-                     spData = as.character(spData), 
-                     catchData = as.numeric(catchData),
-                     tiDataFloor = tiDataFloor)
+    df <- data.frame(fleet = fleet,
+                     areas = as.character(areas), 
+                     catch = as.numeric(catch),
+                     dateFloor = dateFloor)
     
     if (temporal == "daily" && length(missing_days) > 0) {
       
       df <- rbind(df, missing_days_df)
     }
     
-    df <- df[order(df$tiDataFloor), ]
+    df <- df[order(df$dateFloor), ]
     
     #  ID = fleet + zone
-    df$ID <- paste0(df$numData, df$spData)
+    df$ID <- paste0(df$fleet, df$areas)
     
     # Lag time
-    # Note: this is ad hoc, revisit 
     if (sum(duplicated(df$ID)) == 0) {
       
       temp.lag <- 0
@@ -169,34 +165,32 @@ calc_exp <- function(dataset,
     
     # empty catch ----
     
-    na_ind <- is.na(df$catchData)
+    na_ind <- is.na(df$catch)
     
     if (sum(na_ind) > 0) {
       
-      # TODO: treat -Inf before replacing empty catch
       # Note: Is NA necessary/desirable? Depends on how it's treated later in 
       # modeling process.
       if (is.na(empty.catch) || is_value_empty(empty.catch)) {
         
-        df$catchData[na_ind] <- NA  
+        df$catch[na_ind] <- NA  
         
       } else if (empty.catch == 0) {
         
-        df$catchData[na_ind] <- 0
+        df$catch[na_ind] <- 0
         
       } else if (empty.catch == "allCatch") {
-        
-        # Q: ave yearly catch across all areas or by area?
         # TODO: make this more efficient
+        # Q: ave yearly catch across all areas or by area?
         # Note: allow user to make this choice. No right answer for default
-        year_all <- lubridate::year(df$tiData)
+        year_all <- lubridate::year(df$date)
         
-        yr <- aggregate(df$catchData, by = list(year = year_all), 
+        yr <- aggregate(df$catch, by = list(year = year_all), 
                         FUN = mean, na.rm = TRUE)
         
         for (i in seq_along(yr$year)) {
           
-          df[na_ind & year_all == yr$year[i], "catchData"] <- yr$x[i]
+          df[na_ind & year_all == yr$year[i], "catch"] <- yr$x[i]
         }
         
       } else if (empty.catch == "groupedCatch") {
@@ -208,7 +202,7 @@ calc_exp <- function(dataset,
         # old function (group by year, fleet, and area)
         myfunc_GC <- function(x, y) {
           
-          year_all <- lubridate::year(df$tiData)
+          year_all <- lubridate::year(df$date)
           x_year <- lubridate::year(x)
           ind <- year_all == x_year & df$ID == y
           
@@ -216,18 +210,18 @@ calc_exp <- function(dataset,
         }
         
         # current version (group by year and fleet)
-        year_all <- lubridate::year(df$tiData)
+        year_all <- lubridate::year(df$date)
         
-        yr <- aggregate(df$catchData, 
-                        by = list(year = year_all, fleet = df$numData), 
+        yr <- aggregate(df$catch, 
+                        by = list(year = year_all, fleet = df$fleet), 
                         FUN = mean, na.rm = TRUE)
         
         # TODO: make this more efficient
         for (i in seq_along(yr$year)) {
           
-          ind <- na_ind & year_all == yr$year[i] & df$numData == yr$fleet[i]
+          ind <- na_ind & year_all == yr$year[i] & df$fleet == yr$fleet[i]
           
-          df[ind, "catchData"] <- yr$x[i]
+          df[ind, "catch"] <- yr$x[i]
         }
       }
     }
@@ -235,16 +229,16 @@ calc_exp <- function(dataset,
     # lag ----
     if (temp.lag > 0) {
       
-      df$lag.value <- c(rep(NA, temp.lag), df$catchData[-c(1:temp.lag)])
+      df$lag.value <- c(rep(NA, temp.lag), df$catch[-c(1:temp.lag)])
+      
       # this will omit the first ob ID even if duplicated ex: duplicated(rep(1, 3))
-      # TODO: count IDs and replace catch for IDs with single count
-      # df$lag.value[which(!duplicated(df$ID))] <- NA
+      # TODO: count IDs and replace catch for IDs with single count? Remove? 
+      df$lag.value[which(!duplicated(df$ID))] <- NA
       
     } else {
       
-      df$lag.value <- df$catchData
+      df$lag.value <- df$catch
     }
-    
     
     if (temp.lag > 2) { # TODO: check this
       
@@ -259,25 +253,20 @@ calc_exp <- function(dataset,
     window_ave <- function(x) {
       
       ind <- 
-        df$tiData >= x - lubridate::years(year.lag) - temp.window & 
-        df$tiData <= x - lubridate::years(year.lag)
-      
+        df$dateFloor >= x - lubridate::years(year.lag) - temp.window & 
+        df$dateFloor <= x - lubridate::years(year.lag)
       
       # TODO: simplify
       if (is_value_empty(defineGroup)) {
         
-        # TODO: handle sum(ind) == 0 (zero-row dataframe)
-        # Ex: the first year in year.lag = 1
-        # replace w/ NA? 
-        
         if (sum(ind) == 0) { # empty dataframe
           
-          return(data.frame(spData = altc_names, lag.value = NA))
+          return(data.frame(areas = altc_names, lag.value = NA))
         }
         
-        # Note: could remove numData
-        aggregate(lag.value ~ spData + numData, data = df[ind, ], 
-                  FUN = mean, na.action = na.pass, na.rm = TRUE) 
+        # Note: could remove fleet
+        aggregate(lag.value ~ areas + fleet, data = df[ind, ], 
+                  FUN = mean, na.action = na.pass, na.rm = TRUE) # remove na.rm = TRUE?
         
       } else {
         
@@ -287,27 +276,27 @@ calc_exp <- function(dataset,
         }
         
         aggregate(lag.value ~ ID, data = df[ind, ], 
-                  FUN = mean, na.action = na.pass, na.rm = TRUE) 
+                  FUN = mean, na.action = na.pass, na.rm = TRUE) # remove na.rm = TRUE?
       }
     }
-    
-    ave_list <- lapply(unique(df$tiData), window_ave)
+    # list entries contain the window avg for each day
+    ave_list <- lapply(unique(df$dateFloor), window_ave)
     
     # add loop to extract values 
     
-    area_nm <- if (is_value_empty(defineGroup)) "spData" else "ID"
+    area_nm <- if (is_value_empty(defineGroup)) "areas" else "ID"
     
-    ave_list <- lapply(seq_along(ave_list), function(i) {
+    ave_list <- lapply(ave_list, function(i) {
       
-      # TODO: simplify
-      ave_list[[i]]$lag.value[match(altc_names, ave_list[[i]][[area_nm]])]
+      # return avg for each area. Return NA if missing
+      i$lag.value[match(altc_names, i[[area_nm]])]
     })
     
-    # combine into "small" matrix
+    # combine into "small" exp catch matrix
     ec_small <- do.call(rbind, ave_list)
     
     dimnames(ec_small) <- list(as.character(tLine), altc_names)
-    # Note: pickup here next time 
+    
     # calc method ----
     if (calc.method == "simpleLag") {
       # at this point could use means to get a regression compared to a lag of 
@@ -318,22 +307,22 @@ calc_exp <- function(dataset,
       if (lag.method == "simple") {
         
         # TODO: have someone verify that this works correctly
+        # Note: revisit this
         
         ec_len <- nrow(ec_small)
         
         for (i in seq_len(ncol(ec_small))) {
           
-          # original approach
-          # (dra = daily rolling average)
+          # dwa = daily window avg
           ec_area <- ec_small[, i]
           
-          dra <- ec_area[-ec_len]
+          dwa_1 <- ec_area[-ec_len] # remove last day (DV)
           
-          dra_lag <- ec_area[-1]
+          dwa_2 <- ec_area[-1] # remove first day (IV)
           
-          dra_mod <- stats::lm(dra ~ dra_lag)
+          dwa_mod <- stats::lm(dwa_1 ~ dwa_2)
           
-          pval <- polyval(stats::coef(dra_mod), ec_area)
+          pval <- polyval(rev(stats::coef(dwa_mod)), ec_area) # use predict() instead?
           
           ec_small[, i] <- pval
         }
@@ -348,23 +337,25 @@ calc_exp <- function(dataset,
       }
     }
     
-    # TODO: No code for calc.method = weights 
+    # TODO: No code for calc.method = weights (in Matlab version?)
     
     # dummy ----
     if (dummy.exp) {
       
-      dum_matrix <- as.numeric(!is.na(ec_small)) # convert to numeric w/o losing matrix?
-      dum_matrix <- matrix(dum_matrix, 
-                           nrow = length(tLine), 
-                           ncol = length(altc_names),
-                           dimnames = list(as.character(tLine), 
-                                           altc_names))
+      dum_matrix <- as.numeric(!is.na(ec_small))
+      dum_matrix <- apply(dum_matrix, 2, as.numeric)
+      # dum_matrix <- matrix(dum_matrix, 
+      #                      nrow = length(tLine), 
+      #                      ncol = length(altc_names),
+      #                      dimnames = list(as.character(tLine), 
+      #                                      altc_names))
     } else {
       
       dum_matrix <- NULL
     }
     
     # empty exp ----
+    
     if (is_value_empty(empty.expectation)) {
       
       ec_small[is.na(ec_small)] <- 0.0001
@@ -388,13 +379,11 @@ calc_exp <- function(dataset,
     
     exp_dates <- rownames(ec_small)
     
-    exp_matrix <- 
-      lapply(tiData, function(x) {
-        
-        ind <- which(exp_dates == x)
-        
-        ec_small[ind, , drop = FALSE]
-      })
+    exp_matrix <- lapply(date, function(x) {
+      
+      ind <- which(exp_dates == x)
+      ec_small[ind, , drop = FALSE]
+    })
     
     exp_matrix <- do.call(rbind, exp_matrix)
   }
