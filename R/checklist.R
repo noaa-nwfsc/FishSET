@@ -22,25 +22,32 @@ checklist <- function(project, modDesignTab = NULL) {
     
     check$qaqc$pass <- TRUE
     check$qaqc$msg <- "PASS"
+    
   } else {
+    
     check$qaqc$msg <- paste("No final data set for project \"", project,"\" has been",
     "saved to FishSET Database. Run check_model_data() in the console or click",
     "\"Save final table to FishSET DB\" on the \"Compute New Variables\" tab before",
     "running model.")
   }
+  # TODO: all these require lat and lon, which isn't always available
+  # modify check (warnings?) and add a map function that will visualize spatial
+  # data at the area-level (count obs in each area, use spatial data in plot)
   
   # check that map_plot, map_kernel, or map_viewer has been run
   sum_list <- function_summary(project = project, date = NULL, type = "dat_exploration")
   nms <- names(sum_list)
-  m_nms <- c("map_viewer", "map_plot", "map_kernel")
+  m_nms <- c("map_viewer", "map_plot", "map_kernel", "zone_summary")
   
   if (any(m_nms %in% nms)) {
+    
     check$occur_pnts$pass <- TRUE
     check$occur_pnts$msg <- "PASS"
+    
   }  else {
     
     check$occur_pnts$msg <- 
-      paste("map_viewer, map_plot, or map_kernel functions have not been run.",
+      paste("map_viewer(), map_plot(), map_kernel(), or zone_summary() functions have not been run.",
             "Run at least one of these functions to determine whether occurrence points",
             "are valid.")
   }
@@ -52,6 +59,7 @@ checklist <- function(project, modDesignTab = NULL) {
     
    check$alt_choice$pass <- TRUE 
    check$alt_choice$msg <- 'PASS'
+   
   } else {
     
     check$alt_choice$msg <-
@@ -85,10 +93,20 @@ checklist <- function(project, modDesignTab = NULL) {
       #       "the console or go to the \"Expected Catch/Revenue\" tab of the app.")
     check$expect_catch$pass <- TRUE
   
-  } else check$expect_catch$pass <- TRUE
+  } else {
+    
+    check$expect_catch$msg <- "PASS"
+    check$expect_catch$pass <- TRUE
+  } 
   
   # app for discretefish_subroutine 
-  if (!isRunning()) {
+  # TODO: if user clicks "X" button the function will stop even if checks are passed; 
+  # it will work if user clicks "close app" button--need to fix this or else not
+  # show the checklist if all checks pass
+  
+  checks <- vapply(check, function(x) x$pass, logical(1))
+
+  if (!shiny::isRunning() & !all(checks)) {
     
     runApp(
       list(
