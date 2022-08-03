@@ -8,8 +8,6 @@ zone_summary(
   dat,
   spat,
   project,
-  lon.dat,
-  lat.dat,
   zone.dat,
   zone.spat,
   count = TRUE,
@@ -35,10 +33,6 @@ arguments \code{lon.spat} and \code{lat.spat} are required. To upload your
 spatial data to the FishSETFolder see \code{\link{load_spatial}}.}
 
 \item{project}{Name of project.}
-
-\item{lon.dat}{Name of longitude column in \code{dat}.}
-
-\item{lat.dat}{Name of latitude column in \code{dat}.}
 
 \item{zone.dat}{Name of zone ID column in \code{dat}.}
 
@@ -102,29 +96,24 @@ Observations in \code{dat} must be assigned to regulatory zones to
 \dontrun{
 
 # count # of obs
-zone_summary(pollockMainTable, spat = nmfs_area, lon.dat = "LonLat_START_LON", 
-            lat.dat = "LonLat_START_LAT", zone.dat = "ZoneID", 
+zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
             zone.spat = "NMFS_AREA")
             
 # percent of obs
-zone_summary(pollockMainTable, spat = nmfs_area, lon.dat = "LonLat_START_LON", 
-            lat.dat = "LonLat_START_LAT", zone.dat = "ZoneID", 
+zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
             zone.spat = "NMFS_AREA", count = TRUE, fun = "percent")
 
 # count by group
-zone_summary(pollockMainTable, spat = nmfs_area, lon.dat = "LonLat_START_LON", 
-            lat.dat = "LonLat_START_LAT", zone.dat = "ZoneID", 
+zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
             zone.spat = "NMFS_AREA", group = "GEAR_TYPE")   
 
 # total catch by zone           
-zone_summary(pollockMainTable, spat = nmfs_area, lon.dat = "LonLat_START_LON", 
-            lat.dat = "LonLat_START_LAT", zone.dat = "ZoneID", 
+zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
             zone.spat = "NMFS_AREA", var = "OFFICIAL_TOTAL_CATCH_MT",
             count = FALSE, fun = "sum")  
 
 # percent of catch by zone           
-zone_summary(pollockMainTable, spat = nmfs_area, lon.dat = "LonLat_START_LON", 
-            lat.dat = "LonLat_START_LAT", zone.dat = "ZoneID", 
+zone_summary(pollockMainTable, spat = nmfs_area, zone.dat = "ZoneID", 
             zone.spat = "NMFS_AREA", var = "OFFICIAL_TOTAL_CATCH_MT",
             count = FALSE, fun = "percent")         
             
