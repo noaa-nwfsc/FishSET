@@ -544,7 +544,7 @@ FishSET provides a number of statistical and graphic functions for evaluating da
 \paragraph{Converting class or lon/lat units}\label{converting-class-or-lonlat-units}}
 
 \begin{verbatim}
- changeclass()       Convert variable class.
+ change_class()       Convert variable class.
  degree()            Convert lon/lat to decimal format.
 \end{verbatim}
 
@@ -615,7 +615,7 @@ FishSET provides a number of statistical and graphic functions for evaluating da
 \hypertarget{converting-variable-class-or-lonlat-units}{%
 \paragraph{Converting variable class or lon/lat units}\label{converting-variable-class-or-lonlat-units}}
 
-\texttt{changeclass(dat,\ project,\ x\ =\ NULL,\ newclass\ =\ NULL,\ savedat\ =\ FALSE)} returns a table with data class for each variable in \texttt{dat} and changes variable classes. To view variable classes run the function with default settings, specifying only \texttt{dat} and \texttt{project}. If variable class should be changed, run the function again, specifying the variables (\texttt{x}) to be change and the newclasses (\texttt{newclass}). Length of \texttt{newclass} should match the length of \texttt{x} unless all variables in \texttt{x} should be the same class. Options are ``numeric'', ``factor'', ``date'', and ``character''. Use \texttt{savedat\ =\ TRUE} to save modified data table.
+\texttt{change_class(dat,\ project,\ x\ =\ NULL,\ newclass\ =\ NULL,\ savedat\ =\ FALSE)} returns a table with data class for each variable in \texttt{dat} and changes variable classes. To view variable classes run the function with default settings, specifying only \texttt{dat} and \texttt{project}. If variable class should be changed, run the function again, specifying the variables (\texttt{x}) to be change and the newclasses (\texttt{newclass}). Length of \texttt{newclass} should match the length of \texttt{x} unless all variables in \texttt{x} should be the same class. Options are ``numeric'', ``factor'', ``date'', and ``character''. Use \texttt{savedat\ =\ TRUE} to save modified data table.
 
 \begin{verbatim}
  degree()            
