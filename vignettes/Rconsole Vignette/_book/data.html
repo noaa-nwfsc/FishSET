@@ -388,7 +388,7 @@ split_dat()   Split and save secondary data from the primary data table</code></
 </div>
 <div id="converting-class-or-lonlat-units" class="section level4 hasAnchor" number="2.6.1.6">
 <h4><span class="header-section-number">2.6.1.6</span> Converting class or lon/lat units<a href="data.html#converting-class-or-lonlat-units" class="anchor-section" aria-label="Anchor link to header"></a></h4>
-<pre><code> changeclass()       Convert variable class.
+<pre><code> change_class()       Convert variable class.
  degree()            Convert lon/lat to decimal format.</code></pre>
 </div>
 <div id="wrappers-for-multiple-checking-functions" class="section level4 hasAnchor" number="2.6.1.7">
@@ -435,7 +435,7 @@ split_dat()   Split and save secondary data from the primary data table</code></
 </div>
 <div id="converting-variable-class-or-lonlat-units" class="section level4 hasAnchor" number="2.6.2.6">
 <h4><span class="header-section-number">2.6.2.6</span> Converting variable class or lon/lat units<a href="data.html#converting-variable-class-or-lonlat-units" class="anchor-section" aria-label="Anchor link to header"></a></h4>
-<p><code>changeclass(dat, project, x = NULL, newclass = NULL, savedat = FALSE)</code> returns a table with data class for each variable in <code>dat</code> and changes variable classes. To view variable classes run the function with default settings, specifying only <code>dat</code> and <code>project</code>. If variable class should be changed, run the function again, specifying the variables (<code>x</code>) to be change and the newclasses (<code>newclass</code>). Length of <code>newclass</code> should match the length of <code>x</code> unless all variables in <code>x</code> should be the same class. Options are “numeric”, “factor”, “date”, and “character”. Use <code>savedat = TRUE</code> to save modified data table.</p>
+<p><code>change_class(dat, project, x = NULL, newclass = NULL, savedat = FALSE)</code> returns a table with data class for each variable in <code>dat</code> and changes variable classes. To view variable classes run the function with default settings, specifying only <code>dat</code> and <code>project</code>. If variable class should be changed, run the function again, specifying the variables (<code>x</code>) to be change and the newclasses (<code>newclass</code>). Length of <code>newclass</code> should match the length of <code>x</code> unless all variables in <code>x</code> should be the same class. Options are “numeric”, “factor”, “date”, and “character”. Use <code>savedat = TRUE</code> to save modified data table.</p>
 <pre><code> degree()            </code></pre>
 </div>
 <div id="wrappers-for-multiple-checking-functions-1" class="section level4 hasAnchor" number="2.6.2.7">

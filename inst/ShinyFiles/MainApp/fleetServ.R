@@ -499,7 +499,7 @@ mergeServer <- function(id, main, other, project, merge_type, dat_type, show = N
       
       if (!is.null(merge_by())) {
         
-        main$dataset <- merge_dat(main$dataset, project = project(), other$dataset, 
+        main$dataset <- merge_dat(main$dataset, other$dataset, project = project(),  
                                   input$main_key, input$other_key, dat_type, merge_type)
         
         if (!is.null(show$save)) {

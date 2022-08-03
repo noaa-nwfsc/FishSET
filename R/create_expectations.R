@@ -41,6 +41,12 @@
 #' @param dummy.exp Logical, should a dummy variable be created? If \code{TRUE}, 
 #'   output dummy variable for originally missing value. If \code{FALSE}, no dummy 
 #'   variable is outputted. Defaults to \code{FALSE}.
+#' @param default.exp Whether to run default expectations. Defaults to \code{TRUE}.
+#'   Alternatively, a character string containing the names of default expectations 
+#'   to run can be entered. Options include "recent", "older", "oldest", and 
+#'   "logbook". The logbook expectation is only run if \code{defineGroup} is used. 
+#'   "recent" will not include \code{defineGroup}. See Details for how default
+#'   expectations are defined. 
 #' @param replace.output Logical, replace existing saved expected catch data frame 
 #'   with new expected catch data frame? If \code{FALSE}, new expected catch data 
 #'   frames appended to previously saved expected catch data frames. Default is \code{TRUE}
@@ -49,10 +55,11 @@
 #' @importFrom stats aggregate reshape coef lm
 #' @export create_expectations
 #' @return Function returns a list of expected catch matrices. The list includes 
-#'   the expected catch matrix from the user-defined choices, the near-term, the 
-#'   medium-term, and the long-term expected catch matrices. Additional expected 
-#'   catch cases can be added to the list by specifying \code{replace.output} to 
-#'   \code{FALSE}. The model run function will run through each expected catch case 
+#'   the expected catch matrix from the user-defined choices, recent fine grained
+#'   information, older fine grained information, oldest fine grained information,
+#'   and logbook level information. Additional expected 
+#'   catch cases can be added to the list by specifying \code{replace.output = FALSE}. 
+#'   The model run function will run through each expected catch case 
 #'   provided. The list is automatically saved to the FishSET database and is called 
 #'   in \code{\link{make_model_design}}. The expected catch output does not need 
 #'   to be loaded when defining or running the model.
@@ -74,14 +81,16 @@
 #'   of 0 in the catch variable are considered times when fishing activity occurred 
 #'   but with no catch. These points are included in the averaging and dummy creation 
 #'   as points in time when fishing occurred. \cr
-#'   Three default expected catch cases will be run:
+#'   Four default expected catch cases will be run:
 #'   \itemize{
-#'   \item{Near-term: Moving window size of two days. In this case, vessels are 
-#'   grouped based on \code{defineGroup} argument.}
-#'   \item{Medium-term: Moving window size of seven days. In this case, there is 
+#'   \item{recent: Moving window size of two days. In this case, there is 
 #'   no grouping, and catch for entire fleet is used.}
-#'    \item{Long-term: Moving window size of seven days from the previous year. 
-#'    In this case, there is no grouping and catch for entire fleet is used.}
+#'   \item{older: Moving window size of seven days and lag of two days. In this 
+#'   case, vessels are grouped (or not) based on \code{defineGroup} argument.}
+#'   \item{oldest: Moving window of seven days and lag of eight days. In this 
+#'   case, vessels are grouped (or not) based on \code{defineGroup} argument.}
+#'   \item{logbook: Moving window size of 14 days and lag of one year, seven days. 
+#'   Only used if fleet is defined in \code{defineGroup}.}
 #' }
 #' @return newGridVar,  newDumV
 #' @examples
@@ -106,11 +115,12 @@ create_expectations <-
            calc.method = "standardAverage",
            lag.method = "simple",
            empty.catch = NULL,
-           empty.expectation = NULL,
+           empty.expectation = 1e-04,
            temp.window = 7,
            temp.lag = 0,
            year.lag = 0,
            dummy.exp = FALSE,
+           default.exp = TRUE,
            replace.output = TRUE) {
     
 
@@ -125,8 +135,9 @@ create_expectations <-
   Alt <- unserialize_table(paste0(project, "altmatrix"), project)
 
   # checks ----
-  # for now if no time, only allow mean based on group without options TODO: allow
-  # options from tab 2, currently turned off ti=find([data.isTime])# TODO add option for other time
+  
+  column_check(dataset, c(catch, price, temp.var, defineGroup))
+  
   if (all(is_empty(date_cols(dataset)))) {
     
     warning("No time variable found, only averaging in groups and per zone is capable")
@@ -153,39 +164,76 @@ create_expectations <-
     stop("Inf/-Infs detected in catch variable. Remove before running `create_expectations()`.", 
          call. = FALSE)
   }
+  
+  stopifnot("empty.expectations must be numeric" = is.numeric(empty.expectation))
 
   # default exp catch ----
-  # TODO: Allow user to select which of these to run (if any).
-  # TODO: Skip short, med, long expectations if they already exist or else overwrite
-  # Otherwise they will be duplicated in the exp list. 
-    
-  # 1. Option 1. Short-term, individual grouping t - 2 (window)
-  short_exp <- calc_exp(dataset = dataset, catch = catch, price = price,
-                        defineGroup = defineGroup, temp.var = temp.var,
-                        temp.window = 2, temp.lag = 0, year.lag = 0,  # "short"
-                        temporal = temporal, calc.method = calc.method,
-                        lag.method = lag.method, empty.catch = empty.catch,
-                        empty.expectation = empty.expectation, dummy.exp = dummy.exp,
-                        Alt = Alt)
- 
-  # 2. Option 2 medium: group by fleet (all vessels in dataset) t -7
-  med_exp <- calc_exp(dataset = dataset, catch = catch, price = price,
-                      defineGroup = defineGroup, temp.var = temp.var,
-                      temp.window = 7, temp.lag = 0, year.lag = 0,  # "medium"
-                      temporal = temporal, calc.method = calc.method,
-                      lag.method = lag.method, empty.catch = empty.catch,
-                      empty.expectation = empty.expectation, dummy.exp = dummy.exp,
-                      Alt = Alt)
   
- # 3. option 3  last year, group by fleet t-7
-  long_exp <- calc_exp(dataset = dataset, catch = catch, price = price,
-                       defineGroup = defineGroup, temp.var = temp.var, 
-                       temp.window = 7, temp.lag = 0, year.lag = 1,  # "long"
-                       temporal = temporal, calc.method = calc.method, 
-                       lag.method = lag.method, empty.catch = empty.catch,
-                       empty.expectation = empty.expectation, dummy.exp = dummy.exp,
-                       Alt = Alt)
-
+  # old defaults:
+  # 1) short-term: 2 day window, no lag
+  # 2) medium-term: 7 day window, no lag
+  # 3) long-term: 7 day window, 1 year lag
+  
+  # Abbot Wilen 2011 Appendix (Alan's preference for default)
+  # 1) Recent fine grained info: 1 day lag (2 day window?)
+  # 2) Older fine grained info: 2 day lag, window 7 days 
+  # 3) Oldest fine grained info: 8 day lag, window 7 days
+  # 4) "Logbook" data: l year lag - 7 days, window 14 days
+  # 5) "Coarse grained" info: grouped of sites across entire history of catch (?) 
+  
+  # within each: observe fleet-wide or individual catch (2 and 3)
+  # 4 and 5 always fleet-wide
+  
+  if (!is_value_empty(default.exp)) {
+    
+    if (isTRUE(default.exp) || "recent" %in% default.exp) {
+      
+      recent_exp <- calc_exp(dataset = dataset, catch = catch, price = price,
+                             defineGroup = NULL, temp.var = temp.var,
+                             temp.window = 2, temp.lag = 0, year.lag = 0, 
+                             temporal = temporal, calc.method = calc.method,
+                             lag.method = lag.method, empty.catch = empty.catch,
+                             empty.expectation = empty.expectation, dummy.exp = dummy.exp,
+                             Alt = Alt)
+    }
+    
+    if (isTRUE(default.exp) || "older" %in% default.exp) {
+      
+      older_exp <- calc_exp(dataset = dataset, catch = catch, price = price,
+                            defineGroup = defineGroup, temp.var = temp.var,
+                            temp.window = 7, temp.lag = 2, year.lag = 0, 
+                            temporal = temporal, calc.method = calc.method,
+                            lag.method = lag.method, empty.catch = empty.catch,
+                            empty.expectation = empty.expectation, dummy.exp = dummy.exp,
+                            Alt = Alt)
+    }
+   
+    if (isTRUE(default.exp) || "oldest" %in% default.exp) {
+      
+      oldest_exp <- calc_exp(dataset = dataset, catch = catch, price = price,
+                             defineGroup = defineGroup, temp.var = temp.var,
+                             temp.window = 7, temp.lag = 8, year.lag = 0,
+                             temporal = temporal, calc.method = calc.method,
+                             lag.method = lag.method, empty.catch = empty.catch,
+                             empty.expectation = empty.expectation, dummy.exp = dummy.exp,
+                             Alt = Alt)
+    }
+   
+    if (isTRUE(default.exp) || "logbook" %in% default.exp) {
+      
+      if (!is_value_empty(defineGroup)) {
+        
+        logbook_exp <- calc_exp(dataset = dataset, catch = catch, price = price,
+                                defineGroup = defineGroup, temp.var = temp.var,
+                                temp.window = 14, temp.lag = 7, year.lag = 1, 
+                                temporal = temporal, calc.method = calc.method,
+                                lag.method = lag.method, empty.catch = empty.catch,
+                                empty.expectation = empty.expectation, dummy.exp = dummy.exp,
+                                Alt = Alt)
+      }
+    }
+  }
+  
   # user-defined ----
   user_def_exp <- calc_exp(dataset = dataset, catch = catch, price = price,
                            defineGroup = defineGroup, temp.var = temp.var, 
@@ -202,18 +250,32 @@ create_expectations <-
   # exp catch list ----
   
   ExpectedCatch <- list(
-    short_exp = short_exp$exp,
-    short_exp_newDumV = short_exp$dummy,
-    med_exp = med_exp$exp, 
-    med_exp_newDumV = med_exp$dummy,
-    long_exp = long_exp$exp, 
-    long_exp_newDumv = long_exp$dummy,
-    user_defined_exp = user_def_exp$exp, 
+    recent_exp = recent_exp$exp,
+    recent_dummy = recent_exp$dummy,
+    older_exp = older_exp$exp,
+    older_dummy = older_exp$dummy,
+    oldest_exp = oldest_exp$exp,
+    oldest_dummy = oldest_exp$dummy,
+    logbook_exp = logbook_exp$exp,
+    logbook_dummy = logbook_exp$dummy,
+    user_defined_exp = user_def_exp$exp,
+    user_defined_dummy = user_def_exp$dummy,
     scale = sscale,
-    newDumV = user_def_exp$dummy,
     # TODO: Use alternative approach for determining units
-    units = ifelse(grepl("lbs|pounds", catch, ignore.case = TRUE), "LBS", "MTS") # units of catch data 
+    units = ifelse(grepl("lbs|pounds", catch, ignore.case = TRUE), "LBS", "MTS") # units of catch data
   )
+  
+  # Note: this will affect how data is structured in create_model_input()
+  # ExpectedCatch <- list(
+  #   recent_exp = get0("recent_exp"),
+  #   older_exp = get0("older_exp"),
+  #   oldest_exp = get0("oldest_exp"),
+  #   logbook_exp = get0("logbook_exp"),
+  #   user_defined_exp = user_def_exp, 
+  #   scale = sscale,
+  #   # TODO: Use alternative approach for determining units
+  #   units = ifelse(grepl("lbs|pounds", catch, ignore.case = TRUE), "LBS", "MTS") # units of catch data 
+  # )
 
   single_sql <- paste0(project, "ExpectedCatch")
 
@@ -223,15 +285,10 @@ create_expectations <-
   if (replace.output == FALSE) {
     
     if (table_exists(single_sql, project)) {
-      # TODO: this is inefficient if just changing user-defined exp catch. 
-      # Short, med, and long exp don't need to be duplicated
-      
-      ExpectedCatchOld <- unserialize(DBI::dbGetQuery(fishset_db, paste0("SELECT data FROM ", project, "ExpectedCatch LIMIT 1"))$data[[1]])
+      # Note: this will affect how exp matrices are selected in make_model_design()
+      ExpectedCatchOld <- unserialize_table(paste0(project, "ExpectedCatch"), project)
       ExpectedCatch <- c(ExpectedCatchOld, ExpectedCatch)
       
-    } else {
-      
-      ExpectedCatch <- ExpectedCatch
     }
   }
 
@@ -240,7 +297,8 @@ create_expectations <-
     table_remove(single_sql, project)
   }
 
-  DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, "(data ExpectedCatch)"))
+  DBI::dbExecute(fishset_db, paste("CREATE TABLE IF NOT EXISTS", single_sql, 
+                                   "(data ExpectedCatch)"))
   DBI::dbExecute(fishset_db, paste("INSERT INTO", single_sql, "VALUES (:data)"),
     params = list(data = list(serialize(ExpectedCatch, NULL)))
   )
@@ -248,8 +306,9 @@ create_expectations <-
   create_expectations_function <- list()
   create_expectations_function$functionID <- "create_expectations"
   create_expectations_function$args <- list(
-    dat, project, catch, price, defineGroup, temp.var, temporal, calc.method, lag.method,
-    empty.catch, empty.expectation, temp.window, temp.lag, year.lag, dummy.exp, replace.output
+    dat, project, catch, price, defineGroup, temp.var, temporal, calc.method, 
+    lag.method, empty.catch, empty.expectation, temp.window, temp.lag, year.lag, 
+    dummy.exp, default.exp, replace.output
   )
   create_expectations_function$kwargs <- list()
 
