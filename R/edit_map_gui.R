@@ -212,7 +212,7 @@ edit_map_gui <- function(spat, id, project) {
       # Save ----
       observeEvent(input$save, {
         
-        browser()
+        # browser()
         
         # log new map
         
