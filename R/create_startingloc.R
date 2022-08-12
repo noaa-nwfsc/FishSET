@@ -53,10 +53,23 @@
 #' )
 #' }
 #
-create_startingloc <- function(dat, project = NULL, spat, port, trip_id, haul_order, 
-                               starting_port, lon.dat, lat.dat, cat, zoneid, 
-                               name = "startingloc", lon.spat = NULL, lat.spat = NULL) {
-
+create_startingloc <-
+  function(dat,
+           project = NULL,
+           spat,
+           port,
+           trip_id,
+           haul_order,
+           starting_port,
+           lon.dat,
+           lat.dat,
+           cat,
+           zoneid,
+           name = "startingloc",
+           lon.spat = NULL,
+           lat.spat = NULL) {
+    
+  # TODO: consider removing assignment_column() functionality
   # TODO: Change this to required? project is required for nearly every other function
   # why not here?
   if (is.null(project)) {
@@ -90,7 +103,8 @@ create_startingloc <- function(dat, project = NULL, spat, port, trip_id, haul_or
   port <- assignment_column(
     dat = port.table, project = project, spat = spatdat, hull.polygon = FALSE, 
     lon.spat = lon.spat, lat.spat = lat.spat, lon.dat = "Port_Long",
-    lat.dat = "Port_Lat", cat = cat, closest.pt = TRUE, log.fun = FALSE
+    lat.dat = "Port_Lat", cat = cat, closest.pt = TRUE, log.fun = FALSE, 
+    bufferval = 100 # need to consider how this affects things
   )
 
   # TODO: remove 'ZoneID' default. Make zoneID required (must exist in dat). 

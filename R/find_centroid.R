@@ -23,8 +23,13 @@
 #'   centroid table is saved to the FishSET database. Function is called by the 
 #'   \code{create_alternative_choice} and \code{create_dist_between} functions.
 
-find_centroid <- function(spat, project, cat, lon.spat = NULL, lat.spat = NULL,
-                          log.fun = TRUE) {
+find_centroid <-
+  function(spat,
+           project,
+           cat,
+           lon.spat = NULL,
+           lat.spat = NULL,
+           log.fun = TRUE) {
  
   # Call in datasets
   spat_out <- data_pull(spat, project)
