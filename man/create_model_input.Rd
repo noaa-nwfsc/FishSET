@@ -10,7 +10,8 @@ create_model_input(
   mod.name = NULL,
   use.scalers = TRUE,
   scaler.func = NULL,
-  expected.catch = NULL
+  expected.catch = NULL,
+  exp.names = NULL
 )
 }
 \arguments{
@@ -18,18 +19,26 @@ create_model_input(
 
 \item{x}{Optional, Model input data}
 
-\item{mod.name}{Optional, name of model. Include if building model data for specific defined model.}
+\item{mod.name}{Optional, name of model. Include if building model data for 
+specific defined model.}
 
-\item{use.scalers}{Logical, should data be noramalized? Defaults to TRUE. Rescaling factors are the mean of the numeric vector unless specified with \code{scaler}.}
+\item{use.scalers}{Logical, should data be normalized? Defaults to TRUE. 
+Rescaling factors are the mean of the numeric vector unless specified with 
+\code{scaler}.}
 
 \item{scaler.func}{Function to calculate rescaling factors.}
 
 \item{expected.catch}{For conditional logit. Expected catch matrices to include}
+
+\item{exp.names}{The names of expected catch matrices to use in model. Specified
+in \code{\link{make_model_design}}.}
 }
 \value{
-Returns a list of datacompile/choice matrix, dataCompile, distance, otherdat, expname, choice, choice.table, and mod.name
+Returns a list of datacompile/choice matrix, dataCompile, distance, 
+  otherdat, expname, choice, choice.table, and mod.name
 }
 \description{
-Takes the structure of data compile, price (for EPM), distance, gridvarying, interaction terms
+Takes the structure of data compile, price (for EPM), distance, gridvarying, 
+interaction terms
 }
 \keyword{internal}
