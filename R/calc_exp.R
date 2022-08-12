@@ -337,18 +337,14 @@ calc_exp <- function(dataset,
       }
     }
     
-    # TODO: No code for calc.method = weights (in Matlab version?)
+    # TODO: No code for calc.method = weights (not in Matlab code either)
     
     # dummy ----
     if (dummy.exp) {
       
-      dum_matrix <- as.numeric(!is.na(ec_small))
+      dum_matrix <- !is.na(ec_small)
       dum_matrix <- apply(dum_matrix, 2, as.numeric)
-      # dum_matrix <- matrix(dum_matrix, 
-      #                      nrow = length(tLine), 
-      #                      ncol = length(altc_names),
-      #                      dimnames = list(as.character(tLine), 
-      #                                      altc_names))
+      
     } else {
       
       dum_matrix <- NULL
