@@ -287,7 +287,5 @@ empty_vars_filter <- function(dat, project, remove = FALSE) {
 
   unlink(tmp)
   
-  if (remove == TRUE) {
-    return(dataset)
-  }
+  if (remove == TRUE) return(dataset)
 }
