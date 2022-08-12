@@ -7,20 +7,20 @@
 shift_sort_x(x, ch, y, distance, alts, ab)
 }
 \arguments{
-\item{x}{Matrix of choice possibilities from create_logit_input}
+\item{x}{Matrix of choice possibilities from \code{\link{create_logit_input}}.}
 
-\item{ch}{Data corresponding to actual zonal choice}
+\item{ch}{Data corresponding to actual zonal choice.}
 
-\item{y}{Data corresponding to actual catch}
+\item{y}{Data corresponding to actual catch.}
 
-\item{distance}{Data corresponding to distance}
+\item{distance}{Data corresponding to distance.}
 
-\item{alts}{Number of alternative choices in model}
+\item{alts}{Number of alternative choices in model.}
 
-\item{ab}{Number of cost parameters + number of alts}
+\item{ab}{Number of cost parameters + number of alts.}
 }
 \value{
-d: matrix of choice possibilities and distance
+d: matrix of choice possibilities and distance.
 }
 \description{
 Shifts choices so that the chosen zone will be automatically the first

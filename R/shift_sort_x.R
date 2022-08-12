@@ -4,13 +4,13 @@ shift_sort_x <- function(x, ch, y, distance, alts, ab) {
   #' Shifts choices so that the chosen zone will be automatically the first
   #'     one
   #'
-  #' @param x Matrix of choice possibilities from create_logit_input
-  #' @param ch Data corresponding to actual zonal choice
-  #' @param y Data corresponding to actual catch
-  #' @param distance Data corresponding to distance
-  #' @param alts Number of alternative choices in model
-  #' @param ab Number of cost parameters + number of alts
-  #' @return d: matrix of choice possibilities and distance
+  #' @param x Matrix of choice possibilities from \code{\link{create_logit_input}}.
+  #' @param ch Data corresponding to actual zonal choice.
+  #' @param y Data corresponding to actual catch.
+  #' @param distance Data corresponding to distance.
+  #' @param alts Number of alternative choices in model.
+  #' @param ab Number of cost parameters + number of alts.
+  #' @return d: matrix of choice possibilities and distance.
   #' @export
   #' @keywords internal
   #'

@@ -26,67 +26,85 @@ make_model_design(
 
 \item{catchID}{String, variable from \code{dat} that contains catch data.}
 
-\item{replace}{Logical, should the model design file be replaced? If false, appends to existing model design file. 
-Defaults to TRUE.}
+\item{replace}{Logical, should the model design file be replaced? If \code{FALSE}, 
+appends to existing model design file. Defaults to \code{TRUE}.}
 
-\item{likelihood}{String, name of likelihood function. Details on likelihood specific initial parameter specification 
-  can be found in \code{\link{discretefish_subroutine}} documentation.
+\item{likelihood}{String, name of likelihood function. Details on likelihood 
+  specific initial parameter specification can be found in 
+  \code{\link{discretefish_subroutine}} documentation.
 \tabular{rlll}{
- logit_c: \tab  Conditional logit likelihood  \cr
+ logit_c: \tab  Conditional logit likelihood \cr
  logit_avgcat: \tab Average catch multinomial logit procedure \cr
- logit_correction: \tab Full information model with Dahl's correction function  \cr
- epm_normal:  \tab  Expected profit model with normal catch function \cr
+ logit_correction: \tab Full information model with Dahl's correction function \cr
+ epm_normal: \tab  Expected profit model with normal catch function \cr
  epm_weibull: \tab Expected profit model with Weibull catch function \cr
- epm_lognormal: \tab  Expected profit model with lognormal catch function  \cr
+ epm_lognormal: \tab  Expected profit model with lognormal catch function \cr
  }}
 
-\item{initparams}{String or list, initial parameter estimates for revenue/location-specific covariates then cost/distance.
-The number of parameter estimate varies by likelihood function. See Details section for more information.
-If using parameter estimates from previous model,\code{initparams} should be the name of the model the 
-parameter estimates should come from. Examples: \code{initparams = 'epm_mod1'}, \code{initparams=list('epm_mod1', 'epm_mod2')}}
+\item{initparams}{String or list, initial parameter estimates for 
+revenue/location-specific covariates then cost/distance. The number of 
+parameter estimate varies by likelihood function. See Details section for 
+more information. If using parameter estimates from previous model, 
+\code{initparams} should be the name of the model the parameter estimates 
+should come from. Examples: \code{initparams = 'epm_mod1'}, 
+\code{initparams=list('epm_mod1', 'epm_mod2')}}
 
-\item{optimOpt}{String, optimization options [max function evaluations, max iterations, (reltol) tolerance of x, trace].}
+\item{optimOpt}{String, optimization options 
+[max function evaluations, max iterations, (reltol) tolerance of x, trace]
+Note: add optim reference here?.}
 
-\item{methodname}{String, optimization method (see \code{\link[stats]{optim}} options). Defaults to \code{"BFGS"}.}
+\item{methodname}{String, optimization method (see \code{\link[stats]{optim}} 
+options). Defaults to \code{"BFGS"}.}
 
 \item{mod.name}{String, name of model run for model result output table.}
 
-\item{vars1}{Character string, additional ‘travel-distance’ variables to include in the model. 
-These depend on the likelihood. See the Details section for how to specify for each likelihood function.}
+\item{vars1}{Character string, additional ‘travel-distance’ variables to 
+include in the model. These depend on the likelihood. See the Details section 
+for how to specify for each likelihood function.}
 
-\item{vars2}{Character string, additional variables to include in the model. These depend on the likelihood.
-See the Details section for how to specify for each likelihood function.}
+\item{vars2}{Character string, additional variables to include in the model. 
+These depend on the likelihood. See the Details section for how to specify 
+for each likelihood function.}
 
-\item{priceCol}{Variable in \code{dat} containing price information. Required if specifying an expected profit model 
-for the likelihood (epm_normal, epm_weibull, epm_lognormal).}
+\item{priceCol}{Variable in \code{dat} containing price information. Required 
+if specifying an expected profit model for the likelihood (epm_normal, 
+epm_weibull, epm_lognormal).}
 
-\item{expectcatchmodels}{List, name of expected catch models to include in model run. Defaults to all models.
-Each list item should be a string of expected catch models to include in a model. 
-For example, \code{list(c('medium', 'long'), c('user'))} would run one model with the medium and long expected catch matrices, 
-and one model with just the user-defined expected catch matrix. 
-Choices are short, medium, long, all, individual. See \code{\link{create_expectations}} for details on the different models.
-Option `all` will run all expected catch matrices jointly.
-Option `individual` will run the model for each expected catch matrix separately.
-The final option is to select one more expected catch matrices to run jointly.}
+\item{expectcatchmodels}{List, name of expected catch models to include in 
+model run. Defaults to all models. Each list item should be a string of 
+expected catch models to include in a model. For example, 
+\code{list(c('recent', 'older'), c('user'))} would run one model with the 
+medium and long expected catch matrices, and one model with just the user-defined 
+expected catch matrix. Choices are "recent", "older", "oldest", "logbook", 
+"all", and "individual". 
+See \code{\link{create_expectations}} for details on the different models.
+Option "all" will run all expected catch matrices jointly. Option "individual" 
+will run the model for each expected catch matrix separately. The final 
+option is to select one more expected catch matrices to run jointly.}
 
-\item{startloc}{Variable in \code{dat} identifying the location when choice of where to fish next was made.
-Required for logit_correction likelihood.
-Use the \code{\link{create_startingloc}} function to create the starting location vector.}
+\item{startloc}{Variable in \code{dat} identifying the location when choice 
+of where to fish next was made. Required for logit_correction likelihood.
+Use the \code{\link{create_startingloc}} function to create the starting 
+location vector.}
 
-\item{polyn}{Numeric, correction polynomial degree.  Required for logit_correction likelihood.}
+\item{polyn}{Numeric, correction polynomial degree. Required for 
+\code{\link{logit_correction}} likelihood.}
 }
 \value{
-Function creates the model matrix list that contains the data and modeling choices. The model design list is saved to the FishSET database and 
-  called by the \code{\link{discretefish_subroutine}}.
-Alternative fishing options come from the `Alternative Choice` list, generated from the \code{\link{create_alternative_choice}} function,
- and the expected catch matrices from the \code{\link{create_expectations}}
-function. The distance from the starting point to alternative choices is calculated. \cr\cr
+Function creates the model matrix list that contains the data and 
+  modeling choices. The model design list is saved to the FishSET database and 
+  called by the \code{\link{discretefish_subroutine}}. Alternative fishing 
+  options come from the `Alternative Choice` list, generated from the 
+  \code{\link{create_alternative_choice}} function, and the expected catch 
+  matrices from the \code{\link{create_expectations}} function. The distance 
+  from the starting point to alternative choices is calculated. \cr\cr
   Model design list: \cr
   \tabular{rlll}{
     likelihood: \tab Name of likelihood function\cr
     choice: \tab Data corresponding to actual zonal choice\cr
     catch: \tab Data corresponding to actual zonal catch\cr
-    scales: \tab Scale vectors to put catch data, zonal data, and other data on same scale\cr
+    scales: \tab Scale vectors to put catch data, zonal data, and other data 
+    on same scale\cr
     initparms: \tab Initial parameter values\cr
     optimOpt: \tab Optimization options\cr
     methodname: \tab Optimization method\cr
@@ -95,27 +113,35 @@ function. The distance from the starting point to alternative choices is calcula
     instances: \tab Number of observations\cr
     alt: \tab Number of alternative zones\cr
     epmDefaultPrice: \tab Price data\cr
-    dataZoneTrue: \tab Vector of 0/1 indicating whether the data from that zone is to be included based on the minimum number of hauls.\cr
-    numOfNecessary: \tab Minimum number of hauls/trips per zone for data from that zone to be included\cr
+    dataZoneTrue: \tab Vector of 0/1 indicating whether the data from that 
+    zone is to be included based on the minimum number of hauls.\cr
+    numOfNecessary: \tab Minimum number of hauls/trips per zone for data from 
+    that zone to be included\cr
     typeOfNecessary: \tab Whether data is at haul or trip level\cr
     altChoiceType: \tab Function choice. Set to distance\cr
     altChoiceUnits: \tab Units of distance\cr
-    altToLocal: \tab Identifies how to find lat/lon for starting point. Can be zonal centroid, port, etc\cr
-    altToLocal2: \tab Identifies how to find lat/lon for alternative choices such as 'Centroid of Zonal Assignment'\cr
-    bCHeader: \tab Variables to include in the model that do not vary by zone. Includes independent variables and interactions\cr
-    gridVaryingVariables: \tab Variables to include in the model that do vary by zone such as expected catch (from \code{\link{create_expectations}} function)
+    altToLocal: \tab Identifies how to find lat/lon for starting point. Can 
+    be zonal centroid, port, etc\cr
+    altToLocal2: \tab Identifies how to find lat/lon for alternative choices 
+    such as 'Centroid of Zonal Assignment'\cr
+    bCHeader: \tab Variables to include in the model that do not vary by zone. 
+    Includes independent variables and interactions\cr
+    gridVaryingVariables: \tab Variables to include in the model that do vary 
+    by zone such as expected catch (from \code{\link{create_expectations}} function)
   }
 }
 \description{
-Create a list containing likelihood function, parameters, and data to be pass to model call function
+Create a list containing likelihood function, parameters, and data to be pass 
+to model call function
 }
 \details{
-Function creates the model matrix list that contains the data and modeling choices.
-  The model design list is saved to the FishSET database and called by the
-  \code{\link{discretefish_subroutine}}. Alternative fishing options come from the
-  Alternative Choice list, generated from the \code{\link{create_alternative_choice}} function,
-  and the expected catch matrices from the \code{\link{create_expectations}} function.
-  The distance from the starting point to alternative choices is calculated. \cr\cr
+Function creates the model matrix list that contains the data and 
+  modeling choices. The model design list is saved to the FishSET database and 
+  called by the \code{\link{discretefish_subroutine}}. Alternative fishing 
+  options come from the Alternative Choice list, generated from the 
+  \code{\link{create_alternative_choice}} function, and the expected catch 
+  matrices from the \code{\link{create_expectations}} function. The distance 
+  from the starting point to alternative choices is calculated. \cr\cr
   Variable names details: \cr
 \tabular{lllllll}{
 \tab \strong{vars1} \tab \strong{vars2} \tab \cr \cr
