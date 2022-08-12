@@ -102,9 +102,21 @@
 #'         }
 
 create_alternative_choice <- 
-  function(dat, project, occasion = 'centroid', alt_var = 'centroid', dist.unit = "miles", 
-           min.haul = 0, spat, cat = NULL, zoneID = NULL, lon.dat = NULL, lat.dat = NULL, 
-           hull.polygon = FALSE, closest.pt = FALSE, grid = NULL, lon.spat = NULL, 
+  function(dat,
+           project,
+           occasion = 'centroid',
+           alt_var = 'centroid',
+           dist.unit = "miles",
+           min.haul = 0,
+           spat,
+           cat = NULL,
+           zoneID = NULL,
+           lon.dat = NULL,
+           lat.dat = NULL,
+           hull.polygon = FALSE,
+           closest.pt = FALSE,
+           grid = NULL,
+           lon.spat = NULL,
            lat.spat = NULL) {
     
   # TODO: remove grid feature for now, add later if needed
@@ -112,6 +124,7 @@ create_alternative_choice <-
   # based on current args and inform user
   # TODO: Let users associate a column from dat w/ area column in spat 
   # Needed if user doesn't have lon/lat data (ex. Fish Tickets)
+  # TODO: add fishing centroid as occassion/alt_var option 
   case <- "centroid"
   
   # Call in datasets
@@ -131,6 +144,7 @@ create_alternative_choice <-
   
   
   # Note: Currently, only one centroid table can exist for each project
+  # this would need to change if multiple spatial scales are being modeled 
   cent_exists <- 
     table_exists(paste0(spat, 'Centroid'), project) || 
     table_exists("spatCentroid", project)
@@ -356,7 +370,7 @@ create_alternative_choice <-
     # each area, i.e. does not vary by time etc? An alternative specific constant?
     if (dim(gridVar)[1] == 1) { # (is_empty(gridVar.row.array)){ #1d
       
-      biG <- match(Alt[["zoneRow"]], grid_names) # [aiG,biG] = ismember(Alt.zoneRow, gridVar.col.array) #FIXME FOR STRING CONNECTIONS
+      biG <- match(Alt[["zoneRow"]], grid_names) # FIXME FOR STRING CONNECTIONS
       numRows <- nrow(dataset)
       
       if (!any(biG)) {
@@ -365,11 +379,9 @@ create_alternative_choice <-
              " gridded variable do not overlap.")
       }
       # matrix # of obs x Area. Each row is identical. 
-      allMat <- matrix(1, numRows, 1) %x% as.matrix(gridVar[1, biG]) # repmat(gridVar.matrix(1,biG), numRows, 1)
+      allMat <- matrix(1, numRows, 1) %x% as.matrix(gridVar[1, biG]) 
       
     } else {
-      
-      # [aiG,biG] = ismember(Alt.zoneRow, gridVar.col.array)#FIXME FOR STRING CONNECTIONS
       
       # biG <- match(Alt[["zoneRow"]], grid_names[-1]) 
       biG <- Alt$zoneRow %in% grid_names[-1] # TODO: change grid_names[-1] to less faulty approach
@@ -389,7 +401,7 @@ create_alternative_choice <-
       # Note: believe the "D" in "biD" stands for date
       # Assuming we know which columns in grid are date/id cols -- add args?
       # Match ids between dataset and grid
-      biD <- match(dataset[, names(gridVar)[1]], gridVar[, 1]) # [aiD,biD]=ismember(data(occasVar).dataColumn,gridVar.row.array)
+      biD <- match(dataset[, names(gridVar)[1]], gridVar[, 1])
       
       biD <- dataset[[names(gridVar)[1]]] %in% gridVar[, 1]
       
