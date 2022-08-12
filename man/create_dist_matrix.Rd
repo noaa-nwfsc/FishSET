@@ -48,8 +48,8 @@ Distance matrix based on choices made in create_alternative_choice
 Create the distance matrix
 }
 \details{
-Function is called by \code{\link{make_model_design}} generate the distance matrix. 
-  Alternative fishing options come from the Alternative Choice list, generated from the 
-  \code{\link{create_alternative_choice}} function,
+Function is called by \code{\link{make_model_design}} generate the 
+  distance matrix. Alternative fishing options come from the Alternative Choice 
+  list, generated from the \code{\link{create_alternative_choice}} function.
 }
 \keyword{internal}
