@@ -184,6 +184,12 @@ create_expectations <-
   # within each: observe fleet-wide or individual catch (2 and 3)
   # 4 and 5 always fleet-wide
   
+  # empty exp lists
+  recent_exp <- list()
+  older_exp <- list()
+  oldest_exp <- list()
+  logbook_exp <- list()
+  
   if (!is_value_empty(default.exp)) {
     
     if (isTRUE(default.exp) || "recent" %in% default.exp) {
@@ -235,16 +241,16 @@ create_expectations <-
   }
   
   # user-defined ----
-  user_def_exp <- calc_exp(dataset = dataset, catch = catch, price = price,
-                           defineGroup = defineGroup, temp.var = temp.var, 
-                           temp.window = temp.window, temp.lag = temp.lag, 
-                           year.lag = year.lag, temporal = temporal, 
-                           calc.method = calc.method, lag.method = lag.method, 
-                           empty.catch = empty.catch, empty.expectation = empty.expectation, 
-                           dummy.exp = dummy.exp, Alt = Alt)
+  user_exp <- calc_exp(dataset = dataset, catch = catch, price = price,
+                       defineGroup = defineGroup, temp.var = temp.var, 
+                       temp.window = temp.window, temp.lag = temp.lag, 
+                       year.lag = year.lag, temporal = temporal, 
+                       calc.method = calc.method, lag.method = lag.method, 
+                       empty.catch = empty.catch, empty.expectation = empty.expectation,
+                       dummy.exp = dummy.exp, Alt = Alt)
   
   
-  r <- nchar(sub("\\.[0-9]+", "", mean(as.matrix(user_def_exp$exp), na.rm = TRUE))) 
+  r <- nchar(sub("\\.[0-9]+", "", mean(as.matrix(user_exp$exp), na.rm = TRUE))) 
   sscale <- 10^(r - 1)
 
   # exp catch list ----
@@ -258,8 +264,8 @@ create_expectations <-
     oldest_dummy = oldest_exp$dummy,
     logbook_exp = logbook_exp$exp,
     logbook_dummy = logbook_exp$dummy,
-    user_defined_exp = user_def_exp$exp,
-    user_defined_dummy = user_def_exp$dummy,
+    user_exp = user_exp$exp,
+    user_dummy = user_exp$dummy,
     scale = sscale,
     # TODO: Use alternative approach for determining units
     units = ifelse(grepl("lbs|pounds", catch, ignore.case = TRUE), "LBS", "MTS") # units of catch data
