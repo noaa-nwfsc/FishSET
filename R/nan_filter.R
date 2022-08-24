@@ -98,7 +98,7 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   #' @details To check for NaNs across \code{dat} run the function specifying only 
   #'   \code{dat} (\code{nan_filter(dataset, project)}). The function will return 
   #'   a statement of which variables, if any, contain NaNs. To remove NaNs, use 
-  #'   \code{remove = TRUE}. All rows containing NAs in \code{x} will be removed 
+  #'   \code{remove = TRUE}. All rows containing NaNs in \code{x} will be removed 
   #'   from \code{dat}. To replace NaNs, use \code{replace = TRUE}. If both 
   #'   \code{replace} and \code{remove} are \code{TRUE} then \code{replace} is used. 
   #'   If \code{replace} is \code{FALSE} and \code{rep.value} is not defined, then 
@@ -230,10 +230,10 @@ nan_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
 
 na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE, 
                       rep.value = "mean", over_write = FALSE) {
-  #' Identify, remove, or replace NAs 
+  #' Identify, remove, or replace NAs and NaNs
   #' 
-  #' Replaces NAs in the primary data with the chosen value or removes rows 
-  #' containing NAs.
+  #' Replaces NAs and NaNs in the primary data with the chosen value or removes rows 
+  #' containing NAs and NaNs.
   #'
   #' @param dat Primary data containing information on hauls or trips. Table in 
   #'   FishSET database contains the string 'MainDataTable'.
@@ -278,6 +278,9 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
   #'                      remove = TRUE)
   #' }
 
+  # TODO: remove and replace args can be replaced with a single 
+  # categorical arg: na.action = c("check", "replace", "remove")
+  
   # Call in datasets
   out <- data_pull(dat, project)
   dataset <- out$dataset
@@ -327,7 +330,8 @@ na_filter <- function(dat, project, x = NULL, replace = FALSE, remove = FALSE,
             if (is.numeric(dataset[[i]])) {
               
               if (rep.value %in% c("mean", "median")) {
-                
+                # TODO: check this. if rep.value is a function it should 
+                # be used in do.call, mean() shouldn't always be run
                 rep.value <- mean(dataset[[i]], na.rm = TRUE)
                 rep.value <- do.call(rep.value, list(dataset[[i]], na.rm = TRUE))
               }

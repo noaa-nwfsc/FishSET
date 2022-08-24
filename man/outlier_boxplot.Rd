@@ -12,8 +12,9 @@ Table in the FishSET database contains the string 'MainDataTable'.}
 
 \item{project}{Project name.}
 
-\item{x}{Variables in \code{dat} to check for outliers. Leave as \code{x=NULL} to plot all numeric variables. 
-To specify multiple variables use \code{c('var1', 'var2')}}
+\item{x}{Variables in \code{dat} to check for outliers. Leave as 
+\code{x = NULL} to plot all numeric variables. To specify multiple variables 
+use \code{c('var1', 'var2')}}
 }
 \value{
 Box and whisker plot for all nuemric variables. Saved to `output` folder.

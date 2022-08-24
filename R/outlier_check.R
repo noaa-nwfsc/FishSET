@@ -548,8 +548,9 @@ outlier_boxplot <- function(dat, project, x=NULL){
   #' @param dat Primary data containing information on hauls or trips.
   #'   Table in the FishSET database contains the string 'MainDataTable'.
   #' @param project Project name. 
-  #' @param x Variables in \code{dat} to check for outliers. Leave as \code{x=NULL} to plot all numeric variables. 
-  #'    To specify multiple variables use \code{c('var1', 'var2')}
+  #' @param x Variables in \code{dat} to check for outliers. Leave as 
+  #'   \code{x = NULL} to plot all numeric variables. To specify multiple variables 
+  #'   use \code{c('var1', 'var2')}
   #' @details Creates a visual representation of five summary statistics: 
   #'   median
   #'   two hinges (first and third quartiles)
