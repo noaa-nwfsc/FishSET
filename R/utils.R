@@ -17,51 +17,43 @@ ensure_library = function (lib.name) {
   x
 }
 
-select_directory_method = function() {
-  #' Search for method to select directory
-  #' @keywords internal
-  #' @importFrom utils choose.dir
-  #' @export
-  #' @details  Tries out a sequence of potential methods for selecting a directory to find one that works 
-  #'    The fallback default method if nothing else works is to get user input from the console.
- 
-  if (!exists('.dir.method')) {  # if we already established the best method, just use that
-    # otherwise let's try out some options to find the best one that works here
 
-    if (requireNamespace("rstudioapi", quietly = TRUE)) {
-      
-      .dir.method = 'RStudioAPI'
-      
-    } else if (requireNamespace("utils", quietly = TRUE)) {
-       
-      .dir.method = 'choose.dir'
-      
-    } else { # fallback to console
-      
-      .dir.method = 'console'
-    }
-     # TODO: move this to project settings file
-    assign('.dir.method', .dir.method, envir = .GlobalEnv) # remember the chosen method for later
-   }
-  
-  return(.dir.method)
-}
-
-choose_directory = function(method = select_directory_method(), 
-                            title = 'Identify location of FishSET folder and save output') {
+choose_directory = function() {
   #' Choose directory
-  #' @param method Method function
-  #' @param title Title to show
-  #' @importFrom utils choose.dir
   #' @export
   #' @keywords internal
   
+  # Note: these methods won't add trailing slashes to dir path
+  title = 'Identify location of FishSET folder and save output'
   
-  switch(method,
-         'choose.dir' = utils::choose.dir(caption = title),
-         'RStudioAPI' = rstudioapi::selectDirectory(caption = title), 
-         readline('Please enter directory path: ') # Console method
-        )
+  if (requireNamespace("rstudioapi", quietly = TRUE)) {
+    
+    out <- rstudioapi::selectDirectory(caption = title)
+    
+  } else if (requireNamespace("utils", quietly = TRUE) & .Platform$OS.type == "windows") {
+  
+    out <- utils::choose.dir(caption = title)
+    
+  } else if (requireNamespace("tcltk", quietly = TRUE)) {
+    
+    out <- tcltk::tk_choose.dir(caption = title)
+    
+  } else {
+    
+    out <- readline('Please enter directory path: ') # Console method
+    
+    if (!dir.exists(out)) {
+      
+      stop("Directory does not exist: ", out, call. = FALSE)
+    }
+  }
+  
+  if (length(out) == 0 || is.na(out)) {
+    
+    stop("Invalid directory. Function stopped.", call. = FALSE)
+  }
+  
+  return(out)
 }
 
 loc <- function() {
@@ -70,14 +62,15 @@ loc <- function() {
     #' @export
     
     newdir <- choose_directory()
-    #  if(!dir.exists(newdir)){
-    if(grepl('FishSETFolder', as.character(newdir))==FALSE){
+    
+    # If user is selecting the location to create the FSF
+    if (grepl('FishSETFolder', as.character(newdir)) == FALSE) {
       
-      newdir <- paste0(newdir, '/FishSETFolder')
-      #  if(!dir.exists(newdir)){
+      newdir <- paste0(newdir, '/FishSETFolder/')
+      
       dir.create(file.path(newdir), showWarnings = FALSE)
     } 
-    newdir <- newdir
+    # otherwise, return the loc of the existing FSF
     return(newdir)
   }
 
@@ -86,23 +79,50 @@ locproject <- function() {
   #'
   #'@export
   #'@keywords internal
+  # TODO: change folderpath to fsfolderpath, or FSFolderpath?
+  fp_exists <- exists("folderpath", where = ".GlobalEnv")
   
-  
-  if(dir.exists("~/FishSETFolder")){
-    proj_dir <- ("~/FishSETFolder/")
-
-  } else if(dir.exists("./FishSETFolder")){
-    proj_dir <- ("./FishSETFolder/")
-  } else if(dir.exists("/../../FishSETFolder")){
-    proj_dir <- ("/../../FishSETFolder/")
-  } else if(exists('folderpath')){
-    # proj_dir <- folderpath
-    proj_dir <- get("folderpath")
+  if (fp_exists) {
+    
+    proj_dir <- get("folderpath", envir = as.environment(1L))
+    
+    # Possible that user altered folderpath, check if valid
+    if (!dir.exists(proj_dir)) {
+      
+      stop("The folder in 'folderpath' does not exist. Delete 'folderpath' or run ", 
+           "update_folderpath() to select the location of the FishSET Folder.", 
+           call. = FALSE)
+    }
+    
   } else {
+    # have user select folder
     proj_dir <-  loc()
-    assign('folderpath', normalizePath(proj_dir), envir = as.environment(1L))
   }
+  
+  # add trailing slash
+  proj_dir <- paste0(normalizePath(proj_dir), "/")
+  
+  # create the new path to FishSETFolder
+  if (!fp_exists) assign('folderpath', proj_dir, envir = as.environment(1L))
+  
   return(proj_dir)
+}
+
+update_folderpath <- function() {
+  #' Update FishSETFolder location
+  #' 
+  #' Select the location of the FishSET folder. This can be helpful if 
+  #' switching between different FishSET folders or if 'folderpath' is 
+  #' inaccurate.  
+  #' 
+  #' @export
+  #' @keywords internal
+  
+  fs_path <- loc()
+  
+  proj_dir <- paste0(normalizePath(fs_path), "/") # add trailing slash
+  
+  assign('folderpath', proj_dir, envir = as.environment(1L))
 }
 
 project_exists <- function(project) {
@@ -113,6 +133,7 @@ project_exists <- function(project) {
   #' @export
   #' @keywords internal
   
+  # Q: what if folderpath doesn't exist or is faulty?
   if (!is.null(project)) {
     
     projdir <- paste0(locproject(), project)
@@ -133,7 +154,7 @@ check_proj <- function(project = NULL) {
   if (!is.null(project)) {
       
     
-    appDir <- system.file( "report",'report_template.Rmd', package = "FishSET")
+    appDir <- system.file( "report", 'report_template.Rmd', package = "FishSET")
     # check if projects folder exists
     if (!file.exists(locproject())) {
       
@@ -214,8 +235,8 @@ check_proj <- function(project = NULL) {
     }
     
   } else {
-    
-    warning('Project name must be specified.')
+    # TODO: see if changing to stop() would break anything (thinking about app)
+    warning('Project name must be specified.') 
   }
 }
 
@@ -2078,6 +2099,49 @@ bbox <- function(dat, lon, lat, f = 0.05) {
 }
 
 ## ----Shiny util functions-----
+
+use_prompter <- function() {
+  
+#' Wrapper for prompter::use_prompt()
+#' 
+#' @importFrom prompter use_prompt
+#' @export
+#' @keywords internal
+#' 
+
+  prompter::use_prompt()
+}
+
+
+add_prompter <- function(ui_element,
+                         position = "bottom",
+                         message = NULL,
+                         type = NULL,
+                         size = NULL,
+                         permanent = FALSE,
+                         rounded = FALSE,
+                         animate = TRUE,
+                         bounce = FALSE,
+                         arrow = TRUE,
+                         shadow = TRUE) {
+  
+#' Wrapper for prompter::add_prompt()
+#' 
+#' @importFrom prompter add_prompt
+#' @export
+#' @keywords internal
+  
+  prompter::add_prompt(ui_element, position = position, message = message,
+                       type = type, size = size, permanent = permanent,
+                       rounded = rounded, animate = animate, bounce = bounce,
+                       arrow = arrow, shadow = shadow)
+  
+}
+
+
+
+
+
 outlier_plot_int <- function(dat, x, dat_remove = "none", x_dist = "normal", sd_val=NULL, plot_type) {
   #' Evaluate outliers through plots
   #' @param dat Main data frame over which to apply function. Table in fishet_db database should contain the string `MainDataTable`.

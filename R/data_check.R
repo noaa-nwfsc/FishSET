@@ -1,17 +1,22 @@
 #' Check for common data quality issues
 #'
-#' Check primary data for common data quality issues, such as NaNs, NAs, outliers, unique rows, and empty variables.
+#' Check primary data for common data quality issues, such as NaNs, NAs, outliers, 
+#' unique rows, and empty variables.
 
-#' @param dat Primary data containing information on hauls or trips. Table in the FishSET database contains the string 'MainDataTable'.
+#' @param dat Primary data containing information on hauls or trips. Table in 
+#'   the FishSET database contains the string 'MainDataTable'.
 #' @param project String, name of project.
 #' @param x Variable in \code{dat} to check for outliers.
-# @param dataindex MainDataTableInfo table from FishSET database that is associated with the dataset. This table contains information on each column of the data frame.
+# @param dataindex MainDataTableInfo table from FishSET database that is associated 
+# with the dataset. This table contains information on each column of the data frame.
 #'  Must be in quotes if called from the FishSET database.
 #' @export data_check
-#' @details Prints summary stats for all variables in \code{dat}. Prints column names that contain NaNs or NAs. Checks 
-#'   for outliers for specified variable \code{x}. Checks that all column names are unique, whether any columns in 
-#'    \code{dat} are empty, whether each row is a unique choice occurrence at the haul or trip level, that data for 
-#'    either lat/lon or fishing area are included. The function is also called by other functions.
+#' @details Prints summary stats for all variables in \code{dat}. Prints column 
+#'   names that contain NaNs or NAs. Checks for outliers for specified variable 
+#'   \code{x}. Checks that all column names are unique, whether any columns in 
+#'   \code{dat} are empty, whether each row is a unique choice occurrence at the 
+#'   haul or trip level, that data for either lat/lon or fishing area are included. 
+#'   The function is also called by other functions.
 #' @examples
 #' \dontrun{
 #' data_check(pcodMainDataTable, "OFFICIAL_TOTAL_CATCH_MT")
@@ -33,27 +38,32 @@ data_check <- function(dat, project, x){#, dataindex) {
   print(summary_stats(dataset, project, log_fun = FALSE))
   cat("\nNA checks\n")
   if (any(apply(dataset, 2, function(x) anyNA(x))) == TRUE) {
-    cat("The", names(which(apply(dataset, 2, function(x) anyNA(x)) == TRUE)), "columns contain NAs. Consider using na_filter to replace or remove NAs")
+    cat("The", names(which(apply(dataset, 2, function(x) anyNA(x)) == TRUE)), 
+        "columns contain NAs. Consider using na_filter to replace or remove NAs")
   } else {
     cat("No columns in the dataframe contain NAs")
   }
 
   cat("\nNaN checks\n")
   if (any(apply(dataset, 2, function(x) any(is.nan(x)))) == TRUE) {
-    cat("The", names(which(apply(dataset, 2, function(x) any(is.nan(x))) == TRUE)), "columns contain NaNs. Consider using nan_filter to replace or remove NaNs")
+    cat("The", names(which(apply(dataset, 2, function(x) any(is.nan(x))) == TRUE)), 
+        "columns contain NaNs. Consider using nan_filter to replace or remove NaNs")
   } else {
     cat("No columns in the dataframe contain NaNs")
   }
 
   cat("\n")
   cat("\nOutlier checks")
-  cat("\n Use the table and plot printed below to assess whether whether outlying points may exist in the selected variable.\n
-         If further checking is needed use the outlier_plot function to assess the impact of removing points.")
+  cat("\n Use the table and plot printed below to assess whether whether outlying 
+  points may exist in the selected variable.\n
+         If further checking is needed use the outlier_plot function to assess the 
+      impact of removing points.")
   print("The outlier table shows basic summary statistics for subsets of the selected variable.")
   print(outlier_table(dataset, project, x, log_fun = FALSE))
   cat("\n")
   cat("\n")
-  outlier_plot(dataset, project, x, dat.remove = "none", x.dist = "normal", output.screen = TRUE, log_fun = FALSE)
+  outlier_plot(dataset, project, x, dat.remove = "none", x.dist = "normal", 
+               output.screen = TRUE, log_fun = FALSE)
   cat("The plot shows the data with no adjustments (distribution specified or points removed). 
          If potential outliers are visible on the null plot, consider further visualizing the data with outlier_plot. 
          Start by using the outlier_plot function ans subsetting the data using the most conservative method: outlier_plot(dataset, x, dat.remove = \"5_95_quant\"). 

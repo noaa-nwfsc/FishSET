@@ -4,15 +4,7 @@
 \alias{choose_directory}
 \title{Choose directory}
 \usage{
-choose_directory(
-  method = select_directory_method(),
-  title = "Identify location of FishSET folder and save output"
-)
-}
-\arguments{
-\item{method}{Method function}
-
-\item{title}{Title to show}
+choose_directory()
 }
 \description{
 Choose directory
