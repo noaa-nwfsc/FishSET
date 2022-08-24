@@ -2,7 +2,7 @@
 % Please edit documentation in R/nan_filter.R
 \name{na_filter}
 \alias{na_filter}
-\title{Identify, remove, or replace NAs}
+\title{Identify, remove, or replace NAs and NaNs}
 \usage{
 na_filter(
   dat,
@@ -41,8 +41,8 @@ of whether NAs are found is returned. If either \code{replace} or \code{remove}
 is \code{TRUE} the modified primary dataset is returned.
 }
 \description{
-Replaces NAs in the primary data with the chosen value or removes rows 
-containing NAs.
+Replaces NAs and NaNs in the primary data with the chosen value or removes rows 
+containing NAs and NaNs.
 }
 \details{
 To check for NAs across \code{dat} run the function specifying only 

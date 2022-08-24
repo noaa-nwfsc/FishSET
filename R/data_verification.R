@@ -11,9 +11,10 @@
 #' @importFrom ggplot2 map_data
 #' @importFrom graphics par
 #' @export data_verification
-#' @details Checks that all columnn names in the data frame are unique, whether any columns in the data frame are empty,
-#' whether each row is a unique choice occurrence at the haul or trip level, and that either latitude and longitude or
-#' fishing area are included.
+#' @details Checks that all columnn names in the data frame are unique, whether 
+#'   any columns in the data frame are empty, whether each row is a unique choice 
+#'   occurrence at the haul or trip level, and that either latitude and longitude or
+#'   fishing area are included.
 #' @examples
 #' \dontrun{
 #' data_verification(pollockMainDataTable, 'pollock')

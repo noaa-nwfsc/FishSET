@@ -109,7 +109,9 @@ create_model_input <-
   d <- shift_sort_x(dataCompile, choice, catch, distance, max(choice), ab)
   
   
-  ### Data needs will vary by the likelihood function ###
+  # Data needs will vary by the likelihood function
+  # TODO: gridVariablesInclude is only being used in EPMs atm, need to include 
+  # it for other models
   if (grepl("epm", fr)) {
     
     otherdat <- list(

@@ -231,8 +231,9 @@ make_model_design <-
            startloc = NULL,
            polyn = NULL) {
     
+  # TODO: update expectcatchmodels description
   # TODO: use formula method for specifying model
-  # TODO: standardize arg names: expectcatchmodels is bad, use camel-case or period-case etc.
+  # TODO: standardize arg names: use camel-case or period-case etc.
 
   fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
@@ -254,7 +255,7 @@ make_model_design <-
     indeVarsForModel <- NULL
     
   } else {
-    # TODO: find better way to specify vars1 and vars2 (formula method)
+    # TODO: find better way to specify vars1 and vars2 (formula method?)
     if (any(grepl(',', vars1))) {
       
       indeVarsForModel <- unlist(strsplit(vars1, ","))
@@ -322,7 +323,6 @@ make_model_design <-
   
   startingloc <- if (!is.null(startloc) & all(is.na(Alt$startingloc))) {
     
-    # TODO: check if this is right
     dataset[[startloc]]
     
   } else {
@@ -333,11 +333,9 @@ make_model_design <-
   units <- Alt[["altChoiceUnits"]]
 
   # Expected catch ----
-  # TODO: method for specifying exp to include needs to be updated
-  # will exclude dummy matrices
   
   exp_select <- list()
-    
+  # use for logit_avecat, others?   
   if (table_exists(paste0(project, "ExpectedCatch"), project) & likelihood == "logit_c") {
     
     ExpectedCatch <- unserialize_table(paste0(project, "ExpectedCatch"), project)
@@ -355,7 +353,7 @@ make_model_design <-
              call. = FALSE)
         
       } else {
-        
+        # Note: allow multiple user created ec matrices, named, select by name 
         # prepare the ec list and expectcatchmodels for model
         exp_out <- check_exp(ec = ExpectedCatch, ec_names = expectcatchmodels)
         
@@ -365,7 +363,7 @@ make_model_design <-
     }
   }
     
-    
+  # Note: revisit this -- EC should be avaiable for other likelihood funs
   if (!exists("ExpectedCatch")) {
     
     ExpectedCatch <- ""
@@ -381,7 +379,7 @@ make_model_design <-
   
   if (is.list(ExpectedCatch)) {
   # Note: do this in calc_exp()? 
-    if (is.null(ExpectedCatch$user_dummy)) userDumV <- 1
+    if (is.null(ExpectedCatch$user_dummy)) userDumV <- 1 # Note: consider removing this
     else userDumV <- ExpectedCatch$user_dummy
   }
     
@@ -412,12 +410,13 @@ make_model_design <-
   
   # Gridded ----
   # TODO: Rename alt matrix (X is too generic)
+  # Note: this is the distance matrix created from a gridded dataset (create_alternative_choice())
   if (!is.null(Alt[["matrix"]])) X <- Alt[["matrix"]]
   else X <- NULL
   
  # TODO: need to pull gridded data from FSDB (should var2 be table name?) or 
- # from primary table
- # TODO: check that gridded data is in correct format ()
+ # from primary table if joined
+ # TODO: check that gridded data is in correct format (format_grid()--before mmd is run?)
   if (is_empty(gridVariablesInclude)) {
     
     gridVariablesInclude <- as.data.frame(matrix(1, nrow = nrow(choice), ncol = 1))
@@ -431,7 +430,7 @@ make_model_design <-
                      indeVarsForModel = as.data.frame(matrix(1, nrow = nrow(choice), ncol = 1)))
     
   } else {
-    # Note: doc says bCHeader doesn't include grid variables, just IVs and interactions
+    # TODO: check this
     if (any(indeVarsForModel %in% c("Miles * Miles", "Miles*Miles", "Miles x Miles"))) {
       
       bCHeader <- list(units = units, gridVariablesInclude = gridVariablesInclude, 
@@ -447,8 +446,6 @@ make_model_design <-
  
   # Initial parameters ----
   # need to grab inits from previous model run if required
-  #  params <- list()
-  #  for (i in 1:length(initparams)){
   # TODO: use better method for reading in existing initial parameters
   if (!is.numeric(initparams) & !any(grepl(',', initparams))) {
     
@@ -461,11 +458,12 @@ make_model_design <-
       
     } else {
       # Q: why five? 
+      # Note: revisit -- 
+      # Should be able to automate this 
       initparams <- c(1, 1, 1, 1, 1) 
       warning('Model not found. Setting parameter estimates to 1.')
     }
   }
- #   }
     
   # Distance Matrix ----
   dist_out <- create_dist_matrix(dataset = dataset, alt_var = alt_var, occasion = occasion, 
@@ -521,6 +519,10 @@ make_model_design <-
     }
   
     # model design list ----
+    
+    # Note: bCHeader includes GridVariablesInclude (doc says it doesn't include grid varying vars)
+    # gridVaryingVariables only contains ec matrices
+    
     modelInputData_tosave <- list(
       likelihood = likelihood,
       catch = catch,

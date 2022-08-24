@@ -34,7 +34,8 @@ create_dist_matrix <-
            X,
            zoneID) {
     
-  # Q: is int (centroid table) always required? Even for port/lon-lat?
+  # Q: is int (centroid table) always required?
+    # No, not always needed, ex: haul end - all haul locs
   # occasion ----
   
   ## Grid ----
@@ -79,6 +80,8 @@ create_dist_matrix <-
     if (any(grepl("centroid|zon", occasion, ignore.case = TRUE))) {
 
       # TODO: use better names for temp and toXY1 (occasion_loc)
+      # Note: this is the zone where haul occurred, not where it decided to go next
+      # 
       temp <- dataset[zone_ind, zoneID]
       # Q: should this be changed to ZoneID instead of keeping original name?
       colnames(temp) <- "ZoneID"
@@ -98,7 +101,7 @@ create_dist_matrix <-
             breakearly <- 1
             stop("occasion does not exist in dataset", call. = FALSE)
           }
-          
+          # Note: occasion = name of port var in primary data
           toXYa <- data.frame(dataset[[occasion]][zone_ind]) # subset data to when dataZoneTrue==1
           # Note: rename toXYa to something related to ports 
           colnames(toXYa) <- c(occasion) # ports from primary data
@@ -253,7 +256,7 @@ create_dist_matrix <-
     }
     
     # Note: if occasion = centroid, then this is calculating distance after the decision
-    # of where to go was made (distance = 0), not before. Would need to know the 
+    # of where to go was made, not before. Would need to know the 
     # centroid of the zone before departure occurred (i.e. location of last haul).
     # Note: distGeo uses meters
     toXY1[, 2] <- as.numeric(toXY1[, 2])
@@ -271,7 +274,8 @@ create_dist_matrix <-
                                    centersZone[, c(find_lon(centersZone), 
                                                    find_lat(centersZone))])
   }
-  
+  # st_distance() has a units argument, have function take care of this
+  #
   altChoiceType <- "distance"
   
   if (units %in% c("meters", "M", "m")) {

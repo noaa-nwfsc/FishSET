@@ -242,7 +242,8 @@ fleet_assign <- function(dat, project, fleet_tab, assign = NULL, overlap = FALSE
   
   if (length(ovrlp) > 0) {
     
-    warning(paste(length(ovrlp), "overlapping fleet assingments detected."))
+    warning(paste(length(ovrlp), "overlapping fleet assingments detected."), 
+            call. = FALSE)
     
     if (overlap == FALSE) {
       
@@ -281,17 +282,19 @@ fleet_assign <- function(dat, project, fleet_tab, assign = NULL, overlap = FALSE
       fleet_nm <- paste0("fleet_", col_num + 1)
     }
     
-    value <- NULL
-    dataset <- tidyr::pivot_longer(dataset, cols = !!fleet_names, names_to = fleet_nm)
+    dataset <- tidyr::pivot_longer(dataset, cols = !!fleet_names, 
+                                   names_to = fleet_nm,
+                                   values_to = "fleetAssignPlaceholder")
     
-    dataset <- subset(dataset, value > 0)
+    dataset <- dataset[dataset$fleetAssignPlaceholder > 0, ]
     
     dataset$value <- NULL
   }
   
   fleet_assign_function <- list()
   fleet_assign_function$functionID <- "fleet_assign"
-  fleet_assign_function$args <- list(dat, project, fleet_tab, assign, overlap, format_var)
+  fleet_assign_function$args <- list(dat, project, fleet_tab, assign, overlap, 
+                                     format_var)
   log_call(project, fleet_assign_function)
   
   save_table(f_tab, project, "fleet_assign")
