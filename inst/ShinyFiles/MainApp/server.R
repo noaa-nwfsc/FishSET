@@ -4792,7 +4792,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
         tagList(
         conditionalPanel(condition="input.choiceTab=='distm' && input.distMsource == 'primary'",
                          tagList(
-                          prompter::add_prompt(
+                          add_prompter(
                             div(
                               div(style="display: inline-block; width: 415px ;", h5(tags$b('Define how alternative fishing choices are calculated between'))),
                               div(style="display: inline-block; width: 5px ;", icon('info-circle'))),
@@ -5227,7 +5227,7 @@ if (!exists("default_search_columns")) {default_search_columns <- NULL}
       
       output$gridvariables <- renderUI ({
         gridvariables <- c('none')
-        prompter::add_prompt(selectInput('gridVariablesInclude', label = list(gridlab(), icon('info-circle')), multiple=TRUE,
+        add_prompter(selectInput('gridVariablesInclude', label = list(gridlab(), icon('info-circle')), multiple=TRUE,
                     choices = gridvariables, selected = ''),
                    position = "bottom", type='info', size='medium', message = "Generally, variables that vary by zonal alternatives or are interacted with zonal constants. 
                     See Likelihood functions sections of the FishSET Help Manual for details. Select 'none' if no variables are to be included.")
