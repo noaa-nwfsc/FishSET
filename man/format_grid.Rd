@@ -36,7 +36,7 @@ variable if \code{from.format = "long"}.}
 
 \item{from.format}{The original format of \code{grid}. Options include
 \code{"long"} or \code{"wide"}. Use \code{"long"} if a single area column
-exists in \cide{grid}. Use \code{"wide"} if each area has its own column in 
+exists in \code{grid}. Use \code{"wide"} if each area has its own column in 
 \code{grid}.}
 
 \item{to.format}{The desired format of \code{grid}. Options include
@@ -52,5 +52,5 @@ column.}
 }
 \description{
 Change the format of a gridded dataset from wide to long (or vice versa). 
-\code{format_grid} will also remove any unmatched area/zones from \code{grid}.
+and remove any unmatched area/zones from \code{grid}.
 }
