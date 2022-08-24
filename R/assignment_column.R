@@ -67,14 +67,14 @@ assignment_column <- function(dat, project, spat, lon.dat, lat.dat, cat, name = 
   spatdat <- spat_out$dataset
   spat <- parse_data_name(dat, "spat", project)
   
-  # why use as.vector? 
-  dataset[[lat.dat]] <- as.numeric(as.vector(dataset[[lat.dat]]))
-  dataset[[lon.dat]] <- as.numeric(as.vector(dataset[[lon.dat]]))
-  
   column_check(dataset, cols = c(lon.dat, lat.dat))
   column_check(spatdat, cols = c(cat, lon.spat, lat.spat))
   
   name_check(dataset, names = name)
+  
+  # why use as.vector? 
+  dataset[[lat.dat]] <- as.numeric(as.vector(dataset[[lat.dat]]))
+  dataset[[lon.dat]] <- as.numeric(as.vector(dataset[[lon.dat]]))
   
   if(anyNA(dataset[[lat.dat]])|| anyNA(dataset[[lon.dat]])) {
     
