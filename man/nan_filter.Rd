@@ -47,7 +47,7 @@ containing NaNs
 To check for NaNs across \code{dat} run the function specifying only 
   \code{dat} (\code{nan_filter(dataset, project)}). The function will return 
   a statement of which variables, if any, contain NaNs. To remove NaNs, use 
-  \code{remove = TRUE}. All rows containing NAs in \code{x} will be removed 
+  \code{remove = TRUE}. All rows containing NaNs in \code{x} will be removed 
   from \code{dat}. To replace NaNs, use \code{replace = TRUE}. If both 
   \code{replace} and \code{remove} are \code{TRUE} then \code{replace} is used. 
   If \code{replace} is \code{FALSE} and \code{rep.value} is not defined, then 

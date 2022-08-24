@@ -1439,9 +1439,10 @@ lonlat_to_centroid <- function(dat, project, lon, lat, spat, zone) {
   spat <- spat_out$dat
   spatdat <- parse_data_name(spat, 'spat', project)
   
-  # TODO: update with spatial checks
+  # TODO: update with spatial checks, check_spatdat()
   if (!("sf" %in% class(spatdat))) {
-    spatdat <- sf::st_as_sf(x = spatdat, crs = "+proj=longlat +datum=WGS84")
+    
+    spatdat <- sf::st_as_sf(x = spatdat, crs = 4326) #WGS 84 default
   }
   
   pts <- find_centroid(spat = spatdat, project=project, cat = zone, log.fun = FALSE)

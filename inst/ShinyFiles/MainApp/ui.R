@@ -6,7 +6,7 @@ source("map_viewer_app.R", local = TRUE)
     ui = function(request){
       fluidPage(
       shinyjs::useShinyjs(),
-      prompter::use_prompt(),
+      use_prompter(),
       # Pop up information icons
       tags$style(".fa-info-circle {color:#0066FF}"),
       tags$style(".fa-exclamation-circle {color:#FF0066}"),
@@ -845,7 +845,7 @@ source("map_viewer_app.R", local = TRUE)
                                                             selected='haul_to_trip', multiple = FALSE)),
                                conditionalPanel("input.trip!='haul_to_trip'||input.trip!='trip_centroid'", 
                                                 
-                                                prompter::add_prompt(
+                                                add_prompter(
                                                    textInput('varname', list('Name of new variable', icon('info-circle')), 
                                                              value = '', placeholder = ''),
                                                    position = "bottom", type='info', size='medium', 
@@ -1099,7 +1099,7 @@ source("map_viewer_app.R", local = TRUE)
                                uiOutput('selectcp'),
                                #h5('Compute expectations for the entire fleet or by defined groups'),
                                
-                               prompter::add_prompt(div(
+                               add_prompter(div(
                                             div(style="display:inline-block; width: 145px;", h4('Temporal options')), 
                                             div(style="display:inline-block; width: 10px;", icon('info-circle'))),
                                           position = "right", type='info', size='large', 
@@ -1255,7 +1255,7 @@ source("map_viewer_app.R", local = TRUE)
                                      )
                                    ),
                                    fluidRow(
-                                     prompter::add_prompt(div(
+                                     add_prompter(div(
                                        div(style="display: inline-block; width: 145px ;", h4('Initial parameters')), 
                                        div(style="display: inline-block; width: 5px ;", icon('info-circle'))),
                                         position = "bottom", type='info', size='large', 
