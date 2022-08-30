@@ -6,14 +6,13 @@
 \usage{
 find_fishing_centroid(
   dat,
-  project = NULL,
-  cat = "ZoneID",
+  project,
+  zoneID,
   weight.var = NULL,
-  lon.dat = NULL,
-  lat.dat = NULL,
-  spat,
-  lon.spat = NULL,
-  lat.spat = NULL
+  lon.dat,
+  lat.dat,
+  names = NULL,
+  log.fun = TRUE
 )
 }
 \arguments{
@@ -22,8 +21,8 @@ FishSET database contains the string 'MainDataTable'.}
 
 \item{project}{Name of project}
 
-\item{cat}{Variable in \code{dat} that identifies zonal assignments or the If 
-\code{spat} is class sf, \code{cat} should be name of list containing 
+\item{zoneID}{Variable in \code{dat} that identifies zonal assignments or the If 
+\code{spat} is class sf, \code{zoneID} should be name of list containing 
 information on zones.}
 
 \item{weight.var}{Variable from \code{dat} for weighted average. If 
@@ -34,17 +33,10 @@ longitude of fishing locations in each zone weighted by \code{weight.var}.}
 
 \item{lat.dat}{Required. Latitude variable in \code{dat}.}
 
-\item{spat}{Spatial data containing information on fishery management or 
-regulatory zones. Can be shape file, json, geojson, data frame, or list.
-\code{spat} should be NULL if zone identifier variable exists in \code{dat}.}
-
-\item{lon.spat}{Variable or list from \code{spat} containing longitude data. 
-Required if \code{spat} is a csv file. Leave as NULL if zone identifier 
-exists in \code{dat} or \code{spat} is a shape or json file.}
-
-\item{lat.spat}{Variable or list from \code{spat} containing latitude data. 
-Required if \code{spat} is a csv file. Leave as NULL if  zone identifier 
-exists in \code{dat} \code{spat} is a shape or json file.}
+\item{names}{Then names of the fishing centroid columns to be added. A vector
+of length two in the order of \code{c("lon", "lat")}. The default is 
+\code{c("fish_cent_lon", "fish_cent_lat")} and 
+\code{c("weight_cent_lon", "weight_cent_lat")} if \code{weight.var} is used.}
 }
 \value{
 Returns primary dataset with fishing centroid and, if \code{weight.var} 
@@ -61,9 +53,9 @@ Fishing centroid defines the centroid by mean latitude and longitude
   used anywhere latitude/longitude variables appear. Each observation in 
   \code{dat} must be assigned to a fishery or regulatory area/zone. If the zone 
   identifier exists in \code{dat} and is not called \code{'ZoneID'}, then  
-  \code{cat} should be the variable name containing the zone identifier. If a 
+  \code{zoneID} should be the variable name containing the zone identifier. If a 
   zone identifier variable does not exist in \code{dat}, \code{spat} must be 
-  be specified and \code{cat} must be zone identifier in \code{spat}. The 
+  be specified and \code{zoneID} must be zone identifier in \code{spat}. The 
   \code{assignment_column} function will be run and a zone identifier variable 
   added to \code{dat}.
 }
