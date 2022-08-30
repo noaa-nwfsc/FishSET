@@ -538,8 +538,9 @@ list_tables <- function(project, type = "main") {
   #'   "main" (MainDataTable), "port" (PortTable), "spat" (SpatTable), "grid" 
   #'   (GridTable), "aux" (AuxTable) "ec" (ExpectedCatch),  "altc" (altmatrix), 
   #'   "info" (MainDataTableInfo), "gc" (ldglobalcheck), "fleet" (FleetTable), 
-  #'   "filter" (FilterTable),  "model" (modelOut), "model_data" (modelinputdata), 
-  #'   and "model_design" (modelDesignTable).
+  #'   "filter" (FilterTable), "centroid" (Centroid or FishCentroid),  "model" 
+  #'   (modelOut), "model_data" (modelinputdata), and "model_design" 
+  #'   (modelDesignTable).
   #' @export
   #' @examples 
   #' \dontrun{
@@ -549,7 +550,8 @@ list_tables <- function(project, type = "main") {
   #' 
 
   tab_types <- c("info", "main", "ec", "altc", "port", "gc", "fleet", "model", 
-                 "model_data", "model_design", "grid", "aux", "spat", "filter")
+                 "model_data", "model_design", "grid", "aux", "spat", "filter",
+                 "centroid")
   
   if (!type %in% tab_types) {
     
@@ -563,7 +565,7 @@ list_tables <- function(project, type = "main") {
            "altc" = "altmatrix", "port" = "PortTable", "gc" = "ldglobalcheck", 
            "fleet" = "FleetTable", "model" = "modelOut", "model_data" = "modelinputdata", 
            "model_design" = "modelDesignTable", "grid" = "GridTable", "aux" = "AuxTable",
-           "spat" = "SpatTable", "filter" = "FilterTable")
+           "spat" = "SpatTable", "filter" = "FilterTable", "centroid" = "Centroid")
   
   if (is_value_empty(project)) {
     
@@ -636,12 +638,14 @@ fishset_tables <- function(project = NULL) {
       
       db_tabs <- tables_database(project)
     }
-    
+   
     db_tabs <- data.frame(table = db_tabs)
     
     # add a project column
     p_regex <- paste0(projects(), collapse = "|")
-    
+    # TODO: this isn't working correctly. If a project name contains another 
+    # ("pollock", "pollockChoice") then the smaller name is used ("pollock")
+    # Affects manage tables tab in app
     p_str <- stringi::stri_extract_first_regex(db_tabs$table, p_regex)
     p_str[is.na(p_str)] <- "no project"
     db_tabs$project <- p_str
