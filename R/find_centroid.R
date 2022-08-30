@@ -1,11 +1,11 @@
 #'  Identify geographic centroid of fishery management or regulatory zone
 #'
-#' @param spat Spatial data containing information on fishery management or regulatory 
-#'   zones. Can be shape file, json, geojson, data frame, or list.
+#' @param spat Spatial data containing information on fishery management or 
+#'   regulatory zones. Can be shape file, json, geojson, data frame, or list.
 #' @param project Name of project
-#' @param cat Variable or list in \code{spat} that identifies the individual areas 
-#'   or zones. If \code{spat} is class sf, \code{cat} should be name of list containing 
-#'   information on zones.
+#' @param spatID Variable or list in \code{spat} that identifies the individual areas 
+#'   or zones. If \code{spat} is class sf, \code{spatID} should be name of list 
+#'   containing information on zones.
 #' @param lon.spat Variable or list from \code{spat} containing longitude data. 
 #'   Required for csv files. Leave as NULL if \code{spat} is a shape or json file.
 #' @param lat.spat Variable or list from \code{spat} containing latitude data. 
@@ -26,7 +26,7 @@
 find_centroid <-
   function(spat,
            project,
-           cat,
+           spatID,
            lon.spat = NULL,
            lat.spat = NULL,
            log.fun = TRUE) {
@@ -40,9 +40,9 @@ find_centroid <-
   on.exit(unlink(tmp), add = TRUE)
   cat("", file = tmp, append = TRUE)
   
-  column_check(spatdat, cols = c(cat, lon.spat, lat.spat))
+  column_check(spatdat, cols = c(spatID, lon.spat, lat.spat))
   
-  spatdat <- check_spatdat(spatdat, lon = lon.spat, lat = lat.spat, id = cat)
+  spatdat <- check_spatdat(spatdat, lon = lon.spat, lat = lat.spat, id = spatID)
     
   cent <- sf::st_centroid(spatdat)
   
@@ -52,9 +52,9 @@ find_centroid <-
     cent <- sf::st_cast(cent, "POINT")
   }
   
-  # TODO: consider different name for ZoneID, e.g. cent.id (or name in "cat" var). Update other functions.
+  # TODO: consider different name for ZoneID, e.g. cent.id (or name in "spatID" var). Update other functions.
   cent_coord <- sf::st_coordinates(cent)
-  cent <- tibble::tibble(ZoneID = cent[[cat]], 
+  cent <- tibble::tibble(ZoneID = cent[[spatID]], 
                          cent.lon = cent_coord[ , 1], 
                          cent.lat = cent_coord[ , 2])
   
@@ -80,6 +80,8 @@ find_centroid <-
   }
   
   # TODO: add project name to centroid table name, update other funs
+  # TODO: what if user doesn't want to save centroid to project folder, just
+  # wants the centroid table (or to add centroid to dataset)?
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
@@ -87,14 +89,14 @@ find_centroid <-
   
   # this should be removed eventually; create_alternative_choice() tends to break
   # if "spatCentroid" hasn't been saved
-  DBI::dbWriteTable(fishset_db, "spatCentroid", cent, overwrite = TRUE)
+  # DBI::dbWriteTable(fishset_db, "spatCentroid", cent, overwrite = TRUE)
   message('Geographic centroid saved to fishset database')
   
   if (log.fun) {
     
     find_centroid_function <- list()
     find_centroid_function$functionID <- "find_centroid"
-    find_centroid_function$args <- list(spat, project, cat, lon.spat, lat.spat, 
+    find_centroid_function$args <- list(spat, project, spatID, lon.spat, lat.spat, 
                                         log.fun)
     log_call(project, find_centroid_function)
   }
