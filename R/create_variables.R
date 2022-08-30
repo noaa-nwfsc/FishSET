@@ -1005,7 +1005,7 @@ create_dist_between <- function(dat, project, start, end,
           int <- table_view('spatCentroid', project)
         } else {
           int <- find_centroid(spat = eval(parse(text = vars[1])), project=project, 
-                           cat = gsub("\"|'", "", vars[6]), lon.spat = gsub("\"|'", "", vars[2]),
+                           spatID = gsub("\"|'", "", vars[6]), lon.spat = gsub("\"|'", "", vars[2]),
                             lat.spat = gsub("\"|'", "", vars[3]), log.fun = FALSE)
         }
        
@@ -1445,7 +1445,7 @@ lonlat_to_centroid <- function(dat, project, lon, lat, spat, zone) {
     spatdat <- sf::st_as_sf(x = spatdat, crs = 4326) #WGS 84 default
   }
   
-  pts <- find_centroid(spat = spatdat, project=project, cat = zone, log.fun = FALSE)
+  pts <- find_centroid(spat = spatdat, project=project, spatID = zone, log.fun = FALSE)
   
   colnames(pts) <- c(zone, lon, lat)
   
