@@ -13,14 +13,7 @@ create_alternative_choice(
   min.haul = 0,
   spat,
   cat = NULL,
-  zoneID = NULL,
-  lon.dat = NULL,
-  lat.dat = NULL,
-  hull.polygon = FALSE,
-  closest.pt = FALSE,
-  grid = NULL,
-  lon.spat = NULL,
-  lat.spat = NULL
+  zoneID = NULL
 )
 }
 \arguments{
@@ -71,35 +64,6 @@ name of the list containing information on zones.}
 \item{zoneID}{Variable in \code{dat} that identifies the individual zones or 
 areas. Define if exists in \code{dat} and is not named `ZoneID`. Defaults to 
 \code{NULL}.}
-
-\item{lon.dat}{Longitude variable from \code{dat}. Required if zonal assignments 
-in \code{dat} should be identified and \code{spat} is not \code{NULL}.}
-
-\item{lat.dat}{Latitude variable from \code{dat}. Required if zonal assignments 
-in \code{dat} should be identified and \code{spat} is not \code{NULL}.}
-
-\item{hull.polygon}{Used in \code{\link{assignment_column}} function. Creates 
-polygon using convex hull method. Required if zonal assignments in \code{dat} 
-should be identified and \code{spat} is not \code{NULL}.}
-
-\item{closest.pt}{Logical, if true, zone ID identified as the closest polygon 
-to the point. Called in \code{\link{assignment_column}}. Required if zonal 
-assignments for observations in \code{dat} should be identified and \code{spat} 
-is not \code{NULL}.}
-
-\item{grid}{Data must contain a variable that varies by the spatial dataset 
-\code{spat}. First variable in \code{grid} should match a column in \code{dat}. 
-The remaining columns should match the zone IDs in the \code{spat}.}
-
-\item{lon.spat}{Variable or list from \code{spat} containing longitude data. 
-Required for csv files. Leave as \code{NULL} if \code{spat} is a shape or json 
-file, Required if zonal assignments in \code{dat} should be identified and 
-\code{spat} is not \code{NULL}.}
-
-\item{lat.spat}{Variable or list from \code{spat} containing latitude data. Required 
-for csv files. Leave as \code{NULL} if \code{spat} is a shape or json file, 
-Required if zonal assignments in \code{dat} should be identified and \code{spat} 
-is not \code{NULL}.}
 }
 \value{
 Saves the alternative choice list to the FishSET database as a list.

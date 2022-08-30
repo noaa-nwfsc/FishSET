@@ -7,21 +7,21 @@
 find_centroid(
   spat,
   project,
-  cat,
+  spatID,
   lon.spat = NULL,
   lat.spat = NULL,
   log.fun = TRUE
 )
 }
 \arguments{
-\item{spat}{Spatial data containing information on fishery management or regulatory 
-zones. Can be shape file, json, geojson, data frame, or list.}
+\item{spat}{Spatial data containing information on fishery management or 
+regulatory zones. Can be shape file, json, geojson, data frame, or list.}
 
 \item{project}{Name of project}
 
-\item{cat}{Variable or list in \code{spat} that identifies the individual areas 
-or zones. If \code{spat} is class sf, \code{cat} should be name of list containing 
-information on zones.}
+\item{spatID}{Variable or list in \code{spat} that identifies the individual areas 
+or zones. If \code{spat} is class sf, \code{spatID} should be name of list 
+containing information on zones.}
 
 \item{lon.spat}{Variable or list from \code{spat} containing longitude data. 
 Required for csv files. Leave as NULL if \code{spat} is a shape or json file.}

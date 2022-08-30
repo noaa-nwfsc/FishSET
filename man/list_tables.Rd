@@ -13,8 +13,9 @@ list_tables(project, type = "main")
 "main" (MainDataTable), "port" (PortTable), "spat" (SpatTable), "grid" 
 (GridTable), "aux" (AuxTable) "ec" (ExpectedCatch),  "altc" (altmatrix), 
 "info" (MainDataTableInfo), "gc" (ldglobalcheck), "fleet" (FleetTable), 
-"filter" (FilterTable),  "model" (modelOut), "model_data" (modelinputdata), 
-and "model_design" (modelDesignTable).}
+"filter" (FilterTable), "centroid" (Centroid or FishCentroid),  "model" 
+(modelOut), "model_data" (modelinputdata), and "model_design" 
+(modelDesignTable).}
 }
 \description{
 Show project table names by table type. To see all tables for all projects 
