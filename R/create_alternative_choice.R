@@ -109,33 +109,16 @@ create_alternative_choice <-
            alt_var = 'zonal centroid',
            dist.unit = "miles",
            min.haul = 0,
-           spat, # keep
-           spatID = NULL, # keep (change to spatID?)
-           zoneID = NULL) {
+           spat, 
+           spatID, 
+           zoneID,
+           startingloc = NULL) {
     
-  # TODO: remove grid feature for now, add later if needed
-  # TODO: remove find_centroid() and assignment_column()--check if they are needed
-  # based on current args and inform user
+
   # TODO: Let users associate a column from dat w/ area column in spat 
   # Needed if user doesn't have lon/lat data (ex. Fish Tickets)
-  # TODO: add fishing centroid as occasion/alt_var option 
   # TODO: add starting loc arg
     
-  # occasion options: 
-  # "zonal centroid": pull zone centroid from FSDB and join to primary 
-  # "fishing centroid": pull fishing centroid fro FSB and join to primary
-  # Port variable name: merge port table to primary with port variable as key
-  # c(lon, lat): any vector of length two is assumed to be lon-lat coords. This
-  # can be centroid lon-lat, port lon-lat, or haul lon-lat, or previous location
-  # But what if previous area? Need to join to centroid
-    # add previous area by using startloc arg? 
-    # use a third arg ("occasion_var") that contains the variables from primary
-    # then use
-    
-  # alt choice options:
-  # "zonal centroid": Pull from FSDB (could get from primary if same as occasion and is lon-lat)
-  # "fishing centroid": Pull from FSDB (could get from primary if same as occasion and is lon-lat)
-  # "nearest point": have create_distance_matrix calculate nearest point to each zone as alt
   
   # Call in datasets
   out <- data_pull(dat, project)
@@ -146,49 +129,153 @@ create_alternative_choice <-
   spatdat <- spat_out$dataset
   spat <- parse_data_name(spat, "spat", project)
   
-  # TODO: column name checks for dat, spat, and grid (make sure columns exist)
+  column_check(dataset, cols = c(zoneID, occasion_var))
+  column_check(spatdat, cols = spatID)
   
-  column_check(dat, cols = c(zoneID, occasion_var))
+  zone_cent <- NULL
+  fish_cent <- NULL
   
+  # check args ----
   
+  occasion_opts <- c("zonal centroid", "fishing centroid", "port", "lon-lat")
+  alt_opts <- c("zonal centroid", "fishing centroid", "nearest point")
+  o_len <- length(occasion_var)
   
+  if (o_len > 2) stop("Invalid values for 'occasion_var'.", call. = FALSE)
   
-  
-  # Note: Currently only one centroid table can exist for each project
-  # this would need to change if multiple spatial scales are being modeled 
-  
-  # TODO: check if centroid is needed, then see if user has it. If not, 
-  # error out.
-  cent_exists <- table_exists(paste0(spat, 'Centroid'), project) 
-  
-  # Note: this will depend on updated arg options. Required if occasion or alt_var
-  # are centroid
-  cent_required <- TRUE # TODO: update
-  case <- "centroid" # this will switch between different types of alt choices
-
-  if (cent_required & cent_exists) {
+  if (!occasion %in% occasion_opts) {
     
-    int <- table_view(paste0(spat, 'Centroid'), project)
-
-  } else if (cent_required & !cent_exists) {
-    
-    stop("Zonal centroid must be defined. Function not run.", call. = FALSE)
+    stop("Invalid option for 'occasion'. Options are ", 
+         paste0(occasion_opts, collapse = ", "), ".", call. = FALSE)
   }
- 
- 
-  if (!any(int$ZoneID %in% dataset[[zoneID]])) {
+  
+  if (!alt_var %in% alt_opts) {
     
-    # if (!is.null(spatdat)) {
-    # 
-    #   int <- find_centroid(spat = spatdat, project = project, lon.spat = lon.spat,
-    #                        lat.spat = lat.spat, spatID = spatID, log.fun = FALSE)
-    # 
-    # } else {
+    stop("Invalid option for 'alt_var'. Options are ", 
+         paste0(alt_opts, collapse = ", "), ".", call. = FALSE)
+  }
+  
+  # check occasion_var for lon-lat string match
+  ll_occ_check <- function(occ) {
+    
+    ll_check <- grepl("lon|lat", occ, ignore.case = TRUE)
+    
+    if (!any(ll_check)) {
       
-    stop('Zones do not match between centroid table and zonal assignments',
-         ' in main data table. Rerun find_centoid using same spatial data file',
-         ' as was using with the assignment_column() function.', call. = FALSE)
-    # }
+      warning("Check that 'occasion_var' contains longitude and latitude ",
+              "variables: ", paste0(occ, collapse = ", "), 
+              call. = FALSE)
+    }
+  }
+  
+  # alt_var ----
+  ## zonal centroid ----
+  z_cent_exists <- table_exists(paste0(spat, 'Centroid'), project)
+  
+  if (alt_var == "zonal centroid") {
+    
+    if (!z_cent_exists) {
+      
+      stop("Zonal centroid table must be saved to FishSET Database. Run ", 
+           "create_centroid().", call. = FALSE)
+    }
+  }
+  
+  ## fishing centroid ----
+  f_cent_exists <- table_exists(paste0(project, 'FishCentroid'), project)
+  
+  if (alt_var == "fishing centroid") {
+    
+    if (!f_cent_exists) {
+      
+      stop("Fishing centroid table must be saved to FishSET Database. Run ", 
+           "create_centroid().", call. = FALSE)
+    }
+  }
+  
+  # occasion ----
+  ## zonal centroid ----
+  if (occasion == "zonal centroid") {
+    
+    if (is_value_empty(occasion_var) | o_len == 1) {
+      
+      if (!z_cent_exists) {
+        
+        stop("Zonal centroid table must be saved to FishSET Database. Run ", 
+             "create_centroid().", call. = FALSE)
+      }
+      
+      cent_tab <- table_view(paste0(spat, "Centroid"), project)
+      
+      if (!any(cent_tab$ZoneID %in% dataset[[zoneID]])) {
+        
+        stop('Zones do not match between centroid table and zonal assignments',
+             ' in main data table. Rerun find_centroid() using same spatial data file',
+             ' as was using with the assignment_column() function.', call. = FALSE)
+      }
+      
+    } else if (o_len == 2) {
+      
+      ll_occ_check(occasion_var)
+      
+    } else {
+      
+      stop("Invalid 'occasion_var'.", call. = FALSE)
+    }
+  ## fishing centroid ----
+  } else if (occasion == "fishing centroid") {
+    
+    if (is_value_empty(occasion_var) | o_len == 1) {
+      
+      if (!f_cent_exists) {
+        
+        stop("Fishing centroid table must be saved to FishSET Database. Run ", 
+             "create_centroid().", call. = FALSE)
+      }
+      
+      cent_tab <- table_view(paste0(project, "FishCentroid"), project)
+      
+      if (!any(cent_tab$ZoneID %in% dataset[[zoneID]])) {
+        
+        stop('Zones do not match between centroid table and zonal assignments',
+             ' in main data table. Rerun find_centroid() using same spatial data file',
+             ' as was using with the assignment_column() function.', call. = FALSE)
+      }
+      
+    } else if (o_len == 2) {
+      
+      ll_occ_check(occasion_var)
+      
+    } else {
+      
+      stop("Invalid 'occasion_var'.", call. = FALSE)
+    } ## port ----
+    
+  } else if (occasion == "port") {
+    
+    if (is_value_empty(occasion_var)) {
+      
+      stop("Port column name required for 'occasion = port'.", call. = FALSE)
+    }
+    
+    if (o_len == 2) {
+      
+      ll_occ_check(occasion_var)
+    }
+  ## lon-lat ----
+  } else if (occasion == "lon-lat") {
+    
+    if (o_len != 2) {
+      
+      stop("'occasion_var' must contain a longitude and latitude column.", 
+           call. = FALSE)
+    }
+    
+    ll_occ_check(occasion_var)
+    
+  } else {
+    
+    stop("Invalid 'occasion' option.", call. = FALSE)
   }
 
   g <- dataset[[zoneID]]
@@ -202,15 +289,15 @@ create_alternative_choice <-
   # Note: is this needed?
   choice <- data.frame(g)  
   
-  # Q: Is this meant to check whether "startingloc" exists as a column in dat?
-  # What if named something else? Add as new arg?  
-  startingloc <- if (!"startingloc" %in% colnames(dataset)) {
+  
+  # startingloc ----
+  if (is_value_empty(startingloc)) {
     
-    rep(NA, nrow(dataset))
+    start_loc <- rep(NA, nrow(dataset))
     
   } else {
     
-    data.frame(dataset$startingloc)
+    start_loc <- dataset[[startingloc]]
   }
 
   if (is.null(choice)) {
@@ -220,24 +307,6 @@ create_alternative_choice <-
   }
   
 
-  # if (case == "centroid") {
-  #   
-  #   # unique zones w/o NAs 
-  #   B <- unique(g[!is.na(g)]) 
-  #   
-  #   # zone index (of B)
-  #   C <- match(g[!is.na(g)], B)
-  # 
-  # } else {
-  #   # TODO: this is an unreliable method for finding area/zone cols
-  #   # should use zoneID
-  #   a <- colnames(dataset)[grep("zon|area", colnames(dataset), ignore.case = TRUE)] # find data that is zonal type
-  # 
-  #   temp <- cbind(as.character(g), dataset[[a[1]]]) 
-  #   B <- unique(temp) # Correct ->> Needs to be lat/long
-  #   C <- match(paste(temp[, 1], temp[, 2], sep = "*"), paste(B[, 1], B[, 2], sep = "*"))
-  # }
-
   # count zones
   zoneCount <- agg_helper(dataset, value = zoneID, count = TRUE, fun = NULL)
   # remove zones that don't have enough hauls and unassigned zones
@@ -246,7 +315,7 @@ create_alternative_choice <-
   if (all(is.na(zoneCount[[zoneID]]))) {
     
     stop("No zones meet criteria. No data will be included in further analyses.",
-         " Check the min.haul parameter or zone identification.", call. = FALSE)
+         " Check the 'min.haul' parameter or zone identification.", call. = FALSE)
   }
   
   zoneCount <- zoneCount[!is.na(zoneCount[[zoneID]]), ]
@@ -271,11 +340,13 @@ create_alternative_choice <-
     altChoiceType = "distance",
     occasion = occasion, # altToLocal1
     alt_var = alt_var, # altToLocal2
-    startingloc = startingloc,
+    startingloc = start_loc,
     zoneHist = zoneCount,
     zoneRow = zoneCount[, zoneID], # zones and choices array
-    zoneID = spatID,
-    int = int # centroid table
+    zoneID = zoneID,
+    # int = int # centroid table
+    zone_cent = zone_cent,
+    fish_cent = fish_cent
     )
 
   
