@@ -67,7 +67,7 @@ loc <- function() {
     if (grepl('FishSETFolder', as.character(newdir)) == FALSE) {
       
       newdir <- paste0(newdir, '/FishSETFolder/')
-      
+      # this will silently fail if dir already exists
       dir.create(file.path(newdir), showWarnings = FALSE)
     } 
     # otherwise, return the loc of the existing FSF
