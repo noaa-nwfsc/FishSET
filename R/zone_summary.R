@@ -1,60 +1,61 @@
 #' Summarize zones, closure areas
 #' 
-#' \code{zone_summary} counts observations and aggregates values in \code{dat} 
+#' `zone_summary` counts observations and aggregates values in `dat` 
 #' by regulatory zone or closure area.
 #' 
 #'@param dat Primary data containing information on hauls or trips. 
 #'  Table in FishSET database contains the string 'MainDataTable'.
-#'@param spat Spatial data containing information on fishery management or 
-#'   regulatory zones. \code{sf} objects are recommended, but \code{sp} objects
-#'   can be used as well. If using a spatial table read from a csv file, then
-#'   arguments \code{lon.spat} and \code{lat.spat} are required. To upload your
-#'   spatial data to the FishSETFolder see \code{\link{load_spatial}}.
+#'@param spat A spatial data file containing information on fishery management 
+#'  or regulatory zones boundaries. `sf` objects are recommended, but `sp` objects 
+#'  can be used as well. See [dat_to_sf()] to convert a spatial table read from 
+#'  a csv file to an `sf` object. To upload your spatial data to the FishSETFolder 
+#'  see [load_spatial()].
 #'@param project Name of project.
-#'@param zone.dat Name of zone ID column in \code{dat}.
-#'@param zone.spat Name of zone ID column in \code{spat}.
-#'@param count Logical. if \code{TRUE}, then the number observations per zone 
-#'  will be returned. Can be paired with \code{fun = "percent"} and \code{group}.
-#'  \code{zone_summary} will return an error if \code{var} is include and 
-#'  \code{count = TRUE}.
+#'@param zone.dat Name of zone ID column in `dat`.
+#'@param zone.spat Name of zone ID column in `spat`.
+#'@param count Logical. if `TRUE`, then the number observations per zone 
+#'  will be returned. Can be paired with `fun = "percent"` and `group`.
+#'  `zone_summary` will return an error if `var` is include and 
+#'  `count = TRUE`.
 #'@param var Optional, name of numeric variable to aggregate by zone/closure
 #'  area. 
 #'@param group Name of grouping variable to aggregate by zone/closure area. Only
 #'  one variable is allowed. 
-#'@param fun Function name (string) to aggregate by. \code{"percent"} the 
+#'@param fun Function name (string) to aggregate by. `"percent"` the 
 #'  percentage of observations in a given zone. Other options include "sum", 
 #'  "mean", "median", "min", and "max". 
 #'@param breaks A numeric vector of breaks to bin zone frequencies by. Overrides
-#'  \code{n.breaks} if entered. 
+#'  `n.breaks` if entered. 
 #'@param n.breaks The number of break points to create if breaks are not given 
 #'  directly. Defaults to 10. 
 #'@param bin_colors Optional, a vector of colors to use in plot. Must be same length
-#'  as breaks. Defaults to \code{viridis::viridis(option = "H")}.
+#'  as breaks. Defaults to `viridis::viridis(option = "H")`.
 #'@param na.rm Logical, whether to remove zones with zero counts. 
-#'@param dat.center Logical, whether the plot should center on \code{dat} 
-#'  (\code{TRUE}) or \code{spat} (\code{FALSE}). Recommend \code{dat.center = TRUE}
-#'  when aggregating by regulatory zone and \code{dat.center = FALSE} when
+#'@param dat.center Logical, whether the plot should center on `dat` 
+#'  (`TRUE`) or `spat` (`FALSE`). Recommend `dat.center = TRUE`
+#'  when aggregating by regulatory zone and `dat.center = FALSE` when
 #'  aggregating by closure area. 
-#'@param output  Output a \code{"plot"}, \code{"table"}, or both (\code{"tab_plot"}).
-#'  Defaults to \code{"plot"}.
-#'@details Observations in \code{dat} must be assigned to regulatory zones to 
-#'  use this function. See \code{\link{assignment_column}} for details. 
-#'  \code{zone_summary} can return: the number of observations per zone 
-#'  (\code{count = TRUE}, \code{fun = NULL}, \code{group = NULL}), the percentage
-#'  of observations by zone (\code{count = TRUE}, \code{fun = "percent"}, 
-#'  \code{group = NULL}), the percentage of observations by zone and group 
-#'  (\code{count = TRUE}, \code{fun = "percent"}, \code{group = "group"}), summary 
-#'  of a numeric variable by zone (\code{count = FALSE}, \code{var = "var"}, 
-#'  \code{fun = "sum"}, \code{group = NULL}), summary of a numeric variable
-#'  by zone and group (\code{count = FALSE}, \code{var = "var"}, \code{fun = "sum"}, 
-#'  \code{group = "group"}), share (percentage) of a numeric variable by zone
-#'  (\code{count = FALSE}, \code{var = "var"}, \code{fun = "percent"}, \code{group = NULL}), 
-#'  share (percentage) of a numeric variable by zone and group (\code{count = FALSE}, 
-#'  \code{var = "var"}, \code{fun = "percent"}, \code{group = "group"}).
+#'@param output  Output a `"plot"`, `"table"`, or both (`"tab_plot"`).
+#'  Defaults to `"plot"`.
+#'@details Observations in `dat` must be assigned to regulatory zones to 
+#'  use this function. See [assignment_column()] for details. 
+#'  `zone_summary` can return: the number of observations per zone 
+#'  (`count = TRUE`, `fun = NULL`, `group = NULL`), the percentage
+#'  of observations by zone (`count = TRUE`, `fun = "percent"`, 
+#'  `group = NULL`), the percentage of observations by zone and group 
+#'  (`count = TRUE`, `fun = "percent"`, `group = "group"`), summary 
+#'  of a numeric variable by zone (`count = FALSE`, `var = "var"`, 
+#'  `fun = "sum"`, `group = NULL`), summary of a numeric variable
+#'  by zone and group (`count = FALSE`, `var = "var"`, `fun = "sum"`, 
+#'  `group = "group"`), share (percentage) of a numeric variable by zone
+#'  (`count = FALSE`, `var = "var"`, `fun = "percent"`, `group = NULL`), 
+#'  share (percentage) of a numeric variable by zone and group (`count = FALSE`, 
+#'  `var = "var"`, `fun = "percent"`, `group = "group"`).
 #'@export
 #'@import ggplot2
 #'@import dplyr
 #'@import sf
+#'@md
 #'@examples 
 #'\dontrun{
 #'
