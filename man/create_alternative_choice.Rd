@@ -22,20 +22,19 @@ create_alternative_choice(
 \item{dat}{Required, main data frame containing data on hauls or trips.
 Table in FishSET database should contain the string \code{MainDataTable}.}
 
-\item{project}{Required, name of project}
+\item{project}{Required, name of project.}
 
-\item{occasion}{String, identifies how to find lat/lon for starting point
-(must have a lon/lat associated with it). \code{occasion} may be
-\code{"zonal centroid"}, \code{"fishing centroid"}, \code{"port"}, or
-\code{"lon-lat"}.}
+\item{occasion}{String, determines the starting point when calculating the
+distance matrix. Options are \code{"zonal centroid"}, \code{"fishing centroid"},
+\code{"port"}, or \code{"lon-lat"}. See \code{occasion_var} for requirements.}
 
-\item{alt_var}{Identifies how to find lat/lon for alternative choices.
-\code{alt_var} may be the centroid of zonal assignment (\code{"zonal centroid"}),
+\item{alt_var}{Determines the alternative choices used to calculate the distance
+matrix. \code{alt_var} may be the centroid of zonal assignment (\code{"zonal centroid"}),
 \code{"fishing centroid"}, or the closest point in fishing zone
-(\code{"nearest point"}). The centroid options require that appropriate
-centroid table has been saved to the project's FishSET Database. To create
-and save centroids, see \code{\link[=create_centroid]{create_centroid()}}. List centroid tables
-by running \code{list_tables("project", type = "centroid")}.}
+(\code{"nearest point"}). The centroid options require that the appropriate
+centroid table has been saved to the project's FishSET Database. See
+\code{\link[=create_centroid]{create_centroid()}} to create and save centroids. List existing centroid
+tables  by running \code{list_tables("project", type = "centroid")}.}
 
 \item{dist.unit}{String, how distance measure should be returned. Choices are
 \code{"meters"} or \code{"M"}, \code{"kilometers"} or \code{"KM"}, or \code{"miles"}. Defaults to miles.}
@@ -45,31 +44,23 @@ hauls than the \code{min.haul} value will not be included in model data.}
 
 \item{spat}{Required, data file or character. \code{spat} is a spatial data file
 containing information on fishery management or regulatory zones boundaries.
-Shape, json, geojson, and csv formats are supported. geojson is the preferred
-format. json files must be converted into geojson. This is done automatically
-when the file is loaded with \code{\link[=read_dat]{read_dat()}} with \code{is.map = TRUE}.
-\code{lon.dat}, \code{lat.dat}, \code{lon.spat}, and \code{lat.spat} are required
-for specific \code{spat} file formats. \code{spatID} must be specified for all
-file formats. If a zonal centroid table exists in the FishSET database and a
+\code{sf} objects are recommended, but \code{sp} objects can be used as well. See
+\code{\link[=dat_to_sf]{dat_to_sf()}} to convert a spatial table read from a csv file to an \code{sf}
+object. To upload your spatial data to the FishSETFolder see \code{\link[=load_spatial]{load_spatial()}}.
+
+If a zonal centroid table exists in the FishSET database and a
 zonal assignment column exists in \code{dat} then \code{spat} may be a table
 from the FishSET database or a data file. If \code{spat} should come from the
 FishSET database, it should be the name of the original file name, in quotes.
 For example, 'NMFS_zones_polygons'. \code{spatID} would then be the name of the
-column in \code{dat} containing fishing zone assignments. Use \code{tables_database()}
+column in \code{dat} containing fishing zone assignments. Use \code{\link[=tables_database]{tables_database()}}
 to view names of tables in the FishSET database.}
 
-\item{spatID}{Required, variable in either \code{dat} or \code{spat} that identifies
-the individual areas or zones. If \code{spatID} is a variable in \code{dat} that
-identifies zone assignments for each occurrence record, set \code{spat} to
-\code{NULL}. Otherwise, if \code{spat} is class \code{sf}, \code{spatID} should be the
-name of the list containing information on zones.}
+\item{spatID}{Required, variable in \code{spat} that identifies the individual
+areas or zones.}
 
 \item{zoneID}{Variable in \code{dat} that identifies the individual zones or
-areas. Define if exists in \code{dat} and is not named \code{ZoneID}. Defaults to
-\code{NULL}.}
-
-\item{startingloc}{Variable name containing a vessel's starting location,
-required for \code{\link[=logit_correction]{logit_correction()}}.}
+areas.}
 
 \item{occaion_var}{Possible option depend on the value of \code{occasion}:
 \describe{
@@ -77,13 +68,14 @@ required for \code{\link[=logit_correction]{logit_correction()}}.}
 options are \code{NULL}, the name of a zone ID variable, or a set coordinate
 variables (in Lon-Lat order)
 \describe{
-\item{NULL}{This will merge centroid lon-lat to the primary table using
-\code{zoneID}. A centroid table must be saved to the FishSET Database.}
+\item{NULL}{This will merge centroid lon-lat data to the primary table
+using the column enter in \code{zoneID}. A centroid table must be saved
+to the FishSET Database.}
 \item{Zone ID}{This option specifies the zone ID variable to merge the
 centroid table to. For example, a column containing the previous zonal
 area. A centroid table must be saved to the FishSET Database.}
-\item{Lon-Lat}{A string vector of length two containing the longitude and
-latitude of an existing set centroid variables in the primary table.}
+\item{Lon-Lat}{A string vector of length two containing the longitude
+and latitude of an existing set centroid variables in \code{dat}.}
 }
 }
 \item{Port}{When \code{occasion = port} the possible options include the name
@@ -95,12 +87,12 @@ used to join the port table to the primary table. A port table
 is required (see \code{\link[=load_port]{load_port()}}) which contains the port name and
 the longitude and latitude of each port.}
 \item{Lon-Lat}{A string vector of length two containing a port's
-longitude and latitude from the primary table.}
+longitude and latitude in \code{dat}.}
 }
 }
 \item{Lon-Lat}{When \code{occasion = lon-lat}, \code{occasion_var} must contain a
 string vector of length two containing the longitude and latitude of a
-vessel's location in the primary table. For example, the current or
+vessel's location in the \code{dat}. For example, the current or
 previous haul location.}
 }}
 }
@@ -124,18 +116,16 @@ matrix: \tab Distance matrix is alternative choices comes from gridded dataset
 \description{
 Required step. Creates a list identifying how alternative fishing choices should
 be defined. Output is saved to the FishSET database. Run this function before
-running models.
+running models. \code{dat} must have a zone assignment column (see
+\code{\link[=column_assignment]{column_assignment()}}). In certain cases a centroid table must be saved to
+the FishSET Database, see \code{occasion_var} for details.
 }
 \details{
 Defines the alternative fishing choices. These choices are used to develop
 the matrix of distances between observed and alternative fishing choices (where
 they could have fished but did not). The distance matrix is calculated by the
-\code{\link[=make_model_design]{make_model_design()}} function. The distance matrix can come from
-\code{dat} or from the gridded data frame \code{grid}. If the distance
-matrix is to come from \code{dat}, then \code{occasion} (observed fishing location)
-and \code{alt_var} (alternative fishing location) must be specified. \code{grid},
-if used, must be a variable that varies by the spatial dataset, such as wind
-speed. Each column must be a unique zone that matches the zones in \code{dat}.
+\code{\link[=make_model_design]{make_model_design()}} function. \code{occasion} defines the observed fishing
+location and \code{alt_var} the alternative fishing location.
 
 Parts of the alternative choice list are pulled by \code{\link[=create_expectations]{create_expectations()}},
 \code{\link[=make_model_design]{make_model_design()}}, and the model run \code{\link[=discretefish_subroutine]{discretefish_subroutine()}})
