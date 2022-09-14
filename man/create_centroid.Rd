@@ -15,56 +15,62 @@ create_centroid(
   weight.var = NULL,
   type = "zonal centroid",
   names = NULL,
+  cent.name = NULL,
   output = "dataset"
 )
 }
 \arguments{
-\item{spat}{Spatial data containing information on fishery management or 
-regulatory zones. Required for \code{type = "zonal centroid"}, ignored for
-\code{type = "fishing centroid"}.}
+\item{spat}{Spatial data containing information on fishery management or
+regulatory zones. Required for \code{type = "zonal centroid"}, not required
+for \code{type = "fishing centroid"}. \code{spat} will be included in centroid
+table name.}
 
-\item{dat}{Primary data containing information on hauls or trips. Table in 
-FishSET database contains the string 'MainDataTable'. \code{dat} is not 
+\item{dat}{Primary data containing information on hauls or trips. Table in
+FishSET database contains the string 'MainDataTable'. \code{dat} is not
 required if \code{type = "zonal centroid"} and \code{output = "centroid table"}.}
 
 \item{project}{Name of project.}
 
-\item{spatID}{Variable or list in \code{spat} that identifies the individual areas 
-or zones. If \code{spat} is class sf, \code{spatID} should be name of list 
+\item{spatID}{Variable or list in \code{spat} that identifies the individual areas
+or zones. If \code{spat} is class sf, \code{spatID} should be name of list
 containing information on zones. Ignored if \code{type = "fishing centroid"}.}
 
-\item{zoneID}{Variable in \code{dat} that identifies zonal assignments. 
-\code{zoneID} is not required if \code{type = "zonal centroid"} and 
+\item{zoneID}{Variable in \code{dat} that identifies zonal assignments.
+\code{zoneID} is not required if \code{type = "zonal centroid"} and
 \code{output = "centroid table"}.}
 
-\item{lon.dat}{Longitude variable in \code{dat}. Required for 
+\item{lon.dat}{Longitude variable in \code{dat}. Required for
 \code{type = "fishing centroid"}.}
 
-\item{lat.dat}{Latitude variable in \code{dat}. Required for 
+\item{lat.dat}{Latitude variable in \code{dat}. Required for
 \code{type = "fishing centroid"}.}
 
-\item{weight.var}{Variable from \code{dat} for weighted average 
-(for \code{type = "fishing centroid"}. only). If \code{weight.var} is defined, 
-the centroid is defined by the latitude and longitude of fishing locations 
+\item{weight.var}{Variable from \code{dat} for weighted average
+(for \code{type = "fishing centroid"}. only). If \code{weight.var} is defined,
+the centroid is defined by the latitude and longitude of fishing locations
 in each zone weighted by \code{weight.var}.}
 
 \item{type}{The type of centroid to create. Options include \code{"zonal centroid"}
 and \code{"fishing centroid"}. See other arguments for \code{type} requirements.}
 
-\item{names}{Character vector of length two containing the names of the fishing 
-centroid columns. The order should be \code{c("lon_name", "lat_name")}. The 
-default names are \code{c("weight_cent_lon", "weight_cent_lat")} for weighted 
-fishing centroid and \code{c("fish_cent_lon", "fish_cent_lat")} for unweighted 
+\item{names}{Character vector of length two containing the names of the fishing
+centroid columns. The order should be \code{c("lon_name", "lat_name")}. The
+default names are \code{c("weight_cent_lon", "weight_cent_lat")} for weighted
+fishing centroid and \code{c("fish_cent_lon", "fish_cent_lat")} for unweighted
 fishing centroid.}
 
-\item{output}{Options are \code{"centroid table"}, \code{"dataset"}, or \code{"both"}. 
-\code{"centroid table"} returns a table containing the zone name and the 
-longitude and latitude of the centroid. \code{"dataset"} returns the primary 
-table joined with the centroid table. \code{"both"} returns a list containing 
+\item{cent.name}{A string to include in the centroid table name. Table names
+take the form of \code{"projectNameZoneCentroid"} for zonal centroids and
+\code{"projectNameZoneCentroid"} for fishing centroids.}
+
+\item{output}{Options are \code{"centroid table"}, \code{"dataset"}, or \code{"both"}.
+\code{"centroid table"} returns a table containing the zone name and the
+longitude and latitude of the centroid. \code{"dataset"} returns the primary
+table joined with the centroid table. \code{"both"} returns a list containing
 the merged primary table and the centroid table.}
 }
 \description{
-Create zonal or fishing centroid table. The centroid can be joined with the 
-primary data if \code{output == "dataset"}. The centroid table is automatically 
+Create zonal or fishing centroid table. The centroid can be joined with the
+primary data if \code{output == "dataset"}. The centroid table is automatically
 saved to the FishSET Database.
 }

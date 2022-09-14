@@ -6,28 +6,39 @@
 \usage{
 create_dist_matrix(
   dataset,
+  spat = NULL,
+  spatID = NULL,
   alt_var,
   occasion,
+  occasion_var = NULL,
   dataZoneTrue,
-  int,
+  zone_cent = NULL,
+  fish_cent = NULL,
   choice,
   units,
-  port,
+  port = NULL,
   zoneRow,
-  X,
   zoneID
 )
 }
 \arguments{
 \item{dataset}{Primary data set}
 
+\item{spat}{Spatial table.}
+
+\item{spatID}{Column name for Zone/area ID.}
+
 \item{alt_var}{Alternative choice location}
 
 \item{occasion}{Define choice location}
 
+\item{occasion_var}{Identify variable(s) needed to define choice location.}
+
 \item{dataZoneTrue}{Include zone}
 
-\item{int}{Zone centroid data frame}
+\item{zone_cent}{Zonal centroid table.}
+
+\item{fish_cent}{Fishing centroid table.}
 
 \item{choice}{Choice zone}
 
@@ -36,8 +47,6 @@ create_dist_matrix(
 \item{port}{Port table}
 
 \item{zoneRow}{Zone row}
-
-\item{X}{distance matrix}
 
 \item{zoneID}{Zone identifier}
 }
