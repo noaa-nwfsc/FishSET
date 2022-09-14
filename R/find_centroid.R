@@ -10,6 +10,9 @@
 #'   Required for csv files. Leave as NULL if \code{spat} is a shape or json file.
 #' @param lat.spat Variable or list from \code{spat} containing latitude data. 
 #'   Required for csv files. Leave as NULL if \code{spat} is a shape or json file.
+#' @param cent.name String, name to include in centroid table. Centroid name take the 
+#'   form of `"projectNameZoneCentroid"`. Defaults to `NULL` 
+#'   (e.g. `"projectZoneCentroid"`).
 #' @param log.fun Logical, whether to log function call (for internal use).
 #' @keywords centroid, zone, polygon
 #' @importFrom sf st_centroid st_coordinates st_cast
@@ -29,6 +32,7 @@ find_centroid <-
            spatID,
            lon.spat = NULL,
            lat.spat = NULL,
+           cent.name = NULL,
            log.fun = TRUE) {
  
   # Call in datasets
@@ -85,7 +89,9 @@ find_centroid <-
   suppressWarnings(fishset_db <- DBI::dbConnect(RSQLite::SQLite(), locdatabase(project = project)))
   on.exit(DBI::dbDisconnect(fishset_db), add = TRUE)
   
-  DBI::dbWriteTable(fishset_db, paste0(spat, "Centroid"), cent, overwrite = TRUE)
+  c_name <- paste0(project, cent.name)
+  
+  DBI::dbWriteTable(fishset_db, paste0(c_name, "ZoneCentroid"), cent, overwrite = TRUE)
   
   # this should be removed eventually; create_alternative_choice() tends to break
   # if "spatCentroid" hasn't been saved
